@@ -10,6 +10,7 @@ use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
     parse_multiqc_general_stats_metrics, parse_profile_reads_report,
+    parse_profile_read_lengths_report,
     parse_remove_duplicates_provenance,
     parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
     parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
@@ -419,6 +420,31 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "mate_summaries": report.mate_summaries,
                         "qc_tsv": report.qc_tsv,
                         "qc_plots_dir": report.qc_plots_dir,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.profile_read_lengths" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_profile_read_lengths_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "histogram_bins": report.histogram_bins,
+                        "read_count": report.read_count,
+                        "mean_read_length": report.mean_read_length,
+                        "max_read_length": report.max_read_length,
+                        "distinct_lengths": report.distinct_lengths,
+                        "histogram_entry_count": report.histogram.len(),
+                        "length_distribution_tsv": report.length_distribution_tsv,
+                        "length_distribution_json": report.length_distribution_json,
                         "raw_backend_report": report.raw_backend_report,
                         "raw_backend_report_format": report.raw_backend_report_format,
                     });
@@ -2170,6 +2196,82 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["raw_backend_report_format"],
             serde_json::json!("seqkit_stats_tsv")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_profile_read_length_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("profile_read_lengths_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.profile_read_lengths.report.v2",
+                "stage": "fastq.profile_read_lengths",
+                "stage_id": "fastq.profile_read_lengths",
+                "tool_id": "seqkit_stats",
+                "paired_mode": "paired_end",
+                "histogram_bins": 64,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "length_distribution_tsv": "length_distribution.tsv",
+                "length_distribution_json": "length_distribution.json",
+                "report_json": "profile_read_lengths_report.json",
+                "read_count": 200,
+                "mean_read_length": 101.5,
+                "max_read_length": 150,
+                "distinct_lengths": 12,
+                "histogram": [
+                    {"read_length": 100, "count": 180},
+                    {"read_length": 101, "count": 20}
+                ],
+                "runtime_s": 1.1,
+                "memory_mb": 16.0,
+                "exit_code": 0,
+                "raw_backend_report": "length_distribution.tsv",
+                "raw_backend_report_format": "seqkit_fx2tab_tsv"
+            })
+            .to_string(),
+        )
+        .expect("write profile read lengths report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.profile_read_lengths"),
+            tool_id: ToolId::from_static("seqkit_stats"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    temp.path().join("reads_R1.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.profile_read_lengths")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["histogram_bins"],
+            serde_json::json!(64)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["read_count"],
+            serde_json::json!(200)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["raw_backend_report_format"],
+            serde_json::json!("seqkit_fx2tab_tsv")
         );
     }
 
