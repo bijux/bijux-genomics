@@ -248,15 +248,27 @@ fn chimera_params_roundtrip_with_sequence_artifact_contract() {
     let params = ChimeraDetectionEffectiveParams {
         method: "vsearch_uchime_denovo".to_string(),
         detection_scope: "denovo".to_string(),
+        input_layout: "single_stream".to_string(),
+        report_artifact: "report_json".to_string(),
+        metrics_artifact: "chimera_metrics_json".to_string(),
         chimera_sequence_artifact: "chimeras_fasta".to_string(),
+        raw_backend_report_artifact: "uchime_report_tsv".to_string(),
+        raw_backend_report_format: "vsearch_uchime_tsv".to_string(),
         chimera_removed_definition:
             "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
                 .to_string(),
+        fallback_behavior: "copy_input_reads_and_mark_report".to_string(),
     };
     let decoded: ChimeraDetectionEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.method, "vsearch_uchime_denovo");
     assert_eq!(decoded.detection_scope, "denovo");
+    assert_eq!(decoded.input_layout, "single_stream");
+    assert_eq!(decoded.report_artifact, "report_json");
+    assert_eq!(decoded.metrics_artifact, "chimera_metrics_json");
     assert_eq!(decoded.chimera_sequence_artifact, "chimeras_fasta");
+    assert_eq!(decoded.raw_backend_report_artifact, "uchime_report_tsv");
+    assert_eq!(decoded.raw_backend_report_format, "vsearch_uchime_tsv");
+    assert_eq!(decoded.fallback_behavior, "copy_input_reads_and_mark_report");
 }
 
 #[test]
