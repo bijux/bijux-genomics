@@ -299,14 +299,7 @@ fn write_stage_standardized_metrics(
             "report_tsv": out_dir.join("rrna_report.tsv"),
             "report_json": out_dir.join("rrna_report.json"),
         }),
-        "fastq.profile_reads" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_total", "bases_total", "mean_q", "gc_percent", "length_histogram"],
-            "report_json": out_dir.join("qc.json"),
-            "report_tsv": out_dir.join("qc.tsv"),
-            "plots_dir": out_dir.join("plots"),
-        }),
+        "fastq.profile_reads" => parse_profile_reads_metrics(out_dir),
         "fastq.report_qc" => parse_report_qc_metrics(out_dir),
         "fastq.normalize_primers" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
