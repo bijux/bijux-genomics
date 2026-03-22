@@ -13,7 +13,10 @@ command_template:
   - "stats"
   - "-a"
   - "-T"
+  - "-j"
+  - "{{threads}}"
   - "{{reads_r1}}"
+  - "{{reads_r2}}"
 outputs:
   - name: "qc_json"
     data_type: "json"

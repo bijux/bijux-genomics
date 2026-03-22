@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
@@ -43,7 +43,7 @@ pub fn plan_with_options(
     let dist_json = out_dir.join("length_distribution.json");
     let report_json = out_dir.join("profile_read_lengths_report.json");
     let threads = threads_override.unwrap_or(tool.resources.threads).max(1);
-    let command_template = profile_lengths_command(&tool.tool_id.0, r1, r2, threads);
+    let command_template = profile_lengths_command(tool, r1, r2, threads)?;
     let histogram_bins = histogram_bins_override.unwrap_or(100).max(1);
     let effective_params = FastqReadLengthProfileParams {
         schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
@@ -123,21 +123,97 @@ pub fn plan_with_options(
     })
 }
 
-fn profile_lengths_command(tool_id: &str, r1: &Path, r2: Option<&Path>, threads: u32) -> Vec<String> {
-    let mut command = match tool_id {
-        "seqkit_stats" => vec![
-            "seqkit".to_string(),
-            "stats".to_string(),
-            "-a".to_string(),
-            "-T".to_string(),
-            "-j".to_string(),
-            threads.to_string(),
-            r1.display().to_string(),
+fn profile_lengths_command(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    threads: u32,
+) -> Result<Vec<String>> {
+    let rendered = crate::tool_adapters::template_render::render_command_template(
+        &tool.command.template,
+        &[
+            ("threads", Some(threads.to_string())),
+            ("reads_r1", Some(r1.display().to_string())),
+            (
+                "reads_r2",
+                Some(r2.map(|path| path.display().to_string()).unwrap_or_default()),
+            ),
         ],
-        other => vec![other.to_string(), r1.display().to_string()],
-    };
-    if let Some(r2) = r2 {
-        command.push(r2.display().to_string());
+    )?;
+    let command = rendered
+        .into_iter()
+        .filter(|token| !token.is_empty())
+        .collect::<Vec<_>>();
+    if command.is_empty() {
+        return Err(anyhow!(
+            "profile read lengths command template resolved to an empty command"
+        ));
     }
-    command
+    Ok(command)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::plan_with_options;
+    use bijux_dna_core::prelude::{
+        ContainerImageRefV1, ResourceSizingV1, ToolExecutionSpecV1, ToolId, ToolVersion,
+    };
+    use std::path::Path;
+
+    fn seqkit_tool() -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("seqkit_stats"),
+            tool_version: ToolVersion::new("2.8.0"),
+            image: ContainerImageRefV1 {
+                image: "bijuxdna/seqkit".to_string(),
+                digest: None,
+            },
+            command: bijux_dna_core::prelude::CommandSpecV1 {
+                template: vec![
+                    "seqkit".to_string(),
+                    "stats".to_string(),
+                    "-a".to_string(),
+                    "-T".to_string(),
+                    "-j".to_string(),
+                    "{{threads}}".to_string(),
+                    "{{reads_r1}}".to_string(),
+                    "{{reads_r2}}".to_string(),
+                ],
+            },
+            resources: ResourceSizingV1 {
+                cpu_cores: 1.0,
+                memory_mb: 512,
+                disk_mb: 512,
+                threads: 2,
+            },
+        }
+    }
+
+    #[test]
+    fn profile_read_lengths_plan_renders_seqkit_thread_template() {
+        let plan = plan_with_options(
+            &seqkit_tool(),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            Some(6),
+            Some(64),
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 6);
+        assert_eq!(
+            plan.command.template,
+            vec![
+                "seqkit",
+                "stats",
+                "-a",
+                "-T",
+                "-j",
+                "6",
+                "reads_R1.fastq.gz",
+                "reads_R2.fastq.gz",
+            ]
+        );
+    }
 }
