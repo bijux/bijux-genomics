@@ -300,6 +300,77 @@ pub fn stage_metrics_for_plan(
                 failure_class: None,
             }))?
         }
+        "fastq.profile_overrepresented_sequences" => {
+            let stats = stats_for_paths(&[
+                inputs.first().map(PathBuf::as_path),
+                inputs.get(1).map(PathBuf::as_path),
+            ])?;
+            let input_r1 = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let input_r2 = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
+            let pairs_in = inputs.get(1).map(|_| input_r1.reads.min(input_r2.reads));
+            let pairs_out = pairs_in;
+            let reads_in = input_r1.reads + inputs.get(1).map_or(0, |_| input_r2.reads);
+            let bases_in = input_r1.bases + inputs.get(1).map_or(0, |_| input_r2.bases);
+            let report = path_from_params(&plan.params, "report_json")
+                .and_then(|report_path| std::fs::read_to_string(report_path).ok())
+                .and_then(|raw| crate::observer::parse_profile_overrepresented_report(&raw).ok());
+            let legacy = path_from_params(&plan.params, "output_json")
+                .and_then(|json_path| std::fs::read_to_string(json_path).ok())
+                .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok());
+            serde_json::json!({
+                "reads_in": reads_in,
+                "reads_out": reads_in,
+                "bases_in": bases_in,
+                "bases_out": bases_in,
+                "pairs_in": pairs_in,
+                "pairs_out": pairs_out,
+                "paired_mode": report.as_ref().map(|payload| payload.paired_mode),
+                "threads": report.as_ref().map(|payload| payload.threads),
+                "top_k": report.as_ref().map(|payload| payload.top_k).or_else(|| {
+                    legacy
+                        .as_ref()
+                        .and_then(|value| value.get("top_k"))
+                        .and_then(serde_json::Value::as_u64)
+                }),
+                "sequence_count": report
+                    .as_ref()
+                    .map(|payload| payload.sequence_count)
+                    .or_else(|| {
+                        legacy
+                            .as_ref()
+                            .and_then(|value| value.get("sequence_count"))
+                            .and_then(serde_json::Value::as_u64)
+                    })
+                    .unwrap_or(0),
+                "flagged_sequences": report
+                    .as_ref()
+                    .map(|payload| payload.flagged_sequences)
+                    .or_else(|| {
+                        legacy
+                            .as_ref()
+                            .and_then(|value| value.get("flagged_sequences"))
+                            .and_then(serde_json::Value::as_u64)
+                    })
+                    .unwrap_or(0),
+                "top_fraction": report
+                    .as_ref()
+                    .map(|payload| payload.top_fraction)
+                    .or_else(|| {
+                        legacy
+                            .as_ref()
+                            .and_then(|value| value.get("top_fraction"))
+                            .and_then(serde_json::Value::as_f64)
+                    })
+                    .unwrap_or(0.0),
+                "row_count": report.as_ref().map(|payload| payload.rows.len()).or_else(|| {
+                    legacy
+                        .as_ref()
+                        .and_then(|value| value.get("rows"))
+                        .and_then(serde_json::Value::as_array)
+                        .map(std::vec::Vec::len)
+                }),
+            })
+        }
         id_catalog::FASTQ_DETECT_ADAPTERS => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
