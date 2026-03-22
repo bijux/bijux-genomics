@@ -74,11 +74,12 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan(
+        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan_with_options(
             &tool_spec,
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
+            args.histogram_bins,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -126,7 +127,12 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             lengths.extend(read_fastq_lengths(r2)?);
         }
         if !plan.io.outputs[0].path.exists() || !plan.io.outputs[1].path.exists() {
-            write_length_outputs(&plan.io.outputs[0].path, &plan.io.outputs[1].path, &lengths)?;
+            write_length_outputs(
+                &plan.io.outputs[0].path,
+                &plan.io.outputs[1].path,
+                &lengths,
+                args.histogram_bins.unwrap_or(100).max(1),
+            )?;
         }
         let metrics = metrics_from_lengths(&lengths)?;
         let metric_set = metric_set(metrics);
@@ -221,11 +227,8 @@ fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
     Ok(lengths)
 }
 
-fn write_length_outputs(tsv: &Path, json: &Path, lengths: &[usize]) -> Result<()> {
-    let mut hist = BTreeMap::<usize, u64>::new();
-    for &len in lengths {
-        *hist.entry(len).or_insert(0) += 1;
-    }
+fn write_length_outputs(tsv: &Path, json: &Path, lengths: &[usize], histogram_bins: u32) -> Result<()> {
+    let hist = rebin_lengths(lengths, histogram_bins.max(1));
     let mut tsv_body = String::from("sample_id\tread_length\tcount\n");
     for (len, count) in &hist {
         tsv_body.push_str(&format!("sample\t{len}\t{count}\n"));
@@ -237,6 +240,32 @@ fn write_length_outputs(tsv: &Path, json: &Path, lengths: &[usize]) -> Result<()
     });
     bijux_dna_infra::atomic_write_json(json, &json_body)?;
     Ok(())
+}
+
+fn rebin_lengths(lengths: &[usize], histogram_bins: u32) -> BTreeMap<usize, u64> {
+    let mut exact = BTreeMap::<usize, u64>::new();
+    for &len in lengths {
+        *exact.entry(len).or_insert(0) += 1;
+    }
+    let target_bins = histogram_bins.max(1) as usize;
+    if exact.len() <= target_bins {
+        return exact;
+    }
+
+    let min_len = *exact.keys().next().unwrap_or(&0);
+    let max_len = *exact.keys().last().unwrap_or(&min_len);
+    if min_len == max_len {
+        return exact;
+    }
+    let span = max_len - min_len + 1;
+    let bin_width = span.div_ceil(target_bins).max(1);
+    let mut rebinned = BTreeMap::<usize, u64>::new();
+    for (len, count) in exact {
+        let offset = len.saturating_sub(min_len);
+        let bucket_start = min_len + ((offset / bin_width) * bin_width);
+        *rebinned.entry(bucket_start).or_insert(0) += count;
+    }
+    rebinned
 }
 
 fn metrics_from_lengths(lengths: &[usize]) -> Result<FastqReadLengthMetrics> {

@@ -112,7 +112,7 @@ pub use observer_contract::{
 };
 pub use params::correct::FastqCorrectParams;
 pub use params::defaults::{correct_defaults, stats_defaults, umi_defaults};
-pub use params::stats::FastqStatsParams;
+pub use params::stats::{FastqReadLengthProfileParams, FastqStatsParams};
 pub use params::trim::{
     AlienTrimmerParamsV1, FastxClipperParamsV1, LeeHomTrimParamsV1, OverlapCollapseMode,
     ReadHandlingMode, SkewerTrimParamsV1, TrimAdapterMode, TrimQualityMode, TrimToolParamsV1,
