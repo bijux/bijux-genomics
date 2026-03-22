@@ -230,6 +230,7 @@ pub fn bench_args_detect_adapters(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
     })
 }
 
