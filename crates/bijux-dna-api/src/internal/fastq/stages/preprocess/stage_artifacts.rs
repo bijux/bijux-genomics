@@ -18,14 +18,30 @@ fn emit_fastq_stage_extra_artifacts(
             "stage": stage_id,
             "removed_reads": parse_low_complexity_filtered_count(&execution.stdout, &execution.stderr),
         })),
-        "fastq.trim_polyg_tails" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.polyg.v1",
-            "stage": stage_id,
-            "before_after_distribution": {
-                "before_polyg_reads": parse_first_u64_after_key(&execution.stdout, "polyG before"),
-                "after_polyg_reads": parse_first_u64_after_key(&execution.stdout, "polyG after"),
-            }
-        })),
+        "fastq.trim_polyg_tails" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("trim_polyg_tails_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("trim_polyg_tails_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_trim_polyg_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.trim_polyg_tails.extra_artifacts.v2",
+                "stage": stage_id,
+                "trim_polyg": governed.as_ref().map(|report| report.trim_polyg),
+                "min_polyg_run": governed.as_ref().map(|report| report.min_polyg_run),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "bases_trimmed_polyg": governed.as_ref().and_then(|report| report.bases_trimmed_polyg),
+                "polyx_bank_hash": governed.as_ref().and_then(|report| report.polyx_bank_hash.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+            }))
+        }
         "fastq.deplete_reference_contaminants" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.deplete_reference_contaminants.v1",
             "stage": stage_id,
@@ -51,12 +67,15 @@ fn emit_fastq_stage_extra_artifacts(
             let report_path = execution
                 .outputs
                 .iter()
-                .find(|path| path.file_name().and_then(|name| name.to_str()) == Some("trim_terminal_damage_report.json"))
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("trim_terminal_damage_report.json")
+                })
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("trim_terminal_damage_report.json"));
-            let governed = std::fs::read_to_string(&report_path)
-                .ok()
-                .and_then(|raw| bijux_dna_stages_fastq::observer::parse_terminal_damage_report(&raw).ok());
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_terminal_damage_report(&raw).ok()
+            });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.trim_terminal_damage.v2",
                 "stage": stage_id,
@@ -126,14 +145,7 @@ fn write_stage_standardized_metrics(
             "tsv_path": out_dir.join("overrepresented_sequences.tsv"),
             "json_path": out_dir.join("overrepresented_sequences.json"),
         }),
-        "fastq.trim_polyg_tails" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "applicability": {
-                "requires_illumina_like_cycle_artifacts": true,
-            },
-            "report_json": out_dir.join("trim_polyg_tails_report.json"),
-        }),
+        "fastq.trim_polyg_tails" => parse_trim_polyg_metrics(out_dir),
         "fastq.filter_low_complexity" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
@@ -142,7 +154,7 @@ fn write_stage_standardized_metrics(
             },
             "report_json": out_dir.join("low_complexity_report.json"),
         }),
-        "fastq.trim_reads" => super::stage_backend_policy::parse_trim_reads_metrics(out_dir),
+        "fastq.trim_reads" => parse_trim_reads_metrics(out_dir),
         "fastq.filter_reads" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
@@ -219,9 +231,7 @@ fn write_stage_standardized_metrics(
             "stage": stage_id,
             "fields": ["reads_in", "reads_out", "primer_trimmed_reads"],
         }),
-        "fastq.trim_terminal_damage" => {
-            super::stage_backend_policy::parse_trim_terminal_damage_metrics(out_dir)
-        }
+        "fastq.trim_terminal_damage" => parse_trim_terminal_damage_metrics(out_dir),
         "fastq.remove_chimeras" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
@@ -244,6 +254,9 @@ fn write_stage_standardized_metrics(
         }),
         _ => return Ok(()),
     };
-    bijux_dna_infra::atomic_write_json(&stage_root.join("stage.metrics.standardized.json"), &metrics)
-        .context("write standardized stage metrics")
+    bijux_dna_infra::atomic_write_json(
+        &stage_root.join("stage.metrics.standardized.json"),
+        &metrics,
+    )
+    .context("write standardized stage metrics")
 }
