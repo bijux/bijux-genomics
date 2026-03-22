@@ -9,6 +9,7 @@ use bijux_dna_domain_fastq::params::trim::{
 };
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
+use bijux_dna_domain_fastq::{TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION};
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
 };
@@ -76,6 +77,10 @@ pub fn plan_trim_terminal_damage_with_options(
     };
     let output_r2 = r2.map(|_| out_dir.join(format!("R2.{out_name}")));
     let report = out_dir.join("trim_terminal_damage_report.json");
+    let raw_backend_report = match tool.tool_id.as_str() {
+        "cutadapt" => Some(out_dir.join("trim_terminal_damage.cutadapt.raw.json")),
+        _ => None,
+    };
     let command_template = trim_terminal_damage_command(
         &tool.tool_id.0,
         r1,
@@ -83,6 +88,7 @@ pub fn plan_trim_terminal_damage_with_options(
         &output_r1,
         output_r2.as_deref(),
         &report,
+        raw_backend_report.as_deref(),
         options.damage_mode,
         resolved_policy.execution_policy,
         resolved_policy.effective_trim_5p_bases,
@@ -153,6 +159,7 @@ pub fn plan_trim_terminal_damage_with_options(
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report,
+            "raw_backend_report": raw_backend_report,
         }),
         effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
@@ -167,6 +174,7 @@ fn trim_terminal_damage_command(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report: &Path,
+    raw_backend_report: Option<&Path>,
     damage_mode: DamageMode,
     execution_policy: bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy,
     trim_5p_bases: u32,
@@ -174,32 +182,53 @@ fn trim_terminal_damage_command(
     requested_trim_5p_bases: u32,
     requested_trim_3p_bases: u32,
 ) -> Result<Vec<String>> {
+    let governed_report = build_governed_terminal_damage_report(
+        tool_id,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        raw_backend_report,
+        damage_mode,
+        execution_policy,
+        trim_5p_bases,
+        trim_3p_bases,
+        requested_trim_5p_bases,
+        requested_trim_3p_bases,
+    )?;
     match tool_id {
         "cutadapt" => {
-            let mut command = vec!["cutadapt".to_string()];
+            let raw_backend_report = raw_backend_report
+                .ok_or_else(|| anyhow!("cutadapt terminal-damage planning requires raw backend report path"))?;
+            let mut script = "set -euo pipefail\ncutadapt".to_string();
             if trim_5p_bases > 0 {
-                command.push("-u".to_string());
-                command.push(trim_5p_bases.to_string());
+                script.push_str(&format!(" -u {}", trim_5p_bases));
             }
             if trim_3p_bases > 0 {
-                command.push("-u".to_string());
-                command.push(format!("-{trim_3p_bases}"));
+                script.push_str(&format!(" -u -{trim_3p_bases}"));
             }
-            command.extend([
-                "--json".to_string(),
-                report.display().to_string(),
-                "-o".to_string(),
-                output_r1.display().to_string(),
-            ]);
+            script.push_str(&format!(
+                " --json {} -o {}",
+                shell_quote_path(raw_backend_report),
+                shell_quote_path(output_r1),
+            ));
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
-                command.push("-p".to_string());
-                command.push(output_r2.display().to_string());
-                command.push(r1.display().to_string());
-                command.push(r2.display().to_string());
+                script.push_str(&format!(
+                    " -p {} {} {}",
+                    shell_quote_path(output_r2),
+                    shell_quote_path(r1),
+                    shell_quote_path(r2),
+                ));
             } else {
-                command.push(r1.display().to_string());
+                script.push_str(&format!(" {}", shell_quote_path(r1)));
             }
-            Ok(command)
+            script.push('\n');
+            script.push_str(&format!(
+                "printf '%s\\n' {} > {}\n",
+                shell_quote_str(&governed_report),
+                shell_quote_path(report),
+            ));
+            Ok(vec!["sh".to_string(), "-lc".to_string(), script])
         }
         "seqkit" => {
             let region = terminal_trim_region(trim_5p_bases, trim_3p_bases);
@@ -217,23 +246,9 @@ fn trim_terminal_damage_command(
                     shell_quote_path(output_r2),
                 ));
             }
-            let report_payload = serde_json::json!({
-                "schema_version": "bijux.fastq.trim_terminal_damage.report.v1",
-                "tool_id": tool_id,
-                "damage_mode": damage_mode,
-                "execution_policy": execution_policy,
-                "trim_5p_bases": trim_5p_bases,
-                "trim_3p_bases": trim_3p_bases,
-                "requested_trim_5p_bases": requested_trim_5p_bases,
-                "requested_trim_3p_bases": requested_trim_3p_bases,
-                "input_r1": r1,
-                "input_r2": r2,
-                "output_r1": output_r1,
-                "output_r2": output_r2,
-            });
             script.push_str(&format!(
                 "printf '%s\\n' {} > {}\n",
-                shell_quote_str(&report_payload.to_string()),
+                shell_quote_str(&governed_report),
                 shell_quote_path(report),
             ));
             Ok(vec!["sh".to_string(), "-lc".to_string(), script])
@@ -241,6 +256,73 @@ fn trim_terminal_damage_command(
         _ => Err(anyhow!(
             "unsupported trim_terminal_damage tool for stage planning: {tool_id}"
         )),
+    }
+}
+
+fn build_governed_terminal_damage_report(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    raw_backend_report: Option<&Path>,
+    damage_mode: DamageMode,
+    execution_policy: bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy,
+    trim_5p_bases: u32,
+    trim_3p_bases: u32,
+    requested_trim_5p_bases: u32,
+    requested_trim_3p_bases: u32,
+) -> Result<String> {
+    let report = TerminalDamageReportV1 {
+        schema_version: TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.as_str().to_string(),
+        stage_id: STAGE_ID.as_str().to_string(),
+        tool_id: tool_id.to_string(),
+        paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        damage_mode,
+        execution_policy,
+        trim_5p_bases,
+        trim_3p_bases,
+        requested_trim_5p_bases: Some(requested_trim_5p_bases),
+        requested_trim_3p_bases: Some(requested_trim_3p_bases),
+        udg_classification: damage_mode_default_udg_classification(damage_mode).to_string(),
+        input_r1: r1.display().to_string(),
+        input_r2: r2.map(|path| path.display().to_string()),
+        output_r1: output_r1.display().to_string(),
+        output_r2: output_r2.map(|path| path.display().to_string()),
+        reads_in: None,
+        reads_out: None,
+        bases_in: None,
+        bases_out: None,
+        mean_q_before: None,
+        mean_q_after: None,
+        ct_ga_asymmetry_pre: None,
+        ct_ga_asymmetry_post: None,
+        ct_ga_asymmetry_pre_r1: None,
+        ct_ga_asymmetry_post_r1: None,
+        ct_ga_asymmetry_pre_r2: None,
+        ct_ga_asymmetry_post_r2: None,
+        terminal_base_composition_pre_r1: None,
+        terminal_base_composition_post_r1: None,
+        terminal_base_composition_pre_r2: None,
+        terminal_base_composition_post_r2: None,
+        raw_backend_report: raw_backend_report.map(|path| path.display().to_string()),
+        raw_backend_report_format: match tool_id {
+            "cutadapt" => Some("cutadapt_json".to_string()),
+            "seqkit" => Some("seqkit_subseq".to_string()),
+            _ => None,
+        },
+        runtime_s: None,
+        memory_mb: None,
+    };
+    serde_json::to_string(&report)
+        .map_err(|error| anyhow!("serialize terminal damage governed report: {error}"))
+}
+
+fn damage_mode_default_udg_classification(damage_mode: DamageMode) -> &'static str {
+    match damage_mode {
+        DamageMode::Ancient => "non_udg",
+        DamageMode::UdgTrimmed => "udg",
     }
 }
 
@@ -260,4 +342,94 @@ fn shell_quote_path(path: &Path) -> String {
 
 fn shell_quote_str(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        damage_mode_default_udg_classification, plan_trim_terminal_damage_with_options,
+        TrimTerminalDamagePlanOptions,
+    };
+    use anyhow::Result;
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolId};
+    use bijux_dna_core::prelude::ToolExecutionSpecV1;
+    use bijux_dna_domain_fastq::params::DamageMode;
+
+    fn dummy_tool(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new(tool_id.to_string()),
+            tool_version: "1.0.0".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec![tool_id.to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+        }
+    }
+
+    #[test]
+    fn cutadapt_terminal_damage_plan_emits_governed_report_wrapper() -> Result<()> {
+        let plan = plan_trim_terminal_damage_with_options(
+            &dummy_tool("cutadapt"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+            &TrimTerminalDamagePlanOptions {
+                damage_mode: DamageMode::Ancient,
+                trim_5p_bases: 2,
+                trim_3p_bases: 1,
+            },
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("cutadapt -u 2 -u -1"));
+        assert!(script.contains("out/trim_terminal_damage.cutadapt.raw.json"));
+        assert!(script.contains("out/trim_terminal_damage_report.json"));
+        assert!(script.contains("\"schema_version\":\"bijux.fastq.trim_terminal_damage.report.v2\""));
+        assert!(script.contains("\"raw_backend_report_format\":\"cutadapt_json\""));
+        assert!(script.contains("\"udg_classification\":\"non_udg\""));
+        Ok(())
+    }
+
+    #[test]
+    fn seqkit_terminal_damage_plan_emits_governed_report_contract() -> Result<()> {
+        let plan = plan_trim_terminal_damage_with_options(
+            &dummy_tool("seqkit"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+            &TrimTerminalDamagePlanOptions {
+                damage_mode: DamageMode::UdgTrimmed,
+                trim_5p_bases: 2,
+                trim_3p_bases: 2,
+            },
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("seqkit subseq -r '1:-1'"));
+        assert!(script.contains("\"execution_policy\":\"preserve_udg_trimmed_ends\""));
+        assert!(script.contains("\"raw_backend_report_format\":\"seqkit_subseq\""));
+        assert!(script.contains("\"udg_classification\":\"udg\""));
+        Ok(())
+    }
+
+    #[test]
+    fn ancient_damage_mode_defaults_to_non_udg_classification() {
+        assert_eq!(
+            damage_mode_default_udg_classification(DamageMode::Ancient),
+            "non_udg"
+        );
+        assert_eq!(
+            damage_mode_default_udg_classification(DamageMode::UdgTrimmed),
+            "udg"
+        );
+    }
 }
