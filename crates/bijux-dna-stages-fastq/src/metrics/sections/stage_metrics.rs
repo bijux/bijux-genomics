@@ -80,10 +80,14 @@ pub fn stage_metrics_for_plan(
             ])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
-            let parsed_report = std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
-                .ok()
-                .and_then(|raw| crate::observer::parse_remove_duplicates_report(&raw).ok());
-            let reads_in = parsed_report.as_ref().map(|report| report.reads_in).unwrap_or(input.reads);
+            let parsed_report =
+                std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
+                    .ok()
+                    .and_then(|raw| crate::observer::parse_remove_duplicates_report(&raw).ok());
+            let reads_in = parsed_report
+                .as_ref()
+                .map(|report| report.reads_in)
+                .unwrap_or(input.reads);
             let reads_out = parsed_report
                 .as_ref()
                 .map(|report| report.reads_out)
@@ -191,26 +195,49 @@ pub fn stage_metrics_for_plan(
             let merged = stats.get(2).copied().unwrap_or_else(zero_seqkit_metrics);
             let unmerged_r1 = stats.get(3).copied().unwrap_or_else(zero_seqkit_metrics);
             let unmerged_r2 = stats.get(4).copied().unwrap_or_else(zero_seqkit_metrics);
-            let reads_unmerged = unmerged_r1.reads.min(unmerged_r2.reads);
-            let min_reads = r1.reads.min(r2.reads);
-            let merge_rate = if min_reads > 0 {
-                f64_from_u64(merged.reads) / f64_from_u64(min_reads)
-            } else {
-                0.0
-            };
+            let parsed_report = std::fs::read_to_string(plan.out_dir.join("merge_report.json"))
+                .ok()
+                .and_then(|raw| crate::observer::parse_merge_pairs_report(&raw).ok());
+            let reads_r1 = parsed_report
+                .as_ref()
+                .map(|report| report.reads_r1)
+                .unwrap_or(r1.reads);
+            let reads_r2 = parsed_report
+                .as_ref()
+                .map(|report| report.reads_r2)
+                .unwrap_or(r2.reads);
+            let reads_merged = parsed_report
+                .as_ref()
+                .map(|report| report.reads_merged)
+                .unwrap_or(merged.reads);
+            let reads_unmerged = parsed_report
+                .as_ref()
+                .map(|report| report.reads_unmerged)
+                .unwrap_or_else(|| unmerged_r1.reads.min(unmerged_r2.reads));
+            let min_reads = reads_r1.min(reads_r2);
+            let merge_rate = parsed_report
+                .as_ref()
+                .map(|report| report.merge_rate)
+                .unwrap_or_else(|| {
+                    if min_reads > 0 {
+                        f64_from_u64(reads_merged) / f64_from_u64(min_reads)
+                    } else {
+                        0.0
+                    }
+                });
             let bases_in = r1.bases.min(r2.bases);
             let mean_q_in = (r1.mean_q + r2.mean_q) / 2.0;
             let merge_q_delta = merged.mean_q - mean_q_in;
             serde_json::to_value(FastqMergeMetricsV1 {
                 reads_in: min_reads,
-                reads_out: merged.reads,
+                reads_out: reads_merged,
                 bases_in,
                 bases_out: merged.bases,
                 pairs_in: Some(min_reads),
-                pairs_out: Some(merged.reads),
-                reads_r1: r1.reads,
-                reads_r2: r2.reads,
-                reads_merged: merged.reads,
+                pairs_out: Some(reads_merged),
+                reads_r1,
+                reads_r2,
+                reads_merged,
                 reads_unmerged,
                 reads_discarded: 0,
                 merge_rate,
@@ -224,9 +251,7 @@ pub fn stage_metrics_for_plan(
             ])?;
             let input_r1 = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let input_r2 = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
-            let pairs_in = inputs
-                .get(1)
-                .map(|_| input_r1.reads.min(input_r2.reads));
+            let pairs_in = inputs.get(1).map(|_| input_r1.reads.min(input_r2.reads));
             let pairs_out = pairs_in;
             let reads_in = input_r1.reads + inputs.get(1).map_or(0, |_| input_r2.reads);
             let bases_in = input_r1.bases + inputs.get(1).map_or(0, |_| input_r2.bases);
@@ -239,7 +264,8 @@ pub fn stage_metrics_for_plan(
                 .and_then(|report_path| std::fs::read_to_string(&report_path).ok())
                 .and_then(|raw| crate::observer::parse_validation_report(&raw).ok())
                 .map(|report| {
-                    let reads_total = report.validated_reads_r1 + report.validated_reads_r2.unwrap_or(0);
+                    let reads_total =
+                        report.validated_reads_r1 + report.validated_reads_r2.unwrap_or(0);
                     let reads_invalid = match report.failure_class {
                         bijux_dna_domain_fastq::ValidateFailureClass::None => 0,
                         bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => report
@@ -657,63 +683,56 @@ pub fn stage_metrics_for_plan(
                 })
                 .and_then(|report_path| std::fs::read_to_string(report_path).ok())
                 .and_then(|raw| crate::observer::parse_report_qc_report(&raw).ok());
-            let adapter_content_max =
-                governed_report
-                    .as_ref()
-                    .and_then(|report| report.adapter_content_max)
-                    .or_else(|| {
-                        metrics_source.and_then(|m| {
-                            m.adapter_content.as_ref().map(|a| a.max_percent)
-                        })
-                    });
-            let adapter_content_mean =
-                governed_report
-                    .as_ref()
-                    .and_then(|report| report.adapter_content_mean)
-                    .or_else(|| {
-                        metrics_source.and_then(|m| {
-                            m.adapter_content.as_ref().map(|a| a.mean_percent)
-                        })
-                    });
-            let duplication_rate =
-                governed_report
-                    .as_ref()
-                    .and_then(|report| report.duplication_rate)
-                    .or_else(|| {
-                        metrics_source.and_then(|m| {
-                            m.duplication.as_ref().map(|d| d.duplication_rate)
-                        })
-                    });
+            let adapter_content_max = governed_report
+                .as_ref()
+                .and_then(|report| report.adapter_content_max)
+                .or_else(|| {
+                    metrics_source.and_then(|m| m.adapter_content.as_ref().map(|a| a.max_percent))
+                });
+            let adapter_content_mean = governed_report
+                .as_ref()
+                .and_then(|report| report.adapter_content_mean)
+                .or_else(|| {
+                    metrics_source.and_then(|m| m.adapter_content.as_ref().map(|a| a.mean_percent))
+                });
+            let duplication_rate = governed_report
+                .as_ref()
+                .and_then(|report| report.duplication_rate)
+                .or_else(|| {
+                    metrics_source.and_then(|m| m.duplication.as_ref().map(|d| d.duplication_rate))
+                });
             let n_rate = governed_report
                 .as_ref()
                 .and_then(|report| report.n_rate)
                 .or_else(|| {
-                    metrics_source.and_then(|m| {
-                        m.n_content.as_ref().map(|n| n.mean_percent / 100.0)
-                    })
+                    metrics_source
+                        .and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0))
                 });
             let kmer_warning_count = governed_report
                 .as_ref()
                 .and_then(|report| report.kmer_warning_count)
                 .or_else(|| {
-                    metrics_source.and_then(|m| {
-                        m.kmer_content.as_ref().map(|k| k.warning_count)
-                    })
+                    metrics_source.and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count))
                 });
             let overrepresented_sequence_count = governed_report
                 .as_ref()
                 .and_then(|report| report.overrepresented_sequence_count)
                 .or_else(|| {
-                    metrics_source.and_then(|m| {
-                        m.overrepresented_sequences.as_ref().map(|o| o.count)
-                    })
+                    metrics_source
+                        .and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count))
                 });
-            let reads_in = governed_report.as_ref().map(|report| report.reads_in).unwrap_or(input.reads);
+            let reads_in = governed_report
+                .as_ref()
+                .map(|report| report.reads_in)
+                .unwrap_or(input.reads);
             let reads_out = governed_report
                 .as_ref()
                 .map(|report| report.reads_out)
                 .unwrap_or(output.reads);
-            let bases_in = governed_report.as_ref().map(|report| report.bases_in).unwrap_or(input.bases);
+            let bases_in = governed_report
+                .as_ref()
+                .map(|report| report.bases_in)
+                .unwrap_or(input.bases);
             let bases_out = governed_report
                 .as_ref()
                 .map(|report| report.bases_out)
@@ -758,30 +777,36 @@ pub fn stage_metrics_for_plan(
                 reads_out,
                 bases_in,
                 bases_out,
-                pairs_in: governed_report.as_ref().and_then(|report| {
-                    if report.pairs_in.is_some_and(|value| value > 0)
-                        || matches!(
-                            report.paired_mode,
-                            bijux_dna_domain_fastq::params::PairedMode::PairedEnd
-                        )
-                    {
-                        report.pairs_in
-                    } else {
-                        None
-                    }
-                }).or(pairs_in),
-                pairs_out: governed_report.as_ref().and_then(|report| {
-                    if report.pairs_out.is_some_and(|value| value > 0)
-                        || matches!(
-                            report.paired_mode,
-                            bijux_dna_domain_fastq::params::PairedMode::PairedEnd
-                        )
-                    {
-                        report.pairs_out
-                    } else {
-                        None
-                    }
-                }).or(pairs_out),
+                pairs_in: governed_report
+                    .as_ref()
+                    .and_then(|report| {
+                        if report.pairs_in.is_some_and(|value| value > 0)
+                            || matches!(
+                                report.paired_mode,
+                                bijux_dna_domain_fastq::params::PairedMode::PairedEnd
+                            )
+                        {
+                            report.pairs_in
+                        } else {
+                            None
+                        }
+                    })
+                    .or(pairs_in),
+                pairs_out: governed_report
+                    .as_ref()
+                    .and_then(|report| {
+                        if report.pairs_out.is_some_and(|value| value > 0)
+                            || matches!(
+                                report.paired_mode,
+                                bijux_dna_domain_fastq::params::PairedMode::PairedEnd
+                            )
+                        {
+                            report.pairs_out
+                        } else {
+                            None
+                        }
+                    })
+                    .or(pairs_out),
                 mean_q: Some(mean_q_after),
                 mean_q_before,
                 mean_q_after,
@@ -812,15 +837,27 @@ pub fn stage_metrics_for_plan(
                 trimmed_fastqc_dir: governed_report
                     .as_ref()
                     .and_then(|report| report.trimmed_fastqc_dir.clone())
-                    .or_else(|| trimmed_dir.exists().then_some(trimmed_dir.display().to_string())),
+                    .or_else(|| {
+                        trimmed_dir
+                            .exists()
+                            .then_some(trimmed_dir.display().to_string())
+                    }),
                 multiqc_report: governed_report
                     .as_ref()
                     .and_then(|report| report.multiqc_report.clone())
-                    .or_else(|| multiqc_report.exists().then_some(multiqc_report.display().to_string())),
+                    .or_else(|| {
+                        multiqc_report
+                            .exists()
+                            .then_some(multiqc_report.display().to_string())
+                    }),
                 multiqc_data: governed_report
                     .as_ref()
                     .and_then(|report| report.multiqc_data.clone())
-                    .or_else(|| multiqc_data.exists().then_some(multiqc_data.display().to_string())),
+                    .or_else(|| {
+                        multiqc_data
+                            .exists()
+                            .then_some(multiqc_data.display().to_string())
+                    }),
                 governed_qc_input_count: governed_report
                     .as_ref()
                     .map(|report| report.governed_qc_input_count),
@@ -883,20 +920,19 @@ pub fn stage_metrics_for_plan(
             } else {
                 pair_counts_from_paths(inputs, outputs)?
             };
-            let (read_length_distribution, gc_distribution) = if let Some(report) =
-                governed_report.as_ref()
-            {
-                (
-                    report
-                        .length_histogram
-                        .iter()
-                        .map(|bin| (bin.length, bin.count))
-                        .collect::<Vec<_>>(),
-                    distributions_for_path(inputs.first().map(PathBuf::as_path))?.1,
-                )
-            } else {
-                distributions_for_path(inputs.first().map(PathBuf::as_path))?
-            };
+            let (read_length_distribution, gc_distribution) =
+                if let Some(report) = governed_report.as_ref() {
+                    (
+                        report
+                            .length_histogram
+                            .iter()
+                            .map(|bin| (bin.length, bin.count))
+                            .collect::<Vec<_>>(),
+                        distributions_for_path(inputs.first().map(PathBuf::as_path))?.1,
+                    )
+                } else {
+                    distributions_for_path(inputs.first().map(PathBuf::as_path))?
+                };
             serde_json::to_value(FastqStatsNeutralMetricsV1 {
                 reads_in: governed_report
                     .as_ref()
@@ -990,7 +1026,10 @@ pub fn stage_metrics_for_plan(
             } else {
                 let (read_length_distribution, _gc_distribution) =
                     distributions_for_path(inputs.first().map(PathBuf::as_path))?;
-                let read_count = read_length_distribution.iter().map(|(_, count)| *count).sum::<u64>();
+                let read_count = read_length_distribution
+                    .iter()
+                    .map(|(_, count)| *count)
+                    .sum::<u64>();
                 let weighted_total = read_length_distribution
                     .iter()
                     .map(|(length, count)| length.saturating_mul(*count))
