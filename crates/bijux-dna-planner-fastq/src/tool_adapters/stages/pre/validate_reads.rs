@@ -235,12 +235,32 @@ fn validation_command(
     out_dir: &Path,
     effective_params: &ValidateEffectiveParams,
 ) -> Result<Vec<String>> {
-    let single_command = |reads: &Path, log_path: &Path, status_var: &str| -> Result<String> {
+    let single_command = |reads: &Path,
+                          log_path: &Path,
+                          status_var: &str,
+                          stream_placeholder: &str|
+     -> Result<String> {
+        let reads_binding = Some(reads.display().to_string());
         let rendered = crate::tool_adapters::template_render::render_command_template(
             &tool.command.template,
             &[
-                ("reads", Some(reads.display().to_string())),
-                ("reads_r1", Some(reads.display().to_string())),
+                ("reads", reads_binding.clone()),
+                (
+                    "reads_r1",
+                    if stream_placeholder == "reads_r1" {
+                        reads_binding.clone()
+                    } else {
+                        None
+                    },
+                ),
+                (
+                    "reads_r2",
+                    if stream_placeholder == "reads_r2" {
+                        reads_binding
+                    } else {
+                        None
+                    },
+                ),
             ],
         )?;
         Ok(format!(
@@ -253,7 +273,7 @@ fn validation_command(
     let r1_log = out_dir.join("validation_r1.log");
     let mut commands = vec![
         "set +e".to_string(),
-        single_command(r1, &r1_log, "status_r1")?,
+        single_command(r1, &r1_log, "status_r1", "reads_r1")?,
     ];
     let r2_log = r2.map(|_| out_dir.join("validation_r2.log"));
     if let Some(r2) = r2 {
@@ -263,6 +283,7 @@ fn validation_command(
                 .as_deref()
                 .ok_or_else(|| anyhow!("paired validation log path missing"))?,
             "status_r2",
+            "reads_r2",
         )?);
     } else {
         commands.push("status_r2=0".to_string());
@@ -475,6 +496,11 @@ mod tests {
                         "validate".to_string(),
                         "{{reads_r1}}".to_string(),
                     ],
+                    "mate_placeholder" => vec![
+                        "validator".to_string(),
+                        "--mate".to_string(),
+                        "{{reads_r2}}".to_string(),
+                    ],
                     _ => vec![tool_id.to_string(), "{{reads_r1}}".to_string()],
                 },
             },
@@ -642,6 +668,21 @@ mod tests {
         let script = &plan.command.template[2];
         assert!(script.contains("sub(/\\/[12]$/, \"\", header)"));
         assert!(script.contains("sub(/([._-]R?[12])$/, \"\", header)"));
+        Ok(())
+    }
+
+    #[test]
+    fn plan_supports_mate_specific_reads_r2_placeholders() -> Result<()> {
+        let plan = plan(
+            &dummy_tool("mate_placeholder"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("'validator' '--mate' 'reads_R2.fastq.gz' > 'out/validation_r2.log' 2>&1"));
+        assert!(!script.contains("{{reads_r2}}"));
         Ok(())
     }
 
