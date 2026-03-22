@@ -8,7 +8,8 @@ use bijux_dna_stage_contract::{
 
 use crate::metrics;
 use crate::observer::{
-    parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
+    parse_bbduk_reads_removed, parse_deduplicate_report, parse_detect_adapters_report,
+    parse_fastp_metrics,
     parse_extract_umis_report,
     parse_filter_low_complexity_report,
     parse_filter_reads_report,
@@ -673,6 +674,36 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "raw_backend_report": report.raw_backend_report,
                         "raw_backend_report_format": report.raw_backend_report_format,
                         "backend_metrics": report.backend_metrics,
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.detect_adapters" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_detect_adapters_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "threads": report.threads,
+                        "inspection_mode": report.inspection_mode,
+                        "report_only": report.report_only,
+                        "evidence_engine": report.evidence_engine,
+                        "evidence_scope": report.evidence_scope,
+                        "evidence_format": report.evidence_format,
+                        "candidate_adapter_count": report.candidate_adapter_count,
+                        "adapter_trimmed_fraction": report.adapter_trimmed_fraction,
+                        "adapter_content_max": report.adapter_content_max,
+                        "adapter_content_mean": report.adapter_content_mean,
+                        "duplication_rate": report.duplication_rate,
+                        "n_rate": report.n_rate,
+                        "kmer_warning_count": report.kmer_warning_count,
+                        "overrepresented_sequence_count": report.overrepresented_sequence_count,
+                        "adapter_evidence_dir": report.adapter_evidence_dir,
                     });
                 }
             }
@@ -1432,6 +1463,82 @@ mod tests {
                 .as_ref()
                 .map(|verdict| verdict.verdict.clone()),
             Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Warn)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_detect_adapter_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("adapter_report.json");
+        let evidence_dir = temp.path().join("fastqc");
+        std::fs::create_dir_all(&evidence_dir).expect("create evidence dir");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.detect_adapters.report.v2",
+                "stage": "fastq.detect_adapters",
+                "stage_id": "fastq.detect_adapters",
+                "tool_id": "fastqc",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "inspection_mode": "evidence_only",
+                "report_only": true,
+                "evidence_engine": "fastqc",
+                "evidence_scope": "full_input",
+                "evidence_format": "fastqc_summary",
+                "evidence_artifact_id": "report_json",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "report_json": report_path,
+                "adapter_evidence_dir": evidence_dir,
+                "reads_in": 200_u64,
+                "reads_out": 200_u64,
+                "bases_in": 20_000_u64,
+                "bases_out": 20_000_u64,
+                "pairs_in": 100_u64,
+                "pairs_out": 100_u64,
+                "mean_q": 31.2,
+                "candidate_adapter_count": 2_u64,
+                "adapter_trimmed_fraction": 0.08,
+                "adapter_content_max": 12.5,
+                "adapter_content_mean": 3.2,
+                "duplication_rate": 0.15,
+                "n_rate": 0.001,
+                "kmer_warning_count": 4_u64,
+                "overrepresented_sequence_count": 3_u64,
+                "runtime_s": 4.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let mut plan = plan("fastq.detect_adapters");
+        plan.io.outputs = vec![
+            ArtifactRef::required(
+                ArtifactId::new("report_json"),
+                report_path,
+                ArtifactRole::ReportJson,
+            ),
+            ArtifactRef::optional(
+                ArtifactId::new("adapter_evidence_dir"),
+                evidence_dir,
+                ArtifactRole::StageReport,
+            ),
+        ];
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+        assert_eq!(
+            output.semantic_metrics["candidate_adapter_count"],
+            serde_json::json!(2_u64)
+        );
+        assert_eq!(
+            output.semantic_metrics["evidence_scope"],
+            serde_json::json!("full_input")
         );
     }
 
