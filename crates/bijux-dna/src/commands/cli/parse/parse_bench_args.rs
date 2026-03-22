@@ -98,12 +98,6 @@ pub struct BenchFastqTrimArgs {
     pub explain: bool,
     #[arg(long, help = "Allow experimental and silver-tier tools")]
     pub allow_experimental: bool,
-    #[arg(long)]
-    pub merge_overlap: Option<u32>,
-    #[arg(long)]
-    pub min_length: Option<u32>,
-    #[arg(long, help = "emit_unmerged_pairs | omit_unmerged_pairs")]
-    pub unmerged_read_policy: Option<String>,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long, default_value_t = 1)]
@@ -412,6 +406,12 @@ pub struct BenchFastqMergeArgs {
     pub explain: bool,
     #[arg(long, help = "Allow experimental and silver-tier tools")]
     pub allow_experimental: bool,
+    #[arg(long)]
+    pub merge_overlap: Option<u32>,
+    #[arg(long)]
+    pub min_length: Option<u32>,
+    #[arg(long, help = "emit_unmerged_pairs | omit_unmerged_pairs")]
+    pub unmerged_read_policy: Option<String>,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long, default_value_t = 1)]
