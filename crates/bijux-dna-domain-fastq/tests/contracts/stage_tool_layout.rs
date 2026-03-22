@@ -44,3 +44,16 @@ fn domain_layout_filter_excludes_paired_only_correction_backends_for_single_end_
     );
     assert_eq!(filtered.len(), 2);
 }
+
+#[test]
+fn domain_layout_filter_excludes_seqpurge_for_single_end_trim_inputs() {
+    let filtered = bijux_dna_domain_fastq::filter_tools_for_input_layout(
+        &StageId::from_static("fastq.trim_reads"),
+        vec![
+            ToolId::from_static("fastp"),
+            ToolId::from_static("seqpurge"),
+        ],
+        false,
+    );
+    assert_eq!(filtered, vec![ToolId::from_static("fastp")]);
+}

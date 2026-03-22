@@ -4,7 +4,6 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - "PE"
-  - "SE"
 container:
   image: "bijuxdna/seqpurge"
   digest: "sha256:65c1249b64696ad0783c6409126e45f8025851fd4eaf7f651b2df9bda2a0a662"
@@ -37,6 +36,7 @@ constraints:
 execution_contract:
   required_inputs:
     - "reads_r1"
+    - "reads_r2"
   expected_outputs:
     - "trimmed_reads_r1"
     - "trimmed_reads_r2"

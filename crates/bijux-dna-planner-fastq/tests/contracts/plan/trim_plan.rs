@@ -412,8 +412,8 @@ fn plan_trim_with_options_maps_min_length_for_seqkit() -> Result<()> {
 }
 
 #[test]
-fn plan_trim_seqpurge_supports_single_end_and_paired_layouts() -> Result<()> {
-    let single_end = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+fn plan_trim_seqpurge_requires_paired_layout() -> Result<()> {
+    let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &dummy_tool("seqpurge"),
         std::path::Path::new("reads.fastq.gz"),
         None,
@@ -421,11 +421,11 @@ fn plan_trim_seqpurge_supports_single_end_and_paired_layouts() -> Result<()> {
         None,
         None,
         None,
-    )?;
-    assert_eq!(single_end.command.template[0], "sh");
-    assert_eq!(single_end.command.template[1], "-lc");
-    assert!(single_end.command.template[2].contains("seqpurge"));
-    assert!(!single_end.command.template[2].contains("{{reads_r2}}"));
+    )
+    .expect_err("seqpurge trim planning must reject single-end inputs");
+    assert!(error
+        .to_string()
+        .contains("requires paired-end reads"));
 
     let paired = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &dummy_tool("seqpurge"),
@@ -445,8 +445,8 @@ fn plan_trim_seqpurge_supports_single_end_and_paired_layouts() -> Result<()> {
 fn plan_trim_with_options_maps_min_length_for_seqpurge() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &dummy_tool("seqpurge"),
-        std::path::Path::new("reads.fastq.gz"),
-        None,
+        std::path::Path::new("reads_R1.fastq.gz"),
+        Some(std::path::Path::new("reads_R2.fastq.gz")),
         std::path::Path::new("out"),
         None,
         None,

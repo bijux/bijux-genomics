@@ -127,3 +127,27 @@ fn seqkit_manifest_declares_paired_trim_runtime_capability() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn seqpurge_manifest_declares_paired_trim_runtime_contract() -> Result<()> {
+    let manifest = tool_manifest("seqpurge")?;
+    let capabilities = manifest
+        .get("capabilities")
+        .and_then(serde_json::Value::as_array)
+        .context("seqpurge capabilities")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    let required_inputs = manifest
+        .get("execution_contract")
+        .and_then(|value| value.get("required_inputs"))
+        .and_then(serde_json::Value::as_array)
+        .context("seqpurge execution required_inputs")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+
+    assert_eq!(capabilities, vec!["PE"]);
+    assert_eq!(required_inputs, vec!["reads_r1", "reads_r2"]);
+    Ok(())
+}
