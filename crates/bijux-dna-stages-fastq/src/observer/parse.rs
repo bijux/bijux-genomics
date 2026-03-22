@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    DepleteHostReportV1,
     DepleteReferenceContaminantsReportV1,
     DepleteRrnaReportV1,
     DetectAdaptersReportV1,
@@ -300,6 +301,84 @@ pub fn parse_deplete_rrna_report(report_json: &str) -> Result<DepleteRrnaReportV
     serde_json::from_str(report_json)
         .or_else(|_| parse_legacy_deplete_rrna_report(report_json))
         .context("parse deplete rrna report")
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyDepleteHostReportV1 {
+    schema_version: String,
+    stage_id: String,
+    tool_id: String,
+    host_fraction_removed: f64,
+    reads_in: u64,
+    reads_out: u64,
+    bases_in: u64,
+    bases_out: u64,
+    runtime_s: Option<f64>,
+    memory_mb: Option<f64>,
+}
+
+fn parse_legacy_deplete_host_report(report_json: &str) -> Result<DepleteHostReportV1> {
+    let legacy: LegacyDepleteHostReportV1 =
+        serde_json::from_str(report_json).context("parse legacy deplete host report")?;
+    if legacy.schema_version != "bijux.fastq.deplete_host.report.v1" {
+        return Err(anyhow!(
+            "unsupported deplete host report schema {}",
+            legacy.schema_version
+        ));
+    }
+    Ok(DepleteHostReportV1 {
+        schema_version: "bijux.fastq.deplete_host.report.v2".to_string(),
+        stage: legacy.stage_id.clone(),
+        stage_id: legacy.stage_id,
+        tool_id: legacy.tool_id,
+        paired_mode: PairedMode::SingleEnd,
+        threads: 1,
+        reference_scope: bijux_dna_domain_fastq::params::screen::ReferenceScope::Host,
+        reference_catalog_id: "host_reference".to_string(),
+        reference_index_artifact_id: "reference_index".to_string(),
+        reference_index_backend: "bowtie2_build".to_string(),
+        reference_build_id: None,
+        reference_digest: None,
+        masking_policy: bijux_dna_domain_fastq::params::screen::ReferenceMaskingPolicy::Unmasked,
+        decoy_policy: bijux_dna_domain_fastq::params::screen::ReferenceDecoyPolicy::None,
+        decoy_catalog_id: None,
+        identity_threshold: 0.95,
+        retained_read_policy: bijux_dna_domain_fastq::params::screen::ReadRetentionPolicy::KeepNonHostReads,
+        emit_removed_reads: true,
+        report_format: bijux_dna_domain_fastq::params::screen::MappingReportFormat::Bowtie2MetricsFile,
+        retain_unmapped_pairs: false,
+        input_r1: String::new(),
+        input_r2: None,
+        output_r1: String::new(),
+        output_r2: None,
+        removed_host_r1: String::new(),
+        removed_host_r2: None,
+        report_json: "host_depletion_report.json".to_string(),
+        reads_in: legacy.reads_in,
+        reads_out: legacy.reads_out,
+        reads_removed: legacy.reads_in.saturating_sub(legacy.reads_out),
+        bases_in: legacy.bases_in,
+        bases_out: legacy.bases_out,
+        bases_removed: legacy.bases_in.saturating_sub(legacy.bases_out),
+        pairs_in: None,
+        pairs_out: None,
+        host_fraction_removed: legacy.host_fraction_removed,
+        runtime_s: legacy.runtime_s,
+        memory_mb: legacy.memory_mb,
+        exit_code: None,
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        backend_metrics: None,
+    })
+}
+
+/// # Errors
+/// Returns an error if the governed host-depletion report JSON cannot be parsed.
+pub fn parse_deplete_host_report(report_json: &str) -> Result<DepleteHostReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_deplete_host_report(report_json))
+        .context("parse deplete host report")
 }
 
 #[derive(Debug, Deserialize)]
@@ -1240,6 +1319,7 @@ fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
 mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
+        parse_deplete_host_report,
         parse_deplete_reference_contaminants_report,
         parse_deplete_rrna_report,
         parse_detect_adapters_report,
@@ -1691,6 +1771,86 @@ mod tests {
         assert_eq!(parsed.tool_id, "bowtie2");
         assert_eq!(parsed.reads_removed, 35);
         assert_eq!(parsed.contaminant_fraction_removed, 0.35);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_deplete_host_report_round_trips_governed_payload() -> Result<()> {
+        let parsed = parse_deplete_host_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_host.report.v2",
+                "stage": "fastq.deplete_host",
+                "stage_id": "fastq.deplete_host",
+                "tool_id": "bowtie2",
+                "paired_mode": "paired_end",
+                "threads": 6,
+                "reference_scope": "host",
+                "reference_catalog_id": "host_reference",
+                "reference_index_artifact_id": "reference_index",
+                "reference_index_backend": "bowtie2_build",
+                "reference_build_id": "2026.03",
+                "reference_digest": "sha256:host",
+                "masking_policy": "unmasked",
+                "decoy_policy": "none",
+                "decoy_catalog_id": null,
+                "identity_threshold": 0.95,
+                "retained_read_policy": "keep_non_host_reads",
+                "emit_removed_reads": true,
+                "report_format": "bowtie2_metrics_file",
+                "retain_unmapped_pairs": true,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "host_depleted_R1.fastq.gz",
+                "output_r2": "host_depleted_R2.fastq.gz",
+                "removed_host_r1": "removed_host_R1.fastq.gz",
+                "removed_host_r2": "removed_host_R2.fastq.gz",
+                "report_json": "host_depletion_report.json",
+                "reads_in": 200,
+                "reads_out": 150,
+                "reads_removed": 50,
+                "bases_in": 20000,
+                "bases_out": 15000,
+                "bases_removed": 5000,
+                "pairs_in": 100,
+                "pairs_out": 75,
+                "host_fraction_removed": 0.25,
+                "runtime_s": 10.5,
+                "memory_mb": 512.0,
+                "exit_code": 0,
+                "raw_backend_report": "bowtie2.host.metrics.txt",
+                "raw_backend_report_format": "bowtie2_met_file",
+                "backend_metrics": {
+                    "reads_removed": 50
+                }
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "bowtie2");
+        assert_eq!(parsed.reads_removed, 50);
+        assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_deplete_host_report_accepts_legacy_payload() -> Result<()> {
+        let parsed = parse_deplete_host_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_host.report.v1",
+                "stage_id": "fastq.deplete_host",
+                "tool_id": "bowtie2",
+                "host_fraction_removed": 0.4,
+                "reads_in": 100,
+                "reads_out": 60,
+                "bases_in": 1000,
+                "bases_out": 600,
+                "runtime_s": 4.0,
+                "memory_mb": 32.0
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "bowtie2");
+        assert_eq!(parsed.reads_removed, 40);
+        assert_eq!(parsed.host_fraction_removed, 0.4);
         Ok(())
     }
 
