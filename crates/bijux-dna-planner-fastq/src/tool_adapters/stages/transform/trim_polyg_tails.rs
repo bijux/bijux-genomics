@@ -7,6 +7,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_domain_fastq::params::trim::{TrimPolygTailsParams, TRIM_POLYG_TAILS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
+use bijux_dna_domain_fastq::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
 };
@@ -34,6 +35,19 @@ fn output_name(tool_id: &str) -> Option<&'static str> {
         "fastp" => Some("polyg.fastp.fastq.gz"),
         "bbduk" => Some("polyg.bbduk.fastq.gz"),
         _ => None,
+    }
+}
+
+fn raw_backend_report_artifact(
+    report: &Path,
+    tool_id: &str,
+) -> Result<(std::path::PathBuf, &'static str)> {
+    match tool_id {
+        "fastp" => Ok((report.with_extension("fastp.json"), "fastp_json")),
+        "bbduk" => Ok((report.with_extension("stats.txt"), "bbduk_stats")),
+        _ => Err(anyhow!(
+            "unsupported trim_polyg_tails raw report artifact for stage planning: {tool_id}"
+        )),
     }
 }
 
@@ -66,6 +80,8 @@ pub fn plan_trim_polyg_tails_with_options(
     };
     let output_r2 = r2.map(|_| out_dir.join(format!("R2.{out_name}")));
     let report = out_dir.join("trim_polyg_tails_report.json");
+    let (raw_backend_report, raw_backend_report_format) =
+        raw_backend_report_artifact(&report, tool.tool_id.as_str())?;
     let command_template = trim_polyg_command(
         &tool.tool_id.0,
         r1,
@@ -73,6 +89,8 @@ pub fn plan_trim_polyg_tails_with_options(
         &output_r1,
         output_r2.as_deref(),
         &report,
+        &raw_backend_report,
+        raw_backend_report_format,
         tool.resources.threads,
         options.trim_polyg,
         options.min_polyg_run,
@@ -138,6 +156,8 @@ pub fn plan_trim_polyg_tails_with_options(
             "report_json": report,
             "trim_polyg": options.trim_polyg,
             "min_polyg_run": options.min_polyg_run,
+            "raw_backend_report": raw_backend_report,
+            "raw_backend_report_format": raw_backend_report_format,
         }),
         effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
@@ -152,17 +172,18 @@ fn trim_polyg_command(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report: &Path,
+    raw_backend_report: &Path,
+    raw_backend_report_format: &str,
     threads: u32,
     trim_polyg: bool,
     min_polyg_run: u32,
 ) -> Result<Vec<String>> {
     match tool_id {
         "fastp" => {
-            let raw_report = report.with_extension("fastp.json");
             let mut command = vec![
                 "fastp".to_string(),
                 "--json".to_string(),
-                raw_report.display().to_string(),
+                raw_backend_report.display().to_string(),
                 "--thread".to_string(),
                 threads.to_string(),
                 "--in1".to_string(),
@@ -189,14 +210,13 @@ fn trim_polyg_command(
                 output_r1,
                 output_r2,
                 report,
-                &raw_report,
-                "fastp_json",
+                raw_backend_report,
+                raw_backend_report_format,
                 trim_polyg,
                 min_polyg_run,
             ))
         }
         "bbduk" => {
-            let raw_report = report.with_extension("stats.txt");
             let mut command = vec![
                 "bbduk.sh".to_string(),
                 format!("in={}", r1.display()),
@@ -205,7 +225,7 @@ fn trim_polyg_command(
             if trim_polyg {
                 command.push(format!("trimpolygright={min_polyg_run}"));
             }
-            command.push(format!("stats={}", raw_report.display()));
+            command.push(format!("stats={}", raw_backend_report.display()));
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
                 command.push(format!("in2={}", r2.display()));
                 command.push(format!("out2={}", output_r2.display()));
@@ -218,8 +238,8 @@ fn trim_polyg_command(
                 output_r1,
                 output_r2,
                 report,
-                &raw_report,
-                "bbduk_stats",
+                raw_backend_report,
+                raw_backend_report_format,
                 trim_polyg,
                 min_polyg_run,
             ))
@@ -243,23 +263,40 @@ fn wrap_polyg_command_with_report(
     trim_polyg: bool,
     min_polyg_run: u32,
 ) -> Vec<String> {
-    let payload = serde_json::json!({
-        "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
-        "stage_id": STAGE_ID.as_str(),
-        "tool_id": tool_id,
-        "trim_polyg": trim_polyg,
-        "input_r1": r1,
-        "input_r2": r2,
-        "output_r1": output_r1,
-        "output_r2": output_r2,
-        "min_polyg_run": min_polyg_run,
-        "raw_report_path": raw_report,
-        "raw_report_format": raw_report_format,
-    });
+    let payload = TrimPolygReportV1 {
+        schema_version: TRIM_POLYG_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.as_str().to_string(),
+        stage_id: STAGE_ID.as_str().to_string(),
+        tool_id: tool_id.to_string(),
+        paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        trim_polyg,
+        min_polyg_run,
+        input_r1: r1.display().to_string(),
+        input_r2: r2.map(|path| path.display().to_string()),
+        output_r1: output_r1.display().to_string(),
+        output_r2: output_r2.map(|path| path.display().to_string()),
+        reads_in: None,
+        reads_out: None,
+        bases_in: None,
+        bases_out: None,
+        pairs_in: None,
+        pairs_out: None,
+        mean_q_before: None,
+        mean_q_after: None,
+        bases_trimmed_polyg: None,
+        polyx_bank_id: None,
+        polyx_bank_hash: None,
+        polyx_preset: None,
+        runtime_s: None,
+        memory_mb: None,
+        raw_backend_report: Some(raw_report.display().to_string()),
+        raw_backend_report_format: Some(raw_report_format.to_string()),
+        backend_metrics: None,
+    };
     let mut script = format!("set -euo pipefail\n{}\n", shell_join(&command));
     script.push_str(&format!(
         "printf '%s\\n' {} > {}\n",
-        shell_quote_str(&payload.to_string()),
+        shell_quote_str(&serde_json::to_string(&payload).expect("serialize trim polyg report")),
         shell_quote_path(report),
     ));
     vec!["sh".to_string(), "-lc".to_string(), script]
