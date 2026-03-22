@@ -70,9 +70,10 @@ stage_contracts:
     required_inputs:
       - "reads_r1"
     expected_artifacts:
+      - "report_json"
       - "length_distribution_tsv"
       - "length_distribution_json"
-    notes: "Length profiling emits deterministic histogram tables for governed read-length summaries."
+    notes: "Length profiling emits a governed report_json contract plus deterministic histogram TSV/JSON artifacts for normalized read-length summaries."
 expected_artifacts:
   - "qc_json"
   - "qc_tsv"
