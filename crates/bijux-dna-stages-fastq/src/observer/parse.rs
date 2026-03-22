@@ -1640,7 +1640,7 @@ mod tests {
     #[test]
     fn parse_filter_reads_report_parses_governed_contract() -> Result<()> {
         let parsed = parse_filter_reads_report(
-            &serde_json::json!({
+            r#"{
                 "schema_version": "bijux.fastq.filter_reads.report.v3",
                 "stage": "fastq.filter_reads",
                 "stage_id": "fastq.filter_reads",
@@ -1684,8 +1684,7 @@ mod tests {
                     "passed_filter_reads": 95,
                     "too_many_n_reads": 2
                 }
-            })
-            .to_string(),
+            }"#,
         )?;
         assert_eq!(parsed.tool_id, "fastp");
         assert_eq!(parsed.reads_removed_by_n, 2);
