@@ -15,6 +15,7 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_runtime::{RunProvenanceV1, StageObservabilityContextV1};
 use uuid::Uuid;
 
@@ -387,10 +388,6 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     })?
     .stage_result;
 
-    let combined_stats = combine_seqkit_metrics(
-        &bench_inputs.input_stats,
-        bench_inputs.input_stats_r2.as_ref(),
-    );
     let length_histogram =
         combine_length_histograms(&bench_inputs.length_hist, bench_inputs.length_hist_r2.as_deref());
     let backend_rows = parse_seqkit_stats_rows(&execution.stdout).unwrap_or_else(|_| {
@@ -526,10 +523,10 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     Ok(record)
 }
 
-fn required_plan_output_path(
-    plan: &bijux_dna_stage_contract::StagePlanV1,
+fn required_plan_output_path<'a>(
+    plan: &'a bijux_dna_stage_contract::StagePlanV1,
     artifact_name: &str,
-) -> Result<&std::path::Path> {
+) -> Result<&'a std::path::Path> {
     plan.io
         .outputs
         .iter()
@@ -539,7 +536,7 @@ fn required_plan_output_path(
 }
 
 fn execution_metrics_from_stage_result(
-    execution: &bijux_dna_core::prelude::measure::StageResultV1,
+    execution: &StageResultV1,
 ) -> ExecutionMetrics {
     ExecutionMetrics {
         runtime_s: execution.runtime_s,
@@ -767,35 +764,6 @@ fn profile_reads_histogram_tsv(length_histogram: &[LengthHistogramBin]) -> Strin
         out.push_str(&format!("{}\t{}\n", bin.length, bin.count));
     }
     out
-}
-
-fn combine_seqkit_metrics(
-    primary: &SeqkitMetrics,
-    secondary: Option<&SeqkitMetrics>,
-) -> SeqkitMetrics {
-    let secondary_reads = secondary.map_or(0, |stats| stats.reads);
-    let secondary_bases = secondary.map_or(0, |stats| stats.bases);
-    let total_bases = primary.bases + secondary_bases;
-    let weighted_mean_q = if total_bases == 0 {
-        0.0
-    } else {
-        ((primary.mean_q * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
-            / total_bases as f64
-    };
-    let weighted_gc = if total_bases == 0 {
-        0.0
-    } else {
-        ((primary.gc_percent * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.gc_percent * stats.bases as f64))
-            / total_bases as f64
-    };
-    SeqkitMetrics {
-        reads: primary.reads + secondary_reads,
-        bases: total_bases,
-        mean_q: weighted_mean_q,
-        gc_percent: weighted_gc,
-    }
 }
 
 fn combine_length_histograms(
