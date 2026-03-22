@@ -30,15 +30,41 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
-        "fastq.filter_reads" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.filter_reads_reasons.v1",
-            "stage": stage_id,
-            "reasons": {
-                "low_quality": parse_first_u64_after_key(&execution.stderr, "low quality"),
-                "too_short": parse_first_u64_after_key(&execution.stderr, "too short"),
-                "too_many_n": parse_first_u64_after_key(&execution.stderr, "N"),
-            }
-        })),
+        "fastq.filter_reads" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| path.file_name().and_then(|name| name.to_str()) == Some("filter_report.json"))
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("filter_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_filter_reads_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.filter_reads.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "max_n": governed.as_ref().and_then(|report| report.max_n),
+                "max_n_fraction": governed.as_ref().and_then(|report| report.max_n_fraction),
+                "max_n_count": governed.as_ref().and_then(|report| report.max_n_count),
+                "low_complexity_threshold": governed.as_ref().and_then(|report| report.low_complexity_threshold),
+                "entropy_threshold": governed.as_ref().and_then(|report| report.entropy_threshold),
+                "n_policy": governed.as_ref().and_then(|report| report.n_policy.clone()),
+                "polyx_policy": governed.as_ref().and_then(|report| report.polyx_policy.clone()),
+                "contaminant_db": governed.as_ref().and_then(|report| report.contaminant_db.clone()),
+                "reads_removed_by_n": governed.as_ref().map(|report| report.reads_removed_by_n),
+                "reads_removed_by_entropy": governed.as_ref().map(|report| report.reads_removed_by_entropy),
+                "reads_removed_low_complexity": governed.as_ref().map(|report| report.reads_removed_low_complexity),
+                "reads_removed_by_kmer": governed.as_ref().map(|report| report.reads_removed_by_kmer),
+                "reads_removed_contaminant_kmer": governed.as_ref().map(|report| report.reads_removed_contaminant_kmer),
+                "reads_removed_by_length": governed.as_ref().map(|report| report.reads_removed_by_length),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.filter_low_complexity" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.filter_low_complexity.v1",
             "stage": stage_id,
@@ -417,12 +443,7 @@ fn write_stage_standardized_metrics(
             "report_json": out_dir.join("low_complexity_report.json"),
         }),
         "fastq.trim_reads" => parse_trim_reads_metrics(out_dir),
-        "fastq.filter_reads" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_out", "filtered_low_quality", "filtered_too_short", "filtered_n_content"],
-            "report_json": out_dir.join("filter_report.json"),
-        }),
+        "fastq.filter_reads" => parse_filter_reads_metrics(out_dir),
         "fastq.correct_errors" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
