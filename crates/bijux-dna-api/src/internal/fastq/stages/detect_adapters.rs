@@ -9,6 +9,13 @@ use bijux_dna_analyze::load::sqlite::bench::{
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDetectAdaptersMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_domain_fastq::{
+    params::{
+        detect_adapters::{AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode},
+        PairedMode,
+    },
+    DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_detect_adapters_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::detect_adapters::plan;
@@ -152,6 +159,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         let record = build_detect_record(
             platform,
             &bench_inputs,
+            args.r2.as_deref(),
             input_stats_r2.as_ref(),
             tool,
             &tool_spec,
@@ -184,6 +192,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
 fn build_detect_record(
     platform: &PlatformSpec,
     bench_inputs: &crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs,
+    input_r2_path: Option<&std::path::Path>,
     input_stats_r2: Option<&SeqkitMetrics>,
     tool: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
@@ -192,44 +201,27 @@ fn build_detect_record(
     out_dir: &std::path::Path,
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqDetectAdaptersMetrics>> {
-    let (candidate_adapter_count, adapter_trimmed_fraction) = detect_adapter_summary(out_dir)?;
-    let reads_in = bench_inputs.input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
-    let bases_in = bench_inputs.input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
-    let mean_q = if bases_in == 0 {
-        0.0
-    } else {
-        ((bench_inputs.input_stats.mean_q * bench_inputs.input_stats.bases as f64)
-            + input_stats_r2.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
-            / bases_in as f64
-    };
+    let report = build_detect_report(
+        bench_inputs,
+        input_r2_path,
+        input_stats_r2,
+        tool,
+        tool_spec,
+        out_dir,
+        execution,
+    )?;
     let metrics = FastqDetectAdaptersMetrics {
-        reads_in,
-        reads_out: reads_in,
-        bases_in,
-        bases_out: bases_in,
-        mean_q,
-        candidate_adapter_count,
-        adapter_trimmed_fraction,
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        mean_q: report.mean_q,
+        candidate_adapter_count: report.candidate_adapter_count,
+        adapter_trimmed_fraction: report.adapter_trimmed_fraction,
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.detect_adapters.report.v1",
-        "stage_id": STAGE_DETECT_ADAPTERS.as_str(),
-        "tool_id": tool,
-        "inspection_mode": "evidence_only",
-        "report_only": true,
-        "evidence_engine": tool,
-        "input_fastq": bench_inputs.r1,
-        "paired_input": input_stats_r2.is_some(),
-        "candidate_adapter_count": metrics.candidate_adapter_count,
-        "adapter_trimmed_fraction": metrics.adapter_trimmed_fraction,
-        "fastqc_dir": out_dir.join("fastqc"),
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
-    });
     bijux_dna_infra::atomic_write_json(&out_dir.join("adapter_report.json"), &report)
         .context("write adapter report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
@@ -260,6 +252,71 @@ fn build_detect_record(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn build_detect_report(
+    bench_inputs: &crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs,
+    input_r2_path: Option<&std::path::Path>,
+    input_stats_r2: Option<&SeqkitMetrics>,
+    tool: &str,
+    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
+    out_dir: &std::path::Path,
+    execution: &StageResultV1,
+) -> Result<DetectAdaptersReportV1> {
+    let (candidate_adapter_count, adapter_trimmed_fraction) = detect_adapter_summary(out_dir)?;
+    let reads_in = bench_inputs.input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
+    let bases_in = bench_inputs.input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
+    let mean_q = if bases_in == 0 {
+        0.0
+    } else {
+        ((bench_inputs.input_stats.mean_q * bench_inputs.input_stats.bases as f64)
+            + input_stats_r2.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
+            / bases_in as f64
+    };
+    let pairs_in = input_stats_r2.map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
+    let pairs_out = pairs_in;
+    Ok(DetectAdaptersReportV1 {
+        schema_version: DETECT_ADAPTERS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_DETECT_ADAPTERS.as_str().to_string(),
+        stage_id: STAGE_DETECT_ADAPTERS.as_str().to_string(),
+        tool_id: tool.to_string(),
+        paired_mode: if input_stats_r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        threads: tool_spec.resources.threads,
+        inspection_mode: AdapterInspectionMode::EvidenceOnly,
+        report_only: true,
+        evidence_engine: tool.to_string(),
+        evidence_scope: AdapterEvidenceScope::FullInput,
+        evidence_format: AdapterEvidenceFormat::FastqcSummary,
+        evidence_artifact_id: "report_json".to_string(),
+        input_r1: bench_inputs.r1.display().to_string(),
+        input_r2: input_r2_path.map(|path| path.display().to_string()),
+        report_json: out_dir.join("adapter_report.json").display().to_string(),
+        adapter_evidence_dir: out_dir.join("fastqc").display().to_string(),
+        reads_in,
+        reads_out: reads_in,
+        bases_in,
+        bases_out: bases_in,
+        pairs_in,
+        pairs_out,
+        mean_q,
+        candidate_adapter_count,
+        adapter_trimmed_fraction,
+        adapter_content_max: None,
+        adapter_content_mean: None,
+        duplication_rate: None,
+        n_rate: None,
+        kmer_warning_count: None,
+        overrepresented_sequence_count: None,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
+        exit_code: Some(execution.exit_code),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+    })
 }
 
 fn detect_adapter_summary(out_dir: &std::path::Path) -> Result<(u64, Option<f64>)> {
