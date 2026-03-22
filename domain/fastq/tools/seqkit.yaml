@@ -102,10 +102,13 @@ stage_contracts:
   fastq.profile_overrepresented_sequences:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "overrepresented_sequences_tsv"
       - "overrepresented_sequences_json"
-    notes: "seqkit sequence-content profiling emits normalized overrepresented-sequence tables."
+      - "report_json"
+    notes: "seqkit sequence-content profiling emits normalized overrepresented-sequence tables plus the governed report artifact."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
@@ -119,6 +122,7 @@ expected_artifacts:
   - "primer_stats_json"
   - "overrepresented_sequences_tsv"
   - "overrepresented_sequences_json"
+  - "report_json"
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "seqkit --version"

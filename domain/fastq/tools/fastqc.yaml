@@ -24,6 +24,9 @@ outputs:
   - name: "overrepresented_sequences_json"
     data_type: "json"
     cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "fastq_validate_v1"
 constraints:
   runtime: "local"
@@ -33,11 +36,14 @@ constraints:
 execution_contract:
   required_inputs:
     - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
   expected_outputs:
     - "adapter_report"
     - "adapter_evidence_dir"
     - "overrepresented_sequences_tsv"
     - "overrepresented_sequences_json"
+    - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 upstream: "unknown"
@@ -61,15 +67,19 @@ stage_contracts:
   fastq.profile_overrepresented_sequences:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "overrepresented_sequences_tsv"
       - "overrepresented_sequences_json"
-    notes: "Sequence-content profiling emits normalized overrepresented-sequence tables."
+      - "report_json"
+    notes: "Sequence-content profiling emits normalized overrepresented-sequence tables plus the governed report artifact."
 expected_artifacts:
   - "adapter_report"
   - "adapter_evidence_dir"
   - "overrepresented_sequences_json"
   - "overrepresented_sequences_tsv"
+  - "report_json"
 metrics_schema_id: "bijux.fastq.qc.v1"
 metrics_schema: "bijux.fastq.qc.v1"
 version_cmd: "fastqc --version"
