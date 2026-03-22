@@ -1032,6 +1032,7 @@ fn plan_trim_terminal_damage_honors_explicit_execution_policy_override() -> Resu
         None,
         std::path::Path::new("out"),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::TrimTerminalDamagePlanOptions {
+            threads: None,
             damage_mode: DamageMode::UdgTrimmed,
             execution_policy: Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim),
             trim_5p_bases: 2,
@@ -1045,7 +1046,7 @@ fn plan_trim_terminal_damage_honors_explicit_execution_policy_override() -> Resu
         )?,
         TerminalDamageExecutionPolicy::ExplicitTerminalTrim
     );
-    assert!(plan.command.template[2].contains("cutadapt -u 2 -u -2"));
+    assert!(plan.command.template[2].contains("cutadapt --cores 1 -u 2 -u -2"));
     Ok(())
 }
 
@@ -1057,6 +1058,7 @@ fn plan_trim_terminal_damage_rejects_invalid_preserve_override() {
         None,
         std::path::Path::new("out"),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_terminal_damage::TrimTerminalDamagePlanOptions {
+            threads: None,
             damage_mode: DamageMode::Ancient,
             execution_policy: Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds),
             trim_5p_bases: 2,
