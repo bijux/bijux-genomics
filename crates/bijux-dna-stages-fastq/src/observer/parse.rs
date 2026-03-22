@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    IndexReferenceReportV1,
     InferAsvsReportV1,
     MergePairsReportV1,
     NormalizeAbundanceReportV1,
@@ -118,6 +119,12 @@ pub fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
 /// Returns an error if the governed validation report JSON cannot be parsed.
 pub fn parse_validation_report(report_json: &str) -> Result<ValidationReportV1> {
     serde_json::from_str(report_json).context("parse validation report")
+}
+
+/// # Errors
+/// Returns an error if the governed index-reference report JSON cannot be parsed.
+pub fn parse_index_reference_report(report_json: &str) -> Result<IndexReferenceReportV1> {
+    serde_json::from_str(report_json).context("parse index-reference report")
 }
 
 /// # Errors
@@ -833,6 +840,7 @@ mod tests {
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
         parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
+        parse_index_reference_report,
         parse_infer_asvs_report,
         parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
         parse_profile_overrepresented_report,
@@ -1582,6 +1590,42 @@ mod tests {
         assert_eq!(parsed.schema_version, "bijux.multiqc.metrics.v1");
         assert_eq!(parsed.sample_count, 2);
         assert_eq!(parsed.module_count, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_index_reference_report_parses_governed_contract() -> Result<()> {
+        let parsed = parse_index_reference_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.index_reference.report.v2",
+                "stage": "fastq.index_reference",
+                "stage_id": "fastq.index_reference",
+                "tool_id": "bowtie2_build",
+                "threads": 4,
+                "index_format": "bowtie2_build",
+                "reference_fasta": "reference.fa",
+                "reference_bytes": 4096,
+                "reference_index": "reference_index/bowtie2/reference",
+                "report_json": "index_reference_report.json",
+                "index_prefix": "reference",
+                "emitted_files": [
+                    {"relative_path": "reference.1.bt2", "bytes": 1024},
+                    {"relative_path": "reference.2.bt2", "bytes": 2048}
+                ],
+                "index_file_count": 2,
+                "index_bytes": 3072,
+                "runtime_s": 1.5,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "backend_metrics": {
+                    "index_directory": "reference_index/bowtie2"
+                }
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "bowtie2_build");
+        assert_eq!(parsed.index_file_count, 2);
+        assert_eq!(parsed.emitted_files[0].relative_path, "reference.1.bt2");
         Ok(())
     }
 
