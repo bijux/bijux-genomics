@@ -989,6 +989,39 @@ pub fn stage_metrics_for_plan(
                 serde_json::json!({})
             }
         }
+        "fastq.infer_asvs" => {
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("infer_asvs_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_infer_asvs_report(&raw).ok());
+            if let Some(report) = governed_report {
+                serde_json::json!({
+                    "asv_count": report.asv_count,
+                    "sample_count": report.sample_count,
+                    "representative_sequence_count": report.representative_sequence_count,
+                    "paired_mode": report.paired_mode,
+                    "denoising_method": report.denoising_method,
+                    "pooling_mode": report.pooling_mode,
+                    "chimera_policy": report.chimera_policy,
+                    "output_table_kind": report.output_table_kind,
+                    "used_fallback": report.used_fallback,
+                    "raw_backend_report_format": report.raw_backend_report_format,
+                })
+            } else {
+                serde_json::json!({})
+            }
+        }
         "fastq.profile_read_lengths" => {
             let report_path = path_from_params(&plan.params, "report_json")
                 .or_else(|| {
