@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    ProfileReadsReportV1, ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1,
     RemoveChimerasReportV1,
     RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1, ReportQcReportV1,
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1,
@@ -141,6 +142,14 @@ pub fn parse_trim_polyg_report(report_json: &str) -> Result<TrimPolygReportV1> {
 /// Returns an error if the governed report-qc report JSON cannot be parsed.
 pub fn parse_report_qc_report(report_json: &str) -> Result<ReportQcReportV1> {
     serde_json::from_str(report_json).context("parse report qc report")
+}
+
+/// # Errors
+/// Returns an error if the governed profile-reads report JSON cannot be parsed.
+pub fn parse_profile_reads_report(report_json: &str) -> Result<ProfileReadsReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_profile_reads_report(report_json))
+        .context("parse profile reads report")
 }
 
 /// # Errors
@@ -336,6 +345,85 @@ fn parse_legacy_remove_chimeras_report(report_json: &str) -> Result<RemoveChimer
         runtime_s: None,
         memory_mb: None,
         exit_code: None,
+        backend_metrics: None,
+    })
+}
+
+fn parse_legacy_profile_reads_report(report_json: &str) -> Result<ProfileReadsReportV1> {
+    let json = serde_json::from_str::<serde_json::Value>(report_json)
+        .context("parse legacy profile reads json")?;
+    let length_histogram = json
+        .get("length_histogram")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| {
+            let length = entry.get("length").and_then(serde_json::Value::as_u64)?;
+            let count = entry.get("count").and_then(serde_json::Value::as_u64)?;
+            Some(ProfileReadsHistogramBinV1 { length, count })
+        })
+        .collect::<Vec<_>>();
+    Ok(ProfileReadsReportV1 {
+        schema_version: "bijux.fastq.profile_reads.report.v1_legacy".to_string(),
+        stage: "fastq.profile_reads".to_string(),
+        stage_id: "fastq.profile_reads".to_string(),
+        tool_id: json
+            .get("tool_id")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown")
+            .to_string(),
+        paired_mode: match json.get("paired_mode").and_then(serde_json::Value::as_str) {
+            Some("paired_end") => bijux_dna_domain_fastq::PairedMode::PairedEnd,
+            _ => bijux_dna_domain_fastq::PairedMode::SingleEnd,
+        },
+        threads: json
+            .get("threads")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
+        input_r1: String::new(),
+        input_r2: None,
+        qc_json: String::new(),
+        qc_tsv: String::new(),
+        qc_plots_dir: None,
+        reads_total: json
+            .get("reads_total")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0),
+        bases_total: json
+            .get("bases_total")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0),
+        mean_q: json
+            .get("mean_q")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0),
+        gc_percent: json
+            .get("gc_percent")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0),
+        length_histogram,
+        mate_summaries: vec![ProfileReadsMateSummaryV1 {
+            label: "reads_r1".to_string(),
+            reads: json
+                .get("reads_total")
+                .and_then(serde_json::Value::as_u64)
+                .unwrap_or(0),
+            bases: json
+                .get("bases_total")
+                .and_then(serde_json::Value::as_u64)
+                .unwrap_or(0),
+            mean_q: json.get("mean_q").and_then(serde_json::Value::as_f64),
+            gc_percent: json.get("gc_percent").and_then(serde_json::Value::as_f64),
+        }],
+        runtime_s: json.get("runtime_s").and_then(serde_json::Value::as_f64),
+        memory_mb: json.get("memory_mb").and_then(serde_json::Value::as_f64),
+        exit_code: json
+            .get("exit_code")
+            .and_then(serde_json::Value::as_i64)
+            .and_then(|value| i32::try_from(value).ok()),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
         backend_metrics: None,
     })
 }
@@ -544,7 +632,8 @@ mod tests {
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
         parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
         parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
-        parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
+        parse_profile_reads_report, parse_remove_chimeras_report,
+        parse_remove_duplicates_report, parse_report_qc_report,
         parse_samtools_flagstat_metrics,
         parse_screen_summary_tsv, parse_screen_taxonomy_report, parse_seqkit_stats,
         parse_seqkit_tool_metrics, parse_terminal_damage_report, parse_trim_reads_report,
@@ -1040,6 +1129,65 @@ mod tests {
         assert_eq!(parsed.tool_id, "vsearch");
         assert_eq!(parsed.chimeras_removed, Some(12));
         assert!(parsed.used_fallback);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_profile_reads_report_parses_governed_contract() -> Result<()> {
+        let parsed = parse_profile_reads_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.profile_reads.report.v2",
+                "stage": "fastq.profile_reads",
+                "stage_id": "fastq.profile_reads",
+                "tool_id": "seqkit_stats",
+                "paired_mode": "paired_end",
+                "threads": 2,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "qc_json": "qc.json",
+                "qc_tsv": "qc.tsv",
+                "qc_plots_dir": "plots",
+                "reads_total": 200,
+                "bases_total": 20000,
+                "mean_q": 31.2,
+                "gc_percent": 42.0,
+                "length_histogram": [{"length": 100, "count": 200}],
+                "mate_summaries": [
+                    {"label": "reads_r1", "reads": 100, "bases": 10000, "mean_q": 31.0, "gc_percent": 41.0},
+                    {"label": "reads_r2", "reads": 100, "bases": 10000, "mean_q": 31.4, "gc_percent": 43.0}
+                ],
+                "runtime_s": 1.2,
+                "memory_mb": 20.0,
+                "exit_code": 0,
+                "raw_backend_report": "qc.tsv",
+                "raw_backend_report_format": "seqkit_stats_tsv",
+                "backend_metrics": [
+                    {"schema_version": "bijux.seqkit.metrics.v1", "reads": 100, "bases": 10000, "mean_q": 31.0, "gc_percent": 41.0}
+                ]
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "seqkit_stats");
+        assert_eq!(parsed.reads_total, 200);
+        assert_eq!(parsed.length_histogram.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_profile_reads_report_accepts_legacy_metrics_payload() -> Result<()> {
+        let parsed = parse_profile_reads_report(
+            &serde_json::json!({
+                "reads_total": 100,
+                "bases_total": 10000,
+                "mean_q": 30.5,
+                "gc_percent": 41.5,
+                "length_histogram": [{"length": 100, "count": 100}]
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.reads_total, 100);
+        assert_eq!(parsed.tool_id, "unknown");
+        assert_eq!(parsed.length_histogram[0].count, 100);
         Ok(())
     }
 
