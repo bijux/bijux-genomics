@@ -379,21 +379,23 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         out_dir,
     )?;
     assert_eq!(plan.io.inputs.len(), 2);
-    assert_eq!(plan.io.outputs.len(), 4);
+    assert_eq!(plan.io.outputs.len(), 5);
     assert_eq!(plan.io.inputs[1].name.as_str(), "reads_r2");
     assert_eq!(plan.io.outputs[1].name.as_str(), "normalized_reads_r2");
-    assert_eq!(plan.command.template[0], "cutadapt");
+    assert_eq!(plan.io.outputs[2].name.as_str(), "report_json");
+    assert_eq!(plan.io.outputs[2].role.as_str(), "report_json");
+    assert_eq!(plan.command.template[0], "bash");
     assert!(plan
         .command
         .template
         .iter()
-        .any(|part| part == "--info-file"));
+        .any(|part| part.contains("cutadapt")));
     assert!(plan.command.template.iter().any(|part| part == "--json"));
     assert!(plan
         .command
         .template
         .iter()
-        .any(|part| part == "out/R2.primer_normalized.fastq.gz"));
+        .any(|part| part.contains("R2.primer_normalized.fastq.gz")));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
         &domain_tool("fastq.remove_chimeras", "vsearch"),
