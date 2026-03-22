@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_detect_adapters_report,
+    parse_cluster_otus_report,
     parse_correct_errors_report,
     parse_deplete_host_report,
     parse_deplete_reference_contaminants_report,
@@ -537,6 +538,33 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "representative_sequence_count": report.representative_sequence_count,
                         "asv_table_tsv": report.asv_table_tsv,
                         "asv_sequences_fasta": report.asv_sequences_fasta,
+                        "taxonomy_ready_fasta": report.taxonomy_ready_fasta,
+                        "taxonomy_ready_fastq": report.taxonomy_ready_fastq,
+                        "used_fallback": report.used_fallback,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.cluster_otus" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_cluster_otus_report(&raw_report) {
+                    return serde_json::json!({
+                        "otu_identity": report.otu_identity,
+                        "threads": report.threads,
+                        "otu_count": report.otu_count,
+                        "sample_count": report.sample_count,
+                        "representative_sequence_count": report.representative_sequence_count,
+                        "output_table_kind": report.output_table_kind,
+                        "otu_table": report.otu_table,
+                        "otu_representatives": report.otu_representatives,
                         "taxonomy_ready_fasta": report.taxonomy_ready_fasta,
                         "taxonomy_ready_fastq": report.taxonomy_ready_fastq,
                         "used_fallback": report.used_fallback,
@@ -3805,6 +3833,76 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["asv_count"],
             serde_json::json!(11)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_cluster_otus_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("cluster_otus_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.cluster_otus.report.v2",
+                "stage": "fastq.cluster_otus",
+                "stage_id": "fastq.cluster_otus",
+                "tool_id": "vsearch",
+                "otu_identity": 0.99,
+                "threads": 8,
+                "input_reads": "merged.fastq.gz",
+                "otu_table": "otu_abundance.tsv",
+                "otu_representatives": "otu_representatives.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "cluster_otus_report.json",
+                "otu_count": 14,
+                "sample_count": 3,
+                "representative_sequence_count": 14,
+                "output_table_kind": "otu_abundance_table",
+                "used_fallback": false,
+                "runtime_s": 2.4,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "raw_backend_report": "otu_clusters.uc",
+                "raw_backend_report_format": "vsearch_uc",
+                "backend_metrics": {}
+            })
+            .to_string(),
+        )
+        .expect("write cluster otus report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.cluster_otus"),
+            tool_id: ToolId::from_static("vsearch"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads"),
+                    temp.path().join("reads.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.cluster_otus")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["otu_identity"],
+            serde_json::json!(0.99)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["otu_count"],
+            serde_json::json!(14)
         );
     }
 
