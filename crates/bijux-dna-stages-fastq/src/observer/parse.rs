@@ -10,6 +10,7 @@ use bijux_dna_domain_fastq::metrics::{
     AdapterRemovalToolMetricsV1, FastpToolMetricsV1, FastqcToolMetricsV1, MultiqcToolMetricsV1,
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
+use bijux_dna_domain_fastq::{ValidatedReadsManifestV1, ValidationReportV1};
 
 /// # Errors
 /// Returns an error if stdout cannot be parsed.
@@ -97,6 +98,18 @@ pub fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
         .1
         .trim();
     Ok(count.parse::<u64>()?)
+}
+
+/// # Errors
+/// Returns an error if the governed validation report JSON cannot be parsed.
+pub fn parse_validation_report(report_json: &str) -> Result<ValidationReportV1> {
+    serde_json::from_str(report_json).context("parse validation report")
+}
+
+/// # Errors
+/// Returns an error if the governed validated-reads lineage manifest JSON cannot be parsed.
+pub fn parse_validated_reads_manifest(manifest_json: &str) -> Result<ValidatedReadsManifestV1> {
+    serde_json::from_str(manifest_json).context("parse validated reads manifest")
 }
 
 /// # Errors
@@ -313,9 +326,14 @@ mod tests {
         parse_fastp_metrics, parse_fastqc_summary_metrics, parse_fastqvalidator_count,
         parse_length_histogram, parse_low_complexity_report,
         parse_multiqc_general_stats_metrics, parse_samtools_flagstat_metrics,
-        parse_seqkit_stats, parse_seqkit_tool_metrics,
+        parse_seqkit_stats, parse_seqkit_tool_metrics, parse_validated_reads_manifest,
+        parse_validation_report,
     };
     use anyhow::Result;
+    use bijux_dna_domain_fastq::{
+        PairedMode, ValidateFailureClass, VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
+        VALIDATION_REPORT_SCHEMA_VERSION,
+    };
 
     #[test]
     fn parse_fastqvalidator_count_parses_fixture() -> Result<()> {
@@ -330,6 +348,65 @@ mod tests {
     fn parse_fastqvalidator_count_rejects_missing_marker() {
         let stdout = "fastqvalidator output without total reads";
         assert!(parse_fastqvalidator_count(stdout).is_err());
+    }
+
+    #[test]
+    fn parse_validation_report_parses_governed_validate_json() -> Result<()> {
+        let parsed = parse_validation_report(
+            &serde_json::json!({
+                "schema_version": VALIDATION_REPORT_SCHEMA_VERSION,
+                "stage": "fastq.validate_reads",
+                "stage_id": "fastq.validate_reads",
+                "tool_id": "fastqvalidator",
+                "validation_mode": "strict",
+                "pair_sync_policy": "require_header_sync",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "validation_log_r1": "validation_r1.log",
+                "validation_log_r2": "validation_r2.log",
+                "validated_inputs": 2,
+                "validated_reads_r1": 101,
+                "validated_reads_r2": 100,
+                "validated_pairs": 100,
+                "status_r1": 0,
+                "status_r2": 0,
+                "pair_sync_checked": true,
+                "pair_sync_pass": false,
+                "pair_count_match": false,
+                "failure_class": "pair_count_mismatch",
+                "strict_pass": false,
+                "exit_code": 96
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.failure_class, ValidateFailureClass::PairCountMismatch);
+        assert_eq!(parsed.validated_reads_r2, Some(100));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_validated_reads_manifest_parses_governed_lineage_json() -> Result<()> {
+        let parsed = parse_validated_reads_manifest(
+            &serde_json::json!({
+                "schema_version": VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
+                "stage_id": "fastq.validate_reads",
+                "tool_id": "seqtk",
+                "validation_mode": "report_only",
+                "pair_sync_policy": "skip_header_sync",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "validation_report": "validation.json",
+                "paired_mode": "paired_end",
+                "validated_stream_ids": ["reads_r1", "reads_r2"],
+                "pair_sync_checked": false,
+                "pair_sync_pass": null,
+                "validated_pairs": 120
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.paired_mode, PairedMode::PairedEnd);
+        assert_eq!(parsed.validated_stream_ids, vec!["reads_r1", "reads_r2"]);
+        Ok(())
     }
 
     #[test]
