@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::Path;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -14,6 +14,9 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::params::edna::AbundanceNormalizationEffectiveParams;
+use bijux_dna_domain_fastq::{
+    NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
@@ -26,6 +29,67 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.normalize_abundance";
+
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct NormalizedAbundanceTableMetrics {
+    pub table_rows: u64,
+    pub sample_count: u64,
+    pub feature_count: u64,
+    pub zero_fraction: f64,
+    pub per_sample_sums: Vec<(String, f64)>,
+}
+
+impl NormalizedAbundanceTableMetrics {
+    fn to_benchmark_metrics(
+        &self,
+        normalization_method: &str,
+    ) -> Result<FastqNormalizeAbundanceMetrics> {
+        let metrics = FastqNormalizeAbundanceMetrics {
+            table_rows: self.table_rows,
+            sample_count: self.sample_count,
+            zero_fraction: self.zero_fraction,
+            normalization_method: normalization_method.to_string(),
+        };
+        metrics.validate()?;
+        Ok(metrics)
+    }
+}
+
+pub(crate) fn normalize_abundance_effective_params(
+    method: &str,
+) -> Result<AbundanceNormalizationEffectiveParams> {
+    let (normalized_value_column, compositional_rule, scale_factor) = match method {
+        "relative_abundance" => (
+            "normalized_abundance".to_string(),
+            "per_sample_sum_to_one".to_string(),
+            None,
+        ),
+        "counts_per_million" => (
+            "counts_per_million".to_string(),
+            "per_sample_sum_to_one_million".to_string(),
+            Some(1_000_000.0),
+        ),
+        _ => {
+            return Err(anyhow!(
+                "unsupported fastq.normalize_abundance method `{method}`"
+            ))
+        }
+    };
+    Ok(AbundanceNormalizationEffectiveParams {
+        schema_version: bijux_dna_domain_fastq::params::edna::EDNA_SCHEMA_VERSION.to_string(),
+        method: method.to_string(),
+        expected_columns: vec![
+            "sample_id".to_string(),
+            "feature_id".to_string(),
+            "abundance".to_string(),
+        ],
+        input_value_column: "abundance".to_string(),
+        normalized_value_column,
+        compositional_rule,
+        scale_factor,
+        report_artifact: "report_json".to_string(),
+    })
+}
 
 pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
@@ -66,11 +130,20 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::plan(
-            &tool_spec,
-            &args.table,
-            &out_dir,
-        )?;
+        let plan_options =
+            bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::NormalizeAbundancePlanOptions {
+                method: args
+                    .method
+                    .clone()
+                    .unwrap_or_else(|| "relative_abundance".to_string()),
+            };
+        let plan =
+            bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::plan_with_options(
+                &tool_spec,
+                &args.table,
+                &out_dir,
+                &plan_options,
+            )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -113,35 +186,39 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
         let effective_params: AbundanceNormalizationEffectiveParams =
             serde_json::from_value(plan.effective_params.clone())
                 .context("decode abundance normalization effective params")?;
-        if !plan.io.outputs[0].path.exists() {
-            materialize_normalized_table(
-                &args.table,
-                &plan.io.outputs[0].path,
-                &effective_params.normalized_value_column,
-            )?;
-        }
-        let metrics = read_normalized_table_metrics(
-            &plan.io.outputs[0].path,
-            &effective_params.method,
-            &effective_params.normalized_value_column,
-        )?;
+        let normalized_table = output_path_for(&plan, "normalized_abundance_tsv")
+            .unwrap_or_else(|| out_dir.join("abundance_normalized.tsv"));
+        let report_json =
+            output_path_for(&plan, "report_json").unwrap_or_else(|| out_dir.join("normalize_abundance_report.json"));
+        let used_fallback = !normalized_table.exists();
+        let table_metrics = if used_fallback {
+            materialize_normalized_table(&args.table, &normalized_table, &effective_params)?
+        } else {
+            read_normalized_table_metrics(&normalized_table, &effective_params)?
+        };
+        let metrics = table_metrics.to_benchmark_metrics(&effective_params.method)?;
         let metric_set = metric_set(metrics);
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.normalize_abundance.report.v1",
-            "stage_id": STAGE_ID,
-            "tool_id": tool,
-            "input_table": args.table,
-            "normalized_abundance_tsv": plan.io.outputs[0].path,
-            "normalization_method": effective_params.method,
-            "normalized_value_column": effective_params.normalized_value_column,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-            "exit_code": execution.exit_code,
-        });
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("normalize_abundance_report.json"),
-            &report,
-        )?;
+        let report = canonical_normalize_abundance_report(
+            STAGE_ID,
+            tool,
+            &args.table,
+            &normalized_table,
+            &effective_params,
+            &table_metrics,
+            Some(&ExecutionMetrics {
+                runtime_s: execution.runtime_s,
+                memory_mb: execution.memory_mb,
+                exit_code: execution.exit_code,
+            }),
+            None,
+            None,
+            used_fallback,
+            Some(serde_json::json!({
+                "metric_set": serde_json::to_value(&metric_set)?,
+                "execution_exit_code": execution.exit_code,
+            })),
+        );
+        bijux_dna_infra::atomic_write_json(&report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -177,14 +254,23 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
     })
 }
 
-fn materialize_normalized_table(
+pub(crate) fn materialize_normalized_table(
     input: &Path,
     output: &Path,
-    normalized_value_column: &str,
-) -> Result<()> {
+    effective_params: &AbundanceNormalizationEffectiveParams,
+) -> Result<NormalizedAbundanceTableMetrics> {
     let raw =
         std::fs::read_to_string(input).with_context(|| format!("read {}", input.display()))?;
+    let expected_header = effective_params.expected_columns.join("\t");
+    if let Some(header) = raw.lines().next() {
+        if header.trim() != expected_header {
+            return Err(anyhow!(
+                "abundance table header mismatch: expected `{expected_header}`, got `{header}`"
+            ));
+        }
+    }
     let mut by_sample = BTreeMap::<String, Vec<(String, f64)>>::new();
+    let mut feature_ids = BTreeSet::<String>::new();
     for line in raw.lines().skip(1) {
         let cols = line.split('\t').collect::<Vec<_>>();
         if cols.len() < 3 {
@@ -193,30 +279,62 @@ fn materialize_normalized_table(
         let sample = cols[0].trim().to_string();
         let feature = cols[1].trim().to_string();
         let abundance = cols[2].trim().parse::<f64>().unwrap_or(0.0);
+        feature_ids.insert(feature.clone());
         by_sample
             .entry(sample)
             .or_default()
             .push((feature, abundance));
     }
-    let mut out = format!("sample_id\tfeature_id\t{normalized_value_column}\n");
+    let mut out = format!(
+        "sample_id\tfeature_id\t{}\n",
+        effective_params.normalized_value_column
+    );
+    let scale_factor = effective_params.scale_factor.unwrap_or(1.0);
+    let sample_count = by_sample.len() as u64;
+    let mut table_rows = 0_u64;
+    let mut zeros = 0_u64;
+    let mut per_sample_sums = Vec::new();
     for (sample, rows) in by_sample {
         let total = rows.iter().map(|(_, abundance)| *abundance).sum::<f64>();
+        let mut sample_sum = 0.0_f64;
         for (feature, abundance) in rows {
-            let normalized = if total > 0.0 { abundance / total } else { 0.0 };
+            let normalized = if total > 0.0 {
+                (abundance * scale_factor) / total
+            } else {
+                0.0
+            };
+            table_rows += 1;
+            if normalized == 0.0 {
+                zeros += 1;
+            }
+            sample_sum += normalized;
             out.push_str(&format!("{sample}\t{feature}\t{normalized:.6}\n"));
         }
+        per_sample_sums.push((sample, sample_sum));
     }
     bijux_dna_infra::atomic_write_bytes(output, out.as_bytes())?;
-    Ok(())
+    Ok(NormalizedAbundanceTableMetrics {
+        table_rows,
+        sample_count,
+        feature_count: feature_ids.len() as u64,
+        zero_fraction: if table_rows == 0 {
+            0.0
+        } else {
+            zeros as f64 / table_rows as f64
+        },
+        per_sample_sums,
+    })
 }
 
-fn read_normalized_table_metrics(
+pub(crate) fn read_normalized_table_metrics(
     path: &Path,
-    normalization_method: &str,
-    normalized_value_column: &str,
-) -> Result<FastqNormalizeAbundanceMetrics> {
+    effective_params: &AbundanceNormalizationEffectiveParams,
+) -> Result<NormalizedAbundanceTableMetrics> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let expected_header = format!("sample_id\tfeature_id\t{normalized_value_column}");
+    let expected_header = format!(
+        "sample_id\tfeature_id\t{}",
+        effective_params.normalized_value_column
+    );
     if let Some(header) = raw.lines().next() {
         if header.trim() != expected_header {
             return Err(anyhow!(
@@ -226,37 +344,87 @@ fn read_normalized_table_metrics(
     }
     let mut rows = 0_u64;
     let mut zeros = 0_u64;
-    let mut samples = BTreeMap::<String, ()>::new();
+    let mut samples = BTreeMap::<String, f64>::new();
+    let mut feature_ids = BTreeSet::<String>::new();
     for line in raw.lines().skip(1) {
         let cols = line.split('\t').collect::<Vec<_>>();
         if cols.len() < 3 {
             continue;
         }
         rows += 1;
-        samples.insert(cols[0].trim().to_string(), ());
-        if cols[2].trim().parse::<f64>().unwrap_or(0.0) == 0.0 {
+        feature_ids.insert(cols[1].trim().to_string());
+        let value = cols[2].trim().parse::<f64>().unwrap_or(0.0);
+        *samples.entry(cols[0].trim().to_string()).or_default() += value;
+        if value == 0.0 {
             zeros += 1;
         }
     }
-    let zero_fraction = if rows == 0 {
-        0.0
-    } else {
-        zeros as f64 / rows as f64
-    };
-    let metrics = FastqNormalizeAbundanceMetrics {
+    Ok(NormalizedAbundanceTableMetrics {
         table_rows: rows,
         sample_count: samples.len() as u64,
-        zero_fraction,
-        normalization_method: normalization_method.to_string(),
-    };
-    metrics.validate()?;
-    Ok(metrics)
+        feature_count: feature_ids.len() as u64,
+        zero_fraction: if rows == 0 {
+            0.0
+        } else {
+            zeros as f64 / rows as f64
+        },
+        per_sample_sums: samples.into_iter().collect(),
+    })
+}
+
+pub(crate) fn canonical_normalize_abundance_report(
+    stage_id: &str,
+    tool_id: &str,
+    input_table: &Path,
+    normalized_table: &Path,
+    effective_params: &AbundanceNormalizationEffectiveParams,
+    table_metrics: &NormalizedAbundanceTableMetrics,
+    execution: Option<&ExecutionMetrics>,
+    raw_backend_report: Option<String>,
+    raw_backend_report_format: Option<String>,
+    used_fallback: bool,
+    backend_metrics: Option<serde_json::Value>,
+) -> NormalizeAbundanceReportV1 {
+    NormalizeAbundanceReportV1 {
+        schema_version: NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION.to_string(),
+        stage: stage_id.to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        method: effective_params.method.clone(),
+        input_table: input_table.display().to_string(),
+        normalized_abundance_tsv: normalized_table.display().to_string(),
+        expected_columns: effective_params.expected_columns.clone(),
+        input_value_column: effective_params.input_value_column.clone(),
+        normalized_value_column: effective_params.normalized_value_column.clone(),
+        compositional_rule: effective_params.compositional_rule.clone(),
+        scale_factor: effective_params.scale_factor,
+        table_rows: table_metrics.table_rows,
+        sample_count: table_metrics.sample_count,
+        feature_count: table_metrics.feature_count,
+        zero_fraction: table_metrics.zero_fraction,
+        per_sample_sums: table_metrics.per_sample_sums.clone(),
+        runtime_s: execution.map(|metrics| metrics.runtime_s),
+        memory_mb: execution.map(|metrics| metrics.memory_mb),
+        raw_backend_report,
+        raw_backend_report_format,
+        used_fallback,
+        backend_metrics,
+    }
+}
+
+fn output_path_for(plan: &bijux_dna_stage_contract::StagePlanV1, artifact_name: &str) -> Option<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.clone())
 }
 
 #[cfg(test)]
 mod tests {
     use super::{materialize_normalized_table, read_normalized_table_metrics};
     use anyhow::Result;
+    use bijux_dna_domain_fastq::params::edna::AbundanceNormalizationEffectiveParams;
     use std::path::PathBuf;
 
     fn temp_path(name: &str) -> PathBuf {
@@ -278,10 +446,27 @@ mod tests {
             "sample_id\tfeature_id\tabundance\ns1\tf1\t2\ns1\tf2\t2\n",
         )?;
 
-        materialize_normalized_table(&input, &output, "relative_abundance_value")?;
+        let effective_params = AbundanceNormalizationEffectiveParams {
+            schema_version: "bijux.params.edna.v1".to_string(),
+            method: "relative_abundance".to_string(),
+            expected_columns: vec![
+                "sample_id".to_string(),
+                "feature_id".to_string(),
+                "abundance".to_string(),
+            ],
+            input_value_column: "abundance".to_string(),
+            normalized_value_column: "relative_abundance_value".to_string(),
+            compositional_rule: "per_sample_sum_to_one".to_string(),
+            scale_factor: None,
+            report_artifact: "report_json".to_string(),
+        };
+
+        let metrics = materialize_normalized_table(&input, &output, &effective_params)?;
 
         let raw = std::fs::read_to_string(&output)?;
         assert!(raw.starts_with("sample_id\tfeature_id\trelative_abundance_value\n"));
+        assert_eq!(metrics.sample_count, 1);
+        assert_eq!(metrics.feature_count, 2);
         Ok(())
     }
 
@@ -295,12 +480,59 @@ mod tests {
         )
         .expect("write bad normalized table");
 
-        let error = read_normalized_table_metrics(
-            &output,
-            "relative_abundance",
-            "relative_abundance_value",
-        )
-        .expect_err("header mismatch must be rejected");
+        let effective_params = AbundanceNormalizationEffectiveParams {
+            schema_version: "bijux.params.edna.v1".to_string(),
+            method: "relative_abundance".to_string(),
+            expected_columns: vec![
+                "sample_id".to_string(),
+                "feature_id".to_string(),
+                "abundance".to_string(),
+            ],
+            input_value_column: "abundance".to_string(),
+            normalized_value_column: "relative_abundance_value".to_string(),
+            compositional_rule: "per_sample_sum_to_one".to_string(),
+            scale_factor: None,
+            report_artifact: "report_json".to_string(),
+        };
+
+        let error = read_normalized_table_metrics(&output, &effective_params)
+            .expect_err("header mismatch must be rejected");
         assert!(error.to_string().contains("header mismatch"));
+    }
+
+    #[test]
+    fn materialized_table_honors_counts_per_million_scale() -> Result<()> {
+        let input = temp_path("counts_input.tsv");
+        let output = temp_path("counts_output.tsv");
+        std::fs::create_dir_all(input.parent().expect("temp parent"))?;
+        std::fs::write(
+            &input,
+            "sample_id\tfeature_id\tabundance\ns1\tf1\t25\ns1\tf2\t75\n",
+        )?;
+
+        let effective_params = AbundanceNormalizationEffectiveParams {
+            schema_version: "bijux.params.edna.v1".to_string(),
+            method: "counts_per_million".to_string(),
+            expected_columns: vec![
+                "sample_id".to_string(),
+                "feature_id".to_string(),
+                "abundance".to_string(),
+            ],
+            input_value_column: "abundance".to_string(),
+            normalized_value_column: "counts_per_million".to_string(),
+            compositional_rule: "per_sample_sum_to_one_million".to_string(),
+            scale_factor: Some(1_000_000.0),
+            report_artifact: "report_json".to_string(),
+        };
+
+        let metrics = materialize_normalized_table(&input, &output, &effective_params)?;
+        let raw = std::fs::read_to_string(&output)?;
+        assert!(raw.contains("s1\tf1\t250000.000000"));
+        assert!(raw.contains("s1\tf2\t750000.000000"));
+        assert_eq!(
+            metrics.per_sample_sums,
+            vec![("s1".to_string(), 1_000_000.0)]
+        );
+        Ok(())
     }
 }
