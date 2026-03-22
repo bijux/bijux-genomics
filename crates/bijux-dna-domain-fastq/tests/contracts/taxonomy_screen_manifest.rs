@@ -40,6 +40,33 @@ fn taxonomy_screen_manifest_keeps_read_classifier_tools_only() -> Result<()> {
 }
 
 #[test]
+fn taxonomy_screen_manifest_publishes_governed_taxonomy_metrics() -> Result<()> {
+    let path = workspace_root()?.join("domain/fastq/stages/screen_taxonomy.yaml");
+    let yaml = parse_yaml(&path)?;
+    let metrics = yaml
+        .get("metrics")
+        .and_then(Value::as_sequence)
+        .context("metrics")?
+        .iter()
+        .filter_map(|metric| metric.get("name").and_then(Value::as_str))
+        .collect::<Vec<_>>();
+
+    assert!(
+        metrics.contains(&"classified_fraction"),
+        "fastq.screen_taxonomy must publish classified_fraction in the governed stage contract"
+    );
+    assert!(
+        metrics.contains(&"unclassified_fraction"),
+        "fastq.screen_taxonomy must publish unclassified_fraction in the governed stage contract"
+    );
+    assert!(
+        metrics.contains(&"top_taxa"),
+        "fastq.screen_taxonomy must publish top_taxa in the governed stage contract"
+    );
+    Ok(())
+}
+
+#[test]
 fn taxonomy_screen_tool_manifests_admit_optional_mate_inputs() -> Result<()> {
     for tool in ["kraken2", "centrifuge", "kaiju"] {
         let path = workspace_root()?.join(format!("domain/fastq/tools/{tool}.yaml"));

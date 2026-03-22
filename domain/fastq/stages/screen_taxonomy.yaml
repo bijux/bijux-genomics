@@ -21,6 +21,7 @@ parameters:
   - name: "threads"
     param_type: "int"
     default: "4"
+    meaning: "Worker threads for the governed classifier invocation and resource envelope"
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"
@@ -37,8 +38,14 @@ metrics:
   - name: "contamination_rate"
     meaning: "Fraction of reads classified as contaminants"
   - name: "contamination_summary"
-    meaning: "Structured contamination summary from screen reports"
-description: "FASTQ stage for read-level taxonomic screening with classifier-specific report provenance."
+    meaning: "Structured governed taxonomy summary entries reduced from the raw classifier report"
+  - name: "classified_fraction"
+    meaning: "Fraction of reads assigned to non-unclassified taxa under the governed taxonomy report"
+  - name: "unclassified_fraction"
+    meaning: "Fraction of reads remaining unclassified under the governed taxonomy report"
+  - name: "top_taxa"
+    meaning: "Highest-abundance classified taxa preserved under the governed taxonomy report contract"
+description: "FASTQ stage for read-level taxonomic screening with governed classifier, database, and top-taxa provenance."
 mutates_fastq: false
 report_only: true
 may_change_read_count: false
@@ -66,7 +73,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "supported tools must emit read-level taxonomic classifications from the screened FASTQ input."
-  - "tool-native classifier reports are preserved under stable stage artifact names."
+  - "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract."
 bank_hooks:
   - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"
