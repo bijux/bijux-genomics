@@ -273,17 +273,6 @@ fn enforce_stage_applicability(
             "stage fastq.merge_pairs requires paired-end input (missing R2)"
         ));
     }
-    if stage == "fastq.correct_errors"
-        && matches!(
-            args.mode,
-            bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
-                | bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::PollenAmplicon
-        )
-    {
-        return Err(anyhow!(
-            "stage fastq.correct_errors refused for amplicon mode; unsupported library type"
-        ));
-    }
     if matches!(
         stage,
         "fastq.normalize_primers"
