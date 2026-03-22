@@ -57,6 +57,15 @@ pub fn plan_rrna_with_options(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_rrna_tool_list(std::slice::from_ref(&tool_id))?;
+    if options.rrna_db.trim().is_empty() {
+        return Err(anyhow!("rrna_db must be provided for {}", tool.tool_id));
+    }
+    if (options.min_identity - 0.95).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "sortmerna does not support governed min_identity overrides; requested {}",
+            options.min_identity
+        ));
+    }
     let filtered_reads_r1 = if r2.is_some() {
         out_dir.join("rrna_filtered_R1.fastq.gz")
     } else {
@@ -134,6 +143,7 @@ pub fn plan_rrna_with_options(
                 &report,
                 &metrics,
                 tool.resources.threads,
+                options,
             )?,
         },
         resources: tool.resources.clone(),
@@ -166,11 +176,14 @@ fn rrna_command(
     report_tsv: &Path,
     report_json: &Path,
     threads: u32,
+    options: &DepleteRrnaPlanOptions,
 ) -> Result<Vec<String>> {
     match tool_id {
         "sortmerna" => {
             let mut command = vec![
                 "sortmerna".to_string(),
+                "--ref".to_string(),
+                options.rrna_db.clone(),
                 "--reads".to_string(),
                 r1.display().to_string(),
                 "--other".to_string(),

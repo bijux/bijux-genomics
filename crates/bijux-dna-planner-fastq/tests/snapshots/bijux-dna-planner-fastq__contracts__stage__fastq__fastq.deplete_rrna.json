@@ -11,6 +11,8 @@
   "command": {
     "template": [
       "sortmerna",
+      "--ref",
+      "rrna_reference",
       "--reads",
       "reads_R1.fastq.gz",
       "--other",
