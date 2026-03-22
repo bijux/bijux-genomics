@@ -49,6 +49,56 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "multiqc_data",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "fastp",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "cutadapt",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "atropos",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "bbduk",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "adapterremoval",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "trimmomatic",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "trim_galore",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "prinseq",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "seqkit",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "seqpurge",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.remove_duplicates",
         tool_id: "fastuniq",
         semantic_surface: "report_json",
@@ -191,7 +241,7 @@ mod tests {
                 &StageId::from_static("fastq.trim_reads"),
                 &ToolId::from_static("fastp"),
             ),
-            None
+            Some("report_json")
         );
     }
 
