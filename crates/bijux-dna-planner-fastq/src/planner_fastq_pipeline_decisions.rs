@@ -73,10 +73,34 @@ pub struct FastqStageToolsetBinding {
 #[derive(Debug, Clone)]
 pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
+    CorrectErrors(CorrectErrorsStageParams),
     TrimTerminalDamage(TrimTerminalDamageStageParams),
     DepleteRrna(DepleteRrnaStageParams),
     DepleteHost(DepleteHostStageParams),
     DepleteReferenceContaminants(DepleteReferenceContaminantsStageParams),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CorrectErrorsStageParams {
+    pub quality_encoding: bijux_dna_domain_fastq::params::correct::QualityEncoding,
+    pub kmer_size: Option<u32>,
+    pub genome_size: Option<u64>,
+    pub max_memory_gb: Option<u32>,
+    pub trusted_kmer_artifact: Option<PathBuf>,
+    pub conservative_mode: bool,
+}
+
+impl Default for CorrectErrorsStageParams {
+    fn default() -> Self {
+        Self {
+            quality_encoding: bijux_dna_domain_fastq::params::correct::QualityEncoding::Phred33,
+            kmer_size: None,
+            genome_size: None,
+            max_memory_gb: None,
+            trusted_kmer_artifact: None,
+            conservative_mode: false,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

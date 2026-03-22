@@ -15,27 +15,7 @@ pub const STAGE_ID: StageId = STAGE_CORRECT_ERRORS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CorrectPlanOptions {
-    pub quality_encoding: QualityEncoding,
-    pub kmer_size: Option<u32>,
-    pub genome_size: Option<u64>,
-    pub max_memory_gb: Option<u32>,
-    pub trusted_kmer_artifact: Option<std::path::PathBuf>,
-    pub conservative_mode: bool,
-}
-
-impl Default for CorrectPlanOptions {
-    fn default() -> Self {
-        Self {
-            quality_encoding: QualityEncoding::Phred33,
-            kmer_size: None,
-            genome_size: None,
-            max_memory_gb: None,
-            trusted_kmer_artifact: None,
-            conservative_mode: false,
-        }
-    }
-}
+pub type CorrectPlanOptions = crate::CorrectErrorsStageParams;
 
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
