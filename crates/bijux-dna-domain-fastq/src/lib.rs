@@ -15,6 +15,7 @@ mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
 pub mod id_catalog;
+mod index_reference_artifacts;
 mod infer_asvs_artifacts;
 mod integration_matrix;
 pub mod invariants;
@@ -110,6 +111,9 @@ pub use execution_support::{
     ExecutionStatus, StageExecutionSupport,
 };
 pub use infer_asvs_artifacts::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
+pub use index_reference_artifacts::{
+    IndexReferenceFileEntryV1, IndexReferenceReportV1, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
+};
 pub use id_catalog::{
     FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
 };
