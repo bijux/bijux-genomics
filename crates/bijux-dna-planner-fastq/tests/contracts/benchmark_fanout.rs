@@ -4,6 +4,8 @@ use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_domain_fastq::params::correct::QualityEncoding;
+use bijux_dna_planner_fastq::{CorrectErrorsStageParams, FastqStageParameters};
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -39,6 +41,7 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
             policy: PlanPolicy::PreferAccuracy,
             stage_id: "fastq.trim_reads".to_string(),
             tools: vec![tool("fastp"), tool("cutadapt")],
+            params: None,
             aux_images: BTreeMap::new(),
             adapter_bank: None,
             polyx_bank: None,
@@ -130,6 +133,7 @@ fn benchmark_fanout_rejects_planned_only_tools_without_override() -> anyhow::Res
             policy: PlanPolicy::PreferAccuracy,
             stage_id: "fastq.trim_reads".to_string(),
             tools: vec![tool("seqpurge")],
+            params: None,
             aux_images: BTreeMap::new(),
             adapter_bank: None,
             polyx_bank: None,
@@ -161,6 +165,7 @@ fn benchmark_fanout_scopes_detect_adapter_compare_inputs_to_governed_artifacts(
             policy: PlanPolicy::PreferAccuracy,
             stage_id: "fastq.detect_adapters".to_string(),
             tools: vec![tool("fastqc")],
+            params: None,
             aux_images: BTreeMap::new(),
             adapter_bank: None,
             polyx_bank: None,
@@ -199,5 +204,52 @@ fn benchmark_fanout_scopes_detect_adapter_compare_inputs_to_governed_artifacts(
         .inputs
         .iter()
         .any(|artifact| artifact.name.as_str().ends_with("__adapter_evidence_dir")));
+    Ok(())
+}
+
+#[test]
+fn benchmark_fanout_propagates_typed_correct_error_params() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-correct-benchmark-fanout")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let trusted = temp.path().join("trusted.kmers");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&trusted, b"ACGT\n")?;
+
+    let graph = bijux_dna_planner_fastq::FastqPlanner::plan_stage_benchmark_cohort(
+        &bijux_dna_planner_fastq::FastqStageBenchmarkConfig {
+            pipeline_id: "fastq-to-fastq__correct_errors_benchmark__v1".to_string(),
+            policy: PlanPolicy::PreferAccuracy,
+            stage_id: "fastq.correct_errors".to_string(),
+            tools: vec![tool("lighter"), tool("musket")],
+            params: Some(FastqStageParameters::CorrectErrors(
+                CorrectErrorsStageParams {
+                    quality_encoding: QualityEncoding::Phred33,
+                    kmer_size: Some(31),
+                    genome_size: Some(2_500_000),
+                    max_memory_gb: None,
+                    trusted_kmer_artifact: Some(trusted.clone()),
+                    conservative_mode: false,
+                },
+            )),
+            aux_images: BTreeMap::new(),
+            adapter_bank: None,
+            polyx_bank: None,
+            contaminant_bank: None,
+            enable_contaminant_removal: false,
+            r1,
+            r2: None,
+            reference_fasta: None,
+            out_dir: temp.path().join("out"),
+            allow_planned: false,
+        },
+    )?;
+
+    let lighter_step = graph
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.correct_errors.tool.lighter")
+        .expect("lighter step");
+    assert!(lighter_step.command.template[2].contains("\"kmer_size\":31"));
+    assert!(lighter_step.command.template[2].contains("\"trusted_kmer_artifact\":"));
     Ok(())
 }
