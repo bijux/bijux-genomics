@@ -13,6 +13,7 @@ mod parse;
 pub use artifacts::*;
 pub use parse::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_duplicate_classes_tsv,
+    parse_extract_umis_report,
     parse_fastp_metrics, parse_fastqvalidator_count, parse_length_histogram,
     parse_filter_low_complexity_report,
     parse_filter_reads_report,

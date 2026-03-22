@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    ExtractUmisReportV1,
     FilterLowComplexityReportV1,
     FilterReadsReportV1,
     IndexReferenceReportV1,
@@ -716,6 +717,78 @@ fn parse_legacy_filter_low_complexity_report(
     })
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyExtractUmisReportV1 {
+    schema_version: String,
+    stage_id: String,
+    tool_id: String,
+    input_r1: String,
+    input_r2: String,
+    output_r1: String,
+    output_r2: String,
+    reads_in: u64,
+    reads_out: u64,
+    bases_in: u64,
+    bases_out: u64,
+    #[serde(default)]
+    pairs_in: Option<u64>,
+    #[serde(default)]
+    pairs_out: Option<u64>,
+    reads_with_umi: u64,
+    runtime_s: f64,
+    memory_mb: f64,
+    exit_code: i32,
+}
+
+fn parse_legacy_extract_umis_report(report_json: &str) -> Result<ExtractUmisReportV1> {
+    let legacy: LegacyExtractUmisReportV1 =
+        serde_json::from_str(report_json).context("parse legacy extract umis report")?;
+    if legacy.schema_version != "bijux.fastq.extract_umis.report.v1" {
+        return Err(anyhow!(
+            "unsupported extract-umis report schema {}",
+            legacy.schema_version
+        ));
+    }
+    Ok(ExtractUmisReportV1 {
+        schema_version: bijux_dna_domain_fastq::EXTRACT_UMIS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: legacy.stage_id.clone(),
+        stage_id: legacy.stage_id,
+        tool_id: legacy.tool_id,
+        paired_mode: bijux_dna_domain_fastq::PairedMode::PairedEnd,
+        threads: 1,
+        umi_pattern: String::new(),
+        input_r1: legacy.input_r1,
+        input_r2: Some(legacy.input_r2),
+        output_r1: legacy.output_r1,
+        output_r2: Some(legacy.output_r2),
+        report_json: "umi_report.json".to_string(),
+        reads_in: legacy.reads_in,
+        reads_out: legacy.reads_out,
+        bases_in: legacy.bases_in,
+        bases_out: legacy.bases_out,
+        pairs_in: legacy.pairs_in,
+        pairs_out: legacy.pairs_out,
+        reads_with_umi: legacy.reads_with_umi,
+        mean_q_before: 0.0,
+        mean_q_after: 0.0,
+        runtime_s: Some(legacy.runtime_s),
+        memory_mb: Some(legacy.memory_mb),
+        exit_code: Some(legacy.exit_code),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        backend_metrics: None,
+    })
+}
+
+/// # Errors
+/// Returns an error if the governed extract-umis report JSON cannot be parsed.
+pub fn parse_extract_umis_report(report_json: &str) -> Result<ExtractUmisReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_extract_umis_report(report_json))
+        .context("parse extract umis report")
+}
+
 /// # Errors
 /// Returns an error if the governed filter-low-complexity report JSON cannot be parsed.
 pub fn parse_filter_low_complexity_report(
@@ -932,6 +1005,7 @@ mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
+        parse_extract_umis_report,
         parse_filter_low_complexity_report,
         parse_filter_reads_report,
         parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
@@ -1661,6 +1735,48 @@ mod tests {
         assert_eq!(parsed.tool_id, "bbduk");
         assert_eq!(parsed.reads_removed_low_complexity, 8);
         assert_eq!(parsed.polyx_threshold, Some(20));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_extract_umis_report_round_trips_governed_payload() -> Result<()> {
+        let parsed = parse_extract_umis_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.extract_umis.report.v2",
+                "stage": "fastq.extract_umis",
+                "stage_id": "fastq.extract_umis",
+                "tool_id": "umi_tools",
+                "paired_mode": "paired_end",
+                "threads": 2,
+                "umi_pattern": "NNNNNNNN",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "umi_reads_R1.fastq.gz",
+                "output_r2": "umi_reads_R2.fastq.gz",
+                "report_json": "umi_report.json",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 20000,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "reads_with_umi": 200,
+                "mean_q_before": 30.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 1.4,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "umi_tools.extract.log",
+                "raw_backend_report_format": "umi_tools_log",
+                "backend_metrics": {
+                    "reads_with_umi_fraction": 1.0
+                }
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "umi_tools");
+        assert_eq!(parsed.umi_pattern, "NNNNNNNN");
+        assert_eq!(parsed.reads_with_umi, 200);
         Ok(())
     }
 
