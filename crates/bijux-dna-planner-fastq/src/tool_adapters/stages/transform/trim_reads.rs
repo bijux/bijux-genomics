@@ -142,6 +142,9 @@ pub fn plan_with_options(
 ) -> Result<StagePlanV1> {
     let output_name =
         trim_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported trim tool"))?;
+    if tool.tool_id.as_str() == "seqpurge" && r2.is_none() {
+        return Err(anyhow!("seqpurge trim planning requires paired-end reads"));
+    }
     ensure_trim_option_support(&tool.tool_id.0, options)?;
     let output_r1 = if r2.is_some() {
         out_dir.join(format!("R1.{output_name}"))
