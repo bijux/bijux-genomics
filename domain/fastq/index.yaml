@@ -1192,6 +1192,7 @@ stage_output_size_estimates_mb:
     dedup_reads_r1: 1200.0
     report_json: 6.0
   fastq.report_qc:
+    report_json: 8.0
     multiqc_report: 30.0
     multiqc_data: 15.0
     governed_qc_inputs_manifest: 1.0
