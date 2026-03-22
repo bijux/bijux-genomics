@@ -51,11 +51,15 @@ pub struct OtuClusteringEffectiveParams {
     pub output_table_kind: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct AbundanceNormalizationEffectiveParams {
+    pub schema_version: String,
     pub method: String,
     pub expected_columns: Vec<String>,
+    pub input_value_column: String,
     pub normalized_value_column: String,
     pub compositional_rule: String,
+    pub scale_factor: Option<f64>,
+    pub report_artifact: String,
 }

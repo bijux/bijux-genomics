@@ -18,6 +18,7 @@ pub mod id_catalog;
 mod integration_matrix;
 pub mod invariants;
 pub mod metrics;
+mod normalize_abundance_artifacts;
 mod normalize_primers_artifacts;
 mod observer_contract;
 pub mod params;
@@ -76,6 +77,9 @@ pub use profile_reads_artifacts::{
 };
 pub use normalize_primers_artifacts::{
     NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
+};
+pub use normalize_abundance_artifacts::{
+    NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
 };
 pub use profile_overrepresented_artifacts::{
     OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
