@@ -285,6 +285,18 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
             delta_metrics: derive_trim_delta(&before_stats, &after_stats),
+            paired_mode: Some(
+                match governed_report.paired_mode {
+                    bijux_dna_domain_fastq::PairedMode::SingleEnd => "single_end",
+                    bijux_dna_domain_fastq::PairedMode::PairedEnd => "paired_end",
+                }
+                .to_string(),
+            ),
+            adapter_policy: Some(governed_report.adapter_policy.clone()),
+            polyx_policy: governed_report.polyx_policy.clone(),
+            n_policy: governed_report.n_policy.clone(),
+            contaminant_policy: governed_report.contaminant_policy.clone(),
+            raw_backend_report_format: governed_report.raw_backend_report_format.clone(),
             adapter_preset: governed_report.adapter_preset.clone(),
             adapter_bank_id: governed_report.adapter_bank_id.clone(),
             adapter_bank_hash: governed_report.adapter_bank_hash.clone(),
