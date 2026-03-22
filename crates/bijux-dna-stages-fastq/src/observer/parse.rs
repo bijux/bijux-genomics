@@ -386,6 +386,7 @@ fn parse_legacy_profile_reads_report(report_json: &str) -> Result<ProfileReadsRe
         qc_json: String::new(),
         qc_tsv: String::new(),
         qc_plots_dir: None,
+        length_histogram_source: "legacy_qc_json".to_string(),
         reads_total: json
             .get("reads_total")
             .and_then(serde_json::Value::as_u64)
