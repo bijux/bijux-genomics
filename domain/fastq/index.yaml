@@ -1887,6 +1887,17 @@ benchmark_scenarios:
     - same_input_hash
     - same_dataset_class
     - same_length_profile_contract
+  profile_reads_fairness:
+    stage_id: fastq.profile_reads
+    description: Compare read-profile backends on identical raw reads and the governed
+      profile report contract.
+    cohort_artifact_id: profile_reads_tool_benchmark_cohort_json
+    comparison_artifact_id: profile_reads_tool_comparison_json
+    normalization_artifact_id: profile_reads_tool_normalization_json
+    fairness_rules:
+    - same_input_hash
+    - same_dataset_class
+    - same_profile_reads_contract
   correction_fairness:
     stage_id: fastq.correct_errors
     description: Compare error-correction backends on identical filtered reads and k-mer correction
