@@ -36,11 +36,8 @@ pub fn observer_specialized_stage_ids() -> Vec<bijux_dna_core::ids::StageId> {
     closed_execution_stage_ids()
         .into_iter()
         .filter(|stage_id| {
-            stage_uses_only_observer_specialized_runtime(stage_id).unwrap_or_else(|| {
-                bijux_dna_domain_fastq::execution_support_for_stage(stage_id).is_some_and(
-                    |support| support.normalization_support == NormalizationSupport::ObserverSpecialized,
-                )
-            })
+            runtime_interpretation_for_stage(stage_id)
+                == Some(RuntimeInterpretationLevel::ObserverSpecialized)
         })
         .collect()
 }
@@ -245,6 +242,7 @@ mod tests {
         let observer_specialized = observer_specialized_stage_ids();
         assert!(observer_specialized.contains(&StageId::from_static("fastq.detect_adapters")));
         assert!(observer_specialized.contains(&StageId::from_static("fastq.report_qc")));
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.validate_reads")));
         assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.remove_duplicates"
         )));
@@ -257,7 +255,6 @@ mod tests {
         assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.correct_errors"
         )));
-        assert!(!observer_specialized.contains(&StageId::from_static("fastq.validate_reads")));
         assert!(!observer_specialized.contains(&StageId::from_static(
             "fastq.profile_overrepresented_sequences"
         )));
