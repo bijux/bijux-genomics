@@ -366,7 +366,7 @@ fn write_fastq_output_contract(
     let expected_ecological_outputs = match planned.stage_id.as_str() {
         "fastq.trim_terminal_damage" => vec!["trimmed_reads"],
         "fastq.normalize_primers" => vec!["primer_orientation_report"],
-        "fastq.remove_chimeras" => vec!["chimera_metrics_json"],
+        "fastq.remove_chimeras" => vec!["report_json", "chimera_metrics_json"],
         "fastq.infer_asvs" => vec!["asv_table_tsv", "asv_sequences_fasta"],
         "fastq.cluster_otus" => vec!["otu_table", "otu_representatives"],
         "fastq.normalize_abundance" => vec!["normalized_abundance_tsv"],

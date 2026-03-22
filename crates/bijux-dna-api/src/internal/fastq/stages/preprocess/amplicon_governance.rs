@@ -352,6 +352,15 @@ fn write_edna_report_summary(
     for stage in stage_runs {
         let stage_root = run_root.join(stage.plan.step_id.as_str());
         if stage.plan.step_id.as_str() == "fastq.remove_chimeras" {
+            let report_path = stage.plan.out_dir.join("remove_chimeras_report.json");
+            if let Ok(raw) = std::fs::read_to_string(&report_path) {
+                if let Ok(report) =
+                    bijux_dna_stages_fastq::observer::parse_remove_chimeras_report(&raw)
+                {
+                    chimera_rate = report.chimera_fraction;
+                    continue;
+                }
+            }
             let path = stage_root.join("metrics.json");
             if let Ok(raw) = std::fs::read_to_string(path) {
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw) {

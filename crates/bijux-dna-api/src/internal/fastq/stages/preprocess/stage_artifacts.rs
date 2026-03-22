@@ -166,11 +166,31 @@ fn emit_fastq_stage_extra_artifacts(
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
             }))
         }
-        "fastq.remove_chimeras" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.remove_chimeras.v1",
-            "stage": stage_id,
-            "chimera_removed": parse_first_u64_after_key(&execution.stderr, "chimera"),
-        })),
+        "fastq.remove_chimeras" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("remove_chimeras_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("remove_chimeras_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_remove_chimeras_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.remove_chimeras.extra_artifacts.v2",
+                "stage": stage_id,
+                "method": governed.as_ref().map(|report| report.method.clone()),
+                "detection_scope": governed.as_ref().map(|report| report.detection_scope.clone()),
+                "used_fallback": governed.as_ref().map(|report| report.used_fallback),
+                "chimeras_fasta": governed.as_ref().and_then(|report| report.chimeras_fasta.clone()),
+                "uchime_report_tsv": governed.as_ref().and_then(|report| report.uchime_report_tsv.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.cluster_otus" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.cluster_otus.v1",
             "stage": stage_id,
