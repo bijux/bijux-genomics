@@ -12,6 +12,7 @@
 pub mod banks;
 pub mod bench_repository;
 mod comparison_contract;
+mod detect_adapters_artifacts;
 mod domain_adapter;
 pub mod execution_support;
 mod extract_umis_artifacts;
@@ -114,6 +115,9 @@ pub use execution_support::{
     ExecutionStatus, StageExecutionSupport,
 };
 pub use extract_umis_artifacts::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
+pub use detect_adapters_artifacts::{
+    DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
+};
 pub use filter_artifacts::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
 pub use filter_low_complexity_artifacts::{
     FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
