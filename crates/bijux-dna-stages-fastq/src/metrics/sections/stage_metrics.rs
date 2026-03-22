@@ -331,6 +331,7 @@ pub fn stage_metrics_for_plan(
                         .as_ref()
                         .and_then(|value| value.get("top_k"))
                         .and_then(serde_json::Value::as_u64)
+                        .and_then(|value| u32::try_from(value).ok())
                 }),
                 "sequence_count": report
                     .as_ref()
