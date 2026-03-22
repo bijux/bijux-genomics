@@ -11,7 +11,10 @@ use bijux_dna_domain_fastq::params::{
     },
     PairedMode,
 };
-use bijux_dna_domain_fastq::STAGE_REPORT_QC;
+use bijux_dna_domain_fastq::{
+    GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
+    STAGE_REPORT_QC,
+};
 use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_REPORT_QC;
@@ -116,11 +119,16 @@ pub fn plan_qc_post_with_qc_inputs(
     };
     let multiqc_data = out_dir.join("multiqc_data");
     let governed_qc_manifest = out_dir.join("governed_qc_inputs_manifest.json");
+    let report_json = out_dir.join("report_qc_report.json");
+    params["governed_qc_inputs_manifest"] = serde_json::json!(governed_qc_manifest.clone());
+    params["report_json"] = serde_json::json!(report_json.clone());
     let command_template = qc_post_command(
         &tool.tool_id.0,
         qc_inputs,
         &multiqc_data,
         &governed_qc_manifest,
+        &report_json,
+        &effective_params,
     )?;
     let outputs = if tool.tool_id.0 == "multiqc" {
         vec![
@@ -138,6 +146,11 @@ pub fn plan_qc_post_with_qc_inputs(
                 ArtifactId::from_static("governed_qc_inputs_manifest"),
                 governed_qc_manifest,
                 ArtifactRole::SummaryJson,
+            ),
+            ArtifactRef::required(
+                ArtifactId::from_static("report_json"),
+                report_json,
+                ArtifactRole::ReportJson,
             ),
         ]
     } else {
@@ -175,6 +188,8 @@ fn qc_post_command(
     qc_inputs: &[ArtifactRef],
     multiqc_data: &Path,
     governed_qc_manifest: &Path,
+    report_json: &Path,
+    effective_params: &QcPostEffectiveParams,
 ) -> Result<Vec<String>> {
     match tool_id {
         "multiqc" => {
@@ -186,6 +201,15 @@ fn qc_post_command(
             multiqc_inputs.dedup();
             let manifest = serde_json::to_string(&governed_qc_inputs_manifest_payload(qc_inputs)?)
                 .map_err(|error| anyhow!("serialize governed QC inputs manifest: {error}"))?;
+            let report = serde_json::to_string(&governed_report_qc_report(
+                tool_id,
+                effective_params,
+                qc_inputs,
+                multiqc_data,
+                &out_dir_multiqc_report(multiqc_data),
+                governed_qc_manifest,
+            )?)
+            .map_err(|error| anyhow!("serialize governed report_qc report: {error}"))?;
             let mut script = format!(
                 "set -euo pipefail\nprintf '%s\\n' {} > {}\nmultiqc -o {} -n multiqc_report.html",
                 shell_quote_str(&manifest),
@@ -196,7 +220,11 @@ fn qc_post_command(
                 script.push(' ');
                 script.push_str(&shell_quote_str(&input.display().to_string()));
             }
-            script.push('\n');
+            script.push_str(&format!(
+                "\nprintf '%s\\n' {} > {}\n",
+                shell_quote_str(&report),
+                shell_quote_path(report_json),
+            ));
             Ok(vec!["sh".to_string(), "-lc".to_string(), script])
         }
         _ => Err(anyhow!("unsupported report_qc tool: {tool_id}")),
@@ -308,6 +336,90 @@ fn derived_governed_qc_lineage_hash(
     )
 }
 
+fn governed_report_qc_report(
+    tool_id: &str,
+    effective_params: &QcPostEffectiveParams,
+    qc_inputs: &[ArtifactRef],
+    multiqc_data: &Path,
+    multiqc_report: &Path,
+    governed_qc_manifest: &Path,
+) -> Result<ReportQcReportV1> {
+    let contributors = governed_qc_contributors(qc_inputs);
+    let governed_contributors = contributors
+        .iter()
+        .map(|contributor| GovernedQcContributorV1 {
+            contributor_id: contributor.contributor_id.clone(),
+            stage_id: contributor.stage_id.clone(),
+            tool_id: contributor
+                .contributor_id
+                .rsplit_once('.')
+                .map(|(_, tool_id)| tool_id.to_string())
+                .unwrap_or_default(),
+            artifact_id: contributor.artifact_id.clone(),
+            artifact_role: contributor.artifact_role.as_str().to_string(),
+            path: contributor.path.display().to_string(),
+        })
+        .collect::<Vec<_>>();
+    let mut contributor_stage_ids = governed_contributors
+        .iter()
+        .map(|contributor| contributor.stage_id.clone())
+        .collect::<Vec<_>>();
+    contributor_stage_ids.sort();
+    contributor_stage_ids.dedup();
+    let mut contributor_tool_ids = governed_contributors
+        .iter()
+        .map(|contributor| contributor.tool_id.clone())
+        .collect::<Vec<_>>();
+    contributor_tool_ids.sort();
+    contributor_tool_ids.dedup();
+    Ok(ReportQcReportV1 {
+        schema_version: REPORT_QC_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.as_str().to_string(),
+        stage_id: STAGE_ID.as_str().to_string(),
+        tool_id: tool_id.to_string(),
+        paired_mode: effective_params.paired_mode.clone(),
+        aggregation_engine: effective_params.aggregation_engine.clone(),
+        aggregation_scope: effective_params.aggregation_scope.clone(),
+        reads_in: 0,
+        reads_out: 0,
+        bases_in: 0,
+        bases_out: 0,
+        pairs_in: None,
+        pairs_out: None,
+        mean_q: 0.0,
+        contamination_rate: 0.0,
+        adapter_content_max: None,
+        adapter_content_mean: None,
+        duplication_rate: None,
+        n_rate: None,
+        kmer_warning_count: None,
+        overrepresented_sequence_count: None,
+        multiqc_sample_count: None,
+        multiqc_module_count: None,
+        raw_fastqc_dir: None,
+        trimmed_fastqc_dir: None,
+        multiqc_report: Some(multiqc_report.display().to_string()),
+        multiqc_data: Some(multiqc_data.display().to_string()),
+        governed_qc_input_count: qc_inputs.len() as u64,
+        governed_qc_contributor_stage_ids: contributor_stage_ids,
+        governed_qc_contributor_tool_ids: contributor_tool_ids,
+        governed_qc_contributors: governed_contributors,
+        governed_qc_lineage_hash: derived_governed_qc_lineage_hash(&contributors),
+        governed_qc_inputs_manifest: Some(governed_qc_manifest.display().to_string()),
+        runtime_s: None,
+        memory_mb: None,
+        exit_code: None,
+    })
+}
+
+fn out_dir_multiqc_report(multiqc_data: &Path) -> std::path::PathBuf {
+    multiqc_data
+        .parent()
+        .map_or_else(|| Path::new(".").join("multiqc_report.html"), |parent| {
+            parent.join("multiqc_report.html")
+        })
+}
+
 fn shell_quote_path(path: &Path) -> String {
     shell_quote_str(&path.display().to_string())
 }
@@ -319,8 +431,8 @@ fn shell_quote_str(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        aux_tool_ids_for_qc_inputs, governed_qc_inputs_manifest_payload, plan_qc_post_with_qc_inputs,
-        qc_post_command,
+        aux_tool_ids_for_qc_inputs, governed_qc_inputs_manifest_payload,
+        plan_qc_post_with_qc_inputs, qc_post_command,
     };
     use bijux_dna_core::prelude::{
         ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
@@ -355,6 +467,13 @@ mod tests {
             ],
             std::path::Path::new("out/multiqc_data"),
             std::path::Path::new("out/governed_qc_inputs_manifest.json"),
+            std::path::Path::new("out/report_qc_report.json"),
+            &bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams {
+                schema_version: "bijux.fastq.params.report_qc.v1".to_string(),
+                paired_mode: PairedMode::SingleEnd,
+                aggregation_engine: QcAggregationEngine::Multiqc,
+                aggregation_scope: QcAggregationScope::GovernedQcArtifacts,
+            },
         )
         .expect("multiqc command should build");
 
@@ -364,6 +483,7 @@ mod tests {
         );
         let script = &command[2];
         assert!(script.contains("out/governed_qc_inputs_manifest.json"));
+        assert!(script.contains("out/report_qc_report.json"));
         assert!(script.contains("multiqc -o 'out/multiqc_data' -n multiqc_report.html"));
         assert!(script.contains("'alpha/fastqc' 'zeta/fastqc'"));
     }
@@ -462,6 +582,18 @@ mod tests {
         assert_eq!(
             plan.params["qc_contributor_tool_ids"],
             serde_json::json!(["fastp", "fastqvalidator"])
+        );
+        assert_eq!(
+            plan.io.outputs
+                .iter()
+                .map(|artifact| artifact.name.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "multiqc_report",
+                "multiqc_data",
+                "governed_qc_inputs_manifest",
+                "report_json"
+            ]
         );
     }
 }
