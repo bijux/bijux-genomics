@@ -9,13 +9,13 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
-    parse_multiqc_general_stats_metrics, parse_profile_reads_report,
+    parse_merge_pairs_report, parse_multiqc_general_stats_metrics,
     parse_normalize_abundance_report, parse_normalize_primers_report,
     parse_profile_overrepresented_report, parse_profile_read_lengths_report,
-    parse_remove_duplicates_provenance,
-    parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
-    parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
-    parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
+    parse_profile_reads_report, parse_remove_chimeras_report, parse_remove_duplicates_provenance,
+    parse_remove_duplicates_report, parse_report_qc_report, parse_screen_taxonomy_report,
+    parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
+    parse_validated_reads_manifest, parse_validation_report,
 };
 
 #[allow(dead_code)]
@@ -275,6 +275,36 @@ impl StagePlugin for FastqStagePlugin {
 
 #[allow(dead_code)]
 fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> serde_json::Value {
+    if plan.stage_id.as_str() == "fastq.merge_pairs" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_merge_pairs_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "merge_engine": report.merge_engine,
+                        "threads": report.threads,
+                        "merge_overlap": report.merge_overlap,
+                        "min_length": report.min_len,
+                        "unmerged_read_policy": report.unmerged_read_policy,
+                        "reads_r1": report.reads_r1,
+                        "reads_r2": report.reads_r2,
+                        "reads_merged": report.reads_merged,
+                        "reads_unmerged": report.reads_unmerged,
+                        "merge_rate": report.merge_rate,
+                        "merged_reads": report.merged_reads,
+                        "unmerged_reads_r1": report.unmerged_reads_r1,
+                        "unmerged_reads_r2": report.unmerged_reads_r2,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
+        }
+    }
     if plan.stage_id.as_str() == "fastq.report_qc" {
         let multiqc_metrics = artifacts
             .iter()
@@ -1163,6 +1193,85 @@ mod tests {
     }
 
     #[test]
+    fn parse_outputs_surfaces_observed_merge_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("merge_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.merge_pairs.report.v2",
+                "stage": "fastq.merge_pairs",
+                "stage_id": "fastq.merge_pairs",
+                "tool_id": "pear",
+                "paired_mode": "paired_end",
+                "merge_engine": "pear",
+                "threads": 4,
+                "merge_overlap": 20,
+                "min_len": 120,
+                "unmerged_read_policy": "omit_unmerged_pairs",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "merged_reads": "pear.assembled.fastq",
+                "unmerged_reads_r1": null,
+                "unmerged_reads_r2": null,
+                "reads_r1": 100,
+                "reads_r2": 100,
+                "reads_merged": 87,
+                "reads_unmerged": 13,
+                "merge_rate": 0.87,
+                "runtime_s": 2.2,
+                "memory_mb": 32.0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.merge_pairs"),
+            tool_id: ToolId::from_static("pear"),
+            io: StageIO {
+                inputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("reads_r1"),
+                        PathBuf::from("reads_R1.fastq.gz"),
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("reads_r2"),
+                        PathBuf::from("reads_R2.fastq.gz"),
+                        ArtifactRole::Reads,
+                    ),
+                ],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.merge_pairs")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["merge_engine"],
+            serde_json::json!("pear")
+        );
+        assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["reads_merged"],
+            serde_json::json!(87)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["merge_rate"],
+            serde_json::json!(0.87)
+        );
+    }
+
+    #[test]
     fn validate_semantic_metrics_surface_pair_lineage_contract() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("validation_report.json");
@@ -1784,8 +1893,7 @@ mod tests {
             serde_json::json!("ObserverSpecialized")
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["classifier"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["classifier"],
             serde_json::json!("kraken2")
         );
         assert_eq!(
@@ -2175,8 +2283,7 @@ mod tests {
             .expect("parse outputs");
 
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["dedup_mode"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["dedup_mode"],
             serde_json::json!("optical_aware")
         );
         assert_eq!(
@@ -2499,8 +2606,7 @@ mod tests {
             serde_json::json!(64)
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["read_count"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["read_count"],
             serde_json::json!(200)
         );
         assert_eq!(
@@ -2647,8 +2753,7 @@ mod tests {
             .expect("parse outputs");
 
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["method"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["method"],
             serde_json::json!("vsearch_uchime_denovo")
         );
         assert_eq!(
