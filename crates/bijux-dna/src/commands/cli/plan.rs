@@ -597,6 +597,7 @@ pub fn bench_args_profile_overrepresented(
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out: args.out.clone(),
+        top_k: args.top_k,
         tools: resolve_bench_tools("fastq.profile_overrepresented_sequences", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,

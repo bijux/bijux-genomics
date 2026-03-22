@@ -14,10 +14,14 @@ use bijux_dna_analyze::{
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::{
+    OverrepresentedSequenceRowV1, PairedMode, ProfileOverrepresentedReportV1,
+    PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::fastq::profile_overrepresented_sequences::plan;
+use bijux_dna_planner_fastq::stage_api::fastq::profile_overrepresented_sequences::plan_with_options;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
@@ -88,7 +92,13 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = plan(&tool_spec, &args.r1, args.r2.as_deref(), &out_dir)?;
+        let plan = plan_with_options(
+            &tool_spec,
+            &args.r1,
+            args.r2.as_deref(),
+            &out_dir,
+            args.top_k,
+        )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -128,31 +138,49 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
-        let output_tsv = &plan.io.outputs[0].path;
-        let output_json = &plan.io.outputs[1].path;
+        let output_tsv = required_output_path(&plan, "overrepresented_sequences_tsv")?;
+        let output_json = required_output_path(&plan, "overrepresented_sequences_json")?;
+        let report_json = required_output_path(&plan, "report_json")?;
         if !output_tsv.exists() || !output_json.exists() {
             materialize_overrepresented_outputs(
                 &args.r1,
                 args.r2.as_deref(),
                 output_tsv,
                 output_json,
+                args.top_k.unwrap_or(50).max(1),
             )?;
         }
-        let metrics = read_metrics(output_json)?;
+        let payload = read_overrepresented_payload(output_json)?;
+        let metrics = payload.metrics.clone();
         let metric_set = metric_set(metrics);
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.profile_overrepresented_sequences.report.v1",
-            "stage_id": STAGE_ID,
-            "tool_id": tool,
-            "input_fastq": args.r1,
-            "input_fastq_r2": args.r2,
-            "output_tsv": output_tsv,
-            "output_json": output_json,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-            "exit_code": execution.exit_code,
-        });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("overrepresented_report.json"), &report)
+        let report = ProfileOverrepresentedReportV1 {
+            schema_version: PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION.to_string(),
+            stage: STAGE_ID.to_string(),
+            stage_id: STAGE_ID.to_string(),
+            tool_id: tool.clone(),
+            paired_mode: if args.r2.is_some() {
+                PairedMode::PairedEnd
+            } else {
+                PairedMode::SingleEnd
+            },
+            threads: tool_spec.resources.threads,
+            top_k: args.top_k.unwrap_or(50).max(1),
+            input_r1: args.r1.display().to_string(),
+            input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
+            overrepresented_sequences_tsv: output_tsv.display().to_string(),
+            overrepresented_sequences_json: output_json.display().to_string(),
+            report_json: report_json.display().to_string(),
+            sequence_count: payload.metrics.sequence_count,
+            flagged_sequences: payload.metrics.flagged_sequences,
+            top_fraction: payload.metrics.top_fraction,
+            rows: payload.rows,
+            runtime_s: Some(execution.runtime_s),
+            memory_mb: Some(execution.memory_mb),
+            exit_code: Some(execution.exit_code),
+            raw_backend_report: None,
+            raw_backend_report_format: None,
+        };
+        bijux_dna_infra::atomic_write_json(report_json, &report)
             .context("write overrepresented report")?;
         let metrics_json = serde_json::to_value(&metric_set)?;
         bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
@@ -193,6 +221,7 @@ fn materialize_overrepresented_outputs(
     input_fastq_r2: Option<&Path>,
     output_tsv: &Path,
     output_json: &Path,
+    top_k: u32,
 ) -> Result<()> {
     let mut counts = BTreeMap::<String, u64>::new();
     for path in std::iter::once(input_fastq).chain(input_fastq_r2.into_iter()) {
@@ -206,7 +235,11 @@ fn materialize_overrepresented_outputs(
     let total: u64 = counts.values().sum();
     let mut ranked = counts.into_iter().collect::<Vec<_>>();
     ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-    let top = ranked.iter().take(50).cloned().collect::<Vec<_>>();
+    let top = ranked
+        .iter()
+        .take(usize::try_from(top_k).unwrap_or(usize::MAX))
+        .cloned()
+        .collect::<Vec<_>>();
     let top_fraction = if total == 0 {
         0.0
     } else {
@@ -218,62 +251,115 @@ fn materialize_overrepresented_outputs(
         .filter(|(_, count)| total > 0 && (*count as f64 / total as f64) >= 0.01)
         .count() as u64;
 
-    let mut rows = String::from("sequence\tcount\tfraction\tflag\n");
-    for (seq, count) in &top {
-        let fraction = if total == 0 {
-            0.0
-        } else {
-            *count as f64 / total as f64
-        };
-        let flag = if fraction >= 0.01 {
-            "overrepresented"
-        } else {
-            "background"
-        };
-        rows.push_str(&format!("{seq}\t{count}\t{fraction:.6}\t{flag}\n"));
+    let rows = top
+        .iter()
+        .map(|(sequence, count)| {
+            let fraction = if total == 0 {
+                0.0
+            } else {
+                *count as f64 / total as f64
+            };
+            OverrepresentedSequenceRowV1 {
+                sequence: sequence.clone(),
+                count: *count,
+                fraction,
+                flag: if fraction >= 0.01 {
+                    "overrepresented".to_string()
+                } else {
+                    "background".to_string()
+                },
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let mut tsv = String::from("sequence\tcount\tfraction\tflag\n");
+    for row in &rows {
+        tsv.push_str(&format!(
+            "{}\t{}\t{:.6}\t{}\n",
+            row.sequence, row.count, row.fraction, row.flag
+        ));
     }
-    bijux_dna_infra::atomic_write_bytes(output_tsv, rows.as_bytes())?;
+    bijux_dna_infra::atomic_write_bytes(output_tsv, tsv.as_bytes())?;
     bijux_dna_infra::atomic_write_json(
         output_json,
         &serde_json::json!({
             "schema_version": "bijux.fastq.profile_overrepresented_sequences.v1",
-            "sequence_count": top.len(),
+            "top_k": top_k,
+            "sequence_count": rows.len(),
             "flagged_sequences": flagged_sequences,
             "top_fraction": top_fraction,
-            "rows": top.iter().map(|(sequence, count)| {
-                let fraction = if total == 0 { 0.0 } else { *count as f64 / total as f64 };
-                serde_json::json!({
-                    "sequence": sequence,
-                    "count": count,
-                    "fraction": fraction,
-                    "flag": if fraction >= 0.01 { "overrepresented" } else { "background" },
-                })
-            }).collect::<Vec<_>>(),
+            "rows": rows,
         }),
     )?;
     Ok(())
 }
 
-fn read_metrics(path: &Path) -> Result<FastqOverrepresentedMetrics> {
+#[derive(Debug, Clone)]
+struct OverrepresentedPayload {
+    metrics: FastqOverrepresentedMetrics,
+    rows: Vec<OverrepresentedSequenceRowV1>,
+}
+
+fn read_overrepresented_payload(path: &Path) -> Result<OverrepresentedPayload> {
     let value: serde_json::Value = serde_json::from_slice(
         &std::fs::read(path).with_context(|| format!("read {}", path.display()))?,
     )?;
+    let rows = value
+        .get("rows")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| {
+            Some(OverrepresentedSequenceRowV1 {
+                sequence: entry
+                    .get("sequence")
+                    .and_then(serde_json::Value::as_str)?
+                    .to_string(),
+                count: entry.get("count").and_then(serde_json::Value::as_u64)?,
+                fraction: entry
+                    .get("fraction")
+                    .and_then(serde_json::Value::as_f64)
+                    .unwrap_or(0.0),
+                flag: entry
+                    .get("flag")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("background")
+                    .to_string(),
+            })
+        })
+        .collect::<Vec<_>>();
     let metrics = FastqOverrepresentedMetrics {
         sequence_count: value
             .get("sequence_count")
             .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0),
+            .unwrap_or(rows.len() as u64),
         flagged_sequences: value
             .get("flagged_sequences")
             .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0),
+            .unwrap_or_else(|| {
+                rows.iter()
+                    .filter(|row| row.flag == "overrepresented")
+                    .count() as u64
+            }),
         top_fraction: value
             .get("top_fraction")
             .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0),
+            .unwrap_or_else(|| rows.first().map(|row| row.fraction).unwrap_or(0.0)),
     };
     metrics.validate()?;
-    Ok(metrics)
+    Ok(OverrepresentedPayload { metrics, rows })
+}
+
+fn required_output_path<'a>(
+    plan: &'a bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> Result<&'a Path> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_id)
+        .map(|artifact| artifact.path.as_path())
+        .ok_or_else(|| anyhow!("missing required output artifact `{artifact_id}`"))
 }
 
 fn open_fastq_lines(path: &Path) -> Result<Vec<String>> {

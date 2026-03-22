@@ -882,6 +882,8 @@ pub struct BenchFastqProfileOverrepresentedArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
+    #[arg(long, help = "Maximum number of ranked sequences to retain in governed outputs")]
+    pub top_k: Option<u32>,
     #[arg(
         long,
         value_delimiter = ',',
