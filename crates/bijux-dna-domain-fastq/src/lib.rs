@@ -18,6 +18,7 @@ pub mod id_catalog;
 mod integration_matrix;
 pub mod invariants;
 pub mod metrics;
+mod observer_contract;
 pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
@@ -77,6 +78,11 @@ pub use metrics::{
     FastqQScoreSummaryV1, FastqQcSummaryMetricsV1, FastqScanMetricsV1,
     KrakenUniqClassificationMetricsV1, KrakenUniqRecordV1, SeqfuMetricsV1, TaxonomyRecordV1,
 };
+pub use observer_contract::{
+    is_observer_specialized_stage_tool, observer_semantic_surface_for_stage_tool,
+    observer_specialization_contract_for_stage_tool, observer_specialization_contracts,
+    observer_specialized_stage_tool_bindings, ObserverSpecializationContract,
+};
 pub use params::correct::FastqCorrectParams;
 pub use params::defaults::{correct_defaults, stats_defaults, umi_defaults};
 pub use params::stats::FastqStatsParams;
@@ -89,25 +95,24 @@ pub use params::{
     parse_effective_params, stage_param_descriptor, EffectiveParams, PairedMode,
     StageParamDescriptor,
 };
-pub use qc_contract::{
-    governed_qc_bench_contributor_stage_ids, governed_qc_default_tool_ids,
-    governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
-};
 pub use pipeline_contract::{
     canonical_amplicon_stage_order, canonical_stage_order, default_amplicon_preprocess_stage_order,
     default_shotgun_preprocess_stage_order, forbidden_transitions, optional_branches,
     preprocess_pipeline_graph_for_stage_order, FastqPipelineMode, StageCriticality,
 };
+pub use qc_contract::{
+    governed_qc_bench_contributor_stage_ids, governed_qc_default_tool_ids,
+    governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
+};
 pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 pub use stage_tool_governance::{
-    benchmark_readiness_for_stage_tool, stage_benchmark_governance,
-    filter_tools_for_input_layout, tool_supports_input_layout,
+    benchmark_readiness_for_stage_tool, filter_tools_for_input_layout, stage_benchmark_governance,
     stage_tool_capability_contract, stage_tool_governance_profile,
-    stage_tool_governance_profiles_for_stage, stage_tool_maturity,
+    stage_tool_governance_profiles_for_stage, stage_tool_maturity, tool_supports_input_layout,
     BenchmarkReadinessLevel, RuntimeNormalizationLevel, StageBenchmarkGovernance,
-    StageToolBenchmarkContractMaturity, StageToolCapabilityContract,
-    StageToolGovernanceProfile, StageToolMaturityLevel, StageToolNormalizationMaturity,
+    StageToolBenchmarkContractMaturity, StageToolCapabilityContract, StageToolGovernanceProfile,
+    StageToolMaturityLevel, StageToolNormalizationMaturity,
 };
 pub use stages::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
@@ -127,10 +132,10 @@ pub use stages::{
     FastqStageContract, QcClass, StageContract, StageIO,
 };
 pub use stages::{
-    fastq_stage_is_stable, stage_criticality, stage_input_ids, stage_kind, stage_metric_classes,
-    stage_metric_invariants, stage_output_ids, stage_parameter_ids, stage_semantics,
-    stage_compatible_tool_ids,
-    BoundaryInvariant, FastqStageKind, StageDefinition, StageSemantics, STAGE_BOUNDARY_INVARIANTS,
+    fastq_stage_is_stable, stage_compatible_tool_ids, stage_criticality, stage_input_ids,
+    stage_kind, stage_metric_classes, stage_metric_invariants, stage_output_ids,
+    stage_parameter_ids, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
+    StageSemantics, STAGE_BOUNDARY_INVARIANTS,
 };
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
