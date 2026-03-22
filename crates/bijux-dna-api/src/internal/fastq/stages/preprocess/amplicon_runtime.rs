@@ -392,7 +392,14 @@ fn materialize_amplicon_stage_outputs(
             let otu_fasta = out_dir.join("otu_representatives.fasta");
             let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
             let taxonomy_fastq_out = out_dir.join("taxonomy_ready.fastq");
+            let report_json = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("cluster_otus_report.json"));
+            let effective_params = infer_cluster_otus_effective_params(planned);
             let otu_input_fasta = out_dir.join("otu_input.fasta");
+            let otu_clusters_uc = out_dir.join("otu_clusters.uc");
             write_fastq_to_fasta_if_missing(&input, &otu_input_fasta)?;
             let vsearch_ok = command_exists("vsearch")
                 && run_stage_command(
@@ -403,11 +410,13 @@ fn materialize_amplicon_stage_outputs(
                         "--cluster_fast".to_string(),
                         otu_input_fasta.to_string_lossy().to_string(),
                         "--id".to_string(),
-                        "0.97".to_string(),
+                        effective_params.identity_threshold.to_string(),
+                        "--threads".to_string(),
+                        effective_params.threads.to_string(),
                         "--centroids".to_string(),
                         otu_fasta.to_string_lossy().to_string(),
                         "--uc".to_string(),
-                        out_dir.join("otu_clusters.uc").to_string_lossy().to_string(),
+                        otu_clusters_uc.to_string_lossy().to_string(),
                     ],
                 );
             if !otu_table.exists() {
@@ -429,11 +438,44 @@ fn materialize_amplicon_stage_outputs(
                     b"@OTU_0001\nACGTACGTACGT\n+\nIIIIIIIIIIII\n@OTU_0002\nACGTACGTTCGT\n+\nIIIIIIIIIIII\n",
                 )?;
             }
+            let table_metrics =
+                crate::internal::fastq::stages::cluster_otus::read_cluster_otus_table_metrics(
+                    &otu_table,
+                )?;
+            let representative_count =
+                crate::internal::fastq::stages::cluster_otus::count_cluster_otus_representatives(
+                    &otu_fasta,
+                )?;
+            let report = crate::internal::fastq::stages::cluster_otus::canonical_cluster_otus_report(
+                "vsearch",
+                &input,
+                &otu_table,
+                &otu_fasta,
+                &taxonomy_ready_fasta,
+                &taxonomy_fastq_out,
+                &report_json,
+                &effective_params,
+                table_metrics,
+                representative_count,
+                None,
+                None,
+                Some(0),
+                !vsearch_ok,
+                otu_clusters_uc.exists().then_some(otu_clusters_uc.as_path()),
+                Some(serde_json::json!({
+                    "materialized_from": "amplicon_runtime",
+                })),
+            );
+            bijux_dna_infra::atomic_write_json(&report_json, &report)?;
             payload = serde_json::json!({
-                "otu_count": 2_u64,
+                "otu_count": table_metrics.otu_count,
+                "sample_count": table_metrics.sample_count,
+                "representative_sequence_count": representative_count,
                 "tool": "vsearch",
-                "cluster_identity": 0.97_f64,
+                "cluster_identity": effective_params.identity_threshold,
+                "threads": effective_params.threads,
                 "used_fallback": !vsearch_ok,
+                "report_json": report_json,
             });
         }
         "fastq.infer_asvs" => {
@@ -743,6 +785,33 @@ fn infer_asvs_effective_params(
         report_artifact: "report_json".to_string(),
         raw_backend_report_artifact: Some("report_json".to_string()),
         raw_backend_report_format: Some("infer_asvs_governed_report_json".to_string()),
+    }
+}
+
+fn infer_cluster_otus_effective_params(
+    planned: &ExecutionStep,
+) -> bijux_dna_domain_fastq::params::edna::OtuClusteringEffectiveParams {
+    let flag_value = |flag: &str| -> Option<String> {
+        planned
+            .command
+            .template
+            .windows(2)
+            .find_map(|window| (window[0] == flag).then(|| window[1].clone()))
+    };
+    let identity_threshold = flag_value("--id")
+        .and_then(|value| value.parse::<f64>().ok())
+        .unwrap_or(0.97);
+    let threads = flag_value("--threads")
+        .and_then(|value| value.parse::<u32>().ok())
+        .unwrap_or(4);
+    bijux_dna_domain_fastq::params::edna::OtuClusteringEffectiveParams {
+        schema_version: bijux_dna_domain_fastq::params::edna::EDNA_SCHEMA_VERSION.to_string(),
+        identity_threshold,
+        threads,
+        output_table_kind: "otu_abundance_table".to_string(),
+        report_artifact: "report_json".to_string(),
+        raw_backend_report_artifact: Some("otu_clusters_uc".to_string()),
+        raw_backend_report_format: Some("vsearch_uc".to_string()),
     }
 }
 
