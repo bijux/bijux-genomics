@@ -250,6 +250,8 @@ pub struct BenchFastqClusterOtusArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub otu_identity: Option<f64>,
+    pub threads: Option<u32>,
 }
 
 #[derive(Debug, Clone)]

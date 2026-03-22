@@ -27,6 +27,17 @@ use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json
 
 const STAGE_ID: &str = "fastq.cluster_otus";
 
+pub(crate) fn cluster_otus_options_from_args(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqClusterOtusArgs,
+) -> bijux_dna_planner_fastq::ClusterOtusStageParams {
+    let mut options = bijux_dna_planner_fastq::ClusterOtusStageParams::default();
+    if let Some(otu_identity) = args.otu_identity {
+        options.otu_identity = otu_identity;
+    }
+    options.threads = args.threads;
+    options
+}
+
 pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -82,11 +93,12 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
+        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan_with_options(
             &tool_spec,
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
+            &cluster_otus_options_from_args(args),
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
