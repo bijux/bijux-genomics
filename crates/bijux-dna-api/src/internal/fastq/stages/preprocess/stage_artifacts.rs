@@ -122,6 +122,34 @@ fn emit_fastq_stage_extra_artifacts(
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
             }))
         }
+        "fastq.merge_pairs" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str()) == Some("merge_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("merge_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_merge_pairs_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.merge_pairs.extra_artifacts.v2",
+                "stage": stage_id,
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode.clone()),
+                "merge_engine": governed.as_ref().map(|report| report.merge_engine.clone()),
+                "merge_overlap": governed.as_ref().and_then(|report| report.merge_overlap),
+                "min_length": governed.as_ref().and_then(|report| report.min_len),
+                "unmerged_read_policy": governed.as_ref().map(|report| report.unmerged_read_policy.clone()),
+                "merged_reads": governed.as_ref().map(|report| report.merged_reads.clone()),
+                "unmerged_reads_r1": governed.as_ref().and_then(|report| report.unmerged_reads_r1.clone()),
+                "unmerged_reads_r2": governed.as_ref().and_then(|report| report.unmerged_reads_r2.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.screen_taxonomy" => {
             let report_path = discover_screen_taxonomy_report_path(stage_root, &execution.outputs)
                 .unwrap_or_else(|| stage_root.join("classification_report.json"));
@@ -146,8 +174,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .outputs
                 .iter()
                 .find(|path| {
-                    path.file_name().and_then(|name| name.to_str())
-                        == Some("report_qc_report.json")
+                    path.file_name().and_then(|name| name.to_str()) == Some("report_qc_report.json")
                 })
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("report_qc_report.json"));
@@ -359,12 +386,7 @@ fn write_stage_standardized_metrics(
             "fields": ["reads_in", "reads_out", "bases_corrected", "substitutions_corrected"],
             "report_json": out_dir.join("correct_report.json"),
         }),
-        "fastq.merge_pairs" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["pairs_in", "pairs_merged", "pairs_unmerged"],
-            "report_json": out_dir.join("merge_report.json"),
-        }),
+        "fastq.merge_pairs" => parse_merge_pairs_metrics(out_dir),
         "fastq.remove_duplicates" => parse_remove_duplicates_metrics(out_dir),
         "fastq.extract_umis" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
