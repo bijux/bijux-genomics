@@ -154,7 +154,7 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
     if stage_id == &STAGE_PROFILE_OVERREPRESENTED_SEQUENCES {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.profile_overrepresented_sequences",
-            schema_version: stats::STATS_SCHEMA_VERSION,
+            schema_version: stats::OVERREPRESENTED_PROFILE_SCHEMA_VERSION,
         });
     }
     if stage_id == &STAGE_VALIDATE_READS {
