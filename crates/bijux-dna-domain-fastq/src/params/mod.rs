@@ -64,7 +64,7 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
     if stage_id == &STAGE_PROFILE_READ_LENGTHS {
         return Some(StageParamDescriptor {
             param_type_id: "fastq.profile_read_lengths",
-            schema_version: stats::STATS_SCHEMA_VERSION,
+            schema_version: stats::READ_LENGTH_PROFILE_SCHEMA_VERSION,
         });
     }
     if stage_id == &STAGE_CORRECT_ERRORS {

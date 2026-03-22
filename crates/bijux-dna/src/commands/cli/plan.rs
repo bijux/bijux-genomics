@@ -249,6 +249,7 @@ pub fn bench_args_profile_read_lengths(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        histogram_bins: args.histogram_bins,
     })
 }
 

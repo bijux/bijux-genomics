@@ -4,7 +4,10 @@ use anyhow::Result;
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS;
+use bijux_dna_domain_fastq::{
+    params::{stats::READ_LENGTH_PROFILE_SCHEMA_VERSION, FastqReadLengthProfileParams, PairedMode},
+    stages::ids::STAGE_PROFILE_READ_LENGTHS,
+};
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_PROFILE_READ_LENGTHS;
@@ -20,9 +23,33 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_with_options(tool, r1, r2, out_dir, None)
+}
+
+/// Build a pre-trim length distribution plan with governed histogram options.
+///
+/// # Errors
+/// Returns an error if plan serialization fails.
+pub fn plan_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    histogram_bins_override: Option<u32>,
+) -> Result<StagePlanV1> {
     let dist_tsv = out_dir.join("length_distribution.tsv");
     let dist_json = out_dir.join("length_distribution.json");
     let command_template = profile_lengths_command(&tool.tool_id.0, r1, r2);
+    let histogram_bins = histogram_bins_override.unwrap_or(100).max(1);
+    let effective_params = FastqReadLengthProfileParams {
+        schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
+        paired_mode: if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        histogram_bins,
+    };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -69,15 +96,11 @@ pub fn plan(
             "tool": tool.tool_id.0,
             "input_r1": r1,
             "input_r2": r2,
+            "histogram_bins": histogram_bins,
             "output_tsv": dist_tsv,
             "output_json": dist_json,
         }),
-        effective_params: serde_json::json!({
-            "stage": "profile_read_lengths",
-            "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
-            "threads": tool.resources.threads,
-            "schema": ["sample_id", "read_length", "count"],
-        }),
+        effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::new(
             bijux_dna_stage_contract::PlanReasonKind::Default,

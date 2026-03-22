@@ -303,6 +303,8 @@ pub struct BenchFastqProfileReadLengthsArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(long)]
+    pub histogram_bins: Option<u32>,
 }
 
 #[derive(Debug, Args)]
