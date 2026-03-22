@@ -1,14 +1,25 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::params::PairedMode;
+
 pub const EDNA_SCHEMA_VERSION: &str = "v1";
 pub const DEFAULT_OTU_IDENTITY_THRESHOLD: f64 = 0.97;
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct PrimerNormalizationEffectiveParams {
+    pub schema_version: String,
+    pub paired_mode: PairedMode,
+    pub threads: Option<u32>,
     pub orientation_policy: String,
     pub primer_set_id: String,
+    pub marker_id: Option<String>,
+    pub primer_fasta: Option<String>,
+    pub max_mismatch_rate: f64,
+    pub min_overlap_bp: u32,
+    pub strict_5p_anchor: bool,
+    pub allow_iupac_codes: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
