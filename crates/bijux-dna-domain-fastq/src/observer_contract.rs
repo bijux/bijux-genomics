@@ -74,6 +74,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.deplete_rrna",
+        tool_id: "sortmerna",
+        semantic_surface: "rrna_report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.profile_overrepresented_sequences",
         tool_id: "fastqc",
         semantic_surface: "report_json",
