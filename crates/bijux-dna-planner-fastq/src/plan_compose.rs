@@ -19,7 +19,7 @@ use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
-    DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters,
+    DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters, InferAsvsStageParams,
     TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
     STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
     STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY,
@@ -590,11 +590,13 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = crate::tool_adapters::fastq::infer_asvs::plan(
+                let infer_params = infer_asvs_params(binding);
+                let plan = crate::tool_adapters::fastq::infer_asvs::plan_with_options(
                     tool,
                     &stage_r1,
                     stage_r2.as_deref(),
                     &out_dir,
+                    &infer_params,
                 )?;
                 let next_feature_table = Some(plan.io.outputs[0].path.clone());
                 (plan, stage_r1.clone(), stage_r2.clone(), next_feature_table)
@@ -1139,6 +1141,13 @@ fn correct_errors_params(binding: &FastqStageBinding) -> CorrectErrorsStageParam
     match binding.params.as_ref() {
         Some(FastqStageParameters::CorrectErrors(params)) => params.clone(),
         _ => CorrectErrorsStageParams::default(),
+    }
+}
+
+fn infer_asvs_params(binding: &FastqStageBinding) -> InferAsvsStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::InferAsvs(params)) => params.clone(),
+        _ => InferAsvsStageParams::default(),
     }
 }
 
