@@ -18,18 +18,20 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_stages_fastq::observer::parse_terminal_damage_report;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 
 use super::trim_bench_common::{
-    build_benchmark_context, derive_trim_delta, infer_udg_classification, observe_fastq_stats,
-    prepare_trim_bench, terminal_damage_profile,
+    build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
+    require_existing_benchmark_output,
 };
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_TRIM_TERMINAL_DAMAGE,
 };
+use bijux_dna_stage_contract::StagePlanV1;
 
 fn normalize_tools(raw: &[String]) -> Vec<String> {
     if raw.is_empty() || (raw.len() == 1 && raw[0] == "auto") {
@@ -253,87 +255,20 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             serde_json::from_value::<TrimTerminalDamageParams>(plan.effective_params.clone())
                 .context("decode trim terminal damage effective params")?;
 
-        let pre_profile_r1 = terminal_damage_profile(&bench_inputs.r1)?;
-        let pre_profile_r2 = if let Some(r2) = args.r2.as_deref() {
-            Some(terminal_damage_profile(r2)?)
-        } else {
-            None
-        };
-        let post_profile_r1 = terminal_damage_profile(&output_r1)?;
-        let post_profile_r2 = if args.r2.is_some() {
-            Some(terminal_damage_profile(&plan.io.outputs[1].path)?)
-        } else {
-            None
-        };
-        let combined_asymmetry =
-            |left: Option<&serde_json::Value>, right: Option<&serde_json::Value>| -> Option<f64> {
-                let values = [
-                    left.and_then(serde_json::Value::as_f64),
-                    right.and_then(serde_json::Value::as_f64),
-                ]
-                .into_iter()
-                .flatten()
-                .collect::<Vec<_>>();
-                if values.is_empty() {
-                    None
-                } else {
-                    Some(values.iter().sum::<f64>() / values.len() as f64)
-                }
-            };
-        let ct_ga_asymmetry_pre = combined_asymmetry(
-            pre_profile_r1.get("ct_ga_asymmetry"),
-            pre_profile_r2
-                .as_ref()
-                .and_then(|profile| profile.get("ct_ga_asymmetry")),
-        );
-        let ct_ga_asymmetry_post = combined_asymmetry(
-            post_profile_r1.get("ct_ga_asymmetry"),
-            post_profile_r2
-                .as_ref()
-                .and_then(|profile| profile.get("ct_ga_asymmetry")),
-        );
-        let udg_classification = args
-            .damage_mode
-            .clone()
-            .unwrap_or_else(|| infer_udg_classification(&bench_inputs.r1));
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.trim_terminal_damage.report.v1",
-            "stage": STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
-            "stage_id": STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
-            "tool": tool,
-            "tool_id": tool,
-            "reads_in": metrics.reads_in,
-            "reads_out": metrics.reads_out,
-            "bases_in": metrics.bases_in,
-            "bases_out": metrics.bases_out,
-            "mean_q_before": metrics.mean_q_before,
-            "mean_q_after": metrics.mean_q_after,
-            "udg_classification": udg_classification,
-            "ct_ga_asymmetry_pre": ct_ga_asymmetry_pre,
-            "ct_ga_asymmetry_post": ct_ga_asymmetry_post,
-            "output_r1": output_r1,
-            "output_r2": args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone()),
-            "execution_policy": effective_params.execution_policy,
-            "trim_5p_bases": effective_params.trim_5p_bases,
-            "trim_3p_bases": effective_params.trim_3p_bases,
-            "requested_trim_5p_bases": effective_params.requested_trim_5p_bases,
-            "requested_trim_3p_bases": effective_params.requested_trim_3p_bases,
-            "terminal_base_composition_pre_r1": pre_profile_r1.get("terminal_base_composition_5p").cloned().unwrap_or_else(|| serde_json::json!({})),
-            "terminal_base_composition_post_r1": post_profile_r1.get("terminal_base_composition_5p").cloned().unwrap_or_else(|| serde_json::json!({})),
-            "ct_ga_asymmetry_pre_r1": pre_profile_r1.get("ct_ga_asymmetry").cloned().unwrap_or_else(|| serde_json::json!(0.0)),
-            "ct_ga_asymmetry_post_r1": post_profile_r1.get("ct_ga_asymmetry").cloned().unwrap_or_else(|| serde_json::json!(0.0)),
-            "terminal_base_composition_pre_r2": pre_profile_r2.as_ref().and_then(|profile| profile.get("terminal_base_composition_5p")).cloned(),
-            "terminal_base_composition_post_r2": post_profile_r2.as_ref().and_then(|profile| profile.get("terminal_base_composition_5p")).cloned(),
-            "ct_ga_asymmetry_pre_r2": pre_profile_r2.as_ref().and_then(|profile| profile.get("ct_ga_asymmetry")).cloned(),
-            "ct_ga_asymmetry_post_r2": post_profile_r2.as_ref().and_then(|profile| profile.get("ct_ga_asymmetry")).cloned(),
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-        });
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("trim_terminal_damage_report.json"),
-            &report,
-        )
-        .context("write trim terminal damage report")?;
+        let governed_report = read_governed_terminal_damage_report(&plan)?;
+        if governed_report.tool_id != tool {
+            return Err(anyhow!(
+                "terminal damage report drift: expected tool `{tool}`, found `{}`",
+                governed_report.tool_id
+            ));
+        }
+        if governed_report.execution_policy != effective_params.execution_policy {
+            return Err(anyhow!(
+                "terminal damage report drift: expected execution_policy `{:?}`, found `{:?}`",
+                effective_params.execution_policy,
+                governed_report.execution_policy
+            ));
+        }
         let metrics_json = serde_json::to_value(&metric_set)?;
         bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
             .context("write trim terminal damage metrics")?;
@@ -403,9 +338,42 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
     bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_TRIM_TERMINAL_DAMAGE.as_str())
 }
 
+fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == output_id)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| {
+            anyhow!(
+                "trim_terminal_damage plan is missing governed output `{output_id}` for tool {}",
+                plan.tool_id.as_str()
+            )
+        })
+}
+
+fn read_governed_terminal_damage_report(
+    plan: &StagePlanV1,
+) -> Result<bijux_dna_domain_fastq::TerminalDamageReportV1> {
+    let report_path = required_plan_output_path(plan, "report_json")?;
+    let report_path = require_existing_benchmark_output(&report_path, "report_json")?;
+    let report = std::fs::read_to_string(report_path)
+        .with_context(|| format!("read terminal damage report {}", report_path.display()))?;
+    parse_terminal_damage_report(&report).context("parse governed terminal damage report")
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{admitted_stage_tools, normalize_tools};
+    use super::{
+        admitted_stage_tools, normalize_tools, read_governed_terminal_damage_report,
+        required_plan_output_path,
+    };
+    use bijux_dna_core::ids::{ArtifactId, StageVersion, ToolId};
+    use bijux_dna_core::contract::{ArtifactRole, StageIO};
+    use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
 
     #[test]
     fn normalize_tools_uses_execution_support_for_auto_and_all() {
@@ -413,5 +381,124 @@ mod tests {
         assert_eq!(normalize_tools(&[]), expected);
         assert_eq!(normalize_tools(&["auto".to_string()]), expected);
         assert_eq!(normalize_tools(&["all".to_string()]), expected);
+    }
+
+    #[test]
+    fn trim_terminal_damage_report_path_follows_governed_outputs() {
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.trim_terminal_damage"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("cutadapt"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["cutadapt".to_string()],
+            },
+            resources: Default::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::from_static("report_json"),
+                    PathBuf::from("custom/trim_terminal_damage_report.json"),
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            out_dir: PathBuf::from("custom"),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        assert_eq!(
+            required_plan_output_path(&plan, "report_json").expect("report path"),
+            PathBuf::from("custom/trim_terminal_damage_report.json")
+        );
+    }
+
+    #[test]
+    fn read_governed_terminal_damage_report_uses_governed_contract() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("trim_terminal_damage_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
+                "stage": "fastq.trim_terminal_damage",
+                "stage_id": "fastq.trim_terminal_damage",
+                "tool_id": "cutadapt",
+                "paired_mode": "single_end",
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 2,
+                "trim_3p_bases": 1,
+                "requested_trim_5p_bases": 2,
+                "requested_trim_3p_bases": 1,
+                "udg_classification": "non_udg",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq.gz",
+                "output_r2": null,
+                "reads_in": null,
+                "reads_out": null,
+                "bases_in": null,
+                "bases_out": null,
+                "mean_q_before": null,
+                "mean_q_after": null,
+                "ct_ga_asymmetry_pre": null,
+                "ct_ga_asymmetry_post": null,
+                "ct_ga_asymmetry_pre_r1": null,
+                "ct_ga_asymmetry_post_r1": null,
+                "ct_ga_asymmetry_pre_r2": null,
+                "ct_ga_asymmetry_post_r2": null,
+                "terminal_base_composition_pre_r1": null,
+                "terminal_base_composition_post_r1": null,
+                "terminal_base_composition_pre_r2": null,
+                "terminal_base_composition_post_r2": null,
+                "raw_backend_report": "cutadapt.damage.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": null,
+                "memory_mb": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static("fastq.trim_terminal_damage"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("cutadapt"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["cutadapt".to_string()],
+            },
+            resources: Default::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::from_static("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            out_dir: temp.path().to_path_buf(),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+
+        let report = read_governed_terminal_damage_report(&plan).expect("governed report");
+        assert_eq!(report.tool_id, "cutadapt");
+        assert_eq!(report.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
     }
 }
