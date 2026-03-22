@@ -1,4 +1,5 @@
 use std::collections::{BTreeSet, HashMap};
+use std::path::Path;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
@@ -10,7 +11,10 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqInferAsv
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
-use bijux_dna_domain_fastq::{execution_support_for_stage, ExecutionStatus};
+use bijux_dna_domain_fastq::{
+    execution_support_for_stage, AsvInferenceEffectiveParams, InferAsvsReportV1,
+    ExecutionStatus, INFER_ASVS_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::{
@@ -28,6 +32,111 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.infer_asvs";
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct InferAsvsTableMetrics {
+    pub asv_count: u64,
+    pub sample_count: u64,
+}
+
+pub(crate) fn infer_asvs_options_from_args(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqInferAsvsArgs,
+) -> bijux_dna_planner_fastq::InferAsvsStageParams {
+    let mut options = bijux_dna_planner_fastq::InferAsvsStageParams::default();
+    if let Some(denoising_method) = args.denoising_method.as_ref() {
+        options.denoising_method = denoising_method.clone();
+    }
+    if let Some(pooling_mode) = args.pooling_mode.as_ref() {
+        options.pooling_mode = pooling_mode.clone();
+    }
+    if let Some(chimera_policy) = args.chimera_policy.as_ref() {
+        options.chimera_policy = chimera_policy.clone();
+    }
+    options.threads = args.threads;
+    options
+}
+
+pub(crate) fn read_infer_asvs_table_metrics(path: &Path) -> Result<InferAsvsTableMetrics> {
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let mut samples = BTreeSet::new();
+    let mut features = BTreeSet::new();
+    for line in raw.lines().skip(1) {
+        let mut parts = line.split('\t');
+        let Some(sample_id) = parts.next().map(str::trim) else {
+            continue;
+        };
+        let Some(feature_id) = parts.next().map(str::trim) else {
+            continue;
+        };
+        if !sample_id.is_empty() {
+            samples.insert(sample_id.to_string());
+        }
+        if !feature_id.is_empty() {
+            features.insert(feature_id.to_string());
+        }
+    }
+    Ok(InferAsvsTableMetrics {
+        asv_count: features.len() as u64,
+        sample_count: samples.len() as u64,
+    })
+}
+
+pub(crate) fn count_fasta_records(path: &Path) -> Result<u64> {
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    Ok(raw
+        .lines()
+        .filter(|line| line.trim_start().starts_with('>'))
+        .count() as u64)
+}
+
+pub(crate) fn canonical_infer_asvs_report(
+    tool_id: &str,
+    input_r1: &Path,
+    input_r2: Option<&Path>,
+    asv_table_tsv: &Path,
+    asv_sequences_fasta: &Path,
+    taxonomy_ready_fasta: &Path,
+    taxonomy_ready_fastq: &Path,
+    report_json: &Path,
+    effective_params: &AsvInferenceEffectiveParams,
+    table_metrics: InferAsvsTableMetrics,
+    representative_sequence_count: u64,
+    runtime_s: Option<f64>,
+    memory_mb: Option<f64>,
+    exit_code: Option<i32>,
+    used_fallback: bool,
+    backend_metrics: Option<serde_json::Value>,
+) -> InferAsvsReportV1 {
+    InferAsvsReportV1 {
+        schema_version: INFER_ASVS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        tool_id: tool_id.to_string(),
+        paired_mode: effective_params.paired_mode,
+        denoising_method: effective_params.denoising_method.clone(),
+        pooling_mode: effective_params.pooling_mode.clone(),
+        chimera_policy: effective_params.chimera_policy.clone(),
+        requires_r_runtime: effective_params.requires_r_runtime,
+        output_table_kind: effective_params.output_table_kind.clone(),
+        input_reads_r1: input_r1.display().to_string(),
+        input_reads_r2: input_r2.map(|path| path.display().to_string()),
+        asv_table_tsv: asv_table_tsv.display().to_string(),
+        asv_sequences_fasta: asv_sequences_fasta.display().to_string(),
+        taxonomy_ready_fasta: taxonomy_ready_fasta.display().to_string(),
+        taxonomy_ready_fastq: taxonomy_ready_fastq.display().to_string(),
+        report_json: report_json.display().to_string(),
+        asv_count: table_metrics.asv_count,
+        sample_count: table_metrics.sample_count,
+        representative_sequence_count,
+        used_fallback,
+        raw_backend_report: Some(report_json.display().to_string()),
+        raw_backend_report_format: Some("infer_asvs_governed_report_json".to_string()),
+        runtime_s,
+        memory_mb,
+        exit_code,
+        backend_metrics,
+    }
+}
 
 pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
@@ -91,11 +200,12 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan(
+        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan_with_options(
             &tool_spec,
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
+            &infer_asvs_options_from_args(args),
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -133,30 +243,43 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         }
         let payload = materialize_amplicon_stage_outputs_for_bench(&out_dir, &step)?;
         enforce_amplicon_qc_thresholds_for_bench(&out_dir, STAGE_ID, &payload)?;
-        let sample_count = infer_sample_count(&plan.io.outputs[0].path)?;
+        let asv_table_tsv = output_path(&plan, "asv_table_tsv")?;
+        let asv_sequences_fasta = output_path(&plan, "asv_sequences_fasta")?;
+        let taxonomy_ready_fasta = output_path(&plan, "taxonomy_ready_fasta")?;
+        let taxonomy_ready_fastq = output_path(&plan, "taxonomy_ready_fastq")?;
+        let report_json = output_path(&plan, "report_json")?;
+        let table_metrics = read_infer_asvs_table_metrics(&asv_table_tsv)?;
+        let representative_sequence_count = count_fasta_records(&asv_sequences_fasta)?;
         let metrics = FastqInferAsvsMetrics {
-            asv_count: payload
-                .get("asv_count")
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(0),
-            sample_count,
+            asv_count: table_metrics.asv_count,
+            sample_count: table_metrics.sample_count,
         };
         let metric_set = metric_set(metrics);
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.infer_asvs.report.v1",
-            "stage_id": STAGE_ID,
-            "tool_id": tool,
-            "input_fastq_r1": args.r1,
-            "input_fastq_r2": args.r2,
-            "asv_table_tsv": plan.io.outputs[0].path,
-            "asv_sequences_fasta": plan.io.outputs[1].path,
-            "taxonomy_ready_fasta": plan.io.outputs[2].path,
-            "taxonomy_ready_fastq": plan.io.outputs[3].path,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-            "exit_code": execution.exit_code,
-        });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("infer_asvs_report.json"), &report)?;
+        let effective_params: AsvInferenceEffectiveParams =
+            serde_json::from_value(plan.effective_params.clone())
+                .context("parse infer_asvs effective params")?;
+        let report = canonical_infer_asvs_report(
+            tool,
+            &args.r1,
+            args.r2.as_deref(),
+            &asv_table_tsv,
+            &asv_sequences_fasta,
+            &taxonomy_ready_fasta,
+            &taxonomy_ready_fastq,
+            &report_json,
+            &effective_params,
+            table_metrics,
+            representative_sequence_count,
+            Some(execution.runtime_s),
+            Some(execution.memory_mb),
+            Some(execution.exit_code),
+            payload
+                .get("used_fallback")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
+            Some(payload),
+        );
+        bijux_dna_infra::atomic_write_json(&report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -192,15 +315,11 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     })
 }
 
-fn infer_sample_count(path: &std::path::Path) -> Result<u64> {
-    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let mut samples = BTreeSet::new();
-    for line in raw.lines().skip(1) {
-        if let Some((sample_id, _rest)) = line.split_once('\t') {
-            if !sample_id.trim().is_empty() {
-                samples.insert(sample_id.trim().to_string());
-            }
-        }
-    }
-    Ok(samples.len() as u64)
+fn output_path(plan: &bijux_dna_stage_contract::StagePlanV1, artifact_name: &str) -> Result<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| anyhow!("infer_asvs plan missing output artifact `{artifact_name}`"))
 }
