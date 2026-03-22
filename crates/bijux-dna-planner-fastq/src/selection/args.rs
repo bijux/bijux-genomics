@@ -336,6 +336,7 @@ pub struct BenchFastqDepleteHostArgs {
     pub r2: Option<PathBuf>,
     pub reference_index: PathBuf,
     pub out: PathBuf,
+    pub threads: Option<u32>,
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,

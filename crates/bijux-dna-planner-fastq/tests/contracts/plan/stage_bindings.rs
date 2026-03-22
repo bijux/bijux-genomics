@@ -774,6 +774,7 @@ fn planner_rejects_unsupported_host_retention_policy_from_stage_binding() -> any
                 params: Some(FastqStageParameters::DepleteHost(DepleteHostStageParams {
                     host_identity_threshold: 0.95,
                     retain_unmapped_only: false,
+                    threads: None,
                 })),
             },
         ],

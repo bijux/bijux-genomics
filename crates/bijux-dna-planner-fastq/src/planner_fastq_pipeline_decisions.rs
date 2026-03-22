@@ -176,6 +176,7 @@ impl Default for DepleteRrnaStageParams {
 pub struct DepleteHostStageParams {
     pub host_identity_threshold: f64,
     pub retain_unmapped_only: bool,
+    pub threads: Option<u32>,
 }
 
 impl Default for DepleteHostStageParams {
@@ -183,6 +184,7 @@ impl Default for DepleteHostStageParams {
         Self {
             host_identity_threshold: 0.95,
             retain_unmapped_only: true,
+            threads: None,
         }
     }
 }

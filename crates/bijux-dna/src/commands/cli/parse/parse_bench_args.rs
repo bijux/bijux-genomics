@@ -798,6 +798,8 @@ pub struct BenchFastqDepleteHostArgs {
     pub reference_index: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
+    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    pub threads: Option<u32>,
     #[arg(
         long,
         value_delimiter = ',',
