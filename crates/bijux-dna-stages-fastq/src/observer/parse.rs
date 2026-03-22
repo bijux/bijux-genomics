@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    MergePairsReportV1,
     NormalizeAbundanceReportV1,
     NormalizePrimersReportV1,
     OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
@@ -152,6 +153,12 @@ pub fn parse_normalize_primers_report(report_json: &str) -> Result<NormalizePrim
 /// Returns an error if the governed normalize-abundance report JSON cannot be parsed.
 pub fn parse_normalize_abundance_report(report_json: &str) -> Result<NormalizeAbundanceReportV1> {
     serde_json::from_str(report_json).context("parse normalize abundance report")
+}
+
+/// # Errors
+/// Returns an error if the governed merge-pairs report JSON cannot be parsed.
+pub fn parse_merge_pairs_report(report_json: &str) -> Result<MergePairsReportV1> {
+    serde_json::from_str(report_json).context("parse merge pairs report")
 }
 
 /// # Errors
