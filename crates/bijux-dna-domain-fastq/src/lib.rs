@@ -12,6 +12,7 @@
 pub mod banks;
 pub mod bench_repository;
 mod comparison_contract;
+mod correct_errors_artifacts;
 mod deplete_host_artifacts;
 mod deplete_reference_contaminants_artifacts;
 mod deplete_rrna_artifacts;
@@ -80,6 +81,9 @@ pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
     StageComparisonContract,
+};
+pub use correct_errors_artifacts::{
+    CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION,
 };
 pub use profile_reads_artifacts::{
     ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1, ProfileReadsReportV1,
