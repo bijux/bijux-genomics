@@ -25,7 +25,10 @@ fn parse_low_complexity_filtered_count(stdout: &str, stderr: &str) -> Option<u64
 
 fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
     for line in text.lines() {
-        if !line.to_ascii_lowercase().contains(&key.to_ascii_lowercase()) {
+        if !line
+            .to_ascii_lowercase()
+            .contains(&key.to_ascii_lowercase())
+        {
             continue;
         }
         let digits: String = line.chars().filter(char::is_ascii_digit).collect();
@@ -160,6 +163,47 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
+pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("trim_polyg_tails_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_trim_polyg_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.trim_polyg_tails",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "trim_polyg": report.trim_polyg,
+                "min_polyg_run": report.min_polyg_run,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "mean_q_before": report.mean_q_before,
+                "mean_q_after": report.mean_q_after,
+                "bases_trimmed_polyg": report.bases_trimmed_polyg,
+                "polyx_bank_id": report.polyx_bank_id,
+                "polyx_bank_hash": report.polyx_bank_hash,
+                "polyx_preset": report.polyx_preset,
+                "runtime_s": report.runtime_s,
+                "memory_mb": report.memory_mb,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.trim_polyg_tails",
+        "tool": "report_missing",
+        "trim_polyg": serde_json::Value::Null,
+        "reads_in": serde_json::Value::Null,
+        "reads_out": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let fastp_json = out_dir.join("fastp.json");
     if let Ok(raw) = std::fs::read_to_string(&fastp_json) {
@@ -258,8 +302,8 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_trim_terminal_damage_metrics, parse_validate_reads_metrics,
-        required_metrics_keys,
+        fastq_backend_allowlist, parse_trim_polyg_metrics, parse_trim_reads_metrics,
+        parse_trim_terminal_damage_metrics, parse_validate_reads_metrics, required_metrics_keys,
         workspace_root_path,
     };
 
@@ -323,8 +367,7 @@ mod tests {
             .into_iter()
             .map(|tool| tool.to_string())
             .collect::<Vec<_>>();
-            let actual = fastq_backend_allowlist(&stage_id)
-                .unwrap_or_default();
+            let actual = fastq_backend_allowlist(&stage_id).unwrap_or_default();
             assert_eq!(
                 actual, expected,
                 "fastq API backend allowlist drifted from planner registry selection for {stage_id}"
@@ -492,7 +535,10 @@ mod tests {
 
         let metrics = parse_trim_terminal_damage_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
-        assert_eq!(metrics["execution_policy"], serde_json::json!("explicit_terminal_trim"));
+        assert_eq!(
+            metrics["execution_policy"],
+            serde_json::json!("explicit_terminal_trim")
+        );
         assert_eq!(metrics["ct_ga_asymmetry_post"], serde_json::json!(0.11));
     }
 
@@ -554,6 +600,60 @@ mod tests {
             serde_json::json!("fastp_json")
         );
     }
+
+    #[test]
+    fn trim_polyg_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("trim_polyg_tails_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
+                "stage": "fastq.trim_polyg_tails",
+                "stage_id": "fastq.trim_polyg_tails",
+                "tool_id": "fastp",
+                "paired_mode": "single_end",
+                "trim_polyg": true,
+                "min_polyg_run": 10,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq.gz",
+                "output_r2": null,
+                "reads_in": 100,
+                "reads_out": 96,
+                "bases_in": 1000,
+                "bases_out": 910,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.4,
+                "bases_trimmed_polyg": 90,
+                "polyx_bank_id": "polyx",
+                "polyx_bank_hash": "sha256:polyx",
+                "polyx_preset": "illumina_twocolor",
+                "runtime_s": 4.5,
+                "memory_mb": 72.0,
+                "raw_backend_report": "trim.fastp.json",
+                "raw_backend_report_format": "fastp_json",
+                "backend_metrics": {
+                    "schema_version": "bijux.fastp.metrics.v1",
+                    "passed_filter_reads": 96
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_trim_polyg_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("fastp"));
+        assert_eq!(metrics["trim_polyg"], serde_json::json!(true));
+        assert_eq!(metrics["reads_in"], serde_json::json!(100));
+        assert_eq!(metrics["bases_trimmed_polyg"], serde_json::json!(90));
+        assert_eq!(
+            metrics["polyx_bank_hash"],
+            serde_json::json!("sha256:polyx")
+        );
+    }
 }
 
 fn workspace_root_path() -> PathBuf {
@@ -585,7 +685,10 @@ fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
     let stage = planned.step_id.as_str();
     if !matches!(
         stage,
-        "fastq.screen_taxonomy" | "fastq.deplete_rrna" | "fastq.deplete_host" | "fastq.deplete_reference_contaminants"
+        "fastq.screen_taxonomy"
+            | "fastq.deplete_rrna"
+            | "fastq.deplete_host"
+            | "fastq.deplete_reference_contaminants"
     ) {
         return Ok(());
     }
@@ -630,14 +733,31 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "ct_ga_asymmetry_pre",
             "ct_ga_asymmetry_post",
         ],
-        "fastq.merge_pairs" => &["schema_version", "stage", "tool", "paired_input", "merged_output"],
+        "fastq.merge_pairs" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "paired_input",
+            "merged_output",
+        ],
         "fastq.remove_duplicates" => &["schema_version", "stage", "tool", "duplicates_removed"],
         "fastq.correct_errors" => &["schema_version", "stage", "tool", "corrected_reads"],
         "fastq.filter_reads" => &["schema_version", "stage", "tool", "filtered_reads"],
-        "fastq.filter_low_complexity" => &["schema_version", "stage", "tool", "low_complexity_removed"],
-        "fastq.trim_polyg_tails" => &["schema_version", "stage", "tool", "trimmed_reads"],
+        "fastq.filter_low_complexity" => {
+            &["schema_version", "stage", "tool", "low_complexity_removed"]
+        }
+        "fastq.trim_polyg_tails" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "trim_polyg",
+            "reads_in",
+            "reads_out",
+        ],
         "fastq.screen_taxonomy" => &["schema_version", "stage", "tool", "taxonomy_profile"],
-        "fastq.deplete_reference_contaminants" => &["schema_version", "stage", "tool", "screening_results"],
+        "fastq.deplete_reference_contaminants" => {
+            &["schema_version", "stage", "tool", "screening_results"]
+        }
         "fastq.deplete_host" => &["schema_version", "stage", "tool", "host_removed_fraction"],
         "fastq.report_qc" => &["schema_version", "stage", "report_html", "report_data_dir"],
         _ => &["schema_version", "stage"],
@@ -663,7 +783,10 @@ fn enforce_metrics_schema(stage_root: &std::path::Path, stage_id: &str) -> Resul
 }
 
 fn count_fastq_reads_if_plain(path: &std::path::Path) -> Option<u64> {
-    let ext = path.extension().and_then(|x| x.to_str()).unwrap_or_default();
+    let ext = path
+        .extension()
+        .and_then(|x| x.to_str())
+        .unwrap_or_default();
     if ext == "gz" {
         return None;
     }
@@ -728,6 +851,9 @@ fn write_retry_policy(root: &std::path::Path) -> Result<()> {
         "max_retries": 0,
         "note": "fastq preprocessing stages are deterministic and should not auto-retry by default"
     });
-    std::fs::write(root.join("retry_policy.json"), serde_json::to_vec_pretty(&payload)?)?;
+    std::fs::write(
+        root.join("retry_policy.json"),
+        serde_json::to_vec_pretty(&payload)?,
+    )?;
     Ok(())
 }
