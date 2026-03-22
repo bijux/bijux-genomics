@@ -9,8 +9,8 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
-    parse_multiqc_general_stats_metrics, parse_validated_reads_manifest,
-    parse_validation_report, parse_terminal_damage_report, parse_trim_reads_report,
+    parse_multiqc_general_stats_metrics, parse_terminal_damage_report, parse_trim_polyg_report,
+    parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
 };
 
 #[allow(dead_code)]
@@ -244,17 +244,17 @@ impl StagePlugin for FastqStagePlugin {
                 "observed".to_string()
             },
             attrs: serde_json::json!({
-                "stage_id": plan.stage_id,
-                "observer_coverage": observer_covered,
-                "runtime_interpretation": format!("{interpretation_level:?}"),
-                "benchmark_scenarios": benchmark_scenarios
-                    .iter()
-                    .map(|scenario| scenario.scenario_id.clone())
-                    .collect::<Vec<_>>(),
-                    "semantic_loss": semantic_loss,
-                    "artifact_count": artifacts.len(),
-                    "semantic_metrics": semantic_metrics,
-                }),
+            "stage_id": plan.stage_id,
+            "observer_coverage": observer_covered,
+            "runtime_interpretation": format!("{interpretation_level:?}"),
+            "benchmark_scenarios": benchmark_scenarios
+                .iter()
+                .map(|scenario| scenario.scenario_id.clone())
+                .collect::<Vec<_>>(),
+                "semantic_loss": semantic_loss,
+                "artifact_count": artifacts.len(),
+                "semantic_metrics": semantic_metrics,
+            }),
         }];
         Ok(StagePluginOutputV1 {
             metrics: envelope,
@@ -306,7 +306,8 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         contributor_entries
                             .iter()
                             .filter_map(|entry| {
-                                entry.get("stage_id")
+                                entry
+                                    .get("stage_id")
                                     .and_then(serde_json::Value::as_str)
                                     .map(ToString::to_string)
                             })
@@ -330,7 +331,8 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         contributor_entries
                             .iter()
                             .filter_map(|entry| {
-                                entry.get("contributor_id")
+                                entry
+                                    .get("contributor_id")
                                     .and_then(serde_json::Value::as_str)
                                     .and_then(|contributor_id| {
                                         contributor_id
@@ -377,8 +379,14 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             if let Ok(raw_report) = std::fs::read_to_string(report_path) {
                 if let Ok(report) = parse_trim_reads_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
-                        ("paired_mode".to_string(), serde_json::json!(report.paired_mode)),
-                        ("min_length".to_string(), serde_json::json!(report.min_length)),
+                        (
+                            "paired_mode".to_string(),
+                            serde_json::json!(report.paired_mode),
+                        ),
+                        (
+                            "min_length".to_string(),
+                            serde_json::json!(report.min_length),
+                        ),
                         (
                             "quality_cutoff".to_string(),
                             serde_json::json!(report.quality_cutoff),
@@ -387,7 +395,10 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                             "adapter_policy".to_string(),
                             serde_json::json!(report.adapter_policy),
                         ),
-                        ("polyx_policy".to_string(), serde_json::json!(report.polyx_policy)),
+                        (
+                            "polyx_policy".to_string(),
+                            serde_json::json!(report.polyx_policy),
+                        ),
                         ("n_policy".to_string(), serde_json::json!(report.n_policy)),
                         (
                             "contaminant_policy".to_string(),
@@ -527,39 +538,48 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .map(|artifact| artifact.path.as_path())
         {
             if let Ok(raw_report) = std::fs::read_to_string(report_path) {
-                if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
+                if let Ok(report) = parse_trim_polyg_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
                         (
+                            "paired_mode".to_string(),
+                            serde_json::json!(report.paired_mode),
+                        ),
+                        (
                             "trim_polyg".to_string(),
-                            report
-                                .get("trim_polyg")
-                                .cloned()
-                                .unwrap_or(serde_json::Value::Null),
+                            serde_json::json!(report.trim_polyg),
                         ),
                         (
                             "min_polyg_run".to_string(),
-                            report
-                                .get("min_polyg_run")
-                                .cloned()
-                                .unwrap_or(serde_json::Value::Null),
+                            serde_json::json!(report.min_polyg_run),
                         ),
                         (
-                            "raw_report_path".to_string(),
-                            report
-                                .get("raw_report_path")
-                                .cloned()
-                                .unwrap_or(serde_json::Value::Null),
+                            "bases_trimmed_polyg".to_string(),
+                            serde_json::json!(report.bases_trimmed_polyg),
                         ),
                         (
-                            "raw_report_format".to_string(),
-                            report
-                                .get("raw_report_format")
-                                .cloned()
-                                .unwrap_or(serde_json::Value::Null),
+                            "polyx_bank_id".to_string(),
+                            serde_json::json!(report.polyx_bank_id),
+                        ),
+                        (
+                            "polyx_bank_hash".to_string(),
+                            serde_json::json!(report.polyx_bank_hash),
+                        ),
+                        (
+                            "polyx_preset".to_string(),
+                            serde_json::json!(report.polyx_preset),
+                        ),
+                        (
+                            "raw_backend_report".to_string(),
+                            serde_json::json!(report.raw_backend_report),
+                        ),
+                        (
+                            "raw_backend_report_format".to_string(),
+                            serde_json::json!(report.raw_backend_report_format),
                         ),
                     ]);
                     if let Some(backend_metrics) = report
-                        .get("backend_metrics")
+                        .backend_metrics
+                        .as_ref()
                         .and_then(serde_json::Value::as_object)
                     {
                         for (metric_name, metric_value) in backend_metrics {
@@ -570,16 +590,13 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         }
                         return serde_json::Value::Object(semantics);
                     }
-                    if let (Some(raw_report_path), Some(raw_report_format)) = (
-                        report
-                            .get("raw_report_path")
-                            .and_then(serde_json::Value::as_str),
-                        report
-                            .get("raw_report_format")
-                            .and_then(serde_json::Value::as_str),
+                    if let (Some(raw_backend_report), Some(raw_backend_report_format)) = (
+                        report.raw_backend_report.as_deref(),
+                        report.raw_backend_report_format.as_deref(),
                     ) {
-                        if let Ok(raw_backend_report) = std::fs::read_to_string(raw_report_path) {
-                            match raw_report_format {
+                        if let Ok(raw_backend_report) = std::fs::read_to_string(raw_backend_report)
+                        {
+                            match raw_backend_report_format {
                                 "fastp_json" => {
                                     if let Ok(metrics) = parse_fastp_metrics(&raw_backend_report) {
                                         semantics.insert(
@@ -712,7 +729,7 @@ mod tests {
         PairedMode,
     };
     use bijux_dna_domain_fastq::{
-        ValidatedReadsManifestV1, ValidateFailureClass, ValidationReportV1,
+        ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
         VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
     };
     use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, StagePlugin};
@@ -890,11 +907,7 @@ mod tests {
             .iter()
             .any(|part| part.name == "observed_semantic_metrics"));
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["dedup_rate"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["dedup_rate"],
             serde_json::json!(0.25)
         );
     }
@@ -967,38 +980,23 @@ mod tests {
         ])
         .expect("validate semantics");
 
-        assert_eq!(
-            semantics["validated_pairs"],
-            serde_json::json!(1_u64)
-        );
-        assert_eq!(
-            semantics["validation_mode"],
-            serde_json::json!("strict")
-        );
+        assert_eq!(semantics["validated_pairs"], serde_json::json!(1_u64));
+        assert_eq!(semantics["validation_mode"], serde_json::json!("strict"));
         assert_eq!(
             semantics["failure_class"],
             serde_json::json!("header_sync_mismatch")
         );
-        assert_eq!(
-            semantics["pair_sync_pass"],
-            serde_json::json!(false)
-        );
+        assert_eq!(semantics["pair_sync_pass"], serde_json::json!(false));
         assert_eq!(
             semantics["pair_sync_policy"],
             serde_json::json!("require_header_sync")
         );
-        assert_eq!(
-            semantics["paired_mode"],
-            serde_json::json!("paired_end")
-        );
+        assert_eq!(semantics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(
             semantics["validated_stream_ids"],
             serde_json::json!(["reads_r1", "reads_r2"])
         );
-        assert_eq!(
-            semantics["validated_reads_r1"],
-            serde_json::json!(1_u64)
-        );
+        assert_eq!(semantics["validated_reads_r1"], serde_json::json!(1_u64));
     }
 
     #[test]
@@ -1091,35 +1089,23 @@ mod tests {
             serde_json::json!("ObserverSpecialized")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["execution_policy"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["execution_policy"],
             serde_json::json!("explicit_terminal_trim")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["trim_5p_bases"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["trim_5p_bases"],
             serde_json::json!(2_u64)
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["udg_classification"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["udg_classification"],
             serde_json::json!("non_udg")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["raw_backend_report_format"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["raw_backend_report_format"],
             serde_json::json!("cutadapt_json")
         );
     }
@@ -1228,35 +1214,22 @@ mod tests {
             serde_json::json!("ObserverSpecialized")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["adapter_policy"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["adapter_policy"],
             serde_json::json!("bank")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["reads_out"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_out"],
             serde_json::json!(96_u64)
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["passed_filter_reads"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["passed_filter_reads"],
             serde_json::json!(96_u64)
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["raw_backend_report_format"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["raw_backend_report_format"],
             serde_json::json!("fastp_json")
         );
     }
@@ -1273,9 +1246,33 @@ mod tests {
         std::fs::write(
             &report_path,
             serde_json::json!({
+                "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
+                "stage": "fastq.trim_polyg_tails",
+                "stage_id": "fastq.trim_polyg_tails",
+                "tool_id": "fastp",
+                "paired_mode": "single_end",
                 "trim_polyg": true,
                 "min_polyg_run": 10_u64,
-                "raw_report_format": "fastp_json",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq.gz",
+                "output_r2": null,
+                "reads_in": 1_u64,
+                "reads_out": 1_u64,
+                "bases_in": 8_u64,
+                "bases_out": 4_u64,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 30.0,
+                "mean_q_after": 31.0,
+                "bases_trimmed_polyg": 4_u64,
+                "polyx_bank_id": "polyx",
+                "polyx_bank_hash": "sha256:polyx",
+                "polyx_preset": "illumina_twocolor",
+                "runtime_s": 1.0,
+                "memory_mb": 16.0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": "fastp_json",
                 "backend_metrics": {
                     "schema_version": "bijux.fastp.metrics.v1",
                     "passed_filter_reads": 960_u64,
@@ -1331,8 +1328,13 @@ mod tests {
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["raw_report_format"],
+                ["raw_backend_report_format"],
             serde_json::json!("fastp_json")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["polyx_preset"],
+            serde_json::json!("illumina_twocolor")
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
@@ -1358,9 +1360,33 @@ mod tests {
         std::fs::write(
             &report_path,
             serde_json::json!({
+                "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
+                "stage": "fastq.trim_polyg_tails",
+                "stage_id": "fastq.trim_polyg_tails",
+                "tool_id": "bbduk",
+                "paired_mode": "single_end",
                 "trim_polyg": true,
                 "min_polyg_run": 10_u64,
-                "raw_report_format": "bbduk_stats",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq.gz",
+                "output_r2": null,
+                "reads_in": 1_u64,
+                "reads_out": 1_u64,
+                "bases_in": 8_u64,
+                "bases_out": 4_u64,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 30.0,
+                "mean_q_after": 30.5,
+                "bases_trimmed_polyg": 4_u64,
+                "polyx_bank_id": null,
+                "polyx_bank_hash": null,
+                "polyx_preset": null,
+                "runtime_s": 1.0,
+                "memory_mb": 16.0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": "bbduk_stats",
                 "backend_metrics": {
                     "schema_version": "bijux.bbduk.trim_polyg.metrics.v1",
                     "reads_removed": 137_u64
@@ -1404,7 +1430,7 @@ mod tests {
         assert!(output.warnings.is_empty());
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["raw_report_format"],
+                ["raw_backend_report_format"],
             serde_json::json!("bbduk_stats")
         );
         assert_eq!(
@@ -1502,43 +1528,27 @@ mod tests {
             serde_json::json!("ObserverSpecialized")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["correction_engine"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["correction_engine"],
             serde_json::json!("rcorrector")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["quality_encoding"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["quality_encoding"],
             serde_json::json!("phred33")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["kmer_size"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["kmer_size"],
             serde_json::json!(31_u64)
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["trusted_kmer_artifact"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["trusted_kmer_artifact"],
             serde_json::json!("trusted.kmers")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["correction_effect"]["outputs_changed"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["correction_effect"]["outputs_changed"],
             serde_json::json!(true)
         );
     }
@@ -1652,11 +1662,8 @@ mod tests {
             serde_json::json!(2)
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["lineage_hash"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["lineage_hash"],
             serde_json::json!("fastq.trim_reads.fastp=report_json")
         );
     }
