@@ -10,6 +10,8 @@ pub struct ReferenceIndexEffectiveParams {
     pub threads: u32,
     pub index_format: String,
     pub output_artifact: String,
+    pub report_artifact: String,
+    pub index_prefix: Option<String>,
 }
 
 impl ReferenceIndexEffectiveParams {
@@ -28,6 +30,9 @@ impl ReferenceIndexEffectiveParams {
         if self.output_artifact.trim().is_empty() {
             missing.push("output_artifact");
         }
+        if self.report_artifact.trim().is_empty() {
+            missing.push("report_artifact");
+        }
         missing
     }
 
@@ -38,6 +43,8 @@ impl ReferenceIndexEffectiveParams {
             "threads": self.threads,
             "index_format": self.index_format,
             "output_artifact": self.output_artifact,
+            "report_artifact": self.report_artifact,
+            "index_prefix": self.index_prefix,
         })
     }
 }

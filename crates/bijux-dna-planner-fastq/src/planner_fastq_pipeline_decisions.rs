@@ -73,12 +73,24 @@ pub struct FastqStageToolsetBinding {
 #[derive(Debug, Clone)]
 pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
+    IndexReference(IndexReferenceStageParams),
     InferAsvs(InferAsvsStageParams),
     CorrectErrors(CorrectErrorsStageParams),
     TrimTerminalDamage(TrimTerminalDamageStageParams),
     DepleteRrna(DepleteRrnaStageParams),
     DepleteHost(DepleteHostStageParams),
     DepleteReferenceContaminants(DepleteReferenceContaminantsStageParams),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IndexReferenceStageParams {
+    pub threads: Option<u32>,
+}
+
+impl Default for IndexReferenceStageParams {
+    fn default() -> Self {
+        Self { threads: None }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
