@@ -20,6 +20,9 @@ outputs:
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
+  - name: "raw_backend_report_json"
+    data_type: "json"
+    cardinality: "One"
 parameters:
   - name: "damage_mode"
     param_type: "string"
@@ -70,6 +73,7 @@ invariants:
 allowed_missingness:
   - "reads_r2"
   - "trimmed_reads_r2"
+  - "raw_backend_report_json"
 compatible_tools:
   - cutadapt
   - seqkit

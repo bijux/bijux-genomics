@@ -49,3 +49,22 @@ fn governed_trim_wrappers_publish_optional_mate_outputs() -> Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn cutadapt_terminal_damage_contract_preserves_raw_backend_report() -> Result<()> {
+    let manifest = tool_manifest("cutadapt")?;
+    let stage_outputs = manifest
+        .get("stage_contracts")
+        .and_then(|value| value.get("fastq.trim_terminal_damage"))
+        .and_then(|value| value.get("expected_artifacts"))
+        .and_then(serde_json::Value::as_array)
+        .context("cutadapt trim_terminal_damage expected_artifacts")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert!(
+        stage_outputs.contains(&"raw_backend_report_json"),
+        "cutadapt trim_terminal_damage contract must preserve the backend-native JSON path explicitly"
+    );
+    Ok(())
+}
