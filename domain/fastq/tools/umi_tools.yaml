@@ -67,7 +67,7 @@ stage_contracts:
       - "umi_reads_r1"
       - "umi_reads_r2"
       - "report_json"
-    notes: "UMI extraction emits governed UMI-tagged read artifacts together with the normalized stage report."
+    notes: "UMI extraction emits governed UMI-tagged read artifacts, a canonical UMI report, and preserves the native umi_tools extraction log for downstream comparison."
 expected_artifacts: ["umi_reads_r1", "umi_reads_r2", "report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
