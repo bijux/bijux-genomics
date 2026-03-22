@@ -610,48 +610,81 @@ pub fn stage_metrics_for_plan(
             })
         }
         id_catalog::FASTQ_DETECT_ADAPTERS => {
-            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
-            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-            let out_dir = path_from_params(&plan.params, "out_dir")
-                .unwrap_or_else(|| inputs.first().cloned().unwrap_or_default());
-            let metrics = fastqc_metrics_v2_from_dir(&out_dir).or_else(|| {
-                let subdir = out_dir.join("fastqc");
-                fastqc_metrics_v2_from_dir(&subdir)
-            });
-            let adapter_content_max = metrics
-                .as_ref()
-                .and_then(|m| m.adapter_content.as_ref().map(|a| a.max_percent));
-            let adapter_content_mean = metrics
-                .as_ref()
-                .and_then(|m| m.adapter_content.as_ref().map(|a| a.mean_percent));
-            let duplication_rate = metrics
-                .as_ref()
-                .and_then(|m| m.duplication.as_ref().map(|d| d.duplication_rate));
-            let n_rate = metrics
-                .as_ref()
-                .and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0));
-            let kmer_warning_count = metrics
-                .as_ref()
-                .and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count));
-            let overrepresented_sequence_count = metrics
-                .as_ref()
-                .and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count));
-            serde_json::to_value(FastqDetectAdaptersMetricsV1 {
-                reads_in: input.reads,
-                reads_out: input.reads,
-                bases_in: input.bases,
-                bases_out: input.bases,
-                pairs_in,
-                pairs_out,
-                mean_q: input.mean_q,
-                adapter_content_max,
-                adapter_content_mean,
-                duplication_rate,
-                n_rate,
-                kmer_warning_count,
-                overrepresented_sequence_count,
-            })?
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("adapter_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_detect_adapters_report(&raw).ok());
+            if let Some(report) = governed_report {
+                serde_json::to_value(FastqDetectAdaptersMetricsV1 {
+                    reads_in: report.reads_in,
+                    reads_out: report.reads_out,
+                    bases_in: report.bases_in,
+                    bases_out: report.bases_out,
+                    pairs_in: report.pairs_in,
+                    pairs_out: report.pairs_out,
+                    mean_q: report.mean_q,
+                    adapter_content_max: report.adapter_content_max,
+                    adapter_content_mean: report.adapter_content_mean,
+                    duplication_rate: report.duplication_rate,
+                    n_rate: report.n_rate,
+                    kmer_warning_count: report.kmer_warning_count,
+                    overrepresented_sequence_count: report.overrepresented_sequence_count,
+                })?
+            } else {
+                let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+                let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+                let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+                let out_dir = path_from_params(&plan.params, "out_dir")
+                    .unwrap_or_else(|| inputs.first().cloned().unwrap_or_default());
+                let metrics = fastqc_metrics_v2_from_dir(&out_dir).or_else(|| {
+                    let subdir = out_dir.join("fastqc");
+                    fastqc_metrics_v2_from_dir(&subdir)
+                });
+                let adapter_content_max = metrics
+                    .as_ref()
+                    .and_then(|m| m.adapter_content.as_ref().map(|a| a.max_percent));
+                let adapter_content_mean = metrics
+                    .as_ref()
+                    .and_then(|m| m.adapter_content.as_ref().map(|a| a.mean_percent));
+                let duplication_rate = metrics
+                    .as_ref()
+                    .and_then(|m| m.duplication.as_ref().map(|d| d.duplication_rate));
+                let n_rate = metrics
+                    .as_ref()
+                    .and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0));
+                let kmer_warning_count = metrics
+                    .as_ref()
+                    .and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count));
+                let overrepresented_sequence_count = metrics
+                    .as_ref()
+                    .and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count));
+                serde_json::to_value(FastqDetectAdaptersMetricsV1 {
+                    reads_in: input.reads,
+                    reads_out: input.reads,
+                    bases_in: input.bases,
+                    bases_out: input.bases,
+                    pairs_in,
+                    pairs_out,
+                    mean_q: input.mean_q,
+                    adapter_content_max,
+                    adapter_content_mean,
+                    duplication_rate,
+                    n_rate,
+                    kmer_warning_count,
+                    overrepresented_sequence_count,
+                })?
+            }
         }
         id_catalog::FASTQ_CORRECT => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
