@@ -116,6 +116,14 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "read_length_tool_normalization_json".to_string(),
         ]
     );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&read_length_stage),
+        vec![
+            "report_json".to_string(),
+            "length_distribution_tsv".to_string(),
+            "length_distribution_json".to_string(),
+        ]
+    );
 
     let correction_stage = StageId::from_static("fastq.correct_errors");
     assert_eq!(
