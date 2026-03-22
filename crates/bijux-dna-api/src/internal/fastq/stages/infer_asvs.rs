@@ -147,9 +147,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     match execution_support_for_stage(&bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS) {
         Some(support) if support.execution_status == ExecutionStatus::Closed => {}
         _ => {
-            return Err(anyhow!(
-                "{STAGE_ID} is declared-only and has no admitted governed runtime backend"
-            ));
+            return Err(anyhow!("{STAGE_ID} has no admitted governed runtime backend"));
         }
     }
     let registry =
