@@ -18,6 +18,7 @@ pub mod id_catalog;
 mod integration_matrix;
 pub mod invariants;
 pub mod metrics;
+mod normalize_primers_artifacts;
 mod observer_contract;
 pub mod params;
 pub mod pipeline_contract;
@@ -72,6 +73,9 @@ pub use comparison_contract::{
 pub use profile_reads_artifacts::{
     ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1, ProfileReadsReportV1,
     PROFILE_READS_REPORT_SCHEMA_VERSION,
+};
+pub use normalize_primers_artifacts::{
+    NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
 };
 pub use profile_overrepresented_artifacts::{
     OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
