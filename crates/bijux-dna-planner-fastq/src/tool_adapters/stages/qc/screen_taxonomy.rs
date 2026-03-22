@@ -231,11 +231,9 @@ mod tests {
     fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id),
-            tool_version: ToolVersion::new("1.0.0"),
+            tool_version: ToolVersion::from("1.0.0"),
             image: ContainerImageRefV1 {
-                registry: Some("ghcr.io".to_string()),
-                repository: format!("bijux/{tool_id}"),
-                tag: "latest".to_string(),
+                image: format!("ghcr.io/bijux/{tool_id}:latest"),
                 digest: Some("sha256:test".to_string()),
             },
             command: CommandSpecV1 {
