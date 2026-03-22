@@ -1,18 +1,35 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
     merge::{MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION},
     PairedMode,
 };
-use bijux_dna_domain_fastq::STAGE_MERGE_PAIRS;
+use bijux_dna_domain_fastq::{MERGE_PAIRS_REPORT_SCHEMA_VERSION, STAGE_MERGE_PAIRS};
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_MERGE_PAIRS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+#[derive(Debug, Clone)]
+pub struct MergePlanOptions {
+    pub merge_overlap: Option<u32>,
+    pub min_length: Option<u32>,
+    pub unmerged_read_policy: UnmergedReadPolicy,
+}
+
+impl Default for MergePlanOptions {
+    fn default() -> Self {
+        Self {
+            merge_overlap: None,
+            min_length: None,
+            unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
+        }
+    }
+}
 
 pub fn normalize_merge_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
@@ -29,22 +46,27 @@ pub fn plan_merge(
     r2: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_merge_with_options(tool, r1, r2, out_dir, &MergePlanOptions::default())
+}
+
+pub fn plan_merge_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: &Path,
+    out_dir: &Path,
+    options: &MergePlanOptions,
+) -> Result<StagePlanV1> {
+    validate_merge_options(&tool.tool_id.0, options)?;
     let outputs = merge_outputs(&tool.tool_id.0, out_dir)?;
     let merge_engine = merge_engine(&tool.tool_id.0)?;
     let effective_params = MergeEffectiveParams {
         schema_version: MERGE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
         threads: tool.resources.threads,
-        merge_overlap: None,
-        min_len: None,
+        merge_overlap: options.merge_overlap,
+        min_len: options.min_length,
         merge_engine,
-        unmerged_read_policy: if outputs.unmerged_reads_r1.is_some()
-            && outputs.unmerged_reads_r2.is_some()
-        {
-            UnmergedReadPolicy::EmitUnmergedPairs
-        } else {
-            UnmergedReadPolicy::OmitUnmergedPairs
-        },
+        unmerged_read_policy: options.unmerged_read_policy.clone(),
     };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -56,8 +78,16 @@ pub fn plan_merge(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: merge_command_template(&tool.tool_id.0, r1, r2, out_dir, &outputs, tool)?,
+        command: CommandSpecV1 {
+            template: merge_command_template(
+                &tool.tool_id.0,
+                r1,
+                r2,
+                out_dir,
+                &outputs,
+                tool,
+                &effective_params,
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -73,7 +103,7 @@ pub fn plan_merge(
                     ArtifactRole::Reads,
                 ),
             ],
-            outputs: merge_artifacts(&outputs),
+            outputs: merge_artifacts(&outputs, &effective_params.unmerged_read_policy),
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -81,8 +111,19 @@ pub fn plan_merge(
             "r1": r1,
             "r2": r2,
             "merged_reads": outputs.merged_reads,
-            "unmerged_reads_r1": outputs.unmerged_reads_r1,
-            "unmerged_reads_r2": outputs.unmerged_reads_r2,
+            "unmerged_reads_r1": if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+                outputs.unmerged_reads_r1.clone()
+            } else {
+                None
+            },
+            "unmerged_reads_r2": if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+                outputs.unmerged_reads_r2.clone()
+            } else {
+                None
+            },
+            "merge_overlap": effective_params.merge_overlap,
+            "min_length": effective_params.min_len,
+            "unmerged_read_policy": effective_params.unmerged_read_policy,
             "report_json": outputs.report_json
         }),
         effective_params: serde_json::to_value(&effective_params)
@@ -94,10 +135,10 @@ pub fn plan_merge(
 
 #[derive(Debug)]
 struct MergeOutputs {
-    merged_reads: std::path::PathBuf,
-    unmerged_reads_r1: Option<std::path::PathBuf>,
-    unmerged_reads_r2: Option<std::path::PathBuf>,
-    report_json: std::path::PathBuf,
+    merged_reads: PathBuf,
+    unmerged_reads_r1: Option<PathBuf>,
+    unmerged_reads_r2: Option<PathBuf>,
+    report_json: PathBuf,
 }
 
 fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
@@ -153,25 +194,30 @@ fn merge_engine(tool: &str) -> Result<MergeEngine> {
     Ok(engine)
 }
 
-fn merge_artifacts(outputs: &MergeOutputs) -> Vec<ArtifactRef> {
+fn merge_artifacts(
+    outputs: &MergeOutputs,
+    unmerged_policy: &UnmergedReadPolicy,
+) -> Vec<ArtifactRef> {
     let mut artifacts = vec![ArtifactRef::required(
         ArtifactId::from_static("merged_reads"),
         outputs.merged_reads.clone(),
         ArtifactRole::Reads,
     )];
-    if let Some(unmerged_reads_r1) = &outputs.unmerged_reads_r1 {
-        artifacts.push(ArtifactRef::optional(
-            ArtifactId::from_static("unmerged_reads_r1"),
-            unmerged_reads_r1.clone(),
-            ArtifactRole::Reads,
-        ));
-    }
-    if let Some(unmerged_reads_r2) = &outputs.unmerged_reads_r2 {
-        artifacts.push(ArtifactRef::optional(
-            ArtifactId::from_static("unmerged_reads_r2"),
-            unmerged_reads_r2.clone(),
-            ArtifactRole::Reads,
-        ));
+    if *unmerged_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+        if let Some(unmerged_reads_r1) = &outputs.unmerged_reads_r1 {
+            artifacts.push(ArtifactRef::optional(
+                ArtifactId::from_static("unmerged_reads_r1"),
+                unmerged_reads_r1.clone(),
+                ArtifactRole::Reads,
+            ));
+        }
+        if let Some(unmerged_reads_r2) = &outputs.unmerged_reads_r2 {
+            artifacts.push(ArtifactRef::optional(
+                ArtifactId::from_static("unmerged_reads_r2"),
+                unmerged_reads_r2.clone(),
+                ArtifactRole::Reads,
+            ));
+        }
     }
     artifacts.push(ArtifactRef::required(
         ArtifactId::from_static("report_json"),
@@ -181,6 +227,27 @@ fn merge_artifacts(outputs: &MergeOutputs) -> Vec<ArtifactRef> {
     artifacts
 }
 
+fn validate_merge_options(tool: &str, options: &MergePlanOptions) -> Result<()> {
+    if options.min_length.is_some() && !matches!(tool, "pear" | "vsearch") {
+        return Err(anyhow!(
+            "merge planning does not yet map min_length for {tool}"
+        ));
+    }
+    if options.merge_overlap.is_some() && matches!(tool, "leehom") {
+        return Err(anyhow!(
+            "merge planning does not yet map merge_overlap for {tool}"
+        ));
+    }
+    if options.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs
+        && matches!(tool, "leehom")
+    {
+        return Err(anyhow!(
+            "merge planning cannot emit governed unmerged pair artifacts for {tool}"
+        ));
+    }
+    Ok(())
+}
+
 fn merge_command_template(
     tool: &str,
     r1: &Path,
@@ -188,11 +255,83 @@ fn merge_command_template(
     out_dir: &Path,
     outputs: &MergeOutputs,
     tool_spec: &ToolExecutionSpecV1,
+    effective_params: &MergeEffectiveParams,
 ) -> Result<Vec<String>> {
+    let base_command =
+        base_merge_command(tool, r1, r2, out_dir, outputs, tool_spec, effective_params)?;
+    let script = format!(
+        "set -euo pipefail\ncount_fastq_reads() {{\n  local path=\"$1\"\n  if [ ! -f \"$path\" ]; then printf '0'; return; fi\n  case \"$path\" in\n    *.gz) gzip -dc \"$path\" ;;\n    *) cat \"$path\" ;;\n  esac | awk 'END {{ printf \"%d\", int(NR/4) }}'\n}}\n{base_command}\nreads_r1=$(count_fastq_reads {input_r1})\nreads_r2=$(count_fastq_reads {input_r2})\nreads_merged=$(count_fastq_reads {merged_reads})\npairs_in=$reads_r1\nif [ \"$reads_r2\" -lt \"$pairs_in\" ]; then pairs_in=$reads_r2; fi\nreads_unmerged=$(( pairs_in - reads_merged ))\nif [ \"$reads_unmerged\" -lt 0 ]; then reads_unmerged=0; fi\nif [ {emit_unmerged} = 1 ]; then\n  if [ -n {unmerged_r1_shell} ] && [ -n {unmerged_r2_shell} ]; then\n    reads_unmerged_r1=$(count_fastq_reads {unmerged_r1_shell})\n    reads_unmerged_r2=$(count_fastq_reads {unmerged_r2_shell})\n    reads_unmerged=$reads_unmerged_r1\n    if [ \"$reads_unmerged_r2\" -lt \"$reads_unmerged\" ]; then reads_unmerged=$reads_unmerged_r2; fi\n  fi\nelse\n  rm -f {cleanup_unmerged_r1} {cleanup_unmerged_r2}\nfi\nmerge_rate=$(awk -v merged=\"$reads_merged\" -v pairs=\"$pairs_in\" 'BEGIN {{ if (pairs > 0) printf \"%.6f\", merged / pairs; else printf \"0.000000\" }}')\ncat > {report_json_shell} <<EOF\n{{\n  \"schema_version\": {schema_version},\n  \"stage\": {stage_id},\n  \"stage_id\": {stage_id},\n  \"tool_id\": {tool_id},\n  \"paired_mode\": {paired_mode},\n  \"merge_engine\": {merge_engine},\n  \"threads\": {threads},\n  \"merge_overlap\": {merge_overlap},\n  \"min_len\": {min_len},\n  \"unmerged_read_policy\": {unmerged_policy},\n  \"input_r1\": {input_r1_json},\n  \"input_r2\": {input_r2_json},\n  \"merged_reads\": {merged_json},\n  \"unmerged_reads_r1\": {unmerged_r1_json},\n  \"unmerged_reads_r2\": {unmerged_r2_json},\n  \"reads_r1\": $reads_r1,\n  \"reads_r2\": $reads_r2,\n  \"reads_merged\": $reads_merged,\n  \"reads_unmerged\": $reads_unmerged,\n  \"merge_rate\": $merge_rate,\n  \"runtime_s\": null,\n  \"memory_mb\": null,\n  \"raw_backend_report\": null,\n  \"raw_backend_report_format\": null\n}}\nEOF\n",
+        base_command = base_command,
+        input_r1 = shell_quote_path(r1),
+        input_r2 = shell_quote_path(r2),
+        merged_reads = shell_quote_path(&outputs.merged_reads),
+        emit_unmerged = if effective_params.unmerged_read_policy
+            == UnmergedReadPolicy::EmitUnmergedPairs
+        {
+            1
+        } else {
+            0
+        },
+        unmerged_r1_shell = outputs
+            .unmerged_reads_r1
+            .as_ref()
+            .map_or_else(|| "''".to_string(), |path| shell_quote_path(path)),
+        unmerged_r2_shell = outputs
+            .unmerged_reads_r2
+            .as_ref()
+            .map_or_else(|| "''".to_string(), |path| shell_quote_path(path)),
+        cleanup_unmerged_r1 = outputs
+            .unmerged_reads_r1
+            .as_ref()
+            .map_or_else(|| "''".to_string(), |path| shell_quote_path(path)),
+        cleanup_unmerged_r2 = outputs
+            .unmerged_reads_r2
+            .as_ref()
+            .map_or_else(|| "''".to_string(), |path| shell_quote_path(path)),
+        report_json_shell = shell_quote_path(&outputs.report_json),
+        schema_version = json_literal(MERGE_PAIRS_REPORT_SCHEMA_VERSION)?,
+        stage_id = json_literal(STAGE_ID.as_str())?,
+        tool_id = json_literal(tool)?,
+        paired_mode = serde_json::to_string(&effective_params.paired_mode)?,
+        merge_engine = serde_json::to_string(&effective_params.merge_engine)?,
+        threads = effective_params.threads,
+        merge_overlap = option_json_u32(effective_params.merge_overlap),
+        min_len = option_json_u32(effective_params.min_len),
+        unmerged_policy = serde_json::to_string(&effective_params.unmerged_read_policy)?,
+        input_r1_json = json_literal(&r1.display().to_string())?,
+        input_r2_json = json_literal(&r2.display().to_string())?,
+        merged_json = json_literal(&outputs.merged_reads.display().to_string())?,
+        unmerged_r1_json = option_json_path_literal(if effective_params.unmerged_read_policy
+            == UnmergedReadPolicy::EmitUnmergedPairs
+        {
+            outputs.unmerged_reads_r1.as_ref()
+        } else {
+            None
+        })?,
+        unmerged_r2_json = option_json_path_literal(if effective_params.unmerged_read_policy
+            == UnmergedReadPolicy::EmitUnmergedPairs
+        {
+            outputs.unmerged_reads_r2.as_ref()
+        } else {
+            None
+        })?,
+    );
+    Ok(vec!["bash".to_string(), "-lc".to_string(), script])
+}
+
+fn base_merge_command(
+    tool: &str,
+    r1: &Path,
+    r2: &Path,
+    out_dir: &Path,
+    outputs: &MergeOutputs,
+    tool_spec: &ToolExecutionSpecV1,
+    effective_params: &MergeEffectiveParams,
+) -> Result<String> {
     let command = match tool {
         "pear" => {
             let prefix = out_dir.join("pear");
-            vec![
+            let mut command = vec![
                 "pear".to_string(),
                 "-f".to_string(),
                 r1.display().to_string(),
@@ -200,66 +339,129 @@ fn merge_command_template(
                 r2.display().to_string(),
                 "-o".to_string(),
                 prefix.display().to_string(),
-            ]
+            ];
+            if let Some(merge_overlap) = effective_params.merge_overlap {
+                command.extend(["-v".to_string(), merge_overlap.to_string()]);
+            }
+            if let Some(min_len) = effective_params.min_len {
+                command.extend(["-n".to_string(), min_len.to_string()]);
+            }
+            command
         }
-        "vsearch" => vec![
-            "vsearch".to_string(),
-            "--fastq_mergepairs".to_string(),
-            r1.display().to_string(),
-            "--reverse".to_string(),
-            r2.display().to_string(),
-            "--fastqout".to_string(),
-            outputs.merged_reads.display().to_string(),
-            "--fastqout_notmerged_fwd".to_string(),
-            outputs
-                .unmerged_reads_r1
-                .as_ref()
-                .ok_or_else(|| anyhow!("vsearch merge requires unmerged_reads_r1 output"))?
-                .display()
-                .to_string(),
-            "--fastqout_notmerged_rev".to_string(),
-            outputs
-                .unmerged_reads_r2
-                .as_ref()
-                .ok_or_else(|| anyhow!("vsearch merge requires unmerged_reads_r2 output"))?
-                .display()
-                .to_string(),
-        ],
-        "bbmerge" => vec![
-            "bbmerge".to_string(),
-            format!("in1={}", r1.display()),
-            format!("in2={}", r2.display()),
-            format!("out={}", outputs.merged_reads.display()),
-            format!(
-                "outu1={}",
-                outputs
-                    .unmerged_reads_r1
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("bbmerge merge requires unmerged_reads_r1 output"))?
-                    .display()
-            ),
-            format!(
-                "outu2={}",
-                outputs
-                    .unmerged_reads_r2
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("bbmerge merge requires unmerged_reads_r2 output"))?
-                    .display()
-            ),
-        ],
-        "flash2" => vec![
-            "flash2".to_string(),
-            "-o".to_string(),
-            "flash2".to_string(),
-            "-d".to_string(),
-            out_dir.display().to_string(),
-            r1.display().to_string(),
-            r2.display().to_string(),
-        ],
+        "vsearch" => {
+            let mut command = vec![
+                "vsearch".to_string(),
+                "--fastq_mergepairs".to_string(),
+                r1.display().to_string(),
+                "--reverse".to_string(),
+                r2.display().to_string(),
+                "--fastqout".to_string(),
+                outputs.merged_reads.display().to_string(),
+            ];
+            if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+                command.extend([
+                    "--fastqout_notmerged_fwd".to_string(),
+                    outputs
+                        .unmerged_reads_r1
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("vsearch merge requires unmerged_reads_r1 output"))?
+                        .display()
+                        .to_string(),
+                    "--fastqout_notmerged_rev".to_string(),
+                    outputs
+                        .unmerged_reads_r2
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("vsearch merge requires unmerged_reads_r2 output"))?
+                        .display()
+                        .to_string(),
+                ]);
+            }
+            if let Some(merge_overlap) = effective_params.merge_overlap {
+                command.extend(["--fastq_minovlen".to_string(), merge_overlap.to_string()]);
+            }
+            if let Some(min_len) = effective_params.min_len {
+                command.extend(["--fastq_minmergelen".to_string(), min_len.to_string()]);
+            }
+            command
+        }
+        "bbmerge" => {
+            let mut command = vec![
+                "bbmerge".to_string(),
+                format!("in1={}", r1.display()),
+                format!("in2={}", r2.display()),
+                format!("out={}", outputs.merged_reads.display()),
+            ];
+            if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+                command.push(format!(
+                    "outu1={}",
+                    outputs
+                        .unmerged_reads_r1
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("bbmerge merge requires unmerged_reads_r1 output"))?
+                        .display()
+                ));
+                command.push(format!(
+                    "outu2={}",
+                    outputs
+                        .unmerged_reads_r2
+                        .as_ref()
+                        .ok_or_else(|| anyhow!("bbmerge merge requires unmerged_reads_r2 output"))?
+                        .display()
+                ));
+            }
+            if let Some(merge_overlap) = effective_params.merge_overlap {
+                command.push(format!("minoverlap={merge_overlap}"));
+            }
+            command
+        }
+        "flash2" => {
+            let mut command = vec![
+                "flash2".to_string(),
+                "-o".to_string(),
+                "flash2".to_string(),
+                "-d".to_string(),
+                out_dir.display().to_string(),
+                r1.display().to_string(),
+                r2.display().to_string(),
+            ];
+            if let Some(merge_overlap) = effective_params.merge_overlap {
+                command.extend(["-m".to_string(), merge_overlap.to_string()]);
+            }
+            command
+        }
         "leehom" => tool_spec.command.template.to_vec(),
         _ => return Err(anyhow!("unsupported merge tool")),
     };
-    Ok(command)
+    Ok(command
+        .into_iter()
+        .map(|part| shell_quote_str(&part))
+        .collect::<Vec<_>>()
+        .join(" "))
+}
+
+fn option_json_u32(value: Option<u32>) -> String {
+    value
+        .map(|value| value.to_string())
+        .unwrap_or_else(|| "null".to_string())
+}
+
+fn option_json_path_literal(path: Option<&PathBuf>) -> Result<String> {
+    match path {
+        Some(path) => json_literal(&path.display().to_string()),
+        None => Ok("null".to_string()),
+    }
+}
+
+fn json_literal(value: &str) -> Result<String> {
+    serde_json::to_string(value).map_err(|error| anyhow!("serialize merge json literal: {error}"))
+}
+
+fn shell_quote_path(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
 fn normalize_tools_with_allowlist(
