@@ -7,6 +7,7 @@ use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_filter_v2, insert_fas
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqFilterMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_domain_fastq::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_filter_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::filter_reads::{plan_filter, FilterPlanOptions};
@@ -25,6 +26,17 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_FILTER_READS,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+
+fn apply_thread_override(
+    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
+    threads: Option<u32>,
+) -> bijux_dna_core::prelude::ToolExecutionSpecV1 {
+    let mut spec = tool_spec.clone();
+    if let Some(threads) = threads {
+        spec.resources.threads = threads.max(1);
+    }
+    spec
+}
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -102,13 +114,13 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     let jobs = bench_jobs(args.jobs);
     let filter_options = FilterPlanOptions {
         max_n: args.max_n,
-        max_n_fraction: None,
-        max_n_count: None,
+        max_n_fraction: args.max_n_fraction,
+        max_n_count: args.max_n_count,
         low_complexity_threshold: args.low_complexity_threshold,
-        entropy_threshold: None,
+        entropy_threshold: args.entropy_threshold,
         kmer_ref: args.kmer_ref.clone(),
         redundant_filters: Vec::new(),
-        polyx_policy: None,
+        polyx_policy: args.polyx_policy.clone(),
     };
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqFilterMetrics>>::new();
@@ -122,6 +134,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             catalog,
             platform,
         )?;
+        let tool_spec = apply_thread_override(&tool_spec, args.threads);
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_filter(
             &tool_spec,
@@ -242,50 +255,109 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let pairs_out = output_stats_r2
         .as_ref()
         .map(|stats| output_stats_r1.reads.min(stats.reads));
-    let metrics = FastqFilterMetrics {
+    let out_dir = output_reads
+        .parent()
+        .ok_or_else(|| anyhow!("filter output has no parent"))?;
+    let report_path = out_dir.join("filter_report.json");
+    let raw_backend_report = params
+        .get("raw_backend_report")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+    let raw_backend_report_format = params
+        .get("raw_backend_report_format")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+    let backend_metrics = parse_filter_backend_metrics(
+        raw_backend_report.as_deref().map(std::path::Path::new),
+        raw_backend_report_format.as_deref(),
+    );
+    let removal_counts =
+        derive_filter_removal_counts(backend_metrics.as_ref(), args_kmer_filter_requested(params));
+    let report = FilterReadsReportV1 {
+        schema_version: FILTER_READS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_FILTER_READS.as_str().to_string(),
+        stage_id: STAGE_FILTER_READS.as_str().to_string(),
+        tool_id: tool.to_string(),
+        paired_mode: if output_reads_r2.is_some() {
+            bijux_dna_domain_fastq::params::PairedMode::PairedEnd
+        } else {
+            bijux_dna_domain_fastq::params::PairedMode::SingleEnd
+        },
+        threads: tool_spec.resources.threads,
+        input_r1: params
+            .get("input_r1")
+            .and_then(serde_json::Value::as_str)
+            .map(ToString::to_string)
+            .unwrap_or_else(|| bench_inputs.r1.display().to_string()),
+        input_r2: params
+            .get("input_r2")
+            .and_then(serde_json::Value::as_str)
+            .map(ToString::to_string),
+        output_r1: output_reads.display().to_string(),
+        output_r2: output_reads_r2.map(|path| path.display().to_string()),
+        report_json: report_path.display().to_string(),
+        max_n: params.get("max_n").and_then(serde_json::Value::as_u64).and_then(|v| u32::try_from(v).ok()),
+        max_n_fraction: params.get("max_n_fraction").and_then(serde_json::Value::as_f64),
+        max_n_count: params.get("max_n_count").and_then(serde_json::Value::as_u64).and_then(|v| u32::try_from(v).ok()),
+        low_complexity_threshold: params
+            .get("low_complexity_threshold")
+            .and_then(serde_json::Value::as_f64),
+        entropy_threshold: params
+            .get("entropy_threshold")
+            .and_then(serde_json::Value::as_f64),
+        n_policy: Some("drop".to_string()),
+        polyx_policy: params
+            .get("polyx_policy")
+            .and_then(serde_json::Value::as_str)
+            .map(ToString::to_string),
+        contaminant_db: params
+            .get("kmer_ref")
+            .and_then(serde_json::Value::as_str)
+            .map(ToString::to_string),
         reads_in,
         reads_out,
         reads_dropped,
-        reads_removed_by_n: 0,
-        reads_removed_by_entropy: 0,
-        reads_removed_low_complexity: 0,
-        reads_removed_by_kmer: 0,
-        reads_removed_contaminant_kmer: 0,
-        reads_removed_by_length: 0,
+        reads_removed_by_n: removal_counts.reads_removed_by_n,
+        reads_removed_by_entropy: removal_counts.reads_removed_by_entropy,
+        reads_removed_low_complexity: removal_counts.reads_removed_low_complexity,
+        reads_removed_by_kmer: removal_counts.reads_removed_by_kmer,
+        reads_removed_contaminant_kmer: removal_counts.reads_removed_contaminant_kmer,
+        reads_removed_by_length: removal_counts.reads_removed_by_length,
         bases_in,
         bases_out,
         pairs_in,
         pairs_out,
         mean_q_before: bench_inputs.input_stats.mean_q,
         mean_q_after: output_stats_r1.mean_q,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
+        exit_code: execution.exit_code,
+        raw_backend_report,
+        raw_backend_report_format,
+        backend_metrics,
+    };
+    let metrics = FastqFilterMetrics {
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        reads_dropped: report.reads_dropped,
+        reads_removed_by_n: report.reads_removed_by_n,
+        reads_removed_by_entropy: report.reads_removed_by_entropy,
+        reads_removed_low_complexity: report.reads_removed_low_complexity,
+        reads_removed_by_kmer: report.reads_removed_by_kmer,
+        reads_removed_contaminant_kmer: report.reads_removed_contaminant_kmer,
+        reads_removed_by_length: report.reads_removed_by_length,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        pairs_in: report.pairs_in,
+        pairs_out: report.pairs_out,
+        mean_q_before: report.mean_q_before,
+        mean_q_after: report.mean_q_after,
         delta_metrics: derive_trim_delta(&bench_inputs.input_stats, &output_stats_r1),
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.filter_reads.report.v2",
-        "stage_id": STAGE_FILTER_READS.as_str(),
-        "tool_id": tool,
-        "input_fastq": bench_inputs.r1,
-        "output_fastq": output_reads,
-        "input_fastq_r2": input_stats_r2.map(|_| serde_json::Value::String("paired".to_string())),
-        "output_fastq_r2": output_reads_r2,
-        "reads_in": metrics.reads_in,
-        "reads_out": metrics.reads_out,
-        "reads_dropped": metrics.reads_dropped,
-        "bases_in": metrics.bases_in,
-        "bases_out": metrics.bases_out,
-        "mean_q_before": metrics.mean_q_before,
-        "mean_q_after": metrics.mean_q_after,
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
-    });
-    let out_dir = output_reads
-        .parent()
-        .ok_or_else(|| anyhow!("filter output has no parent"))?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("filter_report.json"), &report)
+    bijux_dna_infra::atomic_write_json(&report_path, &report)
         .context("write filter report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
@@ -315,4 +387,116 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+struct FilterRemovalCounts {
+    reads_removed_by_n: u64,
+    reads_removed_by_entropy: u64,
+    reads_removed_low_complexity: u64,
+    reads_removed_by_kmer: u64,
+    reads_removed_contaminant_kmer: u64,
+    reads_removed_by_length: u64,
+}
+
+fn args_kmer_filter_requested(params: &serde_json::Value) -> bool {
+    params
+        .get("kmer_ref")
+        .and_then(serde_json::Value::as_str)
+        .is_some_and(|value| !value.is_empty())
+}
+
+fn parse_filter_backend_metrics(
+    raw_backend_report: Option<&std::path::Path>,
+    raw_backend_report_format: Option<&str>,
+) -> Option<serde_json::Value> {
+    match (raw_backend_report, raw_backend_report_format) {
+        (Some(path), Some("fastp_json")) => std::fs::read_to_string(path)
+            .ok()
+            .and_then(|raw| bijux_dna_stages_fastq::observer::parse_fastp_metrics(&raw).ok())
+            .and_then(|metrics| serde_json::to_value(metrics).ok()),
+        (Some(path), Some("bbduk_stats")) => std::fs::read_to_string(path)
+            .ok()
+            .and_then(|raw| bijux_dna_stages_fastq::observer::parse_bbduk_reads_removed(&raw).ok())
+            .map(|reads_removed| {
+                serde_json::json!({
+                    "schema_version": "bijux.bbduk.filter.metrics.v1",
+                    "reads_removed": reads_removed
+                })
+            }),
+        _ => None,
+    }
+}
+
+fn derive_filter_removal_counts(
+    backend_metrics: Option<&serde_json::Value>,
+    kmer_filter_requested: bool,
+) -> FilterRemovalCounts {
+    let mut counts = FilterRemovalCounts::default();
+    let Some(metrics) = backend_metrics.and_then(serde_json::Value::as_object) else {
+        return counts;
+    };
+    counts.reads_removed_by_n = metrics
+        .get("too_many_n_reads")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    counts.reads_removed_by_length = metrics
+        .get("too_short_reads")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    if kmer_filter_requested {
+        let removed = metrics
+            .get("reads_removed")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0);
+        counts.reads_removed_by_kmer = removed;
+        counts.reads_removed_contaminant_kmer = removed;
+    }
+    counts
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{derive_filter_removal_counts, parse_filter_backend_metrics};
+
+    #[test]
+    fn parse_filter_backend_metrics_reads_fastp_json() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("fastp.filter.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "filtering_result": {
+                    "passed_filter_reads": 95_u64,
+                    "low_quality_reads": 4_u64,
+                    "too_many_N_reads": 2_u64,
+                    "too_short_reads": 3_u64
+                }
+            })
+            .to_string(),
+        )
+        .expect("write fastp report");
+
+        let parsed =
+            parse_filter_backend_metrics(Some(&report_path), Some("fastp_json")).expect("metrics");
+        assert_eq!(parsed["passed_filter_reads"], serde_json::json!(95_u64));
+        assert_eq!(parsed["too_many_n_reads"], serde_json::json!(2_u64));
+        assert_eq!(parsed["too_short_reads"], serde_json::json!(3_u64));
+    }
+
+    #[test]
+    fn derive_filter_removal_counts_maps_backend_specific_fields() {
+        let counts = derive_filter_removal_counts(
+            Some(&serde_json::json!({
+                "too_many_n_reads": 2_u64,
+                "too_short_reads": 3_u64,
+                "reads_removed": 11_u64
+            })),
+            true,
+        );
+        assert_eq!(counts.reads_removed_by_n, 2);
+        assert_eq!(counts.reads_removed_by_length, 3);
+        assert_eq!(counts.reads_removed_by_kmer, 11);
+        assert_eq!(counts.reads_removed_contaminant_kmer, 11);
+    }
 }
