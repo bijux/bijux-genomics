@@ -12,6 +12,7 @@
 pub mod banks;
 pub mod bench_repository;
 mod comparison_contract;
+mod cluster_otus_artifacts;
 mod correct_errors_artifacts;
 mod deplete_host_artifacts;
 mod deplete_reference_contaminants_artifacts;
@@ -82,6 +83,7 @@ pub use comparison_contract::{
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
     StageComparisonContract,
 };
+pub use cluster_otus_artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use correct_errors_artifacts::{
     CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION,
 };

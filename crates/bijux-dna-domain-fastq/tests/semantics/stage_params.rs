@@ -274,12 +274,25 @@ fn chimera_params_roundtrip_with_sequence_artifact_contract() {
 #[test]
 fn otu_clustering_params_roundtrip_with_domain_default_threshold() {
     let params = OtuClusteringEffectiveParams {
+        schema_version: "bijux.params.edna.v1".to_string(),
         identity_threshold: DEFAULT_OTU_IDENTITY_THRESHOLD,
+        threads: 4,
         output_table_kind: "otu_abundance_table".to_string(),
+        report_artifact: "report_json".to_string(),
+        raw_backend_report_artifact: Some("otu_clusters_uc".to_string()),
+        raw_backend_report_format: Some("vsearch_uc".to_string()),
     };
     let decoded: OtuClusteringEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, "bijux.params.edna.v1");
     assert_eq!(decoded.identity_threshold, DEFAULT_OTU_IDENTITY_THRESHOLD,);
+    assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.output_table_kind, "otu_abundance_table");
+    assert_eq!(decoded.report_artifact, "report_json");
+    assert_eq!(
+        decoded.raw_backend_report_artifact.as_deref(),
+        Some("otu_clusters_uc")
+    );
+    assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("vsearch_uc"));
 }
 
 #[test]
