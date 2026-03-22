@@ -116,6 +116,13 @@ fn validate_metrics(reads_invalid: u64) -> FastqValidateMetricsV1 {
         reads_valid: 100 - reads_invalid,
         reads_invalid,
         mean_q: 30.0,
+        validated_inputs: None,
+        validated_pairs: None,
+        pair_sync_checked: None,
+        pair_sync_pass: None,
+        pair_count_match: None,
+        strict_pass: None,
+        failure_class: None,
     }
 }
 

@@ -206,6 +206,20 @@ pub struct FastqValidateMetrics {
     pub reads_valid: u64,
     pub reads_invalid: u64,
     pub mean_q: f64,
+    #[serde(default)]
+    pub validated_inputs: Option<u64>,
+    #[serde(default)]
+    pub validated_pairs: Option<u64>,
+    #[serde(default)]
+    pub pair_sync_checked: Option<bool>,
+    #[serde(default)]
+    pub pair_sync_pass: Option<bool>,
+    #[serde(default)]
+    pub pair_count_match: Option<bool>,
+    #[serde(default)]
+    pub strict_pass: Option<bool>,
+    #[serde(default)]
+    pub failure_class: Option<String>,
 }
 
 impl StageMetricSchema for FastqValidateMetrics {
@@ -221,6 +235,16 @@ impl StageMetricSchema for FastqValidateMetrics {
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
             return Err(BenchError::Validation(
                 "mean_q must be within [0, 45]".to_string(),
+            ));
+        }
+        if matches!(self.pair_sync_checked, Some(true)) && self.pair_sync_pass.is_none() {
+            return Err(BenchError::Validation(
+                "pair_sync_pass must be present when pair_sync_checked is true".to_string(),
+            ));
+        }
+        if matches!(self.pair_sync_checked, Some(false)) && self.pair_sync_pass.is_some() {
+            return Err(BenchError::Validation(
+                "pair_sync_pass must be absent when pair_sync_checked is false".to_string(),
             ));
         }
         Ok(())

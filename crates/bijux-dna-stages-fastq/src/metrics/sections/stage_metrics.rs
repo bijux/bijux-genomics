@@ -237,6 +237,15 @@ pub fn stage_metrics_for_plan(
                         reads_valid: reads_total.saturating_sub(reads_invalid),
                         reads_invalid,
                         mean_q,
+                        validated_inputs: Some(report.validated_inputs),
+                        validated_pairs: report.validated_pairs,
+                        pair_sync_checked: Some(report.pair_sync_checked),
+                        pair_sync_pass: report.pair_sync_pass,
+                        pair_count_match: report.pair_count_match,
+                        strict_pass: Some(report.strict_pass),
+                        failure_class: serde_json::to_value(&report.failure_class)
+                            .ok()
+                            .and_then(|value| value.as_str().map(ToOwned::to_owned)),
                     }
                 });
             serde_json::to_value(report_metrics.unwrap_or(FastqValidateMetricsV1 {
@@ -250,6 +259,13 @@ pub fn stage_metrics_for_plan(
                 reads_valid: reads_in,
                 reads_invalid: 0,
                 mean_q,
+                validated_inputs: None,
+                validated_pairs: None,
+                pair_sync_checked: None,
+                pair_sync_pass: None,
+                pair_count_match: None,
+                strict_pass: None,
+                failure_class: None,
             }))?
         }
         id_catalog::FASTQ_DETECT_ADAPTERS => {
