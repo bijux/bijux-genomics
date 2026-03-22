@@ -299,6 +299,42 @@ pub(crate) fn parse_infer_asvs_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
+pub(crate) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("umi_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_extract_umis_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.extract_umis",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "threads": report.threads,
+                "umi_pattern": report.umi_pattern,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "reads_with_umi": report.reads_with_umi,
+                "mean_q_before": report.mean_q_before,
+                "mean_q_after": report.mean_q_after,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.extract_umis",
+        "tool": "report_missing",
+        "reads_in": serde_json::Value::Null,
+        "reads_out": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_terminal_damage_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -823,6 +859,7 @@ mod tests {
 
     use super::{
         fastq_backend_allowlist, parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
+        parse_extract_umis_metrics,
         parse_index_reference_metrics,
         parse_merge_pairs_metrics, parse_normalize_abundance_metrics,
         parse_normalize_primers_metrics, parse_profile_overrepresented_metrics,
@@ -1311,6 +1348,57 @@ mod tests {
         assert_eq!(
             metrics["raw_backend_report_format"],
             serde_json::json!("bbduk_stats")
+        );
+    }
+
+    #[test]
+    fn extract_umis_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("umi_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.extract_umis.report.v2",
+                "stage": "fastq.extract_umis",
+                "stage_id": "fastq.extract_umis",
+                "tool_id": "umi_tools",
+                "paired_mode": "paired_end",
+                "threads": 2,
+                "umi_pattern": "NNNNNNNN",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "umi_reads_R1.fastq.gz",
+                "output_r2": "umi_reads_R2.fastq.gz",
+                "report_json": "umi_report.json",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 20000,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "reads_with_umi": 200,
+                "mean_q_before": 30.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 1.4,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "umi_tools.extract.log",
+                "raw_backend_report_format": "umi_tools_log",
+                "backend_metrics": {
+                    "reads_with_umi_fraction": 1.0
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_extract_umis_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("umi_tools"));
+        assert_eq!(metrics["umi_pattern"], serde_json::json!("NNNNNNNN"));
+        assert_eq!(metrics["reads_with_umi"], serde_json::json!(200));
+        assert_eq!(
+            metrics["raw_backend_report_format"],
+            serde_json::json!("umi_tools_log")
         );
     }
 
@@ -1999,6 +2087,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_in",
             "reads_out",
             "reads_removed_low_complexity",
+        ],
+        "fastq.extract_umis" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "reads_in",
+            "reads_out",
+            "reads_with_umi",
         ],
         "fastq.profile_reads" => &[
             "schema_version",
