@@ -468,7 +468,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         out_dir,
     )?;
     assert_eq!(plan.io.inputs.len(), 1);
-    assert_eq!(plan.io.outputs.len(), 4);
+    assert_eq!(plan.io.outputs.len(), 5);
     assert_eq!(plan.io.inputs[0].name.as_str(), "reads");
     assert_eq!(plan.command.template[0], "vsearch");
     assert_eq!(plan.command.template[1], "--cluster_fast");
@@ -477,8 +477,15 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         .template
         .iter()
         .any(|part| part == "out/otu_abundance.tsv"));
+    assert!(plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "report_json"));
     assert!(plan.command.template.iter().any(|part| part
         == &bijux_dna_domain_fastq::params::edna::DEFAULT_OTU_IDENTITY_THRESHOLD.to_string()));
+    assert!(plan.command.template.iter().any(|part| part == "--threads"));
+    assert!(plan.command.template.iter().any(|part| part == "--uc"));
     assert_eq!(
         plan.io.outputs[1].role.as_str(),
         "reference",
@@ -495,6 +502,9 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         "reference",
         "taxonomy-ready FASTQ must be typed as a reference-style sequence output",
     );
+    assert_eq!(plan.io.outputs[4].role.as_str(), "report_json");
+    assert_eq!(plan.effective_params["report_artifact"], "report_json");
+    assert_eq!(plan.effective_params["threads"], serde_json::json!(2));
     assert!(
         bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
             &domain_tool("fastq.cluster_otus", "vsearch"),
@@ -504,6 +514,21 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         )
         .is_err()
     );
+    let custom_plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan_with_options(
+            &domain_tool("fastq.cluster_otus", "vsearch"),
+            r1,
+            None,
+            out_dir,
+            &bijux_dna_planner_fastq::ClusterOtusStageParams {
+                otu_identity: 0.99,
+                threads: Some(8),
+            },
+        )?;
+    assert_eq!(custom_plan.params["otu_identity"], serde_json::json!(0.99));
+    assert_eq!(custom_plan.params["threads"], serde_json::json!(8));
+    assert!(custom_plan.command.template.iter().any(|part| part == "0.99"));
+    assert!(custom_plan.command.template.iter().any(|part| part == "8"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::plan(
         &domain_tool("fastq.normalize_abundance", "seqkit"),
