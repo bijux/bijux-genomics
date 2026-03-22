@@ -278,6 +278,7 @@ fn validation_command(
     commands.push("pair_sync_checked=false".to_string());
     commands.push("pair_sync_pass=null".to_string());
     commands.push("pair_count_match=null".to_string());
+    commands.push("failure_class=none".to_string());
     commands.push("validated_pairs=null".to_string());
     commands.push(format!(
         "validated_reads_r1=$(count_fastq_reads {})",
@@ -336,8 +337,20 @@ fn validation_command(
     if effective_params.validation_mode == ValidationMode::ReportOnly {
         commands.push("exit_code=0".to_string());
     }
+    commands.push(
+        "if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then failure_class=validator_error; fi"
+            .to_string(),
+    );
+    commands.push(
+        "if [ \"$pair_count_match\" = \"false\" ]; then failure_class=pair_count_mismatch; fi"
+            .to_string(),
+    );
+    commands.push(
+        "if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ]; then failure_class=header_sync_mismatch; fi"
+            .to_string(),
+    );
     let report_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":{},\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"validated_pairs\":%s,\"status_r1\":%s,\"status_r2\":%s,\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
+        "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":{},\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"validated_pairs\":%s,\"status_r1\":%s,\"status_r2\":%s,\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"failure_class\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool.tool_id.as_str())?,
@@ -371,7 +384,7 @@ fn validation_command(
         shell_quote(validated_reads_manifest),
     ));
     commands.push(format!(
-        "printf '{}' {} {} {} {} \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$strict_pass\" \"$exit_code\" > {}",
+        "printf '{}' {} {} {} {} \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > {}",
         escape_printf_format(&report_format),
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
