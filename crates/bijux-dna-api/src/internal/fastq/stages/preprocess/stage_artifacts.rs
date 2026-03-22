@@ -4,6 +4,32 @@ fn emit_fastq_stage_extra_artifacts(
     execution: &StageResultV1,
 ) -> Result<()> {
     let payload = match stage_id {
+        "fastq.index_reference" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("index_reference_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("index_reference_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_index_reference_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.index_reference.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "index_format": governed.as_ref().map(|report| report.index_format.clone()),
+                "reference_index": governed.as_ref().map(|report| report.reference_index.clone()),
+                "index_prefix": governed.as_ref().and_then(|report| report.index_prefix.clone()),
+                "emitted_file_count": governed.as_ref().map(|report| report.emitted_files.len()),
+                "index_bytes": governed.as_ref().map(|report| report.index_bytes),
+                "report_json": report_path,
+            }))
+        }
         "fastq.filter_reads" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.filter_reads_reasons.v1",
             "stage": stage_id,
@@ -370,6 +396,7 @@ fn write_stage_standardized_metrics(
     execution: &StageResultV1,
 ) -> Result<()> {
     let metrics = match stage_id {
+        "fastq.index_reference" => parse_index_reference_metrics(out_dir),
         "fastq.validate_reads" => parse_validate_reads_metrics(out_dir, execution),
         "fastq.detect_adapters" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
