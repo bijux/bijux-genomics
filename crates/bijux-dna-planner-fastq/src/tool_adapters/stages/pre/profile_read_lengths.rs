@@ -5,7 +5,8 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::{
-    params::{stats::READ_LENGTH_PROFILE_SCHEMA_VERSION, FastqReadLengthProfileParams, PairedMode},
+    params::{stats::READ_LENGTH_PROFILE_SCHEMA_VERSION, PairedMode},
+    FastqReadLengthProfileParams,
     stages::ids::STAGE_PROFILE_READ_LENGTHS,
 };
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
