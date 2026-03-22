@@ -9,12 +9,16 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqMergeMet
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy;
+use bijux_dna_domain_fastq::MergePairsReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, ensure_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_merge_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::fastq::merge_pairs::plan_merge;
+use bijux_dna_planner_fastq::stage_api::fastq::merge_pairs::{
+    plan_merge_with_options, MergePlanOptions,
+};
 use bijux_dna_planner_fastq::stage_api::FastqArtifactKind;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, RawFailure,
@@ -31,6 +35,50 @@ use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_MERGE_PAIRS,
 };
+
+fn parse_unmerged_read_policy(raw: Option<&str>) -> Result<UnmergedReadPolicy> {
+    match raw.unwrap_or("emit_unmerged_pairs") {
+        "emit_unmerged_pairs" => Ok(UnmergedReadPolicy::EmitUnmergedPairs),
+        "omit_unmerged_pairs" => Ok(UnmergedReadPolicy::OmitUnmergedPairs),
+        other => Err(anyhow!(
+            "unsupported fastq.merge_pairs unmerged_read_policy `{other}`"
+        )),
+    }
+}
+
+fn merge_plan_options(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs,
+) -> Result<MergePlanOptions> {
+    Ok(MergePlanOptions {
+        merge_overlap: args.merge_overlap,
+        min_length: args.min_length,
+        unmerged_read_policy: parse_unmerged_read_policy(args.unmerged_read_policy.as_deref())?,
+    })
+}
+
+fn load_governed_merge_report(report_path: &Path) -> Result<MergePairsReportV1> {
+    let raw = std::fs::read_to_string(report_path)
+        .with_context(|| format!("read governed merge report {}", report_path.display()))?;
+    bijux_dna_stages_fastq::observer::parse_merge_pairs_report(&raw)
+        .with_context(|| format!("parse governed merge report {}", report_path.display()))
+}
+
+fn write_governed_merge_report(report_path: &Path, report: &MergePairsReportV1) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(report_path, report)
+        .with_context(|| format!("write governed merge report {}", report_path.display()))
+}
+
+fn required_plan_output_path<'a>(
+    plan: &'a bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Result<&'a Path> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.as_path())
+        .ok_or_else(|| anyhow!("planned merge output `{artifact_name}` missing"))
+}
 
 pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
@@ -76,6 +124,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let bench_path = bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
+    let merge_options = merge_plan_options(args)?;
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqMergeMetrics>>::new();
 
@@ -90,7 +139,8 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_merge(&tool_spec, &args.r1, &args.r2, &out_dir)?;
+        let plan =
+            plan_merge_with_options(&tool_spec, &args.r1, &args.r2, &out_dir, &merge_options)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -130,19 +180,19 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
+        let merged_reads = required_plan_output_path(&plan, "merged_reads")?;
+        let report_json = required_plan_output_path(&plan, "report_json")?;
         let record = build_merge_record(
             catalog,
             platform,
             runner,
             &input_hash,
-            &args.r1,
-            &args.r2,
             &r1_stats,
             &r2_stats,
-            tool,
             &tool_spec,
             &plan.params,
-            &plan.io.outputs[0].path,
+            merged_reads,
+            report_json,
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -164,68 +214,49 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     platform: &PlatformSpec,
     runner: RuntimeKind,
     input_hash: &str,
-    r1: &Path,
-    r2: &Path,
     r1_stats: &bijux_dna_core::prelude::measure::SeqkitMetrics,
     r2_stats: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    tool: &str,
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
     params: &serde_json::Value,
     merged_reads: &Path,
+    report_path: &Path,
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqMergeMetrics>> {
     let merged_stats = observe_merge_stats(catalog, platform, runner, merged_reads)?;
-    let pairs_in = r1_stats.reads.min(r2_stats.reads);
-    let reads_merged = merged_stats.reads.min(pairs_in);
-    let reads_unmerged = pairs_in.saturating_sub(reads_merged);
-    let merge_rate = if pairs_in == 0 {
-        0.0
-    } else {
-        reads_merged as f64 / pairs_in as f64
-    };
+    let mut report = load_governed_merge_report(report_path)?;
+    report.runtime_s = Some(execution.runtime_s);
+    report.memory_mb = Some(execution.memory_mb);
+    write_governed_merge_report(report_path, &report)?;
+
+    let pairs_in = report.reads_r1.min(report.reads_r2);
+    let reads_merged = report.reads_merged.min(pairs_in);
+    let reads_unmerged = report
+        .reads_unmerged
+        .min(pairs_in.saturating_sub(reads_merged));
     let metrics = FastqMergeMetrics {
-        reads_in: r1_stats.reads + r2_stats.reads,
-        reads_out: merged_stats.reads,
+        reads_in: report.reads_r1 + report.reads_r2,
+        reads_out: reads_merged,
         bases_in: r1_stats.bases + r2_stats.bases,
         bases_out: merged_stats.bases,
         pairs_in,
         pairs_out: reads_merged,
-        reads_r1: r1_stats.reads,
-        reads_r2: r2_stats.reads,
+        reads_r1: report.reads_r1,
+        reads_r2: report.reads_r2,
         reads_merged,
         reads_unmerged,
-        merge_rate,
+        merge_rate: report.merge_rate,
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
-
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.merge_pairs.report.v1",
-        "stage_id": STAGE_MERGE_PAIRS.as_str(),
-        "tool_id": tool,
-        "input_r1": r1,
-        "input_r2": r2,
-        "merged_reads": merged_reads,
-        "reads_r1": metrics.reads_r1,
-        "reads_r2": metrics.reads_r2,
-        "reads_merged": metrics.reads_merged,
-        "reads_unmerged": metrics.reads_unmerged,
-        "merge_rate": metrics.merge_rate,
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
-    });
-    let out_dir = merged_reads
+    let out_dir = report_path
         .parent()
-        .ok_or_else(|| anyhow!("merge output has no parent"))?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("merge_report.json"), &report)
-        .context("write merge report")?;
+        .ok_or_else(|| anyhow!("merge report has no parent"))?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write merge metrics")?;
 
     let context = build_benchmark_context(
-        tool,
+        &report.tool_id,
         tool_spec.tool_version.clone(),
         tool_spec
             .image
@@ -248,6 +279,48 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{merge_plan_options, parse_unmerged_read_policy};
+    use bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs;
+    use std::path::PathBuf;
+
+    #[test]
+    fn merge_plan_options_carry_declared_policy_surface() {
+        let args = BenchFastqMergeArgs {
+            sample_id: "sample-a".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: PathBuf::from("reads_R2.fastq.gz"),
+            out: PathBuf::from("out"),
+            tools: vec!["pear".to_string()],
+            explain: false,
+            merge_overlap: Some(22),
+            min_length: Some(120),
+            unmerged_read_policy: Some("omit_unmerged_pairs".to_string()),
+            replicates: 1,
+            jobs: 1,
+            ci_bootstrap: None,
+        };
+
+        let options = merge_plan_options(&args).expect("merge plan options");
+        assert_eq!(options.merge_overlap, Some(22));
+        assert_eq!(options.min_length, Some(120));
+        assert_eq!(
+            serde_json::to_value(options.unmerged_read_policy).expect("policy json"),
+            serde_json::json!("omit_unmerged_pairs")
+        );
+    }
+
+    #[test]
+    fn unsupported_unmerged_policy_is_rejected() {
+        let err = parse_unmerged_read_policy(Some("maybe"))
+            .expect_err("invalid unmerged policy must fail");
+        assert!(err
+            .to_string()
+            .contains("unsupported fastq.merge_pairs unmerged_read_policy `maybe`"));
+    }
 }
 
 fn merge_input_hash(r1: &Path, r2: &Path) -> Result<String> {
