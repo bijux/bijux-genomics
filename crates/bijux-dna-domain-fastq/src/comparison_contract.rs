@@ -39,7 +39,7 @@ fn comparison_input_artifact_ids_for_manifest_stage(stage_id: &str) -> Vec<Strin
 
 fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>) {
     let prioritized_artifact_ids: &[&str] = match stage_id {
-        "fastq.validate_reads" => &["validated_reads_manifest"],
+        "fastq.validate_reads" => &["validation_report", "validated_reads_manifest"],
         "fastq.filter_reads" => &["report_json", "filtered_reads_r1", "filtered_reads_r2"],
         "fastq.filter_low_complexity" => &[
             "filter_report_json",
@@ -172,4 +172,23 @@ pub fn benchmark_comparison_artifact_ids() -> Vec<String> {
             ]
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::comparison_input_artifact_ids_for_stage;
+    use bijux_dna_core::ids::StageId;
+
+    #[test]
+    fn validate_reads_comparison_inputs_prioritize_governed_report_then_lineage() {
+        let artifact_ids =
+            comparison_input_artifact_ids_for_stage(&StageId::from_static("fastq.validate_reads"));
+        assert_eq!(
+            artifact_ids,
+            vec![
+                "validation_report".to_string(),
+                "validated_reads_manifest".to_string(),
+            ]
+        );
+    }
 }
