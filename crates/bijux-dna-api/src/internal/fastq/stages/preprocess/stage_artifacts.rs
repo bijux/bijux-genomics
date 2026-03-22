@@ -69,6 +69,35 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
+        "fastq.profile_overrepresented_sequences" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("overrepresented_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("overrepresented_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_profile_overrepresented_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.profile_overrepresented.extra_artifacts.v2",
+                "stage": stage_id,
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "top_k": governed.as_ref().map(|report| report.top_k),
+                "sequence_count": governed.as_ref().map(|report| report.sequence_count),
+                "flagged_sequences": governed.as_ref().map(|report| report.flagged_sequences),
+                "row_count": governed.as_ref().map(|report| report.rows.len()),
+                "overrepresented_sequences_tsv": governed.as_ref().map(|report| report.overrepresented_sequences_tsv.clone()),
+                "overrepresented_sequences_json": governed.as_ref().map(|report| report.overrepresented_sequences_json.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.trim_polyg_tails" => {
             let report_path = execution
                 .outputs
