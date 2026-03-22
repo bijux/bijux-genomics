@@ -79,6 +79,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "rrna_report_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.deplete_host",
+        tool_id: "bowtie2",
+        semantic_surface: "host_depletion_report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.deplete_reference_contaminants",
         tool_id: "bowtie2",
         semantic_surface: "contaminant_screen_report_json",

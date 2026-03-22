@@ -77,6 +77,13 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
         ],
         "fastq.index_reference" => &["report_json", "reference_index"],
         "fastq.detect_adapters" => &["report_json", "adapter_evidence_dir"],
+        "fastq.deplete_host" => &[
+            "host_depletion_report_json",
+            "host_depleted_reads_r1",
+            "host_depleted_reads_r2",
+            "removed_host_reads_r1",
+            "removed_host_reads_r2",
+        ],
         "fastq.deplete_rrna" => &[
             "rrna_report_json",
             "rrna_report_tsv",

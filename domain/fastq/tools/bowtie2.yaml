@@ -17,13 +17,15 @@ stage_contracts:
     required_inputs:
       - "reads_r1"
       - "reference_index"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "host_depleted_reads_r1"
       - "host_depleted_reads_r2"
       - "removed_host_reads_r1"
       - "removed_host_reads_r2"
       - "host_depletion_report_json"
-    notes: "Reference-guided host depletion emits retained reads, removed host reads, and a depletion report."
+    notes: "Reference-guided host depletion emits governed retained-read and removed-read artifacts together with a canonical host depletion report and accepts an optional mate input for paired depletion runs."
   fastq.deplete_reference_contaminants:
     required_inputs:
       - "reads_r1"
