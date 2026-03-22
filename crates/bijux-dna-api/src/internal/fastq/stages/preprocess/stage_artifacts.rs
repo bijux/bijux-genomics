@@ -630,7 +630,7 @@ fn discover_screen_taxonomy_report_path(
 }
 
 #[cfg(test)]
-mod tests {
+mod stage_artifact_tests {
     use anyhow::Result;
     use bijux_dna_runner::step_runner::StageResultV1;
 
