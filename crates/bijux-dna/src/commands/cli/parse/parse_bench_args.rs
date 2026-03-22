@@ -671,7 +671,11 @@ pub struct BenchFastqUmiArgs {
     pub r2: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, help = "UMI barcode pattern passed to umi_tools extract")]
+    #[arg(
+        long,
+        default_value = "NNNNNNNN",
+        help = "UMI barcode pattern passed to umi_tools extract"
+    )]
     pub umi_pattern: String,
     #[arg(
         long,
