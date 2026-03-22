@@ -216,6 +216,24 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
+        "fastq.extract_umis" => {
+            let report_path = stage_root.join("umi_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_extract_umis_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.extract_umis.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "umi_pattern": governed.as_ref().map(|report| report.umi_pattern.clone()),
+                "reads_with_umi": governed.as_ref().map(|report| report.reads_with_umi),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.screen_taxonomy" => {
             let report_path = discover_screen_taxonomy_report_path(stage_root, &execution.outputs)
                 .unwrap_or_else(|| stage_root.join("classification_report.json"));
@@ -459,12 +477,7 @@ fn write_stage_standardized_metrics(
         }),
         "fastq.merge_pairs" => parse_merge_pairs_metrics(out_dir),
         "fastq.remove_duplicates" => parse_remove_duplicates_metrics(out_dir),
-        "fastq.extract_umis" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_out", "umi_groups", "umi_collisions"],
-            "report_json": out_dir.join("umi_report.json"),
-        }),
+        "fastq.extract_umis" => parse_extract_umis_metrics(out_dir),
         "fastq.deplete_host" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
