@@ -920,6 +920,39 @@ pub fn stage_metrics_for_plan(
                 gc_distribution,
             })?
         }
+        "fastq.normalize_abundance" => {
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("normalize_abundance_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_normalize_abundance_report(&raw).ok());
+            if let Some(report) = governed_report {
+                serde_json::json!({
+                    "table_rows": report.table_rows,
+                    "sample_count": report.sample_count,
+                    "feature_count": report.feature_count,
+                    "zero_fraction": report.zero_fraction,
+                    "method": report.method,
+                    "input_value_column": report.input_value_column,
+                    "normalized_value_column": report.normalized_value_column,
+                    "compositional_rule": report.compositional_rule,
+                    "scale_factor": report.scale_factor,
+                    "per_sample_sums": report.per_sample_sums,
+                })
+            } else {
+                serde_json::json!({})
+            }
+        }
         "fastq.profile_read_lengths" => {
             let report_path = path_from_params(&plan.params, "report_json")
                 .or_else(|| {
