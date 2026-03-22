@@ -16,14 +16,20 @@ use bijux_dna_analyze::{
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
-use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS;
+use bijux_dna_domain_fastq::params::screen::ReferenceContaminantEffectiveParams;
+use bijux_dna_domain_fastq::{
+    DepleteReferenceContaminantsReportV1,
+    DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
+    stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_planner_fastq::DepleteReferenceContaminantsStageParams;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_reference_contaminants_tools;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
-use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_reference_contaminants::plan_contaminant_screen;
+use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_reference_contaminants::plan_contaminant_screen_with_options;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -131,13 +137,20 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             catalog,
             platform,
         )?;
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_contaminant_screen(
+        let mut tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+        if let Some(threads) = args.threads {
+            tool_spec.resources.threads = threads.max(1);
+        }
+        let plan = plan_contaminant_screen_with_options(
             &tool_spec,
             &bench_inputs.r1,
             args.r2.as_deref(),
             &args.reference_index,
             &out_dir,
+            &DepleteReferenceContaminantsStageParams {
+                decoy_mode: "phix_and_spikeins".to_string(),
+                threads: args.threads,
+            },
         )?;
         let params_hash =
             params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
@@ -181,87 +194,41 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out, depletion_summary) =
-            if let Some(input_stats_r2) = &input_stats_r2 {
-                let output_r1 = plan.io.outputs[0].path.clone();
-                let output_r2 = plan.io.outputs[1].path.clone();
-                let report_json = plan.io.outputs[2].path.clone();
-                let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
-                let output_stats_r2 = observe_fastq_stats(catalog, platform, runner, &output_r2)?;
-                let reads_in = bench_inputs.input_stats.reads + input_stats_r2.reads;
-                let reads_out = output_stats_r1.reads + output_stats_r2.reads;
-                let bases_in = bench_inputs.input_stats.bases + input_stats_r2.bases;
-                let bases_out = output_stats_r1.bases + output_stats_r2.bases;
-                let pairs_in = bench_inputs.input_stats.reads.min(input_stats_r2.reads);
-                let pairs_out = output_stats_r1.reads.min(output_stats_r2.reads);
-                (
-                    reads_in,
-                    reads_out,
-                    bases_in,
-                    bases_out,
-                    pairs_in,
-                    pairs_out,
-                    serde_json::json!({
-                        "reads_removed": reads_in.saturating_sub(reads_out),
-                        "bases_removed": bases_in.saturating_sub(bases_out),
-                        "output_r1": output_r1,
-                        "output_r2": output_r2,
-                        "report_json": report_json,
-                    }),
-                )
-            } else {
-                let output_fastq = plan.io.outputs[0].path.clone();
-                let report_json = plan.io.outputs[1].path.clone();
-                let output_stats = observe_fastq_stats(catalog, platform, runner, &output_fastq)?;
-                (
-                    bench_inputs.input_stats.reads,
-                    output_stats.reads,
-                    bench_inputs.input_stats.bases,
-                    output_stats.bases,
-                    0,
-                    0,
-                    serde_json::json!({
-                        "reads_removed": bench_inputs.input_stats.reads.saturating_sub(output_stats.reads),
-                        "bases_removed": bench_inputs.input_stats.bases.saturating_sub(output_stats.bases),
-                        "output_fastq": output_fastq,
-                        "report_json": report_json,
-                    }),
-                )
-            };
-        let contaminant_fraction_removed = if reads_in == 0 {
-            0.0
-        } else {
-            1.0 - (reads_out as f64 / reads_in as f64)
-        };
+        let report = build_deplete_reference_contaminants_report(
+            &plan,
+            &bench_inputs.input_stats,
+            input_stats_r2.as_ref(),
+            catalog,
+            platform,
+            runner,
+            &tool,
+            &execution,
+        )?;
+        bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.report_json), &report)
+            .context("write reference contaminant depletion report")?;
         let metrics = FastqDepleteReferenceContaminantsMetrics {
-            reads_in,
-            reads_out,
-            bases_in,
-            bases_out,
-            pairs_in,
-            pairs_out,
-            contaminant_fraction_removed: contaminant_fraction_removed.clamp(0.0, 1.0),
-            depletion_summary: depletion_summary.into(),
+            reads_in: report.reads_in,
+            reads_out: report.reads_out,
+            bases_in: report.bases_in,
+            bases_out: report.bases_out,
+            pairs_in: report.pairs_in.unwrap_or(0),
+            pairs_out: report.pairs_out.unwrap_or(0),
+            contaminant_fraction_removed: report.contaminant_fraction_removed.clamp(0.0, 1.0),
+            depletion_summary: serde_json::json!({
+                "reads_removed": report.reads_removed,
+                "bases_removed": report.bases_removed,
+                "output_r1": report.output_r1,
+                "output_r2": report.output_r2,
+                "report_json": report.report_json,
+                "contaminant_reference": report.contaminant_reference,
+                "reference_index_backend": report.reference_index_backend,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+            })
+            .into(),
         };
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
-        let stage_report = serde_json::json!({
-            "schema_version": "bijux.fastq.deplete_reference_contaminants.report.v1",
-            "stage_id": STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
-            "tool_id": tool,
-            "contaminant_fraction_removed": metrics.contaminant_fraction_removed,
-            "reads_in": metrics.reads_in,
-            "reads_out": metrics.reads_out,
-            "bases_in": metrics.bases_in,
-            "bases_out": metrics.bases_out,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-        });
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("deplete_reference_contaminants_report.json"),
-            &stage_report,
-        )
-        .context("write reference contaminant depletion report")?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -299,4 +266,117 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         bench_dir: bench_inputs.bench_dir,
         explain: args.explain,
     })
+}
+
+fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    input_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+    input_stats_r2: Option<&bijux_dna_core::prelude::measure::SeqkitMetrics>,
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner: RuntimeKind,
+    tool: &str,
+    execution: &bijux_dna_runner::step_runner::StageResultV1,
+) -> Result<DepleteReferenceContaminantsReportV1> {
+    let effective_params: ReferenceContaminantEffectiveParams =
+        serde_json::from_value(plan.effective_params.clone())
+            .context("decode reference contaminant effective params")?;
+    let output_r1 = artifact_output_path(plan, "contaminant_screened_reads_r1")
+        .unwrap_or_else(|| plan.out_dir.join("contaminant_screened.fastq.gz"));
+    let output_r2 = artifact_output_path(plan, "contaminant_screened_reads_r2");
+    let report_json = artifact_output_path(plan, "contaminant_screen_report_json")
+        .unwrap_or_else(|| plan.out_dir.join("contaminant_screen_report.json"));
+    let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
+    let output_stats_r2 = if let Some(path) = output_r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, runner, path)?)
+    } else {
+        None
+    };
+    let reads_in = input_stats_r1.reads + input_stats_r2.map_or(0, |stats| stats.reads);
+    let reads_out = output_stats_r1.reads + output_stats_r2.map_or(0, |stats| stats.reads);
+    let bases_in = input_stats_r1.bases + input_stats_r2.map_or(0, |stats| stats.bases);
+    let bases_out = output_stats_r1.bases + output_stats_r2.map_or(0, |stats| stats.bases);
+    let reads_removed = reads_in.saturating_sub(reads_out);
+    let bases_removed = bases_in.saturating_sub(bases_out);
+    let pairs_in = input_stats_r2.map(|stats| input_stats_r1.reads.min(stats.reads));
+    let pairs_out = output_stats_r2
+        .as_ref()
+        .map(|stats| output_stats_r1.reads.min(stats.reads));
+    let contaminant_fraction_removed = if reads_in == 0 {
+        0.0
+    } else {
+        reads_removed as f64 / reads_in as f64
+    };
+
+    Ok(DepleteReferenceContaminantsReportV1 {
+        schema_version: DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str().to_string(),
+        stage_id: STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str().to_string(),
+        tool_id: tool.to_string(),
+        paired_mode: effective_params.paired_mode,
+        threads: effective_params.threads,
+        reference_catalog_id: effective_params.reference_catalog_id,
+        contaminant_reference: effective_params.contaminant_reference,
+        index_artifact: effective_params.index_artifact,
+        reference_index_backend: effective_params.reference_index_backend,
+        reference_build_id: effective_params.reference_build_id,
+        reference_digest: effective_params.reference_digest,
+        retain_unmapped_pairs: effective_params.retain_unmapped_pairs,
+        input_r1: artifact_input_path(plan, "reads_r1")
+            .unwrap_or_default()
+            .display()
+            .to_string(),
+        input_r2: artifact_input_path(plan, "reads_r2").map(|path| path.display().to_string()),
+        output_r1: output_r1.display().to_string(),
+        output_r2: output_r2.map(|path| path.display().to_string()),
+        report_json: report_json.display().to_string(),
+        reads_in,
+        reads_out,
+        reads_removed,
+        bases_in,
+        bases_out,
+        bases_removed,
+        pairs_in,
+        pairs_out,
+        contaminant_fraction_removed,
+        runtime_s: Some(execution.runtime_s),
+        memory_mb: Some(execution.memory_mb),
+        exit_code: Some(execution.exit_code),
+        raw_backend_report: plan
+            .params
+            .get("raw_backend_report")
+            .and_then(serde_json::Value::as_str)
+            .map(ToOwned::to_owned),
+        raw_backend_report_format: plan
+            .params
+            .get("raw_backend_report_format")
+            .and_then(serde_json::Value::as_str)
+            .map(ToOwned::to_owned),
+        backend_metrics: Some(serde_json::json!({
+            "reads_removed": reads_removed,
+            "bases_removed": bases_removed,
+        })),
+    })
+}
+
+fn artifact_output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> Option<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_id)
+        .map(|artifact| artifact.path.clone())
+}
+
+fn artifact_input_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> Option<std::path::PathBuf> {
+    plan.io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_id)
+        .map(|artifact| artifact.path.clone())
 }
