@@ -127,34 +127,38 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
-        if !plan.io.outputs[0].path.exists() {
-            std::fs::copy(&args.r1, &plan.io.outputs[0].path)?;
+        let filtered_reads = plan
+            .io
+            .outputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "chimera_filtered_reads")
+            .ok_or_else(|| anyhow!("remove_chimeras plan missing chimera_filtered_reads"))?;
+        let metrics_output = plan
+            .io
+            .outputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "chimera_metrics_json")
+            .ok_or_else(|| anyhow!("remove_chimeras plan missing chimera_metrics_json"))?;
+        let report_output = plan
+            .io
+            .outputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .ok_or_else(|| anyhow!("remove_chimeras plan missing report_json"))?;
+        if !filtered_reads.path.exists() {
+            std::fs::copy(&args.r1, &filtered_reads.path)?;
         }
-        let output_r2 = args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone());
-        if let (Some(input_r2), Some(output_r2)) = (args.r2.as_deref(), output_r2.as_deref()) {
-            if !output_r2.exists() {
-                std::fs::copy(input_r2, output_r2)?;
-            }
-        }
-        let metrics_index = if output_r2.is_some() { 2 } else { 1 };
         let output_stats_r1 =
-            observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
-        let output_stats_r2 = if let Some(output_r2) = output_r2.as_deref() {
-            Some(observe_fastq_stats(catalog, platform, runner, output_r2)?)
-        } else {
-            None
-        };
-        let reads_in =
-            input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-        let reads_out =
-            output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+            observe_fastq_stats(catalog, platform, runner, &filtered_reads.path)?;
+        let reads_in = input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_out = output_stats_r1.reads;
         let chimeras_removed = reads_in.saturating_sub(reads_out);
         let chimera_fraction = if reads_in == 0 {
             0.0
         } else {
             chimeras_removed as f64 / reads_in as f64
         };
-        if !plan.io.outputs[metrics_index].path.exists() {
+        if !metrics_output.path.exists() {
             let payload = serde_json::json!({
                 "schema_version": "bijux.fastq.remove_chimeras.v2",
                 "chimera_fraction": chimera_fraction,
@@ -163,7 +167,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
                 "tool": tool,
                 "used_fallback": true,
             });
-            bijux_dna_infra::atomic_write_json(&plan.io.outputs[metrics_index].path, &payload)?;
+            bijux_dna_infra::atomic_write_json(&metrics_output.path, &payload)?;
         }
         let metrics = FastqChimeraMetrics {
             reads_in,
@@ -178,14 +182,14 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             "tool_id": tool,
             "input_fastq_r1": args.r1,
             "input_fastq_r2": args.r2,
-            "chimera_filtered_reads_r1": plan.io.outputs[0].path,
-            "chimera_filtered_reads_r2": output_r2,
-            "chimera_metrics_json": plan.io.outputs[metrics_index].path,
+            "chimera_filtered_reads_r1": filtered_reads.path,
+            "chimera_filtered_reads_r2": serde_json::Value::Null,
+            "chimera_metrics_json": metrics_output.path,
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
             "exit_code": execution.exit_code,
         });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("remove_chimeras_report.json"), &report)?;
+        bijux_dna_infra::atomic_write_json(&report_output.path, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,

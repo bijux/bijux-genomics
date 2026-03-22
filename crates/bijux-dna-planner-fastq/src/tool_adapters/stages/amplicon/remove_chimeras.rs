@@ -25,6 +25,7 @@ pub fn plan(
         ));
     }
     let filtered_reads = out_dir.join("nonchimeras.fastq.gz");
+    let report = out_dir.join("remove_chimeras_report.json");
     let metrics = out_dir.join("chimera_metrics.json");
     let chimeras = out_dir.join("chimeras.fasta");
     let uchime = out_dir.join("uchime.tsv");
@@ -39,6 +40,11 @@ pub fn plan(
         ArtifactRole::Reads,
     )];
     outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("report_json"),
+        report.clone(),
+        ArtifactRole::ReportJson,
+    ));
+    outputs.push(ArtifactRef::required(
         ArtifactId::from_static("chimera_metrics_json"),
         metrics.clone(),
         ArtifactRole::MetricsJson,
@@ -47,6 +53,11 @@ pub fn plan(
         ArtifactId::from_static("chimeras_fasta"),
         chimeras.clone(),
         ArtifactRole::Reads,
+    ));
+    outputs.push(ArtifactRef::optional(
+        ArtifactId::from_static("uchime_report_tsv"),
+        uchime.clone(),
+        ArtifactRole::SummaryTsv,
     ));
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
@@ -77,6 +88,7 @@ pub fn plan(
         params: serde_json::json!({
             "input_reads": r1,
             "chimera_filtered_reads": filtered_reads,
+            "report_json": report,
             "chimera_metrics_json": metrics,
             "chimeras_fasta": chimeras,
             "uchime_report_tsv": uchime,
