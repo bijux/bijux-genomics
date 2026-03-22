@@ -24,6 +24,7 @@ pub mod pipeline_contract;
 pub mod prelude;
 mod qc_contract;
 pub mod run;
+mod screen_taxonomy_artifacts;
 pub mod stage_contract;
 pub mod stage_semantics;
 pub mod stage_specs;
@@ -52,6 +53,10 @@ pub use banks::{
 };
 pub use bench_repository::{
     governed_stage_bench_query_context, BenchQueryContext, BenchResultsRepository,
+};
+pub use screen_taxonomy_artifacts::{
+    ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1,
+    SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
 };
 pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,

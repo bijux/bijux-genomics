@@ -11,8 +11,8 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
-    TerminalDamageReportV1, TrimPolygReportV1, TrimReadsReportV1, ValidatedReadsManifestV1,
-    ValidationReportV1,
+    ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1,
+    TrimPolygReportV1, TrimReadsReportV1, ValidatedReadsManifestV1, ValidationReportV1,
 };
 
 /// # Errors
@@ -131,6 +131,42 @@ pub fn parse_trim_reads_report(report_json: &str) -> Result<TrimReadsReportV1> {
 /// Returns an error if the governed trim-polyg report JSON cannot be parsed.
 pub fn parse_trim_polyg_report(report_json: &str) -> Result<TrimPolygReportV1> {
     serde_json::from_str(report_json).context("parse trim polyg report")
+}
+
+/// # Errors
+/// Returns an error if the governed taxonomy-screen report JSON cannot be parsed.
+pub fn parse_screen_taxonomy_report(report_json: &str) -> Result<ScreenTaxonomyReportV1> {
+    serde_json::from_str(report_json).context("parse screen taxonomy report")
+}
+
+/// # Errors
+/// Returns an error if a taxonomy summary TSV cannot be reduced to label/percent entries.
+pub fn parse_screen_summary_tsv(summary_tsv: &str) -> Result<Vec<TaxonomyScreenSummaryEntryV1>> {
+    let mut entries = Vec::new();
+    for (idx, line) in summary_tsv.lines().enumerate() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let parts: Vec<&str> = line.split('\t').collect();
+        if parts.len() < 3 {
+            return Err(anyhow!(
+                "screen report line {} has {} columns",
+                idx + 1,
+                parts.len()
+            ));
+        }
+        let label = parts[0].trim().to_string();
+        let percent = parts
+            .last()
+            .ok_or_else(|| anyhow!("screen report line {} missing percent", idx + 1))?
+            .trim()
+            .trim_end_matches('%')
+            .parse::<f64>()
+            .with_context(|| format!("screen report line {} percent parse", idx + 1))?;
+        entries.push(TaxonomyScreenSummaryEntryV1 { label, percent });
+    }
+    Ok(entries)
 }
 
 /// # Errors
@@ -345,17 +381,19 @@ mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
         parse_fastp_metrics, parse_fastqc_summary_metrics, parse_fastqvalidator_count,
-        parse_length_histogram, parse_low_complexity_report, parse_trim_reads_report,
+        parse_length_histogram, parse_low_complexity_report,
         parse_multiqc_general_stats_metrics, parse_samtools_flagstat_metrics,
-        parse_seqkit_stats, parse_seqkit_tool_metrics, parse_terminal_damage_report,
+        parse_screen_summary_tsv, parse_screen_taxonomy_report, parse_seqkit_stats,
+        parse_seqkit_tool_metrics, parse_terminal_damage_report, parse_trim_reads_report,
         parse_validated_reads_manifest, parse_validation_report,
     };
     use anyhow::Result;
     use bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy;
     use bijux_dna_domain_fastq::params::DamageMode;
     use bijux_dna_domain_fastq::{
-        PairedMode, ValidateFailureClass, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
-        VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
+        PairedMode, ValidateFailureClass, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+        TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION, VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
+        VALIDATION_REPORT_SCHEMA_VERSION,
     };
 
     #[test]
@@ -533,6 +571,68 @@ mod tests {
         assert_eq!(parsed.paired_mode, PairedMode::PairedEnd);
         assert_eq!(parsed.adapter_policy, "bank");
         assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("fastp_json"));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_screen_taxonomy_report_parses_governed_json() -> Result<()> {
+        let parsed = parse_screen_taxonomy_report(
+            &serde_json::json!({
+                "schema_version": SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+                "stage": "fastq.screen_taxonomy",
+                "stage_id": "fastq.screen_taxonomy",
+                "tool_id": "kraken2",
+                "paired_mode": "paired_end",
+                "threads": 8,
+                "classifier": "kraken2",
+                "report_format": "kraken_report",
+                "assignment_format": "kraken_assignments",
+                "database_catalog_id": "taxonomy_reference",
+                "database_artifact_id": "taxonomy_db",
+                "database_build_id": "build-2026-03",
+                "database_digest": "sha256:taxonomy",
+                "database_namespace": "read_screening",
+                "database_scope": "read_screening",
+                "minimum_confidence": 0.1,
+                "emit_unclassified": true,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "screen_report_tsv": "kraken2.report.tsv",
+                "classification_report_json": "kraken2.classifications.json",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 20000,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "contamination_rate": 0.23,
+                "classified_fraction": 0.77,
+                "unclassified_fraction": 0.23,
+                "summary_entries": [
+                    {"label": "unclassified", "percent": 23.0},
+                    {"label": "bacteria", "percent": 77.0}
+                ],
+                "top_taxa": ["bacteria"],
+                "runtime_s": 12.5,
+                "memory_mb": 512.0
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "kraken2");
+        assert_eq!(parsed.threads, 8);
+        assert_eq!(parsed.top_taxa.len(), 1);
+        assert_eq!(parsed.top_taxa[0].label, "bacteria");
+        Ok(())
+    }
+
+    #[test]
+    fn parse_screen_summary_tsv_extracts_label_percent_pairs() -> Result<()> {
+        let parsed = parse_screen_summary_tsv(
+            "# taxonomic summary\nunclassified\t123\t23.0%\nbacteria\t410\t77.0%\n",
+        )?;
+        assert_eq!(parsed.len(), 2);
+        assert_eq!(parsed[0].label, "unclassified");
+        assert_eq!(parsed[1].percent, 77.0);
         Ok(())
     }
 
