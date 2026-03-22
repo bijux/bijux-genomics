@@ -50,8 +50,6 @@ allowed_missingness:
   - "reads_r2"
 compatible_tools:
   - seqkit_stats
-  - prinseq
-  - fastp
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "length histogram generation must be deterministic for identical reads."
@@ -60,4 +58,6 @@ bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope:
+  - "fastp"
+  - "prinseq"
   - "seqfu"
