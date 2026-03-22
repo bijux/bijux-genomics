@@ -14,12 +14,15 @@ outputs:
   - name: "qc_json"
     data_type: "json"
     cardinality: "One"
+    meaning: "Governed read-profile report with normalized totals, mate summaries, and histogram provenance."
   - name: "qc_tsv"
     data_type: "tsv"
     cardinality: "One"
+    meaning: "Deterministic backend summary table preserved from seqkit statistics output."
   - name: "qc_plots_dir"
     data_type: "dir"
     cardinality: "One"
+    meaning: "Normalized histogram artifacts derived from the governed read-profile report."
 parameters:
   - name: "threads"
     param_type: "int"
@@ -61,6 +64,8 @@ compatible_tools:
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "single-end input omits reads_r2; paired-end input preserves mate-level summaries."
+  - "qc_json is the governed read-profile report contract and remains the canonical comparison surface for profile_reads."
+  - "qc_tsv preserves the seqkit tabular backend summary, while qc_plots_dir contains normalized histogram tables derived from the governed report."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
