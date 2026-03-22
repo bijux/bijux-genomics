@@ -181,6 +181,25 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         ]
     );
 
+    let normalize_abundance_stage = StageId::from_static("fastq.normalize_abundance");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&normalize_abundance_stage),
+        vec![
+            "normalize_abundance_tool_benchmark_cohort_json".to_string(),
+            "normalize_abundance_tool_comparison_json".to_string(),
+            "normalize_abundance_tool_normalization_json".to_string(),
+        ]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(
+            &normalize_abundance_stage
+        ),
+        vec![
+            "report_json".to_string(),
+            "normalized_abundance_tsv".to_string(),
+        ]
+    );
+
     let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&polyg_stage),

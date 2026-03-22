@@ -1170,6 +1170,7 @@ stage_output_size_estimates_mb:
     report_json: 8.0
   fastq.normalize_abundance:
     normalized_abundance_tsv: 4.0
+    report_json: 1.0
   fastq.normalize_primers:
     normalized_reads_r1: 1800.0
     primer_orientation_report: 3.0
@@ -1920,6 +1921,18 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_primer_contract
+  normalize_abundance_fairness:
+    stage_id: fastq.normalize_abundance
+    description: Compare abundance-normalization runs on identical abundance tables and
+      governed normalization semantics.
+    cohort_artifact_id: normalize_abundance_tool_benchmark_cohort_json
+    comparison_artifact_id: normalize_abundance_tool_comparison_json
+    normalization_artifact_id: normalize_abundance_tool_normalization_json
+    fairness_rules:
+    - same_input_hash
+    - same_dataset_class
+    - same_abundance_normalization_method
+    - same_abundance_table_contract
   terminal_damage_fairness:
     stage_id: fastq.trim_terminal_damage
     description: Compare terminal-damage trimming backends on identical reads and ancient-DNA
