@@ -9,7 +9,8 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
-    parse_multiqc_general_stats_metrics, parse_report_qc_report, parse_screen_taxonomy_report,
+    parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
+    parse_remove_duplicates_report, parse_report_qc_report, parse_screen_taxonomy_report,
     parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
     parse_validated_reads_manifest, parse_validation_report,
 };
@@ -394,6 +395,37 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
     if plan.stage_id.as_str() == "fastq.validate_reads" {
         if let Some(semantics) = validate_semantic_metrics(artifacts) {
             return semantics;
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.remove_duplicates" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_remove_duplicates_report(&raw_report) {
+                    let provenance = artifacts
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "duplicate_provenance_json")
+                        .and_then(|artifact| std::fs::read_to_string(&artifact.path).ok())
+                        .and_then(|raw| parse_remove_duplicates_provenance(&raw).ok());
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "dedup_mode": report.dedup_mode,
+                        "keep_order": report.keep_order,
+                        "pair_count_match": report.pair_count_match,
+                        "duplicates_removed": report.duplicates_removed,
+                        "dedup_rate": report.dedup_rate,
+                        "duplicate_class_count": report.duplicate_classes.len(),
+                        "duplicate_classes": report.duplicate_classes,
+                        "duplicate_provenance_json": report.duplicate_provenance_json,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                        "backend_log": provenance.as_ref().and_then(|value| value.backend_log.clone()),
+                    });
+                }
+            }
         }
     }
     if plan.stage_id.as_str() == "fastq.trim_reads" {
@@ -1880,6 +1912,118 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["trimmed_fastqc_dir"],
             serde_json::json!("/tmp/trimmed_fastqc")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_remove_duplicates_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("deduplicate_report.json");
+        let provenance_path = temp.path().join("duplicate_provenance.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "single_end",
+                "dedup_mode": "optical_aware",
+                "keep_order": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "dedup.fastq.gz",
+                "output_r2": null,
+                "reads_in": 100,
+                "reads_out": 84,
+                "reads_in_r2": null,
+                "reads_out_r2": null,
+                "pairs_in": null,
+                "pairs_out": null,
+                "pair_count_match": null,
+                "duplicates_removed": 16,
+                "dedup_rate": 0.16,
+                "duplicate_classes_tsv": "duplicate_classes.tsv",
+                "duplicate_provenance_json": provenance_path,
+                "duplicate_classes": [
+                    {"class": "duplicate", "reads_removed": 12, "paired_mode": "single_end"},
+                    {"class": "optical_duplicate", "reads_removed": 4, "paired_mode": "single_end"}
+                ],
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log",
+                "runtime_s": 1.9,
+                "memory_mb": 48.0
+            })
+            .to_string(),
+        )
+        .expect("write dedup report");
+        std::fs::write(
+            &provenance_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.provenance.v2",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "single_end",
+                "dedup_mode": "optical_aware",
+                "keep_order": false,
+                "duplicates_removed": 16,
+                "dedup_rate": 0.16,
+                "backend_log": "clumpify.log",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "dedup.fastq.gz",
+                "output_r2": null,
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log"
+            })
+            .to_string(),
+        )
+        .expect("write dedup provenance");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.remove_duplicates"),
+            tool_id: ToolId::from_static("clumpify"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    temp.path().join("reads.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path,
+                        ArtifactRole::ReportJson,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("duplicate_provenance_json"),
+                        provenance_path,
+                        ArtifactRole::SummaryJson,
+                    ),
+                ],
+            },
+            ..plan("fastq.remove_duplicates")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["dedup_mode"],
+            serde_json::json!("optical_aware")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["duplicate_class_count"],
+            serde_json::json!(2)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["backend_log"],
+            serde_json::json!("clumpify.log")
         );
     }
 }
