@@ -499,6 +499,14 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                 if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
                     return serde_json::json!({
                         "correction_engine": report.get("correction_engine").cloned().unwrap_or(serde_json::Value::Null),
+                        "quality_encoding": report.get("quality_encoding").cloned().unwrap_or(serde_json::Value::Null),
+                        "kmer_size": report.get("kmer_size").cloned().unwrap_or(serde_json::Value::Null),
+                        "genome_size": report.get("genome_size").cloned().unwrap_or(serde_json::Value::Null),
+                        "max_memory_gb": report.get("max_memory_gb").cloned().unwrap_or(serde_json::Value::Null),
+                        "trusted_kmer_artifact": report.get("trusted_kmer_artifact").cloned().unwrap_or(serde_json::Value::Null),
+                        "conservative_mode": report.get("conservative_mode").cloned().unwrap_or(serde_json::Value::Null),
+                        "kmer_fix_rate": report.get("kmer_fix_rate").cloned().unwrap_or(serde_json::Value::Null),
+                        "correction_effect": report.get("correction_effect").cloned().unwrap_or(serde_json::Value::Null),
                         "input_r1": report.get("input_r1").cloned().unwrap_or(serde_json::Value::Null),
                         "input_r2": report.get("input_r2").cloned().unwrap_or(serde_json::Value::Null),
                         "output_r1": report.get("output_r1").cloned().unwrap_or(serde_json::Value::Null),
@@ -1032,6 +1040,16 @@ mod tests {
             &report_path,
             serde_json::json!({
                 "correction_engine": "rcorrector",
+                "quality_encoding": "phred33",
+                "kmer_size": 31_u64,
+                "trusted_kmer_artifact": "trusted.kmers",
+                "conservative_mode": false,
+                "kmer_fix_rate": 0.125_f64,
+                "correction_effect": {
+                    "outputs_changed": true,
+                    "bases_delta": -300_i64,
+                    "mean_q_delta": 2.5_f64
+                },
                 "input_r1": reads_r1_path,
                 "input_r2": reads_r2_path,
                 "output_r1": corrected_r1_path,
@@ -1099,6 +1117,38 @@ mod tests {
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["correction_engine"],
             serde_json::json!("rcorrector")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["quality_encoding"],
+            serde_json::json!("phred33")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["kmer_size"],
+            serde_json::json!(31_u64)
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["trusted_kmer_artifact"],
+            serde_json::json!("trusted.kmers")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["correction_effect"]["outputs_changed"],
+            serde_json::json!(true)
         );
     }
 
