@@ -43,6 +43,32 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
+        "fastq.profile_read_lengths" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("profile_read_lengths_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("profile_read_lengths_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_profile_read_lengths_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.profile_read_lengths.extra_artifacts.v2",
+                "stage": stage_id,
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "histogram_bins": governed.as_ref().map(|report| report.histogram_bins),
+                "histogram_entry_count": governed.as_ref().map(|report| report.histogram.len()),
+                "length_distribution_tsv": governed.as_ref().map(|report| report.length_distribution_tsv.clone()),
+                "length_distribution_json": governed.as_ref().map(|report| report.length_distribution_json.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.trim_polyg_tails" => {
             let report_path = execution
                 .outputs
