@@ -229,8 +229,8 @@ stages:
     execution_status: "closed"
     planning_support: "stage_family"
     runtime_support: "runnable"
-    normalization_support: "generic_envelope"
-    benchmark_support: "none"
+    normalization_support: "observer_specialized"
+    benchmark_support: "cohort"
     default_tool: "seqkit"
     admitted_tools:
       - "seqkit"
