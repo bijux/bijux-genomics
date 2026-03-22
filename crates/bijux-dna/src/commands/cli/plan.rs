@@ -333,6 +333,7 @@ pub fn bench_args_remove_duplicates(
         tools: resolve_bench_tools("fastq.remove_duplicates", &args.tools)?,
         tools_resolved_implicitly: bench_tools_resolved_implicitly(&args.tools),
         explain: args.explain,
+        threads: args.threads,
         dedup_mode: args.dedup_mode.clone(),
         keep_order: args.keep_order,
         replicates: args.replicates,
@@ -735,13 +736,14 @@ pub fn bench_args_preprocess(
 mod tests {
     use super::{
         bench_args_filter, bench_args_from_validate, bench_args_profile_read_lengths,
-        bench_args_trim, bench_args_trim_polyg, bench_args_trim_terminal_damage,
-        resolve_stage_tool,
+        bench_args_remove_duplicates, bench_args_trim, bench_args_trim_polyg,
+        bench_args_trim_terminal_damage, resolve_stage_tool,
     };
     use crate::commands::cli::parse::{
-        BenchFastqFilterArgs, BenchFastqProfileReadLengthsArgs, BenchFastqTrimArgs,
-        BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand,
-        FastqCommand, FastqValidateArgs,
+        BenchFastqFilterArgs, BenchFastqProfileReadLengthsArgs,
+        BenchFastqRemoveDuplicatesArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
+        BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand, FastqCommand,
+        FastqValidateArgs,
     };
     use std::path::PathBuf;
 
@@ -994,6 +996,29 @@ mod tests {
         let bench = bench_args_profile_read_lengths(&args).expect("bench args");
         assert_eq!(bench.threads, Some(4));
         assert_eq!(bench.histogram_bins, Some(64));
+    }
+
+    #[test]
+    fn remove_duplicates_bench_args_preserve_thread_override() {
+        let args = BenchFastqRemoveDuplicatesArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            tools: vec!["clumpify".to_string()],
+            explain: false,
+            threads: Some(6),
+            dedup_mode: Some("exact".to_string()),
+            keep_order: Some(true),
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(25),
+        };
+
+        let bench = bench_args_remove_duplicates(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(6));
+        assert_eq!(bench.keep_order, Some(true));
     }
 }
 

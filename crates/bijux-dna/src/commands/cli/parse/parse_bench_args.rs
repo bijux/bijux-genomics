@@ -449,6 +449,8 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    pub threads: Option<u32>,
     #[arg(long)]
     pub dedup_mode: Option<String>,
     #[arg(long)]
