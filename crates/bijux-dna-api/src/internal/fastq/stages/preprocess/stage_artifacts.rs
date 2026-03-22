@@ -42,6 +42,25 @@ fn emit_fastq_stage_extra_artifacts(
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
             }))
         }
+        "fastq.screen_taxonomy" => {
+            let report_path = discover_screen_taxonomy_report_path(stage_root, &execution.outputs)
+                .unwrap_or_else(|| stage_root.join("classification_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_screen_taxonomy_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.screen_taxonomy.extra_artifacts.v2",
+                "stage": stage_id,
+                "classifier": governed.as_ref().map(|report| report.classifier.clone()),
+                "report_format": governed.as_ref().map(|report| report.report_format.clone()),
+                "database_catalog_id": governed.as_ref().map(|report| report.database_catalog_id.clone()),
+                "database_artifact_id": governed.as_ref().map(|report| report.database_artifact_id.clone()),
+                "database_digest": governed.as_ref().and_then(|report| report.database_digest.clone()),
+                "classified_fraction": governed.as_ref().and_then(|report| report.classified_fraction),
+                "unclassified_fraction": governed.as_ref().and_then(|report| report.unclassified_fraction),
+                "top_taxa": governed.as_ref().map(|report| report.top_taxa.clone()),
+            }))
+        }
         "fastq.deplete_reference_contaminants" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.deplete_reference_contaminants.v1",
             "stage": stage_id,
@@ -146,6 +165,7 @@ fn write_stage_standardized_metrics(
             "json_path": out_dir.join("overrepresented_sequences.json"),
         }),
         "fastq.trim_polyg_tails" => parse_trim_polyg_metrics(out_dir),
+        "fastq.screen_taxonomy" => parse_screen_taxonomy_metrics(out_dir),
         "fastq.filter_low_complexity" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
@@ -204,13 +224,6 @@ fn write_stage_standardized_metrics(
             "report_tsv": out_dir.join("rrna_report.tsv"),
             "report_json": out_dir.join("rrna_report.json"),
         }),
-        "fastq.screen_taxonomy" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["classified_reads", "unclassified_reads", "top_taxa"],
-            "report_tsv": out_dir.join("screen_report.tsv"),
-            "report_json": out_dir.join("classification.report.json"),
-        }),
         "fastq.profile_reads" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
@@ -259,4 +272,30 @@ fn write_stage_standardized_metrics(
         &metrics,
     )
     .context("write standardized stage metrics")
+}
+
+fn discover_screen_taxonomy_report_path(
+    stage_root: &std::path::Path,
+    outputs: &[std::path::PathBuf],
+) -> Option<std::path::PathBuf> {
+    outputs
+        .iter()
+        .find(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.ends_with(".classifications.json"))
+        })
+        .cloned()
+        .or_else(|| {
+            [
+                "kraken2.classifications.json",
+                "krakenuniq.classifications.json",
+                "centrifuge.classifications.json",
+                "kaiju.classifications.json",
+                "classification_report.json",
+            ]
+            .into_iter()
+            .map(|name| stage_root.join(name))
+            .find(|path| path.exists())
+        })
 }
