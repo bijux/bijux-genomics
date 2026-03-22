@@ -1,0 +1,210 @@
+use bijux_dna_core::ids::{StageId, ToolId};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ObserverSpecializationContract {
+    pub stage_id: &'static str,
+    pub tool_id: &'static str,
+    pub semantic_surface: &'static str,
+}
+
+const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
+    ObserverSpecializationContract {
+        stage_id: "fastq.validate_reads",
+        tool_id: "fastqvalidator",
+        semantic_surface: "validation_report",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.validate_reads",
+        tool_id: "seqtk",
+        semantic_surface: "validation_report",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.validate_reads",
+        tool_id: "fqtools",
+        semantic_surface: "validation_report",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.profile_read_lengths",
+        tool_id: "seqkit_stats",
+        semantic_surface: "length_distribution_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.detect_adapters",
+        tool_id: "fastqc",
+        semantic_surface: "adapter_evidence_dir",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.profile_overrepresented_sequences",
+        tool_id: "fastqc",
+        semantic_surface: "overrepresented_sequences_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.profile_reads",
+        tool_id: "seqkit_stats",
+        semantic_surface: "qc_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.report_qc",
+        tool_id: "multiqc",
+        semantic_surface: "multiqc_data",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.remove_duplicates",
+        tool_id: "fastuniq",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.remove_duplicates",
+        tool_id: "clumpify",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_terminal_damage",
+        tool_id: "cutadapt",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_terminal_damage",
+        tool_id: "seqkit",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_polyg_tails",
+        tool_id: "fastp",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_polyg_tails",
+        tool_id: "bbduk",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.correct_errors",
+        tool_id: "rcorrector",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.correct_errors",
+        tool_id: "musket",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.correct_errors",
+        tool_id: "lighter",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.correct_errors",
+        tool_id: "bayeshammer",
+        semantic_surface: "report_json",
+    },
+];
+
+#[must_use]
+pub fn observer_specialization_contracts() -> &'static [ObserverSpecializationContract] {
+    OBSERVER_SPECIALIZATION_CONTRACTS
+}
+
+#[must_use]
+pub fn observer_specialization_contract_for_stage_tool(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+) -> Option<ObserverSpecializationContract> {
+    OBSERVER_SPECIALIZATION_CONTRACTS
+        .iter()
+        .copied()
+        .find(|binding| {
+            binding.stage_id == stage_id.as_str() && binding.tool_id == tool_id.as_str()
+        })
+}
+
+#[must_use]
+pub fn observer_specialized_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
+    OBSERVER_SPECIALIZATION_CONTRACTS
+        .iter()
+        .map(|binding| {
+            (
+                StageId::from_static(binding.stage_id),
+                ToolId::from_static(binding.tool_id),
+            )
+        })
+        .collect()
+}
+
+#[must_use]
+pub fn observer_semantic_surface_for_stage_tool(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+) -> Option<&'static str> {
+    observer_specialization_contract_for_stage_tool(stage_id, tool_id)
+        .map(|binding| binding.semantic_surface)
+}
+
+#[must_use]
+pub fn is_observer_specialized_stage_tool(stage_id: &StageId, tool_id: &ToolId) -> bool {
+    observer_specialization_contract_for_stage_tool(stage_id, tool_id).is_some()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        is_observer_specialized_stage_tool, observer_semantic_surface_for_stage_tool,
+        observer_specialization_contracts, observer_specialized_stage_tool_bindings,
+    };
+    use bijux_dna_core::ids::{StageId, ToolId};
+
+    #[test]
+    fn observer_contracts_cover_current_specialized_fastq_tools() {
+        let bindings = observer_specialized_stage_tool_bindings();
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.validate_reads"),
+            ToolId::from_static("fastqvalidator")
+        )));
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.report_qc"),
+            ToolId::from_static("multiqc")
+        )));
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.correct_errors"),
+            ToolId::from_static("lighter")
+        )));
+    }
+
+    #[test]
+    fn observer_contracts_publish_semantic_surfaces() {
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.detect_adapters"),
+                &ToolId::from_static("fastqc"),
+            ),
+            Some("adapter_evidence_dir")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.trim_polyg_tails"),
+                &ToolId::from_static("bbduk"),
+            ),
+            Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.trim_reads"),
+                &ToolId::from_static("fastp"),
+            ),
+            None
+        );
+    }
+
+    #[test]
+    fn observer_contracts_remain_unique_per_stage_tool_pair() {
+        let mut seen = std::collections::BTreeSet::new();
+        for binding in observer_specialization_contracts() {
+            assert!(seen.insert((binding.stage_id, binding.tool_id)));
+            assert!(!binding.semantic_surface.is_empty());
+            assert!(is_observer_specialized_stage_tool(
+                &StageId::from_static(binding.stage_id),
+                &ToolId::from_static(binding.tool_id),
+            ));
+        }
+    }
+}
