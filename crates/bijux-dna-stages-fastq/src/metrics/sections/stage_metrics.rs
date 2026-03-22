@@ -1347,6 +1347,66 @@ pub fn stage_metrics_for_plan(
                 "contamination_summary": contamination_summary,
             })
         }
+        "fastq.deplete_rrna" => {
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "rrna_report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("rrna_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_deplete_rrna_report(&raw).ok());
+            if let Some(report) = governed_report {
+                serde_json::json!({
+                    "reads_in": report.reads_in,
+                    "reads_out": report.reads_out,
+                    "reads_removed": report.reads_removed,
+                    "bases_in": report.bases_in,
+                    "bases_out": report.bases_out,
+                    "bases_removed": report.bases_removed,
+                    "pairs_in": report.pairs_in,
+                    "pairs_out": report.pairs_out,
+                    "rrna_fraction_removed": report.rrna_fraction_removed,
+                    "database_artifact_id": report.database_artifact_id,
+                    "screening_engine": report.screening_engine,
+                    "report_format": report.report_format,
+                    "paired_mode": report.paired_mode,
+                })
+            } else {
+                let stats = stats_for_paths(&[
+                    inputs.first().map(PathBuf::as_path),
+                    outputs.first().map(PathBuf::as_path),
+                ])?;
+                let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+                let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
+                let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+                let reads_removed = input.reads.saturating_sub(output.reads);
+                let bases_removed = input.bases.saturating_sub(output.bases);
+                let rrna_fraction_removed = if input.reads == 0 {
+                    0.0
+                } else {
+                    reads_removed as f64 / input.reads as f64
+                };
+                serde_json::json!({
+                    "reads_in": input.reads,
+                    "reads_out": output.reads,
+                    "reads_removed": reads_removed,
+                    "bases_in": input.bases,
+                    "bases_out": output.bases,
+                    "bases_removed": bases_removed,
+                    "pairs_in": pairs_in,
+                    "pairs_out": pairs_out,
+                    "rrna_fraction_removed": rrna_fraction_removed,
+                })
+            }
+        }
         _ => serde_json::json!({}),
     };
     if plan.stage_id.0.starts_with(id_catalog::FASTQ_PREFIX) {
