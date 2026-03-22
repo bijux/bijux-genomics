@@ -125,21 +125,6 @@ pub fn stage_metrics_for_plan(
                     mean_q_before: report.mean_q_before,
                     mean_q_after: report.mean_q_after,
                     delta_metrics: delta,
-                    paired_mode: Some(match report.paired_mode {
-                        bijux_dna_domain_fastq::params::PairedMode::SingleEnd => {
-                            "single_end".to_string()
-                        }
-                        bijux_dna_domain_fastq::params::PairedMode::PairedEnd => {
-                            "paired_end".to_string()
-                        }
-                        bijux_dna_domain_fastq::params::PairedMode::Unknown => {
-                            "unknown".to_string()
-                        }
-                    }),
-                    n_policy: report.n_policy,
-                    polyx_policy: report.polyx_policy,
-                    contaminant_db: report.contaminant_db,
-                    raw_backend_report_format: report.raw_backend_report_format,
                     retention,
                 })?
             } else {
