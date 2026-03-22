@@ -835,8 +835,20 @@ fn resolve_preprocess_pipeline_materializes_profile_catalog_as_graph() {
     );
     assert!(
         pipeline.edges.iter().any(|edge| {
-            edge.from == "fastq.profile_reads" && edge.to == "fastq.report_qc"
+            edge.from == "fastq.profile_reads"
+                && edge.to == "fastq.report_qc"
+                && edge.from_output_id.as_deref() == Some("qc_json")
+                && edge.to_input_id.as_deref() == Some("qc_artifacts")
         }),
-        "profile catalogs must keep the report_qc aggregation join"
+        "profile catalogs must keep the report_qc artifact aggregation join"
+    );
+    assert!(
+        !pipeline.edges.iter().any(|edge| {
+            edge.from == "fastq.profile_reads"
+                && edge.to == "fastq.report_qc"
+                && edge.from_output_id.is_none()
+                && edge.to_input_id.is_none()
+        }),
+        "report_qc joins should be explicit artifact bindings in the default DAG"
     );
 }
