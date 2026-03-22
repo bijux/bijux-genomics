@@ -5,9 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
-    correct::{
-        CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION,
-    },
+    correct::{CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION},
     PairedMode,
 };
 use bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS;
@@ -98,6 +96,13 @@ pub fn plan_correct_with_options(
             ArtifactId::from_static("reads_r2"),
             r2.to_path_buf(),
             ArtifactRole::Reads,
+        ));
+    }
+    if let Some(trusted_kmer_artifact) = options.trusted_kmer_artifact.as_ref() {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("trusted_kmer_artifact"),
+            trusted_kmer_artifact.clone(),
+            ArtifactRole::Index,
         ));
     }
     let mut outputs = vec![
@@ -193,7 +198,7 @@ fn validate_correct_options(tool_id: &str, options: &CorrectPlanOptions) -> Resu
             "{tool_id} error-correction planning does not yet map max_memory_gb into backend execution"
         ));
     }
-    if options.trusted_kmer_artifact.is_some() {
+    if options.trusted_kmer_artifact.is_some() && tool_id != "lighter" {
         return Err(anyhow!(
             "{tool_id} error-correction planning does not yet map trusted_kmer_artifact into backend execution"
         ));
@@ -228,7 +233,10 @@ fn correct_command_template(
     match tool_id {
         "rcorrector" => {
             script.push_str("run_rcorrector.pl");
-            script.push_str(&format!(" -t {threads} -od {}", shell_quote_path(&work_dir)));
+            script.push_str(&format!(
+                " -t {threads} -od {}",
+                shell_quote_path(&work_dir)
+            ));
             if let Some(input_r2) = input_r2 {
                 script.push_str(&format!(
                     " -1 {} -2 {}",
@@ -240,10 +248,7 @@ fn correct_command_template(
             }
             script.push('\n');
             script.push_str(&move_corrected_outputs_script(
-                &work_dir,
-                output_r1,
-                output_r2,
-                true,
+                &work_dir, output_r1, output_r2, true,
             ));
         }
         "musket" => {
@@ -294,12 +299,15 @@ fn correct_command_template(
             if let Some(input_r2) = input_r2 {
                 script.push_str(&format!(" -r {}", shell_quote_path(input_r2)));
             }
+            if let Some(trusted_kmer_artifact) = options.trusted_kmer_artifact.as_ref() {
+                script.push_str(&format!(
+                    " -loadTrustedKmers {}",
+                    shell_quote_path(trusted_kmer_artifact),
+                ));
+            }
             script.push('\n');
             script.push_str(&move_corrected_outputs_script(
-                &work_dir,
-                output_r1,
-                output_r2,
-                false,
+                &work_dir, output_r1, output_r2, false,
             ));
         }
         "bayeshammer" => {
@@ -594,8 +602,56 @@ mod tests {
         )
         .expect("bayeshammer plan should accept explicit memory limit");
 
-        assert_eq!(plan.effective_params["max_memory_gb"], serde_json::json!(24));
+        assert_eq!(
+            plan.effective_params["max_memory_gb"],
+            serde_json::json!(24)
+        );
         assert!(plan.command.template[2].contains("spades.py --only-error-correction"));
         assert!(plan.command.template[2].contains(" -m 24"));
+    }
+
+    #[test]
+    fn plan_correct_maps_trusted_kmers_for_lighter() {
+        let plan = plan_correct_with_options(
+            &tool("lighter"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &CorrectPlanOptions {
+                genome_size: Some(3_200_000),
+                trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
+                ..CorrectPlanOptions::default()
+            },
+        )
+        .expect("lighter should accept trusted kmer artifacts");
+
+        assert_eq!(
+            plan.effective_params["trusted_kmer_artifact"],
+            serde_json::json!("trusted.kmers")
+        );
+        assert!(plan
+            .io
+            .inputs
+            .iter()
+            .any(|artifact| artifact.name.as_str() == "trusted_kmer_artifact"
+                && artifact.role == ArtifactRole::Index));
+        assert!(plan.command.template[2].contains(" -loadTrustedKmers 'trusted.kmers'"));
+    }
+
+    #[test]
+    fn plan_correct_rejects_trusted_kmers_for_unsupported_tools() {
+        let error = plan_correct_with_options(
+            &tool("musket"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &CorrectPlanOptions {
+                trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
+                ..CorrectPlanOptions::default()
+            },
+        )
+        .expect_err("unsupported trusted kmer mappings must fail");
+
+        assert!(error.to_string().contains("trusted_kmer_artifact"));
     }
 }
