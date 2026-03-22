@@ -5,9 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
-    validate::{
-        PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
-    },
+    validate::{PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION},
     PairedMode,
 };
 use bijux_dna_domain_fastq::STAGE_VALIDATE_READS;
@@ -55,7 +53,7 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(tool, r1, r2, out_dir, &ValidateReadsPlanOptions::default())
+    plan_with_options(tool, r1, r2, out_dir, &default_plan_options_for_layout(r2))
 }
 
 pub fn plan_with_options(
@@ -68,7 +66,7 @@ pub fn plan_with_options(
     let report_path = out_dir.join("validation.json");
     let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
     let effective_validation_mode = options.validation_mode.clone();
-    let effective_pair_sync_policy = effective_pair_sync_policy(&options.pair_sync_policy, r2);
+    let effective_pair_sync_policy = validate_pair_sync_policy(&options.pair_sync_policy, r2)?;
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = ValidateEffectiveParams {
         schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
@@ -174,16 +172,36 @@ pub fn plan_from_config(
 }
 
 #[must_use]
-pub fn effective_pair_sync_policy(
+pub fn default_plan_options_for_layout(r2: Option<&Path>) -> ValidateReadsPlanOptions {
+    ValidateReadsPlanOptions {
+        pair_sync_policy: if r2.is_some() {
+            PairSyncPolicy::RequireHeaderSync
+        } else {
+            PairSyncPolicy::NotApplicable
+        },
+        ..ValidateReadsPlanOptions::default()
+    }
+}
+
+/// # Errors
+/// Returns an error if the requested pair synchronization policy does not match the input layout.
+pub fn validate_pair_sync_policy(
     requested: &PairSyncPolicy,
     r2: Option<&Path>,
-) -> PairSyncPolicy {
-    if r2.is_none() {
-        PairSyncPolicy::NotApplicable
-    } else if *requested == PairSyncPolicy::NotApplicable {
-        PairSyncPolicy::SkipHeaderSync
-    } else {
-        requested.clone()
+) -> Result<PairSyncPolicy> {
+    match (requested, r2.is_some()) {
+        (PairSyncPolicy::NotApplicable, true) => Err(anyhow!(
+            "pair_sync_policy=not_applicable is only valid for single-end validation; use skip_header_sync or require_header_sync for paired reads"
+        )),
+        (PairSyncPolicy::RequireHeaderSync | PairSyncPolicy::SkipHeaderSync, false) => Err(
+            anyhow!(
+                "pair_sync_policy={} requires paired reads",
+                serde_json::to_string(requested)
+                    .map_err(|error| anyhow!("serialize invalid pair_sync_policy: {error}"))?
+                    .trim_matches('"')
+            ),
+        ),
+        _ => Ok(requested.clone()),
     }
 }
 
@@ -233,7 +251,10 @@ fn validation_command(
     };
 
     let r1_log = out_dir.join("validation_r1.log");
-    let mut commands = vec!["set +e".to_string(), single_command(r1, &r1_log, "status_r1")?];
+    let mut commands = vec![
+        "set +e".to_string(),
+        single_command(r1, &r1_log, "status_r1")?,
+    ];
     let r2_log = r2.map(|_| out_dir.join("validation_r2.log"));
     if let Some(r2) = r2 {
         commands.push(single_command(
@@ -250,9 +271,8 @@ fn validation_command(
         "cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; }"
             .to_string(),
     );
-    commands.push(
-        "count_fastq_reads() { cat_fastq \"$1\" | awk 'END { print NR / 4 }'; }".to_string(),
-    );
+    commands
+        .push("count_fastq_reads() { cat_fastq \"$1\" | awk 'END { print NR / 4 }'; }".to_string());
     commands.push("strict_pass=true".to_string());
     commands.push("exit_code=0".to_string());
     commands.push("pair_sync_checked=false".to_string());
@@ -265,8 +285,7 @@ fn validation_command(
     ));
     commands.push("validated_reads_r2=null".to_string());
     commands.push(
-        "if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi"
-            .to_string(),
+        "if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi".to_string(),
     );
     commands.push(
         "if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi"
@@ -360,9 +379,7 @@ fn validation_command(
         shell_quote_str(&json_optional_path_token(r2_log.as_deref())?),
         shell_quote(report_path),
     ));
-    commands.push(format!(
-        "exit \"$exit_code\""
-    ));
+    commands.push(format!("exit \"$exit_code\""));
     Ok(vec![
         "sh".to_string(),
         "-lc".to_string(),
@@ -493,15 +510,12 @@ mod tests {
         assert!(plan.command.template[2].contains("\"pair_sync_checked\":"));
         assert!(plan.command.template[2].contains("\"pair_sync_pass\":"));
         assert!(plan.command.template[2].contains("\"validation_mode\":\"strict\""));
-        assert!(
-            plan.command.template[2].contains("\"pair_sync_policy\":\"require_header_sync\"")
-        );
+        assert!(plan.command.template[2].contains("\"pair_sync_policy\":\"require_header_sync\""));
         assert!(plan.command.template[2].contains("count_fastq_reads()"));
         assert!(plan.command.template[2].contains("validated_pairs=$validated_reads_r1"));
         assert!(plan.command.template[2].contains("cmp -s"));
-        assert!(
-            plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.validate.lineage.v1\"")
-        );
+        assert!(plan.command.template[2]
+            .contains("\"schema_version\":\"bijux.fastq.validate.lineage.v1\""));
         assert_eq!(
             plan.params["report_json"],
             serde_json::json!("out/validation.json")
@@ -547,7 +561,8 @@ mod tests {
     }
 
     #[test]
-    fn plan_validation_report_tracks_runtime_exit_code_instead_of_placeholder_success() -> Result<()> {
+    fn plan_validation_report_tracks_runtime_exit_code_instead_of_placeholder_success() -> Result<()>
+    {
         let plan = plan(
             &dummy_tool("fastqvalidator"),
             std::path::Path::new("reads.fastq.gz"),
@@ -647,6 +662,42 @@ mod tests {
         assert!(script.contains("exit_code=0"));
         assert!(!script.contains("cmp -s"));
         Ok(())
+    }
+
+    #[test]
+    fn explicit_single_end_policy_cannot_request_pair_sync_checks() {
+        let error = plan_with_options(
+            &dummy_tool("fastqvalidator"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+            &ValidateReadsPlanOptions {
+                threads: None,
+                validation_mode: ValidationMode::Strict,
+                pair_sync_policy: PairSyncPolicy::RequireHeaderSync,
+            },
+        )
+        .expect_err("single-end validation must reject paired sync policies");
+
+        assert!(error.to_string().contains("requires paired reads"));
+    }
+
+    #[test]
+    fn explicit_paired_policy_must_choose_a_pair_sync_mode() {
+        let error = plan_with_options(
+            &dummy_tool("fastqvalidator"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+            &ValidateReadsPlanOptions {
+                threads: None,
+                validation_mode: ValidationMode::Strict,
+                pair_sync_policy: PairSyncPolicy::NotApplicable,
+            },
+        )
+        .expect_err("paired validation must reject not_applicable policy");
+
+        assert!(error.to_string().contains("skip_header_sync"));
     }
 
     #[test]
