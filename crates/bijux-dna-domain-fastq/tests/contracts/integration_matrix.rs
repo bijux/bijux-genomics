@@ -355,9 +355,10 @@ fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
     assert_eq!(
         report_qc.comparison_input_artifact_ids,
         vec![
+            "report_json",
             "governed_qc_inputs_manifest",
-            "multiqc_data",
-            "multiqc_report"
+            "multiqc_report",
+            "multiqc_data"
         ]
     );
 

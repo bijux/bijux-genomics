@@ -38,22 +38,24 @@ fn comparison_input_artifact_ids_for_manifest_stage(stage_id: &str) -> Vec<Strin
 }
 
 fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>) {
-    let provenance_artifact_id = match stage_id {
-        "fastq.validate_reads" => Some("validated_reads_manifest"),
-        "fastq.report_qc" => Some("governed_qc_inputs_manifest"),
-        _ => None,
+    let prioritized_artifact_ids: &[&str] = match stage_id {
+        "fastq.validate_reads" => &["validated_reads_manifest"],
+        "fastq.report_qc" => &["report_json", "governed_qc_inputs_manifest"],
+        _ => &[],
     };
-    let Some(provenance_artifact_id) = provenance_artifact_id else {
+    if prioritized_artifact_ids.is_empty() {
         return;
-    };
-    let Some(position) = artifact_ids
-        .iter()
-        .position(|artifact_id| artifact_id == provenance_artifact_id)
-    else {
-        return;
-    };
-    let provenance_artifact = artifact_ids.remove(position);
-    artifact_ids.insert(0, provenance_artifact);
+    }
+    for prioritized_artifact_id in prioritized_artifact_ids.iter().rev() {
+        let Some(position) = artifact_ids
+            .iter()
+            .position(|artifact_id| artifact_id == prioritized_artifact_id)
+        else {
+            continue;
+        };
+        let artifact = artifact_ids.remove(position);
+        artifact_ids.insert(0, artifact);
+    }
 }
 
 #[must_use]
