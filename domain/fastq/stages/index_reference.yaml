@@ -11,6 +11,9 @@ outputs:
   - name: "reference_index"
     data_type: "directory"
     cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 parameters:
   - name: "threads"
     param_type: "int"
@@ -18,6 +21,8 @@ parameters:
 metrics:
   - name: "runtime_s"
     meaning: "Wall-clock runtime in seconds"
+  - name: "reference_bytes"
+    meaning: "Total bytes in the indexed reference FASTA input"
   - name: "index_file_count"
     meaning: "Number of emitted reference index files"
   - name: "index_bytes"
@@ -27,6 +32,7 @@ required_inputs:
   - reference_fasta
 required_outputs:
   - reference_index
+  - report_json
 tool_capability_requirements:
   - reference_indexing
 invariants:

@@ -15,11 +15,13 @@ stage_contracts:
     - reference_fasta
     expected_artifacts:
     - reference_index
-    notes: Reference indexing emits the governed mapper-ready reference index directory.
+    - report_json
+    notes: Reference indexing emits the governed mapper-ready reference index directory and canonical report.
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
 - reference_index
+- report_json
 metrics_schema_id: bijux.fastq.index.v1
 metrics_schema: bijux.fastq.index.v1
 version_cmd: star --version
