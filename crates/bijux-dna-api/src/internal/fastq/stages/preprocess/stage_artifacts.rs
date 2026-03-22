@@ -294,11 +294,7 @@ fn write_stage_standardized_metrics(
             "fields": ["reads_in", "reads_out", "primer_trimmed_reads"],
         }),
         "fastq.trim_terminal_damage" => parse_trim_terminal_damage_metrics(out_dir),
-        "fastq.remove_chimeras" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_out", "chimeras_removed"],
-        }),
+        "fastq.remove_chimeras" => parse_remove_chimeras_metrics(out_dir),
         "fastq.infer_asvs" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
