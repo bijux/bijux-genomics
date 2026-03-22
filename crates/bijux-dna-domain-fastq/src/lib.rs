@@ -23,6 +23,7 @@ pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
 mod qc_contract;
+mod remove_duplicates_artifacts;
 mod report_qc_artifacts;
 pub mod run;
 mod screen_taxonomy_artifacts;
@@ -66,6 +67,10 @@ pub use comparison_contract::{
 };
 pub use report_qc_artifacts::{
     GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
+};
+pub use remove_duplicates_artifacts::{
+    DuplicateClassEntryV1, RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
+    REMOVE_DUPLICATES_PROVENANCE_SCHEMA_VERSION, REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION,
 };
 pub use execution_support::{
     admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,
