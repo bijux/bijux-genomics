@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
     ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
     ProfileReadsReportV1, ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1,
     RemoveChimerasReportV1,
@@ -159,6 +160,16 @@ pub fn parse_profile_read_lengths_report(report_json: &str) -> Result<ProfileRea
     serde_json::from_str(report_json)
         .or_else(|_| parse_legacy_profile_read_lengths_report(report_json))
         .context("parse profile read lengths report")
+}
+
+/// # Errors
+/// Returns an error if the governed overrepresented-sequence report JSON cannot be parsed.
+pub fn parse_profile_overrepresented_report(
+    report_json: &str,
+) -> Result<ProfileOverrepresentedReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_profile_overrepresented_report(report_json))
+        .context("parse profile overrepresented report")
 }
 
 /// # Errors
@@ -505,6 +516,92 @@ fn parse_legacy_profile_read_lengths_report(
     })
 }
 
+fn parse_legacy_profile_overrepresented_report(
+    report_json: &str,
+) -> Result<ProfileOverrepresentedReportV1> {
+    let json = serde_json::from_str::<serde_json::Value>(report_json)
+        .context("parse legacy profile overrepresented json")?;
+    let rows = json
+        .get("rows")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| {
+            Some(OverrepresentedSequenceRowV1 {
+                sequence: entry
+                    .get("sequence")
+                    .and_then(serde_json::Value::as_str)?
+                    .to_string(),
+                count: entry.get("count").and_then(serde_json::Value::as_u64)?,
+                fraction: entry
+                    .get("fraction")
+                    .and_then(serde_json::Value::as_f64)
+                    .unwrap_or(0.0),
+                flag: entry
+                    .get("flag")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("background")
+                    .to_string(),
+            })
+        })
+        .collect::<Vec<_>>();
+    Ok(ProfileOverrepresentedReportV1 {
+        schema_version: "bijux.fastq.profile_overrepresented.report.v1_legacy".to_string(),
+        stage: "fastq.profile_overrepresented_sequences".to_string(),
+        stage_id: "fastq.profile_overrepresented_sequences".to_string(),
+        tool_id: json
+            .get("tool_id")
+            .or_else(|| json.get("tool"))
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown")
+            .to_string(),
+        paired_mode: match json.get("paired_mode").and_then(serde_json::Value::as_str) {
+            Some("paired_end") => bijux_dna_domain_fastq::PairedMode::PairedEnd,
+            _ => bijux_dna_domain_fastq::PairedMode::SingleEnd,
+        },
+        threads: json
+            .get("threads")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
+        top_k: json
+            .get("top_k")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or_else(|| u32::try_from(rows.len()).unwrap_or(u32::MAX).max(1)),
+        input_r1: String::new(),
+        input_r2: None,
+        overrepresented_sequences_tsv: String::new(),
+        overrepresented_sequences_json: String::new(),
+        report_json: String::new(),
+        sequence_count: json
+            .get("sequence_count")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(rows.len() as u64),
+        flagged_sequences: json
+            .get("flagged_sequences")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or_else(|| {
+                rows.iter()
+                    .filter(|row| row.flag == "overrepresented")
+                    .count() as u64
+            }),
+        top_fraction: json
+            .get("top_fraction")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or_else(|| rows.first().map(|row| row.fraction).unwrap_or(0.0)),
+        rows,
+        runtime_s: json.get("runtime_s").and_then(serde_json::Value::as_f64),
+        memory_mb: json.get("memory_mb").and_then(serde_json::Value::as_f64),
+        exit_code: json
+            .get("exit_code")
+            .and_then(serde_json::Value::as_i64)
+            .and_then(|value| i32::try_from(value).ok()),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+    })
+}
+
 /// # Errors
 /// Returns an error if report JSON cannot be parsed.
 pub fn parse_low_complexity_report(report_json: &str) -> Result<u64> {
@@ -709,6 +806,7 @@ mod tests {
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
         parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
         parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
+        parse_profile_overrepresented_report,
         parse_profile_read_lengths_report, parse_profile_reads_report,
         parse_remove_chimeras_report,
         parse_remove_duplicates_report, parse_report_qc_report,
@@ -1319,6 +1417,65 @@ mod tests {
         assert_eq!(parsed.read_count, 100);
         assert_eq!(parsed.max_read_length, 101);
         assert_eq!(parsed.distinct_lengths, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_profile_overrepresented_report_parses_governed_contract() -> Result<()> {
+        let parsed = parse_profile_overrepresented_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.profile_overrepresented.report.v2",
+                "stage": "fastq.profile_overrepresented_sequences",
+                "stage_id": "fastq.profile_overrepresented_sequences",
+                "tool_id": "fastqc",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "top_k": 25,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "overrepresented_sequences_tsv": "overrepresented_sequences.tsv",
+                "overrepresented_sequences_json": "overrepresented_sequences.json",
+                "report_json": "overrepresented_report.json",
+                "sequence_count": 25,
+                "flagged_sequences": 3,
+                "top_fraction": 0.12,
+                "rows": [
+                    {"sequence": "ACGT", "count": 12, "fraction": 0.12, "flag": "overrepresented"}
+                ],
+                "runtime_s": 1.4,
+                "memory_mb": 48.0,
+                "exit_code": 0,
+                "raw_backend_report": "fastqc_data.txt",
+                "raw_backend_report_format": "fastqc_module_txt"
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "fastqc");
+        assert_eq!(parsed.top_k, 25);
+        assert_eq!(parsed.rows.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_profile_overrepresented_report_accepts_legacy_payload() -> Result<()> {
+        let parsed = parse_profile_overrepresented_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.profile_overrepresented_sequences.v1",
+                "tool": "seqkit",
+                "sequence_count": 2,
+                "flagged_sequences": 1,
+                "top_fraction": 0.4,
+                "rows": [
+                    {"sequence": "AAAA", "count": 40, "fraction": 0.4, "flag": "overrepresented"},
+                    {"sequence": "TTTT", "count": 10, "fraction": 0.1, "flag": "background"}
+                ]
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "seqkit");
+        assert_eq!(parsed.sequence_count, 2);
+        assert_eq!(parsed.flagged_sequences, 1);
+        assert_eq!(parsed.top_fraction, 0.4);
         Ok(())
     }
 
