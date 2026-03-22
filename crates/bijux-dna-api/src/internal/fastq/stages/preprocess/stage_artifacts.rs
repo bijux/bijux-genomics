@@ -613,11 +613,7 @@ fn write_stage_standardized_metrics(
         "fastq.trim_terminal_damage" => parse_trim_terminal_damage_metrics(out_dir),
         "fastq.remove_chimeras" => parse_remove_chimeras_metrics(out_dir),
         "fastq.infer_asvs" => parse_infer_asvs_metrics(out_dir),
-        "fastq.cluster_otus" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["otu_count", "cluster_radius", "sample_count"],
-        }),
+        "fastq.cluster_otus" => parse_cluster_otus_metrics(out_dir),
         _ => return Ok(()),
     };
     bijux_dna_infra::atomic_write_json(
