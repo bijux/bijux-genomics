@@ -290,12 +290,11 @@ mod tests {
 
     #[test]
     fn bbduk_low_complexity_plan_maps_entropy_and_polyx_thresholds() {
-        let temp = tempfile::tempdir().expect("tempdir");
         let plan = plan_low_complexity(
             &tool("bbduk"),
             Path::new("reads.fastq.gz"),
             None,
-            temp.path(),
+            Path::new("out"),
             &LowComplexityPlanOptions {
                 entropy_threshold: Some(0.8),
                 polyx_threshold: Some(24),
@@ -318,12 +317,11 @@ mod tests {
 
     #[test]
     fn prinseq_low_complexity_plan_rejects_explicit_polyx_threshold() {
-        let temp = tempfile::tempdir().expect("tempdir");
         let error = plan_low_complexity(
             &tool("prinseq"),
             Path::new("reads.fastq.gz"),
             None,
-            temp.path(),
+            Path::new("out"),
             &LowComplexityPlanOptions {
                 entropy_threshold: Some(0.5),
                 polyx_threshold: Some(20),
@@ -339,12 +337,11 @@ mod tests {
 
     #[test]
     fn prinseq_low_complexity_plan_uses_default_entropy_threshold() {
-        let temp = tempfile::tempdir().expect("tempdir");
         let plan = plan_low_complexity(
             &tool("prinseq"),
             Path::new("reads.fastq.gz"),
             None,
-            temp.path(),
+            Path::new("out"),
             &LowComplexityPlanOptions::default(),
         )
         .expect("plan");

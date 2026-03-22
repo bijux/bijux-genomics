@@ -2015,15 +2015,47 @@ mod tests {
             .to_string(),
         )
         .expect("write report");
-        let plan = plan_fixture(
-            "fastq.filter_low_complexity",
-            "bbduk",
-            vec![
-                ("reads_r1", &reads_path),
-                ("filtered_fastq_r1", &filtered_reads_path),
-                ("filter_report_json", &report_path),
-            ],
-        );
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.filter_low_complexity"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("bbduk"),
+            tool_version: "test".to_string(),
+            image: serde_json::from_value(serde_json::json!({
+                "image": "bijuxdna/test",
+                "digest": null,
+            }))
+            .expect("image"),
+            command: serde_json::from_value(serde_json::json!({
+                "template": ["echo", "ok"],
+            }))
+            .expect("command"),
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path.clone(),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("filtered_fastq_r1"),
+                        filtered_reads_path.clone(),
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("filter_report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            },
+            out_dir: temp.path().to_path_buf(),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: std::collections::BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
         let outputs = plan.io.outputs.clone();
 
         let output = plugin.parse_outputs(&plan, &outputs).expect("parse outputs");
