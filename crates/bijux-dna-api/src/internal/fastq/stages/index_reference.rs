@@ -11,6 +11,9 @@ use bijux_dna_analyze::{
 };
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_domain_fastq::{
+    IndexReferenceFileEntryV1, IndexReferenceReportV1, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_index_reference_tools;
@@ -172,41 +175,37 @@ fn build_index_reference_record(
         .and_then(serde_json::Value::as_str)
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| out_dir.join("reference_index"));
+    let report_json = params
+        .get("report_json")
+        .and_then(serde_json::Value::as_str)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| out_dir.join("index_reference_report.json"));
     let index_root = out_dir.join("reference_index");
-    let mut index_bytes = 0_u64;
-    let mut index_file_count = 0_u64;
-    if index_root.exists() {
-        for entry in walkdir::WalkDir::new(&index_root).into_iter().flatten() {
-            if entry.file_type().is_file() {
-                index_file_count += 1;
-                index_bytes += entry.metadata().map(|meta| meta.len()).unwrap_or(0);
-            }
-        }
-    }
+    let reference_bytes = std::fs::metadata(reference_fasta)
+        .with_context(|| format!("stat {}", reference_fasta.display()))?
+        .len();
+    let emitted_files = collect_index_reference_files(&index_root)?;
+    let index_bytes = emitted_files.iter().map(|entry| entry.bytes).sum::<u64>();
+    let index_file_count = emitted_files.len() as u64;
+    let report = canonical_index_reference_report(
+        tool,
+        params,
+        reference_fasta,
+        reference_bytes,
+        &index_artifact,
+        &report_json,
+        emitted_files,
+        execution,
+    );
     let metrics = FastqIndexReferenceMetrics {
-        reference_bytes: std::fs::metadata(reference_fasta)
-            .with_context(|| format!("stat {}", reference_fasta.display()))?
-            .len(),
-        index_bytes,
-        index_file_count,
+        reference_bytes: report.reference_bytes,
+        index_bytes: report.index_bytes,
+        index_file_count: report.index_file_count,
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.index_reference.report.v1",
-        "stage_id": STAGE_INDEX_REFERENCE.as_str(),
-        "tool_id": tool,
-        "reference_fasta": reference_fasta,
-        "reference_index": index_artifact,
-        "reference_bytes": metrics.reference_bytes,
-        "index_bytes": metrics.index_bytes,
-        "index_file_count": metrics.index_file_count,
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
-    });
-    bijux_dna_infra::atomic_write_json(&out_dir.join("index_reference_report.json"), &report)
+    bijux_dna_infra::atomic_write_json(&report_json, &report)
         .context("write index-reference report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
@@ -236,4 +235,84 @@ fn build_index_reference_record(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn collect_index_reference_files(
+    index_root: &std::path::Path,
+) -> Result<Vec<IndexReferenceFileEntryV1>> {
+    let mut files = Vec::new();
+    if !index_root.exists() {
+        return Ok(files);
+    }
+    for entry in walkdir::WalkDir::new(index_root).into_iter().flatten() {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let relative_path = entry
+            .path()
+            .strip_prefix(index_root)
+            .unwrap_or(entry.path())
+            .to_string_lossy()
+            .to_string();
+        let bytes = entry.metadata().map(|meta| meta.len()).unwrap_or(0);
+        files.push(IndexReferenceFileEntryV1 {
+            relative_path,
+            bytes,
+        });
+    }
+    files.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));
+    Ok(files)
+}
+
+fn canonical_index_reference_report(
+    tool_id: &str,
+    params: &serde_json::Value,
+    reference_fasta: &std::path::Path,
+    reference_bytes: u64,
+    reference_index: &std::path::Path,
+    report_json: &std::path::Path,
+    emitted_files: Vec<IndexReferenceFileEntryV1>,
+    execution: &bijux_dna_runner::step_runner::StageResultV1,
+) -> IndexReferenceReportV1 {
+    let threads = params
+        .get("threads")
+        .and_then(serde_json::Value::as_u64)
+        .and_then(|value| u32::try_from(value).ok())
+        .unwrap_or(1);
+    let index_prefix = match tool_id {
+        "bowtie2_build" => Some("reference".to_string()),
+        _ => None,
+    };
+    let index_bytes = emitted_files.iter().map(|entry| entry.bytes).sum::<u64>();
+    let backend_metrics = serde_json::json!({
+        "index_directory": reference_index
+            .parent()
+            .unwrap_or(reference_index)
+            .display()
+            .to_string(),
+        "emitted_file_names": emitted_files
+            .iter()
+            .map(|entry| entry.relative_path.clone())
+            .collect::<Vec<_>>(),
+    });
+    IndexReferenceReportV1 {
+        schema_version: INDEX_REFERENCE_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_INDEX_REFERENCE.as_str().to_string(),
+        stage_id: STAGE_INDEX_REFERENCE.as_str().to_string(),
+        tool_id: tool_id.to_string(),
+        threads,
+        index_format: tool_id.to_string(),
+        reference_fasta: reference_fasta.display().to_string(),
+        reference_bytes,
+        reference_index: reference_index.display().to_string(),
+        report_json: report_json.display().to_string(),
+        index_prefix,
+        index_file_count: emitted_files.len() as u64,
+        index_bytes,
+        emitted_files,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
+        exit_code: Some(execution.exit_code),
+        backend_metrics: Some(backend_metrics),
+    }
 }
