@@ -30,6 +30,17 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_TRIM_READS,
 };
 
+fn apply_thread_override(
+    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
+    threads: Option<u32>,
+) -> bijux_dna_core::prelude::ToolExecutionSpecV1 {
+    let mut spec = tool_spec.clone();
+    if let Some(threads) = threads {
+        spec.resources.threads = threads.max(1);
+    }
+    spec
+}
+
 fn load_governed_trim_report(report_path: &std::path::Path) -> Result<TrimReadsReportV1> {
     let raw = std::fs::read_to_string(report_path)
         .with_context(|| format!("read governed trim report {}", report_path.display()))?;
@@ -183,6 +194,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+        let tool_spec = apply_thread_override(&tool_spec, args.threads);
         let plan = plan_with_options(
             &tool_spec,
             &bench_inputs.r1,
@@ -477,11 +489,35 @@ fn benchmark_query_context(
 #[cfg(test)]
 mod tests {
     use super::{
-        adapter_bank_requested, adapter_policy_uses_bank, benchmark_query_context,
-        contaminant_policy_uses_bank, normalized_adapter_policy, normalized_contaminant_policy,
-        normalized_polyx_policy, polyx_policy_uses_bank, write_governed_trim_report,
+        adapter_bank_requested, adapter_policy_uses_bank, apply_thread_override,
+        benchmark_query_context, contaminant_policy_uses_bank, normalized_adapter_policy,
+        normalized_contaminant_policy, normalized_polyx_policy, polyx_policy_uses_bank,
+        write_governed_trim_report,
+    };
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
     };
     use bijux_dna_domain_fastq::{PairedMode, TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
+
+    fn dummy_tool(tool_id: &'static str, threads: u32) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static(tool_id),
+            tool_version: "1.0.0".to_string(),
+            image: ContainerImageRefV1 {
+                image: format!("{tool_id}:latest"),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec![tool_id.to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads,
+            },
+        }
+    }
 
     #[test]
     fn benchmark_query_context_captures_governed_trim_bank_hashes() {
@@ -565,6 +601,7 @@ mod tests {
             replicates: 1,
             jobs: 1,
             ci_bootstrap: None,
+            threads: None,
             adapter_bank_preset: Some("illumina-default".to_string()),
             adapter_bank: None,
             adapter_bank_file: None,
@@ -634,5 +671,12 @@ mod tests {
             decoded.raw_backend_report_format.as_deref(),
             Some("fastp_json")
         );
+    }
+
+    #[test]
+    fn thread_override_replaces_governed_trim_threads() {
+        let tool = dummy_tool("fastp", 2);
+        let overridden = apply_thread_override(&tool, Some(8));
+        assert_eq!(overridden.resources.threads, 8);
     }
 }

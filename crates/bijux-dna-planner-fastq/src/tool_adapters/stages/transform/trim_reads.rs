@@ -184,6 +184,7 @@ pub fn plan_with_options(
         "input_r2": r2,
         "output_r1": output_r1,
         "output_r2": output_r2,
+        "threads": tool.resources.threads,
         "min_length": options.resolved_min_length(),
         "quality_cutoff": options.quality_cutoff,
         "n_policy": options.resolved_n_policy(),
