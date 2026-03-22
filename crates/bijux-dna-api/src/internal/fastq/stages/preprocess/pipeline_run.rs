@@ -82,149 +82,151 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let mut planner_stage_toolsets = Vec::new();
     let mut selected_stage_tools = match preprocess_selection_mode(args) {
         PreprocessSelectionMode::RunAllGovernedTools => {
-        let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
-            &runtime_pipeline,
-            bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
-            args.allow_planned,
-        )?;
-        let filtered_toolsets = toolsets
-            .into_iter()
-            .map(|toolset| {
-                let filtered = filter_tools_by_role(
-                    &toolset.stage_id,
-                    &toolset.tool_ids,
-                    &registry,
-                    false,
-                )?;
-                let filtered = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
-                    &bijux_dna_core::ids::StageId::new(toolset.stage_id.clone()),
-                    filtered
-                        .into_iter()
-                        .map(bijux_dna_core::ids::ToolId::new)
-                        .collect(),
-                    paired_end,
-                )
-                .into_iter()
-                .map(|tool_id| tool_id.to_string())
-                .collect::<Vec<_>>();
-                Ok(bijux_dna_planner_fastq::ToolsetSelection {
-                    stage_id: toolset.stage_id,
-                    stage_instance_id: toolset.stage_instance_id,
-                    tool_ids: filtered,
-                    reason: toolset.reason,
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        planner_stage_toolsets = filtered_toolsets
-            .iter()
-            .map(|toolset| {
-                let tools = toolset
-                    .tool_ids
-                    .iter()
-                    .map(|tool_id| {
-                        let spec = build_tool_execution_spec(
-                            toolset.stage_id.as_str(),
-                            tool_id.as_str(),
-                            &registry,
-                            catalog,
-                            platform,
-                        )?;
-                        Ok(scale_tool_spec_for_jobs(&spec, jobs))
-                    })
-                    .collect::<Result<Vec<_>>>()?;
-                Ok(bijux_dna_planner_fastq::FastqStageToolsetBinding {
-                    stage_id: toolset.stage_id.clone(),
-                    stage_instance_id: toolset.stage_instance_id.clone(),
-                    tools,
-                    reason: Some(toolset.reason.clone()),
-                    params: None,
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        let (_expanded_pipeline, expanded_stage_tools) =
-            bijux_dna_planner_fastq::expand_pipeline_stage_tool_routes(
+            let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
                 &runtime_pipeline,
-                &filtered_toolsets,
+                bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
+                args.allow_planned,
             )?;
-        expanded_stage_tools
+            let filtered_toolsets = toolsets
+                .into_iter()
+                .map(|toolset| {
+                    let filtered = filter_tools_by_role(
+                        &toolset.stage_id,
+                        &toolset.tool_ids,
+                        &registry,
+                        false,
+                    )?;
+                    let filtered =
+                        bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
+                            &bijux_dna_core::ids::StageId::new(toolset.stage_id.clone()),
+                            filtered
+                                .into_iter()
+                                .map(bijux_dna_core::ids::ToolId::new)
+                                .collect(),
+                            paired_end,
+                        )
+                        .into_iter()
+                        .map(|tool_id| tool_id.to_string())
+                        .collect::<Vec<_>>();
+                    Ok(bijux_dna_planner_fastq::ToolsetSelection {
+                        stage_id: toolset.stage_id,
+                        stage_instance_id: toolset.stage_instance_id,
+                        tool_ids: filtered,
+                        reason: toolset.reason,
+                    })
+                })
+                .collect::<Result<Vec<_>>>()?;
+            planner_stage_toolsets = filtered_toolsets
+                .iter()
+                .map(|toolset| {
+                    let tools = toolset
+                        .tool_ids
+                        .iter()
+                        .map(|tool_id| {
+                            let spec = build_tool_execution_spec(
+                                toolset.stage_id.as_str(),
+                                tool_id.as_str(),
+                                &registry,
+                                catalog,
+                                platform,
+                            )?;
+                            Ok(scale_tool_spec_for_jobs(&spec, jobs))
+                        })
+                        .collect::<Result<Vec<_>>>()?;
+                    Ok(bijux_dna_planner_fastq::FastqStageToolsetBinding {
+                        stage_id: toolset.stage_id.clone(),
+                        stage_instance_id: toolset.stage_instance_id.clone(),
+                        tools,
+                        reason: Some(toolset.reason.clone()),
+                        params: None,
+                    })
+                })
+                .collect::<Result<Vec<_>>>()?;
+            let (_expanded_pipeline, expanded_stage_tools) =
+                bijux_dna_planner_fastq::expand_pipeline_stage_tool_routes(
+                    &runtime_pipeline,
+                    &filtered_toolsets,
+                )?;
+            expanded_stage_tools
         }
         PreprocessSelectionMode::DefaultChoice => {
-        let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
-            &runtime_pipeline,
-            bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::DefaultChoice,
-            args.allow_planned,
-        )?;
-        let filtered_toolsets = toolsets
-            .into_iter()
-            .map(|toolset| {
-                let filtered = filter_tools_by_role(
-                    &toolset.stage_id,
-                    &toolset.tool_ids,
-                    &registry,
-                    false,
-                )?;
-                let filtered = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
-                    &bijux_dna_core::ids::StageId::new(toolset.stage_id.clone()),
-                    filtered
-                        .into_iter()
-                        .map(bijux_dna_core::ids::ToolId::new)
-                        .collect(),
-                    paired_end,
-                )
+            let toolsets = bijux_dna_planner_fastq::select_preprocess_toolsets(
+                &runtime_pipeline,
+                bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::DefaultChoice,
+                args.allow_planned,
+            )?;
+            let filtered_toolsets = toolsets
                 .into_iter()
-                .map(|tool_id| tool_id.to_string())
-                .collect::<Vec<_>>();
-                Ok(bijux_dna_planner_fastq::ToolsetSelection {
-                    stage_id: toolset.stage_id,
-                    stage_instance_id: toolset.stage_instance_id,
-                    tool_ids: filtered,
-                    reason: toolset.reason,
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        planner_stage_toolsets = filtered_toolsets
-            .iter()
-            .map(|toolset| {
-                let tools = toolset
-                    .tool_ids
-                    .iter()
-                    .map(|tool_id| {
-                        let spec = build_tool_execution_spec(
-                            toolset.stage_id.as_str(),
-                            tool_id.as_str(),
-                            &registry,
-                            catalog,
-                            platform,
-                        )?;
-                        Ok(scale_tool_spec_for_jobs(&spec, jobs))
+                .map(|toolset| {
+                    let filtered = filter_tools_by_role(
+                        &toolset.stage_id,
+                        &toolset.tool_ids,
+                        &registry,
+                        false,
+                    )?;
+                    let filtered =
+                        bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
+                            &bijux_dna_core::ids::StageId::new(toolset.stage_id.clone()),
+                            filtered
+                                .into_iter()
+                                .map(bijux_dna_core::ids::ToolId::new)
+                                .collect(),
+                            paired_end,
+                        )
+                        .into_iter()
+                        .map(|tool_id| tool_id.to_string())
+                        .collect::<Vec<_>>();
+                    Ok(bijux_dna_planner_fastq::ToolsetSelection {
+                        stage_id: toolset.stage_id,
+                        stage_instance_id: toolset.stage_instance_id,
+                        tool_ids: filtered,
+                        reason: toolset.reason,
                     })
-                    .collect::<Result<Vec<_>>>()?;
-                Ok(bijux_dna_planner_fastq::FastqStageToolsetBinding {
-                    stage_id: toolset.stage_id.clone(),
-                    stage_instance_id: toolset.stage_instance_id.clone(),
-                    tools,
-                    reason: Some(toolset.reason.clone()),
-                    params: None,
                 })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        filtered_toolsets
-            .into_iter()
-            .map(|toolset| {
-                let tool_id = toolset.tool_ids.into_iter().next().ok_or_else(|| {
-                    anyhow!(
-                        "default preprocess toolset for {} did not resolve to a runnable tool",
-                        toolset.stage_id
-                    )
-                })?;
-                Ok(StageToolSelection {
-                    stage_id: toolset.stage_id,
-                    stage_instance_id: toolset.stage_instance_id,
-                    tool_id,
-                    reason: toolset.reason,
+                .collect::<Result<Vec<_>>>()?;
+            planner_stage_toolsets = filtered_toolsets
+                .iter()
+                .map(|toolset| {
+                    let tools = toolset
+                        .tool_ids
+                        .iter()
+                        .map(|tool_id| {
+                            let spec = build_tool_execution_spec(
+                                toolset.stage_id.as_str(),
+                                tool_id.as_str(),
+                                &registry,
+                                catalog,
+                                platform,
+                            )?;
+                            Ok(scale_tool_spec_for_jobs(&spec, jobs))
+                        })
+                        .collect::<Result<Vec<_>>>()?;
+                    Ok(bijux_dna_planner_fastq::FastqStageToolsetBinding {
+                        stage_id: toolset.stage_id.clone(),
+                        stage_instance_id: toolset.stage_instance_id.clone(),
+                        tools,
+                        reason: Some(toolset.reason.clone()),
+                        params: None,
+                    })
                 })
-            })
-            .collect::<Result<Vec<_>>>()?
+                .collect::<Result<Vec<_>>>()?;
+            filtered_toolsets
+                .into_iter()
+                .map(|toolset| {
+                    let tool_id = toolset.tool_ids.into_iter().next().ok_or_else(|| {
+                        anyhow!(
+                            "default preprocess toolset for {} did not resolve to a runnable tool",
+                            toolset.stage_id
+                        )
+                    })?;
+                    Ok(StageToolSelection {
+                        stage_id: toolset.stage_id,
+                        stage_instance_id: toolset.stage_instance_id,
+                        tool_id,
+                        reason: toolset.reason,
+                    })
+                })
+                .collect::<Result<Vec<_>>>()?
         }
         PreprocessSelectionMode::AutoSelect => select_preprocess_stage_tools(
             &registry,
@@ -237,8 +239,12 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     };
     let mut filtered_stage_tools = Vec::new();
     for selection in &selected_stage_tools {
-        let mut allowed =
-            filter_tools_by_role(&selection.stage_id, std::slice::from_ref(&selection.tool_id), &registry, false)?;
+        let mut allowed = filter_tools_by_role(
+            &selection.stage_id,
+            std::slice::from_ref(&selection.tool_id),
+            &registry,
+            false,
+        )?;
         if let Some(selected) = allowed.pop() {
             filtered_stage_tools.push(StageToolSelection {
                 stage_id: selection.stage_id.clone(),
@@ -326,7 +332,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .iter()
         .any(|stage| stage == &STAGE_REPORT_QC)
     {
-        for aux_tool in bijux_dna_planner_fastq::stage_api::fastq::report_qc::aux_tool_ids() {
+        for aux_tool in report_qc_aux_tool_ids(&selected_stage_tools) {
             let spec = catalog
                 .get(aux_tool.as_str())
                 .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
@@ -345,11 +351,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .as_deref()
         .unwrap_or("fastq-to-fastq__default__v1")
         .to_string();
-    let planner_stage_toolsets = planner_selection_surfaces(
-        &selected_stage_tools,
-        &tool_specs,
-        planner_stage_toolsets,
-    );
+    let planner_stage_toolsets =
+        planner_selection_surfaces(&selected_stage_tools, &tool_specs, planner_stage_toolsets);
     let planner_config = FastqPlanConfig {
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
@@ -764,6 +767,24 @@ fn preprocess_selection_mode(
     }
 }
 
+fn report_qc_aux_tool_ids(selected_stage_tools: &[StageToolSelection]) -> Vec<String> {
+    let producer_stage_ids = bijux_dna_planner_fastq::stage_api::governed_qc_producer_stage_ids()
+        .into_iter()
+        .map(|stage_id| stage_id.to_string())
+        .collect::<std::collections::BTreeSet<_>>();
+    let mut tool_ids = selected_stage_tools
+        .iter()
+        .filter(|selection| {
+            selection.stage_id != STAGE_REPORT_QC.as_str()
+                && producer_stage_ids.contains(selection.stage_id.as_str())
+        })
+        .map(|selection| selection.tool_id.clone())
+        .collect::<Vec<_>>();
+    tool_ids.sort();
+    tool_ids.dedup();
+    tool_ids
+}
+
 fn execution_step_batches(graph: &ExecutionGraph) -> Result<Vec<Vec<ExecutionStep>>> {
     let mut incoming = std::collections::BTreeMap::<String, usize>::new();
     let mut outgoing = std::collections::BTreeMap::<String, Vec<String>>::new();
@@ -779,7 +800,13 @@ fn execution_step_batches(graph: &ExecutionGraph) -> Result<Vec<Vec<ExecutionSte
     }
     let mut ready = incoming
         .iter()
-        .filter_map(|(node_id, count)| if *count == 0 { Some(node_id.clone()) } else { None })
+        .filter_map(|(node_id, count)| {
+            if *count == 0 {
+                Some(node_id.clone())
+            } else {
+                None
+            }
+        })
         .collect::<Vec<_>>();
     ready.sort();
     let mut batches = Vec::new();
@@ -855,13 +882,15 @@ fn planner_selection_surfaces(
     selected_stage_tools
         .iter()
         .zip(tool_specs.iter())
-        .map(|(selection, tool)| bijux_dna_planner_fastq::FastqStageToolsetBinding {
-            stage_id: selection.stage_id.clone(),
-            stage_instance_id: selection.stage_instance_id.clone(),
-            tools: vec![tool.clone()],
-            reason: Some(selection.reason.clone()),
-            params: None,
-        })
+        .map(
+            |(selection, tool)| bijux_dna_planner_fastq::FastqStageToolsetBinding {
+                stage_id: selection.stage_id.clone(),
+                stage_instance_id: selection.stage_instance_id.clone(),
+                tools: vec![tool.clone()],
+                reason: Some(selection.reason.clone()),
+                params: None,
+            },
+        )
         .collect::<Vec<_>>()
 }
 
@@ -886,7 +915,8 @@ fn execute_preprocess_batch(
             .map(|artifact| artifact.path.clone())
             .collect::<Vec<_>>();
         let runtime_marker = stage_root.join("runtime_provenance.json");
-        let resume_hit = runtime_marker.exists() && expected_outputs.iter().all(|path| path.exists());
+        let resume_hit =
+            runtime_marker.exists() && expected_outputs.iter().all(|path| path.exists());
         if resume_hit {
             resumable.push((
                 idx,
@@ -935,7 +965,9 @@ fn execute_preprocess_batch(
     let executed = if jobs <= 1 || pending.len() <= 1 {
         pending
             .iter()
-            .map(|(_, request)| execution_kernel::ToolExec::invoke(request).map(|result| result.stage_result))
+            .map(|(_, request)| {
+                execution_kernel::ToolExec::invoke(request).map(|result| result.stage_result)
+            })
             .collect::<Result<Vec<_>>>()?
     } else {
         let total = pending.len();
@@ -965,7 +997,8 @@ fn execute_preprocess_batch(
                 let Some((slot, request)) = next else {
                     break;
                 };
-                let value = execution_kernel::ToolExec::invoke(&request).map(|result| result.stage_result);
+                let value =
+                    execution_kernel::ToolExec::invoke(&request).map(|result| result.stage_result);
                 if let Ok(mut guard) = results.lock() {
                     guard[slot] = Some(value);
                 } else {
@@ -984,7 +1017,8 @@ fn execute_preprocess_batch(
         };
         let mut out = Vec::with_capacity(results.len());
         for entry in results {
-            let value = entry.unwrap_or_else(|| Err(anyhow!("preprocess batch execution result missing")))?;
+            let value = entry
+                .unwrap_or_else(|| Err(anyhow!("preprocess batch execution result missing")))?;
             out.push(value);
         }
         out
@@ -1006,12 +1040,17 @@ fn execute_preprocess_batch(
 mod pipeline_run_tests {
     use super::{
         execution_step_batches, planner_selection_surfaces, preprocess_selection_mode,
-        terminal_step_ids, PreprocessSelectionMode,
+        report_qc_aux_tool_ids, terminal_step_ids, PreprocessSelectionMode,
     };
     use anyhow::Result;
-    use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints};
-    use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId, ToolId};
+    use bijux_dna_core::contract::{
+        ExecutionEdge, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints,
+    };
     use bijux_dna_core::prelude::ToolExecutionSpecV1;
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId,
+        ToolId,
+    };
     use bijux_dna_planner_fastq::stage_api::args::{BenchFastqPreprocessArgs, FastqPlannerMode};
     use bijux_dna_planner_fastq::StageToolSelection;
     use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind};
@@ -1144,7 +1183,11 @@ mod pipeline_run_tests {
             "fastq-to-fastq__terminal_steps__v1",
             "planner.test",
             PlanPolicy::default(),
-            vec![step("trim.fastp"), step("trim.cutadapt"), step("trim.compare")],
+            vec![
+                step("trim.fastp"),
+                step("trim.cutadapt"),
+                step("trim.compare"),
+            ],
             vec![
                 ExecutionEdge::new(
                     StepId::new("trim.fastp".to_string()),
@@ -1229,10 +1272,7 @@ mod pipeline_run_tests {
 
         assert_eq!(toolsets.len(), 1);
         assert_eq!(toolsets[0].stage_id, "fastq.trim_reads");
-        assert_eq!(
-            toolsets[0].stage_instance_id.as_deref(),
-            Some("trim.fastp")
-        );
+        assert_eq!(toolsets[0].stage_instance_id.as_deref(), Some("trim.fastp"));
         assert_eq!(toolsets[0].tools.len(), 1);
         assert_eq!(toolsets[0].tools[0].tool_id.as_str(), "fastp");
     }
@@ -1286,5 +1326,54 @@ mod pipeline_run_tests {
             preprocess_selection_mode(&args),
             PreprocessSelectionMode::AutoSelect
         );
+    }
+
+    #[test]
+    fn report_qc_aux_tools_follow_selected_upstream_branches() {
+        let tool_ids = report_qc_aux_tool_ids(&[
+            StageToolSelection {
+                stage_id: "fastq.validate_reads".to_string(),
+                stage_instance_id: Some("fastq.validate_reads.validation".to_string()),
+                tool_id: "fastqvalidator".to_string(),
+                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+            },
+            StageToolSelection {
+                stage_id: "fastq.trim_reads".to_string(),
+                stage_instance_id: Some("fastq.trim_reads.trim.fastp".to_string()),
+                tool_id: "fastp".to_string(),
+                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+            },
+            StageToolSelection {
+                stage_id: "fastq.report_qc".to_string(),
+                stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                tool_id: "multiqc".to_string(),
+                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+            },
+        ]);
+
+        assert_eq!(
+            tool_ids,
+            vec!["fastp".to_string(), "fastqvalidator".to_string()]
+        );
+    }
+
+    #[test]
+    fn report_qc_aux_tools_ignore_non_qc_producer_stages() {
+        let tool_ids = report_qc_aux_tool_ids(&[
+            StageToolSelection {
+                stage_id: "fastq.index_reference".to_string(),
+                stage_instance_id: Some("fastq.index_reference.reference".to_string()),
+                tool_id: "bwa".to_string(),
+                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+            },
+            StageToolSelection {
+                stage_id: "fastq.report_qc".to_string(),
+                stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                tool_id: "multiqc".to_string(),
+                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+            },
+        ]);
+
+        assert!(tool_ids.is_empty());
     }
 }
