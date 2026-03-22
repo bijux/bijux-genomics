@@ -36,21 +36,46 @@ fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
     None
 }
 
-fn parse_validate_reads_metrics(execution: &StageResultV1) -> serde_json::Value {
+fn parse_validate_reads_metrics(
+    out_dir: &std::path::Path,
+    execution: &StageResultV1,
+) -> serde_json::Value {
+    let report_path = out_dir.join("validation.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_validation_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.validate_reads",
+                "validator": report.tool_id,
+                "validation_mode": report.validation_mode,
+                "pair_sync_policy": report.pair_sync_policy,
+                "validated_inputs": report.validated_inputs,
+                "validated_reads_r1": report.validated_reads_r1,
+                "validated_reads_r2": report.validated_reads_r2,
+                "validated_pairs": report.validated_pairs,
+                "status_r1": report.status_r1,
+                "status_r2": report.status_r2,
+                "pair_sync_checked": report.pair_sync_checked,
+                "pair_sync_pass": report.pair_sync_pass,
+                "pair_count_match": report.pair_count_match,
+                "failure_class": report.failure_class,
+                "strict_pass": report.strict_pass,
+                "exit_code": report.exit_code,
+                "report_json": report_path,
+            });
+        }
+    }
+
     let merged = format!("{}\n{}", execution.stdout, execution.stderr);
-    let read_count = parse_first_u64_after_key(&merged, "read")
-        .or_else(|| parse_first_u64_after_key(&merged, "sequences"));
-    let base_count =
-        parse_first_u64_after_key(&merged, "base").or_else(|| parse_first_u64_after_key(&merged, "bp"));
-    let errors = parse_first_u64_after_key(&merged, "error");
     serde_json::json!({
         "schema_version": "bijux.fastq_stage_metrics.v1",
         "stage": "fastq.validate_reads",
         "validator": "tool_stdout_stderr_parser",
-        "read_count": read_count,
-        "base_count": base_count,
-        "error_count": errors,
+        "validated_inputs": parse_first_u64_after_key(&merged, "read")
+            .or_else(|| parse_first_u64_after_key(&merged, "sequences")),
+        "failure_class": serde_json::Value::Null,
         "strict_pass": execution.exit_code == 0,
+        "exit_code": execution.exit_code,
     })
 }
 
@@ -145,11 +170,16 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
     use std::sync::{Mutex, OnceLock};
 
     use anyhow::Result;
+    use bijux_dna_runner::step_runner::StageResultV1;
 
-    use super::{fastq_backend_allowlist, required_metrics_keys, workspace_root_path};
+    use super::{
+        fastq_backend_allowlist, parse_validate_reads_metrics, required_metrics_keys,
+        workspace_root_path,
+    };
 
     fn env_lock() -> &'static Mutex<()> {
         static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -250,6 +280,85 @@ mod tests {
             &["schema_version", "stage", "report_html", "report_data_dir"]
         );
     }
+
+    #[test]
+    fn validate_reads_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.validate_reads"),
+            &[
+                "schema_version",
+                "stage",
+                "validator",
+                "failure_class",
+                "strict_pass",
+                "exit_code",
+            ]
+        );
+    }
+
+    #[test]
+    fn parse_validate_reads_metrics_prefers_governed_validation_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let out_dir = temp.path();
+        std::fs::write(
+            out_dir.join("validation.json"),
+            serde_json::json!({
+                "schema_version": "bijux.fastq.validate.report.v1",
+                "stage": "fastq.validate_reads",
+                "stage_id": "fastq.validate_reads",
+                "tool_id": "seqtk",
+                "validation_mode": "strict",
+                "pair_sync_policy": "require_header_sync",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "validation_log_r1": "validation_r1.log",
+                "validation_log_r2": "validation_r2.log",
+                "validated_inputs": 2,
+                "validated_reads_r1": 42,
+                "validated_reads_r2": 41,
+                "validated_pairs": 41,
+                "status_r1": 0,
+                "status_r2": 0,
+                "pair_sync_checked": true,
+                "pair_sync_pass": false,
+                "pair_count_match": false,
+                "failure_class": "pair_count_mismatch",
+                "strict_pass": false,
+                "exit_code": 96
+            })
+            .to_string(),
+        )?;
+
+        let metrics = parse_validate_reads_metrics(
+            out_dir,
+            &StageResultV1 {
+                run_id: "run-1".to_string(),
+                runtime_s: 1.0,
+                memory_mb: 32.0,
+                exit_code: 1,
+                outputs: Vec::new(),
+                metrics_path: None,
+                stdout: "ignored".to_string(),
+                stderr: "ignored".to_string(),
+                command: "seqtk".to_string(),
+            },
+        );
+
+        assert_eq!(metrics["validator"], serde_json::json!("seqtk"));
+        assert_eq!(
+            metrics["failure_class"],
+            serde_json::json!("pair_count_mismatch")
+        );
+        assert_eq!(metrics["validated_reads_r1"], serde_json::json!(42));
+        assert_eq!(metrics["validated_reads_r2"], serde_json::json!(41));
+        assert_eq!(metrics["pair_sync_pass"], serde_json::json!(false));
+        assert_eq!(metrics["exit_code"], serde_json::json!(96));
+        assert_eq!(
+            metrics["report_json"],
+            serde_json::json!(Path::new(out_dir).join("validation.json"))
+        );
+        Ok(())
+    }
 }
 
 fn workspace_root_path() -> PathBuf {
@@ -301,7 +410,14 @@ fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
 
 fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
     match stage_id {
-        "fastq.validate_reads" => &["schema_version", "stage", "strict_pass"],
+        "fastq.validate_reads" => &[
+            "schema_version",
+            "stage",
+            "validator",
+            "failure_class",
+            "strict_pass",
+            "exit_code",
+        ],
         "fastq.detect_adapters" => &["schema_version", "stage", "adapter_inference"],
         "fastq.trim_reads" => &["schema_version", "stage", "tool", "input_reads", "output_reads"],
         "fastq.trim_terminal_damage" => &[
