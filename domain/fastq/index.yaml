@@ -1802,7 +1802,8 @@ benchmark_scenarios:
   polyg_trim_fairness:
     stage_id: fastq.trim_polyg_tails
     description: Compare polyG-tail trimming backends on identical reads and governed
-      polyG-tail policy.
+      polyG-tail policy, preserving backend-native report provenance in the governed
+      normalization surface.
     cohort_artifact_id: polyg_trim_tool_benchmark_cohort_json
     comparison_artifact_id: polyg_trim_tool_comparison_json
     normalization_artifact_id: polyg_trim_tool_normalization_json

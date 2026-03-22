@@ -11,7 +11,7 @@ See `STAGE_CONTRACTS.md` for detailed contracts.
 | --- | --- | --- | --- | --- |
 | fastq.validate_reads | Essential | FASTQ | validation report | read_count, base_count, format errors |
 | fastq.detect_adapters | Recommended | FASTQ | adapter evidence report | evidence-only adapter inspection summary |
-| fastq.trim_polyg_tails | Recommended | FASTQ | trimmed FASTQ | polyG/polyX trimming counts |
+| fastq.trim_polyg_tails | Recommended | FASTQ | trimmed FASTQ | governed polyG-tail trimming semantics plus backend-native report provenance |
 | fastq.trim_reads | Essential | FASTQ | trimmed FASTQ | retention, bases_kept |
 | fastq.filter_reads | Recommended | FASTQ | filtered FASTQ | filter counts |
 | fastq.filter_low_complexity | Optional | FASTQ | filtered FASTQ | reads_removed_low_complexity |
