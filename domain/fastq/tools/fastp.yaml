@@ -87,7 +87,7 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "fastp polyG trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed trim report under the polyG-tail stage contract."
+    notes: "fastp polyG trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed trim report that preserves native fastp JSON provenance under the polyG-tail stage contract."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
