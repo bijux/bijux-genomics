@@ -362,6 +362,29 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_fastp_preserves_native_json_beside_governed_report() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("trim_report.fastp.json")));
+    assert!(plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.trim_reads.report.v2\""));
+    assert!(plan.command.template[2].contains("\"raw_backend_report_format\":\"fastp_json\""));
+    assert!(plan.command.template[2].contains("\"raw_backend_report\":\"out/trim_report.fastp.json\""));
+    Ok(())
+}
+
+#[test]
 fn plan_trim_with_options_maps_min_length_for_seqkit() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &dummy_tool("seqkit"),
@@ -681,11 +704,32 @@ fn plan_trim_with_bank_contaminant_policy_maps_bbduk_reference_filter() -> Resul
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
     assert!(script.contains("bbduk_contaminants.fa"));
+    assert!(script.contains("trim_report.bbduk.stats.txt"));
     assert!(script.contains(">phix-motif"));
     assert!(script.contains(">phix-ref"));
     assert!(script.contains("ref=out/bbduk_contaminants.fa"));
     assert!(script.contains("maxns=0"));
     assert!(script.contains("k=31"));
+    assert!(script.contains("\"raw_backend_report_format\":\"bbduk_stats\""));
+    Ok(())
+}
+
+#[test]
+fn plan_trim_cutadapt_preserves_native_json_beside_governed_report() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
+        &dummy_tool("cutadapt"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+    )?;
+
+    let script = &plan.command.template[2];
+    assert!(script.contains("'--json' 'out/trim_report.cutadapt.json'"));
+    assert!(script.contains("\"raw_backend_report_format\":\"cutadapt_json\""));
+    assert!(script.contains("\"raw_backend_report\":\"out/trim_report.cutadapt.json\""));
     Ok(())
 }
 

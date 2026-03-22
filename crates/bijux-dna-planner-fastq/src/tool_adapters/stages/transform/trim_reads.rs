@@ -5,7 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{trim::TrimEffectiveParams, PairedMode};
-use bijux_dna_domain_fastq::STAGE_TRIM_READS;
+use bijux_dna_domain_fastq::{STAGE_TRIM_READS, TRIM_READS_REPORT_SCHEMA_VERSION};
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_TRIM_READS;
@@ -299,6 +299,7 @@ fn trim_command_template(
     let adapter_sequences = enabled_adapter_sequences(adapter_bank);
     let polyx_policy = options.resolved_polyx_policy();
     if tool.tool_id.as_str() == "fastp" {
+        let raw_backend_report = raw_backend_report_path(report_json, "fastp", "json");
         let mut command = vec![
             "fastp".to_string(),
             "--in1".to_string(),
@@ -306,7 +307,7 @@ fn trim_command_template(
             "--out1".to_string(),
             output_r1.display().to_string(),
             "--json".to_string(),
-            report_json.display().to_string(),
+            raw_backend_report.display().to_string(),
             "--thread".to_string(),
             tool.resources.threads.to_string(),
         ];
@@ -353,7 +354,21 @@ fn trim_command_template(
                 command.push("--detect_adapter_for_pe".to_string());
             }
         }
-        return Ok(command);
+        return Ok(wrap_trim_command_with_report(
+            "fastp",
+            command,
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            adapter_bank,
+            polyx_bank,
+            contaminant_bank,
+            options,
+            Some(raw_backend_report.as_path()),
+            Some("fastp_json"),
+        ));
     }
     if tool.tool_id.as_str() == "cutadapt" {
         return cutadapt_command_template(
@@ -479,6 +494,12 @@ fn trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        options,
+        None,
+        None,
     ))
 }
 
@@ -572,22 +593,19 @@ fn seqkit_trim_command_template(
             shell_quote_path(r2),
         ));
     }
-    script.push_str(&format!(
-        "printf '%s\\n' {} > {}\n",
-        shell_quote_str(
-            &serde_json::json!({
-                "schema_version": "bijux.fastq.trim_reads.report.v1",
-                "tool_id": "seqkit",
-                "input_r1": r1,
-                "input_r2": r2,
-                "output_r1": output_r1,
-                "output_r2": output_r2,
-                "min_length": min_length,
-                "quality_cutoff": options.quality_cutoff,
-            })
-            .to_string(),
-        ),
-        shell_quote_path(report_json),
+    script.push_str(&write_trim_report_script(
+        "seqkit",
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+        None,
+        None,
+        None,
+        options,
+        None,
+        None,
     ));
     Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
@@ -626,6 +644,12 @@ fn seqpurge_trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        None,
+        None,
+        None,
+        options,
+        None,
+        None,
     ))
 }
 
@@ -685,6 +709,12 @@ fn prinseq_trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        None,
+        None,
+        None,
+        options,
+        None,
+        None,
     ))
 }
 
@@ -698,6 +728,7 @@ fn cutadapt_command_template(
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let mut command = vec!["cutadapt".to_string()];
+    let raw_backend_report = raw_backend_report_path(report_json, "cutadapt", "json");
     if matches!(
         options.resolved_adapter_policy().as_str(),
         "bank" | "ancient_strict"
@@ -718,6 +749,7 @@ fn cutadapt_command_template(
     if options.resolved_n_policy() == "drop" {
         command.extend(["--max-n".to_string(), "0".to_string()]);
     }
+    command.extend(["--json".to_string(), raw_backend_report.display().to_string()]);
     command.extend(["-o".to_string(), output_r1.display().to_string()]);
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.extend([
@@ -737,7 +769,146 @@ fn cutadapt_command_template(
         output_r1,
         output_r2,
         report_json,
+        adapter_bank,
+        None,
+        None,
+        options,
+        Some(raw_backend_report.as_path()),
+        Some("cutadapt_json"),
     ))
+}
+
+fn raw_backend_report_path(report_json: &Path, tool_id: &str, extension: &str) -> PathBuf {
+    let mut path = report_json.to_path_buf();
+    path.set_file_name(format!("trim_report.{tool_id}.{extension}"));
+    path
+}
+
+fn report_context_string(context: Option<&serde_json::Value>, key: &str) -> Option<String> {
+    context
+        .and_then(|value| value.get(key))
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string)
+}
+
+fn governed_trim_report_payload(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+    raw_backend_report: Option<&Path>,
+    raw_backend_report_format: Option<&str>,
+) -> serde_json::Value {
+    serde_json::json!({
+        "schema_version": TRIM_READS_REPORT_SCHEMA_VERSION,
+        "stage": STAGE_ID.as_str(),
+        "stage_id": STAGE_ID.as_str(),
+        "tool_id": tool_id,
+        "paired_mode": if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        "input_r1": r1.display().to_string(),
+        "input_r2": r2.map(|path| path.display().to_string()),
+        "output_r1": output_r1.display().to_string(),
+        "output_r2": output_r2.map(|path| path.display().to_string()),
+        "min_length": options.resolved_min_length(),
+        "quality_cutoff": options.quality_cutoff,
+        "adapter_policy": options.resolved_adapter_policy(),
+        "polyx_policy": options.polyx_policy,
+        "n_policy": options.n_policy,
+        "contaminant_policy": options.contaminant_policy,
+        "adapter_bank_id": report_context_string(adapter_bank, "bank_id"),
+        "adapter_bank_hash": report_context_string(adapter_bank, "bank_hash"),
+        "adapter_preset": report_context_string(adapter_bank, "preset"),
+        "polyx_bank_id": report_context_string(polyx_bank, "bank_id"),
+        "polyx_bank_hash": report_context_string(polyx_bank, "bank_hash"),
+        "polyx_preset": report_context_string(polyx_bank, "preset"),
+        "contaminant_bank_id": report_context_string(contaminant_bank, "bank_id"),
+        "contaminant_bank_hash": report_context_string(contaminant_bank, "bank_hash"),
+        "contaminant_preset": report_context_string(contaminant_bank, "preset"),
+        "reads_in": serde_json::Value::Null,
+        "reads_out": serde_json::Value::Null,
+        "bases_in": serde_json::Value::Null,
+        "bases_out": serde_json::Value::Null,
+        "pairs_in": serde_json::Value::Null,
+        "pairs_out": serde_json::Value::Null,
+        "mean_q_before": serde_json::Value::Null,
+        "mean_q_after": serde_json::Value::Null,
+        "runtime_s": serde_json::Value::Null,
+        "memory_mb": serde_json::Value::Null,
+        "raw_backend_report": raw_backend_report.map(|path| path.display().to_string()),
+        "raw_backend_report_format": raw_backend_report_format,
+    })
+}
+
+fn write_trim_report_script(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+    raw_backend_report: Option<&Path>,
+    raw_backend_report_format: Option<&str>,
+) -> String {
+    let payload = governed_trim_report_payload(
+        tool_id,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        options,
+        raw_backend_report,
+        raw_backend_report_format,
+    );
+    format!(
+        "printf '%s\\n' {} > {}\n",
+        shell_quote_str(&payload.to_string()),
+        shell_quote_path(report_json),
+    )
+}
+
+fn wrap_trim_command_with_report(
+    tool_id: &str,
+    command: Vec<String>,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+    raw_backend_report: Option<&Path>,
+    raw_backend_report_format: Option<&str>,
+) -> Vec<String> {
+    let mut script = format!("set -euo pipefail\n{}\n", shell_join(&command));
+    script.push_str(&write_trim_report_script(
+        tool_id,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        options,
+        raw_backend_report,
+        raw_backend_report_format,
+    ));
+    vec!["sh".to_string(), "-lc".to_string(), script]
 }
 
 fn bbduk_trim_command_template(
@@ -753,10 +924,12 @@ fn bbduk_trim_command_template(
         .parent()
         .ok_or_else(|| anyhow!("trim report path must have a parent directory"))?
         .join("bbduk_contaminants.fa");
+    let raw_backend_report = raw_backend_report_path(report_json, "bbduk", "stats.txt");
     let mut command = vec![
         "bbduk.sh".to_string(),
         format!("in={}", r1.display()),
         format!("out={}", output_r1.display()),
+        format!("stats={}", raw_backend_report.display()),
     ];
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.push(format!("in2={}", r2.display()));
@@ -785,6 +958,12 @@ fn bbduk_trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        None,
+        None,
+        contaminant_bank,
+        options,
+        Some(raw_backend_report.as_path()),
+        Some("bbduk_stats"),
     );
     if options.resolved_contaminant_policy() != "bank" {
         return Ok(wrapped);
@@ -901,6 +1080,12 @@ fn atropos_command_template(
         output_r1,
         output_r2,
         report_json,
+        adapter_bank,
+        None,
+        None,
+        options,
+        None,
+        None,
     ))
 }
 
@@ -959,6 +1144,12 @@ fn adapterremoval_command_template(
         output_r1,
         output_r2,
         report_json,
+        adapter_bank,
+        None,
+        None,
+        options,
+        None,
+        None,
     ))
 }
 
@@ -1009,6 +1200,12 @@ fn trimmomatic_command_template(
         output_r1,
         output_r2,
         report_json,
+        None,
+        None,
+        None,
+        options,
+        None,
+        None,
     ))
 }
 
@@ -1073,6 +1270,12 @@ fn trim_galore_command_template(
         output_r1,
         output_r2,
         report_json,
+        adapter_bank,
+        None,
+        None,
+        options,
+        None,
+        None,
     ));
     Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
@@ -1096,27 +1299,6 @@ fn trim_galore_output_path(output_dir: &Path, reads: &Path) -> PathBuf {
     output_dir.join(trimmed_name)
 }
 
-fn wrap_trim_command_with_report(
-    tool_id: &str,
-    command: Vec<String>,
-    r1: &Path,
-    r2: Option<&Path>,
-    output_r1: &Path,
-    output_r2: Option<&Path>,
-    report_json: &Path,
-) -> Vec<String> {
-    let mut script = format!("set -euo pipefail\n{}\n", shell_join(&command));
-    script.push_str(&write_trim_report_script(
-        tool_id,
-        r1,
-        r2,
-        output_r1,
-        output_r2,
-        report_json,
-    ));
-    vec!["sh".to_string(), "-lc".to_string(), script]
-}
-
 fn enabled_adapter_sequences(adapter_bank: Option<&serde_json::Value>) -> Vec<String> {
     adapter_bank
         .and_then(|bank| bank.get("enabled_entries"))
@@ -1130,30 +1312,6 @@ fn enabled_adapter_sequences(adapter_bank: Option<&serde_json::Value>) -> Vec<St
                 .map(str::to_string)
         })
         .collect()
-}
-
-fn write_trim_report_script(
-    tool_id: &str,
-    r1: &Path,
-    r2: Option<&Path>,
-    output_r1: &Path,
-    output_r2: Option<&Path>,
-    report_json: &Path,
-) -> String {
-    let payload = serde_json::json!({
-        "schema_version": "bijux.fastq.trim_reads.report.v1",
-        "stage_id": STAGE_ID.as_str(),
-        "tool_id": tool_id,
-        "input_r1": r1,
-        "input_r2": r2,
-        "output_r1": output_r1,
-        "output_r2": output_r2,
-    });
-    format!(
-        "printf '%s\\n' {} > {}\n",
-        shell_quote_str(&payload.to_string()),
-        shell_quote_path(report_json),
-    )
 }
 
 fn shell_join(command: &[String]) -> String {
