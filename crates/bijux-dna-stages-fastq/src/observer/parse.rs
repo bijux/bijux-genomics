@@ -1777,7 +1777,7 @@ mod tests {
     #[test]
     fn parse_deplete_host_report_round_trips_governed_payload() -> Result<()> {
         let parsed = parse_deplete_host_report(
-            &serde_json::json!({
+            r#"{
                 "schema_version": "bijux.fastq.deplete_host.report.v2",
                 "stage": "fastq.deplete_host",
                 "stage_id": "fastq.deplete_host",
@@ -1822,8 +1822,7 @@ mod tests {
                 "backend_metrics": {
                     "reads_removed": 50
                 }
-            })
-            .to_string(),
+            }"#,
         )?;
         assert_eq!(parsed.tool_id, "bowtie2");
         assert_eq!(parsed.reads_removed, 50);
