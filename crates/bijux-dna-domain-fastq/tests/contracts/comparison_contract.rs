@@ -76,6 +76,15 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "merge_tool_normalization_json".to_string(),
         ]
     );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&merge_stage),
+        vec![
+            "report_json".to_string(),
+            "merged_reads".to_string(),
+            "unmerged_reads_r1".to_string(),
+            "unmerged_reads_r2".to_string(),
+        ]
+    );
 
     let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");
     assert_eq!(
@@ -191,9 +200,7 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         ]
     );
     assert_eq!(
-        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(
-            &normalize_abundance_stage
-        ),
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&normalize_abundance_stage),
         vec![
             "report_json".to_string(),
             "normalized_abundance_tsv".to_string(),
