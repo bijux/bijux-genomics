@@ -72,7 +72,8 @@ stage_contracts:
     expected_artifacts:
       - "filtered_reads_r1"
       - "filtered_reads_r2"
-    notes: "fastp filter mode emits paired filtered reads without a separate stage report artifact."
+      - "report_json"
+    notes: "fastp filter mode emits paired filtered reads and the governed filter report."
   fastq.profile_read_lengths:
     required_inputs:
       - "reads_r1"
@@ -94,6 +95,7 @@ expected_artifacts:
   - "report_json"
   - "filtered_reads_r1"
   - "filtered_reads_r2"
+  - "report_json"
   - "length_distribution_tsv"
   - "length_distribution_json"
 metrics_schema_id: "bijux.stage.metrics.v1"
