@@ -89,6 +89,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "qc_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.extract_umis",
+        tool_id: "umi_tools",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.normalize_primers",
         tool_id: "cutadapt",
         semantic_surface: "report_json",
