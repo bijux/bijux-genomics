@@ -129,6 +129,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.remove_chimeras",
+        tool_id: "vsearch",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.trim_terminal_damage",
         tool_id: "cutadapt",
         semantic_surface: "report_json",
@@ -242,6 +247,10 @@ mod tests {
             StageId::from_static("fastq.correct_errors"),
             ToolId::from_static("lighter")
         )));
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.remove_chimeras"),
+            ToolId::from_static("vsearch")
+        )));
     }
 
     #[test]
@@ -271,6 +280,13 @@ mod tests {
             observer_semantic_surface_for_stage_tool(
                 &StageId::from_static("fastq.trim_reads"),
                 &ToolId::from_static("fastp"),
+            ),
+            Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.remove_chimeras"),
+                &ToolId::from_static("vsearch"),
             ),
             Some("report_json")
         );

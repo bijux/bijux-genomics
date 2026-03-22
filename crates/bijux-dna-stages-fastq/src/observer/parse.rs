@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    RemoveChimerasReportV1,
     RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1, ReportQcReportV1,
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1,
     TrimPolygReportV1, TrimReadsReportV1,
@@ -149,6 +150,14 @@ pub fn parse_screen_taxonomy_report(report_json: &str) -> Result<ScreenTaxonomyR
 }
 
 /// # Errors
+/// Returns an error if the governed remove-chimeras report JSON cannot be parsed.
+pub fn parse_remove_chimeras_report(report_json: &str) -> Result<RemoveChimerasReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_remove_chimeras_report(report_json))
+        .context("parse remove chimeras report")
+}
+
+/// # Errors
 /// Returns an error if a taxonomy summary TSV cannot be reduced to label/percent entries.
 pub fn parse_screen_summary_tsv(summary_tsv: &str) -> Result<Vec<TaxonomyScreenSummaryEntryV1>> {
     let mut entries = Vec::new();
@@ -282,6 +291,52 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
         raw_backend_report_format: None,
         runtime_s: None,
         memory_mb: None,
+    })
+}
+
+fn parse_legacy_remove_chimeras_report(report_json: &str) -> Result<RemoveChimerasReportV1> {
+    let json = serde_json::from_str::<serde_json::Value>(report_json)
+        .context("parse legacy remove chimeras json")?;
+    Ok(RemoveChimerasReportV1 {
+        schema_version: "bijux.fastq.remove_chimeras.report.v1_legacy".to_string(),
+        stage: "fastq.remove_chimeras".to_string(),
+        stage_id: "fastq.remove_chimeras".to_string(),
+        tool_id: json
+            .get("tool")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown")
+            .to_string(),
+        paired_mode: bijux_dna_domain_fastq::PairedMode::SingleEnd,
+        method: "legacy_metrics_only".to_string(),
+        detection_scope: "denovo".to_string(),
+        chimera_removed_definition:
+            "reads flagged as chimeric are excluded from downstream abundance tables"
+                .to_string(),
+        input_reads: String::new(),
+        output_reads: String::new(),
+        chimera_metrics_json: String::new(),
+        chimeras_fasta: None,
+        uchime_report_tsv: None,
+        reads_in: None,
+        reads_out: json
+            .get("non_chimera_reads")
+            .and_then(serde_json::Value::as_u64),
+        chimeras_removed: json
+            .get("chimeras_removed")
+            .and_then(serde_json::Value::as_u64),
+        chimera_fraction: json
+            .get("chimera_fraction")
+            .and_then(serde_json::Value::as_f64),
+        used_fallback: json
+            .get("used_fallback")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        runtime_s: None,
+        memory_mb: None,
+        exit_code: None,
+        backend_metrics: None,
     })
 }
 
@@ -489,7 +544,7 @@ mod tests {
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
         parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
         parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
-        parse_remove_duplicates_report, parse_report_qc_report,
+        parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
         parse_samtools_flagstat_metrics,
         parse_screen_summary_tsv, parse_screen_taxonomy_report, parse_seqkit_stats,
         parse_seqkit_tool_metrics, parse_terminal_damage_report, parse_trim_reads_report,
@@ -926,6 +981,65 @@ mod tests {
         assert_eq!(parsed.len(), 2);
         assert_eq!(parsed[0].class, "duplicate");
         assert_eq!(parsed[1].reads_removed, 12);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_remove_chimeras_report_parses_governed_contract() -> Result<()> {
+        let parsed = parse_remove_chimeras_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.remove_chimeras.report.v2",
+                "stage": "fastq.remove_chimeras",
+                "stage_id": "fastq.remove_chimeras",
+                "tool_id": "vsearch",
+                "paired_mode": "single_end",
+                "method": "vsearch_uchime_denovo",
+                "detection_scope": "denovo",
+                "chimera_removed_definition": "reads flagged as de_novo chimeras are excluded from downstream abundance tables",
+                "input_reads": "merged.fastq.gz",
+                "output_reads": "nonchimeras.fastq.gz",
+                "chimera_metrics_json": "chimera_metrics.json",
+                "chimeras_fasta": "chimeras.fasta",
+                "uchime_report_tsv": "uchime.tsv",
+                "reads_in": 100,
+                "reads_out": 92,
+                "chimeras_removed": 8,
+                "chimera_fraction": 0.08,
+                "used_fallback": false,
+                "raw_backend_report": "uchime.tsv",
+                "raw_backend_report_format": "vsearch_uchime_tsv",
+                "runtime_s": 1.7,
+                "memory_mb": 32.0,
+                "exit_code": 0,
+                "backend_metrics": {
+                    "parsed_records": 100,
+                    "flagged_records": 8
+                }
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "vsearch");
+        assert_eq!(parsed.chimera_fraction, Some(0.08));
+        assert_eq!(parsed.uchime_report_tsv.as_deref(), Some("uchime.tsv"));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_remove_chimeras_report_accepts_legacy_metrics_payload() -> Result<()> {
+        let parsed = parse_remove_chimeras_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.remove_chimeras.v2",
+                "chimera_fraction": 0.12,
+                "chimeras_removed": 12,
+                "non_chimera_reads": 88,
+                "tool": "vsearch",
+                "used_fallback": true
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "vsearch");
+        assert_eq!(parsed.chimeras_removed, Some(12));
+        assert!(parsed.used_fallback);
         Ok(())
     }
 
