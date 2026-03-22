@@ -698,6 +698,48 @@ fn discover_screen_taxonomy_report(out_dir: &std::path::Path) -> Option<std::pat
     .find(|path| path.exists())
 }
 
+pub(crate) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("rrna_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_deplete_rrna_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.deplete_rrna",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "threads": report.threads,
+                "rrna_db": report.rrna_db,
+                "database_artifact_id": report.database_artifact_id,
+                "database_build_id": report.database_build_id,
+                "screening_engine": report.screening_engine,
+                "report_format": report.report_format,
+                "emit_removed_reads": report.emit_removed_reads,
+                "min_identity": report.min_identity,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "reads_removed": report.reads_removed,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "bases_removed": report.bases_removed,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "rrna_fraction_removed": report.rrna_fraction_removed,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.deplete_rrna",
+        "tool": "report_missing",
+        "rrna_fraction_removed": serde_json::Value::Null,
+        "reads_removed": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("report_qc_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -861,7 +903,8 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
+        fastq_backend_allowlist, parse_deplete_rrna_metrics, parse_filter_low_complexity_metrics,
+        parse_filter_reads_metrics,
         parse_extract_umis_metrics,
         parse_index_reference_metrics,
         parse_merge_pairs_metrics, parse_normalize_abundance_metrics,
@@ -1884,6 +1927,59 @@ mod tests {
     }
 
     #[test]
+    fn deplete_rrna_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("rrna_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_rrna.report.v2",
+                "stage": "fastq.deplete_rrna",
+                "stage_id": "fastq.deplete_rrna",
+                "tool_id": "sortmerna",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "rrna_db": "/refs/silva",
+                "database_artifact_id": "silva_nr99",
+                "database_build_id": "2026.03",
+                "screening_engine": "sortmerna",
+                "report_format": "summary_tsv_and_json",
+                "emit_removed_reads": false,
+                "min_identity": 0.95,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "rrna_filtered.fastq.gz",
+                "output_r2": null,
+                "rrna_report_tsv": "rrna_report.tsv",
+                "rrna_report_json": "rrna_report.json",
+                "reads_in": 100,
+                "reads_out": 64,
+                "reads_removed": 36,
+                "bases_in": 1000,
+                "bases_out": 620,
+                "bases_removed": 380,
+                "pairs_in": null,
+                "pairs_out": null,
+                "rrna_fraction_removed": 0.36,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null,
+                "backend_metrics": {"reads_removed": 36}
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_deplete_rrna_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("sortmerna"));
+        assert_eq!(metrics["database_artifact_id"], serde_json::json!("silva_nr99"));
+        assert_eq!(metrics["reads_removed"], serde_json::json!(36));
+        assert_eq!(metrics["rrna_fraction_removed"], serde_json::json!(0.36));
+    }
+
+    #[test]
     fn report_qc_standardized_metrics_prefer_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("report_qc_report.json");
@@ -2144,6 +2240,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "classifier",
             "contamination_rate",
             "top_taxa",
+        ],
+        "fastq.deplete_rrna" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "database_artifact_id",
+            "reads_removed",
+            "rrna_fraction_removed",
         ],
         "fastq.deplete_reference_contaminants" => {
             &["schema_version", "stage", "tool", "screening_results"]
