@@ -148,6 +148,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             args.r2.as_deref(),
             &out_dir,
             &RemoveDuplicatesPlanOptions {
+                threads_override: args.threads,
                 dedup_mode: args
                     .dedup_mode
                     .as_deref()

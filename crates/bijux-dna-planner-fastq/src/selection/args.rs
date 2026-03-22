@@ -179,6 +179,7 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub tools: Vec<String>,
     pub tools_resolved_implicitly: bool,
     pub explain: bool,
+    pub threads: Option<u32>,
     pub dedup_mode: Option<String>,
     pub keep_order: Option<bool>,
     pub replicates: u32,

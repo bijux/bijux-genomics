@@ -23,6 +23,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub struct RemoveDuplicatesPlanOptions {
     pub dedup_mode: DedupMode,
     pub keep_order: bool,
+    pub threads_override: Option<u32>,
 }
 
 impl Default for RemoveDuplicatesPlanOptions {
@@ -30,6 +31,7 @@ impl Default for RemoveDuplicatesPlanOptions {
         Self {
             dedup_mode: DedupMode::Exact,
             keep_order: true,
+            threads_override: None,
         }
     }
 }
@@ -97,6 +99,10 @@ pub fn plan_deduplicate_with_options(
 ) -> Result<StagePlanV1> {
     let paired_mode = r2.is_some();
     validate_deduplicate_options(&tool.tool_id.0, paired_mode, options)?;
+    let threads = options
+        .threads_override
+        .unwrap_or(tool.resources.threads)
+        .max(1);
     let output_r1 = if paired_mode {
         out_dir.join(format!("{}.dedup.R1.fastq.gz", tool.tool_id))
     } else {
@@ -150,10 +156,12 @@ pub fn plan_deduplicate_with_options(
     let effective_params = RemoveDuplicatesEffectiveParams {
         schema_version: REMOVE_DUPLICATES_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(paired_mode),
-        threads: tool.resources.threads.max(1),
+        threads,
         dedup_mode: options.dedup_mode.clone(),
         keep_order: options.keep_order,
     };
+    let mut resources = tool.resources.clone();
+    resources.threads = threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -178,7 +186,7 @@ pub fn plan_deduplicate_with_options(
                 options,
             )?,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -190,7 +198,7 @@ pub fn plan_deduplicate_with_options(
             "duplicate_classes_tsv": duplicate_classes_tsv,
             "duplicate_provenance_json": duplicate_provenance_json,
             "report_json": report,
-            "threads": tool.resources.threads.max(1),
+            "threads": threads,
             "dedup_mode": options.dedup_mode,
             "keep_order": options.keep_order,
         }),
@@ -244,6 +252,15 @@ fn deduplicate_command(
         ("clumpify", DedupMode::OpticalAware) => "dedupe=t optical dupedist=40".to_string(),
         _ => String::new(),
     };
+    let threads = options
+        .threads_override
+        .unwrap_or(tool.resources.threads)
+        .max(1);
+    let threads_args = if tool_id == "clumpify" {
+        format!("threads={threads}")
+    } else {
+        String::new()
+    };
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
@@ -260,6 +277,7 @@ fn deduplicate_command(
             ("paired_io_args", Some(paired_io_args)),
             ("keep_order_args", Some(keep_order_args)),
             ("dedup_mode_args", Some(dedup_mode_args)),
+            ("threads_args", Some(threads_args)),
         ],
     )?;
     let mut script = format!(
@@ -305,7 +323,7 @@ fn deduplicate_command(
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool_id)?,
         json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
-        tool.resources.threads.max(1),
+        threads,
         serde_json::to_string(&options.dedup_mode)
             .map_err(|error| anyhow!("serialize dedup_mode for provenance: {error}"))?,
         if options.keep_order { "true" } else { "false" },
@@ -329,7 +347,7 @@ fn deduplicate_command(
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool_id)?,
         json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
-        tool.resources.threads.max(1),
+        threads,
         serde_json::to_string(&options.dedup_mode)
             .map_err(|error| anyhow!("serialize dedup_mode for report: {error}"))?,
         if options.keep_order { "true" } else { "false" },
@@ -374,6 +392,11 @@ fn validate_deduplicate_options(
     if !options.keep_order && tool_id != "clumpify" {
         return Err(anyhow!(
             "{tool_id} remove-duplicates adapter currently supports only keep_order=true"
+        ));
+    }
+    if options.threads_override.is_some() && tool_id != "clumpify" {
+        return Err(anyhow!(
+            "{tool_id} remove-duplicates adapter currently supports explicit thread overrides only for clumpify"
         ));
     }
     Ok(())
@@ -447,7 +470,7 @@ mod tests {
                     "clumpify" => vec![
                         "sh".to_string(),
                         "-lc".to_string(),
-                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
+                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
                     ],
                     _ => vec!["unused".to_string()],
                 },
@@ -555,6 +578,7 @@ mod tests {
             &RemoveDuplicatesPlanOptions {
                 dedup_mode: DedupMode::SequenceIdentity,
                 keep_order: true,
+                threads_override: None,
             },
         )
         .expect_err("non-exact dedup mode must fail until backend mapping exists");
@@ -572,6 +596,7 @@ mod tests {
             &RemoveDuplicatesPlanOptions {
                 dedup_mode: DedupMode::Exact,
                 keep_order: false,
+                threads_override: None,
             },
         )
         .expect("clumpify should map keep_order into execution");
@@ -590,6 +615,7 @@ mod tests {
             &RemoveDuplicatesPlanOptions {
                 dedup_mode: DedupMode::OpticalAware,
                 keep_order: true,
+                threads_override: None,
             },
         )
         .expect("clumpify should map optical-aware dedup mode");
@@ -620,5 +646,46 @@ mod tests {
             .collect::<Vec<_>>();
         assert!(output_ids.contains(&"duplicate_classes_tsv".to_string()));
         assert!(output_ids.contains(&"duplicate_provenance_json".to_string()));
+    }
+
+    #[test]
+    fn plan_deduplicate_clumpify_maps_thread_override() {
+        let plan = plan_deduplicate_with_options(
+            &dummy_tool("clumpify"),
+            Path::new("reads_R1.fastq.gz"),
+            None,
+            Path::new("out"),
+            &RemoveDuplicatesPlanOptions {
+                dedup_mode: DedupMode::Exact,
+                keep_order: true,
+                threads_override: Some(8),
+            },
+        )
+        .expect("clumpify should map explicit threads");
+
+        let script = &plan.command.template[2];
+        assert_eq!(plan.resources.threads, 8);
+        assert_eq!(plan.effective_params["threads"], serde_json::json!(8));
+        assert!(script.contains("threads=8"));
+    }
+
+    #[test]
+    fn plan_deduplicate_fastuniq_rejects_explicit_thread_override() {
+        let error = plan_deduplicate_with_options(
+            &dummy_tool("fastuniq"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            &RemoveDuplicatesPlanOptions {
+                dedup_mode: DedupMode::Exact,
+                keep_order: true,
+                threads_override: Some(8),
+            },
+        )
+        .expect_err("fastuniq should reject explicit thread overrides");
+
+        assert!(error
+            .to_string()
+            .contains("supports explicit thread overrides only for clumpify"));
     }
 }
