@@ -17,6 +17,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TrimPolygPlanOptions {
+    pub threads: Option<u32>,
     pub trim_polyg: bool,
     pub min_polyg_run: u32,
 }
@@ -24,6 +25,7 @@ pub struct TrimPolygPlanOptions {
 impl Default for TrimPolygPlanOptions {
     fn default() -> Self {
         Self {
+            threads: None,
             trim_polyg: true,
             min_polyg_run: 10,
         }
@@ -82,6 +84,7 @@ pub fn plan_trim_polyg_tails_with_options(
     let report = out_dir.join("trim_polyg_tails_report.json");
     let (raw_backend_report, raw_backend_report_format) =
         raw_backend_report_artifact(&report, tool.tool_id.as_str())?;
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let command_template = trim_polyg_command(
         &tool.tool_id.0,
         r1,
@@ -91,14 +94,14 @@ pub fn plan_trim_polyg_tails_with_options(
         &report,
         &raw_backend_report,
         raw_backend_report_format,
-        tool.resources.threads,
+        effective_threads,
         options.trim_polyg,
         options.min_polyg_run,
     )?;
     let effective_params = TrimPolygTailsParams {
         schema_version: TRIM_POLYG_TAILS_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
-        threads: tool.resources.threads,
+        threads: effective_threads,
         trim_polyg: options.trim_polyg,
         min_polyg_run: options.min_polyg_run,
     };
@@ -144,7 +147,11 @@ pub fn plan_trim_polyg_tails_with_options(
         command: CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources: {
+            let mut resources = tool.resources.clone();
+            resources.threads = effective_threads;
+            resources
+        },
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -154,6 +161,7 @@ pub fn plan_trim_polyg_tails_with_options(
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report,
+            "threads": effective_threads,
             "trim_polyg": options.trim_polyg,
             "min_polyg_run": options.min_polyg_run,
             "raw_backend_report": raw_backend_report,
@@ -380,6 +388,7 @@ mod tests {
             Some(Path::new("reads_R2.fastq.gz")),
             Path::new("out"),
             &TrimPolygPlanOptions {
+                threads: None,
                 trim_polyg: true,
                 min_polyg_run: 12,
             },
@@ -398,5 +407,26 @@ mod tests {
         assert!(script.contains("\"schema_version\":\"bijux.fastq.trim_polyg_tails.report.v2\""));
         assert!(script.contains("\"paired_mode\":\"paired_end\""));
         assert!(script.contains("\"raw_backend_report_format\":\"fastp_json\""));
+    }
+
+    #[test]
+    fn plan_trim_polyg_tails_honors_thread_override() {
+        let plan = plan_trim_polyg_tails_with_options(
+            &tool("fastp"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &TrimPolygPlanOptions {
+                threads: Some(7),
+                trim_polyg: true,
+                min_polyg_run: 10,
+            },
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 7);
+        assert_eq!(plan.effective_params["threads"], serde_json::json!(7));
+        assert_eq!(plan.params["threads"], serde_json::json!(7));
+        assert!(plan.command.template[2].contains("--thread 7"));
     }
 }

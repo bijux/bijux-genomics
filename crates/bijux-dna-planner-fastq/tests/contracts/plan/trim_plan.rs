@@ -868,6 +868,7 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
         None,
         std::path::Path::new("out"),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+            threads: None,
             trim_polyg: true,
             min_polyg_run: 14,
         },
@@ -887,6 +888,7 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
         None,
         std::path::Path::new("out"),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+            threads: None,
             trim_polyg: true,
             min_polyg_run: 14,
         },
@@ -914,6 +916,7 @@ fn plan_trim_polyg_can_disable_polyg_flag_for_bench_comparisons() -> Result<()> 
         None,
         std::path::Path::new("out"),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+            threads: None,
             trim_polyg: false,
             min_polyg_run: 14,
         },
@@ -932,6 +935,7 @@ fn plan_trim_polyg_can_disable_polyg_flag_for_bench_comparisons() -> Result<()> 
         None,
         std::path::Path::new("out"),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+            threads: None,
             trim_polyg: false,
             min_polyg_run: 14,
         },

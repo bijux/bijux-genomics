@@ -172,6 +172,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
             args.r2.as_deref(),
             &out_dir,
             &bijux_dna_planner_fastq::stage_api::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+                threads: args.threads,
                 trim_polyg: args.trim_polyg.unwrap_or(true),
                 min_polyg_run: args.min_polyg_run.unwrap_or(10),
             },
