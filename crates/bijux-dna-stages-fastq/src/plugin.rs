@@ -10,7 +10,7 @@ use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
     parse_multiqc_general_stats_metrics, parse_validated_reads_manifest,
-    parse_validation_report,
+    parse_validation_report, parse_terminal_damage_report,
 };
 
 #[allow(dead_code)]
@@ -400,14 +400,19 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .map(|artifact| artifact.path.as_path())
         {
             if let Ok(raw_report) = std::fs::read_to_string(report_path) {
-                if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
+                if let Ok(report) = parse_terminal_damage_report(&raw_report) {
                     return serde_json::json!({
-                        "damage_mode": report.get("damage_mode").cloned().unwrap_or(serde_json::Value::Null),
-                        "execution_policy": report.get("execution_policy").cloned().unwrap_or(serde_json::Value::Null),
-                        "trim_5p_bases": report.get("trim_5p_bases").cloned().unwrap_or(serde_json::Value::Null),
-                        "trim_3p_bases": report.get("trim_3p_bases").cloned().unwrap_or(serde_json::Value::Null),
-                        "requested_trim_5p_bases": report.get("requested_trim_5p_bases").cloned().unwrap_or(serde_json::Value::Null),
-                        "requested_trim_3p_bases": report.get("requested_trim_3p_bases").cloned().unwrap_or(serde_json::Value::Null),
+                        "paired_mode": report.paired_mode,
+                        "damage_mode": report.damage_mode,
+                        "execution_policy": report.execution_policy,
+                        "trim_5p_bases": report.trim_5p_bases,
+                        "trim_3p_bases": report.trim_3p_bases,
+                        "requested_trim_5p_bases": report.requested_trim_5p_bases,
+                        "requested_trim_3p_bases": report.requested_trim_3p_bases,
+                        "udg_classification": report.udg_classification,
+                        "ct_ga_asymmetry_pre": report.ct_ga_asymmetry_pre,
+                        "ct_ga_asymmetry_post": report.ct_ga_asymmetry_post,
+                        "raw_backend_report_format": report.raw_backend_report_format,
                     });
                 }
             }
@@ -906,12 +911,42 @@ mod tests {
         std::fs::write(
             &report_path,
             serde_json::json!({
+                "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
+                "stage": "fastq.trim_terminal_damage",
+                "stage_id": "fastq.trim_terminal_damage",
+                "tool_id": "cutadapt",
+                "paired_mode": "single_end",
                 "damage_mode": "ancient",
                 "execution_policy": "explicit_terminal_trim",
                 "trim_5p_bases": 2_u64,
                 "trim_3p_bases": 1_u64,
                 "requested_trim_5p_bases": 2_u64,
-                "requested_trim_3p_bases": 1_u64
+                "requested_trim_3p_bases": 1_u64,
+                "udg_classification": "non_udg",
+                "input_r1": "reads.fastq",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq",
+                "output_r2": null,
+                "reads_in": null,
+                "reads_out": null,
+                "bases_in": null,
+                "bases_out": null,
+                "mean_q_before": null,
+                "mean_q_after": null,
+                "ct_ga_asymmetry_pre": null,
+                "ct_ga_asymmetry_post": null,
+                "ct_ga_asymmetry_pre_r1": null,
+                "ct_ga_asymmetry_post_r1": null,
+                "ct_ga_asymmetry_pre_r2": null,
+                "ct_ga_asymmetry_post_r2": null,
+                "terminal_base_composition_pre_r1": null,
+                "terminal_base_composition_post_r1": null,
+                "terminal_base_composition_pre_r2": null,
+                "terminal_base_composition_post_r2": null,
+                "raw_backend_report": "cutadapt.damage.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": null,
+                "memory_mb": null
             })
             .to_string(),
         )
@@ -968,6 +1003,22 @@ mod tests {
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["trim_5p_bases"],
             serde_json::json!(2_u64)
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["udg_classification"],
+            serde_json::json!("non_udg")
+        );
+        assert_eq!(
+            output
+                .verdict
+                .as_ref()
+                .expect("verdict")
+                .key_metrics["semantic_metrics"]["raw_backend_report_format"],
+            serde_json::json!("cutadapt_json")
         );
     }
 
