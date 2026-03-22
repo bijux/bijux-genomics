@@ -1,0 +1,50 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_filter_reads_surface"
+
+[[datasets]]
+id = "synthetic_fastq_filter_reads_surface_01"
+hash = "fixture-fastq-filter-reads-surface-01"
+size = 1
+origin = "synthetic"
+class_label = "governed_filter"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [731, 732]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["governed_filter"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.filter_surface"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.filter_reads"
+stage_instance_id = "fastq.filter_reads.filter_surface"
+tools = ["fastp", "seqkit", "prinseq", "bbduk"]
+upstream_stage_instance_ids = ["fastq.validate_reads.filter_surface"]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.filter_reads.filter_surface"
+[stages.param_bindings.values]
+threads = 8
+max_n = 0
+max_n_count = 3
+low_complexity_threshold = 20.0
+entropy_threshold = 18.0
+polyx_policy = "trim"
