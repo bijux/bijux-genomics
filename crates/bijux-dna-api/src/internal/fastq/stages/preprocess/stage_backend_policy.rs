@@ -264,6 +264,38 @@ fn discover_screen_taxonomy_report(out_dir: &std::path::Path) -> Option<std::pat
     .find(|path| path.exists())
 }
 
+pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("report_qc_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_report_qc_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.report_qc",
+                "tool": report.tool_id,
+                "aggregation_engine": report.aggregation_engine,
+                "aggregation_scope": report.aggregation_scope,
+                "governed_qc_input_count": report.governed_qc_input_count,
+                "governed_qc_contributor_stage_ids": report.governed_qc_contributor_stage_ids,
+                "governed_qc_contributor_tool_ids": report.governed_qc_contributor_tool_ids,
+                "governed_qc_lineage_hash": report.governed_qc_lineage_hash,
+                "multiqc_sample_count": report.multiqc_sample_count,
+                "multiqc_module_count": report.multiqc_module_count,
+                "multiqc_report": report.multiqc_report,
+                "multiqc_data": report.multiqc_data,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.report_qc",
+        "tool": "report_missing",
+        "aggregation_engine": serde_json::Value::Null,
+        "multiqc_report": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let fastp_json = out_dir.join("fastp.json");
     if let Ok(raw) = std::fs::read_to_string(&fastp_json) {
@@ -362,8 +394,8 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_screen_taxonomy_metrics, parse_trim_polyg_metrics,
-        parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
+        fastq_backend_allowlist, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
+        parse_trim_polyg_metrics, parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
         parse_validate_reads_metrics, required_metrics_keys, workspace_root_path,
     };
 
@@ -776,6 +808,53 @@ mod tests {
             serde_json::json!("sha256:taxonomy-db")
         );
     }
+
+    #[test]
+    fn report_qc_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("report_qc_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.report_qc.report.v2",
+                "stage": "fastq.report_qc",
+                "stage_id": "fastq.report_qc",
+                "tool_id": "multiqc",
+                "paired_mode": "single_end",
+                "aggregation_engine": "multiqc",
+                "aggregation_scope": "governed_qc_artifacts",
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 1000,
+                "pairs_in": 0,
+                "pairs_out": 0,
+                "mean_q": 31.0,
+                "contamination_rate": 0.0,
+                "multiqc_sample_count": 2,
+                "multiqc_module_count": 5,
+                "multiqc_report": "multiqc_report.html",
+                "multiqc_data": "multiqc_data",
+                "governed_qc_input_count": 3,
+                "governed_qc_contributor_stage_ids": ["fastq.trim_reads", "fastq.validate_reads"],
+                "governed_qc_contributor_tool_ids": ["fastp", "fastqvalidator"],
+                "governed_qc_contributors": [],
+                "governed_qc_lineage_hash": "lineage",
+                "governed_qc_inputs_manifest": "governed_qc_inputs_manifest.json",
+                "runtime_s": 3.0,
+                "memory_mb": 128.0,
+                "exit_code": 0
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_report_qc_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("multiqc"));
+        assert_eq!(metrics["aggregation_engine"], serde_json::json!("multiqc"));
+        assert_eq!(metrics["governed_qc_input_count"], serde_json::json!(3));
+        assert_eq!(metrics["multiqc_module_count"], serde_json::json!(5));
+    }
 }
 
 fn workspace_root_path() -> PathBuf {
@@ -888,7 +967,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             &["schema_version", "stage", "tool", "screening_results"]
         }
         "fastq.deplete_host" => &["schema_version", "stage", "tool", "host_removed_fraction"],
-        "fastq.report_qc" => &["schema_version", "stage", "report_html", "report_data_dir"],
+        "fastq.report_qc" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "aggregation_engine",
+            "governed_qc_input_count",
+            "multiqc_report",
+        ],
         _ => &["schema_version", "stage"],
     }
 }
