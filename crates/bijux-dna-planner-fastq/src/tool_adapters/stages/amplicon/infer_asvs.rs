@@ -241,9 +241,8 @@ fn infer_asvs_command(
 mod tests {
     use super::{infer_asvs_output_refs, plan_with_options, InferAsvsPlanOptions};
     use bijux_dna_core::prelude::{
-        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
     };
-    use bijux_dna_core::ToolId;
 
     #[test]
     fn infer_asvs_outputs_use_reference_roles_for_representative_sequences() {
