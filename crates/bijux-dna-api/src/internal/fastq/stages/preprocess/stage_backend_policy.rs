@@ -79,6 +79,40 @@ fn parse_validate_reads_metrics(
     })
 }
 
+pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("trim_terminal_damage_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_terminal_damage_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.trim_terminal_damage",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "damage_mode": report.damage_mode,
+                "execution_policy": report.execution_policy,
+                "trim_5p_bases": report.trim_5p_bases,
+                "trim_3p_bases": report.trim_3p_bases,
+                "requested_trim_5p_bases": report.requested_trim_5p_bases,
+                "requested_trim_3p_bases": report.requested_trim_3p_bases,
+                "udg_classification": report.udg_classification,
+                "ct_ga_asymmetry_pre": report.ct_ga_asymmetry_pre,
+                "ct_ga_asymmetry_post": report.ct_ga_asymmetry_post,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.trim_terminal_damage",
+        "tool": "report_missing",
+        "udg_classification": serde_json::Value::Null,
+        "ct_ga_asymmetry_pre": serde_json::Value::Null,
+        "ct_ga_asymmetry_post": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let fastp_json = out_dir.join("fastp.json");
     if let Ok(raw) = std::fs::read_to_string(&fastp_json) {
@@ -177,7 +211,8 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_validate_reads_metrics, required_metrics_keys,
+        fastq_backend_allowlist, parse_trim_terminal_damage_metrics, parse_validate_reads_metrics,
+        required_metrics_keys,
         workspace_root_path,
     };
 
@@ -359,6 +394,60 @@ mod tests {
         );
         Ok(())
     }
+
+    #[test]
+    fn trim_terminal_damage_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("trim_terminal_damage_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
+                "stage": "fastq.trim_terminal_damage",
+                "stage_id": "fastq.trim_terminal_damage",
+                "tool_id": "cutadapt",
+                "paired_mode": "single_end",
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 2,
+                "trim_3p_bases": 2,
+                "requested_trim_5p_bases": 2,
+                "requested_trim_3p_bases": 2,
+                "udg_classification": "non_udg",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq.gz",
+                "output_r2": null,
+                "reads_in": null,
+                "reads_out": null,
+                "bases_in": null,
+                "bases_out": null,
+                "mean_q_before": null,
+                "mean_q_after": null,
+                "ct_ga_asymmetry_pre": 0.42,
+                "ct_ga_asymmetry_post": 0.11,
+                "ct_ga_asymmetry_pre_r1": null,
+                "ct_ga_asymmetry_post_r1": null,
+                "ct_ga_asymmetry_pre_r2": null,
+                "ct_ga_asymmetry_post_r2": null,
+                "terminal_base_composition_pre_r1": null,
+                "terminal_base_composition_post_r1": null,
+                "terminal_base_composition_pre_r2": null,
+                "terminal_base_composition_post_r2": null,
+                "raw_backend_report": "cutadapt.raw.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": null,
+                "memory_mb": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_trim_terminal_damage_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
+        assert_eq!(metrics["execution_policy"], serde_json::json!("explicit_terminal_trim"));
+        assert_eq!(metrics["ct_ga_asymmetry_post"], serde_json::json!(0.11));
+    }
 }
 
 fn workspace_root_path() -> PathBuf {
@@ -423,6 +512,7 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
         "fastq.trim_terminal_damage" => &[
             "schema_version",
             "stage",
+            "execution_policy",
             "udg_classification",
             "ct_ga_asymmetry_pre",
             "ct_ga_asymmetry_post",
