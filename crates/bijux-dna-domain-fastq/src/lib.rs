@@ -28,6 +28,7 @@ pub mod stage_contract;
 pub mod stage_semantics;
 pub mod stage_specs;
 mod stage_tool_governance;
+mod validation_artifacts;
 pub mod stages;
 pub mod types;
 
@@ -141,4 +142,8 @@ pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
     FastqPE, FastqPairedEnd, FastqSE, FastqSampleId, FastqSingleEnd, FastqStats, RetentionReportV1,
     ToolReferenceV1,
+};
+pub use validation_artifacts::{
+    ValidatedReadsManifestV1, ValidateFailureClass, ValidationReportV1,
+    VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
 };
