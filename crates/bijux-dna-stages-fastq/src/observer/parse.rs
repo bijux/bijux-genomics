@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    DepleteRrnaReportV1,
     DetectAdaptersReportV1,
     ExtractUmisReportV1,
     FilterLowComplexityReportV1,
@@ -226,6 +227,78 @@ pub fn parse_profile_overrepresented_report(
 /// Returns an error if the governed taxonomy-screen report JSON cannot be parsed.
 pub fn parse_screen_taxonomy_report(report_json: &str) -> Result<ScreenTaxonomyReportV1> {
     serde_json::from_str(report_json).context("parse screen taxonomy report")
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyDepleteRrnaReportV1 {
+    schema_version: String,
+    stage_id: String,
+    tool_id: String,
+    rrna_fraction_removed: f64,
+    reads_in: u64,
+    reads_out: u64,
+    bases_in: u64,
+    bases_out: u64,
+    #[serde(default)]
+    runtime_s: Option<f64>,
+    #[serde(default)]
+    memory_mb: Option<f64>,
+}
+
+fn parse_legacy_deplete_rrna_report(report_json: &str) -> Result<DepleteRrnaReportV1> {
+    let legacy: LegacyDepleteRrnaReportV1 =
+        serde_json::from_str(report_json).context("parse legacy deplete rrna report")?;
+    if legacy.schema_version != "bijux.fastq.deplete_rrna.report.v1" {
+        return Err(anyhow!(
+            "unsupported deplete rrna report schema {}",
+            legacy.schema_version
+        ));
+    }
+    Ok(DepleteRrnaReportV1 {
+        schema_version: bijux_dna_domain_fastq::DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),
+        stage: legacy.stage_id.clone(),
+        stage_id: legacy.stage_id,
+        tool_id: legacy.tool_id,
+        paired_mode: PairedMode::SingleEnd,
+        threads: 1,
+        rrna_db: None,
+        database_artifact_id: "legacy_rrna_db".to_string(),
+        database_build_id: None,
+        screening_engine: bijux_dna_domain_fastq::params::screen::RrnaScreeningEngine::Sortmerna,
+        report_format: bijux_dna_domain_fastq::params::screen::RrnaReportFormat::SummaryTsvAndJson,
+        emit_removed_reads: false,
+        min_identity: None,
+        input_r1: String::new(),
+        input_r2: None,
+        output_r1: String::new(),
+        output_r2: None,
+        rrna_report_tsv: "rrna_report.tsv".to_string(),
+        rrna_report_json: "rrna_report.json".to_string(),
+        reads_in: legacy.reads_in,
+        reads_out: legacy.reads_out,
+        reads_removed: legacy.reads_in.saturating_sub(legacy.reads_out),
+        bases_in: legacy.bases_in,
+        bases_out: legacy.bases_out,
+        bases_removed: legacy.bases_in.saturating_sub(legacy.bases_out),
+        pairs_in: None,
+        pairs_out: None,
+        rrna_fraction_removed: legacy.rrna_fraction_removed,
+        runtime_s: legacy.runtime_s,
+        memory_mb: legacy.memory_mb,
+        exit_code: None,
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        backend_metrics: None,
+    })
+}
+
+/// # Errors
+/// Returns an error if the governed rrna-depletion report JSON cannot be parsed.
+pub fn parse_deplete_rrna_report(report_json: &str) -> Result<DepleteRrnaReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_deplete_rrna_report(report_json))
+        .context("parse deplete rrna report")
 }
 
 #[derive(Debug, Deserialize)]
@@ -1093,6 +1166,7 @@ fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
 mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
+        parse_deplete_rrna_report,
         parse_detect_adapters_report,
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
         parse_extract_umis_report,
@@ -1115,7 +1189,8 @@ mod tests {
     use bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy;
     use bijux_dna_domain_fastq::params::DamageMode;
     use bijux_dna_domain_fastq::{
-        PairedMode, ValidateFailureClass, REPORT_QC_REPORT_SCHEMA_VERSION,
+        PairedMode, ValidateFailureClass, DEPLETE_RRNA_REPORT_SCHEMA_VERSION,
+        REPORT_QC_REPORT_SCHEMA_VERSION,
         SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
         VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
     };
@@ -1395,6 +1470,78 @@ mod tests {
         assert_eq!(parsed.tool_id, "fastqc");
         assert_eq!(parsed.candidate_adapter_count, 2);
         assert_eq!(parsed.threads, 4);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_deplete_rrna_report_round_trips_governed_payload() -> Result<()> {
+        let parsed = parse_deplete_rrna_report(
+            &serde_json::json!({
+                "schema_version": DEPLETE_RRNA_REPORT_SCHEMA_VERSION,
+                "stage": "fastq.deplete_rrna",
+                "stage_id": "fastq.deplete_rrna",
+                "tool_id": "sortmerna",
+                "paired_mode": "paired_end",
+                "threads": 6,
+                "rrna_db": "/refs/silva",
+                "database_artifact_id": "silva_nr99",
+                "database_build_id": "2026.03",
+                "screening_engine": "sortmerna",
+                "report_format": "summary_tsv_and_json",
+                "emit_removed_reads": false,
+                "min_identity": 0.95,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "rrna_filtered_R1.fastq.gz",
+                "output_r2": "rrna_filtered_R2.fastq.gz",
+                "rrna_report_tsv": "rrna_report.tsv",
+                "rrna_report_json": "rrna_report.json",
+                "reads_in": 200,
+                "reads_out": 150,
+                "reads_removed": 50,
+                "bases_in": 20000,
+                "bases_out": 15000,
+                "bases_removed": 5000,
+                "pairs_in": 100,
+                "pairs_out": 75,
+                "rrna_fraction_removed": 0.25,
+                "runtime_s": 12.3,
+                "memory_mb": 256.0,
+                "exit_code": 0,
+                "raw_backend_report": "sortmerna.log",
+                "raw_backend_report_format": "sortmerna_log",
+                "backend_metrics": {
+                    "reads_removed": 50
+                }
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "sortmerna");
+        assert_eq!(parsed.database_artifact_id, "silva_nr99");
+        assert_eq!(parsed.reads_removed, 50);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_deplete_rrna_report_accepts_legacy_payload() -> Result<()> {
+        let parsed = parse_deplete_rrna_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_rrna.report.v1",
+                "stage_id": "fastq.deplete_rrna",
+                "tool_id": "sortmerna",
+                "rrna_fraction_removed": 0.4,
+                "reads_in": 100,
+                "reads_out": 60,
+                "bases_in": 1000,
+                "bases_out": 600,
+                "runtime_s": 4.0,
+                "memory_mb": 32.0
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "sortmerna");
+        assert_eq!(parsed.reads_removed, 40);
+        assert_eq!(parsed.rrna_fraction_removed, 0.4);
         Ok(())
     }
 
