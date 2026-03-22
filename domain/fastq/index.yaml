@@ -1989,7 +1989,7 @@ benchmark_scenarios:
     - same_qc_aggregation_contract
   screen_fairness:
     stage_id: fastq.screen_taxonomy
-    description: Compare classifiers on identical filtered inputs and fixed DB metadata.
+    description: Compare classifiers on identical filtered inputs with fixed database lineage and governed taxonomy normalization.
     cohort_artifact_id: taxonomy_tool_benchmark_cohort_json
     comparison_artifact_id: taxonomy_tool_comparison_json
     normalization_artifact_id: taxonomy_tool_normalization_json
@@ -1997,3 +1997,4 @@ benchmark_scenarios:
     - same_input_hash
     - same_previous_stage_defaults
     - same_contamination_db_hash
+    - same_governed_taxonomy_report_contract
