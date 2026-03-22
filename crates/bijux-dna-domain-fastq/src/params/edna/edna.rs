@@ -56,8 +56,13 @@ pub struct AsvInferenceEffectiveParams {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct OtuClusteringEffectiveParams {
+    pub schema_version: String,
     pub identity_threshold: f64,
+    pub threads: u32,
     pub output_table_kind: String,
+    pub report_artifact: String,
+    pub raw_backend_report_artifact: Option<String>,
+    pub raw_backend_report_format: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
