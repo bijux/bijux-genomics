@@ -71,6 +71,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "paired-end input may emit r1+r2 outputs; single-end may omit r2 artifact."
+  - "report_json is the canonical governed deduplication contract; duplicate_classes_tsv and duplicate_provenance_json preserve class-level and backend-lineage evidence for comparison."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

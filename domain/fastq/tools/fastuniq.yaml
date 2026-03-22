@@ -64,7 +64,7 @@ stage_contracts:
       - "duplicate_classes_tsv"
       - "duplicate_provenance_json"
       - "report_json"
-    notes: "FastUniq duplicate removal emits governed deduplicated paired reads and the normalized duplicate report."
+    notes: "FastUniq duplicate removal emits governed deduplicated paired reads plus the canonical report_json; duplicate_classes_tsv and duplicate_provenance_json preserve normalized duplicate evidence and backend lineage for comparison."
 expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
@@ -73,4 +73,4 @@ help_cmd: "fastuniq -h"
 comparability:
   comparable_with: ["clumpify"]
   non_comparable_with: []
-comparability_notes: "Comparable when duplicate definition and pair-handling parameters are aligned."
+comparability_notes: "Comparable when duplicate definition and pair-handling parameters are aligned and the governed report_json plus duplicate_provenance_json artifacts are compared together."
