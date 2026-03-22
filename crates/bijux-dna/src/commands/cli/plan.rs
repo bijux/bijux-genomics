@@ -416,6 +416,7 @@ pub fn bench_args_normalize_abundance(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        method: args.method.clone(),
     })
 }
 
