@@ -132,6 +132,7 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> Result<engine_args::BenchFa
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),
@@ -732,12 +733,13 @@ pub fn bench_args_preprocess(
 #[cfg(test)]
 mod tests {
     use super::{
-        bench_args_filter, bench_args_from_validate, bench_args_trim_polyg,
+        bench_args_filter, bench_args_from_validate, bench_args_trim, bench_args_trim_polyg,
         bench_args_trim_terminal_damage, resolve_stage_tool,
     };
     use crate::commands::cli::parse::{
-        BenchFastqFilterArgs, BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs,
-        CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs,
+        BenchFastqFilterArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
+        BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand, FastqCommand,
+        FastqValidateArgs,
     };
     use std::path::PathBuf;
 
@@ -935,6 +937,40 @@ mod tests {
         assert_eq!(bench.threads, Some(5));
         assert_eq!(bench.execution_policy.as_deref(), Some("explicit_terminal_trim"));
     }
+
+    #[test]
+    fn trim_reads_bench_args_preserve_thread_override() {
+        let args = BenchFastqTrimArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            tools: vec!["fastp".to_string()],
+            explain: false,
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(25),
+            threads: Some(8),
+            adapter_bank_preset: Some("illumina-default".to_string()),
+            adapter_bank: None,
+            adapter_bank_file: None,
+            enable_adapter: Vec::new(),
+            disable_adapter: Vec::new(),
+            polyx_preset: Some("illumina_twocolor".to_string()),
+            contaminant_preset: None,
+            min_length: Some(40),
+            quality_cutoff: Some(20),
+            n_policy: Some("retain".to_string()),
+            adapter_policy: Some("none".to_string()),
+            polyx_policy: Some("trim".to_string()),
+            contaminant_policy: Some("none".to_string()),
+        };
+
+        let bench = bench_args_trim(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(8));
+        assert_eq!(bench.min_length, Some(40));
+    }
 }
 
 /// # Errors
@@ -959,6 +995,7 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
         replicates: 1,
         jobs: 1,
         ci_bootstrap: None,
+        threads: None,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),

@@ -104,6 +104,8 @@ pub struct BenchFastqTrimArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(long)]
+    pub threads: Option<u32>,
     #[arg(long, help = "Adapter bank preset name (default: illumina-default)")]
     pub adapter_bank_preset: Option<String>,
     #[arg(
