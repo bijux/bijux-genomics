@@ -33,13 +33,13 @@ pub fn plan(
             PairedMode::SingleEnd
         },
         threads: tool.resources.threads,
-        sample_reads: Some(100_000),
+        sample_reads: None,
         inspection_mode: AdapterInspectionMode::EvidenceOnly,
         report_only: true,
         evidence_engine: tool.tool_id.to_string(),
-        evidence_scope: AdapterEvidenceScope::SampledReads,
+        evidence_scope: AdapterEvidenceScope::FullInput,
         evidence_format: AdapterEvidenceFormat::FastqcSummary,
-        evidence_artifact_id: "adapter_report".to_string(),
+        evidence_artifact_id: "report_json".to_string(),
     };
     let command_template = detect_adapters_command(
         &tool.tool_id.0,
@@ -78,6 +78,11 @@ pub fn plan(
             inputs,
             outputs: vec![
                 ArtifactRef::required(
+                    ArtifactId::from_static("report_json"),
+                    report.clone(),
+                    ArtifactRole::ReportJson,
+                ),
+                ArtifactRef::required(
                     ArtifactId::from_static("adapter_report"),
                     report.clone(),
                     ArtifactRole::ReportJson,
@@ -95,6 +100,7 @@ pub fn plan(
             "input_r1": r1,
             "input_r2": r2,
             "out_dir": out_dir,
+            "threads": tool.resources.threads,
             "report_json": report,
             "adapter_evidence_dir": adapter_evidence_dir,
             "sample_reads": effective_params.sample_reads,
@@ -104,6 +110,47 @@ pub fn plan(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::plan;
+    use anyhow::Result;
+    use bijux_dna_core::prelude::{ImageRefV1, ResourcesSpecV1, ToolExecutionSpecV1, ToolId, ToolVersion};
+
+    #[test]
+    fn detect_adapters_plan_emits_canonical_report_and_full_input_scope() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let tool = ToolExecutionSpecV1 {
+            tool_id: ToolId::from("fastqc"),
+            tool_version: ToolVersion::from("0.12.1"),
+            image: ImageRefV1 {
+                image: "bijuxdna/fastqc".to_string(),
+                digest: Some("sha256:test".to_string()),
+            },
+            resources: ResourcesSpecV1 {
+                cpus: Some(2.0),
+                memory_gb: Some(4.0),
+                threads: 4,
+                tmp_gb: Some(2.0),
+                wallclock_s: None,
+            },
+        };
+        let r1 = temp.path().join("reads_R1.fastq.gz");
+        let r2 = temp.path().join("reads_R2.fastq.gz");
+        let out_dir = temp.path().join("out");
+        let plan = plan(&tool, &r1, Some(&r2), &out_dir)?;
+
+        assert!(plan
+            .io
+            .outputs
+            .iter()
+            .any(|artifact| artifact.name.as_str() == "report_json"));
+        assert_eq!(plan.effective_params["evidence_scope"], "full_input");
+        assert_eq!(plan.effective_params["sample_reads"], serde_json::Value::Null);
+        assert_eq!(plan.effective_params["evidence_artifact_id"], "report_json");
+        Ok(())
+    }
 }
 
 fn detect_adapters_command(
