@@ -694,14 +694,68 @@ pub fn stage_metrics_for_plan(
                 let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
                 stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-            let (read_length_distribution, gc_distribution) =
-                distributions_for_path(inputs.first().map(PathBuf::as_path))?;
+            let governed_report = path_from_params(&plan.params, "qc_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "qc_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("qc.json");
+                    fallback.exists().then_some(fallback)
+                })
+                .and_then(|report_path| std::fs::read_to_string(&report_path).ok())
+                .and_then(|raw| crate::observer::parse_profile_reads_report(&raw).ok());
+            let (pairs_in, pairs_out) = if let Some(report) = governed_report.as_ref() {
+                match report.paired_mode {
+                    bijux_dna_domain_fastq::params::PairedMode::PairedEnd => {
+                        let pairs = report
+                            .mate_summaries
+                            .iter()
+                            .map(|mate| mate.reads)
+                            .min()
+                            .unwrap_or(0);
+                        (Some(pairs), Some(pairs))
+                    }
+                    bijux_dna_domain_fastq::params::PairedMode::SingleEnd
+                    | bijux_dna_domain_fastq::params::PairedMode::Unknown => (None, None),
+                }
+            } else {
+                pair_counts_from_paths(inputs, outputs)?
+            };
+            let (read_length_distribution, gc_distribution) = if let Some(report) =
+                governed_report.as_ref()
+            {
+                (
+                    report
+                        .length_histogram
+                        .iter()
+                        .map(|bin| (bin.length, bin.count))
+                        .collect::<Vec<_>>(),
+                    distributions_for_path(inputs.first().map(PathBuf::as_path))?.1,
+                )
+            } else {
+                distributions_for_path(inputs.first().map(PathBuf::as_path))?
+            };
             serde_json::to_value(FastqStatsNeutralMetricsV1 {
-                reads_in: input.reads,
-                reads_out: output.reads,
-                bases_in: input.bases,
-                bases_out: output.bases,
+                reads_in: governed_report
+                    .as_ref()
+                    .map(|report| report.reads_total)
+                    .unwrap_or(input.reads),
+                reads_out: governed_report
+                    .as_ref()
+                    .map(|report| report.reads_total)
+                    .unwrap_or(output.reads),
+                bases_in: governed_report
+                    .as_ref()
+                    .map(|report| report.bases_total)
+                    .unwrap_or(input.bases),
+                bases_out: governed_report
+                    .as_ref()
+                    .map(|report| report.bases_total)
+                    .unwrap_or(output.bases),
                 pairs_in,
                 pairs_out,
                 read_length_distribution,
