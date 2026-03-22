@@ -10,6 +10,9 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqLowCompl
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::{
+    FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION, PairedMode,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_filter_low_complexity_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::filter_low_complexity::{
@@ -245,33 +248,31 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     let before_stats = combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2);
     let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
     let reads_removed = before_stats.reads.saturating_sub(after_stats.reads);
+    let report = build_low_complexity_report(
+        tool,
+        tool_spec.resources.threads,
+        params,
+        &before_stats,
+        &after_stats,
+        output_stats_r2.as_ref(),
+        input_stats_r2,
+        output_reads,
+        output_reads_r2,
+        execution,
+    );
     let metrics = FastqLowComplexityMetrics {
-        reads_in: before_stats.reads,
-        reads_out: after_stats.reads,
-        bases_in: before_stats.bases,
-        bases_out: after_stats.bases,
-        reads_removed_low_complexity: reads_removed,
-        mean_q_before: before_stats.mean_q,
-        mean_q_after: after_stats.mean_q,
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        reads_removed_low_complexity: report.reads_removed_low_complexity,
+        mean_q_before: report.mean_q_before,
+        mean_q_after: report.mean_q_after,
         delta_metrics: derive_trim_delta(&before_stats, &after_stats),
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.filter_low_complexity.report.v1",
-        "stage_id": STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-        "tool_id": tool,
-        "input_fastq": bench_inputs.r1,
-        "output_fastq": output_reads,
-        "output_fastq_r2": output_reads_r2,
-        "reads_in": metrics.reads_in,
-        "reads_out": metrics.reads_out,
-        "reads_removed_low_complexity": metrics.reads_removed_low_complexity,
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
-    });
     let out_dir = output_reads
         .parent()
         .ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
@@ -305,6 +306,98 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn build_low_complexity_report(
+    tool: &str,
+    threads: u32,
+    params: &serde_json::Value,
+    before_stats: &SeqkitMetrics,
+    after_stats: &SeqkitMetrics,
+    output_stats_r2: Option<&SeqkitMetrics>,
+    input_stats_r2: Option<&SeqkitMetrics>,
+    output_reads: &std::path::Path,
+    output_reads_r2: Option<&std::path::Path>,
+    execution: &StageResultV1,
+) -> FilterLowComplexityReportV1 {
+    let raw_backend_report = params
+        .get("raw_backend_report")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+    let raw_backend_report_format = params
+        .get("raw_backend_report_format")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+    FilterLowComplexityReportV1 {
+        schema_version: FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
+        stage_id: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
+        tool_id: tool.to_string(),
+        paired_mode: if input_stats_r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        threads,
+        input_r1: params
+            .get("input_r1")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_string(),
+        input_r2: params
+            .get("input_r2")
+            .and_then(serde_json::Value::as_str)
+            .map(ToString::to_string),
+        output_r1: output_reads.display().to_string(),
+        output_r2: output_reads_r2.map(|path| path.display().to_string()),
+        report_json: params
+            .get("report_json")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("low_complexity_report.json")
+            .to_string(),
+        entropy_threshold: params
+            .get("entropy_threshold")
+            .and_then(serde_json::Value::as_f64),
+        polyx_threshold: params
+            .get("polyx_threshold")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok()),
+        reads_in: before_stats.reads,
+        reads_out: after_stats.reads,
+        reads_removed_low_complexity: before_stats.reads.saturating_sub(after_stats.reads),
+        bases_in: before_stats.bases,
+        bases_out: after_stats.bases,
+        pairs_in: input_stats_r2.map(|r2| before_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
+        pairs_out: output_stats_r2.map(|r2| after_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
+        mean_q_before: before_stats.mean_q,
+        mean_q_after: after_stats.mean_q,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
+        exit_code: Some(execution.exit_code),
+        raw_backend_report: raw_backend_report.clone(),
+        raw_backend_report_format: raw_backend_report_format.clone(),
+        backend_metrics: low_complexity_backend_metrics(
+            raw_backend_report.as_deref(),
+            raw_backend_report_format.as_deref(),
+        ),
+    }
+}
+
+fn low_complexity_backend_metrics(
+    raw_backend_report: Option<&str>,
+    raw_backend_report_format: Option<&str>,
+) -> Option<serde_json::Value> {
+    match (raw_backend_report, raw_backend_report_format) {
+        (Some(path), Some("bbduk_stats")) => std::fs::read_to_string(path)
+            .ok()
+            .and_then(|raw| bijux_dna_stages_fastq::observer::parse_bbduk_reads_removed(&raw).ok())
+            .map(|reads_removed_reported| {
+                serde_json::json!({
+                    "reads_removed_reported": reads_removed_reported,
+                })
+            }),
+        _ => None,
+    }
 }
 
 fn combine_seqkit_metrics(
