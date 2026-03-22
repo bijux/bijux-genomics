@@ -81,7 +81,8 @@ stage_contracts:
       - "abundance_table"
     expected_artifacts:
       - "normalized_abundance_tsv"
-    notes: "seqkit abundance normalization emits the normalized abundance table."
+      - "report_json"
+    notes: "seqkit abundance normalization emits the governed normalized abundance table and a canonical normalize-abundance report."
   fastq.normalize_primers:
     required_inputs:
       - "reads_r1"
@@ -119,6 +120,7 @@ expected_artifacts:
   - "filtered_reads_r1"
   - "filtered_reads_r2"
   - "normalized_abundance_tsv"
+  - "report_json"
   - "normalized_reads_r1"
   - "normalized_reads_r2"
   - "report_json"

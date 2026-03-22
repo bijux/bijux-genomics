@@ -23,13 +23,15 @@ stage_contracts:
     - abundance_table
     expected_artifacts:
     - normalized_abundance_tsv
-    notes: Planned abundance normalization would emit the governed normalized abundance table artifact.
+    - report_json
+    notes: Planned abundance normalization would emit the governed normalized abundance table and canonical report artifacts.
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:
 - length_distribution_tsv
 - length_distribution_json
 - normalized_abundance_tsv
+- report_json
 metrics_schema_id: bijux.fastq.stats.v1
 metrics_schema: bijux.fastq.stats.v1
 version_cmd: seqfu --version
