@@ -142,6 +142,7 @@ mod tests {
         assert_eq!(
             stage_output_ids_in_manifest_order("fastq.report_qc"),
             Some(vec![
+                "report_json".to_string(),
                 "multiqc_report".to_string(),
                 "multiqc_data".to_string(),
                 "governed_qc_inputs_manifest".to_string()

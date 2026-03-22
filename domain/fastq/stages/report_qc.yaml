@@ -8,6 +8,9 @@ inputs:
     data_type: "dir"
     cardinality: "Many"
 outputs:
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
   - name: "multiqc_report"
     data_type: "html"
     cardinality: "One"
@@ -49,6 +52,8 @@ metrics:
     meaning: "Path to MultiQC HTML report"
   - name: "multiqc_data"
     meaning: "Path to MultiQC data directory"
+  - name: "report_json"
+    meaning: "Canonical governed QC aggregation report with contributor lineage and normalized MultiQC semantics"
 description: "FASTQ stage for MultiQC aggregation of FASTQ quality-control reports."
 mutates_fastq: false
 report_only: true
@@ -61,6 +66,7 @@ image_requirements:
 required_inputs:
   - qc_artifacts
 required_outputs:
+  - report_json
   - multiqc_report
   - multiqc_data
   - governed_qc_inputs_manifest
@@ -76,6 +82,7 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "the stage aggregates existing FASTQ QC inputs rather than recomputing primary read statistics."
   - "governed QC artifacts may come from read profiling, adapter inspection, or overrepresented-sequence analysis."
+  - "report_json is the canonical governed aggregation contract; multiqc_report and multiqc_data remain backend-native deliverables for human review and downstream inspection."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
