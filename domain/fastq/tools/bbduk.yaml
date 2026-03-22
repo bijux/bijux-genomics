@@ -84,7 +84,7 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "BBDuk polyG trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed trim report."
+    notes: "BBDuk polyG trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed trim report that records the native BBDuk stats format for downstream comparison."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
