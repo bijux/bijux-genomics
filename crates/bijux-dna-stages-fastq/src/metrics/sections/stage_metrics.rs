@@ -52,6 +52,12 @@ pub fn stage_metrics_for_plan(
                 mean_q_before: input.mean_q,
                 mean_q_after: output.mean_q,
                 delta_metrics: delta,
+                paired_mode: None,
+                adapter_policy: None,
+                polyx_policy: None,
+                n_policy: None,
+                contaminant_policy: None,
+                raw_backend_report_format: None,
                 retention,
             })?
         }
