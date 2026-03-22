@@ -4,6 +4,7 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - "SE"
+  - "PE"
 container:
   image: "bijuxdna/prinseq"
   digest: "sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
@@ -28,6 +29,8 @@ constraints:
 execution_contract:
   required_inputs:
     - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
   expected_outputs:
     - "*"
   forbidden_outputs: []
