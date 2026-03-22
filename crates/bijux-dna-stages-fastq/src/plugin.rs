@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
+    parse_extract_umis_report,
     parse_filter_low_complexity_report,
     parse_filter_reads_report,
     parse_index_reference_report,
@@ -818,6 +819,58 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         ),
                         ("bases_in".to_string(), serde_json::json!(report.bases_in)),
                         ("bases_out".to_string(), serde_json::json!(report.bases_out)),
+                        (
+                            "mean_q_before".to_string(),
+                            serde_json::json!(report.mean_q_before),
+                        ),
+                        (
+                            "mean_q_after".to_string(),
+                            serde_json::json!(report.mean_q_after),
+                        ),
+                        (
+                            "raw_backend_report_format".to_string(),
+                            serde_json::json!(report.raw_backend_report_format),
+                        ),
+                    ]);
+                    if let Some(backend_metrics) = report
+                        .backend_metrics
+                        .as_ref()
+                        .and_then(serde_json::Value::as_object)
+                    {
+                        for (metric_name, metric_value) in backend_metrics {
+                            semantics.insert(metric_name.clone(), metric_value.clone());
+                        }
+                    }
+                    return serde_json::Value::Object(semantics);
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.extract_umis" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_extract_umis_report(&raw_report) {
+                    let mut semantics = serde_json::Map::from_iter([
+                        (
+                            "paired_mode".to_string(),
+                            serde_json::json!(report.paired_mode),
+                        ),
+                        ("threads".to_string(), serde_json::json!(report.threads)),
+                        ("umi_pattern".to_string(), serde_json::json!(report.umi_pattern)),
+                        ("reads_in".to_string(), serde_json::json!(report.reads_in)),
+                        ("reads_out".to_string(), serde_json::json!(report.reads_out)),
+                        ("bases_in".to_string(), serde_json::json!(report.bases_in)),
+                        ("bases_out".to_string(), serde_json::json!(report.bases_out)),
+                        ("pairs_in".to_string(), serde_json::json!(report.pairs_in)),
+                        ("pairs_out".to_string(), serde_json::json!(report.pairs_out)),
+                        (
+                            "reads_with_umi".to_string(),
+                            serde_json::json!(report.reads_with_umi),
+                        ),
                         (
                             "mean_q_before".to_string(),
                             serde_json::json!(report.mean_q_before),
@@ -2073,6 +2126,125 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["reads_removed_reported"],
             serde_json::json!(8)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_extract_umis_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_r1 = temp.path().join("reads_R1.fastq");
+        let reads_r2 = temp.path().join("reads_R2.fastq");
+        let umi_r1 = temp.path().join("umi_reads_R1.fastq");
+        let umi_r2 = temp.path().join("umi_reads_R2.fastq");
+        let report_path = temp.path().join("umi_report.json");
+        std::fs::write(&reads_r1, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        std::fs::write(&reads_r2, b"@r1\nTGCA\n+\n####\n").expect("write reads");
+        std::fs::write(&umi_r1, b"@r1_UMI:AAAA\nACGT\n+\n####\n").expect("write umi reads");
+        std::fs::write(&umi_r2, b"@r1_UMI:AAAA\nTGCA\n+\n####\n").expect("write umi reads");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.extract_umis.report.v2",
+                "stage": "fastq.extract_umis",
+                "stage_id": "fastq.extract_umis",
+                "tool_id": "umi_tools",
+                "paired_mode": "paired_end",
+                "threads": 2,
+                "umi_pattern": "NNNNNNNN",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "umi_reads_R1.fastq.gz",
+                "output_r2": "umi_reads_R2.fastq.gz",
+                "report_json": "umi_report.json",
+                "reads_in": 2,
+                "reads_out": 2,
+                "bases_in": 8,
+                "bases_out": 8,
+                "pairs_in": 1,
+                "pairs_out": 1,
+                "reads_with_umi": 2,
+                "mean_q_before": 30.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 1.0,
+                "memory_mb": 32.0,
+                "exit_code": 0,
+                "raw_backend_report": "umi_tools.extract.log",
+                "raw_backend_report_format": "umi_tools_log",
+                "backend_metrics": {
+                    "reads_with_umi_fraction": 1.0
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.extract_umis"),
+            stage_instance_id: None,
+            stage_version: StageVersion(1),
+            tool_id: ToolId::from_static("umi_tools"),
+            tool_version: "test".to_string(),
+            image: serde_json::from_value(serde_json::json!({
+                "image": "bijuxdna/test",
+                "digest": null,
+            }))
+            .expect("image"),
+            command: serde_json::from_value(serde_json::json!({
+                "template": ["echo", "ok"],
+            }))
+            .expect("command"),
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("reads_r1"),
+                        reads_r1.clone(),
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("reads_r2"),
+                        reads_r2.clone(),
+                        ArtifactRole::Reads,
+                    ),
+                ],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("umi_reads_r1"),
+                        umi_r1.clone(),
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("umi_reads_r2"),
+                        umi_r2.clone(),
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            },
+            out_dir: temp.path().to_path_buf(),
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: std::collections::BTreeMap::new(),
+            reason: PlanDecisionReason::default(),
+        };
+        let outputs = plan.io.outputs.clone();
+
+        let output = plugin.parse_outputs(&plan, &outputs).expect("parse outputs");
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["umi_pattern"],
+            serde_json::json!("NNNNNNNN")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_with_umi"],
+            serde_json::json!(2_u64)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_with_umi_fraction"],
+            serde_json::json!(1.0)
         );
     }
 
