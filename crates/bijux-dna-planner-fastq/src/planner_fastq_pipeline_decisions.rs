@@ -169,6 +169,7 @@ pub struct FastqStageBenchmarkConfig {
     pub policy: PlanPolicy,
     pub stage_id: String,
     pub tools: Vec<ToolExecutionSpecV1>,
+    pub params: Option<FastqStageParameters>,
     pub aux_images: BTreeMap<String, ContainerImageRefV1>,
     pub adapter_bank: Option<serde_json::Value>,
     pub polyx_bank: Option<serde_json::Value>,
@@ -307,7 +308,7 @@ impl FastqPlanner {
                 stage_instance_id: None,
                 tool: tool.clone(),
                 reason: None,
-                params: None,
+                params: config.params.clone(),
             }];
             let stage_plans = compose_fastq_stage_bindings(
                 &stage_bindings,
