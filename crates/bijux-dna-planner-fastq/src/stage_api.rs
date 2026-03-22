@@ -273,6 +273,16 @@ pub fn toolset_for_stage_benchmark_scenario(stage_id: &StageId, scenario_id: &st
 }
 
 #[must_use]
+pub fn benchmark_default_scenario_toolset(stage_id: &StageId) -> Vec<ToolId> {
+    let mut cohorts = benchmark_cohorts_for_stage(stage_id);
+    cohorts.sort_by(|left, right| left.scenario_id.cmp(&right.scenario_id));
+    if cohorts.len() != 1 {
+        return Vec::new();
+    }
+    cohorts.remove(0).tool_ids
+}
+
+#[must_use]
 pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<ToolId> {
     match mode {
         ToolsetExecutionMode::DefaultChoice => {
@@ -283,15 +293,7 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
             .filter(|capability| capability.runnable)
             .map(|capability| capability.tool_id)
             .collect(),
-        ToolsetExecutionMode::BenchmarkCohort => {
-            let mut tool_ids = benchmark_cohorts_for_stage(stage_id)
-                .into_iter()
-                .flat_map(|cohort| cohort.tool_ids)
-                .collect::<Vec<_>>();
-            tool_ids.sort_by(|left, right| left.as_str().cmp(right.as_str()));
-            tool_ids.dedup_by(|left, right| left == right);
-            tool_ids
-        }
+        ToolsetExecutionMode::BenchmarkCohort => benchmark_default_scenario_toolset(stage_id),
         ToolsetExecutionMode::AllBindings => stage_tool_capabilities_for_stage(stage_id)
             .into_iter()
             .map(|capability| capability.tool_id)
@@ -302,28 +304,25 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
 #[must_use]
 pub fn stage_tool_maturity(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolMaturityLevel> {
     let (_, runtime_normalization) = runtime_contract_levels(stage_id, tool_id);
-    bijux_dna_domain_fastq::stage_tool_maturity(
-        stage_id,
-        tool_id,
-        runtime_normalization,
+    bijux_dna_domain_fastq::stage_tool_maturity(stage_id, tool_id, runtime_normalization).map(
+        |level| match level {
+            bijux_dna_domain_fastq::StageToolMaturityLevel::PlannedBinding => {
+                StageToolMaturityLevel::PlannedBinding
+            }
+            bijux_dna_domain_fastq::StageToolMaturityLevel::GovernedExecution => {
+                StageToolMaturityLevel::GovernedExecution
+            }
+            bijux_dna_domain_fastq::StageToolMaturityLevel::GenericNormalized => {
+                StageToolMaturityLevel::GenericNormalized
+            }
+            bijux_dna_domain_fastq::StageToolMaturityLevel::ObserverNormalized => {
+                StageToolMaturityLevel::ObserverNormalized
+            }
+            bijux_dna_domain_fastq::StageToolMaturityLevel::BenchmarkComparable => {
+                StageToolMaturityLevel::BenchmarkComparable
+            }
+        },
     )
-    .map(|level| match level {
-        bijux_dna_domain_fastq::StageToolMaturityLevel::PlannedBinding => {
-            StageToolMaturityLevel::PlannedBinding
-        }
-        bijux_dna_domain_fastq::StageToolMaturityLevel::GovernedExecution => {
-            StageToolMaturityLevel::GovernedExecution
-        }
-        bijux_dna_domain_fastq::StageToolMaturityLevel::GenericNormalized => {
-            StageToolMaturityLevel::GenericNormalized
-        }
-        bijux_dna_domain_fastq::StageToolMaturityLevel::ObserverNormalized => {
-            StageToolMaturityLevel::ObserverNormalized
-        }
-        bijux_dna_domain_fastq::StageToolMaturityLevel::BenchmarkComparable => {
-            StageToolMaturityLevel::BenchmarkComparable
-        }
-    })
 }
 
 pub fn adapter_bank_path() -> std::path::PathBuf {
