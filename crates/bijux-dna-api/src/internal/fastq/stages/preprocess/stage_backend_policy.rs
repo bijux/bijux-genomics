@@ -242,6 +242,37 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
+pub(crate) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("remove_chimeras_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_remove_chimeras_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.remove_chimeras",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "method": report.method,
+                "detection_scope": report.detection_scope,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "chimeras_removed": report.chimeras_removed,
+                "chimera_fraction": report.chimera_fraction,
+                "used_fallback": report.used_fallback,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.remove_chimeras",
+        "tool": "report_missing",
+        "chimera_fraction": serde_json::Value::Null,
+        "chimeras_removed": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = discover_screen_taxonomy_report(out_dir)
         .unwrap_or_else(|| out_dir.join("classification_report.json"));
