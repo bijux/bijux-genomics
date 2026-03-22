@@ -113,6 +113,10 @@ fn benchmark_scenarios_attach_to_governed_stages() {
         .fairness_rules
         .iter()
         .any(|rule| rule == "same_dedup_policy"));
+    assert!(dedup_scenarios[0]
+        .fairness_rules
+        .iter()
+        .any(|rule| rule == "same_keep_order_policy"));
 
     let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
     let read_length_scenarios =

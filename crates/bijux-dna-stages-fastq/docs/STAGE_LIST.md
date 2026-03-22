@@ -16,7 +16,7 @@ See `STAGE_CONTRACTS.md` for detailed contracts.
 | fastq.filter_reads | Recommended | FASTQ | filtered FASTQ | filter counts |
 | fastq.filter_low_complexity | Optional | FASTQ | filtered FASTQ | reads_removed_low_complexity |
 | fastq.merge_pairs | Optional | paired FASTQ | merged FASTQ | merge_rate |
-| fastq.remove_duplicates | Optional | FASTQ | deduplicated FASTQ | dedup_rate |
+| fastq.remove_duplicates | Optional | FASTQ | deduplicated FASTQ + governed duplicate evidence | dedup_rate, duplicate classes, backend lineage |
 | fastq.deplete_host | Optional | FASTQ + host reference index | host-depleted FASTQ | host_fraction_removed |
 | fastq.deplete_rrna | Optional | FASTQ | rRNA-filtered FASTQ | rrna_fraction |
 | fastq.correct_errors | Optional | paired FASTQ | corrected FASTQ | correction_rate; `rcorrector` is the closed execution backend |

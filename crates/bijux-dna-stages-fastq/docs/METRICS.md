@@ -5,6 +5,7 @@ Schema: `bijux.metrics.summary.v1`
 Required stage metrics in default FASTQ pipelines:
 - `fastq.trim_reads`: trim retention and quality deltas (`reads_in/out`, `bases_in/out`, `delta_metrics`, `retention`)
 - `fastq.filter_reads`: filter removals and retention (`reads_removed_*`, `delta_metrics`, `retention`)
+- `fastq.remove_duplicates`: governed dedup summary with canonical `report_json`, duplicate classes, provenance JSON, dedup mode, and keep-order semantics
 - `fastq.report_qc`: governed QC aggregation summary with canonical `report_json`, contributor lineage, aggregation engine/scope, MultiQC sample/module counts, and backend report paths
 
 Tool metrics schemas covered by parsers:

@@ -1861,6 +1861,7 @@ benchmark_scenarios:
     - same_previous_stage_defaults
     - same_dataset_class
     - same_dedup_policy
+    - same_keep_order_policy
   read_length_fairness:
     stage_id: fastq.profile_read_lengths
     description: Compare read-length profilers on identical raw reads and governed histogram
