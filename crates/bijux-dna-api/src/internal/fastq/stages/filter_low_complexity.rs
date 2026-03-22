@@ -247,7 +247,6 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     };
     let before_stats = combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2);
     let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
-    let reads_removed = before_stats.reads.saturating_sub(after_stats.reads);
     let report = build_low_complexity_report(
         tool,
         tool_spec.resources.threads,
@@ -371,8 +370,8 @@ fn build_low_complexity_report(
         pairs_out: output_stats_r2.map(|r2| after_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
         mean_q_before: before_stats.mean_q,
         mean_q_after: after_stats.mean_q,
-        runtime_s: execution.runtime_s,
-        memory_mb: execution.memory_mb,
+        runtime_s: Some(execution.runtime_s),
+        memory_mb: Some(execution.memory_mb),
         exit_code: Some(execution.exit_code),
         raw_backend_report: raw_backend_report.clone(),
         raw_backend_report_format: raw_backend_report_format.clone(),
