@@ -11,10 +11,12 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
-    ReportQcReportV1, ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1,
-    TerminalDamageReportV1, TrimPolygReportV1, TrimReadsReportV1,
+    RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1, ReportQcReportV1,
+    ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1,
+    TrimPolygReportV1, TrimReadsReportV1,
     ValidatedReadsManifestV1, ValidationReportV1,
 };
+use bijux_dna_domain_fastq::DuplicateClassEntryV1;
 
 /// # Errors
 /// Returns an error if stdout cannot be parsed.
@@ -179,11 +181,108 @@ pub fn parse_screen_summary_tsv(summary_tsv: &str) -> Result<Vec<TaxonomyScreenS
 /// # Errors
 /// Returns an error if report JSON cannot be parsed.
 pub fn parse_deduplicate_report(report_json: &str) -> Result<(u64, u64)> {
+    let report = parse_remove_duplicates_report(report_json)?;
+    Ok((report.reads_in, report.reads_out))
+}
+
+/// # Errors
+/// Returns an error if the governed remove-duplicates report JSON cannot be parsed.
+pub fn parse_remove_duplicates_report(report_json: &str) -> Result<RemoveDuplicatesReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_remove_duplicates_report(report_json))
+        .context("parse remove duplicates report")
+}
+
+/// # Errors
+/// Returns an error if the governed remove-duplicates provenance JSON cannot be parsed.
+pub fn parse_remove_duplicates_provenance(
+    provenance_json: &str,
+) -> Result<RemoveDuplicatesProvenanceV1> {
+    serde_json::from_str(provenance_json).context("parse remove duplicates provenance")
+}
+
+/// # Errors
+/// Returns an error if the duplicate-classes TSV cannot be parsed.
+pub fn parse_duplicate_classes_tsv(classes_tsv: &str) -> Result<Vec<DuplicateClassEntryV1>> {
+    let mut entries = Vec::new();
+    for (idx, line) in classes_tsv.lines().enumerate() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if idx == 0 && line.eq_ignore_ascii_case("class\treads_removed\tpaired_mode") {
+            continue;
+        }
+        let parts: Vec<&str> = line.split('\t').collect();
+        if parts.len() != 3 {
+            return Err(anyhow!(
+                "duplicate classes line {} has {} columns; expected 3",
+                idx + 1,
+                parts.len()
+            ));
+        }
+        entries.push(DuplicateClassEntryV1 {
+            class: parts[0].trim().to_string(),
+            reads_removed: parts[1]
+                .trim()
+                .parse::<u64>()
+                .with_context(|| format!("parse duplicate classes line {} reads_removed", idx + 1))?,
+            paired_mode: serde_json::from_value(serde_json::json!(parts[2].trim()))
+                .with_context(|| format!("parse duplicate classes line {} paired_mode", idx + 1))?,
+        });
+    }
+    Ok(entries)
+}
+
+fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDuplicatesReportV1> {
     let reads_in = parse_report_u64_field(report_json, "reads_in")
         .ok_or_else(|| anyhow!("deduplicate report missing reads_in"))?;
     let reads_out = parse_report_u64_field(report_json, "reads_out")
         .ok_or_else(|| anyhow!("deduplicate report missing reads_out"))?;
-    Ok((reads_in, reads_out))
+    let duplicates_removed = parse_report_u64_field(report_json, "duplicates_removed")
+        .unwrap_or_else(|| reads_in.saturating_sub(reads_out));
+    Ok(RemoveDuplicatesReportV1 {
+        schema_version: "bijux.fastq.remove_duplicates.report.v1_legacy".to_string(),
+        stage: "fastq.remove_duplicates".to_string(),
+        stage_id: "fastq.remove_duplicates".to_string(),
+        tool_id: serde_json::from_str::<serde_json::Value>(report_json)
+            .ok()
+            .and_then(|value| value.get("tool_id").and_then(serde_json::Value::as_str).map(ToString::to_string))
+            .unwrap_or_else(|| "unknown".to_string()),
+        paired_mode: match parse_report_u64_field(report_json, "pairs_in") {
+            Some(_) => bijux_dna_domain_fastq::PairedMode::PairedEnd,
+            None => bijux_dna_domain_fastq::PairedMode::SingleEnd,
+        },
+        dedup_mode: bijux_dna_domain_fastq::params::processing::remove_duplicates::DedupMode::Exact,
+        keep_order: true,
+        input_r1: String::new(),
+        input_r2: None,
+        output_r1: String::new(),
+        output_r2: None,
+        reads_in,
+        reads_out,
+        reads_in_r2: parse_report_u64_field(report_json, "reads_in_r2"),
+        reads_out_r2: parse_report_u64_field(report_json, "reads_out_r2"),
+        pairs_in: parse_report_u64_field(report_json, "pairs_in"),
+        pairs_out: parse_report_u64_field(report_json, "pairs_out"),
+        pair_count_match: serde_json::from_str::<serde_json::Value>(report_json)
+            .ok()
+            .and_then(|value| value.get("pair_count_match").and_then(serde_json::Value::as_bool)),
+        duplicates_removed,
+        dedup_rate: serde_json::from_str::<serde_json::Value>(report_json)
+            .ok()
+            .and_then(|value| value.get("dedup_rate").and_then(serde_json::Value::as_f64))
+            .unwrap_or_else(|| {
+                if reads_in == 0 { 0.0 } else { duplicates_removed as f64 / reads_in as f64 }
+            }),
+        duplicate_classes_tsv: None,
+        duplicate_provenance_json: None,
+        duplicate_classes: Vec::new(),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        runtime_s: None,
+        memory_mb: None,
+    })
 }
 
 /// # Errors
@@ -387,9 +486,10 @@ fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
 mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
-        parse_fastp_metrics, parse_fastqc_summary_metrics, parse_fastqvalidator_count,
-        parse_length_histogram, parse_low_complexity_report,
-        parse_multiqc_general_stats_metrics, parse_report_qc_report,
+        parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
+        parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
+        parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
+        parse_remove_duplicates_report, parse_report_qc_report,
         parse_samtools_flagstat_metrics,
         parse_screen_summary_tsv, parse_screen_taxonomy_report, parse_seqkit_stats,
         parse_seqkit_tool_metrics, parse_terminal_damage_report, parse_trim_reads_report,
@@ -728,6 +828,76 @@ mod tests {
     }
 
     #[test]
+    fn parse_remove_duplicates_report_parses_governed_json() -> Result<()> {
+        let parsed = parse_remove_duplicates_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "single_end",
+                "dedup_mode": "optical_aware",
+                "keep_order": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "dedup.fastq.gz",
+                "output_r2": null,
+                "reads_in": 100,
+                "reads_out": 85,
+                "reads_in_r2": null,
+                "reads_out_r2": null,
+                "pairs_in": null,
+                "pairs_out": null,
+                "pair_count_match": null,
+                "duplicates_removed": 15,
+                "dedup_rate": 0.15,
+                "duplicate_classes_tsv": "duplicate_classes.tsv",
+                "duplicate_provenance_json": "duplicate_provenance.json",
+                "duplicate_classes": [
+                    {"class": "duplicate", "reads_removed": 11, "paired_mode": "single_end"},
+                    {"class": "optical_duplicate", "reads_removed": 4, "paired_mode": "single_end"}
+                ],
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log",
+                "runtime_s": 2.2,
+                "memory_mb": 64.0
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "clumpify");
+        assert_eq!(parsed.duplicate_classes.len(), 2);
+        assert_eq!(parsed.dedup_rate, 0.15);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_remove_duplicates_provenance_parses_governed_json() -> Result<()> {
+        let parsed = parse_remove_duplicates_provenance(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.provenance.v2",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "fastuniq",
+                "paired_mode": "paired_end",
+                "dedup_mode": "exact",
+                "keep_order": true,
+                "duplicates_removed": 18,
+                "dedup_rate": 0.09,
+                "backend_log": "fastuniq.log",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "dedup_R1.fastq.gz",
+                "output_r2": "dedup_R2.fastq.gz",
+                "raw_backend_report": "fastuniq.log",
+                "raw_backend_report_format": "fastuniq_log"
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "fastuniq");
+        assert_eq!(parsed.duplicates_removed, 18);
+        Ok(())
+    }
+
+    #[test]
     fn parse_low_complexity_report_parses_fixture() -> Result<()> {
         let raw = include_str!(
             "../../tests/fixtures/low_complexity/default/low_complexity_report_v1.json"
@@ -745,6 +915,17 @@ mod tests {
         let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
         assert_eq!(reads_in, 1000);
         assert_eq!(reads_out, 820);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_duplicate_classes_tsv_parses_fixture_lines() -> Result<()> {
+        let parsed = parse_duplicate_classes_tsv(
+            "class\treads_removed\tpaired_mode\nduplicate\t180\tpaired_end\noptical_duplicate\t12\tpaired_end\n",
+        )?;
+        assert_eq!(parsed.len(), 2);
+        assert_eq!(parsed[0].class, "duplicate");
+        assert_eq!(parsed[1].reads_removed, 12);
         Ok(())
     }
 
