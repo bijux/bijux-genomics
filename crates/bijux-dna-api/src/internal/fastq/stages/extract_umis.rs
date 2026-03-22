@@ -8,6 +8,9 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqUmiMetri
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::{
+    ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION, PairedMode,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_umi_tools;
@@ -193,44 +196,32 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     } else {
         input_stats_r2.clone()
     };
-    let reads_in = input_stats.reads + input_stats_r2.reads;
-    let reads_out = output_stats_r1.reads + output_stats_r2.reads;
-    let bases_in = input_stats.bases + input_stats_r2.bases;
-    let bases_out = output_stats_r1.bases + output_stats_r2.bases;
-    let pairs_in = input_stats.reads.min(input_stats_r2.reads);
-    let pairs_out = output_stats_r1.reads.min(output_stats_r2.reads);
+    let report = build_umi_report(
+        tool,
+        tool_spec.resources.threads,
+        params,
+        r1,
+        r2,
+        &output_r1,
+        &output_r2,
+        input_stats,
+        input_stats_r2,
+        &output_stats_r1,
+        &output_stats_r2,
+        execution,
+    );
     let metrics = FastqUmiMetrics {
-        reads_in,
-        reads_out,
-        bases_in,
-        bases_out,
-        pairs_in: Some(pairs_in),
-        pairs_out: Some(pairs_out),
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        pairs_in: report.pairs_in,
+        pairs_out: report.pairs_out,
         dedup_rate: 0.0,
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.extract_umis.report.v1",
-        "stage_id": STAGE_EXTRACT_UMIS.as_str(),
-        "tool_id": tool,
-        "input_r1": r1,
-        "input_r2": r2,
-        "output_r1": output_r1,
-        "output_r2": output_r2,
-        "reads_in": metrics.reads_in,
-        "reads_out": metrics.reads_out,
-        "bases_in": metrics.bases_in,
-        "bases_out": metrics.bases_out,
-        "pairs_in": metrics.pairs_in,
-        "pairs_out": metrics.pairs_out,
-        "reads_with_umi": metrics.reads_out,
-        "dedup_rate": metrics.dedup_rate,
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
-    });
     bijux_dna_infra::atomic_write_json(&out_dir.join("umi_report.json"), &report)
         .context("write umi report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
@@ -261,4 +252,86 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn build_umi_report(
+    tool: &str,
+    threads: u32,
+    params: &serde_json::Value,
+    r1: &std::path::Path,
+    r2: &std::path::Path,
+    output_r1: &std::path::Path,
+    output_r2: &std::path::Path,
+    input_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+    input_stats_r2: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+    output_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+    output_stats_r2: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+    execution: &StageResultV1,
+) -> ExtractUmisReportV1 {
+    let reads_in = input_stats_r1.reads + input_stats_r2.reads;
+    let reads_out = output_stats_r1.reads + output_stats_r2.reads;
+    let bases_in = input_stats_r1.bases + input_stats_r2.bases;
+    let bases_out = output_stats_r1.bases + output_stats_r2.bases;
+    let pairs_in = Some(input_stats_r1.reads.min(input_stats_r2.reads));
+    let pairs_out = Some(output_stats_r1.reads.min(output_stats_r2.reads));
+    let reads_with_umi = reads_out;
+    let raw_backend_report = params
+        .get("raw_backend_report")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+    ExtractUmisReportV1 {
+        schema_version: EXTRACT_UMIS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_EXTRACT_UMIS.as_str().to_string(),
+        stage_id: STAGE_EXTRACT_UMIS.as_str().to_string(),
+        tool_id: tool.to_string(),
+        paired_mode: PairedMode::PairedEnd,
+        threads,
+        umi_pattern: params
+            .get("umi_pattern")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("NNNNNNNN")
+            .to_string(),
+        input_r1: r1.display().to_string(),
+        input_r2: Some(r2.display().to_string()),
+        output_r1: output_r1.display().to_string(),
+        output_r2: Some(output_r2.display().to_string()),
+        report_json: params
+            .get("report_json")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("umi_report.json")
+            .to_string(),
+        reads_in,
+        reads_out,
+        bases_in,
+        bases_out,
+        pairs_in,
+        pairs_out,
+        reads_with_umi,
+        mean_q_before: weighted_mean_q(input_stats_r1, input_stats_r2),
+        mean_q_after: weighted_mean_q(output_stats_r1, output_stats_r2),
+        runtime_s: Some(execution.runtime_s),
+        memory_mb: Some(execution.memory_mb),
+        exit_code: Some(execution.exit_code),
+        raw_backend_report: raw_backend_report.clone(),
+        raw_backend_report_format: params
+            .get("raw_backend_report_format")
+            .and_then(serde_json::Value::as_str)
+            .map(ToString::to_string),
+        backend_metrics: Some(serde_json::json!({
+            "reads_with_umi_fraction": if reads_in == 0 { 0.0 } else { reads_with_umi as f64 / reads_in as f64 },
+            "raw_backend_report_present": raw_backend_report.is_some(),
+        })),
+    }
+}
+
+fn weighted_mean_q(
+    r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+    r2: &bijux_dna_core::prelude::measure::SeqkitMetrics,
+) -> f64 {
+    let total_bases = r1.bases + r2.bases;
+    if total_bases == 0 {
+        0.0
+    } else {
+        ((r1.mean_q * r1.bases as f64) + (r2.mean_q * r2.bases as f64)) / total_bases as f64
+    }
 }
