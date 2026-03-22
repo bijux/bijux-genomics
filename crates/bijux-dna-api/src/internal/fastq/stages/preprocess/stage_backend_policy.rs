@@ -169,6 +169,44 @@ pub(crate) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_jso
     })
 }
 
+pub(crate) fn parse_filter_low_complexity_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("low_complexity_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) =
+            bijux_dna_stages_fastq::observer::parse_filter_low_complexity_report(&raw)
+        {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.filter_low_complexity",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "threads": report.threads,
+                "entropy_threshold": report.entropy_threshold,
+                "polyx_threshold": report.polyx_threshold,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "reads_removed_low_complexity": report.reads_removed_low_complexity,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "mean_q_before": report.mean_q_before,
+                "mean_q_after": report.mean_q_after,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.filter_low_complexity",
+        "tool": "report_missing",
+        "reads_removed_low_complexity": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_profile_read_lengths_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("profile_read_lengths_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -797,7 +835,8 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_filter_reads_metrics, parse_index_reference_metrics,
+        fastq_backend_allowlist, parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
+        parse_index_reference_metrics,
         parse_merge_pairs_metrics, parse_normalize_abundance_metrics,
         parse_normalize_primers_metrics, parse_profile_overrepresented_metrics,
         parse_profile_read_lengths_metrics, parse_profile_reads_metrics,
@@ -1233,6 +1272,58 @@ mod tests {
         assert_eq!(
             metrics["raw_backend_report_format"],
             serde_json::json!("fastp_json")
+        );
+    }
+
+    #[test]
+    fn filter_low_complexity_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("low_complexity_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.filter_low_complexity.report.v2",
+                "stage": "fastq.filter_low_complexity",
+                "stage_id": "fastq.filter_low_complexity",
+                "tool_id": "bbduk",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "filtered.fastq.gz",
+                "output_r2": null,
+                "report_json": "low_complexity_report.json",
+                "entropy_threshold": 0.5,
+                "polyx_threshold": 20,
+                "reads_in": 100,
+                "reads_out": 92,
+                "reads_removed_low_complexity": 8,
+                "bases_in": 1000,
+                "bases_out": 910,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.0,
+                "runtime_s": 1.1,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bbduk.low_complexity.stats",
+                "raw_backend_report_format": "bbduk_stats",
+                "backend_metrics": {
+                    "reads_removed_reported": 8
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_filter_low_complexity_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("bbduk"));
+        assert_eq!(metrics["reads_removed_low_complexity"], serde_json::json!(8));
+        assert_eq!(metrics["polyx_threshold"], serde_json::json!(20));
+        assert_eq!(
+            metrics["raw_backend_report_format"],
+            serde_json::json!("bbduk_stats")
         );
     }
 
@@ -1914,9 +2005,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_out",
             "reads_dropped",
         ],
-        "fastq.filter_low_complexity" => {
-            &["schema_version", "stage", "tool", "low_complexity_removed"]
-        }
+        "fastq.filter_low_complexity" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "reads_in",
+            "reads_out",
+            "reads_removed_low_complexity",
+        ],
         "fastq.profile_reads" => &[
             "schema_version",
             "stage",
