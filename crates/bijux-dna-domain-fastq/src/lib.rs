@@ -23,6 +23,7 @@ pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
 mod qc_contract;
+mod report_qc_artifacts;
 pub mod run;
 mod screen_taxonomy_artifacts;
 pub mod stage_contract;
@@ -62,6 +63,9 @@ pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
     StageComparisonContract,
+};
+pub use report_qc_artifacts::{
+    GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
 };
 pub use execution_support::{
     admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,

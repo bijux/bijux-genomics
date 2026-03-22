@@ -11,8 +11,9 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
-    ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1,
-    TrimPolygReportV1, TrimReadsReportV1, ValidatedReadsManifestV1, ValidationReportV1,
+    ReportQcReportV1, ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1,
+    TerminalDamageReportV1, TrimPolygReportV1, TrimReadsReportV1,
+    ValidatedReadsManifestV1, ValidationReportV1,
 };
 
 /// # Errors
@@ -131,6 +132,12 @@ pub fn parse_trim_reads_report(report_json: &str) -> Result<TrimReadsReportV1> {
 /// Returns an error if the governed trim-polyg report JSON cannot be parsed.
 pub fn parse_trim_polyg_report(report_json: &str) -> Result<TrimPolygReportV1> {
     serde_json::from_str(report_json).context("parse trim polyg report")
+}
+
+/// # Errors
+/// Returns an error if the governed report-qc report JSON cannot be parsed.
+pub fn parse_report_qc_report(report_json: &str) -> Result<ReportQcReportV1> {
+    serde_json::from_str(report_json).context("parse report qc report")
 }
 
 /// # Errors
@@ -382,7 +389,8 @@ mod tests {
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
         parse_fastp_metrics, parse_fastqc_summary_metrics, parse_fastqvalidator_count,
         parse_length_histogram, parse_low_complexity_report,
-        parse_multiqc_general_stats_metrics, parse_samtools_flagstat_metrics,
+        parse_multiqc_general_stats_metrics, parse_report_qc_report,
+        parse_samtools_flagstat_metrics,
         parse_screen_summary_tsv, parse_screen_taxonomy_report, parse_seqkit_stats,
         parse_seqkit_tool_metrics, parse_terminal_damage_report, parse_trim_reads_report,
         parse_validated_reads_manifest, parse_validation_report,
@@ -391,9 +399,9 @@ mod tests {
     use bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy;
     use bijux_dna_domain_fastq::params::DamageMode;
     use bijux_dna_domain_fastq::{
-        PairedMode, ValidateFailureClass, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
-        TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION, VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
-        VALIDATION_REPORT_SCHEMA_VERSION,
+        PairedMode, ValidateFailureClass, REPORT_QC_REPORT_SCHEMA_VERSION,
+        SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
+        VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
     };
 
     #[test]
@@ -633,6 +641,62 @@ mod tests {
         assert_eq!(parsed.len(), 2);
         assert_eq!(parsed[0].label, "unclassified");
         assert_eq!(parsed[1].percent, 77.0);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_report_qc_report_parses_governed_json() -> Result<()> {
+        let parsed = parse_report_qc_report(
+            &serde_json::json!({
+                "schema_version": REPORT_QC_REPORT_SCHEMA_VERSION,
+                "stage": "fastq.report_qc",
+                "stage_id": "fastq.report_qc",
+                "tool_id": "multiqc",
+                "paired_mode": "paired_end",
+                "aggregation_engine": "multiqc",
+                "aggregation_scope": "governed_qc_artifacts",
+                "reads_in": 200,
+                "reads_out": 200,
+                "bases_in": 20000,
+                "bases_out": 20000,
+                "pairs_in": 100,
+                "pairs_out": 100,
+                "mean_q": 31.0,
+                "contamination_rate": 0.04,
+                "adapter_content_max": 0.1,
+                "adapter_content_mean": 0.03,
+                "duplication_rate": 0.08,
+                "n_rate": 0.001,
+                "kmer_warning_count": 2,
+                "overrepresented_sequence_count": 1,
+                "multiqc_sample_count": 2,
+                "multiqc_module_count": 5,
+                "raw_fastqc_dir": "raw_fastqc",
+                "trimmed_fastqc_dir": "trimmed_fastqc",
+                "multiqc_report": "multiqc_report.html",
+                "multiqc_data": "multiqc_data",
+                "governed_qc_input_count": 3,
+                "governed_qc_contributor_stage_ids": ["fastq.trim_reads"],
+                "governed_qc_contributor_tool_ids": ["fastp"],
+                "governed_qc_contributors": [{
+                    "contributor_id": "fastq.trim_reads.fastp",
+                    "stage_id": "fastq.trim_reads",
+                    "tool_id": "fastp",
+                    "artifact_id": "report_json",
+                    "artifact_role": "report_json",
+                    "path": "trim/report.json"
+                }],
+                "governed_qc_lineage_hash": "lineage",
+                "governed_qc_inputs_manifest": "governed_qc_inputs_manifest.json",
+                "runtime_s": 3.0,
+                "memory_mb": 128.0,
+                "exit_code": 0
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "multiqc");
+        assert_eq!(parsed.governed_qc_input_count, 3);
+        assert_eq!(parsed.multiqc_module_count, Some(5));
         Ok(())
     }
 
