@@ -28,6 +28,7 @@ pub mod stage_contract;
 pub mod stage_semantics;
 pub mod stage_specs;
 mod stage_tool_governance;
+mod terminal_damage_artifacts;
 mod validation_artifacts;
 pub mod stages;
 pub mod types;
@@ -137,6 +138,9 @@ pub use stages::{
     stage_kind, stage_metric_classes, stage_metric_invariants, stage_output_ids,
     stage_parameter_ids, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
     StageSemantics, STAGE_BOUNDARY_INVARIANTS,
+};
+pub use terminal_damage_artifacts::{
+    TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
 };
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
