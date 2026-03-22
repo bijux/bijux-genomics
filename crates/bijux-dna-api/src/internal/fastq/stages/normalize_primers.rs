@@ -10,6 +10,10 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqNormaliz
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::params::PairedMode;
+use bijux_dna_domain_fastq::{
+    NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
@@ -21,6 +25,7 @@ use uuid::Uuid;
 
 use crate::internal::fastq::stages::preprocess::{
     enforce_amplicon_qc_thresholds_for_bench, materialize_amplicon_stage_outputs_for_bench,
+    resolve_primer_set_governance,
 };
 use crate::internal::fastq::stages::trim_bench_common::{
     build_benchmark_context, observe_fastq_stats,
@@ -87,16 +92,23 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::new();
+    let primer_governance = resolve_primer_set_governance(args.primer_set_id.as_deref())?;
 
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan(
+        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan_with_options(
             &tool_spec,
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
+            &bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
+                primer_set_id: primer_governance.primer_set_id.clone(),
+                marker_id: Some(primer_governance.marker_id.clone()),
+                primer_fasta: Some(primer_governance.primer_fasta.clone()),
+                ..Default::default()
+            },
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -134,56 +146,100 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         }
         let payload = materialize_amplicon_stage_outputs_for_bench(&out_dir, &step)?;
         enforce_amplicon_qc_thresholds_for_bench(&out_dir, STAGE_ID, &payload)?;
-        let output_r2 = args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone());
-        let orientation_report = if output_r2.is_some() {
-            plan.io.outputs[2].path.clone()
-        } else {
-            plan.io.outputs[1].path.clone()
-        };
-        let primer_stats_json = if output_r2.is_some() {
-            plan.io.outputs[3].path.clone()
-        } else {
-            plan.io.outputs[2].path.clone()
-        };
-        let output_stats_r1 =
-            observe_fastq_stats(catalog, platform, runner, &plan.io.outputs[0].path)?;
+        let output_r1 = artifact_path(&plan, "normalized_reads_r1")?;
+        let output_r2 = artifact_path_optional(&plan, "normalized_reads_r2");
+        let report_json = artifact_path(&plan, "report_json")?;
+        let orientation_report = artifact_path(&plan, "primer_orientation_report")?;
+        let primer_stats_json = artifact_path(&plan, "primer_stats_json")?;
+        let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
         let output_stats_r2 = if let Some(output_r2) = output_r2.as_deref() {
             Some(observe_fastq_stats(catalog, platform, runner, output_r2)?)
         } else {
             None
         };
+        let primer_trimmed_fraction = payload
+            .get("primer_trimmed_fraction")
+            .and_then(serde_json::Value::as_f64);
+        let orientation_forward_fraction = payload
+            .get("orientation_forward_fraction")
+            .and_then(serde_json::Value::as_f64);
+        let reads_in_total =
+            input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_out_total =
+            output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let report = NormalizePrimersReportV1 {
+            schema_version: NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION.to_string(),
+            stage: STAGE_ID.to_string(),
+            stage_id: STAGE_ID.to_string(),
+            tool_id: tool.clone(),
+            paired_mode: PairedMode::from_has_r2(args.r2.is_some()),
+            primer_set_id: primer_governance.primer_set_id.clone(),
+            marker_id: Some(primer_governance.marker_id.clone()),
+            primer_fasta: Some(primer_governance.primer_fasta.display().to_string()),
+            orientation_policy: plan
+                .effective_params
+                .get("orientation_policy")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("normalize_to_forward_primer")
+                .to_string(),
+            max_mismatch_rate: plan
+                .effective_params
+                .get("max_mismatch_rate")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(0.10),
+            min_overlap_bp: plan
+                .effective_params
+                .get("min_overlap_bp")
+                .and_then(serde_json::Value::as_u64)
+                .and_then(|value| u32::try_from(value).ok())
+                .unwrap_or(10),
+            input_r1: args.r1.display().to_string(),
+            input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
+            output_r1: output_r1.display().to_string(),
+            output_r2: output_r2.as_ref().map(|path| path.display().to_string()),
+            reads_in: Some(reads_in_total),
+            reads_out: Some(reads_out_total),
+            bases_in: Some(
+                input_stats_r1.bases + input_stats_r2.as_ref().map_or(0, |stats| stats.bases),
+            ),
+            bases_out: Some(
+                output_stats_r1.bases + output_stats_r2.as_ref().map_or(0, |stats| stats.bases),
+            ),
+            pairs_in: args
+                .r2
+                .as_ref()
+                .map(|_| input_stats_r1.reads.min(input_stats_r2.as_ref().map_or(0, |stats| stats.reads))),
+            pairs_out: output_r2
+                .as_ref()
+                .map(|_| output_stats_r1.reads.min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))),
+            primer_trimmed_reads: primer_trimmed_fraction
+                .map(|fraction| (fraction * reads_in_total as f64).round() as u64),
+            primer_trimmed_fraction,
+            orientation_forward_fraction,
+            primer_orientation_report: orientation_report.display().to_string(),
+            primer_stats_json: primer_stats_json.display().to_string(),
+            raw_backend_report: Some(primer_stats_json.display().to_string()),
+            raw_backend_report_format: Some(match tool.as_str() {
+                "cutadapt" => "cutadapt_json",
+                "seqkit" => "seqkit_grep",
+                _ => "unknown",
+            }.to_string()),
+            runtime_s: Some(execution.runtime_s),
+            memory_mb: Some(execution.memory_mb),
+            used_fallback: payload
+                .get("used_fallback")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
+            backend_metrics: Some(payload.clone()),
+        };
         let metrics = FastqNormalizePrimersMetrics {
-            reads_in: input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads),
-            reads_out: output_stats_r1.reads
-                + output_stats_r2.as_ref().map_or(0, |stats| stats.reads),
-            primer_trimmed_fraction: payload
-                .get("primer_trimmed_fraction")
-                .and_then(serde_json::Value::as_f64)
-                .unwrap_or(0.0),
-            orientation_forward_fraction: payload
-                .get("orientation_forward_fraction")
-                .and_then(serde_json::Value::as_f64)
-                .unwrap_or(0.0),
+            reads_in: reads_in_total,
+            reads_out: reads_out_total,
+            primer_trimmed_fraction: report.primer_trimmed_fraction.unwrap_or(0.0),
+            orientation_forward_fraction: report.orientation_forward_fraction.unwrap_or(0.0),
         };
         let metric_set = metric_set(metrics);
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.normalize_primers.report.v1",
-            "stage_id": STAGE_ID,
-            "tool_id": tool,
-            "input_fastq_r1": args.r1,
-            "input_fastq_r2": args.r2,
-            "normalized_reads_r1": plan.io.outputs[0].path,
-            "normalized_reads_r2": output_r2,
-            "primer_orientation_report": orientation_report,
-            "primer_stats_json": primer_stats_json,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-            "exit_code": execution.exit_code,
-        });
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("normalize_primers_report.json"),
-            &report,
-        )?;
+        bijux_dna_infra::atomic_write_json(&report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -217,4 +273,27 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         bench_dir,
         explain: args.explain,
     })
+}
+
+fn artifact_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Result<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| anyhow!("missing `{artifact_name}` output in normalize primers plan"))
+}
+
+fn artifact_path_optional(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Option<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.clone())
 }
