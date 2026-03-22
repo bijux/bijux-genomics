@@ -65,11 +65,25 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
-        "fastq.filter_low_complexity" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.filter_low_complexity.v1",
-            "stage": stage_id,
-            "removed_reads": parse_low_complexity_filtered_count(&execution.stdout, &execution.stderr),
-        })),
+        "fastq.filter_low_complexity" => {
+            let report_path = stage_root.join("low_complexity_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_filter_low_complexity_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.filter_low_complexity.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "entropy_threshold": governed.as_ref().and_then(|report| report.entropy_threshold),
+                "polyx_threshold": governed.as_ref().and_then(|report| report.polyx_threshold),
+                "reads_removed_low_complexity": governed.as_ref().map(|report| report.reads_removed_low_complexity),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.profile_reads" => {
             let report_path = execution
                 .outputs
@@ -434,14 +448,7 @@ fn write_stage_standardized_metrics(
         "fastq.profile_overrepresented_sequences" => parse_profile_overrepresented_metrics(out_dir),
         "fastq.trim_polyg_tails" => parse_trim_polyg_metrics(out_dir),
         "fastq.screen_taxonomy" => parse_screen_taxonomy_metrics(out_dir),
-        "fastq.filter_low_complexity" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "filter_counts": {
-                "filtered_reads": parse_low_complexity_filtered_count(&execution.stdout, &execution.stderr),
-            },
-            "report_json": out_dir.join("low_complexity_report.json"),
-        }),
+        "fastq.filter_low_complexity" => parse_filter_low_complexity_metrics(out_dir),
         "fastq.trim_reads" => parse_trim_reads_metrics(out_dir),
         "fastq.filter_reads" => parse_filter_reads_metrics(out_dir),
         "fastq.correct_errors" => serde_json::json!({
