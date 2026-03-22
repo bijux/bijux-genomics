@@ -9,9 +9,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         trim_artifacts,
         vec![
-            "trim_tool_benchmark_cohort_json",
-            "trim_tool_comparison_json",
-            "trim_tool_normalization_json",
+            "trim_tool_benchmark_cohort_json".to_string(),
+            "trim_tool_comparison_json".to_string(),
+            "trim_tool_normalization_json".to_string(),
         ]
     );
     assert_eq!(
@@ -34,9 +34,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         screen_artifacts,
         vec![
-            "taxonomy_tool_benchmark_cohort_json",
-            "taxonomy_tool_comparison_json",
-            "taxonomy_tool_normalization_json",
+            "taxonomy_tool_benchmark_cohort_json".to_string(),
+            "taxonomy_tool_comparison_json".to_string(),
+            "taxonomy_tool_normalization_json".to_string(),
         ]
     );
     assert_eq!(
@@ -50,9 +50,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&detect_adapters_stage),
         vec![
-            "adapter_inspection_tool_benchmark_cohort_json",
-            "adapter_inspection_tool_comparison_json",
-            "adapter_inspection_tool_normalization_json",
+            "adapter_inspection_tool_benchmark_cohort_json".to_string(),
+            "adapter_inspection_tool_comparison_json".to_string(),
+            "adapter_inspection_tool_normalization_json".to_string(),
         ],
         "adapter inspection now participates in governed benchmark comparisons",
     );
@@ -61,9 +61,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&filter_stage),
         vec![
-            "filter_tool_benchmark_cohort_json",
-            "filter_tool_comparison_json",
-            "filter_tool_normalization_json",
+            "filter_tool_benchmark_cohort_json".to_string(),
+            "filter_tool_comparison_json".to_string(),
+            "filter_tool_normalization_json".to_string(),
         ]
     );
 
@@ -71,9 +71,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&merge_stage),
         vec![
-            "merge_tool_benchmark_cohort_json",
-            "merge_tool_comparison_json",
-            "merge_tool_normalization_json",
+            "merge_tool_benchmark_cohort_json".to_string(),
+            "merge_tool_comparison_json".to_string(),
+            "merge_tool_normalization_json".to_string(),
         ]
     );
 
@@ -81,9 +81,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&low_complexity_stage),
         vec![
-            "low_complexity_tool_benchmark_cohort_json",
-            "low_complexity_tool_comparison_json",
-            "low_complexity_tool_normalization_json",
+            "low_complexity_tool_benchmark_cohort_json".to_string(),
+            "low_complexity_tool_comparison_json".to_string(),
+            "low_complexity_tool_normalization_json".to_string(),
         ]
     );
 
@@ -91,9 +91,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&dedup_stage),
         vec![
-            "dedup_tool_benchmark_cohort_json",
-            "dedup_tool_comparison_json",
-            "dedup_tool_normalization_json",
+            "dedup_tool_benchmark_cohort_json".to_string(),
+            "dedup_tool_comparison_json".to_string(),
+            "dedup_tool_normalization_json".to_string(),
         ]
     );
     assert_eq!(
@@ -101,6 +101,8 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         vec![
             "dedup_reads_r1".to_string(),
             "dedup_reads_r2".to_string(),
+            "duplicate_classes_tsv".to_string(),
+            "duplicate_provenance_json".to_string(),
             "report_json".to_string()
         ]
     );
@@ -109,9 +111,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&read_length_stage),
         vec![
-            "read_length_tool_benchmark_cohort_json",
-            "read_length_tool_comparison_json",
-            "read_length_tool_normalization_json",
+            "read_length_tool_benchmark_cohort_json".to_string(),
+            "read_length_tool_comparison_json".to_string(),
+            "read_length_tool_normalization_json".to_string(),
         ]
     );
 
@@ -119,9 +121,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&correction_stage),
         vec![
-            "correction_tool_benchmark_cohort_json",
-            "correction_tool_comparison_json",
-            "correction_tool_normalization_json",
+            "correction_tool_benchmark_cohort_json".to_string(),
+            "correction_tool_comparison_json".to_string(),
+            "correction_tool_normalization_json".to_string(),
         ]
     );
     assert_eq!(
@@ -137,9 +139,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&normalize_primers_stage),
         vec![
-            "primer_normalization_tool_benchmark_cohort_json",
-            "primer_normalization_tool_comparison_json",
-            "primer_normalization_tool_normalization_json",
+            "primer_normalization_tool_benchmark_cohort_json".to_string(),
+            "primer_normalization_tool_comparison_json".to_string(),
+            "primer_normalization_tool_normalization_json".to_string(),
         ]
     );
 
@@ -147,9 +149,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&terminal_damage_stage),
         vec![
-            "terminal_damage_tool_benchmark_cohort_json",
-            "terminal_damage_tool_comparison_json",
-            "terminal_damage_tool_normalization_json",
+            "terminal_damage_tool_benchmark_cohort_json".to_string(),
+            "terminal_damage_tool_comparison_json".to_string(),
+            "terminal_damage_tool_normalization_json".to_string(),
         ]
     );
     assert_eq!(
@@ -165,9 +167,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&polyg_stage),
         vec![
-            "polyg_trim_tool_benchmark_cohort_json",
-            "polyg_trim_tool_comparison_json",
-            "polyg_trim_tool_normalization_json",
+            "polyg_trim_tool_benchmark_cohort_json".to_string(),
+            "polyg_trim_tool_comparison_json".to_string(),
+            "polyg_trim_tool_normalization_json".to_string(),
         ]
     );
     assert_eq!(
@@ -183,9 +185,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&overrepresented_stage),
         vec![
-            "overrepresented_sequence_tool_benchmark_cohort_json",
-            "overrepresented_sequence_tool_comparison_json",
-            "overrepresented_sequence_tool_normalization_json",
+            "overrepresented_sequence_tool_benchmark_cohort_json".to_string(),
+            "overrepresented_sequence_tool_comparison_json".to_string(),
+            "overrepresented_sequence_tool_normalization_json".to_string(),
         ]
     );
 
@@ -193,9 +195,9 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&validation_stage),
         vec![
-            "validation_tool_benchmark_cohort_json",
-            "validation_tool_comparison_json",
-            "validation_tool_normalization_json",
+            "validation_tool_benchmark_cohort_json".to_string(),
+            "validation_tool_comparison_json".to_string(),
+            "validation_tool_normalization_json".to_string(),
         ]
     );
     assert_eq!(
