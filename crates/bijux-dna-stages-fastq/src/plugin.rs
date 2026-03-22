@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
+    parse_index_reference_report,
     parse_infer_asvs_report, parse_merge_pairs_report, parse_multiqc_general_stats_metrics,
     parse_normalize_abundance_report, parse_normalize_primers_report,
     parse_profile_overrepresented_report, parse_profile_read_lengths_report,
@@ -454,6 +455,28 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "primer_stats_json": report.primer_stats_json,
                         "raw_backend_report": report.raw_backend_report,
                         "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.index_reference" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_index_reference_report(&raw_report) {
+                    return serde_json::json!({
+                        "threads": report.threads,
+                        "index_format": report.index_format,
+                        "reference_bytes": report.reference_bytes,
+                        "index_bytes": report.index_bytes,
+                        "index_file_count": report.index_file_count,
+                        "index_prefix": report.index_prefix,
+                        "emitted_file_count": report.emitted_files.len(),
+                        "emitted_files": report.emitted_files,
                     });
                 }
             }
@@ -2642,6 +2665,74 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["asv_count"],
             serde_json::json!(11)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_index_reference_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("index_reference_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.index_reference.report.v2",
+                "stage": "fastq.index_reference",
+                "stage_id": "fastq.index_reference",
+                "tool_id": "bowtie2_build",
+                "threads": 4,
+                "index_format": "bowtie2_build",
+                "reference_fasta": "reference.fa",
+                "reference_bytes": 4096,
+                "reference_index": "reference_index/bowtie2/reference",
+                "report_json": "index_reference_report.json",
+                "index_prefix": "reference",
+                "emitted_files": [
+                    {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                    {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+                ],
+                "index_file_count": 2,
+                "index_bytes": 3072,
+                "runtime_s": 1.5,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "backend_metrics": {}
+            })
+            .to_string(),
+        )
+        .expect("write index report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.index_reference"),
+            tool_id: ToolId::from_static("bowtie2_build"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reference_fasta"),
+                    temp.path().join("reference.fa"),
+                    ArtifactRole::Reference,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.index_reference")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["index_format"],
+            serde_json::json!("bowtie2_build")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["index_file_count"],
+            serde_json::json!(2)
         );
     }
 

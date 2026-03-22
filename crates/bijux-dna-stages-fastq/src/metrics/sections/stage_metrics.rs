@@ -1022,6 +1022,36 @@ pub fn stage_metrics_for_plan(
                 serde_json::json!({})
             }
         }
+        "fastq.index_reference" => {
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("index_reference_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_index_reference_report(&raw).ok());
+            if let Some(report) = governed_report {
+                serde_json::json!({
+                    "threads": report.threads,
+                    "index_format": report.index_format,
+                    "reference_bytes": report.reference_bytes,
+                    "index_bytes": report.index_bytes,
+                    "index_file_count": report.index_file_count,
+                    "index_prefix": report.index_prefix,
+                    "emitted_file_count": report.emitted_files.len(),
+                })
+            } else {
+                serde_json::json!({})
+            }
+        }
         "fastq.profile_read_lengths" => {
             let report_path = path_from_params(&plan.params, "report_json")
                 .or_else(|| {
