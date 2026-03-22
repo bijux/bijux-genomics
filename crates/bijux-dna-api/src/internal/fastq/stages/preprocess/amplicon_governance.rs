@@ -9,6 +9,14 @@ struct PrimerGovernanceResult {
 }
 
 #[derive(Debug, Clone)]
+pub(crate) struct PrimerSetGovernance {
+    pub marker_id: String,
+    pub primer_set_id: String,
+    pub primer_fasta: PathBuf,
+    pub primer_db_sha256: String,
+}
+
+#[derive(Debug, Clone)]
 struct MergeDeterminismPolicy {
     min_overlap_bp: u64,
     max_mismatch_rate: f64,
@@ -49,33 +57,19 @@ fn read_marker_id() -> String {
         .unwrap_or_else(|| "16S".to_string())
 }
 
-fn enforce_primer_governance(
-    run_root: &std::path::Path,
-    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
-    invariants: &FastqInvariantsReport,
-) -> Result<Option<PrimerGovernanceResult>> {
-    if !matches!(
-        args.mode,
-        bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
-            | bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::PollenAmplicon
-    ) {
-        return Ok(None);
-    }
-    let governance = load_amplicon_governance()?;
-    let marker_id = read_marker_id();
+fn primer_set_governance_for_marker(
+    governance: &toml::Value,
+    marker_id: &str,
+) -> Result<PrimerSetGovernance> {
     let marker_cfg = governance
         .get("markers")
-        .and_then(|v| v.get(&marker_id))
+        .and_then(|v| v.get(marker_id))
         .ok_or_else(|| anyhow!("missing marker governance for `{marker_id}`"))?;
     let primer_set_id = marker_cfg
         .get("primer_set_id")
         .and_then(toml::Value::as_str)
         .unwrap_or("default")
         .to_string();
-    let expected_amplicon_min_bp =
-        read_u64_from_toml(marker_cfg.get("expected_amplicon_min_bp"), 80);
-    let expected_amplicon_max_bp =
-        read_u64_from_toml(marker_cfg.get("expected_amplicon_max_bp"), 350);
     let primer_fasta = marker_cfg
         .get("primer_fasta")
         .and_then(toml::Value::as_str)
@@ -97,14 +91,72 @@ fn enforce_primer_governance(
             "primer governance refusal: checksum mismatch for marker `{marker_id}` (expected {primer_sha256_locked}, observed {primer_db_sha256})"
         ));
     }
+    Ok(PrimerSetGovernance {
+        marker_id: marker_id.to_string(),
+        primer_set_id,
+        primer_fasta: primer_path,
+        primer_db_sha256,
+    })
+}
+
+pub(crate) fn resolve_primer_set_governance(
+    requested_primer_set_id: Option<&str>,
+) -> Result<PrimerSetGovernance> {
+    let governance = load_amplicon_governance()?;
+    if let Some(requested_primer_set_id) = requested_primer_set_id
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        let markers = governance
+            .get("markers")
+            .and_then(toml::Value::as_table)
+            .ok_or_else(|| anyhow!("missing markers section in amplicon_governance.toml"))?;
+        for (marker_id, marker_cfg) in markers {
+            if marker_cfg
+                .get("primer_set_id")
+                .and_then(toml::Value::as_str)
+                .is_some_and(|candidate| candidate == requested_primer_set_id)
+            {
+                return primer_set_governance_for_marker(&governance, marker_id);
+            }
+        }
+        return Err(anyhow!(
+            "unknown primer_set_id `{requested_primer_set_id}` in amplicon governance"
+        ));
+    }
+    primer_set_governance_for_marker(&governance, &read_marker_id())
+}
+
+fn enforce_primer_governance(
+    run_root: &std::path::Path,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
+    invariants: &FastqInvariantsReport,
+) -> Result<Option<PrimerGovernanceResult>> {
+    if !matches!(
+        args.mode,
+        bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
+            | bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::PollenAmplicon
+    ) {
+        return Ok(None);
+    }
+    let governance = load_amplicon_governance()?;
+    let marker_id = read_marker_id();
+    let primer = primer_set_governance_for_marker(&governance, &marker_id)?;
+    let marker_cfg = governance
+        .get("markers")
+        .and_then(|v| v.get(&marker_id))
+        .ok_or_else(|| anyhow!("missing marker governance for `{marker_id}`"))?;
+    let expected_amplicon_min_bp =
+        read_u64_from_toml(marker_cfg.get("expected_amplicon_min_bp"), 80);
+    let expected_amplicon_max_bp =
+        read_u64_from_toml(marker_cfg.get("expected_amplicon_max_bp"), 350);
     let lock_path = run_root.join("primer_db.lock.json");
     let lock_payload = serde_json::json!({
         "schema_version": "bijux.fastq.primer_db_lock.v1",
         "marker_id": marker_id,
-        "primer_set_id": primer_set_id,
-        "primer_fasta": primer_path,
-        "primer_sha256_locked": primer_sha256_locked,
-        "primer_db_sha256": primer_db_sha256,
+        "primer_set_id": primer.primer_set_id,
+        "primer_fasta": primer.primer_fasta,
+        "primer_db_sha256": primer.primer_db_sha256,
         "expected_amplicon_min_bp": expected_amplicon_min_bp,
         "expected_amplicon_max_bp": expected_amplicon_max_bp
     });
@@ -139,10 +191,10 @@ fn enforce_primer_governance(
     }
     Ok(Some(PrimerGovernanceResult {
         marker_id,
-        primer_set_id,
+        primer_set_id: primer.primer_set_id,
         expected_amplicon_min_bp,
         expected_amplicon_max_bp,
-        primer_db_sha256,
+        primer_db_sha256: primer.primer_db_sha256,
         lock_path,
     }))
 }

@@ -362,6 +362,7 @@ pub fn bench_args_normalize_primers(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        primer_set_id: args.primer_set_id.clone(),
     })
 }
 

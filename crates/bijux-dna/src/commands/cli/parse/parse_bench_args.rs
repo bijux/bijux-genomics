@@ -493,6 +493,8 @@ pub struct BenchFastqNormalizePrimersArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(long, help = "Primer governance set id (for example: 16S_universal_v1)")]
+    pub primer_set_id: Option<String>,
 }
 
 #[derive(Debug, Args)]
