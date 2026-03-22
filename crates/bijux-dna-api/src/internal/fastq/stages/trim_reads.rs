@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::query_shared::{fetch_fastq_trim_v2, insert_fastq_trim_v2};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimMetrics};
@@ -17,8 +19,6 @@ use bijux_dna_planner_fastq::stage_api::{
     polyx_bank_context, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 
 use super::trim_bench_common::{
     build_benchmark_context, derive_trim_delta, json_string, observe_fastq_stats,
@@ -126,10 +126,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed(STAGE_TRIM_READS.as_str(), &tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_TRIM_READS.as_str(), &tools, platform, catalog)?;
 
-    let adapter_policy = normalized_adapter_policy(
-        args.adapter_policy.as_deref(),
-        adapter_bank_requested(args),
-    )?;
+    let adapter_policy =
+        normalized_adapter_policy(args.adapter_policy.as_deref(), adapter_bank_requested(args))?;
     let adapter_context = if adapter_policy_uses_bank(adapter_policy.as_deref()) {
         adapter_bank_context(
             args.adapter_bank_preset.as_deref(),
@@ -141,7 +139,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     } else {
         None
     };
-    let polyx_policy = normalized_polyx_policy(args.polyx_policy.as_deref(), args.polyx_preset.is_some())?;
+    let polyx_policy =
+        normalized_polyx_policy(args.polyx_policy.as_deref(), args.polyx_preset.is_some())?;
     let polyx_context = if polyx_policy_uses_bank(polyx_policy.as_deref()) {
         polyx_bank_context(args.polyx_preset.as_deref())?
     } else {
@@ -293,6 +292,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 match governed_report.paired_mode {
                     bijux_dna_domain_fastq::PairedMode::SingleEnd => "single_end",
                     bijux_dna_domain_fastq::PairedMode::PairedEnd => "paired_end",
+                    bijux_dna_domain_fastq::PairedMode::Unknown => "unknown",
                 }
                 .to_string(),
             ),
@@ -385,7 +385,9 @@ fn combine_seqkit_metrics(
     }
 }
 
-fn adapter_bank_requested(args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs) -> bool {
+fn adapter_bank_requested(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs,
+) -> bool {
     args.adapter_bank_preset.is_some()
         || args.adapter_bank.is_some()
         || args.adapter_bank_file.is_some()
@@ -393,7 +395,10 @@ fn adapter_bank_requested(args: &bijux_dna_planner_fastq::stage_api::args::Bench
         || !args.disable_adapters.is_empty()
 }
 
-fn normalized_adapter_policy(policy: Option<&str>, explicit_bank_selection: bool) -> Result<Option<String>> {
+fn normalized_adapter_policy(
+    policy: Option<&str>,
+    explicit_bank_selection: bool,
+) -> Result<Option<String>> {
     match policy {
         None if explicit_bank_selection => Ok(Some("bank".to_string())),
         None => Ok(None),
@@ -407,7 +412,10 @@ fn normalized_adapter_policy(policy: Option<&str>, explicit_bank_selection: bool
     }
 }
 
-fn normalized_polyx_policy(policy: Option<&str>, explicit_bank_selection: bool) -> Result<Option<String>> {
+fn normalized_polyx_policy(
+    policy: Option<&str>,
+    explicit_bank_selection: bool,
+) -> Result<Option<String>> {
     match policy {
         None if explicit_bank_selection => Ok(Some("bank".to_string())),
         None => Ok(None),
@@ -527,7 +535,9 @@ mod tests {
             Some("bank")
         );
         assert_eq!(
-            normalized_contaminant_policy(None, true).unwrap().as_deref(),
+            normalized_contaminant_policy(None, true)
+                .unwrap()
+                .as_deref(),
             Some("bank")
         );
     }
@@ -620,6 +630,9 @@ mod tests {
         let raw = std::fs::read_to_string(&report_path).expect("read report");
         let decoded: TrimReadsReportV1 = serde_json::from_str(&raw).expect("parse report");
         assert_eq!(decoded.tool_id, "fastp");
-        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
+        assert_eq!(
+            decoded.raw_backend_report_format.as_deref(),
+            Some("fastp_json")
+        );
     }
 }
