@@ -101,9 +101,9 @@ pub fn detect_adapters_defaults(paired: bool) -> DetectAdaptersEffectiveParams {
         inspection_mode: AdapterInspectionMode::EvidenceOnly,
         report_only: true,
         evidence_engine: "fastqc".to_string(),
-        evidence_scope: AdapterEvidenceScope::SampledReads,
+        evidence_scope: AdapterEvidenceScope::FullInput,
         evidence_format: AdapterEvidenceFormat::FastqcSummary,
-        evidence_artifact_id: "adapter_report".to_string(),
+        evidence_artifact_id: "report_json".to_string(),
     }
 }
 
