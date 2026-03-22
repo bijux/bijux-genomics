@@ -106,6 +106,8 @@ impl Default for CorrectErrorsStageParams {
 #[derive(Debug, Clone)]
 pub struct TrimTerminalDamageStageParams {
     pub damage_mode: bijux_dna_domain_fastq::params::DamageMode,
+    pub execution_policy:
+        Option<bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy>,
     pub trim_5p_bases: u32,
     pub trim_3p_bases: u32,
 }
@@ -114,6 +116,7 @@ impl Default for TrimTerminalDamageStageParams {
     fn default() -> Self {
         Self {
             damage_mode: bijux_dna_domain_fastq::params::DamageMode::Ancient,
+            execution_policy: None,
             trim_5p_bases: 2,
             trim_3p_bases: 2,
         }

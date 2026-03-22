@@ -32,7 +32,8 @@ use bijux_dna_domain_fastq::params::screen::{
 };
 use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::trim::{
-    default_terminal_damage_execution_policy, resolve_terminal_damage_policy,
+    default_terminal_damage_execution_policy, parse_terminal_damage_execution_policy,
+    resolve_terminal_damage_policy, resolve_terminal_damage_policy_with_override,
     TerminalDamageExecutionPolicy, TrimPolygTailsParams, TrimTerminalDamageParams,
     TRIM_POLYG_TAILS_SCHEMA_VERSION, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
@@ -133,6 +134,43 @@ fn udg_trimmed_default_policy_preserves_terminal_ends() {
     assert_eq!(policy.effective_trim_3p_bases, 0);
     assert_eq!(policy.requested_trim_5p_bases, 2);
     assert_eq!(policy.requested_trim_3p_bases, 2);
+}
+
+#[test]
+fn explicit_terminal_damage_policy_override_forces_trim_execution() {
+    let policy = resolve_terminal_damage_policy_with_override(
+        DamageMode::UdgTrimmed,
+        2,
+        2,
+        Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim),
+    )
+    .expect("explicit override must resolve");
+    assert_eq!(
+        policy.execution_policy,
+        TerminalDamageExecutionPolicy::ExplicitTerminalTrim
+    );
+    assert_eq!(policy.effective_trim_5p_bases, 2);
+    assert_eq!(policy.effective_trim_3p_bases, 2);
+}
+
+#[test]
+fn preserve_udg_policy_rejects_non_udg_damage_mode() {
+    let error = resolve_terminal_damage_policy_with_override(
+        DamageMode::Ancient,
+        2,
+        2,
+        Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds),
+    )
+    .expect_err("preserve policy must reject ancient damage mode");
+    assert!(error
+        .to_string()
+        .contains("preserve_udg_trimmed_ends requires damage_mode=udg_trimmed"));
+}
+
+#[test]
+fn trim_terminal_damage_policy_parser_accepts_policy_derived() {
+    assert_eq!(parse_terminal_damage_execution_policy("policy_derived"), Some(None));
+    assert_eq!(parse_terminal_damage_execution_policy("auto"), Some(None));
 }
 
 #[test]

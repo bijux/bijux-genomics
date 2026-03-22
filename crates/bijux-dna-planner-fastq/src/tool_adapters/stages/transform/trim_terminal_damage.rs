@@ -5,7 +5,8 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::trim::{
-    resolve_terminal_damage_policy, TrimTerminalDamageParams, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+    resolve_terminal_damage_policy_with_override, TrimTerminalDamageParams,
+    TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_TERMINAL_DAMAGE;
@@ -48,6 +49,7 @@ pub fn plan_trim_terminal_damage(
         out_dir,
         &TrimTerminalDamagePlanOptions {
             damage_mode,
+            execution_policy: None,
             trim_5p_bases,
             trim_3p_bases,
         },
@@ -63,11 +65,12 @@ pub fn plan_trim_terminal_damage_with_options(
     out_dir: &Path,
     options: &TrimTerminalDamagePlanOptions,
 ) -> Result<StagePlanV1> {
-    let resolved_policy = resolve_terminal_damage_policy(
+    let resolved_policy = resolve_terminal_damage_policy_with_override(
         options.damage_mode,
         options.trim_5p_bases,
         options.trim_3p_bases,
-    );
+        options.execution_policy,
+    )?;
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_terminal_damage tool {}", tool.tool_id))?;
     let output_r1 = if r2.is_some() {
@@ -384,6 +387,7 @@ mod tests {
             std::path::Path::new("out"),
             &TrimTerminalDamagePlanOptions {
                 damage_mode: DamageMode::Ancient,
+                execution_policy: None,
                 trim_5p_bases: 2,
                 trim_3p_bases: 1,
             },
@@ -408,6 +412,7 @@ mod tests {
             std::path::Path::new("out"),
             &TrimTerminalDamagePlanOptions {
                 damage_mode: DamageMode::UdgTrimmed,
+                execution_policy: None,
                 trim_5p_bases: 2,
                 trim_3p_bases: 2,
             },
