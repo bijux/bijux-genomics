@@ -428,7 +428,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         "remove_chimeras must reject paired inputs until a paired-aware runtime exists",
     );
 
-    let infer_asvs_error = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan(
+    let infer_asvs_plan = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan(
         &ToolExecutionSpecV1 {
             tool_id: ToolId::new("dada2"),
             tool_version: "domain-manifest".to_string(),
@@ -445,11 +445,21 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         Some(r2),
         out_dir,
     )
-    .expect_err("declared-only ASV inference must not plan through the FASTQ adapter");
+    .expect("governed ASV inference must plan through the FASTQ adapter");
     assert!(
-        infer_asvs_error.to_string().contains("declared-only"),
-        "infer_asvs failure must explain that the runtime contract is not closed",
+        infer_asvs_plan
+            .io
+            .outputs
+            .iter()
+            .any(|artifact| artifact.name.as_str() == "report_json"),
+        "infer_asvs planning must emit the canonical governed report artifact",
     );
+    assert_eq!(infer_asvs_plan.command.template[0], "dada2");
+    assert!(infer_asvs_plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "--report-json"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
         &domain_tool("fastq.cluster_otus", "vsearch"),

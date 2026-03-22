@@ -62,6 +62,13 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
             "primer_orientation_report",
             "primer_stats_json",
         ],
+        "fastq.infer_asvs" => &[
+            "report_json",
+            "asv_table_tsv",
+            "asv_sequences_fasta",
+            "taxonomy_ready_fasta",
+            "taxonomy_ready_fastq",
+        ],
         "fastq.normalize_abundance" => &["report_json", "normalized_abundance_tsv"],
         "fastq.remove_duplicates" => &[
             "report_json",
