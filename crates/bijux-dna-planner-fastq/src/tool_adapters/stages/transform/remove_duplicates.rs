@@ -150,6 +150,7 @@ pub fn plan_deduplicate_with_options(
     let effective_params = RemoveDuplicatesEffectiveParams {
         schema_version: REMOVE_DUPLICATES_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(paired_mode),
+        threads: tool.resources.threads.max(1),
         dedup_mode: options.dedup_mode.clone(),
         keep_order: options.keep_order,
     };
@@ -189,6 +190,7 @@ pub fn plan_deduplicate_with_options(
             "duplicate_classes_tsv": duplicate_classes_tsv,
             "duplicate_provenance_json": duplicate_provenance_json,
             "report_json": report,
+            "threads": tool.resources.threads.max(1),
             "dedup_mode": options.dedup_mode,
             "keep_order": options.keep_order,
         }),
@@ -298,11 +300,12 @@ fn deduplicate_command(
         _ => "backend_log",
     };
     let provenance_format = format!(
-        "{{\"schema_version\":{},\"stage_id\":{},\"tool_id\":{},\"paired_mode\":{},\"dedup_mode\":{},\"keep_order\":{},\"duplicates_removed\":%s,\"dedup_rate\":%s,\"backend_log\":%s,\"input_r1\":%s,\"input_r2\":%s,\"output_r1\":%s,\"output_r2\":%s,\"raw_backend_report\":%s,\"raw_backend_report_format\":{}}}",
+        "{{\"schema_version\":{},\"stage_id\":{},\"tool_id\":{},\"paired_mode\":{},\"threads\":{},\"dedup_mode\":{},\"keep_order\":{},\"duplicates_removed\":%s,\"dedup_rate\":%s,\"backend_log\":%s,\"input_r1\":%s,\"input_r2\":%s,\"output_r1\":%s,\"output_r2\":%s,\"raw_backend_report\":%s,\"raw_backend_report_format\":{}}}",
         json_string_literal(REMOVE_DUPLICATES_PROVENANCE_SCHEMA_VERSION)?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool_id)?,
         json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
+        tool.resources.threads.max(1),
         serde_json::to_string(&options.dedup_mode)
             .map_err(|error| anyhow!("serialize dedup_mode for provenance: {error}"))?,
         if options.keep_order { "true" } else { "false" },
@@ -320,12 +323,13 @@ fn deduplicate_command(
         shell_quote_path(duplicate_provenance_json),
     ));
     let report_format = format!(
-        "{{\"schema_version\":{},\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"paired_mode\":{},\"dedup_mode\":{},\"keep_order\":{},\"input_r1\":%s,\"input_r2\":%s,\"output_r1\":%s,\"output_r2\":%s,\"reads_in\":%s,\"reads_out\":%s,\"reads_in_r2\":%s,\"reads_out_r2\":%s,\"pairs_in\":%s,\"pairs_out\":%s,\"pair_count_match\":%s,\"duplicates_removed\":%s,\"dedup_rate\":%s,\"duplicate_classes_tsv\":%s,\"duplicate_provenance_json\":%s,\"duplicate_classes\":[{{\"class\":\"duplicate\",\"reads_removed\":%s,\"paired_mode\":{}}}],\"raw_backend_report\":%s,\"raw_backend_report_format\":{},\"runtime_s\":null,\"memory_mb\":null}}",
+        "{{\"schema_version\":{},\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"paired_mode\":{},\"threads\":{},\"dedup_mode\":{},\"keep_order\":{},\"input_r1\":%s,\"input_r2\":%s,\"output_r1\":%s,\"output_r2\":%s,\"reads_in\":%s,\"reads_out\":%s,\"reads_in_r2\":%s,\"reads_out_r2\":%s,\"pairs_in\":%s,\"pairs_out\":%s,\"pair_count_match\":%s,\"duplicates_removed\":%s,\"dedup_rate\":%s,\"duplicate_classes_tsv\":%s,\"duplicate_provenance_json\":%s,\"duplicate_classes\":[{{\"class\":\"duplicate\",\"reads_removed\":%s,\"paired_mode\":{}}}],\"raw_backend_report\":%s,\"raw_backend_report_format\":{},\"runtime_s\":null,\"memory_mb\":null}}",
         json_string_literal(REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION)?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(STAGE_ID.as_str())?,
         json_string_literal(tool_id)?,
         json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
+        tool.resources.threads.max(1),
         serde_json::to_string(&options.dedup_mode)
             .map_err(|error| anyhow!("serialize dedup_mode for report: {error}"))?,
         if options.keep_order { "true" } else { "false" },

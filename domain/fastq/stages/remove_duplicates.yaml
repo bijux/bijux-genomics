@@ -27,6 +27,10 @@ outputs:
     data_type: "json"
     cardinality: "One"
 parameters:
+  - name: "threads"
+    param_type: "int"
+    default: "4"
+    meaning: "Worker threads for the governed duplicate-removal invocation and resource envelope"
   - name: "dedup_mode"
     param_type: "string"
     default: "exact"

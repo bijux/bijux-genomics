@@ -24,6 +24,7 @@ pub struct RemoveDuplicatesProvenanceV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub paired_mode: PairedMode,
+    pub threads: u32,
     pub dedup_mode: DedupMode,
     pub keep_order: bool,
     pub duplicates_removed: u64,
@@ -45,6 +46,7 @@ pub struct RemoveDuplicatesReportV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub paired_mode: PairedMode,
+    pub threads: u32,
     pub dedup_mode: DedupMode,
     pub keep_order: bool,
     pub input_r1: String,
@@ -87,6 +89,7 @@ mod tests {
             stage_id: "fastq.remove_duplicates".to_string(),
             tool_id: "clumpify".to_string(),
             paired_mode: PairedMode::PairedEnd,
+            threads: 4,
             dedup_mode: DedupMode::OpticalAware,
             keep_order: false,
             input_r1: "reads_R1.fastq.gz".to_string(),
@@ -119,6 +122,7 @@ mod tests {
         let decoded: RemoveDuplicatesReportV1 =
             serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "clumpify");
+        assert_eq!(decoded.threads, 4);
         assert_eq!(decoded.dedup_mode, DedupMode::OpticalAware);
         assert_eq!(decoded.duplicate_classes.len(), 1);
     }
@@ -130,6 +134,7 @@ mod tests {
             stage_id: "fastq.remove_duplicates".to_string(),
             tool_id: "fastuniq".to_string(),
             paired_mode: PairedMode::PairedEnd,
+            threads: 1,
             dedup_mode: DedupMode::Exact,
             keep_order: true,
             duplicates_removed: 12,
@@ -147,6 +152,7 @@ mod tests {
         let decoded: RemoveDuplicatesProvenanceV1 =
             serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "fastuniq");
+        assert_eq!(decoded.threads, 1);
         assert_eq!(decoded.dedup_mode, DedupMode::Exact);
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastuniq_log"));
     }
