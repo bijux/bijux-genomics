@@ -21,7 +21,7 @@ See `STAGE_CONTRACTS.md` for detailed contracts.
 | fastq.deplete_rrna | Optional | FASTQ | rRNA-filtered FASTQ | rrna_fraction |
 | fastq.correct_errors | Optional | paired FASTQ | corrected FASTQ | correction_rate; `rcorrector` is the closed execution backend |
 | fastq.extract_umis | Optional | paired FASTQ | UMI-tagged FASTQ | umi_stats |
-| fastq.screen_taxonomy | Optional | FASTQ | screening reports | contaminant_rate |
+| fastq.screen_taxonomy | Optional | FASTQ | governed taxonomy report + raw screen summary | contamination_rate, classified_fraction, top_taxa, database lineage |
 | fastq.profile_reads | Optional | FASTQ | stats report | read_count, base_count |
 | fastq.profile_read_lengths | Optional | FASTQ | length report | length histogram |
 | fastq.profile_overrepresented_sequences | Optional | FASTQ | sequence report | flagged sequence counts |
