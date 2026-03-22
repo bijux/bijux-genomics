@@ -10,7 +10,9 @@ use bijux_dna_domain_fastq::metrics::{
     AdapterRemovalToolMetricsV1, FastpToolMetricsV1, FastqcToolMetricsV1, MultiqcToolMetricsV1,
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
-use bijux_dna_domain_fastq::{ValidatedReadsManifestV1, ValidationReportV1};
+use bijux_dna_domain_fastq::{
+    TerminalDamageReportV1, ValidatedReadsManifestV1, ValidationReportV1,
+};
 
 /// # Errors
 /// Returns an error if stdout cannot be parsed.
@@ -110,6 +112,12 @@ pub fn parse_validation_report(report_json: &str) -> Result<ValidationReportV1> 
 /// Returns an error if the governed validated-reads lineage manifest JSON cannot be parsed.
 pub fn parse_validated_reads_manifest(manifest_json: &str) -> Result<ValidatedReadsManifestV1> {
     serde_json::from_str(manifest_json).context("parse validated reads manifest")
+}
+
+/// # Errors
+/// Returns an error if the governed terminal-damage report JSON cannot be parsed.
+pub fn parse_terminal_damage_report(report_json: &str) -> Result<TerminalDamageReportV1> {
+    serde_json::from_str(report_json).context("parse terminal damage report")
 }
 
 /// # Errors
@@ -326,13 +334,15 @@ mod tests {
         parse_fastp_metrics, parse_fastqc_summary_metrics, parse_fastqvalidator_count,
         parse_length_histogram, parse_low_complexity_report,
         parse_multiqc_general_stats_metrics, parse_samtools_flagstat_metrics,
-        parse_seqkit_stats, parse_seqkit_tool_metrics, parse_validated_reads_manifest,
-        parse_validation_report,
+        parse_seqkit_stats, parse_seqkit_tool_metrics, parse_terminal_damage_report,
+        parse_validated_reads_manifest, parse_validation_report,
     };
     use anyhow::Result;
+    use bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy;
+    use bijux_dna_domain_fastq::params::DamageMode;
     use bijux_dna_domain_fastq::{
-        PairedMode, ValidateFailureClass, VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
-        VALIDATION_REPORT_SCHEMA_VERSION,
+        PairedMode, ValidateFailureClass, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
+        VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
     };
 
     #[test]
@@ -406,6 +416,59 @@ mod tests {
         )?;
         assert_eq!(parsed.paired_mode, PairedMode::PairedEnd);
         assert_eq!(parsed.validated_stream_ids, vec!["reads_r1", "reads_r2"]);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_terminal_damage_report_parses_governed_json() -> Result<()> {
+        let parsed = parse_terminal_damage_report(
+            &serde_json::json!({
+                "schema_version": TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
+                "stage": "fastq.trim_terminal_damage",
+                "stage_id": "fastq.trim_terminal_damage",
+                "tool_id": "cutadapt",
+                "paired_mode": "paired_end",
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 2,
+                "trim_3p_bases": 1,
+                "requested_trim_5p_bases": 2,
+                "requested_trim_3p_bases": 1,
+                "udg_classification": "non_udg",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "trimmed_R1.fastq.gz",
+                "output_r2": "trimmed_R2.fastq.gz",
+                "reads_in": 200,
+                "reads_out": 198,
+                "bases_in": 20000,
+                "bases_out": 19100,
+                "mean_q_before": 28.0,
+                "mean_q_after": 28.5,
+                "ct_ga_asymmetry_pre": 0.45,
+                "ct_ga_asymmetry_post": 0.12,
+                "ct_ga_asymmetry_pre_r1": 0.50,
+                "ct_ga_asymmetry_post_r1": 0.15,
+                "ct_ga_asymmetry_pre_r2": 0.40,
+                "ct_ga_asymmetry_post_r2": 0.09,
+                "terminal_base_composition_pre_r1": {"C": 80},
+                "terminal_base_composition_post_r1": {"C": 30},
+                "terminal_base_composition_pre_r2": {"G": 75},
+                "terminal_base_composition_post_r2": {"G": 28},
+                "raw_backend_report": "cutadapt.damage.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": 12.4,
+                "memory_mb": 256.0
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.damage_mode, DamageMode::Ancient);
+        assert_eq!(
+            parsed.execution_policy,
+            TerminalDamageExecutionPolicy::ExplicitTerminalTrim
+        );
+        assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
+        assert_eq!(parsed.reads_in, Some(200));
         Ok(())
     }
 
