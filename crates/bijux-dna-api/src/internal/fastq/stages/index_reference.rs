@@ -185,8 +185,6 @@ fn build_index_reference_record(
         .with_context(|| format!("stat {}", reference_fasta.display()))?
         .len();
     let emitted_files = collect_index_reference_files(&index_root)?;
-    let index_bytes = emitted_files.iter().map(|entry| entry.bytes).sum::<u64>();
-    let index_file_count = emitted_files.len() as u64;
     let report = canonical_index_reference_report(
         tool,
         params,
@@ -310,8 +308,8 @@ fn canonical_index_reference_report(
         index_file_count: emitted_files.len() as u64,
         index_bytes,
         emitted_files,
-        runtime_s: execution.runtime_s,
-        memory_mb: execution.memory_mb,
+        runtime_s: Some(execution.runtime_s),
+        memory_mb: Some(execution.memory_mb),
         exit_code: Some(execution.exit_code),
         backend_metrics: Some(backend_metrics),
     }
