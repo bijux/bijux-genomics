@@ -230,7 +230,6 @@ pub fn bench_args_detect_adapters(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
-        threads: args.threads,
     })
 }
 
@@ -526,6 +525,7 @@ pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> Result<engine_args::Ben
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
     })
 }
 
@@ -723,8 +723,10 @@ pub fn bench_args_preprocess(
 
 #[cfg(test)]
 mod tests {
-    use super::{bench_args_from_validate, resolve_stage_tool};
-    use crate::commands::cli::parse::{CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs};
+    use super::{bench_args_filter, bench_args_from_validate, resolve_stage_tool};
+    use crate::commands::cli::parse::{
+        BenchFastqFilterArgs, CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs,
+    };
     use std::path::PathBuf;
 
     #[test]
