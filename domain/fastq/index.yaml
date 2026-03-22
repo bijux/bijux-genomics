@@ -167,7 +167,8 @@ stage_tool_compatibility:
   fastq.index_reference:
   - bowtie2_build
   - star
-  fastq.infer_asvs: []
+  fastq.infer_asvs:
+  - dada2
   fastq.merge_pairs:
   - pear
   - vsearch
@@ -253,7 +254,7 @@ stage_tool_integration:
     bowtie2_build: governed_contract
     star: governed_contract
   fastq.infer_asvs:
-    dada2: planned_contract
+    dada2: governed_contract
   fastq.merge_pairs:
     bbmerge: governed_contract
     flash2: governed_contract

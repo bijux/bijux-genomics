@@ -67,7 +67,7 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
 }
 
 #[test]
-fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit(
+fn toolset_selection_keeps_declared_bindings_and_governed_infer_asvs_explicit(
 ) -> anyhow::Result<()> {
     let trim_pipeline = single_stage_graph("fastq.trim_reads");
     let all_bindings = bijux_dna_planner_fastq::select_preprocess_toolsets(
@@ -81,24 +81,15 @@ fn toolset_selection_keeps_declared_bindings_and_declared_only_stages_explicit(
         .any(|tool_id| tool_id == "seqpurge"));
 
     let infer_pipeline = single_stage_graph("fastq.infer_asvs");
-    let declared_only_error = bijux_dna_planner_fastq::select_preprocess_toolsets(
+    let governed = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &infer_pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
         false,
     )
-    .expect_err("declared-only stages must still require explicit override");
-    assert!(declared_only_error
-        .to_string()
-        .contains("not active in current scope"));
-
-    let declared_only = bijux_dna_planner_fastq::select_preprocess_toolsets(
-        &infer_pipeline,
-        bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
-        true,
-    )?;
-    assert_eq!(declared_only.len(), 1);
-    assert_eq!(declared_only[0].stage_id, "fastq.infer_asvs");
-    assert_eq!(declared_only[0].tool_ids, vec!["dada2".to_string()]);
+    .expect("governed infer_asvs must resolve through the standard toolset selector");
+    assert_eq!(governed.len(), 1);
+    assert_eq!(governed[0].stage_id, "fastq.infer_asvs");
+    assert_eq!(governed[0].tool_ids, vec!["dada2".to_string()]);
 
     Ok(())
 }

@@ -209,13 +209,14 @@ stages:
     admitted_tools:
       - "vsearch"
   - stage_id: "fastq.infer_asvs"
-    execution_status: "declared_only"
-    planning_support: "declared_only"
-    runtime_support: "declared_only"
-    normalization_support: "none"
+    execution_status: "closed"
+    planning_support: "stage_family"
+    runtime_support: "runnable"
+    normalization_support: "generic_envelope"
     benchmark_support: "none"
-    default_tool: null
-    admitted_tools: []
+    default_tool: "dada2"
+    admitted_tools:
+      - "dada2"
   - stage_id: "fastq.cluster_otus"
     execution_status: "closed"
     planning_support: "stage_family"

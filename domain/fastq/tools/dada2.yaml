@@ -1,42 +1,99 @@
-schema_version: bijux.tool.v2
-tool_id: dada2
-upstream: https://benjjneb.github.io/dada2/
-versioning_strategy: pinned
-pin_strategy: pinned
-default_version: planned
-install_kind: external
-license: GPL-3.0
-citation: pending:tool-publication
-planned_stage_ids:
-  - fastq.infer_asvs
+schema_version: "bijux.tool.v1"
+tool_id: "dada2"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+capabilities:
+  - "SE"
+  - "PE"
+  - "asv"
+container:
+  image: "bijuxdna/dada2"
+  digest: "sha256:930e06fb8e27965ccafae61d4161ab5e32933aea2555e68ad409ef7af43c8245"
+command_template:
+  - "dada2"
+  - "run_dada2.R"
+  - "--input-r1"
+  - "{{reads_r1}}"
+  - "--asv-table"
+  - "{{asv_table_tsv}}"
+  - "--asv-fasta"
+  - "{{asv_sequences_fasta}}"
+  - "--taxonomy-ready-fasta"
+  - "{{taxonomy_ready_fasta}}"
+  - "--taxonomy-ready-fastq"
+  - "{{taxonomy_ready_fastq}}"
+  - "--report-json"
+  - "{{report_json}}"
+outputs:
+  - name: "asv_table_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "asv_sequences_fasta"
+    data_type: "fasta"
+    cardinality: "One"
+  - name: "taxonomy_ready_fasta"
+    data_type: "fasta"
+    cardinality: "One"
+  - name: "taxonomy_ready_fastq"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+metrics_parser: "dada2_v1"
+constraints:
+  runtime: "local"
+  mem_gb: 16
+  tmp_gb: 8
+  threads: 4
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
+  expected_outputs:
+    - "asv_table_tsv"
+    - "asv_sequences_fasta"
+    - "taxonomy_ready_fasta"
+    - "taxonomy_ready_fastq"
+    - "report_json"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
+upstream: "https://benjjneb.github.io/dada2/"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "latest-pinned"
+install_kind: "container"
+license: "GPL-3.0"
+citation: "pending:tool-publication"
+stage_ids:
+  - "fastq.infer_asvs"
 stage_contracts:
   fastq.infer_asvs:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "asv_table_tsv"
       - "asv_sequences_fasta"
       - "taxonomy_ready_fasta"
       - "taxonomy_ready_fastq"
-    notes: "Planned ASV inference would emit governed feature-table and taxonomy-ready representative-sequence artifacts."
-status: out_of_scope
-scope: pre_hpc_pre_vcf
+      - "report_json"
+    notes: "dada2 ASV inference emits the governed feature table, representative sequences, taxonomy-ready sequence artifacts, and the canonical infer-asvs report."
 expected_artifacts:
-  - asv_table_tsv
-  - asv_sequences_fasta
-  - taxonomy_ready_fasta
-  - taxonomy_ready_fastq
-metrics_schema_id: bijux.fastq.asv.v1
-metrics_schema: bijux.fastq.asv.v1
-version_cmd: Rscript -e "packageVersion('dada2')"
-help_cmd: Rscript -e "library(dada2); cat('dada2 help via R docs\n')"
+  - "asv_table_tsv"
+  - "asv_sequences_fasta"
+  - "taxonomy_ready_fasta"
+  - "taxonomy_ready_fastq"
+  - "report_json"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
+version_cmd: "dada2 --version"
+help_cmd: "dada2 --help"
 comparability:
   comparable_with: []
   non_comparable_with:
-    - vsearch
-comparability_notes: ASV outputs are not directly comparable with OTU centroid outputs.
-notes: ASV path is currently out-of-scope; OTU remains primary until deterministic containerized ASV admission.
-capabilities:
-  - SE
-  - PE
-  - asv
+    - "vsearch"
+comparability_notes: "ASV outputs are not directly comparable with OTU centroid outputs, but they are governed within the infer-asvs stage contract."
+notes: "Containerized dada2 is the current governed ASV inference backend for deterministic amplicon denoising."

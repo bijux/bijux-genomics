@@ -73,14 +73,20 @@ fn benchmark_toolsets_can_be_requested_per_fairness_scenario() {
 }
 
 #[test]
-fn toolset_modes_keep_declared_only_stages_honest() {
+fn toolset_modes_publish_governed_infer_asvs_runtime_tools() {
     let infer_stage = StageId::from_static("fastq.infer_asvs");
 
     let governed_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage(
         &infer_stage,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
     );
-    assert!(governed_tools.is_empty());
+    assert_eq!(
+        governed_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["dada2"]
+    );
 
     let benchmark_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage(
         &infer_stage,

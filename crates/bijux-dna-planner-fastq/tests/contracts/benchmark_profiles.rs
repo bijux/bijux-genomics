@@ -27,10 +27,10 @@ fn benchmark_profiles_distinguish_planned_governed_and_benchmarkable_bindings() 
         &infer_stage,
         &ToolId::from_static("dada2"),
     )
-    .expect("planned profile");
+    .expect("governed profile");
     assert_eq!(
         infer_profile.readiness,
-        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::PlannedContract
+        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
     );
     assert!(infer_profile.benchmark_scenarios.is_empty());
 }
@@ -96,8 +96,8 @@ fn stage_tool_capabilities_distinguish_declared_runnable_and_comparable_bindings
     )
     .expect("infer_asvs capability");
     assert!(infer_capability.declared);
-    assert!(!infer_capability.plannable);
-    assert!(!infer_capability.runnable);
+    assert!(infer_capability.plannable);
+    assert!(infer_capability.runnable);
     assert!(!infer_capability.benchmark_normalized);
     assert!(!infer_capability.comparable);
 

@@ -8,7 +8,7 @@ fn stage_tool_maturity_distinguishes_planned_generic_and_observer_bindings() {
             &infer_stage,
             &ToolId::from_static("dada2"),
         ),
-        Some(bijux_dna_planner_fastq::stage_api::StageToolMaturityLevel::PlannedBinding)
+        Some(bijux_dna_planner_fastq::stage_api::StageToolMaturityLevel::GovernedExecution)
     );
 
     let detect_stage = StageId::from_static("fastq.detect_adapters");

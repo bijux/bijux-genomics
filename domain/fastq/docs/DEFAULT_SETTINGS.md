@@ -40,7 +40,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - `fastq.normalize_primers`: default `cutadapt`. rationale: deterministic primer trimming with explicit mismatch/orientation controls.
 - `fastq.remove_chimeras`: default `vsearch`. rationale: deterministic uchime-based baseline before broader ensemble adoption.
 - `fastq.cluster_otus`: default `vsearch`. rationale: stable OTU cluster policy with reproducible identifiers.
-- `fastq.infer_asvs`: no blessed default runtime backend yet. rationale: the stage contract is defined, but no admitted ASV engine is currently shipped in the governed runtime set.
+- `fastq.infer_asvs`: default `dada2`. rationale: governed ASV inference now uses the admitted containerized dada2 backend and publishes the canonical infer-asvs report plus taxonomy-ready representative sequences.
 - `fastq.normalize_abundance`: default `seqkit`. rationale: abundance-table normalization stays within the currently admitted amplicon table tooling.
 
 validation_benchmark_policy: fastq.validate_reads

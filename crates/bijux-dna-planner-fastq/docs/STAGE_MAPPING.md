@@ -19,6 +19,6 @@ Use this document only to explain planner interpretation rules:
 - Runtime registry publication follows the closed governed surface, not every declared or planned binding.
 - Bench cohort selection may include only bindings whose normalization and comparison contracts are explicitly governed.
 
-declared-only FASTQ stages:
+amplicon FASTQ stages with governed but non-default branch execution:
 
-- `fastq.infer_asvs` remains defined in the domain with planned `dada2` intent, but it stays outside the governed runtime registry and governed metrics surface until execution support is closed.
+- `fastq.infer_asvs` is now admitted with the governed `dada2` runtime contract, but it remains an explicit amplicon branch stage rather than part of the default preprocess chain.
