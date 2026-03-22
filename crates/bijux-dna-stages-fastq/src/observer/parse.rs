@@ -11,7 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
-    TerminalDamageReportV1, ValidatedReadsManifestV1, ValidationReportV1,
+    TerminalDamageReportV1, TrimReadsReportV1, ValidatedReadsManifestV1, ValidationReportV1,
 };
 
 /// # Errors
@@ -118,6 +118,12 @@ pub fn parse_validated_reads_manifest(manifest_json: &str) -> Result<ValidatedRe
 /// Returns an error if the governed terminal-damage report JSON cannot be parsed.
 pub fn parse_terminal_damage_report(report_json: &str) -> Result<TerminalDamageReportV1> {
     serde_json::from_str(report_json).context("parse terminal damage report")
+}
+
+/// # Errors
+/// Returns an error if the governed trim report JSON cannot be parsed.
+pub fn parse_trim_reads_report(report_json: &str) -> Result<TrimReadsReportV1> {
+    serde_json::from_str(report_json).context("parse trim reads report")
 }
 
 /// # Errors
@@ -332,7 +338,7 @@ mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
         parse_fastp_metrics, parse_fastqc_summary_metrics, parse_fastqvalidator_count,
-        parse_length_histogram, parse_low_complexity_report,
+        parse_length_histogram, parse_low_complexity_report, parse_trim_reads_report,
         parse_multiqc_general_stats_metrics, parse_samtools_flagstat_metrics,
         parse_seqkit_stats, parse_seqkit_tool_metrics, parse_terminal_damage_report,
         parse_validated_reads_manifest, parse_validation_report,
@@ -469,6 +475,57 @@ mod tests {
         );
         assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
         assert_eq!(parsed.reads_in, Some(200));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_trim_reads_report_parses_governed_json() -> Result<()> {
+        let parsed = parse_trim_reads_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.trim_reads.report.v2",
+                "stage": "fastq.trim_reads",
+                "stage_id": "fastq.trim_reads",
+                "tool_id": "fastp",
+                "paired_mode": "paired_end",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "trimmed_R1.fastq.gz",
+                "output_r2": "trimmed_R2.fastq.gz",
+                "min_length": 30,
+                "quality_cutoff": 20,
+                "adapter_policy": "bank",
+                "polyx_policy": "trim",
+                "n_policy": "drop",
+                "contaminant_policy": "none",
+                "adapter_bank_id": "illumina",
+                "adapter_bank_hash": "sha256:adapter",
+                "adapter_preset": "default",
+                "polyx_bank_id": "polyx",
+                "polyx_bank_hash": "sha256:polyx",
+                "polyx_preset": "illumina_twocolor",
+                "contaminant_bank_id": "contaminants",
+                "contaminant_bank_hash": "sha256:contaminants",
+                "contaminant_preset": "illumina_default",
+                "reads_in": 100,
+                "reads_out": 90,
+                "bases_in": 1000,
+                "bases_out": 820,
+                "pairs_in": 50,
+                "pairs_out": 45,
+                "mean_q_before": 28.0,
+                "mean_q_after": 31.0,
+                "runtime_s": 8.4,
+                "memory_mb": 128.0,
+                "raw_backend_report": "trim.fastp.json",
+                "raw_backend_report_format": "fastp_json"
+            })
+            .to_string(),
+        )?;
+
+        assert_eq!(parsed.tool_id, "fastp");
+        assert_eq!(parsed.paired_mode, PairedMode::PairedEnd);
+        assert_eq!(parsed.adapter_policy, "bank");
+        assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("fastp_json"));
         Ok(())
     }
 
