@@ -281,7 +281,16 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         pairs_in: 0,
         pairs_out: 0,
         contamination_rate: 0.1,
+        classified_fraction: Some(0.9),
+        unclassified_fraction: Some(0.1),
+        classifier: Some("kraken2".to_string()),
+        report_format: Some("kraken_report".to_string()),
+        database_catalog_id: Some("taxonomy_reference".to_string()),
+        database_artifact_id: Some("taxonomy_db".to_string()),
+        minimum_confidence: Some(0.05),
+        emit_unclassified: Some(true),
         contamination_summary: bijux_dna_analyze::model::JsonBlob::default(),
+        top_taxa: bijux_dna_analyze::model::JsonBlob::default(),
     });
     assert_eq!(screen.metrics_schema, "fastq_screen_taxonomy_v1");
 
