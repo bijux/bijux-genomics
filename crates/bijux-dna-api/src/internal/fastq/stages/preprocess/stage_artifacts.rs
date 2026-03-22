@@ -293,11 +293,24 @@ fn emit_fastq_stage_extra_artifacts(
             "runtime_contract": "R_runtime_required",
             "applicability": "edna_pollen_only",
         })),
-        "fastq.normalize_abundance" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.normalize_abundance.v1",
-            "stage": stage_id,
-            "normalized_table_emitted": true,
-        })),
+        "fastq.normalize_abundance" => {
+            let report_path = stage_root.join("normalize_abundance_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_normalize_abundance_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.normalize_abundance.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "method": governed.as_ref().map(|report| report.method.clone()),
+                "normalized_value_column": governed.as_ref().map(|report| report.normalized_value_column.clone()),
+                "compositional_rule": governed.as_ref().map(|report| report.compositional_rule.clone()),
+                "scale_factor": governed.as_ref().and_then(|report| report.scale_factor),
+                "feature_count": governed.as_ref().map(|report| report.feature_count),
+                "per_sample_sum_count": governed.as_ref().map(|report| report.per_sample_sums.len()),
+                "report_json": report_path,
+            }))
+        }
         _ => None,
     };
     if let Some(v) = payload {
@@ -381,6 +394,7 @@ fn write_stage_standardized_metrics(
         "fastq.profile_reads" => parse_profile_reads_metrics(out_dir),
         "fastq.report_qc" => parse_report_qc_metrics(out_dir),
         "fastq.normalize_primers" => parse_normalize_primers_metrics(out_dir),
+        "fastq.normalize_abundance" => parse_normalize_abundance_metrics(out_dir),
         "fastq.trim_terminal_damage" => parse_trim_terminal_damage_metrics(out_dir),
         "fastq.remove_chimeras" => parse_remove_chimeras_metrics(out_dir),
         "fastq.infer_asvs" => serde_json::json!({
@@ -392,11 +406,6 @@ fn write_stage_standardized_metrics(
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
             "fields": ["otu_count", "cluster_radius", "sample_count"],
-        }),
-        "fastq.normalize_abundance" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["table_rows", "sample_count", "normalization_method"],
         }),
         _ => return Ok(()),
     };

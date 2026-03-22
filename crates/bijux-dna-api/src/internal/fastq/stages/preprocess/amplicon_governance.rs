@@ -437,9 +437,24 @@ fn write_edna_report_summary(
             }
         }
         if stage.plan.step_id.as_str() == "fastq.normalize_abundance" {
-            let path = stage_root.join("metrics.json");
+            let path = stage_root.join("normalize_abundance_report.json");
             if let Ok(raw) = std::fs::read_to_string(path) {
-                normalization = serde_json::from_str::<serde_json::Value>(&raw).ok();
+                normalization = bijux_dna_stages_fastq::observer::parse_normalize_abundance_report(
+                    &raw,
+                )
+                .ok()
+                .map(|report| {
+                    serde_json::json!({
+                        "tool": report.tool_id,
+                        "method": report.method,
+                        "table_rows": report.table_rows,
+                        "sample_count": report.sample_count,
+                        "feature_count": report.feature_count,
+                        "zero_fraction": report.zero_fraction,
+                        "normalized_value_column": report.normalized_value_column,
+                        "compositional_rule": report.compositional_rule,
+                    })
+                });
             }
         }
     }
