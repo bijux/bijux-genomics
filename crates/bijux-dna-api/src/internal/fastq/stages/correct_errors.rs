@@ -33,6 +33,10 @@ use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_CORRECT_ERRORS,
 };
+use bijux_dna_domain_fastq::{
+    params::correct::FastqCorrectParams, CorrectErrorsReportV1,
+    CORRECT_ERRORS_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_stage_contract::StagePlanV1;
 
@@ -337,6 +341,7 @@ fn build_correct_record(
     let out_dir = &plan.out_dir;
     let output_r1 = required_plan_output_path(plan, "corrected_reads_r1")?;
     let output_r1 = require_existing_benchmark_output(&output_r1, "corrected_reads_r1")?;
+    let report_path = required_plan_output_path(plan, "report_json")?;
     let output_stats_r1 =
         observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, output_r1)?;
     let output_r2 = if let Some(path) = optional_plan_output_path(plan, "corrected_reads_r2") {
@@ -371,12 +376,13 @@ fn build_correct_record(
         bench_inputs.r2.as_deref(),
         output_r1,
         output_r2.as_deref(),
+        &report_path,
         &plan.effective_params,
         &metrics,
         execution,
         outputs_changed,
-    );
-    bijux_dna_infra::atomic_write_json(&out_dir.join("correct_report.json"), &report)
+    )?;
+    bijux_dna_infra::atomic_write_json(&report_path, &report)
         .context("write correction report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
@@ -472,53 +478,64 @@ fn kmer_fix_rate_proxy(mean_q_before: f64, mean_q_after: f64, outputs_changed: b
     ((mean_q_after - mean_q_before) / mean_q_after.max(1.0)).clamp(f64::EPSILON, 1.0)
 }
 
+fn decode_effective_correct_params(effective_params: &serde_json::Value) -> Result<FastqCorrectParams> {
+    serde_json::from_value(effective_params.clone()).context("decode effective correction params")
+}
+
 fn build_correction_report(
     tool: &str,
     input_r1: &Path,
     input_r2: Option<&Path>,
     output_r1: &Path,
     output_r2: Option<&Path>,
+    report_json: &Path,
     effective_params: &serde_json::Value,
     metrics: &FastqCorrectMetrics,
     execution: &StageResultV1,
     outputs_changed: bool,
-) -> serde_json::Value {
-    serde_json::json!({
-        "schema_version": "bijux.fastq.correct_errors.report.v1",
-        "stage": STAGE_CORRECT_ERRORS.as_str(),
-        "stage_id": STAGE_CORRECT_ERRORS.as_str(),
-        "tool": tool,
-        "tool_id": tool,
-        "input_r1": input_r1,
-        "input_r2": input_r2,
-        "output_r1": output_r1,
-        "output_r2": output_r2,
-        "corrected_reads": metrics.reads_out,
-        "pairs_in": metrics.pairs_in,
-        "pairs_out": metrics.pairs_out,
-        "reads_in": metrics.reads_in,
-        "reads_out": metrics.reads_out,
-        "bases_in": metrics.bases_in,
-        "bases_out": metrics.bases_out,
-        "mean_q_before": metrics.mean_q_before,
-        "mean_q_after": metrics.mean_q_after,
-        "kmer_fix_rate": metrics.kmer_fix_rate,
-        "quality_encoding": effective_params.get("quality_encoding").cloned().unwrap_or(serde_json::Value::Null),
-        "correction_engine": effective_params.get("correction_engine").cloned().unwrap_or(serde_json::Value::Null),
-        "kmer_size": effective_params.get("kmer_size").cloned().unwrap_or(serde_json::Value::Null),
-        "genome_size": effective_params.get("genome_size").cloned().unwrap_or(serde_json::Value::Null),
-        "max_memory_gb": effective_params.get("max_memory_gb").cloned().unwrap_or(serde_json::Value::Null),
-        "trusted_kmer_artifact": effective_params.get("trusted_kmer_artifact").cloned().unwrap_or(serde_json::Value::Null),
-        "conservative_mode": effective_params.get("conservative_mode").cloned().unwrap_or(serde_json::Value::Null),
-        "correction_effect": {
+) -> Result<CorrectErrorsReportV1> {
+    let effective_params = decode_effective_correct_params(effective_params)?;
+    Ok(CorrectErrorsReportV1 {
+        schema_version: CORRECT_ERRORS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_CORRECT_ERRORS.as_str().to_string(),
+        stage_id: STAGE_CORRECT_ERRORS.as_str().to_string(),
+        tool_id: tool.to_string(),
+        paired_mode: effective_params.paired_mode,
+        threads: effective_params.threads,
+        correction_engine: effective_params.correction_engine,
+        quality_encoding: effective_params.quality_encoding,
+        kmer_size: effective_params.kmer_size,
+        genome_size: effective_params.genome_size,
+        max_memory_gb: effective_params.max_memory_gb,
+        trusted_kmer_artifact: effective_params.trusted_kmer_artifact,
+        conservative_mode: effective_params.conservative_mode,
+        input_r1: input_r1.display().to_string(),
+        input_r2: input_r2.map(|path| path.display().to_string()),
+        output_r1: output_r1.display().to_string(),
+        output_r2: output_r2.map(|path| path.display().to_string()),
+        report_json: report_json.display().to_string(),
+        corrected_reads: Some(metrics.reads_out),
+        reads_in: Some(metrics.reads_in),
+        reads_out: Some(metrics.reads_out),
+        bases_in: Some(metrics.bases_in),
+        bases_out: Some(metrics.bases_out),
+        pairs_in: metrics.pairs_in,
+        pairs_out: metrics.pairs_out,
+        mean_q_before: Some(metrics.mean_q_before),
+        mean_q_after: Some(metrics.mean_q_after),
+        kmer_fix_rate: Some(metrics.kmer_fix_rate),
+        correction_effect: Some(serde_json::json!({
             "outputs_changed": outputs_changed,
             "reads_delta": i128::from(metrics.reads_out) - i128::from(metrics.reads_in),
             "bases_delta": i128::from(metrics.bases_out) - i128::from(metrics.bases_in),
             "mean_q_delta": metrics.mean_q_after - metrics.mean_q_before,
-        },
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
+        })),
+        runtime_s: Some(execution.runtime_s),
+        memory_mb: Some(execution.memory_mb),
+        exit_code: Some(execution.exit_code),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        backend_metrics: None,
     })
 }
 
@@ -799,7 +816,11 @@ mod tests {
             None,
             std::path::Path::new("corrected.fastq.gz"),
             None,
+            std::path::Path::new("correct_report.json"),
             &serde_json::json!({
+                "schema_version": "bijux.fastq.params.correct.v1",
+                "paired_mode": "single_end",
+                "threads": 8,
                 "correction_engine": "lighter",
                 "quality_encoding": "phred33",
                 "genome_size": 3_200_000_u64,
@@ -819,21 +840,32 @@ mod tests {
                 command: "lighter".to_string(),
             },
             true,
-        );
+        )
+        .expect("correction report should build");
 
-        assert_eq!(report["correction_engine"], serde_json::json!("lighter"));
+        assert_eq!(report.tool_id, "lighter");
+        assert_eq!(report.threads, 8);
+        assert_eq!(report.correction_engine, bijux_dna_domain_fastq::params::correct::CorrectionEngine::Lighter);
         assert_eq!(
-            report["trusted_kmer_artifact"],
-            serde_json::json!("trusted.kmers")
+            report.trusted_kmer_artifact,
+            Some(std::path::PathBuf::from("trusted.kmers"))
         );
         assert_eq!(
-            report["correction_effect"]["outputs_changed"],
-            serde_json::json!(true)
+            report
+                .correction_effect
+                .as_ref()
+                .and_then(|effect| effect.get("outputs_changed"))
+                .cloned(),
+            Some(serde_json::json!(true))
         );
         assert_eq!(
-            report["correction_effect"]["bases_delta"],
-            serde_json::json!(-300_i128)
+            report
+                .correction_effect
+                .as_ref()
+                .and_then(|effect| effect.get("bases_delta"))
+                .cloned(),
+            Some(serde_json::json!(-300_i128))
         );
-        assert_eq!(report["exit_code"], serde_json::json!(0));
+        assert_eq!(report.exit_code, Some(0));
     }
 }
