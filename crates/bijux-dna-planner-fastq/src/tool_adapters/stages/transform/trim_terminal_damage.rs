@@ -139,6 +139,13 @@ pub fn plan_trim_terminal_damage_with_options(
         report.clone(),
         ArtifactRole::ReportJson,
     ));
+    if let Some(raw_backend_report) = &raw_backend_report {
+        outputs.push(ArtifactRef::optional(
+            ArtifactId::from_static("raw_backend_report_json"),
+            raw_backend_report.clone(),
+            ArtifactRole::ReportJson,
+        ));
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -394,6 +401,11 @@ mod tests {
         )?;
 
         let script = &plan.command.template[2];
+        assert!(plan
+            .io
+            .outputs
+            .iter()
+            .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"));
         assert!(script.contains("cutadapt -u 2 -u -1"));
         assert!(script.contains("out/trim_terminal_damage.cutadapt.raw.json"));
         assert!(script.contains("out/trim_terminal_damage_report.json"));
@@ -419,6 +431,11 @@ mod tests {
         )?;
 
         let script = &plan.command.template[2];
+        assert!(!plan
+            .io
+            .outputs
+            .iter()
+            .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"));
         assert!(script.contains("seqkit subseq -r '1:-1'"));
         assert!(script.contains("\"execution_policy\":\"preserve_udg_trimmed_ends\""));
         assert!(script.contains("\"raw_backend_report_format\":\"seqkit_subseq\""));

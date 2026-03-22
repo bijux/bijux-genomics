@@ -98,7 +98,7 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "seqkit damage-aware trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed damage-trim report."
+    notes: "seqkit damage-aware trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed damage-trim report; no backend-native raw report is emitted for this backend."
   fastq.profile_overrepresented_sequences:
     required_inputs:
       - "reads_r1"
