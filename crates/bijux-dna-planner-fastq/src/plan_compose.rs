@@ -19,7 +19,8 @@ use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
-    DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters, InferAsvsStageParams,
+    DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters, IndexReferenceStageParams,
+    InferAsvsStageParams,
     TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
     STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
     STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY,
@@ -195,10 +196,11 @@ where
             stage if stage == STAGE_INDEX_REFERENCE.as_str() => {
                 let reference_fasta = reference_fasta
                     .ok_or_else(|| anyhow!("reference indexing requires reference_fasta input"))?;
-                let plan = crate::tool_adapters::fastq::index_reference::plan(
+                let plan = crate::tool_adapters::fastq::index_reference::plan_with_options(
                     tool,
                     reference_fasta,
                     &out_dir,
+                    &index_reference_params(binding),
                 )?;
                 (
                     plan,
@@ -1134,6 +1136,13 @@ fn validate_reads_params(binding: &FastqStageBinding, paired: bool) -> ValidateE
     match binding.params.as_ref() {
         Some(FastqStageParameters::Validate(params)) => params.clone(),
         _ => validate_defaults(paired),
+    }
+}
+
+fn index_reference_params(binding: &FastqStageBinding) -> IndexReferenceStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::IndexReference(params)) => params.clone(),
+        _ => IndexReferenceStageParams::default(),
     }
 }
 
