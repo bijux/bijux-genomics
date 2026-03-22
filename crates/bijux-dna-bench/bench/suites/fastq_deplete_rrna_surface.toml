@@ -1,0 +1,47 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_deplete_rrna_surface"
+
+[[datasets]]
+id = "synthetic_fastq_rrna_surface_01"
+hash = "fixture-fastq-rrna-surface-01"
+size = 1
+origin = "synthetic"
+class_label = "rrna_rich"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [941, 942]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["rrna_rich"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.rrna_surface"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.deplete_rrna"
+stage_instance_id = "fastq.deplete_rrna.rrna_surface"
+tools = ["sortmerna"]
+upstream_stage_instance_ids = ["fastq.validate_reads.rrna_surface"]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.deplete_rrna.rrna_surface"
+[stages.param_bindings.values]
+threads = 4
+rrna_db = "rrna_reference"
+min_identity = 0.95
