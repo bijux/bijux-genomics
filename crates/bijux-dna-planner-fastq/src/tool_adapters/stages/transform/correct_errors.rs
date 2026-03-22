@@ -8,7 +8,9 @@ use bijux_dna_domain_fastq::params::{
     correct::{CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION},
     PairedMode,
 };
-use bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS;
+use bijux_dna_domain_fastq::{
+    CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION, STAGE_CORRECT_ERRORS,
+};
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_CORRECT_ERRORS;
@@ -328,9 +330,10 @@ fn correct_command_template(
         input_r2,
         output_r1,
         output_r2,
+        threads,
         correction_engine,
         options,
-    ));
+    )?);
     Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
 
@@ -376,30 +379,54 @@ fn write_correction_report_script(
     input_r2: Option<&Path>,
     output_r1: &Path,
     output_r2: Option<&Path>,
+    threads: u32,
     correction_engine: &CorrectionEngine,
     options: &CorrectPlanOptions,
-) -> String {
-    let report_payload = serde_json::json!({
-        "schema_version": "bijux.fastq.correct_errors.report.v1",
-        "stage_id": STAGE_ID.as_str(),
-        "tool_id": tool_id,
-        "input_r1": input_r1,
-        "input_r2": input_r2,
-        "output_r1": output_r1,
-        "output_r2": output_r2,
-        "correction_engine": correction_engine,
-        "quality_encoding": options.quality_encoding,
-        "kmer_size": options.kmer_size,
-        "genome_size": options.genome_size,
-        "max_memory_gb": options.max_memory_gb,
-        "trusted_kmer_artifact": options.trusted_kmer_artifact,
-        "conservative_mode": options.conservative_mode,
-    });
-    format!(
+) -> Result<String> {
+    let report_payload = CorrectErrorsReportV1 {
+        schema_version: CORRECT_ERRORS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.as_str().to_string(),
+        stage_id: STAGE_ID.as_str().to_string(),
+        tool_id: tool_id.to_string(),
+        paired_mode: PairedMode::from_has_r2(input_r2.is_some()),
+        threads,
+        correction_engine: correction_engine.clone(),
+        quality_encoding: options.quality_encoding.clone(),
+        kmer_size: options.kmer_size,
+        genome_size: options.genome_size,
+        max_memory_gb: options.max_memory_gb,
+        trusted_kmer_artifact: options.trusted_kmer_artifact.clone(),
+        conservative_mode: options.conservative_mode,
+        input_r1: input_r1.display().to_string(),
+        input_r2: input_r2.map(|path| path.display().to_string()),
+        output_r1: output_r1.display().to_string(),
+        output_r2: output_r2.map(|path| path.display().to_string()),
+        report_json: report_json.display().to_string(),
+        corrected_reads: None,
+        reads_in: None,
+        reads_out: None,
+        bases_in: None,
+        bases_out: None,
+        pairs_in: None,
+        pairs_out: None,
+        mean_q_before: None,
+        mean_q_after: None,
+        kmer_fix_rate: None,
+        correction_effect: None,
+        runtime_s: None,
+        memory_mb: None,
+        exit_code: None,
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        backend_metrics: None,
+    };
+    let report_payload =
+        serde_json::to_string(&report_payload).map_err(|error| anyhow!("serialize correction report: {error}"))?;
+    Ok(format!(
         "printf '%s\\n' {} > {}\n",
-        shell_quote_str(&report_payload.to_string()),
+        shell_quote_str(&report_payload),
         shell_quote_path(report_json),
-    )
+    ))
 }
 
 fn shell_quote_path(path: &Path) -> String {
@@ -482,6 +509,7 @@ mod tests {
             plan.effective_params["quality_encoding"],
             serde_json::json!("phred33")
         );
+        assert!(plan.command.template[2].contains(CORRECT_ERRORS_REPORT_SCHEMA_VERSION));
     }
 
     #[test]
@@ -642,6 +670,9 @@ mod tests {
         .expect("bayeshammer plan should carry executable correction settings");
 
         let script = &plan.command.template[2];
+        assert!(script.contains(CORRECT_ERRORS_REPORT_SCHEMA_VERSION));
+        assert!(script.contains("\"stage\":\"fastq.correct_errors\""));
+        assert!(script.contains("\"threads\":2"));
         assert!(script.contains("\"quality_encoding\":\"phred64\""));
         assert!(script.contains("\"conservative_mode\":false"));
         assert!(script.contains("\"max_memory_gb\":24"));
