@@ -28,6 +28,14 @@ parameters:
     param_type: "int"
     default: "10"
 metrics:
+  - name: "tool"
+    meaning: "Governed backend selected for polyG-tail trimming."
+  - name: "paired_mode"
+    meaning: "Whether the stage ran on single-end or paired-end reads."
+  - name: "trim_polyg"
+    meaning: "Whether terminal polyG trimming was enabled for the run."
+  - name: "min_polyg_run"
+    meaning: "Minimum terminal polyG run length required before trimming is applied."
   - name: "reads_in"
     meaning: "Number of input reads."
   - name: "reads_out"
@@ -42,7 +50,11 @@ metrics:
     meaning: "Mean base quality after polyG trimming."
   - name: "bases_trimmed_polyg"
     meaning: "Number of bases removed from polyG tails."
-description: "FASTQ stage for trimming instrument-derived polyG tails."
+  - name: "raw_backend_report_format"
+    meaning: "Native backend report format preserved inside the governed trim-polyg report."
+  - name: "polyx_bank_hash"
+    meaning: "Resolved polyX bank hash used to record chemistry provenance for the run."
+description: "FASTQ stage for trimming instrument-derived polyG tails with governed backend-report normalization."
 mutates_fastq: true
 report_only: false
 may_change_read_count: true
@@ -72,6 +84,7 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "polyG trimming remains a no-op on inputs without terminal G-tail artifacts."
   - "single-end input omits reads_r2 and trimmed_reads_r2; paired-end input preserves mate synchronization during terminal trimming."
+  - "governed report_json is the canonical trim-polyg contract and preserves backend-native report provenance for downstream comparison."
 bank_hooks:
   - "polyx_bank"
 metrics_schema: "bijux.stage.metrics.v1"
