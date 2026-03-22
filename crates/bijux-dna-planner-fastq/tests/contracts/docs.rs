@@ -74,12 +74,12 @@ fn ci_stage_catalog_excludes_declared_only_fastq_stages() {
         .collect::<BTreeSet<_>>();
     assert!(
         !stage_ids.contains("fastq.infer_asvs"),
-        "declared-only FASTQ stages must stay out of the governed CI stage catalog",
+        "the curated CI stage catalog may omit infer_asvs even after workspace runtime admission",
     );
 }
 
 #[test]
-fn ci_tool_registry_excludes_planned_fastq_tools() {
+fn ci_tool_registry_excludes_unpublished_fastq_tools() {
     let registry = parse_toml(&workspace_root().join("configs/ci/registry/tool_registry.toml"));
     let tool_ids = registry
         .get("tools")
@@ -89,7 +89,6 @@ fn ci_tool_registry_excludes_planned_fastq_tools() {
         .filter_map(|tool| tool.get("id").and_then(Value::as_str))
         .collect::<BTreeSet<_>>();
     for tool_id in [
-        "dada2",
         "diamond",
         "dustmasker",
         "fastq_scan",
@@ -111,8 +110,8 @@ fn stage_mapping_documents_declared_only_infer_asvs() {
             .join("STAGE_MAPPING.md"),
     );
     assert!(
-        doc.contains("`fastq.infer_asvs`") && doc.contains("declared-only"),
-        "STAGE_MAPPING.md must explain why fastq.infer_asvs is outside the governed runtime table",
+        doc.contains("`fastq.infer_asvs`") && doc.contains("governed `dada2` runtime contract"),
+        "STAGE_MAPPING.md must explain the admitted infer_asvs runtime boundary",
     );
 }
 

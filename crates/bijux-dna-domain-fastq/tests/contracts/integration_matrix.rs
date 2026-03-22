@@ -197,10 +197,10 @@ fn integration_matrix_distinguishes_governed_and_planned_bindings() {
     let infer_asvs_stage = StageId::from_static("fastq.infer_asvs");
     let dada2 = ToolId::from_static("dada2");
     let infer_binding = bijux_dna_domain_fastq::stage_tool_binding(&infer_asvs_stage, &dada2)
-        .expect("planned binding");
+        .expect("governed binding");
     assert_eq!(
         infer_binding.integration_level,
-        bijux_dna_domain_fastq::ToolIntegrationLevel::PlannedContract
+        bijux_dna_domain_fastq::ToolIntegrationLevel::GovernedContract
     );
 
     let trim_stage = StageId::from_static("fastq.trim_reads");

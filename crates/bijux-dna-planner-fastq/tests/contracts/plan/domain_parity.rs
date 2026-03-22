@@ -64,6 +64,7 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
         "fastq.trim_terminal_damage",
         "fastq.normalize_primers",
         "fastq.remove_chimeras",
+        "fastq.infer_asvs",
         "fastq.cluster_otus",
         "fastq.normalize_abundance",
     ] {
@@ -72,10 +73,6 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
             "planner registry missing stage {required}"
         );
     }
-    assert!(
-        !stages.contains("fastq.infer_asvs"),
-        "planner registry must not expose declared-only ASV inference",
-    );
 }
 
 #[test]
@@ -102,7 +99,7 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
     }
     assert!(
         !spec.ordered_stage_ids().iter().any(|stage| stage == "fastq.infer_asvs"),
-        "default amplicon mode must not schedule planned ASV inference by default"
+        "default amplicon mode must not schedule optional infer_asvs branches by default"
     );
 
     let expected = default_amplicon_preprocess_stage_order()

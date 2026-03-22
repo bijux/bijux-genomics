@@ -18,18 +18,22 @@ fn planner_stage_selection_comes_from_domain_execution_support() {
 
     let infer_asvs_stage = StageId::from_static("fastq.infer_asvs");
     assert!(
-        bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&infer_asvs_stage).is_empty(),
-        "declared-only stages must not admit execution tools",
+        bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(&infer_asvs_stage)
+            .iter()
+            .any(|tool| tool.as_str() == "dada2"),
+        "governed infer_asvs must admit its closed runtime backend",
     );
     assert!(
-        bijux_dna_planner_fastq::stage_api::default_tool_for_stage(&infer_asvs_stage).is_none(),
-        "declared-only stages must not expose default execution tools",
+        bijux_dna_planner_fastq::stage_api::default_tool_for_stage(&infer_asvs_stage)
+            .is_some_and(|tool| tool.as_str() == "dada2"),
+        "governed infer_asvs must expose its admitted default backend",
     );
-    let infer_asvs_error = bijux_dna_planner_fastq::select_infer_asvs_tools(&["dada2".to_string()])
-        .expect_err("declared-only stage selection must fail before pretending to admit tools");
-    assert!(
-        infer_asvs_error.to_string().contains("declared-only"),
-        "declared-only stage selection must explain the governed runtime boundary",
+    let infer_asvs_tools = bijux_dna_planner_fastq::select_infer_asvs_tools(&["dada2".to_string()])
+        .expect("governed infer_asvs selection must admit dada2");
+    assert_eq!(
+        infer_asvs_tools,
+        vec!["dada2".to_string()],
+        "infer_asvs selection must resolve the admitted governed backend",
     );
 }
 

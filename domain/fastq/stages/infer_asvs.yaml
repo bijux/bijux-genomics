@@ -1,6 +1,6 @@
 extends: "_schema.yaml"
 stage_id: "fastq.infer_asvs"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 inputs:
@@ -23,10 +23,22 @@ outputs:
   - name: "taxonomy_ready_fastq"
     data_type: "fastq"
     cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 parameters:
   - name: "denoising_method"
     param_type: "string"
     default: "dada2"
+  - name: "pooling_mode"
+    param_type: "string"
+    default: "independent"
+  - name: "chimera_policy"
+    param_type: "string"
+    default: "remove_bimera_denovo"
+  - name: "threads"
+    param_type: "int"
+    default: "1"
 metrics:
   - name: "asv_count"
     meaning: "Number of inferred ASVs"
@@ -49,6 +61,7 @@ required_outputs:
   - "asv_sequences_fasta"
   - "taxonomy_ready_fasta"
   - "taxonomy_ready_fastq"
+  - "report_json"
 tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
@@ -56,13 +69,12 @@ invariants:
   - "representative_sequences_match_feature_table"
 allowed_missingness:
   - "reads_r2"
-compatible_tools: []
+compatible_tools:
+  - dada2
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "asv inference applies only to amplicon libraries with denoising-aware governance."
-  - "single-end input omits reads_r2; paired-end denoising retains mate-aware error modeling when a closed runtime backend is introduced."
+  - "single-end input omits reads_r2; paired-end denoising retains mate-aware error modeling through the governed dada2 runtime."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope:
-  - "dada2"

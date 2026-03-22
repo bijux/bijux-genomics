@@ -75,7 +75,7 @@ fn stage_status_comes_from_domain_execution_support() {
         stage_status("fastq.validate_reads").as_deref(),
         Some("supported")
     );
-    assert_eq!(stage_status("fastq.infer_asvs").as_deref(), Some("planned"));
+    assert_eq!(stage_status("fastq.infer_asvs").as_deref(), Some("supported"));
     assert!(stage_status("fastq.unknown_stage").is_none());
 }
 

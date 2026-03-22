@@ -69,12 +69,12 @@ fn execution_support_separates_closed_and_declared_only_stage_sets() {
         .collect::<BTreeSet<_>>();
 
     assert!(
-        declared_only.contains("fastq.infer_asvs"),
-        "planned FASTQ ASV inference must stay declared-only until the runtime closes",
+        closed.contains("fastq.infer_asvs"),
+        "governed FASTQ ASV inference must appear in the closed execution set once its runtime contract closes",
     );
     assert!(
-        !closed.contains("fastq.infer_asvs"),
-        "declared-only stages must not appear in the closed execution set",
+        !declared_only.contains("fastq.infer_asvs"),
+        "closed ASV inference must leave the declared-only execution set",
     );
 }
 
@@ -182,7 +182,8 @@ fn execution_support_reports_benchmark_stage_sets_from_manifest_truth() {
     assert!(comparable.contains("fastq.detect_adapters"));
     assert!(comparable.contains("fastq.report_qc"));
     assert!(!comparable.contains("fastq.trim_reads"));
-    assert!(!plannable.contains("fastq.infer_asvs"));
+    assert!(plannable.contains("fastq.infer_asvs"));
+    assert!(runnable.contains("fastq.infer_asvs"));
 
     let support = all_stage_execution_support()
         .into_iter()
