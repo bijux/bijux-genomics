@@ -24,6 +24,9 @@ pub struct BenchmarkScenario {
     pub stage_id: StageId,
     pub description: String,
     pub fairness_rules: Vec<String>,
+    pub cohort_artifact_id: String,
+    pub comparison_artifact_id: String,
+    pub normalization_artifact_id: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -39,6 +42,9 @@ struct BenchmarkScenarioRecord {
     stage_id: String,
     description: String,
     fairness_rules: Vec<String>,
+    cohort_artifact_id: String,
+    comparison_artifact_id: String,
+    normalization_artifact_id: String,
 }
 
 fn domain_index_contract() -> &'static DomainIndexContract {
@@ -91,6 +97,9 @@ pub fn benchmark_scenarios() -> Vec<BenchmarkScenario> {
             stage_id: StageId::new(scenario.stage_id.clone()),
             description: scenario.description.clone(),
             fairness_rules: scenario.fairness_rules.clone(),
+            cohort_artifact_id: scenario.cohort_artifact_id.clone(),
+            comparison_artifact_id: scenario.comparison_artifact_id.clone(),
+            normalization_artifact_id: scenario.normalization_artifact_id.clone(),
         })
         .collect()
 }

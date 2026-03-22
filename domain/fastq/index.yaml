@@ -1781,6 +1781,9 @@ benchmark_scenarios:
     stage_id: fastq.detect_adapters
     description: Compare adapter-inspection backends on identical raw reads and governed
       adapter-evidence outputs.
+    cohort_artifact_id: adapter_inspection_tool_benchmark_cohort_json
+    comparison_artifact_id: adapter_inspection_tool_comparison_json
+    normalization_artifact_id: adapter_inspection_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_dataset_class
@@ -1789,6 +1792,9 @@ benchmark_scenarios:
     stage_id: fastq.trim_reads
     description: Compare trim tools on identical raw FASTQ pairs and identical adapter
       bank.
+    cohort_artifact_id: trim_tool_benchmark_cohort_json
+    comparison_artifact_id: trim_tool_comparison_json
+    normalization_artifact_id: trim_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1797,6 +1803,9 @@ benchmark_scenarios:
     stage_id: fastq.trim_polyg_tails
     description: Compare polyG-tail trimming backends on identical reads and governed
       polyG-tail policy.
+    cohort_artifact_id: polyg_trim_tool_benchmark_cohort_json
+    comparison_artifact_id: polyg_trim_tool_comparison_json
+    normalization_artifact_id: polyg_trim_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1806,6 +1815,9 @@ benchmark_scenarios:
     stage_id: fastq.filter_reads
     description: Compare read-filtering tools on identical trimmed inputs and governed
       filter thresholds.
+    cohort_artifact_id: filter_tool_benchmark_cohort_json
+    comparison_artifact_id: filter_tool_comparison_json
+    normalization_artifact_id: filter_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1815,6 +1827,9 @@ benchmark_scenarios:
     stage_id: fastq.merge_pairs
     description: Compare merge backends on identical paired filtered inputs and overlap
       policy.
+    cohort_artifact_id: merge_tool_benchmark_cohort_json
+    comparison_artifact_id: merge_tool_comparison_json
+    normalization_artifact_id: merge_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1824,6 +1839,9 @@ benchmark_scenarios:
     stage_id: fastq.filter_low_complexity
     description: Compare low-complexity filters on identical filtered inputs and entropy/polyX
       thresholds.
+    cohort_artifact_id: low_complexity_tool_benchmark_cohort_json
+    comparison_artifact_id: low_complexity_tool_comparison_json
+    normalization_artifact_id: low_complexity_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1833,6 +1851,9 @@ benchmark_scenarios:
     stage_id: fastq.remove_duplicates
     description: Compare duplicate-removal tools on identical filtered inputs and duplicate
       retention policy.
+    cohort_artifact_id: dedup_tool_benchmark_cohort_json
+    comparison_artifact_id: dedup_tool_comparison_json
+    normalization_artifact_id: dedup_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1842,6 +1863,9 @@ benchmark_scenarios:
     stage_id: fastq.profile_read_lengths
     description: Compare read-length profilers on identical raw reads and governed histogram
       outputs.
+    cohort_artifact_id: read_length_tool_benchmark_cohort_json
+    comparison_artifact_id: read_length_tool_comparison_json
+    normalization_artifact_id: read_length_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_dataset_class
@@ -1850,6 +1874,9 @@ benchmark_scenarios:
     stage_id: fastq.correct_errors
     description: Compare error-correction backends on identical filtered reads and k-mer correction
       policy.
+    cohort_artifact_id: correction_tool_benchmark_cohort_json
+    comparison_artifact_id: correction_tool_comparison_json
+    normalization_artifact_id: correction_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1859,6 +1886,9 @@ benchmark_scenarios:
     stage_id: fastq.normalize_primers
     description: Compare primer-normalization backends on identical reads and governed primer
       orientation policy.
+    cohort_artifact_id: primer_normalization_tool_benchmark_cohort_json
+    comparison_artifact_id: primer_normalization_tool_comparison_json
+    normalization_artifact_id: primer_normalization_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1868,6 +1898,9 @@ benchmark_scenarios:
     stage_id: fastq.trim_terminal_damage
     description: Compare terminal-damage trimming backends on identical reads and ancient-DNA
       trimming policy.
+    cohort_artifact_id: terminal_damage_tool_benchmark_cohort_json
+    comparison_artifact_id: terminal_damage_tool_comparison_json
+    normalization_artifact_id: terminal_damage_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1877,6 +1910,9 @@ benchmark_scenarios:
     stage_id: fastq.profile_overrepresented_sequences
     description: Compare overrepresented-sequence profilers on identical reads and governed
       sequence summary outputs.
+    cohort_artifact_id: overrepresented_sequence_tool_benchmark_cohort_json
+    comparison_artifact_id: overrepresented_sequence_tool_comparison_json
+    normalization_artifact_id: overrepresented_sequence_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_dataset_class
@@ -1884,6 +1920,9 @@ benchmark_scenarios:
   validation_fairness:
     stage_id: fastq.validate_reads
     description: Compare FASTQ validators on identical raw reads and governed validation semantics.
+    cohort_artifact_id: validation_tool_benchmark_cohort_json
+    comparison_artifact_id: validation_tool_comparison_json
+    normalization_artifact_id: validation_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_dataset_class
@@ -1892,6 +1931,9 @@ benchmark_scenarios:
     stage_id: fastq.deplete_rrna
     description: Compare rRNA depletion backends on identical read inputs and fixed rRNA
       reference bundles.
+    cohort_artifact_id: rrna_depletion_tool_benchmark_cohort_json
+    comparison_artifact_id: rrna_depletion_tool_comparison_json
+    normalization_artifact_id: rrna_depletion_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1901,6 +1943,9 @@ benchmark_scenarios:
     stage_id: fastq.deplete_host
     description: Compare host depletion backends on identical read inputs and fixed host
       reference bundles.
+    cohort_artifact_id: host_depletion_tool_benchmark_cohort_json
+    comparison_artifact_id: host_depletion_tool_comparison_json
+    normalization_artifact_id: host_depletion_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1910,6 +1955,9 @@ benchmark_scenarios:
     stage_id: fastq.deplete_reference_contaminants
     description: Compare contaminant depletion backends on identical read inputs and fixed
       contaminant reference bundles.
+    cohort_artifact_id: contaminant_depletion_tool_benchmark_cohort_json
+    comparison_artifact_id: contaminant_depletion_tool_comparison_json
+    normalization_artifact_id: contaminant_depletion_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1919,6 +1967,9 @@ benchmark_scenarios:
     stage_id: fastq.extract_umis
     description: Compare UMI extraction backends on identical read inputs and fixed UMI
       parsing policy.
+    cohort_artifact_id: umi_extraction_tool_benchmark_cohort_json
+    comparison_artifact_id: umi_extraction_tool_comparison_json
+    normalization_artifact_id: umi_extraction_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults
@@ -1928,6 +1979,9 @@ benchmark_scenarios:
     stage_id: fastq.report_qc
     description: Compare QC aggregation backends on identical upstream QC inputs and governed
       summary contracts.
+    cohort_artifact_id: qc_aggregation_tool_benchmark_cohort_json
+    comparison_artifact_id: qc_aggregation_tool_comparison_json
+    normalization_artifact_id: qc_aggregation_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_dataset_class
@@ -1935,6 +1989,9 @@ benchmark_scenarios:
   screen_fairness:
     stage_id: fastq.screen_taxonomy
     description: Compare classifiers on identical filtered inputs and fixed DB metadata.
+    cohort_artifact_id: taxonomy_tool_benchmark_cohort_json
+    comparison_artifact_id: taxonomy_tool_comparison_json
+    normalization_artifact_id: taxonomy_tool_normalization_json
     fairness_rules:
     - same_input_hash
     - same_previous_stage_defaults

@@ -43,6 +43,10 @@ fn benchmark_scenarios_attach_to_governed_stages() {
         .fairness_rules
         .iter()
         .any(|rule| rule == "same_input_hash"));
+    assert_eq!(
+        trim_scenarios[0].comparison_artifact_id,
+        "trim_tool_comparison_json"
+    );
 
     let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
     let polyg_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&polyg_stage);
@@ -52,6 +56,10 @@ fn benchmark_scenarios_attach_to_governed_stages() {
         .fairness_rules
         .iter()
         .any(|rule| rule == "same_polyg_trim_policy"));
+    assert_eq!(
+        polyg_scenarios[0].normalization_artifact_id,
+        "polyg_trim_tool_normalization_json"
+    );
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
     let screen_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&screen_stage);
@@ -61,6 +69,10 @@ fn benchmark_scenarios_attach_to_governed_stages() {
         .fairness_rules
         .iter()
         .any(|rule| rule == "same_contamination_db_hash"));
+    assert_eq!(
+        screen_scenarios[0].cohort_artifact_id,
+        "taxonomy_tool_benchmark_cohort_json"
+    );
 
     let filter_stage = StageId::from_static("fastq.filter_reads");
     let filter_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&filter_stage);
@@ -170,6 +182,10 @@ fn benchmark_scenarios_attach_to_governed_stages() {
         .fairness_rules
         .iter()
         .any(|rule| rule == "same_validation_contract"));
+    assert_eq!(
+        validation_scenarios[0].comparison_artifact_id,
+        "validation_tool_comparison_json"
+    );
 }
 
 #[test]
@@ -270,9 +286,7 @@ fn governed_qc_contract_is_owned_by_domain() {
     );
 
     let report_qc_stage = StageId::from_static("fastq.report_qc");
-    assert!(
-        bijux_dna_domain_fastq::governed_qc_output_ids_for_stage(&report_qc_stage).is_empty()
-    );
+    assert!(bijux_dna_domain_fastq::governed_qc_output_ids_for_stage(&report_qc_stage).is_empty());
 
     let producers = bijux_dna_domain_fastq::governed_qc_producer_stage_ids();
     assert!(producers.contains(&validation_stage));
@@ -334,7 +348,10 @@ fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
     .expect("report_qc benchmark governance");
     assert!(report_qc.has_governed_benchmark_contract());
     assert_eq!(report_qc.scenarios.len(), 1);
-    assert_eq!(report_qc.scenarios[0].scenario_id, "qc_aggregation_fairness");
+    assert_eq!(
+        report_qc.scenarios[0].scenario_id,
+        "qc_aggregation_fairness"
+    );
     assert_eq!(
         report_qc.comparison_input_artifact_ids,
         vec![

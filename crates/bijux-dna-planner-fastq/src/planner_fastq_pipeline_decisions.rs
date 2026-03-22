@@ -203,8 +203,7 @@ impl FastqPlanner {
             .iter()
             .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
             .collect::<Vec<_>>();
-        let (compare_steps, compare_edges) =
-            benchmark_compare_steps_for_toolsets(config, &plans)?;
+        let (compare_steps, compare_edges) = benchmark_compare_steps_for_toolsets(config, &plans)?;
         let (select_steps, select_edges, synthetic_step_nodes) =
             benchmark_select_steps_for_pipeline(config, &pipeline_spec, &plans)?;
         let mut edges =
@@ -357,7 +356,7 @@ impl FastqPlanner {
                 .iter()
                 .map(|artifact_id| {
                     ArtifactRef::required(
-                        ArtifactId::new((*artifact_id).to_string()),
+                        ArtifactId::new(artifact_id.clone()),
                         compare_out_dir.join(comparison_artifact_file_name(artifact_id)),
                         ArtifactRole::SummaryJson,
                     )
@@ -382,7 +381,7 @@ impl FastqPlanner {
                 aux_images: BTreeMap::new(),
                 expected_artifact_ids: comparison_artifact_ids
                     .iter()
-                    .map(|artifact_id| ArtifactId::new((*artifact_id).to_string()))
+                    .map(|artifact_id| ArtifactId::new(artifact_id.clone()))
                     .collect(),
                 metrics_schema_ids: Vec::new(),
             });
@@ -411,7 +410,7 @@ impl FastqPlanner {
 
 fn comparison_command_for_stage(
     stage_id: &StageId,
-    comparison_artifact_ids: &[&str],
+    comparison_artifact_ids: &[String],
 ) -> Result<Vec<String>> {
     let mut command = vec![
         "stage-tool-compare".to_string(),
@@ -441,7 +440,7 @@ fn comparison_command_for_stage(
     }
     for artifact_id in comparison_artifact_ids {
         command.push("--comparison-artifact".to_string());
-        command.push((*artifact_id).to_string());
+        command.push(artifact_id.clone());
     }
     Ok(command)
 }
@@ -531,7 +530,11 @@ fn benchmark_compare_steps_for_toolsets(
 
     let mut steps = Vec::new();
     let mut edges = Vec::new();
-    for toolset in config.stage_toolsets.iter().filter(|binding| binding.tools.len() > 1) {
+    for toolset in config
+        .stage_toolsets
+        .iter()
+        .filter(|binding| binding.tools.len() > 1)
+    {
         let stage_id = StageId::new(toolset.stage_id.clone());
         let comparison_artifact_ids =
             bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&stage_id);
@@ -542,8 +545,7 @@ fn benchmark_compare_steps_for_toolsets(
             bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&stage_id);
         let stage_node_id =
             PipelineSpec::stage_node_id(&toolset.stage_id, toolset.stage_instance_id.as_deref());
-        let mut plans_by_context =
-            std::collections::BTreeMap::<String, Vec<&StagePlanV1>>::new();
+        let mut plans_by_context = std::collections::BTreeMap::<String, Vec<&StagePlanV1>>::new();
         for plan in plans
             .iter()
             .filter(|plan| plan_originates_from_toolset(plan, toolset))
@@ -561,14 +563,15 @@ fn benchmark_compare_steps_for_toolsets(
                 continue;
             }
             let compare_step_id = compare_step_id_for_context(&stage_node_id, &context_key);
-            let compare_out_dir = compare_out_dir_for_context(&config.out_dir, &stage_node_id, &context_key);
+            let compare_out_dir =
+                compare_out_dir_for_context(&config.out_dir, &stage_node_id, &context_key);
             let comparison_command =
                 comparison_command_for_stage(&stage_id, &comparison_artifact_ids)?;
             let comparison_outputs = comparison_artifact_ids
                 .iter()
                 .map(|artifact_id| {
                     ArtifactRef::required(
-                        ArtifactId::new((*artifact_id).to_string()),
+                        ArtifactId::new(artifact_id.clone()),
                         compare_out_dir.join(comparison_artifact_file_name(artifact_id)),
                         ArtifactRole::SummaryJson,
                     )
@@ -624,7 +627,7 @@ fn benchmark_compare_steps_for_toolsets(
                 aux_images: BTreeMap::new(),
                 expected_artifact_ids: comparison_artifact_ids
                     .iter()
-                    .map(|artifact_id| ArtifactId::new((*artifact_id).to_string()))
+                    .map(|artifact_id| ArtifactId::new(artifact_id.clone()))
                     .collect(),
                 metrics_schema_ids: Vec::new(),
             });
@@ -659,7 +662,8 @@ fn benchmark_select_steps_for_pipeline(
         .into_iter()
         .filter(|node| node.stage_id == crate::STAGE_SELECT_STAGE_TOOL.as_str())
     {
-        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        let node_id =
+            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
         let incoming_edges = pipeline_spec
             .edges
             .iter()
@@ -714,25 +718,19 @@ fn benchmark_select_steps_for_pipeline(
             .collect::<Vec<_>>();
         let mut inputs = Vec::new();
         for edge in &incoming_edges {
-            let source_plan = plan_by_node_id
-                .get(&edge.from)
-                .copied()
-                .ok_or_else(|| {
-                    anyhow!(
-                        "selection node {} references unresolved source plan {}",
-                        node_id,
-                        edge.from
-                    )
-                })?;
-            let source_output_id = edge
-                .from_output_id
-                .as_ref()
-                .ok_or_else(|| {
-                    anyhow!(
-                        "selection node {} requires bound source output ids on incoming edges",
-                        node_id
-                    )
-                })?;
+            let source_plan = plan_by_node_id.get(&edge.from).copied().ok_or_else(|| {
+                anyhow!(
+                    "selection node {} references unresolved source plan {}",
+                    node_id,
+                    edge.from
+                )
+            })?;
+            let source_output_id = edge.from_output_id.as_ref().ok_or_else(|| {
+                anyhow!(
+                    "selection node {} requires bound source output ids on incoming edges",
+                    node_id
+                )
+            })?;
             let source_output = source_plan
                 .io
                 .outputs
@@ -811,7 +809,9 @@ fn plan_originates_from_toolset(plan: &StagePlanV1, toolset: &FastqStageToolsetB
 
 fn compare_context_key_for_plan(plan: &StagePlanV1, stage_node_id: &str) -> String {
     let Some(assignments) = expanded_route_assignments(
-        plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        plan.stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
     ) else {
         return String::new();
     };
@@ -882,7 +882,8 @@ fn validate_select_stage_nodes(
         .into_iter()
         .filter(|node| node.stage_id == crate::STAGE_SELECT_STAGE_TOOL.as_str())
     {
-        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        let node_id =
+            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
         if node.stage_instance_id.is_none() {
             return Err(anyhow!(
                 "selection node {} must set stage_instance_id to remain graph-addressable",
@@ -903,7 +904,8 @@ fn validate_select_stage_nodes(
         let mut source_stage_id = None::<String>;
         let mut candidate_input_ids = std::collections::BTreeSet::new();
         for edge in &incoming {
-            let (Some(_from_output_id), Some(to_input_id)) = (&edge.from_output_id, &edge.to_input_id)
+            let (Some(_from_output_id), Some(to_input_id)) =
+                (&edge.from_output_id, &edge.to_input_id)
             else {
                 return Err(anyhow!(
                     "selection node {} requires artifact-bound incoming edges",
@@ -934,8 +936,13 @@ fn validate_select_stage_nodes(
                 source_stage_id = Some(source_binding.stage_id.clone());
             }
         }
-        for edge in pipeline_spec.edges.iter().filter(|edge| edge.from == node_id) {
-            let (Some(_from_output_id), Some(_to_input_id)) = (&edge.from_output_id, &edge.to_input_id)
+        for edge in pipeline_spec
+            .edges
+            .iter()
+            .filter(|edge| edge.from == node_id)
+        {
+            let (Some(_from_output_id), Some(_to_input_id)) =
+                (&edge.from_output_id, &edge.to_input_id)
             else {
                 return Err(anyhow!(
                     "selection node {} requires artifact-bound outgoing rejoin edges",
@@ -964,7 +971,8 @@ fn synthetic_stage_artifact_policy(
         .into_iter()
         .filter(|node| node.stage_id == crate::STAGE_SELECT_STAGE_TOOL.as_str())
     {
-        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        let node_id =
+            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
         let artifact_ids = pipeline_spec
             .edges
             .iter()
@@ -1071,15 +1079,15 @@ fn normalize_stage_bindings(
                     &selection.stage_id,
                     &selection.stage_instance_id,
                 )
-                    .ok_or_else(|| {
-                        anyhow!(
-                            "expanded route binding {} missing source toolset definition",
-                            PipelineSpec::stage_node_id(
-                                &selection.stage_id,
-                                selection.stage_instance_id.as_deref()
-                            )
+                .ok_or_else(|| {
+                    anyhow!(
+                        "expanded route binding {} missing source toolset definition",
+                        PipelineSpec::stage_node_id(
+                            &selection.stage_id,
+                            selection.stage_instance_id.as_deref()
                         )
-                    })?;
+                    )
+                })?;
                 let tool = toolset
                     .tools
                     .iter()
@@ -1171,7 +1179,10 @@ fn implicit_pipeline_spec_from_nodes(
                 .get(&edge.from)
                 .cloned()
                 .unwrap_or(edge.from),
-            to: node_id_by_stage_id.get(&edge.to).cloned().unwrap_or(edge.to),
+            to: node_id_by_stage_id
+                .get(&edge.to)
+                .cloned()
+                .unwrap_or(edge.to),
             from_output_id: edge.from_output_id,
             to_input_id: edge.to_input_id,
         })
@@ -1196,7 +1207,8 @@ fn source_toolset_for_expanded_selection<'a>(
             && match binding.stage_instance_id.as_deref() {
                 Some(stage_instance_id) => Some(stage_instance_id) == base_instance_id,
                 None => {
-                    base_instance_id.is_none() || base_instance_id == Some(binding.stage_id.as_str())
+                    base_instance_id.is_none()
+                        || base_instance_id == Some(binding.stage_id.as_str())
                 }
             }
     })
@@ -1283,7 +1295,8 @@ fn stage_dependency_policy(
         return dependencies;
     }
     for node in pipeline_spec.ordered_nodes() {
-        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        let node_id =
+            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
         dependencies.entry(node_id).or_default();
     }
     for edge in &pipeline_spec.edges {
@@ -1430,18 +1443,14 @@ fn derived_lineage_execution_edges(
             continue;
         };
         for input in &to_plan.io.inputs {
-            let Some((from_plan, output)) = plans[..to_idx]
-                .iter()
-                .rev()
-                .find_map(|candidate| {
-                    candidate
-                        .io
-                        .outputs
-                        .iter()
-                        .find(|output| output.name == input.name && output.path == input.path)
-                        .map(|output| (candidate, output))
-                })
-            else {
+            let Some((from_plan, output)) = plans[..to_idx].iter().rev().find_map(|candidate| {
+                candidate
+                    .io
+                    .outputs
+                    .iter()
+                    .find(|output| output.name == input.name && output.path == input.path)
+                    .map(|output| (candidate, output))
+            }) else {
                 continue;
             };
             let Some(from_step_id) = plan_nodes.get(
@@ -1596,11 +1605,16 @@ fn stage_toolsets_for_pipeline_nodes(
         .into_iter()
         .zip(stage_toolsets.iter())
         .map(|(node, toolset)| {
-            if node.stage_id != toolset.stage_id || node.stage_instance_id != toolset.stage_instance_id {
+            if node.stage_id != toolset.stage_id
+                || node.stage_instance_id != toolset.stage_instance_id
+            {
                 return Err(anyhow!(
                     "graph toolsets must stay node-aligned; got pipeline node {} and toolset {}",
                     PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref()),
-                    PipelineSpec::stage_node_id(&toolset.stage_id, toolset.stage_instance_id.as_deref()),
+                    PipelineSpec::stage_node_id(
+                        &toolset.stage_id,
+                        toolset.stage_instance_id.as_deref()
+                    ),
                 ));
             }
             Ok(toolset.clone())
@@ -1790,16 +1804,14 @@ mod tests {
                 && edge.to == "fastq.profile_read_lengths.metrics"
         }));
         assert!(pipeline.edges.iter().any(|edge| {
-            edge.from == "fastq.validate_reads.entry"
-                && edge.to == "fastq.detect_adapters.adapters"
+            edge.from == "fastq.validate_reads.entry" && edge.to == "fastq.detect_adapters.adapters"
         }));
         assert!(pipeline.edges.iter().any(|edge| {
             edge.from == "fastq.profile_read_lengths.metrics"
                 && edge.to == "fastq.report_qc.aggregate"
         }));
         assert!(pipeline.edges.iter().any(|edge| {
-            edge.from == "fastq.detect_adapters.adapters"
-                && edge.to == "fastq.report_qc.aggregate"
+            edge.from == "fastq.detect_adapters.adapters" && edge.to == "fastq.report_qc.aggregate"
         }));
         Ok(())
     }
@@ -2000,7 +2012,8 @@ pub fn expand_pipeline_stage_tool_routes(
         ));
     }
     for (node, toolset) in executable_nodes.iter().zip(toolsets.iter()) {
-        if node.stage_id != toolset.stage_id || node.stage_instance_id != toolset.stage_instance_id {
+        if node.stage_id != toolset.stage_id || node.stage_instance_id != toolset.stage_instance_id
+        {
             return Err(anyhow!(
                 "toolset expansion requires node-aligned stage selections; got pipeline node {} and toolset {}",
                 PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref()),
@@ -2028,9 +2041,9 @@ pub fn expand_pipeline_stage_tool_routes(
         .collect::<std::collections::BTreeMap<_, _>>();
 
     let route_count = toolsets.iter().try_fold(1usize, |count, toolset| {
-        count.checked_mul(toolset.tool_ids.len()).ok_or_else(|| {
-            anyhow!("preprocess tool route expansion overflowed route count")
-        })
+        count
+            .checked_mul(toolset.tool_ids.len())
+            .ok_or_else(|| anyhow!("preprocess tool route expansion overflowed route count"))
     })?;
     let max_route_specific_pipelines = max_route_specific_pipelines()?;
     if route_count > max_route_specific_pipelines {
@@ -2066,8 +2079,10 @@ pub fn expand_pipeline_stage_tool_routes(
         std::collections::BTreeMap::<String, Vec<ExpandedRouteNode>>::new();
     let predecessor_sets = predecessor_context_sets(&base_edges);
     for node in ordered_nodes {
-        let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
-        let input_contexts = incoming_route_contexts(&node_id, &predecessor_sets, &expanded_nodes_by_original)?;
+        let node_id =
+            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+        let input_contexts =
+            incoming_route_contexts(&node_id, &predecessor_sets, &expanded_nodes_by_original)?;
         if planner_owned_graph_stage(&node.stage_id) {
             let collapsed_source_nodes = collapsed_source_nodes_for_select(&node_id, &base_edges)?;
             for input_context in input_contexts {
@@ -2093,15 +2108,14 @@ pub fn expand_pipeline_stage_tool_routes(
             continue;
         }
 
-        let toolset = toolset_by_node_id.get(&node_id).copied().ok_or_else(|| {
-            anyhow!(
-                "toolset expansion requires a stage toolset for {}",
-                node_id
-            )
-        })?;
+        let toolset = toolset_by_node_id
+            .get(&node_id)
+            .copied()
+            .ok_or_else(|| anyhow!("toolset expansion requires a stage toolset for {}", node_id))?;
         for input_context in input_contexts {
             for tool_id in &toolset.tool_ids {
-                let output_context = input_context.with_assignment(node_id.clone(), tool_id.clone());
+                let output_context =
+                    input_context.with_assignment(node_id.clone(), tool_id.clone());
                 let stage_instance_id = expanded_stage_instance_id(
                     &node.stage_id,
                     node.stage_instance_id.as_deref(),
@@ -2139,7 +2153,10 @@ pub fn expand_pipeline_stage_tool_routes(
             .ok_or_else(|| anyhow!("expanded route missing target node {}", edge.to))?;
         for from_node in from_nodes {
             for to_node in to_nodes {
-                if !from_node.output_context.is_subset_of(&to_node.input_context) {
+                if !from_node
+                    .output_context
+                    .is_subset_of(&to_node.input_context)
+                {
                     continue;
                 }
                 edges.push(PipelineEdgeSpec {
@@ -2189,14 +2206,9 @@ fn max_route_specific_pipelines() -> Result<usize> {
     let Some(raw) = std::env::var_os("BIJUX_FASTQ_MAX_ROUTE_PIPELINES") else {
         return Ok(DEFAULT_MAX_ROUTE_SPECIFIC_PIPELINES);
     };
-    let parsed = raw
-        .to_string_lossy()
-        .parse::<usize>()
-        .map_err(|error| {
-            anyhow!(
-                "BIJUX_FASTQ_MAX_ROUTE_PIPELINES must be a positive integer: {error}"
-            )
-        })?;
+    let parsed = raw.to_string_lossy().parse::<usize>().map_err(|error| {
+        anyhow!("BIJUX_FASTQ_MAX_ROUTE_PIPELINES must be a positive integer: {error}")
+    })?;
     if parsed == 0 {
         return Err(anyhow!(
             "BIJUX_FASTQ_MAX_ROUTE_PIPELINES must be greater than zero"
@@ -2237,7 +2249,8 @@ fn incoming_route_contexts(
                 .get(predecessor)
                 .ok_or_else(|| anyhow!("expanded route missing predecessor node {}", predecessor))
                 .map(|nodes| {
-                    nodes.iter()
+                    nodes
+                        .iter()
                         .map(|node| node.output_context.clone())
                         .collect::<Vec<_>>()
                 })
@@ -2306,10 +2319,7 @@ fn expanded_planner_stage_instance_id(
     }
 }
 
-fn expanded_to_input_id(
-    edge: &PipelineEdgeSpec,
-    from_node: &ExpandedRouteNode,
-) -> Option<String> {
+fn expanded_to_input_id(edge: &PipelineEdgeSpec, from_node: &ExpandedRouteNode) -> Option<String> {
     let base_input_id = edge.to_input_id.clone()?;
     if !edge.to.starts_with(crate::STAGE_SELECT_STAGE_TOOL.as_str()) {
         return Some(base_input_id);
@@ -2456,14 +2466,11 @@ pub fn select_preprocess_stage_tools(
                 .iter()
                 .map(|tool| tool.tool_id.clone())
                 .collect::<Vec<_>>();
-            let tool_ids = crate::stage_api::filter_tools_for_input_layout(
-                &stage_id,
-                tool_ids,
-                paired_end,
-            )
-            .into_iter()
-            .map(|tool| tool.to_string())
-            .collect::<Vec<_>>();
+            let tool_ids =
+                crate::stage_api::filter_tools_for_input_layout(&stage_id, tool_ids, paired_end)
+                    .into_iter()
+                    .map(|tool| tool.to_string())
+                    .collect::<Vec<_>>();
             let mut tool_records = Vec::new();
             for tool in &tool_ids {
                 let records = repo.bench_results(&stage_id, tool, &corpus, &query_context)?;
