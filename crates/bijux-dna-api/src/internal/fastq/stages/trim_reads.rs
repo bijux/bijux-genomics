@@ -9,7 +9,9 @@ use bijux_dna_domain_fastq::TrimReadsReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_trim_tools;
-use bijux_dna_planner_fastq::stage_api::fastq::trim_reads::{plan_with_options, TrimPlanOptions};
+use bijux_dna_planner_fastq::stage_api::fastq::trim_reads::{
+    plan_with_options, validate_trim_toolset_support, TrimPlanOptions,
+};
 use bijux_dna_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, inspect_headers, log_header_warnings,
     polyx_bank_context, preflight_stage, FastqArtifactKind, RawFailure,
@@ -154,6 +156,15 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     } else {
         None
     };
+    let trim_options = TrimPlanOptions {
+        min_length: args.min_length,
+        quality_cutoff: args.quality_cutoff,
+        n_policy: args.n_policy.clone(),
+        adapter_policy: adapter_policy.clone(),
+        polyx_policy: polyx_policy.clone(),
+        contaminant_policy: contaminant_policy.clone(),
+    };
+    validate_trim_toolset_support(&tools, args.r2.is_some(), &trim_options)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -181,14 +192,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             adapter_context.as_ref(),
             polyx_context.as_ref(),
             contaminant_context.as_ref(),
-            &TrimPlanOptions {
-                min_length: args.min_length,
-                quality_cutoff: args.quality_cutoff,
-                n_policy: args.n_policy.clone(),
-                adapter_policy: adapter_policy.clone(),
-                polyx_policy: polyx_policy.clone(),
-                contaminant_policy: contaminant_policy.clone(),
-            },
+            &trim_options,
         )?;
         let bench_params = benchmark_query_context(
             adapter_context.as_ref(),

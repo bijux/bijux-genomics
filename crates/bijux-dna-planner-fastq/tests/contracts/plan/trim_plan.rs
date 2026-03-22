@@ -521,6 +521,28 @@ fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> 
 }
 
 #[test]
+fn validate_trim_toolset_support_reports_all_incompatible_tools() {
+    let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::validate_trim_toolset_support(
+        &vec!["seqpurge".to_string(), "seqkit".to_string(), "trimmomatic".to_string()],
+        false,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            min_length: None,
+            quality_cutoff: Some(20),
+            n_policy: None,
+            adapter_policy: Some("bank".to_string()),
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
+    )
+    .expect_err("trim toolset compatibility preflight must reject unsupported combinations");
+
+    let message = error.to_string();
+    assert!(message.contains("seqpurge: requires paired-end reads"));
+    assert!(message.contains("seqkit: trim planning does not yet execute adapter bank policies"));
+    assert!(message.contains("trimmomatic: trim planning does not yet execute adapter bank policies"));
+}
+
+#[test]
 fn plan_trim_with_options_maps_length_and_quality_for_atropos() -> Result<()> {
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &dummy_tool("atropos"),
