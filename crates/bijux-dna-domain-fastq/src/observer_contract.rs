@@ -64,6 +64,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.infer_asvs",
+        tool_id: "dada2",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.merge_pairs",
         tool_id: "pear",
         semantic_surface: "report_json",

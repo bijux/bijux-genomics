@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    InferAsvsReportV1,
     MergePairsReportV1,
     NormalizeAbundanceReportV1,
     NormalizePrimersReportV1,
@@ -153,6 +154,12 @@ pub fn parse_normalize_primers_report(report_json: &str) -> Result<NormalizePrim
 /// Returns an error if the governed normalize-abundance report JSON cannot be parsed.
 pub fn parse_normalize_abundance_report(report_json: &str) -> Result<NormalizeAbundanceReportV1> {
     serde_json::from_str(report_json).context("parse normalize abundance report")
+}
+
+/// # Errors
+/// Returns an error if the governed infer-asvs report JSON cannot be parsed.
+pub fn parse_infer_asvs_report(report_json: &str) -> Result<InferAsvsReportV1> {
+    serde_json::from_str(report_json).context("parse infer asvs report")
 }
 
 /// # Errors
@@ -1574,6 +1581,48 @@ mod tests {
         assert_eq!(parsed.schema_version, "bijux.multiqc.metrics.v1");
         assert_eq!(parsed.sample_count, 2);
         assert_eq!(parsed.module_count, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_infer_asvs_report_parses_governed_contract() -> Result<()> {
+        let parsed = parse_infer_asvs_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.infer_asvs.report.v2",
+                "stage": "fastq.infer_asvs",
+                "stage_id": "fastq.infer_asvs",
+                "tool_id": "dada2",
+                "paired_mode": "paired_end",
+                "denoising_method": "dada2",
+                "pooling_mode": "independent",
+                "chimera_policy": "remove_bimera_denovo",
+                "requires_r_runtime": true,
+                "output_table_kind": "asv_abundance_table",
+                "input_reads_r1": "reads_R1.fastq.gz",
+                "input_reads_r2": "reads_R2.fastq.gz",
+                "asv_table_tsv": "asv_abundance.tsv",
+                "asv_sequences_fasta": "asv_sequences.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "infer_asvs_report.json",
+                "asv_count": 12,
+                "sample_count": 3,
+                "representative_sequence_count": 12,
+                "used_fallback": false,
+                "raw_backend_report": "infer_asvs_report.json",
+                "raw_backend_report_format": "infer_asvs_governed_report_json",
+                "runtime_s": 1.2,
+                "memory_mb": 128.0,
+                "exit_code": 0,
+                "backend_metrics": {
+                    "nonchimera_reads": 1200
+                }
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "dada2");
+        assert_eq!(parsed.asv_count, 12);
+        assert_eq!(parsed.sample_count, 3);
         Ok(())
     }
 }
