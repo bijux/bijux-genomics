@@ -65,7 +65,7 @@ stage_contracts:
       - "qc_json"
       - "qc_tsv"
       - "qc_plots_dir"
-    notes: "Read profiling emits aggregate QC tables and optional plots."
+    notes: "Read profiling emits a governed qc_json report with normalized totals, mate summaries, and histogram provenance; qc_tsv preserves the seqkit tabular backend summary; qc_plots_dir carries normalized histogram artifacts derived from the governed report."
   fastq.profile_read_lengths:
     required_inputs:
       - "reads_r1"
