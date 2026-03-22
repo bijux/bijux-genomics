@@ -15,6 +15,7 @@ mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
 mod filter_artifacts;
+mod filter_low_complexity_artifacts;
 pub mod id_catalog;
 mod index_reference_artifacts;
 mod infer_asvs_artifacts;
@@ -112,6 +113,9 @@ pub use execution_support::{
     ExecutionStatus, StageExecutionSupport,
 };
 pub use filter_artifacts::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
+pub use filter_low_complexity_artifacts::{
+    FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
+};
 pub use infer_asvs_artifacts::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
 pub use index_reference_artifacts::{
     IndexReferenceFileEntryV1, IndexReferenceReportV1, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
