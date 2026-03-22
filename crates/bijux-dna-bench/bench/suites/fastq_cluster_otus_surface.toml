@@ -1,0 +1,58 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_cluster_otus_surface"
+
+[[datasets]]
+id = "synthetic_fastq_cluster_otus_surface_01"
+hash = "fixture-fastq-cluster-otus-surface-01"
+size = 1
+origin = "synthetic"
+class_label = "merged_amplicon_reads"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [941, 942]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["merged_amplicon_reads"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.cluster_otus_surface"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.merge_pairs"
+stage_instance_id = "fastq.merge_pairs.cluster_otus_surface"
+tools = ["vsearch"]
+upstream_stage_instance_ids = ["fastq.validate_reads.cluster_otus_surface"]
+
+[[stages]]
+stage = "fastq.remove_chimeras"
+stage_instance_id = "fastq.remove_chimeras.cluster_otus_surface"
+tools = ["vsearch"]
+upstream_stage_instance_ids = ["fastq.merge_pairs.cluster_otus_surface"]
+
+[[stages]]
+stage = "fastq.cluster_otus"
+stage_instance_id = "fastq.cluster_otus.cluster_otus_surface"
+tools = ["vsearch"]
+upstream_stage_instance_ids = ["fastq.remove_chimeras.cluster_otus_surface"]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.cluster_otus.cluster_otus_surface"
+[stages.param_bindings.values]
+otu_identity = 0.99
+threads = 4
