@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
+use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
@@ -25,9 +28,6 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
-use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
-use crate::internal::fastq::stages::record_identity::stable_params_hash;
-use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
 
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::{
@@ -348,45 +348,33 @@ fn build_correct_record(
         .as_deref()
         .map(|path| observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, path))
         .transpose()?;
+    let outputs_changed = input_output_content_changed(
+        &bench_inputs.r1,
+        bench_inputs.r2.as_deref(),
+        output_r1,
+        output_r2.as_deref(),
+    )?;
     let metrics = correct_metrics_from_observed_stats(
         &bench_inputs.input_stats_r1,
         bench_inputs.input_stats_r2.as_ref(),
         &output_stats_r1,
         output_stats_r2.as_ref(),
-        input_output_content_changed(
-            &bench_inputs.r1,
-            bench_inputs.r2.as_deref(),
-            output_r1,
-            output_r2.as_deref(),
-        )?,
+        outputs_changed,
     );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.correct_errors.report.v1",
-        "stage": STAGE_CORRECT_ERRORS.as_str(),
-        "stage_id": STAGE_CORRECT_ERRORS.as_str(),
-        "tool": tool,
-        "tool_id": tool,
-        "input_r1": bench_inputs.r1,
-        "input_r2": bench_inputs.r2,
-        "output_r1": output_r1,
-        "output_r2": output_r2,
-        "corrected_reads": metrics.reads_out,
-        "pairs_in": metrics.pairs_in,
-        "pairs_out": metrics.pairs_out,
-        "reads_in": metrics.reads_in,
-        "reads_out": metrics.reads_out,
-        "bases_in": metrics.bases_in,
-        "bases_out": metrics.bases_out,
-        "mean_q_before": metrics.mean_q_before,
-        "mean_q_after": metrics.mean_q_after,
-        "kmer_fix_rate": metrics.kmer_fix_rate,
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
-    });
+    let report = build_correction_report(
+        tool,
+        &bench_inputs.r1,
+        bench_inputs.r2.as_deref(),
+        output_r1,
+        output_r2.as_deref(),
+        &plan.effective_params,
+        &metrics,
+        execution,
+        outputs_changed,
+    );
     bijux_dna_infra::atomic_write_json(&out_dir.join("correct_report.json"), &report)
         .context("write correction report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
@@ -483,6 +471,56 @@ fn kmer_fix_rate_proxy(mean_q_before: f64, mean_q_after: f64, outputs_changed: b
     ((mean_q_after - mean_q_before) / mean_q_after.max(1.0)).clamp(f64::EPSILON, 1.0)
 }
 
+fn build_correction_report(
+    tool: &str,
+    input_r1: &Path,
+    input_r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    effective_params: &serde_json::Value,
+    metrics: &FastqCorrectMetrics,
+    execution: &StageResultV1,
+    outputs_changed: bool,
+) -> serde_json::Value {
+    serde_json::json!({
+        "schema_version": "bijux.fastq.correct_errors.report.v1",
+        "stage": STAGE_CORRECT_ERRORS.as_str(),
+        "stage_id": STAGE_CORRECT_ERRORS.as_str(),
+        "tool": tool,
+        "tool_id": tool,
+        "input_r1": input_r1,
+        "input_r2": input_r2,
+        "output_r1": output_r1,
+        "output_r2": output_r2,
+        "corrected_reads": metrics.reads_out,
+        "pairs_in": metrics.pairs_in,
+        "pairs_out": metrics.pairs_out,
+        "reads_in": metrics.reads_in,
+        "reads_out": metrics.reads_out,
+        "bases_in": metrics.bases_in,
+        "bases_out": metrics.bases_out,
+        "mean_q_before": metrics.mean_q_before,
+        "mean_q_after": metrics.mean_q_after,
+        "kmer_fix_rate": metrics.kmer_fix_rate,
+        "quality_encoding": effective_params.get("quality_encoding").cloned().unwrap_or(serde_json::Value::Null),
+        "correction_engine": effective_params.get("correction_engine").cloned().unwrap_or(serde_json::Value::Null),
+        "kmer_size": effective_params.get("kmer_size").cloned().unwrap_or(serde_json::Value::Null),
+        "genome_size": effective_params.get("genome_size").cloned().unwrap_or(serde_json::Value::Null),
+        "max_memory_gb": effective_params.get("max_memory_gb").cloned().unwrap_or(serde_json::Value::Null),
+        "trusted_kmer_artifact": effective_params.get("trusted_kmer_artifact").cloned().unwrap_or(serde_json::Value::Null),
+        "conservative_mode": effective_params.get("conservative_mode").cloned().unwrap_or(serde_json::Value::Null),
+        "correction_effect": {
+            "outputs_changed": outputs_changed,
+            "reads_delta": i128::from(metrics.reads_out) - i128::from(metrics.reads_in),
+            "bases_delta": i128::from(metrics.bases_out) - i128::from(metrics.bases_in),
+            "mean_q_delta": metrics.mean_q_after - metrics.mean_q_before,
+        },
+        "runtime_s": execution.runtime_s,
+        "memory_mb": execution.memory_mb,
+        "exit_code": execution.exit_code,
+    })
+}
+
 fn input_output_content_changed(
     input_r1: &Path,
     input_r2: Option<&Path>,
@@ -491,7 +529,9 @@ fn input_output_content_changed(
 ) -> Result<bool> {
     let primary_changed = hash_file_sha256(input_r1)? != hash_file_sha256(output_r1)?;
     let secondary_changed = match (input_r2, output_r2) {
-        (Some(input_r2), Some(output_r2)) => hash_file_sha256(input_r2)? != hash_file_sha256(output_r2)?,
+        (Some(input_r2), Some(output_r2)) => {
+            hash_file_sha256(input_r2)? != hash_file_sha256(output_r2)?
+        }
         (None, None) => false,
         _ => true,
     };
@@ -530,15 +570,16 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
 #[cfg(test)]
 mod tests {
     use super::{
-        apply_thread_override, correct_metrics_from_observed_stats, optional_plan_output_path,
-        required_plan_output_path,
+        apply_thread_override, build_correction_report, correct_metrics_from_observed_stats,
+        optional_plan_output_path, required_plan_output_path,
     };
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
+    use bijux_dna_core::prelude::measure::SeqkitMetrics;
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
     };
-    use bijux_dna_core::prelude::measure::SeqkitMetrics;
+    use bijux_dna_runner::step_runner::StageResultV1;
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -740,5 +781,58 @@ mod tests {
         };
         let overridden = apply_thread_override(&spec, Some(7));
         assert_eq!(overridden.resources.threads, 7);
+    }
+
+    #[test]
+    fn correction_report_carries_effective_params_and_effect_deltas() {
+        let metrics = correct_metrics_from_observed_stats(
+            &seqkit_metrics(100, 10_000, 30.0),
+            None,
+            &seqkit_metrics(100, 9_700, 33.0),
+            None,
+            true,
+        );
+        let report = build_correction_report(
+            "lighter",
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("corrected.fastq.gz"),
+            None,
+            &serde_json::json!({
+                "correction_engine": "lighter",
+                "quality_encoding": "phred33",
+                "genome_size": 3_200_000_u64,
+                "trusted_kmer_artifact": "trusted.kmers",
+                "conservative_mode": false,
+            }),
+            &metrics,
+            &StageResultV1 {
+                run_id: "run-1".to_string(),
+                runtime_s: 12.5,
+                memory_mb: 768.0,
+                exit_code: 0,
+                outputs: Vec::new(),
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "lighter".to_string(),
+            },
+            true,
+        );
+
+        assert_eq!(report["correction_engine"], serde_json::json!("lighter"));
+        assert_eq!(
+            report["trusted_kmer_artifact"],
+            serde_json::json!("trusted.kmers")
+        );
+        assert_eq!(
+            report["correction_effect"]["outputs_changed"],
+            serde_json::json!(true)
+        );
+        assert_eq!(
+            report["correction_effect"]["bases_delta"],
+            serde_json::json!(-300_i128)
+        );
+        assert_eq!(report["exit_code"], serde_json::json!(0));
     }
 }
