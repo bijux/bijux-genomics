@@ -21,6 +21,9 @@ outputs:
     data_type: "json"
     cardinality: "One"
 parameters:
+  - name: "umi_pattern"
+    param_type: "string"
+    default: "NNNNNNNN"
   - name: "threads"
     param_type: "int"
     default: "2"
@@ -60,14 +63,16 @@ tool_capability_requirements:
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+  - "canonical_governed_umi_report_emitted"
 allowed_missingness:
-  - "report_json"
+  - "none"
 compatible_tools:
   - umi_tools
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "UMI extraction must preserve read order and pair synchronization."
   - "UMI barcode pattern must match the library design for emitted tags to remain meaningful."
+  - "canonical report_json semantics remain comparable across governed UMI extraction runs."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
