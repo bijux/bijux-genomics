@@ -159,6 +159,7 @@ impl Default for TrimTerminalDamageStageParams {
 pub struct DepleteRrnaStageParams {
     pub rrna_db: String,
     pub min_identity: f64,
+    pub threads: Option<u32>,
 }
 
 impl Default for DepleteRrnaStageParams {
@@ -166,6 +167,7 @@ impl Default for DepleteRrnaStageParams {
         Self {
             rrna_db: "rrna_reference".to_string(),
             min_identity: 0.95,
+            threads: None,
         }
     }
 }

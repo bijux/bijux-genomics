@@ -24,6 +24,9 @@ outputs:
     data_type: "json"
     cardinality: "One"
 parameters:
+  - name: "threads"
+    param_type: "int"
+    default: "0"
   - name: "rrna_db"
     param_type: "path"
     default: ""
