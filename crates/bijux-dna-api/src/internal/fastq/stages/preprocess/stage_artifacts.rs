@@ -77,9 +77,9 @@ fn emit_fastq_stage_extra_artifacts(
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.report_qc.extra_artifacts.v2",
                 "stage": stage_id,
-                "aggregation_engine": governed.as_ref().map(|report| report.aggregation_engine),
-                "aggregation_scope": governed.as_ref().map(|report| report.aggregation_scope),
-                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "aggregation_engine": governed.as_ref().map(|report| report.aggregation_engine.clone()),
+                "aggregation_scope": governed.as_ref().map(|report| report.aggregation_scope.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode.clone()),
                 "governed_qc_input_count": governed.as_ref().map(|report| report.governed_qc_input_count),
                 "governed_qc_contributor_stage_ids": governed.as_ref().map(|report| report.governed_qc_contributor_stage_ids.clone()),
                 "governed_qc_contributor_tool_ids": governed.as_ref().map(|report| report.governed_qc_contributor_tool_ids.clone()),
@@ -109,8 +109,8 @@ fn emit_fastq_stage_extra_artifacts(
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.extra_artifacts.v2",
                 "stage": stage_id,
-                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
-                "dedup_mode": governed.as_ref().map(|report| report.dedup_mode),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode.clone()),
+                "dedup_mode": governed.as_ref().map(|report| report.dedup_mode.clone()),
                 "keep_order": governed.as_ref().map(|report| report.keep_order),
                 "pair_count_match": governed.as_ref().and_then(|report| report.pair_count_match),
                 "duplicate_classes_tsv": governed.as_ref().and_then(|report| report.duplicate_classes_tsv.clone()),

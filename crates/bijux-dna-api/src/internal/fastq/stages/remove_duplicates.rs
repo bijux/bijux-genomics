@@ -331,7 +331,9 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
         duplicate_reads,
         dedup_rate,
         tool: Some(report.tool_id),
-        paired_mode: Some(report.paired_mode.to_string()),
+        paired_mode: serde_json::to_value(&report.paired_mode)?
+            .as_str()
+            .map(ToString::to_string),
         dedup_mode: Some(serde_json::to_string(&report.dedup_mode)?.trim_matches('"').to_string()),
         keep_order: Some(report.keep_order),
         pair_count_match: report.pair_count_match,
