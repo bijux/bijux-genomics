@@ -441,6 +441,11 @@ fn materialize_amplicon_stage_outputs(
             let asv_fasta = out_dir.join("asv_sequences.fasta");
             let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
             let taxonomy_fastq_out = out_dir.join("taxonomy_ready.fastq");
+            let report_json = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("infer_asvs_report.json"));
             let dada2_script = out_dir.join("dada2_entrypoint.R");
             let dada2_inputs = out_dir.join("dada2_inputs.json");
             if !dada2_script.exists() {
@@ -463,11 +468,12 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                         "input_reads": input,
                         "output_table": asv_table,
                         "output_fasta": asv_fasta,
+                        "report_json": report_json,
                     }),
                 )?;
             }
-            if !asv_table.exists() || !asv_fasta.exists() {
-                let _ = run_stage_command(
+            let infer_ok = if !asv_table.exists() || !asv_fasta.exists() {
+                run_stage_command(
                     out_dir,
                     "dada2_rscript",
                     "Rscript",
@@ -477,8 +483,10 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                         asv_table.to_string_lossy().to_string(),
                         asv_fasta.to_string_lossy().to_string(),
                     ],
-                );
-            }
+                )
+            } else {
+                true
+            };
             if !asv_table.exists() {
                 bijux_dna_infra::atomic_write_bytes(
                     &asv_table,
@@ -495,10 +503,46 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                     b"@ASV_0001\nACGTACGTACGA\n+\nIIIIIIIIIIII\n",
                 )?;
             }
+            let effective_params: bijux_dna_domain_fastq::AsvInferenceEffectiveParams =
+                serde_json::from_value(planned.effective_params.clone())
+                    .context("parse infer_asvs effective params")?;
+            let table_metrics =
+                crate::internal::fastq::stages::infer_asvs::read_infer_asvs_table_metrics(
+                    &asv_table,
+                )?;
+            let representative_sequence_count =
+                crate::internal::fastq::stages::infer_asvs::count_fasta_records(&asv_fasta)?;
+            let used_fallback = !infer_ok;
+            let report = crate::internal::fastq::stages::infer_asvs::canonical_infer_asvs_report(
+                planned.tool_id.as_str(),
+                &input,
+                input_r2.as_deref(),
+                &asv_table,
+                &asv_fasta,
+                &taxonomy_ready_fasta,
+                &taxonomy_fastq_out,
+                &report_json,
+                &effective_params,
+                table_metrics,
+                representative_sequence_count,
+                None,
+                None,
+                Some(0),
+                used_fallback,
+                Some(serde_json::json!({
+                    "entrypoint_script": dada2_script,
+                    "dada2_inputs": dada2_inputs,
+                })),
+            );
+            bijux_dna_infra::atomic_write_json(&report_json, &report)?;
             payload = serde_json::json!({
-                "asv_count": 1_u64,
+                "asv_count": report.asv_count,
+                "sample_count": report.sample_count,
+                "representative_sequence_count": report.representative_sequence_count,
                 "tool": "dada2",
                 "entrypoint_script": dada2_script,
+                "report_json": report_json,
+                "used_fallback": used_fallback,
             });
         }
         "fastq.normalize_abundance" => {
