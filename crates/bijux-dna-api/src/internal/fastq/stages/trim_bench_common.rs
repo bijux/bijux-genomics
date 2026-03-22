@@ -127,6 +127,7 @@ pub(crate) fn build_benchmark_context(
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn infer_udg_classification(input: &Path) -> String {
     if let Ok(configured) = std::env::var("BIJUX_UDG_CLASSIFICATION") {
         let normalized = configured.trim().to_ascii_lowercase();
@@ -148,6 +149,7 @@ pub(crate) fn infer_udg_classification(input: &Path) -> String {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn terminal_damage_profile(path: &Path) -> Result<Value> {
     let mut ct_events = 0_u64;
     let mut ga_events = 0_u64;
@@ -209,6 +211,7 @@ fn ratio_u64(num: u64, denom: u64) -> f64 {
     }
 }
 
+#[allow(dead_code)]
 fn open_fastq_lines(path: &Path) -> Result<Box<dyn Iterator<Item = String>>> {
     let file =
         std::fs::File::open(path).with_context(|| format!("open fastq {}", path.display()))?;

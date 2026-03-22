@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::query_shared::{
     fetch_fastq_trim_terminal_damage_v1, insert_fastq_trim_terminal_damage_v1,
@@ -10,11 +13,11 @@ use bijux_dna_analyze::{
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_domain_fastq::params::trim::{
     parse_terminal_damage_execution_policy, terminal_damage_execution_policy_label,
     TrimTerminalDamageParams,
 };
+use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::fastq::trim_terminal_damage::{
     plan_trim_terminal_damage_with_options, TrimTerminalDamagePlanOptions,
@@ -24,9 +27,6 @@ use bijux_dna_planner_fastq::stage_api::{
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_stages_fastq::observer::parse_terminal_damage_report;
-use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{filter_tools_by_role, load_workspace_registry};
-use crate::internal::fastq::stages::record_identity::stable_params_hash;
 
 use super::trim_bench_common::{
     build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
@@ -176,15 +176,14 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             .as_deref()
             .unwrap_or("ancient")
             .parse()
+            .map_err(|err: String| anyhow!(err))
             .with_context(|| {
                 format!(
                     "parse fastq.trim_terminal_damage damage_mode `{}`",
                     args.damage_mode.as_deref().unwrap_or("ancient")
                 )
             })?;
-        let execution_policy = parse_requested_execution_policy(
-            args.execution_policy.as_deref(),
-        )?;
+        let execution_policy = parse_requested_execution_policy(args.execution_policy.as_deref())?;
         let plan = plan_trim_terminal_damage_with_options(
             &tool_spec,
             &bench_inputs.r1,
@@ -256,6 +255,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         let before_stats =
             combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
         let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
+        let governed_report = read_governed_terminal_damage_report(&plan)?;
         let metrics = FastqTrimTerminalDamageMetrics {
             reads_in: before_stats.reads,
             reads_out: after_stats.reads,
@@ -287,7 +287,6 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             serde_json::from_value::<TrimTerminalDamageParams>(plan.effective_params.clone())
                 .context("decode trim terminal damage effective params")?;
 
-        let governed_report = read_governed_terminal_damage_report(&plan)?;
         if governed_report.tool_id != tool {
             return Err(anyhow!(
                 "terminal damage report drift: expected tool `{tool}`, found `{}`",
@@ -413,8 +412,8 @@ mod tests {
         admitted_stage_tools, normalize_tools, parse_requested_execution_policy,
         read_governed_terminal_damage_report, required_plan_output_path,
     };
-    use bijux_dna_core::ids::{ArtifactId, StageVersion, ToolId};
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
+    use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
@@ -430,7 +429,9 @@ mod tests {
 
     #[test]
     fn terminal_damage_execution_policy_parser_accepts_policy_derived() {
-        assert!(parse_requested_execution_policy(None).expect("default policy").is_none());
+        assert!(parse_requested_execution_policy(None)
+            .expect("default policy")
+            .is_none());
         assert!(parse_requested_execution_policy(Some("policy_derived"))
             .expect("policy_derived")
             .is_none());
@@ -561,6 +562,9 @@ mod tests {
 
         let report = read_governed_terminal_damage_report(&plan).expect("governed report");
         assert_eq!(report.tool_id, "cutadapt");
-        assert_eq!(report.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
+        assert_eq!(
+            report.raw_backend_report_format.as_deref(),
+            Some("cutadapt_json")
+        );
     }
 }

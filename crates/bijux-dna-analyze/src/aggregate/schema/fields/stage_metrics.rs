@@ -234,7 +234,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         derived: false,
     },
 ];
-pub const METRIC_REGISTRY_FASTQ: [MetricSpec; 13] = [
+pub const METRIC_REGISTRY_FASTQ: [MetricSpec; 16] = [
     MetricSpec {
         id: MetricId::ContaminationRate,
         name: "contamination_rate",
@@ -333,6 +333,42 @@ pub const METRIC_REGISTRY_FASTQ: [MetricSpec; 13] = [
         direction: MetricDirection::Neutral,
         range: None,
         stages: &["fastq.trim_reads"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::UdgClassification,
+        name: "udg_classification",
+        meaning: "UDG handling classification used for terminal-damage trimming policy",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.trim_terminal_damage"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::CtGaAsymmetryPre,
+        name: "ct_ga_asymmetry_pre",
+        meaning: "Terminal C>T / G>A asymmetry before damage trimming",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: -1.0,
+            max: 1.0,
+        }),
+        stages: &["fastq.trim_terminal_damage"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::CtGaAsymmetryPost,
+        name: "ct_ga_asymmetry_post",
+        meaning: "Terminal C>T / G>A asymmetry after damage trimming",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: -1.0,
+            max: 1.0,
+        }),
+        stages: &["fastq.trim_terminal_damage"],
         measured: true,
         derived: false,
     },
