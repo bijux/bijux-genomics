@@ -25,4 +25,4 @@ See `STAGE_CONTRACTS.md` for detailed contracts.
 | fastq.profile_reads | Optional | FASTQ | stats report | read_count, base_count |
 | fastq.profile_read_lengths | Optional | FASTQ | length report | length histogram |
 | fastq.profile_overrepresented_sequences | Optional | FASTQ | sequence report | flagged sequence counts |
-| fastq.report_qc | Optional | upstream QC reports | aggregated qc report | qc summary |
+| fastq.report_qc | Optional | upstream QC reports | governed aggregation report + MultiQC bundle | contributor lineage, aggregation scope, qc summary |
