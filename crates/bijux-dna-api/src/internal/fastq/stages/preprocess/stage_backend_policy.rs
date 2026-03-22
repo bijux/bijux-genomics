@@ -389,6 +389,44 @@ pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serd
     })
 }
 
+pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("normalize_abundance_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) =
+            bijux_dna_stages_fastq::observer::parse_normalize_abundance_report(&raw)
+        {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.normalize_abundance",
+                "tool": report.tool_id,
+                "method": report.method,
+                "input_value_column": report.input_value_column,
+                "normalized_value_column": report.normalized_value_column,
+                "compositional_rule": report.compositional_rule,
+                "scale_factor": report.scale_factor,
+                "table_rows": report.table_rows,
+                "sample_count": report.sample_count,
+                "feature_count": report.feature_count,
+                "zero_fraction": report.zero_fraction,
+                "per_sample_sum_count": report.per_sample_sums.len(),
+                "used_fallback": report.used_fallback,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.normalize_abundance",
+        "tool": "report_missing",
+        "method": serde_json::Value::Null,
+        "table_rows": serde_json::Value::Null,
+        "sample_count": serde_json::Value::Null,
+        "zero_fraction": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("remove_chimeras_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -612,6 +650,7 @@ mod tests {
     use super::{
         fastq_backend_allowlist, parse_profile_overrepresented_metrics,
         parse_profile_read_lengths_metrics, parse_profile_reads_metrics,
+        parse_normalize_abundance_metrics,
         parse_remove_duplicates_metrics, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
         parse_trim_polyg_metrics, parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
         parse_normalize_primers_metrics,
@@ -773,6 +812,22 @@ mod tests {
                 "sequence_count",
                 "flagged_sequences",
                 "top_fraction",
+            ]
+        );
+    }
+
+    #[test]
+    fn normalize_abundance_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.normalize_abundance"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "method",
+                "table_rows",
+                "sample_count",
+                "zero_fraction",
             ]
         );
     }
@@ -1216,6 +1271,49 @@ mod tests {
     }
 
     #[test]
+    fn normalize_abundance_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("normalize_abundance_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.normalize_abundance.report.v2",
+                "stage": "fastq.normalize_abundance",
+                "stage_id": "fastq.normalize_abundance",
+                "tool_id": "seqkit",
+                "method": "counts_per_million",
+                "input_table": "otu_abundance.tsv",
+                "normalized_abundance_tsv": "abundance_normalized.tsv",
+                "expected_columns": ["sample_id", "feature_id", "abundance"],
+                "input_value_column": "abundance",
+                "normalized_value_column": "counts_per_million",
+                "compositional_rule": "per_sample_sum_to_one_million",
+                "scale_factor": 1000000.0,
+                "table_rows": 12,
+                "sample_count": 3,
+                "feature_count": 4,
+                "zero_fraction": 0.25,
+                "per_sample_sums": [["sample_a", 1000000.0], ["sample_b", 1000000.0]],
+                "runtime_s": 1.8,
+                "memory_mb": 24.0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null,
+                "used_fallback": false,
+                "backend_metrics": {"metric_set": {"table_rows": 12}}
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_normalize_abundance_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("seqkit"));
+        assert_eq!(metrics["method"], serde_json::json!("counts_per_million"));
+        assert_eq!(metrics["table_rows"], serde_json::json!(12));
+        assert_eq!(metrics["sample_count"], serde_json::json!(3));
+        assert_eq!(metrics["per_sample_sum_count"], serde_json::json!(2));
+    }
+
+    #[test]
     fn screen_taxonomy_standardized_metrics_prefer_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("kraken2.classifications.json");
@@ -1514,6 +1612,15 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "aggregation_engine",
             "governed_qc_input_count",
             "multiqc_report",
+        ],
+        "fastq.normalize_abundance" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "method",
+            "table_rows",
+            "sample_count",
+            "zero_fraction",
         ],
         _ => &["schema_version", "stage"],
     }
