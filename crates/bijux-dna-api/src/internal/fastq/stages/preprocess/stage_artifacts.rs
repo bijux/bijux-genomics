@@ -544,7 +544,7 @@ fn write_stage_standardized_metrics(
             "report_json": out_dir.join("host_depletion_report.json"),
         }),
         "fastq.deplete_reference_contaminants" => {
-            super::stage_backend_policy::parse_deplete_reference_contaminants_metrics(out_dir)
+            parse_deplete_reference_contaminants_metrics(out_dir)
         }
         "fastq.deplete_rrna" => parse_deplete_rrna_metrics(out_dir),
         "fastq.profile_reads" => parse_profile_reads_metrics(out_dir),
