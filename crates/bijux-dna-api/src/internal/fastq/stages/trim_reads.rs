@@ -5,6 +5,7 @@ use bijux_dna_analyze::load::sqlite::query_shared::{fetch_fastq_trim_v2, insert_
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimMetrics};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_domain_fastq::TrimReadsReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_trim_tools;
@@ -26,6 +27,21 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_TRIM_READS,
 };
+
+fn load_governed_trim_report(report_path: &std::path::Path) -> Result<TrimReadsReportV1> {
+    let raw = std::fs::read_to_string(report_path)
+        .with_context(|| format!("read governed trim report {}", report_path.display()))?;
+    bijux_dna_stages_fastq::observer::parse_trim_reads_report(&raw)
+        .with_context(|| format!("parse governed trim report {}", report_path.display()))
+}
+
+fn write_governed_trim_report(
+    report_path: &std::path::Path,
+    report: &TrimReadsReportV1,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(report_path, report)
+        .with_context(|| format!("write governed trim report {}", report_path.display()))
+}
 
 /// # Errors
 /// Returns an error if planning, execution, metric derivation, or persistence fails.
@@ -238,6 +254,23 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         let before_stats =
             combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
         let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
+        let report_path = out_dir.join("trim_report.json");
+        let mut governed_report = load_governed_trim_report(&report_path)?;
+        governed_report.reads_in = Some(before_stats.reads);
+        governed_report.reads_out = Some(after_stats.reads);
+        governed_report.bases_in = Some(before_stats.bases);
+        governed_report.bases_out = Some(after_stats.bases);
+        governed_report.pairs_in = input_stats_r2
+            .as_ref()
+            .map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
+        governed_report.pairs_out = output_stats_r2
+            .as_ref()
+            .map(|stats| output_stats_r1.reads.min(stats.reads));
+        governed_report.mean_q_before = Some(before_stats.mean_q);
+        governed_report.mean_q_after = Some(after_stats.mean_q);
+        governed_report.runtime_s = Some(execution.runtime_s);
+        governed_report.memory_mb = Some(execution.memory_mb);
+        write_governed_trim_report(&report_path, &governed_report)?;
         let metrics = FastqTrimMetrics {
             reads_in: before_stats.reads,
             reads_out: after_stats.reads,
@@ -252,10 +285,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
             delta_metrics: derive_trim_delta(&before_stats, &after_stats),
-            adapter_preset: json_string(adapter_context.as_ref(), "preset")
-                .or_else(|| args.adapter_bank_preset.clone()),
-            adapter_bank_id: json_string(adapter_context.as_ref(), "bank_id"),
-            adapter_bank_hash: json_string(adapter_context.as_ref(), "bank_hash"),
+            adapter_preset: governed_report.adapter_preset.clone(),
+            adapter_bank_id: governed_report.adapter_bank_id.clone(),
+            adapter_bank_hash: governed_report.adapter_bank_hash.clone(),
             adapter_overrides: if args.enable_adapters.is_empty()
                 && args.disable_adapters.is_empty()
             {
@@ -272,31 +304,6 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         };
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
-
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.trim_reads.report.v1",
-            "stage": STAGE_TRIM_READS.as_str(),
-            "stage_id": STAGE_TRIM_READS.as_str(),
-            "tool": tool,
-            "tool_id": tool,
-            "input_reads": metrics.reads_in,
-            "reads_in": metrics.reads_in,
-            "output_reads": metrics.reads_out,
-            "reads_out": metrics.reads_out,
-            "bases_in": metrics.bases_in,
-            "bases_out": metrics.bases_out,
-            "output_r1": output_r1,
-            "output_r2": args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone()),
-            "mean_q_before": metrics.mean_q_before,
-            "mean_q_after": metrics.mean_q_after,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-            "adapter_bank": adapter_context,
-            "polyx_bank": polyx_context,
-            "contaminant_bank": contaminant_context,
-        });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("trim_report.json"), &report)
-            .context("write trim report")?;
         let metrics_json = serde_json::to_value(&metric_set)?;
         bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
             .context("write trim metrics")?;
@@ -448,8 +455,9 @@ mod tests {
     use super::{
         adapter_bank_requested, adapter_policy_uses_bank, benchmark_query_context,
         contaminant_policy_uses_bank, normalized_adapter_policy, normalized_contaminant_policy,
-        normalized_polyx_policy, polyx_policy_uses_bank,
+        normalized_polyx_policy, polyx_policy_uses_bank, write_governed_trim_report,
     };
+    use bijux_dna_domain_fastq::{PairedMode, TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
 
     #[test]
     fn benchmark_query_context_captures_governed_trim_bank_hashes() {
@@ -547,5 +555,55 @@ mod tests {
         };
 
         assert!(adapter_bank_requested(&args));
+    }
+
+    #[test]
+    fn write_governed_trim_report_preserves_contract_shape() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("trim_report.json");
+        let report = TrimReadsReportV1 {
+            schema_version: TRIM_READS_REPORT_SCHEMA_VERSION.to_string(),
+            stage: "fastq.trim_reads".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
+            tool_id: "fastp".to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            input_r1: "reads.fastq.gz".to_string(),
+            input_r2: None,
+            output_r1: "trimmed.fastq.gz".to_string(),
+            output_r2: None,
+            min_length: 30,
+            quality_cutoff: None,
+            adapter_policy: "none".to_string(),
+            polyx_policy: Some("none".to_string()),
+            n_policy: Some("retain".to_string()),
+            contaminant_policy: Some("none".to_string()),
+            adapter_bank_id: None,
+            adapter_bank_hash: None,
+            adapter_preset: None,
+            polyx_bank_id: None,
+            polyx_bank_hash: None,
+            polyx_preset: None,
+            contaminant_bank_id: None,
+            contaminant_bank_hash: None,
+            contaminant_preset: None,
+            reads_in: Some(100),
+            reads_out: Some(95),
+            bases_in: Some(1000),
+            bases_out: Some(900),
+            pairs_in: None,
+            pairs_out: None,
+            mean_q_before: Some(28.0),
+            mean_q_after: Some(30.0),
+            runtime_s: Some(1.5),
+            memory_mb: Some(64.0),
+            raw_backend_report: Some("trim.fastp.json".to_string()),
+            raw_backend_report_format: Some("fastp_json".to_string()),
+        };
+
+        write_governed_trim_report(&report_path, &report).expect("write report");
+        let raw = std::fs::read_to_string(&report_path).expect("read report");
+        let decoded: TrimReadsReportV1 = serde_json::from_str(&raw).expect("parse report");
+        assert_eq!(decoded.tool_id, "fastp");
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
     }
 }
