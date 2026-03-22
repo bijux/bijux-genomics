@@ -151,7 +151,7 @@ pub fn plan_with_options(
         effective_params: serde_json::to_value(PrimerNormalizationEffectiveParams {
             schema_version: EDNA_SCHEMA_VERSION.to_string(),
             paired_mode: PairedMode::from_has_r2(r2.is_some()),
-            threads: tool.resources.threads,
+            threads: Some(tool.resources.threads),
             orientation_policy: options.orientation_policy.clone(),
             primer_set_id: options.primer_set_id.clone(),
             marker_id: options.marker_id.clone(),

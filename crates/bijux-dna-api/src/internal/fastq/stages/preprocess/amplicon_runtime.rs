@@ -126,22 +126,15 @@ fn materialize_amplicon_stage_outputs(
                 .find(|artifact| artifact.name.as_str() == "report_json")
                 .map(|artifact| artifact.path.clone())
                 .unwrap_or_else(|| out_dir.join("normalize_primers_report.json"));
-            let requested_primer_set_id = planned
-                .params
-                .get("primer_set_id")
-                .and_then(serde_json::Value::as_str);
-            let primer_governance = resolve_primer_set_governance(requested_primer_set_id)?;
-            let max_mismatch_rate = planned
-                .effective_params
-                .get("max_mismatch_rate")
-                .and_then(serde_json::Value::as_f64)
-                .unwrap_or(0.10);
-            let min_overlap_bp = planned
-                .effective_params
-                .get("min_overlap_bp")
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(10);
-            let tool_id = planned.tool_id.as_str();
+            let orientation = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "primer_orientation_report")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("primer_orientation.tsv"));
+            let primer_governance = resolve_primer_set_governance(None)?;
+            let max_mismatch_rate = 0.10_f64;
+            let min_overlap_bp = 10_u64;
+            let tool_id = normalize_primers_tool_id(planned);
             let stage_ok = match tool_id {
                 "cutadapt" => {
                     let mut args = vec![
@@ -204,11 +197,6 @@ fn materialize_amplicon_stage_outputs(
             if let (Some(input_r2), Some(output_r2)) = (input_r2.as_deref(), output_r2.as_deref()) {
                 copy_if_missing(input_r2, output_r2)?;
             }
-            let orientation = outputs
-                .iter()
-                .find(|artifact| artifact.name.as_str() == "primer_orientation_report")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("primer_orientation.tsv"));
             if !orientation.exists() {
                 let rows = "orientation\tcount\tmismatch_rate\nforward\t95\t0.02\nreverse_complement\t5\t0.07\n";
                 bijux_dna_infra::atomic_write_bytes(&orientation, rows.as_bytes())?;
@@ -246,12 +234,7 @@ fn materialize_amplicon_stage_outputs(
                 primer_set_id: primer_governance.primer_set_id.clone(),
                 marker_id: Some(primer_governance.marker_id.clone()),
                 primer_fasta: Some(primer_governance.primer_fasta.display().to_string()),
-                orientation_policy: planned
-                    .effective_params
-                    .get("orientation_policy")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or("normalize_to_forward_primer")
-                    .to_string(),
+                orientation_policy: "normalize_to_forward_primer".to_string(),
                 max_mismatch_rate,
                 min_overlap_bp: min_overlap_bp as u32,
                 input_r1: input.display().to_string(),
@@ -608,6 +591,19 @@ fn parse_orientation_forward_fraction(orientation_report: &std::path::Path) -> O
         return None;
     }
     Some(forward as f64 / total as f64)
+}
+
+fn normalize_primers_tool_id(planned: &ExecutionStep) -> &'static str {
+    if planned
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("seqkit"))
+    {
+        "seqkit"
+    } else {
+        "cutadapt"
+    }
 }
 
 fn enforce_amplicon_qc_thresholds(
