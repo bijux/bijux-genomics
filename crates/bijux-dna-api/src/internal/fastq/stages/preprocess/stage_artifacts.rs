@@ -142,12 +142,7 @@ fn write_stage_standardized_metrics(
             },
             "report_json": out_dir.join("low_complexity_report.json"),
         }),
-        "fastq.trim_reads" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_out", "bases_in", "bases_out"],
-            "report_json": out_dir.join("trim_report.json"),
-        }),
+        "fastq.trim_reads" => super::stage_backend_policy::parse_trim_reads_metrics(out_dir),
         "fastq.filter_reads" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
