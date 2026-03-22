@@ -116,29 +116,33 @@ pub fn plan(
 mod tests {
     use super::plan;
     use anyhow::Result;
-    use bijux_dna_core::prelude::{ImageRefV1, ResourcesSpecV1, ToolExecutionSpecV1, ToolId, ToolVersion};
+    use bijux_dna_core::prelude::ToolExecutionSpecV1;
 
     #[test]
     fn detect_adapters_plan_emits_canonical_report_and_full_input_scope() -> Result<()> {
-        let temp = tempfile::tempdir()?;
-        let tool = ToolExecutionSpecV1 {
-            tool_id: ToolId::from("fastqc"),
-            tool_version: ToolVersion::from("0.12.1"),
-            image: ImageRefV1 {
-                image: "bijuxdna/fastqc".to_string(),
-                digest: Some("sha256:test".to_string()),
+        let temp = std::env::temp_dir().join("bijux-detect-adapters-plan-test");
+        std::fs::create_dir_all(&temp)?;
+        let tool: ToolExecutionSpecV1 = serde_json::from_value(serde_json::json!({
+            "tool_id": "fastqc",
+            "tool_version": "0.12.1",
+            "image": {
+                "image": "bijuxdna/fastqc",
+                "digest": "sha256:test"
             },
-            resources: ResourcesSpecV1 {
-                cpus: Some(2.0),
-                memory_gb: Some(4.0),
-                threads: 4,
-                tmp_gb: Some(2.0),
-                wallclock_s: None,
+            "command": {
+                "template": ["fastqc", "{{reads_r1}}"]
             },
-        };
-        let r1 = temp.path().join("reads_R1.fastq.gz");
-        let r2 = temp.path().join("reads_R2.fastq.gz");
-        let out_dir = temp.path().join("out");
+            "resources": {
+                "cpus": null,
+                "memory_gb": null,
+                "threads": 4,
+                "tmp_gb": null,
+                "wallclock_s": null
+            }
+        }))?;
+        let r1 = temp.join("reads_R1.fastq.gz");
+        let r2 = temp.join("reads_R2.fastq.gz");
+        let out_dir = temp.join("out");
         let plan = plan(&tool, &r1, Some(&r2), &out_dir)?;
 
         assert!(plan

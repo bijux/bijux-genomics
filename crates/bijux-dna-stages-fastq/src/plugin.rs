@@ -1533,11 +1533,13 @@ mod tests {
             .parse_outputs(&plan, &plan.io.outputs)
             .expect("parse outputs");
         assert_eq!(
-            output.semantic_metrics["candidate_adapter_count"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["candidate_adapter_count"],
             serde_json::json!(2_u64)
         );
         assert_eq!(
-            output.semantic_metrics["evidence_scope"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["evidence_scope"],
             serde_json::json!("full_input")
         );
     }
