@@ -321,3 +321,82 @@ fn shell_quote_path(path: &Path) -> String {
 fn shell_quote_str(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        plan_trim_polyg_tails_with_options, raw_backend_report_artifact, TrimPolygPlanOptions,
+    };
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    };
+    use std::path::Path;
+
+    fn tool(tool_id: &'static str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static(tool_id),
+            tool_version: "1.0.0".into(),
+            image: ContainerImageRefV1 {
+                image: format!("{tool_id}:latest"),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec![tool_id.to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 4,
+            },
+        }
+    }
+
+    #[test]
+    fn raw_backend_report_artifact_uses_backend_specific_names() {
+        let report = Path::new("out/trim_polyg_tails_report.json");
+        let (fastp_path, fastp_format) =
+            raw_backend_report_artifact(report, "fastp").expect("fastp artifact");
+        assert_eq!(
+            fastp_path,
+            Path::new("out/trim_polyg_tails_report.fastp.json")
+        );
+        assert_eq!(fastp_format, "fastp_json");
+
+        let (bbduk_path, bbduk_format) =
+            raw_backend_report_artifact(report, "bbduk").expect("bbduk artifact");
+        assert_eq!(
+            bbduk_path,
+            Path::new("out/trim_polyg_tails_report.stats.txt")
+        );
+        assert_eq!(bbduk_format, "bbduk_stats");
+    }
+
+    #[test]
+    fn plan_trim_polyg_tails_records_governed_report_shape() {
+        let plan = plan_trim_polyg_tails_with_options(
+            &tool("fastp"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            &TrimPolygPlanOptions {
+                trim_polyg: true,
+                min_polyg_run: 12,
+            },
+        )
+        .expect("plan");
+
+        let params = plan.params.as_object().expect("params object");
+        let script = &plan.command.template[2];
+        assert_eq!(
+            params
+                .get("raw_backend_report_format")
+                .and_then(serde_json::Value::as_str),
+            Some("fastp_json")
+        );
+        assert!(script.contains("trim_polyg_tails_report.fastp.json"));
+        assert!(script.contains("\"schema_version\":\"bijux.fastq.trim_polyg_tails.report.v2\""));
+        assert!(script.contains("\"paired_mode\":\"paired_end\""));
+        assert!(script.contains("\"raw_backend_report_format\":\"fastp_json\""));
+    }
+}
