@@ -167,6 +167,20 @@ pub struct FastqTrimTerminalDamageMetrics {
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     #[serde(default)]
+    pub damage_mode: Option<String>,
+    #[serde(default)]
+    pub execution_policy: Option<String>,
+    #[serde(default)]
+    pub requested_trim_5p_bases: Option<u32>,
+    #[serde(default)]
+    pub requested_trim_3p_bases: Option<u32>,
+    #[serde(default)]
+    pub udg_classification: Option<String>,
+    #[serde(default)]
+    pub ct_ga_asymmetry_pre: Option<f64>,
+    #[serde(default)]
+    pub ct_ga_asymmetry_post: Option<f64>,
+    #[serde(default)]
     pub delta_metrics: FastqDeltaMetrics,
 }
 
@@ -184,6 +198,20 @@ impl StageMetricSchema for FastqTrimTerminalDamageMetrics {
             return Err(BenchError::Validation(
                 "bases_out must be <= bases_in".to_string(),
             ));
+        }
+        if let Some(value) = self.ct_ga_asymmetry_pre {
+            if !value.is_finite() || !(-1.0..=1.0).contains(&value) {
+                return Err(BenchError::Validation(
+                    "ct_ga_asymmetry_pre must be finite and within [-1, 1]".to_string(),
+                ));
+            }
+        }
+        if let Some(value) = self.ct_ga_asymmetry_post {
+            if !value.is_finite() || !(-1.0..=1.0).contains(&value) {
+                return Err(BenchError::Validation(
+                    "ct_ga_asymmetry_post must be finite and within [-1, 1]".to_string(),
+                ));
+            }
         }
         self.delta_metrics.validate()?;
         Ok(())
