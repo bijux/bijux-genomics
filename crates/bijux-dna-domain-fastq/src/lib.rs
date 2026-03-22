@@ -23,6 +23,7 @@ pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
 mod qc_contract;
+mod remove_chimeras_artifacts;
 mod remove_duplicates_artifacts;
 mod report_qc_artifacts;
 pub mod run;
@@ -67,6 +68,9 @@ pub use comparison_contract::{
 };
 pub use report_qc_artifacts::{
     GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
+};
+pub use remove_chimeras_artifacts::{
+    RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
 };
 pub use remove_duplicates_artifacts::{
     DuplicateClassEntryV1, RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
