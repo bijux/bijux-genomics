@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::query_shared::{
     fetch_fastq_trim_polyg_v1, insert_fastq_trim_polyg_v1,
@@ -15,9 +18,7 @@ use bijux_dna_planner_fastq::stage_api::{
     RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{filter_tools_by_role, load_workspace_registry};
-use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use bijux_dna_stages_fastq::observer::{parse_bbduk_reads_removed, parse_fastp_metrics};
 
 use super::trim_bench_common::{
     build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
@@ -240,6 +241,8 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         let (raw_report_path, raw_report_format) = raw_polyg_report_artifact(&tool, &out_dir)?;
+        let backend_metrics = normalized_polyg_backend_metrics(&raw_report_path, raw_report_format)
+            .context("normalize trim polyg backend report")?;
 
         let report = serde_json::json!({
             "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
@@ -260,6 +263,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
             "mean_q_after": metrics.mean_q_after,
             "raw_report_path": raw_report_path,
             "raw_report_format": raw_report_format,
+            "backend_metrics": backend_metrics,
             "runtime_s": execution.runtime_s,
             "memory_mb": execution.memory_mb,
             "polyx_bank": polyx_context,
@@ -348,10 +352,42 @@ fn benchmark_query_context(
 
 fn raw_polyg_report_artifact(tool_id: &str, out_dir: &Path) -> Result<(PathBuf, &'static str)> {
     match tool_id {
-        "fastp" => Ok((out_dir.join("trim_polyg_tails_report.fastp.json"), "fastp_json")),
-        "bbduk" => Ok((out_dir.join("trim_polyg_tails_report.stats.txt"), "bbduk_stats")),
+        "fastp" => Ok((
+            out_dir.join("trim_polyg_tails_report.fastp.json"),
+            "fastp_json",
+        )),
+        "bbduk" => Ok((
+            out_dir.join("trim_polyg_tails_report.stats.txt"),
+            "bbduk_stats",
+        )),
         _ => Err(anyhow!(
             "unsupported trim_polyg_tails raw report artifact for tool {tool_id}"
+        )),
+    }
+}
+
+fn normalized_polyg_backend_metrics(
+    raw_report_path: &Path,
+    raw_report_format: &str,
+) -> Result<serde_json::Value> {
+    let raw_backend_report =
+        std::fs::read_to_string(raw_report_path).context("read trim polyg backend report")?;
+    match raw_report_format {
+        "fastp_json" => {
+            let metrics = parse_fastp_metrics(&raw_backend_report)
+                .context("parse fastp polyg backend metrics")?;
+            Ok(serde_json::to_value(metrics).context("serialize fastp polyg backend metrics")?)
+        }
+        "bbduk_stats" => {
+            let reads_removed = parse_bbduk_reads_removed(&raw_backend_report)
+                .context("parse bbduk polyg backend metrics")?;
+            Ok(serde_json::json!({
+                "schema_version": "bijux.bbduk.trim_polyg.metrics.v1",
+                "reads_removed": reads_removed,
+            }))
+        }
+        _ => Err(anyhow!(
+            "unsupported trim_polyg_tails raw report format {raw_report_format}"
         )),
     }
 }
@@ -359,7 +395,8 @@ fn raw_polyg_report_artifact(tool_id: &str, out_dir: &Path) -> Result<(PathBuf, 
 #[cfg(test)]
 mod tests {
     use super::{
-        admitted_stage_tools, benchmark_query_context, normalize_tools, raw_polyg_report_artifact,
+        admitted_stage_tools, benchmark_query_context, normalize_tools,
+        normalized_polyg_backend_metrics, raw_polyg_report_artifact,
     };
     use std::path::Path;
 
@@ -402,5 +439,42 @@ mod tests {
             Path::new("out").join("trim_polyg_tails_report.stats.txt")
         );
         assert_eq!(bbduk_format, "bbduk_stats");
+    }
+
+    #[test]
+    fn normalized_polyg_backend_metrics_parses_fastp_reports() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let raw_report_path = temp.path().join("trim_polyg.fastp.json");
+        std::fs::write(
+            &raw_report_path,
+            serde_json::json!({
+                "filtering_result": {
+                    "passed_filter_reads": 960_u64,
+                    "low_quality_reads": 18_u64,
+                    "too_many_N_reads": 4_u64,
+                    "too_short_reads": 12_u64
+                }
+            })
+            .to_string(),
+        )
+        .expect("write fastp report");
+
+        let metrics =
+            normalized_polyg_backend_metrics(&raw_report_path, "fastp_json").expect("metrics");
+
+        assert_eq!(metrics["passed_filter_reads"], serde_json::json!(960_u64));
+        assert_eq!(metrics["too_short_reads"], serde_json::json!(12_u64));
+    }
+
+    #[test]
+    fn normalized_polyg_backend_metrics_parses_bbduk_reports() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let raw_report_path = temp.path().join("trim_polyg.stats.txt");
+        std::fs::write(&raw_report_path, "Reads Removed: 137\n").expect("write bbduk report");
+
+        let metrics =
+            normalized_polyg_backend_metrics(&raw_report_path, "bbduk_stats").expect("metrics");
+
+        assert_eq!(metrics["reads_removed"], serde_json::json!(137_u64));
     }
 }
