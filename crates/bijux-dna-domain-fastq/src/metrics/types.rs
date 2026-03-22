@@ -95,6 +95,20 @@ pub struct FastqDeduplicateMetricsV1 {
     pub pairs_out: Option<u64>,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
+    #[serde(default)]
+    pub paired_mode: Option<String>,
+    #[serde(default)]
+    pub dedup_mode: Option<String>,
+    #[serde(default)]
+    pub keep_order: Option<bool>,
+    #[serde(default)]
+    pub pair_count_match: Option<bool>,
+    #[serde(default)]
+    pub duplicate_class_count: Option<u64>,
+    #[serde(default)]
+    pub duplicate_provenance_json: Option<String>,
+    #[serde(default)]
+    pub raw_backend_report_format: Option<String>,
     pub delta_metrics: FastqDeltaMetricsV1,
     pub retention: RetentionReportMetricV1,
 }

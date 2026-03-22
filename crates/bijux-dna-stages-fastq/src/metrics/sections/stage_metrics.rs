@@ -80,12 +80,18 @@ pub fn stage_metrics_for_plan(
             ])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
-            let parsed_counts =
-                std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
-                    .ok()
-                    .and_then(|raw| crate::observer::parse_deduplicate_report(&raw).ok());
-            let (reads_in, reads_out) = parsed_counts.unwrap_or((input.reads, output.reads));
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            let parsed_report = std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
+                .ok()
+                .and_then(|raw| crate::observer::parse_remove_duplicates_report(&raw).ok());
+            let reads_in = parsed_report.as_ref().map(|report| report.reads_in).unwrap_or(input.reads);
+            let reads_out = parsed_report
+                .as_ref()
+                .map(|report| report.reads_out)
+                .unwrap_or(output.reads);
+            let (pairs_in, pairs_out) = (
+                parsed_report.as_ref().and_then(|report| report.pairs_in),
+                parsed_report.as_ref().and_then(|report| report.pairs_out),
+            );
             let read_retention = if reads_in > 0 {
                 f64_from_u64(reads_out) / f64_from_u64(reads_in)
             } else {
@@ -126,6 +132,25 @@ pub fn stage_metrics_for_plan(
                 pairs_out,
                 mean_q_before: input.mean_q,
                 mean_q_after: output.mean_q,
+                paired_mode: parsed_report
+                    .as_ref()
+                    .map(|report| report.paired_mode.to_string()),
+                dedup_mode: parsed_report.as_ref().map(|report| match &report.dedup_mode {
+                    bijux_dna_domain_fastq::params::processing::remove_duplicates::DedupMode::Exact => "exact".to_string(),
+                    bijux_dna_domain_fastq::params::processing::remove_duplicates::DedupMode::SequenceIdentity => "sequence_identity".to_string(),
+                    bijux_dna_domain_fastq::params::processing::remove_duplicates::DedupMode::OpticalAware => "optical_aware".to_string(),
+                }),
+                keep_order: parsed_report.as_ref().map(|report| report.keep_order),
+                pair_count_match: parsed_report.as_ref().and_then(|report| report.pair_count_match),
+                duplicate_class_count: parsed_report
+                    .as_ref()
+                    .map(|report| report.duplicate_classes.len() as u64),
+                duplicate_provenance_json: parsed_report
+                    .as_ref()
+                    .and_then(|report| report.duplicate_provenance_json.clone()),
+                raw_backend_report_format: parsed_report
+                    .as_ref()
+                    .and_then(|report| report.raw_backend_report_format.clone()),
                 delta_metrics: delta,
                 retention,
             })?
