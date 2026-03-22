@@ -28,6 +28,7 @@ pub mod stage_contract;
 pub mod stage_semantics;
 pub mod stage_specs;
 mod stage_tool_governance;
+mod trim_polyg_artifacts;
 mod trim_artifacts;
 mod terminal_damage_artifacts;
 mod validation_artifacts;
@@ -143,6 +144,7 @@ pub use stages::{
 pub use terminal_damage_artifacts::{
     TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
 };
+pub use trim_polyg_artifacts::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
 pub use trim_artifacts::{TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,

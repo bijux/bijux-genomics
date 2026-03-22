@@ -15,7 +15,8 @@ pub use parse::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
     parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
     parse_multiqc_general_stats_metrics, parse_seqkit_stats, parse_terminal_damage_report,
-    parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
+    parse_trim_polyg_report, parse_trim_reads_report, parse_validated_reads_manifest,
+    parse_validation_report,
 };
 
 #[must_use]

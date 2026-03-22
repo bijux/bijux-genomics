@@ -11,7 +11,8 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
-    TerminalDamageReportV1, TrimReadsReportV1, ValidatedReadsManifestV1, ValidationReportV1,
+    TerminalDamageReportV1, TrimPolygReportV1, TrimReadsReportV1, ValidatedReadsManifestV1,
+    ValidationReportV1,
 };
 
 /// # Errors
@@ -124,6 +125,12 @@ pub fn parse_terminal_damage_report(report_json: &str) -> Result<TerminalDamageR
 /// Returns an error if the governed trim report JSON cannot be parsed.
 pub fn parse_trim_reads_report(report_json: &str) -> Result<TrimReadsReportV1> {
     serde_json::from_str(report_json).context("parse trim reads report")
+}
+
+/// # Errors
+/// Returns an error if the governed trim-polyg report JSON cannot be parsed.
+pub fn parse_trim_polyg_report(report_json: &str) -> Result<TrimPolygReportV1> {
+    serde_json::from_str(report_json).context("parse trim polyg report")
 }
 
 /// # Errors
