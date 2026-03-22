@@ -48,6 +48,7 @@ pub type SyntheticStageArtifactPolicy = BTreeMap<String, Vec<ArtifactRef>>;
 
 #[derive(Debug, Clone)]
 struct ResolvedStageInputArtifact {
+    to_input_id: String,
     artifact: ArtifactRef,
     source_stage_node_id: String,
     source_tool_id: String,
@@ -136,10 +137,10 @@ where
             &raw_r1,
             raw_r2.as_ref(),
         )?;
-        let stage_r1 = explicit_reads_input_path(&resolved_inputs, "reads_r1")
+        let stage_r1 = explicit_reads_input_path(&resolved_inputs, "reads_r1")?
             .unwrap_or_else(|| inherited.reads_r1.clone());
-        let stage_r2 = explicit_reads_input_path(&resolved_inputs, "reads_r2").or_else(|| {
-            if resolved_inputs.contains_key("reads_r1") {
+        let stage_r2 = explicit_reads_input_path(&resolved_inputs, "reads_r2")?.or_else(|| {
+            if has_explicit_input(&resolved_inputs, "reads_r1") {
                 None
             } else {
                 inherited.reads_r2.clone()
@@ -286,7 +287,7 @@ where
             }
             stage if stage == STAGE_DEPLETE_HOST.as_str() => {
                 let explicit_reference_index =
-                    explicit_reference_index_state(&resolved_inputs, "reference_index");
+                    explicit_reference_index_state(&resolved_inputs, "reference_index")?;
                 let reference_index = explicit_reference_index
                     .as_ref()
                     .or(inherited.reference_index.as_ref())
@@ -319,7 +320,7 @@ where
             }
             stage if stage == STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str() => {
                 let explicit_reference_index =
-                    explicit_reference_index_state(&resolved_inputs, "reference_index");
+                    explicit_reference_index_state(&resolved_inputs, "reference_index")?;
                 let reference_index = explicit_reference_index
                     .as_ref()
                     .or(inherited.reference_index.as_ref())
@@ -617,7 +618,7 @@ where
             }
             stage if stage == STAGE_NORMALIZE_ABUNDANCE.as_str() => {
                 ensure_normalize_abundance_tool(tool.tool_id.as_str())?;
-                let abundance_table = explicit_abundance_table(&resolved_inputs)
+                let abundance_table = explicit_abundance_table(&resolved_inputs)?
                     .or(inherited.feature_table.clone())
                     .ok_or_else(|| {
                         anyhow!("fastq.normalize_abundance requires an upstream feature table")
@@ -725,8 +726,8 @@ fn resolved_stage_input_artifacts(
     explicit_stage_inputs: Option<&StageArtifactInputPolicy>,
     synthetic_stage_artifacts: Option<&SyntheticStageArtifactPolicy>,
     plans: &[StagePlanV1],
-) -> Result<BTreeMap<String, ResolvedStageInputArtifact>> {
-    let mut inputs = BTreeMap::new();
+) -> Result<Vec<ResolvedStageInputArtifact>> {
+    let mut inputs = Vec::new();
     let Some(policies) = explicit_stage_inputs else {
         return Ok(inputs);
     };
@@ -750,14 +751,12 @@ fn resolved_stage_input_artifacts(
                         stage_input.from_stage_node_id
                     )
                 })?;
-            inputs.insert(
-                stage_input.to_input_id.clone(),
-                ResolvedStageInputArtifact {
-                    artifact: artifact.clone(),
-                    source_stage_node_id: stage_input.from_stage_node_id.clone(),
-                    source_tool_id: source_plan.tool_id.to_string(),
-                },
-            );
+            inputs.push(ResolvedStageInputArtifact {
+                to_input_id: stage_input.to_input_id.clone(),
+                artifact: artifact.clone(),
+                source_stage_node_id: stage_input.from_stage_node_id.clone(),
+                source_tool_id: source_plan.tool_id.to_string(),
+            });
             continue;
         }
 
@@ -774,61 +773,80 @@ fn resolved_stage_input_artifacts(
                     stage_input.from_stage_node_id
                 )
             })?;
-        inputs.insert(
-            stage_input.to_input_id.clone(),
-            ResolvedStageInputArtifact {
-                artifact: synthetic_artifact.clone(),
-                source_stage_node_id: stage_input.from_stage_node_id.clone(),
-                source_tool_id: "planner".to_string(),
-            },
-        );
+        inputs.push(ResolvedStageInputArtifact {
+            to_input_id: stage_input.to_input_id.clone(),
+            artifact: synthetic_artifact.clone(),
+            source_stage_node_id: stage_input.from_stage_node_id.clone(),
+            source_tool_id: "planner".to_string(),
+        });
     }
+    inputs.sort_by(|left, right| {
+        left.to_input_id
+            .cmp(&right.to_input_id)
+            .then_with(|| left.source_stage_node_id.cmp(&right.source_stage_node_id))
+            .then_with(|| left.artifact.name.as_str().cmp(right.artifact.name.as_str()))
+            .then_with(|| left.artifact.path.cmp(&right.artifact.path))
+    });
     Ok(inputs)
 }
 
-fn explicit_reads_input_path(
-    inputs: &BTreeMap<String, ResolvedStageInputArtifact>,
-    input_id: &str,
-) -> Option<PathBuf> {
-    inputs
-        .get(input_id)
-        .map(|input| input.artifact.path.clone())
+fn has_explicit_input(inputs: &[ResolvedStageInputArtifact], input_id: &str) -> bool {
+    inputs.iter().any(|input| input.to_input_id == input_id)
 }
 
-fn explicit_abundance_table(
-    inputs: &BTreeMap<String, ResolvedStageInputArtifact>,
-) -> Option<PathBuf> {
-    inputs
-        .get("abundance_table")
-        .map(|input| input.artifact.path.clone())
+fn unique_resolved_input_artifact<'a>(
+    inputs: &'a [ResolvedStageInputArtifact],
+    input_id: &str,
+) -> Result<Option<&'a ResolvedStageInputArtifact>> {
+    let mut matches = inputs.iter().filter(|input| input.to_input_id == input_id);
+    let first = matches.next();
+    let second = matches.next();
+    match (first, second) {
+        (Some(_), Some(_)) => Err(anyhow!(
+            "stage input {} received multiple explicit artifact bindings; provide exactly one binding for singular inputs",
+            input_id
+        )),
+        (Some(input), None) => Ok(Some(input)),
+        (None, None) => Ok(None),
+        (None, Some(_)) => unreachable!("iterator cannot yield a second item without a first"),
+    }
 }
 
 fn explicit_reference_index_state(
-    inputs: &BTreeMap<String, ResolvedStageInputArtifact>,
+    inputs: &[ResolvedStageInputArtifact],
     input_id: &str,
-) -> Option<ReferenceIndexState> {
-    inputs.get(input_id).map(|input| ReferenceIndexState {
+) -> Result<Option<ReferenceIndexState>> {
+    Ok(unique_resolved_input_artifact(inputs, input_id)?.map(|input| ReferenceIndexState {
         path: input.artifact.path.clone(),
         tool_id: input.source_tool_id.clone(),
-    })
+    }))
 }
 
-fn explicit_report_qc_inputs(
-    inputs: &BTreeMap<String, ResolvedStageInputArtifact>,
-) -> Option<Vec<ArtifactRef>> {
+fn explicit_reads_input_path(
+    inputs: &[ResolvedStageInputArtifact],
+    input_id: &str,
+) -> Result<Option<PathBuf>> {
+    Ok(unique_resolved_input_artifact(inputs, input_id)?
+        .map(|input| input.artifact.path.clone()))
+}
+
+fn explicit_abundance_table(inputs: &[ResolvedStageInputArtifact]) -> Result<Option<PathBuf>> {
+    Ok(unique_resolved_input_artifact(inputs, "abundance_table")?
+        .map(|input| input.artifact.path.clone()))
+}
+
+fn explicit_report_qc_inputs(inputs: &[ResolvedStageInputArtifact]) -> Option<Vec<ArtifactRef>> {
     if inputs.is_empty() {
         return None;
     }
     let mut qc_inputs = inputs
         .iter()
-        .map(|(input_id, input)| {
-            report_qc_input_artifact(
-                &input.source_stage_node_id,
-                &input.artifact,
-                Some(input_id.as_str()),
-            )
-        })
+        .filter(|input| input.to_input_id == "qc_artifacts")
+        .map(|input| report_qc_input_artifact(&input.source_stage_node_id, &input.artifact, None))
         .collect::<Vec<_>>();
+    if qc_inputs.is_empty() {
+        return None;
+    }
     qc_inputs.sort_by(|left, right| {
         left.name
             .as_str()

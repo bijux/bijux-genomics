@@ -248,6 +248,129 @@ fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
 }
 
 #[test]
+fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
+    let bindings = vec![
+        FastqStageBinding {
+            stage_id: "fastq.detect_adapters".to_string(),
+            stage_instance_id: Some("fastq.detect_adapters.fastqc".to_string()),
+            tool: ToolExecutionSpecV1 {
+                tool_id: ToolId::new("fastqc"),
+                tool_version: "fixture".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijux/test:latest".to_string(),
+                    digest: None,
+                },
+                command: CommandSpecV1 {
+                    template: vec!["fastqc".to_string()],
+                },
+                resources: bijux_dna_core::contract::ToolConstraints::default(),
+            },
+            reason: None,
+            params: None,
+        },
+        FastqStageBinding {
+            stage_id: "fastq.profile_reads".to_string(),
+            stage_instance_id: Some("fastq.profile_reads.seqkit_stats".to_string()),
+            tool: ToolExecutionSpecV1 {
+                tool_id: ToolId::new("seqkit_stats"),
+                tool_version: "fixture".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijux/test:latest".to_string(),
+                    digest: None,
+                },
+                command: CommandSpecV1 {
+                    template: vec!["seqkit".to_string(), "stats".to_string()],
+                },
+                resources: bijux_dna_core::contract::ToolConstraints::default(),
+            },
+            reason: None,
+            params: None,
+        },
+        FastqStageBinding {
+            stage_id: "fastq.report_qc".to_string(),
+            stage_instance_id: Some("fastq.report_qc.multiqc".to_string()),
+            tool: ToolExecutionSpecV1 {
+                tool_id: ToolId::new("multiqc"),
+                tool_version: "fixture".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijux/test:latest".to_string(),
+                    digest: None,
+                },
+                command: CommandSpecV1 {
+                    template: vec!["multiqc".to_string()],
+                },
+                resources: bijux_dna_core::contract::ToolConstraints::default(),
+            },
+            reason: None,
+            params: None,
+        },
+    ];
+    let pipeline = PipelineSpec::graph(
+        vec![
+            PipelineNodeSpec {
+                stage_id: "fastq.detect_adapters".to_string(),
+                stage_instance_id: Some("fastq.detect_adapters.fastqc".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.profile_reads".to_string(),
+                stage_instance_id: Some("fastq.profile_reads.seqkit_stats".to_string()),
+            },
+            PipelineNodeSpec {
+                stage_id: "fastq.report_qc".to_string(),
+                stage_instance_id: Some("fastq.report_qc.multiqc".to_string()),
+            },
+        ],
+        vec![
+            PipelineEdgeSpec {
+                from: "fastq.detect_adapters.fastqc".to_string(),
+                to: "fastq.report_qc.multiqc".to_string(),
+                from_output_id: Some("adapter_evidence_dir".to_string()),
+                to_input_id: Some("qc_artifacts".to_string()),
+            },
+            PipelineEdgeSpec {
+                from: "fastq.profile_reads.seqkit_stats".to_string(),
+                to: "fastq.report_qc.multiqc".to_string(),
+                from_output_id: Some("qc_json".to_string()),
+                to_input_id: Some("qc_artifacts".to_string()),
+            },
+        ],
+    );
+
+    let plans = crate::plan_compose::compose_fastq_stage_bindings_with_dependencies(
+        &bindings,
+        &std::collections::BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        None,
+        Some(&stage_artifact_input_policy(&pipeline)),
+        None,
+        Some(&stage_dependency_policy(&pipeline)),
+        |binding, _r1, _r2| Ok(std::path::PathBuf::from("out").join(&binding.stage_id)),
+    )
+    .expect("compose plans");
+
+    let report_plan = plans
+        .iter()
+        .find(|plan| plan.stage_id.as_str() == "fastq.report_qc")
+        .expect("report_qc stage plan");
+
+    assert!(report_plan.io.inputs.iter().any(|artifact| {
+        artifact.name.as_str() == "fastq.detect_adapters.fastqc.adapter_evidence_dir"
+    }));
+    assert!(report_plan.io.inputs.iter().any(|artifact| {
+        artifact.name.as_str() == "fastq.profile_reads.seqkit_stats.qc_json"
+    }));
+    assert_eq!(
+        report_plan.params["qc_input_count"],
+        serde_json::json!(2)
+    );
+}
+
+#[test]
 fn stage_tool_capability_no_longer_treats_planned_bindings_as_plannable() {
     let capability = crate::stage_api::stage_tool_capability(
         &StageId::from_static("fastq.infer_asvs"),
