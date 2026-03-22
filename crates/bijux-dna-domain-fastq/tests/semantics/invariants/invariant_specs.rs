@@ -53,6 +53,12 @@ fn trim_metrics(read_retention: f64, mean_q_delta: f64) -> FastqTrimMetricsV1 {
             mean_q_delta,
             gc_delta: 0.0,
         },
+        paired_mode: None,
+        adapter_policy: None,
+        polyx_policy: None,
+        n_policy: None,
+        contaminant_policy: None,
+        raw_backend_report_format: None,
         retention: retention_metric(),
     }
 }
