@@ -82,6 +82,41 @@ fn parse_validate_reads_metrics(
     })
 }
 
+pub(crate) fn parse_profile_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("qc.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_profile_reads_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.profile_reads",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "threads": report.threads,
+                "reads_total": report.reads_total,
+                "bases_total": report.bases_total,
+                "mean_q": report.mean_q,
+                "gc_percent": report.gc_percent,
+                "length_histogram_bins": report.length_histogram.len(),
+                "length_histogram_source": report.length_histogram_source,
+                "mate_summary_count": report.mate_summaries.len(),
+                "qc_tsv": report.qc_tsv,
+                "qc_plots_dir": report.qc_plots_dir,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.profile_reads",
+        "tool": "report_missing",
+        "reads_total": serde_json::Value::Null,
+        "bases_total": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_terminal_damage_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -463,10 +498,10 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_remove_duplicates_metrics, parse_report_qc_metrics,
-        parse_screen_taxonomy_metrics, parse_trim_polyg_metrics, parse_trim_reads_metrics,
-        parse_trim_terminal_damage_metrics, parse_validate_reads_metrics, required_metrics_keys,
-        workspace_root_path,
+        fastq_backend_allowlist, parse_profile_reads_metrics, parse_remove_duplicates_metrics,
+        parse_report_qc_metrics, parse_screen_taxonomy_metrics, parse_trim_polyg_metrics,
+        parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
+        parse_validate_reads_metrics, required_metrics_keys, workspace_root_path,
     };
 
     fn env_lock() -> &'static Mutex<()> {
@@ -579,6 +614,21 @@ mod tests {
                 "failure_class",
                 "strict_pass",
                 "exit_code",
+            ]
+        );
+    }
+
+    #[test]
+    fn profile_reads_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.profile_reads"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "reads_total",
+                "bases_total",
+                "length_histogram_bins",
             ]
         );
     }
@@ -702,6 +752,64 @@ mod tests {
             serde_json::json!("explicit_terminal_trim")
         );
         assert_eq!(metrics["ct_ga_asymmetry_post"], serde_json::json!(0.11));
+    }
+
+    #[test]
+    fn profile_reads_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("qc.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.profile_reads.report.v2",
+                "stage": "fastq.profile_reads",
+                "stage_id": "fastq.profile_reads",
+                "tool_id": "seqkit_stats",
+                "paired_mode": "paired_end",
+                "threads": 6,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "qc_json": "qc.json",
+                "qc_tsv": "qc.tsv",
+                "qc_plots_dir": "plots",
+                "length_histogram_source": "seqkit_fx2tab",
+                "reads_total": 200,
+                "bases_total": 20000,
+                "mean_q": 31.2,
+                "gc_percent": 42.1,
+                "length_histogram": [
+                    {"length": 100, "count": 180},
+                    {"length": 101, "count": 20}
+                ],
+                "mate_summaries": [
+                    {"label": "reads_r1", "reads": 100, "bases": 10000, "mean_q": 31.0, "gc_percent": 41.9},
+                    {"label": "reads_r2", "reads": 100, "bases": 10000, "mean_q": 31.4, "gc_percent": 42.3}
+                ],
+                "runtime_s": 1.5,
+                "memory_mb": 20.0,
+                "exit_code": 0,
+                "raw_backend_report": "qc.tsv",
+                "raw_backend_report_format": "seqkit_stats_tsv",
+                "backend_metrics": [
+                    {"schema_version": "bijux.seqkit.metrics.v1", "reads": 100, "bases": 10000, "mean_q": 31.0, "gc_percent": 41.9},
+                    {"schema_version": "bijux.seqkit.metrics.v1", "reads": 100, "bases": 10000, "mean_q": 31.4, "gc_percent": 42.3}
+                ]
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_profile_reads_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("seqkit_stats"));
+        assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
+        assert_eq!(metrics["threads"], serde_json::json!(6));
+        assert_eq!(metrics["reads_total"], serde_json::json!(200));
+        assert_eq!(metrics["length_histogram_bins"], serde_json::json!(2));
+        assert_eq!(metrics["mate_summary_count"], serde_json::json!(2));
+        assert_eq!(
+            metrics["raw_backend_report_format"],
+            serde_json::json!("seqkit_stats_tsv")
+        );
     }
 
     #[test]
@@ -1065,6 +1173,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
         "fastq.filter_low_complexity" => {
             &["schema_version", "stage", "tool", "low_complexity_removed"]
         }
+        "fastq.profile_reads" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "reads_total",
+            "bases_total",
+            "length_histogram_bins",
+        ],
         "fastq.trim_polyg_tails" => &[
             "schema_version",
             "stage",
