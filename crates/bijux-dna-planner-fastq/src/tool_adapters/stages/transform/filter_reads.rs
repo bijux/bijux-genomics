@@ -41,12 +41,16 @@ pub fn plan_filter(
 ) -> Result<StagePlanV1> {
     let output_name =
         filter_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported filter tool"))?;
+    ensure_filter_option_support(&tool.tool_id.0, options)?;
     let output_r1 = if r2.is_some() {
         out_dir.join(format!("R1.{output_name}"))
     } else {
         out_dir.join(output_name)
     };
     let output_r2 = r2.map(|_| out_dir.join(format!("R2.{output_name}")));
+    let report_json = out_dir.join("filter_report.json");
+    let (raw_backend_report, raw_backend_report_format) =
+        raw_backend_report_contract(&tool.tool_id.0, out_dir);
     let kmer_ref = options
         .kmer_ref
         .clone()
@@ -92,8 +96,22 @@ pub fn plan_filter(
             ArtifactRole::Reads,
         ));
     }
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("report_json"),
+        report_json.clone(),
+        ArtifactRole::ReportJson,
+    ));
     let command_template =
-        filter_command_template(tool, r1, r2, &output_r1, output_r2.as_deref(), options)?;
+        filter_command_template(
+            tool,
+            r1,
+            r2,
+            &output_r1,
+            output_r2.as_deref(),
+            &report_json,
+            raw_backend_report.as_deref(),
+            options,
+        )?;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -116,6 +134,9 @@ pub fn plan_filter(
             "input_r2": r2,
             "output_r1": output_r1,
             "output_r2": output_r2,
+            "report_json": report_json,
+            "raw_backend_report": raw_backend_report,
+            "raw_backend_report_format": raw_backend_report_format,
             "max_n": options.max_n,
             "max_n_fraction": options.max_n_fraction,
             "max_n_count": options.max_n_count,
@@ -138,19 +159,11 @@ fn filter_command_template(
     r2: Option<&Path>,
     output_r1: &Path,
     output_r2: Option<&Path>,
+    report_json: &Path,
+    raw_backend_report: Option<&Path>,
     options: &FilterPlanOptions,
 ) -> Result<Vec<String>> {
     if tool.tool_id.as_str() == "fastp" {
-        if options.kmer_ref.is_some() {
-            return Err(anyhow!(
-                "fastp filter planning does not support contaminant k-mer reference filtering"
-            ));
-        }
-        if options.max_n_fraction.is_some() {
-            return Err(anyhow!(
-                "fastp filter planning does not support max_n_fraction without a count translation"
-            ));
-        }
         let mut command = vec![
             "fastp".to_string(),
             "--in1".to_string(),
@@ -160,6 +173,12 @@ fn filter_command_template(
             "--thread".to_string(),
             tool.resources.threads.to_string(),
         ];
+        if let Some(raw_backend_report) = raw_backend_report {
+            command.extend([
+                "--json".to_string(),
+                raw_backend_report.display().to_string(),
+            ]);
+        }
         if let Some(limit) = options.max_n_count.or(options.max_n) {
             command.extend(["--n_base_limit".to_string(), limit.to_string()]);
         }
@@ -192,6 +211,12 @@ fn filter_command_template(
                 "filtered_reads_r2",
                 output_r2.map(|path| path.display().to_string()),
             ),
+            ("report_json", Some(report_json.display().to_string())),
+            ("filter_report_json", Some(report_json.display().to_string())),
+            (
+                "raw_backend_report",
+                raw_backend_report.map(|path| path.display().to_string()),
+            ),
             ("trimmed_reads", Some(output_r1.display().to_string())),
             ("trimmed_reads_r1", Some(output_r1.display().to_string())),
             (
@@ -210,6 +235,36 @@ fn filter_output_name(tool: &str) -> Option<&'static str> {
         "bbduk" => Some("bbduk.fastq.gz"),
         _ => None,
     }
+}
+
+fn raw_backend_report_contract(tool: &str, out_dir: &Path) -> (Option<PathBuf>, Option<&'static str>) {
+    match tool {
+        "fastp" => (
+            Some(out_dir.join("fastp.filter.json")),
+            Some("fastp_json"),
+        ),
+        "bbduk" => (
+            Some(out_dir.join("bbduk.filter.stats")),
+            Some("bbduk_stats"),
+        ),
+        _ => (None, None),
+    }
+}
+
+fn ensure_filter_option_support(tool_id: &str, options: &FilterPlanOptions) -> Result<()> {
+    if tool_id == "fastp" {
+        if options.kmer_ref.is_some() {
+            return Err(anyhow!(
+                "fastp filter planning does not support contaminant k-mer reference filtering"
+            ));
+        }
+        if options.max_n_fraction.is_some() {
+            return Err(anyhow!(
+                "fastp filter planning does not support max_n_fraction without a count translation"
+            ));
+        }
+    }
+    Ok(())
 }
 
 pub fn default_kmer_ref() -> Option<PathBuf> {
