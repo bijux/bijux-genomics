@@ -12,6 +12,7 @@
 pub mod banks;
 pub mod bench_repository;
 mod comparison_contract;
+mod deplete_host_artifacts;
 mod deplete_reference_contaminants_artifacts;
 mod deplete_rrna_artifacts;
 mod detect_adapters_artifacts;
@@ -117,6 +118,7 @@ pub use execution_support::{
     ExecutionStatus, StageExecutionSupport,
 };
 pub use deplete_rrna_artifacts::{DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION};
+pub use deplete_host_artifacts::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
 pub use deplete_reference_contaminants_artifacts::{
     DepleteReferenceContaminantsReportV1,
     DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
