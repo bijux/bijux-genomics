@@ -15,6 +15,7 @@ mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
 pub mod id_catalog;
+mod infer_asvs_artifacts;
 mod integration_matrix;
 pub mod invariants;
 pub mod metrics;
@@ -108,6 +109,7 @@ pub use execution_support::{
     default_tool_for_stage as default_execution_tool_for_stage, execution_support_for_stage,
     ExecutionStatus, StageExecutionSupport,
 };
+pub use infer_asvs_artifacts::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
 pub use id_catalog::{
     FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
 };
