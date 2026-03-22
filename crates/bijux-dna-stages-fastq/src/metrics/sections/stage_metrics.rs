@@ -687,27 +687,63 @@ pub fn stage_metrics_for_plan(
             }
         }
         id_catalog::FASTQ_CORRECT => {
-            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
-            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
-            let output = if outputs.is_empty() {
-                input
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("correct_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_correct_errors_report(&raw).ok());
+            if let Some(report) = governed_report {
+                let reads_in = report.reads_in.unwrap_or(0);
+                let reads_out = report.reads_out.unwrap_or(reads_in);
+                let bases_in = report.bases_in.unwrap_or(0);
+                let bases_out = report.bases_out.unwrap_or(bases_in);
+                let reads_corrected = report.corrected_reads.unwrap_or(reads_out);
+                let bases_corrected = report.bases_out.unwrap_or(bases_out);
+                serde_json::to_value(FastqCorrectMetricsV1 {
+                    reads_in,
+                    reads_out,
+                    bases_in,
+                    bases_out,
+                    pairs_in: report.pairs_in,
+                    pairs_out: report.pairs_out,
+                    reads_corrected,
+                    reads_uncorrected: reads_in.saturating_sub(reads_corrected),
+                    bases_corrected,
+                    bases_uncorrected: bases_in.saturating_sub(bases_corrected),
+                })?
             } else {
-                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
-                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
-            };
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-            serde_json::to_value(FastqCorrectMetricsV1 {
-                reads_in: input.reads,
-                reads_out: output.reads,
-                bases_in: input.bases,
-                bases_out: output.bases,
-                pairs_in,
-                pairs_out,
-                reads_corrected: output.reads,
-                reads_uncorrected: input.reads.saturating_sub(output.reads),
-                bases_corrected: output.bases,
-                bases_uncorrected: input.bases.saturating_sub(output.bases),
-            })?
+                let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+                let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+                let output = if outputs.is_empty() {
+                    input
+                } else {
+                    let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                    stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
+                };
+                let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+                serde_json::to_value(FastqCorrectMetricsV1 {
+                    reads_in: input.reads,
+                    reads_out: output.reads,
+                    bases_in: input.bases,
+                    bases_out: output.bases,
+                    pairs_in,
+                    pairs_out,
+                    reads_corrected: output.reads,
+                    reads_uncorrected: input.reads.saturating_sub(output.reads),
+                    bases_corrected: output.bases,
+                    bases_uncorrected: input.bases.saturating_sub(output.bases),
+                })?
+            }
         }
         id_catalog::FASTQ_UMI => {
             let parsed_report = std::fs::read_to_string(plan.out_dir.join("umi_report.json"))
