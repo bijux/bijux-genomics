@@ -56,6 +56,10 @@ fn detect_adapters_manifest_accepts_optional_read_two() -> Result<()> {
         "detect_adapters manifest must expose the governed adapter evidence directory"
     );
     assert!(
+        output_names.contains(&"report_json"),
+        "detect_adapters manifest must expose the canonical governed report_json output"
+    );
+    assert!(
         allowed_missingness.contains(&"adapter_evidence_dir"),
         "detect_adapters manifest must allow missing adapter_evidence_dir when only the normalized report is materialized"
     );

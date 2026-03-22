@@ -76,6 +76,7 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
             "taxonomy_ready_fastq",
         ],
         "fastq.index_reference" => &["report_json", "reference_index"],
+        "fastq.detect_adapters" => &["report_json", "adapter_evidence_dir"],
         "fastq.normalize_abundance" => &["report_json", "normalized_abundance_tsv"],
         "fastq.extract_umis" => &["report_json", "umi_reads_r1", "umi_reads_r2"],
         "fastq.remove_duplicates" => &[
