@@ -84,19 +84,16 @@ pub fn plan(
         effective_params: serde_json::to_value(ChimeraDetectionEffectiveParams {
             method: "vsearch_uchime_denovo".to_string(),
             detection_scope: "denovo".to_string(),
+            input_layout: "single_stream".to_string(),
+            report_artifact: "report_json".to_string(),
+            metrics_artifact: "chimera_metrics_json".to_string(),
             chimera_sequence_artifact: "chimeras_fasta".to_string(),
+            raw_backend_report_artifact: "uchime_report_tsv".to_string(),
+            raw_backend_report_format: "vsearch_uchime_tsv".to_string(),
             chimera_removed_definition:
                 "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
                     .to_string(),
-        })
-        .map(|mut value| {
-            if let Some(object) = value.as_object_mut() {
-                object.insert(
-                    "input_layout".to_string(),
-                    serde_json::Value::String("single_stream".to_string()),
-                );
-            }
-            value
+            fallback_behavior: "copy_input_reads_and_mark_report".to_string(),
         })
         .map_err(|error| anyhow!("serialize chimera effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
