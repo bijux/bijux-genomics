@@ -61,6 +61,38 @@ fn emit_fastq_stage_extra_artifacts(
                 "top_taxa": governed.as_ref().map(|report| report.top_taxa.clone()),
             }))
         }
+        "fastq.report_qc" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str())
+                        == Some("report_qc_report.json")
+                })
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("report_qc_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_report_qc_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.report_qc.extra_artifacts.v2",
+                "stage": stage_id,
+                "aggregation_engine": governed.as_ref().map(|report| report.aggregation_engine),
+                "aggregation_scope": governed.as_ref().map(|report| report.aggregation_scope),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "governed_qc_input_count": governed.as_ref().map(|report| report.governed_qc_input_count),
+                "governed_qc_contributor_stage_ids": governed.as_ref().map(|report| report.governed_qc_contributor_stage_ids.clone()),
+                "governed_qc_contributor_tool_ids": governed.as_ref().map(|report| report.governed_qc_contributor_tool_ids.clone()),
+                "governed_qc_lineage_hash": governed.as_ref().and_then(|report| report.governed_qc_lineage_hash.clone()),
+                "multiqc_sample_count": governed.as_ref().and_then(|report| report.multiqc_sample_count),
+                "multiqc_module_count": governed.as_ref().and_then(|report| report.multiqc_module_count),
+                "raw_fastqc_dir": governed.as_ref().and_then(|report| report.raw_fastqc_dir.clone()),
+                "trimmed_fastqc_dir": governed.as_ref().and_then(|report| report.trimmed_fastqc_dir.clone()),
+                "multiqc_report": governed.as_ref().and_then(|report| report.multiqc_report.clone()),
+                "multiqc_data": governed.as_ref().and_then(|report| report.multiqc_data.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.deplete_reference_contaminants" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.deplete_reference_contaminants.v1",
             "stage": stage_id,
@@ -232,13 +264,7 @@ fn write_stage_standardized_metrics(
             "report_tsv": out_dir.join("qc.tsv"),
             "plots_dir": out_dir.join("plots"),
         }),
-        "fastq.report_qc" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["qc_modules", "warnings", "failures"],
-            "report_html": out_dir.join("multiqc_report.html"),
-            "report_data_dir": out_dir.join("multiqc_data"),
-        }),
+        "fastq.report_qc" => parse_report_qc_metrics(out_dir),
         "fastq.normalize_primers" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
