@@ -677,57 +677,105 @@ pub fn stage_metrics_for_plan(
             })?
         }
         id_catalog::FASTQ_UMI => {
-            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
-            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
-            let output = if outputs.is_empty() {
-                input
+            let parsed_report = std::fs::read_to_string(plan.out_dir.join("umi_report.json"))
+                .ok()
+                .and_then(|raw| crate::observer::parse_extract_umis_report(&raw).ok());
+            if let Some(report) = parsed_report {
+                let read_retention = if report.reads_in > 0 {
+                    f64_from_u64(report.reads_out) / f64_from_u64(report.reads_in)
+                } else {
+                    0.0
+                };
+                let base_retention = if report.bases_in > 0 {
+                    f64_from_u64(report.bases_out) / f64_from_u64(report.bases_in)
+                } else {
+                    0.0
+                };
+                let delta = FastqDeltaMetricsV1 {
+                    read_retention,
+                    base_retention,
+                    mean_q_delta: report.mean_q_after - report.mean_q_before,
+                    gc_delta: 0.0,
+                };
+                let retention = RetentionReportMetricV1 {
+                    value: read_retention,
+                    numerator_reads: report.reads_out,
+                    denominator_reads: report.reads_in,
+                    numerator_bases: report.bases_out,
+                    denominator_bases: report.bases_in,
+                    definition: "reads_out / reads_in".to_string(),
+                    stage_boundary: plan.stage_id.to_string(),
+                    conditions: retention_conditions_from_effective(
+                        &plan.stage_id,
+                        &plan.effective_params,
+                        &plan.params,
+                    ),
+                };
+                serde_json::to_value(FastqUmiMetricsV1 {
+                    reads_in: report.reads_in,
+                    reads_out: report.reads_out,
+                    bases_in: report.bases_in,
+                    bases_out: report.bases_out,
+                    pairs_in: report.pairs_in,
+                    pairs_out: report.pairs_out,
+                    mean_q_before: report.mean_q_before,
+                    mean_q_after: report.mean_q_after,
+                    delta_metrics: delta,
+                    retention,
+                })?
             } else {
-                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
-                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
-            };
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-            let read_retention = if input.reads > 0 {
-                f64_from_u64(output.reads) / f64_from_u64(input.reads)
-            } else {
-                0.0
-            };
-            let base_retention = if input.bases > 0 {
-                f64_from_u64(output.bases) / f64_from_u64(input.bases)
-            } else {
-                0.0
-            };
-            let delta = FastqDeltaMetricsV1 {
-                read_retention,
-                base_retention,
-                mean_q_delta: output.mean_q - input.mean_q,
-                gc_delta: output.gc_percent - input.gc_percent,
-            };
-            let retention = RetentionReportMetricV1 {
-                value: read_retention,
-                numerator_reads: output.reads,
-                denominator_reads: input.reads,
-                numerator_bases: output.bases,
-                denominator_bases: input.bases,
-                definition: "reads_out / reads_in".to_string(),
-                stage_boundary: plan.stage_id.to_string(),
-                conditions: retention_conditions_from_effective(
-                    &plan.stage_id,
-                    &plan.effective_params,
-                    &plan.params,
-                ),
-            };
-            serde_json::to_value(FastqUmiMetricsV1 {
-                reads_in: input.reads,
-                reads_out: output.reads,
-                bases_in: input.bases,
-                bases_out: output.bases,
-                pairs_in,
-                pairs_out,
-                mean_q_before: input.mean_q,
-                mean_q_after: output.mean_q,
-                delta_metrics: delta,
-                retention,
-            })?
+                let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+                let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+                let output = if outputs.is_empty() {
+                    input
+                } else {
+                    let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                    stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
+                };
+                let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+                let read_retention = if input.reads > 0 {
+                    f64_from_u64(output.reads) / f64_from_u64(input.reads)
+                } else {
+                    0.0
+                };
+                let base_retention = if input.bases > 0 {
+                    f64_from_u64(output.bases) / f64_from_u64(input.bases)
+                } else {
+                    0.0
+                };
+                let delta = FastqDeltaMetricsV1 {
+                    read_retention,
+                    base_retention,
+                    mean_q_delta: output.mean_q - input.mean_q,
+                    gc_delta: output.gc_percent - input.gc_percent,
+                };
+                let retention = RetentionReportMetricV1 {
+                    value: read_retention,
+                    numerator_reads: output.reads,
+                    denominator_reads: input.reads,
+                    numerator_bases: output.bases,
+                    denominator_bases: input.bases,
+                    definition: "reads_out / reads_in".to_string(),
+                    stage_boundary: plan.stage_id.to_string(),
+                    conditions: retention_conditions_from_effective(
+                        &plan.stage_id,
+                        &plan.effective_params,
+                        &plan.params,
+                    ),
+                };
+                serde_json::to_value(FastqUmiMetricsV1 {
+                    reads_in: input.reads,
+                    reads_out: output.reads,
+                    bases_in: input.bases,
+                    bases_out: output.bases,
+                    pairs_in,
+                    pairs_out,
+                    mean_q_before: input.mean_q,
+                    mean_q_after: output.mean_q,
+                    delta_metrics: delta,
+                    retention,
+                })?
+            }
         }
         id_catalog::FASTQ_PREPROCESS => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
