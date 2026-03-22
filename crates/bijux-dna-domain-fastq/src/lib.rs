@@ -22,6 +22,7 @@ mod observer_contract;
 pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
+mod profile_overrepresented_artifacts;
 mod profile_reads_artifacts;
 mod profile_read_lengths_artifacts;
 mod qc_contract;
@@ -71,6 +72,10 @@ pub use comparison_contract::{
 pub use profile_reads_artifacts::{
     ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1, ProfileReadsReportV1,
     PROFILE_READS_REPORT_SCHEMA_VERSION,
+};
+pub use profile_overrepresented_artifacts::{
+    OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
+    PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
 };
 pub use profile_read_lengths_artifacts::{
     ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
