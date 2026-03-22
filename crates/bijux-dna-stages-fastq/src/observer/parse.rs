@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    DetectAdaptersReportV1,
     ExtractUmisReportV1,
     FilterLowComplexityReportV1,
     FilterReadsReportV1,
@@ -30,6 +31,10 @@ use bijux_dna_domain_fastq::{
     ValidatedReadsManifestV1, ValidationReportV1,
 };
 use bijux_dna_domain_fastq::DuplicateClassEntryV1;
+use bijux_dna_domain_fastq::params::{
+    detect_adapters::{AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode},
+    PairedMode,
+};
 
 /// # Errors
 /// Returns an error if stdout cannot be parsed.
@@ -221,6 +226,90 @@ pub fn parse_profile_overrepresented_report(
 /// Returns an error if the governed taxonomy-screen report JSON cannot be parsed.
 pub fn parse_screen_taxonomy_report(report_json: &str) -> Result<ScreenTaxonomyReportV1> {
     serde_json::from_str(report_json).context("parse screen taxonomy report")
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyDetectAdaptersReportV1 {
+    schema_version: String,
+    stage_id: String,
+    tool_id: String,
+    inspection_mode: String,
+    report_only: bool,
+    evidence_engine: String,
+    input_fastq: String,
+    paired_input: bool,
+    candidate_adapter_count: u64,
+    adapter_trimmed_fraction: Option<f64>,
+    fastqc_dir: String,
+    runtime_s: Option<f64>,
+    memory_mb: Option<f64>,
+    exit_code: Option<i32>,
+}
+
+fn parse_legacy_detect_adapters_report(report_json: &str) -> Result<DetectAdaptersReportV1> {
+    let legacy: LegacyDetectAdaptersReportV1 =
+        serde_json::from_str(report_json).context("parse legacy detect adapters report")?;
+    if legacy.schema_version != "bijux.fastq.detect_adapters.report.v1" {
+        return Err(anyhow!(
+            "unsupported detect adapters report schema {}",
+            legacy.schema_version
+        ));
+    }
+    let inspection_mode = match legacy.inspection_mode.as_str() {
+        "evidence_only" => AdapterInspectionMode::EvidenceOnly,
+        other => return Err(anyhow!("unsupported detect adapters inspection mode {other}")),
+    };
+    Ok(DetectAdaptersReportV1 {
+        schema_version: "bijux.fastq.detect_adapters.report.v2".to_string(),
+        stage: legacy.stage_id.clone(),
+        stage_id: legacy.stage_id,
+        tool_id: legacy.tool_id,
+        paired_mode: if legacy.paired_input {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        threads: 1,
+        inspection_mode,
+        report_only: legacy.report_only,
+        evidence_engine: legacy.evidence_engine,
+        evidence_scope: AdapterEvidenceScope::FullInput,
+        evidence_format: AdapterEvidenceFormat::FastqcSummary,
+        evidence_artifact_id: "report_json".to_string(),
+        input_r1: legacy.input_fastq,
+        input_r2: None,
+        report_json: "adapter_report.json".to_string(),
+        adapter_evidence_dir: legacy.fastqc_dir,
+        reads_in: 0,
+        reads_out: 0,
+        bases_in: 0,
+        bases_out: 0,
+        pairs_in: None,
+        pairs_out: None,
+        mean_q: 0.0,
+        candidate_adapter_count: legacy.candidate_adapter_count,
+        adapter_trimmed_fraction: legacy.adapter_trimmed_fraction,
+        adapter_content_max: None,
+        adapter_content_mean: None,
+        duplication_rate: None,
+        n_rate: None,
+        kmer_warning_count: None,
+        overrepresented_sequence_count: None,
+        runtime_s: legacy.runtime_s,
+        memory_mb: legacy.memory_mb,
+        exit_code: legacy.exit_code,
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+    })
+}
+
+/// # Errors
+/// Returns an error if the detect-adapters report cannot be parsed.
+pub fn parse_detect_adapters_report(report_json: &str) -> Result<DetectAdaptersReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_detect_adapters_report(report_json))
+        .context("parse detect adapters report")
 }
 
 /// # Errors
@@ -1004,6 +1093,7 @@ fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
 mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
+        parse_detect_adapters_report,
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
         parse_extract_umis_report,
         parse_filter_low_complexity_report,
@@ -1256,6 +1346,55 @@ mod tests {
         assert_eq!(parsed.threads, 8);
         assert_eq!(parsed.top_taxa.len(), 1);
         assert_eq!(parsed.top_taxa[0].label, "bacteria");
+        Ok(())
+    }
+
+    #[test]
+    fn parse_detect_adapters_report_round_trips_governed_payload() -> Result<()> {
+        let parsed = parse_detect_adapters_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.detect_adapters.report.v2",
+                "stage": "fastq.detect_adapters",
+                "stage_id": "fastq.detect_adapters",
+                "tool_id": "fastqc",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "inspection_mode": "evidence_only",
+                "report_only": true,
+                "evidence_engine": "fastqc",
+                "evidence_scope": "full_input",
+                "evidence_format": "fastqc_summary",
+                "evidence_artifact_id": "report_json",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "report_json": "adapter_report.json",
+                "adapter_evidence_dir": "fastqc",
+                "reads_in": 200_u64,
+                "reads_out": 200_u64,
+                "bases_in": 20_000_u64,
+                "bases_out": 20_000_u64,
+                "pairs_in": 100_u64,
+                "pairs_out": 100_u64,
+                "mean_q": 31.2,
+                "candidate_adapter_count": 2_u64,
+                "adapter_trimmed_fraction": 0.08,
+                "adapter_content_max": 12.5,
+                "adapter_content_mean": 3.2,
+                "duplication_rate": 0.15,
+                "n_rate": 0.001,
+                "kmer_warning_count": 4_u64,
+                "overrepresented_sequence_count": 3_u64,
+                "runtime_s": 4.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "fastqc/fastqc_data.txt",
+                "raw_backend_report_format": "fastqc_data_txt"
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "fastqc");
+        assert_eq!(parsed.candidate_adapter_count, 2);
+        assert_eq!(parsed.threads, 4);
         Ok(())
     }
 
