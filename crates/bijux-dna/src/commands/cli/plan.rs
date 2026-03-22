@@ -195,6 +195,8 @@ pub fn bench_args_trim_terminal_damage(
 pub fn bench_args_validate(
     args: &BenchFastqValidateArgs,
 ) -> Result<engine_args::BenchFastqValidateArgs> {
+    let (strict, validation_mode) =
+        normalize_validate_failure_flags(args.strict, args.validation_mode.as_deref())?;
     Ok(engine_args::BenchFastqValidateArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
@@ -202,12 +204,12 @@ pub fn bench_args_validate(
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.validate_reads", &args.tools)?,
         explain: args.explain,
-        strict: args.strict,
+        strict,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
         threads: args.threads,
-        validation_mode: args.validation_mode.clone(),
+        validation_mode,
         pair_sync_policy: args.pair_sync_policy.clone(),
     })
 }
@@ -785,7 +787,7 @@ mod tests {
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: Some(PathBuf::from("out")),
             tools: vec!["fastqvalidator".to_string()],
-            strict: true,
+            strict: false,
             threads: Some(6),
             validation_mode: Some("report_only".to_string()),
             pair_sync_policy: Some("skip_header_sync".to_string()),
@@ -795,7 +797,28 @@ mod tests {
         assert_eq!(bench.threads, Some(6));
         assert_eq!(bench.validation_mode.as_deref(), Some("report_only"));
         assert_eq!(bench.pair_sync_policy.as_deref(), Some("skip_header_sync"));
-        assert!(bench.strict);
+        assert!(!bench.strict);
+    }
+
+    #[test]
+    fn validate_bench_args_reject_conflicting_strict_report_only_flags() {
+        let args = FastqValidateArgs {
+            common: CommonArgs::default(),
+            sample_id: Some("sample".to_string()),
+            r1: Some(PathBuf::from("reads_R1.fastq.gz")),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: Some(PathBuf::from("out")),
+            tools: vec!["fastqvalidator".to_string()],
+            strict: true,
+            threads: Some(6),
+            validation_mode: Some("report_only".to_string()),
+            pair_sync_policy: Some("skip_header_sync".to_string()),
+        };
+
+        let error = bench_args_from_validate(&args).expect_err("conflicting flags must fail");
+        assert!(error
+            .to_string()
+            .contains("--strict conflicts with --validation-mode report_only"));
     }
 }
 
@@ -842,6 +865,8 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
 pub fn bench_args_from_validate(
     args: &FastqValidateArgs,
 ) -> Result<engine_args::BenchFastqValidateArgs> {
+    let (strict, validation_mode) =
+        normalize_validate_failure_flags(args.strict, args.validation_mode.as_deref())?;
     Ok(engine_args::BenchFastqValidateArgs {
         sample_id: args
             .sample_id
@@ -858,14 +883,37 @@ pub fn bench_args_from_validate(
             .ok_or_else(|| anyhow::anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
         explain: false,
-        strict: args.strict,
+        strict,
         replicates: 1,
         jobs: 1,
         ci_bootstrap: None,
         threads: args.threads,
-        validation_mode: args.validation_mode.clone(),
+        validation_mode,
         pair_sync_policy: args.pair_sync_policy.clone(),
     })
+}
+
+fn normalize_validate_failure_flags(
+    strict: bool,
+    validation_mode: Option<&str>,
+) -> Result<(bool, Option<String>)> {
+    let Some(validation_mode) = validation_mode else {
+        return Ok((strict, None));
+    };
+    let normalized = validation_mode.trim().to_ascii_lowercase();
+    match normalized.as_str() {
+        "strict" => Ok((true, Some(normalized))),
+        "report_only" => {
+            if strict {
+                Err(anyhow::anyhow!(
+                    "--strict conflicts with --validation-mode report_only for fastq.validate_reads"
+                ))
+            } else {
+                Ok((false, Some(normalized)))
+            }
+        }
+        _ => Ok((strict, Some(validation_mode.to_string()))),
+    }
 }
 
 /// # Errors
