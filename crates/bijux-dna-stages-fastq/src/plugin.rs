@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
+    parse_filter_low_complexity_report,
     parse_filter_reads_report,
     parse_index_reference_report,
     parse_infer_asvs_report, parse_merge_pairs_report, parse_multiqc_general_stats_metrics,
@@ -780,6 +781,63 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                                 }
                                 _ => {}
                             }
+                        }
+                    }
+                    return serde_json::Value::Object(semantics);
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.filter_low_complexity" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "filter_report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_filter_low_complexity_report(&raw_report) {
+                    let mut semantics = serde_json::Map::from_iter([
+                        (
+                            "paired_mode".to_string(),
+                            serde_json::json!(report.paired_mode),
+                        ),
+                        ("threads".to_string(), serde_json::json!(report.threads)),
+                        (
+                            "entropy_threshold".to_string(),
+                            serde_json::json!(report.entropy_threshold),
+                        ),
+                        (
+                            "polyx_threshold".to_string(),
+                            serde_json::json!(report.polyx_threshold),
+                        ),
+                        ("reads_in".to_string(), serde_json::json!(report.reads_in)),
+                        ("reads_out".to_string(), serde_json::json!(report.reads_out)),
+                        (
+                            "reads_removed_low_complexity".to_string(),
+                            serde_json::json!(report.reads_removed_low_complexity),
+                        ),
+                        ("bases_in".to_string(), serde_json::json!(report.bases_in)),
+                        ("bases_out".to_string(), serde_json::json!(report.bases_out)),
+                        (
+                            "mean_q_before".to_string(),
+                            serde_json::json!(report.mean_q_before),
+                        ),
+                        (
+                            "mean_q_after".to_string(),
+                            serde_json::json!(report.mean_q_after),
+                        ),
+                        (
+                            "raw_backend_report_format".to_string(),
+                            serde_json::json!(report.raw_backend_report_format),
+                        ),
+                    ]);
+                    if let Some(backend_metrics) = report
+                        .backend_metrics
+                        .as_ref()
+                        .and_then(serde_json::Value::as_object)
+                    {
+                        for (metric_name, metric_value) in backend_metrics {
+                            semantics.insert(metric_name.clone(), metric_value.clone());
                         }
                     }
                     return serde_json::Value::Object(semantics);
@@ -1908,6 +1966,81 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["passed_filter_reads"],
             serde_json::json!(95_u64)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_low_complexity_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let filtered_reads_path = temp.path().join("filtered.fastq");
+        let report_path = temp.path().join("low_complexity_report.json");
+        std::fs::write(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
+        std::fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.filter_low_complexity.report.v2",
+                "stage": "fastq.filter_low_complexity",
+                "stage_id": "fastq.filter_low_complexity",
+                "tool_id": "bbduk",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "filtered.fastq.gz",
+                "output_r2": null,
+                "report_json": "low_complexity_report.json",
+                "entropy_threshold": 0.5,
+                "polyx_threshold": 20,
+                "reads_in": 100,
+                "reads_out": 92,
+                "reads_removed_low_complexity": 8,
+                "bases_in": 1000,
+                "bases_out": 910,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.0,
+                "runtime_s": 1.1,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bbduk.low_complexity.stats",
+                "raw_backend_report_format": "bbduk_stats",
+                "backend_metrics": {
+                    "reads_removed_reported": 8
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = plan_fixture(
+            "fastq.filter_low_complexity",
+            "bbduk",
+            vec![
+                ("reads_r1", &reads_path),
+                ("filtered_fastq_r1", &filtered_reads_path),
+                ("filter_report_json", &report_path),
+            ],
+        );
+        let outputs = plan.io.outputs.clone();
+
+        let output = plugin.parse_outputs(&plan, &outputs).expect("parse outputs");
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["reads_removed_low_complexity"],
+            serde_json::json!(8_u64)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["polyx_threshold"],
+            serde_json::json!(20)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["reads_removed_reported"],
+            serde_json::json!(8)
         );
     }
 
