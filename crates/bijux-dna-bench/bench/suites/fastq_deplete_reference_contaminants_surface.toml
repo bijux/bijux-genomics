@@ -1,0 +1,64 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_deplete_reference_contaminants_surface"
+
+[[datasets]]
+id = "synthetic_fastq_reference_contaminant_surface_01"
+hash = "fixture-fastq-reference-contaminant-surface-01"
+size = 1
+origin = "synthetic"
+class_label = "contaminant_background"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [841, 842]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["contaminant_background"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.reference_contaminant_surface"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.index_reference"
+stage_instance_id = "fastq.index_reference.reference_contaminant_surface"
+tools = ["bowtie2_build"]
+
+[[stages]]
+stage = "fastq.deplete_reference_contaminants"
+stage_instance_id = "fastq.deplete_reference_contaminants.reference_contaminant_surface"
+tools = ["bowtie2"]
+upstream_stage_instance_ids = [
+  "fastq.validate_reads.reference_contaminant_surface",
+  "fastq.index_reference.reference_contaminant_surface",
+]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.deplete_reference_contaminants.reference_contaminant_surface"
+[stages.param_bindings.values]
+decoy_mode = "phix_and_spikeins"
+threads = 4
+
+[[edges]]
+from = "fastq.validate_reads.reference_contaminant_surface"
+to = "fastq.deplete_reference_contaminants.reference_contaminant_surface"
+
+[[edges]]
+from = "fastq.index_reference.reference_contaminant_surface"
+to = "fastq.deplete_reference_contaminants.reference_contaminant_surface"
+from_output_id = "reference_index"
+to_input_id = "reference_index"
