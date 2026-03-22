@@ -63,6 +63,7 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
             "overrepresented_sequences_json",
         ],
         "fastq.profile_reads" => &["qc_json", "qc_tsv"],
+        "fastq.screen_taxonomy" => &["classification_report_json", "screen_report_tsv"],
         "fastq.normalize_primers" => &[
             "report_json",
             "primer_orientation_report",
@@ -188,6 +189,19 @@ mod tests {
             vec![
                 "validation_report".to_string(),
                 "validated_reads_manifest".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn screen_taxonomy_comparison_inputs_prioritize_governed_classification_report() {
+        let artifact_ids =
+            comparison_input_artifact_ids_for_stage(&StageId::from_static("fastq.screen_taxonomy"));
+        assert_eq!(
+            artifact_ids,
+            vec![
+                "classification_report_json".to_string(),
+                "screen_report_tsv".to_string(),
             ]
         );
     }
