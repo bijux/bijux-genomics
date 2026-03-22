@@ -282,13 +282,7 @@ fn write_stage_standardized_metrics(
             "adapter_inference": parse_detect_adapters_metrics(out_dir).get("adapter_inference").cloned().unwrap_or_else(|| serde_json::json!({})),
         }),
         "fastq.profile_read_lengths" => parse_profile_read_lengths_metrics(out_dir),
-        "fastq.profile_overrepresented_sequences" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["sequence", "count", "fraction", "flag"],
-            "tsv_path": out_dir.join("overrepresented_sequences.tsv"),
-            "json_path": out_dir.join("overrepresented_sequences.json"),
-        }),
+        "fastq.profile_overrepresented_sequences" => parse_profile_overrepresented_metrics(out_dir),
         "fastq.trim_polyg_tails" => parse_trim_polyg_metrics(out_dir),
         "fastq.screen_taxonomy" => parse_screen_taxonomy_metrics(out_dir),
         "fastq.filter_low_complexity" => serde_json::json!({
