@@ -134,7 +134,8 @@ pub fn stage_metrics_for_plan(
                 mean_q_after: output.mean_q,
                 paired_mode: parsed_report
                     .as_ref()
-                    .map(|report| report.paired_mode.to_string()),
+                    .and_then(|report| serde_json::to_value(report.paired_mode).ok())
+                    .and_then(|value| value.as_str().map(ToString::to_string)),
                 dedup_mode: parsed_report.as_ref().map(|report| match &report.dedup_mode {
                     bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact => "exact".to_string(),
                     bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::SequenceIdentity => "sequence_identity".to_string(),
@@ -600,12 +601,28 @@ pub fn stage_metrics_for_plan(
                 bases_in,
                 bases_out,
                 pairs_in: governed_report.as_ref().and_then(|report| {
-                    (report.pairs_in > 0 || matches!(report.paired_mode, bijux_dna_domain_fastq::params::PairedMode::PairedEnd))
-                        .then_some(report.pairs_in)
+                    if report.pairs_in.is_some_and(|value| value > 0)
+                        || matches!(
+                            report.paired_mode,
+                            bijux_dna_domain_fastq::params::PairedMode::PairedEnd
+                        )
+                    {
+                        report.pairs_in
+                    } else {
+                        None
+                    }
                 }).or(pairs_in),
                 pairs_out: governed_report.as_ref().and_then(|report| {
-                    (report.pairs_out > 0 || matches!(report.paired_mode, bijux_dna_domain_fastq::params::PairedMode::PairedEnd))
-                        .then_some(report.pairs_out)
+                    if report.pairs_out.is_some_and(|value| value > 0)
+                        || matches!(
+                            report.paired_mode,
+                            bijux_dna_domain_fastq::params::PairedMode::PairedEnd
+                        )
+                    {
+                        report.pairs_out
+                    } else {
+                        None
+                    }
                 }).or(pairs_out),
                 mean_q: Some(mean_q_after),
                 mean_q_before,
@@ -618,10 +635,12 @@ pub fn stage_metrics_for_plan(
                     .or(Some(0.0)),
                 aggregation_engine: governed_report
                     .as_ref()
-                    .map(|report| report.aggregation_engine.to_string()),
+                    .and_then(|report| serde_json::to_value(report.aggregation_engine.clone()).ok())
+                    .and_then(|value| value.as_str().map(ToString::to_string)),
                 aggregation_scope: governed_report
                     .as_ref()
-                    .map(|report| report.aggregation_scope.to_string()),
+                    .and_then(|report| serde_json::to_value(report.aggregation_scope.clone()).ok())
+                    .and_then(|value| value.as_str().map(ToString::to_string)),
                 adapter_content_max,
                 adapter_content_mean,
                 duplication_rate,
