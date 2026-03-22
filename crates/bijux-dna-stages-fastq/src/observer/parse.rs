@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
     ProfileReadsReportV1, ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1,
     RemoveChimerasReportV1,
     RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1, ReportQcReportV1,
@@ -150,6 +151,14 @@ pub fn parse_profile_reads_report(report_json: &str) -> Result<ProfileReadsRepor
     serde_json::from_str(report_json)
         .or_else(|_| parse_legacy_profile_reads_report(report_json))
         .context("parse profile reads report")
+}
+
+/// # Errors
+/// Returns an error if the governed profile-read-lengths report JSON cannot be parsed.
+pub fn parse_profile_read_lengths_report(report_json: &str) -> Result<ProfileReadLengthsReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_profile_read_lengths_report(report_json))
+        .context("parse profile read lengths report")
 }
 
 /// # Errors
@@ -429,6 +438,73 @@ fn parse_legacy_profile_reads_report(report_json: &str) -> Result<ProfileReadsRe
     })
 }
 
+fn parse_legacy_profile_read_lengths_report(
+    report_json: &str,
+) -> Result<ProfileReadLengthsReportV1> {
+    let json = serde_json::from_str::<serde_json::Value>(report_json)
+        .context("parse legacy profile read lengths json")?;
+    let histogram = json
+        .get("histogram")
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| {
+            let read_length = entry
+                .get("read_length")
+                .and_then(serde_json::Value::as_u64)?;
+            let count = entry.get("count").and_then(serde_json::Value::as_u64)?;
+            Some(ProfileReadLengthBinV1 { read_length, count })
+        })
+        .collect::<Vec<_>>();
+    let read_count = histogram.iter().map(|bin| bin.count).sum::<u64>();
+    let total_length = histogram
+        .iter()
+        .map(|bin| bin.read_length.saturating_mul(bin.count))
+        .sum::<u64>();
+    let mean_read_length = if read_count == 0 {
+        0.0
+    } else {
+        total_length as f64 / read_count as f64
+    };
+    Ok(ProfileReadLengthsReportV1 {
+        schema_version: "bijux.fastq.profile_read_lengths.report.v1_legacy".to_string(),
+        stage: "fastq.profile_read_lengths".to_string(),
+        stage_id: "fastq.profile_read_lengths".to_string(),
+        tool_id: json
+            .get("tool_id")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown")
+            .to_string(),
+        paired_mode: match json.get("paired_mode").and_then(serde_json::Value::as_str) {
+            Some("paired_end") => bijux_dna_domain_fastq::PairedMode::PairedEnd,
+            _ => bijux_dna_domain_fastq::PairedMode::SingleEnd,
+        },
+        histogram_bins: u32::try_from(histogram.len()).unwrap_or(u32::MAX).max(1),
+        input_r1: String::new(),
+        input_r2: None,
+        length_distribution_tsv: String::new(),
+        length_distribution_json: String::new(),
+        report_json: String::new(),
+        read_count,
+        mean_read_length,
+        max_read_length: histogram
+            .iter()
+            .map(|bin| bin.read_length)
+            .max()
+            .unwrap_or(0),
+        distinct_lengths: histogram.len() as u64,
+        histogram,
+        runtime_s: json.get("runtime_s").and_then(serde_json::Value::as_f64),
+        memory_mb: json.get("memory_mb").and_then(serde_json::Value::as_f64),
+        exit_code: json
+            .get("exit_code")
+            .and_then(serde_json::Value::as_i64)
+            .and_then(|value| i32::try_from(value).ok()),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+    })
+}
+
 /// # Errors
 /// Returns an error if report JSON cannot be parsed.
 pub fn parse_low_complexity_report(report_json: &str) -> Result<u64> {
@@ -633,7 +709,8 @@ mod tests {
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
         parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
         parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
-        parse_profile_reads_report, parse_remove_chimeras_report,
+        parse_profile_read_lengths_report, parse_profile_reads_report,
+        parse_remove_chimeras_report,
         parse_remove_duplicates_report, parse_report_qc_report,
         parse_samtools_flagstat_metrics,
         parse_screen_summary_tsv, parse_screen_taxonomy_report, parse_seqkit_stats,
@@ -1189,6 +1266,59 @@ mod tests {
         assert_eq!(parsed.reads_total, 100);
         assert_eq!(parsed.tool_id, "unknown");
         assert_eq!(parsed.length_histogram[0].count, 100);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_profile_read_lengths_report_parses_governed_contract() -> Result<()> {
+        let parsed = parse_profile_read_lengths_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.profile_read_lengths.report.v2",
+                "stage": "fastq.profile_read_lengths",
+                "stage_id": "fastq.profile_read_lengths",
+                "tool_id": "seqkit_stats",
+                "paired_mode": "paired_end",
+                "histogram_bins": 64,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "length_distribution_tsv": "length_distribution.tsv",
+                "length_distribution_json": "length_distribution.json",
+                "report_json": "profile_read_lengths_report.json",
+                "read_count": 200,
+                "mean_read_length": 101.5,
+                "max_read_length": 150,
+                "distinct_lengths": 12,
+                "histogram": [{"read_length": 100, "count": 180}],
+                "runtime_s": 1.1,
+                "memory_mb": 16.0,
+                "exit_code": 0,
+                "raw_backend_report": "length_distribution.tsv",
+                "raw_backend_report_format": "seqkit_fx2tab_tsv"
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "seqkit_stats");
+        assert_eq!(parsed.histogram_bins, 64);
+        assert_eq!(parsed.read_count, 200);
+        assert_eq!(parsed.histogram.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_profile_read_lengths_report_accepts_legacy_histogram_payload() -> Result<()> {
+        let parsed = parse_profile_read_lengths_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.profile_read_lengths.v1",
+                "histogram": [
+                    {"read_length": 100, "count": 90},
+                    {"read_length": 101, "count": 10}
+                ]
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.read_count, 100);
+        assert_eq!(parsed.max_read_length, 101);
+        assert_eq!(parsed.distinct_lengths, 2);
         Ok(())
     }
 
