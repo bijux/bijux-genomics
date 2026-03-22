@@ -35,6 +35,14 @@ struct DuplicateReportCounts {
     reads_out: u64,
     duplicate_reads: u64,
     dedup_rate: f64,
+    tool: Option<String>,
+    paired_mode: Option<String>,
+    dedup_mode: Option<String>,
+    keep_order: Option<bool>,
+    pair_count_match: Option<bool>,
+    duplicate_class_count: Option<u64>,
+    duplicate_provenance_json: Option<String>,
+    raw_backend_report_format: Option<String>,
 }
 
 fn resolve_remove_duplicates_tools(
@@ -206,6 +214,14 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             reads_out: counts.reads_out,
             duplicate_reads: counts.duplicate_reads,
             dedup_rate: counts.dedup_rate,
+            tool: counts.tool.clone(),
+            paired_mode: counts.paired_mode.clone(),
+            dedup_mode: counts.dedup_mode.clone(),
+            keep_order: counts.keep_order,
+            pair_count_match: counts.pair_count_match,
+            duplicate_class_count: counts.duplicate_class_count,
+            duplicate_provenance_json: counts.duplicate_provenance_json.clone(),
+            raw_backend_report_format: counts.raw_backend_report_format.clone(),
         };
         let metric_set = metric_set(metrics);
         bijux_dna_infra::atomic_write_json(
@@ -267,6 +283,14 @@ fn deduplicate_report_counts(
         reads_out,
         duplicate_reads,
         dedup_rate,
+        tool: None,
+        paired_mode: None,
+        dedup_mode: None,
+        keep_order: None,
+        pair_count_match: None,
+        duplicate_class_count: None,
+        duplicate_provenance_json: None,
+        raw_backend_report_format: None,
     }
 }
 
@@ -277,18 +301,17 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
             report_path.display()
         )
     })?;
-    let (reads_in, reads_out) =
-        bijux_dna_stages_fastq::observer::parse_deduplicate_report(&raw).map_err(|error| {
+    let report = bijux_dna_stages_fastq::observer::parse_remove_duplicates_report(&raw).map_err(
+        |error| {
             anyhow!(
                 "parse governed remove-duplicates report {}: {error}",
                 report_path.display()
             )
-        })?;
-    let duplicate_reads = raw
-        .parse::<serde_json::Value>()
-        .ok()
-        .and_then(|value| value.get("duplicates_removed").and_then(serde_json::Value::as_u64))
-        .unwrap_or_else(|| reads_in.saturating_sub(reads_out));
+        },
+    )?;
+    let reads_in = report.reads_in;
+    let reads_out = report.reads_out;
+    let duplicate_reads = report.duplicates_removed;
     let derived_duplicate_reads = reads_in.saturating_sub(reads_out);
     if duplicate_reads != derived_duplicate_reads {
         return Err(anyhow!(
@@ -307,6 +330,14 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
         reads_out,
         duplicate_reads,
         dedup_rate,
+        tool: Some(report.tool_id),
+        paired_mode: Some(report.paired_mode.to_string()),
+        dedup_mode: Some(serde_json::to_string(&report.dedup_mode)?.trim_matches('"').to_string()),
+        keep_order: Some(report.keep_order),
+        pair_count_match: report.pair_count_match,
+        duplicate_class_count: Some(report.duplicate_classes.len() as u64),
+        duplicate_provenance_json: report.duplicate_provenance_json,
+        raw_backend_report_format: report.raw_backend_report_format,
     })
 }
 
@@ -395,6 +426,14 @@ mod tests {
                 reads_out: 140,
                 duplicate_reads: 60,
                 dedup_rate: 0.3,
+                tool: None,
+                paired_mode: None,
+                dedup_mode: None,
+                keep_order: None,
+                pair_count_match: None,
+                duplicate_class_count: None,
+                duplicate_provenance_json: None,
+                raw_backend_report_format: None,
             }
         );
     }
@@ -406,9 +445,35 @@ mod tests {
         std::fs::write(
             &report_path,
             serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "single_end",
+                "dedup_mode": "exact",
+                "keep_order": true,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "dedup.fastq.gz",
+                "output_r2": null,
                 "reads_in": 200,
                 "reads_out": 160,
-                "duplicates_removed": 40
+                "reads_in_r2": null,
+                "reads_out_r2": null,
+                "pairs_in": null,
+                "pairs_out": null,
+                "pair_count_match": null,
+                "duplicates_removed": 40,
+                "dedup_rate": 0.2,
+                "duplicate_classes_tsv": "duplicate_classes.tsv",
+                "duplicate_provenance_json": "duplicate_provenance.json",
+                "duplicate_classes": [
+                    {"class": "duplicate", "reads_removed": 40, "paired_mode": "single_end"}
+                ],
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log",
+                "runtime_s": null,
+                "memory_mb": null
             })
             .to_string(),
         )
@@ -420,6 +485,8 @@ mod tests {
         assert_eq!(counts.reads_out, 160);
         assert_eq!(counts.duplicate_reads, 40);
         assert_eq!(counts.dedup_rate, 0.2);
+        assert_eq!(counts.tool.as_deref(), Some("clumpify"));
+        assert_eq!(counts.duplicate_class_count, Some(1));
     }
 
     #[test]
