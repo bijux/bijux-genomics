@@ -49,6 +49,7 @@ pub fn plan_correct_with_options(
     let tool_id = tool.tool_id.to_string();
     normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
     validate_correct_options(&tool_id, options)?;
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = r2.map(|_| out_dir.join("reads_r2.fastq.gz"));
     let report_json = out_dir.join("correct_report.json");
@@ -56,7 +57,7 @@ pub fn plan_correct_with_options(
     let effective_params = FastqCorrectParams {
         schema_version: CORRECT_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
-        threads: tool.resources.threads,
+        threads: effective_threads,
         correction_engine: correction_engine.clone(),
         quality_encoding: options.quality_encoding.clone(),
         kmer_size: options.kmer_size,
@@ -121,7 +122,7 @@ pub fn plan_correct_with_options(
                 &output_r1,
                 output_r2.as_deref(),
                 &report_json,
-                tool.resources.threads,
+                effective_threads,
                 options,
                 &correction_engine,
             )?,
@@ -137,6 +138,7 @@ pub fn plan_correct_with_options(
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report_json,
+            "threads": effective_threads,
             "quality_encoding": options.quality_encoding,
             "kmer_size": options.kmer_size,
             "genome_size": options.genome_size,
@@ -507,16 +509,19 @@ mod tests {
             None,
             Path::new("out"),
             &CorrectPlanOptions {
+                threads: Some(7),
                 quality_encoding: QualityEncoding::Phred64,
                 ..CorrectPlanOptions::default()
             },
         )
         .expect("bayeshammer should accept explicit phred64 encoding");
 
+        assert_eq!(plan.effective_params["threads"], serde_json::json!(7));
         assert_eq!(
             plan.effective_params["quality_encoding"],
             serde_json::json!("phred64")
         );
+        assert!(plan.command.template[2].contains("--threads 7"));
         assert!(plan.command.template[2].contains("--phred-offset 64"));
     }
 

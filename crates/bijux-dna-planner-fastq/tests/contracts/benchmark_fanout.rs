@@ -223,6 +223,7 @@ fn benchmark_fanout_propagates_typed_correct_error_params() -> anyhow::Result<()
             tools: vec![tool("lighter"), tool("musket")],
             params: Some(FastqStageParameters::CorrectErrors(
                 CorrectErrorsStageParams {
+                    threads: Some(6),
                     quality_encoding: QualityEncoding::Phred33,
                     kmer_size: Some(31),
                     genome_size: Some(2_500_000),

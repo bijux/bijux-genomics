@@ -114,6 +114,7 @@ impl Default for InferAsvsStageParams {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CorrectErrorsStageParams {
+    pub threads: Option<u32>,
     pub quality_encoding: bijux_dna_domain_fastq::params::correct::QualityEncoding,
     pub kmer_size: Option<u32>,
     pub genome_size: Option<u64>,
@@ -125,6 +126,7 @@ pub struct CorrectErrorsStageParams {
 impl Default for CorrectErrorsStageParams {
     fn default() -> Self {
         Self {
+            threads: None,
             quality_encoding: bijux_dna_domain_fastq::params::correct::QualityEncoding::Phred33,
             kmer_size: None,
             genome_size: None,

@@ -628,6 +628,7 @@ fn planner_uses_typed_correct_params_from_stage_binding() -> anyhow::Result<()> 
             reason: None,
             params: Some(FastqStageParameters::CorrectErrors(
                 CorrectErrorsStageParams {
+                    threads: Some(6),
                     quality_encoding: QualityEncoding::Phred33,
                     kmer_size: Some(31),
                     genome_size: Some(2_500_000),
@@ -652,6 +653,7 @@ fn planner_uses_typed_correct_params_from_stage_binding() -> anyhow::Result<()> 
 
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.correct_errors.custom");
+    assert!(step.command.template[2].contains("\"threads\":6"));
     assert!(step.command.template[2].contains("\"kmer_size\":31"));
     assert!(step.command.template[2].contains("\"genome_size\":2500000"));
     assert!(step.command.template[2].contains("\"trusted_kmer_artifact\":"));
