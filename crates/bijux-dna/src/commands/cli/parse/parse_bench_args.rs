@@ -530,6 +530,14 @@ pub struct BenchFastqInferAsvsArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(long, help = "Denoising backend contract: dada2")]
+    pub denoising_method: Option<String>,
+    #[arg(long, help = "Pooling mode: independent | pseudo_pool | pooled")]
+    pub pooling_mode: Option<String>,
+    #[arg(long, help = "Chimera policy: remove_bimera_denovo | keep_candidates")]
+    pub chimera_policy: Option<String>,
+    #[arg(long, help = "Thread count for the governed ASV backend")]
+    pub threads: Option<u32>,
 }
 
 #[derive(Debug, Args)]

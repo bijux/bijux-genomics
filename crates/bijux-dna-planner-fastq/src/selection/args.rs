@@ -214,6 +214,10 @@ pub struct BenchFastqInferAsvsArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub denoising_method: Option<String>,
+    pub pooling_mode: Option<String>,
+    pub chimera_policy: Option<String>,
+    pub threads: Option<u32>,
 }
 
 #[derive(Debug, Clone)]

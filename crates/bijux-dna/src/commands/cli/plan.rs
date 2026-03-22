@@ -384,6 +384,10 @@ pub fn bench_args_infer_asvs(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        denoising_method: args.denoising_method.clone(),
+        pooling_mode: args.pooling_mode.clone(),
+        chimera_policy: args.chimera_policy.clone(),
+        threads: args.threads,
     })
 }
 
