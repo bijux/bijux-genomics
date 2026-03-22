@@ -786,6 +786,55 @@ pub(crate) fn parse_deplete_reference_contaminants_metrics(
     })
 }
 
+pub(crate) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("host_depletion_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_deplete_host_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.deplete_host",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "threads": report.threads,
+                "reference_scope": report.reference_scope,
+                "reference_catalog_id": report.reference_catalog_id,
+                "reference_index_artifact_id": report.reference_index_artifact_id,
+                "reference_index_backend": report.reference_index_backend,
+                "reference_build_id": report.reference_build_id,
+                "reference_digest": report.reference_digest,
+                "masking_policy": report.masking_policy,
+                "decoy_policy": report.decoy_policy,
+                "decoy_catalog_id": report.decoy_catalog_id,
+                "identity_threshold": report.identity_threshold,
+                "retained_read_policy": report.retained_read_policy,
+                "emit_removed_reads": report.emit_removed_reads,
+                "report_format": report.report_format,
+                "retain_unmapped_pairs": report.retain_unmapped_pairs,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "reads_removed": report.reads_removed,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "bases_removed": report.bases_removed,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "host_fraction_removed": report.host_fraction_removed,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.deplete_host",
+        "tool": "report_missing",
+        "host_fraction_removed": serde_json::Value::Null,
+        "reads_removed": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("report_qc_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -949,7 +998,8 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_deplete_reference_contaminants_metrics,
+        fastq_backend_allowlist, parse_deplete_host_metrics,
+        parse_deplete_reference_contaminants_metrics,
         parse_deplete_rrna_metrics, parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
         parse_extract_umis_metrics,
         parse_index_reference_metrics,
@@ -2084,6 +2134,66 @@ mod tests {
     }
 
     #[test]
+    fn deplete_host_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("host_depletion_report.json");
+        std::fs::write(
+            &report_path,
+            r#"{
+                "schema_version": "bijux.fastq.deplete_host.report.v2",
+                "stage": "fastq.deplete_host",
+                "stage_id": "fastq.deplete_host",
+                "tool_id": "bowtie2",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "reference_scope": "host",
+                "reference_catalog_id": "host_reference",
+                "reference_index_artifact_id": "reference_index",
+                "reference_index_backend": "bowtie2_build",
+                "reference_build_id": "2026.03",
+                "reference_digest": "sha256:host",
+                "masking_policy": "unmasked",
+                "decoy_policy": "none",
+                "decoy_catalog_id": null,
+                "identity_threshold": 0.95,
+                "retained_read_policy": "keep_non_host_reads",
+                "emit_removed_reads": true,
+                "report_format": "bowtie2_metrics_file",
+                "retain_unmapped_pairs": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "host_depleted.fastq.gz",
+                "output_r2": null,
+                "removed_host_r1": "removed_host.fastq.gz",
+                "removed_host_r2": null,
+                "report_json": "host_depletion_report.json",
+                "reads_in": 100,
+                "reads_out": 70,
+                "reads_removed": 30,
+                "bases_in": 1000,
+                "bases_out": 680,
+                "bases_removed": 320,
+                "pairs_in": null,
+                "pairs_out": null,
+                "host_fraction_removed": 0.30,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bowtie2.host.metrics.txt",
+                "raw_backend_report_format": "bowtie2_met_file",
+                "backend_metrics": {"reads_removed": 30}
+            }"#,
+        )
+        .expect("write report");
+
+        let metrics = parse_deplete_host_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(metrics["reference_catalog_id"], serde_json::json!("host_reference"));
+        assert_eq!(metrics["reads_removed"], serde_json::json!(30));
+        assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
+    }
+
+    #[test]
     fn report_qc_standardized_metrics_prefer_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("report_qc_report.json");
@@ -2361,7 +2471,13 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_removed",
             "contaminant_fraction_removed",
         ],
-        "fastq.deplete_host" => &["schema_version", "stage", "tool", "host_removed_fraction"],
+        "fastq.deplete_host" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "host_fraction_removed",
+            "reads_removed",
+        ],
         "fastq.report_qc" => &[
             "schema_version",
             "stage",

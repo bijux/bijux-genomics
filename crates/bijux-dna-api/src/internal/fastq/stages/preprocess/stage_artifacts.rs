@@ -386,11 +386,51 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
-        "fastq.deplete_host" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.deplete_host.v1",
-            "stage": stage_id,
-            "reference_resolution": "explicit host reference required via planned command inputs",
-        })),
+        "fastq.deplete_host" => {
+            let report_path = stage_root.join("host_depletion_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_deplete_host_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_host.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "reference_scope": governed
+                    .as_ref()
+                    .map(|report| report.reference_scope.clone()),
+                "reference_catalog_id": governed.as_ref().map(|report| report.reference_catalog_id.clone()),
+                "reference_index_artifact_id": governed.as_ref().map(|report| report.reference_index_artifact_id.clone()),
+                "reference_index_backend": governed.as_ref().map(|report| report.reference_index_backend.clone()),
+                "reference_build_id": governed.as_ref().and_then(|report| report.reference_build_id.clone()),
+                "reference_digest": governed.as_ref().and_then(|report| report.reference_digest.clone()),
+                "masking_policy": governed
+                    .as_ref()
+                    .map(|report| report.masking_policy.clone()),
+                "decoy_policy": governed
+                    .as_ref()
+                    .map(|report| report.decoy_policy.clone()),
+                "decoy_catalog_id": governed.as_ref().and_then(|report| report.decoy_catalog_id.clone()),
+                "identity_threshold": governed.as_ref().map(|report| report.identity_threshold),
+                "retained_read_policy": governed
+                    .as_ref()
+                    .map(|report| report.retained_read_policy.clone()),
+                "emit_removed_reads": governed.as_ref().map(|report| report.emit_removed_reads),
+                "report_format": governed
+                    .as_ref()
+                    .map(|report| report.report_format.clone()),
+                "retain_unmapped_pairs": governed.as_ref().map(|report| report.retain_unmapped_pairs),
+                "reads_removed": governed.as_ref().map(|report| report.reads_removed),
+                "bases_removed": governed.as_ref().map(|report| report.bases_removed),
+                "host_fraction_removed": governed.as_ref().map(|report| report.host_fraction_removed),
+                "removed_host_r1": governed.as_ref().map(|report| report.removed_host_r1.clone()),
+                "removed_host_r2": governed.as_ref().and_then(|report| report.removed_host_r2.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.normalize_primers" => {
             let report_path = stage_root.join("normalize_primers_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
@@ -537,12 +577,7 @@ fn write_stage_standardized_metrics(
         "fastq.merge_pairs" => parse_merge_pairs_metrics(out_dir),
         "fastq.remove_duplicates" => parse_remove_duplicates_metrics(out_dir),
         "fastq.extract_umis" => parse_extract_umis_metrics(out_dir),
-        "fastq.deplete_host" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["reads_in", "reads_unmapped_out", "host_mapped_reads"],
-            "report_json": out_dir.join("host_depletion_report.json"),
-        }),
+        "fastq.deplete_host" => parse_deplete_host_metrics(out_dir),
         "fastq.deplete_reference_contaminants" => {
             parse_deplete_reference_contaminants_metrics(out_dir)
         }
