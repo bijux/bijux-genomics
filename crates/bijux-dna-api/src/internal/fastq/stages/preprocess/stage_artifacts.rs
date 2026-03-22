@@ -47,12 +47,27 @@ fn emit_fastq_stage_extra_artifacts(
             "orientation_policy": "enforced_by_tool_backend",
             "mismatch_policy": "configured_in_stage_params",
         })),
-        "fastq.trim_terminal_damage" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.trim_terminal_damage.v1",
-            "stage": stage_id,
-            "policy": "mask_or_trim_terminal_bases",
-            "udg_classification_source": "configured_or_inferred",
-        })),
+        "fastq.trim_terminal_damage" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| path.file_name().and_then(|name| name.to_str()) == Some("trim_terminal_damage_report.json"))
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("trim_terminal_damage_report.json"));
+            let governed = std::fs::read_to_string(&report_path)
+                .ok()
+                .and_then(|raw| bijux_dna_stages_fastq::observer::parse_terminal_damage_report(&raw).ok());
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.trim_terminal_damage.v2",
+                "stage": stage_id,
+                "damage_mode": governed.as_ref().map(|report| report.damage_mode),
+                "execution_policy": governed.as_ref().map(|report| report.execution_policy),
+                "requested_trim_5p_bases": governed.as_ref().and_then(|report| report.requested_trim_5p_bases),
+                "requested_trim_3p_bases": governed.as_ref().and_then(|report| report.requested_trim_3p_bases),
+                "udg_classification": governed.as_ref().map(|report| report.udg_classification.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+            }))
+        }
         "fastq.remove_chimeras" => Some(serde_json::json!({
             "schema_version": "bijux.fastq.remove_chimeras.v1",
             "stage": stage_id,
@@ -209,18 +224,9 @@ fn write_stage_standardized_metrics(
             "stage": stage_id,
             "fields": ["reads_in", "reads_out", "primer_trimmed_reads"],
         }),
-        "fastq.trim_terminal_damage" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": [
-                "udg_classification",
-                "terminal_base_composition_pre",
-                "terminal_base_composition_post",
-                "ct_ga_asymmetry_pre",
-                "ct_ga_asymmetry_post"
-            ],
-            "report_json": out_dir.join("trim_terminal_damage_report.json"),
-        }),
+        "fastq.trim_terminal_damage" => {
+            super::stage_backend_policy::parse_trim_terminal_damage_metrics(out_dir)
+        }
         "fastq.remove_chimeras" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
