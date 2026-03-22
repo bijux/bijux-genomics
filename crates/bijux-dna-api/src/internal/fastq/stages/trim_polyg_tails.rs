@@ -11,6 +11,7 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimPoly
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_domain_fastq::TrimPolygReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{
@@ -28,6 +29,18 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_TRIM_POLYG_TAILS,
 };
 use std::path::{Path, PathBuf};
+
+fn load_governed_trim_polyg_report(report_path: &Path) -> Result<TrimPolygReportV1> {
+    let raw = std::fs::read_to_string(report_path)
+        .with_context(|| format!("read governed trim-polyg report {}", report_path.display()))?;
+    bijux_dna_stages_fastq::observer::parse_trim_polyg_report(&raw)
+        .with_context(|| format!("parse governed trim-polyg report {}", report_path.display()))
+}
+
+fn write_governed_trim_polyg_report(report_path: &Path, report: &TrimPolygReportV1) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(report_path, report)
+        .with_context(|| format!("write governed trim-polyg report {}", report_path.display()))
+}
 
 fn normalize_tools(raw: &[String]) -> Vec<String> {
     if raw.is_empty() || (raw.len() == 1 && raw[0] == "auto") {
@@ -223,6 +236,46 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
         let before_stats =
             combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
         let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
+        let (raw_report_path, raw_report_format) = raw_polyg_report_artifact(&tool, &out_dir)?;
+        let backend_metrics = normalized_polyg_backend_metrics(&raw_report_path, raw_report_format)
+            .context("normalize trim polyg backend report")?;
+        let report_path = out_dir.join("trim_polyg_tails_report.json");
+        let mut governed_report = load_governed_trim_polyg_report(&report_path)?;
+        governed_report.reads_in = Some(before_stats.reads);
+        governed_report.reads_out = Some(after_stats.reads);
+        governed_report.bases_in = Some(before_stats.bases);
+        governed_report.bases_out = Some(after_stats.bases);
+        governed_report.pairs_in = input_stats_r2
+            .as_ref()
+            .map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
+        governed_report.pairs_out = output_stats_r2
+            .as_ref()
+            .map(|stats| output_stats_r1.reads.min(stats.reads));
+        governed_report.mean_q_before = Some(before_stats.mean_q);
+        governed_report.mean_q_after = Some(after_stats.mean_q);
+        governed_report.bases_trimmed_polyg =
+            Some(before_stats.bases.saturating_sub(after_stats.bases));
+        governed_report.runtime_s = Some(execution.runtime_s);
+        governed_report.memory_mb = Some(execution.memory_mb);
+        governed_report.raw_backend_report = Some(raw_report_path.display().to_string());
+        governed_report.raw_backend_report_format = Some(raw_report_format.to_string());
+        governed_report.backend_metrics = Some(backend_metrics.clone());
+        governed_report.polyx_bank_id = polyx_context
+            .as_ref()
+            .and_then(|value| value.get("bank_id"))
+            .and_then(serde_json::Value::as_str)
+            .map(ToOwned::to_owned);
+        governed_report.polyx_bank_hash = polyx_context
+            .as_ref()
+            .and_then(|value| value.get("bank_hash"))
+            .and_then(serde_json::Value::as_str)
+            .map(ToOwned::to_owned);
+        governed_report.polyx_preset = polyx_context
+            .as_ref()
+            .and_then(|value| value.get("preset"))
+            .and_then(serde_json::Value::as_str)
+            .map(ToOwned::to_owned);
+        write_governed_trim_polyg_report(&report_path, &governed_report)?;
         let metrics = FastqTrimPolygMetrics {
             reads_in: before_stats.reads,
             reads_out: after_stats.reads,
@@ -237,39 +290,24 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
             delta_metrics: derive_trim_delta(&before_stats, &after_stats),
+            paired_mode: Some(
+                match governed_report.paired_mode {
+                    bijux_dna_domain_fastq::PairedMode::SingleEnd => "single_end",
+                    bijux_dna_domain_fastq::PairedMode::PairedEnd => "paired_end",
+                    bijux_dna_domain_fastq::PairedMode::Unknown => "unknown",
+                }
+                .to_string(),
+            ),
+            trim_polyg: Some(governed_report.trim_polyg),
+            min_polyg_run: Some(governed_report.min_polyg_run),
+            bases_trimmed_polyg: governed_report.bases_trimmed_polyg,
+            raw_backend_report_format: governed_report.raw_backend_report_format.clone(),
+            polyx_bank_id: governed_report.polyx_bank_id.clone(),
+            polyx_bank_hash: governed_report.polyx_bank_hash.clone(),
+            polyx_preset: governed_report.polyx_preset.clone(),
         };
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
-        let (raw_report_path, raw_report_format) = raw_polyg_report_artifact(&tool, &out_dir)?;
-        let backend_metrics = normalized_polyg_backend_metrics(&raw_report_path, raw_report_format)
-            .context("normalize trim polyg backend report")?;
-
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.trim_polyg_tails.report.v1",
-            "stage": STAGE_TRIM_POLYG_TAILS.as_str(),
-            "stage_id": STAGE_TRIM_POLYG_TAILS.as_str(),
-            "tool": tool,
-            "tool_id": tool,
-            "trim_polyg": args.trim_polyg.unwrap_or(true),
-            "trimmed_reads": metrics.reads_out,
-            "reads_in": metrics.reads_in,
-            "reads_out": metrics.reads_out,
-            "bases_in": metrics.bases_in,
-            "bases_out": metrics.bases_out,
-            "output_r1": output_r1,
-            "output_r2": args.r2.as_ref().map(|_| plan.io.outputs[1].path.clone()),
-            "bases_trimmed_polyg": metrics.bases_in.saturating_sub(metrics.bases_out),
-            "mean_q_before": metrics.mean_q_before,
-            "mean_q_after": metrics.mean_q_after,
-            "raw_report_path": raw_report_path,
-            "raw_report_format": raw_report_format,
-            "backend_metrics": backend_metrics,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-            "polyx_bank": polyx_context,
-        });
-        bijux_dna_infra::atomic_write_json(&out_dir.join("trim_polyg_tails_report.json"), &report)
-            .context("write trim polyg report")?;
         let metrics_json = serde_json::to_value(&metric_set)?;
         bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
             .context("write trim polyg metrics")?;
@@ -395,9 +433,12 @@ fn normalized_polyg_backend_metrics(
 #[cfg(test)]
 mod tests {
     use super::{
-        admitted_stage_tools, benchmark_query_context, normalize_tools,
-        normalized_polyg_backend_metrics, raw_polyg_report_artifact,
+        admitted_stage_tools, benchmark_query_context, load_governed_trim_polyg_report,
+        normalize_tools, normalized_polyg_backend_metrics, raw_polyg_report_artifact,
+        write_governed_trim_polyg_report,
     };
+    use bijux_dna_domain_fastq::params::PairedMode;
+    use bijux_dna_domain_fastq::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
     use std::path::Path;
 
     #[test]
@@ -476,5 +517,63 @@ mod tests {
             normalized_polyg_backend_metrics(&raw_report_path, "bbduk_stats").expect("metrics");
 
         assert_eq!(metrics["reads_removed"], serde_json::json!(137_u64));
+    }
+
+    #[test]
+    fn governed_trim_polyg_report_round_trips_with_backend_metrics() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("trim_polyg_tails_report.json");
+        let report = TrimPolygReportV1 {
+            schema_version: TRIM_POLYG_REPORT_SCHEMA_VERSION.to_string(),
+            stage: "fastq.trim_polyg_tails".to_string(),
+            stage_id: "fastq.trim_polyg_tails".to_string(),
+            tool_id: "fastp".to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            trim_polyg: true,
+            min_polyg_run: 12,
+            input_r1: "reads.fastq.gz".to_string(),
+            input_r2: None,
+            output_r1: "trimmed.fastq.gz".to_string(),
+            output_r2: None,
+            reads_in: Some(100),
+            reads_out: Some(97),
+            bases_in: Some(1000),
+            bases_out: Some(910),
+            pairs_in: None,
+            pairs_out: None,
+            mean_q_before: Some(28.0),
+            mean_q_after: Some(29.0),
+            bases_trimmed_polyg: Some(90),
+            polyx_bank_id: Some("polyx".to_string()),
+            polyx_bank_hash: Some("sha256:polyx".to_string()),
+            polyx_preset: Some("illumina_twocolor".to_string()),
+            runtime_s: Some(3.5),
+            memory_mb: Some(42.0),
+            raw_backend_report: Some("trim.fastp.json".to_string()),
+            raw_backend_report_format: Some("fastp_json".to_string()),
+            backend_metrics: Some(serde_json::json!({
+                "schema_version": "bijux.fastp.metrics.v1",
+                "passed_filter_reads": 97_u64,
+            })),
+        };
+
+        write_governed_trim_polyg_report(&report_path, &report).expect("write report");
+        let decoded = load_governed_trim_polyg_report(&report_path).expect("load report");
+
+        assert_eq!(decoded.min_polyg_run, 12);
+        assert_eq!(decoded.bases_trimmed_polyg, Some(90));
+        assert_eq!(decoded.polyx_preset.as_deref(), Some("illumina_twocolor"));
+        assert_eq!(
+            decoded.raw_backend_report_format.as_deref(),
+            Some("fastp_json")
+        );
+        assert_eq!(
+            decoded
+                .backend_metrics
+                .as_ref()
+                .and_then(|metrics| metrics.get("passed_filter_reads"))
+                .and_then(serde_json::Value::as_u64),
+            Some(97)
+        );
     }
 }

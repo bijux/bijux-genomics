@@ -136,6 +136,22 @@ pub struct FastqTrimPolygMetrics {
     pub mean_q_after: f64,
     #[serde(default)]
     pub delta_metrics: FastqDeltaMetrics,
+    #[serde(default)]
+    pub paired_mode: Option<String>,
+    #[serde(default)]
+    pub trim_polyg: Option<bool>,
+    #[serde(default)]
+    pub min_polyg_run: Option<u32>,
+    #[serde(default)]
+    pub bases_trimmed_polyg: Option<u64>,
+    #[serde(default)]
+    pub raw_backend_report_format: Option<String>,
+    #[serde(default)]
+    pub polyx_bank_id: Option<String>,
+    #[serde(default)]
+    pub polyx_bank_hash: Option<String>,
+    #[serde(default)]
+    pub polyx_preset: Option<String>,
 }
 
 impl StageMetricSchema for FastqTrimPolygMetrics {
