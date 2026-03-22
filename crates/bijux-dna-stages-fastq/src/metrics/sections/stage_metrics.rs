@@ -300,6 +300,92 @@ pub fn stage_metrics_for_plan(
                 failure_class: None,
             }))?
         }
+        "fastq.normalize_primers" => {
+            let stats = stats_for_paths(&[
+                inputs.first().map(PathBuf::as_path),
+                outputs.first().map(PathBuf::as_path),
+            ])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("normalize_primers_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_normalize_primers_report(&raw).ok());
+            let reads_in = governed_report
+                .as_ref()
+                .and_then(|report| report.reads_in)
+                .unwrap_or(input.reads);
+            let reads_out = governed_report
+                .as_ref()
+                .and_then(|report| report.reads_out)
+                .unwrap_or(output.reads);
+            let bases_in = governed_report
+                .as_ref()
+                .and_then(|report| report.bases_in)
+                .unwrap_or(input.bases);
+            let bases_out = governed_report
+                .as_ref()
+                .and_then(|report| report.bases_out)
+                .unwrap_or(output.bases);
+            let read_retention = if reads_in > 0 {
+                f64_from_u64(reads_out) / f64_from_u64(reads_in)
+            } else {
+                0.0
+            };
+            let base_retention = if bases_in > 0 {
+                f64_from_u64(bases_out) / f64_from_u64(bases_in)
+            } else {
+                0.0
+            };
+            let retention = RetentionReportMetricV1 {
+                value: read_retention,
+                numerator_reads: reads_out,
+                denominator_reads: reads_in,
+                numerator_bases: bases_out,
+                denominator_bases: bases_in,
+                definition: "reads_out / reads_in".to_string(),
+                stage_boundary: plan.stage_id.to_string(),
+                conditions: retention_conditions_from_effective(
+                    &plan.stage_id,
+                    &plan.effective_params,
+                    &plan.params,
+                ),
+            };
+            serde_json::json!({
+                "reads_in": reads_in,
+                "reads_out": reads_out,
+                "bases_in": bases_in,
+                "bases_out": bases_out,
+                "pairs_in": governed_report.as_ref().and_then(|report| report.pairs_in),
+                "pairs_out": governed_report.as_ref().and_then(|report| report.pairs_out),
+                "paired_mode": governed_report.as_ref().map(|report| report.paired_mode.clone()),
+                "primer_set_id": governed_report.as_ref().map(|report| report.primer_set_id.clone()),
+                "marker_id": governed_report.as_ref().and_then(|report| report.marker_id.clone()),
+                "orientation_policy": governed_report.as_ref().map(|report| report.orientation_policy.clone()),
+                "primer_trimmed_reads": governed_report.as_ref().and_then(|report| report.primer_trimmed_reads),
+                "primer_trimmed_fraction": governed_report.as_ref().and_then(|report| report.primer_trimmed_fraction),
+                "orientation_forward_fraction": governed_report.as_ref().and_then(|report| report.orientation_forward_fraction),
+                "raw_backend_report_format": governed_report.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "delta_metrics": {
+                    "read_retention": read_retention,
+                    "base_retention": base_retention,
+                    "mean_q_delta": output.mean_q - input.mean_q,
+                    "gc_delta": output.gc_percent - input.gc_percent,
+                },
+                "retention": retention,
+            })
+        }
         "fastq.profile_overrepresented_sequences" => {
             let stats = stats_for_paths(&[
                 inputs.first().map(PathBuf::as_path),
