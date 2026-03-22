@@ -9,7 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
-    parse_multiqc_general_stats_metrics, parse_screen_taxonomy_report,
+    parse_multiqc_general_stats_metrics, parse_report_qc_report, parse_screen_taxonomy_report,
     parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
     parse_validated_reads_manifest, parse_validation_report,
 };
@@ -279,6 +279,31 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .filter(|path| path.exists())
             .and_then(|path| std::fs::read_to_string(path).ok())
             .and_then(|raw| parse_multiqc_general_stats_metrics(&raw).ok());
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_report_qc_report(&raw_report) {
+                    return serde_json::json!({
+                        "aggregation_engine": report.aggregation_engine,
+                        "aggregation_scope": report.aggregation_scope,
+                        "paired_mode": report.paired_mode,
+                        "lineage_hash": report.governed_qc_lineage_hash,
+                        "contributor_artifact_count": report.governed_qc_input_count,
+                        "contributor_stage_ids": report.governed_qc_contributor_stage_ids,
+                        "contributor_tool_ids": report.governed_qc_contributor_tool_ids,
+                        "raw_fastqc_dir": report.raw_fastqc_dir,
+                        "trimmed_fastqc_dir": report.trimmed_fastqc_dir,
+                        "multiqc_report": report.multiqc_report,
+                        "multiqc_data": report.multiqc_data,
+                        "multiqc_sample_count": report.multiqc_sample_count.or_else(|| multiqc_metrics.as_ref().map(|metrics| metrics.sample_count)),
+                        "multiqc_module_count": report.multiqc_module_count.or_else(|| multiqc_metrics.as_ref().map(|metrics| metrics.module_count)),
+                    });
+                }
+            }
+        }
         if let Some(manifest_path) = artifacts
             .iter()
             .find(|artifact| artifact.name.as_str() == "governed_qc_inputs_manifest")
@@ -1696,6 +1721,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let qc_input_path = temp.path().join("qc_input.fastq");
+        let report_json_path = temp.path().join("report_qc_report.json");
         let report_path = temp.path().join("multiqc_report.html");
         let data_dir = temp.path().join("multiqc_data");
         let manifest_path = temp.path().join("governed_qc_inputs_manifest.json");
@@ -1706,6 +1732,43 @@ mod tests {
             include_str!("../tests/fixtures/tool_metrics/default/multiqc_general_stats.json"),
         )
         .expect("write multiqc general stats");
+        std::fs::write(
+            &report_json_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.report_qc.report.v2",
+                "stage": "fastq.report_qc",
+                "stage_id": "fastq.report_qc",
+                "tool_id": "multiqc",
+                "paired_mode": "single_end",
+                "aggregation_engine": "multiqc",
+                "aggregation_scope": "governed_qc_artifacts",
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 400,
+                "bases_out": 400,
+                "pairs_in": 0,
+                "pairs_out": 0,
+                "mean_q": 31.2,
+                "contamination_rate": 0.0,
+                "multiqc_sample_count": 2,
+                "multiqc_module_count": 2,
+                "raw_fastqc_dir": "/tmp/raw_fastqc",
+                "trimmed_fastqc_dir": "/tmp/trimmed_fastqc",
+                "multiqc_report": report_path,
+                "multiqc_data": data_dir,
+                "governed_qc_input_count": 2,
+                "governed_qc_contributor_stage_ids": ["fastq.trim_reads", "fastq.validate_reads"],
+                "governed_qc_contributor_tool_ids": ["fastp", "fastqvalidator"],
+                "governed_qc_contributors": [],
+                "governed_qc_lineage_hash": "fastq.trim_reads.fastp=report_json",
+                "governed_qc_inputs_manifest": manifest_path,
+                "runtime_s": 3.0,
+                "memory_mb": 128.0,
+                "exit_code": 0
+            })
+            .to_string(),
+        )
+        .expect("write governed report");
         std::fs::write(
             &manifest_path,
             serde_json::json!({
@@ -1755,6 +1818,11 @@ mod tests {
                 )],
                 outputs: vec![
                     ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_json_path,
+                        ArtifactRole::ReportJson,
+                    ),
+                    ArtifactRef::required(
                         ArtifactId::new("multiqc_report"),
                         report_path,
                         ArtifactRole::ReportHtml,
@@ -1788,6 +1856,10 @@ mod tests {
             serde_json::json!(["fastq.trim_reads", "fastq.validate_reads"])
         );
         assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["aggregation_engine"],
+            serde_json::json!("multiqc")
+        );
+        assert_eq!(
             output.report_parts[0].payload["semantic_metrics"]["contributor_tool_ids"],
             serde_json::json!(["fastp", "fastqvalidator"])
         );
@@ -1803,6 +1875,11 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["lineage_hash"],
             serde_json::json!("fastq.trim_reads.fastp=report_json")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["trimmed_fastqc_dir"],
+            serde_json::json!("/tmp/trimmed_fastqc")
         );
     }
 }
