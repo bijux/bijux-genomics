@@ -18,6 +18,7 @@ pub mod id_catalog;
 mod integration_matrix;
 pub mod invariants;
 pub mod metrics;
+mod merge_pairs_artifacts;
 mod normalize_abundance_artifacts;
 mod normalize_primers_artifacts;
 mod observer_contract;
@@ -75,6 +76,7 @@ pub use profile_reads_artifacts::{
     ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1, ProfileReadsReportV1,
     PROFILE_READS_REPORT_SCHEMA_VERSION,
 };
+pub use merge_pairs_artifacts::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 pub use normalize_primers_artifacts::{
     NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
 };
