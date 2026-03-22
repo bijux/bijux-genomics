@@ -15,6 +15,7 @@ pub use parse::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_duplicate_classes_tsv,
     parse_fastp_metrics, parse_fastqvalidator_count, parse_length_histogram,
     parse_low_complexity_report, parse_multiqc_general_stats_metrics,
+    parse_normalize_primers_report,
     parse_profile_overrepresented_report, parse_profile_read_lengths_report,
     parse_profile_reads_report,
     parse_remove_chimeras_report, parse_remove_duplicates_provenance,
