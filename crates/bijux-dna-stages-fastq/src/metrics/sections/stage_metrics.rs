@@ -762,6 +762,67 @@ pub fn stage_metrics_for_plan(
                 gc_distribution,
             })?
         }
+        "fastq.profile_read_lengths" => {
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("profile_read_lengths_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_profile_read_lengths_report(&raw).ok());
+            if let Some(report) = governed_report {
+                serde_json::json!({
+                    "read_count": report.read_count,
+                    "mean_read_length": report.mean_read_length,
+                    "max_read_length": report.max_read_length,
+                    "distinct_lengths": report.distinct_lengths,
+                    "histogram_bins": report.histogram_bins,
+                    "paired_mode": report.paired_mode,
+                    "pairs_in": matches!(report.paired_mode, bijux_dna_domain_fastq::params::PairedMode::PairedEnd)
+                        .then_some(report.read_count / 2),
+                    "pairs_out": matches!(report.paired_mode, bijux_dna_domain_fastq::params::PairedMode::PairedEnd)
+                        .then_some(report.read_count / 2),
+                    "read_length_distribution": report
+                        .histogram
+                        .into_iter()
+                        .map(|bin| (bin.read_length, bin.count))
+                        .collect::<Vec<_>>(),
+                })
+            } else {
+                let (read_length_distribution, _gc_distribution) =
+                    distributions_for_path(inputs.first().map(PathBuf::as_path))?;
+                let read_count = read_length_distribution.iter().map(|(_, count)| *count).sum::<u64>();
+                let weighted_total = read_length_distribution
+                    .iter()
+                    .map(|(length, count)| length.saturating_mul(*count))
+                    .sum::<u64>();
+                let mean_read_length = if read_count == 0 {
+                    0.0
+                } else {
+                    weighted_total as f64 / read_count as f64
+                };
+                let max_read_length = read_length_distribution
+                    .iter()
+                    .map(|(length, _count)| *length)
+                    .max()
+                    .unwrap_or(0);
+                serde_json::json!({
+                    "read_count": read_count,
+                    "mean_read_length": mean_read_length,
+                    "max_read_length": max_read_length,
+                    "distinct_lengths": read_length_distribution.len(),
+                    "read_length_distribution": read_length_distribution,
+                })
+            }
+        }
         id_catalog::FASTQ_SCREEN => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
