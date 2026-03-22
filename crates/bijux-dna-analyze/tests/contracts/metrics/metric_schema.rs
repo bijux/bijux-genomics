@@ -255,6 +255,18 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         pairs_out: None,
         mean_q: 30.0,
         contamination_rate: 0.1,
+        aggregation_engine: Some("multiqc".to_string()),
+        aggregation_scope: Some("governed_qc_artifacts".to_string()),
+        governed_qc_input_count: Some(2),
+        governed_qc_contributor_stage_ids: bijux_dna_analyze::model::JsonBlob::from(
+            serde_json::json!(["fastq.trim_reads", "fastq.validate_reads"]),
+        ),
+        governed_qc_contributor_tool_ids: bijux_dna_analyze::model::JsonBlob::from(
+            serde_json::json!(["fastp", "fastqvalidator"]),
+        ),
+        governed_qc_lineage_hash: Some("lineage".to_string()),
+        multiqc_sample_count: Some(2),
+        multiqc_module_count: Some(5),
         raw_fastqc_dir: None,
         trimmed_fastqc_dir: None,
         multiqc_report: None,
