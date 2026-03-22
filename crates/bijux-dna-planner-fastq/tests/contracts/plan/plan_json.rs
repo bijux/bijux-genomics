@@ -402,14 +402,19 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         out_dir,
     )?;
     assert_eq!(plan.io.inputs.len(), 1);
-    assert_eq!(plan.io.outputs.len(), 3);
+    assert_eq!(plan.io.outputs.len(), 5);
     assert_eq!(plan.io.inputs[0].name.as_str(), "reads");
     assert_eq!(plan.io.outputs[0].name.as_str(), "chimera_filtered_reads");
+    assert_eq!(plan.io.outputs[1].name.as_str(), "report_json");
+    assert_eq!(plan.io.outputs[1].role.as_str(), "report_json");
+    assert_eq!(plan.io.outputs[2].name.as_str(), "chimera_metrics_json");
     assert_eq!(
-        plan.io.outputs[2].role.as_str(),
+        plan.io.outputs[3].role.as_str(),
         "reads",
         "chimera sequence FASTA must stay typed as a read-derived artifact",
     );
+    assert_eq!(plan.io.outputs[4].name.as_str(), "uchime_report_tsv");
+    assert_eq!(plan.io.outputs[4].role.as_str(), "summary_tsv");
     assert!(
         bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
             &domain_tool("fastq.remove_chimeras", "vsearch"),
