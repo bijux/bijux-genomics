@@ -10,19 +10,6 @@ fn canonical_sample_identity(sample_id: &str) -> String {
     out.trim_matches('_').to_string()
 }
 
-fn parse_low_complexity_filtered_count(stdout: &str, stderr: &str) -> Option<u64> {
-    let haystack = format!("{stdout}\n{stderr}");
-    for line in haystack.lines() {
-        if line.to_ascii_lowercase().contains("filtered") {
-            let digits: String = line.chars().filter(char::is_ascii_digit).collect();
-            if let Ok(parsed) = digits.parse::<u64>() {
-                return Some(parsed);
-            }
-        }
-    }
-    None
-}
-
 fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
     for line in text.lines() {
         if !line
