@@ -281,9 +281,10 @@ fn derived_governed_qc_lineage_hash(
             .iter()
             .map(|contributor| {
                 format!(
-                    "{}:{}={}",
+                    "{}:{}:{}={}",
                     contributor.contributor_id,
                     contributor.artifact_id,
+                    contributor.artifact_role.as_str(),
                     contributor.path.display()
                 )
             })
@@ -390,6 +391,6 @@ mod tests {
         assert_eq!(manifest.contributors[0].artifact_id, "report_json");
         assert!(manifest
             .lineage_hash
-            .is_some_and(|lineage| lineage.contains("fastq.validate_reads.fastqvalidator:validated_reads_manifest")));
+            .is_some_and(|lineage| lineage.contains("fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report")));
     }
 }

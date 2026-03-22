@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
@@ -17,7 +17,7 @@ use bijux_dna_analyze::{
 };
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
-use bijux_dna_core::prelude::ArtifactRef;
+use bijux_dna_core::prelude::{ArtifactRef, ContainerImageRefV1};
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
     PairedMode,
@@ -139,11 +139,12 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+        let aux_images = resolve_qc_contributor_aux_images(catalog, platform, &governed_qc)?;
         let plan = plan_qc_post_with_qc_inputs(
             &tool_spec,
             &governed_qc.qc_inputs,
             &out_dir,
-            std::collections::BTreeMap::new(),
+            aux_images,
             paired_mode_for_bench_inputs(&bench_inputs),
             aggregation_engine.clone(),
             aggregation_scope.clone(),
@@ -425,6 +426,8 @@ fn build_qc_post_record(
         "governed_qc_input_count": governed_qc.qc_inputs.len(),
         "governed_qc_inputs_manifest": path_if_exists(&governed_qc_manifest),
         "governed_qc_contributors": governed_qc.contributors,
+        "governed_qc_contributor_stage_ids": governed_qc_contributor_stage_ids(&governed_qc.contributors),
+        "governed_qc_contributor_tool_ids": governed_qc_contributor_tool_ids(&governed_qc.contributors),
         "governed_qc_lineage_hash": governed_qc.lineage_hash,
         "runtime_s": execution.runtime_s,
         "memory_mb": execution.memory_mb,
@@ -528,6 +531,77 @@ fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContribu
         .collect()
 }
 
+fn canonical_qc_input_name(contributor: &GovernedQcContributor) -> String {
+    format!("{}.{}", contributor.contributor_id, contributor.artifact_id)
+}
+
+fn canonicalize_qc_inputs_from_contributors(
+    qc_inputs: &[ArtifactRef],
+    contributors: &[GovernedQcContributor],
+) -> Vec<ArtifactRef> {
+    let canonical_name_by_path = contributors
+        .iter()
+        .map(|contributor| (contributor.path.clone(), canonical_qc_input_name(contributor)))
+        .collect::<HashMap<_, _>>();
+    qc_inputs
+        .iter()
+        .map(|artifact| {
+            let mut canonical = artifact.clone();
+            if let Some(name) = canonical_name_by_path.get(&artifact.path) {
+                canonical.name = bijux_dna_core::ids::ArtifactId::new(name.clone());
+            }
+            canonical
+        })
+        .collect()
+}
+
+fn governed_qc_contributor_stage_ids(contributors: &[GovernedQcContributor]) -> Vec<String> {
+    let mut stage_ids = contributors
+        .iter()
+        .map(|contributor| contributor.stage_id.clone())
+        .collect::<Vec<_>>();
+    stage_ids.sort();
+    stage_ids.dedup();
+    stage_ids
+}
+
+fn governed_qc_contributor_tool_ids(contributors: &[GovernedQcContributor]) -> Vec<String> {
+    let mut tool_ids = contributors
+        .iter()
+        .filter_map(|contributor| {
+            contributor
+                .contributor_id
+                .rsplit_once('.')
+                .map(|(_, tool_id)| tool_id.to_string())
+        })
+        .collect::<Vec<_>>();
+    tool_ids.sort();
+    tool_ids.dedup();
+    tool_ids
+}
+
+fn resolve_qc_contributor_aux_images<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    governed_qc: &GovernedQcInputs,
+) -> Result<BTreeMap<String, ContainerImageRefV1>> {
+    let mut aux_images = BTreeMap::new();
+    for tool_id in governed_qc_contributor_tool_ids(&governed_qc.contributors) {
+        let spec = catalog
+            .get(tool_id.as_str())
+            .ok_or_else(|| anyhow!("tool {tool_id} missing from images catalog"))?;
+        let image = resolve_image_for_run(spec, platform)?;
+        aux_images.insert(
+            tool_id,
+            ContainerImageRefV1 {
+                image: image.full_name,
+                digest: spec.digest.clone(),
+            },
+        );
+    }
+    Ok(aux_images)
+}
+
 fn validate_governed_qc_contributors(
     contributors: &[GovernedQcContributor],
     qc_inputs: &[ArtifactRef],
@@ -608,16 +682,8 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
             ));
         }
     }
-    let mut qc_inputs = manifest.qc_inputs;
-    qc_inputs.sort_by(|left, right| {
-        left.name
-            .as_str()
-            .cmp(right.name.as_str())
-            .then_with(|| left.path.cmp(&right.path))
-    });
-    qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     let mut contributors = if manifest.contributors.is_empty() {
-        governed_qc_contributors(&qc_inputs)
+        governed_qc_contributors(&manifest.qc_inputs)
     } else {
         manifest.contributors
     };
@@ -632,6 +698,14 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
             && left.artifact_id == right.artifact_id
             && left.path == right.path
     });
+    let mut qc_inputs = canonicalize_qc_inputs_from_contributors(&manifest.qc_inputs, &contributors);
+    qc_inputs.sort_by(|left, right| {
+        left.name
+            .as_str()
+            .cmp(right.name.as_str())
+            .then_with(|| left.path.cmp(&right.path))
+    });
+    qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     validate_governed_qc_contributors(&contributors, &qc_inputs, path)?;
     Ok(GovernedQcInputs {
         lineage_hash: manifest.lineage_hash.or_else(|| {
@@ -651,9 +725,10 @@ fn derived_governed_qc_lineage_hash(
         .iter()
         .map(|contributor| {
             format!(
-                "{}:{}={}",
+                "{}:{}:{}={}",
                 contributor.contributor_id,
                 contributor.artifact_id,
+                contributor.artifact_role.as_str(),
                 contributor.path.display()
             )
         })
@@ -680,11 +755,14 @@ fn benchmark_query_context(
 mod tests {
     use super::{
         build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
+        governed_qc_contributor_stage_ids, governed_qc_contributor_tool_ids,
         governed_qc_contributors, governed_qc_inputs_manifest_path,
         load_governed_qc_inputs_manifest, load_required_qc_inputs_manifest,
-        parse_qc_aggregation_engine, parse_qc_aggregation_scope, validate_governed_qc_contributors,
+        parse_qc_aggregation_engine, parse_qc_aggregation_scope, resolve_qc_contributor_aux_images,
+        validate_governed_qc_contributors,
         GovernedQcContributor, GovernedQcInputs, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
+    use std::collections::HashMap;
     use std::path::PathBuf;
 
     use bijux_dna_core::contract::{ArtifactRole, ToolConstraints};
@@ -694,7 +772,7 @@ mod tests {
         ArtifactRef, CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1,
     };
     use bijux_dna_domain_fastq::params::qc_post::{QcAggregationEngine, QcAggregationScope};
-    use bijux_dna_environment::api::{PlatformSpec, RuntimeKind};
+    use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
     use bijux_dna_runner::step_runner::StageResultV1;
 
     #[test]
@@ -865,8 +943,48 @@ mod tests {
         );
         assert_eq!(loaded.raw_fastqc_dir.as_deref(), Some(fastqc_dir.as_path()));
         assert!(loaded.lineage_hash.as_deref().is_some_and(|lineage| {
-            lineage.contains("fastq.trim_reads.fastp_branch:report_json=")
+            lineage.contains("fastq.trim_reads.fastp_branch:report_json:report_json=")
         }));
+    }
+
+    #[test]
+    fn governed_qc_manifest_loader_restores_canonical_names_from_contributors() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let artifact_path = temp.path().join("trim_report.json");
+        std::fs::write(&artifact_path, b"{}").expect("artifact");
+        let manifest_path = temp.path().join("qc_inputs.json");
+        std::fs::write(
+            &manifest_path,
+            serde_json::json!({
+                "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+                "qc_inputs": [
+                    {
+                        "name": "report_json",
+                        "path": artifact_path,
+                        "role": "report_json",
+                        "optional": false
+                    }
+                ],
+                "contributors": [
+                    {
+                        "contributor_id": "fastq.trim_reads.fastp",
+                        "stage_id": "fastq.trim_reads",
+                        "artifact_id": "report_json",
+                        "artifact_role": "report_json",
+                        "path": artifact_path
+                    }
+                ]
+            })
+            .to_string(),
+        )
+        .expect("manifest");
+
+        let loaded = load_governed_qc_inputs_manifest(&manifest_path).expect("load manifest");
+        assert_eq!(loaded.qc_inputs.len(), 1);
+        assert_eq!(
+            loaded.qc_inputs[0].name.as_str(),
+            "fastq.trim_reads.fastp.report_json"
+        );
     }
 
     #[test]
@@ -922,9 +1040,11 @@ mod tests {
             Some(raw_fastqc_dir.as_path()),
         )
         .expect("derived lineage");
-        assert!(lineage.contains("fastq.trim_reads.fastp:report_json=/tmp/fastp/report.json"));
         assert!(lineage.contains(
-            "fastq.validate_reads.fastqvalidator:validated_reads_manifest=/tmp/validate/lineage.json"
+            "fastq.trim_reads.fastp:report_json:report_json=/tmp/fastp/report.json"
+        ));
+        assert!(lineage.contains(
+            "fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report=/tmp/validate/lineage.json"
         ));
         assert!(lineage.contains("raw_fastqc_dir=/tmp/raw_fastqc"));
     }
@@ -1062,6 +1182,105 @@ mod tests {
             "fastq.validate_reads.fastqvalidator"
         );
         assert_eq!(contributors[0].artifact_id, "validation_report");
+    }
+
+    #[test]
+    fn governed_qc_contributor_tool_ids_are_stable_and_unique() {
+        let contributors = vec![
+            GovernedQcContributor {
+                contributor_id: "fastq.trim_reads.fastp".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
+                artifact_id: "report_json".to_string(),
+                artifact_role: ArtifactRole::ReportJson,
+                path: PathBuf::from("/tmp/trim/report.json"),
+            },
+            GovernedQcContributor {
+                contributor_id: "fastq.validate_reads.fastqvalidator".to_string(),
+                stage_id: "fastq.validate_reads".to_string(),
+                artifact_id: "validation_report".to_string(),
+                artifact_role: ArtifactRole::ReportJson,
+                path: PathBuf::from("/tmp/validate/report.json"),
+            },
+            GovernedQcContributor {
+                contributor_id: "fastq.trim_reads.fastp".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
+                artifact_id: "adapter_report".to_string(),
+                artifact_role: ArtifactRole::ReportJson,
+                path: PathBuf::from("/tmp/trim/adapter.json"),
+            },
+        ];
+
+        assert_eq!(
+            governed_qc_contributor_stage_ids(&contributors),
+            vec!["fastq.trim_reads".to_string(), "fastq.validate_reads".to_string()]
+        );
+        assert_eq!(
+            governed_qc_contributor_tool_ids(&contributors),
+            vec!["fastp".to_string(), "fastqvalidator".to_string()]
+        );
+    }
+
+    #[test]
+    fn report_qc_aux_images_follow_governed_contributors() {
+        let governed_qc = GovernedQcInputs {
+            qc_inputs: Vec::new(),
+            contributors: vec![
+                GovernedQcContributor {
+                    contributor_id: "fastq.trim_reads.fastp".to_string(),
+                    stage_id: "fastq.trim_reads".to_string(),
+                    artifact_id: "report_json".to_string(),
+                    artifact_role: ArtifactRole::ReportJson,
+                    path: PathBuf::from("/tmp/trim/report.json"),
+                },
+                GovernedQcContributor {
+                    contributor_id: "fastq.validate_reads.fastqvalidator".to_string(),
+                    stage_id: "fastq.validate_reads".to_string(),
+                    artifact_id: "validation_report".to_string(),
+                    artifact_role: ArtifactRole::ReportJson,
+                    path: PathBuf::from("/tmp/validate/report.json"),
+                },
+            ],
+            raw_fastqc_dir: None,
+            lineage_hash: None,
+        };
+        let mut catalog = HashMap::new();
+        catalog.insert(
+            "fastp".to_string(),
+            ToolImageSpec {
+                tool: "fastp".to_string(),
+                version: "1.0.0".to_string(),
+                digest: Some("sha256:fastp".to_string()),
+                enabled: Some(true),
+                shipping_policy: None,
+            },
+        );
+        catalog.insert(
+            "fastqvalidator".to_string(),
+            ToolImageSpec {
+                tool: "fastqvalidator".to_string(),
+                version: "1.0.0".to_string(),
+                digest: Some("sha256:fastqvalidator".to_string()),
+                enabled: Some(true),
+                shipping_policy: None,
+            },
+        );
+
+        let aux_images = resolve_qc_contributor_aux_images(
+            &catalog,
+            &PlatformSpec {
+                name: "test".to_string(),
+                runner: RuntimeKind::Docker,
+                container_dir: PathBuf::from("/tmp"),
+                image_prefix: "bijuxdna".to_string(),
+                arch: "amd64".to_string(),
+            },
+            &governed_qc,
+        )
+        .expect("aux images");
+
+        assert_eq!(aux_images.len(), 2);
+        assert!(aux_images.contains_key("fastp"));
+        assert!(aux_images.contains_key("fastqvalidator"));
     }
 
     #[test]
