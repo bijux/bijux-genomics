@@ -740,6 +740,52 @@ pub(crate) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_jso
     })
 }
 
+pub(crate) fn parse_deplete_reference_contaminants_metrics(
+    out_dir: &std::path::Path,
+) -> serde_json::Value {
+    let report_path = out_dir.join("contaminant_screen_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) =
+            bijux_dna_stages_fastq::observer::parse_deplete_reference_contaminants_report(&raw)
+        {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.deplete_reference_contaminants",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "threads": report.threads,
+                "reference_catalog_id": report.reference_catalog_id,
+                "contaminant_reference": report.contaminant_reference,
+                "index_artifact": report.index_artifact,
+                "reference_index_backend": report.reference_index_backend,
+                "reference_build_id": report.reference_build_id,
+                "reference_digest": report.reference_digest,
+                "retain_unmapped_pairs": report.retain_unmapped_pairs,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "reads_removed": report.reads_removed,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "bases_removed": report.bases_removed,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "contaminant_fraction_removed": report.contaminant_fraction_removed,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.deplete_reference_contaminants",
+        "tool": "report_missing",
+        "contaminant_fraction_removed": serde_json::Value::Null,
+        "reads_removed": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("report_qc_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -903,8 +949,8 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_deplete_rrna_metrics, parse_filter_low_complexity_metrics,
-        parse_filter_reads_metrics,
+        fastq_backend_allowlist, parse_deplete_reference_contaminants_metrics,
+        parse_deplete_rrna_metrics, parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
         parse_extract_umis_metrics,
         parse_index_reference_metrics,
         parse_merge_pairs_metrics, parse_normalize_abundance_metrics,
@@ -1980,6 +2026,64 @@ mod tests {
     }
 
     #[test]
+    fn deplete_reference_contaminants_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("contaminant_screen_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.deplete_reference_contaminants.report.v2",
+                "stage": "fastq.deplete_reference_contaminants",
+                "stage_id": "fastq.deplete_reference_contaminants",
+                "tool_id": "bowtie2",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "reference_catalog_id": "contaminant_reference",
+                "contaminant_reference": "phix_and_spikeins",
+                "index_artifact": "reference_index",
+                "reference_index_backend": "bowtie2_build",
+                "reference_build_id": "2026.03",
+                "reference_digest": "sha256:contaminants",
+                "retain_unmapped_pairs": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "contaminant_screened.fastq.gz",
+                "output_r2": null,
+                "report_json": "contaminant_screen_report.json",
+                "reads_in": 100,
+                "reads_out": 72,
+                "reads_removed": 28,
+                "bases_in": 1000,
+                "bases_out": 700,
+                "bases_removed": 300,
+                "pairs_in": null,
+                "pairs_out": null,
+                "contaminant_fraction_removed": 0.28,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bowtie2.contaminant.metrics.txt",
+                "raw_backend_report_format": "bowtie2_met_file",
+                "backend_metrics": {"reads_removed": 28}
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_deplete_reference_contaminants_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
+        assert_eq!(
+            metrics["contaminant_reference"],
+            serde_json::json!("phix_and_spikeins")
+        );
+        assert_eq!(metrics["reads_removed"], serde_json::json!(28));
+        assert_eq!(
+            metrics["contaminant_fraction_removed"],
+            serde_json::json!(0.28)
+        );
+    }
+
+    #[test]
     fn report_qc_standardized_metrics_prefer_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("report_qc_report.json");
@@ -2249,9 +2353,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_removed",
             "rrna_fraction_removed",
         ],
-        "fastq.deplete_reference_contaminants" => {
-            &["schema_version", "stage", "tool", "screening_results"]
-        }
+        "fastq.deplete_reference_contaminants" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "contaminant_reference",
+            "reads_removed",
+            "contaminant_fraction_removed",
+        ],
         "fastq.deplete_host" => &["schema_version", "stage", "tool", "host_removed_fraction"],
         "fastq.report_qc" => &[
             "schema_version",
