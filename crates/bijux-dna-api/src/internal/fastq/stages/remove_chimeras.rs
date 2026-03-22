@@ -8,6 +8,9 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqChimeraM
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::{
+    PairedMode, RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::{
@@ -145,7 +148,20 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             .iter()
             .find(|artifact| artifact.name.as_str() == "report_json")
             .ok_or_else(|| anyhow!("remove_chimeras plan missing report_json"))?;
-        if !filtered_reads.path.exists() {
+        let chimeras_fasta = plan
+            .io
+            .outputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "chimeras_fasta")
+            .map(|artifact| artifact.path.clone());
+        let uchime_report_tsv = plan
+            .io
+            .outputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "uchime_report_tsv")
+            .map(|artifact| artifact.path.clone());
+        let used_fallback = !filtered_reads.path.exists();
+        if used_fallback {
             std::fs::copy(&args.r1, &filtered_reads.path)?;
         }
         let output_stats_r1 =
@@ -158,17 +174,27 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         } else {
             chimeras_removed as f64 / reads_in as f64
         };
-        if !metrics_output.path.exists() {
-            let payload = serde_json::json!({
-                "schema_version": "bijux.fastq.remove_chimeras.v2",
-                "chimera_fraction": chimera_fraction,
-                "chimeras_removed": chimeras_removed,
-                "non_chimera_reads": reads_out,
-                "tool": tool,
-                "used_fallback": true,
-            });
-            bijux_dna_infra::atomic_write_json(&metrics_output.path, &payload)?;
-        }
+        let report = build_remove_chimeras_report(
+            tool,
+            &args.r1,
+            &filtered_reads.path,
+            &metrics_output.path,
+            chimeras_fasta.as_deref(),
+            uchime_report_tsv.as_deref(),
+            reads_in,
+            reads_out,
+            chimeras_removed,
+            chimera_fraction,
+            used_fallback,
+            execution.runtime_s,
+            execution.memory_mb,
+            execution.exit_code,
+        );
+        bijux_dna_infra::atomic_write_json(&report_output.path, &report)?;
+        bijux_dna_infra::atomic_write_json(
+            &metrics_output.path,
+            &compatibility_metrics_from_report(&report),
+        )?;
         let metrics = FastqChimeraMetrics {
             reads_in,
             reads_out,
@@ -176,20 +202,6 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             chimera_fraction,
         };
         let metric_set = metric_set(metrics);
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.remove_chimeras.report.v1",
-            "stage_id": STAGE_ID,
-            "tool_id": tool,
-            "input_fastq_r1": args.r1,
-            "input_fastq_r2": args.r2,
-            "chimera_filtered_reads_r1": filtered_reads.path,
-            "chimera_filtered_reads_r2": serde_json::Value::Null,
-            "chimera_metrics_json": metrics_output.path,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-            "exit_code": execution.exit_code,
-        });
-        bijux_dna_infra::atomic_write_json(&report_output.path, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -222,5 +234,77 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         failures,
         bench_dir,
         explain: args.explain,
+    })
+}
+
+fn parse_uchime_summary(path: Option<&std::path::Path>) -> Option<serde_json::Value> {
+    let path = path?;
+    let raw = std::fs::read_to_string(path).ok()?;
+    let parsed_records = raw.lines().filter(|line| !line.trim().is_empty()).count() as u64;
+    let flagged_records = raw
+        .lines()
+        .filter(|line| line.split('\t').next_back().is_some_and(|flag| flag == "Y"))
+        .count() as u64;
+    Some(serde_json::json!({
+        "parsed_records": parsed_records,
+        "flagged_records": flagged_records,
+    }))
+}
+
+fn build_remove_chimeras_report(
+    tool_id: &str,
+    input_reads: &std::path::Path,
+    output_reads: &std::path::Path,
+    chimera_metrics_json: &std::path::Path,
+    chimeras_fasta: Option<&std::path::Path>,
+    uchime_report_tsv: Option<&std::path::Path>,
+    reads_in: u64,
+    reads_out: u64,
+    chimeras_removed: u64,
+    chimera_fraction: f64,
+    used_fallback: bool,
+    runtime_s: f64,
+    memory_mb: f64,
+    exit_code: i32,
+) -> RemoveChimerasReportV1 {
+    RemoveChimerasReportV1 {
+        schema_version: REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        tool_id: tool_id.to_string(),
+        paired_mode: PairedMode::SingleEnd,
+        method: "vsearch_uchime_denovo".to_string(),
+        detection_scope: "denovo".to_string(),
+        chimera_removed_definition:
+            "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
+                .to_string(),
+        input_reads: input_reads.display().to_string(),
+        output_reads: output_reads.display().to_string(),
+        chimera_metrics_json: chimera_metrics_json.display().to_string(),
+        chimeras_fasta: chimeras_fasta.map(|path| path.display().to_string()),
+        uchime_report_tsv: uchime_report_tsv.map(|path| path.display().to_string()),
+        reads_in: Some(reads_in),
+        reads_out: Some(reads_out),
+        chimeras_removed: Some(chimeras_removed),
+        chimera_fraction: Some(chimera_fraction),
+        used_fallback,
+        raw_backend_report: uchime_report_tsv.map(|path| path.display().to_string()),
+        raw_backend_report_format: uchime_report_tsv
+            .map(|_| "vsearch_uchime_tsv".to_string()),
+        runtime_s: Some(runtime_s),
+        memory_mb: Some(memory_mb),
+        exit_code: Some(exit_code),
+        backend_metrics: parse_uchime_summary(uchime_report_tsv),
+    }
+}
+
+fn compatibility_metrics_from_report(report: &RemoveChimerasReportV1) -> serde_json::Value {
+    serde_json::json!({
+        "schema_version": "bijux.fastq.remove_chimeras.v2",
+        "chimera_fraction": report.chimera_fraction.unwrap_or(0.0),
+        "chimeras_removed": report.chimeras_removed.unwrap_or(0),
+        "non_chimera_reads": report.reads_out.unwrap_or(0),
+        "tool": report.tool_id,
+        "used_fallback": report.used_fallback,
     })
 }
