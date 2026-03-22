@@ -266,9 +266,14 @@ pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> Result<engine_args::Ben
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
         max_n: args.max_n,
+        max_n_fraction: args.max_n_fraction,
+        max_n_count: args.max_n_count,
         low_complexity_threshold: args.low_complexity_threshold,
+        entropy_threshold: args.entropy_threshold,
         kmer_ref: args.kmer_ref.clone(),
+        polyx_policy: args.polyx_policy.clone(),
     })
 }
 
@@ -834,6 +839,38 @@ mod tests {
         assert!(error
             .to_string()
             .contains("--strict conflicts with --validation-mode report_only"));
+    }
+
+    #[test]
+    fn filter_bench_args_preserve_extended_filter_surface() {
+        let args = BenchFastqFilterArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            tools: vec!["fastp".to_string()],
+            explain: false,
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(50),
+            threads: Some(8),
+            max_n: Some(0),
+            max_n_fraction: Some(0.05),
+            max_n_count: Some(3),
+            low_complexity_threshold: Some(20.0),
+            entropy_threshold: Some(18.0),
+            kmer_ref: Some(PathBuf::from("contaminants.fa")),
+            polyx_policy: Some("trim".to_string()),
+        };
+
+        let bench = bench_args_filter(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(8));
+        assert_eq!(bench.max_n_fraction, Some(0.05));
+        assert_eq!(bench.max_n_count, Some(3));
+        assert_eq!(bench.entropy_threshold, Some(18.0));
+        assert_eq!(bench.polyx_policy.as_deref(), Some("trim"));
+        assert_eq!(bench.kmer_ref.as_deref(), Some(PathBuf::from("contaminants.fa").as_path()));
     }
 }
 

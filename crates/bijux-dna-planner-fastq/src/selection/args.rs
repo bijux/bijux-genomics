@@ -124,9 +124,14 @@ pub struct BenchFastqFilterArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub threads: Option<u32>,
     pub max_n: Option<u32>,
+    pub max_n_fraction: Option<f64>,
+    pub max_n_count: Option<u32>,
     pub low_complexity_threshold: Option<f64>,
+    pub entropy_threshold: Option<f64>,
     pub kmer_ref: Option<PathBuf>,
+    pub polyx_policy: Option<String>,
 }
 
 #[derive(Debug, Clone)]
