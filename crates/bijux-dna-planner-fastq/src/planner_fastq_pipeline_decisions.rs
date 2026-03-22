@@ -75,6 +75,7 @@ pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
     IndexReference(IndexReferenceStageParams),
     InferAsvs(InferAsvsStageParams),
+    ClusterOtus(ClusterOtusStageParams),
     CorrectErrors(CorrectErrorsStageParams),
     TrimTerminalDamage(TrimTerminalDamageStageParams),
     DepleteRrna(DepleteRrnaStageParams),
@@ -107,6 +108,21 @@ impl Default for InferAsvsStageParams {
             denoising_method: "dada2".to_string(),
             pooling_mode: "independent".to_string(),
             chimera_policy: "remove_bimera_denovo".to_string(),
+            threads: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ClusterOtusStageParams {
+    pub otu_identity: f64,
+    pub threads: Option<u32>,
+}
+
+impl Default for ClusterOtusStageParams {
+    fn default() -> Self {
+        Self {
+            otu_identity: bijux_dna_domain_fastq::params::edna::DEFAULT_OTU_IDENTITY_THRESHOLD,
             threads: None,
         }
     }

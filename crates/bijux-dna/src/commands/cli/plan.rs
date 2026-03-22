@@ -411,6 +411,8 @@ pub fn bench_args_cluster_otus(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        otu_identity: args.otu_identity,
+        threads: args.threads,
     })
 }
 
