@@ -149,6 +149,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             bench_inputs.r2.as_deref(),
             &out_dir,
             &CorrectPlanOptions {
+                threads: args.threads,
                 quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
                 kmer_size: args.kmer_size,
                 genome_size: args.genome_size,
