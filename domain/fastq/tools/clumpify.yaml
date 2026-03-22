@@ -66,7 +66,7 @@ stage_contracts:
       - "duplicate_classes_tsv"
       - "duplicate_provenance_json"
       - "report_json"
-    notes: "Clumpify duplicate removal admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits dedup_reads_r2 only when paired input is present."
+    notes: "Clumpify duplicate removal admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits dedup_reads_r2 only when paired input is present. report_json is the canonical governed deduplication report, while duplicate_classes_tsv and duplicate_provenance_json preserve duplicate-class and backend-lineage evidence."
 expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
@@ -75,4 +75,4 @@ help_cmd: "clumpify.sh --help"
 comparability:
   comparable_with: ["fastuniq"]
   non_comparable_with: []
-comparability_notes: "Comparable when duplicate model and optical-duplicate handling are harmonized."
+comparability_notes: "Comparable when duplicate model and optical-duplicate handling are harmonized and the governed report_json plus duplicate_provenance_json artifacts are compared together."

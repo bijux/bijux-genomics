@@ -40,6 +40,11 @@ fn comparison_input_artifact_ids_for_manifest_stage(stage_id: &str) -> Vec<Strin
 fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>) {
     let prioritized_artifact_ids: &[&str] = match stage_id {
         "fastq.validate_reads" => &["validated_reads_manifest"],
+        "fastq.remove_duplicates" => &[
+            "report_json",
+            "duplicate_provenance_json",
+            "duplicate_classes_tsv",
+        ],
         "fastq.report_qc" => &["report_json", "governed_qc_inputs_manifest"],
         _ => &[],
     };
