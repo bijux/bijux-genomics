@@ -13,12 +13,14 @@ stage_contracts:
   fastq.deplete_rrna:
     required_inputs:
     - reads_r1
+    optional_inputs:
+    - reads_r2
     expected_artifacts:
     - rrna_filtered_reads_r1
     - rrna_filtered_reads_r2
     - rrna_report_tsv
     - rrna_report_json
-    notes: rRNA depletion emits governed filtered-read artifacts together with normalized depletion reports.
+    notes: rRNA depletion emits governed filtered-read artifacts together with normalized depletion reports and accepts an optional mate input for paired depletion runs.
 status: supported
 scope: pre_hpc_pre_vcf
 expected_artifacts:
