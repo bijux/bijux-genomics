@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_detect_adapters_report,
+    parse_correct_errors_report,
     parse_deplete_host_report,
     parse_deplete_reference_contaminants_report,
     parse_deplete_rrna_report,
@@ -1240,21 +1241,26 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .map(|artifact| artifact.path.as_path())
         {
             if let Ok(raw_report) = std::fs::read_to_string(report_path) {
-                if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
+                if let Ok(report) = parse_correct_errors_report(&raw_report) {
                     return serde_json::json!({
-                        "correction_engine": report.get("correction_engine").cloned().unwrap_or(serde_json::Value::Null),
-                        "quality_encoding": report.get("quality_encoding").cloned().unwrap_or(serde_json::Value::Null),
-                        "kmer_size": report.get("kmer_size").cloned().unwrap_or(serde_json::Value::Null),
-                        "genome_size": report.get("genome_size").cloned().unwrap_or(serde_json::Value::Null),
-                        "max_memory_gb": report.get("max_memory_gb").cloned().unwrap_or(serde_json::Value::Null),
-                        "trusted_kmer_artifact": report.get("trusted_kmer_artifact").cloned().unwrap_or(serde_json::Value::Null),
-                        "conservative_mode": report.get("conservative_mode").cloned().unwrap_or(serde_json::Value::Null),
-                        "kmer_fix_rate": report.get("kmer_fix_rate").cloned().unwrap_or(serde_json::Value::Null),
-                        "correction_effect": report.get("correction_effect").cloned().unwrap_or(serde_json::Value::Null),
-                        "input_r1": report.get("input_r1").cloned().unwrap_or(serde_json::Value::Null),
-                        "input_r2": report.get("input_r2").cloned().unwrap_or(serde_json::Value::Null),
-                        "output_r1": report.get("output_r1").cloned().unwrap_or(serde_json::Value::Null),
-                        "output_r2": report.get("output_r2").cloned().unwrap_or(serde_json::Value::Null),
+                        "paired_mode": report.paired_mode,
+                        "threads": report.threads,
+                        "correction_engine": report.correction_engine,
+                        "quality_encoding": report.quality_encoding,
+                        "kmer_size": report.kmer_size,
+                        "genome_size": report.genome_size,
+                        "max_memory_gb": report.max_memory_gb,
+                        "trusted_kmer_artifact": report.trusted_kmer_artifact,
+                        "conservative_mode": report.conservative_mode,
+                        "corrected_reads": report.corrected_reads,
+                        "kmer_fix_rate": report.kmer_fix_rate,
+                        "correction_effect": report.correction_effect,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                        "input_r1": report.input_r1,
+                        "input_r2": report.input_r2,
+                        "output_r1": report.output_r1,
+                        "output_r2": report.output_r2,
                     });
                 }
             }
@@ -3081,17 +3087,41 @@ mod tests {
         std::fs::write(
             &report_path,
             serde_json::json!({
+                "schema_version": "bijux.fastq.correct_errors.report.v2",
+                "stage": "fastq.correct_errors",
+                "stage_id": "fastq.correct_errors",
+                "tool_id": "rcorrector",
+                "paired_mode": "paired_end",
+                "threads": 4,
                 "correction_engine": "rcorrector",
                 "quality_encoding": "phred33",
                 "kmer_size": 31_u64,
+                "genome_size": null,
+                "max_memory_gb": null,
                 "trusted_kmer_artifact": "trusted.kmers",
                 "conservative_mode": false,
+                "report_json": "correct_report.json",
+                "corrected_reads": 2_u64,
+                "reads_in": 2_u64,
+                "reads_out": 2_u64,
+                "bases_in": 8_u64,
+                "bases_out": 8_u64,
+                "pairs_in": 1_u64,
+                "pairs_out": 1_u64,
+                "mean_q_before": 30.0_f64,
+                "mean_q_after": 32.5_f64,
                 "kmer_fix_rate": 0.125_f64,
                 "correction_effect": {
                     "outputs_changed": true,
                     "bases_delta": -300_i64,
                     "mean_q_delta": 2.5_f64
                 },
+                "runtime_s": 1.0_f64,
+                "memory_mb": 64.0_f64,
+                "exit_code": 0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null,
+                "backend_metrics": null,
                 "input_r1": reads_r1_path,
                 "input_r2": reads_r2_path,
                 "output_r1": corrected_r1_path,
@@ -3156,6 +3186,11 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["correction_engine"],
             serde_json::json!("rcorrector")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["threads"],
+            serde_json::json!(4)
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
