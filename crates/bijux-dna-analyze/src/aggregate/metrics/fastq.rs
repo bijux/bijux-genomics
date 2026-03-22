@@ -947,6 +947,22 @@ pub struct FastqDuplicateMetrics {
     pub reads_out: u64,
     pub duplicate_reads: u64,
     pub dedup_rate: f64,
+    #[serde(default)]
+    pub tool: Option<String>,
+    #[serde(default)]
+    pub paired_mode: Option<String>,
+    #[serde(default)]
+    pub dedup_mode: Option<String>,
+    #[serde(default)]
+    pub keep_order: Option<bool>,
+    #[serde(default)]
+    pub pair_count_match: Option<bool>,
+    #[serde(default)]
+    pub duplicate_class_count: Option<u64>,
+    #[serde(default)]
+    pub duplicate_provenance_json: Option<String>,
+    #[serde(default)]
+    pub raw_backend_report_format: Option<String>,
 }
 
 impl StageMetricSchema for FastqDuplicateMetrics {
