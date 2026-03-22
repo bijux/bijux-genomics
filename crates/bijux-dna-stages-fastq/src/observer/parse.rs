@@ -752,6 +752,11 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
             Some(_) => bijux_dna_domain_fastq::PairedMode::PairedEnd,
             None => bijux_dna_domain_fastq::PairedMode::SingleEnd,
         },
+        threads: serde_json::from_str::<serde_json::Value>(report_json)
+            .ok()
+            .and_then(|value| value.get("threads").and_then(serde_json::Value::as_u64))
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
         dedup_mode: bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact,
         keep_order: true,
         input_r1: String::new(),
@@ -2063,6 +2068,7 @@ mod tests {
                 "stage_id": "fastq.remove_duplicates",
                 "tool_id": "clumpify",
                 "paired_mode": "single_end",
+                "threads": 4,
                 "dedup_mode": "optical_aware",
                 "keep_order": false,
                 "input_r1": "reads.fastq.gz",
@@ -2092,6 +2098,7 @@ mod tests {
             .to_string(),
         )?;
         assert_eq!(parsed.tool_id, "clumpify");
+        assert_eq!(parsed.threads, 4);
         assert_eq!(parsed.duplicate_classes.len(), 2);
         assert_eq!(parsed.dedup_rate, 0.15);
         Ok(())
