@@ -83,6 +83,11 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
             "rrna_filtered_reads_r1",
             "rrna_filtered_reads_r2",
         ],
+        "fastq.deplete_reference_contaminants" => &[
+            "contaminant_screen_report_json",
+            "contaminant_screened_reads_r1",
+            "contaminant_screened_reads_r2",
+        ],
         "fastq.normalize_abundance" => &["report_json", "normalized_abundance_tsv"],
         "fastq.extract_umis" => &["report_json", "umi_reads_r1", "umi_reads_r2"],
         "fastq.remove_duplicates" => &[

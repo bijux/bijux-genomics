@@ -91,6 +91,14 @@ fn deplete_reference_contaminants_exposes_stage_family_comparison_contract() {
         contract.normalization_artifact_id,
         "contaminant_depletion_tool_normalization_json"
     );
+    assert_eq!(
+        contract.comparison_input_artifact_ids,
+        &[
+            "contaminant_screen_report_json",
+            "contaminant_screened_reads_r1",
+            "contaminant_screened_reads_r2",
+        ]
+    );
 }
 
 #[test]

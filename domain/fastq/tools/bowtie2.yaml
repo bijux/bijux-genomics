@@ -28,11 +28,13 @@ stage_contracts:
     required_inputs:
       - "reads_r1"
       - "reference_index"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "contaminant_screened_reads_r1"
       - "contaminant_screened_reads_r2"
       - "contaminant_screen_report_json"
-    notes: "Reference-contaminant depletion emits retained reads and a contaminant screen report."
+    notes: "Reference-contaminant depletion emits governed retained-read artifacts together with a canonical contaminant screen report and accepts an optional mate input for paired depletion runs."
 expected_artifacts:
   - "host_depleted_reads_r1"
   - "host_depleted_reads_r2"

@@ -27,6 +27,9 @@ parameters:
   - name: "decoy_mode"
     param_type: "string"
     default: "phix_and_spikeins"
+  - name: "threads"
+    param_type: "integer"
+    default: 0
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads."
@@ -63,6 +66,7 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "contaminant decoy reference is explicitly versioned and separate from taxonomy DB."
   - "single-end input omits reads_r2 and contaminant_screened_reads_r2; paired-end input preserves mate synchronization during contaminant depletion."
+  - "contaminant_screen_report_json is the canonical governed depletion report; backend-native alignment metrics remain traceable from that report."
 bank_hooks:
   - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"
