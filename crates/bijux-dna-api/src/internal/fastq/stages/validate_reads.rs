@@ -162,7 +162,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
 
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_validate_v1(&conn, &record).context("insert bench sqlite")?;
-        if execution.exit_code != 0 && args.strict {
+        if execution.exit_code != 0 && validation_failures_are_fatal(args, &plan_options) {
             failures.push(RawFailure {
                 stage: STAGE_VALIDATE_READS.as_str().to_string(),
                 tool: tool.clone(),
@@ -417,9 +417,20 @@ fn validate_plan_options(
     })
 }
 
+fn validation_failures_are_fatal(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
+    options: &ValidateReadsPlanOptions,
+) -> bool {
+    if args.validation_mode.is_some() {
+        return options.validation_mode
+            == bijux_dna_domain_fastq::params::validate::ValidationMode::Strict;
+    }
+    args.strict
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{required_plan_output_path, validate_plan_options};
+    use super::{required_plan_output_path, validate_plan_options, validation_failures_are_fatal};
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
@@ -566,5 +577,27 @@ mod tests {
             options.pair_sync_policy,
             bijux_dna_domain_fastq::params::validate::PairSyncPolicy::NotApplicable
         );
+    }
+
+    #[test]
+    fn explicit_validation_mode_overrides_legacy_strict_flag() {
+        let args = bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            tools: vec!["fastqvalidator".to_string()],
+            explain: false,
+            strict: true,
+            replicates: 1,
+            jobs: 1,
+            ci_bootstrap: None,
+            threads: None,
+            validation_mode: Some("report_only".to_string()),
+            pair_sync_policy: None,
+        };
+
+        let options = validate_plan_options(&args).expect("options");
+        assert!(!validation_failures_are_fatal(&args, &options));
     }
 }
