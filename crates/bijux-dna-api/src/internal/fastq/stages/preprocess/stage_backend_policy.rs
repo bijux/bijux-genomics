@@ -204,6 +204,66 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
+pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = discover_screen_taxonomy_report(out_dir)
+        .unwrap_or_else(|| out_dir.join("classification_report.json"));
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_screen_taxonomy_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.screen_taxonomy",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "classifier": report.classifier,
+                "report_format": report.report_format,
+                "assignment_format": report.assignment_format,
+                "database_catalog_id": report.database_catalog_id,
+                "database_artifact_id": report.database_artifact_id,
+                "database_build_id": report.database_build_id,
+                "database_digest": report.database_digest,
+                "database_namespace": report.database_namespace,
+                "database_scope": report.database_scope,
+                "minimum_confidence": report.minimum_confidence,
+                "emit_unclassified": report.emit_unclassified,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "contamination_rate": report.contamination_rate,
+                "classified_fraction": report.classified_fraction,
+                "unclassified_fraction": report.unclassified_fraction,
+                "summary_entries": report.summary_entries,
+                "top_taxa": report.top_taxa,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.screen_taxonomy",
+        "tool": "report_missing",
+        "classifier": serde_json::Value::Null,
+        "contamination_rate": serde_json::Value::Null,
+        "top_taxa": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
+fn discover_screen_taxonomy_report(out_dir: &std::path::Path) -> Option<std::path::PathBuf> {
+    [
+        "kraken2.classifications.json",
+        "krakenuniq.classifications.json",
+        "centrifuge.classifications.json",
+        "kaiju.classifications.json",
+        "classification_report.json",
+    ]
+    .into_iter()
+    .map(|name| out_dir.join(name))
+    .find(|path| path.exists())
+}
+
 fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let fastp_json = out_dir.join("fastp.json");
     if let Ok(raw) = std::fs::read_to_string(&fastp_json) {
@@ -302,9 +362,9 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_trim_polyg_metrics, parse_trim_reads_metrics,
-        parse_trim_terminal_damage_metrics, parse_validate_reads_metrics, required_metrics_keys,
-        workspace_root_path,
+        fastq_backend_allowlist, parse_screen_taxonomy_metrics, parse_trim_polyg_metrics,
+        parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
+        parse_validate_reads_metrics, required_metrics_keys, workspace_root_path,
     };
 
     fn env_lock() -> &'static Mutex<()> {
@@ -654,6 +714,68 @@ mod tests {
             serde_json::json!("sha256:polyx")
         );
     }
+
+    #[test]
+    fn screen_taxonomy_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("kraken2.classifications.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.screen_taxonomy.report.v2",
+                "stage": "fastq.screen_taxonomy",
+                "stage_id": "fastq.screen_taxonomy",
+                "tool_id": "kraken2",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "classifier": "kraken2",
+                "report_format": "kraken_report",
+                "assignment_format": "kraken_assignments",
+                "database_catalog_id": "taxonomy_reference",
+                "database_artifact_id": "taxonomy_db",
+                "database_build_id": "build-2026-03",
+                "database_digest": "sha256:taxonomy-db",
+                "database_namespace": "read_screening",
+                "database_scope": "read_screening",
+                "minimum_confidence": 0.05,
+                "emit_unclassified": true,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "screen_report_tsv": "kraken2.report.tsv",
+                "classification_report_json": "kraken2.classifications.json",
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 1000,
+                "pairs_in": 0,
+                "pairs_out": 0,
+                "contamination_rate": 0.23,
+                "classified_fraction": 0.77,
+                "unclassified_fraction": 0.23,
+                "summary_entries": [
+                    {"label": "unclassified", "percent": 23.0},
+                    {"label": "bacteria", "percent": 77.0}
+                ],
+                "top_taxa": [
+                    {"label": "bacteria", "percent": 77.0}
+                ],
+                "runtime_s": 8.0,
+                "memory_mb": 256.0
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_screen_taxonomy_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("kraken2"));
+        assert_eq!(metrics["classifier"], serde_json::json!("kraken2"));
+        assert_eq!(metrics["contamination_rate"], serde_json::json!(0.23));
+        assert_eq!(metrics["top_taxa"][0]["label"], serde_json::json!("bacteria"));
+        assert_eq!(
+            metrics["database_digest"],
+            serde_json::json!("sha256:taxonomy-db")
+        );
+    }
 }
 
 fn workspace_root_path() -> PathBuf {
@@ -754,7 +876,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_in",
             "reads_out",
         ],
-        "fastq.screen_taxonomy" => &["schema_version", "stage", "tool", "taxonomy_profile"],
+        "fastq.screen_taxonomy" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "classifier",
+            "contamination_rate",
+            "top_taxa",
+        ],
         "fastq.deplete_reference_contaminants" => {
             &["schema_version", "stage", "tool", "screening_results"]
         }
