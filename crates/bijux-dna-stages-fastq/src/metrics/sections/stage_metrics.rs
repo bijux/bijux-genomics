@@ -228,26 +228,84 @@ pub fn stage_metrics_for_plan(
             })?
         }
         id_catalog::FASTQ_LOW_COMPLEXITY => {
-            let mut removals = FilterRemovalCounts::default();
-            let stats = stats_for_paths(&[
-                inputs.first().map(PathBuf::as_path),
-                outputs.first().map(PathBuf::as_path),
-            ])?;
-            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
-            let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
-            removals.by_low_complexity =
+            let parsed_report =
                 std::fs::read_to_string(plan.out_dir.join("low_complexity_report.json"))
                     .ok()
-                    .and_then(|raw| crate::observer::parse_low_complexity_report(&raw).ok())
-                    .unwrap_or_else(|| input.reads.saturating_sub(output.reads));
-            filter_metrics_with_removals(
-                &plan.stage_id,
-                inputs,
-                outputs,
-                &plan.params,
-                &plan.effective_params,
-                &removals,
-            )?
+                    .and_then(|raw| {
+                        crate::observer::parse_filter_low_complexity_report(&raw).ok()
+                    });
+            if let Some(report) = parsed_report {
+                let read_retention = if report.reads_in > 0 {
+                    f64_from_u64(report.reads_out) / f64_from_u64(report.reads_in)
+                } else {
+                    0.0
+                };
+                let base_retention = if report.bases_in > 0 {
+                    f64_from_u64(report.bases_out) / f64_from_u64(report.bases_in)
+                } else {
+                    0.0
+                };
+                let delta = FastqDeltaMetricsV1 {
+                    read_retention,
+                    base_retention,
+                    mean_q_delta: report.mean_q_after - report.mean_q_before,
+                    gc_delta: 0.0,
+                };
+                let retention = RetentionReportMetricV1 {
+                    value: read_retention,
+                    numerator_reads: report.reads_out,
+                    denominator_reads: report.reads_in,
+                    numerator_bases: report.bases_out,
+                    denominator_bases: report.bases_in,
+                    definition: "reads_out / reads_in".to_string(),
+                    stage_boundary: plan.stage_id.to_string(),
+                    conditions: retention_conditions_from_effective(
+                        &plan.stage_id,
+                        &plan.effective_params,
+                        &plan.params,
+                    ),
+                };
+                serde_json::to_value(FastqFilterMetricsV1 {
+                    reads_in: report.reads_in,
+                    reads_out: report.reads_out,
+                    reads_dropped: report.reads_removed_low_complexity,
+                    reads_removed_by_n: 0,
+                    reads_removed_by_entropy: 0,
+                    reads_removed_low_complexity: report.reads_removed_low_complexity,
+                    reads_removed_by_kmer: 0,
+                    reads_removed_contaminant_kmer: 0,
+                    reads_removed_by_length: 0,
+                    bases_in: report.bases_in,
+                    bases_out: report.bases_out,
+                    pairs_in: report.pairs_in,
+                    pairs_out: report.pairs_out,
+                    mean_q_before: report.mean_q_before,
+                    mean_q_after: report.mean_q_after,
+                    delta_metrics: delta,
+                    retention,
+                })?
+            } else {
+                let mut removals = FilterRemovalCounts::default();
+                let stats = stats_for_paths(&[
+                    inputs.first().map(PathBuf::as_path),
+                    outputs.first().map(PathBuf::as_path),
+                ])?;
+                let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+                let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
+                removals.by_low_complexity =
+                    std::fs::read_to_string(plan.out_dir.join("low_complexity_report.json"))
+                        .ok()
+                        .and_then(|raw| crate::observer::parse_low_complexity_report(&raw).ok())
+                        .unwrap_or_else(|| input.reads.saturating_sub(output.reads));
+                filter_metrics_with_removals(
+                    &plan.stage_id,
+                    inputs,
+                    outputs,
+                    &plan.params,
+                    &plan.effective_params,
+                    &removals,
+                )?
+            }
         }
         id_catalog::FASTQ_MERGE => {
             let stats = stats_for_paths(&[
