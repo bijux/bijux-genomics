@@ -85,12 +85,15 @@ stage_contracts:
   fastq.normalize_primers:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "normalized_reads_r1"
       - "normalized_reads_r2"
+      - "report_json"
       - "primer_orientation_report"
       - "primer_stats_json"
-    notes: "seqkit primer normalization emits normalized reads plus primer orientation and summary reports."
+    notes: "seqkit primer normalization admits reads_r1 as the canonical required input, may accept an optional reads_r2 mate when future paired-aware execution exists, and emits a governed normalize-primers report plus normalized read and orientation artifacts."
   fastq.trim_terminal_damage:
     required_inputs:
       - "reads_r1"
@@ -118,6 +121,7 @@ expected_artifacts:
   - "normalized_abundance_tsv"
   - "normalized_reads_r1"
   - "normalized_reads_r2"
+  - "report_json"
   - "primer_orientation_report"
   - "primer_stats_json"
   - "overrepresented_sequences_tsv"
