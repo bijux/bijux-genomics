@@ -12,6 +12,7 @@
 pub mod banks;
 pub mod bench_repository;
 mod comparison_contract;
+mod deplete_reference_contaminants_artifacts;
 mod deplete_rrna_artifacts;
 mod detect_adapters_artifacts;
 mod domain_adapter;
@@ -116,6 +117,10 @@ pub use execution_support::{
     ExecutionStatus, StageExecutionSupport,
 };
 pub use deplete_rrna_artifacts::{DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION};
+pub use deplete_reference_contaminants_artifacts::{
+    DepleteReferenceContaminantsReportV1,
+    DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
+};
 pub use extract_umis_artifacts::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 pub use detect_adapters_artifacts::{
     DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
