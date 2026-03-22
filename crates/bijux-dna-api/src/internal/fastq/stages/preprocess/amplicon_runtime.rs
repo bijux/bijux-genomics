@@ -502,39 +502,62 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
             });
         }
         "fastq.normalize_abundance" => {
-            let out = out_dir.join("abundance_normalized.tsv");
-            let seqkit_ok = command_exists("seqkit")
-                && run_stage_command(
-                    out_dir,
-                    "seqkit_fx2tab",
-                    "seqkit",
-                    &[
-                        "fx2tab".to_string(),
-                        "-n".to_string(),
-                        "-l".to_string(),
-                        input.to_string_lossy().to_string(),
-                    ],
-                );
-            let seqfu_ok = command_exists("seqfu")
-                && run_stage_command(
-                    out_dir,
-                    "seqfu_version_probe",
-                    "seqfu",
-                    &["--help".to_string()],
-                );
-            if !out.exists() {
-                bijux_dna_infra::atomic_write_bytes(
-                    &out,
-                    b"sample_id\tfeature_id\tnormalized_abundance\nsample1\tASV_0001\t1.000000\n",
+            let normalized_table = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "normalized_abundance_tsv")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("abundance_normalized.tsv"));
+            let report_json = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("normalize_abundance_report.json"));
+            let method = normalize_abundance_method(planned);
+            let tool_id = normalize_abundance_tool_id(planned);
+            let effective_params =
+                crate::internal::fastq::stages::normalize_abundance::normalize_abundance_effective_params(
+                    method,
                 )?;
-            }
+            let used_fallback = !normalized_table.exists();
+            let table_metrics = if used_fallback {
+                crate::internal::fastq::stages::normalize_abundance::materialize_normalized_table(
+                    &input,
+                    &normalized_table,
+                    &effective_params,
+                )?
+            } else {
+                crate::internal::fastq::stages::normalize_abundance::read_normalized_table_metrics(
+                    &normalized_table,
+                    &effective_params,
+                )?
+            };
+            let report =
+                crate::internal::fastq::stages::normalize_abundance::canonical_normalize_abundance_report(
+                    stage_id,
+                    tool_id,
+                    &input,
+                    &normalized_table,
+                    &effective_params,
+                    &table_metrics,
+                    None,
+                    None,
+                    None,
+                    used_fallback,
+                    Some(serde_json::json!({
+                        "materialized_by": "preprocess_amplicon_runtime",
+                    })),
+                );
+            bijux_dna_infra::atomic_write_json(&report_json, &report)?;
             payload = serde_json::json!({
-                "zero_fraction": 0.0_f64,
-                "normalization_method": "relative_abundance_per_sample",
-                "tools": {
-                    "seqkit": seqkit_ok,
-                    "seqfu": seqfu_ok,
-                }
+                "normalization_method": report.method,
+                "normalized_value_column": report.normalized_value_column,
+                "compositional_rule": report.compositional_rule,
+                "scale_factor": report.scale_factor,
+                "table_rows": report.table_rows,
+                "sample_count": report.sample_count,
+                "feature_count": report.feature_count,
+                "zero_fraction": report.zero_fraction,
+                "used_fallback": report.used_fallback,
             });
         }
         _ => {}
@@ -603,6 +626,32 @@ fn normalize_primers_tool_id(planned: &ExecutionStep) -> &'static str {
         "seqkit"
     } else {
         "cutadapt"
+    }
+}
+
+fn normalize_abundance_tool_id(planned: &ExecutionStep) -> &'static str {
+    if planned
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("seqfu"))
+    {
+        "seqfu"
+    } else {
+        "seqkit"
+    }
+}
+
+fn normalize_abundance_method(planned: &ExecutionStep) -> &'static str {
+    if planned
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("counts_per_million"))
+    {
+        "counts_per_million"
+    } else {
+        "relative_abundance"
     }
 }
 
