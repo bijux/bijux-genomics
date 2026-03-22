@@ -849,6 +849,8 @@ pub struct BenchFastqStatsArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
+    #[arg(long)]
+    pub threads: Option<u32>,
     #[arg(
         long,
         value_delimiter = ',',

@@ -23,6 +23,21 @@ pub fn plan_stats_neutral(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_stats_with_threads(tool, r1, r2, out_dir, None)
+}
+
+/// Build a read profiling plan with an optional thread override.
+///
+/// # Errors
+/// Returns an error if planning fails.
+pub fn plan_stats_with_threads(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    threads_override: Option<u32>,
+) -> Result<StagePlanV1> {
+    let threads = threads_override.unwrap_or(tool.resources.threads).max(1);
     let effective_params = FastqStatsParams {
         schema_version: STATS_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
@@ -30,7 +45,7 @@ pub fn plan_stats_neutral(
         } else {
             PairedMode::SingleEnd
         },
-        threads: tool.resources.threads,
+        threads,
     };
     let command_template = profile_reads_command(&tool.tool_id.0, r1, r2)?;
     let mut inputs = vec![ArtifactRef::required(
@@ -58,7 +73,10 @@ pub fn plan_stats_neutral(
         command: CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources: bijux_dna_core::prelude::ExecutionResourcesV1 {
+            threads,
+            ..tool.resources.clone()
+        },
         io: StageIO {
             inputs,
             outputs: vec![
@@ -84,6 +102,7 @@ pub fn plan_stats_neutral(
             "tool": tool.tool_id.0,
             "input_r1": r1,
             "input_r2": r2,
+            "threads": threads,
             "out_dir": out_dir
         }),
         effective_params: serde_json::to_value(&effective_params)

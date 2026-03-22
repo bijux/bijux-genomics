@@ -25,7 +25,7 @@ use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir};
 use bijux_dna_planner_fastq::select_stats_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::fastq::profile_reads::plan_stats_neutral;
+use bijux_dna_planner_fastq::stage_api::fastq::profile_reads::plan_stats_with_threads;
 use bijux_dna_planner_fastq::stage_api::observer::{
     input_fastq_stats, length_histogram_command, parse_length_histogram, parse_seqkit_stats,
 };
@@ -114,11 +114,12 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_dir = bench_inputs.tools_root.join(&tool);
-        let plan = plan_stats_neutral(
+        let plan = plan_stats_with_threads(
             &tool_spec,
             &bench_inputs.r1,
             bench_inputs.r2.as_deref(),
             &tool_dir,
+            args.threads,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -328,11 +329,12 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
 
     println!("→ stats {tool}");
     let tool_dir = bench_inputs.tools_root.join(tool);
-    let plan = plan_stats_neutral(
+    let plan = plan_stats_with_threads(
         &tool_spec,
         &bench_inputs.r1,
         bench_inputs.r2.as_deref(),
         &tool_dir,
+        _args.threads,
     )?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let params = plan.params.clone();
