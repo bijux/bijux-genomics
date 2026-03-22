@@ -107,13 +107,16 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     for tool in &tools {
         let out_dir = bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
+        let mut tool_spec = build_tool_execution_spec(
             STAGE_DETECT_ADAPTERS.as_str(),
             tool,
             &registry,
             catalog,
             platform,
         )?;
+        if let Some(threads) = args.threads {
+            tool_spec.resources.threads = threads;
+        }
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
         let params_hash = stable_params_hash(&plan.params);
