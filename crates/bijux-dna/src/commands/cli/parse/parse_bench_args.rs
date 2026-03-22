@@ -341,11 +341,21 @@ pub struct BenchFastqFilterArgs {
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
     #[arg(long)]
+    pub threads: Option<u32>,
+    #[arg(long)]
     pub max_n: Option<u32>,
+    #[arg(long)]
+    pub max_n_fraction: Option<f64>,
+    #[arg(long)]
+    pub max_n_count: Option<u32>,
     #[arg(long = "low-complexity-threshold")]
     pub low_complexity_threshold: Option<f64>,
     #[arg(long)]
+    pub entropy_threshold: Option<f64>,
+    #[arg(long)]
     pub kmer_ref: Option<PathBuf>,
+    #[arg(long)]
+    pub polyx_policy: Option<String>,
 }
 
 #[derive(Debug, Args)]
