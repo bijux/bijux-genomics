@@ -60,10 +60,13 @@ stage_contracts:
   fastq.detect_adapters:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
+      - "report_json"
       - "adapter_report"
       - "adapter_evidence_dir"
-    notes: "Evidence-only adapter inspection emits the normalized adapter report and governed evidence directory."
+    notes: "Evidence-only adapter inspection emits the canonical governed report_json plus the governed evidence directory."
   fastq.profile_overrepresented_sequences:
     required_inputs:
       - "reads_r1"
