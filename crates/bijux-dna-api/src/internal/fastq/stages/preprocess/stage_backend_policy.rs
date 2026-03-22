@@ -156,6 +156,51 @@ pub(crate) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_jso
     })
 }
 
+pub(crate) fn parse_correct_errors_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("correct_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_correct_errors_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.correct_errors",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "threads": report.threads,
+                "correction_engine": report.correction_engine,
+                "quality_encoding": report.quality_encoding,
+                "kmer_size": report.kmer_size,
+                "genome_size": report.genome_size,
+                "max_memory_gb": report.max_memory_gb,
+                "trusted_kmer_artifact": report.trusted_kmer_artifact,
+                "conservative_mode": report.conservative_mode,
+                "corrected_reads": report.corrected_reads,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "mean_q_before": report.mean_q_before,
+                "mean_q_after": report.mean_q_after,
+                "kmer_fix_rate": report.kmer_fix_rate,
+                "correction_effect": report.correction_effect,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.correct_errors",
+        "tool": "report_missing",
+        "correction_engine": serde_json::Value::Null,
+        "corrected_reads": serde_json::Value::Null,
+        "kmer_fix_rate": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_filter_low_complexity_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("low_complexity_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -1175,6 +1220,21 @@ mod tests {
                 "failure_class",
                 "strict_pass",
                 "exit_code",
+            ]
+        );
+    }
+
+    #[test]
+    fn correct_errors_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.correct_errors"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "correction_engine",
+                "corrected_reads",
+                "kmer_fix_rate",
             ]
         );
     }
@@ -2390,7 +2450,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "merge_rate",
         ],
         "fastq.remove_duplicates" => &["schema_version", "stage", "tool", "duplicates_removed"],
-        "fastq.correct_errors" => &["schema_version", "stage", "tool", "corrected_reads"],
+        "fastq.correct_errors" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "correction_engine",
+            "corrected_reads",
+            "kmer_fix_rate",
+        ],
         "fastq.filter_reads" => &[
             "schema_version",
             "stage",
