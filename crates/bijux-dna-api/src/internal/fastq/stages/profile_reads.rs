@@ -21,6 +21,10 @@ use uuid::Uuid;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_dna_core::contract::validate_execution_outputs;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
+use bijux_dna_domain_fastq::{
+    metrics::SeqkitToolMetricsV1, PairedMode, ProfileReadsHistogramBinV1,
+    ProfileReadsMateSummaryV1, ProfileReadsReportV1, PROFILE_READS_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir};
 use bijux_dna_planner_fastq::select_stats_tools;
@@ -387,15 +391,34 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         &bench_inputs.input_stats,
         bench_inputs.input_stats_r2.as_ref(),
     );
+    let length_histogram =
+        combine_length_histograms(&bench_inputs.length_hist, bench_inputs.length_hist_r2.as_deref());
+    let backend_rows = parse_seqkit_stats_rows(&execution.stdout).unwrap_or_else(|_| {
+        fallback_seqkit_rows(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref())
+    });
+    materialize_profile_reads_outputs(
+        &plan,
+        &backend_rows,
+        &length_histogram,
+        &execution_metrics_from_stage_result(&execution),
+    )?;
+    let report = std::fs::read_to_string(required_plan_output_path(&plan, "qc_json")?)
+        .ok()
+        .and_then(|raw| bijux_dna_stages_fastq::observer::parse_profile_reads_report(&raw).ok())
+        .ok_or_else(|| anyhow!("profile_reads governed report was not materialized"))?;
     let metrics = FastqStatsMetrics {
-        reads_total: combined_stats.reads,
-        bases_total: combined_stats.bases,
-        mean_q: combined_stats.mean_q,
-        gc_percent: combined_stats.gc_percent,
-        length_histogram: combine_length_histograms(
-            &bench_inputs.length_hist,
-            bench_inputs.length_hist_r2.as_deref(),
-        ),
+        reads_total: report.reads_total,
+        bases_total: report.bases_total,
+        mean_q: report.mean_q,
+        gc_percent: report.gc_percent,
+        length_histogram: report
+            .length_histogram
+            .iter()
+            .map(|bin| LengthHistogramBin {
+                length: bin.length,
+                count: bin.count,
+            })
+            .collect(),
     };
     let metric_set = metric_set(metrics);
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -434,11 +457,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         input_hash: bench_inputs.input_hash.clone(),
         parameters: params.clone().into(),
     };
-    let execution_metrics = ExecutionMetrics {
-        runtime_s: execution.runtime_s,
-        memory_mb: execution.memory_mb,
-        exit_code: execution.exit_code,
-    };
+    let execution_metrics = execution_metrics_from_stage_result(&execution);
     let metrics_json = serde_json::to_value(&metric_set)?;
     let parameters_json_normalized =
         bijux_dna_core::contract::canonical::parameters_json_canonicalization(&params);
@@ -505,6 +524,249 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn required_plan_output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Result<&std::path::Path> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.as_path())
+        .ok_or_else(|| anyhow!("profile_reads plan missing `{artifact_name}` output"))
+}
+
+fn execution_metrics_from_stage_result(
+    execution: &bijux_dna_core::prelude::measure::StageResultV1,
+) -> ExecutionMetrics {
+    ExecutionMetrics {
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
+        exit_code: execution.exit_code,
+    }
+}
+
+fn parse_seqkit_stats_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1>> {
+    let mut lines = stdout.lines();
+    let header = lines.next().ok_or_else(|| anyhow!("empty seqkit stats stdout"))?;
+    let header_fields: Vec<&str> = header.split('\t').collect();
+    let col_index = |name: &str| -> Result<usize> {
+        header_fields
+            .iter()
+            .position(|field| field == &name)
+            .ok_or_else(|| anyhow!("seqkit stats header missing `{name}`"))
+    };
+    let reads_idx = col_index("num_seqs")?;
+    let bases_idx = col_index("sum_len")?;
+    let mean_q_idx = header_fields
+        .iter()
+        .position(|field| field == &"avg_qual" || field == &"mean_qual");
+    let gc_idx = header_fields
+        .iter()
+        .position(|field| field.to_ascii_lowercase().starts_with("gc"));
+    let file_idx = header_fields
+        .iter()
+        .position(|field| field == &"file")
+        .unwrap_or(0);
+
+    let mut rows = Vec::new();
+    for line in lines {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let fields: Vec<&str> = line.split('\t').collect();
+        rows.push(ProfileReadsMateSummaryV1 {
+            label: fields
+                .get(file_idx)
+                .copied()
+                .unwrap_or("reads")
+                .to_string(),
+            reads: fields
+                .get(reads_idx)
+                .ok_or_else(|| anyhow!("seqkit row missing reads"))?
+                .parse()?,
+            bases: fields
+                .get(bases_idx)
+                .ok_or_else(|| anyhow!("seqkit row missing bases"))?
+                .parse()?,
+            mean_q: mean_q_idx
+                .and_then(|idx| fields.get(idx))
+                .and_then(|value| value.parse::<f64>().ok()),
+            gc_percent: gc_idx
+                .and_then(|idx| fields.get(idx))
+                .and_then(|value| value.parse::<f64>().ok()),
+        });
+    }
+    if rows.is_empty() {
+        return Err(anyhow!("seqkit stats stdout contained no data rows"));
+    }
+    Ok(rows)
+}
+
+fn fallback_seqkit_rows(
+    r1: &SeqkitMetrics,
+    r2: Option<&SeqkitMetrics>,
+) -> Vec<ProfileReadsMateSummaryV1> {
+    let mut rows = vec![ProfileReadsMateSummaryV1 {
+        label: "reads_r1".to_string(),
+        reads: r1.reads,
+        bases: r1.bases,
+        mean_q: Some(r1.mean_q),
+        gc_percent: Some(r1.gc_percent),
+    }];
+    if let Some(r2) = r2 {
+        rows.push(ProfileReadsMateSummaryV1 {
+            label: "reads_r2".to_string(),
+            reads: r2.reads,
+            bases: r2.bases,
+            mean_q: Some(r2.mean_q),
+            gc_percent: Some(r2.gc_percent),
+        });
+    }
+    rows
+}
+
+fn materialize_profile_reads_outputs(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    mate_summaries: &[ProfileReadsMateSummaryV1],
+    length_histogram: &[LengthHistogramBin],
+    execution_metrics: &ExecutionMetrics,
+) -> Result<()> {
+    let qc_json = required_plan_output_path(plan, "qc_json")?;
+    let qc_tsv = required_plan_output_path(plan, "qc_tsv")?;
+    let qc_plots_dir = plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "qc_plots_dir")
+        .map(|artifact| artifact.path.clone());
+
+    let reads_total = mate_summaries.iter().map(|summary| summary.reads).sum::<u64>();
+    let bases_total = mate_summaries.iter().map(|summary| summary.bases).sum::<u64>();
+    let mean_q = weighted_optional_metric(mate_summaries, |summary| summary.mean_q).unwrap_or(0.0);
+    let gc_percent =
+        weighted_optional_metric(mate_summaries, |summary| summary.gc_percent).unwrap_or(0.0);
+    let backend_metrics = mate_summaries
+        .iter()
+        .map(|summary| SeqkitToolMetricsV1 {
+            schema_version: "bijux.seqkit.metrics.v1".to_string(),
+            reads: summary.reads,
+            bases: summary.bases,
+            mean_q: summary.mean_q,
+            gc_percent: summary.gc_percent,
+        })
+        .collect::<Vec<_>>();
+    let report = ProfileReadsReportV1 {
+        schema_version: PROFILE_READS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_PROFILE_READS.as_str().to_string(),
+        stage_id: STAGE_PROFILE_READS.as_str().to_string(),
+        tool_id: plan.tool_id.to_string(),
+        paired_mode: if mate_summaries.len() > 1 {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        threads: plan.resources.threads,
+        input_r1: plan
+            .io
+            .inputs
+            .first()
+            .map(|artifact| artifact.path.display().to_string())
+            .unwrap_or_default(),
+        input_r2: plan
+            .io
+            .inputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "reads_r2")
+            .map(|artifact| artifact.path.display().to_string()),
+        qc_json: qc_json.display().to_string(),
+        qc_tsv: qc_tsv.display().to_string(),
+        qc_plots_dir: qc_plots_dir.as_ref().map(|path| path.display().to_string()),
+        length_histogram_source: "seqkit_fx2tab".to_string(),
+        reads_total,
+        bases_total,
+        mean_q,
+        gc_percent,
+        length_histogram: length_histogram
+            .iter()
+            .map(|bin| ProfileReadsHistogramBinV1 {
+                length: bin.length,
+                count: bin.count,
+            })
+            .collect(),
+        mate_summaries: mate_summaries.to_vec(),
+        runtime_s: Some(execution_metrics.runtime_s),
+        memory_mb: Some(execution_metrics.memory_mb),
+        exit_code: Some(execution_metrics.exit_code),
+        raw_backend_report: Some(qc_tsv.display().to_string()),
+        raw_backend_report_format: Some("seqkit_stats_tsv".to_string()),
+        backend_metrics: Some(backend_metrics),
+    };
+
+    bijux_dna_infra::atomic_write_json(qc_json, &report)?;
+    bijux_dna_infra::atomic_write_bytes(qc_tsv, profile_reads_tsv(mate_summaries).as_bytes())?;
+    if let Some(plots_dir) = qc_plots_dir {
+        bijux_dna_infra::ensure_dir(&plots_dir)?;
+        let histogram_json = plots_dir.join("length_histogram.json");
+        let histogram_tsv = plots_dir.join("length_histogram.tsv");
+        let histogram_payload = serde_json::json!({
+            "schema_version": "bijux.fastq.profile_reads.length_histogram.v1",
+            "bins": length_histogram
+                .iter()
+                .map(|bin| serde_json::json!({
+                    "length": bin.length,
+                    "count": bin.count,
+                }))
+                .collect::<Vec<_>>(),
+        });
+        bijux_dna_infra::atomic_write_json(&histogram_json, &histogram_payload)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &histogram_tsv,
+            profile_reads_histogram_tsv(length_histogram).as_bytes(),
+        )?;
+    }
+    Ok(())
+}
+
+fn weighted_optional_metric(
+    summaries: &[ProfileReadsMateSummaryV1],
+    selector: impl Fn(&ProfileReadsMateSummaryV1) -> Option<f64>,
+) -> Option<f64> {
+    let total_bases = summaries.iter().map(|summary| summary.bases).sum::<u64>();
+    if total_bases == 0 {
+        return Some(0.0);
+    }
+    let weighted_sum = summaries.iter().fold(0.0, |acc, summary| {
+        acc + selector(summary).unwrap_or(0.0) * summary.bases as f64
+    });
+    Some(weighted_sum / total_bases as f64)
+}
+
+fn profile_reads_tsv(mate_summaries: &[ProfileReadsMateSummaryV1]) -> String {
+    let mut out = String::from("label\treads\tbases\tmean_q\tgc_percent\n");
+    for summary in mate_summaries {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\n",
+            summary.label,
+            summary.reads,
+            summary.bases,
+            summary.mean_q.map_or_else(String::new, |value| format!("{value:.3}")),
+            summary
+                .gc_percent
+                .map_or_else(String::new, |value| format!("{value:.3}"))
+        ));
+    }
+    out
+}
+
+fn profile_reads_histogram_tsv(length_histogram: &[LengthHistogramBin]) -> String {
+    let mut out = String::from("length\tcount\n");
+    for bin in length_histogram {
+        out.push_str(&format!("{}\t{}\n", bin.length, bin.count));
+    }
+    out
 }
 
 fn combine_seqkit_metrics(
