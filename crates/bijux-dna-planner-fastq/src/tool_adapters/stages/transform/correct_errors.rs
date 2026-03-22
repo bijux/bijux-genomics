@@ -14,7 +14,6 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_CORRECT_ERRORS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
 pub type CorrectPlanOptions = crate::CorrectErrorsStageParams;
 
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {

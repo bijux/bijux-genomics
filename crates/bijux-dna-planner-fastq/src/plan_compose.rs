@@ -18,8 +18,9 @@ use bijux_dna_domain_fastq::stages::ids::{
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    DepleteHostStageParams, DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
-    FastqStageBinding, FastqStageParameters, TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
+    CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
+    DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters,
+    TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
     STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
     STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY,
     STAGE_FILTER_READS, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE,
@@ -425,11 +426,13 @@ where
                 (plan, next_r1, None, inherited.feature_table.clone())
             }
             stage if stage == STAGE_CORRECT_ERRORS.as_str() => {
-                let plan = crate::tool_adapters::fastq::correct_errors::plan_correct(
+                let params = correct_errors_params(binding);
+                let plan = crate::tool_adapters::fastq::correct_errors::plan_correct_with_options(
                     tool,
                     &stage_r1,
                     stage_r2.as_deref(),
                     &out_dir,
+                    &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = stage_r2
@@ -1111,6 +1114,13 @@ fn validate_reads_params(binding: &FastqStageBinding, paired: bool) -> ValidateE
     match binding.params.as_ref() {
         Some(FastqStageParameters::Validate(params)) => params.clone(),
         _ => validate_defaults(paired),
+    }
+}
+
+fn correct_errors_params(binding: &FastqStageBinding) -> CorrectErrorsStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::CorrectErrors(params)) => params.clone(),
+        _ => CorrectErrorsStageParams::default(),
     }
 }
 
