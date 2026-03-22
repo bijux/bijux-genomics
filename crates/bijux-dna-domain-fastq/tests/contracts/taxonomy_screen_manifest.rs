@@ -38,3 +38,24 @@ fn taxonomy_screen_manifest_keeps_read_classifier_tools_only() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn taxonomy_screen_tool_manifests_admit_optional_mate_inputs() -> Result<()> {
+    for tool in ["kraken2", "centrifuge", "kaiju"] {
+        let path = workspace_root()?.join(format!("domain/fastq/tools/{tool}.yaml"));
+        let yaml = parse_yaml(&path)?;
+        let optional_inputs = yaml
+            .get("execution_contract")
+            .and_then(|value| value.get("optional_inputs"))
+            .and_then(Value::as_sequence)
+            .context("execution_contract.optional_inputs")?
+            .iter()
+            .filter_map(Value::as_str)
+            .collect::<Vec<_>>();
+        assert!(
+            optional_inputs.contains(&"reads_r2"),
+            "{tool} must admit reads_r2 as an optional governed screen-taxonomy input"
+        );
+    }
+    Ok(())
+}

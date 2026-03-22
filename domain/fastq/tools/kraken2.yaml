@@ -26,6 +26,8 @@ constraints:
 execution_contract:
   required_inputs:
     - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
   expected_outputs:
     - "classification_report_json"
     - "screen_report_tsv"
@@ -44,10 +46,12 @@ stage_contracts:
   fastq.screen_taxonomy:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "screen_report_tsv"
       - "classification_report_json"
-    notes: "Classifier output is normalized into governed screen reports and classification summaries."
+    notes: "Raw classifier summaries are preserved in screen_report_tsv while classification_report_json carries the governed taxonomy report contract."
 expected_artifacts: ["classification_report_json", "screen_report_tsv"]
 metrics_schema_id: "bijux.fastq.classify.v1"
 metrics_schema: "bijux.fastq.classify.v1"
