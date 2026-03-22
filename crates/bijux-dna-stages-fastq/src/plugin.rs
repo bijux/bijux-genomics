@@ -9,8 +9,9 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
-    parse_multiqc_general_stats_metrics, parse_terminal_damage_report, parse_trim_polyg_report,
-    parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
+    parse_multiqc_general_stats_metrics, parse_screen_taxonomy_report,
+    parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
+    parse_validated_reads_manifest, parse_validation_report,
 };
 
 #[allow(dead_code)]
@@ -658,6 +659,34 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "input_r2": report.get("input_r2").cloned().unwrap_or(serde_json::Value::Null),
                         "output_r1": report.get("output_r1").cloned().unwrap_or(serde_json::Value::Null),
                         "output_r2": report.get("output_r2").cloned().unwrap_or(serde_json::Value::Null),
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.screen_taxonomy" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "classification_report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_screen_taxonomy_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "classifier": report.classifier,
+                        "report_format": report.report_format,
+                        "assignment_format": report.assignment_format,
+                        "database_catalog_id": report.database_catalog_id,
+                        "database_artifact_id": report.database_artifact_id,
+                        "database_digest": report.database_digest,
+                        "minimum_confidence": report.minimum_confidence,
+                        "emit_unclassified": report.emit_unclassified,
+                        "contamination_rate": report.contamination_rate,
+                        "classified_fraction": report.classified_fraction,
+                        "unclassified_fraction": report.unclassified_fraction,
+                        "summary_entry_count": report.summary_entries.len(),
+                        "top_taxa": report.top_taxa.iter().map(|entry| entry.label.clone()).collect::<Vec<_>>(),
                     });
                 }
             }
@@ -1437,6 +1466,115 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["reads_removed"],
             serde_json::json!(137_u64)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_screen_taxonomy_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let summary_path = temp.path().join("kraken2.report.tsv");
+        let report_path = temp.path().join("kraken2.classifications.json");
+        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        std::fs::write(
+            &summary_path,
+            b"unclassified\t23\t23.0%\nbacteria\t77\t77.0%\n",
+        )
+        .expect("write summary");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.screen_taxonomy.report.v2",
+                "stage": "fastq.screen_taxonomy",
+                "stage_id": "fastq.screen_taxonomy",
+                "tool_id": "kraken2",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "classifier": "kraken2",
+                "report_format": "kraken_report",
+                "assignment_format": "kraken_assignments",
+                "database_catalog_id": "taxonomy_reference",
+                "database_artifact_id": "taxonomy_db",
+                "database_build_id": "build-2026-03",
+                "database_digest": "sha256:taxonomy-db",
+                "database_namespace": "read_screening",
+                "database_scope": "read_screening",
+                "minimum_confidence": 0.05,
+                "emit_unclassified": true,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "screen_report_tsv": "kraken2.report.tsv",
+                "classification_report_json": "kraken2.classifications.json",
+                "reads_in": 1_u64,
+                "reads_out": 1_u64,
+                "bases_in": 4_u64,
+                "bases_out": 4_u64,
+                "pairs_in": 0_u64,
+                "pairs_out": 0_u64,
+                "contamination_rate": 0.77,
+                "classified_fraction": 0.77,
+                "unclassified_fraction": 0.23,
+                "summary_entries": [
+                    {"label": "unclassified", "percent": 23.0},
+                    {"label": "bacteria", "percent": 77.0}
+                ],
+                "top_taxa": [
+                    {"label": "bacteria", "percent": 77.0}
+                ],
+                "runtime_s": 1.0,
+                "memory_mb": 16.0
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.screen_taxonomy"),
+            tool_id: ToolId::from_static("kraken2"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("screen_report_tsv"),
+                        summary_path.clone(),
+                        ArtifactRole::SummaryTsv,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("classification_report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            },
+            ..plan("fastq.screen_taxonomy")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["classifier"],
+            serde_json::json!("kraken2")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["database_digest"],
+            serde_json::json!("sha256:taxonomy-db")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["top_taxa"],
+            serde_json::json!(["bacteria"])
         );
     }
 
