@@ -74,6 +74,7 @@
     "report_json": "out/rrna_report.json",
     "report_tsv": "out/rrna_report.tsv",
     "rrna_db": "rrna_reference",
+    "threads": 1,
     "tool": "sortmerna"
   },
   "effective_params": {

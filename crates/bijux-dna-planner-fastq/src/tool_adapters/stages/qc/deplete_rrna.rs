@@ -74,6 +74,7 @@ pub fn plan_rrna_with_options(
     let filtered_reads_r2 = r2.map(|_| out_dir.join("rrna_filtered_R2.fastq.gz"));
     let report = out_dir.join("rrna_report.tsv");
     let metrics = out_dir.join("rrna_report.json");
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = RrnaEffectiveParams {
         schema_version: RRNA_DEPLETION_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
@@ -81,7 +82,7 @@ pub fn plan_rrna_with_options(
         } else {
             PairedMode::SingleEnd
         },
-        threads: tool.resources.threads,
+        threads: effective_threads,
         contaminant_db: Some(options.rrna_db.clone()),
         database_artifact_id: options.rrna_db.clone(),
         database_build_id: None,
@@ -142,7 +143,7 @@ pub fn plan_rrna_with_options(
                 filtered_reads_r2.as_deref(),
                 &report,
                 &metrics,
-                tool.resources.threads,
+                effective_threads,
                 options,
             )?,
         },
@@ -155,6 +156,7 @@ pub fn plan_rrna_with_options(
             "input_r2": r2,
             "rrna_db": options.rrna_db,
             "min_identity": options.min_identity,
+            "threads": effective_threads,
             "filtered_reads_r1": filtered_reads_r1,
             "filtered_reads_r2": filtered_reads_r2,
             "report_tsv": report,

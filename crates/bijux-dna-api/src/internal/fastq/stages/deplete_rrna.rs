@@ -21,7 +21,7 @@ use bijux_dna_planner_fastq::select_deplete_rrna_tools;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
-use bijux_dna_planner_fastq::tool_adapters::stages::qc::deplete_rrna::plan_rrna;
+use bijux_dna_planner_fastq::tool_adapters::stages::qc::deplete_rrna::plan_rrna_with_options;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -114,8 +114,20 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             catalog,
             platform,
         )?;
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_rrna(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
+        let mut tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+        if let Some(threads) = args.threads {
+            tool_spec.resources.threads = threads.max(1);
+        }
+        let plan = plan_rrna_with_options(
+            &tool_spec,
+            &bench_inputs.r1,
+            args.r2.as_deref(),
+            &out_dir,
+            &bijux_dna_planner_fastq::DepleteRrnaStageParams {
+                threads: args.threads,
+                ..Default::default()
+            },
+        )?;
         let params_hash =
             params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
         let image_digest = tool_spec

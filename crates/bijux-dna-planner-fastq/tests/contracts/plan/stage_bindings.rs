@@ -678,6 +678,7 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
             params: Some(FastqStageParameters::DepleteRrna(DepleteRrnaStageParams {
                 rrna_db: "silva_nr99".to_string(),
                 min_identity: 0.95,
+                threads: Some(6),
             })),
         }],
         stage_toolsets: Vec::new(),
@@ -697,6 +698,7 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
     assert_eq!(step.step_id.as_str(), "fastq.deplete_rrna.sortmerna.custom");
     assert!(step.command.template.iter().any(|part| part == "--ref"));
     assert!(step.command.template.iter().any(|part| part == "silva_nr99"));
+    assert!(step.command.template.iter().any(|part| part == "6"));
     assert!(step.command.template.iter().any(|part| part == "--report"));
     Ok(())
 }
@@ -720,6 +722,7 @@ fn planner_rejects_unsupported_rrna_identity_override_from_stage_binding() -> an
             params: Some(FastqStageParameters::DepleteRrna(DepleteRrnaStageParams {
                 rrna_db: "silva_nr99".to_string(),
                 min_identity: 0.99,
+                threads: None,
             })),
         }],
         stage_toolsets: Vec::new(),
