@@ -212,7 +212,7 @@ stages:
     execution_status: "closed"
     planning_support: "stage_family"
     runtime_support: "runnable"
-    normalization_support: "generic_envelope"
+    normalization_support: "observer_specialized"
     benchmark_support: "none"
     default_tool: "dada2"
     admitted_tools:
