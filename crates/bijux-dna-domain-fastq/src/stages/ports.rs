@@ -149,6 +149,16 @@ mod tests {
             ])
         );
         assert_eq!(
+            stage_output_ids_in_manifest_order("fastq.remove_chimeras"),
+            Some(vec![
+                "chimera_filtered_reads".to_string(),
+                "report_json".to_string(),
+                "chimera_metrics_json".to_string(),
+                "chimeras_fasta".to_string(),
+                "uchime_report_tsv".to_string(),
+            ])
+        );
+        assert_eq!(
             stage_parameter_ids("fastq.trim_reads"),
             Some(
                 [
