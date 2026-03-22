@@ -8,10 +8,11 @@ use bijux_dna_core::prelude::{
 use bijux_dna_domain_fastq::params::validate::{
     PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
 };
+use bijux_dna_domain_fastq::params::correct::QualityEncoding;
 use bijux_dna_domain_fastq::params::DamageMode;
 use bijux_dna_planner_fastq::{
-    DepleteHostStageParams, DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
-    FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
+    CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
+    DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
     FastqStageToolsetBinding, TrimTerminalDamageStageParams,
 };
 
@@ -602,6 +603,58 @@ fn planner_uses_typed_validate_params_from_stage_binding() -> anyhow::Result<()>
     assert!(step.command.template[2].contains("\"validation_mode\":\"report_only\""));
     assert!(step.command.template[2].contains("\"pair_sync_policy\":\"skip_header_sync\""));
     assert!(!step.command.template[2].contains("cmp -s"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_correct_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-correct-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let trusted = temp.path().join("trusted.kmers");
+    std::fs::write(&trusted, b"ACGT\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__correct_errors__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.correct_errors".to_string(),
+            stage_instance_id: Some("fastq.correct_errors.custom".to_string()),
+            tool: tool("lighter"),
+            reason: None,
+            params: Some(FastqStageParameters::CorrectErrors(
+                CorrectErrorsStageParams {
+                    quality_encoding: QualityEncoding::Phred33,
+                    kmer_size: Some(31),
+                    genome_size: Some(2_500_000),
+                    max_memory_gb: None,
+                    trusted_kmer_artifact: Some(trusted.clone()),
+                    conservative_mode: false,
+                },
+            )),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.correct_errors.custom");
+    assert!(step.command.template[2].contains("\"kmer_size\":31"));
+    assert!(step.command.template[2].contains("\"genome_size\":2500000"));
+    assert!(step.command.template[2].contains("\"trusted_kmer_artifact\":"));
+    assert_eq!(step.expected_artifact_ids[0].as_str(), "corrected_reads_r1");
     Ok(())
 }
 
