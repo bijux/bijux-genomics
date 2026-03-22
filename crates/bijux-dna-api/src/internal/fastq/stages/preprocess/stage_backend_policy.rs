@@ -250,6 +250,7 @@ pub(crate) fn parse_profile_read_lengths_metrics(out_dir: &std::path::Path) -> s
                 "stage": "fastq.profile_read_lengths",
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
+                "threads": report.threads,
                 "histogram_bins": report.histogram_bins,
                 "read_count": report.read_count,
                 "mean_read_length": report.mean_read_length,

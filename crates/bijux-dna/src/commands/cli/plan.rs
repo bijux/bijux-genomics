@@ -252,6 +252,7 @@ pub fn bench_args_profile_read_lengths(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
         histogram_bins: args.histogram_bins,
     })
 }
@@ -733,13 +734,14 @@ pub fn bench_args_preprocess(
 #[cfg(test)]
 mod tests {
     use super::{
-        bench_args_filter, bench_args_from_validate, bench_args_trim, bench_args_trim_polyg,
-        bench_args_trim_terminal_damage, resolve_stage_tool,
+        bench_args_filter, bench_args_from_validate, bench_args_profile_read_lengths,
+        bench_args_trim, bench_args_trim_polyg, bench_args_trim_terminal_damage,
+        resolve_stage_tool,
     };
     use crate::commands::cli::parse::{
-        BenchFastqFilterArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
-        BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand, FastqCommand,
-        FastqValidateArgs,
+        BenchFastqFilterArgs, BenchFastqProfileReadLengthsArgs, BenchFastqTrimArgs,
+        BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand,
+        FastqCommand, FastqValidateArgs,
     };
     use std::path::PathBuf;
 
@@ -970,6 +972,28 @@ mod tests {
         let bench = bench_args_trim(&args).expect("bench args");
         assert_eq!(bench.threads, Some(8));
         assert_eq!(bench.min_length, Some(40));
+    }
+
+    #[test]
+    fn profile_read_lengths_bench_args_preserve_thread_override() {
+        let args = BenchFastqProfileReadLengthsArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            tools: vec!["seqkit_stats".to_string()],
+            explain: false,
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(25),
+            threads: Some(4),
+            histogram_bins: Some(64),
+        };
+
+        let bench = bench_args_profile_read_lengths(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(4));
+        assert_eq!(bench.histogram_bins, Some(64));
     }
 }
 

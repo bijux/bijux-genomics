@@ -48,6 +48,7 @@ impl FastqStatsParams {
 pub struct FastqReadLengthProfileParams {
     pub schema_version: String,
     pub paired_mode: PairedMode,
+    pub threads: u32,
     pub histogram_bins: u32,
 }
 
@@ -60,6 +61,9 @@ impl FastqReadLengthProfileParams {
         }
         if self.paired_mode == PairedMode::Unknown {
             missing.push("paired_mode");
+        }
+        if self.threads == 0 {
+            missing.push("threads");
         }
         if self.histogram_bins == 0 {
             missing.push("histogram_bins");
@@ -100,7 +104,8 @@ impl FastqOverrepresentedProfileParams {
 #[cfg(test)]
 mod tests {
     use super::{
-        FastqOverrepresentedProfileParams, OVERREPRESENTED_PROFILE_SCHEMA_VERSION,
+        FastqOverrepresentedProfileParams, FastqReadLengthProfileParams,
+        OVERREPRESENTED_PROFILE_SCHEMA_VERSION, READ_LENGTH_PROFILE_SCHEMA_VERSION,
     };
     use crate::params::PairedMode;
 
@@ -111,6 +116,18 @@ mod tests {
             paired_mode: PairedMode::SingleEnd,
             threads: 4,
             top_k: 25,
+        };
+
+        assert!(params.missing_required_fields().is_empty());
+    }
+
+    #[test]
+    fn read_length_profile_params_require_threads_and_histogram_bins() {
+        let params = FastqReadLengthProfileParams {
+            schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            threads: 2,
+            histogram_bins: 64,
         };
 
         assert!(params.missing_required_fields().is_empty());

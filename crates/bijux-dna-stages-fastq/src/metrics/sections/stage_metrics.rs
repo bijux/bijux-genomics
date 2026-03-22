@@ -1347,6 +1347,7 @@ pub fn stage_metrics_for_plan(
                     "mean_read_length": report.mean_read_length,
                     "max_read_length": report.max_read_length,
                     "distinct_lengths": report.distinct_lengths,
+                    "threads": report.threads,
                     "histogram_bins": report.histogram_bins,
                     "paired_mode": report.paired_mode,
                     "pairs_in": matches!(report.paired_mode, bijux_dna_domain_fastq::params::PairedMode::PairedEnd)

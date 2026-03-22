@@ -83,6 +83,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
+            args.threads,
             args.histogram_bins,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -160,6 +161,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             } else {
                 PairedMode::SingleEnd
             },
+            threads: plan.resources.threads,
             histogram_bins: args.histogram_bins.unwrap_or(100).max(1),
             input_r1: args.r1.display().to_string(),
             input_r2: args.r2.as_ref().map(|path| path.display().to_string()),

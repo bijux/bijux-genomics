@@ -21,6 +21,7 @@ pub struct ProfileReadLengthsReportV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub paired_mode: PairedMode,
+    pub threads: u32,
     pub histogram_bins: u32,
     pub input_r1: String,
     pub input_r2: Option<String>,
@@ -55,6 +56,7 @@ mod tests {
             stage_id: "fastq.profile_read_lengths".to_string(),
             tool_id: "seqkit_stats".to_string(),
             paired_mode: PairedMode::PairedEnd,
+            threads: 2,
             histogram_bins: 64,
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
@@ -80,6 +82,7 @@ mod tests {
         let decoded: ProfileReadLengthsReportV1 =
             serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "seqkit_stats");
+        assert_eq!(decoded.threads, 2);
         assert_eq!(decoded.histogram_bins, 64);
         assert_eq!(decoded.histogram.len(), 1);
     }

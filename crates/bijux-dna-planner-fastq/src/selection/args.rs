@@ -114,6 +114,7 @@ pub struct BenchFastqProfileReadLengthsArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub threads: Option<u32>,
     pub histogram_bins: Option<u32>,
 }
 
