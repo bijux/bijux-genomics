@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    FilterReadsReportV1,
     IndexReferenceReportV1,
     InferAsvsReportV1,
     MergePairsReportV1,
@@ -119,6 +120,12 @@ pub fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
 /// Returns an error if the governed validation report JSON cannot be parsed.
 pub fn parse_validation_report(report_json: &str) -> Result<ValidationReportV1> {
     serde_json::from_str(report_json).context("parse validation report")
+}
+
+/// # Errors
+/// Returns an error if the governed filter-reads report JSON cannot be parsed.
+pub fn parse_filter_reads_report(report_json: &str) -> Result<FilterReadsReportV1> {
+    serde_json::from_str(report_json).context("parse filter-reads report")
 }
 
 /// # Errors
@@ -839,6 +846,7 @@ mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
+        parse_filter_reads_report,
         parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
         parse_index_reference_report,
         parse_infer_asvs_report,
@@ -1626,6 +1634,62 @@ mod tests {
         assert_eq!(parsed.tool_id, "bowtie2_build");
         assert_eq!(parsed.index_file_count, 2);
         assert_eq!(parsed.emitted_files[0].relative_path, "reference.1.bt2");
+        Ok(())
+    }
+
+    #[test]
+    fn parse_filter_reads_report_parses_governed_contract() -> Result<()> {
+        let parsed = parse_filter_reads_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.filter_reads.report.v3",
+                "stage": "fastq.filter_reads",
+                "stage_id": "fastq.filter_reads",
+                "tool_id": "fastp",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "filtered_R1.fastq.gz",
+                "output_r2": "filtered_R2.fastq.gz",
+                "report_json": "filter_report.json",
+                "max_n": 0,
+                "max_n_fraction": null,
+                "max_n_count": 0,
+                "low_complexity_threshold": 20.0,
+                "entropy_threshold": 20.0,
+                "n_policy": "drop",
+                "polyx_policy": "trim",
+                "contaminant_db": "contaminants.fa",
+                "reads_in": 100,
+                "reads_out": 95,
+                "reads_dropped": 5,
+                "reads_removed_by_n": 2,
+                "reads_removed_by_entropy": 1,
+                "reads_removed_low_complexity": 1,
+                "reads_removed_by_kmer": 1,
+                "reads_removed_contaminant_kmer": 1,
+                "reads_removed_by_length": 0,
+                "bases_in": 10000,
+                "bases_out": 9200,
+                "pairs_in": 50,
+                "pairs_out": 47,
+                "mean_q_before": 28.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 4.2,
+                "memory_mb": 128.0,
+                "exit_code": 0,
+                "raw_backend_report": "fastp.json",
+                "raw_backend_report_format": "fastp_json",
+                "backend_metrics": {
+                    "passed_filter_reads": 95,
+                    "too_many_n_reads": 2
+                }
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "fastp");
+        assert_eq!(parsed.reads_removed_by_n, 2);
+        assert_eq!(parsed.reads_out, 95);
         Ok(())
     }
 
