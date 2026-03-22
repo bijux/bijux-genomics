@@ -26,7 +26,7 @@
       "--al-conc-gz",
       "out/removed_host_R%.fastq.gz",
       "--met-file",
-      "out/host_depletion_report.json"
+      "out/bowtie2.host.metrics.txt"
     ]
   },
   "resources": {
@@ -98,10 +98,13 @@
     "output_r2": "out/host_depleted_R2.fastq.gz",
     "reference_index": "host_reference_index",
     "reference_index_backend": "bowtie2_build",
+    "raw_backend_report": "out/bowtie2.host.metrics.txt",
+    "raw_backend_report_format": "bowtie2_met_file",
     "removed_host_r1": "out/removed_host_R1.fastq.gz",
     "removed_host_r2": "out/removed_host_R2.fastq.gz",
     "report_json": "out/host_depletion_report.json",
     "retain_unmapped_only": true,
+    "threads": 1,
     "tool": "bowtie2"
   },
   "effective_params": {
