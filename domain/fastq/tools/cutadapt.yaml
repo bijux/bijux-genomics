@@ -58,12 +58,15 @@ stage_contracts:
   fastq.normalize_primers:
     required_inputs:
       - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
       - "normalized_reads_r1"
       - "normalized_reads_r2"
+      - "report_json"
       - "primer_orientation_report"
       - "primer_stats_json"
-    notes: "cutadapt primer normalization emits normalized reads plus primer orientation and summary reports."
+    notes: "cutadapt primer normalization admits an optional reads_r2 mate for paired layouts, emits normalized reads, and writes a governed normalize-primers report alongside orientation and backend summary artifacts."
   fastq.trim_terminal_damage:
     required_inputs:
       - "reads_r1"
@@ -80,6 +83,7 @@ expected_artifacts:
   - "raw_backend_report_json"
   - "normalized_reads_r1"
   - "normalized_reads_r2"
+  - "report_json"
   - "primer_orientation_report"
   - "primer_stats_json"
 metrics_schema_id: "bijux.fastq.trim_reads.v1"
