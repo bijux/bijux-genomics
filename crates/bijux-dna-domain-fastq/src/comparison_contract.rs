@@ -45,6 +45,11 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
             "duplicate_provenance_json",
             "duplicate_classes_tsv",
         ],
+        "fastq.remove_chimeras" => &[
+            "report_json",
+            "uchime_report_tsv",
+            "chimera_metrics_json",
+        ],
         "fastq.report_qc" => &["report_json", "governed_qc_inputs_manifest"],
         _ => &[],
     };

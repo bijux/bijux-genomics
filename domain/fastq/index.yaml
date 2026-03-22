@@ -1864,6 +1864,18 @@ benchmark_scenarios:
     - same_dataset_class
     - same_dedup_policy
     - same_keep_order_policy
+  chimera_fairness:
+    stage_id: fastq.remove_chimeras
+    description: Compare chimera-removal runs on identical merged amplicon inputs and
+      governed UCHIME report outputs.
+    cohort_artifact_id: chimera_tool_benchmark_cohort_json
+    comparison_artifact_id: chimera_tool_comparison_json
+    normalization_artifact_id: chimera_tool_normalization_json
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_chimera_detection_contract
   read_length_fairness:
     stage_id: fastq.profile_read_lengths
     description: Compare read-length profilers on identical raw reads and governed histogram
