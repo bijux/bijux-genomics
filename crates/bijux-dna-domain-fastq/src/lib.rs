@@ -14,6 +14,7 @@ pub mod bench_repository;
 mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
+mod filter_artifacts;
 pub mod id_catalog;
 mod index_reference_artifacts;
 mod infer_asvs_artifacts;
@@ -110,6 +111,7 @@ pub use execution_support::{
     default_tool_for_stage as default_execution_tool_for_stage, execution_support_for_stage,
     ExecutionStatus, StageExecutionSupport,
 };
+pub use filter_artifacts::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
 pub use infer_asvs_artifacts::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
 pub use index_reference_artifacts::{
     IndexReferenceFileEntryV1, IndexReferenceReportV1, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
