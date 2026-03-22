@@ -27,6 +27,12 @@ parameters:
   - name: "merge_overlap"
     param_type: "int"
     default: "0"
+  - name: "min_len"
+    param_type: "int"
+    default: "0"
+  - name: "unmerged_read_policy"
+    param_type: "string"
+    default: "emit_unmerged_pairs"
 metrics:
   - name: "reads_r1"
     meaning: "Number of forward reads"

@@ -64,6 +64,31 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.merge_pairs",
+        tool_id: "pear",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.merge_pairs",
+        tool_id: "vsearch",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.merge_pairs",
+        tool_id: "bbmerge",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.merge_pairs",
+        tool_id: "flash2",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.merge_pairs",
+        tool_id: "leehom",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.report_qc",
         tool_id: "multiqc",
         semantic_surface: "multiqc_data",
