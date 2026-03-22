@@ -1780,6 +1780,17 @@ stage_sex_kinship_sufficiency:
   fastq.remove_chimeras:
   - not_applicable
 benchmark_scenarios:
+  index_reference_fairness:
+    stage_id: fastq.index_reference
+    description: Compare reference index builders on identical reference FASTA inputs
+      and canonical governed index-report outputs.
+    cohort_artifact_id: index_reference_tool_benchmark_cohort_json
+    comparison_artifact_id: index_reference_tool_comparison_json
+    normalization_artifact_id: index_reference_tool_normalization_json
+    fairness_rules:
+    - same_input_hash
+    - same_dataset_class
+    - same_reference_contract_hash
   detect_adapters_fairness:
     stage_id: fastq.detect_adapters
     description: Compare adapter-inspection backends on identical raw reads and governed

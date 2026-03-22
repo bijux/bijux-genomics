@@ -1,0 +1,39 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_index_reference_surface"
+
+[[datasets]]
+id = "synthetic_fastq_index_reference_surface_01"
+hash = "fixture-fastq-index-reference-surface-01"
+size = 1
+origin = "synthetic"
+class_label = "reference_index"
+read_layout = "single"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [1201, 1202]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["reference_index"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.index_reference"
+stage_instance_id = "fastq.index_reference.surface"
+tools = ["bowtie2_build", "star"]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.index_reference.surface"
+[stages.param_bindings.values]
+threads = 2
