@@ -466,40 +466,101 @@ pub fn stage_metrics_for_plan(
             let raw_metrics = fastqc_metrics_v2_from_dir(&raw_dir);
             let trimmed_metrics = fastqc_metrics_v2_from_dir(&trimmed_dir);
             let metrics_source = trimmed_metrics.as_ref().or(raw_metrics.as_ref());
+            let governed_report = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    let fallback = out_dir.join("report_qc_report.json");
+                    fallback.exists().then_some(fallback)
+                })
+                .and_then(|report_path| std::fs::read_to_string(report_path).ok())
+                .and_then(|raw| crate::observer::parse_report_qc_report(&raw).ok());
             let adapter_content_max =
-                metrics_source.and_then(|m| m.adapter_content.as_ref().map(|a| a.max_percent));
+                governed_report
+                    .as_ref()
+                    .and_then(|report| report.adapter_content_max)
+                    .or_else(|| {
+                        metrics_source.and_then(|m| {
+                            m.adapter_content.as_ref().map(|a| a.max_percent)
+                        })
+                    });
             let adapter_content_mean =
-                metrics_source.and_then(|m| m.adapter_content.as_ref().map(|a| a.mean_percent));
+                governed_report
+                    .as_ref()
+                    .and_then(|report| report.adapter_content_mean)
+                    .or_else(|| {
+                        metrics_source.and_then(|m| {
+                            m.adapter_content.as_ref().map(|a| a.mean_percent)
+                        })
+                    });
             let duplication_rate =
-                metrics_source.and_then(|m| m.duplication.as_ref().map(|d| d.duplication_rate));
-            let n_rate =
-                metrics_source.and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0));
-            let kmer_warning_count =
-                metrics_source.and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count));
-            let overrepresented_sequence_count =
-                metrics_source.and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count));
-            let read_retention = if input.reads > 0 {
-                f64_from_u64(output.reads) / f64_from_u64(input.reads)
+                governed_report
+                    .as_ref()
+                    .and_then(|report| report.duplication_rate)
+                    .or_else(|| {
+                        metrics_source.and_then(|m| {
+                            m.duplication.as_ref().map(|d| d.duplication_rate)
+                        })
+                    });
+            let n_rate = governed_report
+                .as_ref()
+                .and_then(|report| report.n_rate)
+                .or_else(|| {
+                    metrics_source.and_then(|m| {
+                        m.n_content.as_ref().map(|n| n.mean_percent / 100.0)
+                    })
+                });
+            let kmer_warning_count = governed_report
+                .as_ref()
+                .and_then(|report| report.kmer_warning_count)
+                .or_else(|| {
+                    metrics_source.and_then(|m| {
+                        m.kmer_content.as_ref().map(|k| k.warning_count)
+                    })
+                });
+            let overrepresented_sequence_count = governed_report
+                .as_ref()
+                .and_then(|report| report.overrepresented_sequence_count)
+                .or_else(|| {
+                    metrics_source.and_then(|m| {
+                        m.overrepresented_sequences.as_ref().map(|o| o.count)
+                    })
+                });
+            let reads_in = governed_report.as_ref().map(|report| report.reads_in).unwrap_or(input.reads);
+            let reads_out = governed_report
+                .as_ref()
+                .map(|report| report.reads_out)
+                .unwrap_or(output.reads);
+            let bases_in = governed_report.as_ref().map(|report| report.bases_in).unwrap_or(input.bases);
+            let bases_out = governed_report
+                .as_ref()
+                .map(|report| report.bases_out)
+                .unwrap_or(output.bases);
+            let mean_q_before = input.mean_q;
+            let mean_q_after = governed_report
+                .as_ref()
+                .map(|report| report.mean_q)
+                .unwrap_or(output.mean_q);
+            let read_retention = if reads_in > 0 {
+                f64_from_u64(reads_out) / f64_from_u64(reads_in)
             } else {
                 0.0
             };
-            let base_retention = if input.bases > 0 {
-                f64_from_u64(output.bases) / f64_from_u64(input.bases)
+            let base_retention = if bases_in > 0 {
+                f64_from_u64(bases_out) / f64_from_u64(bases_in)
             } else {
                 0.0
             };
             let delta = FastqDeltaMetricsV1 {
                 read_retention,
                 base_retention,
-                mean_q_delta: output.mean_q - input.mean_q,
+                mean_q_delta: mean_q_after - mean_q_before,
                 gc_delta: output.gc_percent - input.gc_percent,
             };
             let retention = RetentionReportMetricV1 {
                 value: read_retention,
-                numerator_reads: output.reads,
-                denominator_reads: input.reads,
-                numerator_bases: output.bases,
-                denominator_bases: input.bases,
+                numerator_reads: reads_out,
+                denominator_reads: reads_in,
+                numerator_bases: bases_out,
+                denominator_bases: bases_in,
                 definition: "reads_out / reads_in".to_string(),
                 stage_boundary: plan.stage_id.to_string(),
                 conditions: retention_conditions_from_effective(
@@ -509,34 +570,75 @@ pub fn stage_metrics_for_plan(
                 ),
             };
             serde_json::to_value(FastqQcPostMetricsV1 {
-                reads_in: input.reads,
-                reads_out: output.reads,
-                bases_in: input.bases,
-                bases_out: output.bases,
-                pairs_in,
-                pairs_out,
-                mean_q: Some(output.mean_q),
-                mean_q_before: input.mean_q,
-                mean_q_after: output.mean_q,
+                reads_in,
+                reads_out,
+                bases_in,
+                bases_out,
+                pairs_in: governed_report.as_ref().and_then(|report| {
+                    (report.pairs_in > 0 || matches!(report.paired_mode, bijux_dna_domain_fastq::params::PairedMode::PairedEnd))
+                        .then_some(report.pairs_in)
+                }).or(pairs_in),
+                pairs_out: governed_report.as_ref().and_then(|report| {
+                    (report.pairs_out > 0 || matches!(report.paired_mode, bijux_dna_domain_fastq::params::PairedMode::PairedEnd))
+                        .then_some(report.pairs_out)
+                }).or(pairs_out),
+                mean_q: Some(mean_q_after),
+                mean_q_before,
+                mean_q_after,
                 delta_metrics: delta,
                 retention,
-                contamination_rate: Some(0.0),
+                contamination_rate: governed_report
+                    .as_ref()
+                    .map(|report| report.contamination_rate)
+                    .or(Some(0.0)),
+                aggregation_engine: governed_report
+                    .as_ref()
+                    .map(|report| report.aggregation_engine.to_string()),
+                aggregation_scope: governed_report
+                    .as_ref()
+                    .map(|report| report.aggregation_scope.to_string()),
                 adapter_content_max,
                 adapter_content_mean,
                 duplication_rate,
                 n_rate,
                 kmer_warning_count,
                 overrepresented_sequence_count,
-                raw_fastqc_dir: raw_dir.exists().then_some(raw_dir.display().to_string()),
-                trimmed_fastqc_dir: trimmed_dir
-                    .exists()
-                    .then_some(trimmed_dir.display().to_string()),
-                multiqc_report: multiqc_report
-                    .exists()
-                    .then_some(multiqc_report.display().to_string()),
-                multiqc_data: multiqc_data
-                    .exists()
-                    .then_some(multiqc_data.display().to_string()),
+                raw_fastqc_dir: governed_report
+                    .as_ref()
+                    .and_then(|report| report.raw_fastqc_dir.clone())
+                    .or_else(|| raw_dir.exists().then_some(raw_dir.display().to_string())),
+                trimmed_fastqc_dir: governed_report
+                    .as_ref()
+                    .and_then(|report| report.trimmed_fastqc_dir.clone())
+                    .or_else(|| trimmed_dir.exists().then_some(trimmed_dir.display().to_string())),
+                multiqc_report: governed_report
+                    .as_ref()
+                    .and_then(|report| report.multiqc_report.clone())
+                    .or_else(|| multiqc_report.exists().then_some(multiqc_report.display().to_string())),
+                multiqc_data: governed_report
+                    .as_ref()
+                    .and_then(|report| report.multiqc_data.clone())
+                    .or_else(|| multiqc_data.exists().then_some(multiqc_data.display().to_string())),
+                governed_qc_input_count: governed_report
+                    .as_ref()
+                    .map(|report| report.governed_qc_input_count),
+                governed_qc_contributor_stage_ids: governed_report
+                    .as_ref()
+                    .map(|report| report.governed_qc_contributor_stage_ids.clone())
+                    .unwrap_or_default(),
+                governed_qc_contributor_tool_ids: governed_report
+                    .as_ref()
+                    .map(|report| report.governed_qc_contributor_tool_ids.clone())
+                    .unwrap_or_default(),
+                governed_qc_lineage_hash: governed_report
+                    .as_ref()
+                    .and_then(|report| report.governed_qc_lineage_hash.clone()),
+                multiqc_sample_count: governed_report
+                    .as_ref()
+                    .and_then(|report| report.multiqc_sample_count),
+                multiqc_module_count: governed_report
+                    .as_ref()
+                    .and_then(|report| report.multiqc_module_count),
             })?
         }
         id_catalog::FASTQ_STATS_NEUTRAL => {

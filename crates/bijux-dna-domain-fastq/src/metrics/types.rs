@@ -143,6 +143,10 @@ pub struct FastqQcPostMetricsV1 {
     #[serde(default)]
     pub contamination_rate: Option<f64>,
     #[serde(default)]
+    pub aggregation_engine: Option<String>,
+    #[serde(default)]
+    pub aggregation_scope: Option<String>,
+    #[serde(default)]
     pub adapter_content_max: Option<f64>,
     #[serde(default)]
     pub adapter_content_mean: Option<f64>,
@@ -162,6 +166,18 @@ pub struct FastqQcPostMetricsV1 {
     pub multiqc_report: Option<String>,
     #[serde(default)]
     pub multiqc_data: Option<String>,
+    #[serde(default)]
+    pub governed_qc_input_count: Option<u64>,
+    #[serde(default)]
+    pub governed_qc_contributor_stage_ids: Vec<String>,
+    #[serde(default)]
+    pub governed_qc_contributor_tool_ids: Vec<String>,
+    #[serde(default)]
+    pub governed_qc_lineage_hash: Option<String>,
+    #[serde(default)]
+    pub multiqc_sample_count: Option<u64>,
+    #[serde(default)]
+    pub multiqc_module_count: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
