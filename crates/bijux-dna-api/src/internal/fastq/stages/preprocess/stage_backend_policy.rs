@@ -661,6 +661,36 @@ fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value
     })
 }
 
+pub(crate) fn parse_index_reference_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("index_reference_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_index_reference_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.index_reference",
+                "tool": report.tool_id,
+                "threads": report.threads,
+                "index_format": report.index_format,
+                "reference_bytes": report.reference_bytes,
+                "index_bytes": report.index_bytes,
+                "index_file_count": report.index_file_count,
+                "index_prefix": report.index_prefix,
+                "emitted_file_count": report.emitted_files.len(),
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.index_reference",
+        "tool": "report_missing",
+        "reference_bytes": serde_json::Value::Null,
+        "index_bytes": serde_json::Value::Null,
+        "index_file_count": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
     match stage_id {
         "fastq.validate_reads"
@@ -715,7 +745,8 @@ mod tests {
     use bijux_dna_runner::step_runner::StageResultV1;
 
     use super::{
-        fastq_backend_allowlist, parse_merge_pairs_metrics, parse_normalize_abundance_metrics,
+        fastq_backend_allowlist, parse_index_reference_metrics, parse_merge_pairs_metrics,
+        parse_normalize_abundance_metrics,
         parse_normalize_primers_metrics, parse_profile_overrepresented_metrics,
         parse_profile_read_lengths_metrics, parse_profile_reads_metrics,
         parse_remove_duplicates_metrics, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
@@ -790,6 +821,44 @@ mod tests {
             );
         }
         Ok(())
+    }
+
+    #[test]
+    fn index_reference_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("index_reference_report.json");
+        bijux_dna_infra::atomic_write_json(
+            &report_path,
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.index_reference.report.v2",
+                "stage": "fastq.index_reference",
+                "stage_id": "fastq.index_reference",
+                "tool_id": "bowtie2_build",
+                "threads": 4,
+                "index_format": "bowtie2_build",
+                "reference_fasta": "reference.fa",
+                "reference_bytes": 4096,
+                "reference_index": "reference_index/bowtie2/reference",
+                "report_json": "index_reference_report.json",
+                "index_prefix": "reference",
+                "emitted_files": [
+                    {"relative_path": "bowtie2/reference.1.bt2", "bytes": 1024},
+                    {"relative_path": "bowtie2/reference.2.bt2", "bytes": 2048}
+                ],
+                "index_file_count": 2,
+                "index_bytes": 3072,
+                "runtime_s": 1.5,
+                "memory_mb": 96.0,
+                "exit_code": 0,
+                "backend_metrics": {"index_directory": "reference_index/bowtie2"}
+            }),
+        )
+        .expect("write report");
+
+        let metrics = parse_index_reference_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("bowtie2_build"));
+        assert_eq!(metrics["index_bytes"], serde_json::json!(3072));
+        assert_eq!(metrics["emitted_file_count"], serde_json::json!(2));
     }
 
     #[test]
@@ -1668,6 +1737,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "failure_class",
             "strict_pass",
             "exit_code",
+        ],
+        "fastq.index_reference" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "reference_bytes",
+            "index_bytes",
+            "index_file_count",
         ],
         "fastq.detect_adapters" => &["schema_version", "stage", "adapter_inference"],
         "fastq.trim_reads" => &[
