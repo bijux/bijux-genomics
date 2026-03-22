@@ -9,6 +9,16 @@ pub struct ObserverSpecializationContract {
 
 const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     ObserverSpecializationContract {
+        stage_id: "fastq.index_reference",
+        tool_id: "bowtie2_build",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.index_reference",
+        tool_id: "star",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.validate_reads",
         tool_id: "fastqvalidator",
         semantic_surface: "validation_report",
