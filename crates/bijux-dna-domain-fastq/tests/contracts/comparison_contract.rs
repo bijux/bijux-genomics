@@ -198,6 +198,14 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
             "overrepresented_sequence_tool_normalization_json".to_string(),
         ]
     );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&overrepresented_stage),
+        vec![
+            "report_json".to_string(),
+            "overrepresented_sequences_tsv".to_string(),
+            "overrepresented_sequences_json".to_string(),
+        ]
+    );
 
     let validation_stage = StageId::from_static("fastq.validate_reads");
     assert_eq!(
@@ -256,6 +264,7 @@ fn comparison_inputs_remain_inside_governed_stage_outputs() {
         "fastq.correct_errors",
         "fastq.trim_terminal_damage",
         "fastq.validate_reads",
+        "fastq.profile_overrepresented_sequences",
     ] {
         let output_ids = bijux_dna_domain_fastq::stage_output_ids(stage_id)
             .expect("stage outputs must exist for governed benchmark stage");

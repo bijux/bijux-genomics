@@ -45,6 +45,11 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
             "length_distribution_tsv",
             "length_distribution_json",
         ],
+        "fastq.profile_overrepresented_sequences" => &[
+            "report_json",
+            "overrepresented_sequences_tsv",
+            "overrepresented_sequences_json",
+        ],
         "fastq.profile_reads" => &["qc_json", "qc_tsv"],
         "fastq.remove_duplicates" => &[
             "report_json",
