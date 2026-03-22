@@ -332,7 +332,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .iter()
         .any(|stage| stage == &STAGE_REPORT_QC)
     {
-        for aux_tool in report_qc_aux_tool_ids(&selected_stage_tools) {
+        for aux_tool in report_qc_aux_tool_ids(&runtime_pipeline, &selected_stage_tools) {
             let spec = catalog
                 .get(aux_tool.as_str())
                 .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
@@ -767,18 +767,40 @@ fn preprocess_selection_mode(
     }
 }
 
-fn report_qc_aux_tool_ids(selected_stage_tools: &[StageToolSelection]) -> Vec<String> {
-    let producer_stage_ids = bijux_dna_planner_fastq::stage_api::governed_qc_producer_stage_ids()
+fn report_qc_aux_tool_ids(
+    pipeline: &bijux_dna_core::contract::PipelineSpec,
+    selected_stage_tools: &[StageToolSelection],
+) -> Vec<String> {
+    let contributor_node_ids = pipeline
+        .ordered_nodes()
         .into_iter()
-        .map(|stage_id| stage_id.to_string())
+        .filter(|node| node.stage_id == STAGE_REPORT_QC.as_str())
+        .flat_map(|report_node| {
+            let report_node_id =
+                bijux_dna_core::contract::PipelineSpec::stage_node_id(
+                    &report_node.stage_id,
+                    report_node.stage_instance_id.as_deref(),
+                );
+            pipeline
+                .edges
+                .iter()
+                .filter(move |edge| edge.to == report_node_id)
+                .map(|edge| edge.from.clone())
+                .collect::<Vec<_>>()
+        })
         .collect::<std::collections::BTreeSet<_>>();
     let mut tool_ids = selected_stage_tools
         .iter()
-        .filter(|selection| {
-            selection.stage_id != STAGE_REPORT_QC.as_str()
-                && producer_stage_ids.contains(selection.stage_id.as_str())
+        .filter_map(|selection| {
+            let node_id =
+                bijux_dna_core::contract::PipelineSpec::stage_node_id(
+                    &selection.stage_id,
+                    selection.stage_instance_id.as_deref(),
+                );
+            contributor_node_ids
+                .contains(node_id.as_str())
+                .then(|| selection.tool_id.clone())
         })
-        .map(|selection| selection.tool_id.clone())
         .collect::<Vec<_>>();
     tool_ids.sort();
     tool_ids.dedup();
@@ -1039,12 +1061,14 @@ fn execute_preprocess_batch(
 #[cfg(test)]
 mod pipeline_run_tests {
     use super::{
-        execution_step_batches, planner_selection_surfaces, preprocess_selection_mode,
-        report_qc_aux_tool_ids, terminal_step_ids, PreprocessSelectionMode,
+        enforce_stage_applicability, execution_step_batches, planner_selection_surfaces,
+        preprocess_selection_mode, report_qc_aux_tool_ids, terminal_step_ids,
+        PreprocessSelectionMode,
     };
     use anyhow::Result;
     use bijux_dna_core::contract::{
-        ExecutionEdge, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints,
+        ExecutionEdge, ExecutionGraph, PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec,
+        PlanPolicy, StageIO, ToolConstraints,
     };
     use bijux_dna_core::prelude::ToolExecutionSpecV1;
     use bijux_dna_core::prelude::{
@@ -1330,7 +1354,37 @@ mod pipeline_run_tests {
 
     #[test]
     fn report_qc_aux_tools_follow_selected_upstream_branches() {
-        let tool_ids = report_qc_aux_tool_ids(&[
+        let pipeline = PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validation".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.trim.fastp".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                },
+            ],
+            vec![
+                PipelineEdgeSpec {
+                    from: "fastq.validate_reads.validation".to_string(),
+                    to: "fastq.report_qc.aggregate".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
+                },
+                PipelineEdgeSpec {
+                    from: "fastq.trim_reads.trim.fastp".to_string(),
+                    to: "fastq.report_qc.aggregate".to_string(),
+                    from_output_id: None,
+                    to_input_id: None,
+                },
+            ],
+        );
+        let tool_ids = report_qc_aux_tool_ids(&pipeline, &[
             StageToolSelection {
                 stage_id: "fastq.validate_reads".to_string(),
                 stage_instance_id: Some("fastq.validate_reads.validation".to_string()),
@@ -1359,7 +1413,20 @@ mod pipeline_run_tests {
 
     #[test]
     fn report_qc_aux_tools_ignore_non_qc_producer_stages() {
-        let tool_ids = report_qc_aux_tool_ids(&[
+        let pipeline = PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.index_reference".to_string(),
+                    stage_instance_id: Some("fastq.index_reference.reference".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                },
+            ],
+            Vec::new(),
+        );
+        let tool_ids = report_qc_aux_tool_ids(&pipeline, &[
             StageToolSelection {
                 stage_id: "fastq.index_reference".to_string(),
                 stage_instance_id: Some("fastq.index_reference.reference".to_string()),
@@ -1375,5 +1442,25 @@ mod pipeline_run_tests {
         ]);
 
         assert!(tool_ids.is_empty());
+    }
+
+    #[test]
+    fn amplicon_preprocess_allows_correct_errors_stage() {
+        let mut args = preprocess_args();
+        args.mode = bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon;
+        let planned = step("fastq.correct_errors");
+
+        enforce_stage_applicability(&planned, &args, None)
+            .expect("amplicon preprocess should admit fastq.correct_errors when planned");
+    }
+
+    #[test]
+    fn single_end_preprocess_still_rejects_merge_pairs_stage() {
+        let args = preprocess_args();
+        let planned = step("fastq.merge_pairs");
+
+        let error = enforce_stage_applicability(&planned, &args, None)
+            .expect_err("single-end preprocess must still reject paired-only merge");
+        assert!(error.to_string().contains("requires paired-end input"));
     }
 }
