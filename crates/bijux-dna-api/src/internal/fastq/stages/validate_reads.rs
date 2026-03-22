@@ -27,6 +27,7 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
+use bijux_dna_stages_fastq::observer::parse_validation_report;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
@@ -287,16 +288,16 @@ fn build_validate_record(
     execution: &StageResultV1,
 ) -> Result<BenchmarkRecord<FastqValidateMetrics>> {
     let out_dir = &plan.out_dir;
+    let report_path = required_plan_output_path(plan, "validation_report")?;
+    let report_path = require_existing_benchmark_output(&report_path, "validation_report")?;
     let metrics = derive_validate_metrics(
         &bench_inputs.input_stats,
         bench_inputs.input_stats_r2.as_ref(),
-        execution,
+        &report_path,
     );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let report_path = required_plan_output_path(plan, "validation_report")?;
-    let _report_path = require_existing_benchmark_output(&report_path, "validation_report")?;
     let manifest_path = required_plan_output_path(plan, "validated_reads_manifest")?;
     let _manifest_path =
         require_existing_benchmark_output(&manifest_path, "validated_reads_manifest")?;
@@ -347,21 +348,23 @@ fn required_plan_output_path(plan: &StagePlanV1, output_id: &str) -> Result<Path
 fn derive_validate_metrics(
     input_stats: &SeqkitMetrics,
     input_stats_r2: Option<&SeqkitMetrics>,
-    execution: &StageResultV1,
+    report_path: &std::path::Path,
 ) -> FastqValidateMetrics {
-    let merged = format!("{}\n{}", execution.stdout, execution.stderr);
-    let reads_total = parse_first_u64_after_key(&merged, "read")
-        .or_else(|| parse_first_u64_after_key(&merged, "sequences"))
-        .unwrap_or(input_stats.reads);
-    let error_count = parse_first_u64_after_key(&merged, "error").unwrap_or(0);
-    let reads_invalid = error_count.min(reads_total);
-    let reads_valid = if execution.exit_code == 0 {
-        reads_total
-    } else {
-        reads_total.saturating_sub(reads_invalid)
-    };
     let reads_in = input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
     let bases_in = input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
+    let parsed_report = std::fs::read_to_string(report_path)
+        .ok()
+        .and_then(|raw| parse_validation_report(&raw).ok());
+    let reads_total = parsed_report
+        .as_ref()
+        .map(validate_report_reads_total)
+        .unwrap_or(reads_in);
+    let reads_invalid = parsed_report
+        .as_ref()
+        .map(validate_report_reads_invalid)
+        .unwrap_or(0)
+        .min(reads_total);
+    let reads_valid = reads_total.saturating_sub(reads_invalid);
     FastqValidateMetrics {
         reads_in,
         reads_out: reads_in,
@@ -376,20 +379,28 @@ fn derive_validate_metrics(
     }
 }
 
-fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
-    for line in text.lines() {
-        if !line
-            .to_ascii_lowercase()
-            .contains(&key.to_ascii_lowercase())
-        {
-            continue;
+fn validate_report_reads_total(report: &bijux_dna_domain_fastq::ValidationReportV1) -> u64 {
+    report.validated_reads_r1 + report.validated_reads_r2.unwrap_or(0)
+}
+
+fn validate_report_reads_invalid(report: &bijux_dna_domain_fastq::ValidationReportV1) -> u64 {
+    match report.failure_class {
+        bijux_dna_domain_fastq::ValidateFailureClass::None => 0,
+        bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => report
+            .validated_reads_r1
+            .abs_diff(report.validated_reads_r2.unwrap_or(0)),
+        bijux_dna_domain_fastq::ValidateFailureClass::ValidatorError => {
+            let mut invalid = 0;
+            if report.status_r1 != 0 {
+                invalid += report.validated_reads_r1;
+            }
+            if report.status_r2 != 0 {
+                invalid += report.validated_reads_r2.unwrap_or(0);
+            }
+            invalid
         }
-        let digits: String = line.chars().filter(char::is_ascii_digit).collect();
-        if let Ok(parsed) = digits.parse::<u64>() {
-            return Some(parsed);
-        }
+        bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => 0,
     }
-    None
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
@@ -430,10 +441,14 @@ fn validation_failures_are_fatal(
 
 #[cfg(test)]
 mod tests {
-    use super::{required_plan_output_path, validate_plan_options, validation_failures_are_fatal};
+    use super::{
+        derive_validate_metrics, required_plan_output_path, validate_plan_options,
+        validation_failures_are_fatal,
+    };
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_core::prelude::measure::SeqkitMetrics;
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -599,5 +614,60 @@ mod tests {
 
         let options = validate_plan_options(&args).expect("options");
         assert!(!validation_failures_are_fatal(&args, &options));
+    }
+
+    #[test]
+    fn derive_validate_metrics_prefers_governed_report_counts() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("validation.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.validate.report.v1",
+                "stage": "fastq.validate_reads",
+                "stage_id": "fastq.validate_reads",
+                "tool_id": "fastqvalidator",
+                "validation_mode": "strict",
+                "pair_sync_policy": "require_header_sync",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "validation_log_r1": "validation_r1.log",
+                "validation_log_r2": "validation_r2.log",
+                "validated_inputs": 2,
+                "validated_reads_r1": 101_u64,
+                "validated_reads_r2": 100_u64,
+                "validated_pairs": 100_u64,
+                "status_r1": 0,
+                "status_r2": 0,
+                "pair_sync_checked": true,
+                "pair_sync_pass": false,
+                "pair_count_match": false,
+                "failure_class": "pair_count_mismatch",
+                "strict_pass": false,
+                "exit_code": 96
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = derive_validate_metrics(
+            &SeqkitMetrics {
+                reads: 101,
+                bases: 1000,
+                mean_q: 31.0,
+                gc_percent: 50.0,
+            },
+            Some(&SeqkitMetrics {
+                reads: 100,
+                bases: 990,
+                mean_q: 30.5,
+                gc_percent: 49.0,
+            }),
+            &report_path,
+        );
+
+        assert_eq!(metrics.reads_total, 201);
+        assert_eq!(metrics.reads_invalid, 1);
+        assert_eq!(metrics.reads_valid, 200);
     }
 }
