@@ -89,6 +89,8 @@ pub fn plan_qc_post_with_qc_inputs(
             "fastq.report_qc requires governed QC artifacts and cannot aggregate raw FASTQ inputs"
         ));
     }
+    let qc_contributor_stage_ids = qc_contributor_stage_ids(qc_inputs);
+    let qc_contributor_tool_ids = aux_tool_ids_for_qc_inputs(qc_inputs);
     let mut params = serde_json::json!({
         "tool": tool.tool_id.0,
         "qc_input_paths": qc_inputs
@@ -96,6 +98,8 @@ pub fn plan_qc_post_with_qc_inputs(
             .map(|artifact| artifact.path.clone())
             .collect::<Vec<_>>(),
         "qc_input_count": qc_inputs.len(),
+        "qc_contributor_stage_ids": qc_contributor_stage_ids,
+        "qc_contributor_tool_ids": qc_contributor_tool_ids,
         "out_dir": out_dir
     });
     if let Some(raw) = raw_r1 {
@@ -222,6 +226,17 @@ fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
     None
 }
 
+fn qc_contributor_stage_ids(qc_inputs: &[ArtifactRef]) -> Vec<String> {
+    let mut stage_ids = qc_inputs
+        .iter()
+        .filter_map(|artifact| parse_qc_contributor_identity(artifact.name.as_str()))
+        .map(|(stage_id, _tool_id)| stage_id)
+        .collect::<Vec<_>>();
+    stage_ids.sort();
+    stage_ids.dedup();
+    stage_ids
+}
+
 fn governed_qc_inputs_manifest_payload(
     qc_inputs: &[ArtifactRef],
 ) -> Result<GovernedQcInputsManifest> {
@@ -304,9 +319,17 @@ fn shell_quote_str(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        aux_tool_ids_for_qc_inputs, governed_qc_inputs_manifest_payload, qc_post_command,
+        aux_tool_ids_for_qc_inputs, governed_qc_inputs_manifest_payload, plan_qc_post_with_qc_inputs,
+        qc_post_command,
     };
-    use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole};
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
+        ToolExecutionSpecV1, ToolId,
+    };
+    use bijux_dna_domain_fastq::params::{
+        qc_post::{QcAggregationEngine, QcAggregationScope},
+        PairedMode,
+    };
     use std::path::PathBuf;
 
     #[test]
@@ -392,5 +415,53 @@ mod tests {
         assert!(manifest
             .lineage_hash
             .is_some_and(|lineage| lineage.contains("fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report")));
+    }
+
+    #[test]
+    fn report_qc_plan_params_record_contributor_stage_and_tool_ids() {
+        let tool = ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("multiqc"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["multiqc".to_string()],
+            },
+            resources: ToolConstraints::default(),
+        };
+        let plan = plan_qc_post_with_qc_inputs(
+            &tool,
+            &[
+                ArtifactRef::required(
+                    ArtifactId::from_static("fastq.validate_reads.fastqvalidator.validation_report"),
+                    PathBuf::from("validate/report.json"),
+                    ArtifactRole::StageReport,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
+                    PathBuf::from("trim/report.json"),
+                    ArtifactRole::ReportJson,
+                ),
+            ],
+            std::path::Path::new("out"),
+            std::collections::BTreeMap::new(),
+            PairedMode::SingleEnd,
+            QcAggregationEngine::Multiqc,
+            QcAggregationScope::GovernedQcArtifacts,
+            None,
+            None,
+        )
+        .expect("plan");
+
+        assert_eq!(
+            plan.params["qc_contributor_stage_ids"],
+            serde_json::json!(["fastq.trim_reads", "fastq.validate_reads"])
+        );
+        assert_eq!(
+            plan.params["qc_contributor_tool_ids"],
+            serde_json::json!(["fastp", "fastqvalidator"])
+        );
     }
 }
