@@ -14,6 +14,7 @@ pub mod bench_repository;
 mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
+mod extract_umis_artifacts;
 mod filter_artifacts;
 mod filter_low_complexity_artifacts;
 pub mod id_catalog;
@@ -112,6 +113,7 @@ pub use execution_support::{
     default_tool_for_stage as default_execution_tool_for_stage, execution_support_for_stage,
     ExecutionStatus, StageExecutionSupport,
 };
+pub use extract_umis_artifacts::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 pub use filter_artifacts::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
 pub use filter_low_complexity_artifacts::{
     FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
