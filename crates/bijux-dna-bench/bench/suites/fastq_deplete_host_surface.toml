@@ -1,0 +1,65 @@
+schema_version = "bijux.bench.suite.v1"
+suite_id = "fastq_deplete_host_surface"
+
+[[datasets]]
+id = "synthetic_fastq_host_surface_01"
+hash = "fixture-fastq-host-surface-01"
+size = 1
+origin = "synthetic"
+class_label = "host_background"
+read_layout = "paired"
+
+[replicate_policy]
+count = 2
+warmup = 1
+seeds = [741, 742]
+
+[diversity]
+min_dataset_count = 1
+min_classes = 1
+min_read_layouts = 1
+
+[[stratifications]]
+key = "dataset_class"
+required_values = ["host_background"]
+
+[analysis_requirements]
+require_bootstrap = false
+require_outlier_detection = false
+min_replicates_for_bootstrap = 5
+
+[[stages]]
+stage = "fastq.validate_reads"
+stage_instance_id = "fastq.validate_reads.host_surface"
+tools = ["fastqvalidator"]
+
+[[stages]]
+stage = "fastq.index_reference"
+stage_instance_id = "fastq.index_reference.host_surface"
+tools = ["bowtie2_build"]
+
+[[stages]]
+stage = "fastq.deplete_host"
+stage_instance_id = "fastq.deplete_host.host_surface"
+tools = ["bowtie2"]
+upstream_stage_instance_ids = [
+  "fastq.validate_reads.host_surface",
+  "fastq.index_reference.host_surface",
+]
+
+[[stages.param_bindings]]
+stage_instance_id = "fastq.deplete_host.host_surface"
+[stages.param_bindings.values]
+host_identity_threshold = 0.95
+retain_unmapped_only = true
+threads = 4
+
+[[edges]]
+from = "fastq.validate_reads.host_surface"
+to = "fastq.deplete_host.host_surface"
+
+[[edges]]
+from = "fastq.index_reference.host_surface"
+to = "fastq.deplete_host.host_surface"
+from_output_id = "reference_index"
+to_input_id = "reference_index"
