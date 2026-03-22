@@ -33,6 +33,7 @@ pub fn plan_umi(
     let output_r1 = out_dir.join("umi_tools.r1.fastq.gz");
     let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
     let report_json = out_dir.join("umi_report.json");
+    let raw_backend_report = out_dir.join("umi_tools.extract.log");
     let umi_pattern = umi_pattern.unwrap_or(DEFAULT_UMI_PATTERN);
     let effective_params = FastqUmiParams {
         schema_version: UMI_SCHEMA_VERSION.to_string(),
@@ -51,7 +52,21 @@ pub fn plan_umi(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+            template: crate::tool_adapters::template_render::render_command_template(
+                &tool.command.template,
+                &[
+                    ("reads_r1", Some(r1.display().to_string())),
+                    ("reads_r2", Some(r2.display().to_string())),
+                    ("umi_reads_r1", Some(output_r1.display().to_string())),
+                    ("umi_reads_r2", Some(output_r2.display().to_string())),
+                    ("report_json", Some(report_json.display().to_string())),
+                    (
+                        "raw_backend_report",
+                        Some(raw_backend_report.display().to_string()),
+                    ),
+                    ("umi_pattern", Some(umi_pattern.to_string())),
+                ],
+            )?,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -78,10 +93,10 @@ pub fn plan_umi(
                     output_r2.clone(),
                     ArtifactRole::Reads,
                 ),
-                ArtifactRef::optional(
+                ArtifactRef::required(
                     ArtifactId::from_static("report_json"),
                     report_json.clone(),
-                    ArtifactRole::MetricsJson,
+                    ArtifactRole::ReportJson,
                 ),
             ],
         },
@@ -94,6 +109,8 @@ pub fn plan_umi(
             "output_r1": output_r1,
             "output_r2": output_r2,
             "report_json": report_json,
+            "raw_backend_report": raw_backend_report,
+            "raw_backend_report_format": "umi_tools_log",
             "umi_pattern": umi_pattern
         }),
         effective_params: serde_json::to_value(&effective_params)
@@ -101,6 +118,63 @@ pub fn plan_umi(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::plan_umi;
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId};
+    use std::path::Path;
+
+    fn tool() -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new("umi_tools".to_string()),
+            tool_version: "test".to_string(),
+            image: ContainerImageRefV1 {
+                image: "example/umi_tools".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec![
+                    "umi_tools".to_string(),
+                    "extract".to_string(),
+                    "--stdin".to_string(),
+                    "{{reads_r1}}".to_string(),
+                    "--stdout".to_string(),
+                    "{{umi_reads_r1}}".to_string(),
+                    "--read2-in".to_string(),
+                    "{{reads_r2}}".to_string(),
+                    "--read2-out".to_string(),
+                    "{{umi_reads_r2}}".to_string(),
+                    "--bc-pattern".to_string(),
+                    "{{umi_pattern}}".to_string(),
+                    "--log".to_string(),
+                    "{{raw_backend_report}}".to_string(),
+                ],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 2,
+            },
+        }
+    }
+
+    #[test]
+    fn plan_umi_renders_command_placeholders() {
+        let plan = plan_umi(
+            &tool(),
+            Path::new("reads_R1.fastq.gz"),
+            Path::new("reads_R2.fastq.gz"),
+            Path::new("out"),
+            Some("NNNNCCCC"),
+        )
+        .expect("plan");
+        assert!(plan.command.template.iter().any(|token| token == "reads_R1.fastq.gz"));
+        assert!(plan.command.template.iter().any(|token| token == "out/umi_tools.extract.log"));
+        assert!(plan.command.template.iter().any(|token| token == "NNNNCCCC"));
+    }
 }
 
 fn normalize_tools_with_allowlist(
