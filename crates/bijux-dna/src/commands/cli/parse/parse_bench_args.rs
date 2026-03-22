@@ -551,6 +551,8 @@ pub struct BenchFastqNormalizeAbundanceArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
+    #[arg(long, help = "Normalization method: relative_abundance | counts_per_million")]
+    pub method: Option<String>,
 }
 
 #[derive(Debug, Args)]

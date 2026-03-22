@@ -223,6 +223,7 @@ pub struct BenchFastqNormalizeAbundanceArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub method: Option<String>,
 }
 
 #[derive(Debug, Clone)]
