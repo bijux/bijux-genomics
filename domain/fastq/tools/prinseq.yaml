@@ -71,7 +71,7 @@ stage_contracts:
       - "filtered_fastq_r1"
       - "filtered_fastq_r2"
       - "filter_report_json"
-    notes: "PRINSEQ low-complexity filtering emits filtered reads and the low-complexity report."
+    notes: "PRINSEQ low-complexity filtering emits paired filtered reads and the canonical governed low-complexity report."
   fastq.profile_read_lengths:
     required_inputs:
       - "reads_r1"

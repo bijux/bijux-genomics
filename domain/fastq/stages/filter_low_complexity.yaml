@@ -52,6 +52,7 @@ tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+  - "canonical_governed_low_complexity_report_emitted"
   - "poly_n_filter_applied_before_emit"
   - "entropy_threshold_applied_before_emit"
   - "homopolymer_filter_applied_before_emit"
@@ -65,6 +66,7 @@ defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "low-complexity filtering must remain deterministic for identical input."
   - "single-end input omits reads_r2 and filtered_fastq_r2; paired-end input preserves mate synchronization during filtering."
+  - "canonical report_json semantics remain comparable across supported low-complexity backends."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"

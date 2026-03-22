@@ -77,7 +77,7 @@ stage_contracts:
       - "filtered_fastq_r1"
       - "filtered_fastq_r2"
       - "filter_report_json"
-    notes: "BBDuk low-complexity filtering emits low-complexity-filtered reads and a filter report."
+    notes: "BBDuk low-complexity filtering emits paired filtered reads, a canonical governed low-complexity report, and preserves native BBDuk stats provenance for downstream comparison."
   fastq.trim_polyg_tails:
     required_inputs:
       - "reads_r1"
