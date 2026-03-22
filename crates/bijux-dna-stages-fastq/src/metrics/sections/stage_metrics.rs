@@ -1390,29 +1390,70 @@ pub fn stage_metrics_for_plan(
             }
         }
         id_catalog::FASTQ_SCREEN => {
-            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
-            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
-            let output = if outputs.is_empty() {
-                input
+            let governed_report_path = path_from_params(&plan.params, "assignments")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "classification_report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("kraken2.classifications.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = governed_report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_screen_taxonomy_report(&raw).ok());
+            if let Some(report) = governed_report {
+                let contamination_summary = report
+                    .summary_entries
+                    .iter()
+                    .map(|entry| serde_json::json!({
+                        "label": entry.label,
+                        "percent": entry.percent,
+                    }))
+                    .collect::<Vec<_>>();
+                serde_json::json!({
+                    "reads_in": report.reads_in,
+                    "reads_out": report.reads_out,
+                    "bases_in": report.bases_in,
+                    "bases_out": report.bases_out,
+                    "pairs_in": report.pairs_in,
+                    "pairs_out": report.pairs_out,
+                    "contamination_rate": report.contamination_rate,
+                    "classified_fraction": report.classified_fraction,
+                    "unclassified_fraction": report.unclassified_fraction,
+                    "contamination_summary": contamination_summary,
+                    "top_taxa": report.top_taxa,
+                    "database_artifact_id": report.database_artifact_id,
+                    "classifier": report.classifier,
+                })
             } else {
-                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
-                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
-            };
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-            let report_path = path_from_params(&plan.params, "report")
-                .or_else(|| outputs.first().cloned())
-                .unwrap_or_else(|| PathBuf::from("screen_report.tsv"));
-            let (contamination_rate, contamination_summary) = parse_screen_report(&report_path)?;
-            serde_json::json!({
-                "reads_in": input.reads,
-                "reads_out": output.reads,
-                "bases_in": input.bases,
-                "bases_out": output.bases,
-                "pairs_in": pairs_in,
-                "pairs_out": pairs_out,
-                "contamination_rate": contamination_rate,
-                "contamination_summary": contamination_summary,
-            })
+                let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+                let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+                let output = if outputs.is_empty() {
+                    input
+                } else {
+                    let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                    stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
+                };
+                let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+                let report_path = path_from_params(&plan.params, "report")
+                    .or_else(|| outputs.first().cloned())
+                    .unwrap_or_else(|| PathBuf::from("screen_report.tsv"));
+                let (contamination_rate, contamination_summary) = parse_screen_report(&report_path)?;
+                serde_json::json!({
+                    "reads_in": input.reads,
+                    "reads_out": output.reads,
+                    "bases_in": input.bases,
+                    "bases_out": output.bases,
+                    "pairs_in": pairs_in,
+                    "pairs_out": pairs_out,
+                    "contamination_rate": contamination_rate,
+                    "contamination_summary": contamination_summary,
+                })
+            }
         }
         "fastq.deplete_rrna" => {
             let report_path = path_from_params(&plan.params, "report_json")
