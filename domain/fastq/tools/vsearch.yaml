@@ -83,9 +83,11 @@ stage_contracts:
       - "reads"
     expected_artifacts:
       - "chimera_filtered_reads"
+      - "report_json"
       - "chimera_metrics_json"
       - "chimeras_fasta"
-    notes: "vsearch chimera removal emits filtered reads, chimera metrics, and optional chimera FASTA output."
+      - "uchime_report_tsv"
+    notes: "vsearch chimera removal emits filtered reads, a canonical governed report, a compatibility metrics JSON, optional chimera FASTA output, and the native UCHIME TSV evidence."
   fastq.cluster_otus:
     required_inputs:
       - "reads"

@@ -11,11 +11,17 @@ outputs:
   - name: "chimera_filtered_reads"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
   - name: "chimera_metrics_json"
     data_type: "json"
     cardinality: "One"
   - name: "chimeras_fasta"
     data_type: "fasta"
+    cardinality: "One"
+  - name: "uchime_report_tsv"
+    data_type: "tsv"
     cardinality: "One"
 metrics:
   - name: "reads_in"
@@ -48,6 +54,8 @@ required_inputs:
   - "reads"
 required_outputs:
   - "chimera_filtered_reads"
+  - "report_json"
   - "chimera_metrics_json"
 allowed_missingness:
   - "chimeras_fasta"
+  - "uchime_report_tsv"
