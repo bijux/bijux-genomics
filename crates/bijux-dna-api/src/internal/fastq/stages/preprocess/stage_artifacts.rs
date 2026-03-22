@@ -86,6 +86,35 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
+        "fastq.correct_errors" => {
+            let report_path = execution
+                .outputs
+                .iter()
+                .find(|path| path.file_name().and_then(|name| name.to_str()) == Some("correct_report.json"))
+                .cloned()
+                .unwrap_or_else(|| stage_root.join("correct_report.json"));
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_correct_errors_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.correct_errors.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "correction_engine": governed.as_ref().map(|report| report.correction_engine.clone()),
+                "quality_encoding": governed.as_ref().map(|report| report.quality_encoding.clone()),
+                "kmer_size": governed.as_ref().and_then(|report| report.kmer_size),
+                "genome_size": governed.as_ref().and_then(|report| report.genome_size),
+                "max_memory_gb": governed.as_ref().and_then(|report| report.max_memory_gb),
+                "trusted_kmer_artifact": governed.as_ref().and_then(|report| report.trusted_kmer_artifact.clone()),
+                "conservative_mode": governed.as_ref().map(|report| report.conservative_mode),
+                "correction_effect": governed.as_ref().and_then(|report| report.correction_effect.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
+                "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.filter_low_complexity" => {
             let report_path = stage_root.join("low_complexity_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
