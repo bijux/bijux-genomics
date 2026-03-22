@@ -36,6 +36,9 @@ parameters:
   - name: "retain_unmapped_only"
     param_type: "bool"
     default: "true"
+  - name: "threads"
+    param_type: "integer"
+    default: 0
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads."
@@ -82,6 +85,7 @@ assumptions:
   - "reference index must identify the governed host build used for depletion."
   - "single-end input omits reads_r2, host_depleted_reads_r2, and removed_host_reads_r2; paired-end input preserves mate synchronization."
   - "removed_host_reads_* artifacts carry the reads classified as host by the depletion aligner."
+  - "host_depletion_report_json is the canonical governed depletion report; backend-native mapping metrics remain traceable from that report."
 bank_hooks:
   - "reference_bank"
 metrics_schema: "bijux.stage.metrics.v1"

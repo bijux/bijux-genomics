@@ -70,6 +70,16 @@ fn deplete_host_exposes_stage_family_comparison_contract() {
         contract.normalization_artifact_id,
         "host_depletion_tool_normalization_json"
     );
+    assert_eq!(
+        contract.comparison_input_artifact_ids,
+        &[
+            "host_depletion_report_json",
+            "host_depleted_reads_r1",
+            "host_depleted_reads_r2",
+            "removed_host_reads_r1",
+            "removed_host_reads_r2",
+        ]
+    );
 }
 
 #[test]
