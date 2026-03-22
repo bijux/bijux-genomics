@@ -39,6 +39,16 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.filter_low_complexity",
+        tool_id: "prinseq",
+        semantic_surface: "filter_report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.filter_low_complexity",
+        tool_id: "bbduk",
+        semantic_surface: "filter_report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.validate_reads",
         tool_id: "fastqvalidator",
         semantic_surface: "validation_report",

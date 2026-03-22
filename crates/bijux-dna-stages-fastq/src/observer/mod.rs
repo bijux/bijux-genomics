@@ -14,6 +14,7 @@ pub use artifacts::*;
 pub use parse::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_duplicate_classes_tsv,
     parse_fastp_metrics, parse_fastqvalidator_count, parse_length_histogram,
+    parse_filter_low_complexity_report,
     parse_filter_reads_report,
     parse_index_reference_report,
     parse_low_complexity_report, parse_multiqc_general_stats_metrics,

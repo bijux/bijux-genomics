@@ -3,6 +3,7 @@
 //! Supported formats must be deterministic and stable across versions.
 
 use anyhow::{anyhow, Context, Result};
+use serde::Deserialize;
 use tracing::warn;
 
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
@@ -11,6 +12,7 @@ use bijux_dna_domain_fastq::metrics::{
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
 use bijux_dna_domain_fastq::{
+    FilterLowComplexityReportV1,
     FilterReadsReportV1,
     IndexReferenceReportV1,
     InferAsvsReportV1,
@@ -644,10 +646,94 @@ fn parse_legacy_profile_overrepresented_report(
     })
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyFilterLowComplexityReportV1 {
+    schema_version: String,
+    stage_id: String,
+    tool_id: String,
+    input_fastq: String,
+    output_fastq: String,
+    #[serde(default)]
+    output_fastq_r2: Option<String>,
+    reads_in: u64,
+    reads_out: u64,
+    reads_removed_low_complexity: u64,
+    #[serde(default)]
+    runtime_s: Option<f64>,
+    #[serde(default)]
+    memory_mb: Option<f64>,
+    #[serde(default)]
+    exit_code: Option<i32>,
+}
+
+fn parse_legacy_filter_low_complexity_report(
+    report_json: &str,
+) -> Result<FilterLowComplexityReportV1> {
+    let legacy: LegacyFilterLowComplexityReportV1 =
+        serde_json::from_str(report_json).context("parse legacy low complexity report")?;
+    if legacy.schema_version != "bijux.fastq.filter_low_complexity.report.v1" {
+        return Err(anyhow!(
+            "unsupported low-complexity report schema {}",
+            legacy.schema_version
+        ));
+    }
+    let paired_mode = if legacy.output_fastq_r2.is_some() {
+        bijux_dna_domain_fastq::PairedMode::PairedEnd
+    } else {
+        bijux_dna_domain_fastq::PairedMode::SingleEnd
+    };
+    Ok(FilterLowComplexityReportV1 {
+        schema_version:
+            bijux_dna_domain_fastq::FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION.to_string(),
+        stage: legacy.stage_id.clone(),
+        stage_id: legacy.stage_id,
+        tool_id: legacy.tool_id,
+        paired_mode,
+        threads: 1,
+        input_r1: legacy.input_fastq,
+        input_r2: None,
+        output_r1: legacy.output_fastq,
+        output_r2: legacy.output_fastq_r2,
+        report_json: "low_complexity_report.json".to_string(),
+        entropy_threshold: None,
+        polyx_threshold: None,
+        reads_in: legacy.reads_in,
+        reads_out: legacy.reads_out,
+        reads_removed_low_complexity: legacy.reads_removed_low_complexity,
+        bases_in: 0,
+        bases_out: 0,
+        pairs_in: None,
+        pairs_out: None,
+        mean_q_before: 0.0,
+        mean_q_after: 0.0,
+        runtime_s: legacy.runtime_s,
+        memory_mb: legacy.memory_mb,
+        exit_code: legacy.exit_code,
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+        backend_metrics: None,
+    })
+}
+
+/// # Errors
+/// Returns an error if the governed filter-low-complexity report JSON cannot be parsed.
+pub fn parse_filter_low_complexity_report(
+    report_json: &str,
+) -> Result<FilterLowComplexityReportV1> {
+    serde_json::from_str(report_json)
+        .or_else(|_| parse_legacy_filter_low_complexity_report(report_json))
+        .context("parse filter low complexity report")
+}
+
 /// # Errors
 /// Returns an error if report JSON cannot be parsed.
 pub fn parse_low_complexity_report(report_json: &str) -> Result<u64> {
+    if let Ok(report) = parse_filter_low_complexity_report(report_json) {
+        return Ok(report.reads_removed_low_complexity);
+    }
     parse_report_u64_field(report_json, "reads_removed_low_complexity")
+        .or_else(|| parse_bbduk_reads_removed(report_json).ok())
         .ok_or_else(|| anyhow!("low-complexity report missing reads_removed_low_complexity"))
 }
 
@@ -846,6 +932,7 @@ mod tests {
     use super::{
         parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
         parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
+        parse_filter_low_complexity_report,
         parse_filter_reads_report,
         parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
         parse_index_reference_report,
@@ -1531,6 +1618,49 @@ mod tests {
         );
         let removed = parse_low_complexity_report(raw)?;
         assert_eq!(removed, 137);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_filter_low_complexity_report_round_trips_governed_payload() -> Result<()> {
+        let parsed = parse_filter_low_complexity_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.filter_low_complexity.report.v2",
+                "stage": "fastq.filter_low_complexity",
+                "stage_id": "fastq.filter_low_complexity",
+                "tool_id": "bbduk",
+                "paired_mode": "single_end",
+                "threads": 8,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "filtered.fastq.gz",
+                "output_r2": null,
+                "report_json": "low_complexity_report.json",
+                "entropy_threshold": 0.5,
+                "polyx_threshold": 20,
+                "reads_in": 100,
+                "reads_out": 92,
+                "reads_removed_low_complexity": 8,
+                "bases_in": 1000,
+                "bases_out": 910,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.0,
+                "runtime_s": 1.1,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bbduk.low_complexity.stats",
+                "raw_backend_report_format": "bbduk_stats",
+                "backend_metrics": {
+                    "reads_removed_reported": 8
+                }
+            })
+            .to_string(),
+        )?;
+        assert_eq!(parsed.tool_id, "bbduk");
+        assert_eq!(parsed.reads_removed_low_complexity, 8);
+        assert_eq!(parsed.polyx_threshold, Some(20));
         Ok(())
     }
 
