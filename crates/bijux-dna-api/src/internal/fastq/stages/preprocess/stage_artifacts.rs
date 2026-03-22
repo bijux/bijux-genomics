@@ -30,6 +30,27 @@ fn emit_fastq_stage_extra_artifacts(
                 "report_json": report_path,
             }))
         }
+        "fastq.detect_adapters" => {
+            let report_path = stage_root.join("adapter_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                bijux_dna_stages_fastq::observer::parse_detect_adapters_report(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.detect_adapters.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
+                "inspection_mode": governed.as_ref().map(|report| report.inspection_mode),
+                "evidence_engine": governed.as_ref().map(|report| report.evidence_engine.clone()),
+                "evidence_scope": governed.as_ref().map(|report| report.evidence_scope),
+                "evidence_format": governed.as_ref().map(|report| report.evidence_format),
+                "candidate_adapter_count": governed.as_ref().map(|report| report.candidate_adapter_count),
+                "adapter_trimmed_fraction": governed.as_ref().and_then(|report| report.adapter_trimmed_fraction),
+                "adapter_evidence_dir": governed.as_ref().map(|report| report.adapter_evidence_dir.clone()),
+                "report_json": report_path,
+            }))
+        }
         "fastq.filter_reads" => {
             let report_path = execution
                 .outputs
@@ -456,12 +477,7 @@ fn write_stage_standardized_metrics(
     let metrics = match stage_id {
         "fastq.index_reference" => parse_index_reference_metrics(out_dir),
         "fastq.validate_reads" => parse_validate_reads_metrics(out_dir, execution),
-        "fastq.detect_adapters" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "report_only": true,
-            "adapter_inference": parse_detect_adapters_metrics(out_dir).get("adapter_inference").cloned().unwrap_or_else(|| serde_json::json!({})),
-        }),
+        "fastq.detect_adapters" => parse_detect_adapters_metrics(out_dir),
         "fastq.profile_read_lengths" => parse_profile_read_lengths_metrics(out_dir),
         "fastq.profile_overrepresented_sequences" => parse_profile_overrepresented_metrics(out_dir),
         "fastq.trim_polyg_tails" => parse_trim_polyg_metrics(out_dir),
