@@ -9,7 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
-    parse_merge_pairs_report, parse_multiqc_general_stats_metrics,
+    parse_infer_asvs_report, parse_merge_pairs_report, parse_multiqc_general_stats_metrics,
     parse_normalize_abundance_report, parse_normalize_primers_report,
     parse_profile_overrepresented_report, parse_profile_read_lengths_report,
     parse_profile_reads_report, parse_remove_chimeras_report, parse_remove_duplicates_provenance,
@@ -481,6 +481,36 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "raw_backend_report": report.raw_backend_report,
                         "raw_backend_report_format": report.raw_backend_report_format,
                         "used_fallback": report.used_fallback,
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.infer_asvs" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_infer_asvs_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "denoising_method": report.denoising_method,
+                        "pooling_mode": report.pooling_mode,
+                        "chimera_policy": report.chimera_policy,
+                        "requires_r_runtime": report.requires_r_runtime,
+                        "output_table_kind": report.output_table_kind,
+                        "asv_count": report.asv_count,
+                        "sample_count": report.sample_count,
+                        "representative_sequence_count": report.representative_sequence_count,
+                        "asv_table_tsv": report.asv_table_tsv,
+                        "asv_sequences_fasta": report.asv_sequences_fasta,
+                        "taxonomy_ready_fasta": report.taxonomy_ready_fasta,
+                        "taxonomy_ready_fastq": report.taxonomy_ready_fastq,
+                        "used_fallback": report.used_fallback,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
                     });
                 }
             }
@@ -2538,6 +2568,80 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["zero_fraction"],
             serde_json::json!(0.25)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_infer_asvs_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("infer_asvs_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.infer_asvs.report.v2",
+                "stage": "fastq.infer_asvs",
+                "stage_id": "fastq.infer_asvs",
+                "tool_id": "dada2",
+                "paired_mode": "paired_end",
+                "denoising_method": "dada2",
+                "pooling_mode": "pseudo_pool",
+                "chimera_policy": "remove_bimera_denovo",
+                "requires_r_runtime": true,
+                "output_table_kind": "asv_abundance_table",
+                "input_reads_r1": "reads_R1.fastq.gz",
+                "input_reads_r2": "reads_R2.fastq.gz",
+                "asv_table_tsv": "asv_abundance.tsv",
+                "asv_sequences_fasta": "asv_sequences.fasta",
+                "taxonomy_ready_fasta": "taxonomy_ready.fasta",
+                "taxonomy_ready_fastq": "taxonomy_ready.fastq",
+                "report_json": "infer_asvs_report.json",
+                "asv_count": 11,
+                "sample_count": 3,
+                "representative_sequence_count": 11,
+                "used_fallback": false,
+                "raw_backend_report": "infer_asvs_report.json",
+                "raw_backend_report_format": "infer_asvs_governed_report_json",
+                "runtime_s": 3.2,
+                "memory_mb": 192.0,
+                "exit_code": 0,
+                "backend_metrics": {}
+            })
+            .to_string(),
+        )
+        .expect("write infer_asvs report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.infer_asvs"),
+            tool_id: ToolId::from_static("dada2"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    temp.path().join("reads.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.infer_asvs")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["pooling_mode"],
+            serde_json::json!("pseudo_pool")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["asv_count"],
+            serde_json::json!(11)
         );
     }
 
