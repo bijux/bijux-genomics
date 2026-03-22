@@ -255,13 +255,7 @@ fn write_stage_standardized_metrics(
             "report_only": true,
             "adapter_inference": parse_detect_adapters_metrics(out_dir).get("adapter_inference").cloned().unwrap_or_else(|| serde_json::json!({})),
         }),
-        "fastq.profile_read_lengths" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["sample_id", "read_length", "count"],
-            "tsv_path": out_dir.join("length_distribution.tsv"),
-            "json_path": out_dir.join("length_distribution.json"),
-        }),
+        "fastq.profile_read_lengths" => parse_profile_read_lengths_metrics(out_dir),
         "fastq.profile_overrepresented_sequences" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
