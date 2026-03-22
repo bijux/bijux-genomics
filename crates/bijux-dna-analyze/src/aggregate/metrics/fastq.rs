@@ -634,7 +634,25 @@ pub struct FastqScreenMetrics {
     pub pairs_out: u64,
     pub contamination_rate: f64,
     #[serde(default)]
+    pub classified_fraction: Option<f64>,
+    #[serde(default)]
+    pub unclassified_fraction: Option<f64>,
+    #[serde(default)]
+    pub classifier: Option<String>,
+    #[serde(default)]
+    pub report_format: Option<String>,
+    #[serde(default)]
+    pub database_catalog_id: Option<String>,
+    #[serde(default)]
+    pub database_artifact_id: Option<String>,
+    #[serde(default)]
+    pub minimum_confidence: Option<f64>,
+    #[serde(default)]
+    pub emit_unclassified: Option<bool>,
+    #[serde(default)]
     pub contamination_summary: JsonBlob,
+    #[serde(default)]
+    pub top_taxa: JsonBlob,
 }
 
 impl StageMetricSchema for FastqScreenMetrics {
@@ -656,6 +674,19 @@ impl StageMetricSchema for FastqScreenMetrics {
             return Err(BenchError::Validation(
                 "contamination_rate must be within [0, 1]".to_string(),
             ));
+        }
+        for (name, value) in [
+            ("classified_fraction", self.classified_fraction),
+            ("unclassified_fraction", self.unclassified_fraction),
+            ("minimum_confidence", self.minimum_confidence),
+        ] {
+            if let Some(value) = value {
+                if !value.is_finite() || !(0.0..=1.0).contains(&value) {
+                    return Err(BenchError::Validation(format!(
+                        "{name} must be within [0, 1]"
+                    )));
+                }
+            }
         }
         Ok(())
     }
