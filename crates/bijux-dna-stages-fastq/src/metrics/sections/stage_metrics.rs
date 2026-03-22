@@ -136,9 +136,9 @@ pub fn stage_metrics_for_plan(
                     .as_ref()
                     .map(|report| report.paired_mode.to_string()),
                 dedup_mode: parsed_report.as_ref().map(|report| match &report.dedup_mode {
-                    bijux_dna_domain_fastq::params::processing::remove_duplicates::DedupMode::Exact => "exact".to_string(),
-                    bijux_dna_domain_fastq::params::processing::remove_duplicates::DedupMode::SequenceIdentity => "sequence_identity".to_string(),
-                    bijux_dna_domain_fastq::params::processing::remove_duplicates::DedupMode::OpticalAware => "optical_aware".to_string(),
+                    bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact => "exact".to_string(),
+                    bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::SequenceIdentity => "sequence_identity".to_string(),
+                    bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::OpticalAware => "optical_aware".to_string(),
                 }),
                 keep_order: parsed_report.as_ref().map(|report| report.keep_order),
                 pair_count_match: parsed_report.as_ref().and_then(|report| report.pair_count_match),
