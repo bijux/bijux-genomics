@@ -186,21 +186,68 @@ pub fn stage_metrics_for_plan(
             })?
         }
         id_catalog::FASTQ_VALIDATE_PRE => {
-            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
-            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let stats = stats_for_paths(&[
+                inputs.first().map(PathBuf::as_path),
+                inputs.get(1).map(PathBuf::as_path),
+            ])?;
+            let input_r1 = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let input_r2 = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-            serde_json::to_value(FastqValidateMetricsV1 {
-                reads_in: input.reads,
-                reads_out: input.reads,
-                bases_in: input.bases,
-                bases_out: input.bases,
+            let reads_in = input_r1.reads + inputs.get(1).map_or(0, |_| input_r2.reads);
+            let bases_in = input_r1.bases + inputs.get(1).map_or(0, |_| input_r2.bases);
+            let mean_q = if inputs.get(1).is_some() {
+                (input_r1.mean_q + input_r2.mean_q) / 2.0
+            } else {
+                input_r1.mean_q
+            };
+            let report_metrics = path_from_params(&plan.params, "report_json")
+                .and_then(|report_path| std::fs::read_to_string(&report_path).ok())
+                .and_then(|raw| crate::observer::parse_validation_report(&raw).ok())
+                .map(|report| {
+                    let reads_total = report.validated_reads_r1 + report.validated_reads_r2.unwrap_or(0);
+                    let reads_invalid = match report.failure_class {
+                        bijux_dna_domain_fastq::ValidateFailureClass::None => 0,
+                        bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => report
+                            .validated_reads_r1
+                            .abs_diff(report.validated_reads_r2.unwrap_or(0)),
+                        bijux_dna_domain_fastq::ValidateFailureClass::ValidatorError => {
+                            let mut invalid = 0;
+                            if report.status_r1 != 0 {
+                                invalid += report.validated_reads_r1;
+                            }
+                            if report.status_r2 != 0 {
+                                invalid += report.validated_reads_r2.unwrap_or(0);
+                            }
+                            invalid
+                        }
+                        bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => 0,
+                    }
+                    .min(reads_total);
+                    FastqValidateMetricsV1 {
+                        reads_in,
+                        reads_out: reads_in,
+                        bases_in,
+                        bases_out: bases_in,
+                        pairs_in,
+                        pairs_out,
+                        reads_total,
+                        reads_valid: reads_total.saturating_sub(reads_invalid),
+                        reads_invalid,
+                        mean_q,
+                    }
+                });
+            serde_json::to_value(report_metrics.unwrap_or(FastqValidateMetricsV1 {
+                reads_in,
+                reads_out: reads_in,
+                bases_in,
+                bases_out: bases_in,
                 pairs_in,
                 pairs_out,
-                reads_total: input.reads,
-                reads_valid: input.reads,
+                reads_total: reads_in,
+                reads_valid: reads_in,
                 reads_invalid: 0,
-                mean_q: input.mean_q,
-            })?
+                mean_q,
+            }))?
         }
         id_catalog::FASTQ_DETECT_ADAPTERS => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
