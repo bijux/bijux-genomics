@@ -75,8 +75,13 @@ fn correct_errors_manifest_exposes_typed_error_correction_controls() -> Result<(
 fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
     assert_eq!(
         stage_parameter_names("trim_terminal_damage")?,
-        vec!["damage_mode", "trim_5p_bases", "trim_3p_bases"],
-        "fastq.trim_terminal_damage must keep its damage-specific parameter surface"
+        vec![
+            "damage_mode",
+            "execution_policy",
+            "trim_5p_bases",
+            "trim_3p_bases",
+        ],
+        "fastq.trim_terminal_damage must expose its damage-policy selector and trim controls together"
     );
     assert_eq!(
         stage_parameter_names("trim_polyg_tails")?,

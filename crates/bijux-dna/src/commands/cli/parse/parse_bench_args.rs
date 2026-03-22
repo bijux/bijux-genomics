@@ -199,6 +199,11 @@ pub struct BenchFastqTrimTerminalDamageArgs {
     pub ci_bootstrap: Option<u32>,
     #[arg(long)]
     pub damage_mode: Option<String>,
+    #[arg(
+        long,
+        help = "Execution policy: policy_derived | explicit_terminal_trim | preserve_udg_trimmed_ends"
+    )]
+    pub execution_policy: Option<String>,
     #[arg(long)]
     pub trim_5p_bases: Option<u32>,
     #[arg(long)]

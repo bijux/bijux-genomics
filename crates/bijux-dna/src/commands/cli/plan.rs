@@ -185,6 +185,7 @@ pub fn bench_args_trim_terminal_damage(
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
         damage_mode: args.damage_mode.clone(),
+        execution_policy: args.execution_policy.clone(),
         trim_5p_bases: args.trim_5p_bases,
         trim_3p_bases: args.trim_3p_bases,
     })

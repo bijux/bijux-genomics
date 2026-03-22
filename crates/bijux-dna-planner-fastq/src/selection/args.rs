@@ -64,6 +64,7 @@ pub struct BenchFastqTrimTerminalDamageArgs {
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
     pub damage_mode: Option<String>,
+    pub execution_policy: Option<String>,
     pub trim_5p_bases: Option<u32>,
     pub trim_3p_bases: Option<u32>,
 }

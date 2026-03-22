@@ -24,6 +24,9 @@ parameters:
   - name: "damage_mode"
     param_type: "string"
     default: "ancient"
+  - name: "execution_policy"
+    param_type: "string"
+    default: "policy_derived"
   - name: "trim_5p_bases"
     param_type: "int"
     default: "2"
@@ -73,6 +76,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "UDG classification is provided via config/env or inferred deterministically from sample metadata."
+  - "execution_policy defaults to policy_derived, which preserves UDG-trimmed ends only for the governed udg_trimmed default trim profile and otherwise applies explicit terminal trimming."
   - "Terminal masking/trimming policy is explicit and reproducible."
   - "Refusal occurs when downstream aligner requires untrimmed reads."
   - "single-end input omits reads_r2 and trimmed_reads_r2; paired-end input preserves mate synchronization during terminal trimming."
