@@ -829,6 +829,8 @@ pub struct BenchFastqDepleteReferenceContaminantsArgs {
     pub reference_index: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
+    #[arg(long)]
+    pub threads: Option<u32>,
     #[arg(
         long,
         value_delimiter = ',',
