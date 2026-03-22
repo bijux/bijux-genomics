@@ -49,6 +49,26 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "multiqc_data",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.screen_taxonomy",
+        tool_id: "kraken2",
+        semantic_surface: "classification_report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.screen_taxonomy",
+        tool_id: "krakenuniq",
+        semantic_surface: "classification_report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.screen_taxonomy",
+        tool_id: "centrifuge",
+        semantic_surface: "classification_report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.screen_taxonomy",
+        tool_id: "kaiju",
+        semantic_surface: "classification_report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.trim_reads",
         tool_id: "fastp",
         semantic_surface: "report_json",
@@ -215,6 +235,10 @@ mod tests {
             ToolId::from_static("multiqc")
         )));
         assert!(bindings.contains(&(
+            StageId::from_static("fastq.screen_taxonomy"),
+            ToolId::from_static("kraken2")
+        )));
+        assert!(bindings.contains(&(
             StageId::from_static("fastq.correct_errors"),
             ToolId::from_static("lighter")
         )));
@@ -235,6 +259,13 @@ mod tests {
                 &ToolId::from_static("bbduk"),
             ),
             Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.screen_taxonomy"),
+                &ToolId::from_static("centrifuge"),
+            ),
+            Some("classification_report_json")
         );
         assert_eq!(
             observer_semantic_surface_for_stage_tool(
