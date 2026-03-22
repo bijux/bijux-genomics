@@ -9,7 +9,8 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
-    parse_multiqc_general_stats_metrics,
+    parse_multiqc_general_stats_metrics, parse_validated_reads_manifest,
+    parse_validation_report,
 };
 
 #[allow(dead_code)]
@@ -363,26 +364,8 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
         }
     }
     if plan.stage_id.as_str() == "fastq.validate_reads" {
-        if let Some(report_path) = artifacts
-            .iter()
-            .find(|artifact| artifact.name.as_str() == "validation_report")
-            .map(|artifact| artifact.path.as_path())
-        {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
-                if let Ok(report) = serde_json::from_str::<serde_json::Value>(&raw_report) {
-                    return serde_json::json!({
-                        "validation_mode": report.get("validation_mode").cloned().unwrap_or(serde_json::Value::Null),
-                        "pair_sync_policy": report.get("pair_sync_policy").cloned().unwrap_or(serde_json::Value::Null),
-                        "failure_class": report.get("failure_class").cloned().unwrap_or(serde_json::Value::Null),
-                        "strict_pass": report.get("strict_pass").cloned().unwrap_or(serde_json::Value::Null),
-                        "exit_code": report.get("exit_code").cloned().unwrap_or(serde_json::Value::Null),
-                        "validated_inputs": report.get("validated_inputs").cloned().unwrap_or(serde_json::Value::Null),
-                        "pair_sync_checked": report.get("pair_sync_checked").cloned().unwrap_or(serde_json::Value::Null),
-                        "pair_sync_pass": report.get("pair_sync_pass").cloned().unwrap_or(serde_json::Value::Null),
-                        "validated_pairs": report.get("validated_pairs").cloned().unwrap_or(serde_json::Value::Null),
-                    });
-                }
-            }
+        if let Some(semantics) = validate_semantic_metrics(artifacts) {
+            return semantics;
         }
     }
     if plan.stage_id.as_str() == "fastq.remove_duplicates" {
@@ -559,6 +542,50 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
     serde_json::Value::Null
 }
 
+fn validate_semantic_metrics(artifacts: &[ArtifactRef]) -> Option<serde_json::Value> {
+    let report = artifacts
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "validation_report")
+        .map(|artifact| artifact.path.as_path())
+        .and_then(|report_path| {
+            std::fs::read_to_string(report_path)
+                .ok()
+                .and_then(|raw_report| parse_validation_report(&raw_report).ok())
+        });
+    let manifest = artifacts
+        .iter()
+        .find(|artifact| artifact.name.as_str() == "validated_reads_manifest")
+        .map(|artifact| artifact.path.as_path())
+        .and_then(|manifest_path| {
+            std::fs::read_to_string(manifest_path)
+                .ok()
+                .and_then(|raw_manifest| parse_validated_reads_manifest(&raw_manifest).ok())
+        });
+    if report.is_none() && manifest.is_none() {
+        return None;
+    }
+    Some(serde_json::json!({
+        "tool_id": report.as_ref().map(|value| value.tool_id.clone()).or_else(|| manifest.as_ref().map(|value| value.tool_id.clone())),
+        "validation_mode": report.as_ref().map(|value| serde_json::to_value(&value.validation_mode).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "pair_sync_policy": report.as_ref().map(|value| serde_json::to_value(&value.pair_sync_policy).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "failure_class": report.as_ref().map(|value| serde_json::to_value(&value.failure_class).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "strict_pass": report.as_ref().map(|value| serde_json::json!(value.strict_pass)).unwrap_or(serde_json::Value::Null),
+        "exit_code": report.as_ref().map(|value| serde_json::json!(value.exit_code)).unwrap_or(serde_json::Value::Null),
+        "validated_inputs": report.as_ref().map(|value| serde_json::json!(value.validated_inputs)).unwrap_or(serde_json::Value::Null),
+        "validated_reads_r1": report.as_ref().map(|value| serde_json::json!(value.validated_reads_r1)).unwrap_or(serde_json::Value::Null),
+        "validated_reads_r2": report.as_ref().map(|value| serde_json::to_value(value.validated_reads_r2).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "validated_pairs": report.as_ref().map(|value| serde_json::to_value(value.validated_pairs).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "status_r1": report.as_ref().map(|value| serde_json::json!(value.status_r1)).unwrap_or(serde_json::Value::Null),
+        "status_r2": report.as_ref().map(|value| serde_json::json!(value.status_r2)).unwrap_or(serde_json::Value::Null),
+        "pair_sync_checked": report.as_ref().map(|value| serde_json::json!(value.pair_sync_checked)).or_else(|| manifest.as_ref().map(|value| serde_json::json!(value.pair_sync_checked))).unwrap_or(serde_json::Value::Null),
+        "pair_sync_pass": report.as_ref().map(|value| serde_json::to_value(value.pair_sync_pass).ok()).flatten().or_else(|| manifest.as_ref().map(|value| serde_json::to_value(value.pair_sync_pass).ok()).flatten()).unwrap_or(serde_json::Value::Null),
+        "pair_count_match": report.as_ref().map(|value| serde_json::to_value(value.pair_count_match).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "paired_mode": manifest.as_ref().map(|value| serde_json::to_value(&value.paired_mode).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "validated_stream_ids": manifest.as_ref().map(|value| serde_json::json!(value.validated_stream_ids)).unwrap_or(serde_json::Value::Null),
+        "validation_report": manifest.as_ref().map(|value| serde_json::json!(value.validation_report)).unwrap_or(serde_json::Value::Null),
+    }))
+}
+
 fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
     let mut parts = name.split('.');
     let domain = parts.next()?;
@@ -573,9 +600,17 @@ mod tests {
 
     use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::*;
+    use bijux_dna_domain_fastq::params::{
+        validate::{PairSyncPolicy, ValidationMode},
+        PairedMode,
+    };
+    use bijux_dna_domain_fastq::{
+        ValidatedReadsManifestV1, ValidateFailureClass, ValidationReportV1,
+        VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
+    };
     use bijux_dna_stage_contract::{ArtifactRef, PlanDecisionReason, StagePlugin};
 
-    use super::FastqStagePlugin;
+    use super::{validate_semantic_metrics, FastqStagePlugin};
 
     fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
         bijux_dna_stage_contract::StagePlanV1 {
@@ -758,83 +793,104 @@ mod tests {
     }
 
     #[test]
-    fn parse_outputs_surfaces_observed_validation_semantics_for_seqtk() {
-        let plugin = FastqStagePlugin;
+    fn validate_semantic_metrics_surface_pair_lineage_contract() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let reads_path = temp.path().join("reads.fastq");
         let report_path = temp.path().join("validation_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        let manifest_path = temp.path().join("validated_reads_manifest.json");
         std::fs::write(
             &report_path,
-            serde_json::json!({
-                "schema_version": "bijux.fastq.validate.report.v1",
-                "validation_mode": "strict",
-                "pair_sync_policy": "require_header_sync",
-                "failure_class": "header_sync_mismatch",
-                "strict_pass": false,
-                "exit_code": 97,
-                "validated_inputs": 2_u64,
-                "pair_sync_checked": true,
-                "pair_sync_pass": false,
-                "validated_pairs": 1_u64
+            serde_json::to_string(&ValidationReportV1 {
+                schema_version: VALIDATION_REPORT_SCHEMA_VERSION.to_string(),
+                stage: "fastq.validate_reads".to_string(),
+                stage_id: "fastq.validate_reads".to_string(),
+                tool_id: "seqtk".to_string(),
+                validation_mode: ValidationMode::Strict,
+                pair_sync_policy: PairSyncPolicy::RequireHeaderSync,
+                input_r1: "reads_R1.fastq.gz".to_string(),
+                input_r2: Some("reads_R2.fastq.gz".to_string()),
+                validation_log_r1: "validation_r1.log".to_string(),
+                validation_log_r2: Some("validation_r2.log".to_string()),
+                validated_inputs: 2,
+                validated_reads_r1: 1,
+                validated_reads_r2: Some(1),
+                validated_pairs: Some(1),
+                status_r1: 0,
+                status_r2: 0,
+                pair_sync_checked: true,
+                pair_sync_pass: Some(false),
+                pair_count_match: Some(false),
+                failure_class: ValidateFailureClass::HeaderSyncMismatch,
+                strict_pass: false,
+                exit_code: 97,
             })
-            .to_string(),
+            .expect("serialize report"),
         )
         .expect("write report");
-        let plan = bijux_dna_stage_contract::StagePlanV1 {
-            stage_id: StageId::from_static("fastq.validate_reads"),
-            tool_id: ToolId::from_static("seqtk"),
-            io: StageIO {
-                inputs: vec![ArtifactRef::required(
-                    ArtifactId::new("reads_r1"),
-                    reads_path,
-                    ArtifactRole::Reads,
-                )],
-                outputs: vec![ArtifactRef::required(
-                    ArtifactId::new("validation_report"),
-                    report_path.clone(),
-                    ArtifactRole::SummaryJson,
-                )],
-            },
-            ..plan("fastq.validate_reads")
-        };
+        std::fs::write(
+            &manifest_path,
+            serde_json::to_string(&ValidatedReadsManifestV1 {
+                schema_version: VALIDATED_READS_MANIFEST_SCHEMA_VERSION.to_string(),
+                stage_id: "fastq.validate_reads".to_string(),
+                tool_id: "seqtk".to_string(),
+                validation_mode: ValidationMode::Strict,
+                pair_sync_policy: PairSyncPolicy::RequireHeaderSync,
+                input_r1: "reads_R1.fastq.gz".to_string(),
+                input_r2: Some("reads_R2.fastq.gz".to_string()),
+                validation_report: "validation_report.json".to_string(),
+                paired_mode: PairedMode::PairedEnd,
+                validated_stream_ids: vec!["reads_r1".to_string(), "reads_r2".to_string()],
+                pair_sync_checked: true,
+                pair_sync_pass: Some(false),
+                validated_pairs: Some(1),
+            })
+            .expect("serialize manifest"),
+        )
+        .expect("write manifest");
+        let semantics = validate_semantic_metrics(&[
+            ArtifactRef::required(
+                ArtifactId::new("validation_report"),
+                report_path,
+                ArtifactRole::SummaryJson,
+            ),
+            ArtifactRef::required(
+                ArtifactId::new("validated_reads_manifest"),
+                manifest_path,
+                ArtifactRole::StageReport,
+            ),
+        ])
+        .expect("validate semantics");
 
-        let output = plugin
-            .parse_outputs(&plan, &plan.io.outputs)
-            .expect("parse outputs");
-
-        assert!(output.warnings.is_empty());
         assert_eq!(
-            output.report_parts[0].payload["runtime_interpretation"],
-            serde_json::json!("ObserverSpecialized")
-        );
-        assert_eq!(
-            output.report_parts[0].payload["semantic_metrics"]["validated_pairs"],
+            semantics["validated_pairs"],
             serde_json::json!(1_u64)
         );
         assert_eq!(
-            output.report_parts[0].payload["semantic_metrics"]["validation_mode"],
+            semantics["validation_mode"],
             serde_json::json!("strict")
         );
         assert_eq!(
-            output.report_parts[0].payload["semantic_metrics"]["failure_class"],
+            semantics["failure_class"],
             serde_json::json!("header_sync_mismatch")
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["pair_sync_pass"],
+            semantics["pair_sync_pass"],
             serde_json::json!(false)
         );
         assert_eq!(
-            output
-                .verdict
-                .as_ref()
-                .expect("verdict")
-                .key_metrics["semantic_metrics"]["pair_sync_policy"],
+            semantics["pair_sync_policy"],
             serde_json::json!("require_header_sync")
+        );
+        assert_eq!(
+            semantics["paired_mode"],
+            serde_json::json!("paired_end")
+        );
+        assert_eq!(
+            semantics["validated_stream_ids"],
+            serde_json::json!(["reads_r1", "reads_r2"])
+        );
+        assert_eq!(
+            semantics["validated_reads_r1"],
+            serde_json::json!(1_u64)
         );
     }
 
