@@ -129,6 +129,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.cluster_otus",
+        tool_id: "vsearch",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.merge_pairs",
         tool_id: "pear",
         semantic_surface: "report_json",
