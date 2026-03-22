@@ -113,6 +113,53 @@ pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> s
     })
 }
 
+pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("trim_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_trim_reads_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.trim_reads",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "min_length": report.min_length,
+                "quality_cutoff": report.quality_cutoff,
+                "adapter_policy": report.adapter_policy,
+                "polyx_policy": report.polyx_policy,
+                "n_policy": report.n_policy,
+                "contaminant_policy": report.contaminant_policy,
+                "adapter_bank_id": report.adapter_bank_id,
+                "adapter_bank_hash": report.adapter_bank_hash,
+                "adapter_preset": report.adapter_preset,
+                "polyx_bank_id": report.polyx_bank_id,
+                "polyx_bank_hash": report.polyx_bank_hash,
+                "polyx_preset": report.polyx_preset,
+                "contaminant_bank_id": report.contaminant_bank_id,
+                "contaminant_bank_hash": report.contaminant_bank_hash,
+                "contaminant_preset": report.contaminant_preset,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "mean_q_before": report.mean_q_before,
+                "mean_q_after": report.mean_q_after,
+                "runtime_s": report.runtime_s,
+                "memory_mb": report.memory_mb,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.trim_reads",
+        "tool": "report_missing",
+        "report_json": report_path,
+    })
+}
+
 fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let fastp_json = out_dir.join("fastp.json");
     if let Ok(raw) = std::fs::read_to_string(&fastp_json) {
@@ -448,6 +495,65 @@ mod tests {
         assert_eq!(metrics["execution_policy"], serde_json::json!("explicit_terminal_trim"));
         assert_eq!(metrics["ct_ga_asymmetry_post"], serde_json::json!(0.11));
     }
+
+    #[test]
+    fn trim_reads_standardized_metrics_prefer_governed_report() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("trim_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.trim_reads.report.v2",
+                "stage": "fastq.trim_reads",
+                "stage_id": "fastq.trim_reads",
+                "tool_id": "fastp",
+                "paired_mode": "single_end",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq.gz",
+                "output_r2": null,
+                "min_length": 30,
+                "quality_cutoff": 20,
+                "adapter_policy": "bank",
+                "polyx_policy": "trim",
+                "n_policy": "drop",
+                "contaminant_policy": "none",
+                "adapter_bank_id": "illumina",
+                "adapter_bank_hash": "sha256:adapter",
+                "adapter_preset": "default",
+                "polyx_bank_id": "polyx",
+                "polyx_bank_hash": "sha256:polyx",
+                "polyx_preset": "illumina_twocolor",
+                "contaminant_bank_id": null,
+                "contaminant_bank_hash": null,
+                "contaminant_preset": null,
+                "reads_in": 100,
+                "reads_out": 92,
+                "bases_in": 1000,
+                "bases_out": 850,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "raw_backend_report": "trim.fastp.json",
+                "raw_backend_report_format": "fastp_json"
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let metrics = parse_trim_reads_metrics(temp.path());
+        assert_eq!(metrics["tool"], serde_json::json!("fastp"));
+        assert_eq!(metrics["adapter_policy"], serde_json::json!("bank"));
+        assert_eq!(metrics["reads_in"], serde_json::json!(100));
+        assert_eq!(metrics["reads_out"], serde_json::json!(92));
+        assert_eq!(
+            metrics["raw_backend_report_format"],
+            serde_json::json!("fastp_json")
+        );
+    }
 }
 
 fn workspace_root_path() -> PathBuf {
@@ -508,7 +614,14 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "exit_code",
         ],
         "fastq.detect_adapters" => &["schema_version", "stage", "adapter_inference"],
-        "fastq.trim_reads" => &["schema_version", "stage", "tool", "input_reads", "output_reads"],
+        "fastq.trim_reads" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "adapter_policy",
+            "reads_in",
+            "reads_out",
+        ],
         "fastq.trim_terminal_damage" => &[
             "schema_version",
             "stage",
