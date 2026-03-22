@@ -10,7 +10,7 @@ use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
     parse_multiqc_general_stats_metrics, parse_profile_reads_report,
-    parse_profile_read_lengths_report,
+    parse_profile_overrepresented_report, parse_profile_read_lengths_report,
     parse_remove_duplicates_provenance,
     parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
     parse_screen_taxonomy_report, parse_terminal_damage_report, parse_trim_polyg_report,
@@ -445,6 +445,31 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "histogram_entry_count": report.histogram.len(),
                         "length_distribution_tsv": report.length_distribution_tsv,
                         "length_distribution_json": report.length_distribution_json,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.profile_overrepresented_sequences" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_profile_overrepresented_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "threads": report.threads,
+                        "top_k": report.top_k,
+                        "sequence_count": report.sequence_count,
+                        "flagged_sequences": report.flagged_sequences,
+                        "top_fraction": report.top_fraction,
+                        "row_count": report.rows.len(),
+                        "overrepresented_sequences_tsv": report.overrepresented_sequences_tsv,
+                        "overrepresented_sequences_json": report.overrepresented_sequences_json,
                         "raw_backend_report": report.raw_backend_report,
                         "raw_backend_report_format": report.raw_backend_report_format,
                     });
@@ -2272,6 +2297,80 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["raw_backend_report_format"],
             serde_json::json!("seqkit_fx2tab_tsv")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_overrepresented_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("overrepresented_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.profile_overrepresented.report.v2",
+                "stage": "fastq.profile_overrepresented_sequences",
+                "stage_id": "fastq.profile_overrepresented_sequences",
+                "tool_id": "fastqc",
+                "paired_mode": "paired_end",
+                "threads": 4,
+                "top_k": 25,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "overrepresented_sequences_tsv": "overrepresented_sequences.tsv",
+                "overrepresented_sequences_json": "overrepresented_sequences.json",
+                "report_json": "overrepresented_report.json",
+                "sequence_count": 25,
+                "flagged_sequences": 3,
+                "top_fraction": 0.12,
+                "rows": [
+                    {"sequence": "ACGT", "count": 12, "fraction": 0.12, "flag": "overrepresented"}
+                ],
+                "runtime_s": 1.4,
+                "memory_mb": 48.0,
+                "exit_code": 0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null
+            })
+            .to_string(),
+        )
+        .expect("write overrepresented report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.profile_overrepresented_sequences"),
+            tool_id: ToolId::from_static("fastqc"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    temp.path().join("reads_R1.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.profile_overrepresented_sequences")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["top_k"],
+            serde_json::json!(25)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["sequence_count"],
+            serde_json::json!(25)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["flagged_sequences"],
+            serde_json::json!(3)
         );
     }
 
