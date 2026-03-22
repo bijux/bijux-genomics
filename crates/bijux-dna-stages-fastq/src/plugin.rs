@@ -284,32 +284,71 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
         {
             if let Ok(raw_manifest) = std::fs::read_to_string(manifest_path) {
                 if let Ok(manifest) = serde_json::from_str::<serde_json::Value>(&raw_manifest) {
-                    let mut contributor_stage_ids = manifest
-                        .get("qc_inputs")
+                    let contributor_entries = manifest
+                        .get("contributors")
                         .and_then(serde_json::Value::as_array)
-                        .into_iter()
-                        .flatten()
-                        .filter_map(|entry| entry.get("name").and_then(serde_json::Value::as_str))
-                        .filter_map(parse_qc_contributor_identity)
-                        .map(|(stage_id, _tool_id)| stage_id)
-                        .collect::<Vec<_>>();
+                        .cloned()
+                        .unwrap_or_default();
+                    let mut contributor_stage_ids = if contributor_entries.is_empty() {
+                        manifest
+                            .get("qc_inputs")
+                            .and_then(serde_json::Value::as_array)
+                            .into_iter()
+                            .flatten()
+                            .filter_map(|entry| {
+                                entry.get("name").and_then(serde_json::Value::as_str)
+                            })
+                            .filter_map(parse_qc_contributor_identity)
+                            .map(|(stage_id, _tool_id)| stage_id)
+                            .collect::<Vec<_>>()
+                    } else {
+                        contributor_entries
+                            .iter()
+                            .filter_map(|entry| {
+                                entry.get("stage_id")
+                                    .and_then(serde_json::Value::as_str)
+                                    .map(ToString::to_string)
+                            })
+                            .collect::<Vec<_>>()
+                    };
                     contributor_stage_ids.sort();
                     contributor_stage_ids.dedup();
-                    let mut contributor_tool_ids = manifest
-                        .get("qc_inputs")
-                        .and_then(serde_json::Value::as_array)
-                        .into_iter()
-                        .flatten()
-                        .filter_map(|entry| entry.get("name").and_then(serde_json::Value::as_str))
-                        .filter_map(parse_qc_contributor_identity)
-                        .map(|(_stage_id, tool_id)| tool_id)
-                        .collect::<Vec<_>>();
+                    let mut contributor_tool_ids = if contributor_entries.is_empty() {
+                        manifest
+                            .get("qc_inputs")
+                            .and_then(serde_json::Value::as_array)
+                            .into_iter()
+                            .flatten()
+                            .filter_map(|entry| {
+                                entry.get("name").and_then(serde_json::Value::as_str)
+                            })
+                            .filter_map(parse_qc_contributor_identity)
+                            .map(|(_stage_id, tool_id)| tool_id)
+                            .collect::<Vec<_>>()
+                    } else {
+                        contributor_entries
+                            .iter()
+                            .filter_map(|entry| {
+                                entry.get("contributor_id")
+                                    .and_then(serde_json::Value::as_str)
+                                    .and_then(|contributor_id| {
+                                        contributor_id
+                                            .rsplit_once('.')
+                                            .map(|(_, tool_id)| tool_id.to_string())
+                                    })
+                            })
+                            .collect::<Vec<_>>()
+                    };
                     contributor_tool_ids.sort();
                     contributor_tool_ids.dedup();
-                    let contributor_count = manifest
-                        .get("qc_inputs")
-                        .and_then(serde_json::Value::as_array)
-                        .map_or(0, std::vec::Vec::len);
+                    let contributor_count = if contributor_entries.is_empty() {
+                        manifest
+                            .get("qc_inputs")
+                            .and_then(serde_json::Value::as_array)
+                            .map_or(0, std::vec::Vec::len)
+                    } else {
+                        contributor_entries.len()
+                    };
                     return serde_json::json!({
                         "lineage_hash": manifest.get("lineage_hash").cloned().unwrap_or(serde_json::Value::Null),
                         "contributor_artifact_count": contributor_count,
@@ -334,6 +373,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                     return serde_json::json!({
                         "validation_mode": report.get("validation_mode").cloned().unwrap_or(serde_json::Value::Null),
                         "pair_sync_policy": report.get("pair_sync_policy").cloned().unwrap_or(serde_json::Value::Null),
+                        "failure_class": report.get("failure_class").cloned().unwrap_or(serde_json::Value::Null),
                         "strict_pass": report.get("strict_pass").cloned().unwrap_or(serde_json::Value::Null),
                         "exit_code": report.get("exit_code").cloned().unwrap_or(serde_json::Value::Null),
                         "validated_inputs": report.get("validated_inputs").cloned().unwrap_or(serde_json::Value::Null),
@@ -730,11 +770,12 @@ mod tests {
                 "schema_version": "bijux.fastq.validate.report.v1",
                 "validation_mode": "strict",
                 "pair_sync_policy": "require_header_sync",
-                "strict_pass": true,
-                "exit_code": 0,
+                "failure_class": "header_sync_mismatch",
+                "strict_pass": false,
+                "exit_code": 97,
                 "validated_inputs": 2_u64,
                 "pair_sync_checked": true,
-                "pair_sync_pass": true,
+                "pair_sync_pass": false,
                 "validated_pairs": 1_u64
             })
             .to_string(),
@@ -776,12 +817,16 @@ mod tests {
             serde_json::json!("strict")
         );
         assert_eq!(
+            output.report_parts[0].payload["semantic_metrics"]["failure_class"],
+            serde_json::json!("header_sync_mismatch")
+        );
+        assert_eq!(
             output
                 .verdict
                 .as_ref()
                 .expect("verdict")
                 .key_metrics["semantic_metrics"]["pair_sync_pass"],
-            serde_json::json!(true)
+            serde_json::json!(false)
         );
         assert_eq!(
             output
@@ -1173,6 +1218,22 @@ mod tests {
                 "schema_version": "bijux.fastq.report_qc.inputs.v1",
                 "lineage_hash": "fastq.trim_reads.fastp=report_json",
                 "raw_fastqc_dir": "/tmp/raw_fastqc",
+                "contributors": [
+                    {
+                        "contributor_id": "fastq.trim_reads.fastp",
+                        "stage_id": "fastq.trim_reads",
+                        "artifact_id": "report_json",
+                        "artifact_role": "report_json",
+                        "path": "/tmp/fastp/report.json"
+                    },
+                    {
+                        "contributor_id": "fastq.validate_reads.fastqvalidator",
+                        "stage_id": "fastq.validate_reads",
+                        "artifact_id": "validation_report",
+                        "artifact_role": "validation_report",
+                        "path": "/tmp/validate/report.json"
+                    }
+                ],
                 "qc_inputs": [
                     {
                         "name": "fastq.trim_reads.fastp.report_json",
