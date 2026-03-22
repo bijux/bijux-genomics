@@ -32,6 +32,10 @@ fn benchmark_profiles_distinguish_planned_governed_and_benchmarkable_bindings() 
         infer_profile.readiness,
         bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
     );
+    assert_eq!(
+        infer_profile.runtime_interpretation,
+        bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::ObserverSpecialized
+    );
     assert!(infer_profile.benchmark_scenarios.is_empty());
 }
 
@@ -98,6 +102,7 @@ fn stage_tool_capabilities_distinguish_declared_runnable_and_comparable_bindings
     assert!(infer_capability.declared);
     assert!(infer_capability.plannable);
     assert!(infer_capability.runnable);
+    assert!(infer_capability.parse_normalized);
     assert!(!infer_capability.benchmark_normalized);
     assert!(!infer_capability.comparable);
 
