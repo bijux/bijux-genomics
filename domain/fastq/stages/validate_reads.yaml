@@ -6,10 +6,10 @@ domain: "fastq"
 inputs:
   - name: "reads_r1"
     data_type: "fastq"
-    cardinality: "Many"
+    cardinality: "One"
   - name: "reads_r2"
     data_type: "fastq"
-    cardinality: "Many"
+    cardinality: "One"
 outputs:
   - name: "validation_report"
     data_type: "json"
@@ -26,7 +26,7 @@ parameters:
     default: "strict"
   - name: "pair_sync_policy"
     param_type: "string"
-    default: "require_header_sync"
+    default: "layout_derived"
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"
@@ -75,6 +75,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "validation is report-only and may not modify FASTQ payloads"
+  - "pair_sync_policy defaults to require_header_sync for paired inputs and not_applicable for single-end inputs during effective-parameter resolution"
   - "validated_reads_manifest records governed lineage for downstream graph provenance without duplicating FASTQ payloads"
   - "benchmark comparisons require identical input hashes and strict-mode policy"
 bank_hooks:
