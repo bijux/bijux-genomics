@@ -102,7 +102,26 @@ pub fn sanity_flags_trim_polyg(
 pub fn sanity_flags_trim_terminal_damage(
     records: &[BenchmarkRecord<FastqTrimTerminalDamageMetrics>],
 ) -> Vec<serde_json::Value> {
-    sanity_flags_trim_like(records)
+    let mut flags = sanity_flags_trim_like(records);
+    let asymmetry_deltas = records
+        .iter()
+        .filter_map(|record| match (
+            record.metrics.metrics.ct_ga_asymmetry_pre,
+            record.metrics.metrics.ct_ga_asymmetry_post,
+        ) {
+            (Some(pre), Some(post)) => Some(pre.abs() - post.abs()),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    let median_asymmetry_reduction = median(asymmetry_deltas);
+    if median_asymmetry_reduction <= 0.0 {
+        flags.push(serde_json::json!({
+            "flag": "no_terminal_damage_reduction",
+            "severity": "warning",
+            "message": "Median C>T/G>A terminal asymmetry did not decrease; check damage policy selection.",
+        }));
+    }
+    flags
 }
 
 fn sanity_flags_trim_like<T: TrimLikeMetricView + crate::aggregate::StageMetricSchema>(
@@ -281,7 +300,25 @@ pub fn derived_trim_polyg_metrics(
 pub fn derived_trim_terminal_damage_metrics(
     record: &BenchmarkRecord<FastqTrimTerminalDamageMetrics>,
 ) -> serde_json::Value {
-    derived_trim_like_metrics(record)
+    let base = derived_trim_like_metrics(record);
+    let asymmetry_delta = match (
+        record.metrics.metrics.ct_ga_asymmetry_pre,
+        record.metrics.metrics.ct_ga_asymmetry_post,
+    ) {
+        (Some(pre), Some(post)) => Some(pre.abs() - post.abs()),
+        _ => None,
+    };
+    serde_json::json!({
+        "read_retention": base["read_retention"].clone(),
+        "base_retention": base["base_retention"].clone(),
+        "mean_q_delta": base["mean_q_delta"].clone(),
+        "gc_delta": base["gc_delta"].clone(),
+        "asymmetry_reduction": asymmetry_delta,
+        "udg_classification": record.metrics.metrics.udg_classification,
+        "execution_policy": record.metrics.metrics.execution_policy,
+        "requested_trim_5p_bases": record.metrics.metrics.requested_trim_5p_bases,
+        "requested_trim_3p_bases": record.metrics.metrics.requested_trim_3p_bases,
+    })
 }
 
 fn derived_trim_like_metrics<T: TrimLikeMetricView + crate::aggregate::StageMetricSchema>(

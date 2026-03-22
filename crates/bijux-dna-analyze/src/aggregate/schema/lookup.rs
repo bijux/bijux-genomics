@@ -23,8 +23,8 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
         },
         defs::StageMetricKind::FastqTrimTerminalDamage => defs::StageMetricSpec {
             stage: "fastq.trim_terminal_damage",
-            version: 1,
-            metrics: &fields::FASTQ_TRIM_METRICS,
+            version: 2,
+            metrics: &fields::FASTQ_TRIM_TERMINAL_DAMAGE_METRICS,
             invariants: &fields::FASTQ_TRIM_INVARIANTS,
         },
         defs::StageMetricKind::FastqValidate => defs::StageMetricSpec {

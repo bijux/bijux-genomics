@@ -14,6 +14,21 @@ pub const FASTQ_TRIM_METRICS: [MetricId; 13] = [
     MetricId::AdapterOverrides,
 ];
 
+pub const FASTQ_TRIM_TERMINAL_DAMAGE_METRICS: [MetricId; 12] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
+    MetricId::MeanQBefore,
+    MetricId::MeanQAfter,
+    MetricId::DeltaMetrics,
+    MetricId::UdgClassification,
+    MetricId::CtGaAsymmetryPre,
+    MetricId::CtGaAsymmetryPost,
+];
+
 pub const FASTQ_VALIDATE_METRICS: [MetricId; 10] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
