@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_detect_adapters_report,
+    parse_deplete_host_report,
     parse_deplete_reference_contaminants_report,
     parse_deplete_rrna_report,
     parse_fastp_metrics,
@@ -1336,6 +1337,39 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "reads_removed": report.reads_removed,
                         "bases_removed": report.bases_removed,
                         "contaminant_fraction_removed": report.contaminant_fraction_removed,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.deplete_host" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "host_depletion_report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_deplete_host_report(&raw_report) {
+                    return serde_json::json!({
+                        "paired_mode": report.paired_mode,
+                        "threads": report.threads,
+                        "reference_scope": report.reference_scope,
+                        "reference_catalog_id": report.reference_catalog_id,
+                        "reference_index_artifact_id": report.reference_index_artifact_id,
+                        "reference_index_backend": report.reference_index_backend,
+                        "reference_build_id": report.reference_build_id,
+                        "reference_digest": report.reference_digest,
+                        "identity_threshold": report.identity_threshold,
+                        "retained_read_policy": report.retained_read_policy,
+                        "report_format": report.report_format,
+                        "retain_unmapped_pairs": report.retain_unmapped_pairs,
+                        "reads_removed": report.reads_removed,
+                        "bases_removed": report.bases_removed,
+                        "host_fraction_removed": report.host_fraction_removed,
+                        "removed_host_r1": report.removed_host_r1,
+                        "removed_host_r2": report.removed_host_r2,
                         "raw_backend_report": report.raw_backend_report,
                         "raw_backend_report_format": report.raw_backend_report_format,
                     });
@@ -2924,6 +2958,110 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["reads_removed"],
             serde_json::json!(28_u64)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_deplete_host_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let output_path = temp.path().join("host_depleted.fastq.gz");
+        let report_json = temp.path().join("host_depletion_report.json");
+        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        std::fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        std::fs::write(
+            &report_json,
+            r#"{
+                "schema_version": "bijux.fastq.deplete_host.report.v2",
+                "stage": "fastq.deplete_host",
+                "stage_id": "fastq.deplete_host",
+                "tool_id": "bowtie2",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "reference_scope": "host",
+                "reference_catalog_id": "host_reference",
+                "reference_index_artifact_id": "reference_index",
+                "reference_index_backend": "bowtie2_build",
+                "reference_build_id": "2026.03",
+                "reference_digest": "sha256:host",
+                "masking_policy": "unmasked",
+                "decoy_policy": "none",
+                "decoy_catalog_id": null,
+                "identity_threshold": 0.95,
+                "retained_read_policy": "keep_non_host_reads",
+                "emit_removed_reads": true,
+                "report_format": "bowtie2_metrics_file",
+                "retain_unmapped_pairs": false,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "host_depleted.fastq.gz",
+                "output_r2": null,
+                "removed_host_r1": "removed_host.fastq.gz",
+                "removed_host_r2": null,
+                "report_json": "host_depletion_report.json",
+                "reads_in": 100,
+                "reads_out": 70,
+                "reads_removed": 30,
+                "bases_in": 1000,
+                "bases_out": 680,
+                "bases_removed": 320,
+                "pairs_in": null,
+                "pairs_out": null,
+                "host_fraction_removed": 0.30,
+                "runtime_s": 5.0,
+                "memory_mb": 64.0,
+                "exit_code": 0,
+                "raw_backend_report": "bowtie2.host.metrics.txt",
+                "raw_backend_report_format": "bowtie2_met_file",
+                "backend_metrics": {"reads_removed": 30}
+            }"#
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.deplete_host"),
+            tool_id: ToolId::from_static("bowtie2"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("host_depleted_reads_r1"),
+                        output_path,
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("host_depletion_report_json"),
+                        report_json,
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            },
+            ..plan("fastq.deplete_host")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["reference_catalog_id"],
+            serde_json::json!("host_reference")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["host_fraction_removed"],
+            serde_json::json!(0.30)
         );
     }
 
