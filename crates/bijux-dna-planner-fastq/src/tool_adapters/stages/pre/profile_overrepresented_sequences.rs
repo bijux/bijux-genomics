@@ -4,7 +4,10 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES;
+use bijux_dna_domain_fastq::{
+    params::stats::OVERREPRESENTED_PROFILE_SCHEMA_VERSION, FastqOverrepresentedProfileParams,
+    PairedMode, stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+};
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_PROFILE_OVERREPRESENTED_SEQUENCES;
@@ -20,9 +23,25 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_with_options(tool, r1, r2, out_dir, None)
+}
+
+/// Build an overrepresented-sequence analysis plan with governed option overrides.
+///
+/// # Errors
+/// Returns an error if plan serialization fails.
+pub fn plan_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    top_k_override: Option<u32>,
+) -> Result<StagePlanV1> {
     let report_tsv = out_dir.join("overrepresented_sequences.tsv");
     let summary_json = out_dir.join("overrepresented_sequences.json");
+    let report_json = out_dir.join("overrepresented_report.json");
     let fastqc_dir = out_dir.join("fastqc_overrepresented");
+    let top_k = top_k_override.unwrap_or(50).max(1);
     let command_template = profile_overrepresented_command(
         &tool.tool_id.0,
         r1,
@@ -30,6 +49,16 @@ pub fn plan(
         &fastqc_dir,
         tool.resources.threads,
     )?;
+    let effective_params = FastqOverrepresentedProfileParams {
+        schema_version: OVERREPRESENTED_PROFILE_SCHEMA_VERSION.to_string(),
+        paired_mode: if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        threads: tool.resources.threads,
+        top_k,
+    };
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -69,6 +98,11 @@ pub fn plan(
                     summary_json.clone(),
                     ArtifactRole::MetricsJson,
                 ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("report_json"),
+                    report_json.clone(),
+                    ArtifactRole::ReportJson,
+                ),
             ],
         },
         out_dir: out_dir.to_path_buf(),
@@ -76,15 +110,12 @@ pub fn plan(
             "tool": tool.tool_id.0,
             "input_r1": r1,
             "input_r2": r2,
+            "top_k": top_k,
             "output_tsv": report_tsv,
             "output_json": summary_json,
+            "report_json": report_json,
         }),
-        effective_params: serde_json::json!({
-            "stage": "profile_overrepresented_sequences",
-            "paired_mode": if r2.is_some() { "paired_end" } else { "single_end" },
-            "threads": tool.resources.threads,
-            "schema": ["sequence", "count", "fraction", "flag"],
-        }),
+        effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::new(
             bijux_dna_stage_contract::PlanReasonKind::Default,

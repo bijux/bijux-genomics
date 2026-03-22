@@ -17,6 +17,9 @@ outputs:
   - name: "overrepresented_sequences_json"
     data_type: "json"
     cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 parameters:
   - name: "top_k"
     param_type: "int"
@@ -40,6 +43,7 @@ required_inputs:
 required_outputs:
   - "overrepresented_sequences_tsv"
   - "overrepresented_sequences_json"
+  - "report_json"
 tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
