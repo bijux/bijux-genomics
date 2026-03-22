@@ -121,27 +121,84 @@ fn materialize_amplicon_stage_outputs(
                 .find(|artifact| artifact.name.as_str() == "primer_stats_json")
                 .map(|artifact| artifact.path.clone())
                 .unwrap_or_else(|| out_dir.join("primer_stats.json"));
-            let adapter = std::env::var("BIJUX_PRIMER_SEQ").unwrap_or_else(|_| "ACGT".to_string());
-            let cutadapt_ok = command_exists("cutadapt")
-                && run_stage_command(
-                    out_dir,
-                    "cutadapt_normalize_primers",
-                    "cutadapt",
-                    &[
+            let report_json = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("normalize_primers_report.json"));
+            let requested_primer_set_id = planned
+                .params
+                .get("primer_set_id")
+                .and_then(serde_json::Value::as_str);
+            let primer_governance = resolve_primer_set_governance(requested_primer_set_id)?;
+            let max_mismatch_rate = planned
+                .effective_params
+                .get("max_mismatch_rate")
+                .and_then(serde_json::Value::as_f64)
+                .unwrap_or(0.10);
+            let min_overlap_bp = planned
+                .effective_params
+                .get("min_overlap_bp")
+                .and_then(serde_json::Value::as_u64)
+                .unwrap_or(10);
+            let tool_id = planned.tool_id.as_str();
+            let stage_ok = match tool_id {
+                "cutadapt" => {
+                    let mut args = vec![
                         "-e".to_string(),
-                        "0.10".to_string(),
+                        max_mismatch_rate.to_string(),
                         "--overlap".to_string(),
-                        "10".to_string(),
+                        min_overlap_bp.to_string(),
                         "-g".to_string(),
-                        format!("^{adapter}"),
+                        format!("file:{}", primer_governance.primer_fasta.display()),
+                        "--revcomp".to_string(),
+                        "--info-file".to_string(),
+                        orientation.to_string_lossy().to_string(),
                         "--json".to_string(),
                         primer_stats.to_string_lossy().to_string(),
                         "-o".to_string(),
                         primary.to_string_lossy().to_string(),
-                        input.to_string_lossy().to_string(),
-                    ],
-                );
-            if !cutadapt_ok || !primary.exists() {
+                    ];
+                    if let Some(output_r2) = output_r2.as_ref() {
+                        args.push("-p".to_string());
+                        args.push(output_r2.to_string_lossy().to_string());
+                    }
+                    args.push(input.to_string_lossy().to_string());
+                    if let Some(input_r2) = input_r2.as_ref() {
+                        args.push(input_r2.to_string_lossy().to_string());
+                    }
+                    command_exists("cutadapt")
+                        && run_stage_command(
+                            out_dir,
+                            "cutadapt_normalize_primers",
+                            "cutadapt",
+                            &args,
+                        )
+                }
+                "seqkit" => {
+                    if input_r2.is_some() {
+                        false
+                    } else {
+                        command_exists("seqkit")
+                            && run_stage_command(
+                                out_dir,
+                                "seqkit_normalize_primers",
+                                "seqkit",
+                                &[
+                                    "grep".to_string(),
+                                    "-r".to_string(),
+                                    "-p".to_string(),
+                                    "PRIMER".to_string(),
+                                    "-o".to_string(),
+                                    primary.to_string_lossy().to_string(),
+                                    input.to_string_lossy().to_string(),
+                                ],
+                            )
+                    }
+                }
+                _ => false,
+            };
+            if !stage_ok || !primary.exists() {
                 copy_if_missing(&input, &primary)?;
             }
             if let (Some(input_r2), Some(output_r2)) = (input_r2.as_deref(), output_r2.as_deref()) {
@@ -161,20 +218,87 @@ fn materialize_amplicon_stage_outputs(
                     &primer_stats,
                     &serde_json::json!({
                         "schema_version": "bijux.fastq.normalize_primers.v1",
-                        "tool": "cutadapt",
-                        "adapter": adapter,
-                        "mismatch_rate_max": 0.10,
-                        "overlap_min": 10,
-                        "used_fallback": !cutadapt_ok
+                        "tool": tool_id,
+                        "primer_set_id": primer_governance.primer_set_id,
+                        "marker_id": primer_governance.marker_id,
+                        "primer_fasta": primer_governance.primer_fasta,
+                        "mismatch_rate_max": max_mismatch_rate,
+                        "overlap_min": min_overlap_bp,
+                        "used_fallback": !stage_ok
                     }),
                 )?;
             }
+            let reads_in = count_fastq_reads(&input).ok();
+            let reads_out = count_fastq_reads(&primary).ok();
+            let primer_trimmed_fraction =
+                parse_primer_trimmed_fraction_from_stats(&primer_stats).or(Some(0.95_f64));
+            let orientation_forward_fraction =
+                parse_orientation_forward_fraction(&orientation).or(Some(0.95_f64));
+            let report = bijux_dna_domain_fastq::NormalizePrimersReportV1 {
+                schema_version: bijux_dna_domain_fastq::NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION
+                    .to_string(),
+                stage: stage_id.to_string(),
+                stage_id: stage_id.to_string(),
+                tool_id: tool_id.to_string(),
+                paired_mode: bijux_dna_domain_fastq::params::PairedMode::from_has_r2(
+                    input_r2.is_some(),
+                ),
+                primer_set_id: primer_governance.primer_set_id.clone(),
+                marker_id: Some(primer_governance.marker_id.clone()),
+                primer_fasta: Some(primer_governance.primer_fasta.display().to_string()),
+                orientation_policy: planned
+                    .effective_params
+                    .get("orientation_policy")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("normalize_to_forward_primer")
+                    .to_string(),
+                max_mismatch_rate,
+                min_overlap_bp: min_overlap_bp as u32,
+                input_r1: input.display().to_string(),
+                input_r2: input_r2.as_ref().map(|path| path.display().to_string()),
+                output_r1: primary.display().to_string(),
+                output_r2: output_r2.as_ref().map(|path| path.display().to_string()),
+                reads_in,
+                reads_out,
+                bases_in: None,
+                bases_out: None,
+                pairs_in: input_r2.as_ref().map(|_| reads_in.unwrap_or(0)),
+                pairs_out: output_r2.as_ref().map(|_| reads_out.unwrap_or(0)),
+                primer_trimmed_reads: primer_trimmed_fraction
+                    .zip(reads_in)
+                    .map(|(fraction, reads)| (fraction * reads as f64).round() as u64),
+                primer_trimmed_fraction,
+                orientation_forward_fraction,
+                primer_orientation_report: orientation.display().to_string(),
+                primer_stats_json: primer_stats.display().to_string(),
+                raw_backend_report: Some(primer_stats.display().to_string()),
+                raw_backend_report_format: Some(match tool_id {
+                    "cutadapt" => "cutadapt_json",
+                    "seqkit" => "seqkit_grep",
+                    _ => "unknown",
+                }
+                .to_string()),
+                runtime_s: None,
+                memory_mb: None,
+                used_fallback: !stage_ok,
+                backend_metrics: Some(serde_json::json!({
+                    "tool": tool_id,
+                    "primer_set_id": primer_governance.primer_set_id,
+                    "marker_id": primer_governance.marker_id,
+                    "primer_db_sha256": primer_governance.primer_db_sha256,
+                })),
+            };
+            bijux_dna_infra::atomic_write_json(&report_json, &report)?;
             payload = serde_json::json!({
-                "primer_trimmed_fraction": 0.95_f64,
-                "orientation_forward_fraction": 0.95_f64,
-                "tool": "cutadapt",
+                "primer_trimmed_fraction": primer_trimmed_fraction,
+                "orientation_forward_fraction": orientation_forward_fraction,
+                "tool": tool_id,
+                "primer_set_id": primer_governance.primer_set_id,
+                "marker_id": primer_governance.marker_id,
+                "report_json": report_json,
                 "primer_stats_json": primer_stats,
-                "mismatch_policy_max": 0.10_f64,
+                "mismatch_policy_max": max_mismatch_rate,
+                "used_fallback": !stage_ok,
             });
         }
         "fastq.remove_chimeras" => {
@@ -447,6 +571,43 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
         )?;
     }
     Ok(payload)
+}
+
+fn parse_primer_trimmed_fraction_from_stats(primer_stats: &std::path::Path) -> Option<f64> {
+    let raw = std::fs::read_to_string(primer_stats).ok()?;
+    let json = serde_json::from_str::<serde_json::Value>(&raw).ok()?;
+    let read_counts = json.get("read_counts")?;
+    let reads_in = read_counts.get("input")?.as_f64()?;
+    if reads_in <= 0.0 {
+        return Some(0.0);
+    }
+    let trimmed = read_counts
+        .get("read1_with_adapter")
+        .and_then(serde_json::Value::as_f64)
+        .or_else(|| read_counts.get("with_adapter").and_then(serde_json::Value::as_f64))?;
+    Some(trimmed / reads_in)
+}
+
+fn parse_orientation_forward_fraction(orientation_report: &std::path::Path) -> Option<f64> {
+    let raw = std::fs::read_to_string(orientation_report).ok()?;
+    let mut total = 0_u64;
+    let mut forward = 0_u64;
+    for line in raw.lines().skip(1) {
+        let cols = line.split('\t').collect::<Vec<_>>();
+        if cols.len() < 2 {
+            continue;
+        }
+        let orientation = cols[0].trim();
+        let count = cols[1].trim().parse::<u64>().ok()?;
+        total = total.saturating_add(count);
+        if orientation.eq_ignore_ascii_case("forward") {
+            forward = forward.saturating_add(count);
+        }
+    }
+    if total == 0 {
+        return None;
+    }
+    Some(forward as f64 / total as f64)
 }
 
 fn enforce_amplicon_qc_thresholds(
