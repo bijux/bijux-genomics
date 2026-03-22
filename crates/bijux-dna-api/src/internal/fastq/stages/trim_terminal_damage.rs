@@ -190,6 +190,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             args.r2.as_deref(),
             &out_dir,
             &TrimTerminalDamagePlanOptions {
+                threads: args.threads,
                 damage_mode,
                 execution_policy,
                 trim_5p_bases: args.trim_5p_bases.unwrap_or(2),

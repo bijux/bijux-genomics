@@ -48,6 +48,7 @@ pub fn plan_trim_terminal_damage(
         r2,
         out_dir,
         &TrimTerminalDamagePlanOptions {
+            threads: None,
             damage_mode,
             execution_policy: None,
             trim_5p_bases,
@@ -73,6 +74,7 @@ pub fn plan_trim_terminal_damage_with_options(
     )?;
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_terminal_damage tool {}", tool.tool_id))?;
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let output_r1 = if r2.is_some() {
         out_dir.join(format!("R1.{out_name}"))
     } else {
@@ -92,6 +94,7 @@ pub fn plan_trim_terminal_damage_with_options(
         output_r2.as_deref(),
         &report,
         raw_backend_report.as_deref(),
+        effective_threads,
         options.damage_mode,
         resolved_policy.execution_policy,
         resolved_policy.effective_trim_5p_bases,
@@ -102,7 +105,7 @@ pub fn plan_trim_terminal_damage_with_options(
     let effective_params = TrimTerminalDamageParams {
         schema_version: TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
-        threads: tool.resources.threads,
+        threads: effective_threads,
         damage_mode: options.damage_mode,
         execution_policy: resolved_policy.execution_policy,
         trim_5p_bases: resolved_policy.effective_trim_5p_bases,
@@ -159,7 +162,11 @@ pub fn plan_trim_terminal_damage_with_options(
         command: CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources: {
+            let mut resources = tool.resources.clone();
+            resources.threads = effective_threads;
+            resources
+        },
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -170,6 +177,7 @@ pub fn plan_trim_terminal_damage_with_options(
             "output_r2": output_r2,
             "report_json": report,
             "raw_backend_report": raw_backend_report,
+            "threads": effective_threads,
         }),
         effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
@@ -185,6 +193,7 @@ fn trim_terminal_damage_command(
     output_r2: Option<&Path>,
     report: &Path,
     raw_backend_report: Option<&Path>,
+    threads: u32,
     damage_mode: DamageMode,
     execution_policy: bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy,
     trim_5p_bases: u32,
@@ -210,7 +219,7 @@ fn trim_terminal_damage_command(
         "cutadapt" => {
             let raw_backend_report = raw_backend_report
                 .ok_or_else(|| anyhow!("cutadapt terminal-damage planning requires raw backend report path"))?;
-            let mut script = "set -euo pipefail\ncutadapt".to_string();
+            let mut script = format!("set -euo pipefail\ncutadapt --cores {threads}");
             if trim_5p_bases > 0 {
                 script.push_str(&format!(" -u {}", trim_5p_bases));
             }
@@ -243,14 +252,14 @@ fn trim_terminal_damage_command(
         "seqkit" => {
             let region = terminal_trim_region(trim_5p_bases, trim_3p_bases);
             let mut script = format!(
-                "set -euo pipefail\nseqkit subseq -r {} {} -o {}\n",
+                "set -euo pipefail\nseqkit subseq -j {threads} -r {} {} -o {}\n",
                 shell_quote_str(&region),
                 shell_quote_path(r1),
                 shell_quote_path(output_r1),
             );
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
                 script.push_str(&format!(
-                    "seqkit subseq -r {} {} -o {}\n",
+                    "seqkit subseq -j {threads} -r {} {} -o {}\n",
                     shell_quote_str(&region),
                     shell_quote_path(r2),
                     shell_quote_path(output_r2),
@@ -393,6 +402,7 @@ mod tests {
             Some(std::path::Path::new("reads_R2.fastq.gz")),
             std::path::Path::new("out"),
             &TrimTerminalDamagePlanOptions {
+                threads: None,
                 damage_mode: DamageMode::Ancient,
                 execution_policy: None,
                 trim_5p_bases: 2,
@@ -406,7 +416,7 @@ mod tests {
             .outputs
             .iter()
             .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"));
-        assert!(script.contains("cutadapt -u 2 -u -1"));
+        assert!(script.contains("cutadapt --cores 1 -u 2 -u -1"));
         assert!(script.contains("out/trim_terminal_damage.cutadapt.raw.json"));
         assert!(script.contains("out/trim_terminal_damage_report.json"));
         assert!(script.contains("\"schema_version\":\"bijux.fastq.trim_terminal_damage.report.v2\""));
@@ -423,6 +433,7 @@ mod tests {
             None,
             std::path::Path::new("out"),
             &TrimTerminalDamagePlanOptions {
+                threads: None,
                 damage_mode: DamageMode::UdgTrimmed,
                 execution_policy: None,
                 trim_5p_bases: 2,
@@ -436,7 +447,7 @@ mod tests {
             .outputs
             .iter()
             .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"));
-        assert!(script.contains("seqkit subseq -r '1:-1'"));
+        assert!(script.contains("seqkit subseq -j 1 -r '1:-1'"));
         assert!(script.contains("\"execution_policy\":\"preserve_udg_trimmed_ends\""));
         assert!(script.contains("\"raw_backend_report_format\":\"seqkit_subseq\""));
         assert!(script.contains("\"udg_classification\":\"udg\""));
@@ -453,5 +464,28 @@ mod tests {
             damage_mode_default_udg_classification(DamageMode::UdgTrimmed),
             "udg"
         );
+    }
+
+    #[test]
+    fn terminal_damage_plan_honors_thread_override() -> Result<()> {
+        let plan = plan_trim_terminal_damage_with_options(
+            &dummy_tool("cutadapt"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+            &TrimTerminalDamagePlanOptions {
+                threads: Some(6),
+                damage_mode: DamageMode::Ancient,
+                execution_policy: None,
+                trim_5p_bases: 2,
+                trim_3p_bases: 1,
+            },
+        )?;
+
+        assert_eq!(plan.resources.threads, 6);
+        assert_eq!(plan.effective_params["threads"], serde_json::json!(6));
+        assert_eq!(plan.params["threads"], serde_json::json!(6));
+        assert!(plan.command.template[2].contains("cutadapt --cores 6"));
+        Ok(())
     }
 }
