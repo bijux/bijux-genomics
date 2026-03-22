@@ -9,6 +9,7 @@ use bijux_dna_stage_contract::{
 use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
+    parse_filter_reads_report,
     parse_index_reference_report,
     parse_infer_asvs_report, parse_merge_pairs_report, parse_multiqc_general_stats_metrics,
     parse_normalize_abundance_report, parse_normalize_primers_report,
@@ -740,6 +741,152 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                             serde_json::json!(report.raw_backend_report_format),
                         ),
                     ]);
+                    if let (Some(raw_backend_report), Some(raw_backend_report_format)) = (
+                        report.raw_backend_report.as_deref(),
+                        report.raw_backend_report_format.as_deref(),
+                    ) {
+                        if let Ok(raw_backend_payload) = std::fs::read_to_string(raw_backend_report)
+                        {
+                            match raw_backend_report_format {
+                                "fastp_json" => {
+                                    if let Ok(metrics) = parse_fastp_metrics(&raw_backend_payload) {
+                                        semantics.insert(
+                                            "passed_filter_reads".to_string(),
+                                            serde_json::json!(metrics.passed_filter_reads),
+                                        );
+                                        semantics.insert(
+                                            "low_quality_reads".to_string(),
+                                            serde_json::json!(metrics.low_quality_reads),
+                                        );
+                                        semantics.insert(
+                                            "too_many_n_reads".to_string(),
+                                            serde_json::json!(metrics.too_many_n_reads),
+                                        );
+                                        semantics.insert(
+                                            "too_short_reads".to_string(),
+                                            serde_json::json!(metrics.too_short_reads),
+                                        );
+                                    }
+                                }
+                                "bbduk_stats" => {
+                                    if let Ok(reads_removed) =
+                                        parse_bbduk_reads_removed(&raw_backend_payload)
+                                    {
+                                        semantics.insert(
+                                            "reads_removed".to_string(),
+                                            serde_json::json!(reads_removed),
+                                        );
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    return serde_json::Value::Object(semantics);
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.filter_reads" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_filter_reads_report(&raw_report) {
+                    let mut semantics = serde_json::Map::from_iter([
+                        (
+                            "paired_mode".to_string(),
+                            serde_json::json!(report.paired_mode),
+                        ),
+                        ("threads".to_string(), serde_json::json!(report.threads)),
+                        ("max_n".to_string(), serde_json::json!(report.max_n)),
+                        (
+                            "max_n_fraction".to_string(),
+                            serde_json::json!(report.max_n_fraction),
+                        ),
+                        (
+                            "max_n_count".to_string(),
+                            serde_json::json!(report.max_n_count),
+                        ),
+                        (
+                            "low_complexity_threshold".to_string(),
+                            serde_json::json!(report.low_complexity_threshold),
+                        ),
+                        (
+                            "entropy_threshold".to_string(),
+                            serde_json::json!(report.entropy_threshold),
+                        ),
+                        ("n_policy".to_string(), serde_json::json!(report.n_policy)),
+                        (
+                            "polyx_policy".to_string(),
+                            serde_json::json!(report.polyx_policy),
+                        ),
+                        (
+                            "contaminant_db".to_string(),
+                            serde_json::json!(report.contaminant_db),
+                        ),
+                        ("reads_in".to_string(), serde_json::json!(report.reads_in)),
+                        ("reads_out".to_string(), serde_json::json!(report.reads_out)),
+                        (
+                            "reads_dropped".to_string(),
+                            serde_json::json!(report.reads_dropped),
+                        ),
+                        (
+                            "reads_removed_by_n".to_string(),
+                            serde_json::json!(report.reads_removed_by_n),
+                        ),
+                        (
+                            "reads_removed_by_entropy".to_string(),
+                            serde_json::json!(report.reads_removed_by_entropy),
+                        ),
+                        (
+                            "reads_removed_low_complexity".to_string(),
+                            serde_json::json!(report.reads_removed_low_complexity),
+                        ),
+                        (
+                            "reads_removed_by_kmer".to_string(),
+                            serde_json::json!(report.reads_removed_by_kmer),
+                        ),
+                        (
+                            "reads_removed_contaminant_kmer".to_string(),
+                            serde_json::json!(report.reads_removed_contaminant_kmer),
+                        ),
+                        (
+                            "reads_removed_by_length".to_string(),
+                            serde_json::json!(report.reads_removed_by_length),
+                        ),
+                        ("bases_in".to_string(), serde_json::json!(report.bases_in)),
+                        ("bases_out".to_string(), serde_json::json!(report.bases_out)),
+                        ("pairs_in".to_string(), serde_json::json!(report.pairs_in)),
+                        ("pairs_out".to_string(), serde_json::json!(report.pairs_out)),
+                        (
+                            "mean_q_before".to_string(),
+                            serde_json::json!(report.mean_q_before),
+                        ),
+                        (
+                            "mean_q_after".to_string(),
+                            serde_json::json!(report.mean_q_after),
+                        ),
+                        (
+                            "raw_backend_report_format".to_string(),
+                            serde_json::json!(report.raw_backend_report_format),
+                        ),
+                    ]);
+                    if let Some(backend_metrics) = report
+                        .backend_metrics
+                        .as_ref()
+                        .and_then(serde_json::Value::as_object)
+                    {
+                        for (metric_name, metric_value) in backend_metrics {
+                            if metric_name == "schema_version" {
+                                continue;
+                            }
+                            semantics.insert(metric_name.clone(), metric_value.clone());
+                        }
+                        return serde_json::Value::Object(semantics);
+                    }
                     if let (Some(raw_backend_report), Some(raw_backend_report_format)) = (
                         report.raw_backend_report.as_deref(),
                         report.raw_backend_report_format.as_deref(),
@@ -1643,6 +1790,125 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["raw_backend_report_format"],
             serde_json::json!("fastp_json")
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_filter_read_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let filtered_reads_path = temp.path().join("filtered.fastq");
+        let report_path = temp.path().join("filter_report.json");
+        std::fs::write(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
+        std::fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.filter_reads.report.v3",
+                "stage": "fastq.filter_reads",
+                "stage_id": "fastq.filter_reads",
+                "tool_id": "fastp",
+                "paired_mode": "single_end",
+                "threads": 8_u32,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "filtered.fastq.gz",
+                "output_r2": null,
+                "report_json": "filter_report.json",
+                "max_n": 0_u32,
+                "max_n_fraction": 0.05,
+                "max_n_count": 3_u32,
+                "low_complexity_threshold": 20.0,
+                "entropy_threshold": 18.0,
+                "n_policy": "drop",
+                "polyx_policy": "trim",
+                "contaminant_db": null,
+                "reads_in": 100_u64,
+                "reads_out": 95_u64,
+                "reads_dropped": 5_u64,
+                "reads_removed_by_n": 2_u64,
+                "reads_removed_by_entropy": 1_u64,
+                "reads_removed_low_complexity": 1_u64,
+                "reads_removed_by_kmer": 0_u64,
+                "reads_removed_contaminant_kmer": 0_u64,
+                "reads_removed_by_length": 1_u64,
+                "bases_in": 1000_u64,
+                "bases_out": 920_u64,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 30.0,
+                "runtime_s": 1.2,
+                "memory_mb": 32.0,
+                "exit_code": 0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": "fastp_json",
+                "backend_metrics": {
+                    "schema_version": "bijux.fastp.metrics.v1",
+                    "passed_filter_reads": 95_u64,
+                    "too_many_n_reads": 2_u64,
+                    "too_short_reads": 1_u64
+                }
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.filter_reads"),
+            tool_id: ToolId::from_static("fastp"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("reads_r1"),
+                    reads_path,
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("filtered_reads_r1"),
+                    filtered_reads_path,
+                    ArtifactRole::Reads,
+                )],
+            },
+            ..plan("fastq.filter_reads")
+        };
+
+        let output = plugin
+            .parse_outputs(
+                &plan,
+                &[
+                    plan.io.outputs[0].clone(),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            )
+            .expect("parse outputs");
+
+        assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.report_parts[0].payload["runtime_interpretation"],
+            serde_json::json!("ObserverSpecialized")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["threads"],
+            serde_json::json!(8_u32)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["max_n_fraction"],
+            serde_json::json!(0.05)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["reads_removed_by_n"],
+            serde_json::json!(2_u64)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["passed_filter_reads"],
+            serde_json::json!(95_u64)
         );
     }
 
