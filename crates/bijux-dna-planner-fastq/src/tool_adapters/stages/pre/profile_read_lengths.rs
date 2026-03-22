@@ -39,6 +39,7 @@ pub fn plan_with_options(
 ) -> Result<StagePlanV1> {
     let dist_tsv = out_dir.join("length_distribution.tsv");
     let dist_json = out_dir.join("length_distribution.json");
+    let report_json = out_dir.join("profile_read_lengths_report.json");
     let command_template = profile_lengths_command(&tool.tool_id.0, r1, r2);
     let histogram_bins = histogram_bins_override.unwrap_or(100).max(1);
     let effective_params = FastqReadLengthProfileParams {
@@ -80,6 +81,11 @@ pub fn plan_with_options(
             inputs,
             outputs: vec![
                 ArtifactRef::required(
+                    ArtifactId::from_static("report_json"),
+                    report_json.clone(),
+                    ArtifactRole::ReportJson,
+                ),
+                ArtifactRef::required(
                     ArtifactId::from_static("length_distribution_tsv"),
                     dist_tsv.clone(),
                     ArtifactRole::SummaryTsv,
@@ -97,6 +103,7 @@ pub fn plan_with_options(
             "input_r1": r1,
             "input_r2": r2,
             "histogram_bins": histogram_bins,
+            "report_json": report_json,
             "output_tsv": dist_tsv,
             "output_json": dist_json,
         }),

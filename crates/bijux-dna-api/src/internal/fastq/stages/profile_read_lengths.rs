@@ -15,6 +15,10 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
+use bijux_dna_domain_fastq::{
+    PairedMode, ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
+    PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
@@ -126,32 +130,54 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         if let Some(r2) = args.r2.as_deref() {
             lengths.extend(read_fastq_lengths(r2)?);
         }
-        if !plan.io.outputs[0].path.exists() || !plan.io.outputs[1].path.exists() {
+        let report_json_path = required_output_path(&plan, "report_json")?;
+        let length_tsv_path = required_output_path(&plan, "length_distribution_tsv")?;
+        let length_json_path = required_output_path(&plan, "length_distribution_json")?;
+        if !length_tsv_path.exists() || !length_json_path.exists() {
             write_length_outputs(
-                &plan.io.outputs[0].path,
-                &plan.io.outputs[1].path,
+                length_tsv_path,
+                length_json_path,
                 &lengths,
                 args.histogram_bins.unwrap_or(100).max(1),
             )?;
         }
         let metrics = metrics_from_lengths(&lengths)?;
         let metric_set = metric_set(metrics);
-        let report = serde_json::json!({
-            "schema_version": "bijux.fastq.profile_read_lengths.report.v1",
-            "stage_id": STAGE_ID,
-            "tool_id": tool,
-            "input_fastq": args.r1,
-            "input_fastq_r2": args.r2,
-            "length_distribution_tsv": plan.io.outputs[0].path,
-            "length_distribution_json": plan.io.outputs[1].path,
-            "runtime_s": execution.runtime_s,
-            "memory_mb": execution.memory_mb,
-            "exit_code": execution.exit_code,
-        });
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("profile_read_lengths_report.json"),
-            &report,
-        )?;
+        let histogram = rebin_lengths(&lengths, args.histogram_bins.unwrap_or(100).max(1))
+            .into_iter()
+            .map(|(read_length, count)| ProfileReadLengthBinV1 {
+                read_length: read_length as u64,
+                count,
+            })
+            .collect::<Vec<_>>();
+        let report = ProfileReadLengthsReportV1 {
+            schema_version: PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION.to_string(),
+            stage: STAGE_ID.to_string(),
+            stage_id: STAGE_ID.to_string(),
+            tool_id: tool.clone(),
+            paired_mode: if args.r2.is_some() {
+                PairedMode::PairedEnd
+            } else {
+                PairedMode::SingleEnd
+            },
+            histogram_bins: args.histogram_bins.unwrap_or(100).max(1),
+            input_r1: args.r1.display().to_string(),
+            input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
+            length_distribution_tsv: length_tsv_path.display().to_string(),
+            length_distribution_json: length_json_path.display().to_string(),
+            report_json: report_json_path.display().to_string(),
+            read_count: metric_set.read_count,
+            mean_read_length: metric_set.mean_read_length,
+            max_read_length: metric_set.max_read_length,
+            distinct_lengths: metric_set.distinct_lengths,
+            histogram,
+            runtime_s: Some(execution.runtime_s),
+            memory_mb: Some(execution.memory_mb),
+            exit_code: Some(execution.exit_code),
+            raw_backend_report: Some(length_tsv_path.display().to_string()),
+            raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
+        };
+        bijux_dna_infra::atomic_write_json(report_json_path, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -240,6 +266,18 @@ fn write_length_outputs(tsv: &Path, json: &Path, lengths: &[usize], histogram_bi
     });
     bijux_dna_infra::atomic_write_json(json, &json_body)?;
     Ok(())
+}
+
+fn required_output_path<'a>(
+    plan: &'a bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Result<&'a Path> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.as_path())
+        .ok_or_else(|| anyhow!("profile_read_lengths plan missing `{artifact_name}` output"))
 }
 
 fn rebin_lengths(lengths: &[usize], histogram_bins: u32) -> BTreeMap<usize, u64> {
