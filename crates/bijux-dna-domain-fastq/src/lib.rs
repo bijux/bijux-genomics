@@ -12,6 +12,7 @@
 pub mod banks;
 pub mod bench_repository;
 mod comparison_contract;
+mod deplete_rrna_artifacts;
 mod detect_adapters_artifacts;
 mod domain_adapter;
 pub mod execution_support;
@@ -114,6 +115,7 @@ pub use execution_support::{
     default_tool_for_stage as default_execution_tool_for_stage, execution_support_for_stage,
     ExecutionStatus, StageExecutionSupport,
 };
+pub use deplete_rrna_artifacts::{DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION};
 pub use extract_umis_artifacts::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 pub use detect_adapters_artifacts::{
     DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
