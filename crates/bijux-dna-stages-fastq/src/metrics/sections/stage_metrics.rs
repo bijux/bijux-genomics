@@ -1264,6 +1264,37 @@ pub fn stage_metrics_for_plan(
                 serde_json::json!({})
             }
         }
+        "fastq.cluster_otus" => {
+            let report_path = path_from_params(&plan.params, "report_json")
+                .or_else(|| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "report_json")
+                        .map(|artifact| artifact.path.clone())
+                })
+                .or_else(|| {
+                    let fallback = plan.out_dir.join("cluster_otus_report.json");
+                    fallback.exists().then_some(fallback)
+                });
+            let governed_report = report_path
+                .and_then(|path| std::fs::read_to_string(&path).ok())
+                .and_then(|raw| crate::observer::parse_cluster_otus_report(&raw).ok());
+            if let Some(report) = governed_report {
+                serde_json::json!({
+                    "otu_identity": report.otu_identity,
+                    "threads": report.threads,
+                    "otu_count": report.otu_count,
+                    "sample_count": report.sample_count,
+                    "representative_sequence_count": report.representative_sequence_count,
+                    "output_table_kind": report.output_table_kind,
+                    "used_fallback": report.used_fallback,
+                    "raw_backend_report_format": report.raw_backend_report_format,
+                })
+            } else {
+                serde_json::json!({})
+            }
+        }
         "fastq.index_reference" => {
             let report_path = path_from_params(&plan.params, "report_json")
                 .or_else(|| {
