@@ -41,11 +41,22 @@ fn toolset_modes_separate_default_governed_benchmark_and_all_bindings() {
 fn benchmark_toolsets_can_be_requested_per_fairness_scenario() {
     let dedup_stage = StageId::from_static("fastq.remove_duplicates");
 
-    let dedup_tools =
-        bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
-            &dedup_stage,
-            "dedup_fairness",
-        );
+    let default_benchmark_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage(
+        &dedup_stage,
+        bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::BenchmarkCohort,
+    );
+    assert_eq!(
+        default_benchmark_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["clumpify", "fastuniq"]
+    );
+
+    let dedup_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
+        &dedup_stage,
+        "dedup_fairness",
+    );
     assert_eq!(
         dedup_tools
             .iter()
@@ -54,11 +65,10 @@ fn benchmark_toolsets_can_be_requested_per_fairness_scenario() {
         vec!["clumpify", "fastuniq"]
     );
 
-    let unknown_tools =
-        bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
-            &dedup_stage,
-            "unknown_fairness",
-        );
+    let unknown_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
+        &dedup_stage,
+        "unknown_fairness",
+    );
     assert!(unknown_tools.is_empty());
 }
 
