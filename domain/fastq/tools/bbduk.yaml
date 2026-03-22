@@ -68,7 +68,8 @@ stage_contracts:
     expected_artifacts:
       - "filtered_reads_r1"
       - "filtered_reads_r2"
-    notes: "BBDuk read filtering emits paired filtered reads under the generic filter stage contract."
+      - "report_json"
+    notes: "BBDuk read filtering emits paired filtered reads, a canonical governed filter report, and preserves native BBDuk stats provenance."
   fastq.filter_low_complexity:
     required_inputs:
       - "reads_r1"
@@ -90,6 +91,7 @@ expected_artifacts:
   - "trimmed_reads_r2"
   - "filtered_reads_r1"
   - "filtered_reads_r2"
+  - "report_json"
   - "filtered_fastq_r1"
   - "filtered_fastq_r2"
   - "filter_report_json"

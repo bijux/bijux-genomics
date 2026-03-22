@@ -62,7 +62,8 @@ stage_contracts:
     expected_artifacts:
       - "filtered_reads_r1"
       - "filtered_reads_r2"
-    notes: "PRINSEQ read filtering emits paired filtered reads under the generic filter contract."
+      - "report_json"
+    notes: "PRINSEQ read filtering emits paired filtered reads and the governed filter report."
   fastq.filter_low_complexity:
     required_inputs:
       - "reads_r1"
@@ -84,6 +85,7 @@ expected_artifacts:
   - "report_json"
   - "filtered_reads_r1"
   - "filtered_reads_r2"
+  - "report_json"
   - "filtered_fastq_r1"
   - "filtered_fastq_r2"
   - "filter_report_json"

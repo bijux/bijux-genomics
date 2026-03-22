@@ -19,6 +19,26 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
+        stage_id: "fastq.filter_reads",
+        tool_id: "fastp",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.filter_reads",
+        tool_id: "seqkit",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.filter_reads",
+        tool_id: "prinseq",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.filter_reads",
+        tool_id: "bbduk",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
         stage_id: "fastq.validate_reads",
         tool_id: "fastqvalidator",
         semantic_surface: "validation_report",

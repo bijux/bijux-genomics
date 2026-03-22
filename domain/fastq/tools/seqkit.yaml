@@ -75,7 +75,8 @@ stage_contracts:
     expected_artifacts:
       - "filtered_reads_r1"
       - "filtered_reads_r2"
-    notes: "seqkit read filtering emits paired filtered reads under the generic filter contract."
+      - "report_json"
+    notes: "seqkit read filtering emits paired filtered reads and the governed filter report."
   fastq.normalize_abundance:
     required_inputs:
       - "abundance_table"
