@@ -10,7 +10,7 @@ use crate::metrics;
 use crate::observer::{
     parse_bbduk_reads_removed, parse_deduplicate_report, parse_fastp_metrics,
     parse_multiqc_general_stats_metrics, parse_profile_reads_report,
-    parse_normalize_primers_report,
+    parse_normalize_abundance_report, parse_normalize_primers_report,
     parse_profile_overrepresented_report, parse_profile_read_lengths_report,
     parse_remove_duplicates_provenance,
     parse_remove_chimeras_report, parse_remove_duplicates_report, parse_report_qc_report,
@@ -424,6 +424,33 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "primer_stats_json": report.primer_stats_json,
                         "raw_backend_report": report.raw_backend_report,
                         "raw_backend_report_format": report.raw_backend_report_format,
+                    });
+                }
+            }
+        }
+    }
+    if plan.stage_id.as_str() == "fastq.normalize_abundance" {
+        if let Some(report_path) = artifacts
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "report_json")
+            .map(|artifact| artifact.path.as_path())
+        {
+            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+                if let Ok(report) = parse_normalize_abundance_report(&raw_report) {
+                    return serde_json::json!({
+                        "method": report.method,
+                        "input_value_column": report.input_value_column,
+                        "normalized_value_column": report.normalized_value_column,
+                        "compositional_rule": report.compositional_rule,
+                        "scale_factor": report.scale_factor,
+                        "table_rows": report.table_rows,
+                        "sample_count": report.sample_count,
+                        "feature_count": report.feature_count,
+                        "zero_fraction": report.zero_fraction,
+                        "per_sample_sums": report.per_sample_sums,
+                        "raw_backend_report": report.raw_backend_report,
+                        "raw_backend_report_format": report.raw_backend_report_format,
+                        "used_fallback": report.used_fallback,
                     });
                 }
             }
@@ -2330,6 +2357,80 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["primer_trimmed_fraction"],
             serde_json::json!(0.95)
+        );
+    }
+
+    #[test]
+    fn parse_outputs_surfaces_normalize_abundance_semantics() {
+        let plugin = FastqStagePlugin;
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("normalize_abundance_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.normalize_abundance.report.v2",
+                "stage": "fastq.normalize_abundance",
+                "stage_id": "fastq.normalize_abundance",
+                "tool_id": "seqkit",
+                "method": "counts_per_million",
+                "input_table": "otu_abundance.tsv",
+                "normalized_abundance_tsv": "abundance_normalized.tsv",
+                "expected_columns": ["sample_id", "feature_id", "abundance"],
+                "input_value_column": "abundance",
+                "normalized_value_column": "counts_per_million",
+                "compositional_rule": "per_sample_sum_to_one_million",
+                "scale_factor": 1000000.0,
+                "table_rows": 12,
+                "sample_count": 3,
+                "feature_count": 4,
+                "zero_fraction": 0.25,
+                "per_sample_sums": [["sample_a", 1000000.0], ["sample_b", 1000000.0]],
+                "runtime_s": 1.8,
+                "memory_mb": 24.0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null,
+                "used_fallback": false,
+                "backend_metrics": {}
+            })
+            .to_string(),
+        )
+        .expect("write normalize abundance report");
+
+        let plan = bijux_dna_stage_contract::StagePlanV1 {
+            stage_id: StageId::from_static("fastq.normalize_abundance"),
+            tool_id: ToolId::from_static("seqkit"),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("abundance_table"),
+                    temp.path().join("otu_abundance.tsv"),
+                    ArtifactRole::SummaryTsv,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    ArtifactId::new("report_json"),
+                    report_path,
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            ..plan("fastq.normalize_abundance")
+        };
+
+        let output = plugin
+            .parse_outputs(&plan, &plan.io.outputs)
+            .expect("parse outputs");
+
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["method"],
+            serde_json::json!("counts_per_million")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["feature_count"],
+            serde_json::json!(4)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["zero_fraction"],
+            serde_json::json!(0.25)
         );
     }
 
