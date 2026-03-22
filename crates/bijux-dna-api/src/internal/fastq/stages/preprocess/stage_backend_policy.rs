@@ -190,6 +190,39 @@ pub(crate) fn parse_profile_overrepresented_metrics(
     })
 }
 
+pub(crate) fn parse_infer_asvs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("infer_asvs_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = serde_json::from_str::<bijux_dna_domain_fastq::InferAsvsReportV1>(&raw)
+        {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.infer_asvs",
+                "tool": report.tool_id,
+                "paired_mode": report.paired_mode,
+                "denoising_method": report.denoising_method,
+                "pooling_mode": report.pooling_mode,
+                "chimera_policy": report.chimera_policy,
+                "asv_count": report.asv_count,
+                "sample_count": report.sample_count,
+                "representative_sequence_count": report.representative_sequence_count,
+                "used_fallback": report.used_fallback,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.infer_asvs",
+        "tool": "report_missing",
+        "asv_count": serde_json::Value::Null,
+        "sample_count": serde_json::Value::Null,
+        "representative_sequence_count": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_terminal_damage_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {

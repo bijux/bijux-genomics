@@ -314,12 +314,28 @@ fn emit_fastq_stage_extra_artifacts(
             "stage": stage_id,
             "applicability": "edna_pollen_only",
         })),
-        "fastq.infer_asvs" => Some(serde_json::json!({
-            "schema_version": "bijux.fastq.infer_asvs.v1",
-            "stage": stage_id,
-            "runtime_contract": "R_runtime_required",
-            "applicability": "edna_pollen_only",
-        })),
+        "fastq.infer_asvs" => {
+            let report_path = stage_root.join("infer_asvs_report.json");
+            let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
+                serde_json::from_str::<bijux_dna_domain_fastq::InferAsvsReportV1>(&raw).ok()
+            });
+            Some(serde_json::json!({
+                "schema_version": "bijux.fastq.infer_asvs.extra_artifacts.v2",
+                "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "denoising_method": governed.as_ref().map(|report| report.denoising_method.clone()),
+                "pooling_mode": governed.as_ref().map(|report| report.pooling_mode.clone()),
+                "chimera_policy": governed.as_ref().map(|report| report.chimera_policy.clone()),
+                "asv_table_tsv": governed.as_ref().map(|report| report.asv_table_tsv.clone()),
+                "asv_sequences_fasta": governed.as_ref().map(|report| report.asv_sequences_fasta.clone()),
+                "taxonomy_ready_fasta": governed.as_ref().map(|report| report.taxonomy_ready_fasta.clone()),
+                "taxonomy_ready_fastq": governed.as_ref().map(|report| report.taxonomy_ready_fastq.clone()),
+                "representative_sequence_count": governed.as_ref().map(|report| report.representative_sequence_count),
+                "used_fallback": governed.as_ref().map(|report| report.used_fallback),
+                "report_json": report_path,
+            }))
+        }
         "fastq.normalize_abundance" => {
             let report_path = stage_root.join("normalize_abundance_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
@@ -419,11 +435,7 @@ fn write_stage_standardized_metrics(
         "fastq.normalize_abundance" => parse_normalize_abundance_metrics(out_dir),
         "fastq.trim_terminal_damage" => parse_trim_terminal_damage_metrics(out_dir),
         "fastq.remove_chimeras" => parse_remove_chimeras_metrics(out_dir),
-        "fastq.infer_asvs" => serde_json::json!({
-            "schema_version": "bijux.fastq_stage_metrics.v1",
-            "stage": stage_id,
-            "fields": ["asv_count", "nonchimera_reads", "sample_count"],
-        }),
+        "fastq.infer_asvs" => parse_infer_asvs_metrics(out_dir),
         "fastq.cluster_otus" => serde_json::json!({
             "schema_version": "bijux.fastq_stage_metrics.v1",
             "stage": stage_id,
