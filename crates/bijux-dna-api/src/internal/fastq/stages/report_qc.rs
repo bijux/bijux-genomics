@@ -22,13 +22,18 @@ use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
     PairedMode,
 };
+use bijux_dna_domain_fastq::{
+    GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_qc_post_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::report_qc::plan_qc_post_with_qc_inputs;
-use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
+use bijux_dna_planner_fastq::stage_api::observer::{
+    input_fastq_stats, parse_multiqc_general_stats_metrics, parse_seqkit_stats,
+};
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
@@ -400,41 +405,17 @@ fn build_qc_post_record(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     let governed_qc_manifest = governed_qc_inputs_manifest_path(out_dir);
-
-    let report = serde_json::json!({
-        "schema_version": "bijux.fastq.report_qc.report.v1",
-        "stage": STAGE_REPORT_QC.as_str(),
-        "stage_id": STAGE_REPORT_QC.as_str(),
-        "tool": tool,
-        "tool_id": tool,
-        "input_fastq_r1": bench_inputs.r1,
-        "input_fastq_r2": bench_inputs.r2,
-        "reads_in": metrics.reads_in,
-        "reads_out": metrics.reads_out,
-        "bases_in": metrics.bases_in,
-        "bases_out": metrics.bases_out,
-        "pairs_in": metrics.pairs_in,
-        "pairs_out": metrics.pairs_out,
-        "mean_q": metrics.mean_q,
-        "contamination_rate": metrics.contamination_rate,
-        "raw_fastqc_dir": metrics.raw_fastqc_dir,
-        "trimmed_fastqc_dir": metrics.trimmed_fastqc_dir,
-        "report_html": metrics.multiqc_report,
-        "report_data_dir": metrics.multiqc_data,
-        "multiqc_report": metrics.multiqc_report,
-        "multiqc_data": metrics.multiqc_data,
-        "governed_qc_input_count": governed_qc.qc_inputs.len(),
-        "governed_qc_inputs_manifest": path_if_exists(&governed_qc_manifest),
-        "governed_qc_contributors": governed_qc.contributors,
-        "governed_qc_contributor_stage_ids": governed_qc_contributor_stage_ids(&governed_qc.contributors),
-        "governed_qc_contributor_tool_ids": governed_qc_contributor_tool_ids(&governed_qc.contributors),
-        "governed_qc_lineage_hash": governed_qc.lineage_hash,
-        "runtime_s": execution.runtime_s,
-        "memory_mb": execution.memory_mb,
-        "exit_code": execution.exit_code,
-    });
-    bijux_dna_infra::atomic_write_json(&out_dir.join("qc_report.json"), &report)
-        .context("write qc report")?;
+    let report_path = out_dir.join("report_qc_report.json");
+    let report = build_governed_qc_post_report(
+        tool,
+        params,
+        &metrics,
+        governed_qc,
+        &governed_qc_manifest,
+        &report_path,
+        execution,
+    )?;
+    bijux_dna_infra::atomic_write_json(&report_path, &report).context("write qc report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write qc metrics")?;
@@ -463,6 +444,89 @@ fn build_qc_post_record(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn build_governed_qc_post_report(
+    tool: &str,
+    params: &serde_json::Value,
+    metrics: &FastqQcPostMetrics,
+    governed_qc: &GovernedQcInputs,
+    governed_qc_manifest: &Path,
+    report_path: &Path,
+    execution: &StageResultV1,
+) -> Result<ReportQcReportV1> {
+    let paired_mode = if params.get("raw_r2").is_some() {
+        PairedMode::PairedEnd
+    } else {
+        PairedMode::SingleEnd
+    };
+    let aggregation_engine = parse_qc_aggregation_engine(
+        params.get("aggregation_engine").and_then(serde_json::Value::as_str),
+    )?;
+    let aggregation_scope = parse_qc_aggregation_scope(
+        params.get("aggregation_scope").and_then(serde_json::Value::as_str),
+    )?;
+    let contributors = governed_qc
+        .contributors
+        .iter()
+        .map(|contributor| GovernedQcContributorV1 {
+            contributor_id: contributor.contributor_id.clone(),
+            stage_id: contributor.stage_id.clone(),
+            tool_id: contributor
+                .contributor_id
+                .rsplit_once('.')
+                .map(|(_, tool_id)| tool_id.to_string())
+                .unwrap_or_default(),
+            artifact_id: contributor.artifact_id.clone(),
+            artifact_role: contributor.artifact_role.as_str().to_string(),
+            path: contributor.path.display().to_string(),
+        })
+        .collect::<Vec<_>>();
+    let multiqc_metrics = load_multiqc_general_stats(report_path.parent().unwrap_or_else(|| Path::new(".")));
+    Ok(ReportQcReportV1 {
+        schema_version: REPORT_QC_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_REPORT_QC.as_str().to_string(),
+        stage_id: STAGE_REPORT_QC.as_str().to_string(),
+        tool_id: tool.to_string(),
+        paired_mode,
+        aggregation_engine,
+        aggregation_scope,
+        reads_in: metrics.reads_in,
+        reads_out: metrics.reads_out,
+        bases_in: metrics.bases_in,
+        bases_out: metrics.bases_out,
+        pairs_in: metrics.pairs_in,
+        pairs_out: metrics.pairs_out,
+        mean_q: metrics.mean_q,
+        contamination_rate: metrics.contamination_rate,
+        adapter_content_max: None,
+        adapter_content_mean: None,
+        duplication_rate: None,
+        n_rate: None,
+        kmer_warning_count: None,
+        overrepresented_sequence_count: None,
+        multiqc_sample_count: multiqc_metrics.as_ref().map(|metrics| metrics.sample_count),
+        multiqc_module_count: multiqc_metrics.as_ref().map(|metrics| metrics.module_count),
+        raw_fastqc_dir: metrics.raw_fastqc_dir.clone(),
+        trimmed_fastqc_dir: metrics.trimmed_fastqc_dir.clone(),
+        multiqc_report: metrics.multiqc_report.clone(),
+        multiqc_data: metrics.multiqc_data.clone(),
+        governed_qc_input_count: governed_qc.qc_inputs.len() as u64,
+        governed_qc_contributor_stage_ids: governed_qc_contributor_stage_ids(&governed_qc.contributors),
+        governed_qc_contributor_tool_ids: governed_qc_contributor_tool_ids(&governed_qc.contributors),
+        governed_qc_contributors: contributors,
+        governed_qc_lineage_hash: governed_qc.lineage_hash.clone(),
+        governed_qc_inputs_manifest: path_if_exists(governed_qc_manifest),
+        runtime_s: Some(execution.runtime_s),
+        memory_mb: Some(execution.memory_mb),
+        exit_code: Some(execution.exit_code),
+    })
+}
+
+fn load_multiqc_general_stats(out_dir: &Path) -> Option<bijux_dna_domain_fastq::metrics::MultiqcToolMetricsV1> {
+    let path = out_dir.join("multiqc_data").join("multiqc_general_stats.json");
+    let raw = std::fs::read_to_string(path).ok()?;
+    parse_multiqc_general_stats_metrics(&raw).ok()
 }
 
 fn derive_qc_post_metrics(
