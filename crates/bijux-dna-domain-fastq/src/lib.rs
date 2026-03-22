@@ -22,6 +22,7 @@ mod observer_contract;
 pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
+mod profile_reads_artifacts;
 mod qc_contract;
 mod remove_chimeras_artifacts;
 mod remove_duplicates_artifacts;
@@ -65,6 +66,10 @@ pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
     StageComparisonContract,
+};
+pub use profile_reads_artifacts::{
+    ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1, ProfileReadsReportV1,
+    PROFILE_READS_REPORT_SCHEMA_VERSION,
 };
 pub use report_qc_artifacts::{
     GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
