@@ -499,6 +499,40 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
     })
 }
 
+pub(crate) fn parse_cluster_otus_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+    let report_path = out_dir.join("cluster_otus_report.json");
+    if let Ok(raw) = std::fs::read_to_string(&report_path) {
+        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_cluster_otus_report(&raw) {
+            return serde_json::json!({
+                "schema_version": "bijux.fastq_stage_metrics.v1",
+                "stage": "fastq.cluster_otus",
+                "tool": report.tool_id,
+                "otu_identity": report.otu_identity,
+                "threads": report.threads,
+                "otu_count": report.otu_count,
+                "sample_count": report.sample_count,
+                "representative_sequence_count": report.representative_sequence_count,
+                "output_table_kind": report.output_table_kind,
+                "runtime_s": report.runtime_s,
+                "memory_mb": report.memory_mb,
+                "used_fallback": report.used_fallback,
+                "raw_backend_report": report.raw_backend_report,
+                "raw_backend_report_format": report.raw_backend_report_format,
+                "report_json": report_path,
+            });
+        }
+    }
+    serde_json::json!({
+        "schema_version": "bijux.fastq_stage_metrics.v1",
+        "stage": "fastq.cluster_otus",
+        "tool": "report_missing",
+        "otu_count": serde_json::Value::Null,
+        "sample_count": serde_json::Value::Null,
+        "representative_sequence_count": serde_json::Value::Null,
+        "report_json": report_path,
+    })
+}
+
 pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("deduplicate_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
