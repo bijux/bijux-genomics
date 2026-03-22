@@ -73,11 +73,31 @@ pub struct FastqStageToolsetBinding {
 #[derive(Debug, Clone)]
 pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
+    InferAsvs(InferAsvsStageParams),
     CorrectErrors(CorrectErrorsStageParams),
     TrimTerminalDamage(TrimTerminalDamageStageParams),
     DepleteRrna(DepleteRrnaStageParams),
     DepleteHost(DepleteHostStageParams),
     DepleteReferenceContaminants(DepleteReferenceContaminantsStageParams),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InferAsvsStageParams {
+    pub denoising_method: String,
+    pub pooling_mode: String,
+    pub chimera_policy: String,
+    pub threads: Option<u32>,
+}
+
+impl Default for InferAsvsStageParams {
+    fn default() -> Self {
+        Self {
+            denoising_method: "dada2".to_string(),
+            pooling_mode: "independent".to_string(),
+            chimera_policy: "remove_bimera_denovo".to_string(),
+            threads: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
