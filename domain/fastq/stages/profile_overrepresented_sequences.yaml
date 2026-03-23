@@ -53,6 +53,7 @@ allowed_missingness:
   - "reads_r2"
 compatible_tools:
   - fastqc
+  - fastq_scan
   - seqkit
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
@@ -61,5 +62,4 @@ assumptions:
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope:
-  - "fastq_scan"
+planned_out_of_scope: []

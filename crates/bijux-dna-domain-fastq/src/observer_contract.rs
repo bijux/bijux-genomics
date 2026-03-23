@@ -105,6 +105,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.profile_overrepresented_sequences",
+        tool_id: "fastq_scan",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.profile_overrepresented_sequences",
         tool_id: "seqkit",
         semantic_surface: "report_json",
     },

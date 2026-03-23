@@ -200,6 +200,7 @@ stages:
     default_tool: "fastqc"
     admitted_tools:
       - "fastqc"
+      - "fastq_scan"
       - "seqkit"
   - stage_id: "fastq.remove_chimeras"
     execution_status: "closed"
