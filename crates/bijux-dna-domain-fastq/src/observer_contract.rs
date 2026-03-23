@@ -55,6 +55,16 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.validate_reads",
+        tool_id: "fastqc",
+        semantic_surface: "validation_report",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.validate_reads",
+        tool_id: "fastq_scan",
+        semantic_surface: "validation_report",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.validate_reads",
         tool_id: "seqtk",
         semantic_surface: "validation_report",
     },

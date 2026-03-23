@@ -70,6 +70,8 @@ allowed_missingness:
   - "reads_r2"
 compatible_tools:
   - fastqvalidator
+  - fastqc
+  - fastq_scan
   - seqtk
   - fqtools
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
@@ -77,9 +79,8 @@ assumptions:
   - "validation is report-only and may not modify FASTQ payloads"
   - "pair_sync_policy defaults to require_header_sync for paired inputs and not_applicable for single-end inputs during effective-parameter resolution"
   - "validated_reads_manifest records governed lineage for downstream graph provenance without duplicating FASTQ payloads"
-  - "benchmark comparisons require identical input hashes and strict-mode policy"
+  - "benchmark comparisons require identical input hashes, strict-mode policy, and governed validation artifacts regardless of backend-specific native outputs"
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope:
-  - "fastq_scan"
+planned_out_of_scope: []
