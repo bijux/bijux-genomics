@@ -140,6 +140,43 @@ fn terminal_damage_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
 }
 
 #[test]
+fn trim_reads_stage_manifest_lists_all_supported_backends() -> Result<()> {
+    let path = workspace_root()?.join("domain/fastq/stages/trim_reads.yaml");
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let manifest: serde_json::Value = bijux_dna_infra::formats::parse_yaml(&raw)
+        .with_context(|| format!("parse {}", path.display()))?;
+    let compatible_tools = manifest
+        .get("compatible_tools")
+        .and_then(serde_json::Value::as_array)
+        .context("trim_reads compatible_tools")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        compatible_tools,
+        vec![
+            "fastp",
+            "cutadapt",
+            "atropos",
+            "bbduk",
+            "adapterremoval",
+            "alientrimmer",
+            "fastx_clipper",
+            "leehom",
+            "trimmomatic",
+            "trim_galore",
+            "prinseq",
+            "seqkit",
+            "seqpurge",
+            "skewer",
+        ],
+        "trim_reads should publish every governed trim backend carried by the domain and CI registry"
+    );
+    Ok(())
+}
+
+#[test]
 fn trim_terminal_damage_stage_manifest_lists_all_supported_backends() -> Result<()> {
     let path = workspace_root()?.join("domain/fastq/stages/trim_terminal_damage.yaml");
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
