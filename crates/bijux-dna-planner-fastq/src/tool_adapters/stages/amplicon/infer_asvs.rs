@@ -14,6 +14,7 @@ use bijux_dna_stage_contract::{
 pub const STAGE_ID: StageId = STAGE_INFER_ASVS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type InferAsvsPlanOptions = crate::InferAsvsStageParams;
+const DEFAULT_INFER_ASVS_THREADS: u32 = 1;
 
 pub fn plan(
     tool: &ToolExecutionSpecV1,
@@ -58,7 +59,7 @@ pub fn plan_with_options(
     let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
     let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
     let report_json = out_dir.join("infer_asvs_report.json");
-    let threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let threads = options.threads.unwrap_or(DEFAULT_INFER_ASVS_THREADS).max(1);
     let mut resources = tool.resources.clone();
     resources.threads = threads;
     let effective_params = AsvInferenceEffectiveParams {
