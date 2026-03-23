@@ -3,6 +3,7 @@ tool_id: "bbduk"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
+  - polyx_trim
   - "SE"
   - "PE"
   - "adapters"
