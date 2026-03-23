@@ -4,8 +4,8 @@ use bijux_dna_domain_fastq::params::correct::{
 };
 use bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults;
 use bijux_dna_domain_fastq::params::defaults::{
-    correct_defaults, remove_duplicates_defaults, stats_defaults, trim_polyg_tails_defaults,
-    trim_terminal_damage_defaults, umi_defaults,
+    correct_defaults, remove_duplicates_defaults, stats_defaults, trim_defaults,
+    trim_polyg_tails_defaults, trim_terminal_damage_defaults, umi_defaults,
 };
 use bijux_dna_domain_fastq::params::detect_adapters::{
     AdapterInspectionMode, DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
@@ -133,6 +133,14 @@ fn trim_terminal_damage_params_roundtrip_with_stage_specific_schema() {
     assert_eq!(decoded.trim_3p_bases, 2);
     assert_eq!(decoded.requested_trim_5p_bases, None);
     assert_eq!(decoded.requested_trim_3p_bases, None);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn trim_defaults_keep_declared_minimum_read_length() {
+    let decoded = roundtrip(&trim_defaults(true));
+    assert_eq!(decoded.min_len, 30);
+    assert_eq!(decoded.adapter_policy, "none");
     assert!(decoded.missing_required_fields().is_empty());
 }
 
