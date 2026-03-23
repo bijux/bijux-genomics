@@ -496,6 +496,7 @@ mod tests {
                 "stage_id": "fastq.trim_terminal_damage",
                 "tool_id": "cutadapt",
                 "paired_mode": "single_end",
+                "threads": 1,
                 "damage_mode": "ancient",
                 "execution_policy": "explicit_terminal_trim",
                 "trim_5p_bases": 2,
@@ -526,7 +527,9 @@ mod tests {
                 "raw_backend_report": "cutadapt.damage.json",
                 "raw_backend_report_format": "cutadapt_json",
                 "runtime_s": null,
-                "memory_mb": null
+                "memory_mb": null,
+                "used_fallback": false,
+                "backend_metrics": null
             })
             .to_string(),
         )

@@ -1550,6 +1550,7 @@ mod tests {
                 "stage_id": "fastq.trim_terminal_damage",
                 "tool_id": "cutadapt",
                 "paired_mode": "paired_end",
+                "threads": 4,
                 "damage_mode": "ancient",
                 "execution_policy": "explicit_terminal_trim",
                 "trim_5p_bases": 2,
@@ -1580,11 +1581,14 @@ mod tests {
                 "raw_backend_report": "cutadapt.damage.json",
                 "raw_backend_report_format": "cutadapt_json",
                 "runtime_s": 12.4,
-                "memory_mb": 256.0
+                "memory_mb": 256.0,
+                "used_fallback": false,
+                "backend_metrics": {"reads_profiled_r1": 200}
             })
             .to_string(),
         )?;
         assert_eq!(parsed.damage_mode, DamageMode::Ancient);
+        assert_eq!(parsed.threads, 4);
         assert_eq!(
             parsed.execution_policy,
             TerminalDamageExecutionPolicy::ExplicitTerminalTrim
@@ -1594,6 +1598,7 @@ mod tests {
             Some("cutadapt_json")
         );
         assert_eq!(parsed.reads_in, Some(200));
+        assert!(!parsed.used_fallback);
         Ok(())
     }
 

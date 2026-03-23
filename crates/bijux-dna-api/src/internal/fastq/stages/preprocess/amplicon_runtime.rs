@@ -68,6 +68,7 @@ fn materialize_amplicon_stage_outputs(
                 stage_id: "fastq.trim_terminal_damage".to_string(),
                 tool_id: "unknown".to_string(),
                 paired_mode: bijux_dna_domain_fastq::PairedMode::from_has_r2(input_r2.is_some()),
+                threads: planned.resources.threads.max(1),
                 damage_mode: bijux_dna_domain_fastq::params::DamageMode::Ancient,
                 execution_policy:
                     bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy::ExplicitTerminalTrim,
@@ -102,6 +103,8 @@ fn materialize_amplicon_stage_outputs(
                 raw_backend_report_format: None,
                 runtime_s: None,
                 memory_mb: None,
+                used_fallback: false,
+                backend_metrics: None,
             });
             let stage_ok = if let Some((program, args)) = planned.command.template.split_first() {
                 command_exists(program)
@@ -156,6 +159,7 @@ fn materialize_amplicon_stage_outputs(
                 .as_ref()
                 .and_then(|path| path.exists().then(|| path.display().to_string()))
                 .or(planned_report.raw_backend_report);
+            planned_report.threads = planned.resources.threads.max(1);
             planned_report.ct_ga_asymmetry_pre =
                 combined_terminal_damage_asymmetry(&pre_profile_r1, pre_profile_r2.as_ref());
             planned_report.ct_ga_asymmetry_post =
@@ -182,6 +186,14 @@ fn materialize_amplicon_stage_outputs(
                 .and_then(|profile| {
                     terminal_damage_base_composition(profile, "terminal_base_composition_5p")
                 });
+            planned_report.used_fallback = !stage_ok;
+            planned_report.backend_metrics = Some(serde_json::json!({
+                "schema_version": "bijux.fastq.trim_terminal_damage.backend_metrics.v1",
+                "reads_profiled_r1": post_profile_r1.get("reads_profiled").cloned(),
+                "reads_profiled_r2": post_profile_r2
+                    .as_ref()
+                    .and_then(|profile| profile.get("reads_profiled").cloned()),
+            }));
             bijux_dna_infra::atomic_write_json(&report_json, &planned_report)?;
             payload = serde_json::json!({
                 "tool": planned_report.tool_id,
@@ -1312,7 +1324,7 @@ mod amplicon_runtime_tests {
 
     #[test]
     fn planned_terminal_damage_report_parses_embedded_governed_report() {
-        let script = "set -euo pipefail\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.trim_terminal_damage.report.v2\",\"stage\":\"fastq.trim_terminal_damage\",\"stage_id\":\"fastq.trim_terminal_damage\",\"tool_id\":\"adapterremoval\",\"paired_mode\":\"paired_end\",\"damage_mode\":\"ancient\",\"execution_policy\":\"explicit_terminal_trim\",\"trim_5p_bases\":2,\"trim_3p_bases\":1,\"requested_trim_5p_bases\":2,\"requested_trim_3p_bases\":1,\"udg_classification\":\"non_udg\",\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":\"reads_R2.fastq.gz\",\"output_r1\":\"out/R1.trim_terminal_damage.adapterremoval.fastq.gz\",\"output_r2\":\"out/R2.trim_terminal_damage.adapterremoval.fastq.gz\",\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"mean_q_before\":null,\"mean_q_after\":null,\"ct_ga_asymmetry_pre\":null,\"ct_ga_asymmetry_post\":null,\"ct_ga_asymmetry_pre_r1\":null,\"ct_ga_asymmetry_post_r1\":null,\"ct_ga_asymmetry_pre_r2\":null,\"ct_ga_asymmetry_post_r2\":null,\"terminal_base_composition_pre_r1\":null,\"terminal_base_composition_post_r1\":null,\"terminal_base_composition_pre_r2\":null,\"terminal_base_composition_post_r2\":null,\"raw_backend_report\":null,\"raw_backend_report_format\":null,\"runtime_s\":null,\"memory_mb\":null}' > 'trim_terminal_damage_report.json'\n";
+        let script = "set -euo pipefail\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.trim_terminal_damage.report.v2\",\"stage\":\"fastq.trim_terminal_damage\",\"stage_id\":\"fastq.trim_terminal_damage\",\"tool_id\":\"adapterremoval\",\"paired_mode\":\"paired_end\",\"threads\":1,\"damage_mode\":\"ancient\",\"execution_policy\":\"explicit_terminal_trim\",\"trim_5p_bases\":2,\"trim_3p_bases\":1,\"requested_trim_5p_bases\":2,\"requested_trim_3p_bases\":1,\"udg_classification\":\"non_udg\",\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":\"reads_R2.fastq.gz\",\"output_r1\":\"out/R1.trim_terminal_damage.adapterremoval.fastq.gz\",\"output_r2\":\"out/R2.trim_terminal_damage.adapterremoval.fastq.gz\",\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"mean_q_before\":null,\"mean_q_after\":null,\"ct_ga_asymmetry_pre\":null,\"ct_ga_asymmetry_post\":null,\"ct_ga_asymmetry_pre_r1\":null,\"ct_ga_asymmetry_post_r1\":null,\"ct_ga_asymmetry_pre_r2\":null,\"ct_ga_asymmetry_post_r2\":null,\"terminal_base_composition_pre_r1\":null,\"terminal_base_composition_post_r1\":null,\"terminal_base_composition_pre_r2\":null,\"terminal_base_composition_post_r2\":null,\"raw_backend_report\":null,\"raw_backend_report_format\":null,\"runtime_s\":null,\"memory_mb\":null,\"used_fallback\":false,\"backend_metrics\":null}' > 'trim_terminal_damage_report.json'\n";
         let mut planned = execution_step_with_script(script);
         planned.step_id = StepId::new("fastq.trim_terminal_damage".to_string());
         planned.stage_id = StageId::new("fastq.trim_terminal_damage".to_string());
@@ -1330,12 +1342,14 @@ mod amplicon_runtime_tests {
         .expect("embedded governed report");
 
         assert_eq!(report.tool_id, "adapterremoval");
+        assert_eq!(report.threads, 1);
         assert_eq!(report.trim_5p_bases, 2);
         assert_eq!(report.trim_3p_bases, 1);
         assert_eq!(
             report.output_r2.as_deref(),
             Some("out/R2.trim_terminal_damage.adapterremoval.fastq.gz")
         );
+        assert!(!report.used_fallback);
     }
 }
 

@@ -1141,6 +1141,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                 if let Ok(report) = parse_terminal_damage_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
+                        "threads": report.threads,
                         "damage_mode": report.damage_mode,
                         "execution_policy": report.execution_policy,
                         "trim_5p_bases": report.trim_5p_bases,
@@ -1150,6 +1151,8 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         "udg_classification": report.udg_classification,
                         "ct_ga_asymmetry_pre": report.ct_ga_asymmetry_pre,
                         "ct_ga_asymmetry_post": report.ct_ga_asymmetry_post,
+                        "used_fallback": report.used_fallback,
+                        "backend_metrics": report.backend_metrics,
                         "raw_backend_report_format": report.raw_backend_report_format,
                     });
                 }
@@ -1920,6 +1923,7 @@ mod tests {
                 "stage_id": "fastq.trim_terminal_damage",
                 "tool_id": "cutadapt",
                 "paired_mode": "single_end",
+                "threads": 4,
                 "damage_mode": "ancient",
                 "execution_policy": "explicit_terminal_trim",
                 "trim_5p_bases": 2_u64,
@@ -1950,7 +1954,9 @@ mod tests {
                 "raw_backend_report": "cutadapt.damage.json",
                 "raw_backend_report_format": "cutadapt_json",
                 "runtime_s": null,
-                "memory_mb": null
+                "memory_mb": null,
+                "used_fallback": false,
+                "backend_metrics": {"reads_profiled_r1": 1}
             })
             .to_string(),
         )
@@ -2004,8 +2010,18 @@ mod tests {
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["threads"],
+            serde_json::json!(4_u64)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["udg_classification"],
             serde_json::json!("non_udg")
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["used_fallback"],
+            serde_json::json!(false)
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]

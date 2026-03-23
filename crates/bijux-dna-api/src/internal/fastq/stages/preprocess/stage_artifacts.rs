@@ -495,6 +495,7 @@ fn emit_fastq_stage_extra_artifacts(
                 "stage": stage_id,
                 "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
                 "damage_mode": governed.as_ref().map(|report| report.damage_mode),
                 "execution_policy": governed.as_ref().map(|report| report.execution_policy),
                 "trim_5p_bases": governed.as_ref().map(|report| report.trim_5p_bases),
@@ -506,6 +507,8 @@ fn emit_fastq_stage_extra_artifacts(
                 "ct_ga_asymmetry_post_r1": governed.as_ref().and_then(|report| report.ct_ga_asymmetry_post_r1),
                 "ct_ga_asymmetry_pre_r2": governed.as_ref().and_then(|report| report.ct_ga_asymmetry_pre_r2),
                 "ct_ga_asymmetry_post_r2": governed.as_ref().and_then(|report| report.ct_ga_asymmetry_post_r2),
+                "used_fallback": governed.as_ref().map(|report| report.used_fallback),
+                "backend_metrics": governed.as_ref().and_then(|report| report.backend_metrics.clone()),
                 "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
                 "report_json": report_path,
@@ -779,6 +782,7 @@ mod stage_artifact_tests {
                 "stage_id": "fastq.trim_terminal_damage",
                 "tool_id": "cutadapt",
                 "paired_mode": "single_end",
+                "threads": 4,
                 "damage_mode": "ancient",
                 "execution_policy": "explicit_terminal_trim",
                 "trim_5p_bases": 2,
@@ -809,7 +813,9 @@ mod stage_artifact_tests {
                 "raw_backend_report": "cutadapt.raw.json",
                 "raw_backend_report_format": "cutadapt_json",
                 "runtime_s": 4.0,
-                "memory_mb": 32.0
+                "memory_mb": 32.0,
+                "used_fallback": false,
+                "backend_metrics": {"reads_profiled_r1": 100}
             }"#,
         )?;
         Ok(())
@@ -867,9 +873,11 @@ mod stage_artifact_tests {
         let extra: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
         assert_eq!(extra["tool"], serde_json::json!("cutadapt"));
+        assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["trim_5p_bases"], serde_json::json!(2));
         assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("cutadapt.raw.json"));
+        assert_eq!(extra["used_fallback"], serde_json::json!(false));
         Ok(())
     }
 }
