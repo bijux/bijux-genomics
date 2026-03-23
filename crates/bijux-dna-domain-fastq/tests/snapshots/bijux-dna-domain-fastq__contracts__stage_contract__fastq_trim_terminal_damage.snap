@@ -52,6 +52,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "fastq.trim_terminal_damage",
   "tool_ids": [
+    "adapterremoval",
     "cutadapt",
     "seqkit"
   ]
