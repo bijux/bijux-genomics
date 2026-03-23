@@ -150,7 +150,7 @@ fn profile_reads_command(
 mod tests {
     use super::plan_stats_with_threads;
     use bijux_dna_core::prelude::{
-        CommandSpecV1, ContainerImageRefV1, ResourceSizingV1, ToolExecutionSpecV1, ToolId,
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
         ToolVersion,
     };
     use std::path::Path;
@@ -158,7 +158,7 @@ mod tests {
     fn seqkit_tool() -> ToolExecutionSpecV1 {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("seqkit_stats"),
-            tool_version: ToolVersion::new("2.8.0"),
+            tool_version: ToolVersion::from("2.8.0"),
             image: ContainerImageRefV1 {
                 image: "bijuxdna/seqkit".to_string(),
                 digest: None,
@@ -175,10 +175,10 @@ mod tests {
                     "{{reads_r2}}".to_string(),
                 ],
             },
-            resources: ResourceSizingV1 {
-                cpu_cores: 1.0,
-                memory_mb: 512,
-                disk_mb: 512,
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
                 threads: 2,
             },
         }
