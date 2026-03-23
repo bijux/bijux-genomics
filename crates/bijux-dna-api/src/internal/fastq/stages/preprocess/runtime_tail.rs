@@ -364,7 +364,9 @@ fn write_fastq_output_contract(
         .map(|path| serde_json::json!({ "path": path }))
         .collect::<Vec<_>>();
     let expected_ecological_outputs = match planned.stage_id.as_str() {
-        "fastq.trim_terminal_damage" => vec!["trimmed_reads"],
+        "fastq.trim_terminal_damage" => {
+            vec!["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
+        }
         "fastq.normalize_primers" => vec!["primer_orientation_report"],
         "fastq.remove_chimeras" => vec!["report_json", "chimera_metrics_json"],
         "fastq.infer_asvs" => vec!["asv_table_tsv", "asv_sequences_fasta", "report_json"],
