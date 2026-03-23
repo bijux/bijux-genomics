@@ -202,6 +202,28 @@ fn trim_polyg_tool_contracts_preserve_native_backend_reports() -> Result<()> {
 }
 
 #[test]
+fn trim_polyg_stage_manifest_lists_all_supported_backends() -> Result<()> {
+    let path = workspace_root()?.join("domain/fastq/stages/trim_polyg_tails.yaml");
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let manifest: serde_json::Value = bijux_dna_infra::formats::parse_yaml(&raw)
+        .with_context(|| format!("parse {}", path.display()))?;
+    let compatible_tools = manifest
+        .get("compatible_tools")
+        .and_then(serde_json::Value::as_array)
+        .context("trim_polyg_tails compatible_tools")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        compatible_tools,
+        vec!["fastp", "bbduk"],
+        "trim_polyg_tails should publish the complete governed backend set"
+    );
+    Ok(())
+}
+
+#[test]
 fn trim_polyg_tool_manifests_declare_polyx_trim_capability() -> Result<()> {
     for tool_id in ["fastp", "bbduk"] {
         let manifest = tool_manifest(tool_id)?;
