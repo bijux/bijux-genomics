@@ -357,6 +357,7 @@ pub fn bench_args_remove_chimeras(
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+        threads: args.threads,
     })
 }
 
@@ -623,6 +624,7 @@ pub fn bench_args_profile_overrepresented(
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out: args.out.clone(),
+        threads: args.threads,
         top_k: args.top_k,
         tools: resolve_bench_tools("fastq.profile_overrepresented_sequences", &args.tools)?,
         explain: args.explain,
@@ -740,10 +742,10 @@ mod tests {
         bench_args_trim_terminal_damage, resolve_stage_tool,
     };
     use crate::commands::cli::parse::{
-        BenchFastqFilterArgs, BenchFastqProfileReadLengthsArgs,
+        BenchFastqFilterArgs, BenchFastqProfileOverrepresentedArgs,
+        BenchFastqProfileReadLengthsArgs, BenchFastqRemoveChimerasArgs,
         BenchFastqRemoveDuplicatesArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
-        BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand, FastqCommand,
-        FastqValidateArgs,
+        BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs,
     };
     use std::path::PathBuf;
 
@@ -890,7 +892,52 @@ mod tests {
         assert_eq!(bench.max_n_count, Some(3));
         assert_eq!(bench.entropy_threshold, Some(18.0));
         assert_eq!(bench.polyx_policy.as_deref(), Some("trim"));
-        assert_eq!(bench.kmer_ref.as_deref(), Some(PathBuf::from("contaminants.fa").as_path()));
+        assert_eq!(
+            bench.kmer_ref.as_deref(),
+            Some(PathBuf::from("contaminants.fa").as_path())
+        );
+    }
+
+    #[test]
+    fn remove_chimeras_bench_args_preserve_thread_override() {
+        let args = BenchFastqRemoveChimerasArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads.fastq.gz"),
+            r2: None,
+            out: PathBuf::from("out"),
+            tools: vec!["vsearch".to_string()],
+            explain: false,
+            threads: Some(6),
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(25),
+        };
+
+        let bench = bench_args_remove_chimeras(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(6));
+    }
+
+    #[test]
+    fn profile_overrepresented_bench_args_preserve_thread_override() {
+        let args = BenchFastqProfileOverrepresentedArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: Some(PathBuf::from("reads_R2.fastq.gz")),
+            out: PathBuf::from("out"),
+            threads: Some(4),
+            top_k: Some(25),
+            tools: vec!["fastqc".to_string()],
+            explain: false,
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(25),
+        };
+
+        let bench = bench_args_profile_overrepresented(&args).expect("bench args");
+        assert_eq!(bench.threads, Some(4));
+        assert_eq!(bench.top_k, Some(25));
     }
 
     #[test]
@@ -939,7 +986,10 @@ mod tests {
 
         let bench = bench_args_trim_terminal_damage(&args).expect("bench args");
         assert_eq!(bench.threads, Some(5));
-        assert_eq!(bench.execution_policy.as_deref(), Some("explicit_terminal_trim"));
+        assert_eq!(
+            bench.execution_policy.as_deref(),
+            Some("explicit_terminal_trim")
+        );
     }
 
     #[test]

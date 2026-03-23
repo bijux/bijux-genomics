@@ -484,6 +484,8 @@ pub struct BenchFastqRemoveChimerasArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    pub threads: Option<u32>,
     #[arg(long, help = "Allow experimental and silver-tier tools")]
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
@@ -521,7 +523,10 @@ pub struct BenchFastqNormalizePrimersArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Primer governance set id (for example: 16S_universal_v1)")]
+    #[arg(
+        long,
+        help = "Primer governance set id (for example: 16S_universal_v1)"
+    )]
     pub primer_set_id: Option<String>,
 }
 
@@ -587,7 +592,10 @@ pub struct BenchFastqNormalizeAbundanceArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Normalization method: relative_abundance | counts_per_million")]
+    #[arg(
+        long,
+        help = "Normalization method: relative_abundance | counts_per_million"
+    )]
     pub method: Option<String>,
 }
 
@@ -661,7 +669,11 @@ pub struct BenchFastqQcPostArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, default_value = "auto", help = "Aggregation backend: auto | multiqc")]
+    #[arg(
+        long,
+        default_value = "auto",
+        help = "Aggregation backend: auto | multiqc"
+    )]
     pub aggregation_engine: Option<String>,
     #[arg(long)]
     pub aggregation_scope: Option<String>,
@@ -938,7 +950,12 @@ pub struct BenchFastqProfileOverrepresentedArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, help = "Maximum number of ranked sequences to retain in governed outputs")]
+    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    pub threads: Option<u32>,
+    #[arg(
+        long,
+        help = "Maximum number of ranked sequences to retain in governed outputs"
+    )]
     pub top_k: Option<u32>,
     #[arg(
         long,
@@ -1015,7 +1032,10 @@ pub struct BenchFastqPreprocessArgs {
     pub force_merge: bool,
     #[arg(long, help = "Enable error correction stage")]
     pub enable_correct: bool,
-    #[arg(long, help = "Expand each preprocess stage into all governed runtime tools")]
+    #[arg(
+        long,
+        help = "Expand each preprocess stage into all governed runtime tools"
+    )]
     pub run_all_governed_tools: bool,
     #[arg(long, help = "Allow planned/out-of-scope stages in planning")]
     pub allow_planned: bool,
