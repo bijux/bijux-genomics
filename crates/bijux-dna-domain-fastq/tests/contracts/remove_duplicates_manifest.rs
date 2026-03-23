@@ -116,3 +116,23 @@ fn clumpify_manifest_advertises_paired_remove_duplicates_outputs() -> Result<()>
     );
     Ok(())
 }
+
+#[test]
+fn remove_duplicates_tool_manifests_do_not_emit_legacy_governed_reports() -> Result<()> {
+    for tool_id in ["fastuniq", "clumpify"] {
+        let manifest = tool_manifest(tool_id)?;
+        let command_template = manifest
+            .get("command_template")
+            .and_then(serde_json::Value::as_array)
+            .context("command_template missing")?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>()
+            .join(" ");
+        assert!(
+            !command_template.contains("bijux.fastq.remove_duplicates.report.v1"),
+            "{tool_id} command template must not advertise obsolete remove_duplicates report.v1 output",
+        );
+    }
+    Ok(())
+}

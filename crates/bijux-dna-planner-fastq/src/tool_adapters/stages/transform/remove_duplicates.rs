@@ -236,7 +236,11 @@ fn deduplicate_command(
             format!("in2='{}' out2='{}'", r2.display(), output_r2.display())
         }
         (None, None) => String::new(),
-        _ => return Err(anyhow!("paired remove-duplicates IO bindings are incomplete")),
+        _ => {
+            return Err(anyhow!(
+                "paired remove-duplicates IO bindings are incomplete"
+            ))
+        }
     };
     let keep_order_args = if tool_id == "clumpify" {
         if options.keep_order {
@@ -465,12 +469,12 @@ mod tests {
                     "fastuniq" => vec![
                         "sh".to_string(),
                         "-lc".to_string(),
-                        "set -euo pipefail\nprintf '%s\\n%s\\n' '{{reads_r1}}' '{{reads_r2}}' > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o '{{dedup_reads_r1}}' -p '{{dedup_reads_r2}}' > '{{out_dir}}/fastuniq.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"fastuniq\"}' > '{{report_json}}'\n".to_string(),
+                        "set -euo pipefail\nprintf '%s\\n%s\\n' '{{reads_r1}}' '{{reads_r2}}' > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o '{{dedup_reads_r1}}' -p '{{dedup_reads_r2}}' > '{{out_dir}}/fastuniq.log' 2>&1\n".to_string(),
                     ],
                     "clumpify" => vec![
                         "sh".to_string(),
                         "-lc".to_string(),
-                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
+                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\n".to_string(),
                     ],
                     _ => vec!["unused".to_string()],
                 },
@@ -514,6 +518,7 @@ mod tests {
         assert!(script.contains("\"tool_id\":\"fastuniq\""));
         assert!(script.contains("bijux.fastq.remove_duplicates.report.v2"));
         assert!(script.contains("bijux.fastq.remove_duplicates.provenance.v2"));
+        assert!(!script.contains("bijux.fastq.remove_duplicates.report.v1"));
         assert!(script.contains("count_fastq_reads"));
         assert!(script.contains("\"reads_in\":%%s"));
         assert_eq!(
@@ -563,6 +568,7 @@ mod tests {
         assert!(script.contains("clumpify.log"));
         assert!(script.contains("\"tool_id\":\"clumpify\""));
         assert!(script.contains("\"raw_backend_report_format\":\"clumpify_log\""));
+        assert!(!script.contains("bijux.fastq.remove_duplicates.report.v1"));
         assert!(script.contains("duplicate_classes.tsv"));
         assert!(script.contains("duplicate_provenance.json"));
         assert!(!script.contains("{{paired_io_args}}"));
@@ -602,7 +608,10 @@ mod tests {
         .expect("clumpify should map keep_order into execution");
 
         assert!(plan.command.template[2].contains("reorder=f"));
-        assert_eq!(plan.effective_params["keep_order"], serde_json::json!(false));
+        assert_eq!(
+            plan.effective_params["keep_order"],
+            serde_json::json!(false)
+        );
     }
 
     #[test]

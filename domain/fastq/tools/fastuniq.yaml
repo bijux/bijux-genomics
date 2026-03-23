@@ -10,7 +10,7 @@ container:
 command_template:
   - "sh"
   - "-lc"
-  - "set -euo pipefail\nprintf '%s\\n%s\\n' '{{reads_r1}}' '{{reads_r2}}' > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o '{{dedup_reads_r1}}' -p '{{dedup_reads_r2}}' > '{{out_dir}}/fastuniq.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"fastuniq\"}' > '{{report_json}}'\n"
+  - "set -euo pipefail\nprintf '%s\\n%s\\n' '{{reads_r1}}' '{{reads_r2}}' > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o '{{dedup_reads_r1}}' -p '{{dedup_reads_r2}}' > '{{out_dir}}/fastuniq.log' 2>&1\n"
 outputs:
   - name: "dedup_reads_r1"
     data_type: "fastq"
