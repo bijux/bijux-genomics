@@ -11,6 +11,7 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_EXTRACT_UMIS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 const DEFAULT_UMI_PATTERN: &str = "NNNNNNNN";
+pub type ExtractUmisPlanOptions = crate::ExtractUmisStageParams;
 
 pub fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
@@ -28,19 +29,36 @@ pub fn plan_umi(
     out_dir: &Path,
     umi_pattern: Option<&str>,
 ) -> Result<StagePlanV1> {
+    let options = ExtractUmisPlanOptions {
+        threads: None,
+        umi_pattern: umi_pattern.map(ToOwned::to_owned),
+    };
+    plan_umi_with_options(tool, r1, r2, out_dir, &options)
+}
+
+pub fn plan_umi_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: &Path,
+    out_dir: &Path,
+    options: &ExtractUmisPlanOptions,
+) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_umi_tool_list(std::slice::from_ref(&tool_id))?;
     let output_r1 = out_dir.join("umi_tools.r1.fastq.gz");
     let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
     let report_json = out_dir.join("umi_report.json");
     let raw_backend_report = out_dir.join("umi_tools.extract.log");
-    let umi_pattern = umi_pattern.unwrap_or(DEFAULT_UMI_PATTERN);
+    let umi_pattern = options.umi_pattern.as_deref().unwrap_or(DEFAULT_UMI_PATTERN);
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = FastqUmiParams {
         schema_version: UMI_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
-        threads: tool.resources.threads,
+        threads: effective_threads,
         umi_pattern: Some(umi_pattern.to_string()),
     };
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -68,7 +86,7 @@ pub fn plan_umi(
                 ],
             )?,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs: vec![
                 ArtifactRef::required(
@@ -111,6 +129,7 @@ pub fn plan_umi(
             "report_json": report_json,
             "raw_backend_report": raw_backend_report,
             "raw_backend_report_format": "umi_tools_log",
+            "threads": effective_threads,
             "umi_pattern": umi_pattern
         }),
         effective_params: serde_json::to_value(&effective_params)
@@ -123,7 +142,9 @@ pub fn plan_umi(
 #[cfg(test)]
 mod tests {
     use super::plan_umi;
-    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId};
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    };
     use std::path::Path;
 
     fn tool() -> ToolExecutionSpecV1 {
@@ -171,9 +192,21 @@ mod tests {
             Some("NNNNCCCC"),
         )
         .expect("plan");
-        assert!(plan.command.template.iter().any(|token| token == "reads_R1.fastq.gz"));
-        assert!(plan.command.template.iter().any(|token| token == "out/umi_tools.extract.log"));
-        assert!(plan.command.template.iter().any(|token| token == "NNNNCCCC"));
+        assert!(plan
+            .command
+            .template
+            .iter()
+            .any(|token| token == "reads_R1.fastq.gz"));
+        assert!(plan
+            .command
+            .template
+            .iter()
+            .any(|token| token == "out/umi_tools.extract.log"));
+        assert!(plan
+            .command
+            .template
+            .iter()
+            .any(|token| token == "NNNNCCCC"));
     }
 }
 

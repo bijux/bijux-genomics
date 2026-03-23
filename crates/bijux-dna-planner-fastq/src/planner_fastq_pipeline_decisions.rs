@@ -74,6 +74,7 @@ pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
     FilterReads(FilterReadsStageParams),
     FilterLowComplexity(FilterLowComplexityStageParams),
+    ExtractUmis(ExtractUmisStageParams),
     ProfileReadLengths(bijux_dna_domain_fastq::FastqReadLengthProfileParams),
     ProfileOverrepresented(bijux_dna_domain_fastq::FastqOverrepresentedProfileParams),
     ProfileReads(bijux_dna_domain_fastq::params::stats::FastqStatsParams),
@@ -136,6 +137,21 @@ impl Default for FilterLowComplexityStageParams {
         Self {
             entropy_threshold: None,
             polyx_threshold: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExtractUmisStageParams {
+    pub threads: Option<u32>,
+    pub umi_pattern: Option<String>,
+}
+
+impl Default for ExtractUmisStageParams {
+    fn default() -> Self {
+        Self {
+            threads: None,
+            umi_pattern: None,
         }
     }
 }
