@@ -153,12 +153,7 @@ fn report_qc_exposes_stage_family_comparison_contract() {
     );
     assert_eq!(
         contract.comparison_input_artifact_ids,
-        &[
-            "report_json",
-            "governed_qc_inputs_manifest",
-            "multiqc_report",
-            "multiqc_data",
-        ]
+        &["report_json", "governed_qc_inputs_manifest",]
     );
 }
 
