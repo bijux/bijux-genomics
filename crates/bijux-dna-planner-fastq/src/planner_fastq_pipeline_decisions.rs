@@ -4,8 +4,7 @@ fn apply_layout_branching(mut stages: Vec<String>, paired: bool) -> Vec<String> 
     }
     // Single-end runs must not schedule paired-only stages.
     stages.retain(|stage| {
-        stage != STAGE_MERGE_PAIRS.as_str()
-            && stage != STAGE_EXTRACT_UMIS.as_str()
+        stage != STAGE_MERGE_PAIRS.as_str() && stage != STAGE_EXTRACT_UMIS.as_str()
     });
     stages
 }
@@ -76,7 +75,10 @@ pub enum FastqStageParameters {
     ProfileReadLengths(bijux_dna_domain_fastq::FastqReadLengthProfileParams),
     ProfileOverrepresented(bijux_dna_domain_fastq::FastqOverrepresentedProfileParams),
     ProfileReads(bijux_dna_domain_fastq::params::stats::FastqStatsParams),
-    RemoveDuplicates(bijux_dna_domain_fastq::params::remove_duplicates::RemoveDuplicatesEffectiveParams),
+    RemoveDuplicates(
+        bijux_dna_domain_fastq::params::remove_duplicates::RemoveDuplicatesEffectiveParams,
+    ),
+    RemoveChimeras(bijux_dna_domain_fastq::params::edna::ChimeraDetectionEffectiveParams),
     ReportQc(bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams),
     Trim(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
     TrimPolygTails(bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams),
