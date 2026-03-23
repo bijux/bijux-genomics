@@ -209,6 +209,7 @@ fn trim_polyg_tails_params_roundtrip_with_stage_specific_schema() {
     let params = trim_polyg_tails_defaults(true);
     let decoded: TrimPolygTailsParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, TRIM_POLYG_TAILS_SCHEMA_VERSION);
+    assert_eq!(decoded.threads, 4);
     assert!(decoded.trim_polyg);
     assert_eq!(decoded.min_polyg_run, 10);
     assert!(decoded.missing_required_fields().is_empty());
