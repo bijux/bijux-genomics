@@ -911,6 +911,10 @@ pub struct BenchFastqDepleteRrnaArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub threads: Option<u32>,
+    #[arg(long, help = "Override the governed rRNA reference selector")]
+    pub rrna_db: Option<String>,
+    #[arg(long, help = "Override the governed minimum identity threshold")]
+    pub min_identity: Option<f64>,
     #[arg(
         long,
         value_delimiter = ',',

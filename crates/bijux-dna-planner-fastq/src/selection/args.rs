@@ -383,6 +383,8 @@ pub struct BenchFastqDepleteRrnaArgs {
     pub r2: Option<PathBuf>,
     pub out: PathBuf,
     pub threads: Option<u32>,
+    pub rrna_db: Option<String>,
+    pub min_identity: Option<f64>,
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
