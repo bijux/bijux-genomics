@@ -27,17 +27,18 @@ use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
-    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, ExtractUmisStageParams,
-    FastqStageBinding, FastqStageParameters,
-    FilterLowComplexityStageParams, FilterReadsStageParams, IndexReferenceStageParams,
-    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
-    NormalizePrimersStageParams, TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
-    STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
-    STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS,
-    STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS,
-    STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS,
-    STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
-    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
+    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
+    DetectAdaptersStageParams, ExtractUmisStageParams, FastqStageBinding,
+    FastqStageParameters, FilterLowComplexityStageParams, FilterReadsStageParams,
+    IndexReferenceStageParams, InferAsvsStageParams, MergePairsStageParams,
+    NormalizeAbundanceStageParams, NormalizePrimersStageParams, TrimTerminalDamageStageParams,
+    STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
+    STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
+    STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
+    STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
+    STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC,
+    STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
+    STAGE_VALIDATE_READS,
 };
 
 #[derive(Debug, Clone)]
@@ -162,11 +163,12 @@ where
         let tool = &binding.tool;
         let (plan, next_r1, next_r2, next_feature_table) = match stage_id {
             stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
-                let plan = crate::tool_adapters::fastq::detect_adapters::plan(
+                let plan = crate::tool_adapters::fastq::detect_adapters::plan_with_options(
                     tool,
                     &stage_r1,
                     stage_r2.as_deref(),
                     &out_dir,
+                    &detect_adapters_params(binding),
                 )?;
                 (
                     plan,
@@ -1300,6 +1302,13 @@ fn extract_umis_params(binding: &FastqStageBinding) -> ExtractUmisStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::ExtractUmis(params)) => params.clone(),
         _ => ExtractUmisStageParams::default(),
+    }
+}
+
+fn detect_adapters_params(binding: &FastqStageBinding) -> DetectAdaptersStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::DetectAdapters(params)) => params.clone(),
+        _ => DetectAdaptersStageParams::default(),
     }
 }
 

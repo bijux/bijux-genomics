@@ -16,6 +16,7 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_DETECT_ADAPTERS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
+pub type DetectAdaptersPlanOptions = crate::DetectAdaptersStageParams;
 
 pub fn plan(
     tool: &ToolExecutionSpecV1,
@@ -23,8 +24,19 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    plan_with_options(tool, r1, r2, out_dir, &DetectAdaptersPlanOptions::default())
+}
+
+pub fn plan_with_options(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    options: &DetectAdaptersPlanOptions,
+) -> Result<StagePlanV1> {
     let report = out_dir.join("adapter_report.json");
     let adapter_evidence_dir = out_dir.join("fastqc");
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = DetectAdaptersEffectiveParams {
         schema_version: DETECT_ADAPTERS_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
@@ -32,7 +44,7 @@ pub fn plan(
         } else {
             PairedMode::SingleEnd
         },
-        threads: tool.resources.threads,
+        threads: effective_threads,
         sample_reads: None,
         inspection_mode: AdapterInspectionMode::EvidenceOnly,
         report_only: true,
@@ -46,8 +58,10 @@ pub fn plan(
         r1,
         r2,
         &adapter_evidence_dir,
-        tool.resources.threads,
+        effective_threads,
     )?;
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -73,7 +87,7 @@ pub fn plan(
         command: bijux_dna_core::prelude::CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs,
             outputs: vec![
@@ -100,7 +114,7 @@ pub fn plan(
             "input_r1": r1,
             "input_r2": r2,
             "out_dir": out_dir,
-            "threads": tool.resources.threads,
+            "threads": effective_threads,
             "report_json": report,
             "adapter_evidence_dir": adapter_evidence_dir,
             "sample_reads": effective_params.sample_reads,
@@ -151,7 +165,10 @@ mod tests {
             .iter()
             .any(|artifact| artifact.name.as_str() == "report_json"));
         assert_eq!(plan.effective_params["evidence_scope"], "full_input");
-        assert_eq!(plan.effective_params["sample_reads"], serde_json::Value::Null);
+        assert_eq!(
+            plan.effective_params["sample_reads"],
+            serde_json::Value::Null
+        );
         assert_eq!(plan.effective_params["evidence_artifact_id"], "report_json");
         Ok(())
     }
