@@ -83,6 +83,7 @@ pub enum FastqStageParameters {
     Trim(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
     TrimPolygTails(bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams),
     MergePairs(MergePairsStageParams),
+    NormalizeAbundance(NormalizeAbundanceStageParams),
     Screen(bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams),
     IndexReference(IndexReferenceStageParams),
     InferAsvs(InferAsvsStageParams),
@@ -109,6 +110,19 @@ impl Default for MergePairsStageParams {
             min_len: None,
             unmerged_read_policy:
                 bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy::EmitUnmergedPairs,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NormalizeAbundanceStageParams {
+    pub method: String,
+}
+
+impl Default for NormalizeAbundanceStageParams {
+    fn default() -> Self {
+        Self {
+            method: "relative_abundance".to_string(),
         }
     }
 }
