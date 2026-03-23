@@ -593,6 +593,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_atropos() -> Result<()> {
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
     assert!(script.contains("'atropos' 'trim'"));
+    assert!(script.contains("'-T' '1'"));
     assert!(script.contains("'-q' '18'"));
     assert!(script.contains("'-m' '42'"));
     assert!(script.contains("'-pe1' 'reads_R1.fastq.gz'"));
@@ -781,6 +782,7 @@ fn plan_trim_cutadapt_preserves_native_json_beside_governed_report() -> Result<(
     )?;
 
     let script = &plan.command.template[2];
+    assert!(script.contains("'cutadapt' '--cores' '1'"));
     assert!(script.contains("'--json' 'out/trim_report.cutadapt.json'"));
     assert!(script.contains("\"raw_backend_report_format\":\"cutadapt_json\""));
     assert!(script.contains("\"raw_backend_report\":\"out/trim_report.cutadapt.json\""));
