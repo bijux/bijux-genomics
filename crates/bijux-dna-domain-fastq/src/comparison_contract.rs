@@ -31,7 +31,13 @@ fn comparison_input_artifact_ids_for_manifest_stage(stage_id: &str) -> Vec<Strin
     let mut artifact_ids = stage_output_ids_in_manifest_order(stage_id)
         .unwrap_or_default()
         .into_iter()
-        .filter(|artifact_id| !artifact_id.starts_with("raw_backend_report"))
+        .filter(|artifact_id| {
+            !artifact_id.starts_with("raw_backend_report")
+                && !matches!(
+                    (stage_id, artifact_id.as_str()),
+                    ("fastq.report_qc", "multiqc_report" | "multiqc_data")
+                )
+        })
         .collect::<Vec<_>>();
     prioritize_provenance_artifact(stage_id, &mut artifact_ids);
     artifact_ids

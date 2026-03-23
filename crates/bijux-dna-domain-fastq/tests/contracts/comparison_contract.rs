@@ -266,8 +266,6 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         vec![
             "report_json".to_string(),
             "governed_qc_inputs_manifest".to_string(),
-            "multiqc_report".to_string(),
-            "multiqc_data".to_string(),
         ]
     );
 }
