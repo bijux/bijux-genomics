@@ -14,6 +14,7 @@ use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
+use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
@@ -96,6 +97,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
+        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan_with_options(
             &tool_spec,
             &args.r1,
