@@ -385,6 +385,9 @@ fn plan_trim_fastp_preserves_native_json_beside_governed_report() -> Result<()> 
     assert!(plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.trim_reads.report.v2\""));
     assert!(plan.command.template[2].contains("\"raw_backend_report_format\":\"fastp_json\""));
     assert!(plan.command.template[2].contains("\"raw_backend_report\":\"out/trim_report.fastp.json\""));
+    assert!(plan.command.template[2].contains("\"polyx_policy\":\"none\""));
+    assert!(plan.command.template[2].contains("\"n_policy\":\"retain\""));
+    assert!(plan.command.template[2].contains("\"contaminant_policy\":\"none\""));
     Ok(())
 }
 
