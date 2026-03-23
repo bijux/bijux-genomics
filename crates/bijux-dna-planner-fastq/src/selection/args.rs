@@ -321,6 +321,7 @@ pub struct BenchFastqUmiArgs {
     pub r2: PathBuf,
     pub out: PathBuf,
     pub umi_pattern: String,
+    pub threads: Option<u32>,
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,

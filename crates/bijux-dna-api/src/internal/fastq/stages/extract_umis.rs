@@ -8,14 +8,12 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqUmiMetri
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
-use bijux_dna_domain_fastq::{
-    ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION, PairedMode,
-};
+use bijux_dna_domain_fastq::{ExtractUmisReportV1, PairedMode, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_umi_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::fastq::extract_umis::plan_umi;
+use bijux_dna_planner_fastq::stage_api::fastq::extract_umis::plan_umi_with_options;
 use bijux_dna_planner_fastq::stage_api::{
     ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,
     RawFailure,
@@ -33,6 +31,17 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_EXTRACT_UMIS,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
+
+fn apply_thread_override(
+    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
+    threads: Option<u32>,
+) -> bijux_dna_core::prelude::ToolExecutionSpecV1 {
+    let mut spec = tool_spec.clone();
+    if let Some(threads) = threads {
+        spec.resources.threads = threads.max(1);
+    }
+    spec
+}
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -99,8 +108,18 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             catalog,
             platform,
         )?;
+        let tool_spec = apply_thread_override(&tool_spec, args.threads);
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_umi(&tool_spec, &args.r1, r2, &out_dir, Some(&args.umi_pattern))?;
+        let plan = plan_umi_with_options(
+            &tool_spec,
+            &args.r1,
+            r2,
+            &out_dir,
+            &bijux_dna_planner_fastq::ExtractUmisStageParams {
+                threads: args.threads,
+                umi_pattern: Some(args.umi_pattern.clone()),
+            },
+        )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
