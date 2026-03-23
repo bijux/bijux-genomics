@@ -760,6 +760,7 @@ fn plan_trim_with_bank_contaminant_policy_maps_bbduk_reference_filter() -> Resul
     let script = &plan.command.template[2];
     assert!(script.contains("bbduk_contaminants.fa"));
     assert!(script.contains("trim_report.bbduk.stats.txt"));
+    assert!(script.contains("threads=1"));
     assert!(script.contains(">phix-motif"));
     assert!(script.contains(">phix-ref"));
     assert!(script.contains("ref=out/bbduk_contaminants.fa"));

@@ -1011,6 +1011,7 @@ fn bbduk_trim_command_template(
         format!("in={}", r1.display()),
         format!("out={}", output_r1.display()),
         format!("stats={}", raw_backend_report.display()),
+        format!("threads={}", threads.max(1)),
     ];
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.push(format!("in2={}", r2.display()));
