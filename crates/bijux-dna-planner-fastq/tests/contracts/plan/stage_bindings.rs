@@ -17,7 +17,7 @@ use bijux_dna_domain_fastq::params::validate::{
     PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::DamageMode;
-use bijux_dna_domain_fastq::FastqReadLengthProfileParams;
+use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthProfileParams};
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
     DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
@@ -751,6 +751,57 @@ fn planner_uses_typed_screen_params_from_stage_binding() -> anyhow::Result<()> {
     assert!(step.command.template[2].contains("\"database_artifact_id\":\"kraken2_pluspf\""));
     assert!(step.command.template[2].contains("\"minimum_confidence\":0.15"));
     assert!(step.command.template[2].contains("\"emit_unclassified\":false"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_profile_overrepresented_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-profile-overrepresented-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&r2, b"@r1\nTTTT\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__profile_overrepresented_sequences__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.profile_overrepresented_sequences".to_string(),
+            stage_instance_id: Some("fastq.profile_overrepresented_sequences.custom".to_string()),
+            tool: tool("fastqc"),
+            reason: None,
+            params: Some(FastqStageParameters::ProfileOverrepresented(
+                FastqOverrepresentedProfileParams {
+                    schema_version: "bijux.fastq.params.overrepresented_profile.v1".to_string(),
+                    paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
+                    threads: 6,
+                    top_k: 25,
+                },
+            )),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(
+        step.step_id.as_str(),
+        "fastq.profile_overrepresented_sequences.custom"
+    );
+    assert_eq!(step.resources.threads, 6);
+    assert!(step.command.template.iter().any(|part| part == "--threads"));
+    assert!(step.command.template.iter().any(|part| part == "6"));
     Ok(())
 }
 

@@ -97,6 +97,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
+            None,
             args.top_k,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
