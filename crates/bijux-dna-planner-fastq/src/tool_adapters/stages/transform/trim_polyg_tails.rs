@@ -225,6 +225,7 @@ fn trim_polyg_command(
                 report,
                 raw_backend_report,
                 raw_backend_report_format,
+                threads,
                 trim_polyg,
                 min_polyg_run,
             ))
@@ -254,6 +255,7 @@ fn trim_polyg_command(
                 report,
                 raw_backend_report,
                 raw_backend_report_format,
+                threads,
                 trim_polyg,
                 min_polyg_run,
             ))
@@ -290,6 +292,7 @@ fn wrap_polyg_command_with_report(
     report: &Path,
     raw_report: &Path,
     raw_report_format: &str,
+    threads: u32,
     trim_polyg: bool,
     min_polyg_run: u32,
 ) -> Vec<String> {
