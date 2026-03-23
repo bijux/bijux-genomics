@@ -31,7 +31,7 @@ fn comparison_input_artifact_ids_for_manifest_stage(stage_id: &str) -> Vec<Strin
     let mut artifact_ids = stage_output_ids_in_manifest_order(stage_id)
         .unwrap_or_default()
         .into_iter()
-        .filter(|artifact_id| artifact_id != "raw_backend_report_json")
+        .filter(|artifact_id| !artifact_id.starts_with("raw_backend_report"))
         .collect::<Vec<_>>();
     prioritize_provenance_artifact(stage_id, &mut artifact_ids);
     artifact_ids
@@ -202,6 +202,20 @@ mod tests {
             vec![
                 "classification_report_json".to_string(),
                 "screen_report_tsv".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn trim_polyg_comparison_inputs_exclude_backend_native_reports() {
+        let artifact_ids =
+            comparison_input_artifact_ids_for_stage(&StageId::from_static("fastq.trim_polyg_tails"));
+        assert_eq!(
+            artifact_ids,
+            vec![
+                "trimmed_reads_r1".to_string(),
+                "trimmed_reads_r2".to_string(),
+                "report_json".to_string(),
             ]
         );
     }
