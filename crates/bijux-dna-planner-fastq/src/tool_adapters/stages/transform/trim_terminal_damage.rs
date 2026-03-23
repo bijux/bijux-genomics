@@ -22,6 +22,7 @@ pub type TrimTerminalDamagePlanOptions = crate::TrimTerminalDamageStageParams;
 
 fn output_name(tool_id: &str) -> Option<&'static str> {
     match tool_id {
+        "adapterremoval" => Some("trim_terminal_damage.adapterremoval.fastq.gz"),
         "cutadapt" => Some("trim_terminal_damage.cutadapt.fastq.gz"),
         "seqkit" => Some("trim_terminal_damage.seqkit.fastq.gz"),
         _ => None,
@@ -216,9 +217,31 @@ fn trim_terminal_damage_command(
         requested_trim_3p_bases,
     )?;
     match tool_id {
+        "adapterremoval" => {
+            let mut script = format!(
+                "set -euo pipefail\nAdapterRemoval --threads {threads} --trim5p {trim_5p_bases} --trim3p {trim_3p_bases} --file1 {} --output1 {}",
+                shell_quote_path(r1),
+                shell_quote_path(output_r1),
+            );
+            if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+                script.push_str(&format!(
+                    " --file2 {} --output2 {}",
+                    shell_quote_path(r2),
+                    shell_quote_path(output_r2),
+                ));
+            }
+            script.push('\n');
+            script.push_str(&format!(
+                "printf '%s\\n' {} > {}\n",
+                shell_quote_str(&governed_report),
+                shell_quote_path(report),
+            ));
+            Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+        }
         "cutadapt" => {
-            let raw_backend_report = raw_backend_report
-                .ok_or_else(|| anyhow!("cutadapt terminal-damage planning requires raw backend report path"))?;
+            let raw_backend_report = raw_backend_report.ok_or_else(|| {
+                anyhow!("cutadapt terminal-damage planning requires raw backend report path")
+            })?;
             let mut script = format!("set -euo pipefail\ncutadapt --cores {threads}");
             if trim_5p_bases > 0 {
                 script.push_str(&format!(" -u {}", trim_5p_bases));
@@ -370,8 +393,8 @@ mod tests {
         TrimTerminalDamagePlanOptions,
     };
     use anyhow::Result;
-    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolId};
     use bijux_dna_core::prelude::ToolExecutionSpecV1;
+    use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolId};
     use bijux_dna_domain_fastq::params::DamageMode;
 
     fn dummy_tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -419,9 +442,40 @@ mod tests {
         assert!(script.contains("cutadapt --cores 1 -u 2 -u -1"));
         assert!(script.contains("out/trim_terminal_damage.cutadapt.raw.json"));
         assert!(script.contains("out/trim_terminal_damage_report.json"));
-        assert!(script.contains("\"schema_version\":\"bijux.fastq.trim_terminal_damage.report.v2\""));
+        assert!(
+            script.contains("\"schema_version\":\"bijux.fastq.trim_terminal_damage.report.v2\"")
+        );
         assert!(script.contains("\"raw_backend_report_format\":\"cutadapt_json\""));
         assert!(script.contains("\"udg_classification\":\"non_udg\""));
+        Ok(())
+    }
+
+    #[test]
+    fn adapterremoval_terminal_damage_plan_emits_governed_report_contract() -> Result<()> {
+        let plan = plan_trim_terminal_damage_with_options(
+            &dummy_tool("adapterremoval"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+            &TrimTerminalDamagePlanOptions {
+                threads: Some(3),
+                damage_mode: DamageMode::Ancient,
+                execution_policy: None,
+                trim_5p_bases: 2,
+                trim_3p_bases: 1,
+            },
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(!plan
+            .io
+            .outputs
+            .iter()
+            .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"));
+        assert!(script.contains("AdapterRemoval --threads 3 --trim5p 2 --trim3p 1"));
+        assert!(script.contains("--file2 'reads_R2.fastq.gz' --output2 'out/R2.trim_terminal_damage.adapterremoval.fastq.gz'"));
+        assert!(script.contains("\"tool_id\":\"adapterremoval\""));
+        assert!(script.contains("\"raw_backend_report_format\":null"));
         Ok(())
     }
 
