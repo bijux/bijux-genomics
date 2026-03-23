@@ -275,7 +275,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .map(|tool_id| tool_id.as_str())
             .collect::<Vec<_>>(),
-        vec!["cutadapt", "seqkit"]
+        vec!["adapterremoval", "cutadapt", "seqkit"]
     );
     assert_eq!(
         terminal_damage_cohorts[0]
@@ -283,7 +283,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .map(|tool_id| tool_id.as_str())
             .collect::<Vec<_>>(),
-        vec!["cutadapt", "seqkit"]
+        vec!["adapterremoval", "cutadapt", "seqkit"]
     );
 
     let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
