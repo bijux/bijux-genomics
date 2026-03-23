@@ -9,7 +9,9 @@ use bijux_dna_domain_fastq::params::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
+use bijux_dna_domain_fastq::params::trim::{
+    TrimEffectiveParams, TrimPolygTailsParams, TRIM_POLYG_TAILS_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::validate::{
     PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
 };
@@ -719,6 +721,52 @@ fn planner_uses_typed_trim_params_from_stage_binding() -> anyhow::Result<()> {
     assert!(step.command.template[2].contains("\"quality_cutoff\":20"));
     assert!(step.command.template[2].contains("\"polyx_policy\":\"trim\""));
     assert!(step.command.template[2].contains("\"n_policy\":\"drop\""));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_trim_polyg_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-trim-polyg-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__trim_polyg_tails__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.trim_polyg_tails".to_string(),
+            stage_instance_id: Some("fastq.trim_polyg_tails.custom".to_string()),
+            tool: tool("fastp"),
+            reason: None,
+            params: Some(FastqStageParameters::TrimPolygTails(TrimPolygTailsParams {
+                schema_version: TRIM_POLYG_TAILS_SCHEMA_VERSION.to_string(),
+                paired_mode: bijux_dna_domain_fastq::params::PairedMode::SingleEnd,
+                threads: 6,
+                trim_polyg: false,
+                min_polyg_run: 14,
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.trim_polyg_tails.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert!(!step.command.template[2].contains("--trim_poly_g"));
+    assert!(step.command.template[2].contains("\"trim_polyg\":false"));
+    assert!(step.command.template[2].contains("\"min_polyg_run\":14"));
     Ok(())
 }
 
