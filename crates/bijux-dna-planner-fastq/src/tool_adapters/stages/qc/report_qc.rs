@@ -292,11 +292,13 @@ fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContribu
         left.contributor_id
             .cmp(&right.contributor_id)
             .then_with(|| left.artifact_id.cmp(&right.artifact_id))
+            .then_with(|| left.artifact_role.as_str().cmp(right.artifact_role.as_str()))
             .then_with(|| left.path.cmp(&right.path))
     });
     contributors.dedup_by(|left, right| {
         left.contributor_id == right.contributor_id
             && left.artifact_id == right.artifact_id
+            && left.artifact_role == right.artifact_role
             && left.path == right.path
     });
     contributors
