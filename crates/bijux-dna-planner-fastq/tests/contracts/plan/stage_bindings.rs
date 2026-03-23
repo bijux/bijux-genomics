@@ -30,9 +30,8 @@ use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthP
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
     DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
-    FastqStageToolsetBinding, IndexReferenceStageParams, InferAsvsStageParams,
-    MergePairsStageParams,
-    NormalizeAbundanceStageParams,
+    FastqStageToolsetBinding, FilterReadsStageParams, IndexReferenceStageParams,
+    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
     NormalizePrimersStageParams, TrimTerminalDamageStageParams,
 };
 
@@ -2129,6 +2128,67 @@ fn planner_rejects_selection_rejoin_without_artifact_bindings() -> anyhow::Resul
     assert!(error
         .to_string()
         .contains("requires artifact-bound outgoing rejoin edges"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_filter_reads_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-filter-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__filter_reads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.filter_reads".to_string(),
+            stage_instance_id: Some("fastq.filter_reads.custom".to_string()),
+            tool: tool_with_threads("fastp", 4),
+            reason: None,
+            params: Some(FastqStageParameters::FilterReads(FilterReadsStageParams {
+                threads: Some(7),
+                max_n: None,
+                max_n_fraction: None,
+                max_n_count: Some(2),
+                low_complexity_threshold: None,
+                entropy_threshold: Some(0.25),
+                kmer_ref: None,
+                polyx_policy: None,
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.filter_reads.custom");
+    assert_eq!(step.resources.threads, 7);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--thread", "7"]));
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--n_base_limit", "2"]));
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--complexity_threshold", "0.25"]));
     Ok(())
 }
 

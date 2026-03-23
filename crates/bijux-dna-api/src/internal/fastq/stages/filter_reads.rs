@@ -1,5 +1,14 @@
 use std::collections::HashMap;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::fastq::stages::trim_bench_common::{
+    build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
+};
+use crate::internal::handlers::fastq::jobs::bench_jobs;
+use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
+use crate::internal::handlers::fastq::{
+    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_FILTER_READS,
+};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
@@ -9,6 +18,7 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_domain_fastq::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_filter_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::filter_reads::{plan_filter, FilterPlanOptions};
 use bijux_dna_planner_fastq::stage_api::{
@@ -16,16 +26,6 @@ use bijux_dna_planner_fastq::stage_api::{
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
-use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
-};
-use crate::internal::fastq::stages::record_identity::stable_params_hash;
-use crate::internal::handlers::fastq::jobs::bench_jobs;
-use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
-use crate::internal::handlers::fastq::{
-    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_FILTER_READS,
-};
-use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
 fn apply_thread_override(
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
@@ -113,6 +113,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let filter_options = FilterPlanOptions {
+        threads: args.threads,
         max_n: args.max_n,
         max_n_fraction: args.max_n_fraction,
         max_n_count: args.max_n_count,
@@ -296,9 +297,17 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         output_r1: output_reads.display().to_string(),
         output_r2: output_reads_r2.map(|path| path.display().to_string()),
         report_json: report_path.display().to_string(),
-        max_n: params.get("max_n").and_then(serde_json::Value::as_u64).and_then(|v| u32::try_from(v).ok()),
-        max_n_fraction: params.get("max_n_fraction").and_then(serde_json::Value::as_f64),
-        max_n_count: params.get("max_n_count").and_then(serde_json::Value::as_u64).and_then(|v| u32::try_from(v).ok()),
+        max_n: params
+            .get("max_n")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|v| u32::try_from(v).ok()),
+        max_n_fraction: params
+            .get("max_n_fraction")
+            .and_then(serde_json::Value::as_f64),
+        max_n_count: params
+            .get("max_n_count")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|v| u32::try_from(v).ok()),
         low_complexity_threshold: params
             .get("low_complexity_threshold")
             .and_then(serde_json::Value::as_f64),
@@ -357,8 +366,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    bijux_dna_infra::atomic_write_json(&report_path, &report)
-        .context("write filter report")?;
+    bijux_dna_infra::atomic_write_json(&report_path, &report).context("write filter report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write filter metrics")?;

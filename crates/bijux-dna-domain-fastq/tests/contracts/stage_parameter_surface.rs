@@ -97,6 +97,25 @@ fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
 }
 
 #[test]
+fn filter_reads_manifest_exposes_only_supported_governed_controls() -> Result<()> {
+    assert_eq!(
+        stage_parameter_names("filter_reads")?,
+        vec![
+            "threads",
+            "max_n",
+            "max_n_fraction",
+            "max_n_count",
+            "low_complexity_threshold",
+            "entropy_threshold",
+            "kmer_ref",
+            "polyx_policy",
+        ],
+        "fastq.filter_reads must expose only the governed filter controls that stage planning and benchmarking actually honor"
+    );
+    Ok(())
+}
+
+#[test]
 fn report_qc_manifest_avoids_unmapped_runtime_knobs() -> Result<()> {
     assert_eq!(
         stage_parameter_names("report_qc")?,
