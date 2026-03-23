@@ -28,6 +28,7 @@ use bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 const STAGE_ID: &str = "fastq.remove_duplicates";
+const DEDUP_RATE_EPSILON: f64 = 1e-9;
 
 #[derive(Debug, Clone, PartialEq)]
 struct DuplicateReportCounts {
@@ -326,11 +327,89 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
     } else {
         duplicate_reads as f64 / reads_in as f64
     };
+    if !report.dedup_rate.is_finite() || !(0.0..=1.0).contains(&report.dedup_rate) {
+        return Err(anyhow!(
+            "governed remove-duplicates report {} is inconsistent: dedup_rate={} must be within [0, 1]",
+            report_path.display(),
+            report.dedup_rate,
+        ));
+    }
+    if (report.dedup_rate - dedup_rate).abs() > DEDUP_RATE_EPSILON {
+        return Err(anyhow!(
+            "governed remove-duplicates report {} is inconsistent: dedup_rate={} but reads_removed/reads_in={dedup_rate}",
+            report_path.display(),
+            report.dedup_rate,
+        ));
+    }
+    if let Some(reads_in_r2) = report.reads_in_r2 {
+        if reads_in_r2 != reads_in {
+            return Err(anyhow!(
+                "governed remove-duplicates report {} is inconsistent: reads_in_r2={} but reads_in={reads_in}",
+                report_path.display(),
+                reads_in_r2,
+            ));
+        }
+    }
+    if let Some(reads_out_r2) = report.reads_out_r2 {
+        if reads_out_r2 != reads_out {
+            return Err(anyhow!(
+                "governed remove-duplicates report {} is inconsistent: reads_out_r2={} but reads_out={reads_out}",
+                report_path.display(),
+                reads_out_r2,
+            ));
+        }
+    }
+    if let Some(pairs_in) = report.pairs_in {
+        if pairs_in != reads_in {
+            return Err(anyhow!(
+                "governed remove-duplicates report {} is inconsistent: pairs_in={} but reads_in={reads_in}",
+                report_path.display(),
+                pairs_in,
+            ));
+        }
+    }
+    if let Some(pairs_out) = report.pairs_out {
+        if pairs_out != reads_out {
+            return Err(anyhow!(
+                "governed remove-duplicates report {} is inconsistent: pairs_out={} but reads_out={reads_out}",
+                report_path.display(),
+                pairs_out,
+            ));
+        }
+    }
+    if report.pairs_in.is_some() || report.pairs_out.is_some() {
+        if report.pair_count_match != Some(true) {
+            return Err(anyhow!(
+                "governed remove-duplicates report {} is inconsistent: paired reports must set pair_count_match=true",
+                report_path.display(),
+            ));
+        }
+    }
+    let classified_duplicates_removed: u64 = report
+        .duplicate_classes
+        .iter()
+        .map(|entry| entry.reads_removed)
+        .sum();
+    if !report.duplicate_classes.is_empty() && classified_duplicates_removed != duplicate_reads {
+        return Err(anyhow!(
+            "governed remove-duplicates report {} is inconsistent: duplicate_classes sum to {} but duplicates_removed={duplicate_reads}",
+            report_path.display(),
+            classified_duplicates_removed,
+        ));
+    }
+    if !report.duplicate_classes.is_empty()
+        && (report.duplicate_classes_tsv.is_none() || report.duplicate_provenance_json.is_none())
+    {
+        return Err(anyhow!(
+            "governed remove-duplicates report {} is inconsistent: duplicate classes require duplicate_classes_tsv and duplicate_provenance_json",
+            report_path.display(),
+        ));
+    }
     Ok(DuplicateReportCounts {
         reads_in,
         reads_out,
         duplicate_reads,
-        dedup_rate,
+        dedup_rate: report.dedup_rate,
         tool: Some(report.tool_id),
         paired_mode: serde_json::to_value(&report.paired_mode)?
             .as_str()
@@ -529,6 +608,148 @@ mod tests {
         let error = load_deduplicate_report_counts(&report_path)
             .expect_err("inconsistent duplicate counts must fail");
         assert!(error.to_string().contains("inconsistent"));
+    }
+
+    #[test]
+    fn deduplicate_metrics_reject_inconsistent_dedup_rate() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("deduplicate_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "dedup_mode": "exact",
+                "keep_order": true,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "dedup.fastq.gz",
+                "output_r2": null,
+                "reads_in": 100,
+                "reads_out": 84,
+                "reads_in_r2": null,
+                "reads_out_r2": null,
+                "pairs_in": null,
+                "pairs_out": null,
+                "pair_count_match": null,
+                "duplicates_removed": 16,
+                "dedup_rate": 0.10,
+                "duplicate_classes_tsv": "duplicate_classes.tsv",
+                "duplicate_provenance_json": "duplicate_provenance.json",
+                "duplicate_classes": [
+                    {"class": "duplicate", "reads_removed": 16, "paired_mode": "single_end"}
+                ],
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log",
+                "runtime_s": null,
+                "memory_mb": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let error = load_deduplicate_report_counts(&report_path)
+            .expect_err("inconsistent dedup rate must fail");
+        assert!(error.to_string().contains("dedup_rate"));
+    }
+
+    #[test]
+    fn deduplicate_metrics_reject_inconsistent_pair_accounting() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("deduplicate_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "paired_end",
+                "threads": 6,
+                "dedup_mode": "optical_aware",
+                "keep_order": false,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "dedup_R1.fastq.gz",
+                "output_r2": "dedup_R2.fastq.gz",
+                "reads_in": 200,
+                "reads_out": 172,
+                "reads_in_r2": 200,
+                "reads_out_r2": 170,
+                "pairs_in": 200,
+                "pairs_out": 172,
+                "pair_count_match": false,
+                "duplicates_removed": 28,
+                "dedup_rate": 0.14,
+                "duplicate_classes_tsv": "duplicate_classes.tsv",
+                "duplicate_provenance_json": "duplicate_provenance.json",
+                "duplicate_classes": [
+                    {"class": "duplicate", "reads_removed": 20, "paired_mode": "paired_end"},
+                    {"class": "optical_duplicate", "reads_removed": 8, "paired_mode": "paired_end"}
+                ],
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log",
+                "runtime_s": null,
+                "memory_mb": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let error = load_deduplicate_report_counts(&report_path)
+            .expect_err("inconsistent pair accounting must fail");
+        assert!(error.to_string().contains("reads_out_r2"));
+    }
+
+    #[test]
+    fn deduplicate_metrics_reject_inconsistent_duplicate_class_breakdown() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("deduplicate_report.json");
+        std::fs::write(
+            &report_path,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "dedup_mode": "exact",
+                "keep_order": true,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "dedup.fastq.gz",
+                "output_r2": null,
+                "reads_in": 100,
+                "reads_out": 84,
+                "reads_in_r2": null,
+                "reads_out_r2": null,
+                "pairs_in": null,
+                "pairs_out": null,
+                "pair_count_match": null,
+                "duplicates_removed": 16,
+                "dedup_rate": 0.16,
+                "duplicate_classes_tsv": "duplicate_classes.tsv",
+                "duplicate_provenance_json": null,
+                "duplicate_classes": [
+                    {"class": "duplicate", "reads_removed": 12, "paired_mode": "single_end"}
+                ],
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log",
+                "runtime_s": null,
+                "memory_mb": null
+            })
+            .to_string(),
+        )
+        .expect("write report");
+
+        let error = load_deduplicate_report_counts(&report_path)
+            .expect_err("incomplete duplicate class evidence must fail");
+        assert!(error.to_string().contains("duplicate_classes"));
     }
 
     #[test]
