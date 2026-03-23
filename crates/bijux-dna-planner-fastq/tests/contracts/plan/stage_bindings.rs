@@ -9,6 +9,7 @@ use bijux_dna_domain_fastq::params::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
+use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::params::validate::{
     PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
 };
@@ -666,6 +667,58 @@ fn planner_uses_typed_screen_params_from_stage_binding() -> anyhow::Result<()> {
     assert!(step.command.template[2].contains("\"database_artifact_id\":\"kraken2_pluspf\""));
     assert!(step.command.template[2].contains("\"minimum_confidence\":0.15"));
     assert!(step.command.template[2].contains("\"emit_unclassified\":false"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_trim_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-trim-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__trim_reads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.custom".to_string()),
+            tool: tool("fastp"),
+            reason: None,
+            params: Some(FastqStageParameters::Trim(TrimEffectiveParams {
+                paired_mode: bijux_dna_domain_fastq::params::PairedMode::SingleEnd,
+                threads: 6,
+                min_len: 42,
+                q_cutoff: Some(20),
+                adapter_policy: "none".to_string(),
+                damage_mode: None,
+                polyx_policy: Some("trim".to_string()),
+                n_policy: Some("drop".to_string()),
+                contaminant_policy: Some("none".to_string()),
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.trim_reads.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert!(step.command.template[2].contains("'--thread' '6'"));
+    assert!(step.command.template[2].contains("\"min_length\":42"));
+    assert!(step.command.template[2].contains("\"quality_cutoff\":20"));
+    assert!(step.command.template[2].contains("\"polyx_policy\":\"trim\""));
+    assert!(step.command.template[2].contains("\"n_policy\":\"drop\""));
     Ok(())
 }
 
