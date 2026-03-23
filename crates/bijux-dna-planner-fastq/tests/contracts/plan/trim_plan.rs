@@ -209,6 +209,8 @@ fn plan_trim_prinseq_maps_min_length() -> Result<()> {
         },
     )?;
 
+    assert!(plan.command.template[2].contains("-threads"));
+    assert!(plan.command.template[2].contains("'1'"));
     assert!(plan.command.template[2].contains("-min_len"));
     assert!(plan.command.template[2].contains("55"));
     Ok(())
@@ -1197,6 +1199,7 @@ fn plan_trim_galore_uses_output_directory_and_moves_governed_outputs() -> Result
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
     assert!(script.contains("trim_galore --output_dir"));
+    assert!(script.contains("--cores 1"));
     assert!(script.contains("--paired"));
     assert!(script.contains("reads_R1_trimmed.fq.gz"));
     assert!(script.contains("reads_R2_trimmed.fq.gz"));
