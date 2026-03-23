@@ -690,8 +690,9 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
 
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.trim_terminal_damage.custom");
-    assert!(step.command.template.iter().any(|part| part == "5"));
-    assert!(step.command.template.iter().any(|part| part == "-3"));
+    let script = &step.command.template[2];
+    assert!(script.contains(" -u 5"));
+    assert!(script.contains(" -u -3"));
     Ok(())
 }
 
