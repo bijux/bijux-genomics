@@ -30,7 +30,8 @@ use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthP
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
     DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
-    FastqStageToolsetBinding, MergePairsStageParams, TrimTerminalDamageStageParams,
+    FastqStageToolsetBinding, MergePairsStageParams, NormalizeAbundanceStageParams,
+    TrimTerminalDamageStageParams,
 };
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -2305,6 +2306,77 @@ fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
         abundance_step.io.inputs[0].path,
         cluster_step.io.outputs[0].path
     );
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_normalize_abundance_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-normalize-abundance-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__normalize_abundance__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: Some(PipelineSpec::graph(
+            vec![
+                PipelineNodeSpec {
+                    stage_id: "fastq.cluster_otus".to_string(),
+                    stage_instance_id: Some("fastq.cluster_otus.source".to_string()),
+                },
+                PipelineNodeSpec {
+                    stage_id: "fastq.normalize_abundance".to_string(),
+                    stage_instance_id: Some("fastq.normalize_abundance.custom".to_string()),
+                },
+            ],
+            vec![PipelineEdgeSpec {
+                from: "fastq.cluster_otus.source".to_string(),
+                to: "fastq.normalize_abundance.custom".to_string(),
+                from_output_id: Some("otu_table".to_string()),
+                to_input_id: Some("abundance_table".to_string()),
+            }],
+        )),
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.cluster_otus".to_string(),
+                stage_instance_id: Some("fastq.cluster_otus.source".to_string()),
+                tool: tool("vsearch"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.normalize_abundance".to_string(),
+                stage_instance_id: Some("fastq.normalize_abundance.custom".to_string()),
+                tool: tool("seqkit"),
+                reason: None,
+                params: Some(FastqStageParameters::NormalizeAbundance(
+                    NormalizeAbundanceStageParams {
+                        method: "counts_per_million".to_string(),
+                    },
+                )),
+            },
+        ],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.normalize_abundance.custom")
+        .expect("normalize abundance step");
+    assert!(step.command.template[2].contains("counts_per_million"));
+    assert!(step.command.template[2].contains("per_sample_sum_to_one_million"));
     Ok(())
 }
 

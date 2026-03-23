@@ -29,7 +29,7 @@ use crate::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
     DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, FastqStageBinding,
     FastqStageParameters, IndexReferenceStageParams, InferAsvsStageParams,
-    MergePairsStageParams,
+    MergePairsStageParams, NormalizeAbundanceStageParams,
     TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
     STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
@@ -725,10 +725,11 @@ where
                     .ok_or_else(|| {
                         anyhow!("fastq.normalize_abundance requires an upstream feature table")
                     })?;
-                let plan = crate::tool_adapters::fastq::normalize_abundance::plan(
+                let plan = crate::tool_adapters::fastq::normalize_abundance::plan_with_options(
                     tool,
                     &abundance_table,
                     &out_dir,
+                    &normalize_abundance_plan_options(binding),
                 )?;
                 let next_feature_table = Some(plan.io.outputs[0].path.clone());
                 (plan, stage_r1.clone(), stage_r2.clone(), next_feature_table)
@@ -1357,6 +1358,18 @@ fn merge_pairs_plan_options(
         merge_overlap: params.merge_overlap,
         min_length: params.min_len,
         unmerged_read_policy: params.unmerged_read_policy,
+    }
+}
+
+fn normalize_abundance_plan_options(
+    binding: &FastqStageBinding,
+) -> crate::tool_adapters::fastq::normalize_abundance::NormalizeAbundancePlanOptions {
+    let params = match binding.params.as_ref() {
+        Some(FastqStageParameters::NormalizeAbundance(params)) => params.clone(),
+        _ => NormalizeAbundanceStageParams::default(),
+    };
+    crate::tool_adapters::fastq::normalize_abundance::NormalizeAbundancePlanOptions {
+        method: params.method,
     }
 }
 
