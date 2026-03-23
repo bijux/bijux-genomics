@@ -83,6 +83,7 @@ pub enum FastqStageParameters {
     Trim(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
     TrimPolygTails(bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams),
     MergePairs(MergePairsStageParams),
+    NormalizePrimers(NormalizePrimersStageParams),
     NormalizeAbundance(NormalizeAbundanceStageParams),
     Screen(bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams),
     IndexReference(IndexReferenceStageParams),
@@ -123,6 +124,33 @@ impl Default for NormalizeAbundanceStageParams {
     fn default() -> Self {
         Self {
             method: "relative_abundance".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct NormalizePrimersStageParams {
+    pub primer_set_id: String,
+    pub marker_id: Option<String>,
+    pub primer_fasta: Option<PathBuf>,
+    pub orientation_policy: String,
+    pub max_mismatch_rate: f64,
+    pub min_overlap_bp: u32,
+    pub strict_5p_anchor: bool,
+    pub allow_iupac_codes: bool,
+}
+
+impl Default for NormalizePrimersStageParams {
+    fn default() -> Self {
+        Self {
+            primer_set_id: "default".to_string(),
+            marker_id: None,
+            primer_fasta: None,
+            orientation_policy: "normalize_to_forward_primer".to_string(),
+            max_mismatch_rate: 0.10,
+            min_overlap_bp: 10,
+            strict_5p_anchor: true,
+            allow_iupac_codes: true,
         }
     }
 }

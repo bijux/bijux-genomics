@@ -29,7 +29,7 @@ use crate::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
     DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, FastqStageBinding,
     FastqStageParameters, IndexReferenceStageParams, InferAsvsStageParams,
-    MergePairsStageParams, NormalizeAbundanceStageParams,
+    MergePairsStageParams, NormalizeAbundanceStageParams, NormalizePrimersStageParams,
     TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
     STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
@@ -639,11 +639,12 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = crate::tool_adapters::fastq::normalize_primers::plan(
+                let plan = crate::tool_adapters::fastq::normalize_primers::plan_with_options(
                     tool,
                     &stage_r1,
                     stage_r2.as_deref(),
                     &out_dir,
+                    &normalize_primers_plan_options(binding),
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if stage_r2.is_some() {
@@ -1370,6 +1371,25 @@ fn normalize_abundance_plan_options(
     };
     crate::tool_adapters::fastq::normalize_abundance::NormalizeAbundancePlanOptions {
         method: params.method,
+    }
+}
+
+fn normalize_primers_plan_options(
+    binding: &FastqStageBinding,
+) -> crate::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
+    let params = match binding.params.as_ref() {
+        Some(FastqStageParameters::NormalizePrimers(params)) => params.clone(),
+        _ => NormalizePrimersStageParams::default(),
+    };
+    crate::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
+        primer_set_id: params.primer_set_id,
+        marker_id: params.marker_id,
+        primer_fasta: params.primer_fasta,
+        orientation_policy: params.orientation_policy,
+        max_mismatch_rate: params.max_mismatch_rate,
+        min_overlap_bp: params.min_overlap_bp,
+        strict_5p_anchor: params.strict_5p_anchor,
+        allow_iupac_codes: params.allow_iupac_codes,
     }
 }
 
