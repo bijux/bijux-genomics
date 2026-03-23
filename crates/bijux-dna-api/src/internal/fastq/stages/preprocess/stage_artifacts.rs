@@ -327,10 +327,26 @@ fn emit_fastq_stage_extra_artifacts(
                 "aggregation_engine": governed.as_ref().map(|report| report.aggregation_engine.clone()),
                 "aggregation_scope": governed.as_ref().map(|report| report.aggregation_scope.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode.clone()),
+                "reads_in": governed.as_ref().map(|report| report.reads_in),
+                "reads_out": governed.as_ref().map(|report| report.reads_out),
+                "bases_in": governed.as_ref().map(|report| report.bases_in),
+                "bases_out": governed.as_ref().map(|report| report.bases_out),
+                "pairs_in": governed.as_ref().and_then(|report| report.pairs_in),
+                "pairs_out": governed.as_ref().and_then(|report| report.pairs_out),
+                "mean_q": governed.as_ref().map(|report| report.mean_q),
+                "contamination_rate": governed.as_ref().map(|report| report.contamination_rate),
+                "adapter_content_max": governed.as_ref().and_then(|report| report.adapter_content_max),
+                "adapter_content_mean": governed.as_ref().and_then(|report| report.adapter_content_mean),
+                "duplication_rate": governed.as_ref().and_then(|report| report.duplication_rate),
+                "n_rate": governed.as_ref().and_then(|report| report.n_rate),
+                "kmer_warning_count": governed.as_ref().and_then(|report| report.kmer_warning_count),
+                "overrepresented_sequence_count": governed.as_ref().and_then(|report| report.overrepresented_sequence_count),
                 "governed_qc_input_count": governed.as_ref().map(|report| report.governed_qc_input_count),
                 "governed_qc_contributor_stage_ids": governed.as_ref().map(|report| report.governed_qc_contributor_stage_ids.clone()),
                 "governed_qc_contributor_tool_ids": governed.as_ref().map(|report| report.governed_qc_contributor_tool_ids.clone()),
+                "governed_qc_contributors": governed.as_ref().map(|report| report.governed_qc_contributors.clone()),
                 "governed_qc_lineage_hash": governed.as_ref().and_then(|report| report.governed_qc_lineage_hash.clone()),
+                "governed_qc_inputs_manifest": governed.as_ref().and_then(|report| report.governed_qc_inputs_manifest.clone()),
                 "multiqc_sample_count": governed.as_ref().and_then(|report| report.multiqc_sample_count),
                 "multiqc_module_count": governed.as_ref().and_then(|report| report.multiqc_module_count),
                 "raw_fastqc_dir": governed.as_ref().and_then(|report| report.raw_fastqc_dir.clone()),
@@ -966,6 +982,100 @@ mod stage_artifact_tests {
         assert_eq!(
             extra["report_json"],
             serde_json::json!(temp.path().join("trim_polyg_tails_report.json"))
+        );
+        Ok(())
+    }
+
+    fn report_qc_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "report-qc-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 2.0,
+            memory_mb: 96.0,
+            outputs: vec![stage_root.join("report_qc_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "multiqc".to_string(),
+        }
+    }
+
+    fn write_report_qc_report(stage_root: &std::path::Path) -> Result<()> {
+        std::fs::write(
+            stage_root.join("report_qc_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.report_qc.report.v2",
+                "stage": "fastq.report_qc",
+                "stage_id": "fastq.report_qc",
+                "tool_id": "multiqc",
+                "paired_mode": "single_end",
+                "aggregation_engine": "multiqc",
+                "aggregation_scope": "governed_qc_artifacts",
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 1000,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q": 31.0,
+                "contamination_rate": 0.23,
+                "adapter_content_max": 0.12,
+                "adapter_content_mean": 0.04,
+                "duplication_rate": 0.11,
+                "n_rate": 0.002,
+                "kmer_warning_count": 3,
+                "overrepresented_sequence_count": 2,
+                "multiqc_sample_count": 2,
+                "multiqc_module_count": 5,
+                "raw_fastqc_dir": "raw_fastqc",
+                "trimmed_fastqc_dir": "fastqc_trimmed",
+                "multiqc_report": "multiqc_report.html",
+                "multiqc_data": "multiqc_data",
+                "governed_qc_input_count": 2,
+                "governed_qc_contributor_stage_ids": ["fastq.detect_adapters", "fastq.screen_taxonomy"],
+                "governed_qc_contributor_tool_ids": ["fastqc", "kraken2"],
+                "governed_qc_contributors": [
+                    {
+                        "contributor_id": "fastq.detect_adapters.fastqc",
+                        "stage_id": "fastq.detect_adapters",
+                        "tool_id": "fastqc",
+                        "artifact_id": "report_json",
+                        "artifact_role": "report_json",
+                        "path": "adapter_report.json"
+                    }
+                ],
+                "governed_qc_lineage_hash": "lineage",
+                "governed_qc_inputs_manifest": "governed_qc_inputs_manifest.json",
+                "runtime_s": 2.0,
+                "memory_mb": 96.0,
+                "exit_code": 0
+            }"#,
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn report_qc_extra_artifacts_preserve_governed_summary_contract() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_report_qc_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.report_qc",
+            &report_qc_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["aggregation_scope"], serde_json::json!("governed_qc_artifacts"));
+        assert_eq!(extra["contamination_rate"], serde_json::json!(0.23));
+        assert_eq!(extra["adapter_content_max"], serde_json::json!(0.12));
+        assert_eq!(
+            extra["governed_qc_contributors"][0]["tool_id"],
+            serde_json::json!("fastqc")
+        );
+        assert_eq!(
+            extra["governed_qc_inputs_manifest"],
+            serde_json::json!("governed_qc_inputs_manifest.json")
         );
         Ok(())
     }
