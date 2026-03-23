@@ -87,7 +87,7 @@ pub const FASTQ_CORRECT_METRICS: [MetricId; 9] = [
     MetricId::KmerFixRate,
 ];
 
-pub const FASTQ_QC_POST_METRICS: [MetricId; 12] = [
+pub const FASTQ_QC_POST_METRICS: [MetricId; 20] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
@@ -96,6 +96,14 @@ pub const FASTQ_QC_POST_METRICS: [MetricId; 12] = [
     MetricId::PairsOut,
     MetricId::MeanQ,
     MetricId::ContaminationRate,
+    MetricId::AggregationEngine,
+    MetricId::AggregationScope,
+    MetricId::GovernedQcInputCount,
+    MetricId::GovernedQcContributorStageIds,
+    MetricId::GovernedQcContributorToolIds,
+    MetricId::GovernedQcLineageHash,
+    MetricId::MultiqcSampleCount,
+    MetricId::MultiqcModuleCount,
     MetricId::QcRawDir,
     MetricId::QcTrimmedDir,
     MetricId::MultiqcReport,
