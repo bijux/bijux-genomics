@@ -31,7 +31,7 @@ use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
     DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
     FastqStageToolsetBinding, MergePairsStageParams, NormalizeAbundanceStageParams,
-    TrimTerminalDamageStageParams,
+    NormalizePrimersStageParams, TrimTerminalDamageStageParams,
 };
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -758,6 +758,65 @@ fn planner_uses_typed_merge_pairs_params_from_stage_binding() -> anyhow::Result<
         .outputs
         .iter()
         .any(|artifact| artifact.name.as_str() == "unmerged_reads_r2"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_normalize_primers_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-normalize-primers-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let primer_fasta = temp.path().join("primers.fa");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&primer_fasta, b">p1\nACGT\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__normalize_primers__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.normalize_primers".to_string(),
+            stage_instance_id: Some("fastq.normalize_primers.custom".to_string()),
+            tool: tool("cutadapt"),
+            reason: None,
+            params: Some(FastqStageParameters::NormalizePrimers(
+                NormalizePrimersStageParams {
+                    primer_set_id: "16s_v4".to_string(),
+                    marker_id: Some("16s".to_string()),
+                    primer_fasta: Some(primer_fasta.clone()),
+                    orientation_policy: "normalize_to_reverse_complement".to_string(),
+                    max_mismatch_rate: 0.05,
+                    min_overlap_bp: 14,
+                    strict_5p_anchor: false,
+                    allow_iupac_codes: false,
+                },
+            )),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.normalize_primers.custom");
+    assert!(step.command.template[2].contains("--overlap 14"));
+    assert!(step.command.template[2].contains("--error-rate 0.05"));
+    assert!(step
+        .command
+        .template[2]
+        .contains("\"primer_set_id\":\"16s_v4\""));
+    assert!(step
+        .command
+        .template[2]
+        .contains("\"orientation_policy\":\"normalize_to_reverse_complement\""));
     Ok(())
 }
 
