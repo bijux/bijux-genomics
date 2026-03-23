@@ -219,6 +219,7 @@ stage_tool_compatibility:
   - seqkit
   - seqpurge
   fastq.trim_terminal_damage:
+  - adapterremoval
   - cutadapt
   - seqkit
   fastq.validate_reads:
@@ -314,6 +315,7 @@ stage_tool_integration:
     trim_galore: governed_contract
     trimmomatic: governed_contract
   fastq.trim_terminal_damage:
+    adapterremoval: governed_contract
     cutadapt: governed_contract
     seqkit: governed_contract
   fastq.validate_reads:
@@ -727,6 +729,9 @@ stage_default_settings:
       profile: adna_sane_default
       notes: legacy clipping preset
   fastq.trim_terminal_damage:
+    adapterremoval:
+      profile: adna_sane_default
+      notes: damage-aware terminal trimming preset with paired-read support
     cutadapt:
       profile: adna_sane_default
       notes: terminal trim or mask preset for damage-aware preprocessing
