@@ -240,34 +240,23 @@ fn validation_command(
                           status_var: &str,
                           stream_placeholder: &str|
      -> Result<String> {
-        let reads_binding = Some(reads.display().to_string());
-        let rendered = crate::tool_adapters::template_render::render_command_template(
-            &tool.command.template,
-            &[
-                ("reads", reads_binding.clone()),
-                (
-                    "reads_r1",
-                    if stream_placeholder == "reads_r1" {
-                        reads_binding.clone()
-                    } else {
-                        None
-                    },
-                ),
-                (
-                    "reads_r2",
-                    if stream_placeholder == "reads_r2" {
-                        reads_binding
-                    } else {
-                        None
-                    },
-                ),
-            ],
+        let cleanup_dir = fastqc_probe_dir(out_dir, tool.tool_id.as_str(), stream_placeholder);
+        let rendered = rendered_validation_backend_command(
+            tool,
+            reads,
+            stream_placeholder,
+            cleanup_dir.as_deref(),
+            effective_params.threads,
         )?;
-        Ok(format!(
+        let mut command = format!(
             "{} > {} 2>&1\n{status_var}=$?",
             shell_join(&rendered),
             shell_quote(log_path)
-        ))
+        );
+        if let Some(cleanup_dir) = cleanup_dir {
+            command.push_str(&format!("\nrm -rf {}", shell_quote(&cleanup_dir)));
+        }
+        Ok(command)
     };
 
     let r1_log = out_dir.join("validation_r1.log");
@@ -421,6 +410,69 @@ fn validation_command(
     ])
 }
 
+fn rendered_validation_backend_command(
+    tool: &ToolExecutionSpecV1,
+    reads: &Path,
+    stream_placeholder: &str,
+    fastqc_probe_dir: Option<&Path>,
+    threads: u32,
+) -> Result<Vec<String>> {
+    match tool.tool_id.as_str() {
+        "fastqc" => {
+            let probe_dir = fastqc_probe_dir
+                .ok_or_else(|| anyhow!("fastqc validation requires a probe output directory"))?;
+            Ok(vec![
+                "fastqc".to_string(),
+                "--quiet".to_string(),
+                "--threads".to_string(),
+                threads.to_string(),
+                "--outdir".to_string(),
+                probe_dir.display().to_string(),
+                reads.display().to_string(),
+            ])
+        }
+        _ => render_generic_validation_backend_command(tool, reads, stream_placeholder),
+    }
+}
+
+fn render_generic_validation_backend_command(
+    tool: &ToolExecutionSpecV1,
+    reads: &Path,
+    stream_placeholder: &str,
+) -> Result<Vec<String>> {
+    let reads_binding = Some(reads.display().to_string());
+    crate::tool_adapters::template_render::render_command_template(
+        &tool.command.template,
+        &[
+            ("reads", reads_binding.clone()),
+            (
+                "reads_r1",
+                if stream_placeholder == "reads_r1" {
+                    reads_binding.clone()
+                } else {
+                    None
+                },
+            ),
+            (
+                "reads_r2",
+                if stream_placeholder == "reads_r2" {
+                    reads_binding
+                } else {
+                    None
+                },
+            ),
+        ],
+    )
+}
+
+fn fastqc_probe_dir(
+    out_dir: &Path,
+    tool_id: &str,
+    stream_placeholder: &str,
+) -> Option<std::path::PathBuf> {
+    (tool_id == "fastqc").then(|| out_dir.join(format!("validation_fastqc_{stream_placeholder}")))
+}
+
 fn json_string_literal(value: &str) -> Result<String> {
     serde_json::to_string(value)
         .map_err(|error| anyhow!("serialize validation string literal: {error}"))
@@ -494,8 +546,10 @@ mod tests {
                     "fqtools" => vec![
                         "fqtools".to_string(),
                         "validate".to_string(),
-                        "{{reads_r1}}".to_string(),
+                        "{{reads}}".to_string(),
                     ],
+                    "fastq_scan" => vec!["fastq_scan".to_string(), "{{reads}}".to_string()],
+                    "fastqc" => vec!["fastqc".to_string(), "{{reads_r1}}".to_string()],
                     "mate_placeholder" => vec![
                         "validator".to_string(),
                         "--mate".to_string(),
@@ -600,6 +654,49 @@ mod tests {
     }
 
     #[test]
+    fn plan_renders_fastqc_validation_with_probe_cleanup() -> Result<()> {
+        let plan = plan_with_options(
+            &dummy_tool("fastqc"),
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out"),
+            &ValidateReadsPlanOptions {
+                threads: Some(6),
+                validation_mode: ValidationMode::Strict,
+                pair_sync_policy: PairSyncPolicy::RequireHeaderSync,
+            },
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(script.contains(
+            "'fastqc' '--quiet' '--threads' '6' '--outdir' 'out/validation_fastqc_reads_r1' 'reads_R1.fastq.gz'"
+        ));
+        assert!(script.contains(
+            "'fastqc' '--quiet' '--threads' '6' '--outdir' 'out/validation_fastqc_reads_r2' 'reads_R2.fastq.gz'"
+        ));
+        assert!(script.contains("rm -rf 'out/validation_fastqc_reads_r1'"));
+        assert!(script.contains("rm -rf 'out/validation_fastqc_reads_r2'"));
+        assert_eq!(plan.resources.threads, 6);
+        Ok(())
+    }
+
+    #[test]
+    fn plan_writes_governed_validation_report_for_fastq_scan() -> Result<()> {
+        let plan = plan(
+            &dummy_tool("fastq_scan"),
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("out"),
+        )?;
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("'fastq_scan' 'reads.fastq.gz' > 'out/validation_r1.log' 2>&1"));
+        assert!(script.contains("\"tool_id\":\"fastq_scan\""));
+        assert!(!script.contains("{{reads"));
+        Ok(())
+    }
+
+    #[test]
     fn plan_validation_report_tracks_runtime_exit_code_instead_of_placeholder_success() -> Result<()>
     {
         let plan = plan(
@@ -681,7 +778,8 @@ mod tests {
         )?;
 
         let script = &plan.command.template[2];
-        assert!(script.contains("'validator' '--mate' 'reads_R2.fastq.gz' > 'out/validation_r2.log' 2>&1"));
+        assert!(script
+            .contains("'validator' '--mate' 'reads_R2.fastq.gz' > 'out/validation_r2.log' 2>&1"));
         assert!(!script.contains("{{reads_r2}}"));
         Ok(())
     }
