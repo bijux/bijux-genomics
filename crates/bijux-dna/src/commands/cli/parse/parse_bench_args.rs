@@ -528,6 +528,19 @@ pub struct BenchFastqNormalizePrimersArgs {
         help = "Primer governance set id (for example: 16S_universal_v1)"
     )]
     pub primer_set_id: Option<String>,
+    #[arg(
+        long,
+        help = "Primer orientation policy (for example: normalize_to_forward_primer)"
+    )]
+    pub orientation_policy: Option<String>,
+    #[arg(long, help = "Maximum primer mismatch rate admitted by the governed runtime")]
+    pub max_mismatch_rate: Option<f64>,
+    #[arg(long, help = "Minimum primer overlap in base pairs")]
+    pub min_overlap_bp: Option<u32>,
+    #[arg(long, help = "Require a strict 5' primer anchor")]
+    pub strict_5p_anchor: Option<bool>,
+    #[arg(long, help = "Allow IUPAC ambiguity codes in governed primer matching")]
+    pub allow_iupac_codes: Option<bool>,
 }
 
 #[derive(Debug, Args)]
