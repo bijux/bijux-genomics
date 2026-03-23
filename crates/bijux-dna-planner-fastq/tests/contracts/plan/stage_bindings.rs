@@ -10,6 +10,7 @@ use bijux_dna_domain_fastq::params::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
+use bijux_dna_domain_fastq::params::stats::FastqStatsParams;
 use bijux_dna_domain_fastq::params::trim::{
     TrimEffectiveParams, TrimPolygTailsParams, TRIM_POLYG_TAILS_SCHEMA_VERSION,
 };
@@ -802,6 +803,50 @@ fn planner_uses_typed_profile_overrepresented_params_from_stage_binding() -> any
     assert_eq!(step.resources.threads, 6);
     assert!(step.command.template.iter().any(|part| part == "--threads"));
     assert!(step.command.template.iter().any(|part| part == "6"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_profile_reads_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-profile-reads-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&r2, b"@r1\nTTTT\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__profile_reads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.profile_reads".to_string(),
+            stage_instance_id: Some("fastq.profile_reads.custom".to_string()),
+            tool: seqkit_stats_tool(),
+            reason: None,
+            params: Some(FastqStageParameters::ProfileReads(FastqStatsParams {
+                schema_version: "bijux.fastq.params.stats.v1".to_string(),
+                paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
+                threads: 6,
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.profile_reads.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert_eq!(step.command.template[5], "6");
     Ok(())
 }
 

@@ -9,6 +9,7 @@ use bijux_dna_domain_fastq::params::defaults::{screen_defaults, validate_default
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
     screen::ScreenEffectiveParams,
+    stats::FastqStatsParams,
     trim::{TrimEffectiveParams, TrimPolygTailsParams},
     validate::ValidateEffectiveParams,
     PairedMode,
@@ -583,12 +584,22 @@ where
                 )
             }
             stage if stage == STAGE_PROFILE_READS.as_str() => {
-                let plan = crate::tool_adapters::fastq::profile_reads::plan_stats_neutral(
-                    tool,
-                    &stage_r1,
-                    stage_r2.as_deref(),
-                    &out_dir,
-                )?;
+                let plan = if let Some(params) = profile_reads_params(binding) {
+                    crate::tool_adapters::fastq::profile_reads::plan_stats_with_threads(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                        Some(params.threads),
+                    )?
+                } else {
+                    crate::tool_adapters::fastq::profile_reads::plan_stats_neutral(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                    )?
+                };
                 (
                     plan,
                     stage_r1.clone(),
@@ -1213,6 +1224,13 @@ fn profile_overrepresented_params(
 ) -> Option<FastqOverrepresentedProfileParams> {
     match binding.params.as_ref() {
         Some(FastqStageParameters::ProfileOverrepresented(params)) => Some(params.clone()),
+        _ => None,
+    }
+}
+
+fn profile_reads_params(binding: &FastqStageBinding) -> Option<FastqStatsParams> {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::ProfileReads(params)) => Some(params.clone()),
         _ => None,
     }
 }
