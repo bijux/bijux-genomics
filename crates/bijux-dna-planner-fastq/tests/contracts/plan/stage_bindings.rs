@@ -29,8 +29,8 @@ use bijux_dna_domain_fastq::params::DamageMode;
 use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthProfileParams};
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
-    DepleteRrnaStageParams, ExtractUmisStageParams, FastqPlanConfig, FastqPlanner,
-    FastqStageBinding, FastqStageParameters, FastqStageToolsetBinding,
+    DepleteRrnaStageParams, DetectAdaptersStageParams, ExtractUmisStageParams, FastqPlanConfig,
+    FastqPlanner, FastqStageBinding, FastqStageParameters, FastqStageToolsetBinding,
     FilterLowComplexityStageParams, FilterReadsStageParams, IndexReferenceStageParams,
     InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
     NormalizePrimersStageParams, TrimTerminalDamageStageParams,
@@ -2323,6 +2323,50 @@ fn planner_uses_typed_extract_umis_params_from_stage_binding() -> anyhow::Result
         .template
         .iter()
         .any(|token| token == "NNNNCCCC"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_detect_adapters_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-detect-adapters-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__detect_adapters__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.detect_adapters".to_string(),
+            stage_instance_id: Some("fastq.detect_adapters.custom".to_string()),
+            tool: tool_with_threads("fastqc", 1),
+            reason: None,
+            params: Some(FastqStageParameters::DetectAdapters(
+                DetectAdaptersStageParams { threads: Some(3) },
+            )),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.detect_adapters.custom");
+    assert_eq!(step.resources.threads, 3);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--threads", "3"]));
     Ok(())
 }
 

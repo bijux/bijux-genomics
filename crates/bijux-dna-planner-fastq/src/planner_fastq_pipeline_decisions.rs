@@ -72,6 +72,7 @@ pub struct FastqStageToolsetBinding {
 #[derive(Debug, Clone)]
 pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
+    DetectAdapters(DetectAdaptersStageParams),
     FilterReads(FilterReadsStageParams),
     FilterLowComplexity(FilterLowComplexityStageParams),
     ExtractUmis(ExtractUmisStageParams),
@@ -153,6 +154,17 @@ impl Default for ExtractUmisStageParams {
             threads: None,
             umi_pattern: None,
         }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DetectAdaptersStageParams {
+    pub threads: Option<u32>,
+}
+
+impl Default for DetectAdaptersStageParams {
+    fn default() -> Self {
+        Self { threads: None }
     }
 }
 
