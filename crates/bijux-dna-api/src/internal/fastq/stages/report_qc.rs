@@ -25,7 +25,7 @@ use bijux_dna_domain_fastq::params::{
 use bijux_dna_domain_fastq::{
     GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_environment::api::{resolve_image, PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_qc_post_tools;
@@ -463,10 +463,14 @@ fn build_governed_qc_post_report(
         PairedMode::SingleEnd
     };
     let aggregation_engine = parse_qc_aggregation_engine(
-        params.get("aggregation_engine").and_then(serde_json::Value::as_str),
+        params
+            .get("aggregation_engine")
+            .and_then(serde_json::Value::as_str),
     )?;
     let aggregation_scope = parse_qc_aggregation_scope(
-        params.get("aggregation_scope").and_then(serde_json::Value::as_str),
+        params
+            .get("aggregation_scope")
+            .and_then(serde_json::Value::as_str),
     )?;
     let contributors = governed_qc
         .contributors
@@ -484,7 +488,8 @@ fn build_governed_qc_post_report(
             path: contributor.path.display().to_string(),
         })
         .collect::<Vec<_>>();
-    let multiqc_metrics = load_multiqc_general_stats(report_path.parent().unwrap_or_else(|| Path::new(".")));
+    let multiqc_metrics =
+        load_multiqc_general_stats(report_path.parent().unwrap_or_else(|| Path::new(".")));
     Ok(ReportQcReportV1 {
         schema_version: REPORT_QC_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_REPORT_QC.as_str().to_string(),
@@ -514,8 +519,12 @@ fn build_governed_qc_post_report(
         multiqc_report: metrics.multiqc_report.clone(),
         multiqc_data: metrics.multiqc_data.clone(),
         governed_qc_input_count: governed_qc.qc_inputs.len() as u64,
-        governed_qc_contributor_stage_ids: governed_qc_contributor_stage_ids(&governed_qc.contributors),
-        governed_qc_contributor_tool_ids: governed_qc_contributor_tool_ids(&governed_qc.contributors),
+        governed_qc_contributor_stage_ids: governed_qc_contributor_stage_ids(
+            &governed_qc.contributors,
+        ),
+        governed_qc_contributor_tool_ids: governed_qc_contributor_tool_ids(
+            &governed_qc.contributors,
+        ),
         governed_qc_contributors: contributors,
         governed_qc_lineage_hash: governed_qc.lineage_hash.clone(),
         governed_qc_inputs_manifest: path_if_exists(governed_qc_manifest),
@@ -525,8 +534,12 @@ fn build_governed_qc_post_report(
     })
 }
 
-fn load_multiqc_general_stats(out_dir: &Path) -> Option<bijux_dna_domain_fastq::metrics::MultiqcToolMetricsV1> {
-    let path = out_dir.join("multiqc_data").join("multiqc_general_stats.json");
+fn load_multiqc_general_stats(
+    out_dir: &Path,
+) -> Option<bijux_dna_domain_fastq::metrics::MultiqcToolMetricsV1> {
+    let path = out_dir
+        .join("multiqc_data")
+        .join("multiqc_general_stats.json");
     let raw = std::fs::read_to_string(path).ok()?;
     parse_multiqc_general_stats_metrics(&raw).ok()
 }
@@ -569,17 +582,19 @@ fn derive_qc_post_metrics(
             .and_then(serde_json::Value::as_str)
             .map(ToString::to_string),
         governed_qc_input_count: Some(governed_qc.qc_inputs.len() as u64),
-        governed_qc_contributor_stage_ids: serde_json::json!(
-            governed_qc_contributor_stage_ids(&governed_qc.contributors)
-        )
+        governed_qc_contributor_stage_ids: serde_json::json!(governed_qc_contributor_stage_ids(
+            &governed_qc.contributors
+        ))
         .into(),
-        governed_qc_contributor_tool_ids: serde_json::json!(
-            governed_qc_contributor_tool_ids(&governed_qc.contributors)
-        )
+        governed_qc_contributor_tool_ids: serde_json::json!(governed_qc_contributor_tool_ids(
+            &governed_qc.contributors
+        ))
         .into(),
         governed_qc_lineage_hash: governed_qc.lineage_hash.clone(),
-        multiqc_sample_count: load_multiqc_general_stats(out_dir).map(|metrics| metrics.sample_count),
-        multiqc_module_count: load_multiqc_general_stats(out_dir).map(|metrics| metrics.module_count),
+        multiqc_sample_count: load_multiqc_general_stats(out_dir)
+            .map(|metrics| metrics.sample_count),
+        multiqc_module_count: load_multiqc_general_stats(out_dir)
+            .map(|metrics| metrics.module_count),
         raw_fastqc_dir: raw_fastqc_dir.and_then(path_if_exists),
         trimmed_fastqc_dir: path_if_exists(&trimmed_fastqc_dir),
         multiqc_report: path_if_exists(&multiqc_report),
@@ -629,7 +644,12 @@ fn canonicalize_qc_inputs_from_contributors(
 ) -> Vec<ArtifactRef> {
     let canonical_name_by_path = contributors
         .iter()
-        .map(|contributor| (contributor.path.clone(), canonical_qc_input_name(contributor)))
+        .map(|contributor| {
+            (
+                contributor.path.clone(),
+                canonical_qc_input_name(contributor),
+            )
+        })
         .collect::<HashMap<_, _>>();
     qc_inputs
         .iter()
@@ -678,7 +698,8 @@ fn resolve_qc_contributor_aux_images<S: ::std::hash::BuildHasher>(
         let spec = catalog
             .get(tool_id.as_str())
             .ok_or_else(|| anyhow!("tool {tool_id} missing from images catalog"))?;
-        let image = resolve_image_for_run(spec, platform)?;
+        let image = resolve_image(spec, platform)
+            .map_err(|error| anyhow!("resolve governed QC aux image for {tool_id}: {error}"))?;
         aux_images.insert(
             tool_id,
             ContainerImageRefV1 {
@@ -786,7 +807,8 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
             && left.artifact_id == right.artifact_id
             && left.path == right.path
     });
-    let mut qc_inputs = canonicalize_qc_inputs_from_contributors(&manifest.qc_inputs, &contributors);
+    let mut qc_inputs =
+        canonicalize_qc_inputs_from_contributors(&manifest.qc_inputs, &contributors);
     qc_inputs.sort_by(|left, right| {
         left.name
             .as_str()
@@ -847,8 +869,8 @@ mod tests {
         governed_qc_contributors, governed_qc_inputs_manifest_path,
         load_governed_qc_inputs_manifest, load_required_qc_inputs_manifest,
         parse_qc_aggregation_engine, parse_qc_aggregation_scope, resolve_qc_contributor_aux_images,
-        validate_governed_qc_contributors,
-        GovernedQcContributor, GovernedQcInputs, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+        validate_governed_qc_contributors, GovernedQcContributor, GovernedQcInputs,
+        GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
     use std::collections::HashMap;
     use std::path::PathBuf;
@@ -1138,9 +1160,8 @@ mod tests {
             Some(raw_fastqc_dir.as_path()),
         )
         .expect("derived lineage");
-        assert!(lineage.contains(
-            "fastq.trim_reads.fastp:report_json:report_json=/tmp/fastp/report.json"
-        ));
+        assert!(lineage
+            .contains("fastq.trim_reads.fastp:report_json:report_json=/tmp/fastp/report.json"));
         assert!(lineage.contains(
             "fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report=/tmp/validate/lineage.json"
         ));
@@ -1310,7 +1331,10 @@ mod tests {
 
         assert_eq!(
             governed_qc_contributor_stage_ids(&contributors),
-            vec!["fastq.trim_reads".to_string(), "fastq.validate_reads".to_string()]
+            vec![
+                "fastq.trim_reads".to_string(),
+                "fastq.validate_reads".to_string()
+            ]
         );
         assert_eq!(
             governed_qc_contributor_tool_ids(&contributors),
