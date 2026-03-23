@@ -49,6 +49,7 @@ stages:
     benchmark_support: "cohort"
     default_tool: "cutadapt"
     admitted_tools:
+      - "adapterremoval"
       - "cutadapt"
       - "seqkit"
   - stage_id: "fastq.normalize_primers"

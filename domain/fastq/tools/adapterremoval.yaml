@@ -42,7 +42,7 @@ default_version: "2.3.3"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
-stage_ids: ["fastq.trim_reads"]
+stage_ids: ["fastq.trim_reads", "fastq.trim_terminal_damage"]
 stage_contracts:
   fastq.trim_reads:
     required_inputs:
@@ -52,6 +52,16 @@ stage_contracts:
       - "trimmed_reads_r2"
       - "report_json"
     notes: "Trim execution emits governed trimmed-read artifacts together with the normalized stage report."
+  fastq.trim_terminal_damage:
+    required_inputs:
+      - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
+    expected_artifacts:
+      - "trimmed_reads_r1"
+      - "trimmed_reads_r2"
+      - "report_json"
+    notes: "AdapterRemoval terminal-damage trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed damage-trim report without a backend-native raw report artifact."
 expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema_id: "bijux.fastq.trim_reads.v1"
 metrics_schema: "bijux.fastq.trim_reads.v1"

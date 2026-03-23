@@ -75,6 +75,7 @@ allowed_missingness:
   - "trimmed_reads_r2"
   - "raw_backend_report_json"
 compatible_tools:
+  - adapterremoval
   - cutadapt
   - seqkit
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
