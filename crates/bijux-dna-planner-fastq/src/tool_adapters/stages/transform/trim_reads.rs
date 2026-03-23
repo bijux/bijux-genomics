@@ -1190,6 +1190,8 @@ fn adapterremoval_command_template(
 ) -> Result<Vec<String>> {
     let mut command = vec![
         "AdapterRemoval".to_string(),
+        "--threads".to_string(),
+        threads.max(1).to_string(),
         "--file1".to_string(),
         r1.display().to_string(),
         "--output1".to_string(),
@@ -1262,6 +1264,8 @@ fn trimmomatic_command_template(
         let unpaired_r2 = output_dir.join("R2.trimmomatic.unpaired.fastq.gz");
         command.extend([
             "PE".to_string(),
+            "-threads".to_string(),
+            threads.max(1).to_string(),
             "-phred33".to_string(),
             r1.display().to_string(),
             r2.display().to_string(),
@@ -1273,6 +1277,8 @@ fn trimmomatic_command_template(
     } else {
         command.extend([
             "SE".to_string(),
+            "-threads".to_string(),
+            threads.max(1).to_string(),
             "-phred33".to_string(),
             r1.display().to_string(),
             output_r1.display().to_string(),

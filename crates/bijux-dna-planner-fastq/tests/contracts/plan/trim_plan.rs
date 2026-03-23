@@ -627,7 +627,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_adapterremoval() -> Result
     assert_eq!(plan.command.template[0], "sh");
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
-    assert!(script.contains("'AdapterRemoval'"));
+    assert!(script.contains("'AdapterRemoval' '--threads' '1'"));
     assert!(script.contains("'--file1' 'reads_R1.fastq.gz'"));
     assert!(script.contains("'--file2' 'reads_R2.fastq.gz'"));
     assert!(script.contains("'--output1' 'out/R1.adapterremoval.fastq.gz'"));
@@ -662,7 +662,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_trimmomatic() -> Result<()
     assert_eq!(plan.command.template[0], "sh");
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
-    assert!(script.contains("'trimmomatic' 'PE' '-phred33'"));
+    assert!(script.contains("'trimmomatic' 'PE' '-threads' '1' '-phred33'"));
     assert!(script.contains("'reads_R1.fastq.gz' 'reads_R2.fastq.gz'"));
     assert!(script.contains("'out/R1.trimmomatic.fastq.gz'"));
     assert!(script.contains("'out/R1.trimmomatic.unpaired.fastq.gz'"));
