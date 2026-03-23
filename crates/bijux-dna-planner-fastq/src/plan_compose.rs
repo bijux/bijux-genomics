@@ -5,9 +5,10 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactRef, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::defaults::validate_defaults;
+use bijux_dna_domain_fastq::params::defaults::{screen_defaults, validate_defaults};
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
+    screen::ScreenEffectiveParams,
     validate::ValidateEffectiveParams,
     PairedMode,
 };
@@ -518,11 +519,13 @@ where
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_SCREEN_TAXONOMY.as_str() => {
-                let plan = crate::tool_adapters::fastq::screen_taxonomy::plan_screen(
+                let params = screen_params(binding, stage_r2.is_some());
+                let plan = crate::tool_adapters::fastq::screen_taxonomy::plan_screen_with_effective_params(
                     tool,
                     &stage_r1,
                     stage_r2.as_deref(),
                     &out_dir,
+                    &params,
                 )?;
                 (
                     plan,
@@ -1138,6 +1141,13 @@ fn validate_reads_params(binding: &FastqStageBinding, paired: bool) -> ValidateE
     match binding.params.as_ref() {
         Some(FastqStageParameters::Validate(params)) => params.clone(),
         _ => validate_defaults(paired),
+    }
+}
+
+fn screen_params(binding: &FastqStageBinding, paired: bool) -> ScreenEffectiveParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::Screen(params)) => params.clone(),
+        _ => screen_defaults(paired),
     }
 }
 
