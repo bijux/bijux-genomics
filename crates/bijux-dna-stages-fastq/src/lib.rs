@@ -220,6 +220,14 @@ mod tests {
             Some(RuntimeInterpretationLevel::ObserverSpecialized)
         );
         assert_eq!(
+            runtime_interpretation_for_stage(&StageId::from_static("fastq.trim_reads")),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
+            runtime_interpretation_for_stage(&StageId::from_static("fastq.screen_taxonomy")),
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
+        );
+        assert_eq!(
             runtime_interpretation_for_stage(&StageId::from_static("fastq.correct_errors")),
             Some(RuntimeInterpretationLevel::ObserverSpecialized)
         );
@@ -251,6 +259,10 @@ mod tests {
         )));
         assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.trim_polyg_tails"
+        )));
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.trim_reads")));
+        assert!(observer_specialized.contains(&StageId::from_static(
+            "fastq.screen_taxonomy"
         )));
         assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.correct_errors"
