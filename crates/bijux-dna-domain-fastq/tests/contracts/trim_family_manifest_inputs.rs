@@ -63,7 +63,13 @@ fn trim_polyg_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
 
 #[test]
 fn paired_trim_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
-    for tool_id in ["atropos", "adapterremoval", "trimmomatic", "trim_galore", "prinseq"] {
+    for tool_id in [
+        "atropos",
+        "adapterremoval",
+        "trimmomatic",
+        "trim_galore",
+        "prinseq",
+    ] {
         let manifest = tool_manifest(tool_id)?;
         let required_inputs = manifest
             .get("execution_contract")
@@ -90,7 +96,7 @@ fn paired_trim_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
 
 #[test]
 fn terminal_damage_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
-    for tool_id in ["cutadapt", "seqkit"] {
+    for tool_id in ["adapterremoval", "cutadapt", "seqkit"] {
         let manifest = tool_manifest(tool_id)?;
         let required_inputs = manifest
             .get("execution_contract")
@@ -130,6 +136,28 @@ fn terminal_damage_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
             "{tool_id} trim_terminal_damage notes must document optional mate handling"
         );
     }
+    Ok(())
+}
+
+#[test]
+fn trim_terminal_damage_stage_manifest_lists_all_supported_backends() -> Result<()> {
+    let path = workspace_root()?.join("domain/fastq/stages/trim_terminal_damage.yaml");
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let manifest: serde_json::Value =
+        bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))?;
+    let compatible_tools = manifest
+        .get("compatible_tools")
+        .and_then(serde_json::Value::as_array)
+        .context("trim_terminal_damage compatible_tools")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        compatible_tools,
+        vec!["adapterremoval", "cutadapt", "seqkit"],
+        "trim_terminal_damage should publish the complete governed backend set"
+    );
     Ok(())
 }
 

@@ -265,6 +265,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.trim_terminal_damage",
+        tool_id: "adapterremoval",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_terminal_damage",
         tool_id: "cutadapt",
         semantic_surface: "report_json",
     },
