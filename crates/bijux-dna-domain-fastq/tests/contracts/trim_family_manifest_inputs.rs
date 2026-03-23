@@ -162,6 +162,33 @@ fn trim_terminal_damage_stage_manifest_lists_all_supported_backends() -> Result<
 }
 
 #[test]
+fn trim_terminal_damage_fixtures_cover_supported_backends() -> Result<()> {
+    let fixture_dir = workspace_root()?.join("domain/fastq/fixtures/fastq.trim_terminal_damage");
+    let mut fixture_tools = std::fs::read_dir(&fixture_dir)
+        .with_context(|| format!("read {}", fixture_dir.display()))?
+        .filter_map(|entry| entry.ok())
+        .filter_map(|entry| {
+            let path = entry.path();
+            (path.extension().and_then(|ext| ext.to_str()) == Some("txt"))
+                .then(|| path.file_stem()?.to_str().map(str::to_string))
+                .flatten()
+        })
+        .collect::<Vec<_>>();
+    fixture_tools.sort();
+
+    assert_eq!(
+        fixture_tools,
+        vec![
+            "adapterremoval".to_string(),
+            "cutadapt".to_string(),
+            "seqkit".to_string(),
+        ],
+        "trim_terminal_damage fixtures should stay aligned with the governed backend set"
+    );
+    Ok(())
+}
+
+#[test]
 fn seqkit_manifest_declares_paired_trim_runtime_capability() -> Result<()> {
     let manifest = tool_manifest("seqkit")?;
     let capabilities = manifest
