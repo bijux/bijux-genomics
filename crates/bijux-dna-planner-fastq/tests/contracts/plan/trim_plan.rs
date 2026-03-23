@@ -85,7 +85,10 @@ fn plan_trim_builds_expected_paths() -> Result<()> {
     assert_eq!(plan.params["min_length"], serde_json::json!(30));
     assert_eq!(plan.params["n_policy"], serde_json::json!("retain"));
     assert_eq!(plan.effective_params["min_len"], serde_json::json!(30));
-    assert_eq!(plan.effective_params["n_policy"], serde_json::json!("retain"));
+    assert_eq!(
+        plan.effective_params["n_policy"],
+        serde_json::json!("retain")
+    );
     Ok(())
 }
 
@@ -169,8 +172,14 @@ fn plan_trim_prinseq_preserves_paired_outputs() -> Result<()> {
         None,
     )?;
 
-    assert_eq!(plan.io.outputs[0].path.to_string_lossy(), "out/R1.prinseq_good.fastq");
-    assert_eq!(plan.io.outputs[1].path.to_string_lossy(), "out/R2.prinseq_good.fastq");
+    assert_eq!(
+        plan.io.outputs[0].path.to_string_lossy(),
+        "out/R1.prinseq_good.fastq"
+    );
+    assert_eq!(
+        plan.io.outputs[1].path.to_string_lossy(),
+        "out/R2.prinseq_good.fastq"
+    );
     let script = &plan.command.template[2];
     assert!(script.contains("-fastq2"));
     assert!(script.contains("-out_good2"));
@@ -351,7 +360,10 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
     assert_eq!(plan.params["quality_cutoff"], serde_json::json!(18));
     assert_eq!(plan.effective_params["min_len"], serde_json::json!(42));
     assert_eq!(plan.effective_params["q_cutoff"], serde_json::json!(18));
-    assert_eq!(plan.effective_params["n_policy"], serde_json::json!("retain"));
+    assert_eq!(
+        plan.effective_params["n_policy"],
+        serde_json::json!("retain")
+    );
     assert!(plan
         .command
         .template
@@ -382,9 +394,12 @@ fn plan_trim_fastp_preserves_native_json_beside_governed_report() -> Result<()> 
         .template
         .iter()
         .any(|part| part.contains("trim_report.fastp.json")));
-    assert!(plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.trim_reads.report.v2\""));
+    assert!(plan.command.template[2]
+        .contains("\"schema_version\":\"bijux.fastq.trim_reads.report.v2\""));
     assert!(plan.command.template[2].contains("\"raw_backend_report_format\":\"fastp_json\""));
-    assert!(plan.command.template[2].contains("\"raw_backend_report\":\"out/trim_report.fastp.json\""));
+    assert!(
+        plan.command.template[2].contains("\"raw_backend_report\":\"out/trim_report.fastp.json\"")
+    );
     assert!(plan.command.template[2].contains("\"polyx_policy\":\"none\""));
     assert!(plan.command.template[2].contains("\"n_policy\":\"retain\""));
     assert!(plan.command.template[2].contains("\"contaminant_policy\":\"none\""));
@@ -431,9 +446,7 @@ fn plan_trim_seqpurge_requires_paired_layout() -> Result<()> {
         None,
     )
     .expect_err("seqpurge trim planning must reject single-end inputs");
-    assert!(error
-        .to_string()
-        .contains("requires paired-end reads"));
+    assert!(error.to_string().contains("requires paired-end reads"));
 
     let paired = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &dummy_tool("seqpurge"),
@@ -520,38 +533,39 @@ fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> 
                 contaminant_policy: None,
             },
         )?;
-    assert!(cutadapt_plan
-        .command
-        .template[2]
-        .contains("--max-n"));
-    assert!(cutadapt_plan
-        .command
-        .template[2]
-        .contains("'0'"));
+    assert!(cutadapt_plan.command.template[2].contains("--max-n"));
+    assert!(cutadapt_plan.command.template[2].contains("'0'"));
     Ok(())
 }
 
 #[test]
 fn validate_trim_toolset_support_reports_all_incompatible_tools() {
-    let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::validate_trim_toolset_support(
-        &vec!["seqpurge".to_string(), "seqkit".to_string(), "trimmomatic".to_string()],
-        false,
-        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
-            threads: None,
-            min_length: None,
-            quality_cutoff: Some(20),
-            n_policy: None,
-            adapter_policy: Some("bank".to_string()),
-            polyx_policy: None,
-            contaminant_policy: None,
-        },
-    )
-    .expect_err("trim toolset compatibility preflight must reject unsupported combinations");
+    let error =
+        bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::validate_trim_toolset_support(
+            &vec![
+                "seqpurge".to_string(),
+                "seqkit".to_string(),
+                "trimmomatic".to_string(),
+            ],
+            false,
+            &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+                threads: None,
+                min_length: None,
+                quality_cutoff: Some(20),
+                n_policy: None,
+                adapter_policy: Some("bank".to_string()),
+                polyx_policy: None,
+                contaminant_policy: None,
+            },
+        )
+        .expect_err("trim toolset compatibility preflight must reject unsupported combinations");
 
     let message = error.to_string();
     assert!(message.contains("seqpurge: requires paired-end reads"));
     assert!(message.contains("seqkit: trim planning does not yet execute adapter bank policies"));
-    assert!(message.contains("trimmomatic: trim planning does not yet execute adapter bank policies"));
+    assert!(
+        message.contains("trimmomatic: trim planning does not yet execute adapter bank policies")
+    );
 }
 
 #[test]
@@ -800,17 +814,16 @@ fn plan_trim_with_bank_policy_maps_explicit_adapters_for_fastp() -> Result<()> {
     )?;
 
     assert_eq!(plan.params["adapter_policy"], serde_json::json!("bank"));
-    assert_eq!(plan.params["adapter_bank"]["enabled_entries"][0]["sequence"], "ACGTACGT");
+    assert_eq!(
+        plan.params["adapter_bank"]["enabled_entries"][0]["sequence"],
+        "ACGTACGT"
+    );
     assert!(plan
         .command
         .template
         .iter()
         .any(|part| part == "--adapter_sequence"));
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "ACGTACGT"));
+    assert!(plan.command.template.iter().any(|part| part == "ACGTACGT"));
     assert!(plan
         .command
         .template
@@ -902,7 +915,9 @@ fn plan_trim_rejects_contaminant_policy_without_a_contaminant_stage() {
             contaminant_policy: Some("bank".to_string()),
         },
     )
-    .expect_err("trim_reads should refuse contaminant_policy handoffs that do not change execution");
+    .expect_err(
+        "trim_reads should refuse contaminant_policy handoffs that do not change execution",
+    );
 
     assert!(error
         .to_string()
@@ -1009,7 +1024,10 @@ fn plan_trim_terminal_damage_preserves_paired_output_names() -> Result<()> {
     assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads_r1");
     assert_eq!(plan.io.outputs[1].name.as_str(), "trimmed_reads_r2");
     assert_eq!(plan.io.outputs[2].name.as_str(), "report_json");
-    assert!(plan.command.template.iter().any(|part| part == "-p"));
+    let script = &plan.command.template[2];
+    assert!(script.contains(
+        "-p 'out/R2.trim_terminal_damage.cutadapt.fastq.gz' 'reads_R1.fastq.gz' 'reads_R2.fastq.gz'"
+    ));
     assert_eq!(
         plan.effective_params["schema_version"],
         "bijux.fastq.params.trim_terminal_damage.v1"
@@ -1038,9 +1056,9 @@ fn plan_trim_terminal_damage_seqkit_respects_terminal_trim_settings() -> Result<
     assert_eq!(plan.command.template[0], "sh");
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
-    assert!(script.contains("seqkit subseq -r '6:-4'"));
-    assert!(script.contains("reads_R1.fastq.gz"));
-    assert!(script.contains("reads_R2.fastq.gz"));
+    assert!(script.contains("seqkit subseq -j 1 -r '6:-4'"));
+    assert!(script.contains("'reads_R1.fastq.gz'"));
+    assert!(script.contains("'reads_R2.fastq.gz'"));
     assert!(script.contains("trim_terminal_damage_report.json"));
     assert!(script.contains("\"damage_mode\":\"udg_trimmed\""));
     assert!(script.contains("\"execution_policy\":\"explicit_terminal_trim\""));
@@ -1134,7 +1152,9 @@ fn plan_trim_terminal_damage_rejects_unknown_damage_mode() {
     )
     .expect_err("unknown damage_mode must fail fast");
 
-    assert!(error.to_string().contains("invalid fastq.trim_terminal_damage damage_mode"));
+    assert!(error
+        .to_string()
+        .contains("invalid fastq.trim_terminal_damage damage_mode"));
 }
 
 #[test]
