@@ -17,6 +17,7 @@ pub const STAGE_ID: StageId = STAGE_CORRECT_ERRORS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub type CorrectPlanOptions = crate::CorrectErrorsStageParams;
+const DEFAULT_CORRECT_ERRORS_THREADS: u32 = 1;
 
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
@@ -51,7 +52,10 @@ pub fn plan_correct_with_options(
     let tool_id = tool.tool_id.to_string();
     normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
     validate_correct_options(&tool_id, options)?;
-    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let effective_threads = options
+        .threads
+        .unwrap_or(DEFAULT_CORRECT_ERRORS_THREADS)
+        .max(1);
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = r2.map(|_| out_dir.join("reads_r2.fastq.gz"));
     let report_json = out_dir.join("correct_report.json");
@@ -106,6 +110,8 @@ pub fn plan_correct_with_options(
             ArtifactRole::Reads,
         ));
     }
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -129,7 +135,7 @@ pub fn plan_correct_with_options(
                 &correction_engine,
             )?,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -420,8 +426,8 @@ fn write_correction_report_script(
         raw_backend_report_format: None,
         backend_metrics: None,
     };
-    let report_payload =
-        serde_json::to_string(&report_payload).map_err(|error| anyhow!("serialize correction report: {error}"))?;
+    let report_payload = serde_json::to_string(&report_payload)
+        .map_err(|error| anyhow!("serialize correction report: {error}"))?;
     Ok(format!(
         "printf '%s\\n' {} > {}\n",
         shell_quote_str(&report_payload),

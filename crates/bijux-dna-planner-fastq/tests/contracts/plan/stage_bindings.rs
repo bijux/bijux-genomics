@@ -1572,11 +1572,50 @@ fn planner_uses_typed_correct_params_from_stage_binding() -> anyhow::Result<()> 
 
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.correct_errors.custom");
+    assert_eq!(step.resources.threads, 6);
     assert!(step.command.template[2].contains("\"threads\":6"));
     assert!(step.command.template[2].contains("\"kmer_size\":31"));
     assert!(step.command.template[2].contains("\"genome_size\":2500000"));
     assert!(step.command.template[2].contains("\"trusted_kmer_artifact\":"));
     assert_eq!(step.expected_artifact_ids[0].as_str(), "corrected_reads_r1");
+    Ok(())
+}
+
+#[test]
+fn planner_uses_manifest_default_correct_errors_threads_without_binding_override(
+) -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-correct-default-threads")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__correct_errors_default_threads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.correct_errors".to_string(),
+            stage_instance_id: Some("fastq.correct_errors.default".to_string()),
+            tool: tool_with_threads("rcorrector", 8),
+            reason: None,
+            params: None,
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.resources.threads, 1);
+    assert!(step.command.template[2].contains("\"threads\":1"));
     Ok(())
 }
 
