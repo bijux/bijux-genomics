@@ -79,9 +79,10 @@ stage_contracts:
     required_inputs:
       - "reads_r1"
     expected_artifacts:
+      - "report_json"
       - "length_distribution_tsv"
       - "length_distribution_json"
-    notes: "fastp length profiling emits deterministic histogram summaries for governed read-length metrics."
+    notes: "fastp length profiling emits the governed read-length report alongside deterministic histogram summaries."
   fastq.trim_polyg_tails:
     required_inputs:
       - "reads_r1"
@@ -97,6 +98,7 @@ expected_artifacts:
   - "raw_backend_report_json"
   - "filtered_reads_r1"
   - "filtered_reads_r2"
+  - "report_json"
   - "report_json"
   - "length_distribution_tsv"
   - "length_distribution_json"

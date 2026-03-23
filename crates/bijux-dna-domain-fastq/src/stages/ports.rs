@@ -168,6 +168,7 @@ mod tests {
             stage_parameter_ids("fastq.trim_reads"),
             Some(
                 [
+                    "threads",
                     "min_length",
                     "quality_cutoff",
                     "adapter_policy",
