@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: ebd1fc46968877d105513ef115f80e984ceb41bf
+# source_commit: d1187e362c1b0543c54f02ea631e4d43787b560a
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -84,6 +84,9 @@ enabled = false
 
 [fastp]
 version = "latest-pinned"
+
+[fastq_scan]
+version = "0.0.1"
 
 [fastqc]
 version = "latest-pinned"
@@ -236,4 +239,3 @@ version = "latest-pinned"
 
 [yleaf]
 version = "latest-pinned"
-
