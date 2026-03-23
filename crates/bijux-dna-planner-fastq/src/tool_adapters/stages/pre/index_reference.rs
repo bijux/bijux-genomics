@@ -35,7 +35,12 @@ pub fn plan(
     reference_fasta: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(tool, reference_fasta, out_dir, &IndexReferencePlanOptions::default())
+    plan_with_options(
+        tool,
+        reference_fasta,
+        out_dir,
+        &IndexReferencePlanOptions::default(),
+    )
 }
 
 pub fn plan_with_options(
@@ -46,7 +51,9 @@ pub fn plan_with_options(
 ) -> Result<StagePlanV1> {
     let output = reference_index_output(&tool.tool_id.0, out_dir)?;
     let report_json = out_dir.join("index_reference_report.json");
-    let threads = options.threads.unwrap_or(tool.resources.threads);
+    let threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let mut resources = tool.resources.clone();
+    resources.threads = threads;
     let effective_params = ReferenceIndexEffectiveParams {
         schema_version: INDEX_REFERENCE_SCHEMA_VERSION.to_string(),
         threads,
@@ -66,29 +73,27 @@ pub fn plan_with_options(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: CommandSpecV1 {
-            template: index_reference_command(
-                &tool.tool_id.0,
-                reference_fasta,
-                &output,
-                threads,
-            )?,
+            template: index_reference_command(&tool.tool_id.0, reference_fasta, &output, threads)?,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("reference_fasta"),
                 reference_fasta.to_path_buf(),
                 ArtifactRole::Reference,
             )],
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reference_index"),
-                output.clone(),
-                ArtifactRole::Index,
-            ), ArtifactRef::required(
-                ArtifactId::from_static("report_json"),
-                report_json.clone(),
-                ArtifactRole::ReportJson,
-            )],
+            outputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("reference_index"),
+                    output.clone(),
+                    ArtifactRole::Index,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("report_json"),
+                    report_json.clone(),
+                    ArtifactRole::ReportJson,
+                ),
+            ],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -136,6 +141,8 @@ fn index_reference_command(
     match tool_id {
         "bowtie2_build" => Ok(vec![
             "bowtie2-build".to_string(),
+            "--threads".to_string(),
+            threads.to_string(),
             reference_fasta.display().to_string(),
             output.display().to_string(),
         ]),
