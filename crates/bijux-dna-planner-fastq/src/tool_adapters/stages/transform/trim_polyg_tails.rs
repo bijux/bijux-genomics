@@ -134,6 +134,11 @@ pub fn plan_trim_polyg_tails_with_options(
         report.clone(),
         ArtifactRole::ReportJson,
     ));
+    if let Some(raw_backend_output) =
+        trim_polyg_raw_backend_output(tool.tool_id.as_str(), &raw_backend_report)
+    {
+        outputs.push(raw_backend_output);
+    }
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -229,6 +234,7 @@ fn trim_polyg_command(
                 "bbduk.sh".to_string(),
                 format!("in={}", r1.display()),
                 format!("out={}", output_r1.display()),
+                format!("threads={threads}"),
             ];
             if trim_polyg {
                 command.push(format!("trimpolygright={min_polyg_run}"));
@@ -255,6 +261,22 @@ fn trim_polyg_command(
         _ => Err(anyhow!(
             "unsupported trim_polyg_tails tool for stage planning: {tool_id}"
         )),
+    }
+}
+
+fn trim_polyg_raw_backend_output(tool_id: &str, raw_backend_report: &Path) -> Option<ArtifactRef> {
+    match tool_id {
+        "fastp" => Some(ArtifactRef::optional(
+            ArtifactId::from_static("raw_backend_report_json"),
+            raw_backend_report.to_path_buf(),
+            ArtifactRole::ReportJson,
+        )),
+        "bbduk" => Some(ArtifactRef::optional(
+            ArtifactId::from_static("raw_backend_report_txt"),
+            raw_backend_report.to_path_buf(),
+            ArtifactRole::Log,
+        )),
+        _ => None,
     }
 }
 

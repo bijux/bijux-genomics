@@ -962,8 +962,14 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
     assert!(fastp_script.contains("--poly_g_min_len"));
     assert!(fastp_script.contains("'14'"));
     assert!(fastp_script.contains("trim_polyg_tails_report.fastp.json"));
-    assert!(fastp_script.contains("\"raw_report_format\":\"fastp_json\""));
+    assert!(fastp_script.contains("\"raw_backend_report_format\":\"fastp_json\""));
     assert_eq!(fastp_plan.effective_params["min_polyg_run"], 14);
+    assert!(fastp_plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
+            && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.fastp.json")));
 
     let bbduk_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
         &dummy_tool("bbduk"),
@@ -985,9 +991,16 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
     assert_eq!(bbduk_plan.command.template[1], "-lc");
     let script = &bbduk_plan.command.template[2];
     assert!(script.contains("trim_polyg_tails_report.stats.txt"));
+    assert!(script.contains("threads=4"));
     assert!(script.contains("\"tool_id\":\"bbduk\""));
     assert!(script.contains("\"stage_id\":\"fastq.trim_polyg_tails\""));
-    assert!(script.contains("\"raw_report_format\":\"bbduk_stats\""));
+    assert!(script.contains("\"raw_backend_report_format\":\"bbduk_stats\""));
+    assert!(bbduk_plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_txt"
+            && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.stats.txt")));
     Ok(())
 }
 
@@ -1024,6 +1037,7 @@ fn plan_trim_polyg_can_disable_polyg_flag_for_bench_comparisons() -> Result<()> 
         },
     )?;
     assert_eq!(bbduk_plan.params["trim_polyg"], false);
+    assert!(bbduk_plan.command.template[2].contains("threads=4"));
     assert!(!bbduk_plan.command.template[2].contains("trimpolygright="));
     Ok(())
 }
