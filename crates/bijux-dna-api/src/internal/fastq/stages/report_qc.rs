@@ -655,7 +655,7 @@ fn canonicalize_qc_inputs_from_contributors(
         .iter()
         .map(|contributor| {
             (
-                contributor.path.clone(),
+                (contributor.path.clone(), contributor.artifact_role),
                 canonical_qc_input_name(contributor),
             )
         })
@@ -664,7 +664,8 @@ fn canonicalize_qc_inputs_from_contributors(
         .iter()
         .map(|artifact| {
             let mut canonical = artifact.clone();
-            if let Some(name) = canonical_name_by_path.get(&artifact.path) {
+            if let Some(name) = canonical_name_by_path.get(&(artifact.path.clone(), artifact.role))
+            {
                 canonical.name = bijux_dna_core::ids::ArtifactId::new(name.clone());
             }
             canonical
@@ -740,6 +741,7 @@ fn validate_governed_qc_contributors(
         }
         let matches_input = qc_inputs.iter().any(|artifact| {
             artifact.path == contributor.path
+                && artifact.role == contributor.artifact_role
                 && artifact.name.as_str().ends_with(&contributor.artifact_id)
         });
         if !matches_input {
@@ -814,11 +816,13 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
         left.contributor_id
             .cmp(&right.contributor_id)
             .then_with(|| left.artifact_id.cmp(&right.artifact_id))
+            .then_with(|| left.artifact_role.as_str().cmp(right.artifact_role.as_str()))
             .then_with(|| left.path.cmp(&right.path))
     });
     contributors.dedup_by(|left, right| {
         left.contributor_id == right.contributor_id
             && left.artifact_id == right.artifact_id
+            && left.artifact_role == right.artifact_role
             && left.path == right.path
     });
     let mut qc_inputs =
@@ -1450,6 +1454,34 @@ mod tests {
             temp.path().join("governed_qc_inputs.json").as_path(),
         )
         .expect_err("unmatched contributor artifact ids must fail");
+        assert!(error
+            .to_string()
+            .contains("does not match any qc_inputs entry"));
+    }
+
+    #[test]
+    fn governed_qc_contributor_validation_rejects_role_mismatch() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report_path = temp.path().join("report.json");
+        std::fs::write(&report_path, b"{}").expect("report");
+        let qc_inputs = vec![ArtifactRef::required(
+            ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
+            report_path.clone(),
+            ArtifactRole::ReportJson,
+        )];
+        let error = validate_governed_qc_contributors(
+            &[GovernedQcContributor {
+                contributor_id: "fastq.trim_reads.fastp".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
+                tool_id: "fastp".to_string(),
+                artifact_id: "report_json".to_string(),
+                artifact_role: ArtifactRole::StageReport,
+                path: report_path,
+            }],
+            &qc_inputs,
+            temp.path().join("governed_qc_inputs.json").as_path(),
+        )
+        .expect_err("mismatched contributor artifact roles must fail");
         assert!(error
             .to_string()
             .contains("does not match any qc_inputs entry"));
