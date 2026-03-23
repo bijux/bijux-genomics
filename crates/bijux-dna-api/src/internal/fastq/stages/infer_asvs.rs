@@ -11,13 +11,14 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqInferAsv
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_domain_fastq::params::edna::AsvInferenceEffectiveParams;
 use bijux_dna_domain_fastq::{
-    execution_support_for_stage, InferAsvsReportV1, ExecutionStatus,
+    execution_support_for_stage, ExecutionStatus, InferAsvsReportV1,
     INFER_ASVS_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::edna::AsvInferenceEffectiveParams;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
+use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{
     bench_dir_name, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,
     RawFailure,
@@ -148,7 +149,9 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     match execution_support_for_stage(&bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS) {
         Some(support) if support.execution_status == ExecutionStatus::Closed => {}
         _ => {
-            return Err(anyhow!("{STAGE_ID} has no admitted governed runtime backend"));
+            return Err(anyhow!(
+                "{STAGE_ID} has no admitted governed runtime backend"
+            ));
         }
     }
     let registry =
@@ -199,6 +202,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
+        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs::plan_with_options(
             &tool_spec,
             &args.r1,
@@ -314,7 +318,10 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     })
 }
 
-fn output_path(plan: &bijux_dna_stage_contract::StagePlanV1, artifact_name: &str) -> Result<std::path::PathBuf> {
+fn output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Result<std::path::PathBuf> {
     plan.io
         .outputs
         .iter()
