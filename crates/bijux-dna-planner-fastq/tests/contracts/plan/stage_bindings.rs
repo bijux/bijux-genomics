@@ -6,6 +6,9 @@ use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_domain_fastq::params::correct::QualityEncoding;
+use bijux_dna_domain_fastq::params::remove_duplicates::{
+    DedupMode, RemoveDuplicatesEffectiveParams,
+};
 use bijux_dna_domain_fastq::params::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
@@ -63,6 +66,30 @@ fn seqkit_stats_tool() -> ToolExecutionSpecV1 {
                 "{{threads}}".to_string(),
                 "{{reads_r1}}".to_string(),
                 "{{reads_r2}}".to_string(),
+            ],
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+    }
+}
+
+fn clumpify_tool() -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
+        tool_id: ToolId::new("clumpify".to_string()),
+        tool_version: "99.99.99+fixture".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/dummy:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec![
+                "sh".to_string(),
+                "-lc".to_string(),
+                "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.remove_duplicates.report.v1\",\"tool_id\":\"clumpify\"}' > '{{report_json}}'\n".to_string(),
             ],
         },
         resources: ToolConstraints {
@@ -847,6 +874,56 @@ fn planner_uses_typed_profile_reads_params_from_stage_binding() -> anyhow::Resul
     assert_eq!(step.step_id.as_str(), "fastq.profile_reads.custom");
     assert_eq!(step.resources.threads, 6);
     assert_eq!(step.command.template[5], "6");
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_remove_duplicates_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-remove-duplicates-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&r2, b"@r1\nTTTT\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__remove_duplicates__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.remove_duplicates".to_string(),
+            stage_instance_id: Some("fastq.remove_duplicates.custom".to_string()),
+            tool: clumpify_tool(),
+            reason: None,
+            params: Some(FastqStageParameters::RemoveDuplicates(
+                RemoveDuplicatesEffectiveParams {
+                    schema_version: "bijux.fastq.params.remove_duplicates.v1".to_string(),
+                    paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
+                    threads: 6,
+                    dedup_mode: DedupMode::OpticalAware,
+                    keep_order: false,
+                },
+            )),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.remove_duplicates.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert!(step.command.template[2].contains("threads=6"));
+    assert!(step.command.template[2].contains("optical dupedist=40"));
+    assert!(step.command.template[2].contains("reorder=f"));
     Ok(())
 }
 

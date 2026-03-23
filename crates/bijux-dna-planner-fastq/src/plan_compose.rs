@@ -8,6 +8,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_domain_fastq::params::defaults::{screen_defaults, validate_defaults};
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
+    remove_duplicates::RemoveDuplicatesEffectiveParams,
     screen::ScreenEffectiveParams,
     stats::FastqStatsParams,
     trim::{TrimEffectiveParams, TrimPolygTailsParams},
@@ -311,12 +312,26 @@ where
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_REMOVE_DUPLICATES.as_str() => {
-                let plan = crate::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
-                    tool,
-                    &stage_r1,
-                    stage_r2.as_deref(),
-                    &out_dir,
-                )?;
+                let plan = if let Some(params) = remove_duplicates_params(binding) {
+                    crate::tool_adapters::fastq::remove_duplicates::plan_deduplicate_with_options(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                        &crate::tool_adapters::fastq::remove_duplicates::RemoveDuplicatesPlanOptions {
+                            dedup_mode: params.dedup_mode.clone(),
+                            keep_order: params.keep_order,
+                            threads_override: Some(params.threads),
+                        },
+                    )?
+                } else {
+                    crate::tool_adapters::fastq::remove_duplicates::plan_deduplicate(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                    )?
+                };
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
@@ -1231,6 +1246,15 @@ fn profile_overrepresented_params(
 fn profile_reads_params(binding: &FastqStageBinding) -> Option<FastqStatsParams> {
     match binding.params.as_ref() {
         Some(FastqStageParameters::ProfileReads(params)) => Some(params.clone()),
+        _ => None,
+    }
+}
+
+fn remove_duplicates_params(
+    binding: &FastqStageBinding,
+) -> Option<RemoveDuplicatesEffectiveParams> {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::RemoveDuplicates(params)) => Some(params.clone()),
         _ => None,
     }
 }
