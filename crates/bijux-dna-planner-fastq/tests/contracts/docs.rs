@@ -88,18 +88,16 @@ fn ci_tool_registry_excludes_unpublished_fastq_tools() {
         .flatten()
         .filter_map(|tool| tool.get("id").and_then(Value::as_str))
         .collect::<BTreeSet<_>>();
-    for tool_id in [
-        "diamond",
-        "dustmasker",
-        "fastq_scan",
-        "seqfu",
-        "seqpurge",
-    ] {
+    for tool_id in ["diamond", "dustmasker", "seqfu", "seqpurge"] {
         assert!(
             !tool_ids.contains(tool_id),
             "planned FASTQ tool {tool_id} must stay out of the governed CI runtime registry",
         );
     }
+    assert!(
+        tool_ids.contains("fastq_scan"),
+        "fastq_scan must stay in the governed CI runtime registry once its containerized validate runtime is closed"
+    );
 }
 
 #[test]
