@@ -2416,6 +2416,7 @@ mod tests {
                 "stage_id": "fastq.remove_duplicates",
                 "tool_id": "clumpify",
                 "paired_mode": "single_end",
+                "threads": 4,
                 "dedup_mode": "optical_aware",
                 "keep_order": false,
                 "input_r1": "reads.fastq.gz",

@@ -335,7 +335,11 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
         paired_mode: serde_json::to_value(&report.paired_mode)?
             .as_str()
             .map(ToString::to_string),
-        dedup_mode: Some(serde_json::to_string(&report.dedup_mode)?.trim_matches('"').to_string()),
+        dedup_mode: Some(
+            serde_json::to_string(&report.dedup_mode)?
+                .trim_matches('"')
+                .to_string(),
+        ),
         keep_order: Some(report.keep_order),
         pair_count_match: report.pair_count_match,
         duplicate_class_count: Some(report.duplicate_classes.len() as u64),
@@ -453,6 +457,7 @@ mod tests {
                 "stage_id": "fastq.remove_duplicates",
                 "tool_id": "clumpify",
                 "paired_mode": "single_end",
+                "threads": 4,
                 "dedup_mode": "exact",
                 "keep_order": true,
                 "input_r1": "reads.fastq.gz",
@@ -496,8 +501,7 @@ mod tests {
     fn deduplicate_metrics_accept_legacy_key_value_reports() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("deduplicate_report.txt");
-        std::fs::write(&report_path, "reads_in=200\nreads_out=160\n")
-            .expect("write report");
+        std::fs::write(&report_path, "reads_in=200\nreads_out=160\n").expect("write report");
 
         let counts =
             load_deduplicate_report_counts(&report_path).expect("load parser-backed dedup report");

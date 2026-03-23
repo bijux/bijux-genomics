@@ -681,9 +681,17 @@ pub fn parse_deduplicate_report(report_json: &str) -> Result<(u64, u64)> {
 /// # Errors
 /// Returns an error if the governed remove-duplicates report JSON cannot be parsed.
 pub fn parse_remove_duplicates_report(report_json: &str) -> Result<RemoveDuplicatesReportV1> {
-    serde_json::from_str(report_json)
-        .or_else(|_| parse_legacy_remove_duplicates_report(report_json))
-        .context("parse remove duplicates report")
+    match serde_json::from_str(report_json) {
+        Ok(report) => Ok(report),
+        Err(governed_error) => {
+            if looks_like_governed_remove_duplicates_report(report_json) {
+                Err(governed_error).context("parse remove duplicates report")
+            } else {
+                parse_legacy_remove_duplicates_report(report_json)
+                    .context("parse remove duplicates report")
+            }
+        }
+    }
 }
 
 /// # Errors
@@ -793,6 +801,26 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
         runtime_s: None,
         memory_mb: None,
     })
+}
+
+fn looks_like_governed_remove_duplicates_report(report_json: &str) -> bool {
+    serde_json::from_str::<serde_json::Value>(report_json)
+        .ok()
+        .and_then(|value| value.as_object().cloned())
+        .is_some_and(|object| {
+            object
+                .get("schema_version")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|schema| schema.starts_with("bijux.fastq.remove_duplicates.report."))
+                || object
+                    .get("stage")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|stage| stage == "fastq.remove_duplicates")
+                || object
+                    .get("stage_id")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|stage_id| stage_id == "fastq.remove_duplicates")
+        })
 }
 
 fn parse_legacy_remove_chimeras_report(report_json: &str) -> Result<RemoveChimerasReportV1> {
@@ -2134,6 +2162,29 @@ mod tests {
         assert_eq!(parsed.duplicate_classes.len(), 2);
         assert_eq!(parsed.dedup_rate, 0.15);
         Ok(())
+    }
+
+    #[test]
+    fn parse_remove_duplicates_report_rejects_incomplete_governed_json() {
+        let error = parse_remove_duplicates_report(
+            &serde_json::json!({
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "single_end",
+                "dedup_mode": "optical_aware",
+                "keep_order": false,
+                "reads_in": 100,
+                "reads_out": 85,
+                "duplicates_removed": 15,
+                "dedup_rate": 0.15
+            })
+            .to_string(),
+        )
+        .expect_err("incomplete governed remove-duplicates reports must not fall back to legacy parsing");
+
+        assert!(error.to_string().contains("parse remove duplicates report"));
     }
 
     #[test]
