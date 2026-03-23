@@ -7,7 +7,9 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::defaults::{screen_defaults, validate_defaults};
 use bijux_dna_domain_fastq::params::{
-    qc_post::{QcAggregationEngine, QcAggregationScope},
+    qc_post::{
+        QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
+    },
     remove_duplicates::RemoveDuplicatesEffectiveParams,
     screen::ScreenEffectiveParams,
     stats::FastqStatsParams,
@@ -542,6 +544,7 @@ where
                 } else {
                     PairedMode::SingleEnd
                 };
+                let qc_post_params = report_qc_params(binding, paired_mode);
                 if report_qc_inputs.is_empty() {
                     return Err(anyhow!(
                         "fastq.report_qc requires governed upstream QC artifacts; add contributing QC stages before report aggregation"
@@ -552,9 +555,9 @@ where
                     &report_qc_inputs,
                     &out_dir,
                     stage_aux_images,
-                    paired_mode,
-                    QcAggregationEngine::Multiqc,
-                    QcAggregationScope::GovernedQcArtifacts,
+                    qc_post_params.paired_mode,
+                    qc_post_params.aggregation_engine,
+                    qc_post_params.aggregation_scope,
                     Some(raw_r1.as_path()),
                     raw_r2.as_deref(),
                 )?;
@@ -1256,6 +1259,18 @@ fn remove_duplicates_params(
     match binding.params.as_ref() {
         Some(FastqStageParameters::RemoveDuplicates(params)) => Some(params.clone()),
         _ => None,
+    }
+}
+
+fn report_qc_params(binding: &FastqStageBinding, paired_mode: PairedMode) -> QcPostEffectiveParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::ReportQc(params)) => params.clone(),
+        _ => QcPostEffectiveParams {
+            schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
+            paired_mode,
+            aggregation_engine: QcAggregationEngine::Multiqc,
+            aggregation_scope: QcAggregationScope::GovernedQcArtifacts,
+        },
     }
 }
 

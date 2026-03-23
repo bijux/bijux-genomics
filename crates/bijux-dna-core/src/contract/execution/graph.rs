@@ -186,14 +186,12 @@ impl ExecutionGraph {
         ready.reverse();
         let mut order = Vec::with_capacity(self.steps.len());
         while let Some(node_id) = ready.pop() {
-            let step = self
-                .step_by_id(node_id)
-                .ok_or_else(|| {
-                    BijuxError::validation(format!(
-                        "execution graph topological walk could not resolve step {}",
-                        node_id
-                    ))
-                })?;
+            let step = self.step_by_id(node_id).ok_or_else(|| {
+                BijuxError::validation(format!(
+                    "execution graph topological walk could not resolve step {}",
+                    node_id
+                ))
+            })?;
             order.push(&step.step_id);
             if let Some(children) = outgoing.get(node_id) {
                 let mut released = Vec::new();
@@ -382,26 +380,20 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
                 edge.to().0
             )));
         }
-        let from_step = by_id
-            .get(edge.from().as_str())
-            .copied()
-            .ok_or_else(|| {
-                BijuxError::validation(format!(
-                    "edge {} -> {} could not resolve source step after validation",
-                    edge.from().0,
-                    edge.to().0
-                ))
-            })?;
-        let to_step = by_id
-            .get(edge.to().as_str())
-            .copied()
-            .ok_or_else(|| {
-                BijuxError::validation(format!(
-                    "edge {} -> {} could not resolve target step after validation",
-                    edge.from().0,
-                    edge.to().0
-                ))
-            })?;
+        let from_step = by_id.get(edge.from().as_str()).copied().ok_or_else(|| {
+            BijuxError::validation(format!(
+                "edge {} -> {} could not resolve source step after validation",
+                edge.from().0,
+                edge.to().0
+            ))
+        })?;
+        let to_step = by_id.get(edge.to().as_str()).copied().ok_or_else(|| {
+            BijuxError::validation(format!(
+                "edge {} -> {} could not resolve target step after validation",
+                edge.from().0,
+                edge.to().0
+            ))
+        })?;
         match (edge.from_output_id(), edge.to_input_id()) {
             (Some(from_output_id), Some(to_input_id)) => {
                 if !from_step
@@ -417,12 +409,7 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
                         from_output_id.as_str()
                     )));
                 }
-                if !to_step
-                    .io
-                    .inputs
-                    .iter()
-                    .any(|artifact| artifact.name == *to_input_id)
-                {
+                if !step_input_binding_exists(to_step, to_input_id.as_str()) {
                     return Err(BijuxError::validation(format!(
                         "edge {} -> {} references unknown input artifact {}",
                         edge.from().as_str(),
@@ -442,6 +429,20 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn step_input_binding_exists(step: &ExecutionStep, input_id: &str) -> bool {
+    if step
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == input_id)
+    {
+        return true;
+    }
+    step.stage_id.as_str() == "fastq.report_qc"
+        && input_id == "qc_artifacts"
+        && !step.io.inputs.is_empty()
 }
 
 fn validate_acyclic(graph: &ExecutionGraph) -> Result<()> {

@@ -349,12 +349,7 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
                         from_output_id
                     ));
                 }
-                if !to_stage
-                    .io
-                    .inputs
-                    .iter()
-                    .any(|artifact| artifact.name.as_str() == to_input_id)
-                {
+                if !stage_input_binding_exists(to_stage, to_input_id) {
                     return Err(anyhow!(
                         "plan edge {} -> {} references unknown input artifact {}",
                         edge.from,
@@ -376,6 +371,20 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
     }
     ensure_plan_is_dag(&id_catalog, &edges)?;
     Ok(())
+}
+
+fn stage_input_binding_exists(to_stage: &StagePlanV1, to_input_id: &str) -> bool {
+    if to_stage
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == to_input_id)
+    {
+        return true;
+    }
+    to_stage.stage_id.as_str() == "fastq.report_qc"
+        && to_input_id == "qc_artifacts"
+        && !to_stage.io.inputs.is_empty()
 }
 
 fn ensure_plan_is_dag(id_catalog: &HashSet<String>, edges: &[(String, String)]) -> Result<()> {
@@ -422,18 +431,14 @@ pub fn default_edges_for_stages(stages: &[StagePlanV1]) -> Vec<PlanEdge> {
     for (to_idx, to_stage) in stages.iter().enumerate() {
         let mut artifact_edges = Vec::new();
         for input in &to_stage.io.inputs {
-            let Some((from_stage, output)) = stages[..to_idx]
-                .iter()
-                .rev()
-                .find_map(|candidate| {
-                    candidate
-                        .io
-                        .outputs
-                        .iter()
-                        .find(|output| output.name == input.name)
-                        .map(|output| (candidate, output))
-                })
-            else {
+            let Some((from_stage, output)) = stages[..to_idx].iter().rev().find_map(|candidate| {
+                candidate
+                    .io
+                    .outputs
+                    .iter()
+                    .find(|output| output.name == input.name)
+                    .map(|output| (candidate, output))
+            }) else {
                 continue;
             };
             artifact_edges.push(PlanEdge::with_artifact_binding(

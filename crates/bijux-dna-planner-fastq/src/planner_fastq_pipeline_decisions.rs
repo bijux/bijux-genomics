@@ -77,6 +77,7 @@ pub enum FastqStageParameters {
     ProfileOverrepresented(bijux_dna_domain_fastq::FastqOverrepresentedProfileParams),
     ProfileReads(bijux_dna_domain_fastq::params::stats::FastqStatsParams),
     RemoveDuplicates(bijux_dna_domain_fastq::params::remove_duplicates::RemoveDuplicatesEffectiveParams),
+    ReportQc(bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams),
     Trim(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
     TrimPolygTails(bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams),
     Screen(bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams),

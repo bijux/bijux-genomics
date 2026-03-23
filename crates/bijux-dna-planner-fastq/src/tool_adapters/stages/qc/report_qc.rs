@@ -12,8 +12,7 @@ use bijux_dna_domain_fastq::params::{
     PairedMode,
 };
 use bijux_dna_domain_fastq::{
-    GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
-    STAGE_REPORT_QC,
+    GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION, STAGE_REPORT_QC,
 };
 use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
@@ -103,6 +102,8 @@ pub fn plan_qc_post_with_qc_inputs(
         "qc_input_count": qc_inputs.len(),
         "qc_contributor_stage_ids": qc_contributor_stage_ids,
         "qc_contributor_tool_ids": qc_contributor_tool_ids,
+        "aggregation_engine": aggregation_engine,
+        "aggregation_scope": aggregation_scope,
         "out_dir": out_dir
     });
     if let Some(raw) = raw_r1 {
@@ -251,6 +252,9 @@ fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
     if parts.len() >= 5 && parts[2] == "tool" {
         return Some((format!("{}.{}", parts[0], parts[1]), parts[3].to_string()));
     }
+    if parts.len() >= 4 {
+        return Some((format!("{}.{}", parts[0], parts[1]), parts[2].to_string()));
+    }
     None
 }
 
@@ -313,9 +317,7 @@ fn governed_qc_contributor(artifact: &ArtifactRef) -> Option<GovernedQcContribut
     })
 }
 
-fn derived_governed_qc_lineage_hash(
-    contributors: &[GovernedQcContributor],
-) -> Option<String> {
+fn derived_governed_qc_lineage_hash(contributors: &[GovernedQcContributor]) -> Option<String> {
     if contributors.is_empty() {
         return None;
     }
@@ -413,11 +415,10 @@ fn governed_report_qc_report(
 }
 
 fn out_dir_multiqc_report(multiqc_data: &Path) -> std::path::PathBuf {
-    multiqc_data
-        .parent()
-        .map_or_else(|| Path::new(".").join("multiqc_report.html"), |parent| {
-            parent.join("multiqc_report.html")
-        })
+    multiqc_data.parent().map_or_else(
+        || Path::new(".").join("multiqc_report.html"),
+        |parent| parent.join("multiqc_report.html"),
+    )
 }
 
 fn shell_quote_path(path: &Path) -> String {
@@ -477,10 +478,7 @@ mod tests {
         )
         .expect("multiqc command should build");
 
-        assert_eq!(
-            command[0..2],
-            ["sh".to_string(), "-lc".to_string()]
-        );
+        assert_eq!(command[0..2], ["sh".to_string(), "-lc".to_string()]);
         let script = &command[2];
         assert!(script.contains("out/governed_qc_inputs_manifest.json"));
         assert!(script.contains("out/report_qc_report.json"));
@@ -492,7 +490,9 @@ mod tests {
     fn qc_aux_tools_follow_qc_input_lineage() {
         let tool_ids = aux_tool_ids_for_qc_inputs(&[
             ArtifactRef::required(
-                ArtifactId::from_static("fastq.validate_reads.tool.fastqvalidator.validation_report"),
+                ArtifactId::from_static(
+                    "fastq.validate_reads.tool.fastqvalidator.validation_report",
+                ),
                 PathBuf::from("validate/report.json"),
                 ArtifactRole::StageReport,
             ),
@@ -508,7 +508,10 @@ mod tests {
             ),
         ]);
 
-        assert_eq!(tool_ids, vec!["fastqc".to_string(), "fastqvalidator".to_string()]);
+        assert_eq!(
+            tool_ids,
+            vec!["fastqc".to_string(), "fastqvalidator".to_string()]
+        );
     }
 
     #[test]
@@ -534,7 +537,9 @@ mod tests {
         assert_eq!(manifest.contributors[0].artifact_id, "report_json");
         assert!(manifest
             .lineage_hash
-            .is_some_and(|lineage| lineage.contains("fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report")));
+            .is_some_and(|lineage| lineage.contains(
+                "fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report"
+            )));
     }
 
     #[test]
@@ -555,7 +560,9 @@ mod tests {
             &tool,
             &[
                 ArtifactRef::required(
-                    ArtifactId::from_static("fastq.validate_reads.fastqvalidator.validation_report"),
+                    ArtifactId::from_static(
+                        "fastq.validate_reads.fastqvalidator.validation_report",
+                    ),
                     PathBuf::from("validate/report.json"),
                     ArtifactRole::StageReport,
                 ),
@@ -584,7 +591,16 @@ mod tests {
             serde_json::json!(["fastp", "fastqvalidator"])
         );
         assert_eq!(
-            plan.io.outputs
+            plan.params["aggregation_engine"],
+            serde_json::json!("multiqc")
+        );
+        assert_eq!(
+            plan.params["aggregation_scope"],
+            serde_json::json!("governed_qc_artifacts")
+        );
+        assert_eq!(
+            plan.io
+                .outputs
                 .iter()
                 .map(|artifact| artifact.name.as_str())
                 .collect::<Vec<_>>(),

@@ -6,6 +6,9 @@ use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_domain_fastq::params::correct::QualityEncoding;
+use bijux_dna_domain_fastq::params::qc_post::{
+    QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams,
+};
 use bijux_dna_domain_fastq::params::remove_duplicates::{
     DedupMode, RemoveDuplicatesEffectiveParams,
 };
@@ -924,6 +927,69 @@ fn planner_uses_typed_remove_duplicates_params_from_stage_binding() -> anyhow::R
     assert!(step.command.template[2].contains("threads=6"));
     assert!(step.command.template[2].contains("optical dupedist=40"));
     assert!(step.command.template[2].contains("reorder=f"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_report_qc_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-report-qc-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__report_qc__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![
+            FastqStageBinding {
+                stage_id: "fastq.profile_reads".to_string(),
+                stage_instance_id: Some("fastq.profile_reads.metrics".to_string()),
+                tool: seqkit_stats_tool(),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.report_qc".to_string(),
+                stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                tool: tool("multiqc"),
+                reason: None,
+                params: Some(FastqStageParameters::ReportQc(QcPostEffectiveParams {
+                    schema_version: "bijux.fastq.params.report_qc.v1".to_string(),
+                    paired_mode: bijux_dna_domain_fastq::params::PairedMode::SingleEnd,
+                    aggregation_engine: QcAggregationEngine::Multiqc,
+                    aggregation_scope: QcAggregationScope::GovernedQcArtifacts,
+                })),
+            },
+        ],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = plan
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.report_qc.aggregate")
+        .expect("report_qc step");
+    assert!(step
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "fastq.profile_reads.metrics.qc_json"));
+    assert!(step
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "governed_qc_inputs_manifest"));
     Ok(())
 }
 
