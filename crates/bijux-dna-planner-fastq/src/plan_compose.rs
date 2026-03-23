@@ -29,6 +29,7 @@ use crate::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
     DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, FastqStageBinding,
     FastqStageParameters, IndexReferenceStageParams, InferAsvsStageParams,
+    MergePairsStageParams,
     TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
     STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
     STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
@@ -488,8 +489,12 @@ where
                 let r2 = stage_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("merge requires r2"))?;
-                let plan = crate::tool_adapters::fastq::merge_pairs::plan_merge(
-                    tool, &stage_r1, r2, &out_dir,
+                let plan = crate::tool_adapters::fastq::merge_pairs::plan_merge_with_options(
+                    tool,
+                    &stage_r1,
+                    r2,
+                    &out_dir,
+                    &merge_pairs_plan_options(binding),
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None, inherited.feature_table.clone())
@@ -1338,6 +1343,20 @@ fn trim_plan_options(
         adapter_policy: Some(params.adapter_policy.clone()),
         polyx_policy: params.polyx_policy.clone(),
         contaminant_policy: params.contaminant_policy.clone(),
+    }
+}
+
+fn merge_pairs_plan_options(
+    binding: &FastqStageBinding,
+) -> crate::tool_adapters::fastq::merge_pairs::MergePlanOptions {
+    let params = match binding.params.as_ref() {
+        Some(FastqStageParameters::MergePairs(params)) => params.clone(),
+        _ => MergePairsStageParams::default(),
+    };
+    crate::tool_adapters::fastq::merge_pairs::MergePlanOptions {
+        merge_overlap: params.merge_overlap,
+        min_length: params.min_len,
+        unmerged_read_policy: params.unmerged_read_policy,
     }
 }
 

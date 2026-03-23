@@ -7,6 +7,7 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::correct::QualityEncoding;
 use bijux_dna_domain_fastq::params::edna::ChimeraDetectionEffectiveParams;
+use bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy;
 use bijux_dna_domain_fastq::params::qc_post::{
     QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams,
 };
@@ -29,7 +30,7 @@ use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthP
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
     DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
-    FastqStageToolsetBinding, TrimTerminalDamageStageParams,
+    FastqStageToolsetBinding, MergePairsStageParams, TrimTerminalDamageStageParams,
 };
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -694,6 +695,68 @@ fn planner_uses_typed_validate_params_from_stage_binding() -> anyhow::Result<()>
     assert!(step.command.template[2].contains("\"validation_mode\":\"report_only\""));
     assert!(step.command.template[2].contains("\"pair_sync_policy\":\"skip_header_sync\""));
     assert!(!step.command.template[2].contains("cmp -s"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_merge_pairs_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-merge-pairs-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&r2, b"@r1\nTTTT\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__merge_pairs__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.merge_pairs".to_string(),
+            stage_instance_id: Some("fastq.merge_pairs.custom".to_string()),
+            tool: vsearch_tool(),
+            reason: None,
+            params: Some(FastqStageParameters::MergePairs(MergePairsStageParams {
+                merge_overlap: Some(22),
+                min_len: Some(120),
+                unmerged_read_policy: UnmergedReadPolicy::OmitUnmergedPairs,
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.merge_pairs.custom");
+    assert!(
+        step.command.template[2].contains("'--fastq_minovlen' '22'"),
+        "merge overlap flag missing from {:?}",
+        step.command.template
+    );
+    assert!(
+        step.command.template[2].contains("'--fastq_minmergelen' '120'"),
+        "min length flag missing from {:?}",
+        step.command.template
+    );
+    assert!(!step
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "unmerged_reads_r1"));
+    assert!(!step
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "unmerged_reads_r2"));
     Ok(())
 }
 
