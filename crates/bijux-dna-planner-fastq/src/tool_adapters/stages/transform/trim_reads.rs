@@ -682,6 +682,8 @@ fn seqpurge_trim_command_template(
 ) -> Result<Vec<String>> {
     let mut command = vec![
         "seqpurge".to_string(),
+        "-threads".to_string(),
+        threads.max(1).to_string(),
         "-in1".to_string(),
         r1.display().to_string(),
         "-out1".to_string(),
@@ -1324,9 +1326,10 @@ fn trim_galore_command_template(
         .ok_or_else(|| anyhow!("trim_galore output path must have a parent directory"))?;
     let working_dir = output_dir.join("trim_galore_run");
     let mut script = format!(
-        "set -euo pipefail\nmkdir -p {}\ntrim_galore --output_dir {}",
+        "set -euo pipefail\nmkdir -p {}\ntrim_galore --output_dir {} --cores {}",
         shell_quote_path(&working_dir),
         shell_quote_path(&working_dir),
+        threads.max(1),
     );
     if let Some(min_length) = options.min_length {
         script.push_str(&format!(" --length {min_length}"));
