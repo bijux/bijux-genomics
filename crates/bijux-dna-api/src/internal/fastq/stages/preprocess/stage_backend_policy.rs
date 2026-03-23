@@ -587,6 +587,7 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
                 "stage": "fastq.trim_polyg_tails",
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
+                "threads": report.threads,
                 "trim_polyg": report.trim_polyg,
                 "min_polyg_run": report.min_polyg_run,
                 "reads_in": report.reads_in,
