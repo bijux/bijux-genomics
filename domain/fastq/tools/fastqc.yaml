@@ -12,6 +12,12 @@ command_template:
   - "fastqc"
   - "{{reads_r1}}"
 outputs:
+  - name: "validation_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "validated_reads_manifest"
+    data_type: "json"
+    cardinality: "One"
   - name: "adapter_report"
     data_type: "json"
     cardinality: "One"
@@ -39,6 +45,8 @@ execution_contract:
   optional_inputs:
     - "reads_r2"
   expected_outputs:
+    - "validation_report"
+    - "validated_reads_manifest"
     - "adapter_report"
     - "adapter_evidence_dir"
     - "overrepresented_sequences_tsv"
@@ -54,9 +62,19 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids:
+  - "fastq.validate_reads"
   - "fastq.detect_adapters"
   - "fastq.profile_overrepresented_sequences"
 stage_contracts:
+  fastq.validate_reads:
+    required_inputs:
+      - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
+    expected_artifacts:
+      - "validation_report"
+      - "validated_reads_manifest"
+    notes: "Validation remains report-only; the governed adapter uses FastQC as a structural probe, captures backend logs outside the native FastQC outputs, and emits the canonical validation report plus validated-read lineage manifest."
   fastq.detect_adapters:
     required_inputs:
       - "reads_r1"
@@ -78,6 +96,8 @@ stage_contracts:
       - "report_json"
     notes: "Sequence-content profiling emits normalized overrepresented-sequence tables plus the governed report artifact."
 expected_artifacts:
+  - "validation_report"
+  - "validated_reads_manifest"
   - "adapter_report"
   - "adapter_evidence_dir"
   - "overrepresented_sequences_json"
@@ -91,4 +111,4 @@ comparability:
   comparable_with:
     - "seqkit"
   non_comparable_with: []
-comparability_notes: "Comparable for governed adapter detection and overrepresented-sequence profiling when the same read layout and summary artifacts are emitted."
+comparability_notes: "Comparable for governed validation, adapter detection, and overrepresented-sequence profiling when the same read layout and canonical summary artifacts are emitted."
