@@ -11,34 +11,22 @@ use bijux_dna_domain_fastq::metrics::{
     AdapterRemovalToolMetricsV1, FastpToolMetricsV1, FastqcToolMetricsV1, MultiqcToolMetricsV1,
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
-use bijux_dna_domain_fastq::{
-    ClusterOtusReportV1,
-    CorrectErrorsReportV1,
-    DepleteHostReportV1,
-    DepleteReferenceContaminantsReportV1,
-    DepleteRrnaReportV1,
-    DetectAdaptersReportV1,
-    ExtractUmisReportV1,
-    FilterLowComplexityReportV1,
-    FilterReadsReportV1,
-    IndexReferenceReportV1,
-    InferAsvsReportV1,
-    MergePairsReportV1,
-    NormalizeAbundanceReportV1,
-    NormalizePrimersReportV1,
-    OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
-    ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
-    ProfileReadsReportV1, ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1,
-    RemoveChimerasReportV1,
-    RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1, ReportQcReportV1,
-    ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1,
-    TrimPolygReportV1, TrimReadsReportV1,
-    ValidatedReadsManifestV1, ValidationReportV1,
-};
-use bijux_dna_domain_fastq::DuplicateClassEntryV1;
 use bijux_dna_domain_fastq::params::{
     detect_adapters::{AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode},
     PairedMode,
+};
+use bijux_dna_domain_fastq::DuplicateClassEntryV1;
+use bijux_dna_domain_fastq::{
+    ClusterOtusReportV1, CorrectErrorsReportV1, DepleteHostReportV1,
+    DepleteReferenceContaminantsReportV1, DepleteRrnaReportV1, DetectAdaptersReportV1,
+    ExtractUmisReportV1, FilterLowComplexityReportV1, FilterReadsReportV1, IndexReferenceReportV1,
+    InferAsvsReportV1, MergePairsReportV1, NormalizeAbundanceReportV1, NormalizePrimersReportV1,
+    OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1, ProfileReadLengthBinV1,
+    ProfileReadLengthsReportV1, ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1,
+    ProfileReadsReportV1, RemoveChimerasReportV1, RemoveDuplicatesProvenanceV1,
+    RemoveDuplicatesReportV1, ReportQcReportV1, ScreenTaxonomyReportV1,
+    TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1, TrimPolygReportV1, TrimReadsReportV1,
+    ValidatedReadsManifestV1, ValidationReportV1,
 };
 
 /// # Errors
@@ -445,9 +433,11 @@ fn parse_legacy_deplete_host_report(report_json: &str) -> Result<DepleteHostRepo
         decoy_policy: bijux_dna_domain_fastq::params::screen::ReferenceDecoyPolicy::None,
         decoy_catalog_id: None,
         identity_threshold: 0.95,
-        retained_read_policy: bijux_dna_domain_fastq::params::screen::ReadRetentionPolicy::KeepNonHostReads,
+        retained_read_policy:
+            bijux_dna_domain_fastq::params::screen::ReadRetentionPolicy::KeepNonHostReads,
         emit_removed_reads: true,
-        report_format: bijux_dna_domain_fastq::params::screen::MappingReportFormat::Bowtie2MetricsFile,
+        report_format:
+            bijux_dna_domain_fastq::params::screen::MappingReportFormat::Bowtie2MetricsFile,
         retain_unmapped_pairs: false,
         input_r1: String::new(),
         input_r2: None,
@@ -585,7 +575,11 @@ fn parse_legacy_detect_adapters_report(report_json: &str) -> Result<DetectAdapte
     }
     let inspection_mode = match legacy.inspection_mode.as_str() {
         "evidence_only" => AdapterInspectionMode::EvidenceOnly,
-        other => return Err(anyhow!("unsupported detect adapters inspection mode {other}")),
+        other => {
+            return Err(anyhow!(
+                "unsupported detect adapters inspection mode {other}"
+            ))
+        }
     };
     Ok(DetectAdaptersReportV1 {
         schema_version: "bijux.fastq.detect_adapters.report.v2".to_string(),
@@ -722,10 +716,9 @@ pub fn parse_duplicate_classes_tsv(classes_tsv: &str) -> Result<Vec<DuplicateCla
         }
         entries.push(DuplicateClassEntryV1 {
             class: parts[0].trim().to_string(),
-            reads_removed: parts[1]
-                .trim()
-                .parse::<u64>()
-                .with_context(|| format!("parse duplicate classes line {} reads_removed", idx + 1))?,
+            reads_removed: parts[1].trim().parse::<u64>().with_context(|| {
+                format!("parse duplicate classes line {} reads_removed", idx + 1)
+            })?,
             paired_mode: serde_json::from_value(serde_json::json!(parts[2].trim()))
                 .with_context(|| format!("parse duplicate classes line {} paired_mode", idx + 1))?,
         });
@@ -746,7 +739,12 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
         stage_id: "fastq.remove_duplicates".to_string(),
         tool_id: serde_json::from_str::<serde_json::Value>(report_json)
             .ok()
-            .and_then(|value| value.get("tool_id").and_then(serde_json::Value::as_str).map(ToString::to_string))
+            .and_then(|value| {
+                value
+                    .get("tool_id")
+                    .and_then(serde_json::Value::as_str)
+                    .map(ToString::to_string)
+            })
             .unwrap_or_else(|| "unknown".to_string()),
         paired_mode: match parse_report_u64_field(report_json, "pairs_in") {
             Some(_) => bijux_dna_domain_fastq::PairedMode::PairedEnd,
@@ -771,13 +769,21 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
         pairs_out: parse_report_u64_field(report_json, "pairs_out"),
         pair_count_match: serde_json::from_str::<serde_json::Value>(report_json)
             .ok()
-            .and_then(|value| value.get("pair_count_match").and_then(serde_json::Value::as_bool)),
+            .and_then(|value| {
+                value
+                    .get("pair_count_match")
+                    .and_then(serde_json::Value::as_bool)
+            }),
         duplicates_removed,
         dedup_rate: serde_json::from_str::<serde_json::Value>(report_json)
             .ok()
             .and_then(|value| value.get("dedup_rate").and_then(serde_json::Value::as_f64))
             .unwrap_or_else(|| {
-                if reads_in == 0 { 0.0 } else { duplicates_removed as f64 / reads_in as f64 }
+                if reads_in == 0 {
+                    0.0
+                } else {
+                    duplicates_removed as f64 / reads_in as f64
+                }
             }),
         duplicate_classes_tsv: None,
         duplicate_provenance_json: None,
@@ -802,11 +808,15 @@ fn parse_legacy_remove_chimeras_report(report_json: &str) -> Result<RemoveChimer
             .unwrap_or("unknown")
             .to_string(),
         paired_mode: bijux_dna_domain_fastq::PairedMode::SingleEnd,
+        threads: json
+            .get("threads")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(1),
         method: "legacy_metrics_only".to_string(),
         detection_scope: "denovo".to_string(),
         chimera_removed_definition:
-            "reads flagged as chimeric are excluded from downstream abundance tables"
-                .to_string(),
+            "reads flagged as chimeric are excluded from downstream abundance tables".to_string(),
         input_reads: String::new(),
         output_reads: String::new(),
         chimera_metrics_json: String::new(),
@@ -1111,8 +1121,8 @@ fn parse_legacy_filter_low_complexity_report(
         bijux_dna_domain_fastq::PairedMode::SingleEnd
     };
     Ok(FilterLowComplexityReportV1 {
-        schema_version:
-            bijux_dna_domain_fastq::FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION.to_string(),
+        schema_version: bijux_dna_domain_fastq::FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION
+            .to_string(),
         stage: legacy.stage_id.clone(),
         stage_id: legacy.stage_id,
         tool_id: legacy.tool_id,
@@ -1429,37 +1439,29 @@ fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_deduplicate_report,
-        parse_correct_errors_report,
-        parse_deplete_host_report,
-        parse_deplete_reference_contaminants_report,
-        parse_deplete_rrna_report,
-        parse_detect_adapters_report,
-        parse_duplicate_classes_tsv, parse_fastp_metrics, parse_fastqc_summary_metrics,
-        parse_extract_umis_report,
-        parse_filter_low_complexity_report,
-        parse_filter_reads_report,
-        parse_fastqvalidator_count, parse_length_histogram, parse_low_complexity_report,
-        parse_index_reference_report,
-        parse_infer_asvs_report,
-        parse_multiqc_general_stats_metrics, parse_remove_duplicates_provenance,
-        parse_profile_overrepresented_report,
-        parse_profile_read_lengths_report, parse_profile_reads_report,
-        parse_remove_chimeras_report,
-        parse_remove_duplicates_report, parse_report_qc_report,
-        parse_samtools_flagstat_metrics,
-        parse_screen_summary_tsv, parse_screen_taxonomy_report, parse_seqkit_stats,
-        parse_seqkit_tool_metrics, parse_terminal_damage_report, parse_trim_reads_report,
-        parse_validated_reads_manifest, parse_validation_report,
+        parse_adapterremoval_metrics, parse_bbduk_reads_removed, parse_correct_errors_report,
+        parse_deduplicate_report, parse_deplete_host_report,
+        parse_deplete_reference_contaminants_report, parse_deplete_rrna_report,
+        parse_detect_adapters_report, parse_duplicate_classes_tsv, parse_extract_umis_report,
+        parse_fastp_metrics, parse_fastqc_summary_metrics, parse_fastqvalidator_count,
+        parse_filter_low_complexity_report, parse_filter_reads_report,
+        parse_index_reference_report, parse_infer_asvs_report, parse_length_histogram,
+        parse_low_complexity_report, parse_multiqc_general_stats_metrics,
+        parse_profile_overrepresented_report, parse_profile_read_lengths_report,
+        parse_profile_reads_report, parse_remove_chimeras_report,
+        parse_remove_duplicates_provenance, parse_remove_duplicates_report, parse_report_qc_report,
+        parse_samtools_flagstat_metrics, parse_screen_summary_tsv, parse_screen_taxonomy_report,
+        parse_seqkit_stats, parse_seqkit_tool_metrics, parse_terminal_damage_report,
+        parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
     };
     use anyhow::Result;
     use bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy;
     use bijux_dna_domain_fastq::params::DamageMode;
     use bijux_dna_domain_fastq::{
         PairedMode, ValidateFailureClass, DEPLETE_RRNA_REPORT_SCHEMA_VERSION,
-        REPORT_QC_REPORT_SCHEMA_VERSION,
-        SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
-        VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
+        REPORT_QC_REPORT_SCHEMA_VERSION, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+        TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION, VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
+        VALIDATION_REPORT_SCHEMA_VERSION,
     };
 
     #[test]
@@ -1506,7 +1508,10 @@ mod tests {
             })
             .to_string(),
         )?;
-        assert_eq!(parsed.failure_class, ValidateFailureClass::PairCountMismatch);
+        assert_eq!(
+            parsed.failure_class,
+            ValidateFailureClass::PairCountMismatch
+        );
         assert_eq!(parsed.validated_reads_r2, Some(100));
         Ok(())
     }
@@ -1584,7 +1589,10 @@ mod tests {
             parsed.execution_policy,
             TerminalDamageExecutionPolicy::ExplicitTerminalTrim
         );
-        assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
+        assert_eq!(
+            parsed.raw_backend_report_format.as_deref(),
+            Some("cutadapt_json")
+        );
         assert_eq!(parsed.reads_in, Some(200));
         Ok(())
     }
@@ -1636,7 +1644,10 @@ mod tests {
         assert_eq!(parsed.tool_id, "fastp");
         assert_eq!(parsed.paired_mode, PairedMode::PairedEnd);
         assert_eq!(parsed.adapter_policy, "bank");
-        assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("fastp_json"));
+        assert_eq!(
+            parsed.raw_backend_report_format.as_deref(),
+            Some("fastp_json")
+        );
         Ok(())
     }
 
@@ -1938,7 +1949,10 @@ mod tests {
         )?;
         assert_eq!(parsed.tool_id, "bowtie2");
         assert_eq!(parsed.reads_removed, 50);
-        assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
+        assert_eq!(
+            parsed.raw_backend_report_format.as_deref(),
+            Some("bowtie2_met_file")
+        );
         Ok(())
     }
 
@@ -2172,6 +2186,7 @@ mod tests {
                 "stage_id": "fastq.remove_chimeras",
                 "tool_id": "vsearch",
                 "paired_mode": "single_end",
+                "threads": 2,
                 "method": "vsearch_uchime_denovo",
                 "detection_scope": "denovo",
                 "chimera_removed_definition": "reads flagged as de_novo chimeras are excluded from downstream abundance tables",
@@ -2198,6 +2213,7 @@ mod tests {
             .to_string(),
         )?;
         assert_eq!(parsed.tool_id, "vsearch");
+        assert_eq!(parsed.threads, 2);
         assert_eq!(parsed.chimera_fraction, Some(0.08));
         assert_eq!(parsed.uchime_report_tsv.as_deref(), Some("uchime.tsv"));
         Ok(())

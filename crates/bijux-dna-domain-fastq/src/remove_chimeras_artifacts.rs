@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::params::PairedMode;
 
-pub const REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.remove_chimeras.report.v2";
+pub const REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.remove_chimeras.report.v2";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -14,6 +13,7 @@ pub struct RemoveChimerasReportV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub paired_mode: PairedMode,
+    pub threads: u32,
     pub method: String,
     pub detection_scope: String,
     pub chimera_removed_definition: String,
@@ -48,6 +48,7 @@ mod tests {
             stage_id: "fastq.remove_chimeras".to_string(),
             tool_id: "vsearch".to_string(),
             paired_mode: PairedMode::SingleEnd,
+            threads: 2,
             method: "vsearch_uchime_denovo".to_string(),
             detection_scope: "denovo".to_string(),
             chimera_removed_definition:
@@ -75,9 +76,9 @@ mod tests {
         };
 
         let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: RemoveChimerasReportV1 =
-            serde_json::from_str(&encoded).expect("deserialize");
+        let decoded: RemoveChimerasReportV1 = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "vsearch");
+        assert_eq!(decoded.threads, 2);
         assert_eq!(decoded.chimera_fraction, Some(0.08));
         assert_eq!(
             decoded.raw_backend_report_format.as_deref(),

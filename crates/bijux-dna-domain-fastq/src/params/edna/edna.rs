@@ -28,6 +28,7 @@ pub struct ChimeraDetectionEffectiveParams {
     pub method: String,
     pub detection_scope: String,
     pub input_layout: String,
+    pub threads: u32,
     pub report_artifact: String,
     pub metrics_artifact: String,
     pub chimera_sequence_artifact: String,

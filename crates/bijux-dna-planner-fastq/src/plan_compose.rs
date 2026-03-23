@@ -7,6 +7,7 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::defaults::{screen_defaults, validate_defaults};
 use bijux_dna_domain_fastq::params::{
+    edna::ChimeraDetectionEffectiveParams,
     qc_post::{
         QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
     },
@@ -655,12 +656,22 @@ where
                         tool.tool_id
                     ));
                 }
-                let plan = crate::tool_adapters::fastq::remove_chimeras::plan(
-                    tool,
-                    &stage_r1,
-                    stage_r2.as_deref(),
-                    &out_dir,
-                )?;
+                let plan = if let Some(params) = remove_chimeras_params(binding) {
+                    crate::tool_adapters::fastq::remove_chimeras::plan_with_effective_params(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                        &params,
+                    )?
+                } else {
+                    crate::tool_adapters::fastq::remove_chimeras::plan(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                    )?
+                };
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None, inherited.feature_table.clone())
             }
@@ -1258,6 +1269,13 @@ fn remove_duplicates_params(
 ) -> Option<RemoveDuplicatesEffectiveParams> {
     match binding.params.as_ref() {
         Some(FastqStageParameters::RemoveDuplicates(params)) => Some(params.clone()),
+        _ => None,
+    }
+}
+
+fn remove_chimeras_params(binding: &FastqStageBinding) -> Option<ChimeraDetectionEffectiveParams> {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::RemoveChimeras(params)) => Some(params.clone()),
         _ => None,
     }
 }

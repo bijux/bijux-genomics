@@ -9,7 +9,8 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::{
-    PairedMode, RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
+    params::edna::ChimeraDetectionEffectiveParams, PairedMode, RemoveChimerasReportV1,
+    REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -164,9 +165,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         if used_fallback {
             std::fs::copy(&args.r1, &filtered_reads.path)?;
         }
-        let output_stats_r1 =
-            observe_fastq_stats(catalog, platform, runner, &filtered_reads.path)?;
-        let reads_in = input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &filtered_reads.path)?;
+        let reads_in =
+            input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let reads_out = output_stats_r1.reads;
         let chimeras_removed = reads_in.saturating_sub(reads_out);
         let chimera_fraction = if reads_in == 0 {
@@ -174,8 +175,12 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         } else {
             chimeras_removed as f64 / reads_in as f64
         };
+        let effective_params: ChimeraDetectionEffectiveParams =
+            serde_json::from_value(plan.effective_params.clone())
+                .map_err(|error| anyhow!("parse remove_chimeras effective params: {error}"))?;
         let report = build_remove_chimeras_report(
             tool,
+            &effective_params,
             &args.r1,
             &filtered_reads.path,
             &metrics_output.path,
@@ -253,6 +258,7 @@ fn parse_uchime_summary(path: Option<&std::path::Path>) -> Option<serde_json::Va
 
 fn build_remove_chimeras_report(
     tool_id: &str,
+    effective_params: &ChimeraDetectionEffectiveParams,
     input_reads: &std::path::Path,
     output_reads: &std::path::Path,
     chimera_metrics_json: &std::path::Path,
@@ -273,11 +279,10 @@ fn build_remove_chimeras_report(
         stage_id: STAGE_ID.to_string(),
         tool_id: tool_id.to_string(),
         paired_mode: PairedMode::SingleEnd,
-        method: "vsearch_uchime_denovo".to_string(),
-        detection_scope: "denovo".to_string(),
-        chimera_removed_definition:
-            "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
-                .to_string(),
+        threads: effective_params.threads,
+        method: effective_params.method.clone(),
+        detection_scope: effective_params.detection_scope.clone(),
+        chimera_removed_definition: effective_params.chimera_removed_definition.clone(),
         input_reads: input_reads.display().to_string(),
         output_reads: output_reads.display().to_string(),
         chimera_metrics_json: chimera_metrics_json.display().to_string(),
@@ -290,7 +295,7 @@ fn build_remove_chimeras_report(
         used_fallback,
         raw_backend_report: uchime_report_tsv.map(|path| path.display().to_string()),
         raw_backend_report_format: uchime_report_tsv
-            .map(|_| "vsearch_uchime_tsv".to_string()),
+            .map(|_| effective_params.raw_backend_report_format.clone()),
         runtime_s: Some(runtime_s),
         memory_mb: Some(memory_mb),
         exit_code: Some(exit_code),

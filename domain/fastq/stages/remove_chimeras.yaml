@@ -23,6 +23,11 @@ outputs:
   - name: "uchime_report_tsv"
     data_type: "tsv"
     cardinality: "One"
+parameters:
+  - name: "threads"
+    param_type: "int"
+    default: "2"
+    meaning: "Worker threads for the governed chimera-detection invocation and resource envelope"
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads."

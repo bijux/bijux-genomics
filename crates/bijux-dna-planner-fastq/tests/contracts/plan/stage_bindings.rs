@@ -6,6 +6,7 @@ use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_domain_fastq::params::correct::QualityEncoding;
+use bijux_dna_domain_fastq::params::edna::ChimeraDetectionEffectiveParams;
 use bijux_dna_domain_fastq::params::qc_post::{
     QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams,
 };
@@ -100,6 +101,26 @@ fn clumpify_tool() -> ToolExecutionSpecV1 {
             mem_gb: 1,
             tmp_gb: 1,
             threads: 1,
+        },
+    }
+}
+
+fn vsearch_tool() -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
+        tool_id: ToolId::new("vsearch".to_string()),
+        tool_version: "99.99.99+fixture".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/dummy:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec!["vsearch".to_string()],
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 2,
         },
     }
 }
@@ -927,6 +948,64 @@ fn planner_uses_typed_remove_duplicates_params_from_stage_binding() -> anyhow::R
     assert!(step.command.template[2].contains("threads=6"));
     assert!(step.command.template[2].contains("optical dupedist=40"));
     assert!(step.command.template[2].contains("reorder=f"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_remove_chimeras_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-remove-chimeras-stage-params")?;
+    let r1 = temp.path().join("merged.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__remove_chimeras__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.remove_chimeras".to_string(),
+            stage_instance_id: Some("fastq.remove_chimeras.custom".to_string()),
+            tool: vsearch_tool(),
+            reason: None,
+            params: Some(FastqStageParameters::RemoveChimeras(
+                ChimeraDetectionEffectiveParams {
+                    method: "vsearch_uchime_denovo".to_string(),
+                    detection_scope: "denovo".to_string(),
+                    input_layout: "single_stream".to_string(),
+                    threads: 6,
+                    report_artifact: "report_json".to_string(),
+                    metrics_artifact: "chimera_metrics_json".to_string(),
+                    chimera_sequence_artifact: "chimeras_fasta".to_string(),
+                    raw_backend_report_artifact: "uchime_report_tsv".to_string(),
+                    raw_backend_report_format: "vsearch_uchime_tsv".to_string(),
+                    chimera_removed_definition:
+                        "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
+                            .to_string(),
+                    fallback_behavior: "copy_input_reads_and_mark_report".to_string(),
+                },
+            )),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.remove_chimeras.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|pair| pair == ["--threads", "6"]));
     Ok(())
 }
 

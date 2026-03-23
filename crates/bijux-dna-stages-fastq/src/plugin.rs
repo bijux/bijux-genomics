@@ -8,17 +8,11 @@ use bijux_dna_stage_contract::{
 
 use crate::metrics;
 use crate::observer::{
-    parse_bbduk_reads_removed, parse_deduplicate_report, parse_detect_adapters_report,
-    parse_cluster_otus_report,
-    parse_correct_errors_report,
-    parse_deplete_host_report,
-    parse_deplete_reference_contaminants_report,
-    parse_deplete_rrna_report,
-    parse_fastp_metrics,
-    parse_extract_umis_report,
-    parse_filter_low_complexity_report,
-    parse_filter_reads_report,
-    parse_index_reference_report,
+    parse_bbduk_reads_removed, parse_cluster_otus_report, parse_correct_errors_report,
+    parse_deduplicate_report, parse_deplete_host_report,
+    parse_deplete_reference_contaminants_report, parse_deplete_rrna_report,
+    parse_detect_adapters_report, parse_extract_umis_report, parse_fastp_metrics,
+    parse_filter_low_complexity_report, parse_filter_reads_report, parse_index_reference_report,
     parse_infer_asvs_report, parse_merge_pairs_report, parse_multiqc_general_stats_metrics,
     parse_normalize_abundance_report, parse_normalize_primers_report,
     parse_profile_overrepresented_report, parse_profile_read_lengths_report,
@@ -695,6 +689,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                 if let Ok(report) = parse_remove_chimeras_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
+                        "threads": report.threads,
                         "method": report.method,
                         "detection_scope": report.detection_scope,
                         "reads_in": report.reads_in,
@@ -924,7 +919,10 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                             serde_json::json!(report.paired_mode),
                         ),
                         ("threads".to_string(), serde_json::json!(report.threads)),
-                        ("umi_pattern".to_string(), serde_json::json!(report.umi_pattern)),
+                        (
+                            "umi_pattern".to_string(),
+                            serde_json::json!(report.umi_pattern),
+                        ),
                         ("reads_in".to_string(), serde_json::json!(report.reads_in)),
                         ("reads_out".to_string(), serde_json::json!(report.reads_out)),
                         ("bases_in".to_string(), serde_json::json!(report.bases_in)),
@@ -2347,7 +2345,9 @@ mod tests {
         };
         let outputs = plan.io.outputs.clone();
 
-        let output = plugin.parse_outputs(&plan, &outputs).expect("parse outputs");
+        let output = plugin
+            .parse_outputs(&plan, &outputs)
+            .expect("parse outputs");
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["reads_removed_low_complexity"],
@@ -2469,17 +2469,22 @@ mod tests {
         };
         let outputs = plan.io.outputs.clone();
 
-        let output = plugin.parse_outputs(&plan, &outputs).expect("parse outputs");
+        let output = plugin
+            .parse_outputs(&plan, &outputs)
+            .expect("parse outputs");
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["umi_pattern"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["umi_pattern"],
             serde_json::json!("NNNNNNNN")
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_with_umi"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["reads_with_umi"],
             serde_json::json!(2_u64)
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_with_umi_fraction"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["reads_with_umi_fraction"],
             serde_json::json!(1.0)
         );
     }
@@ -3217,8 +3222,7 @@ mod tests {
             serde_json::json!("rcorrector")
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["threads"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["threads"],
             serde_json::json!(4)
         );
         assert_eq!(
@@ -3833,8 +3837,7 @@ mod tests {
             serde_json::json!("pseudo_pool")
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["asv_count"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["asv_count"],
             serde_json::json!(11)
         );
     }
@@ -3903,8 +3906,7 @@ mod tests {
             serde_json::json!(0.99)
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["otu_count"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["otu_count"],
             serde_json::json!(14)
         );
     }
@@ -4139,6 +4141,7 @@ mod tests {
                 "stage_id": "fastq.remove_chimeras",
                 "tool_id": "vsearch",
                 "paired_mode": "single_end",
+                "threads": 2,
                 "method": "vsearch_uchime_denovo",
                 "detection_scope": "denovo",
                 "chimera_removed_definition": "reads flagged as de_novo chimeras are excluded from downstream abundance tables",
