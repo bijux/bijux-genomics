@@ -36,6 +36,25 @@ fn stage_parameter_names(stage_name: &str) -> Result<Vec<String>> {
         .collect()
 }
 
+fn stage_metric_names(stage_name: &str) -> Result<Vec<String>> {
+    let manifest = stage_manifest(stage_name)?;
+    let Some(metrics) = manifest.get("metrics") else {
+        return Ok(Vec::new());
+    };
+    metrics
+        .as_sequence()
+        .with_context(|| format!("metrics must be a sequence in {stage_name}.yaml"))?
+        .iter()
+        .map(|entry| {
+            entry
+                .get("name")
+                .and_then(Value::as_str)
+                .map(ToOwned::to_owned)
+                .with_context(|| format!("metric name missing in {stage_name}.yaml"))
+        })
+        .collect()
+}
+
 #[test]
 fn trim_reads_manifest_exposes_stage_level_cleanup_policy_surface() -> Result<()> {
     assert_eq!(
@@ -123,6 +142,30 @@ fn report_qc_manifest_avoids_unmapped_runtime_knobs() -> Result<()> {
         vec!["aggregation_engine", "aggregation_scope"],
         "fastq.report_qc must expose the governed aggregation surface used to plan and compare multiqc runs"
     );
+    Ok(())
+}
+
+#[test]
+fn report_qc_manifest_publishes_governed_qc_metric_surface() -> Result<()> {
+    let metrics = stage_metric_names("report_qc")?;
+    for metric in [
+        "aggregation_engine",
+        "aggregation_scope",
+        "governed_qc_input_count",
+        "governed_qc_contributor_stage_ids",
+        "governed_qc_contributor_tool_ids",
+        "governed_qc_lineage_hash",
+        "multiqc_sample_count",
+        "multiqc_module_count",
+        "adapter_content_max",
+        "duplication_rate",
+        "overrepresented_sequence_count",
+    ] {
+        assert!(
+            metrics.iter().any(|candidate| candidate == metric),
+            "fastq.report_qc manifest must publish governed QC metric `{metric}`",
+        );
+    }
     Ok(())
 }
 
