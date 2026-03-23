@@ -30,7 +30,8 @@ use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthP
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
     DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
-    FastqStageToolsetBinding, MergePairsStageParams, NormalizeAbundanceStageParams,
+    FastqStageToolsetBinding, IndexReferenceStageParams, MergePairsStageParams,
+    NormalizeAbundanceStageParams,
     NormalizePrimersStageParams, TrimTerminalDamageStageParams,
 };
 
@@ -817,6 +818,52 @@ fn planner_uses_typed_normalize_primers_params_from_stage_binding() -> anyhow::R
         .command
         .template[2]
         .contains("\"orientation_policy\":\"normalize_to_reverse_complement\""));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_index_reference_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-index-reference-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let reference = temp.path().join("reference.fasta");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&reference, b">chr1\nACGT\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__index_reference__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.index_reference".to_string(),
+            stage_instance_id: Some("fastq.index_reference.custom".to_string()),
+            tool: tool("bowtie2_build"),
+            reason: None,
+            params: Some(FastqStageParameters::IndexReference(
+                IndexReferenceStageParams { threads: Some(7) },
+            )),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: Some(reference),
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.index_reference.custom");
+    assert_eq!(step.resources.threads, 7);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|pair| pair == ["--threads", "7"]));
     Ok(())
 }
 
