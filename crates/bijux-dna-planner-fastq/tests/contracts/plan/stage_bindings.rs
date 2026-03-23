@@ -5,6 +5,10 @@ use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec,
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_domain_fastq::params::screen::{
+    ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
+    TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::validate::{
     PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
 };
@@ -605,6 +609,63 @@ fn planner_uses_typed_validate_params_from_stage_binding() -> anyhow::Result<()>
     assert!(step.command.template[2].contains("\"validation_mode\":\"report_only\""));
     assert!(step.command.template[2].contains("\"pair_sync_policy\":\"skip_header_sync\""));
     assert!(!step.command.template[2].contains("cmp -s"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_screen_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-screen-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__screen_taxonomy__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.screen_taxonomy".to_string(),
+            stage_instance_id: Some("fastq.screen_taxonomy.custom".to_string()),
+            tool: tool("kraken2"),
+            reason: None,
+            params: Some(FastqStageParameters::Screen(ScreenEffectiveParams {
+                schema_version: SCREEN_TAXONOMY_SCHEMA_VERSION.to_string(),
+                paired_mode: bijux_dna_domain_fastq::params::PairedMode::SingleEnd,
+                threads: 6,
+                contaminant_db: Some("curated_taxonomy".to_string()),
+                database_catalog_id: "metagenome_catalog".to_string(),
+                database_artifact_id: "kraken2_pluspf".to_string(),
+                database_build_id: Some("2026-03-01".to_string()),
+                database_digest: Some("sha256:taxonomy".to_string()),
+                database_namespace: Some("contaminant_screening".to_string()),
+                database_scope: TaxonomyDatabaseScope::ReadScreening,
+                classifier: TaxonomyClassifier::Kraken2,
+                report_format: TaxonomyReportFormat::KrakenReport,
+                assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
+                minimum_confidence: Some(0.15),
+                emit_unclassified: false,
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.screen_taxonomy.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert!(step.command.template[2].contains("\"database_catalog_id\":\"metagenome_catalog\""));
+    assert!(step.command.template[2].contains("\"database_artifact_id\":\"kraken2_pluspf\""));
+    assert!(step.command.template[2].contains("\"minimum_confidence\":0.15"));
+    assert!(step.command.template[2].contains("\"emit_unclassified\":false"));
     Ok(())
 }
 

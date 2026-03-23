@@ -5,8 +5,9 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
+    defaults::screen_defaults,
     screen::{
-        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
+        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier,
         TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
     },
     PairedMode,
@@ -39,7 +40,7 @@ pub fn plan_screen(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_screen_with_options(tool, r1, r2, out_dir, &ScreenPlanOptions::default())
+    plan_screen_with_effective_params(tool, r1, r2, out_dir, &screen_defaults(r2.is_some()))
 }
 
 /// Build a screen plan with explicit governed stage options.
@@ -53,32 +54,67 @@ pub fn plan_screen_with_options(
     out_dir: &Path,
     options: &ScreenPlanOptions,
 ) -> Result<StagePlanV1> {
+    let mut effective_params = screen_defaults(r2.is_some());
+    if let Some(threads) = options.threads {
+        effective_params.threads = threads.max(1);
+    }
+    plan_screen_with_effective_params(tool, r1, r2, out_dir, &effective_params)
+}
+
+/// Build a screen plan with explicit governed effective params.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported or the effective params do not
+/// match the selected classifier contract.
+pub fn plan_screen_with_effective_params(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    effective_params: &ScreenEffectiveParams,
+) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_screen_tool_list(std::slice::from_ref(&tool_id))?;
     let outputs = taxonomy_outputs(&tool.tool_id.0, out_dir)?;
     let (classifier, report_format, assignment_format) = classifier_contract(&tool.tool_id.0)?;
-    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
-    let effective_params = ScreenEffectiveParams {
-        schema_version: SCREEN_TAXONOMY_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
-        threads: effective_threads,
-        contaminant_db: None,
-        database_catalog_id: "taxonomy_reference".to_string(),
-        database_artifact_id: "taxonomy_db".to_string(),
-        database_build_id: None,
-        database_digest: None,
-        database_namespace: Some("read_screening".to_string()),
-        database_scope: TaxonomyDatabaseScope::ReadScreening,
-        classifier,
-        report_format,
-        assignment_format,
-        minimum_confidence: None,
-        emit_unclassified: true,
+    let paired_mode = if r2.is_some() {
+        PairedMode::PairedEnd
+    } else {
+        PairedMode::SingleEnd
     };
+    let mut effective_params = effective_params.clone();
+    if effective_params.schema_version.trim().is_empty() {
+        effective_params.schema_version = SCREEN_TAXONOMY_SCHEMA_VERSION.to_string();
+    }
+    effective_params.threads = effective_params.threads.max(1);
+    if effective_params.paired_mode != paired_mode {
+        return Err(anyhow!(
+            "screen taxonomy paired_mode {:?} does not match input layout {:?}",
+            effective_params.paired_mode,
+            paired_mode
+        ));
+    }
+    if effective_params.classifier != classifier {
+        return Err(anyhow!(
+            "screen taxonomy classifier {:?} is incompatible with tool {}",
+            effective_params.classifier,
+            tool.tool_id
+        ));
+    }
+    if effective_params.report_format != report_format {
+        return Err(anyhow!(
+            "screen taxonomy report format {:?} is incompatible with tool {}",
+            effective_params.report_format,
+            tool.tool_id
+        ));
+    }
+    if effective_params.assignment_format != assignment_format {
+        return Err(anyhow!(
+            "screen taxonomy assignment format {:?} is incompatible with tool {}",
+            effective_params.assignment_format,
+            tool.tool_id
+        ));
+    }
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -113,7 +149,7 @@ pub fn plan_screen_with_options(
         },
         resources: {
             let mut resources = tool.resources.clone();
-            resources.threads = effective_threads;
+            resources.threads = effective_params.threads;
             resources
         },
         io: StageIO {
@@ -139,7 +175,19 @@ pub fn plan_screen_with_options(
             "out_dir": out_dir,
             "report": outputs.report,
             "assignments": outputs.assignments,
-            "threads": effective_threads,
+            "threads": effective_params.threads,
+            "contaminant_db": effective_params.contaminant_db,
+            "database_catalog_id": effective_params.database_catalog_id,
+            "database_artifact_id": effective_params.database_artifact_id,
+            "database_build_id": effective_params.database_build_id,
+            "database_digest": effective_params.database_digest,
+            "database_namespace": effective_params.database_namespace,
+            "database_scope": effective_params.database_scope,
+            "classifier": effective_params.classifier,
+            "report_format": effective_params.report_format,
+            "assignment_format": effective_params.assignment_format,
+            "minimum_confidence": effective_params.minimum_confidence,
+            "emit_unclassified": effective_params.emit_unclassified,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize screen effective params: {error}"))?,
@@ -324,12 +372,17 @@ fn shell_quote_str(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{plan_screen_with_options, ScreenPlanOptions, STAGE_ID};
+    use super::{
+        plan_screen_with_effective_params, plan_screen_with_options, ScreenPlanOptions, STAGE_ID,
+    };
     use anyhow::Result;
     use bijux_dna_core::prelude::{
         ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
         ToolExecutionSpecV1, ToolId,
         ToolVersion,
+    };
+    use bijux_dna_domain_fastq::params::{
+        defaults::screen_defaults, screen::TaxonomyClassifier,
     };
     use std::path::Path;
 
@@ -380,5 +433,22 @@ mod tests {
             .all(|part| !part.contains("{{") && !part.contains("}}")));
         assert_eq!(plan.io.outputs[1].role, ArtifactRole::ReportJson);
         Ok(())
+    }
+
+    #[test]
+    fn screen_plan_rejects_classifier_mismatch_from_effective_params() {
+        let mut effective_params = screen_defaults(false);
+        effective_params.classifier = TaxonomyClassifier::Kaiju;
+
+        let error = plan_screen_with_effective_params(
+            &tool("kraken2"),
+            Path::new("reads_R1.fastq.gz"),
+            None,
+            Path::new("out"),
+            &effective_params,
+        )
+        .expect_err("mismatched classifier must fail");
+
+        assert!(error.to_string().contains("classifier"));
     }
 }
