@@ -750,6 +750,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                             "paired_mode".to_string(),
                             serde_json::json!(report.paired_mode),
                         ),
+                        ("threads".to_string(), serde_json::json!(report.threads)),
                         (
                             "min_length".to_string(),
                             serde_json::json!(report.min_length),
@@ -761,6 +762,10 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         (
                             "adapter_policy".to_string(),
                             serde_json::json!(report.adapter_policy),
+                        ),
+                        (
+                            "adapter_overrides".to_string(),
+                            serde_json::json!(report.adapter_overrides),
                         ),
                         (
                             "polyx_policy".to_string(),
@@ -2061,6 +2066,7 @@ mod tests {
                 "stage_id": "fastq.trim_reads",
                 "tool_id": "fastp",
                 "paired_mode": "single_end",
+                "threads": 4,
                 "input_r1": "reads.fastq",
                 "input_r2": null,
                 "output_r1": "trimmed.fastq",
@@ -2074,6 +2080,10 @@ mod tests {
                 "adapter_bank_id": "illumina",
                 "adapter_bank_hash": "sha256:adapter",
                 "adapter_preset": "default",
+                "adapter_overrides": {
+                    "enable": ["AGATCGGAAGAGC"],
+                    "disable": ["polyA"]
+                },
                 "polyx_bank_id": "polyx",
                 "polyx_bank_hash": "sha256:polyx",
                 "polyx_preset": "illumina_twocolor",
@@ -2146,6 +2156,18 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["passed_filter_reads"],
             serde_json::json!(96_u64)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["threads"],
+            serde_json::json!(4)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["adapter_overrides"],
+            serde_json::json!({
+                "enable": ["AGATCGGAAGAGC"],
+                "disable": ["polyA"]
+            })
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]

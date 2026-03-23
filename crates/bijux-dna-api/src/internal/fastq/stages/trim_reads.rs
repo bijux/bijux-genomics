@@ -317,19 +317,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             adapter_preset: governed_report.adapter_preset.clone(),
             adapter_bank_id: governed_report.adapter_bank_id.clone(),
             adapter_bank_hash: governed_report.adapter_bank_hash.clone(),
-            adapter_overrides: if args.enable_adapters.is_empty()
-                && args.disable_adapters.is_empty()
-            {
-                None
-            } else {
-                Some(
-                    serde_json::json!({
-                        "enable": args.enable_adapters,
-                        "disable": args.disable_adapters,
-                    })
-                    .into(),
-                )
-            },
+            adapter_overrides: governed_report.adapter_overrides.clone().map(Into::into),
         };
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -631,6 +619,7 @@ mod tests {
             stage_id: "fastq.trim_reads".to_string(),
             tool_id: "fastp".to_string(),
             paired_mode: PairedMode::SingleEnd,
+            threads: 4,
             input_r1: "reads.fastq.gz".to_string(),
             input_r2: None,
             output_r1: "trimmed.fastq.gz".to_string(),
@@ -644,6 +633,10 @@ mod tests {
             adapter_bank_id: None,
             adapter_bank_hash: None,
             adapter_preset: None,
+            adapter_overrides: Some(serde_json::json!({
+                "enable": ["AGATCGGAAGAGC"],
+                "disable": ["polyA"],
+            })),
             polyx_bank_id: None,
             polyx_bank_hash: None,
             polyx_preset: None,
@@ -668,9 +661,17 @@ mod tests {
         let raw = std::fs::read_to_string(&report_path).expect("read report");
         let decoded: TrimReadsReportV1 = serde_json::from_str(&raw).expect("parse report");
         assert_eq!(decoded.tool_id, "fastp");
+        assert_eq!(decoded.threads, 4);
         assert_eq!(
             decoded.raw_backend_report_format.as_deref(),
             Some("fastp_json")
+        );
+        assert_eq!(
+            decoded.adapter_overrides,
+            Some(serde_json::json!({
+                "enable": ["AGATCGGAAGAGC"],
+                "disable": ["polyA"],
+            }))
         );
     }
 

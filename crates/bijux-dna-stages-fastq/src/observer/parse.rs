@@ -1611,6 +1611,7 @@ mod tests {
                 "stage_id": "fastq.trim_reads",
                 "tool_id": "fastp",
                 "paired_mode": "paired_end",
+                "threads": 4,
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": "reads_R2.fastq.gz",
                 "output_r1": "trimmed_R1.fastq.gz",
@@ -1624,6 +1625,10 @@ mod tests {
                 "adapter_bank_id": "illumina",
                 "adapter_bank_hash": "sha256:adapter",
                 "adapter_preset": "default",
+                "adapter_overrides": {
+                    "enable": ["AGATCGGAAGAGC"],
+                    "disable": ["polyA"]
+                },
                 "polyx_bank_id": "polyx",
                 "polyx_bank_hash": "sha256:polyx",
                 "polyx_preset": "illumina_twocolor",
@@ -1647,8 +1652,16 @@ mod tests {
         )?;
 
         assert_eq!(parsed.tool_id, "fastp");
+        assert_eq!(parsed.threads, 4);
         assert_eq!(parsed.paired_mode, PairedMode::PairedEnd);
         assert_eq!(parsed.adapter_policy, "bank");
+        assert_eq!(
+            parsed.adapter_overrides,
+            Some(serde_json::json!({
+                "enable": ["AGATCGGAAGAGC"],
+                "disable": ["polyA"]
+            }))
+        );
         assert_eq!(
             parsed.raw_backend_report_format.as_deref(),
             Some("fastp_json")
