@@ -86,7 +86,7 @@ fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
     );
     assert_eq!(
         stage_parameter_names("trim_polyg_tails")?,
-        vec!["trim_polyg", "min_polyg_run"],
+        vec!["threads", "trim_polyg", "min_polyg_run"],
         "fastq.trim_polyg_tails must keep its polyG-specific parameter surface"
     );
     assert_eq!(

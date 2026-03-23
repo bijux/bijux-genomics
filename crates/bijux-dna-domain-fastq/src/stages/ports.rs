@@ -146,6 +146,21 @@ mod tests {
             )
         );
         assert_eq!(
+            stage_output_ids("fastq.trim_polyg_tails"),
+            Some(
+                [
+                    "trimmed_reads_r1",
+                    "trimmed_reads_r2",
+                    "report_json",
+                    "raw_backend_report_json",
+                    "raw_backend_report_txt",
+                ]
+                .into_iter()
+                .map(str::to_string)
+                .collect()
+            )
+        );
+        assert_eq!(
             stage_output_ids_in_manifest_order("fastq.report_qc"),
             Some(vec![
                 "report_json".to_string(),
@@ -179,6 +194,15 @@ mod tests {
                 .into_iter()
                 .map(str::to_string)
                 .collect()
+            )
+        );
+        assert_eq!(
+            stage_parameter_ids("fastq.trim_polyg_tails"),
+            Some(
+                ["threads", "trim_polyg", "min_polyg_run"]
+                    .into_iter()
+                    .map(str::to_string)
+                    .collect()
             )
         );
         assert_eq!(
