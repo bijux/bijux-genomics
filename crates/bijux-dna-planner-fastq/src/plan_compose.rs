@@ -17,19 +17,19 @@ use bijux_dna_domain_fastq::stages::ids::{
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READ_LENGTHS,
     STAGE_TRIM_POLYG_TAILS,
 };
+use bijux_dna_domain_fastq::FastqReadLengthProfileParams;
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
-    DepleteRrnaStageParams, FastqStageBinding, FastqStageParameters, IndexReferenceStageParams,
-    InferAsvsStageParams, ClusterOtusStageParams,
-    TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
-    STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
-    STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY,
-    STAGE_FILTER_READS, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE,
-    STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES,
-    STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
-    STAGE_VALIDATE_READS,
+    ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
+    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, FastqStageBinding,
+    FastqStageParameters, IndexReferenceStageParams, InferAsvsStageParams,
+    TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
+    STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
+    STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
+    STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS,
+    STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
 };
 
 #[derive(Debug, Clone)]
@@ -168,12 +168,23 @@ where
                 )
             }
             stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
-                let plan = crate::tool_adapters::fastq::profile_read_lengths::plan(
-                    tool,
-                    &stage_r1,
-                    stage_r2.as_deref(),
-                    &out_dir,
-                )?;
+                let plan = if let Some(params) = profile_read_lengths_params(binding) {
+                    crate::tool_adapters::fastq::profile_read_lengths::plan_with_options(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                        Some(params.threads),
+                        Some(params.histogram_bins),
+                    )?
+                } else {
+                    crate::tool_adapters::fastq::profile_read_lengths::plan(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                    )?
+                };
                 (
                     plan,
                     stage_r1.clone(),
@@ -489,9 +500,11 @@ where
                     .unwrap_or_else(|| inherited.qc_inputs.clone());
                 let mut stage_aux_images = std::collections::BTreeMap::new();
                 if tool.tool_id.0 == "multiqc" {
-                    for aux_tool in crate::tool_adapters::fastq::report_qc::aux_tool_ids_for_qc_inputs(
-                        &report_qc_inputs,
-                    ) {
+                    for aux_tool in
+                        crate::tool_adapters::fastq::report_qc::aux_tool_ids_for_qc_inputs(
+                            &report_qc_inputs,
+                        )
+                    {
                         if let Some(image) = aux_images.get(aux_tool.as_str()) {
                             stage_aux_images.insert(aux_tool, image.clone());
                         }
@@ -701,7 +714,8 @@ where
                 .cmp(right.name.as_str())
                 .then_with(|| left.path.cmp(&right.path))
         });
-        next_lineage_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+        next_lineage_inputs
+            .dedup_by(|left, right| left.name == right.name && left.path == right.path);
         let reference_index = if stage_id == STAGE_INDEX_REFERENCE.as_str() {
             let reference_index_artifact = plan
                 .io
@@ -817,7 +831,12 @@ fn resolved_stage_input_artifacts(
         left.to_input_id
             .cmp(&right.to_input_id)
             .then_with(|| left.source_stage_node_id.cmp(&right.source_stage_node_id))
-            .then_with(|| left.artifact.name.as_str().cmp(right.artifact.name.as_str()))
+            .then_with(|| {
+                left.artifact
+                    .name
+                    .as_str()
+                    .cmp(right.artifact.name.as_str())
+            })
             .then_with(|| left.artifact.path.cmp(&right.artifact.path))
     });
     Ok(inputs)
@@ -849,18 +868,19 @@ fn explicit_reference_index_state(
     inputs: &[ResolvedStageInputArtifact],
     input_id: &str,
 ) -> Result<Option<ReferenceIndexState>> {
-    Ok(unique_resolved_input_artifact(inputs, input_id)?.map(|input| ReferenceIndexState {
-        path: input.artifact.path.clone(),
-        tool_id: input.source_tool_id.clone(),
-    }))
+    Ok(
+        unique_resolved_input_artifact(inputs, input_id)?.map(|input| ReferenceIndexState {
+            path: input.artifact.path.clone(),
+            tool_id: input.source_tool_id.clone(),
+        }),
+    )
 }
 
 fn explicit_reads_input_path(
     inputs: &[ResolvedStageInputArtifact],
     input_id: &str,
 ) -> Result<Option<PathBuf>> {
-    Ok(unique_resolved_input_artifact(inputs, input_id)?
-        .map(|input| input.artifact.path.clone()))
+    Ok(unique_resolved_input_artifact(inputs, input_id)?.map(|input| input.artifact.path.clone()))
 }
 
 fn explicit_abundance_table(inputs: &[ResolvedStageInputArtifact]) -> Result<Option<PathBuf>> {
@@ -1165,6 +1185,15 @@ fn validate_reads_params(binding: &FastqStageBinding, paired: bool) -> ValidateE
     match binding.params.as_ref() {
         Some(FastqStageParameters::Validate(params)) => params.clone(),
         _ => validate_defaults(paired),
+    }
+}
+
+fn profile_read_lengths_params(
+    binding: &FastqStageBinding,
+) -> Option<FastqReadLengthProfileParams> {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::ProfileReadLengths(params)) => Some(params.clone()),
+        _ => None,
     }
 }
 
