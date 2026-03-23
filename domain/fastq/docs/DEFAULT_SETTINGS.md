@@ -45,7 +45,7 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 
 validation_benchmark_policy: fastq.validate_reads
 - default benchmark backend is `fastqvalidator`
-- `fqtools` and `seqtk` are comparison backends for parser-level agreement studies
+- `fastqc`, `fastq_scan`, `fqtools`, and `seqtk` are comparison backends for governed-report agreement studies
 - `fastq.report_qc` and `fastq.profile_reads` are downstream complements, not substitutes for structural validation
 
 single_tool_justification: fastq.index_reference

@@ -19,6 +19,8 @@ stages:
     default_tool: "fastqvalidator"
     admitted_tools:
       - "fastqvalidator"
+      - "fastqc"
+      - "fastq_scan"
       - "seqtk"
       - "fqtools"
   - stage_id: "fastq.profile_read_lengths"
