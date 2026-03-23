@@ -792,7 +792,11 @@ fn cutadapt_command_template(
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
-    let mut command = vec!["cutadapt".to_string()];
+    let mut command = vec![
+        "cutadapt".to_string(),
+        "--cores".to_string(),
+        threads.max(1).to_string(),
+    ];
     let raw_backend_report = raw_backend_report_path(report_json, "cutadapt", "json");
     if matches!(
         options.resolved_adapter_policy().as_str(),
@@ -1114,7 +1118,12 @@ fn atropos_command_template(
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
-    let mut command = vec!["atropos".to_string(), "trim".to_string()];
+    let mut command = vec![
+        "atropos".to_string(),
+        "trim".to_string(),
+        "-T".to_string(),
+        threads.max(1).to_string(),
+    ];
     if matches!(
         options.resolved_adapter_policy().as_str(),
         "bank" | "ancient_strict"
