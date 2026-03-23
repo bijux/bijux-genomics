@@ -112,7 +112,7 @@ pub fn trim_defaults(paired: bool) -> TrimEffectiveParams {
     TrimEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
-        min_len: 0,
+        min_len: 30,
         q_cutoff: None,
         adapter_policy: "none".to_string(),
         damage_mode: None,
