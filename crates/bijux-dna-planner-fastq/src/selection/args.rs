@@ -213,6 +213,11 @@ pub struct BenchFastqNormalizePrimersArgs {
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
     pub primer_set_id: Option<String>,
+    pub orientation_policy: Option<String>,
+    pub max_mismatch_rate: Option<f64>,
+    pub min_overlap_bp: Option<u32>,
+    pub strict_5p_anchor: Option<bool>,
+    pub allow_iupac_codes: Option<bool>,
 }
 
 #[derive(Debug, Clone)]

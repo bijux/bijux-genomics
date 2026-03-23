@@ -377,6 +377,11 @@ pub fn bench_args_normalize_primers(
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
         primer_set_id: args.primer_set_id.clone(),
+        orientation_policy: args.orientation_policy.clone(),
+        max_mismatch_rate: args.max_mismatch_rate,
+        min_overlap_bp: args.min_overlap_bp,
+        strict_5p_anchor: args.strict_5p_anchor,
+        allow_iupac_codes: args.allow_iupac_codes,
     })
 }
 
@@ -990,6 +995,39 @@ mod tests {
             bench.execution_policy.as_deref(),
             Some("explicit_terminal_trim")
         );
+    }
+
+    #[test]
+    fn normalize_primers_bench_args_preserve_governed_overrides() {
+        let args = BenchFastqNormalizePrimersArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: None,
+            out: PathBuf::from("out"),
+            tools: vec!["cutadapt".to_string()],
+            explain: false,
+            allow_experimental: false,
+            replicates: 2,
+            jobs: 3,
+            ci_bootstrap: Some(25),
+            primer_set_id: Some("16S_universal_v1".to_string()),
+            orientation_policy: Some("normalize_to_reverse_complement".to_string()),
+            max_mismatch_rate: Some(0.05),
+            min_overlap_bp: Some(14),
+            strict_5p_anchor: Some(false),
+            allow_iupac_codes: Some(false),
+        };
+
+        let bench = bench_args_normalize_primers(&args).expect("bench args");
+        assert_eq!(bench.primer_set_id.as_deref(), Some("16S_universal_v1"));
+        assert_eq!(
+            bench.orientation_policy.as_deref(),
+            Some("normalize_to_reverse_complement")
+        );
+        assert_eq!(bench.max_mismatch_rate, Some(0.05));
+        assert_eq!(bench.min_overlap_bp, Some(14));
+        assert_eq!(bench.strict_5p_anchor, Some(false));
+        assert_eq!(bench.allow_iupac_codes, Some(false));
     }
 
     #[test]

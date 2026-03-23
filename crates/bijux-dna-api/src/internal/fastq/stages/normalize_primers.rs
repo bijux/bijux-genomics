@@ -11,9 +11,7 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::params::PairedMode;
-use bijux_dna_domain_fastq::{
-    NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
-};
+use bijux_dna_domain_fastq::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
@@ -107,6 +105,14 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                 primer_set_id: primer_governance.primer_set_id.clone(),
                 marker_id: Some(primer_governance.marker_id.clone()),
                 primer_fasta: Some(primer_governance.primer_fasta.clone()),
+                orientation_policy: args
+                    .orientation_policy
+                    .clone()
+                    .unwrap_or_else(|| "normalize_to_forward_primer".to_string()),
+                max_mismatch_rate: args.max_mismatch_rate.unwrap_or(0.10),
+                min_overlap_bp: args.min_overlap_bp.unwrap_or(10),
+                strict_5p_anchor: args.strict_5p_anchor.unwrap_or(true),
+                allow_iupac_codes: args.allow_iupac_codes.unwrap_or(true),
                 ..Default::default()
             },
         )?;
@@ -205,13 +211,16 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             bases_out: Some(
                 output_stats_r1.bases + output_stats_r2.as_ref().map_or(0, |stats| stats.bases),
             ),
-            pairs_in: args
-                .r2
-                .as_ref()
-                .map(|_| input_stats_r1.reads.min(input_stats_r2.as_ref().map_or(0, |stats| stats.reads))),
-            pairs_out: output_r2
-                .as_ref()
-                .map(|_| output_stats_r1.reads.min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))),
+            pairs_in: args.r2.as_ref().map(|_| {
+                input_stats_r1
+                    .reads
+                    .min(input_stats_r2.as_ref().map_or(0, |stats| stats.reads))
+            }),
+            pairs_out: output_r2.as_ref().map(|_| {
+                output_stats_r1
+                    .reads
+                    .min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
+            }),
             primer_trimmed_reads: primer_trimmed_fraction
                 .map(|fraction| (fraction * reads_in_total as f64).round() as u64),
             primer_trimmed_fraction,
@@ -219,11 +228,14 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             primer_orientation_report: orientation_report.display().to_string(),
             primer_stats_json: primer_stats_json.display().to_string(),
             raw_backend_report: Some(primer_stats_json.display().to_string()),
-            raw_backend_report_format: Some(match tool.as_str() {
-                "cutadapt" => "cutadapt_json",
-                "seqkit" => "seqkit_grep",
-                _ => "unknown",
-            }.to_string()),
+            raw_backend_report_format: Some(
+                match tool.as_str() {
+                    "cutadapt" => "cutadapt_json",
+                    "seqkit" => "seqkit_grep",
+                    _ => "unknown",
+                }
+                .to_string(),
+            ),
             runtime_s: Some(execution.runtime_s),
             memory_mb: Some(execution.memory_mb),
             used_fallback: payload
