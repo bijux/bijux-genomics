@@ -177,6 +177,31 @@ fn trim_reads_stage_manifest_lists_all_supported_backends() -> Result<()> {
 }
 
 #[test]
+fn trim_polyg_tool_contracts_preserve_native_backend_reports() -> Result<()> {
+    for (tool_id, raw_artifact) in [
+        ("fastp", "raw_backend_report_json"),
+        ("bbduk", "raw_backend_report_txt"),
+    ] {
+        let manifest = tool_manifest(tool_id)?;
+        let expected_artifacts = manifest
+            .get("stage_contracts")
+            .and_then(|value| value.get("fastq.trim_polyg_tails"))
+            .and_then(|value| value.get("expected_artifacts"))
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("{tool_id} trim_polyg_tails expected_artifacts"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
+
+        assert!(
+            expected_artifacts.contains(&raw_artifact),
+            "{tool_id} trim_polyg_tails contract must preserve {raw_artifact}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
 fn trim_terminal_damage_stage_manifest_lists_all_supported_backends() -> Result<()> {
     let path = workspace_root()?.join("domain/fastq/stages/trim_terminal_damage.yaml");
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
