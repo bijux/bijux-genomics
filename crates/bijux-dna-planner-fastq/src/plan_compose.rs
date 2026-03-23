@@ -9,6 +9,7 @@ use bijux_dna_domain_fastq::params::defaults::{screen_defaults, validate_default
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
     screen::ScreenEffectiveParams,
+    trim::TrimEffectiveParams,
     validate::ValidateEffectiveParams,
     PairedMode,
 };
@@ -211,15 +212,28 @@ where
                 )
             }
             stage if stage == STAGE_TRIM_READS.as_str() => {
-                let plan = crate::tool_adapters::fastq::trim_reads::plan(
-                    tool,
-                    &stage_r1,
-                    stage_r2.as_deref(),
-                    &out_dir,
-                    adapter_bank,
-                    polyx_bank,
-                    contaminant_bank,
-                )?;
+                let plan = if let Some(options) = trim_reads_options(binding) {
+                    crate::tool_adapters::fastq::trim_reads::plan_with_options(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                        adapter_bank,
+                        polyx_bank,
+                        contaminant_bank,
+                        &options,
+                    )?
+                } else {
+                    crate::tool_adapters::fastq::trim_reads::plan(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                        adapter_bank,
+                        polyx_bank,
+                        contaminant_bank,
+                    )?
+                };
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
@@ -1144,10 +1158,33 @@ fn validate_reads_params(binding: &FastqStageBinding, paired: bool) -> ValidateE
     }
 }
 
+fn trim_reads_options(
+    binding: &FastqStageBinding,
+) -> Option<crate::tool_adapters::fastq::trim_reads::TrimPlanOptions> {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::Trim(params)) => Some(trim_plan_options(params)),
+        _ => None,
+    }
+}
+
 fn screen_params(binding: &FastqStageBinding, paired: bool) -> ScreenEffectiveParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::Screen(params)) => params.clone(),
         _ => screen_defaults(paired),
+    }
+}
+
+fn trim_plan_options(
+    params: &TrimEffectiveParams,
+) -> crate::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+    crate::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+        threads: Some(params.threads),
+        min_length: Some(params.min_len),
+        quality_cutoff: params.q_cutoff,
+        n_policy: params.n_policy.clone(),
+        adapter_policy: Some(params.adapter_policy.clone()),
+        polyx_policy: params.polyx_policy.clone(),
+        contaminant_policy: params.contaminant_policy.clone(),
     }
 }
 

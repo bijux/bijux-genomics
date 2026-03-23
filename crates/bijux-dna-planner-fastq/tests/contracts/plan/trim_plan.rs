@@ -190,6 +190,7 @@ fn plan_trim_prinseq_maps_min_length() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: Some(55),
             quality_cutoff: None,
             n_policy: None,
@@ -215,6 +216,7 @@ fn plan_trim_prinseq_maps_quality_cutoff_to_both_ends() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: Some(24),
             n_policy: None,
@@ -242,6 +244,7 @@ fn plan_trim_prinseq_maps_n_drop_filtering() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: None,
             n_policy: Some("drop".to_string()),
@@ -334,6 +337,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: Some(42),
             quality_cutoff: Some(18),
             n_policy: Some("retain".to_string()),
@@ -395,6 +399,7 @@ fn plan_trim_with_options_maps_min_length_for_seqkit() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: Some(75),
             quality_cutoff: None,
             n_policy: None,
@@ -452,6 +457,7 @@ fn plan_trim_with_options_maps_min_length_for_seqpurge() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: Some(80),
             quality_cutoff: None,
             n_policy: None,
@@ -477,6 +483,7 @@ fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> 
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: None,
             n_policy: Some("drop".to_string()),
@@ -501,6 +508,7 @@ fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> 
             None,
             None,
             &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+                threads: None,
                 min_length: None,
                 quality_cutoff: None,
                 n_policy: Some("drop".to_string()),
@@ -526,6 +534,7 @@ fn validate_trim_toolset_support_reports_all_incompatible_tools() {
         &vec!["seqpurge".to_string(), "seqkit".to_string(), "trimmomatic".to_string()],
         false,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: Some(20),
             n_policy: None,
@@ -553,6 +562,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_atropos() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: Some(42),
             quality_cutoff: Some(18),
             n_policy: Some("retain".to_string()),
@@ -586,6 +596,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_adapterremoval() -> Result
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: Some(42),
             quality_cutoff: Some(18),
             n_policy: Some("retain".to_string()),
@@ -620,6 +631,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_trimmomatic() -> Result<()
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: Some(42),
             quality_cutoff: Some(18),
             n_policy: Some("retain".to_string()),
@@ -654,6 +666,7 @@ fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: Some(42),
             quality_cutoff: None,
             n_policy: None,
@@ -680,6 +693,7 @@ fn plan_trim_with_options_rejects_contaminant_handoffs_without_execution_support
         None,
         Some(&serde_json::json!({"preset": "host"})),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: None,
             n_policy: None,
@@ -713,6 +727,7 @@ fn plan_trim_with_bank_contaminant_policy_maps_bbduk_reference_filter() -> Resul
             ]
         })),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: None,
             n_policy: Some("drop".to_string()),
@@ -771,6 +786,7 @@ fn plan_trim_with_bank_policy_maps_explicit_adapters_for_fastp() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: None,
             n_policy: None,
@@ -816,6 +832,7 @@ fn plan_trim_with_polyx_trim_enables_fastp_polyx_mode() -> Result<()> {
         None,
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: None,
             n_policy: None,
@@ -835,6 +852,34 @@ fn plan_trim_with_polyx_trim_enables_fastp_polyx_mode() -> Result<()> {
 }
 
 #[test]
+fn plan_trim_with_thread_override_updates_resources_and_fastp_command() -> Result<()> {
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
+        &dummy_tool("fastp"),
+        std::path::Path::new("reads.fastq.gz"),
+        None,
+        std::path::Path::new("out"),
+        None,
+        None,
+        None,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: Some(6),
+            min_length: None,
+            quality_cutoff: None,
+            n_policy: None,
+            adapter_policy: None,
+            polyx_policy: None,
+            contaminant_policy: None,
+        },
+    )?;
+
+    assert_eq!(plan.resources.threads, 6);
+    assert_eq!(plan.params["threads"], serde_json::json!(6));
+    assert_eq!(plan.effective_params["threads"], serde_json::json!(6));
+    assert!(plan.command.template[2].contains("'--thread' '6'"));
+    Ok(())
+}
+
+#[test]
 fn plan_trim_rejects_contaminant_policy_without_a_contaminant_stage() {
     let error = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
         &dummy_tool("fastp"),
@@ -845,6 +890,7 @@ fn plan_trim_rejects_contaminant_policy_without_a_contaminant_stage() {
         None,
         Some(&serde_json::json!({"preset": "host"})),
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
+            threads: None,
             min_length: None,
             quality_cutoff: None,
             n_policy: None,

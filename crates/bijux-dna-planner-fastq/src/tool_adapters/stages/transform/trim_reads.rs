@@ -13,6 +13,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone, Default)]
 pub struct TrimPlanOptions {
+    pub threads: Option<u32>,
     pub min_length: Option<u32>,
     pub quality_cutoff: Option<u32>,
     pub n_policy: Option<String>,
@@ -22,6 +23,10 @@ pub struct TrimPlanOptions {
 }
 
 impl TrimPlanOptions {
+    fn resolved_threads(&self, default_threads: u32) -> u32 {
+        self.threads.unwrap_or(default_threads).max(1)
+    }
+
     fn resolved_min_length(&self) -> u32 {
         self.min_length.unwrap_or(30)
     }
@@ -172,6 +177,7 @@ pub fn plan_with_options(
         return Err(anyhow!("seqpurge trim planning requires paired-end reads"));
     }
     ensure_trim_option_support(&tool.tool_id.0, options)?;
+    let effective_threads = options.resolved_threads(tool.resources.threads);
     let output_r1 = if r2.is_some() {
         out_dir.join(format!("R1.{output_name}"))
     } else {
@@ -184,7 +190,7 @@ pub fn plan_with_options(
         "input_r2": r2,
         "output_r1": output_r1,
         "output_r2": output_r2,
-        "threads": tool.resources.threads,
+        "threads": effective_threads,
         "min_length": options.resolved_min_length(),
         "quality_cutoff": options.quality_cutoff,
         "n_policy": options.resolved_n_policy(),
@@ -219,7 +225,7 @@ pub fn plan_with_options(
         } else {
             PairedMode::SingleEnd
         },
-        threads: tool.resources.threads,
+        threads: effective_threads,
         min_len: options.resolved_min_length(),
         q_cutoff: options.quality_cutoff,
         adapter_policy: options.resolved_adapter_policy(),
@@ -283,7 +289,11 @@ pub fn plan_with_options(
         command: CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources: {
+            let mut resources = tool.resources.clone();
+            resources.threads = effective_threads;
+            resources
+        },
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params,
@@ -328,6 +338,7 @@ fn trim_command_template(
     let adapter_policy = options.resolved_adapter_policy();
     let adapter_sequences = enabled_adapter_sequences(adapter_bank);
     let polyx_policy = options.resolved_polyx_policy();
+    let effective_threads = options.resolved_threads(tool.resources.threads);
     if tool.tool_id.as_str() == "fastp" {
         let raw_backend_report = raw_backend_report_path(report_json, "fastp", "json");
         let mut command = vec![
@@ -339,7 +350,7 @@ fn trim_command_template(
             "--json".to_string(),
             raw_backend_report.display().to_string(),
             "--thread".to_string(),
-            tool.resources.threads.to_string(),
+            effective_threads.to_string(),
         ];
         if let Some(min_length) = options.min_length {
             command.extend(["--length_required".to_string(), min_length.to_string()]);
@@ -487,7 +498,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
-            tool.resources.threads,
+            effective_threads,
             options,
         );
     }
@@ -514,6 +525,7 @@ fn trim_command_template(
                 output_r2.map(|path| path.display().to_string()),
             ),
             ("report_json", Some(report_json.display().to_string())),
+            ("threads", Some(effective_threads.to_string())),
         ],
     )?;
     Ok(wrap_trim_command_with_report(
