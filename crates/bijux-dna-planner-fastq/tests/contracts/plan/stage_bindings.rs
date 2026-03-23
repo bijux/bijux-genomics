@@ -5,6 +5,7 @@ use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec,
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_dna_domain_fastq::params::correct::QualityEncoding;
 use bijux_dna_domain_fastq::params::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
@@ -15,8 +16,8 @@ use bijux_dna_domain_fastq::params::trim::{
 use bijux_dna_domain_fastq::params::validate::{
     PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::correct::QualityEncoding;
 use bijux_dna_domain_fastq::params::DamageMode;
+use bijux_dna_domain_fastq::FastqReadLengthProfileParams;
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
     DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
@@ -33,6 +34,35 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
         },
         command: CommandSpecV1 {
             template: vec!["echo".to_string(), tool_id.to_string()],
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+    }
+}
+
+fn seqkit_stats_tool() -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
+        tool_id: ToolId::new("seqkit_stats".to_string()),
+        tool_version: "99.99.99+fixture".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/dummy:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec![
+                "seqkit".to_string(),
+                "stats".to_string(),
+                "-a".to_string(),
+                "-T".to_string(),
+                "-j".to_string(),
+                "{{threads}}".to_string(),
+                "{{reads_r1}}".to_string(),
+                "{{reads_r2}}".to_string(),
+            ],
         },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
@@ -616,6 +646,58 @@ fn planner_uses_typed_validate_params_from_stage_binding() -> anyhow::Result<()>
 }
 
 #[test]
+fn planner_uses_typed_profile_read_lengths_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-profile-read-lengths-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&r2, b"@r1\nTTTT\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__profile_read_lengths__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.profile_read_lengths".to_string(),
+            stage_instance_id: Some("fastq.profile_read_lengths.custom".to_string()),
+            tool: seqkit_stats_tool(),
+            reason: None,
+            params: Some(FastqStageParameters::ProfileReadLengths(
+                FastqReadLengthProfileParams {
+                    schema_version: "bijux.fastq.params.read_length_profile.v1".to_string(),
+                    paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
+                    threads: 6,
+                    histogram_bins: 64,
+                },
+            )),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.profile_read_lengths.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert_eq!(step.command.template[5], "6");
+    assert!(step
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "report_json"));
+    Ok(())
+}
+
+#[test]
 fn planner_uses_typed_screen_params_from_stage_binding() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-screen-stage-params")?;
     let r1 = temp.path().join("reads_R1.fastq");
@@ -862,7 +944,11 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.deplete_rrna.sortmerna.custom");
     assert!(step.command.template.iter().any(|part| part == "--ref"));
-    assert!(step.command.template.iter().any(|part| part == "silva_nr99"));
+    assert!(step
+        .command
+        .template
+        .iter()
+        .any(|part| part == "silva_nr99"));
     assert!(step.command.template.iter().any(|part| part == "6"));
     assert!(step.command.template.iter().any(|part| part == "--report"));
     Ok(())
