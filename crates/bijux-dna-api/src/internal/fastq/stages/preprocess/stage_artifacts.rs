@@ -230,12 +230,18 @@ fn emit_fastq_stage_extra_artifacts(
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.trim_polyg_tails.extra_artifacts.v2",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
+                "threads": governed.as_ref().map(|report| report.threads),
                 "trim_polyg": governed.as_ref().map(|report| report.trim_polyg),
                 "min_polyg_run": governed.as_ref().map(|report| report.min_polyg_run),
-                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "bases_trimmed_polyg": governed.as_ref().and_then(|report| report.bases_trimmed_polyg),
+                "polyx_bank_id": governed.as_ref().and_then(|report| report.polyx_bank_id.clone()),
                 "polyx_bank_hash": governed.as_ref().and_then(|report| report.polyx_bank_hash.clone()),
+                "polyx_preset": governed.as_ref().and_then(|report| report.polyx_preset.clone()),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
             }))
         }
         "fastq.merge_pairs" => {
@@ -821,6 +827,61 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn trim_polyg_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "trim-polyg-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 3.5,
+            memory_mb: 28.0,
+            outputs: vec![stage_root.join("trim_polyg_tails_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "fastp".to_string(),
+        }
+    }
+
+    fn write_trim_polyg_report(stage_root: &std::path::Path) -> Result<()> {
+        std::fs::write(
+            stage_root.join("trim_polyg_tails_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
+                "stage": "fastq.trim_polyg_tails",
+                "stage_id": "fastq.trim_polyg_tails",
+                "tool_id": "fastp",
+                "paired_mode": "single_end",
+                "threads": 6,
+                "trim_polyg": true,
+                "min_polyg_run": 10,
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq.gz",
+                "output_r2": null,
+                "reads_in": 100,
+                "reads_out": 96,
+                "bases_in": 1000,
+                "bases_out": 910,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 29.4,
+                "bases_trimmed_polyg": 90,
+                "polyx_bank_id": "polyx",
+                "polyx_bank_hash": "sha256:polyx",
+                "polyx_preset": "illumina_twocolor",
+                "runtime_s": 3.5,
+                "memory_mb": 28.0,
+                "raw_backend_report": "trim_polyg_tails_report.fastp.json",
+                "raw_backend_report_format": "fastp_json",
+                "backend_metrics": {
+                    "schema_version": "bijux.fastp.metrics.v1",
+                    "passed_filter_reads": 96
+                }
+            }"#,
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -878,6 +939,34 @@ mod stage_artifact_tests {
         assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("cutadapt.raw.json"));
         assert_eq!(extra["used_fallback"], serde_json::json!(false));
+        Ok(())
+    }
+
+    #[test]
+    fn trim_polyg_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_trim_polyg_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.trim_polyg_tails",
+            &trim_polyg_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("fastp"));
+        assert_eq!(extra["threads"], serde_json::json!(6));
+        assert_eq!(extra["trim_polyg"], serde_json::json!(true));
+        assert_eq!(extra["polyx_bank_id"], serde_json::json!("polyx"));
+        assert_eq!(extra["polyx_preset"], serde_json::json!("illumina_twocolor"));
+        assert_eq!(
+            extra["raw_backend_report"],
+            serde_json::json!("trim_polyg_tails_report.fastp.json")
+        );
+        assert_eq!(
+            extra["report_json"],
+            serde_json::json!(temp.path().join("trim_polyg_tails_report.json"))
+        );
         Ok(())
     }
 }
