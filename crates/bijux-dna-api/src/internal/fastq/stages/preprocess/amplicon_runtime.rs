@@ -24,40 +24,105 @@ fn materialize_amplicon_stage_outputs(
                 ));
             }
             let primary = outputs
-                .first()
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "trimmed_reads_r1")
+                .or_else(|| outputs.first())
                 .map(|x| x.path.clone())
                 .ok_or_else(|| anyhow!("missing primary output for {stage_id}"))?;
-            let trim_5p = std::env::var("BIJUX_DAMAGE_TRIM_5P")
-                .ok()
-                .and_then(|x| x.parse::<usize>().ok())
-                .unwrap_or(2);
-            let trim_3p = std::env::var("BIJUX_DAMAGE_TRIM_3P")
-                .ok()
-                .and_then(|x| x.parse::<usize>().ok())
-                .unwrap_or(2);
-            let pre_profile =
+            let input_r2 = planned
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "reads_r2")
+                .map(|artifact| artifact.path.clone());
+            let output_r2 = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "trimmed_reads_r2")
+                .map(|artifact| artifact.path.clone());
+            let report_json = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| out_dir.join("trim_terminal_damage_report.json"));
+            let raw_backend_report = outputs
+                .iter()
+                .find(|artifact| artifact.name.as_str() == "raw_backend_report_json")
+                .map(|artifact| artifact.path.clone());
+            let pre_profile_r1 =
                 terminal_damage_profile(&input).unwrap_or_else(|_| serde_json::json!({}));
-            let cutadapt_ok = command_exists("cutadapt")
-                && run_stage_command(
-                    out_dir,
-                    "cutadapt_damage_aware_pretrim",
-                    "cutadapt",
-                    &[
-                        "-u".to_string(),
-                        trim_5p.to_string(),
-                        "-u".to_string(),
-                        format!("-{trim_3p}"),
-                        "-o".to_string(),
-                        primary.to_string_lossy().to_string(),
-                        input.to_string_lossy().to_string(),
-                    ],
-                );
-            if !cutadapt_ok || !primary.exists() {
+            let pre_profile_r2 = input_r2
+                .as_deref()
+                .map(|path| terminal_damage_profile(path).unwrap_or_else(|_| serde_json::json!({})));
+            let mut planned_report = planned_terminal_damage_report(
+                planned,
+                &input,
+                input_r2.as_deref(),
+                &primary,
+                output_r2.as_deref(),
+                raw_backend_report.as_deref(),
+            )
+            .unwrap_or_else(|| bijux_dna_domain_fastq::TerminalDamageReportV1 {
+                schema_version:
+                    bijux_dna_domain_fastq::TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION.to_string(),
+                stage: "fastq.trim_terminal_damage".to_string(),
+                stage_id: "fastq.trim_terminal_damage".to_string(),
+                tool_id: "unknown".to_string(),
+                paired_mode: bijux_dna_domain_fastq::PairedMode::from_has_r2(input_r2.is_some()),
+                damage_mode: bijux_dna_domain_fastq::params::DamageMode::Ancient,
+                execution_policy:
+                    bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy::ExplicitTerminalTrim,
+                trim_5p_bases: 2,
+                trim_3p_bases: 2,
+                requested_trim_5p_bases: Some(2),
+                requested_trim_3p_bases: Some(2),
+                udg_classification: infer_udg_classification(&input),
+                input_r1: input.display().to_string(),
+                input_r2: input_r2.as_ref().map(|path| path.display().to_string()),
+                output_r1: primary.display().to_string(),
+                output_r2: output_r2.as_ref().map(|path| path.display().to_string()),
+                reads_in: None,
+                reads_out: None,
+                bases_in: None,
+                bases_out: None,
+                mean_q_before: None,
+                mean_q_after: None,
+                ct_ga_asymmetry_pre: None,
+                ct_ga_asymmetry_post: None,
+                ct_ga_asymmetry_pre_r1: None,
+                ct_ga_asymmetry_post_r1: None,
+                ct_ga_asymmetry_pre_r2: None,
+                ct_ga_asymmetry_post_r2: None,
+                terminal_base_composition_pre_r1: None,
+                terminal_base_composition_post_r1: None,
+                terminal_base_composition_pre_r2: None,
+                terminal_base_composition_post_r2: None,
+                raw_backend_report: raw_backend_report
+                    .as_ref()
+                    .map(|path| path.display().to_string()),
+                raw_backend_report_format: None,
+                runtime_s: None,
+                memory_mb: None,
+            });
+            let stage_ok = if let Some((program, args)) = planned.command.template.split_first() {
+                command_exists(program)
+                    && run_stage_command(out_dir, "trim_terminal_damage", program, args)
+            } else {
+                false
+            };
+            if !stage_ok || !primary.exists() {
                 copy_if_missing(&input, &primary)?;
             }
-            let post_profile =
+            if let (Some(input_r2), Some(output_r2)) = (input_r2.as_deref(), output_r2.as_deref()) {
+                if !stage_ok || !output_r2.exists() {
+                    copy_if_missing(input_r2, output_r2)?;
+                }
+            }
+            let post_profile_r1 =
                 terminal_damage_profile(&primary).unwrap_or_else(|_| serde_json::json!({}));
-            let udg_classification = infer_udg_classification(&input);
+            let post_profile_r2 = output_r2
+                .as_deref()
+                .map(|path| terminal_damage_profile(path).unwrap_or_else(|_| serde_json::json!({})));
+            let udg_classification = planned_report.udg_classification.clone();
             let classification_artifact = serde_json::json!({
                 "schema_version": "bijux.fastq.damage_classification.v1",
                 "stage_id": stage_id,
@@ -83,17 +148,54 @@ fn materialize_amplicon_stage_outputs(
                     ]
                 }),
             )?;
+            planned_report.input_r1 = input.display().to_string();
+            planned_report.input_r2 = input_r2.as_ref().map(|path| path.display().to_string());
+            planned_report.output_r1 = primary.display().to_string();
+            planned_report.output_r2 = output_r2.as_ref().map(|path| path.display().to_string());
+            planned_report.raw_backend_report = raw_backend_report
+                .as_ref()
+                .and_then(|path| path.exists().then(|| path.display().to_string()))
+                .or(planned_report.raw_backend_report);
+            planned_report.ct_ga_asymmetry_pre =
+                combined_terminal_damage_asymmetry(&pre_profile_r1, pre_profile_r2.as_ref());
+            planned_report.ct_ga_asymmetry_post =
+                combined_terminal_damage_asymmetry(&post_profile_r1, post_profile_r2.as_ref());
+            planned_report.ct_ga_asymmetry_pre_r1 =
+                terminal_damage_asymmetry(&pre_profile_r1);
+            planned_report.ct_ga_asymmetry_post_r1 =
+                terminal_damage_asymmetry(&post_profile_r1);
+            planned_report.ct_ga_asymmetry_pre_r2 =
+                pre_profile_r2.as_ref().and_then(terminal_damage_asymmetry);
+            planned_report.ct_ga_asymmetry_post_r2 =
+                post_profile_r2.as_ref().and_then(terminal_damage_asymmetry);
+            planned_report.terminal_base_composition_pre_r1 =
+                terminal_damage_base_composition(&pre_profile_r1, "terminal_base_composition_5p");
+            planned_report.terminal_base_composition_post_r1 =
+                terminal_damage_base_composition(&post_profile_r1, "terminal_base_composition_5p");
+            planned_report.terminal_base_composition_pre_r2 = pre_profile_r2
+                .as_ref()
+                .and_then(|profile| {
+                    terminal_damage_base_composition(profile, "terminal_base_composition_5p")
+                });
+            planned_report.terminal_base_composition_post_r2 = post_profile_r2
+                .as_ref()
+                .and_then(|profile| {
+                    terminal_damage_base_composition(profile, "terminal_base_composition_5p")
+                });
+            bijux_dna_infra::atomic_write_json(&report_json, &planned_report)?;
             payload = serde_json::json!({
+                "tool": planned_report.tool_id,
                 "udg_classification": udg_classification,
-                "policy": "terminal_trim",
-                "trim_5p_bases": trim_5p,
-                "trim_3p_bases": trim_3p,
-                "terminal_base_composition_pre": pre_profile.get("terminal_base_composition_5p").cloned().unwrap_or_else(|| serde_json::json!({})),
-                "terminal_base_composition_post": post_profile.get("terminal_base_composition_5p").cloned().unwrap_or_else(|| serde_json::json!({})),
-                "ct_ga_asymmetry_pre": pre_profile.get("ct_ga_asymmetry").cloned().unwrap_or_else(|| serde_json::json!(0.0)),
-                "ct_ga_asymmetry_post": post_profile.get("ct_ga_asymmetry").cloned().unwrap_or_else(|| serde_json::json!(0.0)),
-                "masked_or_trimmed_reads": post_profile.get("reads_profiled").cloned().unwrap_or_else(|| serde_json::json!(0)),
-                "used_fallback": !cutadapt_ok
+                "policy": planned_report.execution_policy,
+                "trim_5p_bases": planned_report.trim_5p_bases,
+                "trim_3p_bases": planned_report.trim_3p_bases,
+                "terminal_base_composition_pre": planned_report.terminal_base_composition_pre_r1,
+                "terminal_base_composition_post": planned_report.terminal_base_composition_post_r1,
+                "ct_ga_asymmetry_pre": planned_report.ct_ga_asymmetry_pre,
+                "ct_ga_asymmetry_post": planned_report.ct_ga_asymmetry_post,
+                "masked_or_trimmed_reads": post_profile_r1.get("reads_profiled").cloned().unwrap_or_else(|| serde_json::json!(0)),
+                "raw_backend_report_format": planned_report.raw_backend_report_format,
+                "used_fallback": !stage_ok
             });
         }
         "fastq.normalize_primers" => {
@@ -802,6 +904,67 @@ fn planned_normalize_primers_report(
     Some(report)
 }
 
+fn planned_terminal_damage_report(
+    planned: &ExecutionStep,
+    input_r1: &std::path::Path,
+    input_r2: Option<&std::path::Path>,
+    output_r1: &std::path::Path,
+    output_r2: Option<&std::path::Path>,
+    raw_backend_report: Option<&std::path::Path>,
+) -> Option<bijux_dna_domain_fastq::TerminalDamageReportV1> {
+    let marker = "printf '%s\\n' '";
+    let script = planned
+        .command
+        .template
+        .iter()
+        .find(|part| part.contains("\"stage_id\":\"fastq.trim_terminal_damage\"") && part.contains(marker))?;
+    let start = script.find(marker)? + marker.len();
+    let end = script[start..].find("' >").map(|idx| start + idx)?;
+    let raw = &script[start..end];
+    let mut report =
+        serde_json::from_str::<bijux_dna_domain_fastq::TerminalDamageReportV1>(raw).ok()?;
+    report.input_r1 = input_r1.display().to_string();
+    report.input_r2 = input_r2.map(|path| path.display().to_string());
+    report.output_r1 = output_r1.display().to_string();
+    report.output_r2 = output_r2.map(|path| path.display().to_string());
+    report.raw_backend_report = raw_backend_report.map(|path| path.display().to_string());
+    Some(report)
+}
+
+fn terminal_damage_reads_profiled(profile: &serde_json::Value) -> Option<u64> {
+    profile.get("reads_profiled").and_then(serde_json::Value::as_u64)
+}
+
+fn terminal_damage_asymmetry(profile: &serde_json::Value) -> Option<f64> {
+    profile.get("ct_ga_asymmetry").and_then(serde_json::Value::as_f64)
+}
+
+fn combined_terminal_damage_asymmetry(
+    primary: &serde_json::Value,
+    secondary: Option<&serde_json::Value>,
+) -> Option<f64> {
+    let primary_reads = terminal_damage_reads_profiled(primary)?;
+    let primary_asymmetry = terminal_damage_asymmetry(primary)?;
+    let secondary_reads = secondary.and_then(terminal_damage_reads_profiled).unwrap_or(0);
+    let secondary_asymmetry = secondary.and_then(terminal_damage_asymmetry).unwrap_or(0.0);
+    let total_reads = primary_reads + secondary_reads;
+    if total_reads == 0 {
+        return None;
+    }
+    Some(
+        ((primary_asymmetry * primary_reads as f64)
+            + (secondary_asymmetry * secondary_reads as f64))
+            / total_reads as f64,
+    )
+}
+
+fn terminal_damage_base_composition(
+    profile: &serde_json::Value,
+    key: &str,
+) -> Option<std::collections::BTreeMap<String, u64>> {
+    serde_json::from_value(profile.get(key)?.clone()).ok()
+}
+
 fn normalize_abundance_tool_id(planned: &ExecutionStep) -> &'static str {
     if planned
         .command
@@ -1091,7 +1254,7 @@ mod amplicon_runtime_tests {
         StageId, StepId,
     };
 
-    use super::planned_normalize_primers_report;
+    use super::{planned_normalize_primers_report, planned_terminal_damage_report};
 
     fn execution_step_with_script(script: &str) -> ExecutionStep {
         ExecutionStep {
@@ -1145,6 +1308,34 @@ mod amplicon_runtime_tests {
         assert_eq!(report.orientation_policy, "normalize_to_reverse_complement");
         assert_eq!(report.max_mismatch_rate, 0.05);
         assert_eq!(report.min_overlap_bp, 14);
+    }
+
+    #[test]
+    fn planned_terminal_damage_report_parses_embedded_governed_report() {
+        let script = "set -euo pipefail\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.trim_terminal_damage.report.v2\",\"stage\":\"fastq.trim_terminal_damage\",\"stage_id\":\"fastq.trim_terminal_damage\",\"tool_id\":\"adapterremoval\",\"paired_mode\":\"paired_end\",\"damage_mode\":\"ancient\",\"execution_policy\":\"explicit_terminal_trim\",\"trim_5p_bases\":2,\"trim_3p_bases\":1,\"requested_trim_5p_bases\":2,\"requested_trim_3p_bases\":1,\"udg_classification\":\"non_udg\",\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":\"reads_R2.fastq.gz\",\"output_r1\":\"out/R1.trim_terminal_damage.adapterremoval.fastq.gz\",\"output_r2\":\"out/R2.trim_terminal_damage.adapterremoval.fastq.gz\",\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"mean_q_before\":null,\"mean_q_after\":null,\"ct_ga_asymmetry_pre\":null,\"ct_ga_asymmetry_post\":null,\"ct_ga_asymmetry_pre_r1\":null,\"ct_ga_asymmetry_post_r1\":null,\"ct_ga_asymmetry_pre_r2\":null,\"ct_ga_asymmetry_post_r2\":null,\"terminal_base_composition_pre_r1\":null,\"terminal_base_composition_post_r1\":null,\"terminal_base_composition_pre_r2\":null,\"terminal_base_composition_post_r2\":null,\"raw_backend_report\":null,\"raw_backend_report_format\":null,\"runtime_s\":null,\"memory_mb\":null}' > 'trim_terminal_damage_report.json'\n";
+        let mut planned = execution_step_with_script(script);
+        planned.step_id = StepId::new("fastq.trim_terminal_damage".to_string());
+        planned.stage_id = StageId::new("fastq.trim_terminal_damage".to_string());
+
+        let report = planned_terminal_damage_report(
+            &planned,
+            std::path::Path::new("reads_R1.fastq.gz"),
+            Some(std::path::Path::new("reads_R2.fastq.gz")),
+            std::path::Path::new("out/R1.trim_terminal_damage.adapterremoval.fastq.gz"),
+            Some(std::path::Path::new(
+                "out/R2.trim_terminal_damage.adapterremoval.fastq.gz",
+            )),
+            None,
+        )
+        .expect("embedded governed report");
+
+        assert_eq!(report.tool_id, "adapterremoval");
+        assert_eq!(report.trim_5p_bases, 2);
+        assert_eq!(report.trim_3p_bases, 1);
+        assert_eq!(
+            report.output_r2.as_deref(),
+            Some("out/R2.trim_terminal_damage.adapterremoval.fastq.gz")
+        );
     }
 }
 
