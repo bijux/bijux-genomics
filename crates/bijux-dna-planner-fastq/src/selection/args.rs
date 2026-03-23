@@ -351,6 +351,8 @@ pub struct BenchFastqDepleteHostArgs {
     pub reference_index: PathBuf,
     pub out: PathBuf,
     pub threads: Option<u32>,
+    pub host_identity_threshold: Option<f64>,
+    pub retain_unmapped_only: Option<bool>,
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
