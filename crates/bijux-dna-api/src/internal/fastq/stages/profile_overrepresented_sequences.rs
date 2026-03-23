@@ -15,8 +15,8 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::{
-    OverrepresentedSequenceRowV1, PairedMode, ProfileOverrepresentedReportV1,
-    PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
+    FastqOverrepresentedProfileParams, OverrepresentedSequenceRowV1, PairedMode,
+    ProfileOverrepresentedReportV1, PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -97,7 +97,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
-            None,
+            args.threads,
             args.top_k,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -151,6 +151,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
                 args.top_k.unwrap_or(50).max(1),
             )?;
         }
+        let effective_params: FastqOverrepresentedProfileParams =
+            serde_json::from_value(plan.effective_params.clone())
+                .context("parse overrepresented effective params")?;
         let payload = read_overrepresented_payload(output_json)?;
         let metrics = payload.metrics.clone();
         let metric_set = metric_set(metrics);
@@ -164,8 +167,8 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             } else {
                 PairedMode::SingleEnd
             },
-            threads: tool_spec.resources.threads,
-            top_k: args.top_k.unwrap_or(50).max(1),
+            threads: effective_params.threads,
+            top_k: effective_params.top_k,
             input_r1: args.r1.display().to_string(),
             input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
             overrepresented_sequences_tsv: output_tsv.display().to_string(),

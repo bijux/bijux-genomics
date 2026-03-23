@@ -198,6 +198,7 @@ pub struct BenchFastqRemoveChimerasArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
+    pub threads: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -400,6 +401,7 @@ pub struct BenchFastqProfileOverrepresentedArgs {
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
     pub out: PathBuf,
+    pub threads: Option<u32>,
     pub top_k: Option<u32>,
     pub tools: Vec<String>,
     pub explain: bool,

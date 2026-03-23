@@ -35,7 +35,8 @@ fn materialize_amplicon_stage_outputs(
                 .ok()
                 .and_then(|x| x.parse::<usize>().ok())
                 .unwrap_or(2);
-            let pre_profile = terminal_damage_profile(&input).unwrap_or_else(|_| serde_json::json!({}));
+            let pre_profile =
+                terminal_damage_profile(&input).unwrap_or_else(|_| serde_json::json!({}));
             let cutadapt_ok = command_exists("cutadapt")
                 && run_stage_command(
                     out_dir,
@@ -255,12 +256,14 @@ fn materialize_amplicon_stage_outputs(
                 primer_orientation_report: orientation.display().to_string(),
                 primer_stats_json: primer_stats.display().to_string(),
                 raw_backend_report: Some(primer_stats.display().to_string()),
-                raw_backend_report_format: Some(match tool_id {
-                    "cutadapt" => "cutadapt_json",
-                    "seqkit" => "seqkit_grep",
-                    _ => "unknown",
-                }
-                .to_string()),
+                raw_backend_report_format: Some(
+                    match tool_id {
+                        "cutadapt" => "cutadapt_json",
+                        "seqkit" => "seqkit_grep",
+                        _ => "unknown",
+                    }
+                    .to_string(),
+                ),
                 runtime_s: None,
                 memory_mb: None,
                 used_fallback: !stage_ok,
@@ -339,6 +342,8 @@ fn materialize_amplicon_stage_outputs(
                         chimera_fasta.to_string_lossy().to_string(),
                         "--uchimeout".to_string(),
                         uchime_out.to_string_lossy().to_string(),
+                        "--threads".to_string(),
+                        planned.resources.threads.max(1).to_string(),
                     ],
                 );
             let used_fallback = !vsearch_ok || !primary.exists();
@@ -350,9 +355,9 @@ fn materialize_amplicon_stage_outputs(
             }
             let reads_in = count_fastq_reads(&input).ok();
             let reads_out = count_fastq_reads(&primary).ok();
-            let chimeras_removed = reads_in.zip(reads_out).map(|(input_reads, output_reads)| {
-                input_reads.saturating_sub(output_reads)
-            });
+            let chimeras_removed = reads_in
+                .zip(reads_out)
+                .map(|(input_reads, output_reads)| input_reads.saturating_sub(output_reads));
             let chimera_fraction = match (reads_in, chimeras_removed) {
                 (Some(0), _) => Some(0.0),
                 (Some(input_reads), Some(removed_reads)) => {
@@ -361,6 +366,7 @@ fn materialize_amplicon_stage_outputs(
                 _ => parse_uchime_fraction(&uchime_out),
             };
             let report = governed_remove_chimeras_report(
+                planned.resources.threads.max(1),
                 &input,
                 &primary,
                 &metrics,
@@ -446,26 +452,29 @@ fn materialize_amplicon_stage_outputs(
                 crate::internal::fastq::stages::cluster_otus::count_cluster_otus_representatives(
                     &otu_fasta,
                 )?;
-            let report = crate::internal::fastq::stages::cluster_otus::canonical_cluster_otus_report(
-                "vsearch",
-                &input,
-                &otu_table,
-                &otu_fasta,
-                &taxonomy_ready_fasta,
-                &taxonomy_fastq_out,
-                &report_json,
-                &effective_params,
-                table_metrics,
-                representative_count,
-                None,
-                None,
-                Some(0),
-                !vsearch_ok,
-                otu_clusters_uc.exists().then_some(otu_clusters_uc.as_path()),
-                Some(serde_json::json!({
-                    "materialized_from": "amplicon_runtime",
-                })),
-            );
+            let report =
+                crate::internal::fastq::stages::cluster_otus::canonical_cluster_otus_report(
+                    "vsearch",
+                    &input,
+                    &otu_table,
+                    &otu_fasta,
+                    &taxonomy_ready_fasta,
+                    &taxonomy_fastq_out,
+                    &report_json,
+                    &effective_params,
+                    table_metrics,
+                    representative_count,
+                    None,
+                    None,
+                    Some(0),
+                    !vsearch_ok,
+                    otu_clusters_uc
+                        .exists()
+                        .then_some(otu_clusters_uc.as_path()),
+                    Some(serde_json::json!({
+                        "materialized_from": "amplicon_runtime",
+                    })),
+                );
             bijux_dna_infra::atomic_write_json(&report_json, &report)?;
             payload = serde_json::json!({
                 "otu_count": table_metrics.otu_count,
@@ -663,7 +672,11 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
     ) {
         bijux_dna_infra::atomic_write_bytes(
             &out_dir.join("stage_domain.log"),
-            format!("stage={stage_id}\nstatus=domain_artifacts_materialized\nstage_root={}\n", stage_root.display()).as_bytes(),
+            format!(
+                "stage={stage_id}\nstatus=domain_artifacts_materialized\nstage_root={}\n",
+                stage_root.display()
+            )
+            .as_bytes(),
         )?;
     }
     Ok(payload)
@@ -680,7 +693,11 @@ fn parse_primer_trimmed_fraction_from_stats(primer_stats: &std::path::Path) -> O
     let trimmed = read_counts
         .get("read1_with_adapter")
         .and_then(serde_json::Value::as_f64)
-        .or_else(|| read_counts.get("with_adapter").and_then(serde_json::Value::as_f64))?;
+        .or_else(|| {
+            read_counts
+                .get("with_adapter")
+                .and_then(serde_json::Value::as_f64)
+        })?;
     Some(trimmed / reads_in)
 }
 
@@ -773,10 +790,8 @@ fn infer_asvs_effective_params(
     bijux_dna_domain_fastq::params::edna::AsvInferenceEffectiveParams {
         schema_version: bijux_dna_domain_fastq::params::edna::EDNA_SCHEMA_VERSION.to_string(),
         paired_mode: bijux_dna_domain_fastq::PairedMode::from_has_r2(has_r2),
-        denoising_method: flag_value("--denoising-method")
-            .unwrap_or_else(|| "dada2".to_string()),
-        pooling_mode: flag_value("--pooling-mode")
-            .unwrap_or_else(|| "independent".to_string()),
+        denoising_method: flag_value("--denoising-method").unwrap_or_else(|| "dada2".to_string()),
+        pooling_mode: flag_value("--pooling-mode").unwrap_or_else(|| "independent".to_string()),
         chimera_policy: flag_value("--chimera-policy")
             .unwrap_or_else(|| "remove_bimera_denovo".to_string()),
         threads,
@@ -934,6 +949,7 @@ fn parse_uchime_fraction(path: &std::path::Path) -> Option<f64> {
 }
 
 fn governed_remove_chimeras_report(
+    threads: u32,
     input_reads: &std::path::Path,
     output_reads: &std::path::Path,
     chimera_metrics_json: &std::path::Path,
@@ -952,6 +968,7 @@ fn governed_remove_chimeras_report(
         stage_id: "fastq.remove_chimeras".to_string(),
         tool_id: "vsearch".to_string(),
         paired_mode: bijux_dna_domain_fastq::PairedMode::SingleEnd,
+        threads,
         method: "vsearch_uchime_denovo".to_string(),
         detection_scope: "denovo".to_string(),
         chimera_removed_definition:
@@ -960,7 +977,9 @@ fn governed_remove_chimeras_report(
         input_reads: input_reads.display().to_string(),
         output_reads: output_reads.display().to_string(),
         chimera_metrics_json: chimera_metrics_json.display().to_string(),
-        chimeras_fasta: chimeras_fasta.exists().then(|| chimeras_fasta.display().to_string()),
+        chimeras_fasta: chimeras_fasta
+            .exists()
+            .then(|| chimeras_fasta.display().to_string()),
         uchime_report_tsv: uchime_report_tsv
             .exists()
             .then(|| uchime_report_tsv.display().to_string()),

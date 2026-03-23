@@ -167,6 +167,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         None
     };
     let trim_options = TrimPlanOptions {
+        threads: args.threads,
         min_length: args.min_length,
         quality_cutoff: args.quality_cutoff,
         n_policy: args.n_policy.clone(),

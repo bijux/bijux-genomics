@@ -86,11 +86,14 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan(
+        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan_with_effective_params(
             &tool_spec,
             &args.r1,
             args.r2.as_deref(),
             &out_dir,
+            &governed_chimera_params(
+                args.threads.unwrap_or(tool_spec.resources.threads).max(1),
+            ),
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
@@ -312,4 +315,22 @@ fn compatibility_metrics_from_report(report: &RemoveChimerasReportV1) -> serde_j
         "tool": report.tool_id,
         "used_fallback": report.used_fallback,
     })
+}
+
+fn governed_chimera_params(threads: u32) -> ChimeraDetectionEffectiveParams {
+    ChimeraDetectionEffectiveParams {
+        method: "vsearch_uchime_denovo".to_string(),
+        detection_scope: "denovo".to_string(),
+        input_layout: "single_stream".to_string(),
+        threads,
+        report_artifact: "report_json".to_string(),
+        metrics_artifact: "chimera_metrics_json".to_string(),
+        chimera_sequence_artifact: "chimeras_fasta".to_string(),
+        raw_backend_report_artifact: "uchime_report_tsv".to_string(),
+        raw_backend_report_format: "vsearch_uchime_tsv".to_string(),
+        chimera_removed_definition:
+            "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
+                .to_string(),
+        fallback_behavior: "copy_input_reads_and_mark_report".to_string(),
+    }
 }
