@@ -40,6 +40,12 @@
         "path": "out/seqkit.fastq.gz",
         "role": "reads",
         "optional": false
+      },
+      {
+        "name": "report_json",
+        "path": "out/filter_report.json",
+        "role": "report_json",
+        "optional": false
       }
     ]
   },
@@ -56,7 +62,10 @@
     "output_r1": "out/seqkit.fastq.gz",
     "output_r2": null,
     "polyx_policy": null,
+    "raw_backend_report": null,
+    "raw_backend_report_format": null,
     "redundant_filters": [],
+    "report_json": "out/filter_report.json",
     "tool": "seqkit"
   },
   "effective_params": {

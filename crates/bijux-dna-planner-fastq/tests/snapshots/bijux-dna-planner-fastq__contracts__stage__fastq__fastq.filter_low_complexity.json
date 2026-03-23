@@ -12,7 +12,11 @@
     "template": [
       "bbduk.sh",
       "in=reads_R1.fastq.gz",
-      "out=out/R1.bbduk.fastq.gz"
+      "out=out/R1.bbduk.fastq.gz",
+      "entropy=0.5",
+      "stats=out/bbduk.low_complexity.stats",
+      "in2=reads_R2.fastq.gz",
+      "out2=out/R2.bbduk.fastq.gz"
     ]
   },
   "resources": {
@@ -59,17 +63,19 @@
   },
   "out_dir": "out",
   "params": {
-    "entropy_threshold": null,
+    "entropy_threshold": 0.5,
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": "reads_R2.fastq.gz",
     "output_r1": "out/R1.bbduk.fastq.gz",
     "output_r2": "out/R2.bbduk.fastq.gz",
     "polyx_threshold": null,
+    "raw_backend_report": "out/bbduk.low_complexity.stats",
+    "raw_backend_report_format": "bbduk_stats",
     "report_json": "out/low_complexity_report.json",
     "tool": "bbduk"
   },
   "effective_params": {
-    "entropy_threshold": null,
+    "entropy_threshold": 0.5,
     "paired_mode": "paired_end",
     "polyx_threshold": null,
     "threads": 4

@@ -36,6 +36,12 @@
         "path": "out/reference_index/bowtie2/reference",
         "role": "index",
         "optional": false
+      },
+      {
+        "name": "report_json",
+        "path": "out/index_reference_report.json",
+        "role": "report_json",
+        "optional": false
       }
     ]
   },
@@ -44,11 +50,15 @@
     "out_dir": "out",
     "reference_fasta": "reference.fa",
     "reference_index": "out/reference_index/bowtie2/reference",
+    "report_json": "out/index_reference_report.json",
+    "threads": 1,
     "tool": "bowtie2_build"
   },
   "effective_params": {
     "index_format": "bowtie2_build",
+    "index_prefix": "reference",
     "output_artifact": "reference_index",
+    "report_artifact": "report_json",
     "schema_version": "bijux.fastq.params.index_reference.v1",
     "threads": 1
   },

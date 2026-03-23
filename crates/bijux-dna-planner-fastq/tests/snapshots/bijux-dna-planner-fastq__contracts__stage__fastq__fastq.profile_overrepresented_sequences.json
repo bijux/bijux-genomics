@@ -52,6 +52,12 @@
         "path": "out/overrepresented_sequences.json",
         "role": "metrics_json",
         "optional": false
+      },
+      {
+        "name": "report_json",
+        "path": "out/overrepresented_report.json",
+        "role": "report_json",
+        "optional": false
       }
     ]
   },
@@ -61,18 +67,15 @@
     "input_r2": "reads_R2.fastq.gz",
     "output_json": "out/overrepresented_sequences.json",
     "output_tsv": "out/overrepresented_sequences.tsv",
-    "tool": "fastqc"
+    "report_json": "out/overrepresented_report.json",
+    "tool": "fastqc",
+    "top_k": 50
   },
   "effective_params": {
     "paired_mode": "paired_end",
-    "schema": [
-      "sequence",
-      "count",
-      "fraction",
-      "flag"
-    ],
-    "stage": "profile_overrepresented_sequences",
-    "threads": 4
+    "schema_version": "bijux.fastq.params.overrepresented_profile.v1",
+    "threads": 4,
+    "top_k": 50
   },
   "aux_images": {},
   "reason": {

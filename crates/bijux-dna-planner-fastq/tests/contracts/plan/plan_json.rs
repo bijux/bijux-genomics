@@ -90,10 +90,11 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         out_dir,
     )?;
     assert_command_is_concrete(&plan);
-    assert_eq!(plan.io.outputs.len(), 2);
-    assert_eq!(plan.io.outputs[0].name.as_str(), "adapter_report");
-    assert_eq!(plan.io.outputs[1].name.as_str(), "adapter_evidence_dir");
-    assert_eq!(plan.io.outputs[1].role.as_str(), "stage_report");
+    assert_eq!(plan.io.outputs.len(), 3);
+    assert_eq!(plan.io.outputs[0].name.as_str(), "report_json");
+    assert_eq!(plan.io.outputs[1].name.as_str(), "adapter_report");
+    assert_eq!(plan.io.outputs[2].name.as_str(), "adapter_evidence_dir");
+    assert_eq!(plan.io.outputs[2].role.as_str(), "stage_report");
     assert_eq!(
         plan.params["adapter_evidence_dir"],
         serde_json::json!("out/fastqc")
@@ -391,7 +392,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         .template
         .iter()
         .any(|part| part.contains("cutadapt")));
-    assert!(plan.command.template.iter().any(|part| part == "--json"));
+    assert!(plan.command.template.iter().any(|part| part.contains("--json")));
     assert!(plan
         .command
         .template

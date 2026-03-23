@@ -13,17 +13,17 @@
       "umi_tools",
       "extract",
       "--stdin",
-      "{{reads_r1}}",
+      "reads_R1.fastq.gz",
       "--stdout",
-      "{{umi_reads_r1}}",
+      "out/umi_tools.r1.fastq.gz",
       "--read2-in",
-      "{{reads_r2}}",
+      "reads_R2.fastq.gz",
       "--read2-out",
-      "{{umi_reads_r2}}",
+      "out/umi_tools.r2.fastq.gz",
       "--bc-pattern",
-      "{{umi_pattern}}",
+      "NNNNNNNN",
       "--log",
-      "{{report_json}}"
+      "out/umi_tools.extract.log"
     ]
   },
   "resources": {
@@ -63,8 +63,8 @@
       {
         "name": "report_json",
         "path": "out/umi_report.json",
-        "role": "metrics_json",
-        "optional": true
+        "role": "report_json",
+        "optional": false
       }
     ]
   },
@@ -75,6 +75,8 @@
     "output_r2": "out/umi_tools.r2.fastq.gz",
     "r1": "reads_R1.fastq.gz",
     "r2": "reads_R2.fastq.gz",
+    "raw_backend_report": "out/umi_tools.extract.log",
+    "raw_backend_report_format": "umi_tools_log",
     "report_json": "out/umi_report.json",
     "tool": "umi_tools",
     "umi_pattern": "NNNNNNNN"

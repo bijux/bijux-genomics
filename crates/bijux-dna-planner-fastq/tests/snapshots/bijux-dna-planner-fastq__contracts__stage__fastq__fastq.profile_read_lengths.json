@@ -14,6 +14,8 @@
       "stats",
       "-a",
       "-T",
+      "-j",
+      "2",
       "reads_R1.fastq.gz",
       "reads_R2.fastq.gz"
     ]
@@ -41,6 +43,12 @@
     ],
     "outputs": [
       {
+        "name": "report_json",
+        "path": "out/profile_read_lengths_report.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
         "name": "length_distribution_tsv",
         "path": "out/length_distribution.tsv",
         "role": "summary_tsv",
@@ -56,20 +64,19 @@
   },
   "out_dir": "out",
   "params": {
+    "histogram_bins": 100,
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": "reads_R2.fastq.gz",
     "output_json": "out/length_distribution.json",
     "output_tsv": "out/length_distribution.tsv",
+    "report_json": "out/profile_read_lengths_report.json",
+    "threads": 2,
     "tool": "seqkit_stats"
   },
   "effective_params": {
+    "histogram_bins": 100,
     "paired_mode": "paired_end",
-    "schema": [
-      "sample_id",
-      "read_length",
-      "count"
-    ],
-    "stage": "profile_read_lengths",
+    "schema_version": "bijux.fastq.params.read_length_profile.v1",
     "threads": 2
   },
   "aux_images": {},
