@@ -46,7 +46,7 @@ pub fn validate_defaults(paired: bool) -> ValidateEffectiveParams {
     ValidateEffectiveParams {
         schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
-        threads: 1,
+        threads: 4,
         validation_mode: ValidationMode::Strict,
         pair_sync_policy: if paired {
             PairSyncPolicy::RequireHeaderSync
@@ -213,7 +213,7 @@ pub fn screen_defaults(paired: bool) -> ScreenEffectiveParams {
     ScreenEffectiveParams {
         schema_version: SCREEN_TAXONOMY_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
-        threads: 1,
+        threads: 4,
         contaminant_db: None,
         database_catalog_id: "taxonomy_reference".to_string(),
         database_artifact_id: "taxonomy_db".to_string(),
