@@ -133,9 +133,42 @@ fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone())
                 .unwrap_or_else(|| out_dir.join("primer_orientation.tsv"));
             let primer_governance = resolve_primer_set_governance(None)?;
-            let max_mismatch_rate = 0.10_f64;
-            let min_overlap_bp = 10_u64;
             let tool_id = normalize_primers_tool_id(planned);
+            let planned_report = planned_normalize_primers_report(
+                planned,
+                &input,
+                input_r2.as_deref(),
+                &primary,
+                output_r2.as_deref(),
+                &orientation,
+                &primer_stats,
+                tool_id,
+            );
+            let primer_set_id = planned_report
+                .as_ref()
+                .map(|report| report.primer_set_id.clone())
+                .unwrap_or_else(|| primer_governance.primer_set_id.clone());
+            let marker_id = planned_report
+                .as_ref()
+                .and_then(|report| report.marker_id.clone())
+                .or_else(|| Some(primer_governance.marker_id.clone()));
+            let primer_fasta = planned_report
+                .as_ref()
+                .and_then(|report| report.primer_fasta.as_ref())
+                .map(std::path::PathBuf::from)
+                .unwrap_or_else(|| primer_governance.primer_fasta.clone());
+            let orientation_policy = planned_report
+                .as_ref()
+                .map(|report| report.orientation_policy.clone())
+                .unwrap_or_else(|| "normalize_to_forward_primer".to_string());
+            let max_mismatch_rate = planned_report
+                .as_ref()
+                .map(|report| report.max_mismatch_rate)
+                .unwrap_or(0.10_f64);
+            let min_overlap_bp = planned_report
+                .as_ref()
+                .map(|report| u64::from(report.min_overlap_bp))
+                .unwrap_or(10_u64);
             let stage_ok = match tool_id {
                 "cutadapt" => {
                     let mut args = vec![
@@ -144,7 +177,7 @@ fn materialize_amplicon_stage_outputs(
                         "--overlap".to_string(),
                         min_overlap_bp.to_string(),
                         "-g".to_string(),
-                        format!("file:{}", primer_governance.primer_fasta.display()),
+                        format!("file:{}", primer_fasta.display()),
                         "--revcomp".to_string(),
                         "--info-file".to_string(),
                         orientation.to_string_lossy().to_string(),
@@ -208,9 +241,10 @@ fn materialize_amplicon_stage_outputs(
                     &serde_json::json!({
                         "schema_version": "bijux.fastq.normalize_primers.v1",
                         "tool": tool_id,
-                        "primer_set_id": primer_governance.primer_set_id,
-                        "marker_id": primer_governance.marker_id,
-                        "primer_fasta": primer_governance.primer_fasta,
+                        "primer_set_id": primer_set_id.clone(),
+                        "marker_id": marker_id.clone(),
+                        "primer_fasta": primer_fasta.clone(),
+                        "orientation_policy": orientation_policy.clone(),
                         "mismatch_rate_max": max_mismatch_rate,
                         "overlap_min": min_overlap_bp,
                         "used_fallback": !stage_ok
@@ -232,10 +266,10 @@ fn materialize_amplicon_stage_outputs(
                 paired_mode: bijux_dna_domain_fastq::params::PairedMode::from_has_r2(
                     input_r2.is_some(),
                 ),
-                primer_set_id: primer_governance.primer_set_id.clone(),
-                marker_id: Some(primer_governance.marker_id.clone()),
-                primer_fasta: Some(primer_governance.primer_fasta.display().to_string()),
-                orientation_policy: "normalize_to_forward_primer".to_string(),
+                primer_set_id: primer_set_id.clone(),
+                marker_id: marker_id.clone(),
+                primer_fasta: Some(primer_fasta.display().to_string()),
+                orientation_policy: orientation_policy.clone(),
                 max_mismatch_rate,
                 min_overlap_bp: min_overlap_bp as u32,
                 input_r1: input.display().to_string(),
@@ -269,8 +303,8 @@ fn materialize_amplicon_stage_outputs(
                 used_fallback: !stage_ok,
                 backend_metrics: Some(serde_json::json!({
                     "tool": tool_id,
-                    "primer_set_id": primer_governance.primer_set_id,
-                    "marker_id": primer_governance.marker_id,
+                    "primer_set_id": primer_set_id.clone(),
+                    "marker_id": marker_id.clone(),
                     "primer_db_sha256": primer_governance.primer_db_sha256,
                 })),
             };
@@ -279,8 +313,9 @@ fn materialize_amplicon_stage_outputs(
                 "primer_trimmed_fraction": primer_trimmed_fraction,
                 "orientation_forward_fraction": orientation_forward_fraction,
                 "tool": tool_id,
-                "primer_set_id": primer_governance.primer_set_id,
-                "marker_id": primer_governance.marker_id,
+                "primer_set_id": report.primer_set_id,
+                "marker_id": report.marker_id,
+                "orientation_policy": report.orientation_policy,
                 "report_json": report_json,
                 "primer_stats_json": primer_stats,
                 "mismatch_policy_max": max_mismatch_rate,
@@ -736,6 +771,37 @@ fn normalize_primers_tool_id(planned: &ExecutionStep) -> &'static str {
     }
 }
 
+fn planned_normalize_primers_report(
+    planned: &ExecutionStep,
+    input_r1: &std::path::Path,
+    input_r2: Option<&std::path::Path>,
+    output_r1: &std::path::Path,
+    output_r2: Option<&std::path::Path>,
+    orientation_report: &std::path::Path,
+    primer_stats_json: &std::path::Path,
+    tool_id: &str,
+) -> Option<bijux_dna_domain_fastq::NormalizePrimersReportV1> {
+    let marker = "printf '%s\\n' '";
+    let script = planned
+        .command
+        .template
+        .iter()
+        .find(|part| part.contains("\"primer_set_id\"") && part.contains(marker))?;
+    let start = script.find(marker)? + marker.len();
+    let end = script[start..].find("' >").map(|idx| start + idx)?;
+    let raw = &script[start..end];
+    let mut report =
+        serde_json::from_str::<bijux_dna_domain_fastq::NormalizePrimersReportV1>(raw).ok()?;
+    report.tool_id = tool_id.to_string();
+    report.input_r1 = input_r1.display().to_string();
+    report.input_r2 = input_r2.map(|path| path.display().to_string());
+    report.output_r1 = output_r1.display().to_string();
+    report.output_r2 = output_r2.map(|path| path.display().to_string());
+    report.primer_orientation_report = orientation_report.display().to_string();
+    report.primer_stats_json = primer_stats_json.display().to_string();
+    Some(report)
+}
+
 fn normalize_abundance_tool_id(planned: &ExecutionStep) -> &'static str {
     if planned
         .command
@@ -1011,6 +1077,74 @@ fn governed_remove_chimeras_report(
                 "flagged_records": flagged_records,
             })
         }),
+    }
+}
+
+#[cfg(test)]
+mod amplicon_runtime_tests {
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
+    use bijux_dna_core::contract::{StageIO, ToolConstraints};
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, ExecutionStep,
+        StageId, StepId,
+    };
+
+    use super::planned_normalize_primers_report;
+
+    fn execution_step_with_script(script: &str) -> ExecutionStep {
+        ExecutionStep {
+            step_id: StepId::new("fastq.normalize_primers".to_string()),
+            stage_id: StageId::new("fastq.normalize_primers".to_string()),
+            command: CommandSpecV1 {
+                template: vec!["bash".to_string(), "-lc".to_string(), script.to_string()],
+            },
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::from_static("reads_r1"),
+                    PathBuf::from("reads.fastq.gz"),
+                    ArtifactRole::Reads,
+                )],
+                outputs: Vec::new(),
+            },
+            out_dir: PathBuf::from("out"),
+            aux_images: BTreeMap::new(),
+            expected_artifact_ids: Vec::new(),
+            metrics_schema_ids: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn planned_normalize_primers_report_parses_embedded_governed_report() {
+        let script = "set -euo pipefail\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.normalize_primers.report.v2\",\"stage\":\"fastq.normalize_primers\",\"stage_id\":\"fastq.normalize_primers\",\"tool_id\":\"cutadapt\",\"paired_mode\":\"single_end\",\"primer_set_id\":\"16s_v4\",\"marker_id\":\"16s\",\"primer_fasta\":\"/refs/primers.fa\",\"orientation_policy\":\"normalize_to_reverse_complement\",\"max_mismatch_rate\":0.05,\"min_overlap_bp\":14,\"input_r1\":\"reads.fastq.gz\",\"input_r2\":null,\"output_r1\":\"normalized.fastq.gz\",\"output_r2\":null,\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"pairs_in\":null,\"pairs_out\":null,\"primer_trimmed_reads\":null,\"primer_trimmed_fraction\":null,\"orientation_forward_fraction\":null,\"primer_orientation_report\":\"orientation.tsv\",\"primer_stats_json\":\"primer_stats.json\",\"raw_backend_report\":\"primer_stats.json\",\"raw_backend_report_format\":\"cutadapt_json\",\"runtime_s\":null,\"memory_mb\":null,\"used_fallback\":false,\"backend_metrics\":null}' > 'normalize_primers_report.json'\n";
+        let planned = execution_step_with_script(script);
+        let report = planned_normalize_primers_report(
+            &planned,
+            std::path::Path::new("reads.fastq.gz"),
+            None,
+            std::path::Path::new("normalized.fastq.gz"),
+            None,
+            std::path::Path::new("orientation.tsv"),
+            std::path::Path::new("primer_stats.json"),
+            "cutadapt",
+        )
+        .expect("embedded governed report");
+
+        assert_eq!(report.primer_set_id, "16s_v4");
+        assert_eq!(report.orientation_policy, "normalize_to_reverse_complement");
+        assert_eq!(report.max_mismatch_rate, 0.05);
+        assert_eq!(report.min_overlap_bp, 14);
     }
 }
 
