@@ -158,7 +158,13 @@ fn execution_support_distinguishes_generic_mixed_and_comparable_normalization() 
         by_stage
             .remove("fastq.trim_reads")
             .map(|support| support.normalization_support),
-        Some(NormalizationSupport::GenericEnvelope),
+        Some(NormalizationSupport::ObserverSpecialized),
+    );
+    assert_eq!(
+        by_stage
+            .remove("fastq.screen_taxonomy")
+            .map(|support| support.normalization_support),
+        Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
         by_stage
