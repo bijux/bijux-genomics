@@ -202,6 +202,26 @@ fn trim_polyg_tool_contracts_preserve_native_backend_reports() -> Result<()> {
 }
 
 #[test]
+fn trim_polyg_tool_manifests_declare_polyx_trim_capability() -> Result<()> {
+    for tool_id in ["fastp", "bbduk"] {
+        let manifest = tool_manifest(tool_id)?;
+        let capabilities = manifest
+            .get("capabilities")
+            .and_then(serde_json::Value::as_array)
+            .with_context(|| format!("{tool_id} capabilities"))?
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .collect::<Vec<_>>();
+
+        assert!(
+            capabilities.contains(&"polyx_trim"),
+            "{tool_id} must declare the polyx_trim capability required by fastq.trim_polyg_tails"
+        );
+    }
+    Ok(())
+}
+
+#[test]
 fn trim_terminal_damage_stage_manifest_lists_all_supported_backends() -> Result<()> {
     let path = workspace_root()?.join("domain/fastq/stages/trim_terminal_damage.yaml");
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;

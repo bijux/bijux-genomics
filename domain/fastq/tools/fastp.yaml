@@ -4,6 +4,7 @@ status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - adapter_detection
+  - polyx_trim
   - "SE"
   - "PE"
   - "adapters"
