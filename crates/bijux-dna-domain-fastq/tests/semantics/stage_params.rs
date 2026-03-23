@@ -246,6 +246,7 @@ fn merge_params_roundtrip_with_engine_specific_output_policy() {
 #[test]
 fn chimera_params_roundtrip_with_sequence_artifact_contract() {
     let params = ChimeraDetectionEffectiveParams {
+        threads: 4,
         method: "vsearch_uchime_denovo".to_string(),
         detection_scope: "denovo".to_string(),
         input_layout: "single_stream".to_string(),
@@ -260,6 +261,7 @@ fn chimera_params_roundtrip_with_sequence_artifact_contract() {
         fallback_behavior: "copy_input_reads_and_mark_report".to_string(),
     };
     let decoded: ChimeraDetectionEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.method, "vsearch_uchime_denovo");
     assert_eq!(decoded.detection_scope, "denovo");
     assert_eq!(decoded.input_layout, "single_stream");

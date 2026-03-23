@@ -156,14 +156,14 @@ fn profile_lengths_command(
 mod tests {
     use super::plan_with_options;
     use bijux_dna_core::prelude::{
-        ContainerImageRefV1, ResourceSizingV1, ToolExecutionSpecV1, ToolId, ToolVersion,
+        ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId, ToolVersion,
     };
     use std::path::Path;
 
     fn seqkit_tool() -> ToolExecutionSpecV1 {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("seqkit_stats"),
-            tool_version: ToolVersion::new("2.8.0"),
+            tool_version: ToolVersion::from("2.8.0"),
             image: ContainerImageRefV1 {
                 image: "bijuxdna/seqkit".to_string(),
                 digest: None,
@@ -180,10 +180,10 @@ mod tests {
                     "{{reads_r2}}".to_string(),
                 ],
             },
-            resources: ResourceSizingV1 {
-                cpu_cores: 1.0,
-                memory_mb: 512,
-                disk_mb: 512,
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
                 threads: 2,
             },
         }
