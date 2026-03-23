@@ -244,7 +244,14 @@ fn remove_duplicates_parser_matches_public_stage_descriptor() {
 #[test]
 fn governed_stage_descriptors_cover_manifest_declared_fastq_knobs() {
     for (stage, expected_param_type_id) in [
+        ("fastq.profile_read_lengths", "fastq.profile_read_lengths"),
+        (
+            "fastq.profile_overrepresented_sequences",
+            "fastq.profile_overrepresented_sequences",
+        ),
+        ("fastq.profile_reads", "fastq.profile_reads"),
         ("fastq.validate_reads", "fastq.validate_reads"),
+        ("fastq.remove_chimeras", "fastq.remove_chimeras"),
         ("fastq.remove_duplicates", "fastq.remove_duplicates"),
         ("fastq.report_qc", "fastq.report_qc"),
     ] {

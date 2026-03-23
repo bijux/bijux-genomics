@@ -68,6 +68,7 @@
     "output_json": "out/overrepresented_sequences.json",
     "output_tsv": "out/overrepresented_sequences.tsv",
     "report_json": "out/overrepresented_report.json",
+    "threads": 4,
     "tool": "fastqc",
     "top_k": 50
   },
