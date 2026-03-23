@@ -15,19 +15,17 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::params::screen::HostDepletionEffectiveParams;
-use bijux_dna_domain_fastq::{
-    DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION,
-};
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST;
+use bijux_dna_domain_fastq::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::hash_file_sha256;
-use bijux_dna_planner_fastq::DepleteHostStageParams;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_host_tools;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_host::plan_host_depletion_with_options;
+use bijux_dna_planner_fastq::DepleteHostStageParams;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -150,6 +148,8 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
             &out_dir,
             &DepleteHostStageParams {
                 threads: args.threads,
+                host_identity_threshold: args.host_identity_threshold.unwrap_or(0.95),
+                retain_unmapped_only: args.retain_unmapped_only.unwrap_or(true),
                 ..DepleteHostStageParams::default()
             },
         )?;

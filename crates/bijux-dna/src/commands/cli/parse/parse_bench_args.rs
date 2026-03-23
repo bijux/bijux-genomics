@@ -841,6 +841,10 @@ pub struct BenchFastqDepleteHostArgs {
     pub out: PathBuf,
     #[arg(long, help = "Override governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
+    #[arg(long, help = "Override the governed host identity threshold")]
+    pub host_identity_threshold: Option<f64>,
+    #[arg(long, help = "Override whether only unmapped reads are retained")]
+    pub retain_unmapped_only: Option<bool>,
     #[arg(
         long,
         value_delimiter = ',',
