@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::params::trim::TerminalDamageExecutionPolicy;
 use crate::params::{DamageMode, PairedMode};
@@ -17,6 +18,7 @@ pub struct TerminalDamageReportV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub paired_mode: PairedMode,
+    pub threads: u32,
     pub damage_mode: DamageMode,
     pub execution_policy: TerminalDamageExecutionPolicy,
     pub trim_5p_bases: u32,
@@ -48,6 +50,8 @@ pub struct TerminalDamageReportV1 {
     pub raw_backend_report_format: Option<String>,
     pub runtime_s: Option<f64>,
     pub memory_mb: Option<f64>,
+    pub used_fallback: bool,
+    pub backend_metrics: Option<Value>,
 }
 
 #[cfg(test)]
@@ -64,6 +68,7 @@ mod tests {
             stage_id: "fastq.trim_terminal_damage".to_string(),
             tool_id: "cutadapt".to_string(),
             paired_mode: PairedMode::PairedEnd,
+            threads: 4,
             damage_mode: DamageMode::Ancient,
             execution_policy: TerminalDamageExecutionPolicy::ExplicitTerminalTrim,
             trim_5p_bases: 2,
@@ -103,13 +108,19 @@ mod tests {
             raw_backend_report_format: Some("cutadapt_json".to_string()),
             runtime_s: Some(12.4),
             memory_mb: Some(256.0),
+            used_fallback: false,
+            backend_metrics: Some(serde_json::json!({"reads_profiled": 200})),
         };
 
         let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: TerminalDamageReportV1 =
-            serde_json::from_str(&encoded).expect("deserialize");
+        let decoded: TerminalDamageReportV1 = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "cutadapt");
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
-        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
+        assert_eq!(decoded.threads, 4);
+        assert_eq!(
+            decoded.raw_backend_report_format.as_deref(),
+            Some("cutadapt_json")
+        );
+        assert!(!decoded.used_fallback);
     }
 }

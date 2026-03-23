@@ -390,6 +390,7 @@ pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> s
                 "stage": "fastq.trim_terminal_damage",
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
+                "threads": report.threads,
                 "damage_mode": report.damage_mode,
                 "execution_policy": report.execution_policy,
                 "trim_5p_bases": report.trim_5p_bases,
@@ -399,6 +400,8 @@ pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> s
                 "udg_classification": report.udg_classification,
                 "ct_ga_asymmetry_pre": report.ct_ga_asymmetry_pre,
                 "ct_ga_asymmetry_post": report.ct_ga_asymmetry_post,
+                "used_fallback": report.used_fallback,
+                "backend_metrics": report.backend_metrics,
                 "raw_backend_report": report.raw_backend_report,
                 "raw_backend_report_format": report.raw_backend_report_format,
                 "report_json": report_path,
@@ -1427,6 +1430,7 @@ mod tests {
                 "stage_id": "fastq.trim_terminal_damage",
                 "tool_id": "cutadapt",
                 "paired_mode": "single_end",
+                "threads": 4,
                 "damage_mode": "ancient",
                 "execution_policy": "explicit_terminal_trim",
                 "trim_5p_bases": 2,
@@ -1457,7 +1461,9 @@ mod tests {
                 "raw_backend_report": "cutadapt.raw.json",
                 "raw_backend_report_format": "cutadapt_json",
                 "runtime_s": null,
-                "memory_mb": null
+                "memory_mb": null,
+                "used_fallback": false,
+                "backend_metrics": {"reads_profiled_r1": 100}
             })
             .to_string(),
         )
@@ -1469,7 +1475,9 @@ mod tests {
             metrics["execution_policy"],
             serde_json::json!("explicit_terminal_trim")
         );
+        assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["ct_ga_asymmetry_post"], serde_json::json!(0.11));
+        assert_eq!(metrics["used_fallback"], serde_json::json!(false));
     }
 
     #[test]
@@ -2472,6 +2480,7 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "schema_version",
             "stage",
             "tool",
+            "threads",
             "execution_policy",
             "trim_5p_bases",
             "trim_3p_bases",

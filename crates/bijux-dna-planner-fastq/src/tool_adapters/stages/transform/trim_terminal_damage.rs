@@ -209,6 +209,7 @@ fn trim_terminal_damage_command(
         output_r1,
         output_r2,
         raw_backend_report,
+        threads,
         damage_mode,
         execution_policy,
         trim_5p_bases,
@@ -308,6 +309,7 @@ fn build_governed_terminal_damage_report(
     output_r1: &Path,
     output_r2: Option<&Path>,
     raw_backend_report: Option<&Path>,
+    threads: u32,
     damage_mode: DamageMode,
     execution_policy: bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy,
     trim_5p_bases: u32,
@@ -321,6 +323,7 @@ fn build_governed_terminal_damage_report(
         stage_id: STAGE_ID.as_str().to_string(),
         tool_id: tool_id.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        threads,
         damage_mode,
         execution_policy,
         trim_5p_bases,
@@ -356,6 +359,8 @@ fn build_governed_terminal_damage_report(
         },
         runtime_s: None,
         memory_mb: None,
+        used_fallback: false,
+        backend_metrics: None,
     };
     serde_json::to_string(&report)
         .map_err(|error| anyhow!("serialize terminal damage governed report: {error}"))
@@ -447,6 +452,8 @@ mod tests {
         );
         assert!(script.contains("\"raw_backend_report_format\":\"cutadapt_json\""));
         assert!(script.contains("\"udg_classification\":\"non_udg\""));
+        assert!(script.contains("\"threads\":1"));
+        assert!(script.contains("\"used_fallback\":false"));
         Ok(())
     }
 
@@ -476,6 +483,8 @@ mod tests {
         assert!(script.contains("--file2 'reads_R2.fastq.gz' --output2 'out/R2.trim_terminal_damage.adapterremoval.fastq.gz'"));
         assert!(script.contains("\"tool_id\":\"adapterremoval\""));
         assert!(script.contains("\"raw_backend_report_format\":null"));
+        assert!(script.contains("\"threads\":3"));
+        assert!(script.contains("\"used_fallback\":false"));
         Ok(())
     }
 
@@ -505,6 +514,8 @@ mod tests {
         assert!(script.contains("\"execution_policy\":\"preserve_udg_trimmed_ends\""));
         assert!(script.contains("\"raw_backend_report_format\":\"seqkit_subseq\""));
         assert!(script.contains("\"udg_classification\":\"udg\""));
+        assert!(script.contains("\"threads\":1"));
+        assert!(script.contains("\"used_fallback\":false"));
         Ok(())
     }
 
