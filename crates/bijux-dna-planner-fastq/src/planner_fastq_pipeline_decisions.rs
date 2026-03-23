@@ -82,6 +82,7 @@ pub enum FastqStageParameters {
     ReportQc(bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams),
     Trim(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
     TrimPolygTails(bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams),
+    MergePairs(MergePairsStageParams),
     Screen(bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams),
     IndexReference(IndexReferenceStageParams),
     InferAsvs(InferAsvsStageParams),
@@ -91,6 +92,25 @@ pub enum FastqStageParameters {
     DepleteRrna(DepleteRrnaStageParams),
     DepleteHost(DepleteHostStageParams),
     DepleteReferenceContaminants(DepleteReferenceContaminantsStageParams),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MergePairsStageParams {
+    pub merge_overlap: Option<u32>,
+    pub min_len: Option<u32>,
+    pub unmerged_read_policy:
+        bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy,
+}
+
+impl Default for MergePairsStageParams {
+    fn default() -> Self {
+        Self {
+            merge_overlap: None,
+            min_len: None,
+            unmerged_read_policy:
+                bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy::EmitUnmergedPairs,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
