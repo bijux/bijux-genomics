@@ -550,6 +550,7 @@ pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serd
                 "stage": "fastq.remove_duplicates",
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
+                "threads": report.threads,
                 "dedup_mode": report.dedup_mode,
                 "keep_order": report.keep_order,
                 "reads_in": report.reads_in,
@@ -2448,9 +2449,30 @@ mod tests {
 
         let metrics = parse_remove_duplicates_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("clumpify"));
+        assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["dedup_mode"], serde_json::json!("optical_aware"));
         assert_eq!(metrics["duplicates_removed"], serde_json::json!(16));
         assert_eq!(metrics["duplicate_class_count"], serde_json::json!(1));
+    }
+
+    #[test]
+    fn remove_duplicates_uses_governed_report_metrics_policy() {
+        assert_eq!(
+            required_metrics_keys("fastq.remove_duplicates"),
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "threads",
+                "dedup_mode",
+                "keep_order",
+                "reads_in",
+                "reads_out",
+                "duplicates_removed",
+                "dedup_rate",
+                "duplicate_class_count",
+            ]
+        );
     }
 }
 
@@ -2560,7 +2582,19 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_unmerged",
             "merge_rate",
         ],
-        "fastq.remove_duplicates" => &["schema_version", "stage", "tool", "duplicates_removed"],
+        "fastq.remove_duplicates" => &[
+            "schema_version",
+            "stage",
+            "tool",
+            "threads",
+            "dedup_mode",
+            "keep_order",
+            "reads_in",
+            "reads_out",
+            "duplicates_removed",
+            "dedup_rate",
+            "duplicate_class_count",
+        ],
         "fastq.correct_errors" => &[
             "schema_version",
             "stage",

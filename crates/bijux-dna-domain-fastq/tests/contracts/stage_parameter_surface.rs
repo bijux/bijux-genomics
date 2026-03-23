@@ -110,9 +110,30 @@ fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
     );
     assert_eq!(
         stage_parameter_names("remove_duplicates")?,
-        vec!["dedup_mode", "keep_order"],
+        vec!["threads", "dedup_mode", "keep_order"],
         "fastq.remove_duplicates must expose the governed duplicate semantics used by benchmark cohorts and stage plans"
     );
+    Ok(())
+}
+
+#[test]
+fn remove_duplicates_manifest_publishes_governed_dedup_metric_surface() -> Result<()> {
+    let metrics = stage_metric_names("remove_duplicates")?;
+    for metric in [
+        "threads",
+        "dedup_mode",
+        "keep_order",
+        "reads_in",
+        "reads_out",
+        "duplicates_removed",
+        "dedup_rate",
+        "duplicate_class_count",
+    ] {
+        assert!(
+            metrics.iter().any(|candidate| candidate == metric),
+            "fastq.remove_duplicates manifest must publish governed duplicate metric `{metric}`",
+        );
+    }
     Ok(())
 }
 
