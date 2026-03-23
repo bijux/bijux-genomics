@@ -24,7 +24,7 @@ fn stage_manifest(stage_name: &str) -> Result<serde_json::Value> {
 
 #[test]
 fn validation_tools_use_generic_reads_placeholder() -> Result<()> {
-    for tool_id in ["fastqvalidator", "seqtk", "fqtools"] {
+    for tool_id in ["fastqvalidator", "seqtk", "fqtools", "fastq_scan"] {
         let manifest = tool_manifest(tool_id)?;
         let command_template = manifest
             .get("command_template")
@@ -46,8 +46,54 @@ fn validation_tools_use_generic_reads_placeholder() -> Result<()> {
 }
 
 #[test]
+fn fastqc_validation_contract_publishes_governed_artifacts() -> Result<()> {
+    let manifest = tool_manifest("fastqc")?;
+    let stage_ids = manifest
+        .get("stage_ids")
+        .and_then(serde_json::Value::as_array)
+        .context("stage_ids missing for fastqc")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert!(
+        stage_ids.contains(&"fastq.validate_reads"),
+        "fastqc must publish fastq.validate_reads in its governed stage list"
+    );
+
+    let validate_contract = manifest
+        .get("stage_contracts")
+        .and_then(|value| value.get("fastq.validate_reads"))
+        .context("fastqc validate stage contract missing")?;
+    let expected_artifacts = validate_contract
+        .get("expected_artifacts")
+        .and_then(serde_json::Value::as_array)
+        .context("fastqc validate expected_artifacts missing")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert_eq!(
+        expected_artifacts,
+        vec!["validation_report", "validated_reads_manifest"],
+        "fastqc validate contract must publish the governed validation artifacts"
+    );
+
+    let command_template = manifest
+        .get("command_template")
+        .and_then(serde_json::Value::as_array)
+        .context("command_template missing for fastqc")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert!(
+        command_template.iter().any(|part| part == &"{{reads_r1}}"),
+        "fastqc keeps its native reads_r1-oriented command surface and relies on the governed adapter for validate rendering"
+    );
+    Ok(())
+}
+
+#[test]
 fn validation_tool_manifests_admit_optional_mate_inputs() -> Result<()> {
-    for tool_id in ["fastqvalidator", "seqtk", "fqtools"] {
+    for tool_id in ["fastqvalidator", "fastqc", "fastq_scan", "seqtk", "fqtools"] {
         let manifest = tool_manifest(tool_id)?;
         let optional_inputs = manifest
             .get("execution_contract")
@@ -91,6 +137,24 @@ fn validation_tool_manifests_admit_optional_mate_inputs() -> Result<()> {
 }
 
 #[test]
+fn validate_stage_manifest_lists_all_supported_backends() -> Result<()> {
+    let manifest = stage_manifest("validate_reads")?;
+    let compatible_tools = manifest
+        .get("compatible_tools")
+        .and_then(serde_json::Value::as_array)
+        .context("compatible_tools missing")?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .collect::<Vec<_>>();
+    assert_eq!(
+        compatible_tools,
+        vec!["fastqvalidator", "fastqc", "fastq_scan", "seqtk", "fqtools"],
+        "validate stage manifest must publish the full governed backend surface"
+    );
+    Ok(())
+}
+
+#[test]
 fn validate_stage_manifest_uses_single_stream_ports() -> Result<()> {
     let manifest = stage_manifest("validate_reads")?;
     let inputs = manifest
@@ -120,7 +184,9 @@ fn validate_stage_manifest_documents_layout_derived_pair_sync_default() -> Resul
         .context("parameters missing")?;
     let pair_sync_policy = params
         .iter()
-        .find(|entry| entry.get("name").and_then(serde_json::Value::as_str) == Some("pair_sync_policy"))
+        .find(|entry| {
+            entry.get("name").and_then(serde_json::Value::as_str) == Some("pair_sync_policy")
+        })
         .context("pair_sync_policy parameter missing")?;
     assert_eq!(
         pair_sync_policy
@@ -134,10 +200,13 @@ fn validate_stage_manifest_documents_layout_derived_pair_sync_default() -> Resul
         .and_then(serde_json::Value::as_array)
         .context("assumptions missing")?;
     assert!(
-        assumptions.iter().filter_map(serde_json::Value::as_str).any(|entry| {
-            entry.contains("pair_sync_policy defaults to require_header_sync")
-                && entry.contains("not_applicable")
-        }),
+        assumptions
+            .iter()
+            .filter_map(serde_json::Value::as_str)
+            .any(|entry| {
+                entry.contains("pair_sync_policy defaults to require_header_sync")
+                    && entry.contains("not_applicable")
+            }),
         "validate stage assumptions must describe paired and single-end default resolution"
     );
     Ok(())

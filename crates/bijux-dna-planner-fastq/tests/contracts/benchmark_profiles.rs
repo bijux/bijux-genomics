@@ -312,20 +312,20 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         .tool_ids
         .iter()
         .any(|tool_id| tool_id.as_str() == "fastqvalidator"));
-    assert_eq!(
-        validation_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
-        vec!["fastqvalidator", "fqtools", "seqtk"]
-    );
-    assert_eq!(
-        validation_cohorts[0]
-            .observer_specialized_tools
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
-        vec!["fastqvalidator", "fqtools", "seqtk"]
-    );
+    for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
+        assert!(
+            validation_cohorts[0]
+                .tool_ids
+                .iter()
+                .any(|candidate| candidate.as_str() == tool_id),
+            "validation cohort must include {tool_id}"
+        );
+        assert!(
+            validation_cohorts[0]
+                .observer_specialized_tools
+                .iter()
+                .any(|candidate| candidate.as_str() == tool_id),
+            "validation observer-specialized cohort must include {tool_id}"
+        );
+    }
 }

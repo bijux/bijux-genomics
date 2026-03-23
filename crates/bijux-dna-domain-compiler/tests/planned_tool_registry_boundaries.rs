@@ -25,19 +25,16 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
 
     let governed_registry =
         std::fs::read_to_string(out_dir.path().join("ci/registry/tool_registry.toml"))?;
-    for planned_tool in [
-        "dada2",
-        "diamond",
-        "dustmasker",
-        "fastq_scan",
-        "seqfu",
-        "seqpurge",
-    ] {
+    for planned_tool in ["dada2", "diamond", "dustmasker", "seqfu", "seqpurge"] {
         assert!(
             !governed_registry.contains(&format!("tool_id = \"{planned_tool}\"")),
             "planned-only FASTQ tool {planned_tool} must stay out of the governed registry"
         );
     }
+    assert!(
+        governed_registry.contains("tool_id = \"fastq_scan\""),
+        "fastq_scan must enter the governed registry once its containerized runtime closes"
+    );
 
     assert!(
         governed_registry.contains("planned_out_of_scope = [\"diamond\"]"),
