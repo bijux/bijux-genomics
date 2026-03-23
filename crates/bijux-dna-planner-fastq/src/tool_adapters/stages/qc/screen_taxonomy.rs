@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
     screen::{
@@ -11,7 +11,9 @@ use bijux_dna_domain_fastq::params::{
     },
     PairedMode,
 };
-use bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY;
+use bijux_dna_domain_fastq::{
+    ScreenTaxonomyReportV1, STAGE_SCREEN_TAXONOMY, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_SCREEN_TAXONOMY;
@@ -99,8 +101,15 @@ pub fn plan_screen_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
+        command: CommandSpecV1 {
+            template: screen_command_template(
+                tool,
+                r1,
+                r2,
+                &outputs.report,
+                &outputs.assignments,
+                &effective_params,
+            )?,
         },
         resources: {
             let mut resources = tool.resources.clone();
@@ -118,7 +127,7 @@ pub fn plan_screen_with_options(
                 ArtifactRef::required(
                     ArtifactId::from_static("classification_report_json"),
                     outputs.assignments.clone(),
-                    ArtifactRole::MetricsJson,
+                    ArtifactRole::ReportJson,
                 ),
             ],
         },
@@ -137,6 +146,85 @@ pub fn plan_screen_with_options(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn screen_command_template(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    report_path: &Path,
+    classification_report_path: &Path,
+    effective_params: &ScreenEffectiveParams,
+) -> Result<Vec<String>> {
+    let rendered = crate::tool_adapters::template_render::render_command_template(
+        &tool.command.template,
+        &[
+            ("reads", Some(r1.display().to_string())),
+            ("reads_r1", Some(r1.display().to_string())),
+            ("reads_r2", r2.map(|path| path.display().to_string())),
+            ("screen_report_tsv", Some(report_path.display().to_string())),
+            (
+                "classification_report_json",
+                Some(classification_report_path.display().to_string()),
+            ),
+            ("threads", Some(effective_params.threads.to_string())),
+        ],
+    )?;
+    let command = rendered
+        .into_iter()
+        .filter(|token| !token.is_empty())
+        .collect::<Vec<_>>();
+    if command.is_empty() {
+        return Err(anyhow!(
+            "screen taxonomy command template resolved to an empty command"
+        ));
+    }
+    let governed_report = ScreenTaxonomyReportV1 {
+        schema_version: SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.as_str().to_string(),
+        stage_id: STAGE_ID.as_str().to_string(),
+        tool_id: tool.tool_id.to_string(),
+        paired_mode: effective_params.paired_mode.clone(),
+        threads: effective_params.threads,
+        classifier: effective_params.classifier.clone(),
+        report_format: effective_params.report_format.clone(),
+        assignment_format: effective_params.assignment_format.clone(),
+        database_catalog_id: effective_params.database_catalog_id.clone(),
+        database_artifact_id: effective_params.database_artifact_id.clone(),
+        database_build_id: effective_params.database_build_id.clone(),
+        database_digest: effective_params.database_digest.clone(),
+        database_namespace: effective_params.database_namespace.clone(),
+        database_scope: effective_params.database_scope.clone(),
+        minimum_confidence: effective_params.minimum_confidence,
+        emit_unclassified: effective_params.emit_unclassified,
+        input_r1: r1.display().to_string(),
+        input_r2: r2.map(|path| path.display().to_string()),
+        screen_report_tsv: report_path.display().to_string(),
+        classification_report_json: classification_report_path.display().to_string(),
+        reads_in: None,
+        reads_out: None,
+        bases_in: None,
+        bases_out: None,
+        pairs_in: None,
+        pairs_out: None,
+        contamination_rate: None,
+        classified_fraction: None,
+        unclassified_fraction: None,
+        summary_entries: Vec::new(),
+        top_taxa: Vec::new(),
+        runtime_s: None,
+        memory_mb: None,
+    };
+    let script = format!(
+        "set -euo pipefail\n{}\nprintf '%s\\n' {} > {}\n",
+        shell_join(&command),
+        shell_quote_str(
+            &serde_json::to_string(&governed_report)
+                .map_err(|error| anyhow!("serialize governed taxonomy screen report: {error}"))?,
+        ),
+        shell_quote_path(classification_report_path),
+    );
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
 
 fn normalize_tools_with_allowlist(
@@ -218,12 +306,29 @@ fn classifier_contract(
     Ok(contract)
 }
 
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_str(part))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn shell_quote_path(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{plan_screen_with_options, ScreenPlanOptions, STAGE_ID};
     use anyhow::Result;
     use bijux_dna_core::prelude::{
-        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+        ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
+        ToolExecutionSpecV1, ToolId,
         ToolVersion,
     };
     use std::path::Path;
@@ -261,6 +366,19 @@ mod tests {
         assert_eq!(plan.resources.threads, 12);
         assert_eq!(plan.params["threads"], serde_json::json!(12));
         assert_eq!(plan.effective_params["threads"], serde_json::json!(12));
+        assert_eq!(plan.command.template[0], "sh");
+        assert_eq!(plan.command.template[1], "-lc");
+        assert!(plan.command.template[2].contains("kraken2"));
+        assert!(plan.command.template[2].contains("out/kraken2.report.tsv"));
+        assert!(plan.command.template[2].contains("out/kraken2.classifications.json"));
+        assert!(plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.screen_taxonomy.report.v2\""));
+        assert!(plan.command.template[2].contains("\"tool_id\":\"kraken2\""));
+        assert!(plan
+            .command
+            .template
+            .iter()
+            .all(|part| !part.contains("{{") && !part.contains("}}")));
+        assert_eq!(plan.io.outputs[1].role, ArtifactRole::ReportJson);
         Ok(())
     }
 }

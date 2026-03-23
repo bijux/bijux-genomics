@@ -212,6 +212,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         Some(r2),
         out_dir,
     )?;
+    assert_command_is_concrete(&plan);
     assert_snapshot("stage__fastq__fastq.screen_taxonomy", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::deplete_rrna::plan_rrna(
