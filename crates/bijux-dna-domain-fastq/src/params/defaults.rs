@@ -61,7 +61,7 @@ pub fn stats_defaults(paired: bool) -> FastqStatsParams {
     FastqStatsParams {
         schema_version: STATS_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
-        threads: 1,
+        threads: 2,
     }
 }
 
@@ -234,7 +234,7 @@ pub fn remove_duplicates_defaults(paired: bool) -> RemoveDuplicatesEffectivePara
     RemoveDuplicatesEffectiveParams {
         schema_version: REMOVE_DUPLICATES_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
-        threads: 1,
+        threads: 4,
         dedup_mode: DedupMode::Exact,
         keep_order: true,
     }

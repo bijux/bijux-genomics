@@ -55,6 +55,7 @@ fn stats_params_roundtrip_and_schema_version() {
     let params = stats_defaults(true);
     let decoded: FastqStatsParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, STATS_SCHEMA_VERSION);
+    assert_eq!(decoded.threads, 2);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
@@ -100,7 +101,10 @@ fn validate_params_roundtrip_supports_explicit_policy_variants() {
 
     let decoded: bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams =
         roundtrip(&report_only);
-    assert_eq!(decoded.schema_version, bijux_dna_domain_fastq::params::validate::VALIDATE_SCHEMA_VERSION);
+    assert_eq!(
+        decoded.schema_version,
+        bijux_dna_domain_fastq::params::validate::VALIDATE_SCHEMA_VERSION
+    );
     assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.validation_mode, ValidationMode::ReportOnly);
     assert_eq!(decoded.pair_sync_policy, PairSyncPolicy::SkipHeaderSync);
@@ -115,7 +119,10 @@ fn screen_defaults_roundtrip_with_declared_thread_count() {
     assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
     assert_eq!(decoded.report_format, TaxonomyReportFormat::KrakenReport);
-    assert_eq!(decoded.assignment_format, TaxonomyAssignmentFormat::KrakenAssignments);
+    assert_eq!(
+        decoded.assignment_format,
+        TaxonomyAssignmentFormat::KrakenAssignments
+    );
     assert!(decoded.missing_required_fields().is_empty());
 }
 
@@ -190,7 +197,10 @@ fn preserve_udg_policy_rejects_non_udg_damage_mode() {
 
 #[test]
 fn trim_terminal_damage_policy_parser_accepts_policy_derived() {
-    assert_eq!(parse_terminal_damage_execution_policy("policy_derived"), Some(None));
+    assert_eq!(
+        parse_terminal_damage_execution_policy("policy_derived"),
+        Some(None)
+    );
     assert_eq!(parse_terminal_damage_execution_policy("auto"), Some(None));
 }
 
@@ -209,6 +219,7 @@ fn remove_duplicates_params_roundtrip_with_stage_specific_schema() {
     let params = remove_duplicates_defaults(true);
     let decoded: RemoveDuplicatesEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, REMOVE_DUPLICATES_SCHEMA_VERSION);
+    assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.dedup_mode, DedupMode::Exact);
     assert!(decoded.keep_order);
     assert!(decoded.missing_required_fields().is_empty());
@@ -237,8 +248,10 @@ fn governed_stage_descriptors_cover_manifest_declared_fastq_knobs() {
         ("fastq.remove_duplicates", "fastq.remove_duplicates"),
         ("fastq.report_qc", "fastq.report_qc"),
     ] {
-        let descriptor = stage_param_descriptor(&StageId::from_static(stage))
-            .unwrap_or_else(|| panic!("{stage} must publish a governed stage parameter descriptor"));
+        let descriptor =
+            stage_param_descriptor(&StageId::from_static(stage)).unwrap_or_else(|| {
+                panic!("{stage} must publish a governed stage parameter descriptor")
+            });
         assert_eq!(descriptor.param_type_id, expected_param_type_id);
     }
 }
@@ -291,7 +304,10 @@ fn chimera_params_roundtrip_with_sequence_artifact_contract() {
     assert_eq!(decoded.chimera_sequence_artifact, "chimeras_fasta");
     assert_eq!(decoded.raw_backend_report_artifact, "uchime_report_tsv");
     assert_eq!(decoded.raw_backend_report_format, "vsearch_uchime_tsv");
-    assert_eq!(decoded.fallback_behavior, "copy_input_reads_and_mark_report");
+    assert_eq!(
+        decoded.fallback_behavior,
+        "copy_input_reads_and_mark_report"
+    );
 }
 
 #[test]
@@ -315,7 +331,10 @@ fn otu_clustering_params_roundtrip_with_domain_default_threshold() {
         decoded.raw_backend_report_artifact.as_deref(),
         Some("otu_clusters_uc")
     );
-    assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("vsearch_uc"));
+    assert_eq!(
+        decoded.raw_backend_report_format.as_deref(),
+        Some("vsearch_uc")
+    );
 }
 
 #[test]
