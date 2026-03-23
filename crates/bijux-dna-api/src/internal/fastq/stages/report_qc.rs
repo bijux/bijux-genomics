@@ -244,6 +244,8 @@ struct GovernedQcInputs {
 struct GovernedQcContributor {
     contributor_id: String,
     stage_id: String,
+    #[serde(default)]
+    tool_id: String,
     artifact_id: String,
     artifact_role: bijux_dna_core::contract::ArtifactRole,
     path: PathBuf,
@@ -478,11 +480,7 @@ fn build_governed_qc_post_report(
         .map(|contributor| GovernedQcContributorV1 {
             contributor_id: contributor.contributor_id.clone(),
             stage_id: contributor.stage_id.clone(),
-            tool_id: contributor
-                .contributor_id
-                .rsplit_once('.')
-                .map(|(_, tool_id)| tool_id.to_string())
-                .unwrap_or_default(),
+            tool_id: contributor.tool_id.clone(),
             artifact_id: contributor.artifact_id.clone(),
             artifact_role: contributor.artifact_role.as_str().to_string(),
             path: contributor.path.display().to_string(),
@@ -623,9 +621,20 @@ fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContribu
             } else {
                 name.to_string()
             };
+            let tool_id = parts
+                .get(2..parts.len().saturating_sub(1))
+                .map(|segments| segments.join("."))
+                .filter(|tool_id| !tool_id.is_empty())
+                .or_else(|| {
+                    contributor_id
+                        .rsplit_once('.')
+                        .map(|(_, tool_id)| tool_id.to_string())
+                })
+                .unwrap_or_default();
             GovernedQcContributor {
                 contributor_id,
                 stage_id,
+                tool_id,
                 artifact_id,
                 artifact_role: artifact.role,
                 path: artifact.path.clone(),
@@ -676,12 +685,8 @@ fn governed_qc_contributor_stage_ids(contributors: &[GovernedQcContributor]) -> 
 fn governed_qc_contributor_tool_ids(contributors: &[GovernedQcContributor]) -> Vec<String> {
     let mut tool_ids = contributors
         .iter()
-        .filter_map(|contributor| {
-            contributor
-                .contributor_id
-                .rsplit_once('.')
-                .map(|(_, tool_id)| tool_id.to_string())
-        })
+        .map(|contributor| contributor.tool_id.clone())
+        .filter(|tool_id| !tool_id.is_empty())
         .collect::<Vec<_>>();
     tool_ids.sort();
     tool_ids.dedup();
@@ -796,6 +801,15 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
     } else {
         manifest.contributors
     };
+    for contributor in &mut contributors {
+        if contributor.tool_id.trim().is_empty() {
+            contributor.tool_id = contributor
+                .contributor_id
+                .rsplit_once('.')
+                .map(|(_, tool_id)| tool_id.to_string())
+                .unwrap_or_default();
+        }
+    }
     contributors.sort_by(|left, right| {
         left.contributor_id
             .cmp(&right.contributor_id)
@@ -1056,6 +1070,7 @@ mod tests {
             GovernedQcContributor {
                 contributor_id: "fastq.trim_reads.fastp_branch".to_string(),
                 stage_id: "fastq.trim_reads".to_string(),
+                tool_id: "fastp_branch".to_string(),
                 artifact_id: "report_json".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
                 path: artifact_path.clone(),
@@ -1089,6 +1104,7 @@ mod tests {
                     {
                         "contributor_id": "fastq.trim_reads.fastp",
                         "stage_id": "fastq.trim_reads",
+                        "tool_id": "fastp",
                         "artifact_id": "report_json",
                         "artifact_role": "report_json",
                         "path": artifact_path
@@ -1187,6 +1203,7 @@ mod tests {
             contributors: vec![GovernedQcContributor {
                 contributor_id: "fastq.trim_reads.fastp".to_string(),
                 stage_id: "fastq.trim_reads".to_string(),
+                tool_id: "fastp".to_string(),
                 artifact_id: "report_json".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
                 path: input_artifact.clone(),
@@ -1309,6 +1326,7 @@ mod tests {
             GovernedQcContributor {
                 contributor_id: "fastq.trim_reads.fastp".to_string(),
                 stage_id: "fastq.trim_reads".to_string(),
+                tool_id: "fastp".to_string(),
                 artifact_id: "report_json".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
                 path: PathBuf::from("/tmp/trim/report.json"),
@@ -1316,6 +1334,7 @@ mod tests {
             GovernedQcContributor {
                 contributor_id: "fastq.validate_reads.fastqvalidator".to_string(),
                 stage_id: "fastq.validate_reads".to_string(),
+                tool_id: "fastqvalidator".to_string(),
                 artifact_id: "validation_report".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
                 path: PathBuf::from("/tmp/validate/report.json"),
@@ -1323,6 +1342,7 @@ mod tests {
             GovernedQcContributor {
                 contributor_id: "fastq.trim_reads.fastp".to_string(),
                 stage_id: "fastq.trim_reads".to_string(),
+                tool_id: "fastp".to_string(),
                 artifact_id: "adapter_report".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
                 path: PathBuf::from("/tmp/trim/adapter.json"),
@@ -1350,6 +1370,7 @@ mod tests {
                 GovernedQcContributor {
                     contributor_id: "fastq.trim_reads.fastp".to_string(),
                     stage_id: "fastq.trim_reads".to_string(),
+                    tool_id: "fastp".to_string(),
                     artifact_id: "report_json".to_string(),
                     artifact_role: ArtifactRole::ReportJson,
                     path: PathBuf::from("/tmp/trim/report.json"),
@@ -1357,6 +1378,7 @@ mod tests {
                 GovernedQcContributor {
                     contributor_id: "fastq.validate_reads.fastqvalidator".to_string(),
                     stage_id: "fastq.validate_reads".to_string(),
+                    tool_id: "fastqvalidator".to_string(),
                     artifact_id: "validation_report".to_string(),
                     artifact_role: ArtifactRole::ReportJson,
                     path: PathBuf::from("/tmp/validate/report.json"),
@@ -1419,6 +1441,7 @@ mod tests {
             &[GovernedQcContributor {
                 contributor_id: "fastq.trim_reads.fastp".to_string(),
                 stage_id: "fastq.trim_reads".to_string(),
+                tool_id: "fastp".to_string(),
                 artifact_id: "validation_report".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
                 path: report_path,
