@@ -85,6 +85,7 @@ governed_stage_ids:
   - fastq.filter_low_complexity
   - fastq.filter_reads
   - fastq.index_reference
+  - fastq.infer_asvs
   - fastq.merge_pairs
   - fastq.normalize_abundance
   - fastq.normalize_primers
@@ -111,7 +112,9 @@ governed_tool_ids:
   - centrifuge
   - clumpify
   - cutadapt
+  - dada2
   - fastp
+  - fastq_scan
   - fastqc
   - fastqvalidator
   - fastuniq
@@ -130,6 +133,7 @@ governed_tool_ids:
   - rcorrector
   - seqkit
   - seqkit_stats
+  - seqpurge
   - seqtk
   - skewer
   - sortmerna
@@ -182,6 +186,7 @@ stage_tool_compatibility:
   - seqkit
   fastq.profile_overrepresented_sequences:
   - fastqc
+  - fastq_scan
   - seqkit
   fastq.profile_read_lengths:
   - seqkit_stats
@@ -212,15 +217,14 @@ stage_tool_compatibility:
   - trim_galore
   - prinseq
   - seqkit
-  - skewer
-  - leehom
-  - alientrimmer
-  - fastx_clipper
+  - seqpurge
   fastq.trim_terminal_damage:
   - cutadapt
   - seqkit
   fastq.validate_reads:
   - fastqvalidator
+  - fastqc
+  - fastq_scan
   - seqtk
   - fqtools
 stage_tool_integration:
@@ -268,7 +272,7 @@ stage_tool_integration:
     cutadapt: governed_contract
     seqkit: governed_contract
   fastq.profile_overrepresented_sequences:
-    fastq_scan: planned_contract
+    fastq_scan: governed_contract
     fastqc: governed_contract
     seqkit: governed_contract
   fastq.profile_read_lengths:
@@ -296,20 +300,25 @@ stage_tool_integration:
     fastp: governed_contract
   fastq.trim_reads:
     adapterremoval: governed_contract
+    alientrimmer: planned_contract
     atropos: governed_contract
     bbduk: governed_contract
     cutadapt: governed_contract
     fastp: governed_contract
+    fastx_clipper: planned_contract
+    leehom: planned_contract
     prinseq: governed_contract
     seqkit: governed_contract
     seqpurge: governed_contract
+    skewer: planned_contract
     trim_galore: governed_contract
     trimmomatic: governed_contract
   fastq.trim_terminal_damage:
     cutadapt: governed_contract
     seqkit: governed_contract
   fastq.validate_reads:
-    fastq_scan: planned_contract
+    fastq_scan: governed_contract
+    fastqc: governed_contract
     fastqvalidator: governed_contract
     fqtools: governed_contract
     seqtk: governed_contract
