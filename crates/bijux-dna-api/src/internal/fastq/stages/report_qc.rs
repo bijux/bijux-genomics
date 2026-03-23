@@ -17,6 +17,7 @@ use bijux_dna_analyze::{
 };
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_core::contract::ArtifactRole;
 use bijux_dna_core::prelude::{ArtifactRef, ContainerImageRefV1};
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
@@ -474,6 +475,7 @@ fn build_governed_qc_post_report(
             .get("aggregation_scope")
             .and_then(serde_json::Value::as_str),
     )?;
+    let governed_summary = load_governed_qc_summary(governed_qc);
     let contributors = governed_qc
         .contributors
         .iter()
@@ -503,13 +505,15 @@ fn build_governed_qc_post_report(
         pairs_in: metrics.pairs_in,
         pairs_out: metrics.pairs_out,
         mean_q: metrics.mean_q,
-        contamination_rate: metrics.contamination_rate,
-        adapter_content_max: None,
-        adapter_content_mean: None,
-        duplication_rate: None,
-        n_rate: None,
-        kmer_warning_count: None,
-        overrepresented_sequence_count: None,
+        contamination_rate: governed_summary
+            .contamination_rate
+            .unwrap_or(metrics.contamination_rate),
+        adapter_content_max: governed_summary.adapter_content_max,
+        adapter_content_mean: governed_summary.adapter_content_mean,
+        duplication_rate: governed_summary.duplication_rate,
+        n_rate: governed_summary.n_rate,
+        kmer_warning_count: governed_summary.kmer_warning_count,
+        overrepresented_sequence_count: governed_summary.overrepresented_sequence_count,
         multiqc_sample_count: multiqc_metrics.as_ref().map(|metrics| metrics.sample_count),
         multiqc_module_count: multiqc_metrics.as_ref().map(|metrics| metrics.module_count),
         raw_fastqc_dir: metrics.raw_fastqc_dir.clone(),
@@ -550,6 +554,7 @@ fn derive_qc_post_metrics(
     params: &serde_json::Value,
     governed_qc: &GovernedQcInputs,
 ) -> FastqQcPostMetrics {
+    let governed_summary = load_governed_qc_summary(governed_qc);
     let multiqc_report = out_dir.join("multiqc_report.html");
     let multiqc_data = out_dir.join("multiqc_data");
     let trimmed_fastqc_dir = out_dir.join("fastqc_trimmed");
@@ -570,7 +575,7 @@ fn derive_qc_post_metrics(
         pairs_in: input_stats_r2.map(|stats| input_stats.reads.min(stats.reads)),
         pairs_out: input_stats_r2.map(|stats| input_stats.reads.min(stats.reads)),
         mean_q,
-        contamination_rate: 0.0,
+        contamination_rate: governed_summary.contamination_rate.unwrap_or(0.0),
         aggregation_engine: params
             .get("aggregation_engine")
             .and_then(serde_json::Value::as_str)
@@ -598,6 +603,70 @@ fn derive_qc_post_metrics(
         multiqc_report: path_if_exists(&multiqc_report),
         multiqc_data: path_if_exists(&multiqc_data),
     }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+struct GovernedQcSummary {
+    contamination_rate: Option<f64>,
+    adapter_content_max: Option<f64>,
+    adapter_content_mean: Option<f64>,
+    duplication_rate: Option<f64>,
+    n_rate: Option<f64>,
+    kmer_warning_count: Option<u64>,
+    overrepresented_sequence_count: Option<u64>,
+}
+
+fn load_governed_qc_summary(governed_qc: &GovernedQcInputs) -> GovernedQcSummary {
+    let mut summary = GovernedQcSummary::default();
+    if let Some(path) = governed_qc_report_path(
+        governed_qc,
+        "fastq.screen_taxonomy",
+        "report_json",
+        ArtifactRole::ReportJson,
+    ) {
+        if let Ok(raw) = std::fs::read_to_string(path) {
+            if let Ok(report) = bijux_dna_stages_fastq::observer::parse_screen_taxonomy_report(&raw)
+            {
+                summary.contamination_rate = report.contamination_rate;
+            }
+        }
+    }
+    if let Some(path) = governed_qc_report_path(
+        governed_qc,
+        "fastq.detect_adapters",
+        "report_json",
+        ArtifactRole::ReportJson,
+    ) {
+        if let Ok(raw) = std::fs::read_to_string(path) {
+            if let Ok(report) = bijux_dna_stages_fastq::observer::parse_detect_adapters_report(&raw)
+            {
+                summary.adapter_content_max = report.adapter_content_max;
+                summary.adapter_content_mean = report.adapter_content_mean;
+                summary.duplication_rate = report.duplication_rate;
+                summary.n_rate = report.n_rate;
+                summary.kmer_warning_count = report.kmer_warning_count;
+                summary.overrepresented_sequence_count = report.overrepresented_sequence_count;
+            }
+        }
+    }
+    summary
+}
+
+fn governed_qc_report_path<'a>(
+    governed_qc: &'a GovernedQcInputs,
+    stage_id: &str,
+    artifact_id: &str,
+    artifact_role: ArtifactRole,
+) -> Option<&'a Path> {
+    governed_qc
+        .contributors
+        .iter()
+        .find(|contributor| {
+            contributor.stage_id == stage_id
+                && contributor.artifact_id == artifact_id
+                && contributor.artifact_role == artifact_role
+        })
+        .map(|contributor| contributor.path.as_path())
 }
 
 fn path_if_exists(path: &Path) -> Option<String> {
@@ -900,6 +969,7 @@ mod tests {
         ArtifactRef, CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1,
     };
     use bijux_dna_domain_fastq::params::qc_post::{QcAggregationEngine, QcAggregationScope};
+    use bijux_dna_domain_fastq::ReportQcReportV1;
     use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
     use bijux_dna_runner::step_runner::StageResultV1;
 
@@ -1306,6 +1376,207 @@ mod tests {
             preserved_manifest["qc_inputs"][0]["path"],
             serde_json::json!(input_artifact)
         );
+    }
+
+    #[test]
+    fn qc_post_record_preserves_upstream_qc_summary_signals() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir_all(temp.path().join("multiqc_data")).expect("multiqc data dir");
+        std::fs::write(temp.path().join("multiqc_report.html"), b"report").expect("report");
+
+        let detect_report = temp.path().join("adapter_report.json");
+        std::fs::write(
+            &detect_report,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.detect_adapters.report.v2",
+                "stage": "fastq.detect_adapters",
+                "stage_id": "fastq.detect_adapters",
+                "tool_id": "fastqc",
+                "paired_mode": "single_end",
+                "threads": 1,
+                "inspection_mode": "evidence_only",
+                "report_only": true,
+                "evidence_engine": "fastqc",
+                "evidence_scope": "full_input",
+                "evidence_format": "fastqc_summary",
+                "evidence_artifact_id": "report_json",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": null,
+                "report_json": "adapter_report.json",
+                "adapter_evidence_dir": "fastqc",
+                "reads_in": 10,
+                "reads_out": 10,
+                "bases_in": 100,
+                "bases_out": 100,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q": 30.0,
+                "candidate_adapter_count": 1,
+                "adapter_trimmed_fraction": 0.05,
+                "adapter_content_max": 0.12,
+                "adapter_content_mean": 0.04,
+                "duplication_rate": 0.11,
+                "n_rate": 0.002,
+                "kmer_warning_count": 3,
+                "overrepresented_sequence_count": 2,
+                "runtime_s": 1.0,
+                "memory_mb": 32.0,
+                "exit_code": 0,
+                "raw_backend_report": null,
+                "raw_backend_report_format": null
+            })
+            .to_string(),
+        )
+        .expect("detect report");
+
+        let screen_report = temp.path().join("screen_report.json");
+        std::fs::write(
+            &screen_report,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.screen_taxonomy.report.v2",
+                "stage": "fastq.screen_taxonomy",
+                "stage_id": "fastq.screen_taxonomy",
+                "tool_id": "kraken2",
+                "paired_mode": "single_end",
+                "threads": 1,
+                "classifier": "kraken2",
+                "report_format": "kraken_report",
+                "assignment_format": "kraken_assignments",
+                "database_catalog_id": "taxonomy_reference",
+                "database_artifact_id": "taxonomy_db",
+                "database_build_id": null,
+                "database_digest": null,
+                "database_namespace": "read_screening",
+                "database_scope": "read_screening",
+                "minimum_confidence": null,
+                "emit_unclassified": true,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": null,
+                "screen_report_tsv": "kraken2.report.tsv",
+                "classification_report_json": "kraken2.classifications.json",
+                "reads_in": 10,
+                "reads_out": 10,
+                "bases_in": 100,
+                "bases_out": 100,
+                "pairs_in": null,
+                "pairs_out": null,
+                "contamination_rate": 0.23,
+                "classified_fraction": 0.23,
+                "unclassified_fraction": 0.77,
+                "summary_entries": [],
+                "top_taxa": [],
+                "runtime_s": 1.0,
+                "memory_mb": 32.0
+            })
+            .to_string(),
+        )
+        .expect("screen report");
+
+        let governed_qc = GovernedQcInputs {
+            qc_inputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("fastq.detect_adapters.fastqc.report_json"),
+                    detect_report.clone(),
+                    ArtifactRole::ReportJson,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("fastq.screen_taxonomy.kraken2.report_json"),
+                    screen_report.clone(),
+                    ArtifactRole::ReportJson,
+                ),
+            ],
+            contributors: vec![
+                GovernedQcContributor {
+                    contributor_id: "fastq.detect_adapters.fastqc".to_string(),
+                    stage_id: "fastq.detect_adapters".to_string(),
+                    tool_id: "fastqc".to_string(),
+                    artifact_id: "report_json".to_string(),
+                    artifact_role: ArtifactRole::ReportJson,
+                    path: detect_report.clone(),
+                },
+                GovernedQcContributor {
+                    contributor_id: "fastq.screen_taxonomy.kraken2".to_string(),
+                    stage_id: "fastq.screen_taxonomy".to_string(),
+                    tool_id: "kraken2".to_string(),
+                    artifact_id: "report_json".to_string(),
+                    artifact_role: ArtifactRole::ReportJson,
+                    path: screen_report.clone(),
+                },
+            ],
+            raw_fastqc_dir: None,
+            lineage_hash: Some("lineage".to_string()),
+        };
+        let bench_inputs = super::QcPostBenchInputs {
+            runner: RuntimeKind::Docker,
+            r1: temp.path().join("reads_R1.fastq.gz"),
+            r2: None,
+            input_hash: "input-hash".to_string(),
+            input_stats: SeqkitMetrics {
+                reads: 10,
+                bases: 100,
+                mean_q: 30.0,
+                gc_percent: 50.0,
+            },
+            input_stats_r2: None,
+            bench_dir: temp.path().join("bench"),
+            tools_root: temp.path().join("tools"),
+        };
+        let tool_spec = ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("multiqc"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["multiqc".to_string()],
+            },
+            resources: ToolConstraints::default(),
+        };
+        let execution = StageResultV1 {
+            run_id: "run".to_string(),
+            exit_code: 0,
+            runtime_s: 1.0,
+            memory_mb: 64.0,
+            outputs: Vec::new(),
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "multiqc".to_string(),
+        };
+
+        let record = build_qc_post_record(
+            &PlatformSpec {
+                name: "test".to_string(),
+                runner: RuntimeKind::Docker,
+                container_dir: PathBuf::from("/tmp"),
+                image_prefix: "bijuxdna".to_string(),
+                arch: "amd64".to_string(),
+            },
+            &bench_inputs,
+            "multiqc",
+            &tool_spec,
+            &serde_json::json!({}),
+            &governed_qc,
+            temp.path(),
+            &execution,
+        )
+        .expect("record");
+
+        assert_eq!(record.metrics.metrics.contamination_rate, 0.23);
+
+        let governed_report: ReportQcReportV1 = serde_json::from_str(
+            &std::fs::read_to_string(temp.path().join("report_qc_report.json"))
+                .expect("report json"),
+        )
+        .expect("parse governed report");
+        assert_eq!(governed_report.contamination_rate, 0.23);
+        assert_eq!(governed_report.adapter_content_max, Some(0.12));
+        assert_eq!(governed_report.adapter_content_mean, Some(0.04));
+        assert_eq!(governed_report.duplication_rate, Some(0.11));
+        assert_eq!(governed_report.n_rate, Some(0.002));
+        assert_eq!(governed_report.kmer_warning_count, Some(3));
+        assert_eq!(governed_report.overrepresented_sequence_count, Some(2));
     }
 
     #[test]
