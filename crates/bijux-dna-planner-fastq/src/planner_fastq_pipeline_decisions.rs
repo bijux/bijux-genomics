@@ -73,6 +73,7 @@ pub struct FastqStageToolsetBinding {
 pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
     FilterReads(FilterReadsStageParams),
+    FilterLowComplexity(FilterLowComplexityStageParams),
     ProfileReadLengths(bijux_dna_domain_fastq::FastqReadLengthProfileParams),
     ProfileOverrepresented(bijux_dna_domain_fastq::FastqOverrepresentedProfileParams),
     ProfileReads(bijux_dna_domain_fastq::params::stats::FastqStatsParams),
@@ -120,6 +121,21 @@ impl Default for FilterReadsStageParams {
             entropy_threshold: None,
             kmer_ref: None,
             polyx_policy: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FilterLowComplexityStageParams {
+    pub entropy_threshold: Option<f64>,
+    pub polyx_threshold: Option<u32>,
+}
+
+impl Default for FilterLowComplexityStageParams {
+    fn default() -> Self {
+        Self {
+            entropy_threshold: None,
+            polyx_threshold: None,
         }
     }
 }
