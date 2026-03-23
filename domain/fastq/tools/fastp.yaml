@@ -65,7 +65,8 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "fastp trim mode emits paired trimmed reads and a governed trim report."
+      - "raw_backend_report_json"
+    notes: "fastp trim mode emits paired trimmed reads, a governed trim report, and preserves the native fastp JSON report."
   fastq.filter_reads:
     required_inputs:
       - "reads_r1"
@@ -93,6 +94,7 @@ expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
   - "report_json"
+  - "raw_backend_report_json"
   - "filtered_reads_r1"
   - "filtered_reads_r2"
   - "report_json"

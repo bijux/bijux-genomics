@@ -246,6 +246,7 @@ pub fn plan_with_options(
             ArtifactRole::Reads,
         ));
     }
+    let report_json = out_dir.join("trim_report.json");
     let mut outputs = vec![ArtifactRef::required(
         ArtifactId::from_static("trimmed_reads_r1"),
         output_r1.clone(),
@@ -260,10 +261,12 @@ pub fn plan_with_options(
     }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("report_json"),
-        out_dir.join("trim_report.json"),
+        report_json.clone(),
         ArtifactRole::ReportJson,
     ));
-    let report_json = out_dir.join("trim_report.json");
+    if let Some(raw_backend_output) = trim_raw_backend_output(tool.tool_id.as_str(), &report_json) {
+        outputs.push(raw_backend_output);
+    }
     let command_template = trim_command_template(
         tool,
         r1,
@@ -857,6 +860,22 @@ fn raw_backend_report_path(report_json: &Path, tool_id: &str, extension: &str) -
     let mut path = report_json.to_path_buf();
     path.set_file_name(format!("trim_report.{tool_id}.{extension}"));
     path
+}
+
+fn trim_raw_backend_output(tool_id: &str, report_json: &Path) -> Option<ArtifactRef> {
+    match tool_id {
+        "fastp" | "cutadapt" => Some(ArtifactRef::optional(
+            ArtifactId::from_static("raw_backend_report_json"),
+            raw_backend_report_path(report_json, tool_id, "json"),
+            ArtifactRole::ReportJson,
+        )),
+        "bbduk" => Some(ArtifactRef::optional(
+            ArtifactId::from_static("raw_backend_report_txt"),
+            raw_backend_report_path(report_json, tool_id, "stats.txt"),
+            ArtifactRole::Log,
+        )),
+        _ => None,
+    }
 }
 
 fn report_context_string(context: Option<&serde_json::Value>, key: &str) -> Option<String> {

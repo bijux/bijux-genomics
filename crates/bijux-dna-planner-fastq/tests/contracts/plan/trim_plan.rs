@@ -402,6 +402,12 @@ fn plan_trim_fastp_preserves_native_json_beside_governed_report() -> Result<()> 
     assert!(
         plan.command.template[2].contains("\"raw_backend_report\":\"out/trim_report.fastp.json\"")
     );
+    assert!(plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
+            && artifact.path == std::path::Path::new("out/trim_report.fastp.json")));
     assert!(plan.command.template[2].contains("\"polyx_policy\":\"none\""));
     assert!(plan.command.template[2].contains("\"n_policy\":\"retain\""));
     assert!(plan.command.template[2].contains("\"contaminant_policy\":\"none\""));
@@ -769,6 +775,12 @@ fn plan_trim_with_bank_contaminant_policy_maps_bbduk_reference_filter() -> Resul
     assert!(script.contains("maxns=0"));
     assert!(script.contains("k=31"));
     assert!(script.contains("\"raw_backend_report_format\":\"bbduk_stats\""));
+    assert!(plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_txt"
+            && artifact.path == std::path::Path::new("out/trim_report.bbduk.stats.txt")));
     Ok(())
 }
 
@@ -789,6 +801,12 @@ fn plan_trim_cutadapt_preserves_native_json_beside_governed_report() -> Result<(
     assert!(script.contains("'--json' 'out/trim_report.cutadapt.json'"));
     assert!(script.contains("\"raw_backend_report_format\":\"cutadapt_json\""));
     assert!(script.contains("\"raw_backend_report\":\"out/trim_report.cutadapt.json\""));
+    assert!(plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
+            && artifact.path == std::path::Path::new("out/trim_report.cutadapt.json")));
     Ok(())
 }
 

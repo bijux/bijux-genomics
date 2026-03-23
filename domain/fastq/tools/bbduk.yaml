@@ -61,7 +61,8 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "BBDuk trim mode emits paired trimmed reads and a governed trim report."
+      - "raw_backend_report_txt"
+    notes: "BBDuk trim mode emits paired trimmed reads, a governed trim report, and preserves the native BBDuk stats report."
   fastq.filter_reads:
     required_inputs:
       - "reads_r1"
@@ -89,13 +90,13 @@ stage_contracts:
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
+  - "report_json"
+  - "raw_backend_report_txt"
   - "filtered_reads_r1"
   - "filtered_reads_r2"
-  - "report_json"
   - "filtered_fastq_r1"
   - "filtered_fastq_r2"
   - "filter_report_json"
-  - "report_json"
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "bbduk --version"
