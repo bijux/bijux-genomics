@@ -71,6 +71,8 @@
   },
   "out_dir": "out",
   "params": {
+    "aggregation_engine": "multiqc",
+    "aggregation_scope": "governed_qc_artifacts",
     "governed_qc_inputs_manifest": "out/governed_qc_inputs_manifest.json",
     "out_dir": "out",
     "qc_contributor_stage_ids": [
