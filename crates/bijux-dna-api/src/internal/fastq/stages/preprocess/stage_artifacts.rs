@@ -372,10 +372,20 @@ fn emit_fastq_stage_extra_artifacts(
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.extra_artifacts.v2",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode.clone()),
+                "threads": governed.as_ref().map(|report| report.threads),
                 "dedup_mode": governed.as_ref().map(|report| report.dedup_mode.clone()),
                 "keep_order": governed.as_ref().map(|report| report.keep_order),
+                "reads_in": governed.as_ref().map(|report| report.reads_in),
+                "reads_out": governed.as_ref().map(|report| report.reads_out),
+                "reads_in_r2": governed.as_ref().and_then(|report| report.reads_in_r2),
+                "reads_out_r2": governed.as_ref().and_then(|report| report.reads_out_r2),
+                "pairs_in": governed.as_ref().and_then(|report| report.pairs_in),
+                "pairs_out": governed.as_ref().and_then(|report| report.pairs_out),
                 "pair_count_match": governed.as_ref().and_then(|report| report.pair_count_match),
+                "duplicates_removed": governed.as_ref().map(|report| report.duplicates_removed),
+                "dedup_rate": governed.as_ref().map(|report| report.dedup_rate),
                 "duplicate_classes_tsv": governed.as_ref().and_then(|report| report.duplicate_classes_tsv.clone()),
                 "duplicate_provenance_json": governed.as_ref().and_then(|report| report.duplicate_provenance_json.clone()),
                 "duplicate_classes": governed.as_ref().map(|report| report.duplicate_classes.clone()),
@@ -898,6 +908,60 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn remove_duplicates_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "remove-duplicates-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 2.7,
+            memory_mb: 48.0,
+            outputs: vec![stage_root.join("deduplicate_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "clumpify".to_string(),
+        }
+    }
+
+    fn write_remove_duplicates_report(stage_root: &std::path::Path) -> Result<()> {
+        std::fs::write(
+            stage_root.join("deduplicate_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.remove_duplicates.report.v2",
+                "stage": "fastq.remove_duplicates",
+                "stage_id": "fastq.remove_duplicates",
+                "tool_id": "clumpify",
+                "paired_mode": "paired_end",
+                "threads": 6,
+                "dedup_mode": "optical_aware",
+                "keep_order": false,
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "output_r1": "dedup_R1.fastq.gz",
+                "output_r2": "dedup_R2.fastq.gz",
+                "reads_in": 200,
+                "reads_out": 172,
+                "reads_in_r2": 200,
+                "reads_out_r2": 172,
+                "pairs_in": 200,
+                "pairs_out": 172,
+                "pair_count_match": true,
+                "duplicates_removed": 28,
+                "dedup_rate": 0.14,
+                "duplicate_classes_tsv": "duplicate_classes.tsv",
+                "duplicate_provenance_json": "duplicate_provenance.json",
+                "duplicate_classes": [
+                    {"class": "duplicate", "reads_removed": 20, "paired_mode": "paired_end"},
+                    {"class": "optical_duplicate", "reads_removed": 8, "paired_mode": "paired_end"}
+                ],
+                "raw_backend_report": "clumpify.log",
+                "raw_backend_report_format": "clumpify_log",
+                "runtime_s": 2.7,
+                "memory_mb": 48.0
+            }"#,
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -983,6 +1047,33 @@ mod stage_artifact_tests {
             extra["report_json"],
             serde_json::json!(temp.path().join("trim_polyg_tails_report.json"))
         );
+        Ok(())
+    }
+
+    #[test]
+    fn remove_duplicates_extra_artifacts_preserve_governed_dedup_contract() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_remove_duplicates_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.remove_duplicates",
+            &remove_duplicates_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("clumpify"));
+        assert_eq!(extra["threads"], serde_json::json!(6));
+        assert_eq!(extra["dedup_mode"], serde_json::json!("optical_aware"));
+        assert_eq!(extra["keep_order"], serde_json::json!(false));
+        assert_eq!(extra["reads_in"], serde_json::json!(200));
+        assert_eq!(extra["reads_out"], serde_json::json!(172));
+        assert_eq!(extra["pairs_in"], serde_json::json!(200));
+        assert_eq!(extra["pairs_out"], serde_json::json!(172));
+        assert_eq!(extra["duplicates_removed"], serde_json::json!(28));
+        assert_eq!(extra["dedup_rate"], serde_json::json!(0.14));
+        assert_eq!(extra["pair_count_match"], serde_json::json!(true));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("clumpify.log"));
         Ok(())
     }
 
