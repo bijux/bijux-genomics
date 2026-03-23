@@ -933,14 +933,32 @@ pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::
                 "tool": report.tool_id,
                 "aggregation_engine": report.aggregation_engine,
                 "aggregation_scope": report.aggregation_scope,
+                "reads_in": report.reads_in,
+                "reads_out": report.reads_out,
+                "bases_in": report.bases_in,
+                "bases_out": report.bases_out,
+                "pairs_in": report.pairs_in,
+                "pairs_out": report.pairs_out,
+                "mean_q": report.mean_q,
+                "contamination_rate": report.contamination_rate,
+                "adapter_content_max": report.adapter_content_max,
+                "adapter_content_mean": report.adapter_content_mean,
+                "duplication_rate": report.duplication_rate,
+                "n_rate": report.n_rate,
+                "kmer_warning_count": report.kmer_warning_count,
+                "overrepresented_sequence_count": report.overrepresented_sequence_count,
                 "governed_qc_input_count": report.governed_qc_input_count,
                 "governed_qc_contributor_stage_ids": report.governed_qc_contributor_stage_ids,
                 "governed_qc_contributor_tool_ids": report.governed_qc_contributor_tool_ids,
+                "governed_qc_contributors": report.governed_qc_contributors,
                 "governed_qc_lineage_hash": report.governed_qc_lineage_hash,
                 "multiqc_sample_count": report.multiqc_sample_count,
                 "multiqc_module_count": report.multiqc_module_count,
+                "raw_fastqc_dir": report.raw_fastqc_dir,
+                "trimmed_fastqc_dir": report.trimmed_fastqc_dir,
                 "multiqc_report": report.multiqc_report,
                 "multiqc_data": report.multiqc_data,
+                "governed_qc_inputs_manifest": report.governed_qc_inputs_manifest,
                 "report_json": report_path,
             });
         }
@@ -950,7 +968,9 @@ pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::
         "stage": "fastq.report_qc",
         "tool": "report_missing",
         "aggregation_engine": serde_json::Value::Null,
+        "aggregation_scope": serde_json::Value::Null,
         "multiqc_report": serde_json::Value::Null,
+        "multiqc_data": serde_json::Value::Null,
         "report_json": report_path,
     })
 }
@@ -1232,7 +1252,17 @@ mod tests {
     fn report_qc_uses_stage_specific_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.report_qc"),
-            &["schema_version", "stage", "report_html", "report_data_dir"]
+            &[
+                "schema_version",
+                "stage",
+                "tool",
+                "aggregation_engine",
+                "aggregation_scope",
+                "governed_qc_input_count",
+                "multiqc_report",
+                "multiqc_data",
+                "report_json",
+            ]
         );
     }
 
@@ -2359,8 +2389,19 @@ mod tests {
         let metrics = parse_report_qc_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("multiqc"));
         assert_eq!(metrics["aggregation_engine"], serde_json::json!("multiqc"));
+        assert_eq!(
+            metrics["aggregation_scope"],
+            serde_json::json!("governed_qc_artifacts")
+        );
+        assert_eq!(metrics["reads_in"], serde_json::json!(100));
+        assert_eq!(metrics["mean_q"], serde_json::json!(31.0));
         assert_eq!(metrics["governed_qc_input_count"], serde_json::json!(3));
         assert_eq!(metrics["multiqc_module_count"], serde_json::json!(5));
+        assert_eq!(
+            metrics["governed_qc_contributor_tool_ids"],
+            serde_json::json!(["fastp", "fastqvalidator"])
+        );
+        assert_eq!(metrics["report_json"], serde_json::json!(report_path));
     }
 
     #[test]
@@ -2619,8 +2660,11 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "stage",
             "tool",
             "aggregation_engine",
+            "aggregation_scope",
             "governed_qc_input_count",
             "multiqc_report",
+            "multiqc_data",
+            "report_json",
         ],
         "fastq.normalize_abundance" => &[
             "schema_version",
