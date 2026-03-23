@@ -31,6 +31,20 @@ fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
         .collect()
 }
 
+fn yaml_output_name_set(value: Option<&Value>) -> BTreeSet<String> {
+    value
+        .and_then(Value::as_sequence)
+        .into_iter()
+        .flatten()
+        .filter_map(|item| {
+            item.as_mapping()
+                .and_then(|mapping| mapping.get(Value::String("name".to_string())))
+                .and_then(Value::as_str)
+                .map(str::to_string)
+        })
+        .collect()
+}
+
 fn declared_stage_ids(yaml: &Value) -> BTreeSet<String> {
     let mut stage_ids = yaml_string_set(yaml.get("stage_ids"));
     stage_ids.extend(yaml_string_set(yaml.get("planned_stage_ids")));
@@ -85,6 +99,51 @@ fn stage_outputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
         out.insert(stage_id, outputs);
     }
     Ok(out)
+}
+
+#[test]
+fn seqkit_stats_and_vsearch_execution_contracts_cover_supported_artifacts() -> Result<()> {
+    for (tool_name, required_artifacts) in [
+        (
+            "seqkit_stats",
+            [
+                "report_json",
+                "length_distribution_tsv",
+                "length_distribution_json",
+            ]
+            .as_slice(),
+        ),
+        (
+            "vsearch",
+            ["uchime_report_tsv", "chimera_filtered_reads", "otu_table"].as_slice(),
+        ),
+    ] {
+        let tool_path = workspace_root()?.join(format!("domain/fastq/tools/{tool_name}.yaml"));
+        let yaml = parse_yaml(&tool_path)?;
+        let output_names = yaml_output_name_set(yaml.get("outputs"));
+        let execution_contract = yaml
+            .get("execution_contract")
+            .and_then(Value::as_mapping)
+            .with_context(|| format!("{tool_name} missing execution_contract"))?;
+        let expected_outputs =
+            yaml_string_set(execution_contract.get(Value::String("expected_outputs".to_string())));
+        let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
+        for artifact in required_artifacts {
+            assert!(
+                output_names.contains(*artifact),
+                "{tool_name} outputs must declare {artifact}"
+            );
+            assert!(
+                expected_outputs.contains(*artifact),
+                "{tool_name} execution_contract expected_outputs must declare {artifact}"
+            );
+            assert!(
+                expected_artifacts.contains(*artifact),
+                "{tool_name} expected_artifacts must declare {artifact}"
+            );
+        }
+    }
+    Ok(())
 }
 
 #[test]
