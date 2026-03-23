@@ -29,10 +29,11 @@ use bijux_dna_domain_fastq::params::DamageMode;
 use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthProfileParams};
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
-    DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
-    FastqStageToolsetBinding, FilterLowComplexityStageParams, FilterReadsStageParams,
-    IndexReferenceStageParams, InferAsvsStageParams, MergePairsStageParams,
-    NormalizeAbundanceStageParams, NormalizePrimersStageParams, TrimTerminalDamageStageParams,
+    DepleteRrnaStageParams, ExtractUmisStageParams, FastqPlanConfig, FastqPlanner,
+    FastqStageBinding, FastqStageParameters, FastqStageToolsetBinding,
+    FilterLowComplexityStageParams, FilterReadsStageParams, IndexReferenceStageParams,
+    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
+    NormalizePrimersStageParams, TrimTerminalDamageStageParams,
 };
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -86,6 +87,41 @@ fn seqkit_stats_tool() -> ToolExecutionSpecV1 {
             mem_gb: 1,
             tmp_gb: 1,
             threads: 1,
+        },
+    }
+}
+
+fn umi_tools_tool(threads: u32) -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
+        tool_id: ToolId::new("umi_tools".to_string()),
+        tool_version: "99.99.99+fixture".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/dummy:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: vec![
+                "umi_tools".to_string(),
+                "extract".to_string(),
+                "--stdin".to_string(),
+                "{{reads_r1}}".to_string(),
+                "--stdout".to_string(),
+                "{{umi_reads_r1}}".to_string(),
+                "--read2-in".to_string(),
+                "{{reads_r2}}".to_string(),
+                "--read2-out".to_string(),
+                "{{umi_reads_r2}}".to_string(),
+                "--bc-pattern".to_string(),
+                "{{umi_pattern}}".to_string(),
+                "--log".to_string(),
+                "{{raw_backend_report}}".to_string(),
+            ],
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads,
         },
     }
 }
@@ -2240,6 +2276,53 @@ fn planner_uses_typed_filter_low_complexity_params_from_stage_binding() -> anyho
         .template
         .iter()
         .any(|token| token == "maxpoly=24"));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_extract_umis_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-extract-umis-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&r2, b"@r2\nT\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__extract_umis__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.extract_umis".to_string(),
+            stage_instance_id: Some("fastq.extract_umis.custom".to_string()),
+            tool: umi_tools_tool(2),
+            reason: None,
+            params: Some(FastqStageParameters::ExtractUmis(ExtractUmisStageParams {
+                threads: Some(5),
+                umi_pattern: Some("NNNNCCCC".to_string()),
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.extract_umis.custom");
+    assert_eq!(step.resources.threads, 5);
+    assert!(step
+        .command
+        .template
+        .iter()
+        .any(|token| token == "NNNNCCCC"));
     Ok(())
 }
 

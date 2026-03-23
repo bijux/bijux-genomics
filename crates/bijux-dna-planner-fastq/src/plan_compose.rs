@@ -27,17 +27,17 @@ use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
-    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, FastqStageBinding,
-    FastqStageParameters, FilterLowComplexityStageParams, FilterReadsStageParams,
-    IndexReferenceStageParams, InferAsvsStageParams, MergePairsStageParams,
-    NormalizeAbundanceStageParams, NormalizePrimersStageParams, TrimTerminalDamageStageParams,
-    STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
-    STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
-    STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
-    STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
-    STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC,
-    STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
-    STAGE_VALIDATE_READS,
+    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, ExtractUmisStageParams,
+    FastqStageBinding, FastqStageParameters,
+    FilterLowComplexityStageParams, FilterReadsStageParams, IndexReferenceStageParams,
+    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
+    NormalizePrimersStageParams, TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
+    STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+    STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS,
+    STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS,
+    STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS,
+    STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
 };
 
 #[derive(Debug, Clone)]
@@ -531,8 +531,12 @@ where
                 let r2 = stage_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("umi requires r2"))?;
-                let plan = crate::tool_adapters::fastq::extract_umis::plan_umi(
-                    tool, &stage_r1, r2, &out_dir, None,
+                let plan = crate::tool_adapters::fastq::extract_umis::plan_umi_with_options(
+                    tool,
+                    &stage_r1,
+                    r2,
+                    &out_dir,
+                    &extract_umis_params(binding),
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = plan.io.outputs[1].path.clone();
@@ -1289,6 +1293,13 @@ fn filter_low_complexity_plan_options(
     crate::tool_adapters::fastq::filter_low_complexity::LowComplexityPlanOptions {
         entropy_threshold: params.entropy_threshold,
         polyx_threshold: params.polyx_threshold,
+    }
+}
+
+fn extract_umis_params(binding: &FastqStageBinding) -> ExtractUmisStageParams {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::ExtractUmis(params)) => params.clone(),
+        _ => ExtractUmisStageParams::default(),
     }
 }
 
