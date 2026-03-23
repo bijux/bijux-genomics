@@ -366,10 +366,7 @@ fn trim_command_template(
         }
         if let Some(adapter_sequence) = adapter_sequences.first() {
             if adapter_policy != "none" && adapter_policy != "auto" {
-                command.extend([
-                    "--adapter_sequence".to_string(),
-                    adapter_sequence.clone(),
-                ]);
+                command.extend(["--adapter_sequence".to_string(), adapter_sequence.clone()]);
                 if r2.is_some() {
                     command.extend([
                         "--adapter_sequence_r2".to_string(),
@@ -403,6 +400,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            effective_threads,
             adapter_bank,
             polyx_bank,
             contaminant_bank,
@@ -418,6 +416,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            effective_threads,
             adapter_bank,
             options,
         );
@@ -429,6 +428,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            effective_threads,
             adapter_bank,
             options,
         );
@@ -440,6 +440,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            effective_threads,
             contaminant_bank,
             options,
         );
@@ -451,6 +452,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            effective_threads,
             adapter_bank,
             options,
         );
@@ -464,6 +466,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            effective_threads,
             options,
         );
     }
@@ -474,12 +477,21 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            effective_threads,
             adapter_bank,
             options,
         );
     }
     if tool.tool_id.as_str() == "seqkit" {
-        return seqkit_trim_command_template(r1, r2, output_r1, output_r2, report_json, options);
+        return seqkit_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            options,
+        );
     }
     if tool.tool_id.as_str() == "seqpurge" {
         return seqpurge_trim_command_template(
@@ -488,6 +500,7 @@ fn trim_command_template(
             output_r1,
             output_r2,
             report_json,
+            effective_threads,
             options,
         );
     }
@@ -536,6 +549,7 @@ fn trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        effective_threads,
         adapter_bank,
         polyx_bank,
         contaminant_bank,
@@ -588,7 +602,10 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
             ));
         }
     }
-    if matches!(options.adapter_policy.as_deref(), Some("bank" | "ancient_strict")) {
+    if matches!(
+        options.adapter_policy.as_deref(),
+        Some("bank" | "ancient_strict")
+    ) {
         match tool_id {
             "fastp" | "cutadapt" | "atropos" | "adapterremoval" | "trim_galore" => {}
             _ => {
@@ -620,6 +637,7 @@ fn seqkit_trim_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let min_length = options.min_length.unwrap_or(1);
@@ -642,6 +660,7 @@ fn seqkit_trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         None,
         None,
         None,
@@ -658,6 +677,7 @@ fn seqpurge_trim_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let mut command = vec![
@@ -686,6 +706,7 @@ fn seqpurge_trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         None,
         None,
         None,
@@ -751,6 +772,7 @@ fn prinseq_trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         None,
         None,
         None,
@@ -766,6 +788,7 @@ fn cutadapt_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
@@ -791,7 +814,10 @@ fn cutadapt_command_template(
     if options.resolved_n_policy() == "drop" {
         command.extend(["--max-n".to_string(), "0".to_string()]);
     }
-    command.extend(["--json".to_string(), raw_backend_report.display().to_string()]);
+    command.extend([
+        "--json".to_string(),
+        raw_backend_report.display().to_string(),
+    ]);
     command.extend(["-o".to_string(), output_r1.display().to_string()]);
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.extend([
@@ -811,6 +837,7 @@ fn cutadapt_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         adapter_bank,
         None,
         None,
@@ -839,6 +866,7 @@ fn governed_trim_report_payload(
     r2: Option<&Path>,
     output_r1: &Path,
     output_r2: Option<&Path>,
+    threads: u32,
     adapter_bank: Option<&serde_json::Value>,
     polyx_bank: Option<&serde_json::Value>,
     contaminant_bank: Option<&serde_json::Value>,
@@ -852,6 +880,7 @@ fn governed_trim_report_payload(
         "stage_id": STAGE_ID.as_str(),
         "tool_id": tool_id,
         "paired_mode": if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        "threads": threads,
         "input_r1": r1.display().to_string(),
         "input_r2": r2.map(|path| path.display().to_string()),
         "output_r1": output_r1.display().to_string(),
@@ -865,6 +894,7 @@ fn governed_trim_report_payload(
         "adapter_bank_id": report_context_string(adapter_bank, "bank_id"),
         "adapter_bank_hash": report_context_string(adapter_bank, "bank_hash"),
         "adapter_preset": report_context_string(adapter_bank, "preset"),
+        "adapter_overrides": adapter_bank.and_then(|context| context.get("adapter_selection").cloned()),
         "polyx_bank_id": report_context_string(polyx_bank, "bank_id"),
         "polyx_bank_hash": report_context_string(polyx_bank, "bank_hash"),
         "polyx_preset": report_context_string(polyx_bank, "preset"),
@@ -893,6 +923,7 @@ fn write_trim_report_script(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     adapter_bank: Option<&serde_json::Value>,
     polyx_bank: Option<&serde_json::Value>,
     contaminant_bank: Option<&serde_json::Value>,
@@ -906,6 +937,7 @@ fn write_trim_report_script(
         r2,
         output_r1,
         output_r2,
+        threads,
         adapter_bank,
         polyx_bank,
         contaminant_bank,
@@ -928,6 +960,7 @@ fn wrap_trim_command_with_report(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     adapter_bank: Option<&serde_json::Value>,
     polyx_bank: Option<&serde_json::Value>,
     contaminant_bank: Option<&serde_json::Value>,
@@ -943,6 +976,7 @@ fn wrap_trim_command_with_report(
         output_r1,
         output_r2,
         report_json,
+        threads,
         adapter_bank,
         polyx_bank,
         contaminant_bank,
@@ -959,6 +993,7 @@ fn bbduk_trim_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     contaminant_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
@@ -1000,6 +1035,7 @@ fn bbduk_trim_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         None,
         None,
         contaminant_bank,
@@ -1074,6 +1110,7 @@ fn atropos_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
@@ -1122,6 +1159,7 @@ fn atropos_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         adapter_bank,
         None,
         None,
@@ -1137,6 +1175,7 @@ fn adapterremoval_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
@@ -1186,6 +1225,7 @@ fn adapterremoval_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         adapter_bank,
         None,
         None,
@@ -1201,6 +1241,7 @@ fn trimmomatic_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let mut command = vec!["trimmomatic".to_string()];
@@ -1242,6 +1283,7 @@ fn trimmomatic_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         None,
         None,
         None,
@@ -1257,6 +1299,7 @@ fn trim_galore_command_template(
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
+    threads: u32,
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
@@ -1312,6 +1355,7 @@ fn trim_galore_command_template(
         output_r1,
         output_r2,
         report_json,
+        threads,
         adapter_bank,
         None,
         None,

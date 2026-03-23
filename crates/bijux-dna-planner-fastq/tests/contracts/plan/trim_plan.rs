@@ -795,6 +795,10 @@ fn plan_trim_with_bank_policy_maps_explicit_adapters_for_fastp() -> Result<()> {
         Some(std::path::Path::new("reads_R2.fastq.gz")),
         std::path::Path::new("out"),
         Some(&serde_json::json!({
+            "adapter_selection": {
+                "enable": ["illumina_r1", "illumina_r2"],
+                "disable": ["polyA"]
+            },
             "enabled_entries": [
                 {"sequence": "ACGTACGT"},
                 {"sequence": "TGCATGCA"}
@@ -818,22 +822,13 @@ fn plan_trim_with_bank_policy_maps_explicit_adapters_for_fastp() -> Result<()> {
         plan.params["adapter_bank"]["enabled_entries"][0]["sequence"],
         "ACGTACGT"
     );
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "--adapter_sequence"));
-    assert!(plan.command.template.iter().any(|part| part == "ACGTACGT"));
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "--adapter_sequence_r2"));
-    assert!(!plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "--detect_adapter_for_pe"));
+    let script = &plan.command.template[2];
+    assert!(script.contains("'--adapter_sequence' 'ACGTACGT'"));
+    assert!(script.contains("'--adapter_sequence_r2' 'TGCATGCA'"));
+    assert!(!script.contains("--detect_adapter_for_pe"));
+    assert!(script.contains("\"adapter_overrides\":{"));
+    assert!(script.contains("\"enable\":[\"illumina_r1\",\"illumina_r2\"]"));
+    assert!(script.contains("\"disable\":[\"polyA\"]"));
     Ok(())
 }
 
@@ -892,6 +887,7 @@ fn plan_trim_with_thread_override_updates_resources_and_fastp_command() -> Resul
     assert_eq!(plan.params["threads"], serde_json::json!(6));
     assert_eq!(plan.effective_params["threads"], serde_json::json!(6));
     assert!(plan.command.template[2].contains("'--thread' '6'"));
+    assert!(plan.command.template[2].contains("\"threads\":6"));
     Ok(())
 }
 

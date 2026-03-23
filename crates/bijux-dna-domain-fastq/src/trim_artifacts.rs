@@ -13,6 +13,7 @@ pub struct TrimReadsReportV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub paired_mode: PairedMode,
+    pub threads: u32,
     pub input_r1: String,
     pub input_r2: Option<String>,
     pub output_r1: String,
@@ -26,6 +27,7 @@ pub struct TrimReadsReportV1 {
     pub adapter_bank_id: Option<String>,
     pub adapter_bank_hash: Option<String>,
     pub adapter_preset: Option<String>,
+    pub adapter_overrides: Option<serde_json::Value>,
     pub polyx_bank_id: Option<String>,
     pub polyx_bank_hash: Option<String>,
     pub polyx_preset: Option<String>,
@@ -59,6 +61,7 @@ mod tests {
             stage_id: "fastq.trim_reads".to_string(),
             tool_id: "fastp".to_string(),
             paired_mode: PairedMode::PairedEnd,
+            threads: 4,
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             output_r1: "trimmed_R1.fastq.gz".to_string(),
@@ -72,6 +75,10 @@ mod tests {
             adapter_bank_id: Some("illumina".to_string()),
             adapter_bank_hash: Some("sha256:adapter".to_string()),
             adapter_preset: Some("default".to_string()),
+            adapter_overrides: Some(serde_json::json!({
+                "enable": ["AGATCGGAAGAGC"],
+                "disable": ["polyA"],
+            })),
             polyx_bank_id: Some("polyx-bank".to_string()),
             polyx_bank_hash: Some("sha256:polyx".to_string()),
             polyx_preset: Some("illumina_twocolor".to_string()),
@@ -96,6 +103,17 @@ mod tests {
         let decoded: TrimReadsReportV1 = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "fastp");
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
-        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
+        assert_eq!(decoded.threads, 4);
+        assert_eq!(
+            decoded.raw_backend_report_format.as_deref(),
+            Some("fastp_json")
+        );
+        assert_eq!(
+            decoded.adapter_overrides,
+            Some(serde_json::json!({
+                "enable": ["AGATCGGAAGAGC"],
+                "disable": ["polyA"],
+            }))
+        );
     }
 }

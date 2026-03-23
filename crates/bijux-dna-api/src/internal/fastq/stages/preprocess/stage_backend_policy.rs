@@ -428,9 +428,11 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
                 "stage": "fastq.trim_reads",
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
+                "threads": report.threads,
                 "min_length": report.min_length,
                 "quality_cutoff": report.quality_cutoff,
                 "adapter_policy": report.adapter_policy,
+                "adapter_overrides": report.adapter_overrides,
                 "polyx_policy": report.polyx_policy,
                 "n_policy": report.n_policy,
                 "contaminant_policy": report.contaminant_policy,
@@ -453,6 +455,7 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
                 "mean_q_after": report.mean_q_after,
                 "runtime_s": report.runtime_s,
                 "memory_mb": report.memory_mb,
+                "raw_backend_report": report.raw_backend_report,
                 "raw_backend_report_format": report.raw_backend_report_format,
                 "report_json": report_path,
             });
@@ -1810,6 +1813,7 @@ mod tests {
                 "stage_id": "fastq.trim_reads",
                 "tool_id": "fastp",
                 "paired_mode": "single_end",
+                "threads": 4,
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,
                 "output_r1": "trimmed.fastq.gz",
@@ -1823,6 +1827,10 @@ mod tests {
                 "adapter_bank_id": "illumina",
                 "adapter_bank_hash": "sha256:adapter",
                 "adapter_preset": "default",
+                "adapter_overrides": {
+                    "enable": ["AGATCGGAAGAGC"],
+                    "disable": ["polyA"]
+                },
                 "polyx_bank_id": "polyx",
                 "polyx_bank_hash": "sha256:polyx",
                 "polyx_preset": "illumina_twocolor",
@@ -1848,7 +1856,15 @@ mod tests {
 
         let metrics = parse_trim_reads_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("fastp"));
+        assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["adapter_policy"], serde_json::json!("bank"));
+        assert_eq!(
+            metrics["adapter_overrides"],
+            serde_json::json!({
+                "enable": ["AGATCGGAAGAGC"],
+                "disable": ["polyA"]
+            })
+        );
         assert_eq!(metrics["reads_in"], serde_json::json!(100));
         assert_eq!(metrics["reads_out"], serde_json::json!(92));
         assert_eq!(
@@ -2472,7 +2488,9 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "schema_version",
             "stage",
             "tool",
+            "threads",
             "adapter_policy",
+            "adapter_overrides",
             "reads_in",
             "reads_out",
         ],
