@@ -1209,6 +1209,8 @@ stage_output_size_estimates_mb:
     uchime_report_tsv: 6.0
   fastq.remove_duplicates:
     dedup_reads_r1: 1200.0
+    duplicate_classes_tsv: 1.0
+    duplicate_provenance_json: 1.0
     report_json: 6.0
   fastq.report_qc:
     report_json: 8.0
