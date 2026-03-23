@@ -41,6 +41,7 @@ fn trim_reads_manifest_exposes_stage_level_cleanup_policy_surface() -> Result<()
     assert_eq!(
         stage_parameter_names("trim_reads")?,
         vec![
+            "threads",
             "min_length",
             "quality_cutoff",
             "adapter_policy",
