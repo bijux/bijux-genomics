@@ -1,47 +1,98 @@
-schema_version: bijux.tool.v2
-tool_id: fastq_scan
-upstream: https://github.com/indraniel/fastq_scan
-versioning_strategy: pinned
-pin_strategy: pinned
-default_version: planned
-install_kind: container
-license: GPL-3.0
-citation: pending:tool-publication
-planned_stage_ids:
-- fastq.validate_reads
-- fastq.profile_overrepresented_sequences
+schema_version: "bijux.tool.v1"
+tool_id: "fastq_scan"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+capabilities:
+  - "SE"
+  - "PE"
+  - "qc"
+container:
+  image: "bijuxdna/fastq_scan"
+  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+command_template:
+  - "fastq_scan"
+  - "{{reads}}"
+outputs:
+  - name: "validation_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "validated_reads_manifest"
+    data_type: "json"
+    cardinality: "One"
+  - name: "overrepresented_sequences_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "overrepresented_sequences_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+metrics_parser: "fastq_validate_v1"
+constraints:
+  runtime: "local"
+  mem_gb: 8
+  tmp_gb: 4
+  threads: 4
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
+  expected_outputs:
+    - "validation_report"
+    - "validated_reads_manifest"
+    - "overrepresented_sequences_tsv"
+    - "overrepresented_sequences_json"
+    - "report_json"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
+upstream: "https://github.com/indraniel/fastq_scan"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "0.0.1"
+install_kind: "container"
+license: "GPL-3.0"
+citation: "pending:tool-publication"
+stage_ids:
+  - "fastq.validate_reads"
+  - "fastq.profile_overrepresented_sequences"
 stage_contracts:
   fastq.validate_reads:
     required_inputs:
-    - reads_r1
+      - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
-    - validation_report
-    notes: Validation remains report-only and would emit the governed validation report artifact.
+      - "validation_report"
+      - "validated_reads_manifest"
+    notes: "Validation remains report-only; the governed adapter runs the fastq_scan compatibility wrapper as a structural probe and emits the canonical validation report plus validated-read lineage manifest."
   fastq.profile_overrepresented_sequences:
     required_inputs:
-    - reads_r1
+      - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
     expected_artifacts:
-    - overrepresented_sequences_tsv
-    - overrepresented_sequences_json
-    notes: Overrepresented-sequence profiling remains report-only and would emit governed ranked summaries.
-status: planned
-scope: pre_hpc_pre_vcf
+      - "overrepresented_sequences_tsv"
+      - "overrepresented_sequences_json"
+      - "report_json"
+    notes: "Overrepresented-sequence profiling remains report-only and emits governed ranked sequence summaries plus the canonical report artifact."
 expected_artifacts:
-- validation_report
-- overrepresented_sequences_json
-- overrepresented_sequences_tsv
-metrics_schema_id: bijux.fastq.qc.v1
-metrics_schema: bijux.fastq.qc.v1
-version_cmd: fastq_scan --version
-help_cmd: fastq_scan --help
+  - "validation_report"
+  - "validated_reads_manifest"
+  - "overrepresented_sequences_tsv"
+  - "overrepresented_sequences_json"
+  - "report_json"
+metrics_schema_id: "bijux.fastq.qc.v1"
+metrics_schema: "bijux.fastq.qc.v1"
+version_cmd: "fastq_scan --version"
+help_cmd: "fastq_scan --help"
 comparability:
   comparable_with:
-  - fastqvalidator
-  - fastqc
+    - "fastqvalidator"
+    - "fastqc"
+    - "fqtools"
+    - "seqkit"
+    - "seqtk"
   non_comparable_with: []
-comparability_notes: Comparable only within same stage contract and input constraints.
-notes: Domain SSOT tool contract entry.
-capabilities:
-- SE
-- PE
-- qc
+comparability_notes: "Comparable for governed validation and overrepresented-sequence profiling when the same read layout and canonical summary artifacts are emitted."
