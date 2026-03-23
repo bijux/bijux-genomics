@@ -101,8 +101,21 @@ fn validate_params_roundtrip_supports_explicit_policy_variants() {
     let decoded: bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams =
         roundtrip(&report_only);
     assert_eq!(decoded.schema_version, bijux_dna_domain_fastq::params::validate::VALIDATE_SCHEMA_VERSION);
+    assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.validation_mode, ValidationMode::ReportOnly);
     assert_eq!(decoded.pair_sync_policy, PairSyncPolicy::SkipHeaderSync);
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn screen_defaults_roundtrip_with_declared_thread_count() {
+    let params = bijux_dna_domain_fastq::params::defaults::screen_defaults(true);
+    let decoded: ScreenEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.schema_version, SCREEN_TAXONOMY_SCHEMA_VERSION);
+    assert_eq!(decoded.threads, 4);
+    assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
+    assert_eq!(decoded.report_format, TaxonomyReportFormat::KrakenReport);
+    assert_eq!(decoded.assignment_format, TaxonomyAssignmentFormat::KrakenAssignments);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
