@@ -139,6 +139,8 @@ pub struct FastqTrimPolygMetrics {
     #[serde(default)]
     pub paired_mode: Option<String>,
     #[serde(default)]
+    pub threads: Option<u32>,
+    #[serde(default)]
     pub trim_polyg: Option<bool>,
     #[serde(default)]
     pub min_polyg_run: Option<u32>,

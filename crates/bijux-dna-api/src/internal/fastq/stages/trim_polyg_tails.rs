@@ -299,6 +299,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
                 }
                 .to_string(),
             ),
+            threads: Some(governed_report.threads),
             trim_polyg: Some(governed_report.trim_polyg),
             min_polyg_run: Some(governed_report.min_polyg_run),
             bases_trimmed_polyg: governed_report.bases_trimmed_polyg,
@@ -530,6 +531,7 @@ mod tests {
             stage_id: "fastq.trim_polyg_tails".to_string(),
             tool_id: "fastp".to_string(),
             paired_mode: PairedMode::SingleEnd,
+            threads: 6,
             trim_polyg: true,
             min_polyg_run: 12,
             input_r1: "reads.fastq.gz".to_string(),
@@ -561,6 +563,7 @@ mod tests {
         write_governed_trim_polyg_report(&report_path, &report).expect("write report");
         let decoded = load_governed_trim_polyg_report(&report_path).expect("load report");
 
+        assert_eq!(decoded.threads, 6);
         assert_eq!(decoded.min_polyg_run, 12);
         assert_eq!(decoded.bases_trimmed_polyg, Some(90));
         assert_eq!(decoded.polyx_preset.as_deref(), Some("illumina_twocolor"));

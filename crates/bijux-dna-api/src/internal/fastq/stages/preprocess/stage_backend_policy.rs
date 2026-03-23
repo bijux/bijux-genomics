@@ -1935,6 +1935,7 @@ mod tests {
                 "stage_id": "fastq.trim_polyg_tails",
                 "tool_id": "fastp",
                 "paired_mode": "single_end",
+                "threads": 6,
                 "trim_polyg": true,
                 "min_polyg_run": 10,
                 "input_r1": "reads.fastq.gz",
@@ -1968,6 +1969,7 @@ mod tests {
 
         let metrics = parse_trim_polyg_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("fastp"));
+        assert_eq!(metrics["threads"], serde_json::json!(6));
         assert_eq!(metrics["trim_polyg"], serde_json::json!(true));
         assert_eq!(metrics["reads_in"], serde_json::json!(100));
         assert_eq!(metrics["bases_trimmed_polyg"], serde_json::json!(90));
