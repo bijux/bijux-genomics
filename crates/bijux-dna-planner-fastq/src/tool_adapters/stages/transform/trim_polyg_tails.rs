@@ -4,6 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::params::defaults::trim_polyg_tails_defaults;
 use bijux_dna_domain_fastq::params::trim::{TrimPolygTailsParams, TRIM_POLYG_TAILS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
@@ -84,7 +85,8 @@ pub fn plan_trim_polyg_tails_with_options(
     let report = out_dir.join("trim_polyg_tails_report.json");
     let (raw_backend_report, raw_backend_report_format) =
         raw_backend_report_artifact(&report, tool.tool_id.as_str())?;
-    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let default_threads = trim_polyg_tails_defaults(r2.is_some()).threads;
+    let effective_threads = options.threads.unwrap_or(default_threads).max(1);
     let command_template = trim_polyg_command(
         &tool.tool_id.0,
         r1,

@@ -142,7 +142,7 @@ pub fn trim_polyg_tails_defaults(paired: bool) -> TrimPolygTailsParams {
     TrimPolygTailsParams {
         schema_version: TRIM_POLYG_TAILS_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
-        threads: 1,
+        threads: 4,
         trim_polyg: true,
         min_polyg_run: 10,
     }
