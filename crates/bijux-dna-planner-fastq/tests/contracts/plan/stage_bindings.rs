@@ -30,7 +30,8 @@ use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthP
 use bijux_dna_planner_fastq::{
     CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
     DepleteRrnaStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
-    FastqStageToolsetBinding, IndexReferenceStageParams, MergePairsStageParams,
+    FastqStageToolsetBinding, IndexReferenceStageParams, InferAsvsStageParams,
+    MergePairsStageParams,
     NormalizeAbundanceStageParams,
     NormalizePrimersStageParams, TrimTerminalDamageStageParams,
 };
@@ -864,6 +865,63 @@ fn planner_uses_typed_index_reference_params_from_stage_binding() -> anyhow::Res
         .template
         .windows(2)
         .any(|pair| pair == ["--threads", "7"]));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_infer_asvs_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-infer-asvs-stage-params")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__infer_asvs__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.infer_asvs".to_string(),
+            stage_instance_id: Some("fastq.infer_asvs.custom".to_string()),
+            tool: tool("dada2"),
+            reason: None,
+            params: Some(FastqStageParameters::InferAsvs(InferAsvsStageParams {
+                denoising_method: "dada2".to_string(),
+                pooling_mode: "pooled".to_string(),
+                chimera_policy: "keep_candidates".to_string(),
+                threads: Some(8),
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.infer_asvs.custom");
+    assert_eq!(step.resources.threads, 8);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|pair| pair == ["--threads", "8"]));
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|pair| pair == ["--pooling-mode", "pooled"]));
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|pair| pair == ["--chimera-policy", "keep_candidates"]));
     Ok(())
 }
 
