@@ -9,7 +9,7 @@ use bijux_dna_domain_fastq::params::defaults::{screen_defaults, validate_default
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
     screen::ScreenEffectiveParams,
-    trim::TrimEffectiveParams,
+    trim::{TrimEffectiveParams, TrimPolygTailsParams},
     validate::ValidateEffectiveParams,
     PairedMode,
 };
@@ -388,12 +388,22 @@ where
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_TRIM_POLYG_TAILS.as_str() => {
-                let plan = crate::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
-                    tool,
-                    &stage_r1,
-                    stage_r2.as_deref(),
-                    &out_dir,
-                )?;
+                let plan = if let Some(options) = trim_polyg_options(binding) {
+                    crate::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                        &options,
+                    )?
+                } else {
+                    crate::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                    )?
+                };
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = if stage_r2.is_some() {
                     Some(plan.io.outputs[1].path.clone())
@@ -1167,10 +1177,29 @@ fn trim_reads_options(
     }
 }
 
+fn trim_polyg_options(
+    binding: &FastqStageBinding,
+) -> Option<crate::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions> {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::TrimPolygTails(params)) => Some(trim_polyg_plan_options(params)),
+        _ => None,
+    }
+}
+
 fn screen_params(binding: &FastqStageBinding, paired: bool) -> ScreenEffectiveParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::Screen(params)) => params.clone(),
         _ => screen_defaults(paired),
+    }
+}
+
+fn trim_polyg_plan_options(
+    params: &TrimPolygTailsParams,
+) -> crate::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+    crate::tool_adapters::fastq::trim_polyg_tails::TrimPolygPlanOptions {
+        threads: Some(params.threads),
+        trim_polyg: params.trim_polyg,
+        min_polyg_run: params.min_polyg_run,
     }
 }
 

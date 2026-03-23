@@ -74,6 +74,7 @@ pub struct FastqStageToolsetBinding {
 pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
     Trim(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
+    TrimPolygTails(bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams),
     Screen(bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams),
     IndexReference(IndexReferenceStageParams),
     InferAsvs(InferAsvsStageParams),
