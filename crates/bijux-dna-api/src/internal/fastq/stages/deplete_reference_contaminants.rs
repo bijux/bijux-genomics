@@ -18,18 +18,17 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::params::screen::ReferenceContaminantEffectiveParams;
 use bijux_dna_domain_fastq::{
-    DepleteReferenceContaminantsReportV1,
+    stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS, DepleteReferenceContaminantsReportV1,
     DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
-    stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
-use bijux_dna_planner_fastq::DepleteReferenceContaminantsStageParams;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_reference_contaminants_tools;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_reference_contaminants::plan_contaminant_screen_with_options;
+use bijux_dna_planner_fastq::DepleteReferenceContaminantsStageParams;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -148,7 +147,10 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
             &args.reference_index,
             &out_dir,
             &DepleteReferenceContaminantsStageParams {
-                decoy_mode: "phix_and_spikeins".to_string(),
+                decoy_mode: args
+                    .decoy_mode
+                    .clone()
+                    .unwrap_or_else(|| "phix_and_spikeins".to_string()),
                 threads: args.threads,
             },
         )?;

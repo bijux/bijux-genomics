@@ -578,6 +578,7 @@ pub fn bench_args_deplete_reference_contaminants(
         reference_index: args.reference_index.clone(),
         out: args.out.clone(),
         threads: args.threads,
+        decoy_mode: args.decoy_mode.clone(),
         tools: resolve_bench_tools("fastq.deplete_reference_contaminants", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
