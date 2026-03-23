@@ -13,6 +13,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone, Default)]
 pub struct FilterPlanOptions {
+    pub threads: Option<u32>,
     pub max_n: Option<u32>,
     pub max_n_fraction: Option<f64>,
     pub max_n_count: Option<u32>,
@@ -42,6 +43,7 @@ pub fn plan_filter(
     let output_name =
         filter_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported filter tool"))?;
     ensure_filter_option_support(&tool.tool_id.0, options)?;
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let output_r1 = if r2.is_some() {
         out_dir.join(format!("R1.{output_name}"))
     } else {
@@ -61,7 +63,7 @@ pub fn plan_filter(
         } else {
             PairedMode::SingleEnd
         },
-        threads: tool.resources.threads,
+        threads: effective_threads,
         max_n: options.max_n,
         max_n_fraction: options.max_n_fraction,
         max_n_count: options.max_n_count.or(options.max_n),
@@ -101,17 +103,19 @@ pub fn plan_filter(
         report_json.clone(),
         ArtifactRole::ReportJson,
     ));
-    let command_template =
-        filter_command_template(
-            tool,
-            r1,
-            r2,
-            &output_r1,
-            output_r2.as_deref(),
-            &report_json,
-            raw_backend_report.as_deref(),
-            options,
-        )?;
+    let command_template = filter_command_template(
+        tool,
+        r1,
+        r2,
+        &output_r1,
+        output_r2.as_deref(),
+        &report_json,
+        raw_backend_report.as_deref(),
+        effective_threads,
+        options,
+    )?;
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -125,11 +129,12 @@ pub fn plan_filter(
         command: bijux_dna_core::prelude::CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "tool": tool.tool_id.0,
+            "threads": effective_threads,
             "input_r1": r1,
             "input_r2": r2,
             "output_r1": output_r1,
@@ -161,6 +166,7 @@ fn filter_command_template(
     output_r2: Option<&Path>,
     report_json: &Path,
     raw_backend_report: Option<&Path>,
+    effective_threads: u32,
     options: &FilterPlanOptions,
 ) -> Result<Vec<String>> {
     if tool.tool_id.as_str() == "fastp" {
@@ -171,7 +177,7 @@ fn filter_command_template(
             "--out1".to_string(),
             output_r1.display().to_string(),
             "--thread".to_string(),
-            tool.resources.threads.to_string(),
+            effective_threads.to_string(),
         ];
         if let Some(raw_backend_report) = raw_backend_report {
             command.extend([
@@ -212,7 +218,10 @@ fn filter_command_template(
                 output_r2.map(|path| path.display().to_string()),
             ),
             ("report_json", Some(report_json.display().to_string())),
-            ("filter_report_json", Some(report_json.display().to_string())),
+            (
+                "filter_report_json",
+                Some(report_json.display().to_string()),
+            ),
             (
                 "raw_backend_report",
                 raw_backend_report.map(|path| path.display().to_string()),
@@ -237,12 +246,12 @@ fn filter_output_name(tool: &str) -> Option<&'static str> {
     }
 }
 
-fn raw_backend_report_contract(tool: &str, out_dir: &Path) -> (Option<PathBuf>, Option<&'static str>) {
+fn raw_backend_report_contract(
+    tool: &str,
+    out_dir: &Path,
+) -> (Option<PathBuf>, Option<&'static str>) {
     match tool {
-        "fastp" => (
-            Some(out_dir.join("fastp.filter.json")),
-            Some("fastp_json"),
-        ),
+        "fastp" => (Some(out_dir.join("fastp.filter.json")), Some("fastp_json")),
         "bbduk" => (
             Some(out_dir.join("bbduk.filter.stats")),
             Some("bbduk_stats"),

@@ -28,12 +28,13 @@ use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 use crate::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
     DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, FastqStageBinding,
-    FastqStageParameters, IndexReferenceStageParams, InferAsvsStageParams,
-    MergePairsStageParams, NormalizeAbundanceStageParams, NormalizePrimersStageParams,
-    TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
-    STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
-    STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
-    STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS,
+    FastqStageParameters, FilterReadsStageParams, IndexReferenceStageParams,
+    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
+    NormalizePrimersStageParams, TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
+    STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+    STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS,
+    STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS,
+    STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS,
     STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
     STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
 };
@@ -288,15 +289,27 @@ where
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_FILTER_READS.as_str() => {
-                let mut filter_options =
-                    crate::tool_adapters::fastq::filter_reads::FilterPlanOptions::default();
-                if adapter_bank.is_some() {
+                let mut filter_options = filter_reads_plan_options(binding);
+                if adapter_bank.is_some()
+                    && !filter_options
+                        .redundant_filters
+                        .iter()
+                        .any(|filter| filter == "adapter")
+                {
                     filter_options.redundant_filters.push("adapter".to_string());
                 }
-                if polyx_bank.is_some() {
+                if polyx_bank.is_some()
+                    && !filter_options
+                        .redundant_filters
+                        .iter()
+                        .any(|filter| filter == "polyx")
+                {
                     filter_options.redundant_filters.push("polyx".to_string());
                 }
-                if enable_contaminant_removal && contaminant_bank.is_some() {
+                if enable_contaminant_removal
+                    && contaminant_bank.is_some()
+                    && filter_options.kmer_ref.is_none()
+                {
                     filter_options.kmer_ref =
                         crate::tool_adapters::fastq::filter_reads::default_kmer_ref();
                 }
@@ -1243,6 +1256,26 @@ fn validate_reads_params(binding: &FastqStageBinding, paired: bool) -> ValidateE
     match binding.params.as_ref() {
         Some(FastqStageParameters::Validate(params)) => params.clone(),
         _ => validate_defaults(paired),
+    }
+}
+
+fn filter_reads_plan_options(
+    binding: &FastqStageBinding,
+) -> crate::tool_adapters::fastq::filter_reads::FilterPlanOptions {
+    let params = match binding.params.as_ref() {
+        Some(FastqStageParameters::FilterReads(params)) => params.clone(),
+        _ => FilterReadsStageParams::default(),
+    };
+    crate::tool_adapters::fastq::filter_reads::FilterPlanOptions {
+        threads: params.threads,
+        max_n: params.max_n,
+        max_n_fraction: params.max_n_fraction,
+        max_n_count: params.max_n_count,
+        low_complexity_threshold: params.low_complexity_threshold,
+        entropy_threshold: params.entropy_threshold,
+        kmer_ref: params.kmer_ref,
+        redundant_filters: Vec::new(),
+        polyx_policy: params.polyx_policy,
     }
 }
 

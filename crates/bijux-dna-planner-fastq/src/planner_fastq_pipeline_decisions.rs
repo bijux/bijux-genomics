@@ -72,6 +72,7 @@ pub struct FastqStageToolsetBinding {
 #[derive(Debug, Clone)]
 pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
+    FilterReads(FilterReadsStageParams),
     ProfileReadLengths(bijux_dna_domain_fastq::FastqReadLengthProfileParams),
     ProfileOverrepresented(bijux_dna_domain_fastq::FastqOverrepresentedProfileParams),
     ProfileReads(bijux_dna_domain_fastq::params::stats::FastqStatsParams),
@@ -94,6 +95,33 @@ pub enum FastqStageParameters {
     DepleteRrna(DepleteRrnaStageParams),
     DepleteHost(DepleteHostStageParams),
     DepleteReferenceContaminants(DepleteReferenceContaminantsStageParams),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FilterReadsStageParams {
+    pub threads: Option<u32>,
+    pub max_n: Option<u32>,
+    pub max_n_fraction: Option<f64>,
+    pub max_n_count: Option<u32>,
+    pub low_complexity_threshold: Option<f64>,
+    pub entropy_threshold: Option<f64>,
+    pub kmer_ref: Option<PathBuf>,
+    pub polyx_policy: Option<String>,
+}
+
+impl Default for FilterReadsStageParams {
+    fn default() -> Self {
+        Self {
+            threads: None,
+            max_n: None,
+            max_n_fraction: None,
+            max_n_count: None,
+            low_complexity_threshold: None,
+            entropy_threshold: None,
+            kmer_ref: None,
+            polyx_policy: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
