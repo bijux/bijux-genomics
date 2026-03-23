@@ -107,6 +107,38 @@ fn report_qc_manifest_avoids_unmapped_runtime_knobs() -> Result<()> {
 }
 
 #[test]
+fn amplicon_stage_manifests_expose_governed_ecology_controls() -> Result<()> {
+    assert_eq!(
+        stage_parameter_names("normalize_primers")?,
+        vec![
+            "primer_set_id",
+            "orientation_policy",
+            "max_mismatch_rate",
+            "min_overlap_bp",
+            "strict_5p_anchor",
+            "allow_iupac_codes",
+        ],
+        "fastq.normalize_primers must expose the governed primer-orientation and mismatch controls carried through planner and runtime contracts"
+    );
+    assert_eq!(
+        stage_parameter_names("infer_asvs")?,
+        vec![
+            "denoising_method",
+            "pooling_mode",
+            "chimera_policy",
+            "threads",
+        ],
+        "fastq.infer_asvs must keep its denoising policy surface explicit in the stage manifest"
+    );
+    assert_eq!(
+        stage_parameter_names("normalize_abundance")?,
+        vec!["method"],
+        "fastq.normalize_abundance must expose its normalization-method selector without hidden secondary knobs"
+    );
+    Ok(())
+}
+
+#[test]
 fn validate_reads_manifest_avoids_unmapped_quality_cutoff() -> Result<()> {
     assert_eq!(
         stage_parameter_names("validate_reads")?,
