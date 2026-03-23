@@ -28,9 +28,10 @@ use bijux_dna_domain_fastq::params::validate::{
 use bijux_dna_domain_fastq::params::DamageMode;
 use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthProfileParams};
 use bijux_dna_planner_fastq::{
-    CorrectErrorsStageParams, DepleteHostStageParams, DepleteReferenceContaminantsStageParams,
-    DepleteRrnaStageParams, DetectAdaptersStageParams, ExtractUmisStageParams, FastqPlanConfig,
-    FastqPlanner, FastqStageBinding, FastqStageParameters, FastqStageToolsetBinding,
+    ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
+    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
+    DetectAdaptersStageParams, ExtractUmisStageParams, FastqPlanConfig, FastqPlanner,
+    FastqStageBinding, FastqStageParameters, FastqStageToolsetBinding,
     FilterLowComplexityStageParams, FilterReadsStageParams, IndexReferenceStageParams,
     InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
     NormalizePrimersStageParams, TrimTerminalDamageStageParams,
@@ -2367,6 +2368,93 @@ fn planner_uses_typed_detect_adapters_params_from_stage_binding() -> anyhow::Res
         .template
         .windows(2)
         .any(|window| window == ["--threads", "3"]));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_typed_cluster_otus_params_from_stage_binding() -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-cluster-otus-stage-params")?;
+    let r1 = temp.path().join("reads.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__cluster_otus__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.cluster_otus".to_string(),
+            stage_instance_id: Some("fastq.cluster_otus.custom".to_string()),
+            tool: vsearch_tool(),
+            reason: None,
+            params: Some(FastqStageParameters::ClusterOtus(ClusterOtusStageParams {
+                otu_identity: 0.99,
+                threads: Some(6),
+            })),
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.step_id.as_str(), "fastq.cluster_otus.custom");
+    assert_eq!(step.resources.threads, 6);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--threads", "6"]));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_manifest_default_cluster_otus_threads_without_binding_override(
+) -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-cluster-otus-default-threads")?;
+    let r1 = temp.path().join("reads.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__cluster_otus_default_threads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.cluster_otus".to_string(),
+            stage_instance_id: Some("fastq.cluster_otus.default".to_string()),
+            tool: vsearch_tool(),
+            reason: None,
+            params: None,
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.resources.threads, 4);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|window| window == ["--threads", "4"]));
     Ok(())
 }
 

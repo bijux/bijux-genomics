@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::edna::{EDNA_SCHEMA_VERSION, OtuClusteringEffectiveParams};
+use bijux_dna_domain_fastq::params::edna::{OtuClusteringEffectiveParams, EDNA_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::stages::ids::STAGE_CLUSTER_OTUS;
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
@@ -13,6 +13,7 @@ use bijux_dna_stage_contract::{
 pub const STAGE_ID: StageId = STAGE_CLUSTER_OTUS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type ClusterOtusPlanOptions = crate::ClusterOtusStageParams;
+const DEFAULT_CLUSTER_OTUS_THREADS: u32 = 4;
 
 pub fn plan(
     tool: &ToolExecutionSpecV1,
@@ -47,7 +48,10 @@ pub fn plan_with_options(
     let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
     let report_json = out_dir.join("cluster_otus_report.json");
     let otu_clusters_uc = out_dir.join("otu_clusters.uc");
-    let threads = options.threads.unwrap_or(tool.resources.threads);
+    let threads = options
+        .threads
+        .unwrap_or(DEFAULT_CLUSTER_OTUS_THREADS)
+        .max(1);
     let effective_params = OtuClusteringEffectiveParams {
         schema_version: EDNA_SCHEMA_VERSION.to_string(),
         identity_threshold: options.otu_identity,
@@ -57,6 +61,8 @@ pub fn plan_with_options(
         raw_backend_report_artifact: Some("otu_clusters_uc".to_string()),
         raw_backend_report_format: Some("vsearch_uc".to_string()),
     };
+    let mut resources = tool.resources.clone();
+    resources.threads = threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -78,7 +84,7 @@ pub fn plan_with_options(
                 threads,
             )?,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs,
             outputs: vec![
@@ -164,6 +170,8 @@ fn cluster_otus_command(
             "--otutabout".to_string(),
             otu_table.display().to_string(),
         ]),
-        _ => Err(anyhow!("unsupported OTU clustering tool for stage planning: {tool_id}")),
+        _ => Err(anyhow!(
+            "unsupported OTU clustering tool for stage planning: {tool_id}"
+        )),
     }
 }
