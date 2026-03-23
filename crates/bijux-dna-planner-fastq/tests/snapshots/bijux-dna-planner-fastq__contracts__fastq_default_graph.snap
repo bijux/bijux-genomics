@@ -535,7 +535,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "expected_artifact_ids": [
         "trimmed_reads_r1",
-        "report_json"
+        "report_json",
+        "raw_backend_report_json"
       ],
       "image": {
         "digest": null,
@@ -561,6 +562,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "name": "report_json",
             "optional": false,
             "path": "trim_polyg_tails_report.json",
+            "role": "report_json"
+          },
+          {
+            "name": "raw_backend_report_json",
+            "optional": true,
+            "path": "trim_polyg_tails_report.fastp.json",
             "role": "report_json"
           }
         ]
