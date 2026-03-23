@@ -25,6 +25,7 @@ const GOVERNED_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1
 struct GovernedQcContributor {
     contributor_id: String,
     stage_id: String,
+    tool_id: String,
     artifact_id: String,
     artifact_role: ArtifactRole,
     path: std::path::PathBuf,
@@ -304,13 +305,15 @@ fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContribu
 fn governed_qc_contributor(artifact: &ArtifactRef) -> Option<GovernedQcContributor> {
     let artifact_name = artifact.name.as_str();
     let (contributor_id, artifact_id) = artifact_name.rsplit_once('.')?;
-    let stage_parts = contributor_id.split('.').take(2).collect::<Vec<_>>();
-    if stage_parts.len() != 2 {
+    let contributor_parts = contributor_id.split('.').collect::<Vec<_>>();
+    if contributor_parts.len() < 3 {
         return None;
     }
+    let tool_id = contributor_parts[2..].join(".");
     Some(GovernedQcContributor {
         contributor_id: contributor_id.to_string(),
-        stage_id: format!("{}.{}", stage_parts[0], stage_parts[1]),
+        stage_id: format!("{}.{}", contributor_parts[0], contributor_parts[1]),
+        tool_id,
         artifact_id: artifact_id.to_string(),
         artifact_role: artifact.role,
         path: artifact.path.clone(),
@@ -352,11 +355,7 @@ fn governed_report_qc_report(
         .map(|contributor| GovernedQcContributorV1 {
             contributor_id: contributor.contributor_id.clone(),
             stage_id: contributor.stage_id.clone(),
-            tool_id: contributor
-                .contributor_id
-                .rsplit_once('.')
-                .map(|(_, tool_id)| tool_id.to_string())
-                .unwrap_or_default(),
+            tool_id: contributor.tool_id.clone(),
             artifact_id: contributor.artifact_id.clone(),
             artifact_role: contributor.artifact_role.as_str().to_string(),
             path: contributor.path.display().to_string(),
