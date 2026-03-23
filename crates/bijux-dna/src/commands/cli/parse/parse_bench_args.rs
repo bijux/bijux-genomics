@@ -878,6 +878,8 @@ pub struct BenchFastqDepleteReferenceContaminantsArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub threads: Option<u32>,
+    #[arg(long, help = "Override the governed contaminant decoy mode")]
+    pub decoy_mode: Option<String>,
     #[arg(
         long,
         value_delimiter = ',',
