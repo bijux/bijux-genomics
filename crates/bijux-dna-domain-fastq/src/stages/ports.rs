@@ -133,7 +133,13 @@ mod tests {
         assert_eq!(
             stage_output_ids("fastq.trim_reads"),
             Some(
-                ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
+                [
+                    "trimmed_reads_r1",
+                    "trimmed_reads_r2",
+                    "report_json",
+                    "raw_backend_report_json",
+                    "raw_backend_report_txt",
+                ]
                     .into_iter()
                     .map(str::to_string)
                     .collect()

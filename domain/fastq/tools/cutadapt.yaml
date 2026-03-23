@@ -54,7 +54,8 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "cutadapt trim mode emits paired trimmed reads and a governed trim report."
+      - "raw_backend_report_json"
+    notes: "cutadapt trim mode emits paired trimmed reads, a governed trim report, and preserves the native cutadapt JSON report."
   fastq.normalize_primers:
     required_inputs:
       - "reads_r1"
