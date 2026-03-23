@@ -17,7 +17,7 @@ use bijux_dna_domain_fastq::stages::ids::{
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READ_LENGTHS,
     STAGE_TRIM_POLYG_TAILS,
 };
-use bijux_dna_domain_fastq::FastqReadLengthProfileParams;
+use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthProfileParams};
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
@@ -193,12 +193,23 @@ where
                 )
             }
             stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => {
-                let plan = crate::tool_adapters::fastq::profile_overrepresented_sequences::plan(
-                    tool,
-                    &stage_r1,
-                    stage_r2.as_deref(),
-                    &out_dir,
-                )?;
+                let plan = if let Some(params) = profile_overrepresented_params(binding) {
+                    crate::tool_adapters::fastq::profile_overrepresented_sequences::plan_with_options(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                        Some(params.threads),
+                        Some(params.top_k),
+                    )?
+                } else {
+                    crate::tool_adapters::fastq::profile_overrepresented_sequences::plan(
+                        tool,
+                        &stage_r1,
+                        stage_r2.as_deref(),
+                        &out_dir,
+                    )?
+                };
                 (
                     plan,
                     stage_r1.clone(),
@@ -1193,6 +1204,15 @@ fn profile_read_lengths_params(
 ) -> Option<FastqReadLengthProfileParams> {
     match binding.params.as_ref() {
         Some(FastqStageParameters::ProfileReadLengths(params)) => Some(params.clone()),
+        _ => None,
+    }
+}
+
+fn profile_overrepresented_params(
+    binding: &FastqStageBinding,
+) -> Option<FastqOverrepresentedProfileParams> {
+    match binding.params.as_ref() {
+        Some(FastqStageParameters::ProfileOverrepresented(params)) => Some(params.clone()),
         _ => None,
     }
 }

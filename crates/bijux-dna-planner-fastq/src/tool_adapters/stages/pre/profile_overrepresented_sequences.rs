@@ -5,8 +5,9 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::{
-    params::stats::OVERREPRESENTED_PROFILE_SCHEMA_VERSION, FastqOverrepresentedProfileParams,
-    PairedMode, stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+    params::stats::OVERREPRESENTED_PROFILE_SCHEMA_VERSION,
+    stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, FastqOverrepresentedProfileParams,
+    PairedMode,
 };
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -23,7 +24,7 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(tool, r1, r2, out_dir, None)
+    plan_with_options(tool, r1, r2, out_dir, None, None)
 }
 
 /// Build an overrepresented-sequence analysis plan with governed option overrides.
@@ -35,20 +36,17 @@ pub fn plan_with_options(
     r1: &Path,
     r2: Option<&Path>,
     out_dir: &Path,
+    threads_override: Option<u32>,
     top_k_override: Option<u32>,
 ) -> Result<StagePlanV1> {
     let report_tsv = out_dir.join("overrepresented_sequences.tsv");
     let summary_json = out_dir.join("overrepresented_sequences.json");
     let report_json = out_dir.join("overrepresented_report.json");
     let fastqc_dir = out_dir.join("fastqc_overrepresented");
+    let threads = threads_override.unwrap_or(tool.resources.threads).max(1);
     let top_k = top_k_override.unwrap_or(50).max(1);
-    let command_template = profile_overrepresented_command(
-        &tool.tool_id.0,
-        r1,
-        r2,
-        &fastqc_dir,
-        tool.resources.threads,
-    )?;
+    let command_template =
+        profile_overrepresented_command(&tool.tool_id.0, r1, r2, &fastqc_dir, threads)?;
     let effective_params = FastqOverrepresentedProfileParams {
         schema_version: OVERREPRESENTED_PROFILE_SCHEMA_VERSION.to_string(),
         paired_mode: if r2.is_some() {
@@ -56,9 +54,11 @@ pub fn plan_with_options(
         } else {
             PairedMode::SingleEnd
         },
-        threads: tool.resources.threads,
+        threads,
         top_k,
     };
+    let mut resources = tool.resources.clone();
+    resources.threads = threads;
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -84,7 +84,7 @@ pub fn plan_with_options(
         command: CommandSpecV1 {
             template: command_template,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs,
             outputs: vec![
@@ -110,6 +110,7 @@ pub fn plan_with_options(
             "tool": tool.tool_id.0,
             "input_r1": r1,
             "input_r2": r2,
+            "threads": threads,
             "top_k": top_k,
             "output_tsv": report_tsv,
             "output_json": summary_json,
@@ -156,5 +157,64 @@ fn profile_overrepresented_command(
         _ => Err(anyhow!(
             "unsupported overrepresented-sequence tool for stage planning: {tool_id}"
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::plan_with_options;
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+        ToolVersion,
+    };
+    use std::path::Path;
+
+    fn fastqc_tool() -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("fastqc"),
+            tool_version: ToolVersion::from("0.12.1"),
+            image: ContainerImageRefV1 {
+                image: "bijuxdna/fastqc".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["fastqc".to_string(), "{{reads_r1}}".to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 2,
+            },
+        }
+    }
+
+    #[test]
+    fn profile_overrepresented_plan_honors_thread_override() {
+        let plan = plan_with_options(
+            &fastqc_tool(),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            Some(6),
+            Some(25),
+        )
+        .expect("plan");
+
+        assert_eq!(plan.resources.threads, 6);
+        assert_eq!(
+            plan.command.template,
+            vec![
+                "fastqc",
+                "--outdir",
+                "out/fastqc_overrepresented",
+                "--threads",
+                "6",
+                "reads_R1.fastq.gz",
+                "reads_R2.fastq.gz",
+            ]
+        );
+        assert_eq!(plan.params["threads"], serde_json::json!(6));
+        assert_eq!(plan.params["top_k"], serde_json::json!(25));
     }
 }

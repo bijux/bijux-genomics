@@ -74,6 +74,7 @@ pub struct FastqStageToolsetBinding {
 pub enum FastqStageParameters {
     Validate(bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams),
     ProfileReadLengths(bijux_dna_domain_fastq::FastqReadLengthProfileParams),
+    ProfileOverrepresented(bijux_dna_domain_fastq::FastqOverrepresentedProfileParams),
     Trim(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
     TrimPolygTails(bijux_dna_domain_fastq::params::trim::TrimPolygTailsParams),
     Screen(bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams),
