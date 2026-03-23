@@ -13,6 +13,7 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_INDEX_REFERENCE;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type IndexReferencePlanOptions = crate::IndexReferenceStageParams;
+const DEFAULT_INDEX_REFERENCE_THREADS: u32 = 2;
 
 pub fn normalize_index_reference_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
@@ -51,7 +52,10 @@ pub fn plan_with_options(
 ) -> Result<StagePlanV1> {
     let output = reference_index_output(&tool.tool_id.0, out_dir)?;
     let report_json = out_dir.join("index_reference_report.json");
-    let threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let threads = options
+        .threads
+        .unwrap_or(DEFAULT_INDEX_REFERENCE_THREADS)
+        .max(1);
     let mut resources = tool.resources.clone();
     resources.threads = threads;
     let effective_params = ReferenceIndexEffectiveParams {

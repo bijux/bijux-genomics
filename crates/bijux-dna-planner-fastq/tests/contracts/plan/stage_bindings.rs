@@ -56,6 +56,12 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     }
 }
 
+fn tool_with_threads(tool_id: &str, threads: u32) -> ToolExecutionSpecV1 {
+    let mut tool = tool(tool_id);
+    tool.resources.threads = threads;
+    tool
+}
+
 fn seqkit_stats_tool() -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new("seqkit_stats".to_string()),
@@ -869,6 +875,50 @@ fn planner_uses_typed_index_reference_params_from_stage_binding() -> anyhow::Res
 }
 
 #[test]
+fn planner_uses_manifest_default_index_reference_threads_without_binding_override(
+) -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-index-reference-default-threads")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let reference = temp.path().join("reference.fasta");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&reference, b">chr1\nACGT\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__index_reference_default_threads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.index_reference".to_string(),
+            stage_instance_id: Some("fastq.index_reference.default".to_string()),
+            tool: tool_with_threads("bowtie2_build", 9),
+            reason: None,
+            params: None,
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: Some(reference),
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.resources.threads, 2);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|pair| pair == ["--threads", "2"]));
+    Ok(())
+}
+
+#[test]
 fn planner_uses_typed_infer_asvs_params_from_stage_binding() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-infer-asvs-stage-params")?;
     let r1 = temp.path().join("reads_R1.fastq");
@@ -922,6 +972,48 @@ fn planner_uses_typed_infer_asvs_params_from_stage_binding() -> anyhow::Result<(
         .template
         .windows(2)
         .any(|pair| pair == ["--chimera-policy", "keep_candidates"]));
+    Ok(())
+}
+
+#[test]
+fn planner_uses_manifest_default_infer_asvs_threads_without_binding_override(
+) -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-infer-asvs-default-threads")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__infer_asvs_default_threads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.infer_asvs".to_string(),
+            stage_instance_id: Some("fastq.infer_asvs.default".to_string()),
+            tool: tool_with_threads("dada2", 6),
+            reason: None,
+            params: None,
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: None,
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.resources.threads, 1);
+    assert!(step
+        .command
+        .template
+        .windows(2)
+        .any(|pair| pair == ["--threads", "1"]));
     Ok(())
 }
 
