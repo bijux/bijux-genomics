@@ -42,6 +42,12 @@
     ],
     "outputs": [
       {
+        "name": "report_json",
+        "path": "out/adapter_report.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
         "name": "adapter_report",
         "path": "out/adapter_report.json",
         "role": "report_json",
@@ -62,18 +68,19 @@
     "input_r2": "reads_R2.fastq.gz",
     "out_dir": "out",
     "report_json": "out/adapter_report.json",
-    "sample_reads": 100000,
+    "sample_reads": null,
+    "threads": 4,
     "tool": "fastqc"
   },
   "effective_params": {
-    "evidence_artifact_id": "adapter_report",
+    "evidence_artifact_id": "report_json",
     "evidence_engine": "fastqc",
     "evidence_format": "fastqc_summary",
-    "evidence_scope": "sampled_reads",
+    "evidence_scope": "full_input",
     "inspection_mode": "evidence_only",
     "paired_mode": "paired_end",
     "report_only": true,
-    "sample_reads": 100000,
+    "sample_reads": null,
     "schema_version": "bijux.fastq.params.detect_adapters.v1",
     "threads": 4
   },

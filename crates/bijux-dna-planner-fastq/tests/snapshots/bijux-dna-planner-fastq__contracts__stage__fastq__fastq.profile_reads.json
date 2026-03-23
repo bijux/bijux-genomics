@@ -14,6 +14,8 @@
       "stats",
       "-a",
       "-T",
+      "-j",
+      "2",
       "reads_R1.fastq.gz"
     ]
   },
@@ -58,6 +60,7 @@
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": null,
     "out_dir": "out",
+    "threads": 2,
     "tool": "seqkit_stats"
   },
   "effective_params": {

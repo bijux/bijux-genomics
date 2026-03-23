@@ -22,9 +22,8 @@ outputs:
     cardinality: "One"
 parameters:
   - name: "threads"
-    type: "integer"
-    required: false
-    default: 1
+    param_type: "int"
+    default: "1"
 metrics:
   - name: "candidate_adapter_count"
     meaning: "Number of governed adapter candidates detected in the evidence report"
