@@ -28,15 +28,16 @@ use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 use crate::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
     DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, FastqStageBinding,
-    FastqStageParameters, FilterReadsStageParams, IndexReferenceStageParams,
-    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
-    NormalizePrimersStageParams, TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
-    STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
-    STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS,
-    STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS,
-    STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS,
-    STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
-    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
+    FastqStageParameters, FilterLowComplexityStageParams, FilterReadsStageParams,
+    IndexReferenceStageParams, InferAsvsStageParams, MergePairsStageParams,
+    NormalizeAbundanceStageParams, NormalizePrimersStageParams, TrimTerminalDamageStageParams,
+    STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
+    STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
+    STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
+    STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
+    STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC,
+    STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
+    STAGE_VALIDATE_READS,
 };
 
 #[derive(Debug, Clone)]
@@ -425,8 +426,7 @@ where
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_FILTER_LOW_COMPLEXITY.as_str() => {
-                let low_complexity_options =
-                    crate::tool_adapters::fastq::filter_low_complexity::LowComplexityPlanOptions::default();
+                let low_complexity_options = filter_low_complexity_plan_options(binding);
                 let plan = crate::tool_adapters::fastq::filter_low_complexity::plan_low_complexity(
                     tool,
                     &stage_r1,
@@ -1276,6 +1276,19 @@ fn filter_reads_plan_options(
         kmer_ref: params.kmer_ref,
         redundant_filters: Vec::new(),
         polyx_policy: params.polyx_policy,
+    }
+}
+
+fn filter_low_complexity_plan_options(
+    binding: &FastqStageBinding,
+) -> crate::tool_adapters::fastq::filter_low_complexity::LowComplexityPlanOptions {
+    let params = match binding.params.as_ref() {
+        Some(FastqStageParameters::FilterLowComplexity(params)) => params.clone(),
+        _ => FilterLowComplexityStageParams::default(),
+    };
+    crate::tool_adapters::fastq::filter_low_complexity::LowComplexityPlanOptions {
+        entropy_threshold: params.entropy_threshold,
+        polyx_threshold: params.polyx_threshold,
     }
 }
 
