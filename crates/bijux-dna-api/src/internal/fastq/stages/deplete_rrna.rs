@@ -127,8 +127,12 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             args.r2.as_deref(),
             &out_dir,
             &bijux_dna_planner_fastq::DepleteRrnaStageParams {
+                rrna_db: args
+                    .rrna_db
+                    .clone()
+                    .unwrap_or_else(|| "rrna_reference".to_string()),
+                min_identity: args.min_identity.unwrap_or(0.95),
                 threads: args.threads,
-                ..Default::default()
             },
         )?;
         let params_hash =
@@ -183,11 +187,8 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             &tool,
             &execution,
         )?;
-        bijux_dna_infra::atomic_write_json(
-            std::path::Path::new(&report.rrna_report_json),
-            &report,
-        )
-        .context("write rrna depletion report")?;
+        bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.rrna_report_json), &report)
+            .context("write rrna depletion report")?;
         let metrics = FastqDepleteRrnaMetrics {
             reads_in: report.reads_in,
             reads_out: report.reads_out,
@@ -258,8 +259,9 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
     tool: &str,
     execution: &bijux_dna_runner::step_runner::StageResultV1,
 ) -> Result<DepleteRrnaReportV1> {
-    let effective_params: RrnaEffectiveParams = serde_json::from_value(plan.effective_params.clone())
-        .context("decode rrna effective params")?;
+    let effective_params: RrnaEffectiveParams =
+        serde_json::from_value(plan.effective_params.clone())
+            .context("decode rrna effective params")?;
     let output_r1 = artifact_output_path(plan, "rrna_filtered_reads_r1")
         .unwrap_or_else(|| plan.out_dir.join("rrna_filtered.fastq.gz"));
     let output_r2 = artifact_output_path(plan, "rrna_filtered_reads_r2");
@@ -302,7 +304,10 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
         screening_engine: effective_params.screening_engine,
         report_format: effective_params.report_format,
         emit_removed_reads: effective_params.emit_removed_reads,
-        min_identity: plan.params.get("min_identity").and_then(serde_json::Value::as_f64),
+        min_identity: plan
+            .params
+            .get("min_identity")
+            .and_then(serde_json::Value::as_f64),
         input_r1: artifact_input_path(plan, "reads_r1")
             .unwrap_or_default()
             .display()

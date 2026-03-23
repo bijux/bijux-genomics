@@ -598,6 +598,8 @@ pub fn bench_args_deplete_rrna(
         r2: args.r2.clone(),
         out: args.out.clone(),
         threads: args.threads,
+        rrna_db: args.rrna_db.clone(),
+        min_identity: args.min_identity,
         tools: resolve_bench_tools("fastq.deplete_rrna", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
