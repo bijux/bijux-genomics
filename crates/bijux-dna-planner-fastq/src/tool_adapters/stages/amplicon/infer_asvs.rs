@@ -58,7 +58,9 @@ pub fn plan_with_options(
     let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
     let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
     let report_json = out_dir.join("infer_asvs_report.json");
-    let threads = options.threads.unwrap_or(tool.resources.threads);
+    let threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let mut resources = tool.resources.clone();
+    resources.threads = threads;
     let effective_params = AsvInferenceEffectiveParams {
         schema_version: EDNA_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
@@ -96,7 +98,7 @@ pub fn plan_with_options(
                 options,
             )?,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs,
             outputs: infer_asvs_output_refs(
@@ -233,7 +235,9 @@ fn infer_asvs_command(
             ]);
             Ok(command)
         }
-        _ => Err(anyhow!("unsupported ASV inference tool for stage planning: {tool_id}")),
+        _ => Err(anyhow!(
+            "unsupported ASV inference tool for stage planning: {tool_id}"
+        )),
     }
 }
 
