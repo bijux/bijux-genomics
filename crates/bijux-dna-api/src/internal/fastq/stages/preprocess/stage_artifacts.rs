@@ -491,14 +491,24 @@ fn emit_fastq_stage_extra_artifacts(
                 bijux_dna_stages_fastq::observer::parse_terminal_damage_report(&raw).ok()
             });
             Some(serde_json::json!({
-                "schema_version": "bijux.fastq.trim_terminal_damage.v2",
+                "schema_version": "bijux.fastq.trim_terminal_damage.extra_artifacts.v2",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
+                "paired_mode": governed.as_ref().map(|report| report.paired_mode),
                 "damage_mode": governed.as_ref().map(|report| report.damage_mode),
                 "execution_policy": governed.as_ref().map(|report| report.execution_policy),
+                "trim_5p_bases": governed.as_ref().map(|report| report.trim_5p_bases),
+                "trim_3p_bases": governed.as_ref().map(|report| report.trim_3p_bases),
                 "requested_trim_5p_bases": governed.as_ref().and_then(|report| report.requested_trim_5p_bases),
                 "requested_trim_3p_bases": governed.as_ref().and_then(|report| report.requested_trim_3p_bases),
                 "udg_classification": governed.as_ref().map(|report| report.udg_classification.clone()),
+                "ct_ga_asymmetry_pre_r1": governed.as_ref().and_then(|report| report.ct_ga_asymmetry_pre_r1),
+                "ct_ga_asymmetry_post_r1": governed.as_ref().and_then(|report| report.ct_ga_asymmetry_post_r1),
+                "ct_ga_asymmetry_pre_r2": governed.as_ref().and_then(|report| report.ct_ga_asymmetry_pre_r2),
+                "ct_ga_asymmetry_post_r2": governed.as_ref().and_then(|report| report.ct_ga_asymmetry_post_r2),
+                "raw_backend_report": governed.as_ref().and_then(|report| report.raw_backend_report.clone()),
                 "raw_backend_report_format": governed.as_ref().and_then(|report| report.raw_backend_report_format.clone()),
+                "report_json": report_path,
             }))
         }
         "fastq.remove_chimeras" => {
@@ -746,6 +756,65 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn trim_terminal_damage_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "trim-terminal-damage-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 4.0,
+            memory_mb: 32.0,
+            outputs: vec![stage_root.join("trim_terminal_damage_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "cutadapt".to_string(),
+        }
+    }
+
+    fn write_trim_terminal_damage_report(stage_root: &std::path::Path) -> Result<()> {
+        std::fs::write(
+            stage_root.join("trim_terminal_damage_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
+                "stage": "fastq.trim_terminal_damage",
+                "stage_id": "fastq.trim_terminal_damage",
+                "tool_id": "cutadapt",
+                "paired_mode": "single_end",
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 2,
+                "trim_3p_bases": 1,
+                "requested_trim_5p_bases": 2,
+                "requested_trim_3p_bases": 1,
+                "udg_classification": "non_udg",
+                "input_r1": "reads.fastq.gz",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq.gz",
+                "output_r2": null,
+                "reads_in": null,
+                "reads_out": null,
+                "bases_in": null,
+                "bases_out": null,
+                "mean_q_before": null,
+                "mean_q_after": null,
+                "ct_ga_asymmetry_pre": 0.42,
+                "ct_ga_asymmetry_post": 0.11,
+                "ct_ga_asymmetry_pre_r1": 0.42,
+                "ct_ga_asymmetry_post_r1": 0.11,
+                "ct_ga_asymmetry_pre_r2": null,
+                "ct_ga_asymmetry_post_r2": null,
+                "terminal_base_composition_pre_r1": {"C": 12},
+                "terminal_base_composition_post_r1": {"C": 4},
+                "terminal_base_composition_pre_r2": null,
+                "terminal_base_composition_post_r2": null,
+                "raw_backend_report": "cutadapt.raw.json",
+                "raw_backend_report_format": "cutadapt_json",
+                "runtime_s": 4.0,
+                "memory_mb": 32.0
+            }"#,
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -782,6 +851,25 @@ mod stage_artifact_tests {
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
+        Ok(())
+    }
+
+    #[test]
+    fn trim_terminal_damage_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_trim_terminal_damage_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.trim_terminal_damage",
+            &trim_terminal_damage_execution(temp.path()),
+        )?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("cutadapt"));
+        assert_eq!(extra["trim_5p_bases"], serde_json::json!(2));
+        assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("cutadapt.raw.json"));
         Ok(())
     }
 }

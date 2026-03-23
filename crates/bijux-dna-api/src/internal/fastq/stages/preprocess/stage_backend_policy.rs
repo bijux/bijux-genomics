@@ -399,6 +399,7 @@ pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> s
                 "udg_classification": report.udg_classification,
                 "ct_ga_asymmetry_pre": report.ct_ga_asymmetry_pre,
                 "ct_ga_asymmetry_post": report.ct_ga_asymmetry_post,
+                "raw_backend_report": report.raw_backend_report,
                 "raw_backend_report_format": report.raw_backend_report_format,
                 "report_json": report_path,
             });
@@ -2470,7 +2471,10 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
         "fastq.trim_terminal_damage" => &[
             "schema_version",
             "stage",
+            "tool",
             "execution_policy",
+            "trim_5p_bases",
+            "trim_3p_bases",
             "udg_classification",
             "ct_ga_asymmetry_pre",
             "ct_ga_asymmetry_post",
