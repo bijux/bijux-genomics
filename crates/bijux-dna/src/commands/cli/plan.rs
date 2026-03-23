@@ -500,6 +500,7 @@ pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> Result<engine_args::BenchFast
         r2: args.r2.clone(),
         out: args.out.clone(),
         umi_pattern: args.umi_pattern.clone(),
+        threads: args.threads,
         tools: resolve_bench_tools("fastq.extract_umis", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
@@ -742,15 +743,17 @@ pub fn bench_args_preprocess(
 #[cfg(test)]
 mod tests {
     use super::{
-        bench_args_filter, bench_args_from_validate, bench_args_profile_read_lengths,
-        bench_args_remove_duplicates, bench_args_trim, bench_args_trim_polyg,
-        bench_args_trim_terminal_damage, resolve_stage_tool,
+        bench_args_filter, bench_args_from_validate, bench_args_normalize_primers,
+        bench_args_profile_overrepresented, bench_args_profile_read_lengths,
+        bench_args_remove_chimeras, bench_args_remove_duplicates, bench_args_trim,
+        bench_args_trim_polyg, bench_args_trim_terminal_damage, resolve_stage_tool,
     };
     use crate::commands::cli::parse::{
-        BenchFastqFilterArgs, BenchFastqProfileOverrepresentedArgs,
-        BenchFastqProfileReadLengthsArgs, BenchFastqRemoveChimerasArgs,
-        BenchFastqRemoveDuplicatesArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
-        BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs,
+        BenchFastqFilterArgs, BenchFastqNormalizePrimersArgs,
+        BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs,
+        BenchFastqRemoveChimerasArgs, BenchFastqRemoveDuplicatesArgs, BenchFastqTrimArgs,
+        BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand,
+        FastqCommand, FastqValidateArgs,
     };
     use std::path::PathBuf;
 

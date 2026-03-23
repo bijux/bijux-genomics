@@ -714,6 +714,8 @@ pub struct BenchFastqUmiArgs {
         help = "UMI barcode pattern passed to umi_tools extract"
     )]
     pub umi_pattern: String,
+    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    pub threads: Option<u32>,
     #[arg(
         long,
         value_delimiter = ',',
