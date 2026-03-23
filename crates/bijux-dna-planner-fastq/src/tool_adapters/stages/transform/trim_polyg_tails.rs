@@ -299,6 +299,7 @@ fn wrap_polyg_command_with_report(
         stage_id: STAGE_ID.as_str().to_string(),
         tool_id: tool_id.to_string(),
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        threads,
         trim_polyg,
         min_polyg_run,
         input_r1: r1.display().to_string(),

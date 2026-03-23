@@ -1177,6 +1177,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                             "paired_mode".to_string(),
                             serde_json::json!(report.paired_mode),
                         ),
+                        ("threads".to_string(), serde_json::json!(report.threads)),
                         (
                             "trim_polyg".to_string(),
                             serde_json::json!(report.trim_polyg),
@@ -2544,6 +2545,7 @@ mod tests {
                 "stage_id": "fastq.trim_polyg_tails",
                 "tool_id": "fastp",
                 "paired_mode": "single_end",
+                "threads": 4_u64,
                 "trim_polyg": true,
                 "min_polyg_run": 10_u64,
                 "input_r1": "reads.fastq.gz",
@@ -2616,6 +2618,11 @@ mod tests {
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["threads"],
+            serde_json::json!(4_u64)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["min_polyg_run"],
             serde_json::json!(10_u64)
         );
@@ -2658,6 +2665,7 @@ mod tests {
                 "stage_id": "fastq.trim_polyg_tails",
                 "tool_id": "bbduk",
                 "paired_mode": "single_end",
+                "threads": 4_u64,
                 "trim_polyg": true,
                 "min_polyg_run": 10_u64,
                 "input_r1": "reads.fastq.gz",
@@ -2721,6 +2729,11 @@ mod tests {
             .expect("parse outputs");
 
         assert!(output.warnings.is_empty());
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["threads"],
+            serde_json::json!(4_u64)
+        );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["raw_backend_report_format"],

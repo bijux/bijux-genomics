@@ -13,6 +13,7 @@ pub struct TrimPolygReportV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub paired_mode: PairedMode,
+    pub threads: u32,
     pub trim_polyg: bool,
     pub min_polyg_run: u32,
     pub input_r1: String,
@@ -51,6 +52,7 @@ mod tests {
             stage_id: "fastq.trim_polyg_tails".to_string(),
             tool_id: "fastp".to_string(),
             paired_mode: PairedMode::PairedEnd,
+            threads: 4,
             trim_polyg: true,
             min_polyg_run: 10,
             input_r1: "reads_R1.fastq.gz".to_string(),
@@ -83,7 +85,11 @@ mod tests {
         let decoded: TrimPolygReportV1 = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "fastp");
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
+        assert_eq!(decoded.threads, 4);
         assert_eq!(decoded.bases_trimmed_polyg, Some(180));
-        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
+        assert_eq!(
+            decoded.raw_backend_report_format.as_deref(),
+            Some("fastp_json")
+        );
     }
 }
