@@ -64,11 +64,11 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
     .expect("seqkit profile");
     assert_eq!(
         seqkit_profile.runtime_interpretation,
-        bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::GenericEnvelope
+        bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::ObserverSpecialized
     );
     assert_eq!(
         seqkit_profile.readiness,
-        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
+        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::ObserverSpecializedBenchmark
     );
 
     let screen_stage = StageId::from_static("fastq.screen_taxonomy");
@@ -86,9 +86,11 @@ fn benchmark_profiles_keep_observer_coverage_visible() {
             == bijux_dna_planner_fastq::stage_api::ToolIntegrationLevel::GovernedContract)
             .all(|profile| {
             profile.readiness
-                == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
+                == bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
+                && profile.runtime_interpretation
+                    == bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::ObserverSpecialized
         }),
-        "generic taxonomy screening backends must stay governed-only until observer-specialized normalization exists",
+        "governed taxonomy screening backends must stay observer-specialized and cohort-benchmarkable",
     );
 }
 

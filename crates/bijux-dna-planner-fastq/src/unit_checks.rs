@@ -425,9 +425,9 @@ fn mixed_normalization_stages_only_mark_observer_specialized_tools_comparable() 
     assert!(fastqc.comparable);
 
     assert!(seqkit.runnable);
-    assert!(!seqkit.parse_normalized);
-    assert!(!seqkit.benchmark_normalized);
-    assert!(!seqkit.comparable);
+    assert!(seqkit.parse_normalized);
+    assert!(seqkit.benchmark_normalized);
+    assert!(seqkit.comparable);
 }
 
 #[test]
