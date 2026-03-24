@@ -50,8 +50,7 @@ impl BenchCorpus {
 
 fn fastq_corpus_root() -> PathBuf {
     std::env::var_os("BIJUX_FASTQ_CORPUS_ROOT")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("artifacts/corpus/fastq"))
+        .map_or_else(|| PathBuf::from("artifacts/corpus/fastq"), PathBuf::from)
 }
 
 #[must_use]

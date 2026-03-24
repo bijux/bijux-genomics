@@ -62,10 +62,10 @@ fn required_id_catalog() -> Vec<String> {
 
 fn pipeline_spec_from_stage_catalog(stages: Vec<String>, mode: FastqPipelineMode) -> PipelineSpec {
     preprocess_pipeline_graph_for_stage_order(
-        sort_stages_by_domain_order(stages, mode)
+        &sort_stages_by_domain_order(stages, mode)
             .into_iter()
             .map(StageId::new)
-            .collect(),
+            .collect::<Vec<_>>(),
     )
 }
 
@@ -138,10 +138,10 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
         selected_stages.remove(STAGE_REPORT_QC.as_str());
     }
     preprocess_pipeline_graph_for_stage_order(
-        sort_stages_by_domain_order(selected_stages.into_iter().collect(), options.mode)
+        &sort_stages_by_domain_order(selected_stages.into_iter().collect(), options.mode)
             .into_iter()
             .map(StageId::new)
-            .collect(),
+            .collect::<Vec<_>>(),
     )
 }
 
@@ -479,7 +479,10 @@ fn filter_preprocess_pipeline(
         allowed_stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
     }
     preprocess_pipeline_graph_for_stage_order(
-        allowed_stages.into_iter().map(StageId::new).collect(),
+        &allowed_stages
+            .into_iter()
+            .map(StageId::new)
+            .collect::<Vec<_>>(),
     )
 }
 

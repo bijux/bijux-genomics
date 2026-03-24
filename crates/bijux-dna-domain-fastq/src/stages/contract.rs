@@ -319,8 +319,7 @@ pub fn preflight_stage(stage_id: &str, input_kind: FastqArtifactKind) -> Result<
         .collect::<Vec<_>>()
         .join(", ");
     Err(anyhow!(
-        "stage {stage_id} does not accept {:?} input; accepted kinds: {accepted}",
-        input_kind
+        "stage {stage_id} does not accept {input_kind:?} input; accepted kinds: {accepted}"
     ))
 }
 

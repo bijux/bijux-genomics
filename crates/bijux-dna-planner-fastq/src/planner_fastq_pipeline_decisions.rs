@@ -1442,10 +1442,10 @@ fn implicit_pipeline_spec_from_nodes(
     }
 
     let stage_graph = preprocess_pipeline_graph_for_stage_order(
-        nodes
+        &nodes
             .iter()
             .map(|node| StageId::new(node.stage_id.clone()))
-            .collect(),
+            .collect::<Vec<_>>(),
     );
     let edges = stage_graph
         .edges

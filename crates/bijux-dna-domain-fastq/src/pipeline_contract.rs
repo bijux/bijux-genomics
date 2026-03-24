@@ -209,19 +209,19 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
 
 #[must_use]
 pub fn preprocess_pipeline() -> PipelineSpec {
-    preprocess_pipeline_graph_for_stage_order(canonical_stage_order())
+    preprocess_pipeline_graph_for_stage_order(&canonical_stage_order())
 }
 
 #[must_use]
 pub fn preprocess_pipeline_for_mode(mode: FastqPipelineMode) -> PipelineSpec {
-    preprocess_pipeline_graph_for_stage_order(match mode {
+    preprocess_pipeline_graph_for_stage_order(&match mode {
         FastqPipelineMode::Shotgun => canonical_stage_order(),
         FastqPipelineMode::Amplicon => canonical_amplicon_stage_order(),
     })
 }
 
 #[must_use]
-pub fn preprocess_pipeline_graph_for_stage_order(stages: Vec<StageId>) -> PipelineSpec {
+pub fn preprocess_pipeline_graph_for_stage_order(stages: &[StageId]) -> PipelineSpec {
     let nodes = stages
         .iter()
         .map(|stage| PipelineNodeSpec {
@@ -235,7 +235,7 @@ pub fn preprocess_pipeline_graph_for_stage_order(stages: Vec<StageId>) -> Pipeli
         .collect::<BTreeSet<_>>();
     let mut edges = Vec::new();
 
-    for stage in &stages {
+    for stage in stages {
         match stage.as_str() {
             "fastq.validate_reads" | "fastq.index_reference" | "fastq.report_qc" => {}
             "fastq.deplete_host" | "fastq.deplete_reference_contaminants" => {
@@ -370,7 +370,9 @@ fn primary_upstream_candidates(stage_id: &str) -> &'static [&'static str] {
             "fastq.trim_reads",
             "fastq.validate_reads",
         ],
-        "fastq.merge_pairs" => &["fastq.filter_reads", "fastq.trim_reads"],
+        "fastq.merge_pairs" | "fastq.remove_chimeras" => {
+            &["fastq.filter_reads", "fastq.trim_reads"]
+        }
         "fastq.remove_duplicates" => &[
             "fastq.merge_pairs",
             "fastq.filter_reads",
@@ -381,7 +383,6 @@ fn primary_upstream_candidates(stage_id: &str) -> &'static [&'static str] {
             "fastq.filter_reads",
             "fastq.trim_reads",
         ],
-        "fastq.remove_chimeras" => &["fastq.filter_reads", "fastq.trim_reads"],
         "fastq.cluster_otus" => &["fastq.remove_chimeras", "fastq.filter_reads"],
         "fastq.normalize_abundance" => &["fastq.cluster_otus"],
         _ => &[],
@@ -395,7 +396,7 @@ mod tests {
 
     #[test]
     fn report_qc_edges_bind_governed_artifacts_instead_of_generic_stage_edges() {
-        let pipeline = preprocess_pipeline_graph_for_stage_order(vec![
+        let pipeline = preprocess_pipeline_graph_for_stage_order(&vec![
             StageId::from_static("fastq.validate_reads"),
             StageId::from_static("fastq.report_qc"),
         ]);
@@ -422,7 +423,7 @@ mod tests {
 
     #[test]
     fn report_qc_keeps_parallel_artifact_joins_for_multiple_contributors() {
-        let pipeline = preprocess_pipeline_graph_for_stage_order(vec![
+        let pipeline = preprocess_pipeline_graph_for_stage_order(&vec![
             StageId::from_static("fastq.detect_adapters"),
             StageId::from_static("fastq.profile_reads"),
             StageId::from_static("fastq.report_qc"),

@@ -123,7 +123,7 @@ fn manifest() -> &'static ExecutionSupportManifest {
     MANIFEST.get_or_init(|| {
         let manifest: ExecutionSupportManifest =
             serde_yaml::from_str(include_str!("../../../domain/fastq/execution_support.yaml"))
-                .expect("parse domain/fastq/execution_support.yaml");
+                .unwrap_or_else(|err| panic!("parse domain/fastq/execution_support.yaml: {err}"));
         assert_eq!(
             manifest.schema_version, "bijux.fastq.execution_support.v1",
             "unexpected FASTQ execution support schema version",

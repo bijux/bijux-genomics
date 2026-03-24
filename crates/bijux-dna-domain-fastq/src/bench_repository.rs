@@ -126,12 +126,15 @@ impl BenchQueryContext {
 
     #[must_use]
     pub fn match_against_stored(&self, stored: &Self) -> BenchQueryContextMatch {
-        if !scalar_matches(&self.params_hash, &stored.params_hash)
-            || !scalar_matches(&self.image_digest, &stored.image_digest)
-            || !scalar_matches(&self.stage_contract_hash, &stored.stage_contract_hash)
-            || !scalar_matches(&self.reference_hash, &stored.reference_hash)
-            || !scalar_matches(&self.database_hash, &stored.database_hash)
-            || !scalar_matches(&self.lineage_hash, &stored.lineage_hash)
+        if !scalar_matches(self.params_hash.as_ref(), stored.params_hash.as_ref())
+            || !scalar_matches(self.image_digest.as_ref(), stored.image_digest.as_ref())
+            || !scalar_matches(
+                self.stage_contract_hash.as_ref(),
+                stored.stage_contract_hash.as_ref(),
+            )
+            || !scalar_matches(self.reference_hash.as_ref(), stored.reference_hash.as_ref())
+            || !scalar_matches(self.database_hash.as_ref(), stored.database_hash.as_ref())
+            || !scalar_matches(self.lineage_hash.as_ref(), stored.lineage_hash.as_ref())
         {
             return BenchQueryContextMatch::NoMatch;
         }
@@ -142,10 +145,11 @@ impl BenchQueryContext {
     }
 }
 
-fn scalar_matches(requested: &Option<String>, stored: &Option<String>) -> bool {
-    requested
-        .as_ref()
-        .is_none_or(|requested_value| stored.as_ref() == Some(requested_value))
+fn scalar_matches(requested: Option<&String>, stored: Option<&String>) -> bool {
+    match requested {
+        Some(requested_value) => stored == Some(requested_value),
+        None => true,
+    }
 }
 
 #[cfg(test)]
