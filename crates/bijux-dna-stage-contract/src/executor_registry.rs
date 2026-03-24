@@ -51,6 +51,12 @@ const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Supported,
     },
     StageExecutorEntry {
+        stage_id: "fastq.infer_asvs",
+        executor: FASTQ_AMPLICON_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
         stage_id: "fastq.remove_chimeras",
         executor: FASTQ_AMPLICON_EXECUTOR,
         domain: StageDomain::Fastq,
@@ -431,8 +437,11 @@ mod tests {
     }
 
     #[test]
-    fn stage_executor_registry_omits_declared_only_fastq_stages() {
-        assert!(!has_executor("fastq.infer_asvs"));
-        assert_eq!(entry("fastq.infer_asvs"), None);
+    fn stage_executor_registry_tracks_supported_infer_asvs_executor() {
+        assert!(has_executor("fastq.infer_asvs"));
+        assert_eq!(
+            entry("fastq.infer_asvs").map(|value| value.executor),
+            Some(FASTQ_AMPLICON_EXECUTOR)
+        );
     }
 }

@@ -68,7 +68,7 @@ stage_contracts:
 expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
-version_cmd: "fastuniq -h"
+version_cmd: "fastuniq --version"
 help_cmd: "fastuniq -h"
 comparability:
   comparable_with: ["clumpify"]

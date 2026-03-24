@@ -8,6 +8,7 @@ install_kind: "container"
 license: "Public-Domain"
 citation: "pending:tool-publication"
 planned_stage_ids: ["fastq.filter_low_complexity"]
+stage_ids: ["fastq.filter_low_complexity"]
 stage_contracts:
   fastq.filter_low_complexity:
     required_inputs:
