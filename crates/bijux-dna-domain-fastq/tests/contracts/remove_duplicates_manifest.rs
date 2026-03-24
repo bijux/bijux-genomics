@@ -1,6 +1,15 @@
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
 
 use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize, Serialize)]
+struct ExternalToolAllowlist {
+    non_container_tools: BTreeMap<String, serde_json::Value>,
+}
 
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -19,7 +28,8 @@ fn tool_manifest(tool_id: &str) -> Result<serde_json::Value> {
 fn external_tool_allowlist() -> Result<serde_json::Value> {
     let path = workspace_root()?.join("configs/domain/external_tools.toml");
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let parsed: toml::Value = toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    let parsed: ExternalToolAllowlist =
+        bijux_dna_infra::formats::parse_toml(&raw).with_context(|| format!("parse {}", path.display()))?;
     serde_json::to_value(parsed).context("convert external tools TOML to JSON")
 }
 
