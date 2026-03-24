@@ -11,6 +11,9 @@ artifact_ids:
   - benchmark_cohort_json
   - chimera_filtered_reads
   - chimera_metrics_json
+  - chimera_tool_benchmark_cohort_json
+  - chimera_tool_comparison_json
+  - chimera_tool_normalization_json
   - chimeras_fasta
   - classification_report_json
   - contaminant_screen_report_json
@@ -43,6 +46,9 @@ artifact_ids:
   - host_depletion_tool_comparison_json
   - host_depletion_tool_normalization_json
   - host_depletion_report_json
+  - index_reference_tool_benchmark_cohort_json
+  - index_reference_tool_comparison_json
+  - index_reference_tool_normalization_json
   - removed_host_reads_r1
   - removed_host_reads_r2
   - length_distribution_json
@@ -57,6 +63,9 @@ artifact_ids:
   - merged_reads
   - multiqc_data
   - multiqc_report
+  - normalize_abundance_tool_benchmark_cohort_json
+  - normalize_abundance_tool_comparison_json
+  - normalize_abundance_tool_normalization_json
   - normalized_abundance_tsv
   - normalized_reads_r1
   - normalized_reads_r2
@@ -75,6 +84,9 @@ artifact_ids:
   - primer_normalization_tool_normalization_json
   - primer_orientation_report
   - primer_stats_json
+  - profile_reads_tool_benchmark_cohort_json
+  - profile_reads_tool_comparison_json
+  - profile_reads_tool_normalization_json
   - qc_json
   - qc_aggregation_tool_benchmark_cohort_json
   - qc_aggregation_tool_comparison_json
