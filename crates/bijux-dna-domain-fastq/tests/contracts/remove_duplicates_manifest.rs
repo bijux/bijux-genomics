@@ -16,6 +16,13 @@ fn tool_manifest(tool_id: &str) -> Result<serde_json::Value> {
     bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
+fn external_tool_allowlist() -> Result<serde_json::Value> {
+    let path = workspace_root()?.join("configs/domain/external_tools.toml");
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let parsed: toml::Value = toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+    serde_json::to_value(parsed).context("convert external tools TOML to JSON")
+}
+
 #[test]
 fn admitted_deduplicate_tools_only_compare_with_stage_peers() -> Result<()> {
     let remove_duplicates_tools = ["fastuniq", "clumpify"];
@@ -132,6 +139,22 @@ fn remove_duplicates_tool_manifests_do_not_emit_legacy_governed_reports() -> Res
         assert!(
             !command_template.contains("bijux.fastq.remove_duplicates.report.v1"),
             "{tool_id} command template must not advertise obsolete remove_duplicates report.v1 output",
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn governed_remove_duplicates_tools_are_not_marked_external_only() -> Result<()> {
+    let allowlist = external_tool_allowlist()?;
+    let external_tools = allowlist
+        .get("non_container_tools")
+        .and_then(serde_json::Value::as_object)
+        .context("non_container_tools missing")?;
+    for tool_id in ["fastuniq", "clumpify"] {
+        assert!(
+            !external_tools.contains_key(tool_id),
+            "{tool_id} is containerized for fastq.remove_duplicates and must not remain in configs/domain/external_tools.toml",
         );
     }
     Ok(())
