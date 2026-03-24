@@ -23,6 +23,16 @@ fn external_tool_allowlist() -> Result<serde_json::Value> {
     serde_json::to_value(parsed).context("convert external tools TOML to JSON")
 }
 
+fn remove_duplicates_fixture_tool_ids() -> Result<Vec<String>> {
+    let dir = workspace_root()?.join("domain/fastq/fixtures/fastq.remove_duplicates");
+    let mut tool_ids = std::fs::read_dir(&dir)?
+        .filter_map(|entry| entry.ok())
+        .filter_map(|entry| entry.path().file_stem().and_then(|stem| stem.to_str()).map(str::to_string))
+        .collect::<Vec<_>>();
+    tool_ids.sort();
+    Ok(tool_ids)
+}
+
 #[test]
 fn admitted_deduplicate_tools_only_compare_with_stage_peers() -> Result<()> {
     let remove_duplicates_tools = ["fastuniq", "clumpify"];
@@ -157,5 +167,15 @@ fn governed_remove_duplicates_tools_are_not_marked_external_only() -> Result<()>
             "{tool_id} is containerized for fastq.remove_duplicates and must not remain in configs/domain/external_tools.toml",
         );
     }
+    Ok(())
+}
+
+#[test]
+fn remove_duplicates_fixture_bank_tracks_admitted_tools() -> Result<()> {
+    assert_eq!(
+        remove_duplicates_fixture_tool_ids()?,
+        vec!["clumpify".to_string(), "fastuniq".to_string()],
+        "domain/fastq/fixtures/fastq.remove_duplicates must track the admitted governed tool surface",
+    );
     Ok(())
 }

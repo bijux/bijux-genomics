@@ -19,7 +19,6 @@ fn stage_output_bank_has_all_fastq_stage_files() {
         "fastq.merge_pairs.flash2.txt",
         "fastq.remove_duplicates.clumpify.txt",
         "fastq.remove_duplicates.fastuniq.txt",
-        "fastq.remove_duplicates.prinseq.txt",
         "fastq.filter_low_complexity.bbduk.txt",
         "fastq.filter_low_complexity.dustmasker.txt",
         "fastq.filter_low_complexity.prinseq.txt",
@@ -49,9 +48,6 @@ fn deduplicate_fixture_invariants_parse_metrics() -> Result<()> {
         ),
         include_str!(
             "../../fixtures/stage_output_bank/default/fastq.remove_duplicates.clumpify.txt"
-        ),
-        include_str!(
-            "../../fixtures/stage_output_bank/default/fastq.remove_duplicates.prinseq.txt"
         ),
     ];
     for raw in fixtures {
