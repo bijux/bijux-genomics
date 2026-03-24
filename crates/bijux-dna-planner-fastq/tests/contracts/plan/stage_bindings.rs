@@ -809,6 +809,46 @@ fn planner_uses_typed_merge_pairs_params_from_stage_binding() -> anyhow::Result<
 }
 
 #[test]
+fn planner_uses_manifest_default_merge_pairs_threads_without_binding_override(
+) -> anyhow::Result<()> {
+    let temp = bijux_dna_infra::temp_dir("fastq-merge-pairs-default-threads")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let r2 = temp.path().join("reads_R2.fastq");
+    std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
+    std::fs::write(&r2, b"@r1\nTTTT\n+\n####\n")?;
+
+    let plan = FastqPlanner::plan(&FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__merge_pairs_default_threads__v1".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: None,
+        stage_bindings: vec![FastqStageBinding {
+            stage_id: "fastq.merge_pairs".to_string(),
+            stage_instance_id: Some("fastq.merge_pairs.default".to_string()),
+            tool: tool_with_threads("pear", 2),
+            reason: None,
+            params: None,
+        }],
+        stage_toolsets: Vec::new(),
+        aux_images: BTreeMap::new(),
+        adapter_bank: None,
+        polyx_bank: None,
+        contaminant_bank: None,
+        enable_contaminant_removal: false,
+        r1,
+        r2: Some(r2),
+        reference_fasta: None,
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    })?;
+
+    let step = &plan.steps()[0];
+    assert_eq!(step.resources.threads, 6);
+    assert!(step.command.template[2].contains("\"threads\": 6"));
+    Ok(())
+}
+
+#[test]
 fn planner_uses_typed_normalize_primers_params_from_stage_binding() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-normalize-primers-stage-params")?;
     let r1 = temp.path().join("reads_R1.fastq");
