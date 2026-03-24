@@ -15,8 +15,8 @@ No execution details or runner/env concepts.
 Upstream: core IDs. Downstream: planners/engine.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/CONTRACT.md`, `docs/PUBLIC_API.md`, `docs/SCHEMAS.md`,
-`docs/VERSIONING.md`, `docs/MINIMALITY.md`, `docs/CHANGE_RULES.md`.
+See `crates/bijux-dna-stage-contract/docs/INDEX.md`, `crates/bijux-dna-stage-contract/docs/CONTRACT.md`, `crates/bijux-dna-stage-contract/docs/PUBLIC_API.md`, `crates/bijux-dna-stage-contract/docs/SCHEMAS.md`,
+`crates/bijux-dna-stage-contract/docs/VERSIONING.md`, `crates/bijux-dna-stage-contract/docs/MINIMALITY.md`, `crates/bijux-dna-stage-contract/docs/CHANGE_RULES.md`.
 
 ## Public types
 - `ExecutionPlan`
@@ -28,17 +28,17 @@ See `docs/INDEX.md`, `docs/CONTRACT.md`, `docs/PUBLIC_API.md`, `docs/SCHEMAS.md`
 Plan JSON shapes and fixtures.
 
 ## Artifacts / Contracts
-See `docs/CONTRACT.md`, `docs/SCHEMAS.md`, and snapshots under `tests/snapshots/`.
+See `crates/bijux-dna-stage-contract/docs/CONTRACT.md`, `crates/bijux-dna-stage-contract/docs/SCHEMAS.md`, and snapshots under `tests/snapshots/`.
 
 ## Effects & determinism guarantees
-Pure contract types; deterministic serialization. See `docs/EFFECTS.md` and the golden tests below.
+Pure contract types; deterministic serialization. See `crates/bijux-dna-stage-contract/docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/schema/public_type_snapshots.rs`,
+See `crates/bijux-dna-stage-contract/docs/TESTS.md`. Golden tests: `tests/schema/public_type_snapshots.rs`,
 `tests/schema/schema_snapshots.rs`, `tests/guardrails/no_execution_scan.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+Start at `crates/bijux-dna-stage-contract/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
 `src/lib.rs` and `src/execution_plan.rs`.
@@ -47,4 +47,4 @@ Start at `docs/INDEX.md` and follow the crate docs listed above.
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `crates/bijux-dna-stage-contract/docs/CHANGE_RULES.md`.

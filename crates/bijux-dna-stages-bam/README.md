@@ -10,7 +10,7 @@ No command assembly or tool selection.
 Upstream: domain contracts. Downstream: planners/analyze.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/PHASES.md`, `docs/STAGE_LIST.md`, `docs/STAGE_CONTRACTS.md`, `docs/OBSERVERS.md`, `docs/CHANGE_RULES.md`.
+See `crates/bijux-dna-stages-bam/docs/INDEX.md`, `crates/bijux-dna-stages-bam/docs/PHASES.md`, `crates/bijux-dna-stages-bam/docs/STAGE_LIST.md`, `crates/bijux-dna-stages-bam/docs/STAGE_CONTRACTS.md`, `crates/bijux-dna-stages-bam/docs/OBSERVERS.md`, `crates/bijux-dna-stages-bam/docs/CHANGE_RULES.md`.
 
 ## Phases and observer responsibilities
 - **Pre**: validation + alignment QC outputs.
@@ -23,16 +23,16 @@ Observers parse only documented tool outputs, ignore unknown fields, and require
 Stage report/metrics shape snapshots.
 
 ## Artifacts / Contracts
-See `docs/STAGE_CONTRACTS.md`, `docs/OBSERVERS.md`, and snapshots under `tests/snapshots/`.
+See `crates/bijux-dna-stages-bam/docs/STAGE_CONTRACTS.md`, `crates/bijux-dna-stages-bam/docs/OBSERVERS.md`, and snapshots under `tests/snapshots/`.
 
 ## Effects & determinism guarantees
-Pure parsing; deterministic snapshots. See `docs/EFFECTS.md` and the golden tests below.
+Pure parsing; deterministic snapshots. See `crates/bijux-dna-stages-bam/docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/contracts/contract_snapshots.rs`, `tests/observer/observer_determinism.rs`, `tests/metrics/metrics_completeness.rs`, `tests/contracts/structure_contract.rs`.
+See `crates/bijux-dna-stages-bam/docs/TESTS.md`. Golden tests: `tests/contracts/contract_snapshots.rs`, `tests/observer/observer_determinism.rs`, `tests/metrics/metrics_completeness.rs`, `tests/contracts/structure_contract.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+Start at `crates/bijux-dna-stages-bam/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
 `src/stage_specs.rs` → `src/observer.rs` → `src/plugin.rs`.
@@ -41,4 +41,4 @@ Start at `docs/INDEX.md` and follow the crate docs listed above.
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `crates/bijux-dna-stages-bam/docs/CHANGE_RULES.md`.
