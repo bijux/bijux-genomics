@@ -16,6 +16,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone)]
 pub struct MergePlanOptions {
+    pub threads: Option<u32>,
     pub merge_overlap: Option<u32>,
     pub min_length: Option<u32>,
     pub unmerged_read_policy: UnmergedReadPolicy,
@@ -24,6 +25,7 @@ pub struct MergePlanOptions {
 impl Default for MergePlanOptions {
     fn default() -> Self {
         Self {
+            threads: None,
             merge_overlap: None,
             min_length: None,
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
@@ -59,15 +61,18 @@ pub fn plan_merge_with_options(
     validate_merge_options(&tool.tool_id.0, options)?;
     let outputs = merge_outputs(&tool.tool_id.0, out_dir)?;
     let merge_engine = merge_engine(&tool.tool_id.0)?;
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = MergeEffectiveParams {
         schema_version: MERGE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
-        threads: tool.resources.threads,
+        threads: effective_threads,
         merge_overlap: options.merge_overlap,
         min_len: options.min_length,
         merge_engine,
         unmerged_read_policy: options.unmerged_read_policy.clone(),
     };
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -89,7 +94,7 @@ pub fn plan_merge_with_options(
                 &effective_params,
             )?,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO {
             inputs: vec![
                 ArtifactRef::required(
@@ -121,6 +126,7 @@ pub fn plan_merge_with_options(
             } else {
                 None
             },
+            "threads": effective_params.threads,
             "merge_overlap": effective_params.merge_overlap,
             "min_length": effective_params.min_len,
             "unmerged_read_policy": effective_params.unmerged_read_policy,

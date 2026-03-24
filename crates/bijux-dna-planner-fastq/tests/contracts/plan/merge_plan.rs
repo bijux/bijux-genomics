@@ -37,6 +37,7 @@ fn pear_merge_plan_maps_overlap_and_min_length() -> Result<()> {
         Path::new("reads_R2.fastq.gz"),
         Path::new("out"),
         &MergePlanOptions {
+            threads: None,
             merge_overlap: Some(24),
             min_length: Some(120),
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
@@ -64,6 +65,7 @@ fn flash2_merge_plan_rejects_min_length_policy() {
         Path::new("reads_R2.fastq.gz"),
         Path::new("out"),
         &MergePlanOptions {
+            threads: None,
             merge_overlap: None,
             min_length: Some(80),
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
@@ -84,6 +86,7 @@ fn leehom_merge_plan_rejects_unmerged_pair_outputs() {
         Path::new("reads_R2.fastq.gz"),
         Path::new("out"),
         &MergePlanOptions {
+            threads: None,
             merge_overlap: None,
             min_length: None,
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
@@ -104,6 +107,7 @@ fn vsearch_merge_plan_omits_unmerged_outputs_when_requested() -> Result<()> {
         Path::new("reads_R2.fastq.gz"),
         Path::new("out"),
         &MergePlanOptions {
+            threads: None,
             merge_overlap: Some(18),
             min_length: Some(90),
             unmerged_read_policy: UnmergedReadPolicy::OmitUnmergedPairs,

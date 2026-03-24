@@ -417,6 +417,8 @@ pub struct BenchFastqMergeArgs {
     #[arg(long, help = "Allow experimental and silver-tier tools")]
     pub allow_experimental: bool,
     #[arg(long)]
+    pub threads: Option<u32>,
+    #[arg(long)]
     pub merge_overlap: Option<u32>,
     #[arg(long)]
     pub min_length: Option<u32>,

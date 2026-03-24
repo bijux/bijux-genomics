@@ -170,6 +170,7 @@ impl Default for DetectAdaptersStageParams {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MergePairsStageParams {
+    pub threads: Option<u32>,
     pub merge_overlap: Option<u32>,
     pub min_len: Option<u32>,
     pub unmerged_read_policy:
@@ -179,6 +180,7 @@ pub struct MergePairsStageParams {
 impl Default for MergePairsStageParams {
     fn default() -> Self {
         Self {
+            threads: None,
             merge_overlap: None,
             min_len: None,
             unmerged_read_policy:

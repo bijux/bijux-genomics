@@ -24,6 +24,10 @@ outputs:
     data_type: "json"
     cardinality: "One"
 parameters:
+  - name: "threads"
+    param_type: "int"
+    default: "6"
+    meaning: "Worker threads for the governed merge invocation and resource envelope"
   - name: "merge_overlap"
     param_type: "int"
     default: "0"

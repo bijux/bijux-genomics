@@ -311,6 +311,7 @@ pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> Result<engine_args::Bench
         out: args.out.clone(),
         tools: resolve_bench_tools("fastq.merge_pairs", &args.tools)?,
         explain: args.explain,
+        threads: args.threads,
         merge_overlap: args.merge_overlap,
         min_length: args.min_length,
         unmerged_read_policy: args.unmerged_read_policy.clone(),

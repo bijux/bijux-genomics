@@ -763,6 +763,7 @@ fn planner_uses_typed_merge_pairs_params_from_stage_binding() -> anyhow::Result<
             tool: vsearch_tool(),
             reason: None,
             params: Some(FastqStageParameters::MergePairs(MergePairsStageParams {
+                threads: Some(7),
                 merge_overlap: Some(22),
                 min_len: Some(120),
                 unmerged_read_policy: UnmergedReadPolicy::OmitUnmergedPairs,
@@ -783,6 +784,7 @@ fn planner_uses_typed_merge_pairs_params_from_stage_binding() -> anyhow::Result<
 
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.merge_pairs.custom");
+    assert_eq!(step.resources.threads, 7);
     assert!(
         step.command.template[2].contains("'--fastq_minovlen' '22'"),
         "merge overlap flag missing from {:?}",
