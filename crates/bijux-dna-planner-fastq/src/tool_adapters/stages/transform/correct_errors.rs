@@ -606,7 +606,7 @@ mod tests {
         .expect("musket plan should accept explicit kmer size");
 
         assert_eq!(plan.effective_params["kmer_size"], serde_json::json!(31));
-        assert!(plan.command.template[2].contains("musket -p 2 -k 31"));
+        assert!(plan.command.template[2].contains("musket -p 1 -k 31"));
     }
 
     #[test]
@@ -678,7 +678,7 @@ mod tests {
         let script = &plan.command.template[2];
         assert!(script.contains(CORRECT_ERRORS_REPORT_SCHEMA_VERSION));
         assert!(script.contains("\"stage\":\"fastq.correct_errors\""));
-        assert!(script.contains("\"threads\":2"));
+        assert!(script.contains("\"threads\":1"));
         assert!(script.contains("\"quality_encoding\":\"phred64\""));
         assert!(script.contains("\"conservative_mode\":false"));
         assert!(script.contains("\"max_memory_gb\":24"));
