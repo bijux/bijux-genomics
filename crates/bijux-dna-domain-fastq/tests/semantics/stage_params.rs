@@ -299,6 +299,28 @@ fn merge_params_roundtrip_with_engine_specific_output_policy() {
 }
 
 #[test]
+fn merge_params_roundtrip_with_adapterremoval_engine() {
+    let params = MergeEffectiveParams {
+        schema_version: MERGE_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::PairedEnd,
+        threads: 8,
+        merge_overlap: Some(17),
+        min_len: Some(45),
+        merge_engine: MergeEngine::AdapterRemoval,
+        unmerged_read_policy: UnmergedReadPolicy::OmitUnmergedPairs,
+    };
+    let decoded: MergeEffectiveParams = roundtrip(&params);
+    assert_eq!(decoded.merge_engine, MergeEngine::AdapterRemoval);
+    assert_eq!(decoded.merge_overlap, Some(17));
+    assert_eq!(decoded.min_len, Some(45));
+    assert_eq!(
+        decoded.unmerged_read_policy,
+        UnmergedReadPolicy::OmitUnmergedPairs,
+    );
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
 fn chimera_params_roundtrip_with_sequence_artifact_contract() {
     let params = ChimeraDetectionEffectiveParams {
         threads: 4,

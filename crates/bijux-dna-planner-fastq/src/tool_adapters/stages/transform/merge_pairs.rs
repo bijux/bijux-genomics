@@ -153,6 +153,13 @@ struct MergeOutputs {
 fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
     let report_json = out_dir.join("merge_report.json");
     let outputs = match tool {
+        "adapterremoval" => MergeOutputs {
+            merged_reads: out_dir.join("adapterremoval.collapsed.gz"),
+            unmerged_reads_r1: Some(out_dir.join("adapterremoval.pair1.truncated.gz")),
+            unmerged_reads_r2: Some(out_dir.join("adapterremoval.pair2.truncated.gz")),
+            report_json,
+            raw_backend_report_txt: Some(out_dir.join("adapterremoval.settings")),
+        },
         "pear" => {
             let prefix = out_dir.join("pear");
             MergeOutputs {
@@ -198,6 +205,7 @@ fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
 
 fn merge_engine(tool: &str) -> Result<MergeEngine> {
     let engine = match tool {
+        "adapterremoval" => MergeEngine::AdapterRemoval,
         "pear" => MergeEngine::Pear,
         "vsearch" => MergeEngine::Vsearch,
         "bbmerge" => MergeEngine::Bbmerge,
@@ -249,7 +257,7 @@ fn merge_artifacts(
 }
 
 fn validate_merge_options(tool: &str, options: &MergePlanOptions) -> Result<()> {
-    if options.min_length.is_some() && !matches!(tool, "pear" | "vsearch") {
+    if options.min_length.is_some() && !matches!(tool, "adapterremoval" | "pear" | "vsearch") {
         return Err(anyhow!(
             "merge planning does not yet map min_length for {tool}"
         ));
@@ -345,6 +353,70 @@ fn base_merge_command(
     effective_params: &MergeEffectiveParams,
 ) -> Result<String> {
     let command = match tool {
+        "adapterremoval" => {
+            let unmerged_r1 = if effective_params.unmerged_read_policy
+                == UnmergedReadPolicy::EmitUnmergedPairs
+            {
+                outputs
+                    .unmerged_reads_r1
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("adapterremoval merge requires unmerged_reads_r1 output"))?
+                    .display()
+                    .to_string()
+            } else {
+                "/dev/null".to_string()
+            };
+            let unmerged_r2 = if effective_params.unmerged_read_policy
+                == UnmergedReadPolicy::EmitUnmergedPairs
+            {
+                outputs
+                    .unmerged_reads_r2
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("adapterremoval merge requires unmerged_reads_r2 output"))?
+                    .display()
+                    .to_string()
+            } else {
+                "/dev/null".to_string()
+            };
+            let mut command = vec![
+                "AdapterRemoval".to_string(),
+                "--threads".to_string(),
+                effective_params.threads.to_string(),
+                "--file1".to_string(),
+                r1.display().to_string(),
+                "--file2".to_string(),
+                r2.display().to_string(),
+                "--collapse-deterministic".to_string(),
+                "--gzip".to_string(),
+                "--output1".to_string(),
+                unmerged_r1,
+                "--output2".to_string(),
+                unmerged_r2,
+                "--outputcollapsed".to_string(),
+                outputs.merged_reads.display().to_string(),
+                "--settings".to_string(),
+                outputs
+                    .raw_backend_report_txt
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("adapterremoval merge requires raw backend settings output"))?
+                    .display()
+                    .to_string(),
+                "--singleton".to_string(),
+                "/dev/null".to_string(),
+                "--discarded".to_string(),
+                "/dev/null".to_string(),
+            ];
+            if let Some(merge_overlap) = effective_params.merge_overlap {
+                command.extend([
+                    "--minalignmentlength".to_string(),
+                    merge_overlap.to_string(),
+                ]);
+            }
+            if let Some(min_len) = effective_params.min_len {
+                command.extend(["--minlength".to_string(), min_len.to_string()]);
+            }
+            command
+        }
         "pear" => {
             let prefix = out_dir.join("pear");
             let mut command = vec![
@@ -489,6 +561,7 @@ fn option_json_string(value: Option<&str>) -> String {
 
 fn merge_raw_backend_report_format(tool: &str) -> Option<&'static str> {
     match tool {
+        "adapterremoval" => Some("adapterremoval_settings"),
         "pear" => Some("pear_log"),
         "vsearch" => Some("vsearch_log"),
         "bbmerge" => Some("bbmerge_log"),
