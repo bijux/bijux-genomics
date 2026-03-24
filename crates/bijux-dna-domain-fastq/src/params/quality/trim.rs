@@ -156,13 +156,15 @@ pub fn default_terminal_damage_execution_policy() -> TerminalDamageExecutionPoli
 }
 
 #[must_use]
+/// # Panics
+/// Panics only if the built-in default terminal-damage contract becomes internally inconsistent.
 pub fn resolve_terminal_damage_policy(
     damage_mode: DamageMode,
     trim_5p_bases: u32,
     trim_3p_bases: u32,
 ) -> ResolvedTerminalDamagePolicy {
     resolve_terminal_damage_policy_with_override(damage_mode, trim_5p_bases, trim_3p_bases, None)
-        .expect("derived terminal damage policy must always be valid")
+        .unwrap_or_else(|err| panic!("derived terminal damage policy must always be valid: {err}"))
 }
 
 /// # Errors
@@ -214,9 +216,8 @@ pub fn resolve_terminal_damage_policy_with_override(
                 || trim_3p_bases != DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES
             {
                 return Err(anyhow!(
-                    "preserve_udg_trimmed_ends requires the governed default trim window (5p={}, 3p={})",
-                    DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES,
-                    DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES
+                    "preserve_udg_trimmed_ends requires the governed default trim window \
+(5p={DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES}, 3p={DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES})"
                 ));
             }
             Ok(ResolvedTerminalDamagePolicy {

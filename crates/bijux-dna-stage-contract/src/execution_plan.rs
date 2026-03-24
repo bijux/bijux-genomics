@@ -168,7 +168,7 @@ impl ExecutionPlan {
         edges: Vec<PlanEdge>,
     ) -> Result<Self> {
         let mut stages = stages;
-        stages.sort_by(|a, b| stage_node_id(a).cmp(&stage_node_id(b)));
+        stages.sort_by_key(stage_node_id);
         let mut edges = edges;
         edges.sort_by(|a, b| match a.from.cmp(&b.from) {
             std::cmp::Ordering::Equal => a.to.cmp(&b.to),

@@ -188,8 +188,7 @@ impl ExecutionGraph {
         while let Some(node_id) = ready.pop() {
             let step = self.step_by_id(node_id).ok_or_else(|| {
                 BijuxError::validation(format!(
-                    "execution graph topological walk could not resolve step {}",
-                    node_id
+                    "execution graph topological walk could not resolve step {node_id}"
                 ))
             })?;
             order.push(&step.step_id);

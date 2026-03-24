@@ -93,8 +93,8 @@ fn tool_layout_manifests() -> &'static BTreeMap<(String, String), StageToolInput
             include_str!("../../../domain/fastq/tools/vsearch.yaml"),
             include_str!("../../../domain/fastq/tools/alientrimmer.yaml"),
         ] {
-            let manifest: ToolLayoutManifestRecord =
-                serde_yaml::from_str(raw).expect("parse fastq tool layout manifest");
+            let manifest: ToolLayoutManifestRecord = serde_yaml::from_str(raw)
+                .unwrap_or_else(|err| panic!("parse fastq tool layout manifest: {err}"));
             for (stage_id, stage_contract) in manifest.stage_contracts {
                 let requires_reads_r2 = stage_contract
                     .required_inputs
@@ -178,7 +178,7 @@ pub struct StageBenchmarkGovernance {
 
 impl StageBenchmarkGovernance {
     #[must_use]
-    pub fn has_governed_benchmark_contract(self: &Self) -> bool {
+    pub fn has_governed_benchmark_contract(&self) -> bool {
         !self.scenarios.is_empty()
             && !self.comparison_input_artifact_ids.is_empty()
             && !self.comparison_artifact_ids.is_empty()
@@ -219,27 +219,26 @@ pub struct StageToolCapabilityContract {
 
 impl StageToolGovernanceProfile {
     #[must_use]
-    pub fn is_plannable(self: &Self) -> bool {
+    pub fn is_plannable(&self) -> bool {
         self.integration_level == ToolIntegrationLevel::GovernedContract
             && self.planning_support == Some(PlanningSupport::StageFamily)
     }
 
     #[must_use]
-    pub fn is_runnable(self: &Self) -> bool {
+    pub fn is_runnable(&self) -> bool {
         self.integration_level == ToolIntegrationLevel::GovernedContract
             && self.runtime_support == Some(RuntimeSupport::Runnable)
             && self.admitted_runtime_tool
     }
 
     #[must_use]
-    pub fn has_governed_benchmark_contract(self: &Self) -> bool {
+    pub fn has_governed_benchmark_contract(&self) -> bool {
         stage_benchmark_governance(&self.stage_id)
-            .map(|governance| governance.has_governed_benchmark_contract())
-            .unwrap_or(false)
+            .is_some_and(|governance| governance.has_governed_benchmark_contract())
     }
 
     #[must_use]
-    pub fn normalization_maturity(self: &Self) -> StageToolNormalizationMaturity {
+    pub fn normalization_maturity(&self) -> StageToolNormalizationMaturity {
         if !self.is_runnable() {
             return StageToolNormalizationMaturity::None;
         }
@@ -255,7 +254,7 @@ impl StageToolGovernanceProfile {
     }
 
     #[must_use]
-    pub fn benchmark_contract_maturity(self: &Self) -> StageToolBenchmarkContractMaturity {
+    pub fn benchmark_contract_maturity(&self) -> StageToolBenchmarkContractMaturity {
         if !self.is_runnable() || !self.has_governed_benchmark_contract() {
             return StageToolBenchmarkContractMaturity::None;
         }
@@ -285,7 +284,7 @@ pub fn stage_benchmark_governance(stage_id: &StageId) -> Option<StageBenchmarkGo
             contract
                 .comparison_input_artifact_ids
                 .iter()
-                .map(|artifact_id| (*artifact_id).to_string())
+                .map(|artifact_id| (*artifact_id).clone())
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default();
@@ -296,9 +295,9 @@ pub fn stage_benchmark_governance(stage_id: &StageId) -> Option<StageBenchmarkGo
         .as_ref()
         .map(|contract| {
             vec![
-                contract.cohort_artifact_id.to_string(),
-                contract.comparison_artifact_id.to_string(),
-                contract.normalization_artifact_id.to_string(),
+                contract.cohort_artifact_id.clone(),
+                contract.comparison_artifact_id.clone(),
+                contract.normalization_artifact_id.clone(),
             ]
         })
         .unwrap_or_default();
@@ -337,15 +336,12 @@ pub fn stage_tool_governance_profile(
             .as_ref()
             .and_then(|record| record.default_tool.as_ref())
             == Some(tool_id),
-        admitted_runtime_tool: support
-            .as_ref()
-            .map(|record| {
-                record
-                    .admitted_tools
-                    .iter()
-                    .any(|candidate| candidate == tool_id)
-            })
-            .unwrap_or(false),
+        admitted_runtime_tool: support.as_ref().is_some_and(|record| {
+            record
+                .admitted_tools
+                .iter()
+                .any(|candidate| candidate == tool_id)
+        }),
         benchmark_scenario_ids: benchmark_governance
             .as_ref()
             .map(|governance| {
