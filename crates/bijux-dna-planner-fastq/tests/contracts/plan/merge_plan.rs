@@ -69,7 +69,7 @@ fn flash2_merge_plan_rejects_min_length_policy() {
         Path::new("reads_R2.fastq.gz"),
         Path::new("out"),
         &MergePlanOptions {
-            threads: None,
+            threads: Some(6),
             merge_overlap: None,
             min_length: Some(80),
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
@@ -80,6 +80,52 @@ fn flash2_merge_plan_rejects_min_length_policy() {
     assert!(err
         .to_string()
         .contains("merge planning does not yet map min_length for flash2"));
+}
+
+#[test]
+fn bbmerge_merge_plan_maps_threads() -> Result<()> {
+    let plan = plan_merge_with_options(
+        &tool("bbmerge"),
+        Path::new("reads_R1.fastq.gz"),
+        Path::new("reads_R2.fastq.gz"),
+        Path::new("out"),
+        &MergePlanOptions {
+            threads: Some(8),
+            merge_overlap: Some(20),
+            min_length: None,
+            unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
+        },
+    )?;
+
+    let script = &plan.command.template[2];
+    assert!(script.contains("'threads=8'"));
+    assert!(script.contains("'minoverlap=20'"));
+    assert!(script.contains("\"threads\": 8"));
+    assert_eq!(plan.resources.threads, 8);
+    Ok(())
+}
+
+#[test]
+fn flash2_merge_plan_maps_threads() -> Result<()> {
+    let plan = plan_merge_with_options(
+        &tool("flash2"),
+        Path::new("reads_R1.fastq.gz"),
+        Path::new("reads_R2.fastq.gz"),
+        Path::new("out"),
+        &MergePlanOptions {
+            threads: Some(6),
+            merge_overlap: Some(15),
+            min_length: None,
+            unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
+        },
+    )?;
+
+    let script = &plan.command.template[2];
+    assert!(script.contains("'flash2' '-o' 'flash2' '-d' 'out' '-t' '6'"));
+    assert!(script.contains("'15'"));
+    assert!(script.contains("\"threads\": 6"));
+    assert_eq!(plan.resources.threads, 6);
+    Ok(())
 }
 
 #[test]
