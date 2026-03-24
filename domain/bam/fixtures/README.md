@@ -1,6 +1,6 @@
 # BAM Fixture Format
 
-Each fixture file under `domain/bam/fixtures/<stage>/*.txt` must define:
+Each fixture file under domain/bam/fixtures/STAGE_ID/*.txt must define:
 - `tool=<tool_id>`
 - `tool_version=<pinned|semver|digest>`
 - `stage=<domain.stage>`

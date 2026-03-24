@@ -18,10 +18,10 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_t
 - Emit stage metrics, stage report, `bench.jsonl`, and `bench.sqlite` outputs.
 
 ## Step 4 Collect/Report
-- Collect outputs under `artifacts/examples/fastq_trim_reads_bench/`.
+- Collect outputs under artifacts/examples/fastq_trim_reads_bench/.
 - Use the resulting bench bundle for local review or cluster-side replay.
 
 ## HPC Run
 - Preferred command:
-  `cargo run -q -p bijux-dna -- bench fastq trim-reads --sample-id trim-reads-hpc --r1 <reads.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8 --adapter-bank-preset illumina-default --polyx-preset illumina_twocolor --contaminant-preset illumina_default`
+  `cargo run -q -p bijux-dna bench fastq trim-reads --sample-id trim-reads-hpc --r1 <reads.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8 --adapter-bank-preset illumina-default --polyx-preset illumina_twocolor --contaminant-preset illumina_default`
 - Increase `--replicates` and `--jobs` at the scheduler layer rather than changing the example contract.

@@ -15,4 +15,4 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_e
 - Execute the UMI extraction benchmark flow using the example-pinned suite.
 
 ## Step 4 Collect/Report
-- Collect outputs in `artifacts/examples/fastq_extract_umis_bench/` and produce `bundle.tar.gz`.
+- Collect outputs in artifacts/examples/fastq_extract_umis_bench/ and produce `bundle.tar.gz`.

@@ -1,6 +1,6 @@
 # VCF Fixture Format
 
-Each fixture file under `domain/vcf/fixtures/<stage>/*.txt` must define:
+Each fixture file under domain/vcf/fixtures/STAGE_ID/*.txt must define:
 - `tool=<tool_id>`
 - `tool_version=<pinned|semver|digest>`
 - `stage=<domain.stage>`

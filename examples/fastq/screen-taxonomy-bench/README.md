@@ -27,5 +27,5 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_s
 
 ## HPC Run
 - Preferred command:
-  `cargo run -q -p bijux-dna -- bench fastq screen-taxonomy --sample-id screen-taxonomy-hpc --r1 <reads.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8`
+  `cargo run -q -p bijux-dna bench fastq screen-taxonomy --sample-id screen-taxonomy-hpc --r1 <reads.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8`
 - Keep taxonomy database selection pinned at the scheduler or image level so cross-tool comparisons stay interpretable.
