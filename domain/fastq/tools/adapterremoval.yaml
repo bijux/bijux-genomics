@@ -16,9 +16,27 @@ command_template:
   - "--output1"
   - "{{trimmed_reads}}"
 outputs:
-  - name: "trimmed_reads"
+  - name: "trimmed_reads_r1"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "merged_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unmerged_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unmerged_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "raw_backend_report_txt"
+    data_type: "text"
+    cardinality: "One"
 metrics_parser: "fastq_trim_v1"
 constraints:
   runtime: "local"
@@ -31,7 +49,13 @@ execution_contract:
   optional_inputs:
     - "reads_r2"
   expected_outputs:
-    - "adapterremoval.fastq.gz"
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
+    - "merged_reads"
+    - "unmerged_reads_r1"
+    - "unmerged_reads_r2"
+    - "report_json"
+    - "raw_backend_report_txt"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 
@@ -42,7 +66,7 @@ default_version: "2.3.3"
 install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
-stage_ids: ["fastq.trim_reads", "fastq.trim_terminal_damage"]
+stage_ids: ["fastq.trim_reads", "fastq.trim_terminal_damage", "fastq.merge_pairs"]
 stage_contracts:
   fastq.trim_reads:
     required_inputs:
@@ -62,9 +86,20 @@ stage_contracts:
       - "trimmed_reads_r2"
       - "report_json"
     notes: "AdapterRemoval terminal-damage trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed damage-trim report without a backend-native raw report artifact."
-expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
-metrics_schema_id: "bijux.fastq.trim_reads.v1"
-metrics_schema: "bijux.fastq.trim_reads.v1"
+  fastq.merge_pairs:
+    required_inputs:
+      - "reads_r1"
+      - "reads_r2"
+    expected_artifacts:
+      - "merged_reads"
+      - "unmerged_reads_r1"
+      - "unmerged_reads_r2"
+      - "report_json"
+      - "raw_backend_report_txt"
+    notes: "AdapterRemoval merge mode emits governed merged and unmerged read artifacts, the canonical merge report, and the native AdapterRemoval settings file for provenance."
+expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "adapterremoval --version"
 help_cmd: "adapterremoval --help"
 comparability:
