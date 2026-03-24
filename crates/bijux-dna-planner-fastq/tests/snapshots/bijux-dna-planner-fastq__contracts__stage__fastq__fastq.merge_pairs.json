@@ -12,14 +12,14 @@
     "template": [
       "bash",
       "-lc",
-      "set -euo pipefail\ncount_fastq_reads() {\n  local path=\"$1\"\n  if [ ! -f \"$path\" ]; then printf '0'; return; fi\n  case \"$path\" in\n    *.gz) gzip -dc \"$path\" ;;\n    *) cat \"$path\" ;;\n  esac | awk 'END { printf \"%d\", int(NR/4) }'\n}\n'pear' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz' '-o' 'out/pear'\nreads_r1=$(count_fastq_reads 'reads_R1.fastq.gz')\nreads_r2=$(count_fastq_reads 'reads_R2.fastq.gz')\nreads_merged=$(count_fastq_reads 'out/pear.assembled.fastq')\npairs_in=$reads_r1\nif [ \"$reads_r2\" -lt \"$pairs_in\" ]; then pairs_in=$reads_r2; fi\nreads_unmerged=$(( pairs_in - reads_merged ))\nif [ \"$reads_unmerged\" -lt 0 ]; then reads_unmerged=0; fi\nif [ 1 = 1 ]; then\n  if [ -n 'out/pear.unassembled.forward.fastq' ] && [ -n 'out/pear.unassembled.reverse.fastq' ]; then\n    reads_unmerged_r1=$(count_fastq_reads 'out/pear.unassembled.forward.fastq')\n    reads_unmerged_r2=$(count_fastq_reads 'out/pear.unassembled.reverse.fastq')\n    reads_unmerged=$reads_unmerged_r1\n    if [ \"$reads_unmerged_r2\" -lt \"$reads_unmerged\" ]; then reads_unmerged=$reads_unmerged_r2; fi\n  fi\nelse\n  rm -f 'out/pear.unassembled.forward.fastq' 'out/pear.unassembled.reverse.fastq'\nfi\nmerge_rate=$(awk -v merged=\"$reads_merged\" -v pairs=\"$pairs_in\" 'BEGIN { if (pairs > 0) printf \"%.6f\", merged / pairs; else printf \"0.000000\" }')\ncat > 'out/merge_report.json' <<EOF\n{\n  \"schema_version\": \"bijux.fastq.merge_pairs.report.v2\",\n  \"stage\": \"fastq.merge_pairs\",\n  \"stage_id\": \"fastq.merge_pairs\",\n  \"tool_id\": \"pear\",\n  \"paired_mode\": \"paired_end\",\n  \"merge_engine\": \"pear\",\n  \"threads\": 2,\n  \"merge_overlap\": null,\n  \"min_len\": null,\n  \"unmerged_read_policy\": \"emit_unmerged_pairs\",\n  \"input_r1\": \"reads_R1.fastq.gz\",\n  \"input_r2\": \"reads_R2.fastq.gz\",\n  \"merged_reads\": \"out/pear.assembled.fastq\",\n  \"unmerged_reads_r1\": \"out/pear.unassembled.forward.fastq\",\n  \"unmerged_reads_r2\": \"out/pear.unassembled.reverse.fastq\",\n  \"reads_r1\": $reads_r1,\n  \"reads_r2\": $reads_r2,\n  \"reads_merged\": $reads_merged,\n  \"reads_unmerged\": $reads_unmerged,\n  \"merge_rate\": $merge_rate,\n  \"runtime_s\": null,\n  \"memory_mb\": null,\n  \"raw_backend_report\": null,\n  \"raw_backend_report_format\": null\n}\nEOF\n"
+      "set -euo pipefail\ncount_fastq_reads() {\n  local path=\"$1\"\n  if [ ! -f \"$path\" ]; then printf '0'; return; fi\n  case \"$path\" in\n    *.gz) gzip -dc \"$path\" ;;\n    *) cat \"$path\" ;;\n  esac | awk 'END { printf \"%d\", int(NR/4) }'\n}\n'pear' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz' '-o' 'out/pear' '-j' '6' > 'out/pear.log' 2>&1\nreads_r1=$(count_fastq_reads 'reads_R1.fastq.gz')\nreads_r2=$(count_fastq_reads 'reads_R2.fastq.gz')\nreads_merged=$(count_fastq_reads 'out/pear.assembled.fastq')\npairs_in=$reads_r1\nif [ \"$reads_r2\" -lt \"$pairs_in\" ]; then pairs_in=$reads_r2; fi\nreads_unmerged=$(( pairs_in - reads_merged ))\nif [ \"$reads_unmerged\" -lt 0 ]; then reads_unmerged=0; fi\nif [ 1 = 1 ]; then\n  if [ -n 'out/pear.unassembled.forward.fastq' ] && [ -n 'out/pear.unassembled.reverse.fastq' ]; then\n    reads_unmerged_r1=$(count_fastq_reads 'out/pear.unassembled.forward.fastq')\n    reads_unmerged_r2=$(count_fastq_reads 'out/pear.unassembled.reverse.fastq')\n    reads_unmerged=$reads_unmerged_r1\n    if [ \"$reads_unmerged_r2\" -lt \"$reads_unmerged\" ]; then reads_unmerged=$reads_unmerged_r2; fi\n  fi\nelse\n  rm -f 'out/pear.unassembled.forward.fastq' 'out/pear.unassembled.reverse.fastq'\nfi\nmerge_rate=$(awk -v merged=\"$reads_merged\" -v pairs=\"$pairs_in\" 'BEGIN { if (pairs > 0) printf \"%.6f\", merged / pairs; else printf \"0.000000\" }')\ncat > 'out/merge_report.json' <<EOF\n{\n  \"schema_version\": \"bijux.fastq.merge_pairs.report.v2\",\n  \"stage\": \"fastq.merge_pairs\",\n  \"stage_id\": \"fastq.merge_pairs\",\n  \"tool_id\": \"pear\",\n  \"paired_mode\": \"paired_end\",\n  \"merge_engine\": \"pear\",\n  \"threads\": 6,\n  \"merge_overlap\": null,\n  \"min_len\": null,\n  \"unmerged_read_policy\": \"emit_unmerged_pairs\",\n  \"input_r1\": \"reads_R1.fastq.gz\",\n  \"input_r2\": \"reads_R2.fastq.gz\",\n  \"merged_reads\": \"out/pear.assembled.fastq\",\n  \"unmerged_reads_r1\": \"out/pear.unassembled.forward.fastq\",\n  \"unmerged_reads_r2\": \"out/pear.unassembled.reverse.fastq\",\n  \"reads_r1\": $reads_r1,\n  \"reads_r2\": $reads_r2,\n  \"reads_merged\": $reads_merged,\n  \"reads_unmerged\": $reads_unmerged,\n  \"merge_rate\": $merge_rate,\n  \"runtime_s\": null,\n  \"memory_mb\": null,\n  \"raw_backend_report\": \"out/pear.log\",\n  \"raw_backend_report_format\": \"pear_log\"\n}\nEOF\n"
     ]
   },
   "resources": {
     "runtime": "local",
     "mem_gb": 8,
     "tmp_gb": 4,
-    "threads": 2
+    "threads": 6
   },
   "io": {
     "inputs": [
@@ -60,6 +60,12 @@
         "path": "out/merge_report.json",
         "role": "metrics_json",
         "optional": false
+      },
+      {
+        "name": "raw_backend_report_txt",
+        "path": "out/pear.log",
+        "role": "log",
+        "optional": true
       }
     ]
   },
@@ -70,7 +76,9 @@
     "min_length": null,
     "r1": "reads_R1.fastq.gz",
     "r2": "reads_R2.fastq.gz",
+    "raw_backend_report_txt": "out/pear.log",
     "report_json": "out/merge_report.json",
+    "threads": 6,
     "tool": "pear",
     "unmerged_read_policy": "emit_unmerged_pairs",
     "unmerged_reads_r1": "out/pear.unassembled.forward.fastq",
@@ -82,7 +90,7 @@
     "min_len": null,
     "paired_mode": "paired_end",
     "schema_version": "bijux.fastq.params.merge_pairs.v1",
-    "threads": 2,
+    "threads": 6,
     "unmerged_read_policy": "emit_unmerged_pairs"
   },
   "aux_images": {},
