@@ -339,7 +339,7 @@ active_defaults:
   fastq.report_qc: multiqc
   fastq.screen_taxonomy: kraken2
   fastq.merge_pairs: pear
-  fastq.remove_duplicates: fastuniq
+  fastq.remove_duplicates: clumpify
   fastq.filter_low_complexity: bbduk
   fastq.deplete_host: bowtie2
   fastq.correct_errors: rcorrector

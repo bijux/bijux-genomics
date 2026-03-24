@@ -139,7 +139,7 @@ stages:
     runtime_support: "runnable"
     normalization_support: "observer_specialized"
     benchmark_support: "cohort"
-    default_tool: "fastuniq"
+    default_tool: "clumpify"
     admitted_tools:
       - "fastuniq"
       - "clumpify"
