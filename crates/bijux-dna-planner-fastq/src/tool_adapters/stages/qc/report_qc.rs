@@ -292,7 +292,11 @@ fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContribu
         left.contributor_id
             .cmp(&right.contributor_id)
             .then_with(|| left.artifact_id.cmp(&right.artifact_id))
-            .then_with(|| left.artifact_role.as_str().cmp(right.artifact_role.as_str()))
+            .then_with(|| {
+                left.artifact_role
+                    .as_str()
+                    .cmp(right.artifact_role.as_str())
+            })
             .then_with(|| left.path.cmp(&right.path))
     });
     contributors.dedup_by(|left, right| {
@@ -471,7 +475,7 @@ mod tests {
             std::path::Path::new("out/governed_qc_inputs_manifest.json"),
             std::path::Path::new("out/report_qc_report.json"),
             &bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams {
-                schema_version: "bijux.fastq.params.report_qc.v1".to_string(),
+                schema_version: REPORT_QC_SCHEMA_VERSION.to_string(),
                 paired_mode: PairedMode::SingleEnd,
                 aggregation_engine: QcAggregationEngine::Multiqc,
                 aggregation_scope: QcAggregationScope::GovernedQcArtifacts,

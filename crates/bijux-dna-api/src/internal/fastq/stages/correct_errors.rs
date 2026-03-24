@@ -34,8 +34,8 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_CORRECT_ERRORS,
 };
 use bijux_dna_domain_fastq::{
-    params::correct::FastqCorrectParams, CorrectErrorsReportV1,
-    CORRECT_ERRORS_REPORT_SCHEMA_VERSION,
+    params::correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION},
+    CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_stage_contract::StagePlanV1;
@@ -382,8 +382,7 @@ fn build_correct_record(
         execution,
         outputs_changed,
     )?;
-    bijux_dna_infra::atomic_write_json(&report_path, &report)
-        .context("write correction report")?;
+    bijux_dna_infra::atomic_write_json(&report_path, &report).context("write correction report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write correction metrics")?;
@@ -478,7 +477,9 @@ fn kmer_fix_rate_proxy(mean_q_before: f64, mean_q_after: f64, outputs_changed: b
     ((mean_q_after - mean_q_before) / mean_q_after.max(1.0)).clamp(f64::EPSILON, 1.0)
 }
 
-fn decode_effective_correct_params(effective_params: &serde_json::Value) -> Result<FastqCorrectParams> {
+fn decode_effective_correct_params(
+    effective_params: &serde_json::Value,
+) -> Result<FastqCorrectParams> {
     serde_json::from_value(effective_params.clone()).context("decode effective correction params")
 }
 
@@ -818,7 +819,7 @@ mod tests {
             None,
             std::path::Path::new("correct_report.json"),
             &serde_json::json!({
-                "schema_version": "bijux.fastq.params.correct.v1",
+                "schema_version": CORRECT_SCHEMA_VERSION,
                 "paired_mode": "single_end",
                 "threads": 8,
                 "correction_engine": "lighter",
@@ -845,7 +846,10 @@ mod tests {
 
         assert_eq!(report.tool_id, "lighter");
         assert_eq!(report.threads, 8);
-        assert_eq!(report.correction_engine, bijux_dna_domain_fastq::params::correct::CorrectionEngine::Lighter);
+        assert_eq!(
+            report.correction_engine,
+            bijux_dna_domain_fastq::params::correct::CorrectionEngine::Lighter
+        );
         assert_eq!(
             report.trusted_kmer_artifact,
             Some(std::path::PathBuf::from("trusted.kmers"))
