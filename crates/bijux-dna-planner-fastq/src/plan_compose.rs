@@ -1422,6 +1422,7 @@ fn merge_pairs_plan_options(
         _ => MergePairsStageParams::default(),
     };
     crate::tool_adapters::fastq::merge_pairs::MergePlanOptions {
+        threads: params.threads,
         merge_overlap: params.merge_overlap,
         min_length: params.min_len,
         unmerged_read_policy: params.unmerged_read_policy,

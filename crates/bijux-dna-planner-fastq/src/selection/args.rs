@@ -162,6 +162,7 @@ pub struct BenchFastqMergeArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub threads: Option<u32>,
     pub merge_overlap: Option<u32>,
     pub min_length: Option<u32>,
     pub unmerged_read_policy: Option<String>,

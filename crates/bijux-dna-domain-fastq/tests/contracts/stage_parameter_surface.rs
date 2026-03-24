@@ -113,6 +113,11 @@ fn cleanup_stage_manifests_keep_distinct_parameter_surfaces() -> Result<()> {
         vec!["threads", "dedup_mode", "keep_order"],
         "fastq.remove_duplicates must expose the governed duplicate semantics used by benchmark cohorts and stage plans"
     );
+    assert_eq!(
+        stage_parameter_names("merge_pairs")?,
+        vec!["threads", "merge_overlap", "min_len", "unmerged_read_policy"],
+        "fastq.merge_pairs must expose worker threads together with overlap and unmerged-read policy controls"
+    );
     Ok(())
 }
 

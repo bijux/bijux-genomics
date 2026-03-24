@@ -50,6 +50,7 @@ fn merge_plan_options(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs,
 ) -> Result<MergePlanOptions> {
     Ok(MergePlanOptions {
+        threads: args.threads,
         merge_overlap: args.merge_overlap,
         min_length: args.min_length,
         unmerged_read_policy: parse_unmerged_read_policy(args.unmerged_read_policy.as_deref())?,
@@ -296,6 +297,7 @@ mod tests {
             out: PathBuf::from("out"),
             tools: vec!["pear".to_string()],
             explain: false,
+            threads: Some(7),
             merge_overlap: Some(22),
             min_length: Some(120),
             unmerged_read_policy: Some("omit_unmerged_pairs".to_string()),
@@ -305,6 +307,7 @@ mod tests {
         };
 
         let options = merge_plan_options(&args).expect("merge plan options");
+        assert_eq!(options.threads, Some(7));
         assert_eq!(options.merge_overlap, Some(22));
         assert_eq!(options.min_length, Some(120));
         assert_eq!(
