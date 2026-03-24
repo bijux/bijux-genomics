@@ -30,6 +30,80 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
 }
 
 #[test]
+fn adapterremoval_merge_plan_maps_deterministic_collapse_contract() -> Result<()> {
+    let plan = plan_merge_with_options(
+        &tool("adapterremoval"),
+        Path::new("reads_R1.fastq.gz"),
+        Path::new("reads_R2.fastq.gz"),
+        Path::new("out"),
+        &MergePlanOptions {
+            threads: Some(7),
+            merge_overlap: Some(19),
+            min_length: Some(70),
+            unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
+        },
+    )?;
+
+    let script = &plan.command.template[2];
+    assert!(script.contains("'AdapterRemoval' '--threads' '7'"));
+    assert!(script.contains("'--collapse-deterministic'"));
+    assert!(script.contains("'--minalignmentlength' '19'"));
+    assert!(script.contains("'--minlength' '70'"));
+    assert!(script.contains("'--outputcollapsed' 'out/adapterremoval.collapsed.gz'"));
+    assert!(script.contains("'--output1' 'out/adapterremoval.pair1.truncated.gz'"));
+    assert!(script.contains("'--output2' 'out/adapterremoval.pair2.truncated.gz'"));
+    assert!(script.contains("'--settings' 'out/adapterremoval.settings'"));
+    assert!(script.contains("'--singleton' '/dev/null' '--discarded' '/dev/null'"));
+    assert!(script.contains("\"merge_engine\": \"adapter_removal\""));
+    assert!(script.contains("\"threads\": 7"));
+    assert!(script.contains("\"raw_backend_report_format\": \"adapterremoval_settings\""));
+    assert_eq!(plan.resources.threads, 7);
+    assert_eq!(
+        plan.params["raw_backend_report_txt"],
+        serde_json::json!("out/adapterremoval.settings")
+    );
+    Ok(())
+}
+
+#[test]
+fn adapterremoval_merge_plan_omits_unmerged_outputs_when_requested() -> Result<()> {
+    let plan = plan_merge_with_options(
+        &tool("adapterremoval"),
+        Path::new("reads_R1.fastq.gz"),
+        Path::new("reads_R2.fastq.gz"),
+        Path::new("out"),
+        &MergePlanOptions {
+            threads: Some(5),
+            merge_overlap: Some(16),
+            min_length: None,
+            unmerged_read_policy: UnmergedReadPolicy::OmitUnmergedPairs,
+        },
+    )?;
+
+    let output_names = plan
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| artifact.name.as_str().to_string())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        output_names,
+        vec![
+            "merged_reads".to_string(),
+            "report_json".to_string(),
+            "raw_backend_report_txt".to_string(),
+        ]
+    );
+    let script = &plan.command.template[2];
+    assert!(script.contains("'--output1' '/dev/null'"));
+    assert!(script.contains("'--output2' '/dev/null'"));
+    assert!(script.contains("\"unmerged_read_policy\": \"omit_unmerged_pairs\""));
+    assert_eq!(plan.params["unmerged_reads_r1"], serde_json::Value::Null);
+    assert_eq!(plan.params["unmerged_reads_r2"], serde_json::Value::Null);
+    Ok(())
+}
+
+#[test]
 fn pear_merge_plan_maps_overlap_and_min_length() -> Result<()> {
     let plan = plan_merge_with_options(
         &tool("pear"),

@@ -8,6 +8,7 @@ pub const MERGE_SCHEMA_VERSION: &str = "bijux.fastq.params.merge_pairs.v1";
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum MergeEngine {
+    AdapterRemoval,
     Pear,
     Vsearch,
     Bbmerge,
