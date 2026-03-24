@@ -13,6 +13,7 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_MERGE_PAIRS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
+const DEFAULT_MERGE_THREADS: u32 = 6;
 
 #[derive(Debug, Clone)]
 pub struct MergePlanOptions {
@@ -61,7 +62,7 @@ pub fn plan_merge_with_options(
     validate_merge_options(&tool.tool_id.0, options)?;
     let outputs = merge_outputs(&tool.tool_id.0, out_dir)?;
     let merge_engine = merge_engine(&tool.tool_id.0)?;
-    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let effective_threads = options.threads.unwrap_or(DEFAULT_MERGE_THREADS).max(1);
     let effective_params = MergeEffectiveParams {
         schema_version: MERGE_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,

@@ -6,7 +6,7 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy;
 use bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs::{
-    plan_merge_with_options, MergePlanOptions,
+    plan_merge, plan_merge_with_options, MergePlanOptions,
 };
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -221,5 +221,21 @@ fn vsearch_merge_plan_omits_unmerged_outputs_when_requested() -> Result<()> {
     assert!(script.contains("\"threads\": 11"));
     assert!(script.contains("\"raw_backend_report_format\": \"vsearch_log\""));
     assert_eq!(plan.resources.threads, 11);
+    Ok(())
+}
+
+#[test]
+fn merge_plan_uses_stage_default_threads_without_override() -> Result<()> {
+    let plan = plan_merge(
+        &tool("pear"),
+        Path::new("reads_R1.fastq.gz"),
+        Path::new("reads_R2.fastq.gz"),
+        Path::new("out"),
+    )?;
+
+    let script = &plan.command.template[2];
+    assert!(script.contains("'pear' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz' '-o' 'out/pear' '-j' '6'"));
+    assert!(script.contains("\"threads\": 6"));
+    assert_eq!(plan.resources.threads, 6);
     Ok(())
 }
