@@ -33,6 +33,21 @@ fn domain_layout_filter_keeps_paired_dedup_backends_for_paired_inputs() {
 }
 
 #[test]
+fn remove_duplicates_default_tool_survives_single_end_layout_filter() {
+    let filtered = bijux_dna_domain_fastq::filter_tools_for_input_layout(
+        &StageId::from_static("fastq.remove_duplicates"),
+        vec![
+            bijux_dna_domain_fastq::default_execution_tool_for_stage(&StageId::from_static(
+                "fastq.remove_duplicates",
+            ))
+            .expect("remove_duplicates must declare a default execution tool"),
+        ],
+        false,
+    );
+    assert_eq!(filtered, vec![ToolId::from_static("clumpify")]);
+}
+
+#[test]
 fn domain_layout_filter_excludes_paired_only_correction_backends_for_single_end_inputs() {
     let filtered = bijux_dna_domain_fastq::filter_tools_for_input_layout(
         &StageId::from_static("fastq.correct_errors"),
