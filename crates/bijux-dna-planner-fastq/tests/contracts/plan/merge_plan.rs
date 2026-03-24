@@ -37,7 +37,7 @@ fn pear_merge_plan_maps_overlap_and_min_length() -> Result<()> {
         Path::new("reads_R2.fastq.gz"),
         Path::new("out"),
         &MergePlanOptions {
-            threads: None,
+            threads: Some(9),
             merge_overlap: Some(24),
             min_length: Some(120),
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
@@ -48,12 +48,16 @@ fn pear_merge_plan_maps_overlap_and_min_length() -> Result<()> {
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
     assert!(script.contains("'pear' '-f' 'reads_R1.fastq.gz'"));
+    assert!(script.contains("'pear' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz' '-o' 'out/pear' '-j' '9'"));
     assert!(script.contains("'24'"));
     assert!(script.contains("'120'"));
     assert!(script.contains("\"merge_overlap\": 24"));
     assert!(script.contains("\"min_len\": 120"));
+    assert!(script.contains("\"threads\": 9"));
+    assert_eq!(plan.resources.threads, 9);
     assert_eq!(plan.params["merge_overlap"], serde_json::json!(24));
     assert_eq!(plan.params["min_length"], serde_json::json!(120));
+    assert_eq!(plan.params["threads"], serde_json::json!(9));
     Ok(())
 }
 
@@ -107,7 +111,7 @@ fn vsearch_merge_plan_omits_unmerged_outputs_when_requested() -> Result<()> {
         Path::new("reads_R2.fastq.gz"),
         Path::new("out"),
         &MergePlanOptions {
-            threads: None,
+            threads: Some(11),
             merge_overlap: Some(18),
             min_length: Some(90),
             unmerged_read_policy: UnmergedReadPolicy::OmitUnmergedPairs,
@@ -125,8 +129,11 @@ fn vsearch_merge_plan_omits_unmerged_outputs_when_requested() -> Result<()> {
     assert_eq!(plan.params["unmerged_reads_r2"], serde_json::Value::Null);
 
     let script = &plan.command.template[2];
+    assert!(script.contains("'--threads' '11'"));
     assert!(!script.contains("--fastqout_notmerged_fwd"));
     assert!(!script.contains("--fastqout_notmerged_rev"));
     assert!(script.contains("\"unmerged_read_policy\": \"omit_unmerged_pairs\""));
+    assert!(script.contains("\"threads\": 11"));
+    assert_eq!(plan.resources.threads, 11);
     Ok(())
 }
