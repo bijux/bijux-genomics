@@ -207,6 +207,40 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         ]
     );
 
+    let profile_reads_stage = StageId::from_static("fastq.profile_reads");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&profile_reads_stage),
+        vec![
+            "profile_reads_tool_benchmark_cohort_json".to_string(),
+            "profile_reads_tool_comparison_json".to_string(),
+            "profile_reads_tool_normalization_json".to_string(),
+        ]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&profile_reads_stage),
+        vec!["qc_json".to_string(), "qc_tsv".to_string(), "qc_plots_dir".to_string(),]
+    );
+
+    let remove_chimeras_stage = StageId::from_static("fastq.remove_chimeras");
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&remove_chimeras_stage),
+        vec![
+            "chimera_tool_benchmark_cohort_json".to_string(),
+            "chimera_tool_comparison_json".to_string(),
+            "chimera_tool_normalization_json".to_string(),
+        ]
+    );
+    assert_eq!(
+        bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&remove_chimeras_stage),
+        vec![
+            "report_json".to_string(),
+            "uchime_report_tsv".to_string(),
+            "chimera_metrics_json".to_string(),
+            "chimera_filtered_reads".to_string(),
+            "chimeras_fasta".to_string(),
+        ]
+    );
+
     let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
     assert_eq!(
         bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&polyg_stage),
@@ -296,6 +330,11 @@ fn comparison_inputs_remain_inside_governed_stage_outputs() {
         "fastq.remove_duplicates",
         "fastq.report_qc",
         "fastq.correct_errors",
+        "fastq.profile_read_lengths",
+        "fastq.profile_reads",
+        "fastq.normalize_primers",
+        "fastq.normalize_abundance",
+        "fastq.remove_chimeras",
         "fastq.trim_terminal_damage",
         "fastq.validate_reads",
         "fastq.profile_overrepresented_sequences",
