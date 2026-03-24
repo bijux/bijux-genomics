@@ -193,7 +193,7 @@ mod tests {
                 &StageId::from_static("fastq.profile_overrepresented_sequences"),
                 &ToolId::from_static("seqkit"),
             ),
-            Some(RuntimeInterpretationLevel::GenericEnvelope)
+            Some(RuntimeInterpretationLevel::ObserverSpecialized)
         );
     }
 
@@ -267,7 +267,7 @@ mod tests {
         assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.correct_errors"
         )));
-        assert!(!observer_specialized.contains(&StageId::from_static(
+        assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.profile_overrepresented_sequences"
         )));
     }
