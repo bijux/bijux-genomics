@@ -129,8 +129,8 @@ fn flash2_merge_plan_maps_threads() -> Result<()> {
 }
 
 #[test]
-fn leehom_merge_plan_rejects_unmerged_pair_outputs() {
-    let err = plan_merge_with_options(
+fn leehom_merge_plan_emits_unmerged_pair_outputs() -> Result<()> {
+    let plan = plan_merge_with_options(
         &tool("leehom"),
         Path::new("reads_R1.fastq.gz"),
         Path::new("reads_R2.fastq.gz"),
@@ -141,12 +141,33 @@ fn leehom_merge_plan_rejects_unmerged_pair_outputs() {
             min_length: None,
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
         },
-    )
-    .expect_err("leehom should reject governed unmerged pair outputs");
+    )?;
 
-    assert!(err
-        .to_string()
-        .contains("merge planning cannot emit governed unmerged pair artifacts for leehom"));
+    let output_names = plan
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| artifact.name.as_str().to_string())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        output_names,
+        vec![
+            "merged_reads".to_string(),
+            "unmerged_reads_r1".to_string(),
+            "unmerged_reads_r2".to_string(),
+            "report_json".to_string()
+        ]
+    );
+    assert_eq!(plan.params["merged_reads"], serde_json::json!("out/leehom.fq.gz"));
+    assert_eq!(
+        plan.params["unmerged_reads_r1"],
+        serde_json::json!("out/leehom_r1.fq.gz")
+    );
+    assert_eq!(
+        plan.params["unmerged_reads_r2"],
+        serde_json::json!("out/leehom_r2.fq.gz")
+    );
+    Ok(())
 }
 
 #[test]

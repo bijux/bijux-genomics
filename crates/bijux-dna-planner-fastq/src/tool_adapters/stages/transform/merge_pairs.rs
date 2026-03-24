@@ -178,9 +178,9 @@ fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
             report_json,
         },
         "leehom" => MergeOutputs {
-            merged_reads: out_dir.join("leehom.fastq.gz"),
-            unmerged_reads_r1: None,
-            unmerged_reads_r2: None,
+            merged_reads: out_dir.join("leehom.fq.gz"),
+            unmerged_reads_r1: Some(out_dir.join("leehom_r1.fq.gz")),
+            unmerged_reads_r2: Some(out_dir.join("leehom_r2.fq.gz")),
             report_json,
         },
         _ => return Err(anyhow!("unsupported merge tool")),
@@ -242,13 +242,6 @@ fn validate_merge_options(tool: &str, options: &MergePlanOptions) -> Result<()> 
     if options.merge_overlap.is_some() && matches!(tool, "leehom") {
         return Err(anyhow!(
             "merge planning does not yet map merge_overlap for {tool}"
-        ));
-    }
-    if options.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs
-        && matches!(tool, "leehom")
-    {
-        return Err(anyhow!(
-            "merge planning cannot emit governed unmerged pair artifacts for {tool}"
         ));
     }
     Ok(())
