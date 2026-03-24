@@ -130,7 +130,8 @@ pub fn plan_merge_with_options(
             "merge_overlap": effective_params.merge_overlap,
             "min_length": effective_params.min_len,
             "unmerged_read_policy": effective_params.unmerged_read_policy,
-            "report_json": outputs.report_json
+            "report_json": outputs.report_json,
+            "raw_backend_report_txt": outputs.raw_backend_report_txt
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize merge effective params: {error}"))?,
@@ -145,6 +146,7 @@ struct MergeOutputs {
     unmerged_reads_r1: Option<PathBuf>,
     unmerged_reads_r2: Option<PathBuf>,
     report_json: PathBuf,
+    raw_backend_report_txt: Option<PathBuf>,
 }
 
 fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
@@ -157,6 +159,7 @@ fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
                 unmerged_reads_r1: Some(out_dir.join("pear.unassembled.forward.fastq")),
                 unmerged_reads_r2: Some(out_dir.join("pear.unassembled.reverse.fastq")),
                 report_json,
+                raw_backend_report_txt: Some(out_dir.join("pear.log")),
             }
         }
         "vsearch" => MergeOutputs {
@@ -164,24 +167,28 @@ fn merge_outputs(tool: &str, out_dir: &Path) -> Result<MergeOutputs> {
             unmerged_reads_r1: Some(out_dir.join("vsearch.unmerged_r1.fastq")),
             unmerged_reads_r2: Some(out_dir.join("vsearch.unmerged_r2.fastq")),
             report_json,
+            raw_backend_report_txt: Some(out_dir.join("vsearch.log")),
         },
         "bbmerge" => MergeOutputs {
             merged_reads: out_dir.join("bbmerge.merged.fastq"),
             unmerged_reads_r1: Some(out_dir.join("bbmerge.unmerged_r1.fastq")),
             unmerged_reads_r2: Some(out_dir.join("bbmerge.unmerged_r2.fastq")),
             report_json,
+            raw_backend_report_txt: Some(out_dir.join("bbmerge.log")),
         },
         "flash2" => MergeOutputs {
             merged_reads: out_dir.join("flash2.extendedFrags.fastq"),
             unmerged_reads_r1: Some(out_dir.join("flash2.notCombined_1.fastq")),
             unmerged_reads_r2: Some(out_dir.join("flash2.notCombined_2.fastq")),
             report_json,
+            raw_backend_report_txt: Some(out_dir.join("flash2.log")),
         },
         "leehom" => MergeOutputs {
             merged_reads: out_dir.join("leehom.fq.gz"),
             unmerged_reads_r1: Some(out_dir.join("leehom_r1.fq.gz")),
             unmerged_reads_r2: Some(out_dir.join("leehom_r2.fq.gz")),
             report_json,
+            raw_backend_report_txt: Some(out_dir.join("leehom.log")),
         },
         _ => return Err(anyhow!("unsupported merge tool")),
     };
@@ -230,6 +237,13 @@ fn merge_artifacts(
         outputs.report_json.clone(),
         ArtifactRole::MetricsJson,
     ));
+    if let Some(raw_backend_report_txt) = &outputs.raw_backend_report_txt {
+        artifacts.push(ArtifactRef::optional(
+            ArtifactId::from_static("raw_backend_report_txt"),
+            raw_backend_report_txt.clone(),
+            ArtifactRole::Log,
+        ));
+    }
     artifacts
 }
 
@@ -259,7 +273,7 @@ fn merge_command_template(
     let base_command =
         base_merge_command(tool, r1, r2, out_dir, outputs, tool_spec, effective_params)?;
     let script = format!(
-        "set -euo pipefail\ncount_fastq_reads() {{\n  local path=\"$1\"\n  if [ ! -f \"$path\" ]; then printf '0'; return; fi\n  case \"$path\" in\n    *.gz) gzip -dc \"$path\" ;;\n    *) cat \"$path\" ;;\n  esac | awk 'END {{ printf \"%d\", int(NR/4) }}'\n}}\n{base_command}\nreads_r1=$(count_fastq_reads {input_r1})\nreads_r2=$(count_fastq_reads {input_r2})\nreads_merged=$(count_fastq_reads {merged_reads})\npairs_in=$reads_r1\nif [ \"$reads_r2\" -lt \"$pairs_in\" ]; then pairs_in=$reads_r2; fi\nreads_unmerged=$(( pairs_in - reads_merged ))\nif [ \"$reads_unmerged\" -lt 0 ]; then reads_unmerged=0; fi\nif [ {emit_unmerged} = 1 ]; then\n  if [ -n {unmerged_r1_shell} ] && [ -n {unmerged_r2_shell} ]; then\n    reads_unmerged_r1=$(count_fastq_reads {unmerged_r1_shell})\n    reads_unmerged_r2=$(count_fastq_reads {unmerged_r2_shell})\n    reads_unmerged=$reads_unmerged_r1\n    if [ \"$reads_unmerged_r2\" -lt \"$reads_unmerged\" ]; then reads_unmerged=$reads_unmerged_r2; fi\n  fi\nelse\n  rm -f {cleanup_unmerged_r1} {cleanup_unmerged_r2}\nfi\nmerge_rate=$(awk -v merged=\"$reads_merged\" -v pairs=\"$pairs_in\" 'BEGIN {{ if (pairs > 0) printf \"%.6f\", merged / pairs; else printf \"0.000000\" }}')\ncat > {report_json_shell} <<EOF\n{{\n  \"schema_version\": {schema_version},\n  \"stage\": {stage_id},\n  \"stage_id\": {stage_id},\n  \"tool_id\": {tool_id},\n  \"paired_mode\": {paired_mode},\n  \"merge_engine\": {merge_engine},\n  \"threads\": {threads},\n  \"merge_overlap\": {merge_overlap},\n  \"min_len\": {min_len},\n  \"unmerged_read_policy\": {unmerged_policy},\n  \"input_r1\": {input_r1_json},\n  \"input_r2\": {input_r2_json},\n  \"merged_reads\": {merged_json},\n  \"unmerged_reads_r1\": {unmerged_r1_json},\n  \"unmerged_reads_r2\": {unmerged_r2_json},\n  \"reads_r1\": $reads_r1,\n  \"reads_r2\": $reads_r2,\n  \"reads_merged\": $reads_merged,\n  \"reads_unmerged\": $reads_unmerged,\n  \"merge_rate\": $merge_rate,\n  \"runtime_s\": null,\n  \"memory_mb\": null,\n  \"raw_backend_report\": null,\n  \"raw_backend_report_format\": null\n}}\nEOF\n",
+        "set -euo pipefail\ncount_fastq_reads() {{\n  local path=\"$1\"\n  if [ ! -f \"$path\" ]; then printf '0'; return; fi\n  case \"$path\" in\n    *.gz) gzip -dc \"$path\" ;;\n    *) cat \"$path\" ;;\n  esac | awk 'END {{ printf \"%d\", int(NR/4) }}'\n}}\n{base_command}\nreads_r1=$(count_fastq_reads {input_r1})\nreads_r2=$(count_fastq_reads {input_r2})\nreads_merged=$(count_fastq_reads {merged_reads})\npairs_in=$reads_r1\nif [ \"$reads_r2\" -lt \"$pairs_in\" ]; then pairs_in=$reads_r2; fi\nreads_unmerged=$(( pairs_in - reads_merged ))\nif [ \"$reads_unmerged\" -lt 0 ]; then reads_unmerged=0; fi\nif [ {emit_unmerged} = 1 ]; then\n  if [ -n {unmerged_r1_shell} ] && [ -n {unmerged_r2_shell} ]; then\n    reads_unmerged_r1=$(count_fastq_reads {unmerged_r1_shell})\n    reads_unmerged_r2=$(count_fastq_reads {unmerged_r2_shell})\n    reads_unmerged=$reads_unmerged_r1\n    if [ \"$reads_unmerged_r2\" -lt \"$reads_unmerged\" ]; then reads_unmerged=$reads_unmerged_r2; fi\n  fi\nelse\n  rm -f {cleanup_unmerged_r1} {cleanup_unmerged_r2}\nfi\nmerge_rate=$(awk -v merged=\"$reads_merged\" -v pairs=\"$pairs_in\" 'BEGIN {{ if (pairs > 0) printf \"%.6f\", merged / pairs; else printf \"0.000000\" }}')\ncat > {report_json_shell} <<EOF\n{{\n  \"schema_version\": {schema_version},\n  \"stage\": {stage_id},\n  \"stage_id\": {stage_id},\n  \"tool_id\": {tool_id},\n  \"paired_mode\": {paired_mode},\n  \"merge_engine\": {merge_engine},\n  \"threads\": {threads},\n  \"merge_overlap\": {merge_overlap},\n  \"min_len\": {min_len},\n  \"unmerged_read_policy\": {unmerged_policy},\n  \"input_r1\": {input_r1_json},\n  \"input_r2\": {input_r2_json},\n  \"merged_reads\": {merged_json},\n  \"unmerged_reads_r1\": {unmerged_r1_json},\n  \"unmerged_reads_r2\": {unmerged_r2_json},\n  \"reads_r1\": $reads_r1,\n  \"reads_r2\": $reads_r2,\n  \"reads_merged\": $reads_merged,\n  \"reads_unmerged\": $reads_unmerged,\n  \"merge_rate\": $merge_rate,\n  \"runtime_s\": null,\n  \"memory_mb\": null,\n  \"raw_backend_report\": {raw_backend_report_json},\n  \"raw_backend_report_format\": {raw_backend_report_format}\n}}\nEOF\n",
         base_command = base_command,
         input_r1 = shell_quote_path(r1),
         input_r2 = shell_quote_path(r2),
@@ -300,6 +314,8 @@ fn merge_command_template(
         input_r1_json = json_literal(&r1.display().to_string())?,
         input_r2_json = json_literal(&r2.display().to_string())?,
         merged_json = json_literal(&outputs.merged_reads.display().to_string())?,
+        raw_backend_report_json = option_json_path_literal(outputs.raw_backend_report_txt.as_ref())?,
+        raw_backend_report_format = option_json_string(merge_raw_backend_report_format(tool)),
         unmerged_r1_json = option_json_path_literal(if effective_params.unmerged_read_policy
             == UnmergedReadPolicy::EmitUnmergedPairs
         {
@@ -448,17 +464,37 @@ fn base_merge_command(
         ],
         _ => return Err(anyhow!("unsupported merge tool")),
     };
-    Ok(command
+    let command = command
         .into_iter()
         .map(|part| shell_quote_str(&part))
         .collect::<Vec<_>>()
-        .join(" "))
+        .join(" ");
+    Ok(outputs.raw_backend_report_txt.as_ref().map_or(command.clone(), |path| {
+        format!("{command} > {} 2>&1", shell_quote_path(path))
+    }))
 }
 
 fn option_json_u32(value: Option<u32>) -> String {
     value
         .map(|value| value.to_string())
         .unwrap_or_else(|| "null".to_string())
+}
+
+fn option_json_string(value: Option<&str>) -> String {
+    value
+        .map(|value| serde_json::to_string(value).unwrap_or_else(|_| "null".to_string()))
+        .unwrap_or_else(|| "null".to_string())
+}
+
+fn merge_raw_backend_report_format(tool: &str) -> Option<&'static str> {
+    match tool {
+        "pear" => Some("pear_log"),
+        "vsearch" => Some("vsearch_log"),
+        "bbmerge" => Some("bbmerge_log"),
+        "flash2" => Some("flash2_log"),
+        "leehom" => Some("leehom_log"),
+        _ => None,
+    }
 }
 
 fn option_json_path_literal(path: Option<&PathBuf>) -> Result<String> {
