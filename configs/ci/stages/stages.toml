@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: ebd1fc46968877d105513ef115f80e984ceb41bf
+# source_commit: 966d279a45eee668323d8babdb10dc76d2bc74da
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -278,7 +278,7 @@ tools = ["bamtools", "bedtools", "samtools"]
 [[stages]]
 id = "fastq.cluster_otus"
 status = "supported"
-output_kinds = ["fasta", "fastq", "table"]
+output_kinds = ["fasta", "fastq", "json", "table"]
 ordering_after = []
 prerequisites = []
 resource_memory_gb = 8
@@ -297,14 +297,14 @@ tools = ["vsearch"]
 [[stages]]
 id = "fastq.correct_errors"
 status = "supported"
-output_kinds = ["fastq"]
+output_kinds = ["fastq", "json"]
 ordering_after = ["fastq.filter_reads"]
 prerequisites = ["fastq.filter_reads"]
 resource_memory_gb = 12
 resource_time_minutes = 45
 resource_threads = 8
 sanity_metrics = ["error_corrected_fraction"]
-output_size_estimates_mb = ["corrected_reads_r1:900", "corrected_reads_r2:900"]
+output_size_estimates_mb = ["corrected_reads_r1:900", "corrected_reads_r2:900", "report_json:8"]
 qc_thresholds = ["error_corrected_fraction|warn=<0.01|fail=<0.001"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -373,7 +373,7 @@ tools = ["sortmerna"]
 [[stages]]
 id = "fastq.detect_adapters"
 status = "supported"
-output_kinds = ["json"]
+output_kinds = ["dir", "json"]
 ordering_after = ["fastq.validate_reads"]
 prerequisites = ["fastq.validate_reads"]
 resource_memory_gb = 4
@@ -430,7 +430,7 @@ tools = ["bbduk", "prinseq"]
 [[stages]]
 id = "fastq.filter_reads"
 status = "supported"
-output_kinds = ["fastq"]
+output_kinds = ["fastq", "json"]
 ordering_after = ["fastq.trim_reads"]
 prerequisites = ["fastq.trim_reads"]
 resource_memory_gb = 4
@@ -449,7 +449,7 @@ tools = ["bbduk", "fastp", "prinseq", "seqkit"]
 [[stages]]
 id = "fastq.index_reference"
 status = "supported"
-output_kinds = ["directory"]
+output_kinds = ["directory", "json"]
 ordering_after = []
 prerequisites = []
 resource_memory_gb = 8
@@ -466,9 +466,28 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bowtie2_build", "star"]
 
 [[stages]]
+id = "fastq.infer_asvs"
+status = "supported"
+output_kinds = ["fasta", "fastq", "json", "tsv"]
+ordering_after = ["fastq.remove_chimeras"]
+prerequisites = ["fastq.remove_chimeras"]
+resource_memory_gb = 12
+resource_time_minutes = 60
+resource_threads = 4
+sanity_metrics = ["asv_count", "sample_count"]
+output_size_estimates_mb = ["asv_sequences_fasta:3", "asv_table_tsv:8", "taxonomy_ready_fasta:3", "taxonomy_ready_fastq:6"]
+qc_thresholds = ["asv_count|warn=<=0|fail=<=0"]
+contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.0|fail=>=1.0"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["dada2"]
+
+[[stages]]
 id = "fastq.merge_pairs"
 status = "supported"
-output_kinds = ["fastq", "json"]
+output_kinds = ["fastq", "json", "text"]
 ordering_after = ["fastq.deplete_reference_contaminants"]
 prerequisites = ["fastq.deplete_reference_contaminants"]
 resource_memory_gb = 8
@@ -487,14 +506,14 @@ tools = ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"]
 [[stages]]
 id = "fastq.normalize_abundance"
 status = "supported"
-output_kinds = ["tsv"]
+output_kinds = ["json", "tsv"]
 ordering_after = []
 prerequisites = []
 resource_memory_gb = 2
 resource_time_minutes = 10
 resource_threads = 2
 sanity_metrics = ["table_rows", "zero_fraction"]
-output_size_estimates_mb = ["normalized_abundance_tsv:4"]
+output_size_estimates_mb = ["normalized_abundance_tsv:4", "report_json:1"]
 qc_thresholds = ["zero_fraction|warn=>0.98|fail=>0.999"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -520,7 +539,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["adapterremoval", "cutadapt", "seqkit"]
+tools = ["cutadapt", "seqkit"]
 
 [[stages]]
 id = "fastq.profile_overrepresented_sequences"
@@ -539,7 +558,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastqc", "seqkit"]
+tools = ["fastq_scan", "fastqc", "seqkit"]
 
 [[stages]]
 id = "fastq.profile_read_lengths"
@@ -558,7 +577,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastp", "prinseq", "seqkit_stats"]
+tools = ["seqkit_stats"]
 
 [[stages]]
 id = "fastq.profile_reads"
@@ -582,14 +601,14 @@ tools = ["seqkit_stats"]
 [[stages]]
 id = "fastq.remove_chimeras"
 status = "supported"
-output_kinds = ["fasta", "fastq", "json"]
+output_kinds = ["fasta", "fastq", "json", "tsv"]
 ordering_after = ["fastq.filter_reads"]
 prerequisites = ["fastq.filter_reads"]
 resource_memory_gb = 8
 resource_time_minutes = 25
 resource_threads = 4
 sanity_metrics = ["chimera_fraction", "chimeras_removed"]
-output_size_estimates_mb = ["chimera_filtered_reads:1500", "chimera_metrics_json:4"]
+output_size_estimates_mb = ["chimera_filtered_reads:1500", "chimera_metrics_json:4", "report_json:6", "uchime_report_tsv:6"]
 qc_thresholds = ["chimera_fraction|warn=>0.4|fail=>0.8"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -601,14 +620,14 @@ tools = ["vsearch"]
 [[stages]]
 id = "fastq.remove_duplicates"
 status = "supported"
-output_kinds = ["fastq", "json"]
+output_kinds = ["fastq", "json", "tsv"]
 ordering_after = ["fastq.merge_pairs"]
 prerequisites = ["fastq.merge_pairs"]
 resource_memory_gb = 6
 resource_time_minutes = 25
 resource_threads = 4
 sanity_metrics = ["dedup_rate"]
-output_size_estimates_mb = ["dedup_reads_r1:1200", "report_json:6"]
+output_size_estimates_mb = ["dedup_reads_r1:1200", "duplicate_classes_tsv:1", "duplicate_provenance_json:1", "report_json:6"]
 qc_thresholds = ["dedup_rate|warn=<0.02|fail=<0.005"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -620,14 +639,14 @@ tools = ["clumpify", "fastuniq"]
 [[stages]]
 id = "fastq.report_qc"
 status = "supported"
-output_kinds = ["dir", "html"]
+output_kinds = ["dir", "html", "json"]
 ordering_after = ["fastq.profile_reads"]
 prerequisites = ["fastq.profile_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 15
 resource_threads = 2
 sanity_metrics = ["qc_warn_count", "qc_fail_count"]
-output_size_estimates_mb = ["multiqc_data:15", "multiqc_report:30"]
+output_size_estimates_mb = ["governed_qc_inputs_manifest:1", "multiqc_data:15", "multiqc_report:30", "report_json:8"]
 qc_thresholds = ["qc_fail_count|warn=>0|fail=>5"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -658,7 +677,7 @@ tools = ["centrifuge", "kaiju", "kraken2", "krakenuniq"]
 [[stages]]
 id = "fastq.trim_polyg_tails"
 status = "supported"
-output_kinds = ["fastq", "json"]
+output_kinds = ["fastq", "json", "text"]
 ordering_after = ["fastq.detect_adapters"]
 prerequisites = ["fastq.detect_adapters"]
 resource_memory_gb = 4
@@ -677,7 +696,7 @@ tools = ["bbduk", "fastp"]
 [[stages]]
 id = "fastq.trim_reads"
 status = "supported"
-output_kinds = ["fastq", "json"]
+output_kinds = ["fastq", "json", "text"]
 ordering_after = ["fastq.trim_polyg_tails"]
 prerequisites = ["fastq.trim_polyg_tails"]
 resource_memory_gb = 6
@@ -691,7 +710,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
+tools = ["adapterremoval", "atropos", "bbduk", "cutadapt", "fastp", "prinseq", "seqkit", "seqpurge", "trim_galore", "trimmomatic"]
 
 [[stages]]
 id = "fastq.trim_terminal_damage"
@@ -710,7 +729,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["cutadapt", "seqkit"]
+tools = ["adapterremoval", "cutadapt", "seqkit"]
 
 [[stages]]
 id = "fastq.validate_reads"
@@ -722,14 +741,14 @@ resource_memory_gb = 2
 resource_time_minutes = 10
 resource_threads = 2
 sanity_metrics = ["format_validation_pass_rate"]
-output_size_estimates_mb = ["validation_report:5"]
+output_size_estimates_mb = ["validated_reads_manifest:1", "validation_report:5"]
 qc_thresholds = ["format_validation_pass_rate|warn=<1.0|fail=<0.99"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastqvalidator", "fqtools", "seqtk"]
+tools = ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
 
 [[pipelines]]
 id = "bam.pre_hpc_best"
@@ -752,6 +771,12 @@ description = "Compare damage tools on identical BAM inputs and identical prepro
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_reference_bank_hash"]
 
 [[benchmark_scenarios]]
+id = "fastq.chimera_fairness"
+stage_id = "fastq.remove_chimeras"
+description = "Compare chimera-removal runs on identical merged amplicon inputs and governed UCHIME report outputs."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_chimera_detection_contract"]
+
+[[benchmark_scenarios]]
 id = "fastq.contaminant_depletion_fairness"
 stage_id = "fastq.deplete_reference_contaminants"
 description = "Compare contaminant depletion backends on identical read inputs and fixed contaminant reference bundles."
@@ -767,7 +792,7 @@ fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_datas
 id = "fastq.dedup_fairness"
 stage_id = "fastq.remove_duplicates"
 description = "Compare duplicate-removal tools on identical filtered inputs and duplicate retention policy."
-fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_dedup_policy"]
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_dedup_policy", "same_keep_order_policy"]
 
 [[benchmark_scenarios]]
 id = "fastq.detect_adapters_fairness"
@@ -788,6 +813,12 @@ description = "Compare host depletion backends on identical read inputs and fixe
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_host_reference_hash"]
 
 [[benchmark_scenarios]]
+id = "fastq.index_reference_fairness"
+stage_id = "fastq.index_reference"
+description = "Compare reference index builders on identical reference FASTA inputs and canonical governed index-report outputs."
+fairness_rules = ["same_input_hash", "same_dataset_class", "same_reference_contract_hash"]
+
+[[benchmark_scenarios]]
 id = "fastq.low_complexity_fairness"
 stage_id = "fastq.filter_low_complexity"
 description = "Compare low-complexity filters on identical filtered inputs and entropy/polyX thresholds."
@@ -800,16 +831,40 @@ description = "Compare merge backends on identical paired filtered inputs and ov
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_merge_policy"]
 
 [[benchmark_scenarios]]
+id = "fastq.normalize_abundance_fairness"
+stage_id = "fastq.normalize_abundance"
+description = "Compare abundance-normalization runs on identical abundance tables and governed normalization semantics."
+fairness_rules = ["same_input_hash", "same_dataset_class", "same_abundance_normalization_method", "same_abundance_table_contract"]
+
+[[benchmark_scenarios]]
+id = "fastq.otu_clustering_fairness"
+stage_id = "fastq.cluster_otus"
+description = "Compare OTU clustering runs on identical amplicon reads and governed clustering identity semantics."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_otu_identity_threshold"]
+
+[[benchmark_scenarios]]
 id = "fastq.overrepresented_sequence_fairness"
 stage_id = "fastq.profile_overrepresented_sequences"
 description = "Compare overrepresented-sequence profilers on identical reads and governed sequence summary outputs."
 fairness_rules = ["same_input_hash", "same_dataset_class", "same_overrepresented_sequence_contract"]
 
 [[benchmark_scenarios]]
+id = "fastq.polyg_trim_fairness"
+stage_id = "fastq.trim_polyg_tails"
+description = "Compare polyG-tail trimming backends on identical reads and governed polyG-tail policy, preserving backend-native report provenance in the governed normalization surface."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_polyg_trim_policy"]
+
+[[benchmark_scenarios]]
 id = "fastq.primer_normalization_fairness"
 stage_id = "fastq.normalize_primers"
 description = "Compare primer-normalization backends on identical reads and governed primer orientation policy."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class", "same_primer_contract"]
+
+[[benchmark_scenarios]]
+id = "fastq.profile_reads_fairness"
+stage_id = "fastq.profile_reads"
+description = "Compare read-profile backends on identical raw reads and the governed profile report contract."
+fairness_rules = ["same_input_hash", "same_dataset_class", "same_profile_reads_contract"]
 
 [[benchmark_scenarios]]
 id = "fastq.qc_aggregation_fairness"
@@ -832,8 +887,8 @@ fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_datas
 [[benchmark_scenarios]]
 id = "fastq.screen_fairness"
 stage_id = "fastq.screen_taxonomy"
-description = "Compare classifiers on identical filtered inputs and fixed DB metadata."
-fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_contamination_db_hash"]
+description = "Compare classifiers on identical filtered inputs with fixed database lineage and governed taxonomy normalization."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_contamination_db_hash", "same_governed_taxonomy_report_contract"]
 
 [[benchmark_scenarios]]
 id = "fastq.terminal_damage_fairness"
@@ -858,3 +913,4 @@ id = "fastq.validation_fairness"
 stage_id = "fastq.validate_reads"
 description = "Compare FASTQ validators on identical raw reads and governed validation semantics."
 fairness_rules = ["same_input_hash", "same_dataset_class", "same_validation_contract"]
+

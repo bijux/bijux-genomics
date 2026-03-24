@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: d1187e362c1b0543c54f02ea631e4d43787b560a
+# source_commit: 966d279a45eee668323d8babdb10dc76d2bc74da
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -70,6 +70,9 @@ version = "1.0.11"
 
 [cutadapt]
 version = "4.9"
+
+[dada2]
+version = "latest-pinned"
 
 [damageprofiler]
 version = "latest-pinned"
@@ -202,6 +205,9 @@ version = "latest-pinned"
 [seqkit_stats]
 version = "latest-pinned"
 
+[seqpurge]
+version = "latest-pinned"
+
 [seqtk]
 version = "latest-pinned"
 
@@ -239,3 +245,4 @@ version = "latest-pinned"
 
 [yleaf]
 version = "latest-pinned"
+
