@@ -259,11 +259,18 @@ fn emit_fastq_stage_extra_artifacts(
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.merge_pairs.extra_artifacts.v2",
                 "stage": stage_id,
+                "tool": governed.as_ref().map(|report| report.tool_id.clone()),
                 "paired_mode": governed.as_ref().map(|report| report.paired_mode.clone()),
                 "merge_engine": governed.as_ref().map(|report| report.merge_engine.clone()),
+                "threads": governed.as_ref().map(|report| report.threads),
                 "merge_overlap": governed.as_ref().and_then(|report| report.merge_overlap),
                 "min_length": governed.as_ref().and_then(|report| report.min_len),
                 "unmerged_read_policy": governed.as_ref().map(|report| report.unmerged_read_policy.clone()),
+                "reads_r1": governed.as_ref().map(|report| report.reads_r1),
+                "reads_r2": governed.as_ref().map(|report| report.reads_r2),
+                "reads_merged": governed.as_ref().map(|report| report.reads_merged),
+                "reads_unmerged": governed.as_ref().map(|report| report.reads_unmerged),
+                "merge_rate": governed.as_ref().map(|report| report.merge_rate),
                 "merged_reads": governed.as_ref().map(|report| report.merged_reads.clone()),
                 "unmerged_reads_r1": governed.as_ref().and_then(|report| report.unmerged_reads_r1.clone()),
                 "unmerged_reads_r2": governed.as_ref().and_then(|report| report.unmerged_reads_r2.clone()),
@@ -962,6 +969,53 @@ mod stage_artifact_tests {
         Ok(())
     }
 
+    fn merge_execution(stage_root: &std::path::Path) -> StageResultV1 {
+        StageResultV1 {
+            run_id: "merge-fixture".to_string(),
+            exit_code: 0,
+            runtime_s: 2.3,
+            memory_mb: 48.0,
+            outputs: vec![stage_root.join("merge_report.json")],
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "pear".to_string(),
+        }
+    }
+
+    fn write_merge_report(stage_root: &std::path::Path) -> Result<()> {
+        std::fs::write(
+            stage_root.join("merge_report.json"),
+            r#"{
+                "schema_version": "bijux.fastq.merge_pairs.report.v2",
+                "stage": "fastq.merge_pairs",
+                "stage_id": "fastq.merge_pairs",
+                "tool_id": "pear",
+                "paired_mode": "paired_end",
+                "merge_engine": "pear",
+                "threads": 4,
+                "merge_overlap": 22,
+                "min_len": 120,
+                "unmerged_read_policy": "emit_unmerged_pairs",
+                "input_r1": "reads_R1.fastq.gz",
+                "input_r2": "reads_R2.fastq.gz",
+                "merged_reads": "pear.assembled.fastq",
+                "unmerged_reads_r1": "pear.unassembled.forward.fastq",
+                "unmerged_reads_r2": "pear.unassembled.reverse.fastq",
+                "reads_r1": 100,
+                "reads_r2": 100,
+                "reads_merged": 88,
+                "reads_unmerged": 12,
+                "merge_rate": 0.88,
+                "runtime_s": 2.3,
+                "memory_mb": 48.0,
+                "raw_backend_report": "pear.log",
+                "raw_backend_report_format": "pear_log"
+            }"#,
+        )?;
+        Ok(())
+    }
+
     #[test]
     fn host_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
@@ -978,6 +1032,26 @@ mod stage_artifact_tests {
         assert_eq!(extra["reference_catalog_id"], serde_json::json!("host_reference"));
         assert_eq!(extra["reads_removed"], serde_json::json!(30));
         assert_eq!(extra["host_fraction_removed"], serde_json::json!(0.30));
+        Ok(())
+    }
+
+    #[test]
+    fn merge_pairs_extra_artifacts_prefer_governed_report() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        write_merge_report(temp.path())?;
+        emit_fastq_stage_extra_artifacts(temp.path(), "fastq.merge_pairs", &merge_execution(temp.path()))?;
+
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!("pear"));
+        assert_eq!(extra["threads"], serde_json::json!(4));
+        assert_eq!(extra["reads_r1"], serde_json::json!(100));
+        assert_eq!(extra["reads_r2"], serde_json::json!(100));
+        assert_eq!(extra["reads_merged"], serde_json::json!(88));
+        assert_eq!(extra["reads_unmerged"], serde_json::json!(12));
+        assert_eq!(extra["merge_rate"], serde_json::json!(0.88));
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("pear.log"));
+        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("pear_log"));
         Ok(())
     }
 
