@@ -63,8 +63,8 @@ mod tests {
     use super::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
     use crate::params::{
         screen::{
-            MappingReportFormat, ReadRetentionPolicy, ReferenceDecoyPolicy,
-            ReferenceMaskingPolicy, ReferenceScope,
+            MappingReportFormat, ReadRetentionPolicy, ReferenceDecoyPolicy, ReferenceMaskingPolicy,
+            ReferenceScope,
         },
         PairedMode,
     };
@@ -122,6 +122,9 @@ mod tests {
         let decoded: DepleteHostReportV1 = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "bowtie2");
         assert_eq!(decoded.reads_removed, 50);
-        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
+        assert_eq!(
+            decoded.raw_backend_report_format.as_deref(),
+            Some("bowtie2_met_file")
+        );
     }
 }

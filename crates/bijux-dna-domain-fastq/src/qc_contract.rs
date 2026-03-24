@@ -1,6 +1,6 @@
-use bijux_dna_core::ids::StageId;
 use crate::stages::ports::stage_output_ids_in_manifest_order;
 use crate::types::FastqArtifactKind;
+use bijux_dna_core::ids::StageId;
 
 #[must_use]
 pub fn governed_qc_output_ids_for_stage(stage_id: &StageId) -> Vec<String> {
@@ -121,7 +121,9 @@ mod tests {
 
     #[test]
     fn report_qc_is_not_a_qc_producer() {
-        assert!(governed_qc_output_ids_for_stage(&StageId::from_static("fastq.report_qc")).is_empty());
+        assert!(
+            governed_qc_output_ids_for_stage(&StageId::from_static("fastq.report_qc")).is_empty()
+        );
     }
 
     #[test]
@@ -136,7 +138,9 @@ mod tests {
         assert!(single_end.contains(&StageId::from_static("fastq.deplete_rrna")));
         assert!(single_end.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(!single_end.contains(&StageId::from_static("fastq.deplete_host")));
-        assert!(!single_end.contains(&StageId::from_static("fastq.deplete_reference_contaminants")));
+        assert!(!single_end.contains(&StageId::from_static(
+            "fastq.deplete_reference_contaminants"
+        )));
         assert!(!single_end.contains(&StageId::from_static("fastq.normalize_abundance")));
         assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
 

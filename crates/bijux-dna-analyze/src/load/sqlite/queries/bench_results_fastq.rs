@@ -559,7 +559,13 @@ pub fn get_results_from_sqlite(
                 let exit_code: i64 = row.get(2)?;
                 let metrics_json: String = row.get(3)?;
                 let parameters_json: String = row.get(4)?;
-                Ok((runtime_s, memory_mb, exit_code, metrics_json, parameters_json))
+                Ok((
+                    runtime_s,
+                    memory_mb,
+                    exit_code,
+                    metrics_json,
+                    parameters_json,
+                ))
             },
         );
         let mut legacy_candidate = None;

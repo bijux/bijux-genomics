@@ -59,10 +59,7 @@ mod tests {
             sample_count: 3,
             feature_count: 4,
             zero_fraction: 0.25,
-            per_sample_sums: vec![
-                ("sample_a".to_string(), 1.0),
-                ("sample_b".to_string(), 1.0),
-            ],
+            per_sample_sums: vec![("sample_a".to_string(), 1.0), ("sample_b".to_string(), 1.0)],
             runtime_s: Some(1.2),
             memory_mb: Some(32.0),
             raw_backend_report: None,

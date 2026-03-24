@@ -8,8 +8,7 @@ use crate::params::{
     PairedMode,
 };
 
-pub const SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.screen_taxonomy.report.v2";
+pub const SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.screen_taxonomy.report.v2";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -60,8 +59,7 @@ pub struct ScreenTaxonomyReportV1 {
 #[cfg(test)]
 mod tests {
     use super::{
-        ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1,
-        SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+        ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
     };
     use crate::params::{
         screen::{
@@ -123,8 +121,7 @@ mod tests {
         };
 
         let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: ScreenTaxonomyReportV1 =
-            serde_json::from_str(&encoded).expect("deserialize");
+        let decoded: ScreenTaxonomyReportV1 = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "kraken2");
         assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
         assert_eq!(decoded.top_taxa.len(), 1);

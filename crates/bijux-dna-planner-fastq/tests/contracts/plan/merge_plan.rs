@@ -122,7 +122,9 @@ fn pear_merge_plan_maps_overlap_and_min_length() -> Result<()> {
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
     assert!(script.contains("'pear' '-f' 'reads_R1.fastq.gz'"));
-    assert!(script.contains("'pear' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz' '-o' 'out/pear' '-j' '9'"));
+    assert!(script.contains(
+        "'pear' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz' '-o' 'out/pear' '-j' '9'"
+    ));
     assert!(script.contains("'24'"));
     assert!(script.contains("'120'"));
     assert!(script.contains("\"merge_overlap\": 24"));
@@ -240,7 +242,10 @@ fn leehom_merge_plan_emits_unmerged_pair_outputs() -> Result<()> {
             "report_json".to_string()
         ]
     );
-    assert_eq!(plan.params["merged_reads"], serde_json::json!("out/leehom.fq.gz"));
+    assert_eq!(
+        plan.params["merged_reads"],
+        serde_json::json!("out/leehom.fq.gz")
+    );
     assert_eq!(
         plan.params["unmerged_reads_r1"],
         serde_json::json!("out/leehom_r1.fq.gz")
@@ -308,7 +313,9 @@ fn merge_plan_uses_stage_default_threads_without_override() -> Result<()> {
     )?;
 
     let script = &plan.command.template[2];
-    assert!(script.contains("'pear' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz' '-o' 'out/pear' '-j' '6'"));
+    assert!(script.contains(
+        "'pear' '-f' 'reads_R1.fastq.gz' '-r' 'reads_R2.fastq.gz' '-o' 'out/pear' '-j' '6'"
+    ));
     assert!(script.contains("\"threads\": 6"));
     assert_eq!(plan.resources.threads, 6);
     Ok(())

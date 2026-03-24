@@ -107,6 +107,9 @@ mod tests {
         let decoded: FilterReadsReportV1 = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "fastp");
         assert_eq!(decoded.reads_removed_by_n, 2);
-        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
+        assert_eq!(
+            decoded.raw_backend_report_format.as_deref(),
+            Some("fastp_json")
+        );
     }
 }

@@ -27,17 +27,16 @@ use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
-    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
-    DetectAdaptersStageParams, ExtractUmisStageParams, FastqStageBinding,
-    FastqStageParameters, FilterLowComplexityStageParams, FilterReadsStageParams,
-    IndexReferenceStageParams, InferAsvsStageParams, MergePairsStageParams,
-    NormalizeAbundanceStageParams, NormalizePrimersStageParams, TrimTerminalDamageStageParams,
-    STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
-    STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
-    STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
-    STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
-    STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC,
-    STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
+    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, DetectAdaptersStageParams,
+    ExtractUmisStageParams, FastqStageBinding, FastqStageParameters,
+    FilterLowComplexityStageParams, FilterReadsStageParams, IndexReferenceStageParams,
+    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
+    NormalizePrimersStageParams, TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
+    STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
+    STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY,
+    STAGE_FILTER_READS, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE,
+    STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES,
+    STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
     STAGE_VALIDATE_READS,
 };
 

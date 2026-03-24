@@ -15,9 +15,9 @@ use bijux_dna_analyze::quality::insert_fastq_qc_post_v1;
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqQcPostMetrics,
 };
+use bijux_dna_core::contract::ArtifactRole;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
-use bijux_dna_core::contract::ArtifactRole;
 use bijux_dna_core::prelude::{ArtifactRef, ContainerImageRefV1};
 use bijux_dna_domain_fastq::params::{
     qc_post::{QcAggregationEngine, QcAggregationScope},
@@ -885,7 +885,11 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
         left.contributor_id
             .cmp(&right.contributor_id)
             .then_with(|| left.artifact_id.cmp(&right.artifact_id))
-            .then_with(|| left.artifact_role.as_str().cmp(right.artifact_role.as_str()))
+            .then_with(|| {
+                left.artifact_role
+                    .as_str()
+                    .cmp(right.artifact_role.as_str())
+            })
             .then_with(|| left.path.cmp(&right.path))
     });
     contributors.dedup_by(|left, right| {

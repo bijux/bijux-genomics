@@ -4,8 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::PairedMode;
 
 pub const STATS_SCHEMA_VERSION: &str = "bijux.fastq.params.stats.v1";
-pub const READ_LENGTH_PROFILE_SCHEMA_VERSION: &str =
-    "bijux.fastq.params.read_length_profile.v1";
+pub const READ_LENGTH_PROFILE_SCHEMA_VERSION: &str = "bijux.fastq.params.read_length_profile.v1";
 pub const OVERREPRESENTED_PROFILE_SCHEMA_VERSION: &str =
     "bijux.fastq.params.overrepresented_profile.v1";
 

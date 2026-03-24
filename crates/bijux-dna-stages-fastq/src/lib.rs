@@ -251,22 +251,12 @@ mod tests {
         assert!(observer_specialized.contains(&StageId::from_static("fastq.detect_adapters")));
         assert!(observer_specialized.contains(&StageId::from_static("fastq.report_qc")));
         assert!(observer_specialized.contains(&StageId::from_static("fastq.validate_reads")));
-        assert!(observer_specialized.contains(&StageId::from_static(
-            "fastq.remove_duplicates"
-        )));
-        assert!(observer_specialized.contains(&StageId::from_static(
-            "fastq.trim_terminal_damage"
-        )));
-        assert!(observer_specialized.contains(&StageId::from_static(
-            "fastq.trim_polyg_tails"
-        )));
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.remove_duplicates")));
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.trim_terminal_damage")));
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.trim_polyg_tails")));
         assert!(observer_specialized.contains(&StageId::from_static("fastq.trim_reads")));
-        assert!(observer_specialized.contains(&StageId::from_static(
-            "fastq.screen_taxonomy"
-        )));
-        assert!(observer_specialized.contains(&StageId::from_static(
-            "fastq.correct_errors"
-        )));
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.screen_taxonomy")));
+        assert!(observer_specialized.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(observer_specialized.contains(&StageId::from_static(
             "fastq.profile_overrepresented_sequences"
         )));
@@ -281,7 +271,10 @@ mod tests {
         );
         for tool_id in ["fastqvalidator", "seqtk", "fqtools"] {
             assert_eq!(
-                runtime_interpretation_for_stage_tool(&validate_stage, &ToolId::from_static(tool_id)),
+                runtime_interpretation_for_stage_tool(
+                    &validate_stage,
+                    &ToolId::from_static(tool_id)
+                ),
                 Some(RuntimeInterpretationLevel::ObserverSpecialized)
             );
         }

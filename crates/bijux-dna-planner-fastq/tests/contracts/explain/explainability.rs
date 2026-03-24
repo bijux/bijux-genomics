@@ -66,11 +66,12 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
         None,
         None,
         None,
-        |binding, _r1, _r2| Ok(
-            temp.path()
+        |binding, _r1, _r2| {
+            Ok(temp
+                .path()
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )?;
 
     let plan_reason = &plans[0].reason;
@@ -114,15 +115,21 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
 
     let stages = vec![
         (
-            bijux_dna_domain_fastq::STAGE_TRIM_READS.as_str().to_string(),
+            bijux_dna_domain_fastq::STAGE_TRIM_READS
+                .as_str()
+                .to_string(),
             tool_for("fastp"),
         ),
         (
-            bijux_dna_domain_fastq::STAGE_PROFILE_READS.as_str().to_string(),
+            bijux_dna_domain_fastq::STAGE_PROFILE_READS
+                .as_str()
+                .to_string(),
             tool_for("seqkit_stats"),
         ),
         (
-            bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY.as_str().to_string(),
+            bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY
+                .as_str()
+                .to_string(),
             tool_for("krakenuniq"),
         ),
     ];

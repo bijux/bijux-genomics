@@ -426,9 +426,7 @@ fn load_screen_summary_entries(path: &Path) -> Result<Vec<TaxonomyScreenSummaryE
 fn find_unclassified_fraction(entries: &[TaxonomyScreenSummaryEntryV1]) -> Option<f64> {
     entries.iter().find_map(|entry| {
         let label = entry.label.to_ascii_lowercase();
-        if label.contains("unclassified")
-            || label.contains("unmapped")
-            || label.contains("no hit")
+        if label.contains("unclassified") || label.contains("unmapped") || label.contains("no hit")
         {
             Some((entry.percent / 100.0).clamp(0.0, 1.0))
         } else {

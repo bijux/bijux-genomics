@@ -223,7 +223,10 @@ fn low_complexity_command_template(
                 "filtered_fastq_r2",
                 output_r2.map(|path| path.display().to_string()),
             ),
-            ("filter_report_json", Some(report_json.display().to_string())),
+            (
+                "filter_report_json",
+                Some(report_json.display().to_string()),
+            ),
             (
                 "raw_backend_report",
                 raw_backend_report.map(|path| path.display().to_string()),
@@ -232,7 +235,10 @@ fn low_complexity_command_template(
     )
 }
 
-fn raw_backend_report_contract(tool: &str, out_dir: &Path) -> (Option<PathBuf>, Option<&'static str>) {
+fn raw_backend_report_contract(
+    tool: &str,
+    out_dir: &Path,
+) -> (Option<PathBuf>, Option<&'static str>) {
     match tool {
         "bbduk" => (
             Some(out_dir.join("bbduk.low_complexity.stats")),
@@ -301,18 +307,16 @@ mod tests {
             },
         )
         .expect("plan");
-        assert!(
-            plan.command
-                .template
-                .iter()
-                .any(|token| token == "entropy=0.8")
-        );
-        assert!(
-            plan.command
-                .template
-                .iter()
-                .any(|token| token == "maxpoly=24")
-        );
+        assert!(plan
+            .command
+            .template
+            .iter()
+            .any(|token| token == "entropy=0.8"));
+        assert!(plan
+            .command
+            .template
+            .iter()
+            .any(|token| token == "maxpoly=24"));
     }
 
     #[test]
@@ -328,11 +332,9 @@ mod tests {
             },
         )
         .expect_err("explicit polyx threshold should fail");
-        assert!(
-            error
-                .to_string()
-                .contains("does not support explicit polyx_threshold")
-        );
+        assert!(error
+            .to_string()
+            .contains("does not support explicit polyx_threshold"));
     }
 
     #[test]
@@ -345,11 +347,10 @@ mod tests {
             &LowComplexityPlanOptions::default(),
         )
         .expect("plan");
-        assert!(
-            plan.command
-                .template
-                .windows(2)
-                .any(|window| window == ["-lc_threshold", "0.5"])
-        );
+        assert!(plan
+            .command
+            .template
+            .windows(2)
+            .any(|window| window == ["-lc_threshold", "0.5"]));
     }
 }

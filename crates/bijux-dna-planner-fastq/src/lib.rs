@@ -37,8 +37,7 @@ pub const TOOL_SEQKIT: &str = "seqkit";
 pub const STAGE_REPORT_AGGREGATE: StageId = StageId::from_static("report.aggregate");
 pub const STAGE_COMPARE_STAGE_TOOLS: StageId =
     StageId::from_static("benchmark.compare_stage_tools");
-pub const STAGE_SELECT_STAGE_TOOL: StageId =
-    StageId::from_static("benchmark.select_stage_tool");
+pub const STAGE_SELECT_STAGE_TOOL: StageId = StageId::from_static("benchmark.select_stage_tool");
 pub const STAGE_PREPROCESS_SUMMARY: StageId = StageId::from_static("fastq.preprocess");
 
 pub use bijux_dna_domain_fastq::BenchResultsRepository;
@@ -61,10 +60,7 @@ fn required_id_catalog() -> Vec<String> {
         .collect()
 }
 
-fn pipeline_spec_from_stage_catalog(
-    stages: Vec<String>,
-    mode: FastqPipelineMode,
-) -> PipelineSpec {
+fn pipeline_spec_from_stage_catalog(stages: Vec<String>, mode: FastqPipelineMode) -> PipelineSpec {
     preprocess_pipeline_graph_for_stage_order(
         sort_stages_by_domain_order(stages, mode)
             .into_iter()
@@ -483,10 +479,7 @@ fn filter_preprocess_pipeline(
         allowed_stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
     }
     preprocess_pipeline_graph_for_stage_order(
-        allowed_stages
-            .into_iter()
-            .map(StageId::new)
-            .collect(),
+        allowed_stages.into_iter().map(StageId::new).collect(),
     )
 }
 

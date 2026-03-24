@@ -247,8 +247,8 @@ fn trim_polyg_tool_manifests_declare_polyx_trim_capability() -> Result<()> {
 fn trim_terminal_damage_stage_manifest_lists_all_supported_backends() -> Result<()> {
     let path = workspace_root()?.join("domain/fastq/stages/trim_terminal_damage.yaml");
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let manifest: serde_json::Value =
-        bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))?;
+    let manifest: serde_json::Value = bijux_dna_infra::formats::parse_yaml(&raw)
+        .with_context(|| format!("parse {}", path.display()))?;
     let compatible_tools = manifest
         .get("compatible_tools")
         .and_then(serde_json::Value::as_array)

@@ -46,7 +46,9 @@ pub(crate) fn cluster_otus_options_from_args(
     options
 }
 
-pub(crate) fn read_cluster_otus_table_metrics(path: &std::path::Path) -> Result<ClusterOtusTableMetrics> {
+pub(crate) fn read_cluster_otus_table_metrics(
+    path: &std::path::Path,
+) -> Result<ClusterOtusTableMetrics> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     let mut samples = std::collections::BTreeSet::new();
     let mut otus = std::collections::BTreeSet::new();
@@ -258,7 +260,9 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
                 .get("used_fallback")
                 .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false),
-            raw_backend_report.exists().then_some(raw_backend_report.as_path()),
+            raw_backend_report
+                .exists()
+                .then_some(raw_backend_report.as_path()),
             Some(serde_json::json!({
                 "tool_payload": payload,
             })),
@@ -299,7 +303,10 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
     })
 }
 
-fn output_path(plan: &bijux_dna_stage_contract::StagePlanV1, output_id: &str) -> Result<std::path::PathBuf> {
+fn output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    output_id: &str,
+) -> Result<std::path::PathBuf> {
     plan.io
         .outputs
         .iter()

@@ -130,7 +130,10 @@ fn profile_reads_command(
             ("reads_r1", Some(r1.display().to_string())),
             (
                 "reads_r2",
-                Some(r2.map(|path| path.display().to_string()).unwrap_or_default()),
+                Some(
+                    r2.map(|path| path.display().to_string())
+                        .unwrap_or_default(),
+                ),
             ),
         ],
     )?;

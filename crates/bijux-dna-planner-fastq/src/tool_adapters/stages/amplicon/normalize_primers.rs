@@ -4,12 +4,12 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::edna::{PrimerNormalizationEffectiveParams, EDNA_SCHEMA_VERSION};
-use bijux_dna_domain_fastq::params::PairedMode;
-use bijux_dna_domain_fastq::{
-    NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
+use bijux_dna_domain_fastq::params::edna::{
+    PrimerNormalizationEffectiveParams, EDNA_SCHEMA_VERSION,
 };
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS;
+use bijux_dna_domain_fastq::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
 };
@@ -50,7 +50,13 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(tool, r1, r2, out_dir, &NormalizePrimersPlanOptions::default())
+    plan_with_options(
+        tool,
+        r1,
+        r2,
+        out_dir,
+        &NormalizePrimersPlanOptions::default(),
+    )
 }
 
 pub fn plan_with_options(

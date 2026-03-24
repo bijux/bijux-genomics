@@ -218,7 +218,11 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
     );
     assert_eq!(
         bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&profile_reads_stage),
-        vec!["qc_json".to_string(), "qc_tsv".to_string(), "qc_plots_dir".to_string(),]
+        vec![
+            "qc_json".to_string(),
+            "qc_tsv".to_string(),
+            "qc_plots_dir".to_string(),
+        ]
     );
 
     let remove_chimeras_stage = StageId::from_static("fastq.remove_chimeras");

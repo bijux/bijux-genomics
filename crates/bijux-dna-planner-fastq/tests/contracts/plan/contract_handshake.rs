@@ -6,8 +6,7 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_dna_planner_fastq::{
-    compose_fastq_stage_bindings, default_pipeline_spec, DefaultPipelineOptions,
-    FastqStageBinding,
+    compose_fastq_stage_bindings, default_pipeline_spec, DefaultPipelineOptions, FastqStageBinding,
 };
 use bijux_dna_stage_contract::{default_edges_for_stages, ExecutionPlan, PlanValidationContext};
 
@@ -67,11 +66,12 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
         None,
         None,
         None,
-        |binding, _r1, _r2| Ok(
-            temp.path()
+        |binding, _r1, _r2| {
+            Ok(temp
+                .path()
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )?;
     let edges = default_edges_for_stages(&plans);
     let plan = ExecutionPlan::new(
@@ -121,11 +121,12 @@ fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<(
         None,
         Some(&reference),
         None,
-        |binding, _r1, _r2| Ok(
-            temp.path()
+        |binding, _r1, _r2| {
+            Ok(temp
+                .path()
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )?;
 
     assert_eq!(plans[0].stage_id.as_str(), "fastq.index_reference");
@@ -185,11 +186,12 @@ fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<
         None,
         Some(&reference),
         None,
-        |binding, _r1, _r2| Ok(
-            temp.path()
+        |binding, _r1, _r2| {
+            Ok(temp
+                .path()
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )
     .expect_err("STAR index must not satisfy bowtie2 depletion");
 

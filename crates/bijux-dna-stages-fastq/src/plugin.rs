@@ -2015,8 +2015,7 @@ mod tests {
             serde_json::json!(2_u64)
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["threads"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["threads"],
             serde_json::json!(4_u64)
         );
         assert_eq!(
@@ -2617,8 +2616,7 @@ mod tests {
             serde_json::json!("ObserverSpecialized")
         );
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["threads"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["threads"],
             serde_json::json!(4_u64)
         );
         assert_eq!(
@@ -2730,8 +2728,7 @@ mod tests {
 
         assert!(output.warnings.is_empty());
         assert_eq!(
-            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-                ["threads"],
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["threads"],
             serde_json::json!(4_u64)
         );
         assert_eq!(

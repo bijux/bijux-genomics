@@ -27,7 +27,10 @@ pub fn validate_execution_outputs(contract: &ExecutionContract, out_dir: &Path) 
 
     if contract.forbid_unexpected_outputs {
         for output in &outputs {
-            if !contract.expected_outputs.iter().any(|pattern| matches_pattern(output, pattern))
+            if !contract
+                .expected_outputs
+                .iter()
+                .any(|pattern| matches_pattern(output, pattern))
                 && !contract
                     .optional_outputs
                     .iter()

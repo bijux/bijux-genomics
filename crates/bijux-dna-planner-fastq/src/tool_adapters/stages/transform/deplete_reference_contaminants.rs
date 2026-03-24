@@ -304,18 +304,20 @@ mod tests {
             },
         )?;
 
-        assert_eq!(plan.params["report_json"], "out/contaminant_screen_report.json");
+        assert_eq!(
+            plan.params["report_json"],
+            "out/contaminant_screen_report.json"
+        );
         assert_eq!(
             plan.params["raw_backend_report"],
             "out/bowtie2.contaminant.metrics.txt"
         );
         assert_eq!(plan.effective_params["threads"], 6);
-        assert!(
-            plan.command
-                .template
-                .iter()
-                .any(|part| part == "out/bowtie2.contaminant.metrics.txt")
-        );
+        assert!(plan
+            .command
+            .template
+            .iter()
+            .any(|part| part == "out/bowtie2.contaminant.metrics.txt"));
         Ok(())
     }
 }

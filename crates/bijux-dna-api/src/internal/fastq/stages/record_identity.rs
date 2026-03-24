@@ -8,10 +8,8 @@ use sha2::{Digest, Sha256};
 pub fn stable_params_hash(params: &serde_json::Value) -> String {
     bijux_dna_core::prelude::params_hash(params).unwrap_or_else(|hash_error| {
         let raw = serde_json::to_vec(params).unwrap_or_else(|serialize_error| {
-            format!(
-                "unhashable_params|hash_error={hash_error}|serialize_error={serialize_error}"
-            )
-            .into_bytes()
+            format!("unhashable_params|hash_error={hash_error}|serialize_error={serialize_error}")
+                .into_bytes()
         });
         let mut hasher = Sha256::new();
         hasher.update(raw);

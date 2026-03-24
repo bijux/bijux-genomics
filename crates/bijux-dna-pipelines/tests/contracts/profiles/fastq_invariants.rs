@@ -84,7 +84,9 @@ fn adna_profiles_obey_core_stage_and_param_properties() {
         id_catalog::FASTQ_QC_POST,
     ] {
         assert!(
-            required.iter().any(|required_stage| required_stage == stage),
+            required
+                .iter()
+                .any(|required_stage| required_stage == stage),
             "aDNA profile must include required stage {stage}"
         );
     }

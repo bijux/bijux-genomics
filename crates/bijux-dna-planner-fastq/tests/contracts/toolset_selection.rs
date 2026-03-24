@@ -67,8 +67,8 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
 }
 
 #[test]
-fn toolset_selection_keeps_declared_bindings_and_governed_infer_asvs_explicit(
-) -> anyhow::Result<()> {
+fn toolset_selection_keeps_declared_bindings_and_governed_infer_asvs_explicit() -> anyhow::Result<()>
+{
     let trim_pipeline = single_stage_graph("fastq.trim_reads");
     let all_bindings = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &trim_pipeline,
@@ -285,11 +285,8 @@ fn layout_filter_keeps_fastuniq_only_for_paired_remove_duplicates() {
         vec!["clumpify".to_string()]
     );
 
-    let paired_end = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
-        &stage_id,
-        tools,
-        true,
-    );
+    let paired_end =
+        bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(&stage_id, tools, true);
     assert_eq!(
         paired_end
             .into_iter()
@@ -307,11 +304,8 @@ fn layout_filter_excludes_paired_only_correction_family_for_single_end_inputs() 
         bijux_dna_core::ids::ToolId::new("musket".to_string()),
     ];
 
-    let single_end = bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
-        &stage_id,
-        tools,
-        false,
-    );
+    let single_end =
+        bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(&stage_id, tools, false);
 
     assert_eq!(
         single_end,

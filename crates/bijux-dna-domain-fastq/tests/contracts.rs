@@ -39,21 +39,21 @@ mod mod_contracts_stage_contract_snapshots_rs;
 mod mod_contracts_stage_contract_tool_ids_parity_rs;
 #[path = "contracts/stage_default_settings_parity.rs"]
 mod mod_contracts_stage_default_settings_parity_rs;
-#[path = "contracts/stage_tool_layout.rs"]
-mod mod_contracts_stage_tool_layout_rs;
-#[path = "contracts/stage_parameter_surface.rs"]
-mod mod_contracts_stage_parameter_surface_rs;
 #[path = "contracts/stage_output_size_estimates_parity.rs"]
 mod mod_contracts_stage_output_size_estimates_parity_rs;
+#[path = "contracts/stage_parameter_surface.rs"]
+mod mod_contracts_stage_parameter_surface_rs;
+#[path = "contracts/stage_tool_layout.rs"]
+mod mod_contracts_stage_tool_layout_rs;
 #[path = "contracts/taxonomy_screen_manifest.rs"]
 mod mod_contracts_taxonomy_screen_manifest_rs;
 #[path = "contracts/tool_metrics.rs"]
 mod mod_contracts_tool_metrics_rs;
 #[path = "contracts/tool_stage_contracts.rs"]
 mod mod_contracts_tool_stage_contracts_rs;
-#[path = "contracts/trim_manifest_optional_outputs.rs"]
-mod mod_contracts_trim_manifest_optional_outputs_rs;
 #[path = "contracts/trim_family_manifest_inputs.rs"]
 mod mod_contracts_trim_family_manifest_inputs_rs;
+#[path = "contracts/trim_manifest_optional_outputs.rs"]
+mod mod_contracts_trim_manifest_optional_outputs_rs;
 #[path = "contracts/validate_reads_manifest.rs"]
 mod mod_contracts_validate_reads_manifest_rs;

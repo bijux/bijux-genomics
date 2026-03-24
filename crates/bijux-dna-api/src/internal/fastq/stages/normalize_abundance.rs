@@ -188,8 +188,8 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
                 .context("decode abundance normalization effective params")?;
         let normalized_table = output_path_for(&plan, "normalized_abundance_tsv")
             .unwrap_or_else(|| out_dir.join("abundance_normalized.tsv"));
-        let report_json =
-            output_path_for(&plan, "report_json").unwrap_or_else(|| out_dir.join("normalize_abundance_report.json"));
+        let report_json = output_path_for(&plan, "report_json")
+            .unwrap_or_else(|| out_dir.join("normalize_abundance_report.json"));
         let used_fallback = !normalized_table.exists();
         let table_metrics = if used_fallback {
             materialize_normalized_table(&args.table, &normalized_table, &effective_params)?
@@ -412,7 +412,10 @@ pub(crate) fn canonical_normalize_abundance_report(
     }
 }
 
-fn output_path_for(plan: &bijux_dna_stage_contract::StagePlanV1, artifact_name: &str) -> Option<std::path::PathBuf> {
+fn output_path_for(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Option<std::path::PathBuf> {
     plan.io
         .outputs
         .iter()

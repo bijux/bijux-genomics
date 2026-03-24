@@ -158,8 +158,7 @@ fn supported_stages_do_not_use_wrong_param_kind() {
         for stage in &profile.capabilities.required_stages {
             let stage_id = StageId::new((*stage).to_string());
             let default_expected = expected_registry(stage);
-            let (expected_kind, _schema) =
-                entries.get(stage).cloned().unwrap_or(default_expected);
+            let (expected_kind, _schema) = entries.get(stage).cloned().unwrap_or(default_expected);
             if expected_kind == "paramless" {
                 continue;
             }

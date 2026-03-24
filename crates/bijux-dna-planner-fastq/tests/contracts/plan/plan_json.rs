@@ -392,7 +392,11 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         .template
         .iter()
         .any(|part| part.contains("cutadapt")));
-    assert!(plan.command.template.iter().any(|part| part.contains("--json")));
+    assert!(plan
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("--json")));
     assert!(plan
         .command
         .template
@@ -529,7 +533,11 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         )?;
     assert_eq!(custom_plan.params["otu_identity"], serde_json::json!(0.99));
     assert_eq!(custom_plan.params["threads"], serde_json::json!(8));
-    assert!(custom_plan.command.template.iter().any(|part| part == "0.99"));
+    assert!(custom_plan
+        .command
+        .template
+        .iter()
+        .any(|part| part == "0.99"));
     assert!(custom_plan.command.template.iter().any(|part| part == "8"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_abundance::plan(

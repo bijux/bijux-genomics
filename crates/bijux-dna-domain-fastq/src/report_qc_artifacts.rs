@@ -81,9 +81,7 @@ pub struct ReportQcReportV1 {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
-    };
+    use super::{GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION};
     use crate::params::{
         qc_post::{QcAggregationEngine, QcAggregationScope},
         PairedMode,

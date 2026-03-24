@@ -354,30 +354,32 @@ fn base_merge_command(
 ) -> Result<String> {
     let command = match tool {
         "adapterremoval" => {
-            let unmerged_r1 = if effective_params.unmerged_read_policy
-                == UnmergedReadPolicy::EmitUnmergedPairs
-            {
-                outputs
-                    .unmerged_reads_r1
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("adapterremoval merge requires unmerged_reads_r1 output"))?
-                    .display()
-                    .to_string()
-            } else {
-                "/dev/null".to_string()
-            };
-            let unmerged_r2 = if effective_params.unmerged_read_policy
-                == UnmergedReadPolicy::EmitUnmergedPairs
-            {
-                outputs
-                    .unmerged_reads_r2
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("adapterremoval merge requires unmerged_reads_r2 output"))?
-                    .display()
-                    .to_string()
-            } else {
-                "/dev/null".to_string()
-            };
+            let unmerged_r1 =
+                if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+                    outputs
+                        .unmerged_reads_r1
+                        .as_ref()
+                        .ok_or_else(|| {
+                            anyhow!("adapterremoval merge requires unmerged_reads_r1 output")
+                        })?
+                        .display()
+                        .to_string()
+                } else {
+                    "/dev/null".to_string()
+                };
+            let unmerged_r2 =
+                if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+                    outputs
+                        .unmerged_reads_r2
+                        .as_ref()
+                        .ok_or_else(|| {
+                            anyhow!("adapterremoval merge requires unmerged_reads_r2 output")
+                        })?
+                        .display()
+                        .to_string()
+                } else {
+                    "/dev/null".to_string()
+                };
             let mut command = vec![
                 "AdapterRemoval".to_string(),
                 "--threads".to_string(),
@@ -398,7 +400,9 @@ fn base_merge_command(
                 outputs
                     .raw_backend_report_txt
                     .as_ref()
-                    .ok_or_else(|| anyhow!("adapterremoval merge requires raw backend settings output"))?
+                    .ok_or_else(|| {
+                        anyhow!("adapterremoval merge requires raw backend settings output")
+                    })?
                     .display()
                     .to_string(),
                 "--singleton".to_string(),
@@ -542,9 +546,12 @@ fn base_merge_command(
         .map(|part| shell_quote_str(&part))
         .collect::<Vec<_>>()
         .join(" ");
-    Ok(outputs.raw_backend_report_txt.as_ref().map_or(command.clone(), |path| {
-        format!("{command} > {} 2>&1", shell_quote_path(path))
-    }))
+    Ok(outputs
+        .raw_backend_report_txt
+        .as_ref()
+        .map_or(command.clone(), |path| {
+            format!("{command} > {} 2>&1", shell_quote_path(path))
+        }))
 }
 
 fn option_json_u32(value: Option<u32>) -> String {

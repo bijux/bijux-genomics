@@ -358,9 +358,7 @@ mod tests {
         )
         .expect_err("unsupported host_identity_threshold must fail");
 
-        assert!(error
-            .to_string()
-            .contains("host_identity_threshold=0.95"));
+        assert!(error.to_string().contains("host_identity_threshold=0.95"));
     }
 
     #[test]
@@ -386,12 +384,11 @@ mod tests {
         );
         assert_eq!(plan.params["raw_backend_report_format"], "bowtie2_met_file");
         assert_eq!(plan.effective_params["threads"], 8);
-        assert!(
-            plan.command
-                .template
-                .windows(2)
-                .any(|window| window == ["--met-file", "out/bowtie2.host.metrics.txt"])
-        );
+        assert!(plan
+            .command
+            .template
+            .windows(2)
+            .any(|window| window == ["--met-file", "out/bowtie2.host.metrics.txt"]));
         Ok(())
     }
 }

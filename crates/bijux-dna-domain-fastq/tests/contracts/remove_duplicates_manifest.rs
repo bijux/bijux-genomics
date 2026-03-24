@@ -28,8 +28,8 @@ fn tool_manifest(tool_id: &str) -> Result<serde_json::Value> {
 fn external_tool_allowlist() -> Result<serde_json::Value> {
     let path = workspace_root()?.join("configs/domain/external_tools.toml");
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let parsed: ExternalToolAllowlist =
-        bijux_dna_infra::formats::parse_toml(&raw).with_context(|| format!("parse {}", path.display()))?;
+    let parsed: ExternalToolAllowlist = bijux_dna_infra::formats::parse_toml(&raw)
+        .with_context(|| format!("parse {}", path.display()))?;
     serde_json::to_value(parsed).context("convert external tools TOML to JSON")
 }
 
@@ -37,7 +37,13 @@ fn remove_duplicates_fixture_tool_ids() -> Result<Vec<String>> {
     let dir = workspace_root()?.join("domain/fastq/fixtures/fastq.remove_duplicates");
     let mut tool_ids = std::fs::read_dir(&dir)?
         .filter_map(|entry| entry.ok())
-        .filter_map(|entry| entry.path().file_stem().and_then(|stem| stem.to_str()).map(str::to_string))
+        .filter_map(|entry| {
+            entry
+                .path()
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .map(str::to_string)
+        })
         .collect::<Vec<_>>();
     tool_ids.sort();
     Ok(tool_ids)
