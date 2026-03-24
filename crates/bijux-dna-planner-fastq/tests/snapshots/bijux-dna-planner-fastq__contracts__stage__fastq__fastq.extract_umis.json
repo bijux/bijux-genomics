@@ -78,6 +78,7 @@
     "raw_backend_report": "out/umi_tools.extract.log",
     "raw_backend_report_format": "umi_tools_log",
     "report_json": "out/umi_report.json",
+    "threads": 2,
     "tool": "umi_tools",
     "umi_pattern": "NNNNNNNN"
   },
