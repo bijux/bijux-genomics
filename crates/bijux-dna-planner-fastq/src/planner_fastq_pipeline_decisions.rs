@@ -515,7 +515,7 @@ impl FastqPlanner {
                 stage_instance_id: None,
                 tool: tool.clone(),
                 reason: None,
-                params: config.params.clone(),
+                params: project_benchmark_stage_params_for_tool(&stage_id, &tool.tool_id, config.params.as_ref()),
             }];
             let stage_plans = compose_fastq_stage_bindings(
                 &stage_bindings,
@@ -637,6 +637,51 @@ impl FastqPlanner {
             edges,
         )?)
     }
+}
+
+fn project_benchmark_stage_params_for_tool(
+    stage_id: &StageId,
+    tool_id: &bijux_dna_core::ids::ToolId,
+    params: Option<&FastqStageParameters>,
+) -> Option<FastqStageParameters> {
+    match (stage_id.as_str(), params) {
+        (
+            "fastq.correct_errors",
+            Some(FastqStageParameters::CorrectErrors(params)),
+        ) => Some(FastqStageParameters::CorrectErrors(
+            project_correct_errors_params_for_tool(tool_id.as_str(), params),
+        )),
+        (_, Some(params)) => Some(params.clone()),
+        (_, None) => None,
+    }
+}
+
+fn project_correct_errors_params_for_tool(
+    tool_id: &str,
+    params: &CorrectErrorsStageParams,
+) -> CorrectErrorsStageParams {
+    let mut projected = params.clone();
+    match tool_id {
+        "lighter" => {}
+        "musket" => {
+            projected.genome_size = None;
+            projected.max_memory_gb = None;
+            projected.trusted_kmer_artifact = None;
+        }
+        "bayeshammer" => {
+            projected.kmer_size = None;
+            projected.genome_size = None;
+            projected.trusted_kmer_artifact = None;
+        }
+        "rcorrector" => {
+            projected.kmer_size = None;
+            projected.genome_size = None;
+            projected.max_memory_gb = None;
+            projected.trusted_kmer_artifact = None;
+        }
+        _ => {}
+    }
+    projected
 }
 
 fn comparison_command_for_stage(

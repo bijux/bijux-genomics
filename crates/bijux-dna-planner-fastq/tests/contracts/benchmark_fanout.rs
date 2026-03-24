@@ -252,5 +252,13 @@ fn benchmark_fanout_propagates_typed_correct_error_params() -> anyhow::Result<()
         .expect("lighter step");
     assert!(lighter_step.command.template[2].contains("\"kmer_size\":31"));
     assert!(lighter_step.command.template[2].contains("\"trusted_kmer_artifact\":"));
+    let musket_step = graph
+        .steps()
+        .iter()
+        .find(|step| step.step_id.as_str() == "fastq.correct_errors.tool.musket")
+        .expect("musket step");
+    assert!(musket_step.command.template[2].contains("\"kmer_size\":31"));
+    assert!(!musket_step.command.template[2].contains("\"genome_size\":2500000"));
+    assert!(!musket_step.command.template[2].contains("trusted.kmers"));
     Ok(())
 }
