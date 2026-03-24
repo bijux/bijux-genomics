@@ -565,6 +565,7 @@ pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serd
                 "duplicate_class_count": report.duplicate_classes.len(),
                 "duplicate_classes_tsv": report.duplicate_classes_tsv,
                 "duplicate_provenance_json": report.duplicate_provenance_json,
+                "raw_backend_report": report.raw_backend_report,
                 "raw_backend_report_format": report.raw_backend_report_format,
                 "report_json": report_path,
             });
@@ -2453,6 +2454,7 @@ mod tests {
         assert_eq!(metrics["dedup_mode"], serde_json::json!("optical_aware"));
         assert_eq!(metrics["duplicates_removed"], serde_json::json!(16));
         assert_eq!(metrics["duplicate_class_count"], serde_json::json!(1));
+        assert_eq!(metrics["raw_backend_report"], serde_json::json!("clumpify.log"));
     }
 
     #[test]
