@@ -1,6 +1,6 @@
 # FASTQ Fixture Format
 
-Each fixture file under `domain/fastq/fixtures/<stage>/*.txt` must define:
+Each fixture file under domain/fastq/fixtures/STAGE_ID/*.txt must define:
 - `tool=<tool_id>`
 - `tool_version=<pinned|semver|digest>`
 - `stage=<domain.stage>`

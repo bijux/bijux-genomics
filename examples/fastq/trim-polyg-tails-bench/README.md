@@ -18,11 +18,11 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_t
 - Emit stage metrics, stage report, `bench.jsonl`, and `bench.sqlite` outputs.
 
 ## Step 4 Collect/Report
-- Collect outputs under `artifacts/examples/fastq_trim_polyg_tails_bench/`.
+- Collect outputs under artifacts/examples/fastq_trim_polyg_tails_bench/.
 - Review trimmed-length deltas and retained-read summaries before scaling to cluster runs.
 
 ## HPC Run
 - Preferred command:
-  `cargo run -q -p bijux-dna -- bench fastq trim-polyg-tails --sample-id trim-polyg-hpc --r1 <reads_R1.fastq.gz> --r2 <reads_R2.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8 --polyx-preset illumina_twocolor`
+  `cargo run -q -p bijux-dna bench fastq trim-polyg-tails --sample-id trim-polyg-hpc --r1 <reads_R1.fastq.gz> --r2 <reads_R2.fastq.gz> --out <bench-dir> --tools auto --replicates 3 --jobs 8 --polyx-preset illumina_twocolor`
 - Keep chemistry-specific presets explicit in scheduler submissions so benchmark comparisons remain interpretable.
 - Single-end datasets may omit `--r2`; paired-end datasets should pass both mates so trim deltas reflect the full library.

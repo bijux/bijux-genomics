@@ -23,6 +23,6 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_e
   - `fastq.normalize_abundance`
 
 ## Step 4 Collect/Report
-- Collect outputs under `artifacts/examples/fastq_edna_mini/`.
+- Collect outputs under artifacts/examples/fastq_edna_mini/.
 - Emit deterministic bundle and report artifacts.
 - Emit warnings in report for compositionality caveats and database-bias risk.
