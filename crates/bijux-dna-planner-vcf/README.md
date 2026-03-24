@@ -16,10 +16,10 @@ Plan output ordering is deterministic and idempotent for identical inputs.
 Consumes domain-vcf stage/params contracts and emits planner-level contracts for API use.
 
 ## Artifacts / Contracts
-- [docs/INDEX.md](docs/INDEX.md)
-- [docs/SCOPE.md](docs/SCOPE.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/TESTS.md](docs/TESTS.md)
+- [crates/bijux-dna-planner-vcf/docs/INDEX.md](crates/bijux-dna-planner-vcf/docs/INDEX.md)
+- [crates/bijux-dna-planner-vcf/docs/SCOPE.md](crates/bijux-dna-planner-vcf/docs/SCOPE.md)
+- [crates/bijux-dna-planner-vcf/docs/ARCHITECTURE.md](crates/bijux-dna-planner-vcf/docs/ARCHITECTURE.md)
+- [crates/bijux-dna-planner-vcf/docs/TESTS.md](crates/bijux-dna-planner-vcf/docs/TESTS.md)
 
 ## Failure modes
 Missing required stages or unstable graph ordering breaks planner contracts.
@@ -33,4 +33,4 @@ Missing required stages or unstable graph ordering breaks planner contracts.
 - `src/lib.rs`
 
 ## Where the docs live
-All crate docs live under `docs/`, indexed by [docs/INDEX.md](docs/INDEX.md).
+All crate docs live under `crates/bijux-dna-planner-vcf/docs/`, indexed by [crates/bijux-dna-planner-vcf/docs/INDEX.md](crates/bijux-dna-planner-vcf/docs/INDEX.md).

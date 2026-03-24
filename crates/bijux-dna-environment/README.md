@@ -10,7 +10,7 @@ No tool execution or container runs.
 Upstream: API/planners. Downstream: runner.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/ENV_REFERENCE.md`, `docs/ENV_MATRIX.md`, `docs/SCHEMAS.md`, `docs/BOUNDARY.md`, `docs/CHANGE_RULES.md`.
+See `crates/bijux-dna-environment/docs/INDEX.md`, `crates/bijux-dna-environment/docs/ENV_REFERENCE.md`, `crates/bijux-dna-environment/docs/ENV_MATRIX.md`, `crates/bijux-dna-environment/docs/SCHEMAS.md`, `crates/bijux-dna-environment/docs/BOUNDARY.md`, `crates/bijux-dna-environment/docs/CHANGE_RULES.md`.
 
 ## Resolution precedence (inputs → spec → digest → cache)
 Inputs flow in a strict order:
@@ -19,7 +19,7 @@ Inputs flow in a strict order:
 3. Digest resolution
 4. Cache (resolved result reused)
 
-Authoritative rules live in `docs/ENV_REFERENCE.md`.
+Authoritative rules live in `crates/bijux-dna-environment/docs/ENV_REFERENCE.md`.
 
 Example (tag pinned to digest, then cached):
 ```
@@ -30,33 +30,33 @@ tool_image_spec.json -> resolve to digest -> cached resolved spec
 Resolved environment specs and digests only.
 
 ## Artifacts / Contracts
-See schema fixtures under `tests/fixtures/env_schema/` and `docs/SCHEMAS.md`.
+See schema fixtures under `tests/fixtures/env_schema/` and `crates/bijux-dna-environment/docs/SCHEMAS.md`.
 
 ## Effects & determinism guarantees
-Pure resolution; no network execution. Stable digest for the same inputs; see `docs/THREAT_MODEL.md` for stability breakers.
+Pure resolution; no network execution. Stable digest for the same inputs; see `crates/bijux-dna-environment/docs/THREAT_MODEL.md` for stability breakers.
 
 ## What's deliberately NOT supported yet
 - Network pulls or remote registry probing.
 - HPC scheduler integration.
 
 ## No execution
-This crate must not depend on `bijux-dna-runner` or execute tools. See `docs/BOUNDARY.md` and `tests/guardrails/no_runner_usage.rs`.
+This crate must not depend on `bijux-dna-runner` or execute tools. See `crates/bijux-dna-environment/docs/BOUNDARY.md` and `tests/guardrails/no_runner_usage.rs`.
 
 ## Common failures
 - Bad platform spec (schema mismatch): see `tests/schema/schema_snapshots.rs`.
 - Missing tool image spec: see `tests/matrix/reference_matrix.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/matrix/reference_matrix.rs`, `tests/schema/schema_snapshots.rs`, `tests/guardrails/guardrails_runtime.rs`, `tests/matrix/docs_reference_matrix.rs`.
+See `crates/bijux-dna-environment/docs/TESTS.md`. Golden tests: `tests/matrix/reference_matrix.rs`, `tests/schema/schema_snapshots.rs`, `tests/guardrails/guardrails_runtime.rs`, `tests/matrix/docs_reference_matrix.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+Start at `crates/bijux-dna-environment/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `crates/bijux-dna-environment/docs/CHANGE_RULES.md`.
 
 ## Where to start
 - `src/runtime_spec.rs`

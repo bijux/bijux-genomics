@@ -4,7 +4,7 @@ Purpose: define named runtime profiles that compose execution defaults and use-c
 
 Composition and precedence:
 1. Base platform defaults from `configs/runtime/platforms.toml`.
-2. Selected profile file (`configs/runtime/profiles/<name>.toml`).
+2. Selected profile file (`configs/runtime/profiles/local.toml`).
 3. Explicit CLI/runtime flags (highest precedence).
 
 Rules:

@@ -10,8 +10,8 @@ No planning or execution.
 Upstream: runtime artifacts. Downstream: benchmark and users.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/REPORT_CONTRACT.md`, `docs/DECISIONS.md`, `docs/PERFORMANCE_BUDGET.md`,
-`docs/CHANGE_RULES.md`, `docs/DETERMINISM.md`.
+See `crates/bijux-dna-analyze/docs/INDEX.md`, `crates/bijux-dna-analyze/docs/REPORT_CONTRACT.md`, `crates/bijux-dna-analyze/docs/DECISIONS.md`, `crates/bijux-dna-analyze/docs/PERFORMANCE_BUDGET.md`,
+`crates/bijux-dna-analyze/docs/CHANGE_RULES.md`, `crates/bijux-dna-analyze/docs/DETERMINISM.md`.
 
 ## What you get (inputs → outputs)
 Inputs:
@@ -33,37 +33,37 @@ Outputs:
 Report JSON (`report.json`) and HTML bundle (`report_bundle/index.html`) outputs.
 
 ## Effects & determinism guarantees
-Pure computation + report rendering; deterministic outputs. See `docs/EFFECTS.md` and `docs/DETERMINISM.md`.
+Pure computation + report rendering; deterministic outputs. See `crates/bijux-dna-analyze/docs/EFFECTS.md` and `crates/bijux-dna-analyze/docs/DETERMINISM.md`.
 
 ## Report artifacts
 - `report.json`
 - `report_bundle/index.html`
 
 ## Artifacts / Contracts
-- `report.json` contract: `docs/REPORT_CONTRACT.md` + `tests/contracts/report_contract.rs`.
-- Report bundle structure: `docs/REPORT_CONTRACT.md` + `tests/report/report_contract.rs`.
-- Failure hints contract: `docs/FAILURE_TAXONOMY.md` + `tests/contracts/failure_hints.rs`.
+- `report.json` contract: `crates/bijux-dna-analyze/docs/REPORT_CONTRACT.md` + `tests/contracts/report_contract.rs`.
+- Report bundle structure: `crates/bijux-dna-analyze/docs/REPORT_CONTRACT.md` + `tests/report/report_contract.rs`.
+- Failure hints contract: `crates/bijux-dna-analyze/docs/FAILURE_TAXONOMY.md` + `tests/contracts/failure_hints.rs`.
 
 ## Performance budgets are enforced
-See `docs/PERFORMANCE_BUDGET.md` and `tests/report/performance_budget.rs`.
+See `crates/bijux-dna-analyze/docs/PERFORMANCE_BUDGET.md` and `tests/report/performance_budget.rs`.
 Budget expectations are: size caps and runtime ceilings; violations fail tests.
 
 ## Interpretation guide
-Start with `docs/INTERPRETATION.md`.
+Start with `crates/bijux-dna-analyze/docs/INTERPRETATION.md`.
 
 ## Failure taxonomy
-See `docs/FAILURE_TAXONOMY.md` and `tests/contracts/failure_hints.rs`.
+See `crates/bijux-dna-analyze/docs/FAILURE_TAXONOMY.md` and `tests/contracts/failure_hints.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/report/report_contract.rs`,
+See `crates/bijux-dna-analyze/docs/TESTS.md`. Golden tests: `tests/report/report_contract.rs`,
 `tests/report/report_determinism.rs`, `tests/report/performance_budget.rs`,
 `tests/contracts/contract_handshake.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+Start at `crates/bijux-dna-analyze/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `crates/bijux-dna-analyze/docs/CHANGE_RULES.md`.

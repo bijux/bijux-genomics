@@ -18,10 +18,10 @@ Stage metadata and parser outputs are deterministic for fixed input fixtures.
 Consumes domain-vcf stages and owns stage-level metrics schema compatibility checks.
 
 ## Artifacts / Contracts
-- [docs/INDEX.md](docs/INDEX.md)
-- [docs/SCOPE.md](docs/SCOPE.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/TESTS.md](docs/TESTS.md)
+- [crates/bijux-dna-stages-vcf/docs/INDEX.md](crates/bijux-dna-stages-vcf/docs/INDEX.md)
+- [crates/bijux-dna-stages-vcf/docs/SCOPE.md](crates/bijux-dna-stages-vcf/docs/SCOPE.md)
+- [crates/bijux-dna-stages-vcf/docs/ARCHITECTURE.md](crates/bijux-dna-stages-vcf/docs/ARCHITECTURE.md)
+- [crates/bijux-dna-stages-vcf/docs/TESTS.md](crates/bijux-dna-stages-vcf/docs/TESTS.md)
 
 ## Failure modes
 Unsupported parser/schema pairings or missing fixtures break stage contracts.
@@ -35,4 +35,4 @@ Unsupported parser/schema pairings or missing fixtures break stage contracts.
 - `src/stage_specs.rs`
 
 ## Where the docs live
-All crate docs live under `docs/`, indexed by [docs/INDEX.md](docs/INDEX.md).
+All crate docs live under `crates/bijux-dna-stages-vcf/docs/`, indexed by [crates/bijux-dna-stages-vcf/docs/INDEX.md](crates/bijux-dna-stages-vcf/docs/INDEX.md).
