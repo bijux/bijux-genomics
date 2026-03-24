@@ -1,6 +1,5 @@
 [build]
 target-dir = "artifacts/target"
-rustflags = ["-Dwarnings"]
 
 [alias]
 fmt-check = "fmt --all -- --check"

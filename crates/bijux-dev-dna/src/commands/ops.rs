@@ -2431,6 +2431,7 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
     }
     let mode = args[0].as_str();
     let run_id = std::env::var("ISO_RUN_ID").unwrap_or_else(|_| "manual".to_string());
+    let benchmark_segment = "/benchmarks/";
     let out_dir = std::env::var("OUT_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
@@ -2439,7 +2440,11 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
                 .join("benchmarks")
                 .join(run_id)
         });
-    if out_dir.display().to_string().contains("/containers/smoke") {
+    let out_dir_display = out_dir.display().to_string();
+    debug_assert!(
+        out_dir_display.contains(benchmark_segment) || out_dir_display.ends_with("benchmarks")
+    );
+    if out_dir_display.contains("/containers/smoke") {
         return Ok(OpsCommandOutcome::failure(format!(
             "benchmark out dir must not overlap smoke logs: {}\n",
             out_dir.display()
