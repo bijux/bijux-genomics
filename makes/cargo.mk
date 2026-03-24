@@ -16,14 +16,32 @@ LINT_PARALLEL_COMMANDS_FILE ?= makes/lint.parallel.commands.txt
 COVERAGE_BASELINE = artifacts/coverage/baseline.json
 COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
+DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dev-dna
 
 fmt:
 	@$(ensure_artifact_env)
 	@$(MAKE) _fmt
 
+_dev-dna-bin:
+	@$(ensure_artifact_env)
+	@needs_build=0; \
+	if [ ! -x "$(DEV_DNA_BIN)" ]; then \
+		needs_build=1; \
+	else \
+		for path in Cargo.toml Cargo.lock $$(find crates/bijux-dev-dna -type f); do \
+			if [ "$$path" -nt "$(DEV_DNA_BIN)" ]; then \
+				needs_build=1; \
+				break; \
+			fi; \
+		done; \
+	fi; \
+	if [ "$$needs_build" -eq 1 ]; then \
+		cargo build -q -p bijux-dev-dna; \
+	fi
+
 _fmt:
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run ci-fmt
+	@cargo fmt --all -- --check
 
 lint:
 	@$(ensure_artifact_env)
@@ -38,23 +56,26 @@ _lint:
 
 _lint-rustfmt:
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run ci-fmt
+	@cargo fmt --all -- --check
 
 _lint-configs:
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- checks run check-config-schema
-	@cargo run -q -p bijux-dev-dna -- checks run check-config-layout
-	@cargo run -q -p bijux-dev-dna -- checks run check-generated-configs
-	@cargo run -q -p bijux-dev-dna -- checks run check-generated-config-headers
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@$(DEV_DNA_BIN) checks run check-config-schema
+	@$(DEV_DNA_BIN) checks run check-config-layout
+	@$(DEV_DNA_BIN) checks run check-generated-configs
+	@$(DEV_DNA_BIN) checks run check-generated-config-headers
 
 _lint-docs:
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- docs run check-doc-links
-	@cargo run -q -p bijux-dev-dna -- checks run check-docs-build-contract
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@$(DEV_DNA_BIN) docs run check-doc-links
+	@$(DEV_DNA_BIN) checks run check-docs-build-contract
 
 _lint-automation:
 	@$(ensure_artifact_env)
-	cargo run -q -p bijux-dev-dna -- tooling run repo-doctor --fast
+	@$(MAKE) _dev-dna-bin >/dev/null
+	$(DEV_DNA_BIN) tooling run repo-doctor --fast
 	@rm -rf "$(ARTIFACTS_DIR)/lint-parallel"
 	@mkdir -p "$(ARTIFACTS_DIR)/lint-parallel"
 	@cp "$(LINT_PARALLEL_COMMANDS_FILE)" "$(ARTIFACTS_DIR)/lint-parallel/commands.txt"
@@ -99,15 +120,18 @@ lint-configs: ## Run config/schema lint gates only.
 
 lint-fast: ## Run lint checks relevant to changed paths only.
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run lint-fast
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@$(DEV_DNA_BIN) tooling run lint-fast
 
 _lint-clippy:
 	@$(ensure_artifact_env)
-	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" cargo run -q -p bijux-dev-dna -- tooling run ci-clippy
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" $(DEV_DNA_BIN) tooling run ci-clippy
 
 _lint-clippy-executors:
 	@$(ensure_artifact_env)
-	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" cargo run -q -p bijux-dev-dna -- tooling run ci-clippy-executors
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@CARGO_BUILD_JOBS="$(CARGO_BUILD_JOBS)" $(DEV_DNA_BIN) tooling run ci-clippy-executors
 
 _clippy: ## Run workspace clippy only (no automation gates).
 	@$(MAKE) _lint-clippy
@@ -125,15 +149,18 @@ test-fast:
 
 _test:
 	@$(ensure_artifact_env)
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" cargo run -q -p bijux-dev-dna -- tooling run ci-test
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" $(DEV_DNA_BIN) tooling run ci-test
 
 _test-fast: ## Run fast test suite excluding only slow-labeled tests.
 	@$(ensure_artifact_env)
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_FAST)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" cargo run -q -p bijux-dev-dna -- tooling run ci-test
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_FAST)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" NEXTEST_FAST_EXPR="$(NEXTEST_FAST_EXPR)" $(DEV_DNA_BIN) tooling run ci-test
 
 _test-slow: ## Run only slow-labeled tests (functions containing slow__).
 	@$(ensure_artifact_env)
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_SLOW)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" cargo run -q -p bijux-dev-dna -- tooling run ci-test-slow
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE_SLOW)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" NEXTEST_NO_TESTS="$(NEXTEST_NO_TESTS)" RUN_IGNORED="$(RUN_IGNORED)" $(DEV_DNA_BIN) tooling run ci-test-slow
 
 audit:
 	@$(ensure_artifact_env)
