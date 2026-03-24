@@ -400,6 +400,7 @@ fn base_merge_command(
                 format!("in1={}", r1.display()),
                 format!("in2={}", r2.display()),
                 format!("out={}", outputs.merged_reads.display()),
+                format!("threads={}", effective_params.threads),
             ];
             if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
                 command.push(format!(
@@ -431,6 +432,8 @@ fn base_merge_command(
                 "flash2".to_string(),
                 "-d".to_string(),
                 out_dir.display().to_string(),
+                "-t".to_string(),
+                effective_params.threads.to_string(),
                 r1.display().to_string(),
                 r2.display().to_string(),
             ];
