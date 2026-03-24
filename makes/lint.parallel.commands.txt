@@ -1,104 +1,104 @@
 make _domain-validate
 make _examples-validate
-cargo run -q -p bijux-dev-dna -- checks run check-legacy-automation-removed
-cargo run -q -p bijux-dev-dna -- checks run check-config-layout
-cargo run -q -p bijux-dev-dna -- checks run check-config-index-discipline
-cargo run -q -p bijux-dev-dna -- checks run check-config-filenames
-cargo run -q -p bijux-dev-dna -- checks run check-config-headers
-cargo run -q -p bijux-dev-dna -- checks run check-config-schema
-cargo run -q -p bijux-dev-dna -- checks run check-docs-requirements-lock
-cargo run -q -p bijux-dev-dna -- checks run check-nextest-profile-contract
-cargo run -q -p bijux-dev-dna -- checks run check-runtime-profiles-contract
-cargo run -q -p bijux-dev-dna -- checks run check-runtime-execution-kernel-config
-cargo run -q -p bijux-dev-dna -- checks run check-certification-schema-docs
-cargo run -q -p bijux-dev-dna -- checks run check-logging-contract
-cargo run -q -p bijux-dev-dna -- checks run check-run-directory-layout
-cargo run -q -p bijux-dev-dna -- checks run check-benchmark-integrity-policy
-cargo run -q -p bijux-dev-dna -- checks run check-hpc-rsync-docs-parity
-cargo run -q -p bijux-dev-dna -- checks run check-config-owners
-cargo run -q -p bijux-dev-dna -- checks run check-registry-required-tools-parity
-cargo run -q -p bijux-dev-dna -- checks run check-container-ssot-parity
-cargo run -q -p bijux-dev-dna -- checks run check-domain-tool-parity
-cargo run -q -p bijux-dev-dna -- checks run check-stage-domain-parity
-cargo run -q -p bijux-dev-dna -- checks run check-stage-registry-governance
-cargo run -q -p bijux-dev-dna -- checks run check-param-registry-completeness
-cargo run -q -p bijux-dev-dna -- checks run check-deprecations-enforcement
-cargo run -q -p bijux-dev-dna -- checks run check-species-aliases
-cargo run -q -p bijux-dev-dna -- checks run check-bench-knobs
-cargo run -q -p bijux-dev-dna -- checks run check-registry-split
-cargo run -q -p bijux-dev-dna -- checks run check-tool-registry-lock
-cargo run -q -p bijux-dev-dna -- checks run check-panel-locks
-cargo run -q -p bijux-dev-dna -- checks run check-panel-license-policy
-cargo run -q -p bijux-dev-dna -- checks run check-enabled-vcf-panel-metadata
-cargo run -q -p bijux-dev-dna -- checks run check-reference-service-boundary
-cargo run -q -p bijux-dev-dna -- checks run check-reference-path-governance
-cargo run -q -p bijux-dev-dna -- checks run check-coverage-regimes-schema
-cargo run -q -p bijux-dev-dna -- domain run check-domain-layout
-cargo run -q -p bijux-dev-dna -- domain run check-domain-schema
-cargo run -q -p bijux-dev-dna -- domain run check-domain-index
-cargo run -q -p bijux-dev-dna -- domain run check-shared-tools
-cargo run -q -p bijux-dev-dna -- domain run check-tool-container-parity
-cargo run -q -p bijux-dev-dna -- domain run check-default-settings-docs
-cargo run -q -p bijux-dev-dna -- domain run check-fixture-contracts
-cargo run -q -p bijux-dev-dna -- domain run check-orphan-files
-cargo run -q -p bijux-dev-dna -- domain run check-doc-links
-cargo run -q -p bijux-dev-dna -- domain run check-external-tool-policy
-cargo run -q -p bijux-dev-dna -- domain run check-inventory
-cargo run -q -p bijux-dev-dna -- docs run check-domain-doc-references
-cargo run -q -p bijux-dev-dna -- docs run check-doc-links
-cargo run -q -p bijux-dev-dna -- checks run check-docs-build-contract
-cargo run -q -p bijux-dev-dna -- docs run check-docs-graph
-cargo run -q -p bijux-dev-dna -- docs run check-doc-root-layout
-cargo run -q -p bijux-dev-dna -- docs run check-doc-depth
-cargo run -q -p bijux-dev-dna -- docs run check-doc-major-depth
-cargo run -q -p bijux-dev-dna -- docs run check-no-placeholder-language
-cargo run -q -p bijux-dev-dna -- docs run check-generated-docs
-cargo run -q -p bijux-dev-dna -- docs run check-doc-assets
-cargo run -q -p bijux-dev-dna -- tooling run check-config-paths
-cargo run -q -p bijux-dev-dna -- tooling run check-config-snapshot --if-config-changed
-cargo run -q -p bijux-dev-dna -- checks run check-root-layout
-cargo run -q -p bijux-dev-dna -- checks run check-artifacts-tracked
-cargo run -q -p bijux-dev-dna -- checks run check-no-target-paths-in-tests
-cargo run -q -p bijux-dev-dna -- checks run check-no-user-path-literals
-cargo run -q -p bijux-dev-dna -- checks run check-automation-writes
-cargo run -q -p bijux-dev-dna -- checks run check-assets-drift
-cargo run -q -p bijux-dev-dna -- checks run check-assets-contracts
-cargo run -q -p bijux-dev-dna -- checks run check-asset-manifests
-cargo run -q -p bijux-dev-dna -- checks run check-asset-checksums
-cargo run -q -p bijux-dev-dna -- checks run check-assets-large-file-allowlist
-cargo run -q -p bijux-dev-dna -- checks run check-golden-artifact-schema
-cargo run -q -p bijux-dev-dna -- checks run check-assets-reference-schema
-cargo run -q -p bijux-dev-dna -- checks run check-automation-intent
-cargo run -q -p bijux-dev-dna -- checks run check-readme-links
-cargo run -q -p bijux-dev-dna -- checks run check-ci-automation-surface
-cargo run -q -p bijux-dev-dna -- checks run check-automation-boundary
-cargo run -q -p bijux-dev-dna -- checks run check-automation-exit-codes
-cargo run -q -p bijux-dev-dna -- checks run check-automation-deps
-cargo run -q -p bijux-dev-dna -- checks run check-automation-help
-cargo run -q -p bijux-dev-dna -- checks run check-automation-interface
-cargo run -q -p bijux-dev-dna -- checks run check-artifact-env-contract
-cargo run -q -p bijux-dev-dna -- checks run check-automation-portability
-cargo run -q -p bijux-dev-dna -- checks run check-automation-network-usage
-cargo run -q -p bijux-dev-dna -- checks run check-automation-temp-discipline
-cargo run -q -p bijux-dev-dna -- checks run check-hidden-tmp-usage
-cargo run -q -p bijux-dev-dna -- checks run check-executor-no-unwrap
-cargo run -q -p bijux-dev-dna -- checks run check-clippy-allowlist-expiry
-cargo run -q -p bijux-dev-dna -- checks run check-clippy-allowlist-growth
-cargo run -q -p bijux-dev-dna -- checks run check-rustflags-consistency
-cargo run -q -p bijux-dev-dna -- checks run check-executor-features-docs
-cargo run -q -p bijux-dev-dna -- checks run check-no-parallel-accidental
-cargo run -q -p bijux-dev-dna -- checks run check-hpc-safety
-cargo run -q -p bijux-dev-dna -- checks run check-output-roots
-cargo run -q -p bijux-dev-dna -- checks run check-artifacts-layout
-cargo run -q -p bijux-dev-dna -- checks run check-automation-arg-style
-cargo run -q -p bijux-dev-dna -- checks run check-automation-entrypoints
-cargo run -q -p bijux-dev-dna -- checks run check-make-help-sync
-cargo run -q -p bijux-dev-dna -- checks run check-gitignore-contract
-cargo run -q -p bijux-dev-dna -- checks run check-cargo-config-policy
-cargo run -q -p bijux-dev-dna -- checks run check-audit-allowlist
-cargo run -q -p bijux-dev-dna -- checks run check-legacy-automation-references
-cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-makes
-cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-automation
-cargo run -q -p bijux-dev-dna -- checks run check-domain-realization
-cargo run -q -p bijux-dev-dna -- containers run lint
-cargo run -q -p bijux-dev-dna -- test run test-control-plane-smoke
+artifacts/target/debug/bijux-dev-dna checks run check-legacy-automation-removed
+artifacts/target/debug/bijux-dev-dna checks run check-config-layout
+artifacts/target/debug/bijux-dev-dna checks run check-config-index-discipline
+artifacts/target/debug/bijux-dev-dna checks run check-config-filenames
+artifacts/target/debug/bijux-dev-dna checks run check-config-headers
+artifacts/target/debug/bijux-dev-dna checks run check-config-schema
+artifacts/target/debug/bijux-dev-dna checks run check-docs-requirements-lock
+artifacts/target/debug/bijux-dev-dna checks run check-nextest-profile-contract
+artifacts/target/debug/bijux-dev-dna checks run check-runtime-profiles-contract
+artifacts/target/debug/bijux-dev-dna checks run check-runtime-execution-kernel-config
+artifacts/target/debug/bijux-dev-dna checks run check-certification-schema-docs
+artifacts/target/debug/bijux-dev-dna checks run check-logging-contract
+artifacts/target/debug/bijux-dev-dna checks run check-run-directory-layout
+artifacts/target/debug/bijux-dev-dna checks run check-benchmark-integrity-policy
+artifacts/target/debug/bijux-dev-dna checks run check-hpc-rsync-docs-parity
+artifacts/target/debug/bijux-dev-dna checks run check-config-owners
+artifacts/target/debug/bijux-dev-dna checks run check-registry-required-tools-parity
+artifacts/target/debug/bijux-dev-dna checks run check-container-ssot-parity
+artifacts/target/debug/bijux-dev-dna checks run check-domain-tool-parity
+artifacts/target/debug/bijux-dev-dna checks run check-stage-domain-parity
+artifacts/target/debug/bijux-dev-dna checks run check-stage-registry-governance
+artifacts/target/debug/bijux-dev-dna checks run check-param-registry-completeness
+artifacts/target/debug/bijux-dev-dna checks run check-deprecations-enforcement
+artifacts/target/debug/bijux-dev-dna checks run check-species-aliases
+artifacts/target/debug/bijux-dev-dna checks run check-bench-knobs
+artifacts/target/debug/bijux-dev-dna checks run check-registry-split
+artifacts/target/debug/bijux-dev-dna checks run check-tool-registry-lock
+artifacts/target/debug/bijux-dev-dna checks run check-panel-locks
+artifacts/target/debug/bijux-dev-dna checks run check-panel-license-policy
+artifacts/target/debug/bijux-dev-dna checks run check-enabled-vcf-panel-metadata
+artifacts/target/debug/bijux-dev-dna checks run check-reference-service-boundary
+artifacts/target/debug/bijux-dev-dna checks run check-reference-path-governance
+artifacts/target/debug/bijux-dev-dna checks run check-coverage-regimes-schema
+artifacts/target/debug/bijux-dev-dna domain run check-domain-layout
+artifacts/target/debug/bijux-dev-dna domain run check-domain-schema
+artifacts/target/debug/bijux-dev-dna domain run check-domain-index
+artifacts/target/debug/bijux-dev-dna domain run check-shared-tools
+artifacts/target/debug/bijux-dev-dna domain run check-tool-container-parity
+artifacts/target/debug/bijux-dev-dna domain run check-default-settings-docs
+artifacts/target/debug/bijux-dev-dna domain run check-fixture-contracts
+artifacts/target/debug/bijux-dev-dna domain run check-orphan-files
+artifacts/target/debug/bijux-dev-dna domain run check-doc-links
+artifacts/target/debug/bijux-dev-dna domain run check-external-tool-policy
+artifacts/target/debug/bijux-dev-dna domain run check-inventory
+artifacts/target/debug/bijux-dev-dna docs run check-domain-doc-references
+artifacts/target/debug/bijux-dev-dna docs run check-doc-links
+artifacts/target/debug/bijux-dev-dna checks run check-docs-build-contract
+artifacts/target/debug/bijux-dev-dna docs run check-docs-graph
+artifacts/target/debug/bijux-dev-dna docs run check-doc-root-layout
+artifacts/target/debug/bijux-dev-dna docs run check-doc-depth
+artifacts/target/debug/bijux-dev-dna docs run check-doc-major-depth
+artifacts/target/debug/bijux-dev-dna docs run check-no-placeholder-language
+artifacts/target/debug/bijux-dev-dna docs run check-generated-docs
+artifacts/target/debug/bijux-dev-dna docs run check-doc-assets
+artifacts/target/debug/bijux-dev-dna tooling run check-config-paths
+artifacts/target/debug/bijux-dev-dna tooling run check-config-snapshot --if-config-changed
+artifacts/target/debug/bijux-dev-dna checks run check-root-layout
+artifacts/target/debug/bijux-dev-dna checks run check-artifacts-tracked
+artifacts/target/debug/bijux-dev-dna checks run check-no-target-paths-in-tests
+artifacts/target/debug/bijux-dev-dna checks run check-no-user-path-literals
+artifacts/target/debug/bijux-dev-dna checks run check-automation-writes
+artifacts/target/debug/bijux-dev-dna checks run check-assets-drift
+artifacts/target/debug/bijux-dev-dna checks run check-assets-contracts
+artifacts/target/debug/bijux-dev-dna checks run check-asset-manifests
+artifacts/target/debug/bijux-dev-dna checks run check-asset-checksums
+artifacts/target/debug/bijux-dev-dna checks run check-assets-large-file-allowlist
+artifacts/target/debug/bijux-dev-dna checks run check-golden-artifact-schema
+artifacts/target/debug/bijux-dev-dna checks run check-assets-reference-schema
+artifacts/target/debug/bijux-dev-dna checks run check-automation-intent
+artifacts/target/debug/bijux-dev-dna checks run check-readme-links
+artifacts/target/debug/bijux-dev-dna checks run check-ci-automation-surface
+artifacts/target/debug/bijux-dev-dna checks run check-automation-boundary
+artifacts/target/debug/bijux-dev-dna checks run check-automation-exit-codes
+artifacts/target/debug/bijux-dev-dna checks run check-automation-deps
+artifacts/target/debug/bijux-dev-dna checks run check-automation-help
+artifacts/target/debug/bijux-dev-dna checks run check-automation-interface
+artifacts/target/debug/bijux-dev-dna checks run check-artifact-env-contract
+artifacts/target/debug/bijux-dev-dna checks run check-automation-portability
+artifacts/target/debug/bijux-dev-dna checks run check-automation-network-usage
+artifacts/target/debug/bijux-dev-dna checks run check-automation-temp-discipline
+artifacts/target/debug/bijux-dev-dna checks run check-hidden-tmp-usage
+artifacts/target/debug/bijux-dev-dna checks run check-executor-no-unwrap
+artifacts/target/debug/bijux-dev-dna checks run check-clippy-allowlist-expiry
+artifacts/target/debug/bijux-dev-dna checks run check-clippy-allowlist-growth
+artifacts/target/debug/bijux-dev-dna checks run check-rustflags-consistency
+artifacts/target/debug/bijux-dev-dna checks run check-executor-features-docs
+artifacts/target/debug/bijux-dev-dna checks run check-no-parallel-accidental
+artifacts/target/debug/bijux-dev-dna checks run check-hpc-safety
+artifacts/target/debug/bijux-dev-dna checks run check-output-roots
+artifacts/target/debug/bijux-dev-dna checks run check-artifacts-layout
+artifacts/target/debug/bijux-dev-dna checks run check-automation-arg-style
+artifacts/target/debug/bijux-dev-dna checks run check-automation-entrypoints
+artifacts/target/debug/bijux-dev-dna checks run check-make-help-sync
+artifacts/target/debug/bijux-dev-dna checks run check-gitignore-contract
+artifacts/target/debug/bijux-dev-dna checks run check-cargo-config-policy
+artifacts/target/debug/bijux-dev-dna checks run check-audit-allowlist
+artifacts/target/debug/bijux-dev-dna checks run check-legacy-automation-references
+artifacts/target/debug/bijux-dev-dna checks run check-no-raw-cargo-in-makes
+artifacts/target/debug/bijux-dev-dna checks run check-no-raw-cargo-in-automation
+artifacts/target/debug/bijux-dev-dna checks run check-domain-realization
+artifacts/target/debug/bijux-dev-dna containers run lint
+artifacts/target/debug/bijux-dev-dna test run test-control-plane-smoke
