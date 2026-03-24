@@ -352,6 +352,27 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         vec!["bayeshammer", "lighter", "musket", "rcorrector"]
     );
 
+    let otu_stage = StageId::from_static("fastq.cluster_otus");
+    let otu_cohorts = bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&otu_stage);
+    assert_eq!(otu_cohorts.len(), 1);
+    assert_eq!(otu_cohorts[0].scenario_id, "otu_clustering_fairness");
+    assert_eq!(
+        otu_cohorts[0]
+            .tool_ids
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["vsearch"]
+    );
+    assert_eq!(
+        otu_cohorts[0]
+            .observer_specialized_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["vsearch"]
+    );
+
     let normalize_primers_stage = StageId::from_static("fastq.normalize_primers");
     let primer_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&normalize_primers_stage);

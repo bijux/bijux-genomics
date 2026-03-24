@@ -463,7 +463,31 @@ fn host_depletion_surfaces_benchmark_cohort_from_manifest_support() {
 
     assert_eq!(cohorts.len(), 1);
     assert_eq!(cohorts[0].scenario_id, "host_depletion_fairness");
-    assert!(cohorts[0].tool_ids.is_empty());
+    assert_eq!(cohorts[0].tool_ids, vec![ToolId::from_static("bowtie2")]);
+}
+
+#[test]
+fn governed_stage_benchmark_cohorts_surface_declared_toolsets() {
+    let cases = [
+        ("fastq.cluster_otus", "vsearch"),
+        ("fastq.deplete_reference_contaminants", "bowtie2"),
+        ("fastq.deplete_rrna", "sortmerna"),
+        ("fastq.extract_umis", "umi_tools"),
+    ];
+
+    for (stage_id, tool_id) in cases {
+        let cohorts = crate::stage_api::benchmark_cohorts_for_stage(&StageId::new(stage_id));
+        assert_eq!(
+            cohorts.len(),
+            1,
+            "{stage_id} should publish exactly one governed benchmark cohort",
+        );
+        assert_eq!(
+            cohorts[0].tool_ids,
+            vec![ToolId::new(tool_id)],
+            "{stage_id} should surface the governed benchmark toolset from stage governance",
+        );
+    }
 }
 
 #[test]

@@ -1966,6 +1966,18 @@ benchmark_scenarios:
     - same_dataset_class
     - same_abundance_normalization_method
     - same_abundance_table_contract
+  otu_clustering_fairness:
+    stage_id: fastq.cluster_otus
+    description: Compare OTU clustering runs on identical amplicon reads and governed
+      clustering identity semantics.
+    cohort_artifact_id: otu_clustering_tool_benchmark_cohort_json
+    comparison_artifact_id: otu_clustering_tool_comparison_json
+    normalization_artifact_id: otu_clustering_tool_normalization_json
+    fairness_rules:
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
+    - same_otu_identity_threshold
   terminal_damage_fairness:
     stage_id: fastq.trim_terminal_damage
     description: Compare terminal-damage trimming backends on identical reads and ancient-DNA

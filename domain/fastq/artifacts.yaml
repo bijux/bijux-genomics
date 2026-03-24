@@ -71,6 +71,9 @@ artifact_ids:
   - normalized_reads_r2
   - otu_representatives
   - otu_table
+  - otu_clustering_tool_benchmark_cohort_json
+  - otu_clustering_tool_comparison_json
+  - otu_clustering_tool_normalization_json
   - overrepresented_sequences_json
   - overrepresented_sequence_tool_benchmark_cohort_json
   - overrepresented_sequence_tool_comparison_json
