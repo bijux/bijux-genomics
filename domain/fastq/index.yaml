@@ -214,11 +214,15 @@ stage_tool_compatibility:
   - atropos
   - bbduk
   - adapterremoval
+  - alientrimmer
+  - fastx_clipper
+  - leehom
   - trimmomatic
   - trim_galore
   - prinseq
   - seqkit
   - seqpurge
+  - skewer
   fastq.trim_terminal_damage:
   - adapterremoval
   - cutadapt
@@ -374,6 +378,9 @@ active_default_rationale:
   fastq.deplete_host: Default host depletion uses deterministic mapping and unmapped
     extraction.
   fastq.correct_errors: Default corrector chosen for robust error-correction baseline.
+  fastq.infer_asvs: Governed ASV inference now uses the admitted containerized dada2
+    backend and publishes the canonical infer-asvs report plus taxonomy-ready
+    representative sequences.
   fastq.extract_umis: Default UMI handler extracts barcodes without dropping reads.
   fastq.profile_read_lengths: Default length histogram baseline provides deterministic
     pre-trim size distribution.

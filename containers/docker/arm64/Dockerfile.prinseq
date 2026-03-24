@@ -68,3 +68,5 @@ RUN apt-get remove -y git wget && \
 
 ENV PATH="/usr/local/bin:$PATH"
 WORKDIR /data
+ENTRYPOINT ["prinseq++"]
+CMD ["--help"]

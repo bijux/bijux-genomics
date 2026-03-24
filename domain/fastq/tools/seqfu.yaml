@@ -10,6 +10,9 @@ citation: pending:tool-publication
 planned_stage_ids:
 - fastq.profile_read_lengths
 - fastq.normalize_abundance
+stage_ids:
+- fastq.profile_read_lengths
+- fastq.normalize_abundance
 stage_contracts:
   fastq.profile_read_lengths:
     required_inputs:

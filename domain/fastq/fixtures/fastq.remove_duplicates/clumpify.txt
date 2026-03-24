@@ -2,7 +2,6 @@ tool=clumpify
 tool_version=pinned
 stage=fastq.remove_duplicates
 domain=fastq
-shipping=external
 fixture_kind=synthetic_truth
 command=clumpify
 args=
