@@ -58,6 +58,12 @@ fn pear_merge_plan_maps_overlap_and_min_length() -> Result<()> {
     assert_eq!(plan.params["merge_overlap"], serde_json::json!(24));
     assert_eq!(plan.params["min_length"], serde_json::json!(120));
     assert_eq!(plan.params["threads"], serde_json::json!(9));
+    assert_eq!(
+        plan.params["raw_backend_report_txt"],
+        serde_json::json!("out/pear.log")
+    );
+    assert!(script.contains("> 'out/pear.log' 2>&1"));
+    assert!(script.contains("\"raw_backend_report_format\": \"pear_log\""));
     Ok(())
 }
 
@@ -101,6 +107,7 @@ fn bbmerge_merge_plan_maps_threads() -> Result<()> {
     assert!(script.contains("'threads=8'"));
     assert!(script.contains("'minoverlap=20'"));
     assert!(script.contains("\"threads\": 8"));
+    assert!(script.contains("\"raw_backend_report_format\": \"bbmerge_log\""));
     assert_eq!(plan.resources.threads, 8);
     Ok(())
 }
@@ -124,6 +131,7 @@ fn flash2_merge_plan_maps_threads() -> Result<()> {
     assert!(script.contains("'flash2' '-o' 'flash2' '-d' 'out' '-t' '6'"));
     assert!(script.contains("'15'"));
     assert!(script.contains("\"threads\": 6"));
+    assert!(script.contains("\"raw_backend_report_format\": \"flash2_log\""));
     assert_eq!(plan.resources.threads, 6);
     Ok(())
 }
@@ -170,6 +178,12 @@ fn leehom_merge_plan_emits_unmerged_pair_outputs() -> Result<()> {
     let script = &plan.command.template[2];
     assert!(script.contains("'leehom' '-fq1' 'reads_R1.fastq.gz' '-fq2' 'reads_R2.fastq.gz' '-fqo' 'out/leehom' '-t' '5'"));
     assert!(script.contains("\"threads\": 5"));
+    assert_eq!(
+        plan.params["raw_backend_report_txt"],
+        serde_json::json!("out/leehom.log")
+    );
+    assert!(script.contains("> 'out/leehom.log' 2>&1"));
+    assert!(script.contains("\"raw_backend_report_format\": \"leehom_log\""));
     assert_eq!(plan.resources.threads, 5);
     Ok(())
 }
@@ -205,6 +219,7 @@ fn vsearch_merge_plan_omits_unmerged_outputs_when_requested() -> Result<()> {
     assert!(!script.contains("--fastqout_notmerged_rev"));
     assert!(script.contains("\"unmerged_read_policy\": \"omit_unmerged_pairs\""));
     assert!(script.contains("\"threads\": 11"));
+    assert!(script.contains("\"raw_backend_report_format\": \"vsearch_log\""));
     assert_eq!(plan.resources.threads, 11);
     Ok(())
 }

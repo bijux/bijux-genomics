@@ -23,6 +23,9 @@ outputs:
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
+  - name: "raw_backend_report_txt"
+    data_type: "text"
+    cardinality: "One"
 parameters:
   - name: "threads"
     param_type: "int"
@@ -71,6 +74,7 @@ invariants:
 allowed_missingness:
   - "unmerged_reads_r1"
   - "unmerged_reads_r2"
+  - "raw_backend_report_txt"
 compatible_tools:
   - pear
   - vsearch
@@ -80,6 +84,7 @@ compatible_tools:
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "merge suitability depends on paired-end overlap and library model."
+  - "governed report_json is the canonical merge contract and may preserve the backend-native merge log as raw_backend_report_txt for provenance."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
