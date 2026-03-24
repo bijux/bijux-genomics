@@ -17,6 +17,7 @@ COVERAGE_BASELINE = artifacts/coverage/baseline.json
 COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
 DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dev-dna
+DEV_DNA_BOOTSTRAP ?= makes/bin/dev_dna_bootstrap.sh
 
 fmt:
 	@$(ensure_artifact_env)
@@ -24,24 +25,12 @@ fmt:
 
 _dev-dna-bin:
 	@$(ensure_artifact_env)
-	@needs_build=0; \
-	if [ ! -x "$(DEV_DNA_BIN)" ]; then \
-		needs_build=1; \
-	else \
-		for path in Cargo.toml Cargo.lock $$(find crates/bijux-dev-dna -type f); do \
-			if [ "$$path" -nt "$(DEV_DNA_BIN)" ]; then \
-				needs_build=1; \
-				break; \
-			fi; \
-		done; \
-	fi; \
-	if [ "$$needs_build" -eq 1 ]; then \
-		cargo build -q -p bijux-dev-dna; \
-	fi
+	@$(DEV_DNA_BOOTSTRAP) "$(DEV_DNA_BIN)"
 
 _fmt:
 	@$(ensure_artifact_env)
-	@cargo fmt --all -- --check
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@$(DEV_DNA_BIN) tooling run ci-fmt
 
 lint:
 	@$(ensure_artifact_env)
@@ -56,7 +45,8 @@ _lint:
 
 _lint-rustfmt:
 	@$(ensure_artifact_env)
-	@cargo fmt --all -- --check
+	@$(MAKE) _dev-dna-bin >/dev/null
+	@$(DEV_DNA_BIN) tooling run ci-fmt
 
 _lint-configs:
 	@$(ensure_artifact_env)
