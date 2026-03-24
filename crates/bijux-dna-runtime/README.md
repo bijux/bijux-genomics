@@ -10,7 +10,7 @@ No tool execution; only writes under run layout.
 Upstream: engine/runner. Downstream: analyze/benchmark.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/RUNTIME_CONTRACT.md`, `docs/ARTIFACTS.md`, `docs/OBSERVABILITY.md`, `docs/EVENTS.md`, `docs/BOUNDARY.md`, `docs/GLOSSARY.md`, `docs/CHANGE_RULES.md`.
+See `crates/bijux-dna-runtime/docs/INDEX.md`, `crates/bijux-dna-runtime/docs/RUNTIME_CONTRACT.md`, `crates/bijux-dna-runtime/docs/ARTIFACTS.md`, `crates/bijux-dna-runtime/docs/OBSERVABILITY.md`, `crates/bijux-dna-runtime/docs/EVENTS.md`, `crates/bijux-dna-runtime/docs/BOUNDARY.md`, `crates/bijux-dna-runtime/docs/GLOSSARY.md`, `crates/bijux-dna-runtime/docs/CHANGE_RULES.md`.
 
 ## Truth artifacts (canonical runtime outputs)
 Schema-stable artifacts owned by runtime:
@@ -43,23 +43,23 @@ Telemetry outputs (schema-stable fields; timestamps are unstable by design):
 Owns runtime artifact schemas and run layout contract.
 
 ## Artifacts / Contracts
-See `docs/RUNTIME_CONTRACT.md`, `docs/ARTIFACTS.md`, and schema fixtures under `tests/fixtures/runtime_schema/`.
+See `crates/bijux-dna-runtime/docs/RUNTIME_CONTRACT.md`, `crates/bijux-dna-runtime/docs/ARTIFACTS.md`, and schema fixtures under `tests/fixtures/runtime_schema/`.
 
 ## Effects & determinism guarantees
-Filesystem writes under run layout only. See `docs/EFFECTS.md` and the golden tests below.
+Filesystem writes under run layout only. See `crates/bijux-dna-runtime/docs/EFFECTS.md` and the golden tests below.
 
 ## How to understand the crate in 10 minutes
 - Read `tests/reference/reference_example.rs` for a concrete run story.
 - Open `tests/fixtures/runtime_schema/default/run_manifest_v1.json` to see the canonical schema shape.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/reference/reference_example.rs`, `tests/schema/runtime_schema_snapshots.rs`, `tests/contracts/manifest_integrity.rs`, `tests/contracts/run_layout_contract.rs`.
+See `crates/bijux-dna-runtime/docs/TESTS.md`. Golden tests: `tests/reference/reference_example.rs`, `tests/schema/runtime_schema_snapshots.rs`, `tests/contracts/manifest_integrity.rs`, `tests/contracts/run_layout_contract.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+Start at `crates/bijux-dna-runtime/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `crates/bijux-dna-runtime/docs/CHANGE_RULES.md`.
