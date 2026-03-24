@@ -479,6 +479,7 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
                 "tool": report.tool_id,
                 "paired_mode": report.paired_mode,
                 "merge_engine": report.merge_engine,
+                "threads": report.threads,
                 "merge_overlap": report.merge_overlap,
                 "min_length": report.min_len,
                 "unmerged_read_policy": report.unmerged_read_policy,
@@ -499,10 +500,21 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
         "schema_version": "bijux.fastq_stage_metrics.v1",
         "stage": "fastq.merge_pairs",
         "tool": "report_missing",
+        "paired_mode": serde_json::Value::Null,
         "merge_engine": serde_json::Value::Null,
+        "threads": serde_json::Value::Null,
+        "merge_overlap": serde_json::Value::Null,
+        "min_length": serde_json::Value::Null,
+        "unmerged_read_policy": serde_json::Value::Null,
+        "reads_r1": serde_json::Value::Null,
+        "reads_r2": serde_json::Value::Null,
         "reads_merged": serde_json::Value::Null,
         "reads_unmerged": serde_json::Value::Null,
         "merge_rate": serde_json::Value::Null,
+        "runtime_s": serde_json::Value::Null,
+        "memory_mb": serde_json::Value::Null,
+        "raw_backend_report": serde_json::Value::Null,
+        "raw_backend_report_format": serde_json::Value::Null,
         "report_json": report_path,
     })
 }
@@ -1276,10 +1288,18 @@ mod tests {
                 "schema_version",
                 "stage",
                 "tool",
+                "paired_mode",
                 "merge_engine",
+                "threads",
+                "merge_overlap",
+                "min_length",
+                "unmerged_read_policy",
+                "reads_r1",
+                "reads_r2",
                 "reads_merged",
                 "reads_unmerged",
                 "merge_rate",
+                "raw_backend_report_format",
             ]
         );
     }
@@ -1944,16 +1964,21 @@ mod tests {
 
         let metrics = parse_merge_pairs_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("pear"));
+        assert_eq!(metrics["paired_mode"], serde_json::json!("paired_end"));
         assert_eq!(metrics["merge_engine"], serde_json::json!("pear"));
+        assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["merge_overlap"], serde_json::json!(22));
         assert_eq!(metrics["min_length"], serde_json::json!(120));
         assert_eq!(
             metrics["unmerged_read_policy"],
             serde_json::json!("omit_unmerged_pairs")
         );
+        assert_eq!(metrics["reads_r1"], serde_json::json!(100));
+        assert_eq!(metrics["reads_r2"], serde_json::json!(100));
         assert_eq!(metrics["reads_merged"], serde_json::json!(88));
         assert_eq!(metrics["reads_unmerged"], serde_json::json!(12));
         assert_eq!(metrics["merge_rate"], serde_json::json!(0.88));
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::Value::Null);
     }
 
     #[test]
@@ -2579,10 +2604,18 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "schema_version",
             "stage",
             "tool",
+            "paired_mode",
             "merge_engine",
+            "threads",
+            "merge_overlap",
+            "min_length",
+            "unmerged_read_policy",
+            "reads_r1",
+            "reads_r2",
             "reads_merged",
             "reads_unmerged",
             "merge_rate",
+            "raw_backend_report_format",
         ],
         "fastq.remove_duplicates" => &[
             "schema_version",
