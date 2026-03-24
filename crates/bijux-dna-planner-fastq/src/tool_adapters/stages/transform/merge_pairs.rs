@@ -345,6 +345,8 @@ fn base_merge_command(
                 r2.display().to_string(),
                 "-o".to_string(),
                 prefix.display().to_string(),
+                "-j".to_string(),
+                effective_params.threads.to_string(),
             ];
             if let Some(merge_overlap) = effective_params.merge_overlap {
                 command.extend(["-v".to_string(), merge_overlap.to_string()]);
@@ -363,6 +365,8 @@ fn base_merge_command(
                 r2.display().to_string(),
                 "--fastqout".to_string(),
                 outputs.merged_reads.display().to_string(),
+                "--threads".to_string(),
+                effective_params.threads.to_string(),
             ];
             if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
                 command.extend([
