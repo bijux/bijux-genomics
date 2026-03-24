@@ -1,52 +1,112 @@
-schema_version: bijux.tool.v2
-tool_id: leehom
-upstream: https://github.com/grenaud/leeHom
-versioning_strategy: pinned
-pin_strategy: pinned
-default_version: bbddce1542ce
-install_kind: container
-license: GPL-3.0
-citation: pending:tool-publication
+schema_version: "bijux.tool.v1"
+tool_id: "leehom"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+capabilities:
+  - "SE"
+  - "PE"
+  - "adapters"
+container:
+  image: "bijuxdna/leehom"
+  digest: "sha256:146f111ee336a7d01cba5861a9672d75a7739ad7ece923925bbd90c2550341b1"
+command_template:
+  - "leehom"
+  - "-fq1"
+  - "{{reads_r1}}"
+  - "-fq2"
+  - "{{reads_r2}}"
+  - "-fqo"
+  - "{{merged_reads}}"
+outputs:
+  - name: "trimmed_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "merged_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unmerged_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unmerged_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "raw_backend_report_txt"
+    data_type: "text"
+    cardinality: "One"
+metrics_parser: "fastq_trim_v1"
+constraints:
+  runtime: "local"
+  mem_gb: 8
+  tmp_gb: 4
+  threads: 2
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  optional_inputs:
+    - "reads_r2"
+  expected_outputs:
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
+    - "merged_reads"
+    - "unmerged_reads_r1"
+    - "unmerged_reads_r2"
+    - "report_json"
+    - "raw_backend_report_txt"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
+upstream: "https://github.com/grenaud/leeHom"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "bbddce1542ce"
+install_kind: "container"
+license: "GPL-3.0"
+citation: "pending:tool-publication"
 stage_ids:
-- fastq.trim_reads
-- fastq.merge_pairs
+  - "fastq.trim_reads"
+  - "fastq.merge_pairs"
 stage_contracts:
   fastq.trim_reads:
     required_inputs:
-      - reads_r1
+      - "reads_r1"
     expected_artifacts:
-      - trimmed_reads_r1
-      - trimmed_reads_r2
-      - report_json
-    notes: LeeHom trim mode emits paired trimmed reads plus a trim report.
+      - "trimmed_reads_r1"
+      - "trimmed_reads_r2"
+      - "report_json"
+    notes: "leeHom trim mode emits governed trimmed-read artifacts together with the canonical trim report."
   fastq.merge_pairs:
     required_inputs:
-      - reads_r1
-      - reads_r2
+      - "reads_r1"
+      - "reads_r2"
     expected_artifacts:
-      - merged_reads
-      - report_json
-    notes: LeeHom merge mode emits merged reads and a merge report; governed unmerged mate artifacts remain optional because the backend does not natively persist them.
-status: supported
-scope: pre_hpc_pre_vcf
+      - "merged_reads"
+      - "unmerged_reads_r1"
+      - "unmerged_reads_r2"
+      - "report_json"
+      - "raw_backend_report_txt"
+    notes: "leeHom merge mode emits governed merged and unmerged read artifacts, the canonical merge report, and the native leeHom log for provenance."
 expected_artifacts:
-- trimmed_reads_r1
-- trimmed_reads_r2
-- merged_reads
-- report_json
-metrics_schema_id: bijux.fastq.merge_pairs.v1
-metrics_schema: bijux.fastq.merge_pairs.v1
-version_cmd: leehom --version
-help_cmd: leehom --help
+  - "trimmed_reads_r1"
+  - "trimmed_reads_r2"
+  - "merged_reads"
+  - "unmerged_reads_r1"
+  - "unmerged_reads_r2"
+  - "report_json"
+  - "raw_backend_report_txt"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
+version_cmd: "leehom --version"
+help_cmd: "leehom --help"
 comparability:
   comparable_with:
-  - pear
-  - flash2
-  - bbmerge
+    - "bbmerge"
+    - "flash2"
+    - "pear"
+    - "vsearch"
   non_comparable_with: []
-comparability_notes: Comparable only within same stage contract and input constraints.
-notes: Domain SSOT tool contract entry.
-capabilities:
-- SE
-- PE
-- adapters
+comparability_notes: "Comparable with other governed paired-end merge backends when overlap policy, retained unmerged mate policy, and input layout are matched."

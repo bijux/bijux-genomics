@@ -25,6 +25,12 @@ outputs:
   - name: "unmerged_reads_r2"
     data_type: "fastq"
     cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "raw_backend_report_txt"
+    data_type: "text"
+    cardinality: "One"
 metrics_parser: "flash2_v1"
 constraints:
   runtime: "local"
@@ -36,9 +42,11 @@ execution_contract:
     - "reads_r1"
     - "reads_r2"
   expected_outputs:
-    - "flash2.extendedFrags.fastq"
-    - "flash2.notCombined_1.fastq"
-    - "flash2.notCombined_2.fastq"
+    - "merged_reads"
+    - "unmerged_reads_r1"
+    - "unmerged_reads_r2"
+    - "report_json"
+    - "raw_backend_report_txt"
   forbidden_outputs: []
   forbid_unexpected_outputs: false
 upstream: "https://github.com/dstreett/FLASH2"
@@ -59,13 +67,18 @@ stage_contracts:
       - "unmerged_reads_r1"
       - "unmerged_reads_r2"
       - "report_json"
-    notes: "Merge execution emits governed merged and unmerged read artifacts together with the normalized report."
-expected_artifacts: ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json"]
+      - "raw_backend_report_txt"
+    notes: "FLASH2 merge mode emits governed merged and unmerged read artifacts, the canonical merge report, and the native FLASH2 log for provenance."
+expected_artifacts: ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
 metrics_schema_id: "bijux.fastq.merge_pairs.v1"
 metrics_schema: "bijux.fastq.merge_pairs.v1"
 version_cmd: "flash2 --version"
 help_cmd: "flash2 --help"
 comparability:
-  comparable_with: []
+  comparable_with:
+    - "bbmerge"
+    - "leehom"
+    - "pear"
+    - "vsearch"
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: "Comparable with other governed paired-end merge backends when overlap policy, retained unmerged mate policy, and input layout are matched."
