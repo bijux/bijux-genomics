@@ -74,7 +74,7 @@ stage_contracts:
     expected_artifacts:
       - "validation_report"
       - "validated_reads_manifest"
-    notes: "Validation remains report-only; the governed adapter uses FastQC as a structural probe, captures backend logs outside the native FastQC outputs, and emits the canonical validation report plus validated-read lineage manifest."
+    notes: "Validation remains report-only; the governed adapter uses FastQC as a structural probe, accepts an optional reads_r2 mate for paired layouts, captures backend logs outside the native FastQC outputs, and emits the canonical validation report plus validated-read lineage manifest."
   fastq.detect_adapters:
     required_inputs:
       - "reads_r1"
