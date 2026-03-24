@@ -136,7 +136,7 @@ fn leehom_merge_plan_emits_unmerged_pair_outputs() -> Result<()> {
         Path::new("reads_R2.fastq.gz"),
         Path::new("out"),
         &MergePlanOptions {
-            threads: None,
+            threads: Some(5),
             merge_overlap: None,
             min_length: None,
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
@@ -167,6 +167,10 @@ fn leehom_merge_plan_emits_unmerged_pair_outputs() -> Result<()> {
         plan.params["unmerged_reads_r2"],
         serde_json::json!("out/leehom_r2.fq.gz")
     );
+    let script = &plan.command.template[2];
+    assert!(script.contains("'leehom' '-fq1' 'reads_R1.fastq.gz' '-fq2' 'reads_R2.fastq.gz' '-fqo' 'out/leehom' '-t' '5'"));
+    assert!(script.contains("\"threads\": 5"));
+    assert_eq!(plan.resources.threads, 5);
     Ok(())
 }
 

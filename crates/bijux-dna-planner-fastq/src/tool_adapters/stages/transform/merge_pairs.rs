@@ -324,7 +324,7 @@ fn base_merge_command(
     r2: &Path,
     out_dir: &Path,
     outputs: &MergeOutputs,
-    tool_spec: &ToolExecutionSpecV1,
+    _tool_spec: &ToolExecutionSpecV1,
     effective_params: &MergeEffectiveParams,
 ) -> Result<String> {
     let command = match tool {
@@ -435,7 +435,17 @@ fn base_merge_command(
             }
             command
         }
-        "leehom" => tool_spec.command.template.to_vec(),
+        "leehom" => vec![
+            "leehom".to_string(),
+            "-fq1".to_string(),
+            r1.display().to_string(),
+            "-fq2".to_string(),
+            r2.display().to_string(),
+            "-fqo".to_string(),
+            out_dir.join("leehom").display().to_string(),
+            "-t".to_string(),
+            effective_params.threads.to_string(),
+        ],
         _ => return Err(anyhow!("unsupported merge tool")),
     };
     Ok(command
