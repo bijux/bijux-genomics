@@ -5,7 +5,7 @@ Small deterministic utilities (logging, formats, paths) with zero domain semanti
 
 ## What it must not do (boundaries)
 No domain catalogs, SSOT ownership, or execution dependencies.
-No duplicate canonicalization (enforced by `crates/bijux-dna-policies/tests/surface/no_duplicate_canonicalizers.rs`).
+No duplicate canonicalization (enforced by `crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_duplicate_canonicalizers.rs`).
 
 ## Allowed responsibilities
 Allowed utilities (and only these):
@@ -21,30 +21,30 @@ Explicitly forbidden:
 Upstream: core/runtime/etc. Downstream: all crates as helpers.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/NO_DOMAIN.md`, `docs/LOGGING.md`, `docs/PATHS.md`, `docs/WHY_YAML.md`, `docs/CHANGE_RULES.md`.
+See `crates/bijux-dna-infra/docs/INDEX.md`, `crates/bijux-dna-infra/docs/NO_DOMAIN.md`, `crates/bijux-dna-infra/docs/LOGGING.md`, `crates/bijux-dna-infra/docs/PATHS.md`, `crates/bijux-dna-infra/docs/WHY_YAML.md`, `crates/bijux-dna-infra/docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
 None; utility-only.
 
 ## Artifacts / Contracts
-See `docs/LOGGING.md`, `docs/PATHS.md`, and `docs/WHY_YAML.md` for behavioral contracts.
+See `crates/bijux-dna-infra/docs/LOGGING.md`, `crates/bijux-dna-infra/docs/PATHS.md`, and `crates/bijux-dna-infra/docs/WHY_YAML.md` for behavioral contracts.
 
 ## Effects & determinism guarantees
-No process/network effects; deterministic helpers only. See `docs/EFFECTS.md` and the golden tests below.
+No process/network effects; deterministic helpers only. See `crates/bijux-dna-infra/docs/EFFECTS.md` and the golden tests below.
 
 ## No duplicate canonicalizers
 Canonicalization lives in bijux-dna-core only. Infra must not re-implement it.
-See `crates/bijux-dna-policies/tests/surface/no_duplicate_canonicalizers.rs`.
+See `crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_duplicate_canonicalizers.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/guardrails.rs`,
+See `crates/bijux-dna-infra/docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/guardrails.rs`,
 `tests/guardrails/no_generic_helpers.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+Start at `crates/bijux-dna-infra/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `crates/bijux-dna-infra/docs/CHANGE_RULES.md`.

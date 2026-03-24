@@ -35,24 +35,24 @@ No execution or tool selection.
 Upstream: domain contracts. Downstream: planners/analyze.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/PIPELINES.md`, `docs/PIPELINE_MODEL.md`, `docs/DEFAULTS_LEDGER.md`,
-`docs/PIPELINE_VERSIONING.md`, `docs/CHANGE_RULES.md`.
+See `crates/bijux-dna-pipelines/docs/INDEX.md`, `crates/bijux-dna-pipelines/docs/PIPELINES.md`, `crates/bijux-dna-pipelines/docs/PIPELINE_MODEL.md`, `crates/bijux-dna-pipelines/docs/DEFAULTS_LEDGER.md`,
+`crates/bijux-dna-pipelines/docs/PIPELINE_VERSIONING.md`, `crates/bijux-dna-pipelines/docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
 Defaults ledger and profile snapshots.
 
 ## Artifacts / Contracts
-See `docs/DEFAULTS_LEDGER.md`, registry snapshots in `tests/snapshots/`, and `docs/PIPELINE_MODEL.md`.
+See `crates/bijux-dna-pipelines/docs/DEFAULTS_LEDGER.md`, registry snapshots in `tests/snapshots/`, and `crates/bijux-dna-pipelines/docs/PIPELINE_MODEL.md`.
 
 ## Effects & determinism guarantees
-Pure data only; deterministic ordering. See `docs/EFFECTS.md` and the golden tests below.
+Pure data only; deterministic ordering. See `crates/bijux-dna-pipelines/docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/registry.rs`, `tests/defaults.rs`,
+See `crates/bijux-dna-pipelines/docs/TESTS.md`. Golden tests: `tests/registry.rs`, `tests/defaults.rs`,
 `tests/profiles.rs`, `tests/guardrails.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+Start at `crates/bijux-dna-pipelines/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
 `src/registry/id.rs` → `src/registry/mod.rs` → `src/fastq/profiles.rs`
@@ -61,4 +61,4 @@ Start at `docs/INDEX.md` and follow the crate docs listed above.
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `crates/bijux-dna-pipelines/docs/CHANGE_RULES.md`.

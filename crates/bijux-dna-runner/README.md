@@ -10,13 +10,13 @@ No planning or parsing; execution only.
 Upstream: engine via runtime Runner. Downstream: runtime recorder.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/BACKENDS.md`, `docs/EXECUTION_SPEC.md`, `docs/REPLAY.md`, `docs/SECURITY.md`, `docs/CHANGE_RULES.md`.
+See `crates/bijux-dna-runner/docs/INDEX.md`, `crates/bijux-dna-runner/docs/BACKENDS.md`, `crates/bijux-dna-runner/docs/EXECUTION_SPEC.md`, `crates/bijux-dna-runner/docs/REPLAY.md`, `crates/bijux-dna-runner/docs/SECURITY.md`, `crates/bijux-dna-runner/docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
 Execution records and stdout/stderr captures.
 
 ## Artifacts / Contracts
-See `docs/EXECUTION_SPEC.md`, `docs/BACKENDS.md`, and snapshots under `tests/snapshots/`.
+See `crates/bijux-dna-runner/docs/EXECUTION_SPEC.md`, `crates/bijux-dna-runner/docs/BACKENDS.md`, and snapshots under `tests/snapshots/`.
 
 ## Effect guarantees
 - `cwd`: backend uses the working directory provided by the execution spec.
@@ -28,21 +28,21 @@ See `tests/backend/backend_invariants.rs` for enforced invariants.
 
 ## Effects & determinism guarantees
 Runner is the only allowed spawn boundary (plus allowlisted QA/CLI). See
-`docs/EFFECTS.md`, `tests/backend/process_guardrail.rs`, and
-`crates/bijux-dna-policies/tests/surface/path_policies.rs`.
+`crates/bijux-dna-runner/docs/EFFECTS.md`, `tests/backend/process_guardrail.rs`, and
+`crates/bijux-dna-policies/tests/boundaries/surface/structure_layout/path_policies.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/backend/backend_invariants.rs`, `tests/replay/replay_contract.rs`, `tests/determinism/run_id_determinism.rs`, `tests/replay/replay_determinism.rs`.
+See `crates/bijux-dna-runner/docs/TESTS.md`. Golden tests: `tests/backend/backend_invariants.rs`, `tests/replay/replay_contract.rs`, `tests/determinism/run_id_determinism.rs`, `tests/replay/replay_determinism.rs`.
 
 ## Where to start in code
 - `src/command_runner.rs` for command execution primitives.
 - `src/step_runner.rs` for step execution orchestration.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+Start at `crates/bijux-dna-runner/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `crates/bijux-dna-runner/docs/CHANGE_RULES.md`.

@@ -16,10 +16,10 @@ Core entrypoints are in `src/client.rs`, `src/model.rs`, and `src/download.rs`.
 It owns ENA response parsing/normalization contracts and consumes workspace guardrails for boundary and docs compliance.
 
 ## Artifacts / Contracts
-- [docs/INDEX.md](docs/INDEX.md)
-- [docs/SCOPE.md](docs/SCOPE.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/TESTS.md](docs/TESTS.md)
+- [crates/bijux-dna-db-ena/docs/INDEX.md](crates/bijux-dna-db-ena/docs/INDEX.md)
+- [crates/bijux-dna-db-ena/docs/SCOPE.md](crates/bijux-dna-db-ena/docs/SCOPE.md)
+- [crates/bijux-dna-db-ena/docs/ARCHITECTURE.md](crates/bijux-dna-db-ena/docs/ARCHITECTURE.md)
+- [crates/bijux-dna-db-ena/docs/TESTS.md](crates/bijux-dna-db-ena/docs/TESTS.md)
 - [BOUNDARY.md](BOUNDARY.md)
 - [PUBLIC_API.md](PUBLIC_API.md)
 
@@ -34,4 +34,4 @@ Common failures: ENA endpoint/network errors, malformed filereport rows, and dow
 - `cargo test -p bijux-dna-db-ena --test guardrails`
 
 ## Where the docs live
-Crate documentation lives in `docs/` and is indexed from [docs/INDEX.md](docs/INDEX.md).
+Crate documentation lives in `crates/bijux-dna-db-ena/docs/` and is indexed from [crates/bijux-dna-db-ena/docs/INDEX.md](crates/bijux-dna-db-ena/docs/INDEX.md).

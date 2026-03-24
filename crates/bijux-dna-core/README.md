@@ -4,13 +4,13 @@
 Defines canonical IDs, schemas, and canonicalization rules for the entire workspace.
 
 ## Canonical entry
-Start at `docs/INDEX.md`. The three most important docs are:
-- `docs/CONTRACT_MAP.md`
-- `docs/CONTRACT_VERSIONING.md`
-- `docs/BOUNDARIES.md`
+Start at `crates/bijux-dna-core/docs/INDEX.md`. The three most important docs are:
+- `crates/bijux-dna-core/docs/CONTRACT_MAP.md`
+- `crates/bijux-dna-core/docs/CONTRACT_VERSIONING.md`
+- `crates/bijux-dna-core/docs/BOUNDARIES.md`
 
 ## Contract map (authoritative)
-`docs/CONTRACT_MAP.md` is the single authoritative map of all core contracts and their locations.
+`crates/bijux-dna-core/docs/CONTRACT_MAP.md` is the single authoritative map of all core contracts and their locations.
 
 ## What is SSOT here
 `bijux-dna-core` is the single source of truth for contract JSON shapes, canonical bytes, and their hashing inputs.
@@ -45,7 +45,7 @@ Upstream: none. Downstream: runtime, engine, planners, stages, analyze, benchmar
 - `prelude`
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/CONTRACTS.md`, `docs/PUBLIC_API.md`, `docs/INVARIANTS.md`, `docs/SERIALIZATION.md`, `docs/SSOT.md`, `docs/CONTRACT_VERSIONING.md`.
+See `crates/bijux-dna-core/docs/INDEX.md`, `crates/bijux-dna-core/docs/CONTRACTS.md`, `crates/bijux-dna-core/docs/PUBLIC_API.md`, `crates/bijux-dna-core/docs/INVARIANTS.md`, `crates/bijux-dna-core/docs/SERIALIZATION.md`, `crates/bijux-dna-core/docs/SSOT.md`, `crates/bijux-dna-core/docs/CONTRACT_VERSIONING.md`.
 
 ## Effects & determinism guarantees
 Canonicalization and hashing are deterministic and enforced by snapshot tests.
@@ -54,10 +54,10 @@ Canonicalization and hashing are deterministic and enforced by snapshot tests.
 Owns IDs, canonical JSON rules, and all core contract schemas.
 
 ## Artifacts / Contracts
-See `docs/CONTRACT_MAP.md` and schema snapshots under `tests/snapshots/`.
+See `crates/bijux-dna-core/docs/CONTRACT_MAP.md` and schema snapshots under `tests/snapshots/`.
 
 ## How to run its tests
-See `docs/TESTS.md` for the canonical test map. Key tests:
+See `crates/bijux-dna-core/docs/TESTS.md` for the canonical test map. Key tests:
 - `tests/contracts/public_api.rs`
 - `tests/contracts/docs_public_api.rs`
 - `tests/contracts/contract_invariants.rs`
@@ -66,7 +66,7 @@ See `docs/TESTS.md` for the canonical test map. Key tests:
 Primary failures surface as contract snapshot mismatches or invariant violations.
 
 ## Where the docs live
-Start at `docs/INDEX.md` and follow the core docs listed above.
+Start at `crates/bijux-dna-core/docs/INDEX.md` and follow the core docs listed above.
 
 ## Stability
-Contract and behavior changes follow `docs/CONTRACT_VERSIONING.md`.
+Contract and behavior changes follow `crates/bijux-dna-core/docs/CONTRACT_VERSIONING.md`.
