@@ -139,6 +139,11 @@ param_type_id = "fastq.index_reference"
 schema_version = "bijux.fastq.params.index_reference.v1"
 
 [[entries]]
+stage_id = "fastq.infer_asvs"
+param_type_id = "fastq.infer_asvs"
+schema_version = "bijux.fastq.params.v1"
+
+[[entries]]
 stage_id = "fastq.report_qc"
 param_type_id = "fastq.report_qc"
 schema_version = "bijux.fastq.params.report_qc.v1"
