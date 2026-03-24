@@ -4,7 +4,7 @@ use bijux_dna_domain_fastq::params::correct::{
 };
 use bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults;
 use bijux_dna_domain_fastq::params::defaults::{
-    correct_defaults, remove_duplicates_defaults, stats_defaults, trim_defaults,
+    correct_defaults, merge_defaults, remove_duplicates_defaults, stats_defaults, trim_defaults,
     trim_polyg_tails_defaults, trim_terminal_damage_defaults, umi_defaults,
 };
 use bijux_dna_domain_fastq::params::detect_adapters::{
@@ -148,6 +148,19 @@ fn trim_defaults_keep_declared_minimum_read_length() {
     let decoded = roundtrip(&trim_defaults(true));
     assert_eq!(decoded.min_len, 30);
     assert_eq!(decoded.adapter_policy, "none");
+    assert!(decoded.missing_required_fields().is_empty());
+}
+
+#[test]
+fn merge_defaults_roundtrip_with_declared_thread_count() {
+    let decoded: MergeEffectiveParams = roundtrip(&merge_defaults(true));
+    assert_eq!(decoded.schema_version, MERGE_SCHEMA_VERSION);
+    assert_eq!(decoded.threads, 6);
+    assert_eq!(decoded.merge_engine, MergeEngine::Pear);
+    assert_eq!(
+        decoded.unmerged_read_policy,
+        UnmergedReadPolicy::EmitUnmergedPairs
+    );
     assert!(decoded.missing_required_fields().is_empty());
 }
 

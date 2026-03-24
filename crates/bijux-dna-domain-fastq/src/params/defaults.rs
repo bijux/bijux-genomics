@@ -200,7 +200,7 @@ pub fn merge_defaults(paired: bool) -> MergeEffectiveParams {
     MergeEffectiveParams {
         schema_version: MERGE_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
-        threads: 1,
+        threads: 6,
         merge_overlap: None,
         min_len: None,
         merge_engine: MergeEngine::Pear,
