@@ -246,15 +246,15 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
         &StageId::from_static("fastq.infer_asvs"),
         &ToolId::from_static("dada2"),
     )
-    .expect("planned governance profile");
-    assert!(!infer_profile.default_tool);
-    assert!(!infer_profile.admitted_runtime_tool);
-    assert!(!infer_profile.is_plannable());
-    assert!(!infer_profile.is_runnable());
+    .expect("infer_asvs governance profile");
+    assert!(infer_profile.default_tool);
+    assert!(infer_profile.admitted_runtime_tool);
+    assert!(infer_profile.is_plannable());
+    assert!(infer_profile.is_runnable());
     assert!(!infer_profile.has_governed_benchmark_contract());
     assert_eq!(
         infer_profile.normalization_maturity(),
-        bijux_dna_domain_fastq::StageToolNormalizationMaturity::None
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::ObserverSpecialized
     );
     assert_eq!(
         infer_profile.benchmark_contract_maturity(),
@@ -331,14 +331,72 @@ fn stage_tool_capability_contract_is_owned_by_domain() {
         bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
     )
     .expect("infer capability");
-    assert!(!infer_capability.runnable);
+    assert!(infer_capability.runnable);
     assert!(!infer_capability.parse_normalized);
+
+    let infer_observer_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+        &infer_stage,
+        &dada2,
+        bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
+    )
+    .expect("infer observer capability");
+    assert!(infer_observer_capability.runnable);
+    assert!(infer_observer_capability.parse_normalized);
+    assert!(!infer_observer_capability.benchmark_normalized);
+    assert!(!infer_observer_capability.comparable);
 
     assert_eq!(
         bijux_dna_domain_fastq::benchmark_readiness_for_stage_tool(
             &trim_stage,
             &fastp,
             bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
+        ),
+        Some(bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedExecution)
+    );
+}
+
+#[test]
+fn infer_asvs_governance_profile_exposes_closed_runtime_and_observer_surface() {
+    let infer_stage = StageId::from_static("fastq.infer_asvs");
+    let dada2 = ToolId::from_static("dada2");
+    let profile = bijux_dna_domain_fastq::stage_tool_governance_profile(&infer_stage, &dada2)
+        .expect("infer_asvs governance profile");
+    assert!(profile.default_tool);
+    assert!(profile.admitted_runtime_tool);
+    assert!(profile.is_plannable());
+    assert!(profile.is_runnable());
+    assert_eq!(
+        profile.normalization_maturity(),
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::ObserverSpecialized
+    );
+    assert_eq!(
+        profile.benchmark_contract_maturity(),
+        bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::None
+    );
+    assert!(!profile.has_governed_benchmark_contract());
+
+    let generic_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+        &infer_stage,
+        &dada2,
+        bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
+    )
+    .expect("infer_asvs generic capability");
+    assert!(generic_capability.runnable);
+    assert!(!generic_capability.parse_normalized);
+
+    let observer_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+        &infer_stage,
+        &dada2,
+        bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
+    )
+    .expect("infer_asvs observer capability");
+    assert!(observer_capability.runnable);
+    assert!(observer_capability.parse_normalized);
+    assert_eq!(
+        bijux_dna_domain_fastq::benchmark_readiness_for_stage_tool(
+            &infer_stage,
+            &dada2,
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
         ),
         Some(bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedExecution)
     );
