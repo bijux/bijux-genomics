@@ -11,6 +11,8 @@
   "command": {
     "template": [
       "bowtie2-build",
+      "--threads",
+      "2",
       "reference.fa",
       "out/reference_index/bowtie2/reference"
     ]
@@ -19,7 +21,7 @@
     "runtime": "local",
     "mem_gb": 1,
     "tmp_gb": 1,
-    "threads": 1
+    "threads": 2
   },
   "io": {
     "inputs": [
@@ -51,7 +53,7 @@
     "reference_fasta": "reference.fa",
     "reference_index": "out/reference_index/bowtie2/reference",
     "report_json": "out/index_reference_report.json",
-    "threads": 1,
+    "threads": 2,
     "tool": "bowtie2_build"
   },
   "effective_params": {
@@ -60,7 +62,7 @@
     "output_artifact": "reference_index",
     "report_artifact": "report_json",
     "schema_version": "bijux.fastq.params.index_reference.v1",
-    "threads": 1
+    "threads": 2
   },
   "aux_images": {},
   "reason": {

@@ -66,6 +66,7 @@
     "raw_backend_report_format": null,
     "redundant_filters": [],
     "report_json": "out/filter_report.json",
+    "threads": 2,
     "tool": "seqkit"
   },
   "effective_params": {
