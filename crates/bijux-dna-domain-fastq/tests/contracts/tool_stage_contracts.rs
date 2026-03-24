@@ -148,7 +148,7 @@ fn seqkit_stats_and_vsearch_execution_contracts_cover_supported_artifacts() -> R
 
 #[test]
 fn merge_tool_contracts_preserve_governed_reports_and_native_logs() -> Result<()> {
-    for tool_name in ["pear", "vsearch", "bbmerge", "flash2", "leehom"] {
+    for tool_name in ["adapterremoval", "pear", "vsearch", "bbmerge", "flash2", "leehom"] {
         let tool_path = workspace_root()?.join(format!("domain/fastq/tools/{tool_name}.yaml"));
         let yaml = parse_yaml(&tool_path)?;
         let outputs = yaml_output_name_set(yaml.get("outputs"));
