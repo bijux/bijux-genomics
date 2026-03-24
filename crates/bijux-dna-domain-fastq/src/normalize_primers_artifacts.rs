@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::params::PairedMode;
 
-pub const NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.normalize_primers.report.v2";
+pub const NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.normalize_primers.report.v2";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]

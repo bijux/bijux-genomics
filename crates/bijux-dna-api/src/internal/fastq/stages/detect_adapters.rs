@@ -1,5 +1,14 @@
 use std::collections::HashMap;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::fastq::stages::trim_bench_common::{
+    build_benchmark_context, prepare_trim_bench,
+};
+use crate::internal::handlers::fastq::jobs::bench_jobs;
+use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
+use crate::internal::handlers::fastq::{
+    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_DETECT_ADAPTERS,
+};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
@@ -17,6 +26,7 @@ use bijux_dna_domain_fastq::{
     DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_detect_adapters_tools;
 use bijux_dna_planner_fastq::stage_api::fastq::detect_adapters::plan;
 use bijux_dna_planner_fastq::stage_api::{
@@ -24,16 +34,6 @@ use bijux_dna_planner_fastq::stage_api::{
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
-use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, prepare_trim_bench,
-};
-use crate::internal::fastq::stages::record_identity::stable_params_hash;
-use crate::internal::handlers::fastq::jobs::bench_jobs;
-use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
-use crate::internal::handlers::fastq::{
-    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_DETECT_ADAPTERS,
-};
-use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
 pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,

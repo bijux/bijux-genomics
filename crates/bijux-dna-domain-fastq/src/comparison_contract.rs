@@ -214,8 +214,9 @@ mod tests {
 
     #[test]
     fn trim_polyg_comparison_inputs_exclude_backend_native_reports() {
-        let artifact_ids =
-            comparison_input_artifact_ids_for_stage(&StageId::from_static("fastq.trim_polyg_tails"));
+        let artifact_ids = comparison_input_artifact_ids_for_stage(&StageId::from_static(
+            "fastq.trim_polyg_tails",
+        ));
         assert_eq!(
             artifact_ids,
             vec![

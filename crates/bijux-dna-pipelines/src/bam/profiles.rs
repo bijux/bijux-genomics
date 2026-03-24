@@ -179,7 +179,10 @@ fn catalog_bam_stages() -> Vec<BamStage> {
 pub fn bam_default_profile() -> PipelineProfile {
     let stages = stable_bam_stages();
     let defaults = defaults_for(&stages, default_params_json);
-    let required_stages: Vec<String> = stages.iter().map(|stage| stage.as_str().to_string()).collect();
+    let required_stages: Vec<String> = stages
+        .iter()
+        .map(|stage| stage.as_str().to_string())
+        .collect();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_BAM_DEFAULT),
         description: "Default BAM pipeline",
@@ -225,7 +228,10 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
     stages.retain(|stage| *stage != BamStage::Recalibration);
     filter_downstream(&mut stages);
     let defaults = defaults_for(&stages, adna_shotgun_params_json);
-    let required_stages: Vec<String> = stages.iter().map(|stage| stage.as_str().to_string()).collect();
+    let required_stages: Vec<String> = stages
+        .iter()
+        .map(|stage| stage.as_str().to_string())
+        .collect();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_BAM_ADNA_SHOTGUN),
         description: "Ancient DNA shotgun defaults",
@@ -271,7 +277,10 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
     stages.retain(|stage| *stage != BamStage::Recalibration);
     filter_downstream(&mut stages);
     let defaults = defaults_for(&stages, adna_capture_params_json);
-    let required_stages: Vec<String> = stages.iter().map(|stage| stage.as_str().to_string()).collect();
+    let required_stages: Vec<String> = stages
+        .iter()
+        .map(|stage| stage.as_str().to_string())
+        .collect();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_BAM_ADNA_CAPTURE),
         description: "Ancient DNA capture defaults",

@@ -7,13 +7,13 @@ use bijux_dna_core::prelude::{
 use bijux_dna_domain_fastq::params::{
     defaults::screen_defaults,
     screen::{
-        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier,
-        TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
+        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyReportFormat,
+        SCREEN_TAXONOMY_SCHEMA_VERSION,
     },
     PairedMode,
 };
 use bijux_dna_domain_fastq::{
-    ScreenTaxonomyReportV1, STAGE_SCREEN_TAXONOMY, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+    ScreenTaxonomyReportV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION, STAGE_SCREEN_TAXONOMY,
 };
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -377,13 +377,10 @@ mod tests {
     };
     use anyhow::Result;
     use bijux_dna_core::prelude::{
-        ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
-        ToolExecutionSpecV1, ToolId,
-        ToolVersion,
+        ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
+        ToolId, ToolVersion,
     };
-    use bijux_dna_domain_fastq::params::{
-        defaults::screen_defaults, screen::TaxonomyClassifier,
-    };
+    use bijux_dna_domain_fastq::params::{defaults::screen_defaults, screen::TaxonomyClassifier};
     use std::path::Path;
 
     fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -424,7 +421,8 @@ mod tests {
         assert!(plan.command.template[2].contains("kraken2"));
         assert!(plan.command.template[2].contains("out/kraken2.report.tsv"));
         assert!(plan.command.template[2].contains("out/kraken2.classifications.json"));
-        assert!(plan.command.template[2].contains("\"schema_version\":\"bijux.fastq.screen_taxonomy.report.v2\""));
+        assert!(plan.command.template[2]
+            .contains("\"schema_version\":\"bijux.fastq.screen_taxonomy.report.v2\""));
         assert!(plan.command.template[2].contains("\"tool_id\":\"kraken2\""));
         assert!(plan
             .command

@@ -4,8 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::params::remove_duplicates::DedupMode;
 use crate::params::PairedMode;
 
-pub const REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.remove_duplicates.report.v2";
+pub const REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.remove_duplicates.report.v2";
 pub const REMOVE_DUPLICATES_PROVENANCE_SCHEMA_VERSION: &str =
     "bijux.fastq.remove_duplicates.provenance.v2";
 
@@ -154,6 +153,9 @@ mod tests {
         assert_eq!(decoded.tool_id, "fastuniq");
         assert_eq!(decoded.threads, 1);
         assert_eq!(decoded.dedup_mode, DedupMode::Exact);
-        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastuniq_log"));
+        assert_eq!(
+            decoded.raw_backend_report_format.as_deref(),
+            Some("fastuniq_log")
+        );
     }
 }

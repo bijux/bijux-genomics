@@ -5,8 +5,8 @@ use tracing::warn;
 
 use super::{canonical_contract_for_stage, FastqStage, FastqStageContract};
 use crate::metrics::spec::metric_spec_for_stage;
-use crate::types::FastqArtifactKind;
 use crate::stage_compatible_tool_ids;
+use crate::types::FastqArtifactKind;
 use bijux_dna_core::contract::canonical::canonicalize_json_value;
 use bijux_dna_core::prelude::hashing::params_hash;
 

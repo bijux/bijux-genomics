@@ -11,7 +11,7 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::{
-    FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION, PairedMode,
+    FilterLowComplexityReportV1, PairedMode, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::select_filter_low_complexity_tools;
@@ -366,8 +366,10 @@ fn build_low_complexity_report(
         reads_removed_low_complexity: before_stats.reads.saturating_sub(after_stats.reads),
         bases_in: before_stats.bases,
         bases_out: after_stats.bases,
-        pairs_in: input_stats_r2.map(|r2| before_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
-        pairs_out: output_stats_r2.map(|r2| after_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
+        pairs_in: input_stats_r2
+            .map(|r2| before_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
+        pairs_out: output_stats_r2
+            .map(|r2| after_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
         mean_q_before: before_stats.mean_q,
         mean_q_after: after_stats.mean_q,
         runtime_s: Some(execution.runtime_s),

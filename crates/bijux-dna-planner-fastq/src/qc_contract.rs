@@ -72,7 +72,9 @@ mod tests {
         assert!(single_end.contains(&StageId::from_static("fastq.deplete_rrna")));
         assert!(single_end.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(!single_end.contains(&StageId::from_static("fastq.deplete_host")));
-        assert!(!single_end.contains(&StageId::from_static("fastq.deplete_reference_contaminants")));
+        assert!(!single_end.contains(&StageId::from_static(
+            "fastq.deplete_reference_contaminants"
+        )));
         assert!(!single_end.contains(&StageId::from_static("fastq.normalize_abundance")));
         assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
 

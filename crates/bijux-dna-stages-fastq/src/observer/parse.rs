@@ -2182,7 +2182,9 @@ mod tests {
             })
             .to_string(),
         )
-        .expect_err("incomplete governed remove-duplicates reports must not fall back to legacy parsing");
+        .expect_err(
+            "incomplete governed remove-duplicates reports must not fall back to legacy parsing",
+        );
 
         assert!(error.to_string().contains("parse remove duplicates report"));
     }

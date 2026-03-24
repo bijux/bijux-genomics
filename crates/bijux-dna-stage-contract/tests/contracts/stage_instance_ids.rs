@@ -126,11 +126,7 @@ fn default_edges_prefer_artifact_bound_handoffs_when_stage_contracts_match() {
         aux_images: BTreeMap::new(),
         reason: PlanDecisionReason::default(),
     };
-    let trim = trim_plan(
-        "fastq.trim_reads.tool.fastp",
-        "fastp",
-        "trimmed_reads_r1",
-    );
+    let trim = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_r1");
     let report = StagePlanV1 {
         stage_id: StageId::from_static("fastq.report_qc"),
         stage_instance_id: Some(StepId::new("fastq.report_qc.multiqc")),

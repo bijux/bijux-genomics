@@ -241,7 +241,11 @@ pub fn preprocess_pipeline_graph_for_stage_order(stages: Vec<StageId>) -> Pipeli
             "fastq.deplete_host" | "fastq.deplete_reference_contaminants" => {
                 if let Some(reads_upstream) = first_present_stage(
                     &present,
-                    &["fastq.filter_reads", "fastq.trim_reads", "fastq.validate_reads"],
+                    &[
+                        "fastq.filter_reads",
+                        "fastq.trim_reads",
+                        "fastq.validate_reads",
+                    ],
                 ) {
                     edges.push(pipeline_edge(reads_upstream, stage.as_str()));
                 }
@@ -250,7 +254,8 @@ pub fn preprocess_pipeline_graph_for_stage_order(stages: Vec<StageId>) -> Pipeli
                 }
             }
             stage_id => {
-                let dependency = first_present_stage(&present, primary_upstream_candidates(stage_id));
+                let dependency =
+                    first_present_stage(&present, primary_upstream_candidates(stage_id));
                 if let Some(upstream) = dependency {
                     edges.push(pipeline_edge(upstream, stage_id));
                 }
@@ -267,9 +272,9 @@ pub fn preprocess_pipeline_graph_for_stage_order(stages: Vec<StageId>) -> Pipeli
         contributors.sort();
         contributors.dedup();
         for contributor in contributors {
-            for output_id in crate::governed_qc_output_ids_for_stage(&StageId::new(
-                contributor.clone(),
-            )) {
+            for output_id in
+                crate::governed_qc_output_ids_for_stage(&StageId::new(contributor.clone()))
+            {
                 edges.push(pipeline_artifact_edge(
                     &contributor,
                     "fastq.report_qc",
@@ -280,7 +285,11 @@ pub fn preprocess_pipeline_graph_for_stage_order(stages: Vec<StageId>) -> Pipeli
         }
     }
 
-    edges.sort_by(|left, right| left.from.cmp(&right.from).then_with(|| left.to.cmp(&right.to)));
+    edges.sort_by(|left, right| {
+        left.from
+            .cmp(&right.from)
+            .then_with(|| left.to.cmp(&right.to))
+    });
     edges.dedup_by(|left, right| {
         left.from == right.from
             && left.to == right.to
@@ -314,7 +323,10 @@ fn pipeline_artifact_edge(
     }
 }
 
-fn first_present_stage<'a>(present: &BTreeSet<String>, candidates: &'a [&'a str]) -> Option<&'a str> {
+fn first_present_stage<'a>(
+    present: &BTreeSet<String>,
+    candidates: &'a [&'a str],
+) -> Option<&'a str> {
     candidates
         .iter()
         .copied()
@@ -348,18 +360,27 @@ fn primary_upstream_candidates(stage_id: &str) -> &'static [&'static str] {
             "fastq.trim_terminal_damage",
             "fastq.validate_reads",
         ],
-        "fastq.correct_errors" | "fastq.extract_umis" | "fastq.profile_reads"
-        | "fastq.profile_overrepresented_sequences" | "fastq.screen_taxonomy"
-        | "fastq.deplete_rrna" => {
-            &["fastq.filter_reads", "fastq.trim_reads", "fastq.validate_reads"]
-        }
+        "fastq.correct_errors"
+        | "fastq.extract_umis"
+        | "fastq.profile_reads"
+        | "fastq.profile_overrepresented_sequences"
+        | "fastq.screen_taxonomy"
+        | "fastq.deplete_rrna" => &[
+            "fastq.filter_reads",
+            "fastq.trim_reads",
+            "fastq.validate_reads",
+        ],
         "fastq.merge_pairs" => &["fastq.filter_reads", "fastq.trim_reads"],
-        "fastq.remove_duplicates" => {
-            &["fastq.merge_pairs", "fastq.filter_reads", "fastq.trim_reads"]
-        }
-        "fastq.filter_low_complexity" => {
-            &["fastq.remove_duplicates", "fastq.filter_reads", "fastq.trim_reads"]
-        }
+        "fastq.remove_duplicates" => &[
+            "fastq.merge_pairs",
+            "fastq.filter_reads",
+            "fastq.trim_reads",
+        ],
+        "fastq.filter_low_complexity" => &[
+            "fastq.remove_duplicates",
+            "fastq.filter_reads",
+            "fastq.trim_reads",
+        ],
         "fastq.remove_chimeras" => &["fastq.filter_reads", "fastq.trim_reads"],
         "fastq.cluster_otus" => &["fastq.remove_chimeras", "fastq.filter_reads"],
         "fastq.normalize_abundance" => &["fastq.cluster_otus"],

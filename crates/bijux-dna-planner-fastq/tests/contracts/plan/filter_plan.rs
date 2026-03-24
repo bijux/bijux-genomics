@@ -44,7 +44,8 @@ fn fastp_filter_plan_preserves_paired_io() -> Result<()> {
         .iter()
         .any(|part| part == "reads_R2.fastq.gz"));
     assert_eq!(
-        plan.io.outputs
+        plan.io
+            .outputs
             .iter()
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.clone()),
@@ -84,7 +85,10 @@ fn filter_plan_records_backend_report_contract_for_fastp() -> Result<()> {
         &bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::FilterPlanOptions::default(),
     )?;
 
-    assert_eq!(plan.params["report_json"], serde_json::json!("out/filter_report.json"));
+    assert_eq!(
+        plan.params["report_json"],
+        serde_json::json!("out/filter_report.json")
+    );
     assert_eq!(
         plan.params["raw_backend_report"],
         serde_json::json!("out/fastp.filter.json")

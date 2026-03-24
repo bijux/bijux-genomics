@@ -5,10 +5,10 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::edna::AbundanceNormalizationEffectiveParams;
+use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_ABUNDANCE;
 use bijux_dna_domain_fastq::{
     NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_ABUNDANCE;
 use bijux_dna_stage_contract::{
     ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV1,
 };

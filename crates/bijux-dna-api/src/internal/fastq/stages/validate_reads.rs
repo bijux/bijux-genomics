@@ -377,10 +377,18 @@ fn derive_validate_metrics(
         reads_invalid,
         mean_q: input_stats.mean_q,
         validated_inputs: parsed_report.as_ref().map(|report| report.validated_inputs),
-        validated_pairs: parsed_report.as_ref().and_then(|report| report.validated_pairs),
-        pair_sync_checked: parsed_report.as_ref().map(|report| report.pair_sync_checked),
-        pair_sync_pass: parsed_report.as_ref().and_then(|report| report.pair_sync_pass),
-        pair_count_match: parsed_report.as_ref().and_then(|report| report.pair_count_match),
+        validated_pairs: parsed_report
+            .as_ref()
+            .and_then(|report| report.validated_pairs),
+        pair_sync_checked: parsed_report
+            .as_ref()
+            .map(|report| report.pair_sync_checked),
+        pair_sync_pass: parsed_report
+            .as_ref()
+            .and_then(|report| report.pair_sync_pass),
+        pair_count_match: parsed_report
+            .as_ref()
+            .and_then(|report| report.pair_count_match),
         strict_pass: parsed_report.as_ref().map(|report| report.strict_pass),
         failure_class: parsed_report
             .as_ref()
@@ -457,8 +465,8 @@ mod tests {
     };
     use bijux_dna_core::contract::{ArtifactRole, StageIO};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
-    use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
     use bijux_dna_core::prelude::measure::SeqkitMetrics;
+    use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
     use std::path::PathBuf;

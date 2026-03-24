@@ -111,11 +111,11 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         None,
         None,
         None,
-        |binding, _r1, _r2| Ok(
-            Path::new("out")
+        |binding, _r1, _r2| {
+            Ok(Path::new("out")
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )?;
 
     let report_plan = plans
@@ -155,11 +155,11 @@ fn compose_rejects_report_qc_without_governed_upstream_artifacts() {
         None,
         None,
         None,
-        |binding, _r1, _r2| Ok(
-            Path::new("out")
+        |binding, _r1, _r2| {
+            Ok(Path::new("out")
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )
     .expect_err("report_qc should require governed QC artifacts");
 
@@ -185,11 +185,11 @@ fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()
         None,
         Some(Path::new("reference.fa")),
         None,
-        |binding, _r1, _r2| Ok(
-            Path::new("out")
+        |binding, _r1, _r2| {
+            Ok(Path::new("out")
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )?;
 
     let report_plan = plans
@@ -219,11 +219,11 @@ fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<
         None,
         None,
         None,
-        |binding, _r1, _r2| Ok(
-            Path::new("out")
+        |binding, _r1, _r2| {
+            Ok(Path::new("out")
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )?;
 
     let report_plan = plans

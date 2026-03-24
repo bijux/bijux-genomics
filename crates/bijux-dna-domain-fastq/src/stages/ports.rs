@@ -140,9 +140,9 @@ mod tests {
                     "raw_backend_report_json",
                     "raw_backend_report_txt",
                 ]
-                    .into_iter()
-                    .map(str::to_string)
-                    .collect()
+                .into_iter()
+                .map(str::to_string)
+                .collect()
             )
         );
         assert_eq!(

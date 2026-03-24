@@ -6,8 +6,8 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::{
     params::{stats::READ_LENGTH_PROFILE_SCHEMA_VERSION, PairedMode},
-    FastqReadLengthProfileParams,
     stages::ids::STAGE_PROFILE_READ_LENGTHS,
+    FastqReadLengthProfileParams,
 };
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -136,7 +136,10 @@ fn profile_lengths_command(
             ("reads_r1", Some(r1.display().to_string())),
             (
                 "reads_r2",
-                Some(r2.map(|path| path.display().to_string()).unwrap_or_default()),
+                Some(
+                    r2.map(|path| path.display().to_string())
+                        .unwrap_or_default(),
+                ),
             ),
         ],
     )?;

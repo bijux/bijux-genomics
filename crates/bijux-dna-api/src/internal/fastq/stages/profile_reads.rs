@@ -388,10 +388,15 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     })?
     .stage_result;
 
-    let length_histogram =
-        combine_length_histograms(&bench_inputs.length_hist, bench_inputs.length_hist_r2.as_deref());
+    let length_histogram = combine_length_histograms(
+        &bench_inputs.length_hist,
+        bench_inputs.length_hist_r2.as_deref(),
+    );
     let backend_rows = parse_seqkit_stats_rows(&execution.stdout).unwrap_or_else(|_| {
-        fallback_seqkit_rows(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref())
+        fallback_seqkit_rows(
+            &bench_inputs.input_stats,
+            bench_inputs.input_stats_r2.as_ref(),
+        )
     });
     materialize_profile_reads_outputs(
         &plan,
@@ -535,9 +540,7 @@ fn required_plan_output_path<'a>(
         .ok_or_else(|| anyhow!("profile_reads plan missing `{artifact_name}` output"))
 }
 
-fn execution_metrics_from_stage_result(
-    execution: &StageResultV1,
-) -> ExecutionMetrics {
+fn execution_metrics_from_stage_result(execution: &StageResultV1) -> ExecutionMetrics {
     ExecutionMetrics {
         runtime_s: execution.runtime_s,
         memory_mb: execution.memory_mb,
@@ -547,7 +550,9 @@ fn execution_metrics_from_stage_result(
 
 fn parse_seqkit_stats_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1>> {
     let mut lines = stdout.lines();
-    let header = lines.next().ok_or_else(|| anyhow!("empty seqkit stats stdout"))?;
+    let header = lines
+        .next()
+        .ok_or_else(|| anyhow!("empty seqkit stats stdout"))?;
     let header_fields: Vec<&str> = header.split('\t').collect();
     let col_index = |name: &str| -> Result<usize> {
         header_fields
@@ -575,11 +580,7 @@ fn parse_seqkit_stats_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1
         }
         let fields: Vec<&str> = line.split('\t').collect();
         rows.push(ProfileReadsMateSummaryV1 {
-            label: fields
-                .get(file_idx)
-                .copied()
-                .unwrap_or("reads")
-                .to_string(),
+            label: fields.get(file_idx).copied().unwrap_or("reads").to_string(),
             reads: fields
                 .get(reads_idx)
                 .ok_or_else(|| anyhow!("seqkit row missing reads"))?
@@ -640,8 +641,14 @@ fn materialize_profile_reads_outputs(
         .find(|artifact| artifact.name.as_str() == "qc_plots_dir")
         .map(|artifact| artifact.path.clone());
 
-    let reads_total = mate_summaries.iter().map(|summary| summary.reads).sum::<u64>();
-    let bases_total = mate_summaries.iter().map(|summary| summary.bases).sum::<u64>();
+    let reads_total = mate_summaries
+        .iter()
+        .map(|summary| summary.reads)
+        .sum::<u64>();
+    let bases_total = mate_summaries
+        .iter()
+        .map(|summary| summary.bases)
+        .sum::<u64>();
     let mean_q = weighted_optional_metric(mate_summaries, |summary| summary.mean_q).unwrap_or(0.0);
     let gc_percent =
         weighted_optional_metric(mate_summaries, |summary| summary.gc_percent).unwrap_or(0.0);
@@ -749,7 +756,9 @@ fn profile_reads_tsv(mate_summaries: &[ProfileReadsMateSummaryV1]) -> String {
             summary.label,
             summary.reads,
             summary.bases,
-            summary.mean_q.map_or_else(String::new, |value| format!("{value:.3}")),
+            summary
+                .mean_q
+                .map_or_else(String::new, |value| format!("{value:.3}")),
             summary
                 .gc_percent
                 .map_or_else(String::new, |value| format!("{value:.3}"))

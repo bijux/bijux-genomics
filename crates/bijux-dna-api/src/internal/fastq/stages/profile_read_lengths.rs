@@ -13,12 +13,12 @@ use bijux_dna_analyze::{
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
-use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_domain_fastq::{
     PairedMode, ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
     PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION,
 };
+use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
@@ -78,14 +78,15 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
         let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan_with_options(
-            &tool_spec,
-            &args.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            args.threads,
-            args.histogram_bins,
-        )?;
+        let plan =
+            bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan_with_options(
+                &tool_spec,
+                &args.r1,
+                args.r2.as_deref(),
+                &out_dir,
+                args.threads,
+                args.histogram_bins,
+            )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -255,7 +256,12 @@ fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
     Ok(lengths)
 }
 
-fn write_length_outputs(tsv: &Path, json: &Path, lengths: &[usize], histogram_bins: u32) -> Result<()> {
+fn write_length_outputs(
+    tsv: &Path,
+    json: &Path,
+    lengths: &[usize],
+    histogram_bins: u32,
+) -> Result<()> {
     let hist = rebin_lengths(lengths, histogram_bins.max(1));
     let mut tsv_body = String::from("sample_id\tread_length\tcount\n");
     for (len, count) in &hist {

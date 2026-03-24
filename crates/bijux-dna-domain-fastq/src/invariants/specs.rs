@@ -44,8 +44,7 @@ pub fn fastq_invariant_specs() -> Vec<InvariantSpecV1> {
             definition: "Strict validation completes without governed validation failure classes."
                 .to_string(),
             threshold_provenance:
-                "Derived from governed validation report strict_pass and failure_class."
-                    .to_string(),
+                "Derived from governed validation report strict_pass and failure_class.".to_string(),
             severity: InvariantStatusV1::Fail,
             next_steps: "Inspect governed validation report and fix the failing integrity class."
                 .to_string(),

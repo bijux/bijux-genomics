@@ -6,8 +6,7 @@ use crate::params::{
     PairedMode,
 };
 
-pub const DETECT_ADAPTERS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.detect_adapters.report.v2";
+pub const DETECT_ADAPTERS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.detect_adapters.report.v2";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -100,8 +99,7 @@ mod tests {
         };
 
         let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: DetectAdaptersReportV1 =
-            serde_json::from_str(&encoded).expect("deserialize");
+        let decoded: DetectAdaptersReportV1 = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.tool_id, "fastqc");
         assert_eq!(decoded.evidence_scope, AdapterEvidenceScope::FullInput);
         assert_eq!(decoded.candidate_adapter_count, 2);

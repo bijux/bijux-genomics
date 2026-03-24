@@ -41,9 +41,7 @@ pub struct FilterLowComplexityReportV1 {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
-    };
+    use super::{FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION};
     use crate::params::PairedMode;
 
     #[test]

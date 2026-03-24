@@ -195,15 +195,15 @@ pub fn resolve_terminal_damage_policy_with_override(
     };
     match execution_policy {
         None => Ok(derived),
-        Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim) => Ok(
-            ResolvedTerminalDamagePolicy {
+        Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim) => {
+            Ok(ResolvedTerminalDamagePolicy {
                 execution_policy: TerminalDamageExecutionPolicy::ExplicitTerminalTrim,
                 effective_trim_5p_bases: trim_5p_bases,
                 effective_trim_3p_bases: trim_3p_bases,
                 requested_trim_5p_bases: trim_5p_bases,
                 requested_trim_3p_bases: trim_3p_bases,
-            },
-        ),
+            })
+        }
         Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds) => {
             if damage_mode != DamageMode::UdgTrimmed {
                 return Err(anyhow!(
@@ -251,9 +251,7 @@ pub fn terminal_damage_execution_policy_label(
     match value {
         None => "policy_derived",
         Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim) => "explicit_terminal_trim",
-        Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds) => {
-            "preserve_udg_trimmed_ends"
-        }
+        Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds) => "preserve_udg_trimmed_ends",
     }
 }
 

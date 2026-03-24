@@ -49,7 +49,10 @@ pub fn plan_umi_with_options(
     let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
     let report_json = out_dir.join("umi_report.json");
     let raw_backend_report = out_dir.join("umi_tools.extract.log");
-    let umi_pattern = options.umi_pattern.as_deref().unwrap_or(DEFAULT_UMI_PATTERN);
+    let umi_pattern = options
+        .umi_pattern
+        .as_deref()
+        .unwrap_or(DEFAULT_UMI_PATTERN);
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = FastqUmiParams {
         schema_version: UMI_SCHEMA_VERSION.to_string(),

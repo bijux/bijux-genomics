@@ -47,8 +47,7 @@ pub struct DepleteReferenceContaminantsReportV1 {
 #[cfg(test)]
 mod tests {
     use super::{
-        DepleteReferenceContaminantsReportV1,
-        DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
+        DepleteReferenceContaminantsReportV1, DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
     };
     use crate::params::PairedMode;
 

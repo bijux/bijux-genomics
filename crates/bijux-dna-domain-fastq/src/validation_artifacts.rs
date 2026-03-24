@@ -76,8 +76,8 @@ impl ValidationReportV1 {
 #[cfg(test)]
 mod tests {
     use super::{
-        PairSyncPolicy, PairedMode, ValidatedReadsManifestV1, ValidateFailureClass,
-        ValidationMode, ValidationReportV1, VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
+        PairSyncPolicy, PairedMode, ValidateFailureClass, ValidatedReadsManifestV1, ValidationMode,
+        ValidationReportV1, VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
         VALIDATION_REPORT_SCHEMA_VERSION,
     };
 
@@ -112,7 +112,10 @@ mod tests {
         let decoded: ValidationReportV1 =
             serde_json::from_str(&encoded).expect("deserialize report");
         assert!(decoded.is_pair_failure());
-        assert_eq!(decoded.failure_class, ValidateFailureClass::PairCountMismatch);
+        assert_eq!(
+            decoded.failure_class,
+            ValidateFailureClass::PairCountMismatch
+        );
     }
 
     #[test]

@@ -191,7 +191,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             if binding.values.is_empty() {
                 return Err(BenchError::InvalidPolicy(format!(
                     "suite stage {} param_bindings must include at least one structured value",
-                        stage.stage
+                    stage.stage
                 )));
             }
             for key in binding.values.keys() {
@@ -359,7 +359,8 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
 fn declared_graph_nodes(
     suite: &BenchmarkSuiteSpec,
 ) -> std::collections::BTreeMap<String, BenchmarkGraphNode> {
-    suite.graph_nodes()
+    suite
+        .graph_nodes()
         .into_iter()
         .map(|node| (node.node_id.clone(), node))
         .collect()
@@ -718,9 +719,7 @@ mod tests {
         });
         let error =
             validate_suite(&suite).expect_err("planner-owned select nodes must not declare tools");
-        assert!(error
-            .to_string()
-            .contains("must not declare tool bindings"));
+        assert!(error.to_string().contains("must not declare tool bindings"));
     }
 
     #[test]
@@ -889,7 +888,9 @@ mod tests {
         });
         let error =
             validate_suite(&suite).expect_err("unknown stage-scoped param bindings must fail");
-        assert!(error.to_string().contains("governed stage parameter contract"));
+        assert!(error
+            .to_string()
+            .contains("governed stage parameter contract"));
     }
 
     #[test]

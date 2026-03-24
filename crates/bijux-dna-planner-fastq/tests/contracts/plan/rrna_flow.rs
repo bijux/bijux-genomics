@@ -56,11 +56,11 @@ fn rrna_stage_feeds_filtered_reads_to_next_stage() -> Result<()> {
         None,
         None,
         None,
-        |binding, _r1, _r2| Ok(
-            PathBuf::from("out")
+        |binding, _r1, _r2| {
+            Ok(PathBuf::from("out")
                 .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str())
-        ),
+                .join(binding.tool.tool_id.as_str()))
+        },
     )?;
     assert_eq!(plans.len(), 2);
     assert_eq!(plans[0].stage_id.as_str(), "fastq.deplete_rrna");

@@ -1,8 +1,6 @@
 use anyhow::Result;
 use bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG;
-use bijux_dna_domain_fastq::{
-    default_amplicon_preprocess_stage_order, FastqPipelineMode,
-};
+use bijux_dna_domain_fastq::{default_amplicon_preprocess_stage_order, FastqPipelineMode};
 use bijux_dna_planner_fastq::{default_pipeline_spec, DefaultPipelineOptions};
 use std::collections::BTreeSet;
 
@@ -93,12 +91,17 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
         "fastq.normalize_abundance",
     ] {
         assert!(
-            spec.ordered_stage_ids().iter().any(|stage| stage == required),
+            spec.ordered_stage_ids()
+                .iter()
+                .any(|stage| stage == required),
             "amplicon mode missing stage {required}"
         );
     }
     assert!(
-        !spec.ordered_stage_ids().iter().any(|stage| stage == "fastq.infer_asvs"),
+        !spec
+            .ordered_stage_ids()
+            .iter()
+            .any(|stage| stage == "fastq.infer_asvs"),
         "default amplicon mode must not schedule optional infer_asvs branches by default"
     );
 
@@ -141,8 +144,7 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
         "fastq.report_qc",
     ];
     assert_eq!(
-        ordered,
-        expected,
+        ordered, expected,
         "single-end default pipeline must come from FASTQ pipeline-contract essentials"
     );
     assert!(
@@ -178,7 +180,7 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
     ] {
         assert!(
             report_qc_inputs.contains(contributor),
-        "default preprocess graph must join {contributor} into report_qc"
+            "default preprocess graph must join {contributor} into report_qc"
         );
     }
 }

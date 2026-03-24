@@ -755,11 +755,10 @@ mod tests {
         bench_args_trim_polyg, bench_args_trim_terminal_damage, resolve_stage_tool,
     };
     use crate::commands::cli::parse::{
-        BenchFastqFilterArgs, BenchFastqNormalizePrimersArgs,
-        BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs,
-        BenchFastqRemoveChimerasArgs, BenchFastqRemoveDuplicatesArgs, BenchFastqTrimArgs,
-        BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand,
-        FastqCommand, FastqValidateArgs,
+        BenchFastqFilterArgs, BenchFastqNormalizePrimersArgs, BenchFastqProfileOverrepresentedArgs,
+        BenchFastqProfileReadLengthsArgs, BenchFastqRemoveChimerasArgs,
+        BenchFastqRemoveDuplicatesArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
+        BenchFastqTrimTerminalDamageArgs, CommonArgs, DnaCommand, FastqCommand, FastqValidateArgs,
     };
     use std::path::PathBuf;
 
