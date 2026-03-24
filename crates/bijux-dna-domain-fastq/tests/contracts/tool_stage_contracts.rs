@@ -147,6 +147,51 @@ fn seqkit_stats_and_vsearch_execution_contracts_cover_supported_artifacts() -> R
 }
 
 #[test]
+fn merge_tool_contracts_preserve_governed_reports_and_native_logs() -> Result<()> {
+    for tool_name in ["pear", "vsearch", "bbmerge", "flash2", "leehom"] {
+        let tool_path = workspace_root()?.join(format!("domain/fastq/tools/{tool_name}.yaml"));
+        let yaml = parse_yaml(&tool_path)?;
+        let outputs = yaml_output_name_set(yaml.get("outputs"));
+        let stage_contract = yaml
+            .get("stage_contracts")
+            .and_then(Value::as_mapping)
+            .and_then(|contracts| contracts.get(Value::String("fastq.merge_pairs".to_string())))
+            .and_then(Value::as_mapping)
+            .with_context(|| format!("{tool_name} missing fastq.merge_pairs stage_contract"))?;
+        let expected_artifacts =
+            yaml_string_set(stage_contract.get(Value::String("expected_artifacts".to_string())));
+        let execution_contract = yaml
+            .get("execution_contract")
+            .and_then(Value::as_mapping)
+            .with_context(|| format!("{tool_name} missing execution_contract"))?;
+        let expected_outputs =
+            yaml_string_set(execution_contract.get(Value::String("expected_outputs".to_string())));
+
+        for artifact in [
+            "merged_reads",
+            "unmerged_reads_r1",
+            "unmerged_reads_r2",
+            "report_json",
+            "raw_backend_report_txt",
+        ] {
+            assert!(
+                outputs.contains(artifact),
+                "{tool_name} outputs must declare {artifact} for governed merge planning"
+            );
+            assert!(
+                expected_artifacts.contains(artifact),
+                "{tool_name} fastq.merge_pairs stage_contract must declare {artifact}"
+            );
+            assert!(
+                expected_outputs.contains(artifact),
+                "{tool_name} execution_contract expected_outputs must declare {artifact}"
+            );
+        }
+    }
+    Ok(())
+}
+
+#[test]
 fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
     let required_inputs = stage_required_inputs()?;
     let outputs = stage_outputs()?;
