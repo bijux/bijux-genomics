@@ -245,18 +245,35 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&merge_stage);
     assert_eq!(merge_cohorts.len(), 1);
     assert_eq!(merge_cohorts[0].scenario_id, "merge_fairness");
-    assert!(!merge_cohorts[0].tool_ids.is_empty());
     assert_eq!(
         merge_cohorts[0]
             .tool_ids
             .iter()
             .map(|tool_id| tool_id.as_str())
             .collect::<Vec<_>>(),
+        vec![
+            "adapterremoval",
+            "bbmerge",
+            "flash2",
+            "leehom",
+            "pear",
+            "vsearch",
+        ]
+    );
+    assert_eq!(
         merge_cohorts[0]
             .observer_specialized_tools
             .iter()
             .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>()
+            .collect::<Vec<_>>(),
+        vec![
+            "adapterremoval",
+            "bbmerge",
+            "flash2",
+            "leehom",
+            "pear",
+            "vsearch",
+        ]
     );
 
     let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");

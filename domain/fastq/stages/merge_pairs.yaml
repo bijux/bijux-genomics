@@ -76,6 +76,7 @@ allowed_missingness:
   - "unmerged_reads_r2"
   - "raw_backend_report_txt"
 compatible_tools:
+  - adapterremoval
   - pear
   - vsearch
   - bbmerge

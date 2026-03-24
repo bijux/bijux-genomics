@@ -174,6 +174,7 @@ stage_tool_compatibility:
   fastq.infer_asvs:
   - dada2
   fastq.merge_pairs:
+  - adapterremoval
   - pear
   - vsearch
   - bbmerge
@@ -261,6 +262,7 @@ stage_tool_integration:
   fastq.infer_asvs:
     dada2: governed_contract
   fastq.merge_pairs:
+    adapterremoval: governed_contract
     bbmerge: governed_contract
     flash2: governed_contract
     leehom: governed_contract

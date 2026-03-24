@@ -150,6 +150,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.merge_pairs",
+        tool_id: "adapterremoval",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.merge_pairs",
         tool_id: "pear",
         semantic_surface: "report_json",
     },
