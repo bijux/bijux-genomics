@@ -2,7 +2,10 @@ use anyhow::Result;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy;
+use bijux_dna_domain_fastq::params::trim::{
+    TerminalDamageExecutionPolicy, TRIM_POLYG_TAILS_SCHEMA_VERSION,
+    TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::DamageMode;
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
@@ -330,7 +333,7 @@ fn plan_trim_polyg_preserves_paired_output_names() -> Result<()> {
     assert!(script.contains("--out2"));
     assert_eq!(
         plan.effective_params["schema_version"],
-        "bijux.fastq.params.trim_polyg_tails.v1"
+        TRIM_POLYG_TAILS_SCHEMA_VERSION
     );
     assert_eq!(plan.effective_params["trim_polyg"], true);
     assert_eq!(plan.effective_params["min_polyg_run"], 10);
@@ -402,12 +405,9 @@ fn plan_trim_fastp_preserves_native_json_beside_governed_report() -> Result<()> 
     assert!(
         plan.command.template[2].contains("\"raw_backend_report\":\"out/trim_report.fastp.json\"")
     );
-    assert!(plan
-        .io
-        .outputs
-        .iter()
-        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
-            && artifact.path == std::path::Path::new("out/trim_report.fastp.json")));
+    assert!(plan.io.outputs.iter().any(|artifact| artifact.name.as_str()
+        == "raw_backend_report_json"
+        && artifact.path == std::path::Path::new("out/trim_report.fastp.json")));
     assert!(plan.command.template[2].contains("\"polyx_policy\":\"none\""));
     assert!(plan.command.template[2].contains("\"n_policy\":\"retain\""));
     assert!(plan.command.template[2].contains("\"contaminant_policy\":\"none\""));
@@ -775,12 +775,9 @@ fn plan_trim_with_bank_contaminant_policy_maps_bbduk_reference_filter() -> Resul
     assert!(script.contains("maxns=0"));
     assert!(script.contains("k=31"));
     assert!(script.contains("\"raw_backend_report_format\":\"bbduk_stats\""));
-    assert!(plan
-        .io
-        .outputs
-        .iter()
-        .any(|artifact| artifact.name.as_str() == "raw_backend_report_txt"
-            && artifact.path == std::path::Path::new("out/trim_report.bbduk.stats.txt")));
+    assert!(plan.io.outputs.iter().any(|artifact| artifact.name.as_str()
+        == "raw_backend_report_txt"
+        && artifact.path == std::path::Path::new("out/trim_report.bbduk.stats.txt")));
     Ok(())
 }
 
@@ -801,12 +798,9 @@ fn plan_trim_cutadapt_preserves_native_json_beside_governed_report() -> Result<(
     assert!(script.contains("'--json' 'out/trim_report.cutadapt.json'"));
     assert!(script.contains("\"raw_backend_report_format\":\"cutadapt_json\""));
     assert!(script.contains("\"raw_backend_report\":\"out/trim_report.cutadapt.json\""));
-    assert!(plan
-        .io
-        .outputs
-        .iter()
-        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
-            && artifact.path == std::path::Path::new("out/trim_report.cutadapt.json")));
+    assert!(plan.io.outputs.iter().any(|artifact| artifact.name.as_str()
+        == "raw_backend_report_json"
+        && artifact.path == std::path::Path::new("out/trim_report.cutadapt.json")));
     Ok(())
 }
 
@@ -968,8 +962,10 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
         .io
         .outputs
         .iter()
-        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
-            && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.fastp.json")));
+        .any(
+            |artifact| artifact.name.as_str() == "raw_backend_report_json"
+                && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.fastp.json")
+        ));
 
     let bbduk_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
         &dummy_tool("bbduk"),
@@ -999,8 +995,10 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
         .io
         .outputs
         .iter()
-        .any(|artifact| artifact.name.as_str() == "raw_backend_report_txt"
-            && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.stats.txt")));
+        .any(
+            |artifact| artifact.name.as_str() == "raw_backend_report_txt"
+                && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.stats.txt")
+        ));
     Ok(())
 }
 
@@ -1063,7 +1061,7 @@ fn plan_trim_terminal_damage_preserves_paired_output_names() -> Result<()> {
     ));
     assert_eq!(
         plan.effective_params["schema_version"],
-        "bijux.fastq.params.trim_terminal_damage.v1"
+        TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION
     );
     assert_eq!(
         serde_json::from_value::<DamageMode>(plan.effective_params["damage_mode"].clone())?,

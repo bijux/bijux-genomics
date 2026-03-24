@@ -527,7 +527,7 @@ mod tests {
         );
         assert_eq!(
             plan.effective_params["schema_version"],
-            serde_json::json!("bijux.fastq.params.remove_duplicates.v1")
+            serde_json::json!(REMOVE_DUPLICATES_SCHEMA_VERSION)
         );
         assert_eq!(
             plan.effective_params["dedup_mode"],

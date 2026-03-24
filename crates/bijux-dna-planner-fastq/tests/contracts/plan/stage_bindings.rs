@@ -18,7 +18,10 @@ use bijux_dna_domain_fastq::params::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::stats::FastqStatsParams;
+use bijux_dna_domain_fastq::params::stats::{
+    FastqStatsParams, OVERREPRESENTED_PROFILE_SCHEMA_VERSION, READ_LENGTH_PROFILE_SCHEMA_VERSION,
+    STATS_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::trim::{
     TrimEffectiveParams, TrimPolygTailsParams, TRIM_POLYG_TAILS_SCHEMA_VERSION,
 };
@@ -29,12 +32,11 @@ use bijux_dna_domain_fastq::params::DamageMode;
 use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthProfileParams};
 use bijux_dna_planner_fastq::{
     ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
-    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams,
-    DetectAdaptersStageParams, ExtractUmisStageParams, FastqPlanConfig, FastqPlanner,
-    FastqStageBinding, FastqStageParameters, FastqStageToolsetBinding,
-    FilterLowComplexityStageParams, FilterReadsStageParams, IndexReferenceStageParams,
-    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
-    NormalizePrimersStageParams, TrimTerminalDamageStageParams,
+    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, DetectAdaptersStageParams,
+    ExtractUmisStageParams, FastqPlanConfig, FastqPlanner, FastqStageBinding, FastqStageParameters,
+    FastqStageToolsetBinding, FilterLowComplexityStageParams, FilterReadsStageParams,
+    IndexReferenceStageParams, InferAsvsStageParams, MergePairsStageParams,
+    NormalizeAbundanceStageParams, NormalizePrimersStageParams, TrimTerminalDamageStageParams,
 };
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -809,8 +811,8 @@ fn planner_uses_typed_merge_pairs_params_from_stage_binding() -> anyhow::Result<
 }
 
 #[test]
-fn planner_uses_manifest_default_merge_pairs_threads_without_binding_override(
-) -> anyhow::Result<()> {
+fn planner_uses_manifest_default_merge_pairs_threads_without_binding_override() -> anyhow::Result<()>
+{
     let temp = bijux_dna_infra::temp_dir("fastq-merge-pairs-default-threads")?;
     let r1 = temp.path().join("reads_R1.fastq");
     let r2 = temp.path().join("reads_R2.fastq");
@@ -896,13 +898,8 @@ fn planner_uses_typed_normalize_primers_params_from_stage_binding() -> anyhow::R
     assert_eq!(step.step_id.as_str(), "fastq.normalize_primers.custom");
     assert!(step.command.template[2].contains("--overlap 14"));
     assert!(step.command.template[2].contains("--error-rate 0.05"));
-    assert!(step
-        .command
-        .template[2]
-        .contains("\"primer_set_id\":\"16s_v4\""));
-    assert!(step
-        .command
-        .template[2]
+    assert!(step.command.template[2].contains("\"primer_set_id\":\"16s_v4\""));
+    assert!(step.command.template[2]
         .contains("\"orientation_policy\":\"normalize_to_reverse_complement\""));
     Ok(())
 }
@@ -1055,8 +1052,8 @@ fn planner_uses_typed_infer_asvs_params_from_stage_binding() -> anyhow::Result<(
 }
 
 #[test]
-fn planner_uses_manifest_default_infer_asvs_threads_without_binding_override(
-) -> anyhow::Result<()> {
+fn planner_uses_manifest_default_infer_asvs_threads_without_binding_override() -> anyhow::Result<()>
+{
     let temp = bijux_dna_infra::temp_dir("fastq-infer-asvs-default-threads")?;
     let r1 = temp.path().join("reads_R1.fastq");
     std::fs::write(&r1, b"@r1\nAAAA\n+\n####\n")?;
@@ -1116,7 +1113,7 @@ fn planner_uses_typed_profile_read_lengths_params_from_stage_binding() -> anyhow
             reason: None,
             params: Some(FastqStageParameters::ProfileReadLengths(
                 FastqReadLengthProfileParams {
-                    schema_version: "bijux.fastq.params.read_length_profile.v1".to_string(),
+                    schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
                     paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
                     threads: 6,
                     histogram_bins: 64,
@@ -1225,7 +1222,7 @@ fn planner_uses_typed_profile_overrepresented_params_from_stage_binding() -> any
             reason: None,
             params: Some(FastqStageParameters::ProfileOverrepresented(
                 FastqOverrepresentedProfileParams {
-                    schema_version: "bijux.fastq.params.overrepresented_profile.v1".to_string(),
+                    schema_version: OVERREPRESENTED_PROFILE_SCHEMA_VERSION.to_string(),
                     paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
                     threads: 6,
                     top_k: 25,
@@ -1275,7 +1272,7 @@ fn planner_uses_typed_profile_reads_params_from_stage_binding() -> anyhow::Resul
             tool: seqkit_stats_tool(),
             reason: None,
             params: Some(FastqStageParameters::ProfileReads(FastqStatsParams {
-                schema_version: "bijux.fastq.params.stats.v1".to_string(),
+                schema_version: STATS_SCHEMA_VERSION.to_string(),
                 paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
                 threads: 6,
             })),
@@ -1320,7 +1317,9 @@ fn planner_uses_typed_remove_duplicates_params_from_stage_binding() -> anyhow::R
             reason: None,
             params: Some(FastqStageParameters::RemoveDuplicates(
                 RemoveDuplicatesEffectiveParams {
-                    schema_version: "bijux.fastq.params.remove_duplicates.v1".to_string(),
+                    schema_version:
+                        bijux_dna_domain_fastq::params::remove_duplicates::REMOVE_DUPLICATES_SCHEMA_VERSION
+                            .to_string(),
                     paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
                     threads: 6,
                     dedup_mode: DedupMode::OpticalAware,
@@ -1433,7 +1432,9 @@ fn planner_uses_typed_report_qc_params_from_stage_binding() -> anyhow::Result<()
                 tool: tool("multiqc"),
                 reason: None,
                 params: Some(FastqStageParameters::ReportQc(QcPostEffectiveParams {
-                    schema_version: "bijux.fastq.params.report_qc.v1".to_string(),
+                    schema_version:
+                        bijux_dna_domain_fastq::params::qc_post::REPORT_QC_SCHEMA_VERSION
+                            .to_string(),
                     paired_mode: bijux_dna_domain_fastq::params::PairedMode::SingleEnd,
                     aggregation_engine: QcAggregationEngine::Multiqc,
                     aggregation_scope: QcAggregationScope::GovernedQcArtifacts,
