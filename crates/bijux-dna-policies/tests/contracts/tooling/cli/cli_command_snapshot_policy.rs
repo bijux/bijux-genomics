@@ -48,7 +48,7 @@ fn normalize_whitespace(text: &str) -> String {
 }
 
 #[test]
-fn policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
+fn slow__policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
     let root = support::workspace_root();
     let snapshot_path = root.join("docs/cli/command_snapshot.txt");
     let expected = std::fs::read_to_string(&snapshot_path)

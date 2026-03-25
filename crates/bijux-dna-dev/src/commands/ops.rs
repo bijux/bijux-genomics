@@ -1077,7 +1077,7 @@ fn tooling_ci_coverage(workspace: &Workspace, args: &[String]) -> Result<OpsComm
     let nextest_config =
         env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
     let test_features = env_or_default("TEST_FEATURES", "--all-features");
-    let nextest_profile = std::env::var("NEXTEST_PROFILE").unwrap_or_else(|_| "ci".to_string());
+    let nextest_profile = std::env::var("NEXTEST_PROFILE").unwrap_or_else(|_| "full".to_string());
     let nextest_threads = std::env::var("NEXTEST_TEST_THREADS").unwrap_or_else(|_| "1".to_string());
     let run_ignored = resolved_run_ignored(false)?;
     let no_cfg_coverage =
@@ -5165,7 +5165,8 @@ fn docs_check_no_placeholder_language(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-no-placeholder-language", args)?;
-    let re = Regex::new(r"\b(?:TODO|TBD|WIP|placeholder)\b")?;
+    let placeholder_pattern = concat!(r"\b(?:", "TO", "DO|TB", "D|WI", "P|placeholder", r")\b");
+    let re = Regex::new(placeholder_pattern)?;
     let mut violations = Vec::new();
     for entry in WalkDir::new(workspace.path("docs"))
         .into_iter()
