@@ -13,7 +13,7 @@ pub(crate) fn handle_fastq_bench(
     dna_command: &DnaCommand,
     registry: &bijux_dna_api::v1::api::run::ToolRegistry,
 ) -> Result<bool> {
-    let DnaCommand::Fastq { command } = dna_command else {
+    let DnaCommand::Fastq(command) = dna_command else {
         return Ok(false);
     };
 

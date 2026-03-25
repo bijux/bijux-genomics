@@ -146,24 +146,24 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
 
     let dna_command = &cli.command;
     match dna_command {
-        cli::DnaCommand::Environment { command } => {
+        cli::DnaCommand::Environment(command) => {
             return handle_environment_root(command, cwd);
         }
-        cli::DnaCommand::Registry { command } => return handle_registry_root(command, cwd),
+        cli::DnaCommand::Registry(command) => return handle_registry_root(command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Ena { command } => return handle_ena_root(command, cwd),
-        cli::DnaCommand::Corpus { command } => return handle_corpus_root(command, cwd),
+        cli::DnaCommand::Ena(command) => return handle_ena_root(command, cwd),
+        cli::DnaCommand::Corpus(command) => return handle_corpus_root(command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Tool { command } => return handle_tool_root(command, cwd),
+        cli::DnaCommand::Tool(command) => return handle_tool_root(command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Domain { command } => return handle_domain_root(command, cwd),
+        cli::DnaCommand::Domain(command) => return handle_domain_root(command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Lab { command } => return handle_lab_root(command, cwd),
+        cli::DnaCommand::Lab(command) => return handle_lab_root(command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Config { command } => return handle_config_root(command, cwd),
+        cli::DnaCommand::Config(command) => return handle_config_root(command, cwd),
         cli::DnaCommand::Status(args) => return handle_status_root(args, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Ci { command } => return handle_ci_root(command, cwd),
+        cli::DnaCommand::Ci(command) => return handle_ci_root(command, cwd),
         _ => {}
     }
 
@@ -211,12 +211,12 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         return Ok(());
     }
 
-    if matches!(dna_command, cli::DnaCommand::Fastq { .. }) || {
+    if matches!(dna_command, cli::DnaCommand::Fastq(..)) || {
         #[cfg(debug_assertions)]
         {
             matches!(
                 dna_command,
-                cli::DnaCommand::Bam { .. } | cli::DnaCommand::Vcf { .. }
+                cli::DnaCommand::Bam(..) | cli::DnaCommand::Vcf(..)
             )
         }
         #[cfg(not(debug_assertions))]

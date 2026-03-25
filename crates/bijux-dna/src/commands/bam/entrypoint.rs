@@ -19,7 +19,7 @@ pub fn handle_bam_commands(
     registry: &ToolRegistry,
     domain_dir: &Path,
 ) -> Result<bool> {
-    let DnaCommand::Bam { command } = dna_command else {
+    let DnaCommand::Bam(command) = dna_command else {
         return Ok(false);
     };
 

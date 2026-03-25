@@ -51,7 +51,7 @@ pub(crate) fn handle_meta_commands(
     }
 
     match dna_command {
-        DnaCommand::Pipelines { command } => match command {
+        DnaCommand::Pipelines(command) => match command {
             PipelinesCommand::List {
                 domain,
                 show_experimental,
@@ -321,7 +321,7 @@ pub(crate) fn handle_meta_commands(
                 Ok(true)
             }
         },
-        DnaCommand::Analyze { command } | DnaCommand::Explain { command } => {
+        DnaCommand::Analyze(command) | DnaCommand::Explain(command) => {
             match command {
                 AnalyzeCommand::Runs(args) => {
                     let query = bijux_dna_api::v1::api::run::RunQuery {
@@ -500,7 +500,7 @@ pub(crate) fn handle_meta_commands(
             }
             Ok(true)
         }
-        DnaCommand::Environment { command } => {
+        DnaCommand::Environment(command) => {
             match command {
                 EnvCommand::List => {
                     let cwd = std::env::current_dir()?;
@@ -697,7 +697,7 @@ pub(crate) fn handle_meta_commands(
             }
             Ok(true)
         }
-        DnaCommand::Bench { command } => {
+        DnaCommand::Bench(command) => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =

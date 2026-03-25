@@ -45,72 +45,30 @@ pub struct StatusArgs {
 #[derive(Debug, Subcommand)]
 pub enum DnaCommand {
     #[command(name = "env", alias = "environment")]
-    Environment {
-        #[command(subcommand)]
-        command: EnvCommand,
-    },
-    Registry {
-        #[command(subcommand)]
-        command: RegistryCommand,
-    },
+    Environment(EnvCommand),
+    Registry(RegistryCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Ena {
-        #[command(subcommand)]
-        command: EnaCommand,
-    },
-    Corpus {
-        #[command(subcommand)]
-        command: CorpusCommand,
-    },
+    Ena(EnaCommand),
+    Corpus(CorpusCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Tool {
-        #[command(subcommand)]
-        command: ToolCommand,
-    },
+    Tool(ToolCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Domain {
-        #[command(subcommand)]
-        command: DomainCommand,
-    },
+    Domain(DomainCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Lab {
-        #[command(subcommand)]
-        command: LabCommand,
-    },
+    Lab(LabCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Config {
-        #[command(subcommand)]
-        command: ConfigCommand,
-    },
+    Config(ConfigCommand),
     Status(StatusArgs),
     #[command(name = "run")]
-    Fastq {
-        #[command(subcommand)]
-        command: FastqCommand,
-    },
+    Fastq(FastqCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Bam {
-        #[command(subcommand)]
-        command: BamCommand,
-    },
+    Bam(BamCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Vcf {
-        #[command(subcommand)]
-        command: VcfCommand,
-    },
+    Vcf(VcfCommand),
     #[command(name = "plan")]
-    Pipelines {
-        #[command(subcommand)]
-        command: PipelinesCommand,
-    },
-    Analyze {
-        #[command(subcommand)]
-        command: AnalyzeCommand,
-    },
-    Explain {
-        #[command(subcommand)]
-        command: AnalyzeCommand,
-    },
+    Pipelines(PipelinesCommand),
+    Analyze(AnalyzeCommand),
+    Explain(AnalyzeCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     ValidateManifests,
     #[cfg_attr(not(debug_assertions), command(hide = true))]
@@ -121,20 +79,11 @@ pub enum DnaCommand {
     Replay(ReplayArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Compare(CompareArgs),
-    Bench {
-        #[command(subcommand)]
-        command: BenchCommand,
-    },
+    Bench(BenchCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Policies {
-        #[command(subcommand)]
-        command: PoliciesCommand,
-    },
+    Policies(PoliciesCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Ci {
-        #[command(subcommand)]
-        command: CiCommand,
-    },
+    Ci(CiCommand),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Debug(DebugArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]

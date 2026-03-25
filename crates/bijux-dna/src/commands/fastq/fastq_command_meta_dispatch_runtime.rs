@@ -1,4 +1,4 @@
-        DnaCommand::Environment { command } => {
+        DnaCommand::Environment(command) => {
             match command {
                 EnvCommand::List => {
                     let cwd = std::env::current_dir()?;
@@ -188,7 +188,7 @@
             }
             Ok(true)
         }
-        DnaCommand::Bench { command } => {
+        DnaCommand::Bench(command) => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =

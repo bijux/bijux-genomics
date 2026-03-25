@@ -10,7 +10,7 @@ use bijux_dna_stages_vcf::invariants::InvariantConfig;
 /// # Errors
 /// Returns an error when planning or executing requested VCF actions fails.
 pub fn handle_vcf_commands(_cli: &Cli, dna_command: &DnaCommand) -> Result<bool> {
-    let DnaCommand::Vcf { command } = dna_command else {
+    let DnaCommand::Vcf(command) = dna_command else {
         return Ok(false);
     };
     match command {
