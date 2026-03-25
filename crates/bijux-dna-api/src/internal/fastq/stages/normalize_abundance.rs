@@ -491,7 +491,8 @@ mod tests {
     #[test]
     fn metrics_reader_rejects_header_drift() {
         let output = temp_path("bad_output.tsv");
-        bijux_dna_infra::ensure_dir(output.parent().expect("temp parent")).expect("create temp dir");
+        bijux_dna_infra::ensure_dir(output.parent().expect("temp parent"))
+            .expect("create temp dir");
         bijux_dna_infra::write_bytes(
             &output,
             "sample_id\tfeature_id\tnormalized_abundance\ns1\tf1\t1.0\n",

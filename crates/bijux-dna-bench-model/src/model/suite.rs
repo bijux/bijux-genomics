@@ -360,13 +360,21 @@ mod tests {
         assert!(nodes.iter().any(|node| {
             node.kind == BenchmarkGraphNodeKind::StageTool
                 && node.node_id
-                    == stage_tool_instance(id_catalog::FASTQ_TRIM, "cleanup", id_catalog::TOOL_FASTP)
+                    == stage_tool_instance(
+                        id_catalog::FASTQ_TRIM,
+                        "cleanup",
+                        id_catalog::TOOL_FASTP,
+                    )
                 && node.tool_id.as_deref() == Some("fastp")
         }));
         assert!(nodes.iter().any(|node| {
             node.kind == BenchmarkGraphNodeKind::StageTool
                 && node.node_id
-                    == stage_tool_instance(id_catalog::FASTQ_TRIM, "cleanup", id_catalog::TOOL_CUTADAPT)
+                    == stage_tool_instance(
+                        id_catalog::FASTQ_TRIM,
+                        "cleanup",
+                        id_catalog::TOOL_CUTADAPT,
+                    )
                 && node.tool_id.as_deref() == Some("cutadapt")
         }));
     }

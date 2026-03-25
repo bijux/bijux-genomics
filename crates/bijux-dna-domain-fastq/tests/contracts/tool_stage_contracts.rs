@@ -272,10 +272,7 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
         let stage_ids = declared_stage_ids(&yaml);
         let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         assert_eq!(
-            stage_contracts
-                .keys()
-                .cloned()
-                .collect::<BTreeSet<_>>(),
+            stage_contracts.keys().cloned().collect::<BTreeSet<_>>(),
             stage_ids,
             "{tool_name} stage_contracts must cover every declared stage"
         );
@@ -369,10 +366,7 @@ fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
         let stage_ids = declared_stage_ids(&yaml);
         let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         assert_eq!(
-            stage_contracts
-                .keys()
-                .cloned()
-                .collect::<BTreeSet<_>>(),
+            stage_contracts.keys().cloned().collect::<BTreeSet<_>>(),
             stage_ids,
             "{tool_id} stage_contracts must cover every declared stage"
         );

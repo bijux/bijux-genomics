@@ -136,7 +136,8 @@ fn read_utf8(path: &Path) -> Result<String> {
 
 fn write_utf8(path: &Path, content: &str) -> Result<()> {
     if let Some(parent) = path.parent() {
-        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     bijux_dna_infra::write_bytes(path, content).with_context(|| format!("write {}", path.display()))
 }
@@ -611,7 +612,8 @@ fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
     let tmpdir = artifact_root.join("tmp");
     bijux_dna_infra::ensure_dir(&cargo_target_dir)
         .with_context(|| format!("create {}", cargo_target_dir.display()))?;
-    bijux_dna_infra::ensure_dir(&cargo_home).with_context(|| format!("create {}", cargo_home.display()))?;
+    bijux_dna_infra::ensure_dir(&cargo_home)
+        .with_context(|| format!("create {}", cargo_home.display()))?;
     bijux_dna_infra::ensure_dir(&tmpdir).with_context(|| format!("create {}", tmpdir.display()))?;
     Ok(vec![
         (

@@ -1,7 +1,9 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_dna_core::contract::{ExecutionContract, ToolConstraints, ToolManifest, ToolRegistry, ToolRole};
+use bijux_dna_core::contract::{
+    ExecutionContract, ToolConstraints, ToolManifest, ToolRegistry, ToolRole,
+};
 use bijux_dna_core::ids::ToolId;
 use serde::Deserialize;
 
@@ -39,7 +41,10 @@ fn parse_tool_role(raw: Option<&str>) -> ToolRole {
 pub fn load_domain_tool_registry(workspace_root: &Path) -> Result<ToolRegistry> {
     let mut registry = ToolRegistry::default();
     for domain_name in ["fastq", "bam"] {
-        let tools_dir = workspace_root.join("domain").join(domain_name).join("tools");
+        let tools_dir = workspace_root
+            .join("domain")
+            .join(domain_name)
+            .join("tools");
         if !tools_dir.exists() {
             continue;
         }

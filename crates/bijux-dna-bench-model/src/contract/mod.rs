@@ -9,10 +9,7 @@ use crate::model::{
     BenchmarkGraphNode, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
 };
 use crate::policy::GateDecision;
-use bijux_dna_core::{
-    id_catalog,
-    ids,
-};
+use bijux_dna_core::{id_catalog, ids};
 use bijux_dna_domain_fastq::{
     admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,
     stage_input_ids, stage_output_ids, stage_parameter_ids, stage_tool_binding,
@@ -852,7 +849,11 @@ mod tests {
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some(format!("{}.tool.{}", id_catalog::FASTQ_DETECT_ADAPTERS, id_catalog::TOOL_FASTQC)),
+                stage_instance_id: Some(format!(
+                    "{}.tool.{}",
+                    id_catalog::FASTQ_DETECT_ADAPTERS,
+                    id_catalog::TOOL_FASTQC
+                )),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -894,7 +895,11 @@ mod tests {
             tools: vec!["fastp".to_string(), "bbduk".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some(stage_tool_instance(id_catalog::FASTQ_TRIM, "cleanup", "bbduk")),
+                stage_instance_id: Some(stage_tool_instance(
+                    id_catalog::FASTQ_TRIM,
+                    "cleanup",
+                    "bbduk",
+                )),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -976,7 +981,10 @@ mod tests {
                     tools: vec!["cutadapt".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
-                    upstream_stage_instance_ids: vec![stage_instance(id_catalog::FASTQ_TRIM, "fastp")],
+                    upstream_stage_instance_ids: vec![stage_instance(
+                        id_catalog::FASTQ_TRIM,
+                        "fastp",
+                    )],
                 },
             ],
             ReplicatePolicy {
@@ -1051,7 +1059,10 @@ mod tests {
             vec![
                 BenchmarkStageSpec {
                     stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
-                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
+                    stage_instance_id: Some(stage_instance(
+                        id_catalog::FASTQ_VALIDATE_READS,
+                        "validator",
+                    )),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1186,11 +1197,17 @@ mod tests {
             vec![
                 BenchmarkStageSpec {
                     stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
-                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
+                    stage_instance_id: Some(stage_instance(
+                        id_catalog::FASTQ_VALIDATE_READS,
+                        "validator",
+                    )),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
-                    upstream_stage_instance_ids: vec![stage_instance(id_catalog::FASTQ_QC_POST, "aggregate")],
+                    upstream_stage_instance_ids: vec![stage_instance(
+                        id_catalog::FASTQ_QC_POST,
+                        "aggregate",
+                    )],
                 },
                 BenchmarkStageSpec {
                     stage: id_catalog::FASTQ_QC_POST.to_string(),
@@ -1246,7 +1263,10 @@ mod tests {
             vec![
                 BenchmarkStageSpec {
                     stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
-                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
+                    stage_instance_id: Some(stage_instance(
+                        id_catalog::FASTQ_VALIDATE_READS,
+                        "validator",
+                    )),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1282,8 +1302,16 @@ mod tests {
             },
         );
         suite.edges = vec![BenchmarkStageEdge {
-            from: stage_tool_instance(id_catalog::FASTQ_VALIDATE_READS, "validator", id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL),
-            to: stage_tool_instance(id_catalog::FASTQ_QC_POST, "aggregate", id_catalog::TOOL_MULTIQC),
+            from: stage_tool_instance(
+                id_catalog::FASTQ_VALIDATE_READS,
+                "validator",
+                id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL,
+            ),
+            to: stage_tool_instance(
+                id_catalog::FASTQ_QC_POST,
+                "aggregate",
+                id_catalog::TOOL_MULTIQC,
+            ),
             from_output_id: Some("validation_report".to_string()),
             to_input_id: Some("qc_artifacts".to_string()),
         }];
@@ -1305,7 +1333,10 @@ mod tests {
             vec![
                 BenchmarkStageSpec {
                     stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
-                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
+                    stage_instance_id: Some(stage_instance(
+                        id_catalog::FASTQ_VALIDATE_READS,
+                        "validator",
+                    )),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1365,7 +1396,10 @@ mod tests {
             vec![
                 BenchmarkStageSpec {
                     stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
-                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
+                    stage_instance_id: Some(stage_instance(
+                        id_catalog::FASTQ_VALIDATE_READS,
+                        "validator",
+                    )),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),

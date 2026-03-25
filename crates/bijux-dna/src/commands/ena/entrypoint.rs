@@ -149,7 +149,8 @@ pub fn select_snapshot(cwd: &Path, args: &EnaSelectArgs) -> Result<()> {
         rejected,
     };
     if let Some(parent) = out_path.parent() {
-        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     bijux_dna_infra::atomic_write_json(&out_path, &snapshot)
         .with_context(|| format!("write {}", out_path.display()))?;
@@ -194,7 +195,8 @@ pub fn fetch_from_snapshot(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
         .map(record_from_snapshot_row)
         .collect::<Vec<_>>();
 
-    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
     let manifest = EnaRunManifest {
         query: EnaQuery {
             projects: vec![snapshot.project.clone()],

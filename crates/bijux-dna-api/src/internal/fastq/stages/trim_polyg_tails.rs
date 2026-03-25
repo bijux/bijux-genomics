@@ -518,7 +518,8 @@ mod tests {
     fn normalized_polyg_backend_metrics_parses_bbduk_reports() {
         let temp = tempfile::tempdir().expect("tempdir");
         let raw_report_path = temp.path().join("trim_polyg.stats.txt");
-        bijux_dna_infra::write_bytes(&raw_report_path, "Reads Removed: 137\n").expect("write bbduk report");
+        bijux_dna_infra::write_bytes(&raw_report_path, "Reads Removed: 137\n")
+            .expect("write bbduk report");
 
         let metrics =
             normalized_polyg_backend_metrics(&raw_report_path, "bbduk_stats").expect("metrics");

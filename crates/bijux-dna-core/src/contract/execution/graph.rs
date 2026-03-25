@@ -4,9 +4,9 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
-use crate::id_catalog;
 use crate::contract::{ContractVersion, StageIO, ToolConstraints};
 use crate::foundation::{BijuxError, CommandSpecV1, ContainerImageRefV1, Result};
+use crate::id_catalog;
 use crate::ids::{ArtifactId, PipelineId, StageId, StepId};
 
 use super::policy::{PlanPolicy, RetryPolicy};

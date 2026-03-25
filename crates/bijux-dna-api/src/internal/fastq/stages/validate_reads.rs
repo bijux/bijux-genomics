@@ -19,8 +19,8 @@ use bijux_dna_planner_fastq::select_validate_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::validate_reads::{
     default_plan_options_for_layout, pair_sync_policy_from_literal,
-    validation_mode_from_literal,
-    plan_with_options as plan_validate_reads, ValidateReadsPlanOptions,
+    plan_with_options as plan_validate_reads, validation_mode_from_literal,
+    ValidateReadsPlanOptions,
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::{
