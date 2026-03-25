@@ -1,4 +1,12 @@
-use super::*;
+#[cfg(not(feature = "bam_downstream"))]
+use anyhow::anyhow;
+
+#[cfg(feature = "bam_downstream")]
+use super::default_params_for_stage;
+use super::{
+    BamRunArgs, BamStage, Path, PipelineProfile, Result, StagePlanRequest, StagePlanV1,
+    ToolExecutionSpecV1,
+};
 
 #[cfg_attr(not(feature = "bam_downstream"), allow(unused_variables))]
 pub(super) fn plan_downstream_stage(
