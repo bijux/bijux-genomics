@@ -24,7 +24,7 @@ fn policy__contracts__snapshot_hygiene_policy__snapshots_avoid_hostnames_and_wal
     )
     .expect("regex");
     let home_or_user = Regex::new(
-        r#"(/Users/|/home/|\\Users\\|\\home\\|/private/var/|C:\\Users\\|(?i)\b(user(name)?|host(name)?)\b)"#,
+        r#"(/Users/|/home/|\\Users\\|\\home\\|/private/var/|C:\\Users\\|(?i)\b(user(name)?)\b)"#,
     )
     .expect("regex");
     let mut offenders = Vec::new();

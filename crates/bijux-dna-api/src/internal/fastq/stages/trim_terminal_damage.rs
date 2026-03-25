@@ -38,7 +38,7 @@ use crate::internal::handlers::fastq::{
 };
 use bijux_dna_stage_contract::StagePlanV1;
 
-fn normalize_tools(raw: &[String]) -> Vec<String> {
+fn resolve_requested_tools(raw: &[String]) -> Vec<String> {
     if raw.is_empty() || (raw.len() == 1 && raw[0] == "auto") {
         return admitted_stage_tools();
     }
@@ -65,7 +65,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimTerminalDamageArgs,
 ) -> Result<BenchOutcome<FastqTrimTerminalDamageMetrics>> {
-    let requested = normalize_tools(&args.tools);
+    let requested = resolve_requested_tools(&args.tools);
     let artifact_kind = if args.r2.is_some() {
         FastqArtifactKind::PairedEnd
     } else {
@@ -414,7 +414,7 @@ fn read_governed_terminal_damage_report(
 #[cfg(test)]
 mod tests {
     use super::{
-        admitted_stage_tools, normalize_tools, parse_requested_execution_policy,
+        admitted_stage_tools, parse_requested_execution_policy, resolve_requested_tools,
         read_governed_terminal_damage_report, required_plan_output_path,
     };
     use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
@@ -425,11 +425,11 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
-    fn normalize_tools_uses_execution_support_for_auto_and_all() {
+    fn resolve_requested_tools_uses_execution_support_for_auto_and_all() {
         let expected = admitted_stage_tools();
-        assert_eq!(normalize_tools(&[]), expected);
-        assert_eq!(normalize_tools(&["auto".to_string()]), expected);
-        assert_eq!(normalize_tools(&["all".to_string()]), expected);
+        assert_eq!(resolve_requested_tools(&[]), expected);
+        assert_eq!(resolve_requested_tools(&["auto".to_string()]), expected);
+        assert_eq!(resolve_requested_tools(&["all".to_string()]), expected);
     }
 
     #[test]

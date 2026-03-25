@@ -42,7 +42,7 @@ fn write_governed_trim_polyg_report(report_path: &Path, report: &TrimPolygReport
         .with_context(|| format!("write governed trim-polyg report {}", report_path.display()))
 }
 
-fn normalize_tools(raw: &[String]) -> Vec<String> {
+fn resolve_requested_tools(raw: &[String]) -> Vec<String> {
     if raw.is_empty() || (raw.len() == 1 && raw[0] == "auto") {
         return admitted_stage_tools();
     }
@@ -69,7 +69,7 @@ pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimPolygArgs,
 ) -> Result<BenchOutcome<FastqTrimPolygMetrics>> {
-    let requested = normalize_tools(&args.tools);
+    let requested = resolve_requested_tools(&args.tools);
     let artifact_kind = if args.r2.is_some() {
         FastqArtifactKind::PairedEnd
     } else {
@@ -441,7 +441,7 @@ fn normalized_polyg_backend_metrics(
 mod tests {
     use super::{
         admitted_stage_tools, benchmark_query_context, load_governed_trim_polyg_report,
-        normalize_tools, normalized_polyg_backend_metrics, raw_polyg_report_artifact,
+        normalized_polyg_backend_metrics, raw_polyg_report_artifact, resolve_requested_tools,
         write_governed_trim_polyg_report,
     };
     use bijux_dna_domain_fastq::params::PairedMode;
@@ -449,11 +449,11 @@ mod tests {
     use std::path::Path;
 
     #[test]
-    fn normalize_tools_uses_execution_support_for_auto_and_all() {
+    fn resolve_requested_tools_uses_execution_support_for_auto_and_all() {
         let expected = admitted_stage_tools();
-        assert_eq!(normalize_tools(&[]), expected);
-        assert_eq!(normalize_tools(&["auto".to_string()]), expected);
-        assert_eq!(normalize_tools(&["all".to_string()]), expected);
+        assert_eq!(resolve_requested_tools(&[]), expected);
+        assert_eq!(resolve_requested_tools(&["auto".to_string()]), expected);
+        assert_eq!(resolve_requested_tools(&["all".to_string()]), expected);
     }
 
     #[test]
