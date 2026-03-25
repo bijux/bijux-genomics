@@ -1,4 +1,3 @@
-use std::fs;
 use std::time::Instant;
 
 use anyhow::Result;
@@ -325,7 +324,7 @@ fn write_timing(
             }
         })
         .unwrap_or_else(|| workspace.path("artifacts/timing"));
-    if fs::create_dir_all(&timing_dir).is_err() {
+    if bijux_dna_infra::ensure_dir(&timing_dir).is_err() {
         return;
     }
     let file_name = format!("{}__{}.json", group, command.replace('/', "_"));
@@ -338,7 +337,7 @@ fn write_timing(
         "end_utc": ended_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         "duration_seconds": duration_seconds,
     });
-    let _ = fs::write(
+    let _ = bijux_dna_infra::write_bytes(
         timing_dir.join(file_name),
         format!(
             "{}\n",

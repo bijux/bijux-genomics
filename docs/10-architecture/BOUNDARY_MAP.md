@@ -32,7 +32,7 @@ bijux-dna-bench-model: bijux-dna-analyze bijux-dna-core bijux-dna-domain-fastq b
 bijux-dna-core: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-db-ena: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-db-ref: bijux-dna-domain-vcf bijux-dna-policies
-bijux-dna-dev: bijux-dna-policies
+bijux-dna-dev: bijux-dna-infra bijux-dna-policies
 bijux-dna-domain-bam: bijux-dna-core bijux-dna-policies bijux-dna-testkit
 bijux-dna-domain-compiler: bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra
 bijux-dna-domain-fastq: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit

@@ -748,7 +748,7 @@ mod stage_artifact_tests {
     }
 
     fn write_host_report(stage_root: &std::path::Path) -> Result<()> {
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             stage_root.join("host_depletion_report.json"),
             r#"{
                 "schema_version": "bijux.fastq.deplete_host.report.v2",
@@ -813,7 +813,7 @@ mod stage_artifact_tests {
     }
 
     fn write_trim_terminal_damage_report(stage_root: &std::path::Path) -> Result<()> {
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             stage_root.join("trim_terminal_damage_report.json"),
             format!(
                 r#"{{
@@ -878,7 +878,7 @@ mod stage_artifact_tests {
     }
 
     fn write_trim_polyg_report(stage_root: &std::path::Path) -> Result<()> {
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             stage_root.join("trim_polyg_tails_report.json"),
             format!(
                 r#"{{
@@ -936,7 +936,7 @@ mod stage_artifact_tests {
     }
 
     fn write_remove_duplicates_report(stage_root: &std::path::Path) -> Result<()> {
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             stage_root.join("deduplicate_report.json"),
             r#"{
                 "schema_version": "bijux.fastq.remove_duplicates.report.v2",
@@ -990,7 +990,7 @@ mod stage_artifact_tests {
     }
 
     fn write_merge_report(stage_root: &std::path::Path) -> Result<()> {
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             stage_root.join("merge_report.json"),
             r#"{
                 "schema_version": "bijux.fastq.merge_pairs.report.v2",
@@ -1178,7 +1178,7 @@ mod stage_artifact_tests {
     }
 
     fn write_report_qc_report(stage_root: &std::path::Path) -> Result<()> {
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             stage_root.join("report_qc_report.json"),
             format!(
                 r#"{{

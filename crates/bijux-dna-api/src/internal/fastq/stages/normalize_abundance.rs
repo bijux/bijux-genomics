@@ -458,8 +458,8 @@ mod tests {
     fn materialized_table_uses_declared_output_column() -> Result<()> {
         let input = temp_path("input.tsv");
         let output = temp_path("output.tsv");
-        std::fs::create_dir_all(input.parent().expect("temp parent"))?;
-        std::fs::write(
+        bijux_dna_infra::ensure_dir(input.parent().expect("temp parent"))?;
+        bijux_dna_infra::write_bytes(
             &input,
             "sample_id\tfeature_id\tabundance\ns1\tf1\t2\ns1\tf2\t2\n",
         )?;
@@ -491,8 +491,8 @@ mod tests {
     #[test]
     fn metrics_reader_rejects_header_drift() {
         let output = temp_path("bad_output.tsv");
-        std::fs::create_dir_all(output.parent().expect("temp parent")).expect("create temp dir");
-        std::fs::write(
+        bijux_dna_infra::ensure_dir(output.parent().expect("temp parent")).expect("create temp dir");
+        bijux_dna_infra::write_bytes(
             &output,
             "sample_id\tfeature_id\tnormalized_abundance\ns1\tf1\t1.0\n",
         )
@@ -522,8 +522,8 @@ mod tests {
     fn materialized_table_honors_counts_per_million_scale() -> Result<()> {
         let input = temp_path("counts_input.tsv");
         let output = temp_path("counts_output.tsv");
-        std::fs::create_dir_all(input.parent().expect("temp parent"))?;
-        std::fs::write(
+        bijux_dna_infra::ensure_dir(input.parent().expect("temp parent"))?;
+        bijux_dna_infra::write_bytes(
             &input,
             "sample_id\tfeature_id\tabundance\ns1\tf1\t25\ns1\tf2\t75\n",
         )?;

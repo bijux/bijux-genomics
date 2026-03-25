@@ -1013,11 +1013,11 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let tools_root = temp.path().join("tools");
         let tool_dir = tools_root.join("multiqc");
-        std::fs::create_dir_all(&tool_dir).expect("tool dir");
+        bijux_dna_infra::ensure_dir(&tool_dir).expect("tool dir");
         let artifact_path = temp.path().join("trim_report.json");
-        std::fs::write(&artifact_path, b"{}").expect("artifact");
+        bijux_dna_infra::write_bytes(&artifact_path, b"{}").expect("artifact");
         let manifest_path = governed_qc_inputs_manifest_path(&tool_dir);
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::json!({
                 "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
@@ -1080,12 +1080,12 @@ mod tests {
     fn qc_post_metrics_report_governed_fastqc_dir_when_present() {
         let temp = tempfile::tempdir().expect("tempdir");
         let multiqc_data = temp.path().join("multiqc_data");
-        std::fs::create_dir_all(&multiqc_data).expect("multiqc data dir");
-        std::fs::write(temp.path().join("multiqc_report.html"), b"report").expect("report");
+        bijux_dna_infra::ensure_dir(&multiqc_data).expect("multiqc data dir");
+        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report").expect("report");
         let raw_fastqc_dir = temp
             .path()
             .join("governed_qc_inputs/detect_adapters/fastqc/fastqc");
-        std::fs::create_dir_all(&raw_fastqc_dir).expect("fastqc dir");
+        bijux_dna_infra::ensure_dir(&raw_fastqc_dir).expect("fastqc dir");
 
         let metrics = derive_qc_post_metrics(
             &SeqkitMetrics {
@@ -1123,10 +1123,10 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let artifact_path = temp.path().join("trim_report.json");
         let fastqc_dir = temp.path().join("raw_fastqc");
-        std::fs::write(&artifact_path, b"{}").expect("artifact");
-        std::fs::create_dir_all(&fastqc_dir).expect("fastqc dir");
+        bijux_dna_infra::write_bytes(&artifact_path, b"{}").expect("artifact");
+        bijux_dna_infra::ensure_dir(&fastqc_dir).expect("fastqc dir");
         let manifest_path = temp.path().join("qc_inputs.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::json!({
                 "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
@@ -1172,9 +1172,9 @@ mod tests {
     fn governed_qc_manifest_loader_restores_canonical_names_from_contributors() {
         let temp = tempfile::tempdir().expect("tempdir");
         let artifact_path = temp.path().join("trim_report.json");
-        std::fs::write(&artifact_path, b"{}").expect("artifact");
+        bijux_dna_infra::write_bytes(&artifact_path, b"{}").expect("artifact");
         let manifest_path = temp.path().join("qc_inputs.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::json!({
                 "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
@@ -1213,9 +1213,9 @@ mod tests {
     fn governed_qc_manifest_loader_rejects_unknown_schema() {
         let temp = tempfile::tempdir().expect("tempdir");
         let artifact_path = temp.path().join("trim_report.json");
-        std::fs::write(&artifact_path, b"{}").expect("artifact");
+        bijux_dna_infra::write_bytes(&artifact_path, b"{}").expect("artifact");
         let manifest_path = temp.path().join("qc_inputs.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.report_qc.inputs.v0",
@@ -1273,12 +1273,12 @@ mod tests {
     #[test]
     fn qc_post_record_preserves_planner_written_governed_qc_manifest() {
         let temp = tempfile::tempdir().expect("tempdir");
-        std::fs::create_dir_all(temp.path().join("multiqc_data")).expect("multiqc data dir");
-        std::fs::write(temp.path().join("multiqc_report.html"), b"report").expect("report");
+        bijux_dna_infra::ensure_dir(temp.path().join("multiqc_data")).expect("multiqc data dir");
+        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report").expect("report");
         let input_artifact = temp.path().join("trim_report.json");
         let raw_fastqc_dir = temp.path().join("raw_fastqc");
-        std::fs::write(&input_artifact, b"{}").expect("input artifact");
-        std::fs::create_dir_all(&raw_fastqc_dir).expect("raw fastqc dir");
+        bijux_dna_infra::write_bytes(&input_artifact, b"{}").expect("input artifact");
+        bijux_dna_infra::ensure_dir(&raw_fastqc_dir).expect("raw fastqc dir");
 
         let governed_qc = GovernedQcInputs {
             qc_inputs: vec![ArtifactRef::required(
@@ -1343,7 +1343,7 @@ mod tests {
             "raw_fastqc_dir": raw_fastqc_dir,
             "lineage_hash": governed_qc.lineage_hash,
         });
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             governed_qc_inputs_manifest_path(temp.path()),
             manifest.to_string(),
         )
@@ -1393,11 +1393,11 @@ mod tests {
     #[test]
     fn qc_post_record_preserves_upstream_qc_summary_signals() {
         let temp = tempfile::tempdir().expect("tempdir");
-        std::fs::create_dir_all(temp.path().join("multiqc_data")).expect("multiqc data dir");
-        std::fs::write(temp.path().join("multiqc_report.html"), b"report").expect("report");
+        bijux_dna_infra::ensure_dir(temp.path().join("multiqc_data")).expect("multiqc data dir");
+        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report").expect("report");
 
         let detect_report = temp.path().join("adapter_report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &detect_report,
             serde_json::json!({
                 "schema_version": "bijux.fastq.detect_adapters.report.v2",
@@ -1442,7 +1442,7 @@ mod tests {
         .expect("detect report");
 
         let screen_report = temp.path().join("screen_report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &screen_report,
             serde_json::json!({
                 "schema_version": "bijux.fastq.screen_taxonomy.report.v2",
@@ -1726,7 +1726,7 @@ mod tests {
     fn governed_qc_contributor_validation_rejects_unmatched_records() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("report.json");
-        std::fs::write(&report_path, b"{}").expect("report");
+        bijux_dna_infra::write_bytes(&report_path, b"{}").expect("report");
         let qc_inputs = vec![ArtifactRef::required(
             ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
             report_path.clone(),
@@ -1754,7 +1754,7 @@ mod tests {
     fn governed_qc_contributor_validation_rejects_role_mismatch() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("report.json");
-        std::fs::write(&report_path, b"{}").expect("report");
+        bijux_dna_infra::write_bytes(&report_path, b"{}").expect("report");
         let qc_inputs = vec![ArtifactRef::required(
             ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
             report_path.clone(),

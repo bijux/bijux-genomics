@@ -828,7 +828,7 @@ pub(crate) fn check_examples_runner_contract(
             std::fs::remove_dir_all(&snapshot)
                 .with_context(|| format!("remove {}", snapshot.display()))?;
         }
-        std::fs::rename(&output_dir, &snapshot)
+        bijux_dna_infra::rename(&output_dir, &snapshot)
             .with_context(|| format!("move {} -> {}", output_dir.display(), snapshot.display()))?;
     }
 
@@ -1288,7 +1288,7 @@ pub(crate) fn check_output_roots(
         std::fs::remove_dir_all(&sentinel)
             .with_context(|| format!("remove {}", sentinel.display()))?;
     }
-    std::fs::create_dir_all(&sentinel).with_context(|| format!("create {}", sentinel.display()))?;
+    bijux_dna_infra::ensure_dir(&sentinel).with_context(|| format!("create {}", sentinel.display()))?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -1297,7 +1297,7 @@ pub(crate) fn check_output_roots(
         perms.set_mode(0o555);
         std::fs::set_permissions(&sentinel, perms)?;
     }
-    let touch_result = std::fs::write(sentinel.join("forbidden"), b"blocked");
+    let touch_result = bijux_dna_infra::write_bytes(sentinel.join("forbidden"), b"blocked");
     std::fs::remove_dir_all(&sentinel).with_context(|| format!("remove {}", sentinel.display()))?;
     if touch_result.is_ok() {
         offenders.push(".sentinel-readonly unexpectedly writable".to_string());

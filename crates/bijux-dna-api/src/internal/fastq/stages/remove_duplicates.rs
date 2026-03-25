@@ -537,7 +537,7 @@ mod tests {
     fn deduplicate_metrics_load_from_governed_report() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("deduplicate_report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.report.v2",
@@ -589,7 +589,7 @@ mod tests {
     fn deduplicate_metrics_accept_legacy_key_value_reports() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("deduplicate_report.txt");
-        std::fs::write(&report_path, "reads_in=200\nreads_out=160\n").expect("write report");
+        bijux_dna_infra::write_bytes(&report_path, "reads_in=200\nreads_out=160\n").expect("write report");
 
         let counts =
             load_deduplicate_report_counts(&report_path).expect("load parser-backed dedup report");
@@ -603,7 +603,7 @@ mod tests {
     fn deduplicate_metrics_reject_inconsistent_duplicate_counts() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("deduplicate_report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "reads_in": 200,
@@ -623,7 +623,7 @@ mod tests {
     fn deduplicate_metrics_reject_inconsistent_dedup_rate() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("deduplicate_report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.report.v2",
@@ -670,7 +670,7 @@ mod tests {
     fn deduplicate_metrics_reject_inconsistent_pair_accounting() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("deduplicate_report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.report.v2",
@@ -718,7 +718,7 @@ mod tests {
     fn deduplicate_metrics_reject_inconsistent_duplicate_class_breakdown() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("deduplicate_report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.report.v2",

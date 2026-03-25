@@ -475,7 +475,7 @@ mod tests {
     fn parse_filter_backend_metrics_reads_fastp_json() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("fastp.filter.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "filtering_result": {
