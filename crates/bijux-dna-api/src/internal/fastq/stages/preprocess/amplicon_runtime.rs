@@ -1254,7 +1254,7 @@ mod amplicon_runtime_tests {
     use bijux_dna_core::contract::{StageIO, ToolConstraints};
     use bijux_dna_core::prelude::{
         ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, ExecutionStep,
-        StageId, StepId,
+        StepId,
     };
 
     use super::{planned_normalize_primers_report, planned_terminal_damage_report};

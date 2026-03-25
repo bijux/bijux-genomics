@@ -1474,7 +1474,7 @@ fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs, path::PathBuf};
+    use std::path::PathBuf;
 
     use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::*;
