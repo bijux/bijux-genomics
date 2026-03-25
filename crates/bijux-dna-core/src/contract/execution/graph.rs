@@ -302,6 +302,12 @@ impl ExecutionGraph {
 /// # Errors
 /// Returns an error if the graph fails structure validation.
 pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
+    validate_graph_identity(graph)?;
+    let by_id = validate_graph_steps(graph)?;
+    validate_graph_edges(graph, &by_id)
+}
+
+fn validate_graph_identity(graph: &ExecutionGraph) -> Result<()> {
     if graph.pipeline_id.as_str().trim().is_empty() {
         return Err(BijuxError::validation(
             "execution graph pipeline_id is empty",
@@ -312,65 +318,79 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
             "execution graph planner_version is empty",
         ));
     }
+    Ok(())
+}
+
+fn validate_graph_steps(graph: &ExecutionGraph) -> Result<BTreeMap<&str, &ExecutionStep>> {
     let mut step_ids = HashSet::new();
-    for step in &graph.steps {
-        if !step_ids.insert(step.step_id.to_string()) {
-            return Err(BijuxError::validation(format!(
-                "duplicate step id {}",
-                step.step_id.0
-            )));
-        }
-        if step.stage_id.as_str().trim().is_empty() {
-            return Err(BijuxError::validation(format!(
-                "step {} missing stage_id",
-                step.step_id.0
-            )));
-        }
-        if step.command.template.is_empty() {
-            return Err(BijuxError::validation(format!(
-                "step {} missing command",
-                step.step_id.0
-            )));
-        }
-        if step.image.image.trim().is_empty() {
-            return Err(BijuxError::validation(format!(
-                "step {} missing image",
-                step.step_id.0
-            )));
-        }
-        if step.io.inputs.is_empty() || step.io.outputs.is_empty() {
-            return Err(BijuxError::validation(format!(
-                "step {} missing IO",
-                step.step_id.0
-            )));
-        }
-        let mut artifacts = HashSet::new();
-        for artifact in step.io.inputs.iter().chain(step.io.outputs.iter()) {
-            if artifact.name.as_str().trim().is_empty() {
-                return Err(BijuxError::validation(format!(
-                    "step {} has artifact with empty name",
-                    step.step_id.0
-                )));
-            }
-            if artifact.path.as_os_str().is_empty() {
-                return Err(BijuxError::validation(format!(
-                    "step {} has artifact with empty path",
-                    step.step_id.0
-                )));
-            }
-            if !artifacts.insert(artifact.name.to_string()) {
-                return Err(BijuxError::validation(format!(
-                    "step {} has duplicate artifact {}",
-                    step.step_id.0,
-                    artifact.name.as_str()
-                )));
-            }
-        }
-    }
     let mut by_id: BTreeMap<&str, &ExecutionStep> = BTreeMap::new();
     for step in &graph.steps {
+        validate_graph_step(step, &mut step_ids)?;
         by_id.insert(step.step_id.as_str(), step);
     }
+    Ok(by_id)
+}
+
+fn validate_graph_step(step: &ExecutionStep, step_ids: &mut HashSet<String>) -> Result<()> {
+    if !step_ids.insert(step.step_id.to_string()) {
+        return Err(BijuxError::validation(format!(
+            "duplicate step id {}",
+            step.step_id.0
+        )));
+    }
+    if step.stage_id.as_str().trim().is_empty() {
+        return Err(BijuxError::validation(format!(
+            "step {} missing stage_id",
+            step.step_id.0
+        )));
+    }
+    if step.command.template.is_empty() {
+        return Err(BijuxError::validation(format!(
+            "step {} missing command",
+            step.step_id.0
+        )));
+    }
+    if step.image.image.trim().is_empty() {
+        return Err(BijuxError::validation(format!(
+            "step {} missing image",
+            step.step_id.0
+        )));
+    }
+    if step.io.inputs.is_empty() || step.io.outputs.is_empty() {
+        return Err(BijuxError::validation(format!(
+            "step {} missing IO",
+            step.step_id.0
+        )));
+    }
+    let mut artifacts = HashSet::new();
+    for artifact in step.io.inputs.iter().chain(step.io.outputs.iter()) {
+        if artifact.name.as_str().trim().is_empty() {
+            return Err(BijuxError::validation(format!(
+                "step {} has artifact with empty name",
+                step.step_id.0
+            )));
+        }
+        if artifact.path.as_os_str().is_empty() {
+            return Err(BijuxError::validation(format!(
+                "step {} has artifact with empty path",
+                step.step_id.0
+            )));
+        }
+        if !artifacts.insert(artifact.name.to_string()) {
+            return Err(BijuxError::validation(format!(
+                "step {} has duplicate artifact {}",
+                step.step_id.0,
+                artifact.name.as_str()
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn validate_graph_edges(
+    graph: &ExecutionGraph,
+    by_id: &BTreeMap<&str, &ExecutionStep>,
+) -> Result<()> {
     for edge in &graph.edges {
         if !by_id.contains_key(edge.from().as_str()) || !by_id.contains_key(edge.to().as_str()) {
             return Err(BijuxError::validation(format!(
@@ -486,6 +506,7 @@ mod tests {
     use crate::contract::{ArtifactRef, ArtifactRole, PlanPolicy, StageIO, ToolConstraints};
     use crate::foundation::{CommandSpecV1, ContainerImageRefV1};
     use crate::ids::{ArtifactId, StageId, StepId};
+    use std::collections::BTreeMap;
     use std::path::PathBuf;
 
     fn step(step_id: &str, stage_id: &str) -> ExecutionStep {
@@ -513,7 +534,7 @@ mod tests {
                 )],
             },
             out_dir: PathBuf::from("out"),
-            aux_images: Default::default(),
+            aux_images: BTreeMap::default(),
             expected_artifact_ids: vec![],
             metrics_schema_ids: vec![],
         }
@@ -528,9 +549,12 @@ mod tests {
             vec![step("a", "fastq.validate_reads")],
             vec![],
         )
-        .expect("graph");
+        .unwrap_or_else(|err| panic!("graph should be valid: {err}"));
         assert_eq!(
-            graph.step_by_id("a").expect("step").stage_id,
+            graph
+                .step_by_id("a")
+                .unwrap_or_else(|| panic!("expected step a"))
+                .stage_id,
             StageId::new("fastq.validate_reads".to_string())
         );
         assert!(graph.step_by_id("missing").is_none());
@@ -558,10 +582,10 @@ mod tests {
                 ),
             ],
         )
-        .expect("graph");
+        .unwrap_or_else(|err| panic!("graph should be valid: {err}"));
         let ordered = graph
             .topological_step_ids()
-            .expect("topological order")
+            .unwrap_or_else(|err| panic!("topological order should succeed: {err}"))
             .into_iter()
             .map(|step_id| step_id.as_str().to_string())
             .collect::<Vec<_>>();
@@ -577,17 +601,19 @@ mod tests {
             vec![step("trim", "fastq.trim_reads")],
             vec![],
         )
-        .expect("graph");
-        let mut encoded = serde_json::to_value(&graph).expect("serialize graph");
+        .unwrap_or_else(|err| panic!("graph should be valid: {err}"));
+        let mut encoded =
+            serde_json::to_value(&graph).unwrap_or_else(|err| panic!("serialize graph: {err}"));
         encoded["edges"] = serde_json::json!([{
             "from": "trim",
             "to": "report"
         }]);
-        let malformed: ExecutionGraph =
-            serde_json::from_value(encoded).expect("deserialize malformed graph");
-        let error = malformed
-            .validate_strict()
-            .expect_err("unknown edges must fail validation");
+        let malformed: ExecutionGraph = serde_json::from_value(encoded)
+            .unwrap_or_else(|err| panic!("deserialize malformed graph: {err}"));
+        let error = match malformed.validate_strict() {
+            Ok(()) => panic!("unknown edges must fail validation"),
+            Err(error) => error,
+        };
         assert!(error
             .to_string()
             .contains("edge references unknown step: trim -> report"));
