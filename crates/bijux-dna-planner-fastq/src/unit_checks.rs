@@ -1,5 +1,6 @@
 use super::*;
 use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
+use bijux_dna_core::id_catalog;
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1};
 
@@ -93,7 +94,10 @@ fn benchmark_query_context_uses_stage_contract_hash_for_governed_stages() {
 
 #[test]
 fn benchmark_query_context_stays_empty_for_unknown_stages() {
-    let context = bench_query_context_for_stage(&StageId::new("fastq.unknown".to_string()))
+    let context = bench_query_context_for_stage(&StageId::new(format!(
+        "{}unknown",
+        id_catalog::FASTQ_PREFIX
+    )))
         .expect("unknown stages should not fail benchmark query context construction");
 
     assert!(context.is_empty());
@@ -160,7 +164,7 @@ fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
             stage_id: "fastq.validate_reads".to_string(),
             stage_instance_id: Some("fastq.validate_reads.fastqvalidator".to_string()),
             tool: ToolExecutionSpecV1 {
-                tool_id: ToolId::new("fastqvalidator"),
+                tool_id: ToolId::from_static(id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL),
                 tool_version: "fixture".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/test:latest".to_string(),
@@ -182,7 +186,7 @@ fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
             stage_id: "fastq.trim_reads".to_string(),
             stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
             tool: ToolExecutionSpecV1 {
-                tool_id: ToolId::new("fastp"),
+                tool_id: ToolId::from_static(id_catalog::TOOL_FASTP),
                 tool_version: "fixture".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/test:latest".to_string(),
@@ -256,7 +260,7 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
             stage_id: "fastq.detect_adapters".to_string(),
             stage_instance_id: Some("fastq.detect_adapters.fastqc".to_string()),
             tool: ToolExecutionSpecV1 {
-                tool_id: ToolId::new("fastqc"),
+                tool_id: ToolId::from_static(id_catalog::TOOL_FASTQC),
                 tool_version: "fixture".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/test:latest".to_string(),
@@ -274,7 +278,7 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
             stage_id: "fastq.profile_reads".to_string(),
             stage_instance_id: Some("fastq.profile_reads.seqkit_stats".to_string()),
             tool: ToolExecutionSpecV1 {
-                tool_id: ToolId::new("seqkit_stats"),
+                tool_id: ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
                 tool_version: "fixture".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/test:latest".to_string(),
@@ -292,7 +296,7 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
             stage_id: "fastq.report_qc".to_string(),
             stage_instance_id: Some("fastq.report_qc.multiqc".to_string()),
             tool: ToolExecutionSpecV1 {
-                tool_id: ToolId::new("multiqc"),
+                tool_id: ToolId::from_static(id_catalog::TOOL_MULTIQC),
                 tool_version: "fixture".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/test:latest".to_string(),
