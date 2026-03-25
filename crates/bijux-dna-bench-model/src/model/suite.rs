@@ -178,21 +178,22 @@ impl BenchmarkSuiteSpec {
     pub fn v1(
         suite_id: String,
         datasets: Vec<DatasetSpec>,
-        stages: Vec<String>,
-        tools: Vec<String>,
-        params: Vec<String>,
+        stages: &[String],
+        tools: &[String],
+        params: &[String],
         replicate_policy: ReplicatePolicy,
         diversity: DiversityRequirements,
         stratifications: Vec<StratificationRequirement>,
         analysis_requirements: AnalysisRequirements,
     ) -> Self {
         let stage_matrix = stages
-            .into_iter()
+            .iter()
+            .cloned()
             .map(|stage| BenchmarkStageSpec {
                 stage,
                 stage_instance_id: None,
-                tools: tools.clone(),
-                params: params.clone(),
+                tools: tools.to_vec(),
+                params: params.to_vec(),
                 param_bindings: Vec::new(),
                 upstream_stage_instance_ids: Vec::new(),
             })
