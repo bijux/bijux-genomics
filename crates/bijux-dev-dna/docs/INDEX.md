@@ -11,6 +11,7 @@
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - `BOUNDARY.md`
 - `PUBLIC_API.md`
+- [TESTS.md](TESTS.md)
 
 ## Extension Points
 - Add new cataloged commands under `src/catalog` and wire them through `src/commands`.
@@ -18,4 +19,5 @@
 
 ## How to Test
 - Run `cargo test -p bijux-dev-dna`.
+- Read [TESTS.md](TESTS.md) for command-module coverage.
 - Run `cargo test -p bijux-dna-policies policy__boundaries__docs_index_quality__docs_index_has_required_sections -- --nocapture`.
