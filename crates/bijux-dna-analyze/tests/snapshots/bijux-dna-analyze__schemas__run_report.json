@@ -563,7 +563,7 @@
       ]
     },
     "run_provenance": {
-      "domain_snapshot_hash": "1f61e3c735dd2ed5b43758187ab59aa44f8d225d",
+      "domain_snapshot_hash": "039523aef3eb373e936130df047ff0c87516b41a",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",

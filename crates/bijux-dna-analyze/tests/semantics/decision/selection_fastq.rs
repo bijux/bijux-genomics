@@ -29,6 +29,7 @@ fn create_bench_db(
              runner TEXT,\
              platform TEXT,\
              input_hash TEXT,\
+             params_hash TEXT,\
              parameters_json TEXT,\
              runtime_s REAL,\
              memory_mb REAL,\
@@ -43,8 +44,8 @@ fn create_bench_db(
     for (idx, (tool, input_hash, runtime_s, memory_mb, exit_code)) in rows.iter().enumerate() {
         conn.execute(
             &format!(
-                "INSERT INTO {table} (record_id, tool, tool_version, image_digest, runner, platform, input_hash, parameters_json, runtime_s, memory_mb, exit_code, metrics_json, inserted_at)\
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)"
+                "INSERT INTO {table} (record_id, tool, tool_version, image_digest, runner, platform, input_hash, params_hash, parameters_json, runtime_s, memory_mb, exit_code, metrics_json, inserted_at)\
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)"
             ),
             params![
                 i64::try_from(idx).unwrap_or(i64::MAX) + 1,
@@ -54,6 +55,7 @@ fn create_bench_db(
                 "docker",
                 "test",
                 input_hash,
+                "params",
                 "{}",
                 runtime_s,
                 memory_mb,

@@ -11,6 +11,13 @@ fn domain_root() -> std::path::PathBuf {
         .join("domain")
 }
 
+fn stage_port_has_type(ports: &[PortSpec], data_type: &str) -> bool {
+    ports.iter().any(|port| {
+        port.data_type == data_type
+            && matches!(port.cardinality, Cardinality::One | Cardinality::Many)
+    })
+}
+
 fn stage_port_matches(ports: &[PortSpec], data_type: &str, cardinality: Cardinality) -> bool {
     ports.iter().any(|port| {
         port.data_type == data_type
@@ -38,8 +45,7 @@ fn trim_outputs_are_compatible_with_merge_inputs() -> Result<(), Box<dyn std::er
     let trim = stage_or(&registry, "fastq.trim_reads")?;
     let merge = stage_or(&registry, "fastq.merge_pairs")?;
     assert!(
-        stage_port_matches(&trim.outputs, "fastq", Cardinality::Many)
-            && stage_port_matches(&merge.inputs, "fastq", Cardinality::Many),
+        stage_port_has_type(&trim.outputs, "fastq") && stage_port_has_type(&merge.inputs, "fastq"),
         "trim outputs must satisfy merge input type"
     );
     Ok(())
@@ -51,8 +57,8 @@ fn filter_outputs_are_compatible_with_stats_inputs() -> Result<(), Box<dyn std::
     let filter = stage_or(&registry, "fastq.filter_reads")?;
     let stats = stage_or(&registry, "fastq.profile_reads")?;
     assert!(
-        stage_port_matches(&filter.outputs, "fastq", Cardinality::Many)
-            && stage_port_matches(&stats.inputs, "fastq", Cardinality::Many),
+        stage_port_has_type(&filter.outputs, "fastq")
+            && stage_port_has_type(&stats.inputs, "fastq"),
         "filter outputs must satisfy stats input type"
     );
     Ok(())
@@ -66,13 +72,12 @@ fn validate_trim_filter_chain_is_type_safe() -> Result<(), Box<dyn std::error::E
     let filter = stage_or(&registry, "fastq.filter_reads")?;
 
     assert!(
-        stage_port_matches(&validate.inputs, "fastq", Cardinality::Many)
-            && stage_port_matches(&trim.inputs, "fastq", Cardinality::Many),
+        stage_port_has_type(&validate.inputs, "fastq")
+            && stage_port_has_type(&trim.inputs, "fastq"),
         "validate inputs must match trim inputs"
     );
     assert!(
-        stage_port_matches(&trim.outputs, "fastq", Cardinality::Many)
-            && stage_port_matches(&filter.inputs, "fastq", Cardinality::Many),
+        stage_port_has_type(&trim.outputs, "fastq") && stage_port_has_type(&filter.inputs, "fastq"),
         "trim outputs must match filter inputs"
     );
     Ok(())
@@ -84,8 +89,8 @@ fn trim_outputs_are_compatible_with_correct_inputs() -> Result<(), Box<dyn std::
     let trim = stage_or(&registry, "fastq.trim_reads")?;
     let correct = stage_or(&registry, "fastq.correct_errors")?;
     assert!(
-        stage_port_matches(&trim.outputs, "fastq", Cardinality::Many)
-            && stage_port_matches(&correct.inputs, "fastq", Cardinality::Many),
+        stage_port_has_type(&trim.outputs, "fastq")
+            && stage_port_has_type(&correct.inputs, "fastq"),
         "trim outputs must satisfy correct input type"
     );
     Ok(())
@@ -97,8 +102,8 @@ fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std
     let correct = stage_or(&registry, "fastq.correct_errors")?;
     let filter = stage_or(&registry, "fastq.filter_reads")?;
     assert!(
-        stage_port_matches(&correct.outputs, "fastq", Cardinality::Many)
-            && stage_port_matches(&filter.inputs, "fastq", Cardinality::Many),
+        stage_port_has_type(&correct.outputs, "fastq")
+            && stage_port_has_type(&filter.inputs, "fastq"),
         "correct outputs must satisfy filter input type"
     );
     Ok(())

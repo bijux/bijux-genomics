@@ -115,7 +115,7 @@ fn build_report(domain: Domain, pipeline_id: &str) -> Result<Value> {
     stages.sort_unstable();
     let mut facts = Vec::new();
     for stage in &stages {
-        let stage_key = bijux_dna_core::ids::StageId::from_static(stage);
+        let stage_key = bijux_dna_core::ids::StageId::new(stage);
         let tool_id = profile
             .defaults
             .tools
