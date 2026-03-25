@@ -7,6 +7,7 @@ Public modules exported from src/lib.rs:
 - id_catalog
 - invariants
 - metrics
+- observer
 - params
 - pipeline_contract
 - prelude
