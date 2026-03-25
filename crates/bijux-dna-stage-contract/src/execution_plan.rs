@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, HashSet};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
+use bijux_dna_core::id_catalog;
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{ArtifactRef, ToolConstraints};
 use bijux_dna_core::prelude::ContainerImageRefV1;
@@ -382,7 +383,7 @@ fn stage_input_binding_exists(to_stage: &StagePlanV1, to_input_id: &str) -> bool
     {
         return true;
     }
-    to_stage.stage_id.as_str() == "fastq.report_qc"
+    to_stage.stage_id.as_str() == id_catalog::FASTQ_QC_POST
         && to_input_id == "qc_artifacts"
         && !to_stage.io.inputs.is_empty()
 }

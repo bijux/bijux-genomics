@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_core::{id_catalog, ids};
 use regex::Regex;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -229,12 +230,22 @@ fn allowed_payload_keys(schema_path: &Path) -> Result<Vec<String>> {
     list_block(&read_utf8(schema_path)?, "allowed_payload_keys")
 }
 
-fn parse_stage_id(path: &Path) -> Result<Option<String>> {
-    scalar_from_text(&read_utf8(path)?, "stage_id")
+fn declared_stage_key(path: &Path) -> Result<Option<String>> {
+    let Some(stage_id) = scalar_from_text(&read_utf8(path)?, "stage_id")? else {
+        return Ok(None);
+    };
+    let stage_id = ids::parse_stage_id(&stage_id)
+        .map_err(|err| anyhow!("{}: invalid stage_id {stage_id:?}: {err}", path.display()))?;
+    Ok(Some(stage_id.as_str().to_string()))
 }
 
-fn parse_tool_id(path: &Path) -> Result<Option<String>> {
-    scalar_from_text(&read_utf8(path)?, "tool_id")
+fn declared_tool_key(path: &Path) -> Result<Option<String>> {
+    let Some(tool_id) = scalar_from_text(&read_utf8(path)?, "tool_id")? else {
+        return Ok(None);
+    };
+    let tool_id = ids::parse_tool_id(&tool_id)
+        .map_err(|err| anyhow!("{}: invalid tool_id {tool_id:?}: {err}", path.display()))?;
+    Ok(Some(tool_id.as_str().to_string()))
 }
 
 fn parse_status(path: &Path) -> Result<Option<String>> {
@@ -303,7 +314,7 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
         if stage_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        if let Some(stage_id) = parse_stage_id(&stage_file)? {
+        if let Some(stage_id) = declared_stage_key(&stage_file)? {
             if parse_status(&stage_file)?.as_deref() == Some("supported") {
                 governed_stage_ids.insert(stage_id.clone());
             }
@@ -317,7 +328,7 @@ fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
         if tool_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        if let Some(tool_id) = parse_tool_id(&tool_file)? {
+        if let Some(tool_id) = declared_tool_key(&tool_file)? {
             if parse_status(&tool_file)?.as_deref() == Some("supported") {
                 governed_tool_ids.insert(tool_id.clone());
             }
@@ -981,7 +992,7 @@ fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             if stage_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
                 continue;
             }
-            if let Some(stage_id) = parse_stage_id(&stage_file)? {
+            if let Some(stage_id) = declared_stage_key(&stage_file)? {
                 stage_file_map.insert(stage_id, stage_file);
             }
         }
@@ -1014,7 +1025,7 @@ fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             if tool_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
                 continue;
             }
-            if let Some(tool_id) = parse_tool_id(&tool_file)? {
+            if let Some(tool_id) = declared_tool_key(&tool_file)? {
                 declared_tools.insert(tool_id);
             }
         }
@@ -2200,7 +2211,7 @@ fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             if stage_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
                 continue;
             }
-            let stage_id = parse_stage_id(&stage_file)?.unwrap_or_else(|| {
+            let stage_id = declared_stage_key(&stage_file)?.unwrap_or_else(|| {
                 stage_file
                     .file_stem()
                     .and_then(|name| name.to_str())
@@ -2220,7 +2231,7 @@ fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
             if tool_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
                 continue;
             }
-            let tool_id = parse_tool_id(&tool_file)?.unwrap_or_else(|| {
+            let tool_id = declared_tool_key(&tool_file)?.unwrap_or_else(|| {
                 tool_file
                     .file_stem()
                     .and_then(|name| name.to_str())
@@ -2822,6 +2833,7 @@ fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let stage_ref_re = regex(r#"StageId::from_static\("([a-z0-9._-]+)"\)"#)?;
     let mut code_tools = BTreeSet::new();
     let mut code_stages_raw = BTreeSet::new();
+    let synthetic_core_test = format!("{}test", id_catalog::CORE_PREFIX);
     for entry in WalkDir::new(workspace.path("crates"))
         .into_iter()
         .filter_map(std::result::Result::ok)
@@ -2837,10 +2849,10 @@ fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutcome> {
         }
         for captures in stage_ref_re.captures_iter(&text) {
             if let Some(value) = captures.get(1).map(|capture| capture.as_str()) {
-                if value == "core.test"
+                if value == synthetic_core_test
                     || value == "report.aggregate"
                     || value.starts_with("stage.")
-                    || value == "fastq.preprocess"
+                    || value == id_catalog::FASTQ_PREPROCESS
                 {
                     continue;
                 }

@@ -121,6 +121,10 @@ pub trait PipelineDomain {
 mod tests {
     use super::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 
+    fn stage_instance(stage_id: &str, suffix: &str) -> String {
+        format!("{stage_id}.{suffix}")
+    }
+
     fn explicit_linear_graph(stage_ids: &[&str]) -> PipelineSpec {
         PipelineSpec::graph(
             stage_ids
@@ -144,7 +148,10 @@ mod tests {
 
     #[test]
     fn graph_pipeline_spec_materializes_nodes_and_edges() {
-        let spec = explicit_linear_graph(&["fastq.validate_reads", "fastq.trim_reads"]);
+        let spec = explicit_linear_graph(&[
+            crate::id_catalog::FASTQ_VALIDATE_READS,
+            crate::id_catalog::FASTQ_TRIM,
+        ]);
         assert_eq!(spec.nodes.len(), 2);
         assert_eq!(spec.edges.len(), 1);
         assert!(spec.declares_graph_topology());
@@ -155,28 +162,34 @@ mod tests {
         let spec = PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
-                    stage_id: "fastq.trim_reads".to_string(),
-                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    stage_id: crate::id_catalog::FASTQ_TRIM.to_string(),
+                    stage_instance_id: Some(stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp")),
                 },
                 PipelineNodeSpec {
-                    stage_id: "fastq.trim_reads".to_string(),
-                    stage_instance_id: Some("fastq.trim_reads.cutadapt".to_string()),
+                    stage_id: crate::id_catalog::FASTQ_TRIM.to_string(),
+                    stage_instance_id: Some(stage_instance(
+                        crate::id_catalog::FASTQ_TRIM,
+                        "cutadapt",
+                    )),
                 },
                 PipelineNodeSpec {
-                    stage_id: "fastq.report_qc".to_string(),
-                    stage_instance_id: Some("fastq.report_qc.compare".to_string()),
+                    stage_id: crate::id_catalog::FASTQ_QC_POST.to_string(),
+                    stage_instance_id: Some(stage_instance(
+                        crate::id_catalog::FASTQ_QC_POST,
+                        "compare",
+                    )),
                 },
             ],
             vec![
                 PipelineEdgeSpec {
-                    from: "fastq.trim_reads.fastp".to_string(),
-                    to: "fastq.report_qc.compare".to_string(),
+                    from: stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp"),
+                    to: stage_instance(crate::id_catalog::FASTQ_QC_POST, "compare"),
                     from_output_id: None,
                     to_input_id: None,
                 },
                 PipelineEdgeSpec {
-                    from: "fastq.trim_reads.cutadapt".to_string(),
-                    to: "fastq.report_qc.compare".to_string(),
+                    from: stage_instance(crate::id_catalog::FASTQ_TRIM, "cutadapt"),
+                    to: stage_instance(crate::id_catalog::FASTQ_QC_POST, "compare"),
                     from_output_id: None,
                     to_input_id: None,
                 },
@@ -185,8 +198,8 @@ mod tests {
         assert_eq!(
             spec.stage_catalog(),
             vec![
-                "fastq.trim_reads".to_string(),
-                "fastq.report_qc".to_string()
+                crate::id_catalog::FASTQ_TRIM.to_string(),
+                crate::id_catalog::FASTQ_QC_POST.to_string(),
             ]
         );
         assert!(spec.declares_graph_topology());
@@ -196,19 +209,25 @@ mod tests {
 
     #[test]
     fn graph_pipeline_spec_can_materialize_ordered_nodes() {
-        let spec = explicit_linear_graph(&["fastq.validate_reads", "fastq.trim_reads"]);
+        let spec = explicit_linear_graph(&[
+            crate::id_catalog::FASTQ_VALIDATE_READS,
+            crate::id_catalog::FASTQ_TRIM,
+        ]);
         let nodes = spec.ordered_nodes();
         assert_eq!(nodes.len(), 2);
-        assert_eq!(nodes[0].stage_id, "fastq.validate_reads");
+        assert_eq!(nodes[0].stage_id, crate::id_catalog::FASTQ_VALIDATE_READS);
         assert_eq!(nodes[0].stage_instance_id, None);
-        assert_eq!(nodes[1].stage_id, "fastq.trim_reads");
+        assert_eq!(nodes[1].stage_id, crate::id_catalog::FASTQ_TRIM);
         assert_eq!(nodes[1].stage_instance_id, None);
     }
 
     #[test]
     fn pipeline_spec_rejects_legacy_stage_lists() {
         let Err(error) = serde_json::from_value::<PipelineSpec>(serde_json::json!({
-            "stages": ["fastq.validate_reads", "fastq.trim_reads"]
+            "stages": [
+                crate::id_catalog::FASTQ_VALIDATE_READS,
+                crate::id_catalog::FASTQ_TRIM
+            ]
         })) else {
             panic!("legacy stage lists should no longer deserialize");
         };
@@ -217,13 +236,14 @@ mod tests {
 
     #[test]
     fn stage_node_id_prefers_instance_when_present() {
+        let trim_fastp = stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp");
         assert_eq!(
-            PipelineSpec::stage_node_id("fastq.trim_reads", Some("fastq.trim_reads.fastp")),
-            "fastq.trim_reads.fastp"
+            PipelineSpec::stage_node_id(crate::id_catalog::FASTQ_TRIM, Some(trim_fastp.as_str())),
+            trim_fastp
         );
         assert_eq!(
-            PipelineSpec::stage_node_id("fastq.trim_reads", None),
-            "fastq.trim_reads"
+            PipelineSpec::stage_node_id(crate::id_catalog::FASTQ_TRIM, None),
+            crate::id_catalog::FASTQ_TRIM
         );
     }
 
@@ -232,45 +252,54 @@ mod tests {
         let mut spec = PipelineSpec::graph(
             vec![
                 PipelineNodeSpec {
-                    stage_id: "fastq.validate_reads".to_string(),
-                    stage_instance_id: Some("fastq.validate_reads.validation".to_string()),
+                    stage_id: crate::id_catalog::FASTQ_VALIDATE_READS.to_string(),
+                    stage_instance_id: Some(stage_instance(
+                        crate::id_catalog::FASTQ_VALIDATE_READS,
+                        "validation",
+                    )),
                 },
                 PipelineNodeSpec {
-                    stage_id: "fastq.trim_reads".to_string(),
-                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    stage_id: crate::id_catalog::FASTQ_TRIM.to_string(),
+                    stage_instance_id: Some(stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp")),
                 },
                 PipelineNodeSpec {
-                    stage_id: "fastq.report_qc".to_string(),
-                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    stage_id: crate::id_catalog::FASTQ_QC_POST.to_string(),
+                    stage_instance_id: Some(stage_instance(
+                        crate::id_catalog::FASTQ_QC_POST,
+                        "aggregate",
+                    )),
                 },
             ],
             vec![
                 PipelineEdgeSpec {
-                    from: "fastq.validate_reads.validation".to_string(),
-                    to: "fastq.trim_reads.fastp".to_string(),
+                    from: stage_instance(crate::id_catalog::FASTQ_VALIDATE_READS, "validation"),
+                    to: stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp"),
                     from_output_id: None,
                     to_input_id: None,
                 },
                 PipelineEdgeSpec {
-                    from: "fastq.trim_reads.fastp".to_string(),
-                    to: "fastq.report_qc.aggregate".to_string(),
+                    from: stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp"),
+                    to: stage_instance(crate::id_catalog::FASTQ_QC_POST, "aggregate"),
                     from_output_id: None,
                     to_input_id: None,
                 },
             ],
         );
 
-        spec.retain_nodes(|node| node.stage_id != "fastq.validate_reads");
+        spec.retain_nodes(|node| node.stage_id != crate::id_catalog::FASTQ_VALIDATE_READS);
 
         assert_eq!(
             spec.stage_catalog(),
             vec![
-                "fastq.trim_reads".to_string(),
-                "fastq.report_qc".to_string()
+                crate::id_catalog::FASTQ_TRIM.to_string(),
+                crate::id_catalog::FASTQ_QC_POST.to_string(),
             ]
         );
         assert_eq!(spec.nodes.len(), 2);
         assert_eq!(spec.edges.len(), 1);
-        assert_eq!(spec.edges[0].from, "fastq.trim_reads.fastp");
+        assert_eq!(
+            spec.edges[0].from,
+            stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp")
+        );
     }
 }
