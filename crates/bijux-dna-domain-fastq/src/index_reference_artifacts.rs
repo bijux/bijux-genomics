@@ -73,8 +73,10 @@ mod tests {
             })),
         };
 
-        let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: IndexReferenceReportV1 = serde_json::from_str(&encoded).expect("deserialize");
+        let encoded =
+            serde_json::to_string(&report).unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: IndexReferenceReportV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "bowtie2_build");
         assert_eq!(decoded.index_file_count, 2);
         assert_eq!(decoded.emitted_files[0].relative_path, "reference.1.bt2");

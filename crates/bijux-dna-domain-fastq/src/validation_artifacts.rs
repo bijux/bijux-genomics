@@ -108,9 +108,10 @@ mod tests {
             exit_code: 96,
         };
 
-        let encoded = serde_json::to_string(&report).expect("serialize report");
-        let decoded: ValidationReportV1 =
-            serde_json::from_str(&encoded).expect("deserialize report");
+        let encoded =
+            serde_json::to_string(&report).unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: ValidationReportV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert!(decoded.is_pair_failure());
         assert_eq!(
             decoded.failure_class,
@@ -136,9 +137,10 @@ mod tests {
             validated_pairs: Some(100),
         };
 
-        let encoded = serde_json::to_string(&manifest).expect("serialize manifest");
-        let decoded: ValidatedReadsManifestV1 =
-            serde_json::from_str(&encoded).expect("deserialize manifest");
+        let encoded = serde_json::to_string(&manifest)
+            .unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: ValidatedReadsManifestV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
         assert_eq!(decoded.validated_stream_ids.len(), 2);
     }

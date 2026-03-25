@@ -87,9 +87,10 @@ mod tests {
             })),
         };
 
-        let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: NormalizePrimersReportV1 =
-            serde_json::from_str(&encoded).expect("deserialize");
+        let encoded =
+            serde_json::to_string(&report).unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: NormalizePrimersReportV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "cutadapt");
         assert_eq!(decoded.primer_set_id, "16S_universal_v1");
         assert_eq!(decoded.primer_trimmed_reads, Some(190));
