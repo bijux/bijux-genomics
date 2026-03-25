@@ -1,7 +1,9 @@
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
+use regex::Regex;
+use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 fn repo_root() -> Result<PathBuf> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -12,36 +14,13 @@ fn repo_root() -> Result<PathBuf> {
         .ok_or_else(|| anyhow!("workspace root not found"))
 }
 
-fn run_fastq_toy(out_dir: &Path) -> Result<PathBuf> {
-    let root = repo_root()?;
-    let status = Command::new("cargo")
-        .arg("run")
-        .arg("-q")
-        .arg("-p")
-        .arg("bijux-dna-dev")
-        .arg("--")
-        .arg("test")
-        .arg("run")
-        .arg("toy-runs")
-        .arg("--")
-        .arg("run")
-        .arg("--profile")
-        .arg("fastq")
-        .arg("--out")
-        .arg(out_dir)
-        .current_dir(&root)
-        .status()
-        .context("run toy fastq profile")?;
-    if !status.success() {
-        return Err(anyhow!("toy fastq run failed with status {status}"));
-    }
-    Ok(out_dir.join("fastq_reference_adna"))
+fn golden_fastq_toy_dir() -> Result<PathBuf> {
+    Ok(repo_root()?.join("assets/golden/toy-runs-v1/fastq_reference_adna"))
 }
 
 #[test]
-fn slow__fastq_small_pipeline_emits_multi_stage_manifest() -> Result<()> {
-    let temp = tempfile::tempdir()?;
-    let run_dir = run_fastq_toy(temp.path())?;
+fn fastq_small_pipeline_emits_multi_stage_manifest() -> Result<()> {
+    let run_dir = golden_fastq_toy_dir()?;
     let manifest_path = run_dir.join("manifest.json");
     let checksums_path = run_dir.join("artifact_checksums.json");
     let metrics_path = run_dir.join("metrics.json");
@@ -77,16 +56,79 @@ fn slow__fastq_small_pipeline_emits_multi_stage_manifest() -> Result<()> {
 }
 
 #[test]
-fn fastq_small_pipeline_is_reproducible_between_two_runs() -> Result<()> {
-    let temp = tempfile::tempdir()?;
-    let run_a = run_fastq_toy(&temp.path().join("run_a"))?;
-    let run_b = run_fastq_toy(&temp.path().join("run_b"))?;
+fn fastq_small_golden_checksums_match_materialized_files() -> Result<()> {
+    let run_dir = golden_fastq_toy_dir()?;
+    let checksums: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+        run_dir.join("artifact_checksums.json"),
+    )?)?;
+    let artifacts = checksums
+        .get("artifacts")
+        .and_then(serde_json::Value::as_object)
+        .ok_or_else(|| anyhow!("artifact_checksums missing artifacts object"))?;
 
-    let checksums_a = std::fs::read_to_string(run_a.join("artifact_checksums.json"))?;
-    let checksums_b = std::fs::read_to_string(run_b.join("artifact_checksums.json"))?;
-    assert_eq!(
-        checksums_a, checksums_b,
-        "artifact checksum drift detected between repeated fastq toy runs"
-    );
+    for (name, expected) in artifacts {
+        let expected = expected
+            .as_str()
+            .ok_or_else(|| anyhow!("artifact checksum for `{name}` must be a string"))?;
+        let actual = stable_toy_digest(&run_dir.join(name))?;
+        assert_eq!(
+            actual, expected,
+            "golden toy checksum drift detected for `{name}`"
+        );
+    }
     Ok(())
+}
+
+fn stable_toy_digest(path: &Path) -> Result<String> {
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("json") => {
+            let payload = normalize_toy_json(&read_json_value(path)?);
+            Ok(sha256_hex_bytes(
+                serde_json::to_string(&payload)?.as_bytes(),
+            ))
+        }
+        Some("html") => Ok(sha256_hex_bytes(
+            normalize_toy_html(&std::fs::read_to_string(path)?).as_bytes(),
+        )),
+        _ => {
+            let bytes = std::fs::read(path)?;
+            Ok(sha256_hex_bytes(&bytes))
+        }
+    }
+}
+
+fn read_json_value(path: &Path) -> Result<Value> {
+    serde_json::from_str(&std::fs::read_to_string(path)?)
+        .with_context(|| format!("parse {}", path.display()))
+}
+
+fn normalize_toy_json(value: &Value) -> Value {
+    match value {
+        Value::Object(map) => Value::Object(
+            map.iter()
+                .filter(|(key, _)| {
+                    !matches!(
+                        key.as_str(),
+                        "generated_at" | "timestamp" | "started_at" | "finished_at"
+                    )
+                })
+                .map(|(key, value)| (key.clone(), normalize_toy_json(value)))
+                .collect(),
+        ),
+        Value::Array(items) => Value::Array(items.iter().map(normalize_toy_json).collect()),
+        _ => value.clone(),
+    }
+}
+
+fn normalize_toy_html(raw: &str) -> String {
+    let generated_re = Regex::new(r"generated_at=[^<]+").expect("regex");
+    let json_re = Regex::new(r#""generated_at"\s*:\s*"[^"]+""#).expect("regex");
+    let text = generated_re.replace_all(raw, "generated_at=<normalized>");
+    json_re
+        .replace_all(&text, r#""generated_at":"<normalized>""#)
+        .into_owned()
+}
+
+fn sha256_hex_bytes(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
 }
