@@ -96,12 +96,19 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
         .expected_artifact_ids
         .iter()
         .any(|artifact_id| artifact_id.as_str() == "trim_tool_comparison_json"));
-    assert_eq!(compare_step.io.inputs.len(), 2);
-    assert!(compare_step
-        .io
-        .inputs
-        .iter()
-        .all(|artifact| artifact.name.as_str().ends_with("__report_json")));
+    assert_eq!(compare_step.io.inputs.len(), 6);
+    for suffix in ["__report_json", "__trimmed_reads_r1", "__trimmed_reads_r2"] {
+        assert_eq!(
+            compare_step
+                .io
+                .inputs
+                .iter()
+                .filter(|artifact| artifact.name.as_str().ends_with(suffix))
+                .count(),
+            2,
+            "trim fairness fan-in must receive {suffix} from both benchmarked tools",
+        );
+    }
     assert!(compare_step.io.outputs.iter().any(|artifact| {
         artifact.name.as_str() == "trim_tool_comparison_json"
             && artifact
@@ -129,10 +136,10 @@ fn benchmark_fanout_rejects_planned_only_tools_without_override() -> anyhow::Res
 
     let error = bijux_dna_planner_fastq::FastqPlanner::plan_stage_benchmark_cohort(
         &bijux_dna_planner_fastq::FastqStageBenchmarkConfig {
-            pipeline_id: "fastq-to-fastq__trim_reads_benchmark__v1".to_string(),
+            pipeline_id: "fastq-to-fastq__screen_taxonomy_benchmark__v1".to_string(),
             policy: PlanPolicy::PreferAccuracy,
-            stage_id: "fastq.trim_reads".to_string(),
-            tools: vec![tool("seqpurge")],
+            stage_id: "fastq.screen_taxonomy".to_string(),
+            tools: vec![tool("diamond")],
             params: None,
             aux_images: BTreeMap::new(),
             adapter_bank: None,

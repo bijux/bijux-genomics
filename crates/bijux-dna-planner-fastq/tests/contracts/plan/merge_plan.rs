@@ -239,7 +239,8 @@ fn leehom_merge_plan_emits_unmerged_pair_outputs() -> Result<()> {
             "merged_reads".to_string(),
             "unmerged_reads_r1".to_string(),
             "unmerged_reads_r2".to_string(),
-            "report_json".to_string()
+            "report_json".to_string(),
+            "raw_backend_report_txt".to_string(),
         ]
     );
     assert_eq!(
@@ -288,7 +289,10 @@ fn vsearch_merge_plan_omits_unmerged_outputs_when_requested() -> Result<()> {
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(output_names, vec!["merged_reads", "report_json"]);
+    assert_eq!(
+        output_names,
+        vec!["merged_reads", "report_json", "raw_backend_report_txt"]
+    );
     assert_eq!(plan.params["unmerged_reads_r1"], serde_json::Value::Null);
     assert_eq!(plan.params["unmerged_reads_r2"], serde_json::Value::Null);
 

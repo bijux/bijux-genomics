@@ -321,7 +321,7 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
         allow_planned: false,
     })?;
 
-    assert_eq!(plan.steps().len(), 5);
+    assert_eq!(plan.steps().len(), 4);
     assert_eq!(plan.edges().len(), 4);
     assert!(plan.steps().iter().any(|step| {
         step.step_id
@@ -518,20 +518,10 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
                 .starts_with("fastq.trim_reads.cleanup.compare.route.")
         })
         .collect::<Vec<_>>();
-    assert_eq!(trim_compare_steps.len(), 2);
+    assert_eq!(trim_compare_steps.len(), 1);
     assert!(trim_compare_steps
         .iter()
         .all(|step| step.io.inputs.len() == 6));
-    assert!(trim_compare_steps.iter().any(|step| {
-        step.step_id
-            .as_str()
-            .contains("fastq.remove_duplicates.selected=clumpify")
-    }));
-    assert!(trim_compare_steps.iter().any(|step| {
-        step.step_id
-            .as_str()
-            .contains("fastq.remove_duplicates.selected=fastuniq")
-    }));
     Ok(())
 }
 
@@ -1890,13 +1880,13 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
                     from: "fastq.validate_reads.validator".to_string(),
                     to: "fastq.report_qc.aggregate".to_string(),
                     from_output_id: Some("validation_report".to_string()),
-                    to_input_id: Some("validation_report".to_string()),
+                    to_input_id: Some("qc_artifacts".to_string()),
                 },
                 PipelineEdgeSpec {
                     from: "fastq.detect_adapters.fastqc".to_string(),
                     to: "fastq.report_qc.aggregate".to_string(),
                     from_output_id: Some("adapter_report".to_string()),
-                    to_input_id: Some("adapter_report".to_string()),
+                    to_input_id: Some("qc_artifacts".to_string()),
                 },
             ],
         )),
@@ -1936,31 +1926,63 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
         allow_planned: false,
     })?;
 
-    assert_eq!(plan.edges().len(), 2);
+    assert_eq!(plan.edges().len(), 3);
     assert!(plan
         .edges()
         .iter()
         .all(|edge| edge.to().as_str() == "fastq.report_qc.aggregate"));
-    assert!(plan
+    let edge_bindings = plan
         .edges()
         .iter()
-        .all(|edge| edge.from_output_id().is_some() && edge.to_input_id().is_some()));
+        .map(|edge| {
+            (
+                edge.from().as_str().to_string(),
+                edge.from_output_id()
+                    .map(|artifact| artifact.as_str().to_string()),
+                edge.to_input_id()
+                    .map(|artifact| artifact.as_str().to_string()),
+            )
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        edge_bindings,
+        std::collections::BTreeSet::from([
+            (
+                "fastq.detect_adapters.fastqc".to_string(),
+                Some("adapter_report".to_string()),
+                Some("qc_artifacts".to_string()),
+            ),
+            (
+                "fastq.validate_reads.validator".to_string(),
+                Some("validated_reads_manifest".to_string()),
+                Some("validated_reads_manifest".to_string()),
+            ),
+            (
+                "fastq.validate_reads.validator".to_string(),
+                Some("validation_report".to_string()),
+                Some("qc_artifacts".to_string()),
+            ),
+        ])
+    );
     let report_step = plan
         .steps()
         .iter()
         .find(|step| step.step_id.as_str() == "fastq.report_qc.aggregate")
         .expect("report_qc step");
-    assert_eq!(report_step.io.inputs.len(), 2);
+    assert_eq!(report_step.io.inputs.len(), 3);
+    assert!(report_step.io.inputs.iter().any(|artifact| {
+        artifact.name.as_str() == "fastq.validate_reads.validator.validation_report"
+    }));
     assert!(report_step
         .io
         .inputs
         .iter()
-        .any(|artifact| artifact.name.as_str() == "validation_report"));
+        .any(|artifact| artifact.name.as_str() == "validated_reads_manifest"));
     assert!(report_step
         .io
         .inputs
         .iter()
-        .any(|artifact| artifact.name.as_str() == "adapter_report"));
+        .any(|artifact| artifact.name.as_str() == "fastq.detect_adapters.fastqc.adapter_report"));
     Ok(())
 }
 

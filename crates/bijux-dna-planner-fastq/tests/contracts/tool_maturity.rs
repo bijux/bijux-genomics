@@ -26,7 +26,7 @@ fn stage_tool_maturity_distinguishes_planned_generic_and_observer_bindings() {
             &trim_stage,
             &ToolId::from_static("fastp"),
         ),
-        Some(bijux_dna_planner_fastq::stage_api::StageToolMaturityLevel::GovernedExecution)
+        Some(bijux_dna_planner_fastq::stage_api::StageToolMaturityLevel::ObserverNormalized)
     );
 }
 

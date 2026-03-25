@@ -96,7 +96,7 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
 
 #[test]
 fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<()> {
-    let stages = vec![
+    let stages = [
         "fastq.index_reference".to_string(),
         "fastq.deplete_host".to_string(),
     ];

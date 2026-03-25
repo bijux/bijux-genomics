@@ -142,6 +142,11 @@ pub fn registry() -> Vec<StageInfo> {
             affects_read_counts: true,
         },
         StageInfo {
+            id: crate::tool_adapters::stages::amplicon::infer_asvs::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::amplicon::infer_asvs::STAGE_VERSION,
+            affects_read_counts: false,
+        },
+        StageInfo {
             id: fastq_ids::STAGE_REMOVE_CHIMERAS,
             version: StageVersion(1),
             affects_read_counts: true,
