@@ -54,14 +54,21 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
     assert!(governed[0]
         .tool_ids
         .iter()
-        .all(|tool_id| tool_id != "seqpurge"));
+        .any(|tool_id| tool_id == "seqpurge"));
 
     let benchmark = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &pipeline,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::BenchmarkCohort,
         false,
     )?;
-    assert!(benchmark[0].tool_ids.is_empty());
+    assert!(benchmark[0]
+        .tool_ids
+        .iter()
+        .all(|tool_id| governed[0].tool_ids.contains(tool_id)));
+    assert!(benchmark[0].tool_ids.iter().all(|tool_id| !matches!(
+        tool_id.as_str(),
+        "alientrimmer" | "fastx_clipper" | "leehom" | "skewer"
+    )));
 
     Ok(())
 }

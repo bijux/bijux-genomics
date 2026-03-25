@@ -113,7 +113,7 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
         },
     };
 
-    let stages = vec![
+    let stages = [
         (
             bijux_dna_domain_fastq::STAGE_TRIM_READS
                 .as_str()
@@ -130,7 +130,7 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
             bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY
                 .as_str()
                 .to_string(),
-            tool_for("krakenuniq"),
+            tool_for("kraken2"),
         ),
     ];
     let bindings: Vec<FastqStageBinding> = stages

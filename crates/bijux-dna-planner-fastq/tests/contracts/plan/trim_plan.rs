@@ -303,13 +303,10 @@ fn plan_from_config_preserves_layout_without_enabling_bank_policies() -> Result<
     assert!(plan.params.get("adapter_bank").is_none());
     assert!(plan.params.get("polyx_bank").is_none());
     assert!(plan.params.get("contaminant_bank").is_none());
-    assert!(plan.command.template.iter().any(|part| part == "--in2"));
-    assert!(plan.command.template.iter().any(|part| part == "--out2"));
-    assert!(!plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "--detect_adapter_for_pe"));
+    let script = &plan.command.template[2];
+    assert!(script.contains("'--in2' 'reads_R2.fastq.gz'"));
+    assert!(script.contains("'--out2' 'out/R2.fastp.fastq.gz'"));
+    assert!(!script.contains("--detect_adapter_for_pe"));
     Ok(())
 }
 
@@ -369,16 +366,9 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
         plan.effective_params["n_policy"],
         serde_json::json!("retain")
     );
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "--length_required"));
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "--qualified_quality_phred"));
+    let script = &plan.command.template[2];
+    assert!(script.contains("'--length_required' '42'"));
+    assert!(script.contains("'--qualified_quality_phred' '18'"));
     Ok(())
 }
 
@@ -516,11 +506,7 @@ fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> 
             contaminant_policy: None,
         },
     )?;
-    assert!(fastp_plan
-        .command
-        .template
-        .windows(2)
-        .any(|window| window == ["--n_base_limit", "0"]));
+    assert!(fastp_plan.command.template[2].contains("'--n_base_limit' '0'"));
 
     let cutadapt_plan =
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan_with_options(
@@ -550,7 +536,7 @@ fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> 
 fn validate_trim_toolset_support_reports_all_incompatible_tools() {
     let error =
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::validate_trim_toolset_support(
-            &vec![
+            &[
                 "seqpurge".to_string(),
                 "seqkit".to_string(),
                 "trimmomatic".to_string(),
@@ -693,8 +679,8 @@ fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
         None,
         &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
             threads: None,
-            min_length: Some(42),
-            quality_cutoff: None,
+            min_length: None,
+            quality_cutoff: Some(18),
             n_policy: None,
             adapter_policy: None,
             polyx_policy: None,
@@ -871,11 +857,7 @@ fn plan_trim_with_polyx_trim_enables_fastp_polyx_mode() -> Result<()> {
     )?;
 
     assert_eq!(plan.params["polyx_policy"], serde_json::json!("trim"));
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "--trim_poly_x"));
+    assert!(plan.command.template[2].contains("'--trim_poly_x'"));
     Ok(())
 }
 

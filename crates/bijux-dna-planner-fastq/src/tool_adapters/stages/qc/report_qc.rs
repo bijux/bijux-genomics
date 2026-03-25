@@ -286,7 +286,7 @@ fn governed_qc_inputs_manifest_payload(
 fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContributor> {
     let mut contributors = qc_inputs
         .iter()
-        .filter_map(|artifact| governed_qc_contributor(artifact))
+        .filter_map(governed_qc_contributor)
         .collect::<Vec<_>>();
     contributors.sort_by(|left, right| {
         left.contributor_id
@@ -315,7 +315,11 @@ fn governed_qc_contributor(artifact: &ArtifactRef) -> Option<GovernedQcContribut
     if contributor_parts.len() < 3 {
         return None;
     }
-    let tool_id = contributor_parts[2..].join(".");
+    let tool_id = if contributor_parts.get(2) == Some(&"tool") {
+        contributor_parts.get(3..)?.join(".")
+    } else {
+        contributor_parts[2..].join(".")
+    };
     Some(GovernedQcContributor {
         contributor_id: contributor_id.to_string(),
         stage_id: format!("{}.{}", contributor_parts[0], contributor_parts[1]),
@@ -384,7 +388,7 @@ fn governed_report_qc_report(
         stage: STAGE_ID.as_str().to_string(),
         stage_id: STAGE_ID.as_str().to_string(),
         tool_id: tool_id.to_string(),
-        paired_mode: effective_params.paired_mode.clone(),
+        paired_mode: effective_params.paired_mode,
         aggregation_engine: effective_params.aggregation_engine.clone(),
         aggregation_scope: effective_params.aggregation_scope.clone(),
         reads_in: 0,
@@ -445,7 +449,7 @@ mod tests {
         ToolExecutionSpecV1, ToolId,
     };
     use bijux_dna_domain_fastq::params::{
-        qc_post::{QcAggregationEngine, QcAggregationScope},
+        qc_post::{QcAggregationEngine, QcAggregationScope, REPORT_QC_SCHEMA_VERSION},
         PairedMode,
     };
     use std::path::PathBuf;

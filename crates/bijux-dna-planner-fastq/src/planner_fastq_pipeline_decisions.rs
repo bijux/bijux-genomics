@@ -101,6 +101,7 @@ pub enum FastqStageParameters {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub struct FilterReadsStageParams {
     pub threads: Option<u32>,
     pub max_n: Option<u32>,
@@ -112,61 +113,29 @@ pub struct FilterReadsStageParams {
     pub polyx_policy: Option<String>,
 }
 
-impl Default for FilterReadsStageParams {
-    fn default() -> Self {
-        Self {
-            threads: None,
-            max_n: None,
-            max_n_fraction: None,
-            max_n_count: None,
-            low_complexity_threshold: None,
-            entropy_threshold: None,
-            kmer_ref: None,
-            polyx_policy: None,
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub struct FilterLowComplexityStageParams {
     pub entropy_threshold: Option<f64>,
     pub polyx_threshold: Option<u32>,
 }
 
-impl Default for FilterLowComplexityStageParams {
-    fn default() -> Self {
-        Self {
-            entropy_threshold: None,
-            polyx_threshold: None,
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default)]
 pub struct ExtractUmisStageParams {
     pub threads: Option<u32>,
     pub umi_pattern: Option<String>,
 }
 
-impl Default for ExtractUmisStageParams {
-    fn default() -> Self {
-        Self {
-            threads: None,
-            umi_pattern: None,
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default)]
 pub struct DetectAdaptersStageParams {
     pub threads: Option<u32>,
 }
 
-impl Default for DetectAdaptersStageParams {
-    fn default() -> Self {
-        Self { threads: None }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MergePairsStageParams {
@@ -230,15 +199,11 @@ impl Default for NormalizePrimersStageParams {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default)]
 pub struct IndexReferenceStageParams {
     pub threads: Option<u32>,
 }
 
-impl Default for IndexReferenceStageParams {
-    fn default() -> Self {
-        Self { threads: None }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InferAsvsStageParams {
@@ -913,15 +878,17 @@ fn benchmark_compare_steps_for_toolsets(
     Ok((steps, edges))
 }
 
+type SelectStepPlan = (
+    Vec<ExecutionStep>,
+    Vec<ExecutionEdge>,
+    std::collections::BTreeMap<String, StepId>,
+);
+
 fn benchmark_select_steps_for_pipeline(
     config: &FastqPlanConfig,
     pipeline_spec: &PipelineSpec,
     plans: &[StagePlanV1],
-) -> Result<(
-    Vec<ExecutionStep>,
-    Vec<ExecutionEdge>,
-    std::collections::BTreeMap<String, StepId>,
-)> {
+) -> Result<SelectStepPlan> {
     if !pipeline_spec.declares_graph_topology() {
         return Ok((Vec::new(), Vec::new(), std::collections::BTreeMap::new()));
     }
@@ -1560,7 +1527,7 @@ fn binding_node_id(binding: &FastqStageBinding) -> String {
     binding
         .stage_instance_id
         .clone()
-        .unwrap_or_else(|| format!("{}.tool.{}", binding.stage_id, binding.tool.tool_id))
+        .unwrap_or_else(|| binding.stage_id.clone())
 }
 
 fn stage_dependency_policy(
@@ -1613,7 +1580,7 @@ fn dependency_reference_index_binding<'a>(
         .filter_map(|upstream_node| binding_by_node_id.get(upstream_node).copied())
         .filter(|upstream| upstream.stage_id == "fastq.index_reference")
         .collect::<Vec<_>>();
-    upstream_indices.sort_by(|left, right| binding_node_id(left).cmp(&binding_node_id(right)));
+    upstream_indices.sort_by_key(|left| binding_node_id(left));
     upstream_indices.dedup_by(|left, right| binding_node_id(left) == binding_node_id(right));
     match upstream_indices.len() {
         0 => Ok(None),
@@ -1877,7 +1844,7 @@ fn stage_toolsets_for_pipeline_nodes(
         ));
     }
 
-    Ok(ordered_nodes
+    ordered_nodes
         .into_iter()
         .zip(stage_toolsets.iter())
         .map(|(node, toolset)| {
@@ -1895,7 +1862,7 @@ fn stage_toolsets_for_pipeline_nodes(
             }
             Ok(toolset.clone())
         })
-        .collect::<Result<Vec<_>>>()?)
+        .collect::<Result<Vec<_>>>()
 }
 
 /// # Errors
@@ -2218,6 +2185,7 @@ pub struct ToolsetSelection {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Default)]
 struct RouteContext(std::collections::BTreeMap<String, String>);
 
 #[derive(Debug, Clone)]
@@ -2619,11 +2587,6 @@ fn expanded_stage_instance_id(
     format!("{base_node_id}.route.{route_key}.tool.{tool_id}")
 }
 
-impl Default for RouteContext {
-    fn default() -> Self {
-        Self(std::collections::BTreeMap::new())
-    }
-}
 
 impl RouteContext {
     fn with_assignment(&self, node_id: String, tool_id: String) -> Self {

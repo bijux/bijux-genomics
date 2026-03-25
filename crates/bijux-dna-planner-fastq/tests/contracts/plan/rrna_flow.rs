@@ -1,29 +1,44 @@
 use anyhow::Result;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
-use bijux_dna_core::prelude::{
-    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
-};
+use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1, ToolId};
 use bijux_dna_planner_fastq::{compose_fastq_stage_bindings, FastqStageBinding};
 
-fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .expect("workspace root")
+        .to_path_buf()
+}
+
+fn tool_registry() -> &'static bijux_dna_core::contract::ToolRegistry {
+    static REGISTRY: OnceLock<bijux_dna_core::contract::ToolRegistry> = OnceLock::new();
+    REGISTRY.get_or_init(|| {
+        bijux_dna_runtime::manifests::load_manifests(&workspace_root())
+            .expect("load domain tool registry")
+    })
+}
+
+fn domain_tool(stage: &str, tool: &str) -> ToolExecutionSpecV1 {
+    let stage_id = bijux_dna_core::prelude::StageId::new(stage);
+    let tool_id = ToolId::new(tool);
+    let manifest = tool_registry()
+        .tool_by_id(&stage_id, &tool_id)
+        .unwrap_or_else(|| panic!("missing tool manifest {tool} for {stage}"));
     ToolExecutionSpecV1 {
-        tool_id: ToolId::new(tool),
-        tool_version: "1.0.0".to_string(),
+        tool_id,
+        tool_version: "domain-manifest".to_string(),
         image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
+            image: format!("bijuxdna/{tool}"),
             digest: None,
         },
         command: CommandSpecV1 {
-            template: Vec::new(),
+            template: manifest.command_template.clone(),
         },
-        resources: ToolConstraints {
-            runtime: "docker".to_string(),
-            mem_gb: 1,
-            tmp_gb: 1,
-            threads: 1,
-        },
+        resources: manifest.constraints.clone(),
     }
 }
 
@@ -33,14 +48,14 @@ fn rrna_stage_feeds_filtered_reads_to_next_stage() -> Result<()> {
         FastqStageBinding {
             stage_id: "fastq.deplete_rrna".to_string(),
             stage_instance_id: None,
-            tool: dummy_tool("sortmerna"),
+            tool: domain_tool("fastq.deplete_rrna", "sortmerna"),
             reason: None,
             params: None,
         },
         FastqStageBinding {
             stage_id: "fastq.profile_reads".to_string(),
             stage_instance_id: None,
-            tool: dummy_tool("seqkit_stats"),
+            tool: domain_tool("fastq.profile_reads", "seqkit_stats"),
             reason: None,
             params: None,
         },

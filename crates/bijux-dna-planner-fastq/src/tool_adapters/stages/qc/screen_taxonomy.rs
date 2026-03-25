@@ -232,7 +232,7 @@ fn screen_command_template(
         stage: STAGE_ID.as_str().to_string(),
         stage_id: STAGE_ID.as_str().to_string(),
         tool_id: tool.tool_id.to_string(),
-        paired_mode: effective_params.paired_mode.clone(),
+        paired_mode: effective_params.paired_mode,
         threads: effective_params.threads,
         classifier: effective_params.classifier.clone(),
         report_format: effective_params.report_format.clone(),

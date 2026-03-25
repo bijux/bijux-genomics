@@ -73,8 +73,8 @@ fn ci_stage_catalog_excludes_declared_only_fastq_stages() {
         .filter_map(|stage| stage.get("id").and_then(Value::as_str))
         .collect::<BTreeSet<_>>();
     assert!(
-        !stage_ids.contains("fastq.infer_asvs"),
-        "the curated CI stage catalog may omit infer_asvs even after workspace runtime admission",
+        stage_ids.contains("fastq.infer_asvs"),
+        "the curated CI stage catalog must publish governed FASTQ stages once their runtime support is closed",
     );
 }
 
@@ -88,10 +88,22 @@ fn ci_tool_registry_excludes_unpublished_fastq_tools() {
         .flatten()
         .filter_map(|tool| tool.get("id").and_then(Value::as_str))
         .collect::<BTreeSet<_>>();
-    for tool_id in ["diamond", "dustmasker", "seqfu", "seqpurge"] {
+    for tool_id in ["diamond", "dustmasker", "seqfu"] {
         assert!(
             !tool_ids.contains(tool_id),
             "planned FASTQ tool {tool_id} must stay out of the governed CI runtime registry",
+        );
+    }
+    for tool_id in [
+        "seqpurge",
+        "alientrimmer",
+        "fastx_clipper",
+        "leehom",
+        "skewer",
+    ] {
+        assert!(
+            tool_ids.contains(tool_id),
+            "governed FASTQ tool {tool_id} must stay in the curated CI runtime registry once its containerized runtime is closed",
         );
     }
     assert!(

@@ -14,11 +14,11 @@ fn benchmark_profiles_distinguish_planned_governed_and_benchmarkable_bindings() 
     );
     assert_eq!(
         trim_profile.runtime_interpretation,
-        bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::GenericEnvelope
+        bijux_dna_planner_fastq::stage_api::RuntimeInterpretationLevel::ObserverSpecialized
     );
     assert_eq!(
         trim_profile.readiness,
-        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedExecution
+        bijux_dna_planner_fastq::stage_api::BenchmarkReadinessLevel::GovernedBenchmarkCohort
     );
     assert_eq!(trim_profile.benchmark_scenarios, vec!["trim_fairness"]);
 
@@ -115,7 +115,7 @@ fn stage_tool_capabilities_distinguish_declared_runnable_and_comparable_bindings
     .expect("trim capability");
     assert!(trim_capability.runnable);
     assert!(trim_capability.parse_normalized);
-    assert!(!trim_capability.benchmark_normalized);
+    assert!(trim_capability.benchmark_normalized);
     assert!(!trim_capability.comparable);
 
     let detect_capability = bijux_dna_planner_fastq::stage_api::stage_tool_capability(
@@ -143,17 +143,13 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .collect::<Vec<_>>(),
         vec![
             "adapterremoval",
-            "alientrimmer",
             "atropos",
             "bbduk",
             "cutadapt",
             "fastp",
-            "fastx_clipper",
-            "leehom",
             "prinseq",
             "seqkit",
             "seqpurge",
-            "skewer",
             "trim_galore",
             "trimmomatic",
         ]
@@ -166,17 +162,13 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .collect::<Vec<_>>(),
         vec![
             "adapterremoval",
-            "alientrimmer",
             "atropos",
             "bbduk",
             "cutadapt",
             "fastp",
-            "fastx_clipper",
-            "leehom",
             "prinseq",
             "seqkit",
             "seqpurge",
-            "skewer",
             "trim_galore",
             "trimmomatic",
         ]

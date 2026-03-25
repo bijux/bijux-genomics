@@ -12,8 +12,8 @@ fn planner_stage_selection_comes_from_domain_execution_support() {
         "planner trim tool selection must come from the domain execution support manifest",
     );
     assert!(
-        !trim_tools.iter().any(|tool| tool.as_str() == "seqpurge"),
-        "planner must not admit tools that are absent from the domain execution support manifest",
+        trim_tools.iter().any(|tool| tool.as_str() == "seqpurge"),
+        "planner trim tool selection must include closed runtime tools from the domain execution support manifest",
     );
 
     let infer_asvs_stage = StageId::from_static("fastq.infer_asvs");

@@ -510,7 +510,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     );
     assert_eq!(plan.io.outputs[4].role.as_str(), "report_json");
     assert_eq!(plan.effective_params["report_artifact"], "report_json");
-    assert_eq!(plan.effective_params["threads"], serde_json::json!(2));
+    assert_eq!(plan.effective_params["threads"], serde_json::json!(4));
     assert!(
         bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus::plan(
             &domain_tool("fastq.cluster_otus", "vsearch"),

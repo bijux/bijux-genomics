@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
@@ -146,7 +146,7 @@ where
             &lineage_by_node_id,
             latest_lineage_node_id.as_deref(),
             &raw_r1,
-            raw_r2.as_ref(),
+            raw_r2.as_deref(),
         )?;
         let stage_r1 = explicit_reads_input_path(&resolved_inputs, "reads_r1")?
             .unwrap_or_else(|| inherited.reads_r1.clone());
@@ -858,10 +858,20 @@ fn resolved_stage_input_artifacts(
         return Ok(inputs);
     };
     for stage_input in bindings {
-        if let Some(source_plan) = plans
+        let source_plan = plans
             .iter()
             .find(|plan| stage_node_id_for_plan(plan) == stage_input.from_stage_node_id)
-        {
+            .or_else(|| {
+                let mut matching_stage_plans = plans
+                    .iter()
+                    .filter(|plan| plan.stage_id.as_str() == stage_input.from_stage_node_id);
+                let first_match = matching_stage_plans.next()?;
+                if matching_stage_plans.next().is_some() {
+                    return None;
+                }
+                Some(first_match)
+            });
+        if let Some(source_plan) = source_plan {
             let artifact = source_plan
                 .io
                 .outputs
@@ -991,8 +1001,8 @@ fn inherited_lineage(
     stage_dependencies: Option<&StageDependencyPolicy>,
     lineage_by_node_id: &BTreeMap<String, PlannedStageLineage>,
     latest_lineage_node_id: Option<&str>,
-    raw_r1: &PathBuf,
-    raw_r2: Option<&PathBuf>,
+    raw_r1: &Path,
+    raw_r2: Option<&Path>,
 ) -> Result<PlannedStageLineage> {
     let upstream_lineages = upstream_lineages(
         binding,
@@ -1002,8 +1012,8 @@ fn inherited_lineage(
     );
     if upstream_lineages.is_empty() {
         return Ok(PlannedStageLineage {
-            reads_r1: raw_r1.clone(),
-            reads_r2: raw_r2.cloned(),
+            reads_r1: raw_r1.to_path_buf(),
+            reads_r2: raw_r2.map(Path::to_path_buf),
             feature_table: None,
             reference_index: None,
             qc_inputs: Vec::new(),
@@ -1024,8 +1034,8 @@ fn inherited_lineage(
         });
         qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
         return Ok(PlannedStageLineage {
-            reads_r1: raw_r1.clone(),
-            reads_r2: raw_r2.cloned(),
+            reads_r1: raw_r1.to_path_buf(),
+            reads_r2: raw_r2.map(Path::to_path_buf),
             feature_table: None,
             reference_index: None,
             qc_inputs,
