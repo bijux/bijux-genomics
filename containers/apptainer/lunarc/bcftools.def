@@ -37,6 +37,11 @@ From: quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:badc3a0c7af72a83e57
     set -eu
     bcftools --version >/dev/null 2>&1 || true
 
+    mkdir -p /opt/bijux && \
+    printf '%s\n' '{"tool":"bcftools","version":"1.20","source":"https://github.com/bijux/bijux-dna","license":"MIT"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod 0755 /usr/local/bin/bijux-tool-info
+
 %runscript
     exec bcftools "$@"
 

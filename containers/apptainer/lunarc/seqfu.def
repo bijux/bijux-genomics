@@ -45,6 +45,11 @@ exec seqkit "$@"
 EOS
     chmod 0755 /usr/local/bin/seqfu
     rm -rf /var/lib/apt/lists/*
+    mkdir -p /opt/bijux && \
+    printf '%s\n' '{"tool":"seqfu","version":"2.4.0","source":"https://github.com/telatin/seqfu2","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod 0755 /usr/local/bin/bijux-tool-info
+
 %runscript
     if [ $# -eq 0 ]; then
         exec seqfu --help

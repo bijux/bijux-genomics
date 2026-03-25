@@ -49,6 +49,11 @@ exec java -jar /opt/picard.jar "$@"
 EOS
     chmod 0755 /usr/local/bin/picard
     rm -rf /var/lib/apt/lists/*
+    mkdir -p /opt/bijux && \
+    printf '%s\n' '{"tool":"picard","version":"3.3.0","source":"https://github.com/broadinstitute/picard","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod 0755 /usr/local/bin/bijux-tool-info
+
 %runscript
     if [ $# -eq 0 ]; then
         exec picard --help

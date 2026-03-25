@@ -46,6 +46,11 @@ exec Rscript "$script" "$@"
 EOS
     chmod 0755 /usr/local/bin/dada2
     rm -rf /var/lib/apt/lists/*
+    mkdir -p /opt/bijux && \
+    printf '%s\n' '{"tool":"dada2","version":"1.30.0","source":"https://bioconductor.org/packages/dada2","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod 0755 /usr/local/bin/bijux-tool-info
+
 %runscript
     if [ $# -eq 0 ]; then
         exec dada2 --help

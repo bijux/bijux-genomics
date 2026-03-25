@@ -82,6 +82,11 @@ EOF
 
     # Note: do not purge ca-certificates; it is not worth breaking TLS later.
 
+    mkdir -p /opt/bijux && \
+    printf '%s\n' '{"tool":"seqkit","version":"2.8.2","source":"https://github.com/shenwei356/seqkit","license":"Apache-2.0"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod 0755 /usr/local/bin/bijux-tool-info
+
 %runscript
     if [ $# -eq 0 ]; then
         exec seqkit --help
