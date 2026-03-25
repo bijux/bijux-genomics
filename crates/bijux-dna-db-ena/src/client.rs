@@ -42,34 +42,46 @@ impl EnaClient {
 
 #[must_use]
 pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
-    // Fields include both read_run and analysis keys so one parser supports both results.
-    let fields = [
-        "study_accession",
-        "sample_accession",
-        "experiment_accession",
-        "run_accession",
-        "analysis_accession",
-        "analysis_type",
-        "tax_id",
-        "scientific_name",
-        "library_layout",
-        "library_source",
-        "library_strategy",
-        "instrument_model",
-        "base_count",
-        "read_count",
-        "fastq_bytes",
-        "fastq_ftp",
-        "submitted_ftp",
-        "sra_ftp",
-        "bam_ftp",
-    ]
-    .join(",");
+    let fields = filereport_fields(result).join(",");
 
     format!(
         "{ENA_API_BASE}?accession={accession}&result={}&fields={fields}&format=tsv&download=true&limit=0",
         result.as_api_value()
     )
+}
+
+fn filereport_fields(result: EnaResultKind) -> &'static [&'static str] {
+    match result {
+        EnaResultKind::ReadRun => &[
+            "study_accession",
+            "sample_accession",
+            "experiment_accession",
+            "run_accession",
+            "tax_id",
+            "scientific_name",
+            "library_layout",
+            "library_source",
+            "library_strategy",
+            "instrument_model",
+            "base_count",
+            "read_count",
+            "fastq_bytes",
+            "fastq_ftp",
+            "submitted_ftp",
+            "sra_ftp",
+        ],
+        EnaResultKind::Analysis => &[
+            "study_accession",
+            "sample_accession",
+            "experiment_accession",
+            "analysis_accession",
+            "analysis_type",
+            "tax_id",
+            "scientific_name",
+            "submitted_ftp",
+            "bam_ftp",
+        ],
+    }
 }
 
 #[must_use]
@@ -193,6 +205,16 @@ mod tests {
         assert!(url.contains("accession=PRJEB22390"));
         assert!(url.contains("result=read_run"));
         assert!(url.contains("fields=study_accession"));
+        assert!(url.contains("run_accession"));
+        assert!(!url.contains("analysis_accession"));
+    }
+
+    #[test]
+    fn build_analysis_filereport_url_uses_analysis_fields() {
+        let url = build_filereport_url("ERZ123456", EnaResultKind::Analysis);
+        assert!(url.contains("result=analysis"));
+        assert!(url.contains("analysis_accession"));
+        assert!(!url.contains("run_accession"));
     }
 
     #[test]
