@@ -1,4 +1,4 @@
-# bijux-dev-dna Public API
+# bijux-dna-dev Public API
 
 Public API exported from `src/lib.rs`:
 - `run`: CLI entrypoint for the versioned development control-plane.

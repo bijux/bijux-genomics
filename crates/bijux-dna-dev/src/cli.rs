@@ -19,7 +19,7 @@ use crate::runtime::workspace::Workspace;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "bijux-dev-dna",
+    name = "bijux-dna-dev",
     about = "Versioned development control-plane for the Bijux DNA workspace"
 )]
 pub struct Cli {
@@ -128,7 +128,7 @@ fn maybe_emit_native_help(group: &str, id: &str, err: &anyhow::Error) -> bool {
     if !message.starts_with("__help__:") {
         return false;
     }
-    println!("Usage: cargo run -p bijux-dev-dna -- {group} run {id} -- [args...]");
+    println!("Usage: cargo run -p bijux-dna-dev -- {group} run {id} -- [args...]");
     true
 }
 

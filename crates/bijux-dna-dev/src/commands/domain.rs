@@ -14,8 +14,8 @@ use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
 
 const DOMAIN_INDEX_REGENERATE_PREFIX: &str =
-    "# Regenerate with: cargo run -p bijux-dev-dna -- domain run generate-index -- ";
-const REGISTRY_LOCK_GENERATED_BY: &str = "generated_by=bijux-dev-dna domain run lock-registry";
+    "# Regenerate with: cargo run -p bijux-dna-dev -- domain run generate-index -- ";
+const REGISTRY_LOCK_GENERATED_BY: &str = "generated_by=bijux-dna-dev domain run lock-registry";
 
 pub fn run_native_domain_command(
     key: &NativeDomainCommandKey,
@@ -967,7 +967,7 @@ fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandOutcome> {
         let expected = render_domain_index(workspace, dom)?;
         if expected != actual {
             errors.push(format!(
-                "domain index drift for domain/{dom}/index.yaml; regenerate with cargo run -p bijux-dev-dna -- domain run generate-index -- {dom}"
+                "domain index drift for domain/{dom}/index.yaml; regenerate with cargo run -p bijux-dna-dev -- domain run generate-index -- {dom}"
             ));
         }
 
@@ -2728,7 +2728,7 @@ fn generate_index(workspace: &Workspace, args: &[String]) -> Result<DomainComman
             exit_code: 2,
             stdout: String::new(),
             stderr:
-                "Usage: cargo run -p bijux-dev-dna -- domain run generate-index -- <domain>|--all\n"
+                "Usage: cargo run -p bijux-dna-dev -- domain run generate-index -- <domain>|--all\n"
                     .to_string(),
         });
     }
@@ -2761,7 +2761,7 @@ fn generate_inventory(workspace: &Workspace, args: &[String]) -> Result<DomainCo
         return Ok(DomainCommandOutcome {
             exit_code: 2,
             stdout: String::new(),
-            stderr: "Usage: cargo run -p bijux-dev-dna -- domain run generate-inventory -- [<json-path> [<markdown-path>]]\n".to_string(),
+            stderr: "Usage: cargo run -p bijux-dna-dev -- domain run generate-inventory -- [<json-path> [<markdown-path>]]\n".to_string(),
         });
     }
     let out_json = args.first().map_or_else(
@@ -2975,7 +2975,7 @@ fn lock_registry(workspace: &Workspace, args: &[String]) -> Result<DomainCommand
         [single] if single == "--print" => true,
         [single] if single == "--help" || single == "-h" => {
             return Ok(DomainCommandOutcome::success(
-                "Usage: cargo run -p bijux-dev-dna -- domain run lock-registry -- [--print]\n",
+                "Usage: cargo run -p bijux-dna-dev -- domain run lock-registry -- [--print]\n",
             ));
         }
         _ => {
@@ -3032,14 +3032,14 @@ fn validate(workspace: &Workspace, args: &[String]) -> Result<DomainCommandOutco
         [single] if single == "--allow-non-artifacts" => true,
         [single] if single == "--help" || single == "-h" => {
             return Ok(DomainCommandOutcome::success(
-                "Usage: cargo run -p bijux-dev-dna -- domain run validate -- [--allow-non-artifacts]\n",
+                "Usage: cargo run -p bijux-dna-dev -- domain run validate -- [--allow-non-artifacts]\n",
             ));
         }
         _ => {
             return Ok(DomainCommandOutcome {
                 exit_code: 2,
                 stdout: String::new(),
-                stderr: "Usage: cargo run -p bijux-dev-dna -- domain run validate -- [--allow-non-artifacts]\n".to_string(),
+                stderr: "Usage: cargo run -p bijux-dna-dev -- domain run validate -- [--allow-non-artifacts]\n".to_string(),
             });
         }
     };

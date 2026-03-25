@@ -14,14 +14,14 @@ Gate for promoting VCF downstream runs from frontend-only validation to compute-
 - Production badge eligibility requires lock validity and acceptance criteria success.
 
 ## Required Green Checks
-- `cargo run -q -p bijux-dev-dna -- checks run check-vcf-reference-governance`
-- `cargo run -q -p bijux-dev-dna -- checks run check-vcf-compatibility-matrix`
-- `cargo run -q -p bijux-dev-dna -- checks run check-vcf-deprecation-lifecycle`
-- `cargo run -q -p bijux-dev-dna -- checks run check-registry-required-tools-parity`
-- `cargo run -q -p bijux-dev-dna -- checks run check-param-registry-completeness`
-- `cargo run -q -p bijux-dev-dna -- checks run check-frontend-mini-artifacts`
-- `cargo run -q -p bijux-dev-dna -- checks run check-frontend-observability-proof`
-- `cargo run -q -p bijux-dev-dna -- checks run check-frontend-telemetry-sanity`
+- `cargo run -q -p bijux-dna-dev -- checks run check-vcf-reference-governance`
+- `cargo run -q -p bijux-dna-dev -- checks run check-vcf-compatibility-matrix`
+- `cargo run -q -p bijux-dna-dev -- checks run check-vcf-deprecation-lifecycle`
+- `cargo run -q -p bijux-dna-dev -- checks run check-registry-required-tools-parity`
+- `cargo run -q -p bijux-dna-dev -- checks run check-param-registry-completeness`
+- `cargo run -q -p bijux-dna-dev -- checks run check-frontend-mini-artifacts`
+- `cargo run -q -p bijux-dna-dev -- checks run check-frontend-observability-proof`
+- `cargo run -q -p bijux-dna-dev -- checks run check-frontend-telemetry-sanity`
 
 ## Stage Acceptance Criteria Source
 - `configs/vcf/downstream_acceptance.toml`

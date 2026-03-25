@@ -15,4 +15,4 @@ Computation contract:
 - Join payload lines with `\n` in the order above and append trailing `\n`.
 - Compute `sha256(payload)` and write only that hex digest to `tool_registry_lock.sha256`.
 
-Use `cargo run -p bijux-dev-dna -- domain run lock-registry` to update the lock deterministically.
+Use `cargo run -p bijux-dna-dev -- domain run lock-registry` to update the lock deterministically.

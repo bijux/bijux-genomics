@@ -13,6 +13,6 @@ Define the shared artifact environment contract for local development, CI, and o
 
 ## Usage Rules
 - Make targets must prepare the environment through `makes/_macro.mk`.
-- Make targets and helper entrypoints must export the shared artifact environment before invoking `bijux-dev-dna`.
+- Make targets and helper entrypoints must export the shared artifact environment before invoking `bijux-dna-dev`.
 - Automation must write only under `artifacts/`.
 - Automation must not hardcode retired `artifacts/isolates/` paths.

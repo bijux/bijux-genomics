@@ -18,7 +18,7 @@ fn run_fastq_toy(out_dir: &Path) -> Result<PathBuf> {
         .arg("run")
         .arg("-q")
         .arg("-p")
-        .arg("bijux-dev-dna")
+        .arg("bijux-dna-dev")
         .arg("--")
         .arg("test")
         .arg("run")

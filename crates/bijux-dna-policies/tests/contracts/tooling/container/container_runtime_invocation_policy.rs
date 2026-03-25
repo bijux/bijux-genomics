@@ -10,7 +10,7 @@ fn policy__contracts__container_runtime_invocation_policy__only_scripts_containe
 ) {
     let root = support::workspace_root();
     let scripts_root = root.join("scripts");
-    let allowed_root = root.join("bijux-dev-dna").join("containers");
+    let allowed_root = root.join("bijux-dna-dev").join("containers");
     let mut roots = vec![scripts_root];
     roots.push(allowed_root.clone());
     let invoke_re =
@@ -49,7 +49,7 @@ fn policy__contracts__container_runtime_invocation_policy__only_scripts_containe
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "only bijux-dev-dna/containers may invoke docker/apptainer directly. Offenders:\n{}",
+        "only bijux-dna-dev/containers may invoke docker/apptainer directly. Offenders:\n{}",
         offenders.join("\n")
     );
 }

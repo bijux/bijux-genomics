@@ -4,7 +4,7 @@
 Define exact reproducible docs build steps and pinned dependency/config locations.
 
 ## Scope
-Applies to docs builds executed via Make and `cargo run -q -p bijux-dev-dna -- tooling run docs-build`.
+Applies to docs builds executed via Make and `cargo run -q -p bijux-dna-dev -- tooling run docs-build`.
 
 ## Non-goals
 - Replacing lower-level MkDocs theme/content guidance.
@@ -12,13 +12,13 @@ Applies to docs builds executed via Make and `cargo run -q -p bijux-dev-dna -- t
 ## Contracts
 - Python dependencies are pinned in `configs/docs/requirements.txt`.
 - Build behavior is pinned in `configs/docs/mkdocs.toml`.
-- Docs commands are executed through `cargo run -q -p bijux-dev-dna -- tooling run setup-docs-venv` and `cargo run -q -p bijux-dev-dna -- tooling run docs-build`.
+- Docs commands are executed through `cargo run -q -p bijux-dna-dev -- tooling run setup-docs-venv` and `cargo run -q -p bijux-dna-dev -- tooling run docs-build`.
 
 ## Reproducible Steps
 ```bash
-cargo run -q -p bijux-dev-dna -- tooling run setup-docs-venv
-DOCS_VENV=artifacts/docs/.venv DOCS_CFG=configs/docs/mkdocs.toml cargo run -q -p bijux-dev-dna -- tooling run docs-build build
-DOCS_VENV=artifacts/docs/.venv DOCS_CFG=configs/docs/mkdocs.toml cargo run -q -p bijux-dev-dna -- tooling run docs-build lint
+cargo run -q -p bijux-dna-dev -- tooling run setup-docs-venv
+DOCS_VENV=artifacts/docs/.venv DOCS_CFG=configs/docs/mkdocs.toml cargo run -q -p bijux-dna-dev -- tooling run docs-build build
+DOCS_VENV=artifacts/docs/.venv DOCS_CFG=configs/docs/mkdocs.toml cargo run -q -p bijux-dna-dev -- tooling run docs-build lint
 ```
 
 Expected output:

@@ -18,7 +18,7 @@ fn policy__contracts__scripts_layout_policy__legacy_scripts_directory_is_removed
     let legacy_dir = ["scr", "ipts"].concat();
     bijux_dna_policies::policy_assert!(
         !root.join(&legacy_dir).exists(),
-        "legacy automation directory must be fully migrated into bijux-dev-dna and removed"
+        "legacy automation directory must be fully migrated into bijux-dna-dev and removed"
     );
 }
 
@@ -79,8 +79,8 @@ fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_workflows() {
             continue;
         }
         let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        if raw.contains("cargo run -p bijux-dev-dna -- lab ")
-            || raw.contains("cargo run -q -p bijux-dev-dna -- lab ")
+        if raw.contains("cargo run -p bijux-dna-dev -- lab ")
+            || raw.contains("cargo run -q -p bijux-dna-dev -- lab ")
         {
             offenders.push(entry.path().display().to_string());
         }

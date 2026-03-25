@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-tool-index -->
+<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-tool-index -->
 
 # TOOL_INDEX
 

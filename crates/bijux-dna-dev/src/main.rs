@@ -10,4 +10,6 @@ mod commands;
 mod model;
 mod runtime;
 
-pub use cli::run;
+fn main() -> anyhow::Result<()> {
+    cli::run()
+}

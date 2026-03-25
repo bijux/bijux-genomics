@@ -13,7 +13,7 @@ fn repo_root() -> PathBuf {
 #[test]
 fn policy__contracts__scripts_registry_wrapper_policy__container_shell_wrappers_are_removed() {
     let root = repo_root();
-    let wrappers = WalkDir::new(root.join("bijux-dev-dna").join("containers"))
+    let wrappers = WalkDir::new(root.join("bijux-dna-dev").join("containers"))
         .into_iter()
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_file())
@@ -23,7 +23,7 @@ fn policy__contracts__scripts_registry_wrapper_policy__container_shell_wrappers_
 
     bijux_dna_policies::policy_assert!(
         wrappers.is_empty(),
-        "bijux-dev-dna/containers must not contain shell wrappers after migration:\n{}",
+        "bijux-dna-dev/containers must not contain shell wrappers after migration:\n{}",
         wrappers.join("\n")
     );
 }

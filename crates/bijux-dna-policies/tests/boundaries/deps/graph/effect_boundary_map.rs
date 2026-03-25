@@ -22,7 +22,7 @@ const ALLOWLIST: &[(&str, &str)] = &[
         "transitional realization path while runtime effects are being extracted",
     ),
     (
-        "/crates/bijux-dev-dna/",
+        "/crates/bijux-dna-dev/",
         "versioned development automation owns repository-scoped process and filesystem effects",
     ),
 ];

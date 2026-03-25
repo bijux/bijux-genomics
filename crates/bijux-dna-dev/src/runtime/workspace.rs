@@ -13,7 +13,7 @@ impl Workspace {
     pub fn resolve() -> Result<Self> {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
-            .context("bijux-dev-dna manifest has no parent")?
+            .context("bijux-dna-dev manifest has no parent")?
             .parent()
             .context("workspace root is not two levels above crate manifest")?
             .to_path_buf();

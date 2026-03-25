@@ -1,6 +1,6 @@
 ##@ BAM Benchmarks
 
-BIJUX_BIN ?= cargo run -q -p bijux-dev-dna -- tooling run bijux --
+BIJUX_BIN ?= cargo run -q -p bijux-dna-dev -- tooling run bijux --
 BAM ?=
 OUT_DIR ?= .
 TOOLS ?=
@@ -11,12 +11,12 @@ BAM_SAMPLE_ID ?= sample
 BENCH_TOOLS_ARGS = $(if $(TOOLS),--tools $(TOOLS),)
 
 _benchmark-bam-stage: ## Benchmark one BAM stage (set BAM=<path> BAM_STAGE=<stage>)
-	@BIJUX_BIN="$(BIJUX_BIN)" BAM="$(BAM)" BAM_STAGE="$(BAM_STAGE)" BAM_SAMPLE_ID="$(BAM_SAMPLE_ID)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" cargo run -q -p bijux-dev-dna -- tooling run benchmarks bam-stage
+	@BIJUX_BIN="$(BIJUX_BIN)" BAM="$(BAM)" BAM_STAGE="$(BAM_STAGE)" BAM_SAMPLE_ID="$(BAM_SAMPLE_ID)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks bam-stage
 
 _benchmark-bam-pipeline: ## Benchmark BAM pipeline (set BAM=<path>, optional BAM_PROFILE)
-	@BIJUX_BIN="$(BIJUX_BIN)" BAM="$(BAM)" BAM_PROFILE="$(BAM_PROFILE)" BAM_SAMPLE_ID="$(BAM_SAMPLE_ID)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" cargo run -q -p bijux-dev-dna -- tooling run benchmarks bam-pipeline
+	@BIJUX_BIN="$(BIJUX_BIN)" BAM="$(BAM)" BAM_PROFILE="$(BAM_PROFILE)" BAM_SAMPLE_ID="$(BAM_SAMPLE_ID)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks bam-pipeline
 
 _benchmark-bam-all: ## Run BAM stage + pipeline benchmarks
-	@BIJUX_BIN="$(BIJUX_BIN)" BAM="$(BAM)" BAM_STAGE="$(BAM_STAGE)" BAM_PROFILE="$(BAM_PROFILE)" BAM_SAMPLE_ID="$(BAM_SAMPLE_ID)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" cargo run -q -p bijux-dev-dna -- tooling run benchmarks bam-all
+	@BIJUX_BIN="$(BIJUX_BIN)" BAM="$(BAM)" BAM_STAGE="$(BAM_STAGE)" BAM_PROFILE="$(BAM_PROFILE)" BAM_SAMPLE_ID="$(BAM_SAMPLE_ID)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks bam-all
 
 .PHONY: _benchmark-bam-stage _benchmark-bam-pipeline _benchmark-bam-all

@@ -41,7 +41,7 @@ fn policy__contracts__root_migration_guard_policy__new_top_level_dirs_are_blocke
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "new top-level directory detected: {:?}\nMove to crates/ (code), configs/ (settings), assets/ (data), or bijux-dev-dna/native control-plane surfaces (automation).",
+        "new top-level directory detected: {:?}\nMove to crates/ (code), configs/ (settings), assets/ (data), or bijux-dna-dev/native control-plane surfaces (automation).",
         offenders,
     );
 }

@@ -40,7 +40,7 @@ fn policy__contracts__root_layout_policy__top_level_directories_are_allowlisted(
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "root contains non-allowlisted directories: {:?}\nUse: crates/ for Rust packages, configs/ for configuration, assets/ for data artifacts, and bijux-dev-dna for automation.",
+        "root contains non-allowlisted directories: {:?}\nUse: crates/ for Rust packages, configs/ for configuration, assets/ for data artifacts, and bijux-dna-dev for automation.",
         offenders,
     );
 }

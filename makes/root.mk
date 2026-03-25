@@ -23,9 +23,9 @@ include $(ROOT_MK_DIR)/policies.mk
 
 help: ## Show this help message
 	@if [ "$${SHOW_INTERNAL:-0}" = "1" ]; then \
-		cargo run -q -p bijux-dev-dna -- tooling run make-help --internal; \
+		cargo run -q -p bijux-dna-dev -- tooling run make-help --internal; \
 	else \
-		cargo run -q -p bijux-dev-dna -- tooling run make-help; \
+		cargo run -q -p bijux-dna-dev -- tooling run make-help; \
 	fi
 
 _prep-apptainer-batch: ## Build all Apptainer defs in VM-local output dir

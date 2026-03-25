@@ -1,6 +1,6 @@
-# bijux-dev-dna Scope
+# bijux-dna-dev Scope
 
-`bijux-dev-dna` owns the versioned development control plane for this workspace.
+`bijux-dna-dev` owns the versioned development control plane for this workspace.
 
 It is responsible for:
 - cataloging repository automation commands and checks,

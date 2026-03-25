@@ -1,4 +1,4 @@
-# bijux-dev-dna Docs Index
+# bijux-dna-dev Docs Index
 
 ## Scope
 - [SCOPE.md](SCOPE.md)
@@ -18,6 +18,6 @@
 - Extend runtime adapters under `src/runtime` when a workflow needs a new boundary-owned capability.
 
 ## How to Test
-- Run `cargo test -p bijux-dev-dna`.
+- Run `cargo test -p bijux-dna-dev`.
 - Read [TESTS.md](TESTS.md) for command-module coverage.
 - Run `cargo test -p bijux-dna-policies policy__boundaries__docs_index_quality__docs_index_has_required_sections -- --nocapture`.

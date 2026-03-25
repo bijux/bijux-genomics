@@ -1075,7 +1075,7 @@ fn path_from_arg(workspace: &Workspace, arg: &str) -> PathBuf {
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
     let statuses = governed_container_statuses(workspace)?;
     let mut out = String::from(
-        "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-ids\n# format: <tool_id><TAB><status>\n",
+        "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><status>\n",
     );
     for (tool_id, status) in statuses {
         out.push_str(&format!("{tool_id}\t{status}\n"));
@@ -1085,7 +1085,7 @@ fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
 
 fn generate_tool_ids(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-tool-ids -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-tool-ids -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -1105,7 +1105,7 @@ fn check_tool_id_manifest(workspace: &Workspace) -> Result<ContainerCommandOutco
     let actual = read_utf8(&manifest)?;
     if actual != expected {
         return Ok(ContainerCommandOutcome::failure(
-            "containers/TOOL_IDS.txt drift; regenerate with cargo run -p bijux-dev-dna -- containers run generate-tool-ids\n",
+            "containers/TOOL_IDS.txt drift; regenerate with cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n",
         ));
     }
 
@@ -1139,7 +1139,7 @@ fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
     let statuses = governed_container_statuses(workspace)?;
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-name-map -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-name-map -->".to_string(),
         String::new(),
         "# Tool Name Mapping".to_string(),
         String::new(),
@@ -1165,7 +1165,7 @@ fn generate_tool_name_map(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-tool-name-map -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-tool-name-map -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -1178,7 +1178,7 @@ fn check_tool_name_map_generated(workspace: &Workspace) -> Result<ContainerComma
     let target = workspace.path("containers/docs/TOOL_NAME_MAP.md");
     if read_utf8(&target)? != generate_tool_name_map_content(workspace)? {
         return Ok(ContainerCommandOutcome::failure(
-            "tool name map drift: regenerate with cargo run -p bijux-dev-dna -- containers run generate-tool-name-map\n",
+            "tool name map drift: regenerate with cargo run -p bijux-dna-dev -- containers run generate-tool-name-map\n",
         ));
     }
     success_line("tool name map generated: OK")
@@ -1241,7 +1241,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "# Containers Docs Index".to_string(),
         String::new(),
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- source: cargo run -p bijux-dev-dna -- containers run generate-index -->".to_string(),
+        "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->".to_string(),
         String::new(),
         "Purpose: Authoritative tool/container index for container governance and CI checks.".to_string(),
         String::new(),
@@ -1260,7 +1260,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "- Security boundary: `containers/docs/SECURITY_BOUNDARY.md`".to_string(),
         "- Multiarch policy: `containers/docs/MULTIARCH_POLICY.md`".to_string(),
         "- Licenses: `containers/licenses/`".to_string(),
-        "- SBOM + vulnerability hooks: `cargo run -p bijux-dev-dna -- containers run check-sbom-artifacts`, `cargo run -p bijux-dev-dna -- containers run check-vuln-hook`".to_string(),
+        "- SBOM + vulnerability hooks: `cargo run -p bijux-dna-dev -- containers run check-sbom-artifacts`, `cargo run -p bijux-dna-dev -- containers run check-vuln-hook`".to_string(),
         "- Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`".to_string(),
         "- Tool ID contract: `containers/docs/TOOL_IDS_CONTRACT.md`".to_string(),
         String::new(),
@@ -1288,7 +1288,7 @@ fn generate_container_index(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-index -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-index -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -1301,7 +1301,7 @@ fn check_container_index(workspace: &Workspace) -> Result<ContainerCommandOutcom
     let target = workspace.path("containers/docs/index.md");
     if read_utf8(&target)? != generate_container_index_content(workspace)? {
         return Ok(ContainerCommandOutcome::failure(
-            "containers/docs/index.md drift; regenerate with cargo run -p bijux-dev-dna -- containers run generate-index\n",
+            "containers/docs/index.md drift; regenerate with cargo run -p bijux-dna-dev -- containers run generate-index\n",
         ));
     }
     success_line("containers index: OK")
@@ -1399,7 +1399,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
 fn generate_license_index_content(entries: &[LicenseMetadataEntry]) -> String {
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-license-metadata -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-license-metadata -->".to_string(),
         String::new(),
         "# Container License Index".to_string(),
         String::new(),
@@ -1438,7 +1438,7 @@ fn generate_license_metadata(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run generate-license-metadata -- [<output-dir> [<index-path>]]";
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-license-metadata -- [<output-dir> [<index-path>]]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -1621,7 +1621,7 @@ fn check_license_index_generated(workspace: &Workspace) -> Result<ContainerComma
     let expected = generate_license_index_content(&license_metadata_entries(workspace)?);
     if read_utf8(&target)? != expected {
         return Ok(ContainerCommandOutcome::failure(
-            "license index drift: regenerate with cargo run -p bijux-dev-dna -- containers run generate-license-metadata\n",
+            "license index drift: regenerate with cargo run -p bijux-dna-dev -- containers run generate-license-metadata\n",
         ));
     }
     success_line("license index generated: OK")
@@ -1688,7 +1688,7 @@ fn generate_network_usage(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-network-usage -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-network-usage -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -1711,10 +1711,10 @@ fn check_network_disclosure(
         [single] if single == "--offline" => true,
         [single] if single == "--help" || single == "-h" => {
             return success_line(
-                "Usage: cargo run -p bijux-dev-dna -- containers run check-network-disclosure -- [--offline]",
+                "Usage: cargo run -p bijux-dna-dev -- containers run check-network-disclosure -- [--offline]",
             )
         }
-        _ => return Err(anyhow!("Usage: cargo run -p bijux-dev-dna -- containers run check-network-disclosure -- [--offline]")),
+        _ => return Err(anyhow!("Usage: cargo run -p bijux-dna-dev -- containers run check-network-disclosure -- [--offline]")),
     } || std::env::var("BIJUX_OFFLINE").as_deref() == Ok("1");
 
     let report = std::env::var("ISO_ROOT").map(PathBuf::from).map_or_else(
@@ -1922,7 +1922,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
     let mut outputs = BTreeMap::new();
     let mut index_lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->"
+        "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -->"
             .to_string(),
         "# Tool Docs Index".to_string(),
         String::new(),
@@ -1949,7 +1949,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         }
         let mut lines = vec![
             "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-            "<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->"
+            "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -->"
                 .to_string(),
             format!("# {tool}"),
             String::new(),
@@ -2002,7 +2002,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
 
 fn generate_tool_docs(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -- [<output-dir>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -- [<output-dir>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -2049,7 +2049,7 @@ fn check_tool_docs_generated(workspace: &Workspace) -> Result<ContainerCommandOu
     }
     if actual != expected {
         return Ok(ContainerCommandOutcome::failure(
-            "tool docs drift: regenerate with cargo run -p bijux-dev-dna -- containers run generate-tool-docs\n",
+            "tool docs drift: regenerate with cargo run -p bijux-dna-dev -- containers run generate-tool-docs\n",
         ));
     }
     success_line("tool docs generated: OK")
@@ -2217,7 +2217,7 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
 
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-qa-matrix -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-qa-matrix -->".to_string(),
         String::new(),
         "# APPTAINER_QA_MATRIX".to_string(),
         String::new(),
@@ -2268,7 +2268,7 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
 
 fn generate_qa_matrix(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-qa-matrix -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-qa-matrix -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -2292,7 +2292,7 @@ fn check_qa_matrix_generated(workspace: &Workspace) -> Result<ContainerCommandOu
     let target = workspace.path("docs/30-operations/APPTAINER_QA_MATRIX.md");
     if read_utf8(&target)? != generate_qa_matrix_content(workspace)? {
         return Ok(ContainerCommandOutcome::failure(
-            "qa matrix drift: regenerate with cargo run -p bijux-dev-dna -- containers run generate-qa-matrix\n",
+            "qa matrix drift: regenerate with cargo run -p bijux-dna-dev -- containers run generate-qa-matrix\n",
         ));
     }
     success_line("qa matrix generated: OK")
@@ -2359,7 +2359,7 @@ fn extract_version_map_content(workspace: &Workspace) -> Result<String> {
 
 fn extract_version_map(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run extract-version-map -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run extract-version-map -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -2409,7 +2409,7 @@ fn generate_versions_index_sha(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-versions-index-sha -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-versions-index-sha -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -2422,7 +2422,7 @@ fn check_versions_index_sha(workspace: &Workspace) -> Result<ContainerCommandOut
     let expected = workspace.path("containers/versions/index.sha256");
     if read_utf8(&expected)? != generate_versions_index_sha_content(workspace)? {
         return Ok(ContainerCommandOutcome::failure(
-            "versions index sha drift: regenerate with cargo run -p bijux-dev-dna -- containers run generate-versions-index-sha\n",
+            "versions index sha drift: regenerate with cargo run -p bijux-dna-dev -- containers run generate-versions-index-sha\n",
         ));
     }
     success_line("versions index sha: OK")
@@ -2794,8 +2794,8 @@ fn check_promotion_policy(workspace: &Workspace) -> Result<ContainerCommandOutco
         "Provenance",
         "Reproducibility",
         "Smoke quality",
-        "cargo run -p bijux-dev-dna -- containers run tool-lifecycle",
-        "cargo run -p bijux-dev-dna -- containers run demote",
+        "cargo run -p bijux-dna-dev -- containers run tool-lifecycle",
+        "cargo run -p bijux-dna-dev -- containers run demote",
     ] {
         if !text.contains(marker) {
             errors.push(format!("promotion policy missing marker: {marker}"));
@@ -2890,7 +2890,7 @@ fn check_promotion_lock_integrity(workspace: &Workspace) -> Result<ContainerComm
 fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
     let version_map: serde_json::Value =
         serde_json::from_str(&extract_version_map_content(workspace)?)?;
-    let generator_path = workspace.path("crates/bijux-dev-dna/src/commands/containers.rs");
+    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers.rs");
     let versions_path = workspace.path("containers/versions/versions.toml");
 
     let manifest_candidates = [
@@ -3059,7 +3059,7 @@ fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
         "build_manifests_source": "artifacts/containers/manifests/*.json",
         "build_date_utc": git_last_modified_timestamp(workspace, "containers/versions/versions.toml"),
         "builder_platform": "arm64",
-        "generator_script": "cargo run -p bijux-dev-dna -- containers run generate-version-lock",
+        "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
         "generator_sha256": sha256_hex(&fs::read(&generator_path).with_context(|| format!("read {}", generator_path.display()))?),
         "source_sha256": sha256_hex(&fs::read(&versions_path).with_context(|| format!("read {}", versions_path.display()))?),
         "items": items,
@@ -3072,7 +3072,7 @@ fn generate_version_lock(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-version-lock -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-version-lock -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -3085,7 +3085,7 @@ fn check_version_lock(workspace: &Workspace) -> Result<ContainerCommandOutcome> 
     let lock = workspace.path("containers/versions/lock.json");
     if read_utf8(&lock)? != generate_version_lock_content(workspace)? {
         return Ok(ContainerCommandOutcome::failure(
-            "version lock drift: regenerate with cargo run -p bijux-dev-dna -- containers run generate-version-lock\n",
+            "version lock drift: regenerate with cargo run -p bijux-dna-dev -- containers run generate-version-lock\n",
         ));
     }
     success_line("version lock: OK")
@@ -3135,7 +3135,7 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
         &workspace.path("containers/versions/lock.json"),
     )?)?;
     let versions_path = workspace.path("containers/versions/versions.toml");
-    let generator_path = workspace.path("crates/bijux-dev-dna/src/commands/containers.rs");
+    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers.rs");
     let mut errors = Vec::new();
     if lock
         .get("schema_version")
@@ -3169,9 +3169,9 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
     if lock
         .get("generator_script")
         .and_then(serde_json::Value::as_str)
-        != Some("cargo run -p bijux-dev-dna -- containers run generate-version-lock")
+        != Some("cargo run -p bijux-dna-dev -- containers run generate-version-lock")
     {
-        errors.push("- lock.json generator_script must reference bijux-dev-dna".to_string());
+        errors.push("- lock.json generator_script must reference bijux-dna-dev".to_string());
     }
     let expected_gen_sha = sha256_hex(
         &fs::read(&generator_path).with_context(|| format!("read {}", generator_path.display()))?,
@@ -3182,7 +3182,7 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
         != Some(expected_gen_sha.as_str())
     {
         errors.push(
-            "- lock.json generator_sha256 does not match bijux-dev-dna container generator"
+            "- lock.json generator_sha256 does not match bijux-dna-dev container generator"
                 .to_string(),
         );
     }
@@ -3287,7 +3287,7 @@ fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> {
                 "run".to_string(),
                 "-q".to_string(),
                 "-p".to_string(),
-                "bijux-dev-dna".to_string(),
+                "bijux-dna-dev".to_string(),
                 "--".to_string(),
             ],
             command
@@ -3312,7 +3312,7 @@ fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> {
             "run".to_string(),
             "-q".to_string(),
             "-p".to_string(),
-            "bijux-dev-dna".to_string(),
+            "bijux-dna-dev".to_string(),
             "--".to_string(),
             "domain".to_string(),
             "run".to_string(),
@@ -3330,7 +3330,7 @@ fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> {
 
 fn promote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run promote -- --tool <id> --to <experimental|production>";
+        "Usage: cargo run -p bijux-dna-dev -- containers run promote -- --tool <id> --to <experimental|production>";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -3411,7 +3411,7 @@ fn promote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
                 "run".to_string(),
                 "-q".to_string(),
                 "-p".to_string(),
-                "bijux-dev-dna".to_string(),
+                "bijux-dna-dev".to_string(),
                 "--".to_string(),
                 "containers".to_string(),
                 "run".to_string(),
@@ -3428,7 +3428,7 @@ fn promote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
 
 fn demote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run demote -- --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>";
+        "Usage: cargo run -p bijux-dna-dev -- containers run demote -- --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -3469,7 +3469,7 @@ fn demote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerComman
 }
 
 fn deprecate_version(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run deprecate-version -- --tool <id> --version <semver> --rationale <text> --sunset-date <YYYY-MM-DD> --replacement-tool <id> --replacement-version <semver> [--compatibility-mode allowed|blocked]";
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run deprecate-version -- --tool <id> --version <semver> --rationale <text> --sunset-date <YYYY-MM-DD> --replacement-tool <id> --replacement-version <semver> [--compatibility-mode allowed|blocked]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -3547,7 +3547,7 @@ fn deprecate_version(workspace: &Workspace, args: &[String]) -> Result<Container
 }
 
 fn tool_lifecycle(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage:\n  cargo run -p bijux-dev-dna -- containers run tool-lifecycle -- --tool <id> --to experimental\n  cargo run -p bijux-dev-dna -- containers run tool-lifecycle -- --tool <id> --to stable\n\nNotes:\n- `stable` is the lifecycle alias for production container status.\n- Status changes must be done through this command (no manual edits).\n";
+    let usage = "Usage:\n  cargo run -p bijux-dna-dev -- containers run tool-lifecycle -- --tool <id> --to experimental\n  cargo run -p bijux-dna-dev -- containers run tool-lifecycle -- --tool <id> --to stable\n\nNotes:\n- `stable` is the lifecycle alias for production container status.\n- Status changes must be done through this command (no manual edits).\n";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -3595,7 +3595,7 @@ fn check_apptainer_frontend_reproducibility(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-reproducibility -- [<summary-path>]";
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run check-apptainer-frontend-reproducibility -- [<summary-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -3676,7 +3676,7 @@ fn check_apptainer_frontend_security(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-security -- [<summary-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run check-apptainer-frontend-security -- [<summary-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -3751,7 +3751,7 @@ fn check_apptainer_frontend_smoke_proof(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof -- [<proof-root>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- [<proof-root>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -4356,7 +4356,7 @@ fn generate_local_apptainer_digests(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run generate-local-apptainer-digests -- [<output-path>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run generate-local-apptainer-digests -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -4405,7 +4405,7 @@ fn compare_frontend_local_sif_hash(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run compare-frontend-local-sif-hash -- [<frontend-json>] [<local-json>] [<output-path>]";
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run compare-frontend-local-sif-hash -- [<frontend-json>] [<local-json>] [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -5156,7 +5156,7 @@ fn check_hpc_image_naming(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dev-dna -- containers run check-hpc-image-naming";
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run check-hpc-image-naming";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -5364,7 +5364,7 @@ fn check_tool_id_contract(workspace: &Workspace) -> Result<ContainerCommandOutco
         .collect::<Vec<_>>();
     let required_headers = [
         "# GENERATED FILE - DO NOT EDIT",
-        "# Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-ids",
+        "# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids",
         "# format: <tool_id><TAB><status>",
     ];
     let allowed_status = ["production", "experimental", "planned"]
@@ -5559,7 +5559,7 @@ fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome
     let mut errors = Vec::new();
     let scan_roots = [
         workspace.path("makes"),
-        workspace.path("crates/bijux-dev-dna/src"),
+        workspace.path("crates/bijux-dna-dev/src"),
     ];
     let broad_build_re = Regex::new(r"\bdocker\s+build\b.*\s\.\s*$").expect("regex");
     let host_copy_re = Regex::new(r"\b(COPY|ADD)\s+(\.\./|/Users/|~/)").expect("regex");
@@ -8078,7 +8078,7 @@ fn check_runtime_tool_digest_recording(workspace: &Workspace) -> Result<Containe
 
 fn check_rebuild_repro(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run check-rebuild-repro -- <tool-id>";
+        "Usage: cargo run -p bijux-dna-dev -- containers run check-rebuild-repro -- <tool-id>";
     let tool = match args {
         [flag] if flag == "--help" || flag == "-h" => return success_line(usage),
         [tool] => tool.clone(),
@@ -8227,7 +8227,7 @@ fn check_apptainer_rebuild_repro(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run check-apptainer-rebuild-repro -- <tool-id>";
+        "Usage: cargo run -p bijux-dna-dev -- containers run check-apptainer-rebuild-repro -- <tool-id>";
     let tool = match args {
         [flag] if flag == "--help" || flag == "-h" => return success_line(usage),
         [tool] => tool.clone(),
@@ -8716,7 +8716,7 @@ fn check_release_checklist(workspace: &Workspace) -> Result<ContainerCommandOutc
     let checklist = read_utf8(&checklist_path)?;
     let registry = crate::catalog::containers::container_registry(workspace)?;
     let command_regex =
-        Regex::new(r"cargo run -p bijux-dev-dna -- containers run ([a-z0-9-]+)").expect("regex");
+        Regex::new(r"cargo run -p bijux-dna-dev -- containers run ([a-z0-9-]+)").expect("regex");
     let missing = command_regex
         .captures_iter(&checklist)
         .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_string()))
@@ -8879,7 +8879,7 @@ fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
             }
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- containers run summary -- [--json <output-path>]",
+                    "Usage: cargo run -p bijux-dna-dev -- containers run summary -- [--json <output-path>]",
                 );
             }
             other => {
@@ -9323,7 +9323,7 @@ fn run_apptainer_ensure_stage(
 fn run_registry_tools(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- containers run registry-tools -- <registry-subcommand> [args...]",
+            "Usage: cargo run -p bijux-dna-dev -- containers run registry-tools -- <registry-subcommand> [args...]",
         );
     }
     if args.is_empty() {
@@ -9492,7 +9492,7 @@ fn run_container_lint(workspace: &Workspace, args: &[String]) -> Result<Containe
 
 fn run_ensure_images(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run ensure-images -- [--plan] [--only <tool-id>] [--changed]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run ensure-images -- [--plan] [--only <tool-id>] [--changed]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -9567,7 +9567,7 @@ fn run_ensure_images(workspace: &Workspace, args: &[String]) -> Result<Container
 
 fn run_container_doctor(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run container-doctor -- [--strict] [--tool <tool-id>]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run container-doctor -- [--strict] [--tool <tool-id>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -9701,7 +9701,7 @@ fn run_release_gate(workspace: &Workspace, args: &[String]) -> Result<ContainerC
 
 fn run_vuln_scan_hook(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let usage =
-        "Usage: cargo run -p bijux-dev-dna -- containers run vuln-scan-hook -- [<sbom-root> [<output-path>]]";
+        "Usage: cargo run -p bijux-dna-dev -- containers run vuln-scan-hook -- [<sbom-root> [<output-path>]]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
@@ -9915,7 +9915,7 @@ fn run_build_apptainer_all(
 ) -> Result<ContainerCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- containers run build-apptainer-all -- [--defs-dir <path>] [--vm-out <path>] [--copy-back <path>] [--jobs <n>] [--summary-file <path>] [--build-one <tool-id>]",
+            "Usage: cargo run -p bijux-dna-dev -- containers run build-apptainer-all -- [--defs-dir <path>] [--vm-out <path>] [--copy-back <path>] [--jobs <n>] [--summary-file <path>] [--build-one <tool-id>]",
         );
     }
     let mut defs_dir = None::<PathBuf>;
@@ -10705,7 +10705,7 @@ fn write_frontend_repro_summary(
         ),
     )?;
     let mut lines = vec![
-        "<!-- Generated by cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-reproducibility -->".to_string(),
+        "<!-- Generated by cargo run -p bijux-dna-dev -- containers run run-apptainer-frontend-reproducibility -->".to_string(),
         String::new(),
         "# Apptainer Frontend Reproducibility Report".to_string(),
         String::new(),
@@ -11042,7 +11042,7 @@ fn write_frontend_security_summary(
     )?;
     let summary_json = read_json(summary_path)?;
     let mut lines = vec![
-        "<!-- Generated by cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-security -->".to_string(),
+        "<!-- Generated by cargo run -p bijux-dna-dev -- containers run run-apptainer-frontend-security -->".to_string(),
         String::new(),
         "# Apptainer Frontend Security Summary".to_string(),
         String::new(),

@@ -22,7 +22,7 @@ _push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
 	LUNARC_REPO_DIR="$(LUNARC_REPO_DIR)" \
 	CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
 	ALLOW_DIRTY="$(ALLOW_DIRTY)" \
-	cargo run -q -p bijux-dev-dna -- hpc run lunarc/push
+	cargo run -q -p bijux-dna-dev -- hpc run lunarc/push
 
 push-lunarc: _push-lunarc ## Public alias for pushing repo to Lunarc
 
@@ -32,7 +32,7 @@ push-lunarc-confirm: ## Push repo to Lunarc (executes --confirm)
 	LUNARC_REPO_DIR="$(LUNARC_REPO_DIR)" \
 	CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
 	ALLOW_DIRTY="$(ALLOW_DIRTY)" \
-	cargo run -q -p bijux-dev-dna -- hpc run lunarc/push --confirm
+	cargo run -q -p bijux-dna-dev -- hpc run lunarc/push --confirm
 
 _pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: results)
 	@LUNARC_HOST="$(LUNARC_HOST)" \
@@ -42,7 +42,7 @@ _pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: resu
 	INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	PULL_MODE="results" \
-	cargo run -q -p bijux-dev-dna -- hpc run lunarc/pull
+	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull
 
 pull-lunarc: _pull-lunarc ## Public alias for pull from Lunarc
 
@@ -54,7 +54,7 @@ _pull-lunarc-results: ## Recommended: pull results + optional manifests only
 	INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	PULL_MODE="results" \
-	cargo run -q -p bijux-dev-dna -- hpc run lunarc/pull
+	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull
 
 pull-lunarc-results: _pull-lunarc-results ## Public alias for pull results from Lunarc
 
@@ -108,7 +108,7 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_ARTIFACT_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			$$py_arg \
-			cargo run -q -p bijux-dev-dna -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"'
+			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"'
 
 apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lunarc frontend
 	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
@@ -126,7 +126,7 @@ apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lun
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_ARTIFACT_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			APPTAINER_PYTHON_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" \
-			cargo run -q -p bijux-dev-dna -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
+			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
 		tail -n 20 "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/apptainer/summary.txt"'
 
 apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-apptainer
@@ -175,7 +175,7 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			$$py_arg \
-			cargo run -q -p bijux-dev-dna -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"
+			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"
 
 apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 	@if [ -d "$(LUNARC_FRONTEND_SENTINEL)" ]; then :; else \
@@ -194,7 +194,7 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			$$py_arg \
-			cargo run -q -p bijux-dev-dna -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
+			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
 		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"
 
 apptainer-hpc-clean: ## Remove frontend apptainer output dir

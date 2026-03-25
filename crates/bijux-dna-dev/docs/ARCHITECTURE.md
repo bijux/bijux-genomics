@@ -1,6 +1,6 @@
-# bijux-dev-dna Architecture
+# bijux-dna-dev Architecture
 
-`bijux-dev-dna` is organized as a small control-plane crate with four durable layers:
+`bijux-dna-dev` is organized as a small control-plane crate with four durable layers:
 
 - `cli` parses the developer-facing command surface and hands off to the application layer.
 - `application` coordinates commands, catalogs, and runtime services into stable workflows.

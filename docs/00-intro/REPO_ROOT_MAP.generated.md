@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-repo-root-map -->
+<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-repo-root-map -->
 
 # REPO_ROOT_MAP
 
@@ -40,5 +40,5 @@ Top-level workspace paths only.
 ## Automation Intent
 | Control Plane Path | Purpose |
 |---|---|
-| `bijux-dev-dna` | native control-plane automation entrypoint for repository workflows. |
-| `makes` | user-facing orchestration surface delegating to `bijux-dev-dna`. |
+| `bijux-dna-dev` | native control-plane automation entrypoint for repository workflows. |
+| `makes` | user-facing orchestration surface delegating to `bijux-dna-dev`. |

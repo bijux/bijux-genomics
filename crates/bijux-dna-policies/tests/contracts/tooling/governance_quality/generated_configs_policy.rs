@@ -49,7 +49,7 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
 fn policy__contracts__generated_configs_policy__single_generator_command_is_canonical() {
     let root = support::workspace_root();
     let makefile = root.join("makes/cargo.mk");
-    let native_source = root.join("crates/bijux-dev-dna/src/commands/ops.rs");
+    let native_source = root.join("crates/bijux-dna-dev/src/commands/ops.rs");
     let make_raw = std::fs::read_to_string(&makefile)
         .unwrap_or_else(|_| panic!("read {}", makefile.display()));
     let native_raw = std::fs::read_to_string(&native_source)
@@ -57,11 +57,11 @@ fn policy__contracts__generated_configs_policy__single_generator_command_is_cano
 
     assert!(
         native_raw.contains("compile_domain_configs"),
-        "bijux-dev-dna native ops must call compile_domain_configs"
+        "bijux-dna-dev native ops must call compile_domain_configs"
     );
     assert!(
         make_raw.contains("generate-configs:")
-            && make_raw.contains("cargo run -q -p bijux-dev-dna -- tooling run generate-configs"),
-        "makes/cargo.mk generate-configs target must call bijux-dev-dna tooling generate-configs"
+            && make_raw.contains("cargo run -q -p bijux-dna-dev -- tooling run generate-configs"),
+        "makes/cargo.mk generate-configs target must call bijux-dna-dev tooling generate-configs"
     );
 }
