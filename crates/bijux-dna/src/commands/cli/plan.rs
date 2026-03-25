@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::bench::fastq_args as engine_args;
 use bijux_dna_api::v1::api::run::{StageId, ToolId};
+use bijux_dna_core::id_catalog;
 use std::path::{Path, PathBuf};
 
 use crate::commands::cli::env::registry_tools_for_stage;
@@ -17,12 +18,6 @@ use crate::commands::cli::parse::{
     DnaCommand, FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
 };
 
-const TOOL_CUTADAPT: &str = "cutadapt";
-const TOOL_FASTP: &str = "fastp";
-const TOOL_MULTIQC: &str = "multiqc";
-const TOOL_SAMTOOLS: &str = "samtools";
-const TOOL_SEQKIT_STATS: &str = "seqkit_stats";
-
 #[must_use]
 pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs) {
     match command {
@@ -35,12 +30,12 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             | FastqCommand::Compare(_)
             | FastqCommand::Run(_) => (
                 StageId::from_static("fastq.trim_reads"),
-                ToolId::from_static(TOOL_FASTP),
+                ToolId::from_static(id_catalog::TOOL_FASTP),
                 CommonArgs::default(),
             ),
             FastqCommand::Trim(args) => (
                 StageId::from_static("fastq.trim_reads"),
-                ToolId::from_static(TOOL_FASTP),
+                ToolId::from_static(id_catalog::TOOL_FASTP),
                 args.common.clone(),
             ),
             FastqCommand::ValidateReads(args) => (
@@ -50,12 +45,12 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             ),
             FastqCommand::ProfileReads(common) => (
                 StageId::from_static("fastq.profile_reads"),
-                ToolId::from_static(TOOL_SEQKIT_STATS),
+                ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
                 common.clone(),
             ),
             FastqCommand::Filter(args) => (
                 StageId::from_static("fastq.filter_reads"),
-                ToolId::from_static(TOOL_FASTP),
+                ToolId::from_static(id_catalog::TOOL_FASTP),
                 args.common.clone(),
             ),
             FastqCommand::Merge(common) => (
@@ -80,7 +75,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             ),
             FastqCommand::Qc(common) => (
                 StageId::from_static("fastq.report_qc"),
-                ToolId::from_static(TOOL_MULTIQC),
+                ToolId::from_static(id_catalog::TOOL_MULTIQC),
                 common.clone(),
             ),
             FastqCommand::Align(common) => (
@@ -97,7 +92,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
         DnaCommand::Bam { command } => match command {
             BamCommand::ListStages | BamCommand::Explain { .. } => (
                 StageId::from_static("bam.validate"),
-                ToolId::from_static(TOOL_SAMTOOLS),
+                ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
                 CommonArgs::default(),
             ),
             BamCommand::Run(args) => (
@@ -105,7 +100,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
                 ToolId::new(
                     args.tool
                         .clone()
-                        .unwrap_or_else(|| TOOL_SAMTOOLS.to_string()),
+                        .unwrap_or_else(|| id_catalog::TOOL_SAMTOOLS.to_string()),
                 ),
                 CommonArgs::default(),
             ),
@@ -124,7 +119,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
         },
         _ => (
             StageId::from_static("fastq.trim_reads"),
-            ToolId::from_static(TOOL_FASTP),
+            ToolId::from_static(id_catalog::TOOL_FASTP),
             CommonArgs::default(),
         ),
     }
@@ -792,7 +787,7 @@ mod tests {
         bench_args_profile_overrepresented, bench_args_profile_read_lengths,
         bench_args_remove_chimeras, bench_args_remove_duplicates, bench_args_trim,
         bench_args_trim_polyg, bench_args_trim_terminal_damage, resolve_stage_tool,
-        TOOL_CUTADAPT, TOOL_FASTP,
+        id_catalog,
     };
     use crate::commands::cli::parse::{
         BenchFastqFilterArgs, BenchFastqNormalizePrimersArgs, BenchFastqProfileOverrepresentedArgs,
@@ -923,7 +918,7 @@ mod tests {
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec![TOOL_FASTP.to_string()],
+            tools: vec![id_catalog::TOOL_FASTP.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -1000,7 +995,7 @@ mod tests {
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec![TOOL_FASTP.to_string()],
+            tools: vec![id_catalog::TOOL_FASTP.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -1024,7 +1019,7 @@ mod tests {
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec![TOOL_CUTADAPT.to_string()],
+            tools: vec![id_catalog::TOOL_CUTADAPT.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -1052,7 +1047,7 @@ mod tests {
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: None,
             out: PathBuf::from("out"),
-            tools: vec![TOOL_CUTADAPT.to_string()],
+            tools: vec![id_catalog::TOOL_CUTADAPT.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -1085,7 +1080,7 @@ mod tests {
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec![TOOL_FASTP.to_string()],
+            tools: vec![id_catalog::TOOL_FASTP.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
