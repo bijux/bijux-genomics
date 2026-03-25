@@ -850,7 +850,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_validate_policy_literals_accept_governed_surface() -> Result<()> {
+    fn validation_policy_literals_accept_governed_surface() -> Result<()> {
         assert_eq!(
             validation_mode_from_literal("strict")?,
             ValidationMode::Strict
