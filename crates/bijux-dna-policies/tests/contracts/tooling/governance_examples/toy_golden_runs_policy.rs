@@ -3,7 +3,7 @@
 mod support;
 
 #[test]
-fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_deterministic() {
+fn slow__policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_deterministic() {
     let root = support::workspace_root();
     let checksum = root.join("assets/toy/core-v1/CHECKSUMS.sha256");
     if !checksum.exists() {
