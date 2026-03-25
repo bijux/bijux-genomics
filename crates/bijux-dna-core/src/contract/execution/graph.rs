@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
+use crate::id_catalog;
 use crate::contract::{ContractVersion, StageIO, ToolConstraints};
 use crate::foundation::{BijuxError, CommandSpecV1, ContainerImageRefV1, Result};
 use crate::ids::{ArtifactId, PipelineId, StageId, StepId};
@@ -459,7 +460,7 @@ fn step_input_binding_exists(step: &ExecutionStep, input_id: &str) -> bool {
     {
         return true;
     }
-    step.stage_id.as_str() == "fastq.report_qc"
+    step.stage_id.as_str() == id_catalog::FASTQ_QC_POST
         && input_id == "qc_artifacts"
         && !step.io.inputs.is_empty()
 }
@@ -505,6 +506,7 @@ mod tests {
     use super::{ExecutionEdge, ExecutionGraph, ExecutionStep};
     use crate::contract::{ArtifactRef, ArtifactRole, PlanPolicy, StageIO, ToolConstraints};
     use crate::foundation::{CommandSpecV1, ContainerImageRefV1};
+    use crate::id_catalog;
     use crate::ids::{ArtifactId, StageId, StepId};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -546,7 +548,7 @@ mod tests {
             "fastq-to-fastq__graph__v1",
             "planner",
             PlanPolicy::PreferAccuracy,
-            vec![step("a", "fastq.validate_reads")],
+            vec![step("a", id_catalog::FASTQ_VALIDATE_READS)],
             vec![],
         )
         .unwrap_or_else(|err| panic!("graph should be valid: {err}"));
@@ -555,7 +557,7 @@ mod tests {
                 .step_by_id("a")
                 .unwrap_or_else(|| panic!("expected step a"))
                 .stage_id,
-            StageId::new("fastq.validate_reads".to_string())
+            StageId::from_static(id_catalog::FASTQ_VALIDATE_READS)
         );
         assert!(graph.step_by_id("missing").is_none());
     }
@@ -567,9 +569,9 @@ mod tests {
             "planner",
             PlanPolicy::PreferAccuracy,
             vec![
-                step("trim", "fastq.trim_reads"),
-                step("validate", "fastq.validate_reads"),
-                step("report", "fastq.report_qc"),
+                step("trim", id_catalog::FASTQ_TRIM),
+                step("validate", id_catalog::FASTQ_VALIDATE_READS),
+                step("report", id_catalog::FASTQ_QC_POST),
             ],
             vec![
                 ExecutionEdge::new(
@@ -598,7 +600,7 @@ mod tests {
             "fastq-to-fastq__graph__v1",
             "planner",
             PlanPolicy::PreferAccuracy,
-            vec![step("trim", "fastq.trim_reads")],
+            vec![step("trim", id_catalog::FASTQ_TRIM)],
             vec![],
         )
         .unwrap_or_else(|err| panic!("graph should be valid: {err}"));

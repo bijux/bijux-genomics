@@ -299,6 +299,15 @@ mod tests {
         AnalysisRequirements, BenchmarkGraphNodeKind, BenchmarkStageSpec, BenchmarkSuiteSpec,
         DatasetSpec, DiversityRequirements, ReplicatePolicy, StratificationRequirement,
     };
+    use bijux_dna_core::id_catalog;
+
+    fn stage_instance(stage_id: &str, suffix: &str) -> String {
+        format!("{stage_id}.{suffix}")
+    }
+
+    fn stage_tool_instance(stage_id: &str, suffix: &str, tool_id: &str) -> String {
+        format!("{}.tool.{tool_id}", stage_instance(stage_id, suffix))
+    }
 
     #[test]
     fn suite_graph_nodes_materialize_stage_and_stage_tool_identity() {
@@ -313,8 +322,8 @@ mod tests {
                 read_layout: "paired".to_string(),
             }],
             vec![BenchmarkStageSpec {
-                stage: "fastq.trim_reads".to_string(),
-                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                stage: id_catalog::FASTQ_TRIM.to_string(),
+                stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "cleanup")),
                 tools: vec!["fastp".to_string(), "cutadapt".to_string()],
                 params: Vec::new(),
                 param_bindings: Vec::new(),
@@ -345,17 +354,19 @@ mod tests {
         assert_eq!(nodes.len(), 3);
         assert!(nodes.iter().any(|node| {
             node.kind == BenchmarkGraphNodeKind::Stage
-                && node.node_id == "fastq.trim_reads.cleanup"
+                && node.node_id == stage_instance(id_catalog::FASTQ_TRIM, "cleanup")
                 && node.tool_id.is_none()
         }));
         assert!(nodes.iter().any(|node| {
             node.kind == BenchmarkGraphNodeKind::StageTool
-                && node.node_id == "fastq.trim_reads.cleanup.tool.fastp"
+                && node.node_id
+                    == stage_tool_instance(id_catalog::FASTQ_TRIM, "cleanup", id_catalog::TOOL_FASTP)
                 && node.tool_id.as_deref() == Some("fastp")
         }));
         assert!(nodes.iter().any(|node| {
             node.kind == BenchmarkGraphNodeKind::StageTool
-                && node.node_id == "fastq.trim_reads.cleanup.tool.cutadapt"
+                && node.node_id
+                    == stage_tool_instance(id_catalog::FASTQ_TRIM, "cleanup", id_catalog::TOOL_CUTADAPT)
                 && node.tool_id.as_deref() == Some("cutadapt")
         }));
     }
@@ -379,8 +390,8 @@ mod tests {
                 params: Vec::new(),
                 param_bindings: Vec::new(),
                 upstream_stage_instance_ids: vec![
-                    "fastq.trim_reads.fastp".to_string(),
-                    "fastq.trim_reads.cutadapt".to_string(),
+                    stage_instance(id_catalog::FASTQ_TRIM, "fastp"),
+                    stage_instance(id_catalog::FASTQ_TRIM, "cutadapt"),
                 ],
             }],
             ReplicatePolicy {

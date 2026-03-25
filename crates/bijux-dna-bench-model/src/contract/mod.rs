@@ -9,7 +9,10 @@ use crate::model::{
     BenchmarkGraphNode, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
 };
 use crate::policy::GateDecision;
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::{
+    id_catalog,
+    ids,
+};
 use bijux_dna_domain_fastq::{
     admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,
     stage_input_ids, stage_output_ids, stage_parameter_ids, stage_tool_binding,
@@ -57,7 +60,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
                 "suite stages must include non-empty stage ids".to_string(),
             ));
         }
-        validate_stage_id(&stage.stage)?;
+        ensure_supported_stage(&stage.stage)?;
         let node_id = stage
             .stage_instance_id
             .as_deref()
@@ -420,25 +423,29 @@ fn validate_stage_input_port(
     )))
 }
 
-fn validate_stage_id(stage_id: &str) -> Result<(), BenchError> {
+fn ensure_supported_stage(stage_id: &str) -> Result<(), BenchError> {
     if planner_owned_graph_stage(stage_id) {
         return Ok(());
     }
-    if stage_id.starts_with("fastq.") {
+    if stage_id.starts_with(id_catalog::FASTQ_PREFIX) {
         if contract_for_stage(stage_id).is_none() {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite stage {stage_id} is not declared in the FASTQ domain catalog"
             )));
         }
-        let stage_id = StageId::new(stage_id.to_string());
+        let stage_id = ids::parse_stage_id(stage_id).map_err(|err| {
+            BenchError::InvalidPolicy(format!("suite stage {stage_id} is not a valid id: {err}"))
+        })?;
         let support = execution_support_for_stage(&stage_id).ok_or_else(|| {
             BenchError::InvalidPolicy(format!(
-                "suite stage {stage_id} is missing FASTQ execution support"
+                "suite stage {} is missing FASTQ execution support",
+                stage_id.as_str()
             ))
         })?;
         if !support.is_plannable() {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite stage {stage_id} is not plannable under FASTQ execution support"
+                "suite stage {} is not plannable under FASTQ execution support",
+                stage_id.as_str()
             )));
         }
         return Ok(());
@@ -460,21 +467,30 @@ fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchErr
             "suite planner-owned stage {stage_id} must not declare tool bindings"
         )));
     }
-    if !stage_id.starts_with("fastq.") {
+    if !stage_id.starts_with(id_catalog::FASTQ_PREFIX) {
         return Ok(());
     }
-    let stage_id = StageId::new(stage_id.to_string());
+    let stage_id = ids::parse_stage_id(stage_id).map_err(|err| {
+        BenchError::InvalidPolicy(format!("suite stage {stage_id} is not a valid id: {err}"))
+    })?;
     let admitted_tools = admitted_execution_tools_for_stage(&stage_id);
     for tool in tools {
-        let tool_id = ToolId::new(tool.clone());
+        let tool_id = ids::parse_tool_id(tool).map_err(|err| {
+            BenchError::InvalidPolicy(format!(
+                "suite stage {} tool {tool} is not a valid tool id: {err}",
+                stage_id.as_str()
+            ))
+        })?;
         if stage_tool_binding(&stage_id, &tool_id).is_none() {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite stage {stage_id} tool {tool} is not declared in the FASTQ stage-tool matrix"
+                "suite stage {} tool {tool} is not declared in the FASTQ stage-tool matrix",
+                stage_id.as_str()
             )));
         }
         if !admitted_tools.iter().any(|admitted| admitted == &tool_id) {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite stage {stage_id} tool {tool} is not admitted by FASTQ execution support"
+                "suite stage {} tool {tool} is not admitted by FASTQ execution support",
+                stage_id.as_str()
             )));
         }
     }
@@ -609,6 +625,27 @@ mod tests {
         BenchmarkSuiteSpec, DatasetSpec, DiversityRequirements, ReplicatePolicy,
         StratificationRequirement,
     };
+    use bijux_dna_core::id_catalog;
+
+    fn fastq_stage(name: &str) -> String {
+        format!("{}{}", id_catalog::FASTQ_PREFIX, name)
+    }
+
+    fn stage_instance(stage_id: &str, suffix: &str) -> String {
+        format!("{stage_id}.{suffix}")
+    }
+
+    fn stage_tool_instance(stage_id: &str, suffix: &str, tool_id: &str) -> String {
+        format!("{}.tool.{tool_id}", stage_instance(stage_id, suffix))
+    }
+
+    fn fastq_instance(name: &str, suffix: &str) -> String {
+        stage_instance(&fastq_stage(name), suffix)
+    }
+
+    fn fastq_tool_instance(name: &str, suffix: &str, tool_id: &str) -> String {
+        stage_tool_instance(&fastq_stage(name), suffix, tool_id)
+    }
 
     fn suite_with_stage(stage: BenchmarkStageSpec) -> BenchmarkSuiteSpec {
         BenchmarkSuiteSpec::v1_stage_matrix(
@@ -660,7 +697,7 @@ mod tests {
     #[test]
     fn suite_validation_rejects_duplicate_stage_tools() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
             stage_instance_id: None,
             tools: vec!["fastp".to_string(), "fastp".to_string()],
             params: Vec::new(),
@@ -674,7 +711,7 @@ mod tests {
     #[test]
     fn suite_validation_rejects_unknown_fastq_stage_ids() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.unknown_stage".to_string(),
+            stage: fastq_stage("unknown_stage"),
             stage_instance_id: None,
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
@@ -688,7 +725,7 @@ mod tests {
     #[test]
     fn suite_validation_accepts_governed_fastq_stages_with_planning_support() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.infer_asvs".to_string(),
+            stage: fastq_stage("infer_asvs"),
             stage_instance_id: None,
             tools: vec!["dada2".to_string()],
             params: Vec::new(),
@@ -701,7 +738,7 @@ mod tests {
     #[test]
     fn suite_validation_rejects_fastq_tools_outside_execution_support() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.filter_low_complexity".to_string(),
+            stage: fastq_stage("filter_low_complexity"),
             stage_instance_id: None,
             tools: vec!["dustmasker".to_string()],
             params: Vec::new(),
@@ -715,7 +752,7 @@ mod tests {
     #[test]
     fn suite_validation_accepts_registered_bam_stage_ids() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "bam.align".to_string(),
+            stage: id_catalog::BAM_ALIGN.to_string(),
             stage_instance_id: None,
             tools: vec!["bwa".to_string()],
             params: Vec::new(),
@@ -755,7 +792,7 @@ mod tests {
     #[test]
     fn suite_validation_rejects_blank_stage_params() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
             stage_instance_id: None,
             tools: vec!["fastp".to_string()],
             params: vec![String::new()],
@@ -769,12 +806,12 @@ mod tests {
     #[test]
     fn suite_validation_rejects_mixed_legacy_and_structured_stage_params() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
             stage_instance_id: None,
             tools: vec!["fastp".to_string()],
             params: vec!["threads=4".to_string()],
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.trim_reads.tool.fastp".to_string()),
+                stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "tool.fastp")),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -790,12 +827,12 @@ mod tests {
     #[test]
     fn suite_validation_accepts_structured_stage_param_bindings() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
             stage_instance_id: None,
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.trim_reads.tool.fastp".to_string()),
+                stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "tool.fastp")),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -810,12 +847,12 @@ mod tests {
     #[test]
     fn suite_validation_rejects_param_binding_targets_outside_stage_tool_nodes() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
             stage_instance_id: None,
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.detect_adapters.tool.fastqc".to_string()),
+                stage_instance_id: Some(format!("{}.tool.{}", id_catalog::FASTQ_DETECT_ADAPTERS, id_catalog::TOOL_FASTQC)),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -831,12 +868,12 @@ mod tests {
     #[test]
     fn suite_validation_rejects_tool_scoped_binding_targeting_stage_node() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
-            stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
+            stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "cleanup")),
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+                stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "cleanup")),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -852,12 +889,12 @@ mod tests {
     #[test]
     fn suite_validation_rejects_tool_scoped_binding_with_mismatched_tool_node() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
-            stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
+            stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "cleanup")),
             tools: vec!["fastp".to_string(), "bbduk".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.trim_reads.cleanup.tool.bbduk".to_string()),
+                stage_instance_id: Some(stage_tool_instance(id_catalog::FASTQ_TRIM, "cleanup", "bbduk")),
                 tool: Some("fastp".to_string()),
                 values: std::collections::BTreeMap::from([(
                     "threads".to_string(),
@@ -873,12 +910,12 @@ mod tests {
     #[test]
     fn suite_validation_accepts_governed_stage_scoped_param_bindings() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
-            stage_instance_id: Some("fastq.trim_reads.tool_cohort".to_string()),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
+            stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "tool_cohort")),
             tools: vec!["fastp".to_string(), "bbduk".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.trim_reads.tool_cohort".to_string()),
+                stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "tool_cohort")),
                 tool: None,
                 values: std::collections::BTreeMap::from([
                     ("min_length".to_string(), serde_json::json!(30)),
@@ -894,12 +931,12 @@ mod tests {
     #[test]
     fn suite_validation_rejects_unknown_stage_scoped_param_bindings() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
-            stage_instance_id: Some("fastq.trim_reads.tool_cohort".to_string()),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
+            stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "tool_cohort")),
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: vec![BenchmarkParamBinding {
-                stage_instance_id: Some("fastq.trim_reads.tool_cohort".to_string()),
+                stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "tool_cohort")),
                 tool: None,
                 values: std::collections::BTreeMap::from([(
                     "adapter_bank_path".to_string(),
@@ -926,20 +963,20 @@ mod tests {
             }],
             vec![
                 BenchmarkStageSpec {
-                    stage: "fastq.trim_reads".to_string(),
-                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    stage: id_catalog::FASTQ_TRIM.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "fastp")),
                     tools: vec!["fastp".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
                     upstream_stage_instance_ids: Vec::new(),
                 },
                 BenchmarkStageSpec {
-                    stage: "fastq.trim_reads".to_string(),
-                    stage_instance_id: Some("fastq.trim_reads.cutadapt".to_string()),
+                    stage: id_catalog::FASTQ_TRIM.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "cutadapt")),
                     tools: vec!["cutadapt".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
-                    upstream_stage_instance_ids: vec!["fastq.trim_reads.fastp".to_string()],
+                    upstream_stage_instance_ids: vec![stage_instance(id_catalog::FASTQ_TRIM, "fastp")],
                 },
             ],
             ReplicatePolicy {
@@ -968,8 +1005,8 @@ mod tests {
     #[test]
     fn suite_validation_rejects_unknown_upstream_stage_nodes() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
-            stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
+            stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "fastp")),
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: Vec::new(),
@@ -982,15 +1019,15 @@ mod tests {
     #[test]
     fn suite_validation_rejects_unknown_explicit_edge_nodes() {
         let mut suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
-            stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
+            stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "fastp")),
             tools: vec!["fastp".to_string()],
             params: Vec::new(),
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
         suite.edges = vec![BenchmarkStageEdge {
-            from: "fastq.trim_reads.fastp".to_string(),
+            from: stage_instance(id_catalog::FASTQ_TRIM, "fastp"),
             to: "missing.node".to_string(),
             from_output_id: None,
             to_input_id: None,
@@ -1013,16 +1050,16 @@ mod tests {
             }],
             vec![
                 BenchmarkStageSpec {
-                    stage: "fastq.validate_reads".to_string(),
-                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
                     upstream_stage_instance_ids: Vec::new(),
                 },
                 BenchmarkStageSpec {
-                    stage: "fastq.trim_reads".to_string(),
-                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    stage: id_catalog::FASTQ_TRIM.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "fastp")),
                     tools: vec!["fastp".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1051,14 +1088,14 @@ mod tests {
         );
         suite.edges = vec![
             BenchmarkStageEdge {
-                from: "fastq.validate_reads.validator".to_string(),
-                to: "fastq.trim_reads.fastp".to_string(),
+                from: stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator"),
+                to: stage_instance(id_catalog::FASTQ_TRIM, "fastp"),
                 from_output_id: None,
                 to_input_id: None,
             },
             BenchmarkStageEdge {
-                from: "fastq.validate_reads.validator".to_string(),
-                to: "fastq.trim_reads.fastp".to_string(),
+                from: stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator"),
+                to: stage_instance(id_catalog::FASTQ_TRIM, "fastp"),
                 from_output_id: None,
                 to_input_id: None,
             },
@@ -1081,16 +1118,16 @@ mod tests {
             }],
             vec![
                 BenchmarkStageSpec {
-                    stage: "fastq.profile_read_lengths".to_string(),
-                    stage_instance_id: Some("fastq.profile_read_lengths.lengths".to_string()),
+                    stage: fastq_stage("profile_read_lengths"),
+                    stage_instance_id: Some(fastq_instance("profile_read_lengths", "lengths")),
                     tools: vec!["seqkit_stats".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
                     upstream_stage_instance_ids: Vec::new(),
                 },
                 BenchmarkStageSpec {
-                    stage: "fastq.report_qc".to_string(),
-                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    stage: id_catalog::FASTQ_QC_POST.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_QC_POST, "aggregate")),
                     tools: vec!["multiqc".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1119,14 +1156,14 @@ mod tests {
         );
         suite.edges = vec![
             BenchmarkStageEdge {
-                from: "fastq.profile_read_lengths.lengths".to_string(),
-                to: "fastq.report_qc.aggregate".to_string(),
+                from: fastq_instance("profile_read_lengths", "lengths"),
+                to: stage_instance(id_catalog::FASTQ_QC_POST, "aggregate"),
                 from_output_id: Some("length_distribution_tsv".to_string()),
                 to_input_id: Some("qc_artifacts".to_string()),
             },
             BenchmarkStageEdge {
-                from: "fastq.profile_read_lengths.lengths".to_string(),
-                to: "fastq.report_qc.aggregate".to_string(),
+                from: fastq_instance("profile_read_lengths", "lengths"),
+                to: stage_instance(id_catalog::FASTQ_QC_POST, "aggregate"),
                 from_output_id: Some("length_distribution_json".to_string()),
                 to_input_id: Some("qc_artifacts".to_string()),
             },
@@ -1148,16 +1185,16 @@ mod tests {
             }],
             vec![
                 BenchmarkStageSpec {
-                    stage: "fastq.validate_reads".to_string(),
-                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
-                    upstream_stage_instance_ids: vec!["fastq.report_qc.aggregate".to_string()],
+                    upstream_stage_instance_ids: vec![stage_instance(id_catalog::FASTQ_QC_POST, "aggregate")],
                 },
                 BenchmarkStageSpec {
-                    stage: "fastq.report_qc".to_string(),
-                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    stage: id_catalog::FASTQ_QC_POST.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_QC_POST, "aggregate")),
                     tools: vec!["multiqc".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1185,8 +1222,8 @@ mod tests {
             },
         );
         suite.edges = vec![BenchmarkStageEdge {
-            from: "fastq.validate_reads.validator".to_string(),
-            to: "fastq.report_qc.aggregate".to_string(),
+            from: stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator"),
+            to: stage_instance(id_catalog::FASTQ_QC_POST, "aggregate"),
             from_output_id: None,
             to_input_id: None,
         }];
@@ -1208,16 +1245,16 @@ mod tests {
             }],
             vec![
                 BenchmarkStageSpec {
-                    stage: "fastq.validate_reads".to_string(),
-                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
                     upstream_stage_instance_ids: Vec::new(),
                 },
                 BenchmarkStageSpec {
-                    stage: "fastq.report_qc".to_string(),
-                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    stage: id_catalog::FASTQ_QC_POST.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_QC_POST, "aggregate")),
                     tools: vec!["multiqc".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1245,8 +1282,8 @@ mod tests {
             },
         );
         suite.edges = vec![BenchmarkStageEdge {
-            from: "fastq.validate_reads.validator.tool.fastqvalidator".to_string(),
-            to: "fastq.report_qc.aggregate.tool.multiqc".to_string(),
+            from: stage_tool_instance(id_catalog::FASTQ_VALIDATE_READS, "validator", id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL),
+            to: stage_tool_instance(id_catalog::FASTQ_QC_POST, "aggregate", id_catalog::TOOL_MULTIQC),
             from_output_id: Some("validation_report".to_string()),
             to_input_id: Some("qc_artifacts".to_string()),
         }];
@@ -1267,16 +1304,16 @@ mod tests {
             }],
             vec![
                 BenchmarkStageSpec {
-                    stage: "fastq.validate_reads".to_string(),
-                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
                     upstream_stage_instance_ids: Vec::new(),
                 },
                 BenchmarkStageSpec {
-                    stage: "fastq.trim_reads".to_string(),
-                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    stage: id_catalog::FASTQ_TRIM.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "fastp")),
                     tools: vec!["fastp".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1304,8 +1341,8 @@ mod tests {
             },
         );
         suite.edges = vec![BenchmarkStageEdge {
-            from: "fastq.validate_reads.validator".to_string(),
-            to: "fastq.trim_reads.fastp".to_string(),
+            from: stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator"),
+            to: stage_instance(id_catalog::FASTQ_TRIM, "fastp"),
             from_output_id: Some("validated_reads_r1".to_string()),
             to_input_id: Some("reads_r1".to_string()),
         }];
@@ -1327,16 +1364,16 @@ mod tests {
             }],
             vec![
                 BenchmarkStageSpec {
-                    stage: "fastq.validate_reads".to_string(),
-                    stage_instance_id: Some("fastq.validate_reads.validator".to_string()),
+                    stage: id_catalog::FASTQ_VALIDATE_READS.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator")),
                     tools: vec!["fastqvalidator".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
                     upstream_stage_instance_ids: Vec::new(),
                 },
                 BenchmarkStageSpec {
-                    stage: "fastq.trim_reads".to_string(),
-                    stage_instance_id: Some("fastq.trim_reads.fastp".to_string()),
+                    stage: id_catalog::FASTQ_TRIM.to_string(),
+                    stage_instance_id: Some(stage_instance(id_catalog::FASTQ_TRIM, "fastp")),
                     tools: vec!["fastp".to_string()],
                     params: Vec::new(),
                     param_bindings: Vec::new(),
@@ -1364,8 +1401,8 @@ mod tests {
             },
         );
         suite.edges = vec![BenchmarkStageEdge {
-            from: "fastq.validate_reads.validator".to_string(),
-            to: "fastq.trim_reads.fastp".to_string(),
+            from: stage_instance(id_catalog::FASTQ_VALIDATE_READS, "validator"),
+            to: stage_instance(id_catalog::FASTQ_TRIM, "fastp"),
             from_output_id: Some(String::new()),
             to_input_id: Some("reads_r1".to_string()),
         }];

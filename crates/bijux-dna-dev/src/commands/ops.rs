@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_core::id_catalog;
 use chrono::Utc;
 use regex::Regex;
 use serde_json::{json, Value};
@@ -3096,6 +3097,7 @@ fn tooling_validate_frontend_mini_domain_stacks(
         }
     }
     tools.sort();
+    let authenticity_stage = id_catalog::BAM_AUTHENTICITY;
     if tools
         != vec![
             "authenticct".to_string(),
@@ -3104,7 +3106,7 @@ fn tooling_validate_frontend_mini_domain_stacks(
         ]
     {
         errors.push(format!(
-            "bam.authenticity compatible_tools mismatch: {tools:?}"
+            "{authenticity_stage} compatible_tools mismatch: {tools:?}"
         ));
     }
     for entry in WalkDir::new(workspace.path("domain/bam/fixtures/bam.authenticity"))
@@ -3122,9 +3124,9 @@ fn tooling_validate_frontend_mini_domain_stacks(
                 kv.insert(key.trim().to_string(), value.trim().to_string());
             }
         }
-        if kv.get("stage").map(String::as_str) != Some("bam.authenticity") {
+        if kv.get("stage").map(String::as_str) != Some(authenticity_stage) {
             errors.push(format!(
-                "{}: stage must be bam.authenticity",
+                "{}: stage must be {authenticity_stage}",
                 entry.path().display()
             ));
         }
