@@ -51,6 +51,13 @@ pub fn load_domain_tool_registry(workspace_root: &Path) -> Result<ToolRegistry> 
             if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
                 continue;
             }
+            if path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with('_'))
+            {
+                continue;
+            }
             let raw = std::fs::read_to_string(&path)
                 .with_context(|| format!("read {}", path.display()))?;
             let tool: DomainToolYaml = bijux_dna_infra::formats::parse_yaml(&raw)
