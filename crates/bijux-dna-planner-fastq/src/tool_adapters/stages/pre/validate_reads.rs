@@ -402,7 +402,7 @@ fn validation_command(
         shell_quote_str(&json_optional_path_token(r2_log.as_deref())?),
         shell_quote(report_path),
     ));
-    commands.push(format!("exit \"$exit_code\""));
+    commands.push("exit \"$exit_code\"".to_string());
     Ok(vec![
         "sh".to_string(),
         "-lc".to_string(),
@@ -516,6 +516,14 @@ fn normalize_tools_with_allowlist(
         }
     }
     Ok(normalized)
+}
+
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_str(part))
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]
@@ -869,12 +877,4 @@ mod tests {
         );
         Ok(())
     }
-}
-
-fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
 }

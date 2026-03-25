@@ -142,6 +142,24 @@ pub fn plan_umi_with_options(
     })
 }
 
+fn normalize_tools_with_allowlist(
+    tools: &[String],
+    allowlist: &[bijux_dna_core::ids::ToolId],
+) -> Result<Vec<String>> {
+    let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
+    normalized.sort();
+    normalized.dedup();
+    if normalized.is_empty() {
+        return Err(anyhow!("no tools specified"));
+    }
+    for tool in &normalized {
+        if !allowlist.iter().any(|allowed| allowed.as_str() == tool) {
+            return Err(anyhow!("unsupported tool: {tool}"));
+        }
+    }
+    Ok(normalized)
+}
+
 #[cfg(test)]
 mod tests {
     use super::plan_umi;
@@ -211,22 +229,4 @@ mod tests {
             .iter()
             .any(|token| token == "NNNNCCCC"));
     }
-}
-
-fn normalize_tools_with_allowlist(
-    tools: &[String],
-    allowlist: &[bijux_dna_core::ids::ToolId],
-) -> Result<Vec<String>> {
-    let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
-    normalized.sort();
-    normalized.dedup();
-    if normalized.is_empty() {
-        return Err(anyhow!("no tools specified"));
-    }
-    for tool in &normalized {
-        if !allowlist.iter().any(|allowed| allowed.as_str() == tool) {
-            return Err(anyhow!("unsupported tool: {tool}"));
-        }
-    }
-    Ok(normalized)
 }
