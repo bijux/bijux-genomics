@@ -11,7 +11,7 @@ use bijux_dna_domain_fastq::{
 };
 
 fn suite_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("bench/suites")
+    bijux_dna_bench::bench_suites_dir()
 }
 
 fn checked_in_suites() -> Result<Vec<(PathBuf, BenchmarkSuiteSpec)>> {
