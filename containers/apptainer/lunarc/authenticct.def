@@ -39,28 +39,16 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
         python3 python3-dev python3-pip python3-venv git build-essential ca-certificates && \
         rm -rf /var/lib/apt/lists/*
 
-    git clone --depth 1 https://github.com/StephanePeyregne/AuthentiCT.git /opt/authenticct
+    git clone https://github.com/StephanePeyregne/AuthentiCT.git /opt/authenticct
     cd /opt/authenticct
-    git checkout f58b25c448c8d9afebcdddd351cbae84fd5f6bab
+    git checkout --detach f58b25c448c8d9afebcdddd351cbae84fd5f6bab
     python3 -m pip install --no-cache-dir .
 
     cat > /usr/local/bin/authenticct <<'EOS'
 #!/usr/bin/env sh
-AUTHENTICT_SCRIPT="${AUTHENTICT_SCRIPT:-/opt/authenticct/AuthentiCT.py}"
-if [ ! -f "${AUTHENTICT_SCRIPT}" ]; then
-  AUTHENTICT_SCRIPT="$(find /opt/authenticct -type f -name "AuthentiCT.py" -print -quit 2>/dev/null || true)"
-fi
+set -eu
 run_authenticct() {
-  if [ -n "${AUTHENTICT_SCRIPT}" ] && [ -f "${AUTHENTICT_SCRIPT}" ]; then
-    python3 "${AUTHENTICT_SCRIPT}" "$@"
-    return 0
-  fi
-  if command -v AuthentiCT.py >/dev/null 2>&1; then
-    AuthentiCT.py "$@"
-    return 0
-  fi
-  echo "AuthentiCT.py not found under /opt/authenticct and not on PATH" >&2
-  return 127
+  exec python3 -m AuthentiCT.cli "$@"
 }
 case "${1:-}" in
   --version)
@@ -68,11 +56,25 @@ case "${1:-}" in
     echo "authenticct 1.0.0"
     exit 0
     ;;
-  --help|-h|"") run_authenticct --help; exit 0 ;;
+  --help|-h|"")
+    run_authenticct --help
+    ;;
+  --__bijux_invalid_flag__*)
+    echo "error: authenticct does not support ${1}" >&2
+    exit 2
+    ;;
 esac
 run_authenticct "$@"
 EOS
     chmod +x /usr/local/bin/authenticct
+    mkdir -p /opt/bijux
+    printf '%s\n' '{"tool":"authenticct","version":"1.0.0","source":"https://github.com/StephanePeyregne/AuthentiCT","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
+    cat > /usr/local/bin/bijux-tool-info <<'EOS'
+#!/usr/bin/env sh
+set -eu
+cat /opt/bijux/VERSION.json
+EOS
+    chmod +x /usr/local/bin/bijux-tool-info
 
 %runscript
     exec /usr/local/bin/authenticct "$@"
