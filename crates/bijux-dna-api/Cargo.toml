@@ -30,7 +30,6 @@ bijux-dna-planner-fastq = { path = "../bijux-dna-planner-fastq" }
 bijux-dna-planner-bam = { path = "../bijux-dna-planner-bam" }
 bijux-dna-runner = { path = "../bijux-dna-runner" }
 bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
-bijux-dna-stages-fastq = { path = "../bijux-dna-stages-fastq" }
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["tracing"] }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-policies = { path = "../bijux-dna-policies" }

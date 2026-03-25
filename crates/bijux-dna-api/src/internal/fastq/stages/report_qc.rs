@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
@@ -24,9 +24,10 @@ use bijux_dna_domain_fastq::params::{
     PairedMode,
 };
 use bijux_dna_domain_fastq::{
+    observer::{parse_detect_adapters_report, parse_screen_taxonomy_report},
     GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_environment::api::{resolve_image, PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_environment::api::{resolve_image, PlatformSpec, RuntimeKind, ToolImageCatalog};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_qc_post_tools;
@@ -67,8 +68,8 @@ fn parse_qc_aggregation_engine(value: Option<&str>) -> Result<QcAggregationEngin
 
 /// # Errors
 /// Returns an error if planning or execution fails.
-pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
+pub fn bench_fastq_qc_post(
+    catalog: &impl ToolImageCatalog,
     platform: &PlatformSpec,
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqQcPostArgs,
@@ -307,8 +308,8 @@ fn load_required_qc_inputs_manifest(
     load_governed_qc_inputs_manifest(&manifest_path)
 }
 
-fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
+fn prepare_qc_post_bench(
+    catalog: &impl ToolImageCatalog,
     platform: &PlatformSpec,
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqQcPostArgs,
@@ -629,8 +630,7 @@ fn load_governed_qc_summary(governed_qc: &GovernedQcInputs) -> GovernedQcSummary
         ArtifactRole::ReportJson,
     ) {
         if let Ok(raw) = std::fs::read_to_string(path) {
-            if let Ok(report) = bijux_dna_stages_fastq::observer::parse_screen_taxonomy_report(&raw)
-            {
+            if let Ok(report) = parse_screen_taxonomy_report(&raw) {
                 summary.contamination_rate = report.contamination_rate;
             }
         }
@@ -642,8 +642,7 @@ fn load_governed_qc_summary(governed_qc: &GovernedQcInputs) -> GovernedQcSummary
         ArtifactRole::ReportJson,
     ) {
         if let Ok(raw) = std::fs::read_to_string(path) {
-            if let Ok(report) = bijux_dna_stages_fastq::observer::parse_detect_adapters_report(&raw)
-            {
+            if let Ok(report) = parse_detect_adapters_report(&raw) {
                 summary.adapter_content_max = report.adapter_content_max;
                 summary.adapter_content_mean = report.adapter_content_mean;
                 summary.duplication_rate = report.duplication_rate;
@@ -728,16 +727,20 @@ fn canonicalize_qc_inputs_from_contributors(
         .iter()
         .map(|contributor| {
             (
-                (contributor.path.clone(), contributor.artifact_role),
+                (
+                    contributor.path.clone(),
+                    contributor.artifact_role.as_str().to_string(),
+                ),
                 canonical_qc_input_name(contributor),
             )
         })
-        .collect::<HashMap<_, _>>();
+        .collect::<BTreeMap<_, _>>();
     qc_inputs
         .iter()
         .map(|artifact| {
             let mut canonical = artifact.clone();
-            if let Some(name) = canonical_name_by_path.get(&(artifact.path.clone(), artifact.role))
+            if let Some(name) = canonical_name_by_path
+                .get(&(artifact.path.clone(), artifact.role.as_str().to_string()))
             {
                 canonical.name = bijux_dna_core::ids::ArtifactId::new(name.clone());
             }
@@ -767,8 +770,8 @@ fn governed_qc_contributor_tool_ids(contributors: &[GovernedQcContributor]) -> V
     tool_ids
 }
 
-fn resolve_qc_contributor_aux_images<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
+fn resolve_qc_contributor_aux_images(
+    catalog: &impl ToolImageCatalog,
     platform: &PlatformSpec,
     governed_qc: &GovernedQcInputs,
 ) -> Result<BTreeMap<String, ContainerImageRefV1>> {
@@ -968,7 +971,7 @@ mod tests {
         validate_governed_qc_contributors, GovernedQcContributor, GovernedQcInputs,
         GOVERNED_QC_INPUTS_SCHEMA_VERSION,
     };
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
     use std::path::PathBuf;
 
     use bijux_dna_core::contract::{ArtifactRole, ToolConstraints};
@@ -1679,7 +1682,7 @@ mod tests {
             raw_fastqc_dir: None,
             lineage_hash: None,
         };
-        let mut catalog = HashMap::new();
+        let mut catalog = BTreeMap::new();
         catalog.insert(
             "fastp".to_string(),
             ToolImageSpec {

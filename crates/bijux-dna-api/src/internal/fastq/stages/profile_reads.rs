@@ -406,7 +406,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     )?;
     let report = std::fs::read_to_string(required_plan_output_path(&plan, "qc_json")?)
         .ok()
-        .and_then(|raw| bijux_dna_stages_fastq::observer::parse_profile_reads_report(&raw).ok())
+        .and_then(|raw| bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw).ok())
         .ok_or_else(|| anyhow!("profile_reads governed report was not materialized"))?;
     let metrics = FastqStatsMetrics {
         reads_total: report.reads_total,

@@ -13,6 +13,7 @@ use bijux_dna_analyze::{
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_domain_fastq::observer::parse_terminal_damage_report;
 use bijux_dna_domain_fastq::params::trim::{
     parse_terminal_damage_execution_policy, terminal_damage_execution_policy_label,
     TrimTerminalDamageParams,
@@ -26,7 +27,6 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use bijux_dna_stages_fastq::observer::parse_terminal_damage_report;
 
 use super::trim_bench_common::{
     build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,

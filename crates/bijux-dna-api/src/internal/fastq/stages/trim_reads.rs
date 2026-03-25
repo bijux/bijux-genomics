@@ -44,7 +44,7 @@ fn apply_thread_override(
 fn load_governed_trim_report(report_path: &std::path::Path) -> Result<TrimReadsReportV1> {
     let raw = std::fs::read_to_string(report_path)
         .with_context(|| format!("read governed trim report {}", report_path.display()))?;
-    bijux_dna_stages_fastq::observer::parse_trim_reads_report(&raw)
+    bijux_dna_domain_fastq::observer::parse_trim_reads_report(&raw)
         .with_context(|| format!("parse governed trim report {}", report_path.display()))
 }
 

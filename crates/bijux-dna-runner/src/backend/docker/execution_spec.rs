@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1};
-use bijux_dna_environment::api::{PlatformSpec, ToolImageSpec};
+use bijux_dna_environment::api::{PlatformSpec, ToolImageCatalog};
 
 use crate::backend::docker::executor::resolve_image_for_run;
 use crate::command_runner::invocation_hash;
@@ -11,11 +9,11 @@ use crate::command_runner::invocation_hash;
 ///
 /// # Errors
 /// Returns an error if stage/tool ids are invalid or registry/catalog lookup fails.
-pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
+pub fn build_tool_execution_spec(
     stage_id: &str,
     tool_id: &str,
     registry: &bijux_dna_core::contract::ToolRegistry,
-    catalog: &HashMap<String, ToolImageSpec, S>,
+    catalog: &impl ToolImageCatalog,
     platform: &PlatformSpec,
 ) -> Result<ToolExecutionSpecV1> {
     let stage_id =
