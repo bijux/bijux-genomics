@@ -1,0 +1,166 @@
+schema_version = "bijux.corpus_spec.v1"
+corpus_id = "corpus-01"
+species = "Homo sapiens"
+species_id = "homo_sapiens"
+preferred_root = "/home/bijan/bijux/corpus_01"
+description = "Human FASTQ benchmark corpus for Lunarc with balanced ancient and modern DNA cohorts."
+
+[[samples]]
+accession = "ERR769610"
+study_accession = "PRJEB8448"
+era = "ancient"
+layout = "se"
+size_band = "under_100mb"
+reason = "Ancient human single-end run chosen to anchor the compact-depth edge of the cohort."
+
+[[samples]]
+accession = "ERR769594"
+study_accession = "PRJEB8448"
+era = "ancient"
+layout = "se"
+size_band = "under_100mb"
+reason = "Ancient human single-end run chosen to keep small-file behavior represented."
+
+[[samples]]
+accession = "ERR769585"
+study_accession = "PRJEB8448"
+era = "ancient"
+layout = "se"
+size_band = "under_100mb"
+reason = "Ancient human single-end run chosen to preserve a mid-small Illumina HiSeq example."
+
+[[samples]]
+accession = "ERR769590"
+study_accession = "PRJEB8448"
+era = "ancient"
+layout = "se"
+size_band = "under_100mb"
+reason = "Ancient human single-end run chosen to keep NextSeq-scale short-read damage patterns represented."
+
+[[samples]]
+accession = "ERR769591"
+study_accession = "PRJEB8448"
+era = "ancient"
+layout = "se"
+size_band = "under_500mb"
+reason = "Ancient human single-end run chosen to cover the upper half-gigabyte range without breaching one gigabyte."
+
+[[samples]]
+accession = "ERR4210542"
+study_accession = "PRJEB38152"
+era = "ancient"
+layout = "pe"
+size_band = "under_100mb"
+reason = "Ancient human paired-end capture run chosen to exercise very small paired inputs."
+
+[[samples]]
+accession = "ERR4210492"
+study_accession = "PRJEB38152"
+era = "ancient"
+layout = "pe"
+size_band = "under_100mb"
+reason = "Ancient human paired-end capture run chosen to keep another small paired capture library in scope."
+
+[[samples]]
+accession = "ERR15108349"
+study_accession = "PRJEB80740"
+era = "ancient"
+layout = "pe"
+size_band = "under_100mb"
+reason = "Ancient human paired-end WGS run chosen to include low-coverage shotgun data alongside capture libraries."
+
+[[samples]]
+accession = "ERR15886307"
+study_accession = "PRJEB101287"
+era = "ancient"
+layout = "pe"
+size_band = "under_500mb"
+reason = "Ancient human paired-end amplified genome run chosen for a larger paired benchmark without exceeding half a gigabyte."
+
+[[samples]]
+accession = "ERR15886310"
+study_accession = "PRJEB101287"
+era = "ancient"
+layout = "pe"
+size_band = "under_500mb"
+reason = "Ancient human paired-end amplified genome run chosen to diversify paired coverage within the mid-size class."
+
+[[samples]]
+accession = "DRR001066"
+study_accession = "PRJDA67461"
+era = "modern"
+layout = "se"
+size_band = "under_100mb"
+reason = "Modern human single-end WGS run chosen as a compact Illumina Genome Analyzer baseline."
+
+[[samples]]
+accession = "DRR001059"
+study_accession = "PRJDA67461"
+era = "modern"
+layout = "se"
+size_band = "under_100mb"
+reason = "Modern human single-end WGS run chosen to keep another small whole-genome file in the corpus."
+
+[[samples]]
+accession = "DRR001076"
+study_accession = "PRJDA67461"
+era = "modern"
+layout = "se"
+size_band = "under_100mb"
+reason = "Modern human single-end WGS run chosen to round out the small-file modern single-end set."
+
+[[samples]]
+accession = "DRR001083"
+study_accession = "PRJDA67461"
+era = "modern"
+layout = "se"
+size_band = "under_500mb"
+reason = "Modern human single-end WGS run chosen to represent a quarter-gigabyte modern read set."
+
+[[samples]]
+accession = "DRR001073"
+study_accession = "PRJDA67461"
+era = "modern"
+layout = "se"
+size_band = "under_1000mb"
+reason = "Modern human single-end WGS run chosen to provide a larger but sub-gigabyte modern single-end benchmark."
+
+[[samples]]
+accession = "DRR015568"
+study_accession = "PRJDB2640"
+era = "modern"
+layout = "pe"
+size_band = "under_100mb"
+reason = "Modern human paired-end amplicon run chosen to anchor the smallest paired modern size class."
+
+[[samples]]
+accession = "DRR015482"
+study_accession = "PRJDB2640"
+era = "modern"
+layout = "pe"
+size_band = "under_100mb"
+reason = "Modern human paired-end amplicon run chosen to keep a second tiny paired control in scope."
+
+[[samples]]
+accession = "DRR000093"
+study_accession = "PRJDA41121"
+era = "modern"
+layout = "pe"
+size_band = "under_500mb"
+reason = "Modern human paired-end genomic run chosen to exercise mid-size paired FASTQ behavior."
+
+[[samples]]
+accession = "DRR000095"
+study_accession = "PRJDA41121"
+era = "modern"
+layout = "pe"
+size_band = "under_500mb"
+reason = "Modern human paired-end genomic run chosen to keep another mid-size paired benchmark from the same platform family."
+
+[[samples]]
+accession = "DRR000550"
+study_accession = "PRJDA50447"
+era = "modern"
+layout = "pe"
+size_band = "under_500mb"
+reason = "Modern human paired-end genomic run chosen to extend the modern paired cohort up to the half-gigabyte boundary."
