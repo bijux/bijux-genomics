@@ -281,7 +281,7 @@ mod tests {
             None,
             Path::new("reference.index"),
             Path::new("out"),
-            &DepleteReferenceContaminantsPlanOptions::default(),
+            &DepleteReferenceContaminantsPlanOptions::baseline(),
             "star",
         )?;
 
