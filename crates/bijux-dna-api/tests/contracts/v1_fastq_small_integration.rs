@@ -88,7 +88,7 @@ fn stable_toy_digest(path: &Path) -> Result<String> {
             ))
         }
         Some("html") => Ok(sha256_hex_bytes(
-            normalize_toy_html(&std::fs::read_to_string(path)?).as_bytes(),
+            normalize_toy_html(&std::fs::read_to_string(path)?)?.as_bytes(),
         )),
         _ => {
             let bytes = std::fs::read(path)?;
@@ -120,13 +120,15 @@ fn normalize_toy_json(value: &Value) -> Value {
     }
 }
 
-fn normalize_toy_html(raw: &str) -> String {
-    let generated_re = Regex::new(r"generated_at=[^<]+").expect("regex");
-    let json_re = Regex::new(r#""generated_at"\s*:\s*"[^"]+""#).expect("regex");
+fn normalize_toy_html(raw: &str) -> Result<String> {
+    let generated_re =
+        Regex::new(r"generated_at=[^<]+").context("compile html generated_at regex")?;
+    let json_re =
+        Regex::new(r#""generated_at"\s*:\s*"[^"]+""#).context("compile json generated_at regex")?;
     let text = generated_re.replace_all(raw, "generated_at=<normalized>");
-    json_re
+    Ok(json_re
         .replace_all(&text, r#""generated_at":"<normalized>""#)
-        .into_owned()
+        .into_owned())
 }
 
 fn sha256_hex_bytes(bytes: &[u8]) -> String {
