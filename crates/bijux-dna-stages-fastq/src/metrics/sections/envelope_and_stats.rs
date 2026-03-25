@@ -230,29 +230,6 @@ fn finalize_observer_results(
 
 type LengthGcDistributions = (Vec<(u64, u64)>, Vec<(u8, u64)>);
 
-#[cfg(test)]
-mod tests {
-    use super::finalize_observer_results;
-    use std::sync::{Arc, Mutex};
-
-    #[test]
-    fn finalize_observer_results_rejects_poisoned_mutex() {
-        let results = Arc::new(Mutex::new(Vec::new()));
-        let poisoned = Arc::clone(&results);
-        let _ = std::thread::spawn(move || {
-            let _guard = poisoned.lock().expect("lock");
-            panic!("poison observer results");
-        })
-        .join();
-
-        let error =
-            finalize_observer_results(results).expect_err("poisoned observer results must fail");
-        assert!(error
-            .to_string()
-            .contains("observer results lock poisoned"));
-    }
-}
-
 fn distributions_for_path(path: Option<&Path>) -> Result<LengthGcDistributions> {
     let Some(path) = path else {
         return Ok((Vec::new(), Vec::new()));
@@ -415,4 +392,30 @@ fn path_from_params(params: &serde_json::Value, name: &str) -> Option<PathBuf> {
         .get(name)
         .and_then(|value| value.as_str())
         .map(PathBuf::from)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::finalize_observer_results;
+    use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn finalize_observer_results_rejects_poisoned_mutex() {
+        let results = Arc::new(Mutex::new(Vec::new()));
+        let poisoned = Arc::clone(&results);
+        let _ = std::thread::spawn(move || {
+            let _guard = poisoned
+                .lock()
+                .unwrap_or_else(|err| panic!("lock poisoned unexpectedly: {err}"));
+            panic!("poison observer results");
+        })
+        .join();
+
+        let Err(error) = finalize_observer_results(results) else {
+            panic!("poisoned observer results must fail");
+        };
+        assert!(error
+            .to_string()
+            .contains("observer results lock poisoned"));
+    }
 }
