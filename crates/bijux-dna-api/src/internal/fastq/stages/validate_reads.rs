@@ -18,7 +18,8 @@ use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_validate_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::validate_reads::{
-    default_plan_options_for_layout, parse_pair_sync_policy, parse_validation_mode,
+    default_plan_options_for_layout, pair_sync_policy_from_literal,
+    validation_mode_from_literal,
     plan_with_options as plan_validate_reads, ValidateReadsPlanOptions,
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
@@ -432,13 +433,13 @@ fn validate_plan_options(
         validation_mode: args
             .validation_mode
             .as_deref()
-            .map(parse_validation_mode)
+            .map(validation_mode_from_literal)
             .transpose()?
             .unwrap_or(default_options.validation_mode),
         pair_sync_policy: args
             .pair_sync_policy
             .as_deref()
-            .map(parse_pair_sync_policy)
+            .map(pair_sync_policy_from_literal)
             .transpose()?
             .unwrap_or(default_options.pair_sync_policy),
     })

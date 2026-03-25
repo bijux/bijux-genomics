@@ -22,7 +22,7 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(tool, r1, r2, out_dir, &InferAsvsPlanOptions::default())
+    plan_with_options(tool, r1, r2, out_dir, &InferAsvsPlanOptions::baseline())
 }
 
 pub fn plan_with_options(

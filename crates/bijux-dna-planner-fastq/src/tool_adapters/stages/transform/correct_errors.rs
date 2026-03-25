@@ -34,7 +34,7 @@ pub fn plan_correct(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_correct_with_options(tool, r1, r2, out_dir, &CorrectPlanOptions::default())
+    plan_correct_with_options(tool, r1, r2, out_dir, &CorrectPlanOptions::baseline())
 }
 
 /// Build a correct plan with governed stage options.

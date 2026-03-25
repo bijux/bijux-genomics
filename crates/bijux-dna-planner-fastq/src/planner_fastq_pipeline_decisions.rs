@@ -146,8 +146,9 @@ pub struct MergePairsStageParams {
         bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy,
 }
 
-impl Default for MergePairsStageParams {
-    fn default() -> Self {
+impl MergePairsStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             threads: None,
             merge_overlap: None,
@@ -163,8 +164,9 @@ pub struct NormalizeAbundanceStageParams {
     pub method: String,
 }
 
-impl Default for NormalizeAbundanceStageParams {
-    fn default() -> Self {
+impl NormalizeAbundanceStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             method: "relative_abundance".to_string(),
         }
@@ -183,8 +185,9 @@ pub struct NormalizePrimersStageParams {
     pub allow_iupac_codes: bool,
 }
 
-impl Default for NormalizePrimersStageParams {
-    fn default() -> Self {
+impl NormalizePrimersStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             primer_set_id: "default".to_string(),
             marker_id: None,
@@ -213,8 +216,9 @@ pub struct InferAsvsStageParams {
     pub threads: Option<u32>,
 }
 
-impl Default for InferAsvsStageParams {
-    fn default() -> Self {
+impl InferAsvsStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             denoising_method: "dada2".to_string(),
             pooling_mode: "independent".to_string(),
@@ -230,8 +234,9 @@ pub struct ClusterOtusStageParams {
     pub threads: Option<u32>,
 }
 
-impl Default for ClusterOtusStageParams {
-    fn default() -> Self {
+impl ClusterOtusStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             otu_identity: bijux_dna_domain_fastq::params::edna::DEFAULT_OTU_IDENTITY_THRESHOLD,
             threads: None,
@@ -250,8 +255,9 @@ pub struct CorrectErrorsStageParams {
     pub conservative_mode: bool,
 }
 
-impl Default for CorrectErrorsStageParams {
-    fn default() -> Self {
+impl CorrectErrorsStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             threads: None,
             quality_encoding: bijux_dna_domain_fastq::params::correct::QualityEncoding::Phred33,
@@ -274,8 +280,9 @@ pub struct TrimTerminalDamageStageParams {
     pub trim_3p_bases: u32,
 }
 
-impl Default for TrimTerminalDamageStageParams {
-    fn default() -> Self {
+impl TrimTerminalDamageStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             threads: None,
             damage_mode: bijux_dna_domain_fastq::params::DamageMode::Ancient,
@@ -293,8 +300,9 @@ pub struct DepleteRrnaStageParams {
     pub threads: Option<u32>,
 }
 
-impl Default for DepleteRrnaStageParams {
-    fn default() -> Self {
+impl DepleteRrnaStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             rrna_db: "rrna_reference".to_string(),
             min_identity: 0.95,
@@ -310,8 +318,9 @@ pub struct DepleteHostStageParams {
     pub threads: Option<u32>,
 }
 
-impl Default for DepleteHostStageParams {
-    fn default() -> Self {
+impl DepleteHostStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             host_identity_threshold: 0.95,
             retain_unmapped_only: true,
@@ -326,8 +335,9 @@ pub struct DepleteReferenceContaminantsStageParams {
     pub threads: Option<u32>,
 }
 
-impl Default for DepleteReferenceContaminantsStageParams {
-    fn default() -> Self {
+impl DepleteReferenceContaminantsStageParams {
+    #[must_use]
+    pub fn baseline() -> Self {
         Self {
             decoy_mode: "phix_and_spikeins".to_string(),
             threads: None,

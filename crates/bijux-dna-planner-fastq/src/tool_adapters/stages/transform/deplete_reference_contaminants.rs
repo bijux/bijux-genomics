@@ -46,7 +46,7 @@ pub fn plan_contaminant_screen(
         r2,
         reference_index,
         out_dir,
-        &DepleteReferenceContaminantsPlanOptions::default(),
+        &DepleteReferenceContaminantsPlanOptions::baseline(),
         "bowtie2_build",
     )
 }

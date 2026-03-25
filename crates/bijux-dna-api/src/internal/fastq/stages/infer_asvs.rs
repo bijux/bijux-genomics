@@ -44,7 +44,7 @@ pub(crate) struct InferAsvsTableMetrics {
 pub(crate) fn infer_asvs_options_from_args(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqInferAsvsArgs,
 ) -> bijux_dna_planner_fastq::InferAsvsStageParams {
-    let mut options = bijux_dna_planner_fastq::InferAsvsStageParams::default();
+    let mut options = bijux_dna_planner_fastq::InferAsvsStageParams::baseline();
     if let Some(denoising_method) = args.denoising_method.as_ref() {
         options.denoising_method.clone_from(denoising_method);
     }

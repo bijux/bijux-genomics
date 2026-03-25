@@ -406,7 +406,7 @@ fn validate_deduplicate_options(
     Ok(())
 }
 
-pub fn parse_dedup_mode(value: &str) -> Result<DedupMode> {
+pub fn dedup_mode_from_literal(value: &str) -> Result<DedupMode> {
     match value {
         "exact" => Ok(DedupMode::Exact),
         "sequence_identity" => Ok(DedupMode::SequenceIdentity),

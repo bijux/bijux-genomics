@@ -1263,7 +1263,7 @@ fn governed_qc_output_ids_for_stage(stage_id: &str) -> Vec<String> {
 fn trim_terminal_damage_params(binding: &FastqStageBinding) -> TrimTerminalDamageStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::TrimTerminalDamage(params)) => params.clone(),
-        _ => TrimTerminalDamageStageParams::default(),
+        _ => TrimTerminalDamageStageParams::baseline(),
     }
 }
 
@@ -1428,7 +1428,7 @@ fn merge_pairs_plan_options(
 ) -> crate::tool_adapters::fastq::merge_pairs::MergePlanOptions {
     let params = match binding.params.as_ref() {
         Some(FastqStageParameters::MergePairs(params)) => params.clone(),
-        _ => MergePairsStageParams::default(),
+        _ => MergePairsStageParams::baseline(),
     };
     crate::tool_adapters::fastq::merge_pairs::MergePlanOptions {
         threads: params.threads,
@@ -1443,7 +1443,7 @@ fn normalize_abundance_plan_options(
 ) -> crate::tool_adapters::fastq::normalize_abundance::NormalizeAbundancePlanOptions {
     let params = match binding.params.as_ref() {
         Some(FastqStageParameters::NormalizeAbundance(params)) => params.clone(),
-        _ => NormalizeAbundanceStageParams::default(),
+        _ => NormalizeAbundanceStageParams::baseline(),
     };
     crate::tool_adapters::fastq::normalize_abundance::NormalizeAbundancePlanOptions {
         method: params.method,
@@ -1455,7 +1455,7 @@ fn normalize_primers_plan_options(
 ) -> crate::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
     let params = match binding.params.as_ref() {
         Some(FastqStageParameters::NormalizePrimers(params)) => params.clone(),
-        _ => NormalizePrimersStageParams::default(),
+        _ => NormalizePrimersStageParams::baseline(),
     };
     crate::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
         primer_set_id: params.primer_set_id,
@@ -1479,35 +1479,35 @@ fn index_reference_params(binding: &FastqStageBinding) -> IndexReferenceStagePar
 fn correct_errors_params(binding: &FastqStageBinding) -> CorrectErrorsStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::CorrectErrors(params)) => params.clone(),
-        _ => CorrectErrorsStageParams::default(),
+        _ => CorrectErrorsStageParams::baseline(),
     }
 }
 
 fn infer_asvs_params(binding: &FastqStageBinding) -> InferAsvsStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::InferAsvs(params)) => params.clone(),
-        _ => InferAsvsStageParams::default(),
+        _ => InferAsvsStageParams::baseline(),
     }
 }
 
 fn cluster_otus_params(binding: &FastqStageBinding) -> ClusterOtusStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::ClusterOtus(params)) => params.clone(),
-        _ => ClusterOtusStageParams::default(),
+        _ => ClusterOtusStageParams::baseline(),
     }
 }
 
 fn deplete_rrna_params(binding: &FastqStageBinding) -> DepleteRrnaStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::DepleteRrna(params)) => params.clone(),
-        _ => DepleteRrnaStageParams::default(),
+        _ => DepleteRrnaStageParams::baseline(),
     }
 }
 
 fn deplete_host_params(binding: &FastqStageBinding) -> DepleteHostStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::DepleteHost(params)) => params.clone(),
-        _ => DepleteHostStageParams::default(),
+        _ => DepleteHostStageParams::baseline(),
     }
 }
 
@@ -1516,7 +1516,7 @@ fn deplete_reference_contaminants_params(
 ) -> DepleteReferenceContaminantsStageParams {
     match binding.params.as_ref() {
         Some(FastqStageParameters::DepleteReferenceContaminants(params)) => params.clone(),
-        _ => DepleteReferenceContaminantsStageParams::default(),
+        _ => DepleteReferenceContaminantsStageParams::baseline(),
     }
 }
 
