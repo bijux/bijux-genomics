@@ -87,11 +87,13 @@ pub fn rank_umi_tools(
 }
 
 #[allow(dead_code)]
+#[must_use]
 pub fn sanity_flags_trim(records: &[BenchmarkRecord<FastqTrimMetrics>]) -> Vec<serde_json::Value> {
     sanity_flags_trim_like(records)
 }
 
 #[allow(dead_code)]
+#[must_use]
 pub fn sanity_flags_trim_polyg(
     records: &[BenchmarkRecord<FastqTrimPolygMetrics>],
 ) -> Vec<serde_json::Value> {
@@ -99,6 +101,7 @@ pub fn sanity_flags_trim_polyg(
 }
 
 #[allow(dead_code)]
+#[must_use]
 pub fn sanity_flags_trim_terminal_damage(
     records: &[BenchmarkRecord<FastqTrimTerminalDamageMetrics>],
 ) -> Vec<serde_json::Value> {
@@ -143,6 +146,7 @@ fn sanity_flags_trim_like<T: TrimLikeMetricView + crate::aggregate::StageMetricS
     flags
 }
 
+#[must_use]
 pub fn sanity_flags_filter(
     records: &[BenchmarkRecord<FastqFilterMetrics>],
 ) -> Vec<serde_json::Value> {
@@ -162,6 +166,7 @@ pub fn sanity_flags_filter(
     flags
 }
 
+#[must_use]
 pub fn sanity_flags_correct(
     records: &[BenchmarkRecord<FastqCorrectMetrics>],
 ) -> Vec<serde_json::Value> {
@@ -181,6 +186,7 @@ pub fn sanity_flags_correct(
     flags
 }
 
+#[must_use]
 pub fn sanity_flags_umi(records: &[BenchmarkRecord<FastqUmiMetrics>]) -> Vec<serde_json::Value> {
     let mut flags = Vec::new();
     let retention = records
@@ -203,6 +209,7 @@ pub fn sanity_flags_umi(records: &[BenchmarkRecord<FastqUmiMetrics>]) -> Vec<ser
     flags
 }
 
+#[must_use]
 pub fn sanity_flags_merge(
     records: &[BenchmarkRecord<FastqMergeMetrics>],
 ) -> Vec<serde_json::Value> {
@@ -222,6 +229,7 @@ pub fn sanity_flags_merge(
     flags
 }
 
+#[must_use]
 pub fn sanity_flags_stats(
     records: &[BenchmarkRecord<FastqStatsMetrics>],
 ) -> Vec<serde_json::Value> {
@@ -241,6 +249,7 @@ pub fn sanity_flags_stats(
     flags
 }
 
+#[must_use]
 pub fn sanity_flags_validate(
     records: &[BenchmarkRecord<FastqValidateMetrics>],
 ) -> Vec<serde_json::Value> {
@@ -265,6 +274,7 @@ pub fn sanity_flags_validate(
     flags
 }
 
+#[must_use]
 pub fn sanity_flags_qc_post(
     records: &[BenchmarkRecord<FastqQcPostMetrics>],
 ) -> Vec<serde_json::Value> {
@@ -285,11 +295,13 @@ pub fn sanity_flags_qc_post(
 }
 
 #[allow(dead_code)]
+#[must_use]
 pub fn derived_trim_metrics(record: &BenchmarkRecord<FastqTrimMetrics>) -> serde_json::Value {
     derived_trim_like_metrics(record)
 }
 
 #[allow(dead_code)]
+#[must_use]
 pub fn derived_trim_polyg_metrics(
     record: &BenchmarkRecord<FastqTrimPolygMetrics>,
 ) -> serde_json::Value {
@@ -297,6 +309,7 @@ pub fn derived_trim_polyg_metrics(
 }
 
 #[allow(dead_code)]
+#[must_use]
 pub fn derived_trim_terminal_damage_metrics(
     record: &BenchmarkRecord<FastqTrimTerminalDamageMetrics>,
 ) -> serde_json::Value {
@@ -333,6 +346,7 @@ fn derived_trim_like_metrics<T: TrimLikeMetricView + crate::aggregate::StageMetr
     })
 }
 
+#[must_use]
 pub fn derived_filter_metrics(record: &BenchmarkRecord<FastqFilterMetrics>) -> serde_json::Value {
     let delta = &record.metrics.metrics.delta_metrics;
     serde_json::json!({
@@ -343,6 +357,7 @@ pub fn derived_filter_metrics(record: &BenchmarkRecord<FastqFilterMetrics>) -> s
     })
 }
 
+#[must_use]
 pub fn derived_merge_metrics(record: &BenchmarkRecord<FastqMergeMetrics>) -> serde_json::Value {
     serde_json::json!({
         "merge_rate": record.metrics.metrics.merge_rate,
@@ -351,12 +366,14 @@ pub fn derived_merge_metrics(record: &BenchmarkRecord<FastqMergeMetrics>) -> ser
     })
 }
 
+#[must_use]
 pub fn derived_correct_metrics(record: &BenchmarkRecord<FastqCorrectMetrics>) -> serde_json::Value {
     serde_json::json!({
         "kmer_fix_rate": record.metrics.metrics.kmer_fix_rate,
     })
 }
 
+#[must_use]
 pub fn derived_umi_metrics(record: &BenchmarkRecord<FastqUmiMetrics>) -> serde_json::Value {
     serde_json::json!({
         "read_retention": ratio_u64(
@@ -483,6 +500,10 @@ pub fn write_trim_report(
     write_trim_like_report(base_dir, "fastq.trim_reads", records, failures, explain)
 }
 
+/// Write the trim-polyg benchmark recommendation report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writing fails.
 pub fn write_trim_polyg_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqTrimPolygMetrics>],
@@ -492,6 +513,10 @@ pub fn write_trim_polyg_report(
     write_trim_like_report(base_dir, "fastq.trim_polyg_tails", records, failures, explain)
 }
 
+/// Write the terminal-damage benchmark recommendation report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writing fails.
 pub fn write_trim_terminal_damage_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqTrimTerminalDamageMetrics>],

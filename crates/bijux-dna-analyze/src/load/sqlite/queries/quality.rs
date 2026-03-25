@@ -219,7 +219,7 @@ pub fn insert_fastq_filter_low_complexity_v1(
     Ok(())
 }
 
-/// Load a low-complexity benchmark record from SQLite if present.
+/// Load a low-complexity benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.

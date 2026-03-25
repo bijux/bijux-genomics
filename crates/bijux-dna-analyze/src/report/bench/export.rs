@@ -251,7 +251,7 @@ pub fn write_screen_report(
                     .as_value()
                     .get("entries")
                     .and_then(serde_json::Value::as_array)
-                    .map_or(false, |entries| !entries.is_empty()),
+                    .is_some_and(|entries| !entries.is_empty()),
             })
         })
         .collect();
@@ -530,6 +530,9 @@ pub fn write_overrepresented_report(
 }
 
 /// Write the read-length benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writing fails.
 pub fn write_read_lengths_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqReadLengthMetrics>],
@@ -551,6 +554,9 @@ pub fn write_read_lengths_report(
 }
 
 /// Write the duplicate-removal benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writing fails.
 pub fn write_duplicates_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqDuplicateMetrics>],
@@ -572,6 +578,9 @@ pub fn write_duplicates_report(
 }
 
 /// Write the chimera-removal benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writing fails.
 pub fn write_chimeras_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqChimeraMetrics>],
@@ -593,6 +602,9 @@ pub fn write_chimeras_report(
 }
 
 /// Write the normalize-primers benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writing fails.
 pub fn write_normalize_primers_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqNormalizePrimersMetrics>],
@@ -614,6 +626,9 @@ pub fn write_normalize_primers_report(
 }
 
 /// Write the infer-asvs benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writing fails.
 pub fn write_infer_asvs_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqInferAsvsMetrics>],
@@ -635,6 +650,9 @@ pub fn write_infer_asvs_report(
 }
 
 /// Write the normalize-abundance benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writing fails.
 pub fn write_normalize_abundance_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqNormalizeAbundanceMetrics>],
@@ -677,6 +695,12 @@ mod tests {
                 mean_q_delta: 1.5,
                 gc_delta: 0.1,
             },
+            paired_mode: None,
+            adapter_policy: None,
+            polyx_policy: None,
+            n_policy: None,
+            contaminant_policy: None,
+            raw_backend_report_format: None,
             adapter_preset: Some("default".to_string()),
             adapter_bank_id: Some("bank.v1".to_string()),
             adapter_bank_hash: Some("sha256:abc".to_string()),

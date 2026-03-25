@@ -76,7 +76,7 @@ pub fn insert_fastq_detect_adapters_v1(
     Ok(())
 }
 
-/// Load a detect-adapters benchmark record from SQLite if present.
+/// Load a detect-adapters benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
@@ -221,7 +221,7 @@ pub fn insert_fastq_index_reference_v1(
     Ok(())
 }
 
-/// Load an index-reference benchmark record from SQLite if present.
+/// Load an index-reference benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
@@ -634,7 +634,7 @@ pub fn insert_fastq_overrepresented_v1(
     Ok(())
 }
 
-/// Load an overrepresented-sequence benchmark record from SQLite if present.
+/// Load an overrepresented-sequence benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
@@ -678,6 +678,11 @@ pub fn fetch_fastq_overrepresented_v1(
 
 macro_rules! bench_record_table {
     ($insert_fn:ident, $fetch_fn:ident, $table:literal, $metric_ty:ty) => {
+        /// Insert one benchmark record into the `SQLite` table for this metric family.
+        ///
+        /// # Errors
+        /// Returns an error if schema maintenance, parameter hashing, metric serialization,
+        /// or the `SQLite` insert fails.
         pub fn $insert_fn(conn: &Connection, record: &BenchmarkRecord<$metric_ty>) -> Result<()> {
             conn.execute(
                 concat!(
@@ -736,6 +741,11 @@ macro_rules! bench_record_table {
         }
 
         #[allow(clippy::too_many_arguments)]
+        /// Fetch the newest benchmark record matching the exact execution identity tuple.
+        ///
+        /// # Errors
+        /// Returns an error if the prepared statement, row decoding, or JSON deserialization
+        /// fails while reading from `SQLite`.
         pub fn $fetch_fn(
             conn: &Connection,
             tool: &str,
@@ -956,7 +966,7 @@ pub fn insert_fastq_deplete_host_v1(
     Ok(())
 }
 
-/// Load a host depletion benchmark record from SQLite if present.
+/// Load a host depletion benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
@@ -1058,7 +1068,7 @@ pub fn insert_fastq_deplete_reference_contaminants_v1(
     Ok(())
 }
 
-/// Load a reference contaminant depletion benchmark record from SQLite if present.
+/// Load a reference contaminant depletion benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
@@ -1160,7 +1170,7 @@ pub fn insert_fastq_deplete_rrna_v1(
     Ok(())
 }
 
-/// Load an rRNA depletion benchmark record from SQLite if present.
+/// Load an rRNA depletion benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
@@ -1262,7 +1272,7 @@ pub fn insert_fastq_cluster_otus_v1(
     Ok(())
 }
 
-/// Load an OTU clustering benchmark record from SQLite if present.
+/// Load an OTU clustering benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
