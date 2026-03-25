@@ -270,7 +270,7 @@ mod tests {
     #[test]
     fn infer_asvs_plan_records_governed_report_and_execution_policies() {
         let tool = ToolExecutionSpecV1 {
-            tool_id: ToolId::new("dada2"),
+            tool_id: ToolId::from_static("dada2"),
             tool_version: "1.0.0".to_string(),
             image: ContainerImageRefV1 {
                 image: "bijuxdna/dada2".to_string(),

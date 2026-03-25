@@ -1261,8 +1261,8 @@ mod amplicon_runtime_tests {
 
     fn execution_step_with_script(script: &str) -> ExecutionStep {
         ExecutionStep {
-            step_id: StepId::new("fastq.normalize_primers".to_string()),
-            stage_id: StageId::new("fastq.normalize_primers".to_string()),
+            step_id: StepId::new(bijux_dna_domain_fastq::STAGE_NORMALIZE_PRIMERS.as_str()),
+            stage_id: bijux_dna_domain_fastq::STAGE_NORMALIZE_PRIMERS,
             command: CommandSpecV1 {
                 template: vec!["bash".to_string(), "-lc".to_string(), script.to_string()],
             },
@@ -1317,8 +1317,8 @@ mod amplicon_runtime_tests {
     fn planned_terminal_damage_report_parses_embedded_governed_report() {
         let script = "set -euo pipefail\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.trim_terminal_damage.report.v2\",\"stage\":\"fastq.trim_terminal_damage\",\"stage_id\":\"fastq.trim_terminal_damage\",\"tool_id\":\"adapterremoval\",\"paired_mode\":\"paired_end\",\"threads\":1,\"damage_mode\":\"ancient\",\"execution_policy\":\"explicit_terminal_trim\",\"trim_5p_bases\":2,\"trim_3p_bases\":1,\"requested_trim_5p_bases\":2,\"requested_trim_3p_bases\":1,\"udg_classification\":\"non_udg\",\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":\"reads_R2.fastq.gz\",\"output_r1\":\"out/R1.trim_terminal_damage.adapterremoval.fastq.gz\",\"output_r2\":\"out/R2.trim_terminal_damage.adapterremoval.fastq.gz\",\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"mean_q_before\":null,\"mean_q_after\":null,\"ct_ga_asymmetry_pre\":null,\"ct_ga_asymmetry_post\":null,\"ct_ga_asymmetry_pre_r1\":null,\"ct_ga_asymmetry_post_r1\":null,\"ct_ga_asymmetry_pre_r2\":null,\"ct_ga_asymmetry_post_r2\":null,\"terminal_base_composition_pre_r1\":null,\"terminal_base_composition_post_r1\":null,\"terminal_base_composition_pre_r2\":null,\"terminal_base_composition_post_r2\":null,\"raw_backend_report\":null,\"raw_backend_report_format\":null,\"runtime_s\":null,\"memory_mb\":null,\"used_fallback\":false,\"backend_metrics\":null}' > 'trim_terminal_damage_report.json'\n";
         let mut planned = execution_step_with_script(script);
-        planned.step_id = StepId::new("fastq.trim_terminal_damage".to_string());
-        planned.stage_id = StageId::new("fastq.trim_terminal_damage".to_string());
+        planned.step_id = StepId::new(bijux_dna_domain_fastq::STAGE_TRIM_TERMINAL_DAMAGE.as_str());
+        planned.stage_id = bijux_dna_domain_fastq::STAGE_TRIM_TERMINAL_DAMAGE;
 
         let report = planned_terminal_damage_report(
             &planned,

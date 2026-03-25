@@ -163,6 +163,7 @@ fn normalize_tools_with_allowlist(
 #[cfg(test)]
 mod tests {
     use super::plan_umi;
+    use bijux_dna_core::id_catalog;
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
     };
@@ -170,7 +171,7 @@ mod tests {
 
     fn tool() -> ToolExecutionSpecV1 {
         ToolExecutionSpecV1 {
-            tool_id: ToolId::new("umi_tools".to_string()),
+            tool_id: ToolId::from_static(id_catalog::TOOL_UMI_TOOLS),
             tool_version: "test".to_string(),
             image: ContainerImageRefV1 {
                 image: "example/umi_tools".to_string(),

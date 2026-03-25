@@ -1082,7 +1082,7 @@ mod pipeline_run_tests {
     fn step(id: &str) -> bijux_dna_core::contract::ExecutionStep {
         bijux_dna_core::contract::ExecutionStep {
             step_id: StepId::new(id.to_string()),
-            stage_id: StageId::new("fastq.trim_reads".to_string()),
+            stage_id: StageId::from_static(bijux_dna_core::id_catalog::FASTQ_TRIM),
             command: CommandSpecV1 {
                 template: vec!["echo".to_string(), id.to_string()],
             },
