@@ -181,6 +181,7 @@ pub struct EnaFetchArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum CorpusCommand {
+    Materialize(CorpusMaterializeArgs),
     Normalize {
         corpus: String,
     },

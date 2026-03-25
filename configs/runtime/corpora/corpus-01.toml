@@ -4,6 +4,11 @@ species = "Homo sapiens"
 species_id = "homo_sapiens"
 preferred_root = "/home/bijan/bijux/corpus_01"
 description = "Human FASTQ benchmark corpus for Lunarc with balanced ancient and modern DNA cohorts."
+target_total = 20
+target_ancient_se = 5
+target_ancient_pe = 5
+target_modern_se = 5
+target_modern_pe = 5
 
 [[samples]]
 accession = "ERR769610"

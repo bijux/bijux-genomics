@@ -295,6 +295,7 @@ pub(crate) fn handle_ena_root(command: &cli::EnaCommand, cwd: &Path) -> Result<(
 
 pub(crate) fn handle_corpus_root(command: &cli::CorpusCommand, cwd: &Path) -> Result<()> {
     match command {
+        cli::CorpusCommand::Materialize(args) => corpus::materialize_corpus(cwd, args)?,
         cli::CorpusCommand::Normalize { corpus } => corpus::normalize_corpus(cwd, corpus)?,
         cli::CorpusCommand::Validate { corpus } => corpus::validate_corpus(cwd, corpus)?,
         cli::CorpusCommand::List(args) => {
