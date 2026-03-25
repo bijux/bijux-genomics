@@ -81,6 +81,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "sha2.workspace",
         "tempfile",
         "tempfile.workspace",
+        "toml",
         "uuid",
         "walkdir",
         "walkdir.workspace",

@@ -17,5 +17,8 @@ sha2.workspace = true
 toml.workspace = true
 walkdir.workspace = true
 
+[dev-dependencies]
+bijux-dna-policies.workspace = true
+
 [lints]
 workspace = true
