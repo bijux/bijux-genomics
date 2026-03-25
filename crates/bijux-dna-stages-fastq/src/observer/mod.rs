@@ -8,10 +8,9 @@ use bijux_dna_domain_fastq::{
 };
 
 pub mod artifacts;
-mod parse;
 
 pub use artifacts::*;
-pub use parse::{
+pub use bijux_dna_domain_fastq::observer::{
     parse_bbduk_reads_removed, parse_cluster_otus_report, parse_correct_errors_report,
     parse_deduplicate_report, parse_deplete_host_report,
     parse_deplete_reference_contaminants_report, parse_deplete_rrna_report,

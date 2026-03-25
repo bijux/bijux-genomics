@@ -32,7 +32,7 @@ fn parse_validate_reads_metrics(
 ) -> serde_json::Value {
     let report_path = out_dir.join("validation.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_validation_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_validation_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.validate_reads",
@@ -72,7 +72,7 @@ fn parse_validate_reads_metrics(
 pub(crate) fn parse_profile_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("qc.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_profile_reads_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.profile_reads",
@@ -107,7 +107,7 @@ pub(crate) fn parse_profile_reads_metrics(out_dir: &std::path::Path) -> serde_js
 pub(crate) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("filter_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_filter_reads_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_filter_reads_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.filter_reads",
@@ -159,7 +159,7 @@ pub(crate) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_jso
 pub(crate) fn parse_correct_errors_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("correct_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_correct_errors_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_correct_errors_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.correct_errors",
@@ -205,7 +205,7 @@ pub(crate) fn parse_filter_low_complexity_metrics(out_dir: &std::path::Path) -> 
     let report_path = out_dir.join("low_complexity_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) =
-            bijux_dna_stages_fastq::observer::parse_filter_low_complexity_report(&raw)
+            bijux_dna_domain_fastq::observer::parse_filter_low_complexity_report(&raw)
         {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
@@ -243,7 +243,7 @@ pub(crate) fn parse_profile_read_lengths_metrics(out_dir: &std::path::Path) -> s
     let report_path = out_dir.join("profile_read_lengths_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) =
-            bijux_dna_stages_fastq::observer::parse_profile_read_lengths_report(&raw)
+            bijux_dna_domain_fastq::observer::parse_profile_read_lengths_report(&raw)
         {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
@@ -281,7 +281,7 @@ pub(crate) fn parse_profile_overrepresented_metrics(
     let report_path = out_dir.join("overrepresented_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) =
-            bijux_dna_stages_fastq::observer::parse_profile_overrepresented_report(&raw)
+            bijux_dna_domain_fastq::observer::parse_profile_overrepresented_report(&raw)
         {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
@@ -316,7 +316,7 @@ pub(crate) fn parse_profile_overrepresented_metrics(
 pub(crate) fn parse_infer_asvs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("infer_asvs_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_infer_asvs_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_infer_asvs_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.infer_asvs",
@@ -348,7 +348,7 @@ pub(crate) fn parse_infer_asvs_metrics(out_dir: &std::path::Path) -> serde_json:
 pub(crate) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("umi_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_extract_umis_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.extract_umis",
@@ -384,7 +384,7 @@ pub(crate) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_jso
 pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_terminal_damage_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_terminal_damage_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_terminal_damage_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.trim_terminal_damage",
@@ -422,7 +422,7 @@ pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> s
 pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_trim_reads_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_trim_reads_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.trim_reads",
@@ -472,7 +472,7 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
 pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("merge_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_merge_pairs_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.merge_pairs",
@@ -522,7 +522,7 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
 pub(crate) fn parse_cluster_otus_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("cluster_otus_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_cluster_otus_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_cluster_otus_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.cluster_otus",
@@ -556,7 +556,7 @@ pub(crate) fn parse_cluster_otus_metrics(out_dir: &std::path::Path) -> serde_jso
 pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("deduplicate_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_remove_duplicates_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_remove_duplicates_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.remove_duplicates",
@@ -595,7 +595,7 @@ pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serd
 pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_polyg_tails_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_trim_polyg_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_trim_polyg_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.trim_polyg_tails",
@@ -637,7 +637,7 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
 pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("normalize_primers_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_normalize_primers_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_normalize_primers_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.normalize_primers",
@@ -675,7 +675,7 @@ pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serd
 pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("normalize_abundance_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_normalize_abundance_report(&raw)
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw)
         {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
@@ -712,7 +712,7 @@ pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> se
 pub(crate) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("remove_chimeras_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_remove_chimeras_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_remove_chimeras_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.remove_chimeras",
@@ -744,7 +744,7 @@ pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_
     let report_path = discover_screen_taxonomy_report(out_dir)
         .unwrap_or_else(|| out_dir.join("classification_report.json"));
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_screen_taxonomy_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_screen_taxonomy_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.screen_taxonomy",
@@ -803,7 +803,7 @@ fn discover_screen_taxonomy_report(out_dir: &std::path::Path) -> Option<std::pat
 pub(crate) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("rrna_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_deplete_rrna_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_deplete_rrna_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.deplete_rrna",
@@ -848,7 +848,7 @@ pub(crate) fn parse_deplete_reference_contaminants_metrics(
     let report_path = out_dir.join("contaminant_screen_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) =
-            bijux_dna_stages_fastq::observer::parse_deplete_reference_contaminants_report(&raw)
+            bijux_dna_domain_fastq::observer::parse_deplete_reference_contaminants_report(&raw)
         {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
@@ -891,7 +891,7 @@ pub(crate) fn parse_deplete_reference_contaminants_metrics(
 pub(crate) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("host_depletion_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_deplete_host_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_deplete_host_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.deplete_host",
@@ -940,7 +940,7 @@ pub(crate) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_jso
 pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("report_qc_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_report_qc_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_report_qc_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.report_qc",
@@ -992,7 +992,7 @@ pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::
 fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("adapter_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_detect_adapters_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_detect_adapters_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.detect_adapters",
@@ -1039,7 +1039,7 @@ fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value
 pub(crate) fn parse_index_reference_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("index_reference_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
-        if let Ok(report) = bijux_dna_stages_fastq::observer::parse_index_reference_report(&raw) {
+        if let Ok(report) = bijux_dna_domain_fastq::observer::parse_index_reference_report(&raw) {
             return serde_json::json!({
                 "schema_version": "bijux.fastq_stage_metrics.v1",
                 "stage": "fastq.index_reference",

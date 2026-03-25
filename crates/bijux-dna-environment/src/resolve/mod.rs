@@ -139,6 +139,22 @@ pub struct ToolImageSpec {
     pub shipping_policy: Option<String>,
 }
 
+pub trait ToolImageCatalog {
+    fn get(&self, key: &str) -> Option<&ToolImageSpec>;
+}
+
+impl<S: std::hash::BuildHasher> ToolImageCatalog for HashMap<String, ToolImageSpec, S> {
+    fn get(&self, key: &str) -> Option<&ToolImageSpec> {
+        HashMap::get(self, key)
+    }
+}
+
+impl ToolImageCatalog for BTreeMap<String, ToolImageSpec> {
+    fn get(&self, key: &str) -> Option<&ToolImageSpec> {
+        BTreeMap::get(self, key)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ResolvedImage {

@@ -11,6 +11,7 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimPoly
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_domain_fastq::observer::{parse_bbduk_reads_removed, parse_fastp_metrics};
 use bijux_dna_domain_fastq::TrimPolygReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -19,7 +20,6 @@ use bijux_dna_planner_fastq::stage_api::{
     RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use bijux_dna_stages_fastq::observer::{parse_bbduk_reads_removed, parse_fastp_metrics};
 
 use super::trim_bench_common::{
     build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
@@ -33,7 +33,7 @@ use std::path::{Path, PathBuf};
 fn load_governed_trim_polyg_report(report_path: &Path) -> Result<TrimPolygReportV1> {
     let raw = std::fs::read_to_string(report_path)
         .with_context(|| format!("read governed trim-polyg report {}", report_path.display()))?;
-    bijux_dna_stages_fastq::observer::parse_trim_polyg_report(&raw)
+    bijux_dna_domain_fastq::observer::parse_trim_polyg_report(&raw)
         .with_context(|| format!("parse governed trim-polyg report {}", report_path.display()))
 }
 

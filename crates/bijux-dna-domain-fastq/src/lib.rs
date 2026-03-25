@@ -32,6 +32,7 @@ mod merge_pairs_artifacts;
 pub mod metrics;
 mod normalize_abundance_artifacts;
 mod normalize_primers_artifacts;
+pub mod observer;
 mod observer_contract;
 pub mod params;
 pub mod pipeline_contract;

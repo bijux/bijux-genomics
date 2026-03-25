@@ -424,11 +424,11 @@ fn parse_filter_backend_metrics(
     match (raw_backend_report, raw_backend_report_format) {
         (Some(path), Some("fastp_json")) => std::fs::read_to_string(path)
             .ok()
-            .and_then(|raw| bijux_dna_stages_fastq::observer::parse_fastp_metrics(&raw).ok())
+            .and_then(|raw| bijux_dna_domain_fastq::observer::parse_fastp_metrics(&raw).ok())
             .and_then(|metrics| serde_json::to_value(metrics).ok()),
         (Some(path), Some("bbduk_stats")) => std::fs::read_to_string(path)
             .ok()
-            .and_then(|raw| bijux_dna_stages_fastq::observer::parse_bbduk_reads_removed(&raw).ok())
+            .and_then(|raw| bijux_dna_domain_fastq::observer::parse_bbduk_reads_removed(&raw).ok())
             .map(|reads_removed| {
                 serde_json::json!({
                     "schema_version": "bijux.bbduk.filter.metrics.v1",

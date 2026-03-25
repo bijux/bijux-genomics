@@ -393,7 +393,7 @@ fn low_complexity_backend_metrics(
     match (raw_backend_report, raw_backend_report_format) {
         (Some(path), Some("bbduk_stats")) => std::fs::read_to_string(path)
             .ok()
-            .and_then(|raw| bijux_dna_stages_fastq::observer::parse_bbduk_reads_removed(&raw).ok())
+            .and_then(|raw| bijux_dna_domain_fastq::observer::parse_bbduk_reads_removed(&raw).ok())
             .map(|reads_removed_reported| {
                 serde_json::json!({
                     "reads_removed_reported": reads_removed_reported,

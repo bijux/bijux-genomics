@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-stages-fastq
+//! Owner: bijux-dna-domain-fastq
 //! Observer parsers for tool stdout and report artifacts.
 //! Supported formats must be deterministic and stable across versions.
 
@@ -6,17 +6,16 @@ use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 use tracing::warn;
 
-use bijux_dna_core::prelude::measure::SeqkitMetrics;
-use bijux_dna_domain_fastq::metrics::{
+use crate::metrics::{
     AdapterRemovalToolMetricsV1, FastpToolMetricsV1, FastqcToolMetricsV1, MultiqcToolMetricsV1,
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
 };
-use bijux_dna_domain_fastq::params::{
+use crate::params::{
     detect_adapters::{AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode},
     PairedMode,
 };
-use bijux_dna_domain_fastq::DuplicateClassEntryV1;
-use bijux_dna_domain_fastq::{
+use crate::DuplicateClassEntryV1;
+use crate::{
     ClusterOtusReportV1, CorrectErrorsReportV1, DepleteHostReportV1,
     DepleteReferenceContaminantsReportV1, DepleteRrnaReportV1, DetectAdaptersReportV1,
     ExtractUmisReportV1, FilterLowComplexityReportV1, FilterReadsReportV1, IndexReferenceReportV1,
@@ -28,6 +27,7 @@ use bijux_dna_domain_fastq::{
     TaxonomyScreenSummaryEntryV1, TerminalDamageReportV1, TrimPolygReportV1, TrimReadsReportV1,
     ValidatedReadsManifestV1, ValidationReportV1,
 };
+use bijux_dna_core::prelude::measure::SeqkitMetrics;
 
 /// # Errors
 /// Returns an error if stdout cannot be parsed.
@@ -196,8 +196,8 @@ struct LegacyCorrectErrorsReportV1 {
     stage_id: String,
     tool_id: Option<String>,
     tool: Option<String>,
-    correction_engine: bijux_dna_domain_fastq::params::correct::CorrectionEngine,
-    quality_encoding: bijux_dna_domain_fastq::params::correct::QualityEncoding,
+    correction_engine: crate::params::correct::CorrectionEngine,
+    quality_encoding: crate::params::correct::QualityEncoding,
     input_r1: String,
     input_r2: Option<String>,
     output_r1: String,
@@ -233,7 +233,7 @@ fn parse_legacy_correct_errors_report(report_json: &str) -> Result<CorrectErrors
         ));
     }
     Ok(CorrectErrorsReportV1 {
-        schema_version: bijux_dna_domain_fastq::CORRECT_ERRORS_REPORT_SCHEMA_VERSION.to_string(),
+        schema_version: crate::CORRECT_ERRORS_REPORT_SCHEMA_VERSION.to_string(),
         stage: legacy.stage_id.clone(),
         stage_id: legacy.stage_id,
         tool_id: legacy
@@ -347,7 +347,7 @@ fn parse_legacy_deplete_rrna_report(report_json: &str) -> Result<DepleteRrnaRepo
         ));
     }
     Ok(DepleteRrnaReportV1 {
-        schema_version: bijux_dna_domain_fastq::DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),
+        schema_version: crate::DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),
         stage: legacy.stage_id.clone(),
         stage_id: legacy.stage_id,
         tool_id: legacy.tool_id,
@@ -356,8 +356,8 @@ fn parse_legacy_deplete_rrna_report(report_json: &str) -> Result<DepleteRrnaRepo
         rrna_db: None,
         database_artifact_id: "legacy_rrna_db".to_string(),
         database_build_id: None,
-        screening_engine: bijux_dna_domain_fastq::params::screen::RrnaScreeningEngine::Sortmerna,
-        report_format: bijux_dna_domain_fastq::params::screen::RrnaReportFormat::SummaryTsvAndJson,
+        screening_engine: crate::params::screen::RrnaScreeningEngine::Sortmerna,
+        report_format: crate::params::screen::RrnaReportFormat::SummaryTsvAndJson,
         emit_removed_reads: false,
         min_identity: None,
         input_r1: String::new(),
@@ -423,21 +423,19 @@ fn parse_legacy_deplete_host_report(report_json: &str) -> Result<DepleteHostRepo
         tool_id: legacy.tool_id,
         paired_mode: PairedMode::SingleEnd,
         threads: 1,
-        reference_scope: bijux_dna_domain_fastq::params::screen::ReferenceScope::Host,
+        reference_scope: crate::params::screen::ReferenceScope::Host,
         reference_catalog_id: "host_reference".to_string(),
         reference_index_artifact_id: "reference_index".to_string(),
         reference_index_backend: "bowtie2_build".to_string(),
         reference_build_id: None,
         reference_digest: None,
-        masking_policy: bijux_dna_domain_fastq::params::screen::ReferenceMaskingPolicy::Unmasked,
-        decoy_policy: bijux_dna_domain_fastq::params::screen::ReferenceDecoyPolicy::None,
+        masking_policy: crate::params::screen::ReferenceMaskingPolicy::Unmasked,
+        decoy_policy: crate::params::screen::ReferenceDecoyPolicy::None,
         decoy_catalog_id: None,
         identity_threshold: 0.95,
-        retained_read_policy:
-            bijux_dna_domain_fastq::params::screen::ReadRetentionPolicy::KeepNonHostReads,
+        retained_read_policy: crate::params::screen::ReadRetentionPolicy::KeepNonHostReads,
         emit_removed_reads: true,
-        report_format:
-            bijux_dna_domain_fastq::params::screen::MappingReportFormat::Bowtie2MetricsFile,
+        report_format: crate::params::screen::MappingReportFormat::Bowtie2MetricsFile,
         retain_unmapped_pairs: false,
         input_r1: String::new(),
         input_r2: None,
@@ -755,15 +753,15 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
             })
             .unwrap_or_else(|| "unknown".to_string()),
         paired_mode: match parse_report_u64_field(report_json, "pairs_in") {
-            Some(_) => bijux_dna_domain_fastq::PairedMode::PairedEnd,
-            None => bijux_dna_domain_fastq::PairedMode::SingleEnd,
+            Some(_) => crate::PairedMode::PairedEnd,
+            None => crate::PairedMode::SingleEnd,
         },
         threads: serde_json::from_str::<serde_json::Value>(report_json)
             .ok()
             .and_then(|value| value.get("threads").and_then(serde_json::Value::as_u64))
             .and_then(|value| u32::try_from(value).ok())
             .unwrap_or(1),
-        dedup_mode: bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact,
+        dedup_mode: crate::params::remove_duplicates::DedupMode::Exact,
         keep_order: true,
         input_r1: String::new(),
         input_r2: None,
@@ -835,7 +833,7 @@ fn parse_legacy_remove_chimeras_report(report_json: &str) -> Result<RemoveChimer
             .and_then(serde_json::Value::as_str)
             .unwrap_or("unknown")
             .to_string(),
-        paired_mode: bijux_dna_domain_fastq::PairedMode::SingleEnd,
+        paired_mode: crate::PairedMode::SingleEnd,
         threads: json
             .get("threads")
             .and_then(serde_json::Value::as_u64)
@@ -897,8 +895,8 @@ fn parse_legacy_profile_reads_report(report_json: &str) -> Result<ProfileReadsRe
             .unwrap_or("unknown")
             .to_string(),
         paired_mode: match json.get("paired_mode").and_then(serde_json::Value::as_str) {
-            Some("paired_end") => bijux_dna_domain_fastq::PairedMode::PairedEnd,
-            _ => bijux_dna_domain_fastq::PairedMode::SingleEnd,
+            Some("paired_end") => crate::PairedMode::PairedEnd,
+            _ => crate::PairedMode::SingleEnd,
         },
         threads: json
             .get("threads")
@@ -991,8 +989,8 @@ fn parse_legacy_profile_read_lengths_report(
             .unwrap_or("unknown")
             .to_string(),
         paired_mode: match json.get("paired_mode").and_then(serde_json::Value::as_str) {
-            Some("paired_end") => bijux_dna_domain_fastq::PairedMode::PairedEnd,
-            _ => bijux_dna_domain_fastq::PairedMode::SingleEnd,
+            Some("paired_end") => crate::PairedMode::PairedEnd,
+            _ => crate::PairedMode::SingleEnd,
         },
         threads: json
             .get("threads")
@@ -1065,8 +1063,8 @@ fn parse_legacy_profile_overrepresented_report(
             .unwrap_or("unknown")
             .to_string(),
         paired_mode: match json.get("paired_mode").and_then(serde_json::Value::as_str) {
-            Some("paired_end") => bijux_dna_domain_fastq::PairedMode::PairedEnd,
-            _ => bijux_dna_domain_fastq::PairedMode::SingleEnd,
+            Some("paired_end") => crate::PairedMode::PairedEnd,
+            _ => crate::PairedMode::SingleEnd,
         },
         threads: json
             .get("threads")
@@ -1144,13 +1142,12 @@ fn parse_legacy_filter_low_complexity_report(
         ));
     }
     let paired_mode = if legacy.output_fastq_r2.is_some() {
-        bijux_dna_domain_fastq::PairedMode::PairedEnd
+        crate::PairedMode::PairedEnd
     } else {
-        bijux_dna_domain_fastq::PairedMode::SingleEnd
+        crate::PairedMode::SingleEnd
     };
     Ok(FilterLowComplexityReportV1 {
-        schema_version: bijux_dna_domain_fastq::FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION
-            .to_string(),
+        schema_version: crate::FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION.to_string(),
         stage: legacy.stage_id.clone(),
         stage_id: legacy.stage_id,
         tool_id: legacy.tool_id,
@@ -1215,11 +1212,11 @@ fn parse_legacy_extract_umis_report(report_json: &str) -> Result<ExtractUmisRepo
         ));
     }
     Ok(ExtractUmisReportV1 {
-        schema_version: bijux_dna_domain_fastq::EXTRACT_UMIS_REPORT_SCHEMA_VERSION.to_string(),
+        schema_version: crate::EXTRACT_UMIS_REPORT_SCHEMA_VERSION.to_string(),
         stage: legacy.stage_id.clone(),
         stage_id: legacy.stage_id,
         tool_id: legacy.tool_id,
-        paired_mode: bijux_dna_domain_fastq::PairedMode::PairedEnd,
+        paired_mode: crate::PairedMode::PairedEnd,
         threads: 1,
         umi_pattern: String::new(),
         input_r1: legacy.input_r1,
@@ -1482,20 +1479,20 @@ mod tests {
         parse_seqkit_stats, parse_seqkit_tool_metrics, parse_terminal_damage_report,
         parse_trim_reads_report, parse_validated_reads_manifest, parse_validation_report,
     };
-    use anyhow::Result;
-    use bijux_dna_domain_fastq::params::trim::TerminalDamageExecutionPolicy;
-    use bijux_dna_domain_fastq::params::DamageMode;
-    use bijux_dna_domain_fastq::{
+    use crate::params::trim::TerminalDamageExecutionPolicy;
+    use crate::params::DamageMode;
+    use crate::{
         PairedMode, ValidateFailureClass, DEPLETE_RRNA_REPORT_SCHEMA_VERSION,
         REPORT_QC_REPORT_SCHEMA_VERSION, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
         TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION, VALIDATED_READS_MANIFEST_SCHEMA_VERSION,
         VALIDATION_REPORT_SCHEMA_VERSION,
     };
+    use anyhow::Result;
 
     #[test]
     fn parse_fastqvalidator_count_parses_fixture() -> Result<()> {
         let stdout =
-            include_str!("../../tests/fixtures/fastqvalidator/default/fastqvalidator_v1.txt");
+            include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/fastqvalidator/default/fastqvalidator_v1.txt");
         let count = parse_fastqvalidator_count(stdout)?;
         assert_eq!(count, 12345);
         Ok(())
@@ -2096,7 +2093,9 @@ mod tests {
 
     #[test]
     fn parse_seqkit_stats_parses_fixture() -> Result<()> {
-        let stdout = include_str!("../../tests/fixtures/seqkit/default/seqkit_stats_v1.txt");
+        let stdout = include_str!(
+            "../../../bijux-dna-stages-fastq/tests/fixtures/seqkit/default/seqkit_stats_v1.txt"
+        );
         let metrics = parse_seqkit_stats(stdout)?;
         assert_eq!(metrics.reads, 1000);
         assert_eq!(metrics.bases, 100_000);
@@ -2114,7 +2113,7 @@ mod tests {
     #[test]
     fn parse_deduplicate_report_parses_fixture() -> Result<()> {
         let raw =
-            include_str!("../../tests/fixtures/deduplicate/default/deduplicate_report_v1.json");
+            include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/deduplicate/default/deduplicate_report_v1.json");
         let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
         assert_eq!(reads_in, 1000);
         assert_eq!(reads_out, 820);
@@ -2222,7 +2221,7 @@ mod tests {
     #[test]
     fn parse_low_complexity_report_parses_fixture() -> Result<()> {
         let raw = include_str!(
-            "../../tests/fixtures/low_complexity/default/low_complexity_report_v1.json"
+            "../../../bijux-dna-stages-fastq/tests/fixtures/low_complexity/default/low_complexity_report_v1.json"
         );
         let removed = parse_low_complexity_report(raw)?;
         assert_eq!(removed, 137);
@@ -2232,7 +2231,7 @@ mod tests {
     #[test]
     fn parse_deduplicate_report_parses_key_value_fixture() -> Result<()> {
         let raw = include_str!(
-            "../../tests/fixtures/stage_output_bank/default/fastq.remove_duplicates.fastuniq.txt"
+            "../../../bijux-dna-stages-fastq/tests/fixtures/stage_output_bank/default/fastq.remove_duplicates.fastuniq.txt"
         );
         let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
         assert_eq!(reads_in, 1000);
@@ -2488,7 +2487,7 @@ mod tests {
     #[test]
     fn parse_low_complexity_report_parses_key_value_fixture() -> Result<()> {
         let raw = include_str!(
-            "../../tests/fixtures/stage_output_bank/default/fastq.filter_low_complexity.bbduk.txt"
+            "../../../bijux-dna-stages-fastq/tests/fixtures/stage_output_bank/default/fastq.filter_low_complexity.bbduk.txt"
         );
         let removed = parse_low_complexity_report(raw)?;
         assert_eq!(removed, 137);
@@ -2589,7 +2588,9 @@ mod tests {
 
     #[test]
     fn parse_fastp_metrics_fixture() -> Result<()> {
-        let raw = include_str!("../../tests/fixtures/tool_metrics/default/fastp.json");
+        let raw = include_str!(
+            "../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/fastp.json"
+        );
         let parsed = parse_fastp_metrics(raw)?;
         assert_eq!(parsed.schema_version, "bijux.fastp.metrics.v1");
         assert_eq!(parsed.passed_filter_reads, 960);
@@ -2599,7 +2600,7 @@ mod tests {
 
     #[test]
     fn parse_adapterremoval_metrics_fixture() -> Result<()> {
-        let raw = include_str!("../../tests/fixtures/tool_metrics/default/adapterremoval.txt");
+        let raw = include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/adapterremoval.txt");
         let parsed = parse_adapterremoval_metrics(raw)?;
         assert_eq!(parsed.schema_version, "bijux.adapterremoval.metrics.v1");
         assert_eq!(parsed.pairs_processed, 1000);
@@ -2609,7 +2610,9 @@ mod tests {
 
     #[test]
     fn parse_seqkit_tool_metrics_fixture() -> Result<()> {
-        let raw = include_str!("../../tests/fixtures/seqkit/default/seqkit_stats_v1.txt");
+        let raw = include_str!(
+            "../../../bijux-dna-stages-fastq/tests/fixtures/seqkit/default/seqkit_stats_v1.txt"
+        );
         let parsed = parse_seqkit_tool_metrics(raw)?;
         assert_eq!(parsed.schema_version, "bijux.seqkit.metrics.v1");
         assert_eq!(parsed.reads, 1000);
@@ -2618,7 +2621,7 @@ mod tests {
 
     #[test]
     fn parse_samtools_flagstat_fixture() -> Result<()> {
-        let raw = include_str!("../../tests/fixtures/tool_metrics/default/samtools_flagstat.txt");
+        let raw = include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/samtools_flagstat.txt");
         let parsed = parse_samtools_flagstat_metrics(raw)?;
         assert_eq!(parsed.schema_version, "bijux.samtools.flagstat.v1");
         assert_eq!(parsed.total_reads, 1000);
@@ -2628,7 +2631,7 @@ mod tests {
 
     #[test]
     fn parse_fastqc_summary_fixture() -> Result<()> {
-        let raw = include_str!("../../tests/fixtures/tool_metrics/default/fastqc_summary.txt");
+        let raw = include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/fastqc_summary.txt");
         let parsed = parse_fastqc_summary_metrics(raw)?;
         assert_eq!(parsed.schema_version, "bijux.fastqc.metrics.v1");
         assert_eq!(parsed.total_sequences, 1000);
@@ -2639,7 +2642,7 @@ mod tests {
     #[test]
     fn parse_multiqc_general_stats_fixture() -> Result<()> {
         let raw =
-            include_str!("../../tests/fixtures/tool_metrics/default/multiqc_general_stats.json");
+            include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/multiqc_general_stats.json");
         let parsed = parse_multiqc_general_stats_metrics(raw)?;
         assert_eq!(parsed.schema_version, "bijux.multiqc.metrics.v1");
         assert_eq!(parsed.sample_count, 2);

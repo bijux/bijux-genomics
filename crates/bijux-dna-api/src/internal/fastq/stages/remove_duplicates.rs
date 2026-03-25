@@ -311,7 +311,7 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
             report_path.display()
         )
     })?;
-    let report = bijux_dna_stages_fastq::observer::parse_remove_duplicates_report(&raw).map_err(
+    let report = bijux_dna_domain_fastq::observer::parse_remove_duplicates_report(&raw).map_err(
         |error| {
             anyhow!(
                 "parse governed remove-duplicates report {}: {error}",

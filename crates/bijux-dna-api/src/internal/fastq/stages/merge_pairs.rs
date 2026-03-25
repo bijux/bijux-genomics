@@ -60,7 +60,7 @@ fn merge_plan_options(
 fn load_governed_merge_report(report_path: &Path) -> Result<MergePairsReportV1> {
     let raw = std::fs::read_to_string(report_path)
         .with_context(|| format!("read governed merge report {}", report_path.display()))?;
-    bijux_dna_stages_fastq::observer::parse_merge_pairs_report(&raw)
+    bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw)
         .with_context(|| format!("parse governed merge report {}", report_path.display()))
 }
 

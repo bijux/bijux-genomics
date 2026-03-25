@@ -19,10 +19,7 @@ fn prelude_exports_snapshot() {
         .join("prelude_exports.txt");
     let expected_text = std::fs::read_to_string(&expected_path)
         .unwrap_or_else(|err| panic!("read prelude fixture: {err}"));
-    let mut expected = expected_text
-        .lines()
-        .map(str::trim)
-        .collect::<Vec<_>>();
+    let mut expected = expected_text.lines().map(str::trim).collect::<Vec<_>>();
     expected.sort_unstable();
     assert_eq!(
         snapshot,

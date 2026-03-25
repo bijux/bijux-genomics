@@ -15,7 +15,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("index_reference_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_index_reference_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_index_reference_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.index_reference.extra_artifacts.v2",
@@ -33,7 +33,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.detect_adapters" => {
             let report_path = stage_root.join("adapter_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_detect_adapters_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_detect_adapters_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.detect_adapters.extra_artifacts.v2",
@@ -59,7 +59,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("filter_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_filter_reads_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_filter_reads_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.filter_reads.extra_artifacts.v2",
@@ -94,7 +94,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("correct_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_correct_errors_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_correct_errors_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.correct_errors.extra_artifacts.v2",
@@ -118,7 +118,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.filter_low_complexity" => {
             let report_path = stage_root.join("low_complexity_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_filter_low_complexity_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_filter_low_complexity_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.filter_low_complexity.extra_artifacts.v2",
@@ -142,7 +142,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("qc.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_profile_reads_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.profile_reads.extra_artifacts.v2",
@@ -170,7 +170,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("profile_read_lengths_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_profile_read_lengths_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_profile_read_lengths_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.profile_read_lengths.extra_artifacts.v2",
@@ -196,7 +196,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("overrepresented_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_profile_overrepresented_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_profile_overrepresented_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.profile_overrepresented.extra_artifacts.v2",
@@ -225,7 +225,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("trim_polyg_tails_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_trim_polyg_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_trim_polyg_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.trim_polyg_tails.extra_artifacts.v2",
@@ -254,7 +254,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("merge_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_merge_pairs_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.merge_pairs.extra_artifacts.v2",
@@ -282,7 +282,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.extract_umis" => {
             let report_path = stage_root.join("umi_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_extract_umis_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.extract_umis.extra_artifacts.v2",
@@ -301,7 +301,7 @@ fn emit_fastq_stage_extra_artifacts(
             let report_path = discover_screen_taxonomy_report_path(stage_root, &execution.outputs)
                 .unwrap_or_else(|| stage_root.join("classification_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_screen_taxonomy_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_screen_taxonomy_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.screen_taxonomy.extra_artifacts.v2",
@@ -326,7 +326,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("report_qc_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_report_qc_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_report_qc_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.report_qc.extra_artifacts.v2",
@@ -374,7 +374,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("deduplicate_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_remove_duplicates_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_remove_duplicates_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.extra_artifacts.v2",
@@ -404,7 +404,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.deplete_reference_contaminants" => {
             let report_path = stage_root.join("contaminant_screen_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_deplete_reference_contaminants_report(&raw)
+                bijux_dna_domain_fastq::observer::parse_deplete_reference_contaminants_report(&raw)
                     .ok()
             });
             Some(serde_json::json!({
@@ -431,7 +431,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.deplete_rrna" => {
             let report_path = stage_root.join("rrna_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_deplete_rrna_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_deplete_rrna_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.deplete_rrna.extra_artifacts.v2",
@@ -457,7 +457,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.deplete_host" => {
             let report_path = stage_root.join("host_depletion_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_deplete_host_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_deplete_host_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.deplete_host.extra_artifacts.v2",
@@ -502,7 +502,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.normalize_primers" => {
             let report_path = stage_root.join("normalize_primers_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_normalize_primers_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_normalize_primers_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.normalize_primers.extra_artifacts.v2",
@@ -527,7 +527,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("trim_terminal_damage_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_terminal_damage_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_terminal_damage_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.trim_terminal_damage.extra_artifacts.v2",
@@ -564,7 +564,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("remove_chimeras_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_remove_chimeras_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_remove_chimeras_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.remove_chimeras.extra_artifacts.v2",
@@ -589,7 +589,7 @@ fn emit_fastq_stage_extra_artifacts(
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("cluster_otus_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_cluster_otus_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_cluster_otus_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.cluster_otus.extra_artifacts.v2",
@@ -611,7 +611,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.infer_asvs" => {
             let report_path = stage_root.join("infer_asvs_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_infer_asvs_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_infer_asvs_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.infer_asvs.extra_artifacts.v2",
@@ -633,7 +633,7 @@ fn emit_fastq_stage_extra_artifacts(
         "fastq.normalize_abundance" => {
             let report_path = stage_root.join("normalize_abundance_report.json");
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
-                bijux_dna_stages_fastq::observer::parse_normalize_abundance_report(&raw).ok()
+                bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw).ok()
             });
             Some(serde_json::json!({
                 "schema_version": "bijux.fastq.normalize_abundance.extra_artifacts.v2",

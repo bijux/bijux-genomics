@@ -1494,11 +1494,8 @@ mod tests {
 
     fn write_fastq(path: &std::path::Path, read_id: &str, sequence: &str) {
         let quality = "#".repeat(sequence.len());
-        std::fs::write(
-            path,
-            format!("@{read_id}\n{sequence}\n+\n{quality}\n"),
-        )
-        .expect("write fastq");
+        std::fs::write(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n"))
+            .expect("write fastq");
     }
 
     fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
