@@ -12,3 +12,5 @@ It is not responsible for:
 - production FASTQ, BAM, or VCF pipeline planning,
 - stage execution inside runtime crates,
 - domain semantics that belong in the domain and planner crates.
+
+Style and tree conventions follow `docs/40-policies/STYLE.md`.
