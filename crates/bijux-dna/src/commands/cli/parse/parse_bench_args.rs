@@ -311,7 +311,7 @@ pub struct BenchFastqProfileReadLengthsArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
     #[arg(long)]
     pub histogram_bins: Option<u32>,
@@ -451,7 +451,7 @@ pub struct BenchFastqRemoveDuplicatesArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
     #[arg(long)]
     pub dedup_mode: Option<String>,
@@ -486,7 +486,7 @@ pub struct BenchFastqRemoveChimerasArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
     #[arg(long, help = "Allow experimental and silver-tier tools")]
     pub allow_experimental: bool,
@@ -641,7 +641,7 @@ pub struct BenchFastqCorrectArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
     #[arg(long)]
     pub quality_encoding: Option<String>,
@@ -716,7 +716,7 @@ pub struct BenchFastqUmiArgs {
         help = "UMI barcode pattern passed to umi_tools extract"
     )]
     pub umi_pattern: String,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
     #[arg(
         long,
@@ -764,9 +764,9 @@ pub struct BenchFastqClusterOtusArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Override the governed OTU identity threshold")]
+    #[arg(long, help = "Set the governed OTU identity threshold")]
     pub otu_identity: Option<f64>,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
 }
 
@@ -797,7 +797,7 @@ pub struct BenchFastqScreenArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
 }
 #[derive(Debug, Args)]
@@ -825,7 +825,7 @@ pub struct BenchFastqIndexReferenceArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
 }
 
@@ -841,11 +841,11 @@ pub struct BenchFastqDepleteHostArgs {
     pub reference_index: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
-    #[arg(long, help = "Override the governed host identity threshold")]
+    #[arg(long, help = "Set the governed host identity threshold")]
     pub host_identity_threshold: Option<f64>,
-    #[arg(long, help = "Override whether only unmapped reads are retained")]
+    #[arg(long, help = "Choose whether only unmapped reads are retained")]
     pub retain_unmapped_only: Option<bool>,
     #[arg(
         long,
@@ -880,7 +880,7 @@ pub struct BenchFastqDepleteReferenceContaminantsArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub threads: Option<u32>,
-    #[arg(long, help = "Override the governed contaminant decoy mode")]
+    #[arg(long, help = "Set the governed contaminant decoy mode")]
     pub decoy_mode: Option<String>,
     #[arg(
         long,
@@ -913,9 +913,9 @@ pub struct BenchFastqDepleteRrnaArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub threads: Option<u32>,
-    #[arg(long, help = "Override the governed rRNA reference selector")]
+    #[arg(long, help = "Set the governed rRNA reference selector")]
     pub rrna_db: Option<String>,
-    #[arg(long, help = "Override the governed minimum identity threshold")]
+    #[arg(long, help = "Set the governed minimum identity threshold")]
     pub min_identity: Option<f64>,
     #[arg(
         long,
@@ -977,7 +977,7 @@ pub struct BenchFastqProfileOverrepresentedArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, help = "Override governed stage threads before per-job scaling")]
+    #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
     #[arg(
         long,

@@ -808,7 +808,7 @@ mod stage_artifact_tests {
             metrics_path: None,
             stdout: String::new(),
             stderr: String::new(),
-            command: "cutadapt".to_string(),
+            command: bijux_dna_core::id_catalog::TOOL_CUTADAPT.to_string(),
         }
     }
 
@@ -819,7 +819,7 @@ mod stage_artifact_tests {
                 "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
                 "stage": "fastq.trim_terminal_damage",
                 "stage_id": "fastq.trim_terminal_damage",
-                "tool_id": "cutadapt",
+                "tool_id": bijux_dna_core::id_catalog::TOOL_CUTADAPT,
                 "paired_mode": "single_end",
                 "threads": 4,
                 "damage_mode": "ancient",
@@ -870,7 +870,7 @@ mod stage_artifact_tests {
             metrics_path: None,
             stdout: String::new(),
             stderr: String::new(),
-            command: "fastp".to_string(),
+            command: bijux_dna_core::id_catalog::TOOL_FASTP.to_string(),
         }
     }
 
@@ -881,7 +881,7 @@ mod stage_artifact_tests {
                 "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
                 "stage": "fastq.trim_polyg_tails",
                 "stage_id": "fastq.trim_polyg_tails",
-                "tool_id": "fastp",
+                "tool_id": bijux_dna_core::id_catalog::TOOL_FASTP,
                 "paired_mode": "single_end",
                 "threads": 6,
                 "trim_polyg": true,
@@ -1087,7 +1087,10 @@ mod stage_artifact_tests {
 
         let extra: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
-        assert_eq!(extra["tool"], serde_json::json!("cutadapt"));
+        assert_eq!(
+            extra["tool"],
+            serde_json::json!(bijux_dna_core::id_catalog::TOOL_CUTADAPT)
+        );
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["trim_5p_bases"], serde_json::json!(2));
         assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
@@ -1108,7 +1111,10 @@ mod stage_artifact_tests {
 
         let extra: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
-        assert_eq!(extra["tool"], serde_json::json!("fastp"));
+        assert_eq!(
+            extra["tool"],
+            serde_json::json!(bijux_dna_core::id_catalog::TOOL_FASTP)
+        );
         assert_eq!(extra["threads"], serde_json::json!(6));
         assert_eq!(extra["trim_polyg"], serde_json::json!(true));
         assert_eq!(extra["polyx_bank_id"], serde_json::json!("polyx"));
@@ -1198,7 +1204,10 @@ mod stage_artifact_tests {
                 "multiqc_data": "multiqc_data",
                 "governed_qc_input_count": 2,
                 "governed_qc_contributor_stage_ids": ["fastq.detect_adapters", "fastq.screen_taxonomy"],
-                "governed_qc_contributor_tool_ids": ["fastqc", "kraken2"],
+                "governed_qc_contributor_tool_ids": [
+                    "fastqc",
+                    bijux_dna_core::id_catalog::TOOL_KRAKEN2
+                ],
                 "governed_qc_contributors": [
                     {
                         "contributor_id": "fastq.detect_adapters.fastqc",
