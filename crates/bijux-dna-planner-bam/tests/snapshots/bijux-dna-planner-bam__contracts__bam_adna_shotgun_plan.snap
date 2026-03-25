@@ -78,7 +78,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "authenticity_report",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -113,7 +117,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_authenticity",
       "resources": {
         "mem_gb": 2,
@@ -133,7 +139,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "contamination_report",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -168,7 +178,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_contamination",
       "resources": {
         "mem_gb": 2,
@@ -188,7 +200,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "coverage_summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -217,7 +232,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_coverage",
       "resources": {
         "mem_gb": 2,
@@ -237,7 +254,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "damage_pydamage",
+        "damage_mapdamage2",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -272,7 +293,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_damage",
       "resources": {
         "mem_gb": 2,
@@ -292,7 +315,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "duplication_report",
+        "duplication_histogram",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -333,7 +361,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_duplication_metrics",
       "resources": {
         "mem_gb": 2,
@@ -353,7 +383,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "coverage_summary",
+        "stage_metrics",
+        "coverage_depth"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -388,7 +422,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_endogenous_content",
       "resources": {
         "mem_gb": 2,
@@ -408,7 +444,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -473,7 +518,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_filter",
       "resources": {
         "mem_gb": 2,
@@ -493,7 +540,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "kinship_report",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -528,7 +579,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_kinship",
       "resources": {
         "mem_gb": 2,
@@ -548,7 +601,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -613,7 +675,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_length_filter",
       "resources": {
         "mem_gb": 2,
@@ -633,7 +697,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "flagstat",
+        "idxstats",
+        "stats",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -680,7 +750,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_mapping_summary",
       "resources": {
         "mem_gb": 2,
@@ -700,7 +772,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "filtered_bam",
+        "filtered_bai",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -765,7 +846,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_mapq_filter",
       "resources": {
         "mem_gb": 2,
@@ -785,7 +868,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "<TIMESTAMP>"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "sex_report",
+        "summary",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -820,7 +907,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_sex",
       "resources": {
         "mem_gb": 2,
@@ -837,10 +926,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "bamtools stats -in <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/validation.json && samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/flagstat.txt"
+          "samtools quickcheck -v <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/validation.json && samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/flagstat.txt"
         ]
       },
-      "expected_artifact_ids": [],
+      "expected_artifact_ids": [
+        "validation_report",
+        "flagstat",
+        "stage_metrics"
+      ],
       "image": {
         "digest": "sha256:bwa",
         "image": "bijux/bwa"
@@ -857,7 +950,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "name": "reference",
             "optional": false,
             "path": "mt_reference.fasta",
-            "role": "index"
+            "role": "reference"
           }
         ],
         "outputs": [
@@ -881,7 +974,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           }
         ]
       },
-      "metrics_schema_ids": [],
+      "metrics_schema_ids": [
+        "bam_metrics_v1"
+      ],
       "out_dir": "bam_validate",
       "resources": {
         "mem_gb": 2,
