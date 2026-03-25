@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -5916,14 +5917,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             }
         }
     }
-    let remote_commit = trim_newline(&run_program(
-        workspace,
-        "ssh",
-        &[
-            lunarc_host.clone(),
-            format!("cd '{lunarc_repo_dir}' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'"),
-        ],
-    )?.stdout);
+    let remote_commit = lunarc_revision(workspace, &lunarc_host, &lunarc_repo_dir)?;
     let remote_hostname = trim_newline(
         &run_program(
             workspace,
@@ -6028,11 +6022,13 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     if clean_context {
         let temp_root = temp_subdir(workspace, "lunarc-push")?;
         let files_from = temp_root.join("files.txt");
+        let sync_source = temp_root.join("LUNARC_SYNC_SOURCE.json");
         let tracked = run_program(workspace, "git", &["ls-files".to_string()])?;
         if !tracked.is_success() {
             return Ok(tracked);
         }
         write_utf8(&files_from, &tracked.stdout)?;
+        write_lunarc_sync_source(workspace, &sync_source)?;
         let sync = run_program(
             workspace,
             "rsync",
@@ -6047,7 +6043,22 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         if !sync.is_success() {
             return Ok(sync);
         }
+        let sync_source_copy = run_program(
+            workspace,
+            "rsync",
+            &[
+                "-az".to_string(),
+                sync_source.display().to_string(),
+                format!("{lunarc_host}:{lunarc_repo_dir}/LUNARC_SYNC_SOURCE.json"),
+            ],
+        )?;
+        if !sync_source_copy.is_success() {
+            return Ok(sync_source_copy);
+        }
     } else {
+        let temp_root = temp_subdir(workspace, "lunarc-push")?;
+        let sync_source = temp_root.join("LUNARC_SYNC_SOURCE.json");
+        write_lunarc_sync_source(workspace, &sync_source)?;
         let sync = run_program(
             workspace,
             "rsync",
@@ -6062,15 +6073,20 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         if !sync.is_success() {
             return Ok(sync);
         }
+        let sync_source_copy = run_program(
+            workspace,
+            "rsync",
+            &[
+                "-az".to_string(),
+                sync_source.display().to_string(),
+                format!("{lunarc_host}:{lunarc_repo_dir}/LUNARC_SYNC_SOURCE.json"),
+            ],
+        )?;
+        if !sync_source_copy.is_success() {
+            return Ok(sync_source_copy);
+        }
     }
-    let remote_commit = trim_newline(&run_program(
-        workspace,
-        "ssh",
-        &[
-            lunarc_host.clone(),
-            format!("cd '{lunarc_repo_dir}' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'"),
-        ],
-    )?.stdout);
+    let remote_commit = lunarc_revision(workspace, &lunarc_host, &lunarc_repo_dir)?;
     success_line(format!(
         "remote_repo={lunarc_repo_dir}\nremote_commit={remote_commit}"
     ))
@@ -8407,6 +8423,70 @@ fn host_matches_policy(host: &str, pattern: &str) -> Result<bool> {
 
 fn trim_newline(raw: &str) -> String {
     raw.trim().to_string()
+}
+
+fn lunarc_sync_source_payload(workspace: &Workspace) -> Result<Value> {
+    let source_commit = trim_newline(
+        &run_program(workspace, "git", &["rev-parse".to_string(), "HEAD".to_string()])?.stdout,
+    );
+    let source_branch = trim_newline(
+        &run_program(
+            workspace,
+            "git",
+            &["rev-parse".to_string(), "--abbrev-ref".to_string(), "HEAD".to_string()],
+        )?
+        .stdout,
+    );
+    Ok(json!({
+        "schema_version": "bijux.lunarc.sync_source.v1",
+        "source_commit": source_commit,
+        "source_branch": source_branch,
+        "synced_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+    }))
+}
+
+fn write_lunarc_sync_source(workspace: &Workspace, path: &Path) -> Result<()> {
+    write_json_pretty(path, &lunarc_sync_source_payload(workspace)?)
+}
+
+fn lunarc_revision(workspace: &Workspace, host: &str, repo_dir: &str) -> Result<String> {
+    let git_commit = trim_newline(
+        &run_program(
+            workspace,
+            "ssh",
+            &[
+                host.to_string(),
+                format!("cd '{repo_dir}' && git rev-parse HEAD 2>/dev/null || echo 'no-git-repo'"),
+            ],
+        )?
+        .stdout,
+    );
+    if git_commit != "no-git-repo" {
+        return Ok(git_commit);
+    }
+    let sync_source = run_program(
+        workspace,
+        "ssh",
+        &[
+            host.to_string(),
+            format!("cat '{repo_dir}/LUNARC_SYNC_SOURCE.json' 2>/dev/null || true"),
+        ],
+    )?;
+    let payload = trim_newline(&sync_source.stdout);
+    if payload.is_empty() {
+        return Ok("no-git-repo".to_string());
+    }
+    match serde_json::from_str::<Value>(&payload) {
+        Ok(value) => Ok(value
+            .get("source_commit")
+            .and_then(Value::as_str)
+            .unwrap_or("no-git-repo")
+            .to_string()),
+        Err(error) if error.io_error_kind() == Some(ErrorKind::UnexpectedEof) => {
+            Ok("no-git-repo".to_string())
+        }
+        Err(_) => Ok("no-git-repo".to_string()),
+    }
 }
 
 fn lunarc_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option<String>> {
