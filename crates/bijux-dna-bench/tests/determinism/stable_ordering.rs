@@ -52,6 +52,8 @@ fn obs(
 
 #[test]
 fn summary_is_deterministic_across_ordering() -> anyhow::Result<()> {
+    let stage_id = "fastq.trim_reads";
+    let tool_id = "fastp";
     let suite = BenchmarkSuiteSpec::v1(
         "suite".to_string(),
         vec![DatasetSpec {
@@ -62,9 +64,9 @@ fn summary_is_deterministic_across_ordering() -> anyhow::Result<()> {
             class_label: "trueseq".to_string(),
             read_layout: "paired".to_string(),
         }],
-        vec!["stage".to_string()],
-        vec!["tool".to_string()],
-        vec!["params".to_string()],
+        &[stage_id.to_string()],
+        &[tool_id.to_string()],
+        &["params".to_string()],
         ReplicatePolicy {
             count: 1,
             warmup: 0,
@@ -87,8 +89,8 @@ fn summary_is_deterministic_across_ordering() -> anyhow::Result<()> {
     );
 
     let a = vec![
-        obs("run-2", "dataset", "stage", "tool-b", "p2"),
-        obs("run-1", "dataset", "stage", "tool-a", "p1"),
+        obs("run-2", "dataset", stage_id, tool_id, "p2"),
+        obs("run-1", "dataset", stage_id, tool_id, "p1"),
     ];
     let mut b = a.clone();
     b.reverse();

@@ -35,7 +35,7 @@ tools = ["fastqvalidator"]
 [[stages]]
 stage = "fastq.trim_reads"
 stage_instance_id = "fastq.trim_reads.trim_cohort"
-tools = ["bbduk", "fastp", "fastx_clipper", "seqkit"]
+tools = ["bbduk", "fastp", "seqkit"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 
 [[stages]]

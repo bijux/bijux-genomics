@@ -21,6 +21,18 @@ use bijux_dna_bench_model::{
     SummaryRow, SummaryStratum,
 };
 
+type StageDatasetScope = (String, String, Option<String>, Option<String>);
+type StageDatasetToolScope = (String, String, Option<String>, Option<String>, String);
+type SummaryGroupKey = (
+    String,
+    String,
+    Option<String>,
+    Option<String>,
+    String,
+    String,
+);
+type SummaryStratumKey = (String, Option<String>, Option<String>, String);
+
 #[derive(Debug, Clone)]
 pub struct BenchRunOptions {
     pub output_dir: Option<std::path::PathBuf>,
@@ -93,14 +105,9 @@ pub fn summarize(
     if suite.replicate_policy.count < 3 {
         warnings.push("low_power".to_string());
     }
-    let mut stage_dataset_inputs: BTreeMap<
-        (String, String, Option<String>, Option<String>),
-        BTreeSet<String>,
-    > = BTreeMap::new();
-    let mut stage_dataset_tool_params: BTreeMap<
-        (String, String, Option<String>, Option<String>, String),
-        BTreeSet<String>,
-    > = BTreeMap::new();
+    let mut stage_dataset_inputs: BTreeMap<StageDatasetScope, BTreeSet<String>> = BTreeMap::new();
+    let mut stage_dataset_tool_params: BTreeMap<StageDatasetToolScope, BTreeSet<String>> =
+        BTreeMap::new();
     for obs in observations {
         stage_dataset_inputs
             .entry((
@@ -158,17 +165,7 @@ pub fn summarize(
         }
     }
 
-    let mut groups: BTreeMap<
-        (
-            String,
-            String,
-            Option<String>,
-            Option<String>,
-            String,
-            String,
-        ),
-        Vec<&BenchmarkObservation>,
-    > = BTreeMap::new();
+    let mut groups: BTreeMap<SummaryGroupKey, Vec<&BenchmarkObservation>> = BTreeMap::new();
     for obs in observations {
         groups
             .entry((
@@ -342,8 +339,7 @@ pub fn summarize(
                 &b.params_hash,
             ))
     });
-    let mut strata_map: BTreeMap<(String, Option<String>, Option<String>, String), (usize, usize)> =
-        BTreeMap::new();
+    let mut strata_map: BTreeMap<SummaryStratumKey, (usize, usize)> = BTreeMap::new();
     for row in &rows {
         let entry = strata_map
             .entry((
@@ -548,9 +544,9 @@ mod tests {
                 class_label: "trueseq".to_string(),
                 read_layout: "paired".to_string(),
             }],
-            vec!["fastq.trim_reads".to_string()],
-            vec!["fastp".to_string()],
-            vec!["params-a".to_string()],
+            &["fastq.trim_reads".to_string()],
+            &["fastp".to_string()],
+            &["params-a".to_string()],
             ReplicatePolicy {
                 count: 3,
                 warmup: 0,
@@ -644,9 +640,9 @@ mod tests {
                 class_label: "trueseq".to_string(),
                 read_layout: "paired".to_string(),
             }],
-            vec!["fastq.trim_reads".to_string()],
-            vec!["fastp".to_string()],
-            vec!["params-a".to_string()],
+            &["fastq.trim_reads".to_string()],
+            &["fastp".to_string()],
+            &["params-a".to_string()],
             ReplicatePolicy {
                 count: 1,
                 warmup: 0,

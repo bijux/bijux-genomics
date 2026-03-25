@@ -70,8 +70,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
         }
         if !seen_stage_nodes.insert(node_id) {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite must not repeat stage node {}",
-                node_id
+                "suite must not repeat stage node {node_id}"
             )));
         }
         declared_stage_nodes.push(node_id.to_string());
@@ -110,8 +109,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             let tool_node_id = stage.tool_node_id(tool);
             if !seen_stage_tool_nodes.insert(tool_node_id.clone()) {
                 return Err(BenchError::InvalidPolicy(format!(
-                    "suite must not repeat stage-tool node {}",
-                    tool_node_id
+                    "suite must not repeat stage-tool node {tool_node_id}"
                 )));
             }
         }
@@ -215,8 +213,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             }
             if upstream == node_id {
                 return Err(BenchError::InvalidPolicy(format!(
-                    "suite stage {} must not reference itself as an upstream stage",
-                    node_id
+                    "suite stage {node_id} must not reference itself as an upstream stage"
                 )));
             }
         }
@@ -233,8 +230,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
         for upstream in &stage.upstream_stage_instance_ids {
             if !declared_stage_nodes.contains(upstream) {
                 return Err(BenchError::InvalidPolicy(format!(
-                    "suite stage {} references unknown upstream stage node {}",
-                    node_id, upstream
+                    "suite stage {node_id} references unknown upstream stage node {upstream}"
                 )));
             }
         }
@@ -431,29 +427,25 @@ fn validate_stage_id(stage_id: &str) -> Result<(), BenchError> {
     if stage_id.starts_with("fastq.") {
         if contract_for_stage(stage_id).is_none() {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite stage {} is not declared in the FASTQ domain catalog",
-                stage_id
+                "suite stage {stage_id} is not declared in the FASTQ domain catalog"
             )));
         }
         let stage_id = StageId::new(stage_id.to_string());
         let support = execution_support_for_stage(&stage_id).ok_or_else(|| {
             BenchError::InvalidPolicy(format!(
-                "suite stage {} is missing FASTQ execution support",
-                stage_id
+                "suite stage {stage_id} is missing FASTQ execution support"
             ))
         })?;
         if !support.is_plannable() {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite stage {} is not plannable under FASTQ execution support",
-                stage_id
+                "suite stage {stage_id} is not plannable under FASTQ execution support"
             )));
         }
         return Ok(());
     }
     if !has_executor(stage_id) {
         return Err(BenchError::InvalidPolicy(format!(
-            "suite stage {} is not registered in the stage executor catalog",
-            stage_id
+            "suite stage {stage_id} is not registered in the stage executor catalog"
         )));
     }
     Ok(())
@@ -465,8 +457,7 @@ fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchErr
             return Ok(());
         }
         return Err(BenchError::InvalidPolicy(format!(
-            "suite planner-owned stage {} must not declare tool bindings",
-            stage_id
+            "suite planner-owned stage {stage_id} must not declare tool bindings"
         )));
     }
     if !stage_id.starts_with("fastq.") {
@@ -478,14 +469,12 @@ fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchErr
         let tool_id = ToolId::new(tool.clone());
         if stage_tool_binding(&stage_id, &tool_id).is_none() {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite stage {} tool {} is not declared in the FASTQ stage-tool matrix",
-                stage_id, tool
+                "suite stage {stage_id} tool {tool} is not declared in the FASTQ stage-tool matrix"
             )));
         }
         if !admitted_tools.iter().any(|admitted| admitted == &tool_id) {
             return Err(BenchError::InvalidPolicy(format!(
-                "suite stage {} tool {} is not admitted by FASTQ execution support",
-                stage_id, tool
+                "suite stage {stage_id} tool {tool} is not admitted by FASTQ execution support"
             )));
         }
     }
@@ -511,8 +500,7 @@ fn validate_stage_param_binding_keys<'a>(
             continue;
         }
         return Err(BenchError::InvalidPolicy(format!(
-            "suite stage {} stage-scoped param binding {} is not declared in the governed stage parameter contract",
-            stage_id, key
+            "suite stage {stage_id} stage-scoped param binding {key} is not declared in the governed stage parameter contract"
         )));
     }
     Ok(())
@@ -577,6 +565,42 @@ fn validate_suite_dag(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     Ok(())
 }
 
+/// # Errors
+/// Returns an error if required confounders are missing.
+pub fn validate_observation(obs: &BenchmarkObservation) -> Result<(), BenchError> {
+    if obs.schema_version != OBSERVATION_SCHEMA_V1 {
+        return Err(BenchError::InvalidObservation {
+            reason: format!("observation schema mismatch: {}", obs.schema_version),
+        });
+    }
+    obs.validate()?;
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if summary schema is invalid.
+pub fn validate_summary(summary: &BenchmarkSummary) -> Result<(), BenchError> {
+    if summary.schema_version != SUMMARY_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "summary schema mismatch: {}",
+            summary.schema_version
+        )));
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if decision schema is invalid.
+pub fn validate_decision(decision: &GateDecision) -> Result<(), BenchError> {
+    if decision.schema_version != DECISION_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "decision schema mismatch: {}",
+            decision.schema_version
+        )));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::validate_suite;
@@ -620,6 +644,19 @@ mod tests {
         )
     }
 
+    fn suite_error(suite: &BenchmarkSuiteSpec) -> String {
+        match validate_suite(suite) {
+            Ok(()) => panic!("suite unexpectedly validated"),
+            Err(error) => error.to_string(),
+        }
+    }
+
+    fn assert_valid_suite(suite: &BenchmarkSuiteSpec) {
+        if let Err(error) = validate_suite(suite) {
+            panic!("suite unexpectedly failed validation: {error}");
+        }
+    }
+
     #[test]
     fn suite_validation_rejects_duplicate_stage_tools() {
         let suite = suite_with_stage(BenchmarkStageSpec {
@@ -630,8 +667,8 @@ mod tests {
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error = validate_suite(&suite).expect_err("duplicate tools must fail");
-        assert!(error.to_string().contains("must not repeat tool"));
+        let error = suite_error(&suite);
+        assert!(error.contains("must not repeat tool"));
     }
 
     #[test]
@@ -644,14 +681,12 @@ mod tests {
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error = validate_suite(&suite).expect_err("unknown fastq stage must fail");
-        assert!(error
-            .to_string()
-            .contains("is not declared in the FASTQ domain catalog"));
+        let error = suite_error(&suite);
+        assert!(error.contains("is not declared in the FASTQ domain catalog"));
     }
 
     #[test]
-    fn suite_validation_rejects_declared_only_fastq_stages() {
+    fn suite_validation_accepts_governed_fastq_stages_with_planning_support() {
         let suite = suite_with_stage(BenchmarkStageSpec {
             stage: "fastq.infer_asvs".to_string(),
             stage_instance_id: None,
@@ -660,25 +695,21 @@ mod tests {
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error = validate_suite(&suite).expect_err("declared-only fastq stage must fail");
-        assert!(error.to_string().contains("is not plannable"));
+        assert_valid_suite(&suite);
     }
 
     #[test]
     fn suite_validation_rejects_fastq_tools_outside_execution_support() {
         let suite = suite_with_stage(BenchmarkStageSpec {
-            stage: "fastq.trim_reads".to_string(),
+            stage: "fastq.filter_low_complexity".to_string(),
             stage_instance_id: None,
-            tools: vec!["seqpurge".to_string()],
+            tools: vec!["dustmasker".to_string()],
             params: Vec::new(),
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error =
-            validate_suite(&suite).expect_err("planned-only fastq tool should not validate");
-        assert!(error
-            .to_string()
-            .contains("is not admitted by FASTQ execution support"));
+        let error = suite_error(&suite);
+        assert!(error.contains("is not admitted by FASTQ execution support"));
     }
 
     #[test]
@@ -691,7 +722,7 @@ mod tests {
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
-        validate_suite(&suite).expect("registered BAM stages should validate");
+        assert_valid_suite(&suite);
     }
 
     #[test]
@@ -704,7 +735,7 @@ mod tests {
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
-        validate_suite(&suite).expect("planner-owned select nodes should validate without tools");
+        assert_valid_suite(&suite);
     }
 
     #[test]
@@ -717,9 +748,8 @@ mod tests {
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error =
-            validate_suite(&suite).expect_err("planner-owned select nodes must not declare tools");
-        assert!(error.to_string().contains("must not declare tool bindings"));
+        let error = suite_error(&suite);
+        assert!(error.contains("must not declare tool bindings"));
     }
 
     #[test]
@@ -728,12 +758,12 @@ mod tests {
             stage: "fastq.trim_reads".to_string(),
             stage_instance_id: None,
             tools: vec!["fastp".to_string()],
-            params: vec!["".to_string()],
+            params: vec![String::new()],
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error = validate_suite(&suite).expect_err("blank params must fail");
-        assert!(error.to_string().contains("blank params entries"));
+        let error = suite_error(&suite);
+        assert!(error.contains("blank params entries"));
     }
 
     #[test]
@@ -753,10 +783,8 @@ mod tests {
             }],
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error = validate_suite(&suite).expect_err("mixed params must fail");
-        assert!(error
-            .to_string()
-            .contains("either params or param_bindings"));
+        let error = suite_error(&suite);
+        assert!(error.contains("either params or param_bindings"));
     }
 
     #[test]
@@ -776,7 +804,7 @@ mod tests {
             }],
             upstream_stage_instance_ids: Vec::new(),
         });
-        validate_suite(&suite).expect("structured param bindings should validate");
+        assert_valid_suite(&suite);
     }
 
     #[test]
@@ -796,10 +824,8 @@ mod tests {
             }],
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error = validate_suite(&suite).expect_err("foreign param binding targets must fail");
-        assert!(error
-            .to_string()
-            .contains("must match the stage node or one of its stage-tool nodes"));
+        let error = suite_error(&suite);
+        assert!(error.contains("must match the stage node or one of its stage-tool nodes"));
     }
 
     #[test]
@@ -819,11 +845,8 @@ mod tests {
             }],
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error = validate_suite(&suite)
-            .expect_err("tool-scoped bindings must target a typed stage-tool node");
-        assert!(error
-            .to_string()
-            .contains("must target its stage-tool node"));
+        let error = suite_error(&suite);
+        assert!(error.contains("must target its stage-tool node"));
     }
 
     #[test]
@@ -843,9 +866,8 @@ mod tests {
             }],
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error = validate_suite(&suite)
-            .expect_err("tool-scoped bindings must match the targeted stage-tool node");
-        assert!(error.to_string().contains("must match target tool node"));
+        let error = suite_error(&suite);
+        assert!(error.contains("must match target tool node"));
     }
 
     #[test]
@@ -866,7 +888,7 @@ mod tests {
             }],
             upstream_stage_instance_ids: Vec::new(),
         });
-        validate_suite(&suite).expect("governed stage-scoped param bindings should validate");
+        assert_valid_suite(&suite);
     }
 
     #[test]
@@ -886,11 +908,8 @@ mod tests {
             }],
             upstream_stage_instance_ids: Vec::new(),
         });
-        let error =
-            validate_suite(&suite).expect_err("unknown stage-scoped param bindings must fail");
-        assert!(error
-            .to_string()
-            .contains("governed stage parameter contract"));
+        let error = suite_error(&suite);
+        assert!(error.contains("governed stage parameter contract"));
     }
 
     #[test]
@@ -943,7 +962,7 @@ mod tests {
                 min_replicates_for_bootstrap: 5,
             },
         );
-        validate_suite(&suite).expect("distinct stage instance ids should validate");
+        assert_valid_suite(&suite);
     }
 
     #[test]
@@ -956,8 +975,8 @@ mod tests {
             param_bindings: Vec::new(),
             upstream_stage_instance_ids: vec!["missing.stage.node".to_string()],
         });
-        let error = validate_suite(&suite).expect_err("unknown upstream stage must fail");
-        assert!(error.to_string().contains("unknown upstream stage node"));
+        let error = suite_error(&suite);
+        assert!(error.contains("unknown upstream stage node"));
     }
 
     #[test]
@@ -976,8 +995,8 @@ mod tests {
             from_output_id: None,
             to_input_id: None,
         }];
-        let error = validate_suite(&suite).expect_err("unknown explicit edge target must fail");
-        assert!(error.to_string().contains("unknown target node"));
+        let error = suite_error(&suite);
+        assert!(error.contains("unknown target node"));
     }
 
     #[test]
@@ -1044,8 +1063,8 @@ mod tests {
                 to_input_id: None,
             },
         ];
-        let error = validate_suite(&suite).expect_err("duplicate explicit edges must fail");
-        assert!(error.to_string().contains("must not repeat edge"));
+        let error = suite_error(&suite);
+        assert!(error.contains("must not repeat edge"));
     }
 
     #[test]
@@ -1112,8 +1131,7 @@ mod tests {
                 to_input_id: Some("qc_artifacts".to_string()),
             },
         ];
-        validate_suite(&suite)
-            .expect("distinct artifact bindings between the same nodes should validate");
+        assert_valid_suite(&suite);
     }
 
     #[test]
@@ -1172,8 +1190,8 @@ mod tests {
             from_output_id: None,
             to_input_id: None,
         }];
-        let error = validate_suite(&suite).expect_err("cyclic suite graph must fail");
-        assert!(error.to_string().contains("acyclic"));
+        let error = suite_error(&suite);
+        assert!(error.contains("acyclic"));
     }
 
     #[test]
@@ -1232,8 +1250,7 @@ mod tests {
             from_output_id: Some("validation_report".to_string()),
             to_input_id: Some("qc_artifacts".to_string()),
         }];
-        validate_suite(&suite)
-            .expect("artifact-aware edges across stage-tool nodes should validate");
+        assert_valid_suite(&suite);
     }
 
     #[test]
@@ -1292,10 +1309,8 @@ mod tests {
             from_output_id: Some("validated_reads_r1".to_string()),
             to_input_id: Some("reads_r1".to_string()),
         }];
-        let error = validate_suite(&suite).expect_err("unknown governed output ports must fail");
-        assert!(error
-            .to_string()
-            .contains("does not expose output validated_reads_r1"));
+        let error = suite_error(&suite);
+        assert!(error.contains("does not expose output validated_reads_r1"));
     }
 
     #[test]
@@ -1351,46 +1366,10 @@ mod tests {
         suite.edges = vec![BenchmarkStageEdge {
             from: "fastq.validate_reads.validator".to_string(),
             to: "fastq.trim_reads.fastp".to_string(),
-            from_output_id: Some("".to_string()),
+            from_output_id: Some(String::new()),
             to_input_id: Some("reads_r1".to_string()),
         }];
-        let error = validate_suite(&suite).expect_err("blank edge ports must fail");
-        assert!(error.to_string().contains("blank from_output_id"));
+        let error = suite_error(&suite);
+        assert!(error.contains("blank from_output_id"));
     }
-}
-
-/// # Errors
-/// Returns an error if required confounders are missing.
-pub fn validate_observation(obs: &BenchmarkObservation) -> Result<(), BenchError> {
-    if obs.schema_version != OBSERVATION_SCHEMA_V1 {
-        return Err(BenchError::InvalidObservation {
-            reason: format!("observation schema mismatch: {}", obs.schema_version),
-        });
-    }
-    obs.validate()?;
-    Ok(())
-}
-
-/// # Errors
-/// Returns an error if summary schema is invalid.
-pub fn validate_summary(summary: &BenchmarkSummary) -> Result<(), BenchError> {
-    if summary.schema_version != SUMMARY_SCHEMA_V1 {
-        return Err(BenchError::InvalidPolicy(format!(
-            "summary schema mismatch: {}",
-            summary.schema_version
-        )));
-    }
-    Ok(())
-}
-
-/// # Errors
-/// Returns an error if decision schema is invalid.
-pub fn validate_decision(decision: &GateDecision) -> Result<(), BenchError> {
-    if decision.schema_version != DECISION_SCHEMA_V1 {
-        return Err(BenchError::InvalidPolicy(format!(
-            "decision schema mismatch: {}",
-            decision.schema_version
-        )));
-    }
-    Ok(())
 }

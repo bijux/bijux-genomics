@@ -25,9 +25,9 @@ fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
             class_label: "trueseq".to_string(),
             read_layout: "paired".to_string(),
         }],
-        vec!["fastq.trim_reads".to_string()],
-        vec!["fastp".to_string()],
-        vec!["params-a".to_string()],
+        &["fastq.trim_reads".to_string()],
+        &["fastp".to_string()],
+        &["params-a".to_string()],
         ReplicatePolicy {
             count: 3,
             warmup: 0,
