@@ -428,6 +428,20 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
                     path.display()
                 ));
             }
+            if path.starts_with(defs_root.join("lunarc")) {
+                if !raw.contains("/opt/bijux/VERSION.json") {
+                    offenders.push(format!(
+                        "{}: missing provenance file write /opt/bijux/VERSION.json",
+                        path.display()
+                    ));
+                }
+                if !raw.contains("bijux-tool-info") {
+                    offenders.push(format!(
+                        "{}: missing bijux-tool-info self-report command",
+                        path.display()
+                    ));
+                }
+            }
         }
     }
 
