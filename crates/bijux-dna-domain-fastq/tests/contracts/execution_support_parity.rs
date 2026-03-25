@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use serde_json::Value;
 
 type ExecutionSupportManifestRow = (String, String, Option<String>, BTreeSet<String>);
 
@@ -69,34 +70,34 @@ fn execution_support_manifest() -> Result<Vec<ExecutionSupportManifestRow>> {
     let raw =
         std::fs::read_to_string(workspace_root()?.join("domain/fastq/execution_support.yaml"))
             .context("read domain/fastq/execution_support.yaml")?;
-    let yaml: serde_yaml::Value =
-        serde_yaml::from_str(&raw).context("parse domain/fastq/execution_support.yaml")?;
+    let yaml: Value =
+        bijux_dna_infra::formats::parse_yaml(&raw).context("parse domain/fastq/execution_support.yaml")?;
     let stages = yaml
         .get("stages")
-        .and_then(serde_yaml::Value::as_sequence)
+        .and_then(Value::as_array)
         .context("execution_support stages")?;
     let mut out = Vec::new();
     for stage in stages {
         let stage_id = stage
             .get("stage_id")
-            .and_then(serde_yaml::Value::as_str)
+            .and_then(Value::as_str)
             .map(str::to_string)
             .context("execution_support stage_id")?;
         let default_tool = stage
             .get("default_tool")
-            .and_then(serde_yaml::Value::as_str)
+            .and_then(Value::as_str)
             .map(str::to_string);
         let execution_status = stage
             .get("execution_status")
-            .and_then(serde_yaml::Value::as_str)
+            .and_then(Value::as_str)
             .map(str::to_string)
             .context("execution_support execution_status")?;
         let admitted_tools = stage
             .get("admitted_tools")
-            .and_then(serde_yaml::Value::as_sequence)
+            .and_then(Value::as_array)
             .into_iter()
             .flatten()
-            .filter_map(serde_yaml::Value::as_str)
+            .filter_map(Value::as_str)
             .map(str::to_string)
             .collect::<BTreeSet<_>>();
         out.push((stage_id, execution_status, default_tool, admitted_tools));

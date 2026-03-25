@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde_yaml::Value;
+use serde_json::Value;
 
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -13,7 +13,7 @@ fn workspace_root() -> Result<PathBuf> {
 
 fn parse_yaml(path: &Path) -> Result<Value> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+    bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
 #[test]
@@ -22,7 +22,7 @@ fn taxonomy_screen_manifest_keeps_read_classifier_tools_only() -> Result<()> {
     let yaml = parse_yaml(&path)?;
     let compatible_tools = yaml
         .get("compatible_tools")
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .context("compatible_tools")?
         .iter()
         .filter_map(Value::as_str)
@@ -45,7 +45,7 @@ fn taxonomy_screen_manifest_publishes_governed_taxonomy_metrics() -> Result<()> 
     let yaml = parse_yaml(&path)?;
     let metrics = yaml
         .get("metrics")
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .context("metrics")?
         .iter()
         .filter_map(|metric| metric.get("name").and_then(Value::as_str))
@@ -74,7 +74,7 @@ fn taxonomy_screen_tool_manifests_admit_optional_mate_inputs() -> Result<()> {
         let optional_inputs = yaml
             .get("execution_contract")
             .and_then(|value| value.get("optional_inputs"))
-            .and_then(Value::as_sequence)
+            .and_then(Value::as_array)
             .context("execution_contract.optional_inputs")?
             .iter()
             .filter_map(Value::as_str)

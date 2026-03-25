@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG;
-use serde_yaml::Value;
+use serde_json::Value;
 
 #[derive(Debug, Clone)]
 struct ToolManifestMeta {
@@ -34,7 +34,7 @@ fn workspace_root() -> Result<PathBuf> {
 
 fn parse_yaml(path: &Path) -> Result<Value> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+    bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
 fn yaml_string(value: Option<&Value>) -> Option<String> {
@@ -43,7 +43,7 @@ fn yaml_string(value: Option<&Value>) -> Option<String> {
 
 fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
     value
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .into_iter()
         .flatten()
         .filter_map(Value::as_str)
@@ -53,13 +53,13 @@ fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
 
 fn yaml_output_name_set(value: Option<&Value>) -> BTreeSet<String> {
     value
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .into_iter()
         .flatten()
         .filter_map(|item| match item {
             Value::String(value) => Some(value.clone()),
-            Value::Mapping(mapping) => mapping
-                .get(Value::String("name".to_string()))
+            Value::Object(mapping) => mapping
+                .get("name")
                 .and_then(Value::as_str)
                 .map(str::to_string),
             _ => None,
@@ -166,13 +166,13 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
         }
         let comparability_refs = yaml
             .get("comparability")
-            .and_then(|value| value.as_mapping())
+            .and_then(Value::as_object)
             .map(|mapping| {
                 ["comparable_with", "non_comparable_with"]
                     .into_iter()
                     .flat_map(|key| {
                         mapping
-                            .get(Value::String(key.to_string()))
+                            .get(key)
                             .into_iter()
                             .flat_map(|value| yaml_string_set(Some(value)))
                     })

@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use serde_json::Value;
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -276,31 +277,31 @@ fn stage_manifest_tool_integration() -> Result<BTreeMap<String, BTreeMap<String,
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let yaml: serde_yaml::Value = serde_yaml::from_str(
+        let yaml: Value = bijux_dna_infra::formats::parse_yaml(
             &std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?,
         )
         .with_context(|| format!("parse {}", path.display()))?;
         let stage_id = yaml
             .get("stage_id")
-            .and_then(serde_yaml::Value::as_str)
+            .and_then(Value::as_str)
             .map(str::to_string)
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
         let mut tool_map = BTreeMap::new();
         for tool_id in yaml
             .get("compatible_tools")
-            .and_then(serde_yaml::Value::as_sequence)
+            .and_then(Value::as_array)
             .into_iter()
             .flatten()
-            .filter_map(serde_yaml::Value::as_str)
+            .filter_map(Value::as_str)
         {
             tool_map.insert(tool_id.to_string(), "governed_contract".to_string());
         }
         for tool_id in yaml
             .get("planned_out_of_scope")
-            .and_then(serde_yaml::Value::as_sequence)
+            .and_then(Value::as_array)
             .into_iter()
             .flatten()
-            .filter_map(serde_yaml::Value::as_str)
+            .filter_map(Value::as_str)
         {
             tool_map.insert(tool_id.to_string(), "planned_contract".to_string());
         }
@@ -320,21 +321,21 @@ fn tool_manifest_reference_index_compatibility() -> Result<BTreeMap<String, BTre
         if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
             continue;
         }
-        let yaml: serde_yaml::Value = serde_yaml::from_str(
+        let yaml: Value = bijux_dna_infra::formats::parse_yaml(
             &std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?,
         )
         .with_context(|| format!("parse {}", path.display()))?;
         let tool_id = yaml
             .get("tool_id")
-            .and_then(serde_yaml::Value::as_str)
+            .and_then(Value::as_str)
             .map(str::to_string)
             .with_context(|| format!("tool_id missing in {}", path.display()))?;
         let backends = yaml
             .get("reference_index_backends")
-            .and_then(serde_yaml::Value::as_sequence)
+            .and_then(Value::as_array)
             .into_iter()
             .flatten()
-            .filter_map(serde_yaml::Value::as_str)
+            .filter_map(Value::as_str)
             .map(str::to_string)
             .collect::<BTreeSet<_>>();
         if !backends.is_empty() {

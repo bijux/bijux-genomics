@@ -71,7 +71,7 @@ fn manifest_yaml(stage_id: &str) -> Option<&'static str> {
 
 fn parse_manifest(stage_id: &str) -> Option<StageManifestShape> {
     let raw = manifest_yaml(stage_id)?;
-    serde_yaml::from_str(raw).ok()
+    bijux_dna_infra::formats::parse_yaml(raw).ok()
 }
 
 #[must_use]
