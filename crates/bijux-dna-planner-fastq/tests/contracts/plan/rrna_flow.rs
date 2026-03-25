@@ -6,6 +6,9 @@ use std::sync::OnceLock;
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1, ToolId};
 use bijux_dna_planner_fastq::{compose_fastq_stage_bindings, FastqStageBinding};
 
+#[path = "../../support/tool_registry.rs"]
+mod tool_registry_support;
+
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -17,7 +20,7 @@ fn workspace_root() -> PathBuf {
 fn tool_registry() -> &'static bijux_dna_core::contract::ToolRegistry {
     static REGISTRY: OnceLock<bijux_dna_core::contract::ToolRegistry> = OnceLock::new();
     REGISTRY.get_or_init(|| {
-        bijux_dna_runtime::manifests::load_manifests(&workspace_root())
+        tool_registry_support::load_domain_tool_registry(&workspace_root())
             .expect("load domain tool registry")
     })
 }
