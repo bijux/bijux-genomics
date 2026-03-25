@@ -1,6 +1,18 @@
 {
   "containers": [
     {
+      "apptainer_def": "containers/apptainer/lunarc/adapterremoval.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.adapterremoval",
+      "pinned_commit": "sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "adapterremoval",
+      "upstream": "https://github.com/MikkelSchubert/adapterremoval",
+      "version": "2.3.3"
+    },
+    {
       "apptainer_def": "containers/apptainer/lunarc/alientrimmer.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.alientrimmer",
       "pinned_commit": "release:0.4.0",
@@ -23,6 +35,18 @@
       "tool_id": "angsd",
       "upstream": "https://github.com/ANGSD/angsd",
       "version": "0.940"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/atropos.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.atropos",
+      "pinned_commit": "sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "atropos",
+      "upstream": "https://github.com/jdidion/atropos",
+      "version": "1.1.31"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/authenticct.def",
@@ -49,6 +73,18 @@
       "version": "2.5.2"
     },
     {
+      "apptainer_def": "containers/apptainer/lunarc/bayeshammer.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bayeshammer",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bayeshammer",
+      "upstream": "https://github.com/ablab/spades",
+      "version": "4.2.0"
+    },
+    {
       "apptainer_def": "containers/apptainer/lunarc/bbduk.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.bbduk",
       "pinned_commit": "sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4",
@@ -59,6 +95,18 @@
       "tool_id": "bbduk",
       "upstream": "https://sourceforge.net/projects/bbmap/",
       "version": "39.08"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/bbmerge.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bbmerge",
+      "pinned_commit": "sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "bbmerge",
+      "upstream": "https://sourceforge.net/projects/bbmap/",
+      "version": "39.01"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/bedtools.def",
@@ -85,16 +133,16 @@
       "version": "2.5.4"
     },
     {
-      "apptainer_def": "containers/apptainer/lunarc/bracken.def",
-      "dockerfile": "containers/docker/arm64/Dockerfile.bracken",
-      "pinned_commit": "git:c5bfec1929fe30feef21afbde67b16bda44de448",
+      "apptainer_def": "containers/apptainer/lunarc/bowtie2_build.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.bowtie2_build",
+      "pinned_commit": "release:2.5.4",
       "runtimes": [
         "docker",
         "apptainer"
       ],
-      "tool_id": "bracken",
-      "upstream": "https://github.com/jenniferlu717/Bracken",
-      "version": "2.9"
+      "tool_id": "bowtie2_build",
+      "upstream": "https://github.com/BenLangmead/bowtie2",
+      "version": "2.5.4"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/bwa.def",
@@ -107,6 +155,30 @@
       "tool_id": "bwa",
       "upstream": "https://github.com/lh3/bwa",
       "version": "0.7.17"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/centrifuge.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.centrifuge",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "centrifuge",
+      "upstream": "https://github.com/DaehwanKimLab/centrifuge",
+      "version": "1.0.4"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/clumpify.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.clumpify",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "clumpify",
+      "upstream": "https://jgi.doe.gov/data-and-tools/software-tools/bbtools/",
+      "version": "39.08"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/contammix.def",
@@ -133,6 +205,18 @@
       "version": "4.9"
     },
     {
+      "apptainer_def": "containers/apptainer/lunarc/dada2.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.dada2",
+      "pinned_commit": "sha256:930e06fb8e27965ccafae61d4161ab5e32933aea2555e68ad409ef7af43c8245",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "dada2",
+      "upstream": "https://benjjneb.github.io/dada2/",
+      "version": "1.30.0"
+    },
+    {
       "apptainer_def": "containers/apptainer/lunarc/fastp.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.fastp",
       "pinned_commit": "sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10",
@@ -155,6 +239,18 @@
       "tool_id": "fastq.validate_reads",
       "upstream": "https://github.com/vsearch/vsearch",
       "version": "2.28.1"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/fastq_scan.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.fastq_scan",
+      "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "fastq_scan",
+      "upstream": "https://github.com/indraniel/fastq_scan",
+      "version": "0.0.1"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/fastqc.def",
@@ -181,6 +277,18 @@
       "version": "v0.1.1"
     },
     {
+      "apptainer_def": "containers/apptainer/lunarc/fastuniq.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.fastuniq",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "fastuniq",
+      "upstream": "https://sourceforge.net/projects/fastuniq/",
+      "version": "1.1"
+    },
+    {
       "apptainer_def": "containers/apptainer/lunarc/fastx_clipper.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.fastx_clipper",
       "pinned_commit": "release:0.0.14",
@@ -191,6 +299,42 @@
       "tool_id": "fastx_clipper",
       "upstream": "https://github.com/agordon/fastx_toolkit",
       "version": "0.0.14"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/flash2.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.flash2",
+      "pinned_commit": "sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "flash2",
+      "upstream": "https://github.com/dstreett/FLASH2",
+      "version": "2.2.00"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/fqtools.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.fqtools",
+      "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "fqtools",
+      "upstream": "https://github.com/alastair-droop/fqtools",
+      "version": "v2.3"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/kaiju.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.kaiju",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "kaiju",
+      "upstream": "https://github.com/bioinformatics-centre/kaiju",
+      "version": "1.10.0"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/king.def",
@@ -213,7 +357,7 @@
         "apptainer"
       ],
       "tool_id": "kraken2",
-      "upstream": "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz",
+      "upstream": "https://github.com/DerrickWood/kraken2",
       "version": "2.1.3"
     },
     {
@@ -227,6 +371,30 @@
       "tool_id": "krakenuniq",
       "upstream": "https://github.com/fbreitwieser/krakenuniq",
       "version": "1.0.4"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/leehom.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.leehom",
+      "pinned_commit": "sha256:146f111ee336a7d01cba5861a9672d75a7739ad7ece923925bbd90c2550341b1",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "leehom",
+      "upstream": "https://github.com/grenaud/leeHom",
+      "version": "bbddce1542ce"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/lighter.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.lighter",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "lighter",
+      "upstream": "https://github.com/mourisl/Lighter",
+      "version": "1.1.2"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/mapdamage2.def",
@@ -265,6 +433,18 @@
       "version": "1.24"
     },
     {
+      "apptainer_def": "containers/apptainer/lunarc/musket.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.musket",
+      "pinned_commit": "sha256:pending",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "musket",
+      "upstream": "https://sourceforge.net/projects/musket/",
+      "version": "1.1"
+    },
+    {
       "apptainer_def": "containers/apptainer/lunarc/pear.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.pear",
       "pinned_commit": "sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6",
@@ -287,6 +467,18 @@
       "tool_id": "pmdtools",
       "upstream": "https://github.com/pontussk/PMDtools",
       "version": "0.60"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/prinseq.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.prinseq",
+      "pinned_commit": "sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "prinseq",
+      "upstream": "https://github.com/Adrian-Cantu/PRINSEQ-plus-plus",
+      "version": "1.2.4"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/pydamage.def",
@@ -373,6 +565,42 @@
       "version": "2.7.0"
     },
     {
+      "apptainer_def": "containers/apptainer/lunarc/seqpurge.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.seqpurge",
+      "pinned_commit": "sha256:65c1249b64696ad0783c6409126e45f8025851fd4eaf7f651b2df9bda2a0a662",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "seqpurge",
+      "upstream": "https://github.com/seqpurge/seqpurge",
+      "version": "0.1.0"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/seqtk.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.seqtk",
+      "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "seqtk",
+      "upstream": "https://github.com/lh3/seqtk.git",
+      "version": "1.5-r133"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/skewer.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.skewer",
+      "pinned_commit": "git:978e8e46cba44595ece623e5387749284a86b74b",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "skewer",
+      "upstream": "https://github.com/relipmoc/skewer",
+      "version": "978e8e46cba4"
+    },
+    {
       "apptainer_def": "containers/apptainer/lunarc/sortmerna.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.sortmerna",
       "pinned_commit": "release:4.3.7",
@@ -395,6 +623,30 @@
       "tool_id": "star",
       "upstream": "https://github.com/alexdobin/STAR",
       "version": "2.7.11b"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/trim_galore.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.trim_galore",
+      "pinned_commit": "sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "trim_galore",
+      "upstream": "https://github.com/FelixKrueger/TrimGalore",
+      "version": "0.6.10"
+    },
+    {
+      "apptainer_def": "containers/apptainer/lunarc/trimmomatic.def",
+      "dockerfile": "containers/docker/arm64/Dockerfile.trimmomatic",
+      "pinned_commit": "sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4",
+      "runtimes": [
+        "docker",
+        "apptainer"
+      ],
+      "tool_id": "trimmomatic",
+      "upstream": "http://www.usadellab.org/cms/?page=trimmomatic",
+      "version": "0.39"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/umi_tools.def",
