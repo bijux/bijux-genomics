@@ -76,8 +76,10 @@ mod tests {
             })),
         };
 
-        let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: ExtractUmisReportV1 = serde_json::from_str(&encoded).expect("deserialize");
+        let encoded =
+            serde_json::to_string(&report).unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: ExtractUmisReportV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "umi_tools");
         assert_eq!(decoded.umi_pattern, "NNNNNNNN");
         assert_eq!(decoded.reads_with_umi, 200);

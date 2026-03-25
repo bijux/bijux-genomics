@@ -98,8 +98,10 @@ mod tests {
             raw_backend_report_format: Some("fastqc_data_txt".to_string()),
         };
 
-        let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: DetectAdaptersReportV1 = serde_json::from_str(&encoded).expect("deserialize");
+        let encoded =
+            serde_json::to_string(&report).unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: DetectAdaptersReportV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "fastqc");
         assert_eq!(decoded.evidence_scope, AdapterEvidenceScope::FullInput);
         assert_eq!(decoded.candidate_adapter_count, 2);

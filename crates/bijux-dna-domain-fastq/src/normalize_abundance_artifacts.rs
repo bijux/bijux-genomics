@@ -70,9 +70,10 @@ mod tests {
             })),
         };
 
-        let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: NormalizeAbundanceReportV1 =
-            serde_json::from_str(&encoded).expect("deserialize");
+        let encoded =
+            serde_json::to_string(&report).unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: NormalizeAbundanceReportV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.method, "relative_abundance");
         assert_eq!(decoded.feature_count, 4);
         assert_eq!(decoded.per_sample_sums[0].0, "sample_a");

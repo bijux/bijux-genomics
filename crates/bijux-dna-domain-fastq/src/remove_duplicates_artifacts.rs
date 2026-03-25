@@ -117,9 +117,10 @@ mod tests {
             memory_mb: Some(128.0),
         };
 
-        let encoded = serde_json::to_string(&report).expect("serialize");
-        let decoded: RemoveDuplicatesReportV1 =
-            serde_json::from_str(&encoded).expect("deserialize");
+        let encoded =
+            serde_json::to_string(&report).unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: RemoveDuplicatesReportV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "clumpify");
         assert_eq!(decoded.threads, 4);
         assert_eq!(decoded.dedup_mode, DedupMode::OpticalAware);
@@ -147,9 +148,10 @@ mod tests {
             raw_backend_report_format: Some("fastuniq_log".to_string()),
         };
 
-        let encoded = serde_json::to_string(&provenance).expect("serialize");
-        let decoded: RemoveDuplicatesProvenanceV1 =
-            serde_json::from_str(&encoded).expect("deserialize");
+        let encoded = serde_json::to_string(&provenance)
+            .unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: RemoveDuplicatesProvenanceV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "fastuniq");
         assert_eq!(decoded.threads, 1);
         assert_eq!(decoded.dedup_mode, DedupMode::Exact);
