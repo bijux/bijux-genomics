@@ -12,6 +12,7 @@ fn workspace_root() -> PathBuf {
 fn is_allowed_command_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
     path_str.contains("/crates/bijux-dna-runner/")
+        || path_str.contains("/crates/bijux-dna-runner/src/command_runner.rs")
         || path_str.contains("/crates/bijux-dna-stages-vcf/")
         || path_str.contains("/crates/bijux-dna-environment/src/build/")
         || path_str.contains("/crates/bijux-dna-environment/src/bin/")
