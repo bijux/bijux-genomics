@@ -495,7 +495,7 @@ mod tests {
     fn read_governed_terminal_damage_report_uses_governed_contract() {
         let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let report_path = temp.path().join("trim_terminal_damage_report.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",

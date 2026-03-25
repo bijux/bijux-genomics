@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn detect_adapters_plan_emits_canonical_report_and_full_input_scope() -> Result<()> {
         let temp = std::env::temp_dir().join("bijux-detect-adapters-plan-test");
-        std::fs::create_dir_all(&temp)?;
+        bijux_dna_infra::ensure_dir(&temp)?;
         let tool = ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("fastqc"),
             tool_version: "0.12.1".to_string(),

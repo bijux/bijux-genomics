@@ -641,7 +641,7 @@ mod tests {
     fn derive_validate_metrics_prefers_governed_report_counts() {
         let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let report_path = temp.path().join("validation.json");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.validate.report.v1",

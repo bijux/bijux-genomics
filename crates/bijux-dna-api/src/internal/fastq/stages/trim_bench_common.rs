@@ -245,7 +245,7 @@ mod tests {
     fn require_existing_benchmark_output_accepts_real_files() {
         let temp = tempfile::tempdir().expect("tempdir");
         let path = temp.path().join("reads.fastq.gz");
-        std::fs::write(&path, b"fixture").expect("fixture");
+        bijux_dna_infra::write_bytes(&path, b"fixture").expect("fixture");
 
         let resolved = require_existing_benchmark_output(&path, "corrected_reads_r1")
             .expect("existing output should be accepted");

@@ -248,7 +248,7 @@ fn quarantine_file(path: &Path, quarantine_root: &Path, reason: &str) -> Result<
         .and_then(|v| v.to_str())
         .unwrap_or("artifact.sif");
     let dest = dest_dir.join(format!("{name}.{}.{}", reason, now_unix_s()));
-    std::fs::rename(path, &dest)
+    bijux_dna_infra::rename(path, &dest)
         .with_context(|| format!("quarantine {} -> {}", path.display(), dest.display()))?;
     Ok(())
 }

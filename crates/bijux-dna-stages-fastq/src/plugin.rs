@@ -1492,7 +1492,7 @@ mod tests {
 
     fn write_fastq(path: &std::path::Path, read_id: &str, sequence: &str) {
         let quality = "#".repeat(sequence.len());
-        fs::write(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n")).expect("write fastq");
+        bijux_dna_infra::write_bytes(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n")).expect("write fastq");
     }
 
     fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
@@ -1609,8 +1609,8 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("adapter_report.json");
         let evidence_dir = temp.path().join("fastqc");
-        fs::create_dir_all(&evidence_dir).expect("create evidence dir");
-        fs::write(
+        bijux_dna_infra::ensure_dir(&evidence_dir).expect("create evidence dir");
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.detect_adapters.report.v2",
@@ -1687,10 +1687,10 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let reads_path = temp.path().join("reads.fastq");
         let dedup_reads_path = temp.path().join("dedup.fastq");
-        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        fs::write(&dedup_reads_path, b"@r1\nACGT\n+\n####\n").expect("write dedup reads");
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&dedup_reads_path, b"@r1\nACGT\n+\n####\n").expect("write dedup reads");
         let report_path = temp.path().join("deduplicate_report.json");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "reads_in": 12_u64,
@@ -1758,9 +1758,9 @@ mod tests {
         write_fastq(&reads_r1_path, "r1", "ACGT");
         write_fastq(&reads_r2_path, "r1", "TGCA");
         write_fastq(&merged_reads_path, "merged", "ACGTTGCA");
-        fs::write(&unmerged_r1_path, b"").expect("write empty unmerged r1");
-        fs::write(&unmerged_r2_path, b"").expect("write empty unmerged r2");
-        fs::write(
+        bijux_dna_infra::write_bytes(&unmerged_r1_path, b"").expect("write empty unmerged r1");
+        bijux_dna_infra::write_bytes(&unmerged_r2_path, b"").expect("write empty unmerged r2");
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.merge_pairs.report.v2",
@@ -1856,7 +1856,7 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("validation_report.json");
         let manifest_path = temp.path().join("validated_reads_manifest.json");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::to_string(&ValidationReportV1 {
                 schema_version: VALIDATION_REPORT_SCHEMA_VERSION.to_string(),
@@ -1885,7 +1885,7 @@ mod tests {
             .expect("serialize report"),
         )
         .expect("write report");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::to_string(&ValidatedReadsManifestV1 {
                 schema_version: VALIDATED_READS_MANIFEST_SCHEMA_VERSION.to_string(),
@@ -1945,9 +1945,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_terminal_damage_report.json");
-        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        fs::write(&trimmed_reads_path, b"@r1\nCG\n+\n##\n").expect("write trimmed reads");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nCG\n+\n##\n").expect("write trimmed reads");
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
@@ -2069,9 +2069,9 @@ mod tests {
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_report.json");
         let raw_backend_report_path = temp.path().join("trim_report.fastp.json");
-        fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        bijux_dna_infra::write_bytes(
             &raw_backend_report_path,
             serde_json::json!({
                 "filtering_result": {
@@ -2084,7 +2084,7 @@ mod tests {
             .to_string(),
         )
         .expect("write raw backend report");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_reads.report.v2",
@@ -2209,9 +2209,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let filtered_reads_path = temp.path().join("filtered.fastq");
         let report_path = temp.path().join("filter_report.json");
-        fs::write(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
-        fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
+        bijux_dna_infra::write_bytes(
             &report_path,
             format!(
                 r#"{{
@@ -2330,9 +2330,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let filtered_reads_path = temp.path().join("filtered.fastq");
         let report_path = temp.path().join("low_complexity_report.json");
-        fs::write(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
-        fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.filter_low_complexity.report.v2",
@@ -2441,11 +2441,11 @@ mod tests {
         let umi_r1 = temp.path().join("umi_reads_R1.fastq");
         let umi_r2 = temp.path().join("umi_reads_R2.fastq");
         let report_path = temp.path().join("umi_report.json");
-        fs::write(&reads_r1, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        fs::write(&reads_r2, b"@r1\nTGCA\n+\n####\n").expect("write reads");
-        fs::write(&umi_r1, b"@r1_UMI:AAAA\nACGT\n+\n####\n").expect("write umi reads");
-        fs::write(&umi_r2, b"@r1_UMI:AAAA\nTGCA\n+\n####\n").expect("write umi reads");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_r1, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&reads_r2, b"@r1\nTGCA\n+\n####\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&umi_r1, b"@r1_UMI:AAAA\nACGT\n+\n####\n").expect("write umi reads");
+        bijux_dna_infra::write_bytes(&umi_r2, b"@r1_UMI:AAAA\nTGCA\n+\n####\n").expect("write umi reads");
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.extract_umis.report.v2",
@@ -2563,9 +2563,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
-        fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
@@ -2682,9 +2682,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
-        fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
@@ -2779,13 +2779,13 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let summary_path = temp.path().join("kraken2.report.tsv");
         let report_path = temp.path().join("kraken2.classifications.json");
-        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        bijux_dna_infra::write_bytes(
             &summary_path,
             b"unclassified\t23\t23.0%\nbacteria\t77\t77.0%\n",
         )
         .expect("write summary");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.screen_taxonomy.report.v2",
@@ -2888,10 +2888,10 @@ mod tests {
         let output_path = temp.path().join("rrna_filtered.fastq.gz");
         let report_tsv = temp.path().join("rrna_report.tsv");
         let report_json = temp.path().join("rrna_report.json");
-        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
-        fs::write(&report_tsv, b"sample\treads_removed\tfraction\n").expect("write tsv");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        bijux_dna_infra::write_bytes(&report_tsv, b"sample\treads_removed\tfraction\n").expect("write tsv");
+        bijux_dna_infra::write_bytes(
             &report_json,
             serde_json::json!({
                 "schema_version": "bijux.fastq.deplete_rrna.report.v2",
@@ -2990,9 +2990,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let output_path = temp.path().join("contaminant_screened.fastq.gz");
         let report_json = temp.path().join("contaminant_screen_report.json");
-        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        bijux_dna_infra::write_bytes(
             &report_json,
             serde_json::json!({
                 "schema_version": "bijux.fastq.deplete_reference_contaminants.report.v2",
@@ -3085,9 +3085,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let output_path = temp.path().join("host_depleted.fastq.gz");
         let report_json = temp.path().join("host_depletion_report.json");
-        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        bijux_dna_infra::write_bytes(
             &report_json,
             r#"{
                 "schema_version": "bijux.fastq.deplete_host.report.v2",
@@ -3190,11 +3190,11 @@ mod tests {
         let corrected_r1_path = temp.path().join("corrected_R1.fastq");
         let corrected_r2_path = temp.path().join("corrected_R2.fastq");
         let report_path = temp.path().join("correct_report.json");
-        fs::write(&reads_r1_path, b"@r1\nACGT\n+\n####\n").expect("write reads r1");
-        fs::write(&reads_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write reads r2");
-        fs::write(&corrected_r1_path, b"@r1\nACGT\n+\n####\n").expect("write corrected r1");
-        fs::write(&corrected_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write corrected r2");
-        fs::write(
+        bijux_dna_infra::write_bytes(&reads_r1_path, b"@r1\nACGT\n+\n####\n").expect("write reads r1");
+        bijux_dna_infra::write_bytes(&reads_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write reads r2");
+        bijux_dna_infra::write_bytes(&corrected_r1_path, b"@r1\nACGT\n+\n####\n").expect("write corrected r1");
+        bijux_dna_infra::write_bytes(&corrected_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write corrected r2");
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.correct_errors.report.v2",
@@ -3331,14 +3331,14 @@ mod tests {
         let report_path = temp.path().join("multiqc_report.html");
         let data_dir = temp.path().join("multiqc_data");
         let manifest_path = temp.path().join("governed_qc_inputs_manifest.json");
-        fs::write(&qc_input_path, b"@r1\nACGT\n+\n####\n").expect("write qc input");
-        fs::create_dir_all(&data_dir).expect("multiqc data dir");
-        fs::write(
+        bijux_dna_infra::write_bytes(&qc_input_path, b"@r1\nACGT\n+\n####\n").expect("write qc input");
+        bijux_dna_infra::ensure_dir(&data_dir).expect("multiqc data dir");
+        bijux_dna_infra::write_bytes(
             data_dir.join("multiqc_general_stats.json"),
             include_str!("../tests/fixtures/tool_metrics/default/multiqc_general_stats.json"),
         )
         .expect("write multiqc general stats");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_json_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.report_qc.report.v2",
@@ -3378,7 +3378,7 @@ mod tests {
             .to_string(),
         )
         .expect("write governed report");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.report_qc.inputs.v1",
@@ -3502,7 +3502,7 @@ mod tests {
         let provenance_path = temp.path().join("duplicate_provenance.json");
         write_fastq(&reads_path, "r1", "ACGT");
         write_fastq(&dedup_reads_path, "r1", "ACGT");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.report.v2",
@@ -3540,7 +3540,7 @@ mod tests {
             .to_string(),
         )
         .expect("write dedup report");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &provenance_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.provenance.v2",
@@ -3621,7 +3621,7 @@ mod tests {
         let reads_r1_path = temp.path().join("reads_R1.fastq");
         let report_path = temp.path().join("qc.json");
         write_fastq(&reads_r1_path, "r1", "ACGT");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.profile_reads.report.v2",
@@ -3715,7 +3715,7 @@ mod tests {
         let report_path = temp.path().join("normalize_primers_report.json");
         write_fastq(&reads_path, "r1", "ACGT");
         write_fastq(&normalized_reads_path, "r1", "ACGT");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.normalize_primers.report.v2",
@@ -3801,7 +3801,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("normalize_abundance_report.json");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.normalize_abundance.report.v2",
@@ -3875,7 +3875,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("infer_asvs_report.json");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.infer_asvs.report.v2",
@@ -3948,7 +3948,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("cluster_otus_report.json");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.cluster_otus.report.v2",
@@ -4017,7 +4017,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("index_reference_report.json");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.index_reference.report.v2",
@@ -4087,7 +4087,7 @@ mod tests {
         let reads_r1_path = temp.path().join("reads_R1.fastq");
         let report_path = temp.path().join("profile_read_lengths_report.json");
         write_fastq(&reads_r1_path, "r1", "ACGT");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.profile_read_lengths.report.v2",
@@ -4168,7 +4168,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("overrepresented_report.json");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.profile_overrepresented.report.v2",
@@ -4242,7 +4242,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("remove_chimeras_report.json");
-        fs::write(
+        bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_chimeras.report.v2",

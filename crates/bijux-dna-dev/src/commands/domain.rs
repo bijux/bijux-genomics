@@ -135,9 +135,9 @@ fn read_utf8(path: &Path) -> Result<String> {
 
 fn write_utf8(path: &Path, content: &str) -> Result<()> {
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(path, content).with_context(|| format!("write {}", path.display()))
+    bijux_dna_infra::write_bytes(path, content).with_context(|| format!("write {}", path.display()))
 }
 
 fn scalar_from_text(text: &str, key: &str) -> Result<Option<String>> {
@@ -593,15 +593,15 @@ fn command_runner(workspace: &Workspace) -> ProcessRunner<'_> {
 
 fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
     let artifact_root = workspace.path("artifacts");
-    fs::create_dir_all(&artifact_root)
+    bijux_dna_infra::ensure_dir(&artifact_root)
         .with_context(|| format!("create {}", artifact_root.display()))?;
     let cargo_target_dir = artifact_root.join("target");
     let cargo_home = artifact_root.join("cargo/home");
     let tmpdir = artifact_root.join("tmp");
-    fs::create_dir_all(&cargo_target_dir)
+    bijux_dna_infra::ensure_dir(&cargo_target_dir)
         .with_context(|| format!("create {}", cargo_target_dir.display()))?;
-    fs::create_dir_all(&cargo_home).with_context(|| format!("create {}", cargo_home.display()))?;
-    fs::create_dir_all(&tmpdir).with_context(|| format!("create {}", tmpdir.display()))?;
+    bijux_dna_infra::ensure_dir(&cargo_home).with_context(|| format!("create {}", cargo_home.display()))?;
+    bijux_dna_infra::ensure_dir(&tmpdir).with_context(|| format!("create {}", tmpdir.display()))?;
     Ok(vec![
         (
             "ARTIFACT_ROOT".to_string(),

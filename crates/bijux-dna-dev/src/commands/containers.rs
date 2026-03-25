@@ -508,9 +508,9 @@ fn read_utf8(path: &std::path::Path) -> Result<String> {
 
 fn write_utf8(path: &std::path::Path, content: &str) -> Result<()> {
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(path, content).with_context(|| format!("write {}", path.display()))
+    bijux_dna_infra::write_bytes(path, content).with_context(|| format!("write {}", path.display()))
 }
 
 fn append_named_outcome(
@@ -1458,7 +1458,7 @@ fn generate_license_metadata(
         _ => return Err(anyhow!(usage.to_string())),
     };
     let entries = license_metadata_entries(workspace)?;
-    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let expected_files = entries
         .iter()
         .map(|entry| format!("{}.license.toml", entry.tool))
@@ -1473,7 +1473,7 @@ fn generate_license_metadata(
             continue;
         };
         if !expected_files.contains(name) {
-            fs::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+            bijux_dna_infra::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
         }
     }
     for entry in &entries {
@@ -2011,7 +2011,7 @@ fn generate_tool_docs(workspace: &Workspace, args: &[String]) -> Result<Containe
         [dir] => path_from_arg(workspace, dir),
         _ => return Err(anyhow!(usage.to_string())),
     };
-    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let outputs = tool_docs_content(workspace)?;
     let expected_files = outputs.keys().cloned().collect::<BTreeSet<_>>();
     for path in fs::read_dir(&out_dir)
@@ -2024,7 +2024,7 @@ fn generate_tool_docs(workspace: &Workspace, args: &[String]) -> Result<Containe
             continue;
         };
         if !expected_files.contains(name) {
-            fs::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+            bijux_dna_infra::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
         }
     }
     for (name, content) in outputs {
@@ -8251,7 +8251,7 @@ fn check_apptainer_rebuild_repro(
         return success_line(format!("apptainer rebuild repro: skip (no def for {tool})"));
     }
     let tmp_root = artifact_root_path(workspace)?.join("tmp");
-    fs::create_dir_all(&tmp_root).with_context(|| format!("create {}", tmp_root.display()))?;
+    bijux_dna_infra::ensure_dir(&tmp_root).with_context(|| format!("create {}", tmp_root.display()))?;
     let run1 = tmp_root.join(format!("{tool}.repro1.sif"));
     let run2 = tmp_root.join(format!("{tool}.repro2.sif"));
     let build1 = run_program_with_env(
@@ -10015,7 +10015,7 @@ fn run_build_apptainer_hpc_frontend(
         return Ok(aggregate);
     }
     let out_dir = workspace.path("artifacts/containers/hpc");
-    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let host = current_host_name(workspace);
     let frontend_json = out_dir.join("frontend-sif-digests.json");
     write_frontend_sif_digests(
@@ -10065,7 +10065,7 @@ fn run_apptainer_frontend_smoke(
         return Ok(host_policy);
     }
     let proof_root = workspace.path("artifacts/containers/hpc/frontend-smoke");
-    fs::create_dir_all(&proof_root).with_context(|| format!("create {}", proof_root.display()))?;
+    bijux_dna_infra::ensure_dir(&proof_root).with_context(|| format!("create {}", proof_root.display()))?;
     let smoke = run_environment_smoke_for_with_env(
         workspace,
         "apptainer",
@@ -10123,7 +10123,7 @@ fn run_apptainer_frontend_security(
         return Ok(host_policy);
     }
     let out_dir = workspace.path("artifacts/containers/hpc/frontend-security/run");
-    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let mut aggregate = ContainerCommandOutcome::success(String::new());
     for (name, outcome) in [
         ("check-version-hash-pin", check_version_hash_pin(workspace)?),
@@ -10199,7 +10199,7 @@ fn run_apptainer_frontend_reproducibility(
         &env_or_default("ISO_RUN_ID", "frontend-repro"),
     );
     let out_dir = workspace.path("artifacts/containers/hpc/frontend-reproducibility/run");
-    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let sample = sampled_apptainer_defs(workspace, &seed, sample_count);
     let mut items = Vec::new();
     let mut aggregate = ContainerCommandOutcome::success(String::new());
@@ -10287,7 +10287,7 @@ fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
     let cargo_home = artifact_root.join("cargo/home");
     let tmpdir = artifact_root.join("tmp");
     for dir in [&artifact_root, &cargo_target_dir, &cargo_home, &tmpdir] {
-        std::fs::create_dir_all(dir).with_context(|| format!("create {}", dir.display()))?;
+        bijux_dna_infra::ensure_dir(dir).with_context(|| format!("create {}", dir.display()))?;
     }
     Ok(vec![
         (
@@ -10831,7 +10831,7 @@ fn write_frontend_security_summary(
     let mut critical_unallowlisted = Vec::new();
     let mut license_mismatches = Vec::new();
     let vuln_dir = out_dir.join("vuln");
-    fs::create_dir_all(&vuln_dir).with_context(|| format!("create {}", vuln_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&vuln_dir).with_context(|| format!("create {}", vuln_dir.display()))?;
 
     for entry in manifests {
         let row = read_json(entry.path())?;
@@ -11130,7 +11130,7 @@ fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<()> {
             "ensure-images plan requires configs/ci/tools/images.toml, configs/ci/registry/tool_registry_lock.sha256, and configs/ci/tools/hpc_image_naming.toml"
         ));
     }
-    std::fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let images_sha = sha256_file_hex(&images_toml)?;
     let lock_sha = std::fs::read_to_string(&lock_sha_file)
         .with_context(|| format!("read {}", lock_sha_file.display()))?
@@ -11255,7 +11255,7 @@ fn write_vuln_hook_report(
         }
     }
     let per_tool_dir = workspace.path("artifacts/containers/vuln");
-    std::fs::create_dir_all(&per_tool_dir)
+    bijux_dna_infra::ensure_dir(&per_tool_dir)
         .with_context(|| format!("create {}", per_tool_dir.display()))?;
     let mut rows = Vec::new();
     for entry in WalkDir::new(sbom_root)

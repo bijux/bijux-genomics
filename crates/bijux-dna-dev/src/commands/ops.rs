@@ -154,10 +154,10 @@ fn assets_refresh_golden(workspace: &Workspace, args: &[String]) -> Result<OpsCo
         fs::remove_dir_all(&out_dir).with_context(|| format!("remove {}", out_dir.display()))?;
     }
     if let Some(parent) = out_dir.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
     if let Some(parent) = report_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
     let outcome = test_toy_runs(
@@ -233,14 +233,14 @@ fn assets_refresh_toy(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         fs::remove_dir_all(&stage_dir)
             .with_context(|| format!("remove {}", stage_dir.display()))?;
     }
-    fs::create_dir_all(stage_dir.join("fastq"))
+    bijux_dna_infra::ensure_dir(stage_dir.join("fastq"))
         .with_context(|| format!("create {}", stage_dir.join("fastq").display()))?;
-    fs::create_dir_all(stage_dir.join("bam"))
+    bijux_dna_infra::ensure_dir(stage_dir.join("bam"))
         .with_context(|| format!("create {}", stage_dir.join("bam").display()))?;
-    fs::create_dir_all(stage_dir.join("vcf"))
+    bijux_dna_infra::ensure_dir(stage_dir.join("vcf"))
         .with_context(|| format!("create {}", stage_dir.join("vcf").display()))?;
     if let Some(parent) = report_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
     write_utf8(
@@ -1067,7 +1067,7 @@ fn tooling_ci_coverage(workspace: &Workspace, args: &[String]) -> Result<OpsComm
         fs::remove_dir_all(&coverage_root)
             .with_context(|| format!("remove {}", coverage_root.display()))?;
     }
-    fs::create_dir_all(&coverage_root)
+    bijux_dna_infra::ensure_dir(&coverage_root)
         .with_context(|| format!("create {}", coverage_root.display()))?;
     let envs = ci_test_env(workspace, false)?;
     let nextest_config =
@@ -1187,7 +1187,7 @@ fn tooling_certify_domains_with_mode(
 
     let mut execution = OpsCommandOutcome::success(String::new());
     let cert_root = artifact_root_path(workspace)?.join("certification");
-    fs::create_dir_all(&cert_root).with_context(|| format!("create {}", cert_root.display()))?;
+    bijux_dna_infra::ensure_dir(&cert_root).with_context(|| format!("create {}", cert_root.display()))?;
 
     if matches!(mode, "fastq" | "all") {
         execution = merge_outcomes(
@@ -1566,7 +1566,7 @@ fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Result<OpsComma
     }
     let expr = expr.context("--expr is required")?;
     let log_dir = artifact_root_path(workspace)?.join("flake-hunt");
-    fs::create_dir_all(&log_dir).with_context(|| format!("create {}", log_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&log_dir).with_context(|| format!("create {}", log_dir.display()))?;
     let mut stdout = String::new();
     let mut failures = 0usize;
     for run_index in 1..=runs {
@@ -1583,7 +1583,7 @@ fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Result<OpsComma
                 expr.clone(),
             ],
         )?;
-        fs::write(
+        bijux_dna_infra::write_bytes(
             log_dir.join("last.log"),
             format!("{}{}", outcome.stdout, outcome.stderr),
         )
@@ -1761,7 +1761,7 @@ fn tooling_check_config_snapshot(
     let actual = workspace.path("artifacts/tmp/config_tree.snapshot.actual");
     let marker_file = workspace.path("artifacts/configs/config_tree_snapshot.marker");
     if let Some(parent) = actual.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
     write_utf8(&actual, &config_tree_snapshot_text(workspace)?)?;
 
@@ -1810,9 +1810,9 @@ fn tooling_generate_config_tree_snapshot(
     let out = workspace.path("configs/schema/config_tree.snapshot");
     let marker_dir = workspace.path("artifacts/configs");
     let marker_file = marker_dir.join("config_tree_snapshot.marker");
-    fs::create_dir_all(&marker_dir).with_context(|| format!("create {}", marker_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&marker_dir).with_context(|| format!("create {}", marker_dir.display()))?;
     if let Some(parent) = out.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
     write_utf8(&out, &config_tree_snapshot_text(workspace)?)?;
     write_utf8(
@@ -1971,7 +1971,7 @@ fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) -> Result<O
         .cloned()
         .unwrap_or_default();
     let acquire_log_root = workspace.path("artifacts/containers/smoke/reference-acquire");
-    fs::create_dir_all(&acquire_log_root)
+    bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
     let lock_json = workspace.path("configs/runtime/references/locks/lock.json");
     let lock_sha = workspace.path("configs/runtime/references/locks/lock.json.sha256");
@@ -2004,10 +2004,10 @@ fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) -> Result<O
         let raw_dir = root_dir.join("refs/raw");
         let normalized_dir = root_dir.join("refs/normalized");
         let derived_dir = root_dir.join("refs/derived");
-        fs::create_dir_all(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
-        fs::create_dir_all(&normalized_dir)
+        bijux_dna_infra::ensure_dir(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
+        bijux_dna_infra::ensure_dir(&normalized_dir)
             .with_context(|| format!("create {}", normalized_dir.display()))?;
-        fs::create_dir_all(&derived_dir)
+        bijux_dna_infra::ensure_dir(&derived_dir)
             .with_context(|| format!("create {}", derived_dir.display()))?;
         let raw_fasta = raw_dir.join("reference.fa.gz");
         let filename = raw_fasta
@@ -2182,7 +2182,7 @@ fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsC
         .cloned()
         .unwrap_or_default();
     let acquire_log_root = workspace.path("artifacts/containers/smoke/panel-acquire");
-    fs::create_dir_all(&acquire_log_root)
+    bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
     let lock_json = workspace.path("configs/vcf/panels/locks/lock.json");
     let lock_sha = workspace.path("configs/vcf/panels/locks/lock.json.sha256");
@@ -2209,10 +2209,10 @@ fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsC
         let raw_dir = panel_root.join("raw");
         let normalized_dir = panel_root.join("normalized");
         let derived_dir = panel_root.join("derived");
-        fs::create_dir_all(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
-        fs::create_dir_all(&normalized_dir)
+        bijux_dna_infra::ensure_dir(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
+        bijux_dna_infra::ensure_dir(&normalized_dir)
             .with_context(|| format!("create {}", normalized_dir.display()))?;
-        fs::create_dir_all(&derived_dir)
+        bijux_dna_infra::ensure_dir(&derived_dir)
             .with_context(|| format!("create {}", derived_dir.display()))?;
         let mut manifest_files = Vec::new();
         for file in files {
@@ -2356,7 +2356,7 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
         .cloned()
         .unwrap_or_default();
     let acquire_log_root = workspace.path("artifacts/containers/smoke/map-acquire");
-    fs::create_dir_all(&acquire_log_root)
+    bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
     let mut stdout = String::new();
     let mut rows = Vec::new();
@@ -2377,10 +2377,10 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
         let raw_dir = base.join("raw");
         let normalized_dir = base.join("normalized");
         let derived_dir = base.join("derived");
-        fs::create_dir_all(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
-        fs::create_dir_all(&normalized_dir)
+        bijux_dna_infra::ensure_dir(&raw_dir).with_context(|| format!("create {}", raw_dir.display()))?;
+        bijux_dna_infra::ensure_dir(&normalized_dir)
             .with_context(|| format!("create {}", normalized_dir.display()))?;
-        fs::create_dir_all(&derived_dir)
+        bijux_dna_infra::ensure_dir(&derived_dir)
             .with_context(|| format!("create {}", derived_dir.display()))?;
         let mut observed = Vec::new();
         for file in files {
@@ -2672,11 +2672,11 @@ fn tooling_benchmark_integrity_mini(
             r1.display()
         )));
     }
-    fs::create_dir_all(&base_out).with_context(|| format!("create {}", base_out.display()))?;
+    bijux_dna_infra::ensure_dir(&base_out).with_context(|| format!("create {}", base_out.display()))?;
     let run_a = base_out.join("run_a");
     let run_b = base_out.join("run_b");
-    fs::create_dir_all(&run_a).with_context(|| format!("create {}", run_a.display()))?;
-    fs::create_dir_all(&run_b).with_context(|| format!("create {}", run_b.display()))?;
+    bijux_dna_infra::ensure_dir(&run_a).with_context(|| format!("create {}", run_a.display()))?;
+    bijux_dna_infra::ensure_dir(&run_b).with_context(|| format!("create {}", run_b.display()))?;
     let first = run_program_with_env(
         workspace,
         "cargo",
@@ -2898,7 +2898,7 @@ fn tooling_validate_frontend_mini_domain_stacks(
                 .unwrap_or_else(|_| workspace.path("artifacts"))
                 .join("domain/frontend-mini-validation")
         });
-    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let examples = [
         (
             "fastq_edna_mini",
@@ -3802,7 +3802,7 @@ fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         )));
     }
     let cache_dir = workspace.path("artifacts/docs/.cache");
-    fs::create_dir_all(&cache_dir).with_context(|| format!("create {}", cache_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&cache_dir).with_context(|| format!("create {}", cache_dir.display()))?;
     let cmd_args = match mode {
         "build" => vec![
             "build".to_string(),
@@ -4078,7 +4078,7 @@ fn tooling_image_qa(workspace: &Workspace, args: &[String]) -> Result<OpsCommand
 fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("inventory", args)?;
     let out_dir = workspace.path("artifacts/inventory");
-    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let control_plane_out = out_dir.join("control_plane_inventory.txt");
     let configs_out = out_dir.join("configs_inventory.txt");
     let docs_out = out_dir.join("docs_index_coverage.txt");
@@ -4276,7 +4276,7 @@ fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) -> Result<Ops
         &env_or_default("DOCS_REQ", "configs/docs/requirements.txt"),
     );
     let docs_cache = workspace.path("artifacts/docs/.cache/pip");
-    fs::create_dir_all(&docs_cache).with_context(|| format!("create {}", docs_cache.display()))?;
+    bijux_dna_infra::ensure_dir(&docs_cache).with_context(|| format!("create {}", docs_cache.display()))?;
     let venv = run_program(
         workspace,
         &docs_py,
@@ -4544,13 +4544,13 @@ fn tooling_generate_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCo
                 "Usage: cargo run -p bijux-dna-dev -- tooling run generate-docs -- [out-root]\n",
             )),
         };
-    fs::create_dir_all(out_root.join("00-intro"))
+    bijux_dna_infra::ensure_dir(out_root.join("00-intro"))
         .with_context(|| format!("create {}", out_root.join("00-intro").display()))?;
-    fs::create_dir_all(out_root.join("20-science"))
+    bijux_dna_infra::ensure_dir(out_root.join("20-science"))
         .with_context(|| format!("create {}", out_root.join("20-science").display()))?;
-    fs::create_dir_all(out_root.join("30-operations"))
+    bijux_dna_infra::ensure_dir(out_root.join("30-operations"))
         .with_context(|| format!("create {}", out_root.join("30-operations").display()))?;
-    fs::create_dir_all(out_root.join("50-reference"))
+    bijux_dna_infra::ensure_dir(out_root.join("50-reference"))
         .with_context(|| format!("create {}", out_root.join("50-reference").display()))?;
 
     generate_tool_index(workspace, &out_root.join("20-science/TOOL_INDEX.md"))?;
@@ -5059,10 +5059,10 @@ fn docs_check_generated_docs(workspace: &Workspace, args: &[String]) -> Result<O
         }
     }
     let temp_root = temp_subdir(workspace, "generated-docs")?;
-    fs::create_dir_all(temp_root.join("00-intro"))?;
-    fs::create_dir_all(temp_root.join("20-science"))?;
-    fs::create_dir_all(temp_root.join("30-operations"))?;
-    fs::create_dir_all(temp_root.join("50-reference"))?;
+    bijux_dna_infra::ensure_dir(temp_root.join("00-intro"))?;
+    bijux_dna_infra::ensure_dir(temp_root.join("20-science"))?;
+    bijux_dna_infra::ensure_dir(temp_root.join("30-operations"))?;
+    bijux_dna_infra::ensure_dir(temp_root.join("50-reference"))?;
     write_utf8(
         &temp_root.join("30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md"),
         &read_utf8(&workspace.path("docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md"))?,
@@ -5400,7 +5400,7 @@ fn examples_run(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutc
     }
     let artifact_root = artifact_root_path(workspace)?;
     let out_dir = artifact_root.join("examples").join(example_id);
-    fs::create_dir_all(&out_dir)?;
+    bijux_dna_infra::ensure_dir(&out_dir)?;
     for file in ["plan.json", "explain.json", "report.json"] {
         fs::copy(example_dir.join("golden").join(file), out_dir.join(file)).with_context(|| {
             format!(
@@ -5614,9 +5614,9 @@ fn hpc_validate_frontend_constraints(
         )));
     }
     let test_dir = work_dir.join(format!("hpc-frontend-constraints.{}", std::process::id()));
-    fs::create_dir_all(&test_dir)?;
-    fs::write(test_dir.join(".write_test"), [])?;
-    fs::remove_file(test_dir.join(".write_test"))?;
+    bijux_dna_infra::ensure_dir(&test_dir)?;
+    bijux_dna_infra::write_bytes(test_dir.join(".write_test"), [])?;
+    bijux_dna_infra::remove_file(&test_dir.join(".write_test"))?;
     fs::remove_dir(&test_dir)?;
     let module_state = if command_exists(workspace, "module")? {
         let output = run_program(workspace, "module", &["avail".to_string()])?;
@@ -5668,14 +5668,14 @@ fn hpc_run_frontend_mini_e2e(workspace: &Workspace, args: &[String]) -> Result<O
                 .join("hpc/frontend-mini-e2e")
                 .join(&run_id)
         });
-    fs::create_dir_all(&out_dir)?;
+    bijux_dna_infra::ensure_dir(&out_dir)?;
     let mut status = 0;
     for (example_id, label) in [
         ("vcf_downstream_vcf_full_mini", "vcf"),
         ("fastq_edna_mini", "fastq"),
     ] {
         let example_out = out_dir.join(label);
-        fs::create_dir_all(&example_out)?;
+        bijux_dna_infra::ensure_dir(&example_out)?;
         let start = Utc::now();
         let outcome = examples_run(
             workspace,
@@ -5826,7 +5826,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             dest.display()
         )));
     }
-    fs::create_dir_all(&dest)?;
+    bijux_dna_infra::ensure_dir(&dest)?;
     let mut pulled_paths = Vec::new();
     if pull_mode == "full" {
         let outcome = run_program(
@@ -5859,7 +5859,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         }
         pulled_paths.push(format!("{lunarc_root}/bijux-dna-results/"));
         if include_containers_manifest {
-            fs::create_dir_all(dest.join("bijux-dna-containers"))?;
+            bijux_dna_infra::ensure_dir(dest.join("bijux-dna-containers"))?;
             let _ = run_program(
                 workspace,
                 "rsync",
@@ -5882,7 +5882,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                 let clean_rel = rel.trim_start_matches('/');
                 let target = dest.join("bijux-dna-data").join(clean_rel);
                 if let Some(parent) = target.parent() {
-                    fs::create_dir_all(parent)?;
+                    bijux_dna_infra::ensure_dir(parent)?;
                 }
                 let _ = run_program(
                     workspace,
@@ -6171,7 +6171,7 @@ fn smoke_bam(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome
         ));
     }
     let output_dir = artifact_root_path(workspace)?.join("smoke_bam");
-    fs::create_dir_all(&output_dir)?;
+    bijux_dna_infra::ensure_dir(&output_dir)?;
     let stage = run_program(
         workspace,
         "bijux",
@@ -6460,8 +6460,8 @@ fn test_fastq_gold_repro(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     if run_b.exists() {
         fs::remove_dir_all(&run_b)?;
     }
-    fs::create_dir_all(&run_a)?;
-    fs::create_dir_all(&run_b)?;
+    bijux_dna_infra::ensure_dir(&run_a)?;
+    bijux_dna_infra::ensure_dir(&run_b)?;
     let first = test_toy_runs(
         workspace,
         &[
@@ -6558,7 +6558,7 @@ fn test_toy_runs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOut
         }
     };
     let checksums = verify_toy_inputs(workspace)?;
-    fs::create_dir_all(&out).with_context(|| format!("create {}", out.display()))?;
+    bijux_dna_infra::ensure_dir(&out).with_context(|| format!("create {}", out.display()))?;
     for selected_profile in &selected {
         generate_toy_profile(workspace, selected_profile, &out, &checksums)?;
     }
@@ -6580,7 +6580,7 @@ fn test_toy_runs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOut
                     fs::remove_dir_all(&golden_root)
                         .with_context(|| format!("remove {}", golden_root.display()))?;
                 }
-                fs::create_dir_all(&golden_root)
+                bijux_dna_infra::ensure_dir(&golden_root)
                     .with_context(|| format!("create {}", golden_root.display()))?;
                 for selected_profile in &selected {
                     let profile_id = toy_profile_id(selected_profile);
@@ -6720,9 +6720,9 @@ fn read_utf8(path: &Path) -> Result<String> {
 
 fn write_utf8(path: &Path, raw: &str) -> Result<()> {
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(path, raw).with_context(|| format!("write {}", path.display()))
+    bijux_dna_infra::write_bytes(path, raw).with_context(|| format!("write {}", path.display()))
 }
 
 fn write_json_pretty(path: &Path, value: &Value) -> Result<()> {
@@ -7002,7 +7002,7 @@ fn materialize_controlled_file(
     stdout: &mut String,
 ) -> Result<MaterializedFile> {
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
     let mut action = "reuse".to_string();
     let mut observed = if path.exists() {
@@ -7016,12 +7016,12 @@ fn materialize_controlled_file(
             if verbose {
                 stdout.push_str(&format!("[download] {label} <- {url}\n"));
             }
-            fs::write(path, download_bytes(url)?)
+            bijux_dna_infra::write_bytes(path, download_bytes(url)?)
                 .with_context(|| format!("write {}", path.display()))?;
             observed = sha256_hex(path)?;
         } else if observed != expected_sha256 {
             action = "rewrite-synthetic".to_string();
-            fs::write(path, synthetic_bytes)
+            bijux_dna_infra::write_bytes(path, synthetic_bytes)
                 .with_context(|| format!("write {}", path.display()))?;
             observed = sha256_hex(path)?;
         }
@@ -7030,12 +7030,12 @@ fn materialize_controlled_file(
         if verbose {
             stdout.push_str(&format!("[download] {label} <- {url}\n"));
         }
-        fs::write(path, download_bytes(url)?)
+        bijux_dna_infra::write_bytes(path, download_bytes(url)?)
             .with_context(|| format!("write {}", path.display()))?;
         observed = sha256_hex(path)?;
     } else {
         action = "write-synthetic".to_string();
-        fs::write(path, synthetic_bytes).with_context(|| format!("write {}", path.display()))?;
+        bijux_dna_infra::write_bytes(path, synthetic_bytes).with_context(|| format!("write {}", path.display()))?;
         observed = sha256_hex(path)?;
     }
     if observed != expected_sha256 {
@@ -7096,7 +7096,7 @@ fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
     let artifact_root = artifact_root_path(workspace)?;
     let cargo_target_dir = artifact_root.join("target");
     for dir in [&artifact_root, &cargo_target_dir] {
-        fs::create_dir_all(dir)?;
+        bijux_dna_infra::ensure_dir(dir)?;
     }
     Ok(vec![
         (
@@ -7349,7 +7349,7 @@ fn generate_toy_profile(
 ) -> Result<PathBuf> {
     let profile_id = toy_profile_id(profile);
     let out_dir = out_root.join(profile_id);
-    fs::create_dir_all(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
     let generated_at = std::env::var("BIJUX_TOY_GENERATED_AT")
         .unwrap_or_else(|_| "1970-01-01T00:00:00+00:00".to_string());
     let manifest = json!({
@@ -7517,7 +7517,7 @@ fn build_combined_toy_report(run_root: &Path, selected: &[&str]) -> Result<PathB
 }
 
 fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
-    fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
+    bijux_dna_infra::ensure_dir(dst).with_context(|| format!("create {}", dst.display()))?;
     for entry in WalkDir::new(src)
         .into_iter()
         .filter_map(std::result::Result::ok)
@@ -7528,10 +7528,10 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
         };
         let target = dst.join(rel);
         if entry.file_type().is_dir() {
-            fs::create_dir_all(&target).with_context(|| format!("create {}", target.display()))?;
+            bijux_dna_infra::ensure_dir(&target).with_context(|| format!("create {}", target.display()))?;
         } else {
             if let Some(parent) = target.parent() {
-                fs::create_dir_all(parent)
+                bijux_dna_infra::ensure_dir(parent)
                     .with_context(|| format!("create {}", parent.display()))?;
             }
             fs::copy(entry.path(), &target).with_context(|| {
@@ -7544,12 +7544,12 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
 
 fn temp_subdir(workspace: &Workspace, prefix: &str) -> Result<PathBuf> {
     let root = artifact_root_path(workspace)?.join("tmp");
-    fs::create_dir_all(&root)?;
+    bijux_dna_infra::ensure_dir(&root)?;
     let path = root.join(format!("{prefix}.{}", std::process::id()));
     if path.exists() {
         fs::remove_dir_all(&path)?;
     }
-    fs::create_dir_all(&path)?;
+    bijux_dna_infra::ensure_dir(&path)?;
     Ok(path)
 }
 
@@ -8129,13 +8129,13 @@ fn replace_dir(src: &Path, dst: &Path) -> Result<()> {
         fs::remove_dir_all(dst).with_context(|| format!("remove {}", dst.display()))?;
     }
     if let Some(parent) = dst.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
     }
     copy_dir_recursive(src, dst)
 }
 
 fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
-    fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
+    bijux_dna_infra::ensure_dir(dst).with_context(|| format!("create {}", dst.display()))?;
     for entry in WalkDir::new(src)
         .into_iter()
         .filter_map(std::result::Result::ok)
@@ -8147,10 +8147,10 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
         }
         let target = dst.join(rel);
         if entry.file_type().is_dir() {
-            fs::create_dir_all(&target).with_context(|| format!("create {}", target.display()))?;
+            bijux_dna_infra::ensure_dir(&target).with_context(|| format!("create {}", target.display()))?;
         } else {
             if let Some(parent) = target.parent() {
-                fs::create_dir_all(parent)
+                bijux_dna_infra::ensure_dir(parent)
                     .with_context(|| format!("create {}", parent.display()))?;
             }
             fs::copy(path, &target)
