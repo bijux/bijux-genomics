@@ -9,8 +9,7 @@ license: GPL-3.0
 citation: pending:tool-publication
 planned_stage_ids:
 - fastq.screen_taxonomy
-stage_ids:
-- fastq.screen_taxonomy
+stage_ids: []
 stage_contracts:
   fastq.screen_taxonomy:
     required_inputs:
