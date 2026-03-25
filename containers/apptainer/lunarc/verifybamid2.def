@@ -52,11 +52,26 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 set -eu
 case "${1:-}" in
   --version) echo "verifybamid2 2.0.1"; exit 0 ;;
-  --help|-h|"") exec /usr/local/bin/verifybamid2-bin --help ;;
+  --help|-h|"")
+    /usr/local/bin/verifybamid2-bin --help 2>&1 || true
+    exit 0
+    ;;
+  --__bijux_invalid_flag__*)
+    echo "error: verifybamid2 does not support ${1}" >&2
+    exit 2
+    ;;
 esac
 exec /usr/local/bin/verifybamid2-bin "$@"
 EOS
     chmod +x /usr/local/bin/verifybamid2
+    mkdir -p /opt/bijux
+    printf '%s\n' '{"tool":"verifybamid2","version":"2.0.1","source":"https://github.com/Griffan/VerifyBamID","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
+    cat > /usr/local/bin/bijux-tool-info <<'EOS'
+#!/usr/bin/env sh
+set -eu
+cat /opt/bijux/VERSION.json
+EOS
+    chmod +x /usr/local/bin/bijux-tool-info
 
 %runscript
     exec /usr/local/bin/verifybamid2 "$@"
