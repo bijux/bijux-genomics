@@ -4,21 +4,21 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "param_hashes": {
-    "fastq.correct_errors": "b76d871d5a4d594517fd85d2ee108177a5e1612d5fcdba4c2759dcb69485235b",
-    "fastq.detect_adapters": "3aeada62713ccc30dc0a7212b809e1775eccef0815376bba2864fa88683d7278",
+    "fastq.correct_errors": "98a9219248337eaadf546bc2b8c2d040167f833b6fea21ad913c2c426ad88ccb",
+    "fastq.detect_adapters": "686a4bd9ef18c0738f3030d5b56d85f59eeb02f273864e92eab4b7c3c3d88c45",
     "fastq.extract_umis": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
     "fastq.filter_low_complexity": "9f87c0a7b5bd23cfe60b142cce2543a36e028dc02c5b5353d6c7971772c4eb50",
     "fastq.filter_reads": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
-    "fastq.merge_pairs": "901ef59fec923ad622dee9a264439472514d1fb683b21728ccd5ad6791c753a5",
-    "fastq.profile_overrepresented_sequences": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
-    "fastq.profile_read_lengths": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
-    "fastq.profile_reads": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
-    "fastq.report_qc": "f741ea102c415a31180221994ca5f82f091b95889703e1eed8af7ce22956b0a3",
-    "fastq.screen_taxonomy": "8afc262ccf1b3ae32383964a3bf231d1fe67fde7225913b64bf6d0beb29c2aaf",
-    "fastq.trim_polyg_tails": "1a45d6542079e3efce2f7b54c7f74d744f7ac11eab03268601d00fa89b011c5e",
+    "fastq.merge_pairs": "50728c1c310af1925ed4edde213010ba15a1d7c0e1a553247d63176d13e29bb6",
+    "fastq.profile_overrepresented_sequences": "27b81424e6b1541cfe2767a11fbfc9e285cba5ace4978f87dcec3f67930d76b4",
+    "fastq.profile_read_lengths": "fddc5d881c3959d63c38b0576732d87482b02819f099f0ba22d41036988bc088",
+    "fastq.profile_reads": "b77ee35203226165efe5c6b0096110334809137c1ac960739ed8dd0f7d47d5be",
+    "fastq.report_qc": "297ed2acb71a2501a1a46d5e6c54c3ae7e5ea533f727ab81ff9b2a49651576d5",
+    "fastq.screen_taxonomy": "86027c65f28a8cb5c444b08f0f55e2cc4c2d29946b6e3d7f3b0061a3f8048456",
+    "fastq.trim_polyg_tails": "7488c7f68e0b9fe499f063e5a21e6083008a9163c3dc2ffa05c51f64fe140a2b",
     "fastq.trim_reads": "34e3c83c409e09fc55a46a3027746ace54ab5925836028915d34966a8de6827a",
-    "fastq.trim_terminal_damage": "6dcc9d34f72ad023a048e4b21a68ae04c5de598096a8e44ac5299ba821e969e9",
-    "fastq.validate_reads": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
+    "fastq.trim_terminal_damage": "cc0feabde576f574c4c555230b60010db695bc353e5737c2b19f873566bc0693",
+    "fastq.validate_reads": "b2ddfba3215362ef80ed6605910b54efc3c17dfef041d563302aa285d639b212"
   },
   "profile_id": "fastq-to-fastq__reference_adna__v1",
   "required_stages": [

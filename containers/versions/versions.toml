@@ -84,6 +84,12 @@ source = "https://github.com/BenLangmead/bowtie2"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
+[bowtie2_build]
+version = "2.5.4"
+source = "https://github.com/BenLangmead/bowtie2"
+date_pinned = "2026-02-12"
+pinned_commit = "0000000000000000000000000000000000000000"
+
 [bracken]
 version = "2.9"
 source = "https://github.com/jenniferlu717/Bracken"

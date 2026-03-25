@@ -111,7 +111,7 @@ schema_version = "bijux.fastq.params.deplete_host.v1"
 [[entries]]
 stage_id = "fastq.profile_read_lengths"
 param_type_id = "fastq.profile_read_lengths"
-schema_version = "bijux.fastq.params.stats.v1"
+schema_version = "bijux.fastq.params.read_length_profile.v1"
 
 [[entries]]
 stage_id = "fastq.merge_pairs"
@@ -121,7 +121,7 @@ schema_version = "bijux.fastq.params.merge_pairs.v1"
 [[entries]]
 stage_id = "fastq.profile_overrepresented_sequences"
 param_type_id = "fastq.profile_overrepresented_sequences"
-schema_version = "bijux.fastq.params.stats.v1"
+schema_version = "bijux.fastq.params.overrepresented_profile.v1"
 
 [[entries]]
 stage_id = "fastq.trim_polyg_tails"

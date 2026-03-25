@@ -19,7 +19,11 @@ use super::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
-use super::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
+use super::stats::{
+    FastqOverrepresentedProfileParams, FastqReadLengthProfileParams, FastqStatsParams,
+    OVERREPRESENTED_PROFILE_SCHEMA_VERSION, READ_LENGTH_PROFILE_SCHEMA_VERSION,
+    STATS_SCHEMA_VERSION,
+};
 use super::trim::{
     default_terminal_damage_execution_policy, TrimEffectiveParams, TrimPolygTailsParams,
     TrimTerminalDamageParams, DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES,
@@ -62,6 +66,26 @@ pub fn stats_defaults(paired: bool) -> FastqStatsParams {
         schema_version: STATS_SCHEMA_VERSION.to_string(),
         paired_mode: paired_mode(paired),
         threads: 2,
+    }
+}
+
+#[must_use]
+pub fn read_length_profile_defaults(paired: bool) -> FastqReadLengthProfileParams {
+    FastqReadLengthProfileParams {
+        schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        threads: 2,
+        histogram_bins: 100,
+    }
+}
+
+#[must_use]
+pub fn overrepresented_profile_defaults(paired: bool) -> FastqOverrepresentedProfileParams {
+    FastqOverrepresentedProfileParams {
+        schema_version: OVERREPRESENTED_PROFILE_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        threads: 2,
+        top_k: 50,
     }
 }
 

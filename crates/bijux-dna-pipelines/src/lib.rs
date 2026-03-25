@@ -13,7 +13,9 @@ use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
 use bijux_dna_domain_fastq::params::preprocess::PreprocessEffectiveParams;
 use bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams;
 use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
-use bijux_dna_domain_fastq::params::stats::FastqStatsParams;
+use bijux_dna_domain_fastq::params::stats::{
+    FastqOverrepresentedProfileParams, FastqReadLengthProfileParams, FastqStatsParams,
+};
 use bijux_dna_domain_fastq::params::trim::{
     TrimEffectiveParams, TrimPolygTailsParams, TrimTerminalDamageParams,
 };
@@ -109,6 +111,7 @@ pub struct EmptyParams {}
 pub enum DefaultParams {
     FastqValidate(ValidateEffectiveParams),
     FastqStats(FastqStatsParams),
+    FastqReadLengthProfile(FastqReadLengthProfileParams),
     FastqCorrect(FastqCorrectParams),
     FastqUmi(FastqUmiParams),
     FastqDetectAdapters(DetectAdaptersEffectiveParams),
@@ -116,6 +119,7 @@ pub enum DefaultParams {
     FastqTrimTerminalDamage(TrimTerminalDamageParams),
     FastqTrimPolygTails(TrimPolygTailsParams),
     FastqFilter(FilterEffectiveParams),
+    FastqOverrepresentedProfile(FastqOverrepresentedProfileParams),
     FastqQcPost(QcPostEffectiveParams),
     FastqPreprocess(PreprocessEffectiveParams),
     FastqMerge(MergeEffectiveParams),
@@ -136,6 +140,9 @@ impl DefaultParams {
         match self {
             DefaultParams::FastqValidate(value) => Self::encode(value, "fastq.validate"),
             DefaultParams::FastqStats(value) => Self::encode(value, "fastq.profile_reads"),
+            DefaultParams::FastqReadLengthProfile(value) => {
+                Self::encode(value, "fastq.profile_read_lengths")
+            }
             DefaultParams::FastqCorrect(value) => Self::encode(value, "fastq.correct_errors"),
             DefaultParams::FastqUmi(value) => Self::encode(value, "fastq.extract_umis"),
             DefaultParams::FastqDetectAdapters(value) => {
@@ -149,6 +156,9 @@ impl DefaultParams {
                 Self::encode(value, "fastq.trim_polyg_tails")
             }
             DefaultParams::FastqFilter(value) => Self::encode(value, "fastq.filter_reads"),
+            DefaultParams::FastqOverrepresentedProfile(value) => {
+                Self::encode(value, "fastq.profile_overrepresented_sequences")
+            }
             DefaultParams::FastqQcPost(value) => Self::encode(value, "fastq.report_qc"),
             DefaultParams::FastqPreprocess(value) => Self::encode(value, "fastq.preprocess"),
             DefaultParams::FastqMerge(value) => Self::encode(value, "fastq.merge_pairs"),
@@ -230,6 +240,9 @@ impl<'de> Deserialize<'de> for DefaultParams {
         if let Ok(parsed) = serde_json::from_value::<FastqStatsParams>(value.clone()) {
             return Ok(DefaultParams::FastqStats(parsed));
         }
+        if let Ok(parsed) = serde_json::from_value::<FastqReadLengthProfileParams>(value.clone()) {
+            return Ok(DefaultParams::FastqReadLengthProfile(parsed));
+        }
         if let Ok(parsed) = serde_json::from_value::<FastqCorrectParams>(value.clone()) {
             return Ok(DefaultParams::FastqCorrect(parsed));
         }
@@ -250,6 +263,11 @@ impl<'de> Deserialize<'de> for DefaultParams {
         }
         if let Ok(parsed) = serde_json::from_value::<FilterEffectiveParams>(value.clone()) {
             return Ok(DefaultParams::FastqFilter(parsed));
+        }
+        if let Ok(parsed) =
+            serde_json::from_value::<FastqOverrepresentedProfileParams>(value.clone())
+        {
+            return Ok(DefaultParams::FastqOverrepresentedProfile(parsed));
         }
         if let Ok(parsed) = serde_json::from_value::<QcPostEffectiveParams>(value.clone()) {
             return Ok(DefaultParams::FastqQcPost(parsed));

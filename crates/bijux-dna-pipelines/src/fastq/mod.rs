@@ -10,7 +10,8 @@ use bijux_dna_core::ids::{
 };
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::defaults::{
-    correct_defaults, detect_adapters_defaults, filter_defaults, merge_defaults, qc_post_defaults,
+    correct_defaults, detect_adapters_defaults, filter_defaults, merge_defaults,
+    overrepresented_profile_defaults, qc_post_defaults, read_length_profile_defaults,
     screen_defaults, stats_defaults, trim_defaults, trim_polyg_tails_defaults,
     trim_terminal_damage_defaults, umi_defaults, validate_defaults,
 };
@@ -122,7 +123,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     );
     params.insert(
         StageId::from_static("fastq.profile_read_lengths"),
-        DefaultParams::FastqStats(stats_defaults(paired)),
+        DefaultParams::FastqReadLengthProfile(read_length_profile_defaults(paired)),
     );
     params.insert(
         StageId::from_static("fastq.correct_errors"),
@@ -154,7 +155,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     );
     params.insert(
         StageId::from_static("fastq.profile_overrepresented_sequences"),
-        DefaultParams::FastqStats(stats_defaults(paired)),
+        DefaultParams::FastqOverrepresentedProfile(overrepresented_profile_defaults(paired)),
     );
     params.insert(
         StageId::from_static("fastq.report_qc"),
