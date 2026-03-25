@@ -11,6 +11,9 @@ use bijux_dna_domain_fastq::FastqPipelineMode;
 use bijux_dna_domain_fastq::{STAGE_TRIM_READS, STAGE_VALIDATE_READS};
 use bijux_dna_stage_contract::StagePlanV1;
 
+#[path = "../../support/tool_registry.rs"]
+mod tool_registry_support;
+
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-planner-fastq__{group}__{name}")
 }
@@ -26,7 +29,7 @@ fn workspace_root() -> PathBuf {
 fn tool_registry() -> &'static bijux_dna_core::contract::ToolRegistry {
     static REGISTRY: OnceLock<bijux_dna_core::contract::ToolRegistry> = OnceLock::new();
     REGISTRY.get_or_init(|| {
-        bijux_dna_runtime::manifests::load_manifests(&workspace_root())
+        tool_registry_support::load_domain_tool_registry(&workspace_root())
             .expect("load domain tool registry")
     })
 }
