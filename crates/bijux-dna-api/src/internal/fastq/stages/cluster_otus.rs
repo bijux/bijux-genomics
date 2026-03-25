@@ -38,7 +38,7 @@ pub(crate) struct ClusterOtusTableMetrics {
 pub(crate) fn cluster_otus_options_from_args(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqClusterOtusArgs,
 ) -> bijux_dna_planner_fastq::ClusterOtusStageParams {
-    let mut options = bijux_dna_planner_fastq::ClusterOtusStageParams::default();
+    let mut options = bijux_dna_planner_fastq::ClusterOtusStageParams::baseline();
     if let Some(otu_identity) = args.otu_identity {
         options.otu_identity = otu_identity;
     }

@@ -50,7 +50,7 @@ pub fn plan_host_depletion(
         r2,
         reference_index,
         out_dir,
-        &DepleteHostPlanOptions::default(),
+        &DepleteHostPlanOptions::baseline(),
         "bowtie2_build",
     )
 }

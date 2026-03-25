@@ -57,7 +57,7 @@ pub fn aux_tool_ids() -> Vec<String> {
 pub fn aux_tool_ids_for_qc_inputs(qc_inputs: &[ArtifactRef]) -> Vec<String> {
     let mut tool_ids = qc_inputs
         .iter()
-        .filter_map(|artifact| parse_qc_contributor_identity(artifact.name.as_str()))
+        .filter_map(|artifact| qc_contributor_identity_from_artifact_name(artifact.name.as_str()))
         .map(|(_stage_id, tool_id)| tool_id)
         .collect::<Vec<_>>();
     tool_ids.sort();
@@ -248,7 +248,7 @@ fn normalize_tools_with_allowlist(
     Ok(normalized)
 }
 
-fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
+fn qc_contributor_identity_from_artifact_name(name: &str) -> Option<(String, String)> {
     let parts = name.split('.').collect::<Vec<_>>();
     if parts.len() >= 5 && parts[2] == "tool" {
         return Some((format!("{}.{}", parts[0], parts[1]), parts[3].to_string()));
@@ -262,7 +262,7 @@ fn parse_qc_contributor_identity(name: &str) -> Option<(String, String)> {
 fn qc_contributor_stage_ids(qc_inputs: &[ArtifactRef]) -> Vec<String> {
     let mut stage_ids = qc_inputs
         .iter()
-        .filter_map(|artifact| parse_qc_contributor_identity(artifact.name.as_str()))
+        .filter_map(|artifact| qc_contributor_identity_from_artifact_name(artifact.name.as_str()))
         .map(|(stage_id, _tool_id)| stage_id)
         .collect::<Vec<_>>();
     stage_ids.sort();

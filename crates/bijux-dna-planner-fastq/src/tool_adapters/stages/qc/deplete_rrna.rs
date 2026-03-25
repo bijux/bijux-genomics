@@ -41,7 +41,7 @@ pub fn plan_rrna(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_rrna_with_options(tool, r1, r2, out_dir, &DepleteRrnaPlanOptions::default())
+    plan_rrna_with_options(tool, r1, r2, out_dir, &DepleteRrnaPlanOptions::baseline())
 }
 
 /// Build an rRNA screening plan.

@@ -207,7 +207,7 @@ pub fn validate_pair_sync_policy(
 
 /// # Errors
 /// Returns an error if the requested validation mode is unsupported.
-pub fn parse_validation_mode(value: &str) -> Result<ValidationMode> {
+pub fn validation_mode_from_literal(value: &str) -> Result<ValidationMode> {
     match value.trim().to_ascii_lowercase().as_str() {
         "strict" => Ok(ValidationMode::Strict),
         "report_only" => Ok(ValidationMode::ReportOnly),
@@ -217,7 +217,7 @@ pub fn parse_validation_mode(value: &str) -> Result<ValidationMode> {
 
 /// # Errors
 /// Returns an error if the requested pair sync policy is unsupported.
-pub fn parse_pair_sync_policy(value: &str) -> Result<PairSyncPolicy> {
+pub fn pair_sync_policy_from_literal(value: &str) -> Result<PairSyncPolicy> {
     match value.trim().to_ascii_lowercase().as_str() {
         "not_applicable" => Ok(PairSyncPolicy::NotApplicable),
         "require_header_sync" => Ok(PairSyncPolicy::RequireHeaderSync),
@@ -851,17 +851,20 @@ mod tests {
 
     #[test]
     fn parse_validate_policy_literals_accept_governed_surface() -> Result<()> {
-        assert_eq!(parse_validation_mode("strict")?, ValidationMode::Strict);
         assert_eq!(
-            parse_validation_mode("report_only")?,
+            validation_mode_from_literal("strict")?,
+            ValidationMode::Strict
+        );
+        assert_eq!(
+            validation_mode_from_literal("report_only")?,
             ValidationMode::ReportOnly
         );
         assert_eq!(
-            parse_pair_sync_policy("require_header_sync")?,
+            pair_sync_policy_from_literal("require_header_sync")?,
             PairSyncPolicy::RequireHeaderSync
         );
         assert_eq!(
-            parse_pair_sync_policy("skip_header_sync")?,
+            pair_sync_policy_from_literal("skip_header_sync")?,
             PairSyncPolicy::SkipHeaderSync
         );
         Ok(())

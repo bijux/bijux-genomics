@@ -23,7 +23,7 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::{
-    parse_dedup_mode, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
+    dedup_mode_from_literal, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
@@ -157,7 +157,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
                 dedup_mode: args
                     .dedup_mode
                     .as_deref()
-                    .map(parse_dedup_mode)
+                    .map(dedup_mode_from_literal)
                     .transpose()?
                     .unwrap_or(bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact),
                 keep_order: args.keep_order.unwrap_or(true),
