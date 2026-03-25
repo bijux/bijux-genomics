@@ -68,6 +68,9 @@ fn stage_supports_governed_qc_bench_inputs(stage_id: &StageId, paired_end: bool)
 }
 
 fn is_governed_qc_output_id(output_id: &str) -> bool {
+    if output_id == "validated_reads_manifest" {
+        return true;
+    }
     if output_id.contains("reads")
         || output_id.contains("reference")
         || output_id.contains("table")

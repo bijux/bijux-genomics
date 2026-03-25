@@ -152,6 +152,28 @@ fn scalar_matches(requested: Option<&String>, stored: Option<&String>) -> bool {
     }
 }
 
+pub trait BenchResultsRepository {
+    /// # Errors
+    /// Returns an error if benchmark records cannot be loaded for the request.
+    fn bench_results(
+        &self,
+        stage: &StageId,
+        tool: &str,
+        corpus: &BenchCorpus,
+        context: &BenchQueryContext,
+    ) -> Result<Vec<BenchResultRecord>>;
+}
+
+/// # Errors
+/// Returns an error if the governed stage contract hash cannot be computed.
+pub fn governed_stage_bench_query_context(stage_id: &str) -> Result<BenchQueryContext> {
+    let mut context = BenchQueryContext::new();
+    if let Some(contract_hash) = crate::stage_contract_hash(stage_id) {
+        context = context.with_stage_contract_hash(contract_hash?);
+    }
+    Ok(context)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{BenchQueryContext, BenchQueryContextMatch};
@@ -197,26 +219,4 @@ mod tests {
             BenchQueryContextMatch::NoMatch
         );
     }
-}
-
-pub trait BenchResultsRepository {
-    /// # Errors
-    /// Returns an error if benchmark records cannot be loaded for the request.
-    fn bench_results(
-        &self,
-        stage: &StageId,
-        tool: &str,
-        corpus: &BenchCorpus,
-        context: &BenchQueryContext,
-    ) -> Result<Vec<BenchResultRecord>>;
-}
-
-/// # Errors
-/// Returns an error if the governed stage contract hash cannot be computed.
-pub fn governed_stage_bench_query_context(stage_id: &str) -> Result<BenchQueryContext> {
-    let mut context = BenchQueryContext::new();
-    if let Some(contract_hash) = crate::stage_contract_hash(stage_id) {
-        context = context.with_stage_contract_hash(contract_hash?);
-    }
-    Ok(context)
 }

@@ -18,6 +18,7 @@ stage_contracts:
     required_inputs:
     - reads_r1
     expected_artifacts:
+    - report_json
     - length_distribution_tsv
     - length_distribution_json
     notes: Planned read-length profiling would emit governed histogram artifacts.

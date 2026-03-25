@@ -408,7 +408,7 @@ mod tests {
                 &StageId::from_static("fastq.detect_adapters"),
                 &ToolId::from_static("fastqc"),
             ),
-            Some("adapter_evidence_dir")
+            Some("report_json")
         );
         assert_eq!(
             observer_semantic_surface_for_stage_tool(
