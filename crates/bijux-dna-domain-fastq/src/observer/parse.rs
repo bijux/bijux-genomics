@@ -788,7 +788,7 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
                 if reads_in == 0 {
                     0.0
                 } else {
-                    duplicates_removed as f64 / reads_in as f64
+                    u64_to_f64(duplicates_removed) / u64_to_f64(reads_in)
                 }
             }),
         duplicate_classes_tsv: None,
@@ -977,7 +977,7 @@ fn parse_legacy_profile_read_lengths_report(
     let mean_read_length = if read_count == 0 {
         0.0
     } else {
-        total_length as f64 / read_count as f64
+        u64_to_f64(total_length) / u64_to_f64(read_count)
     };
     Ok(ProfileReadLengthsReportV1 {
         schema_version: "bijux.fastq.profile_read_lengths.report.v1_legacy".to_string(),
@@ -1096,7 +1096,7 @@ fn parse_legacy_profile_overrepresented_report(
         top_fraction: json
             .get("top_fraction")
             .and_then(serde_json::Value::as_f64)
-            .unwrap_or_else(|| rows.first().map(|row| row.fraction).unwrap_or(0.0)),
+            .unwrap_or_else(|| rows.first().map_or(0.0, |row| row.fraction)),
         rows,
         runtime_s: json.get("runtime_s").and_then(serde_json::Value::as_f64),
         memory_mb: json.get("memory_mb").and_then(serde_json::Value::as_f64),
@@ -1272,7 +1272,7 @@ pub fn parse_low_complexity_report(report_json: &str) -> Result<u64> {
 }
 
 /// # Errors
-/// Returns an error if BBDuk stats cannot be reduced to a reads-removed count.
+/// Returns an error if `BBDuk` stats cannot be reduced to a reads-removed count.
 pub fn parse_bbduk_reads_removed(stats_txt: &str) -> Result<u64> {
     for line in stats_txt.lines() {
         let line = line.trim();
@@ -1316,23 +1316,22 @@ pub fn parse_fastp_metrics(report_json: &str) -> Result<FastpToolMetricsV1> {
     })
 }
 
-/// # Errors
-/// Returns an error if AdapterRemoval output cannot be parsed.
+/// Parse `AdapterRemoval` output into canonical merge metrics.
 #[allow(dead_code)]
-pub fn parse_adapterremoval_metrics(stdout: &str) -> Result<AdapterRemovalToolMetricsV1> {
+pub fn parse_adapterremoval_metrics(stdout: &str) -> AdapterRemovalToolMetricsV1 {
     let pairs_processed = parse_prefix_u64(stdout, "Total number of read pairs");
     let pairs_merged = parse_prefix_u64(stdout, "Number of fully overlapping pairs");
     let merge_rate = if pairs_processed > 0 {
-        pairs_merged as f64 / pairs_processed as f64
+        u64_to_f64(pairs_merged) / u64_to_f64(pairs_processed)
     } else {
         0.0
     };
-    Ok(AdapterRemovalToolMetricsV1 {
+    AdapterRemovalToolMetricsV1 {
         schema_version: "bijux.adapterremoval.metrics.v1".to_string(),
         pairs_processed,
         pairs_merged,
         merge_rate,
-    })
+    }
 }
 
 /// # Errors
@@ -1349,29 +1348,27 @@ pub fn parse_seqkit_tool_metrics(output: &str) -> Result<SeqkitToolMetricsV1> {
     })
 }
 
-/// # Errors
-/// Returns an error if samtools flagstat output cannot be parsed.
+/// Parse `samtools flagstat` output into canonical alignment metrics.
 #[allow(dead_code)]
-pub fn parse_samtools_flagstat_metrics(stdout: &str) -> Result<SamtoolsFlagstatMetricsV1> {
+pub fn parse_samtools_flagstat_metrics(stdout: &str) -> SamtoolsFlagstatMetricsV1 {
     let total_reads = parse_prefix_u64(stdout, "in total");
     let mapped_reads = parse_prefix_u64(stdout, "mapped (");
     let mapped_rate = if total_reads > 0 {
-        mapped_reads as f64 / total_reads as f64
+        u64_to_f64(mapped_reads) / u64_to_f64(total_reads)
     } else {
         0.0
     };
-    Ok(SamtoolsFlagstatMetricsV1 {
+    SamtoolsFlagstatMetricsV1 {
         schema_version: "bijux.samtools.flagstat.v1".to_string(),
         total_reads,
         mapped_reads,
         mapped_rate,
-    })
+    }
 }
 
-/// # Errors
-/// Returns an error if fastqc summary cannot be parsed.
+/// Parse `FastQC` summary text into canonical summary metrics.
 #[allow(dead_code)]
-pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> Result<FastqcToolMetricsV1> {
+pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> FastqcToolMetricsV1 {
     let mut total_sequences = 0;
     let mut gc_percent = 0.0;
     for line in summary_txt.lines() {
@@ -1383,11 +1380,11 @@ pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> Result<FastqcToolMetri
             }
         }
     }
-    Ok(FastqcToolMetricsV1 {
+    FastqcToolMetricsV1 {
         schema_version: "bijux.fastqc.metrics.v1".to_string(),
         total_sequences,
         gc_percent,
-    })
+    }
 }
 
 /// # Errors
@@ -1396,17 +1393,21 @@ pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> Result<FastqcToolMetri
 pub fn parse_multiqc_general_stats_metrics(raw_json: &str) -> Result<MultiqcToolMetricsV1> {
     let parsed: serde_json::Value =
         serde_json::from_str(raw_json).context("parse multiqc general stats json")?;
-    let sample_count = parsed.as_object().map_or(0, |obj| obj.len()) as u64;
+    let sample_count = parsed.as_object().map_or(0, serde_json::Map::len) as u64;
     let module_count = parsed
         .as_object()
         .and_then(|obj| obj.values().next())
         .and_then(serde_json::Value::as_object)
-        .map_or(0, |obj| obj.len()) as u64;
+        .map_or(0, serde_json::Map::len) as u64;
     Ok(MultiqcToolMetricsV1 {
         schema_version: "bijux.multiqc.metrics.v1".to_string(),
         sample_count,
         module_count,
     })
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(f64::MAX)
 }
 
 fn parse_report_u64_field(raw: &str, field: &str) -> Option<u64> {
@@ -1488,6 +1489,10 @@ mod tests {
         VALIDATION_REPORT_SCHEMA_VERSION,
     };
     use anyhow::Result;
+
+    fn assert_f64_eq(left: f64, right: f64) {
+        assert!((left - right).abs() < f64::EPSILON);
+    }
 
     #[test]
     fn parse_fastqvalidator_count_parses_fixture() -> Result<()> {
@@ -1864,7 +1869,7 @@ mod tests {
         )?;
         assert_eq!(parsed.tool_id, "sortmerna");
         assert_eq!(parsed.reads_removed, 40);
-        assert_eq!(parsed.rrna_fraction_removed, 0.4);
+        assert_f64_eq(parsed.rrna_fraction_removed, 0.4);
         Ok(())
     }
 
@@ -1938,7 +1943,7 @@ mod tests {
         )?;
         assert_eq!(parsed.tool_id, "bowtie2");
         assert_eq!(parsed.reads_removed, 35);
-        assert_eq!(parsed.contaminant_fraction_removed, 0.35);
+        assert_f64_eq(parsed.contaminant_fraction_removed, 0.35);
         Ok(())
     }
 
@@ -2020,7 +2025,7 @@ mod tests {
         )?;
         assert_eq!(parsed.tool_id, "bowtie2");
         assert_eq!(parsed.reads_removed, 40);
-        assert_eq!(parsed.host_fraction_removed, 0.4);
+        assert_f64_eq(parsed.host_fraction_removed, 0.4);
         Ok(())
     }
 
@@ -2031,7 +2036,7 @@ mod tests {
         )?;
         assert_eq!(parsed.len(), 2);
         assert_eq!(parsed[0].label, "unclassified");
-        assert_eq!(parsed[1].percent, 77.0);
+        assert_f64_eq(parsed[1].percent, 77.0);
         Ok(())
     }
 
@@ -2161,13 +2166,13 @@ mod tests {
         assert_eq!(parsed.tool_id, "clumpify");
         assert_eq!(parsed.threads, 4);
         assert_eq!(parsed.duplicate_classes.len(), 2);
-        assert_eq!(parsed.dedup_rate, 0.15);
+        assert_f64_eq(parsed.dedup_rate, 0.15);
         Ok(())
     }
 
     #[test]
     fn parse_remove_duplicates_report_rejects_incomplete_governed_json() {
-        let error = parse_remove_duplicates_report(
+        let result = parse_remove_duplicates_report(
             &serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.report.v2",
                 "stage": "fastq.remove_duplicates",
@@ -2182,10 +2187,10 @@ mod tests {
                 "dedup_rate": 0.15
             })
             .to_string(),
-        )
-        .expect_err(
-            "incomplete governed remove-duplicates reports must not fall back to legacy parsing",
         );
+        let Err(error) = result else {
+            panic!("incomplete governed remove-duplicates reports must not fall back to legacy parsing");
+        };
 
         assert!(error.to_string().contains("parse remove duplicates report"));
     }
@@ -2480,7 +2485,7 @@ mod tests {
         assert_eq!(parsed.tool_id, "seqkit");
         assert_eq!(parsed.sequence_count, 2);
         assert_eq!(parsed.flagged_sequences, 1);
-        assert_eq!(parsed.top_fraction, 0.4);
+        assert_f64_eq(parsed.top_fraction, 0.4);
         Ok(())
     }
 
@@ -2599,13 +2604,14 @@ mod tests {
     }
 
     #[test]
-    fn parse_adapterremoval_metrics_fixture() -> Result<()> {
-        let raw = include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/adapterremoval.txt");
-        let parsed = parse_adapterremoval_metrics(raw)?;
+    fn parse_adapterremoval_metrics_fixture() {
+        let raw = include_str!(
+            "../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/adapterremoval.txt"
+        );
+        let parsed = parse_adapterremoval_metrics(raw);
         assert_eq!(parsed.schema_version, "bijux.adapterremoval.metrics.v1");
         assert_eq!(parsed.pairs_processed, 1000);
         assert_eq!(parsed.pairs_merged, 640);
-        Ok(())
     }
 
     #[test]
@@ -2620,23 +2626,25 @@ mod tests {
     }
 
     #[test]
-    fn parse_samtools_flagstat_fixture() -> Result<()> {
-        let raw = include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/samtools_flagstat.txt");
-        let parsed = parse_samtools_flagstat_metrics(raw)?;
+    fn parse_samtools_flagstat_fixture() {
+        let raw = include_str!(
+            "../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/samtools_flagstat.txt"
+        );
+        let parsed = parse_samtools_flagstat_metrics(raw);
         assert_eq!(parsed.schema_version, "bijux.samtools.flagstat.v1");
         assert_eq!(parsed.total_reads, 1000);
         assert_eq!(parsed.mapped_reads, 900);
-        Ok(())
     }
 
     #[test]
-    fn parse_fastqc_summary_fixture() -> Result<()> {
-        let raw = include_str!("../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/fastqc_summary.txt");
-        let parsed = parse_fastqc_summary_metrics(raw)?;
+    fn parse_fastqc_summary_fixture() {
+        let raw = include_str!(
+            "../../../bijux-dna-stages-fastq/tests/fixtures/tool_metrics/default/fastqc_summary.txt"
+        );
+        let parsed = parse_fastqc_summary_metrics(raw);
         assert_eq!(parsed.schema_version, "bijux.fastqc.metrics.v1");
         assert_eq!(parsed.total_sequences, 1000);
-        assert_eq!(parsed.gc_percent, 42.0);
-        Ok(())
+        assert_f64_eq(parsed.gc_percent, 42.0);
     }
 
     #[test]

@@ -179,141 +179,145 @@ pub const FASTQ_OVERREPRESENTED_INVARIANTS: [&str; 3] = [
     "counts are non-negative",
 ];
 
+pub const FASTQ_STAGE_METRIC_SPECS: [StageMetricSpec; 22] = [
+    StageMetricSpec {
+        stage: "fastq.validate_reads",
+        classes: &FASTQ_VALIDATE_CLASSES,
+        invariants: &FASTQ_VALIDATE_INVARIANTS,
+        notes: "Validation reports counts; no data is modified.",
+    },
+    StageMetricSpec {
+        stage: "fastq.detect_adapters",
+        classes: &FASTQ_DETECT_CLASSES,
+        invariants: &FASTQ_DETECT_INVARIANTS,
+        notes: "Adapter detection inspects reads and reports adapter signals.",
+    },
+    StageMetricSpec {
+        stage: "fastq.trim_terminal_damage",
+        classes: &FASTQ_DAMAGE_AWARE_PRETRIM_CLASSES,
+        invariants: &FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS,
+        notes: "Damage-aware pretrim can mask or trim terminal damage while preserving deterministic output order.",
+    },
+    StageMetricSpec {
+        stage: "fastq.trim_polyg_tails",
+        classes: &FASTQ_POLYG_TRIM_CLASSES,
+        invariants: &FASTQ_POLYG_TRIM_INVARIANTS,
+        notes: "PolyG tail trimming removes sequencer-specific terminal artifacts while preserving deterministic read order.",
+    },
+    StageMetricSpec {
+        stage: "fastq.trim_reads",
+        classes: &FASTQ_TRIM_CLASSES,
+        invariants: &FASTQ_TRIM_INVARIANTS,
+        notes: "Trim can reduce reads/bases and improve quality.",
+    },
+    StageMetricSpec {
+        stage: "fastq.filter_reads",
+        classes: &FASTQ_FILTER_CLASSES,
+        invariants: &FASTQ_FILTER_INVARIANTS,
+        notes: "Filter drops reads and should improve quality.",
+    },
+    StageMetricSpec {
+        stage: "fastq.remove_duplicates",
+        classes: &FASTQ_DEDUPLICATE_CLASSES,
+        invariants: &FASTQ_DEDUPLICATE_INVARIANTS,
+        notes: "Deduplication removes duplicate reads while preserving pair semantics.",
+    },
+    StageMetricSpec {
+        stage: "fastq.filter_low_complexity",
+        classes: &FASTQ_FILTER_CLASSES,
+        invariants: &FASTQ_FILTER_INVARIANTS,
+        notes: "Low-complexity filtering drops reads based on entropy/polyN/polyX signals.",
+    },
+    StageMetricSpec {
+        stage: "fastq.merge_pairs",
+        classes: &FASTQ_MERGE_CLASSES,
+        invariants: &FASTQ_MERGE_INVARIANTS,
+        notes: "Merge produces merged/unmerged reads from pairs.",
+    },
+    StageMetricSpec {
+        stage: "fastq.correct_errors",
+        classes: &FASTQ_CORRECT_CLASSES,
+        invariants: &FASTQ_CORRECT_INVARIANTS,
+        notes: "Correct should preserve reads while improving quality.",
+    },
+    StageMetricSpec {
+        stage: "fastq.report_qc",
+        classes: &FASTQ_QC_POST_CLASSES,
+        invariants: &FASTQ_QC_POST_INVARIANTS,
+        notes: "Post-QC reports quality and contamination signals.",
+    },
+    StageMetricSpec {
+        stage: "fastq.extract_umis",
+        classes: &FASTQ_UMI_CLASSES,
+        invariants: &FASTQ_UMI_INVARIANTS,
+        notes: "UMI extraction should preserve read counts while enriching read identifiers.",
+    },
+    StageMetricSpec {
+        stage: "fastq.screen_taxonomy",
+        classes: &FASTQ_SCREEN_CLASSES,
+        invariants: &FASTQ_SCREEN_INVARIANTS,
+        notes: "Screening reports contamination only.",
+    },
+    StageMetricSpec {
+        stage: "fastq.deplete_rrna",
+        classes: &FASTQ_RRNA_CLASSES,
+        invariants: &FASTQ_RRNA_INVARIANTS,
+        notes: "rRNA depletion removes classified reads while retaining non-rRNA FASTQ output.",
+    },
+    StageMetricSpec {
+        stage: "fastq.cluster_otus",
+        classes: &FASTQ_CLUSTER_OTUS_CLASSES,
+        invariants: &FASTQ_CLUSTER_OTUS_INVARIANTS,
+        notes: "OTU clustering emits deterministic centroid and abundance artifacts for amplicon workflows.",
+    },
+    StageMetricSpec {
+        stage: "fastq.normalize_primers",
+        classes: &FASTQ_NORMALIZE_PRIMERS_CLASSES,
+        invariants: &FASTQ_NORMALIZE_PRIMERS_INVARIANTS,
+        notes: "Primer normalization re-orients amplicon reads and may trim primer bases while preserving deterministic ordering.",
+    },
+    StageMetricSpec {
+        stage: "fastq.infer_asvs",
+        classes: &FASTQ_INFER_ASVS_CLASSES,
+        invariants: &FASTQ_INFER_ASVS_INVARIANTS,
+        notes: "ASV inference converts denoised amplicon reads into a deterministic feature table and representative sequences.",
+    },
+    StageMetricSpec {
+        stage: "fastq.normalize_abundance",
+        classes: &FASTQ_NORMALIZE_ABUNDANCE_CLASSES,
+        invariants: &FASTQ_NORMALIZE_ABUNDANCE_INVARIANTS,
+        notes: "Abundance normalization operates on a feature table and emits a normalized compositional table.",
+    },
+    StageMetricSpec {
+        stage: "fastq.remove_chimeras",
+        classes: &FASTQ_CHIMERA_CLASSES,
+        invariants: &FASTQ_CHIMERA_INVARIANTS,
+        notes: "Chimera removal filters chimeric amplicon reads while preserving deterministic non-chimera output order.",
+    },
+    StageMetricSpec {
+        stage: "fastq.profile_reads",
+        classes: &FASTQ_STATS_CLASSES,
+        invariants: &FASTQ_STATS_INVARIANTS,
+        notes: "Stats is report-only and must not mutate reads.",
+    },
+    StageMetricSpec {
+        stage: "fastq.profile_read_lengths",
+        classes: &FASTQ_READ_LENGTH_CLASSES,
+        invariants: &FASTQ_READ_LENGTH_INVARIANTS,
+        notes: "Read-length profiling emits deterministic histogram artifacts and summary statistics without mutating reads.",
+    },
+    StageMetricSpec {
+        stage: "fastq.profile_overrepresented_sequences",
+        classes: &FASTQ_OVERREPRESENTED_CLASSES,
+        invariants: &FASTQ_OVERREPRESENTED_INVARIANTS,
+        notes: "Overrepresented sequence profiling is report-only and captures dominant repeated sequence content without mutating reads.",
+    },
+];
+
 #[must_use]
 pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
-    match stage_id {
-        "fastq.validate_reads" => Some(StageMetricSpec {
-            stage: "fastq.validate_reads",
-            classes: &FASTQ_VALIDATE_CLASSES,
-            invariants: &FASTQ_VALIDATE_INVARIANTS,
-            notes: "Validation reports counts; no data is modified.",
-        }),
-        "fastq.detect_adapters" => Some(StageMetricSpec {
-            stage: "fastq.detect_adapters",
-            classes: &FASTQ_DETECT_CLASSES,
-            invariants: &FASTQ_DETECT_INVARIANTS,
-            notes: "Adapter detection inspects reads and reports adapter signals.",
-        }),
-        "fastq.trim_terminal_damage" => Some(StageMetricSpec {
-            stage: "fastq.trim_terminal_damage",
-            classes: &FASTQ_DAMAGE_AWARE_PRETRIM_CLASSES,
-            invariants: &FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS,
-            notes: "Damage-aware pretrim can mask or trim terminal damage while preserving deterministic output order.",
-        }),
-        "fastq.trim_polyg_tails" => Some(StageMetricSpec {
-            stage: "fastq.trim_polyg_tails",
-            classes: &FASTQ_POLYG_TRIM_CLASSES,
-            invariants: &FASTQ_POLYG_TRIM_INVARIANTS,
-            notes: "PolyG tail trimming removes sequencer-specific terminal artifacts while preserving deterministic read order.",
-        }),
-        "fastq.trim_reads" => Some(StageMetricSpec {
-            stage: "fastq.trim_reads",
-            classes: &FASTQ_TRIM_CLASSES,
-            invariants: &FASTQ_TRIM_INVARIANTS,
-            notes: "Trim can reduce reads/bases and improve quality.",
-        }),
-        "fastq.filter_reads" => Some(StageMetricSpec {
-            stage: "fastq.filter_reads",
-            classes: &FASTQ_FILTER_CLASSES,
-            invariants: &FASTQ_FILTER_INVARIANTS,
-            notes: "Filter drops reads and should improve quality.",
-        }),
-        "fastq.remove_duplicates" => Some(StageMetricSpec {
-            stage: "fastq.remove_duplicates",
-            classes: &FASTQ_DEDUPLICATE_CLASSES,
-            invariants: &FASTQ_DEDUPLICATE_INVARIANTS,
-            notes: "Deduplication removes duplicate reads while preserving pair semantics.",
-        }),
-        "fastq.filter_low_complexity" => Some(StageMetricSpec {
-            stage: "fastq.filter_low_complexity",
-            classes: &FASTQ_FILTER_CLASSES,
-            invariants: &FASTQ_FILTER_INVARIANTS,
-            notes: "Low-complexity filtering drops reads based on entropy/polyN/polyX signals.",
-        }),
-        "fastq.merge_pairs" => Some(StageMetricSpec {
-            stage: "fastq.merge_pairs",
-            classes: &FASTQ_MERGE_CLASSES,
-            invariants: &FASTQ_MERGE_INVARIANTS,
-            notes: "Merge produces merged/unmerged reads from pairs.",
-        }),
-        "fastq.correct_errors" => Some(StageMetricSpec {
-            stage: "fastq.correct_errors",
-            classes: &FASTQ_CORRECT_CLASSES,
-            invariants: &FASTQ_CORRECT_INVARIANTS,
-            notes: "Correct should preserve reads while improving quality.",
-        }),
-        "fastq.report_qc" => Some(StageMetricSpec {
-            stage: "fastq.report_qc",
-            classes: &FASTQ_QC_POST_CLASSES,
-            invariants: &FASTQ_QC_POST_INVARIANTS,
-            notes: "Post-QC reports quality and contamination signals.",
-        }),
-        "fastq.extract_umis" => Some(StageMetricSpec {
-            stage: "fastq.extract_umis",
-            classes: &FASTQ_UMI_CLASSES,
-            invariants: &FASTQ_UMI_INVARIANTS,
-            notes: "UMI extraction should preserve read counts while enriching read identifiers.",
-        }),
-        "fastq.screen_taxonomy" => Some(StageMetricSpec {
-            stage: "fastq.screen_taxonomy",
-            classes: &FASTQ_SCREEN_CLASSES,
-            invariants: &FASTQ_SCREEN_INVARIANTS,
-            notes: "Screening reports contamination only.",
-        }),
-        "fastq.deplete_rrna" => Some(StageMetricSpec {
-            stage: "fastq.deplete_rrna",
-            classes: &FASTQ_RRNA_CLASSES,
-            invariants: &FASTQ_RRNA_INVARIANTS,
-            notes: "rRNA depletion removes classified reads while retaining non-rRNA FASTQ output.",
-        }),
-        "fastq.cluster_otus" => Some(StageMetricSpec {
-            stage: "fastq.cluster_otus",
-            classes: &FASTQ_CLUSTER_OTUS_CLASSES,
-            invariants: &FASTQ_CLUSTER_OTUS_INVARIANTS,
-            notes: "OTU clustering emits deterministic centroid and abundance artifacts for amplicon workflows.",
-        }),
-        "fastq.normalize_primers" => Some(StageMetricSpec {
-            stage: "fastq.normalize_primers",
-            classes: &FASTQ_NORMALIZE_PRIMERS_CLASSES,
-            invariants: &FASTQ_NORMALIZE_PRIMERS_INVARIANTS,
-            notes: "Primer normalization re-orients amplicon reads and may trim primer bases while preserving deterministic ordering.",
-        }),
-        "fastq.infer_asvs" => Some(StageMetricSpec {
-            stage: "fastq.infer_asvs",
-            classes: &FASTQ_INFER_ASVS_CLASSES,
-            invariants: &FASTQ_INFER_ASVS_INVARIANTS,
-            notes: "ASV inference converts denoised amplicon reads into a deterministic feature table and representative sequences.",
-        }),
-        "fastq.normalize_abundance" => Some(StageMetricSpec {
-            stage: "fastq.normalize_abundance",
-            classes: &FASTQ_NORMALIZE_ABUNDANCE_CLASSES,
-            invariants: &FASTQ_NORMALIZE_ABUNDANCE_INVARIANTS,
-            notes: "Abundance normalization operates on a feature table and emits a normalized compositional table.",
-        }),
-        "fastq.remove_chimeras" => Some(StageMetricSpec {
-            stage: "fastq.remove_chimeras",
-            classes: &FASTQ_CHIMERA_CLASSES,
-            invariants: &FASTQ_CHIMERA_INVARIANTS,
-            notes: "Chimera removal filters chimeric amplicon reads while preserving deterministic non-chimera output order.",
-        }),
-        "fastq.profile_reads" => Some(StageMetricSpec {
-            stage: "fastq.profile_reads",
-            classes: &FASTQ_STATS_CLASSES,
-            invariants: &FASTQ_STATS_INVARIANTS,
-            notes: "Stats is report-only and must not mutate reads.",
-        }),
-        "fastq.profile_read_lengths" => Some(StageMetricSpec {
-            stage: "fastq.profile_read_lengths",
-            classes: &FASTQ_READ_LENGTH_CLASSES,
-            invariants: &FASTQ_READ_LENGTH_INVARIANTS,
-            notes: "Read-length profiling emits deterministic histogram artifacts and summary statistics without mutating reads.",
-        }),
-        "fastq.profile_overrepresented_sequences" => Some(StageMetricSpec {
-            stage: "fastq.profile_overrepresented_sequences",
-            classes: &FASTQ_OVERREPRESENTED_CLASSES,
-            invariants: &FASTQ_OVERREPRESENTED_INVARIANTS,
-            notes: "Overrepresented sequence profiling is report-only and captures dominant repeated sequence content without mutating reads.",
-        }),
-        _ => None,
-    }
+    FASTQ_STAGE_METRIC_SPECS
+        .iter()
+        .find(|spec| spec.stage == stage_id)
+        .copied()
 }
