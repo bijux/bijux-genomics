@@ -782,6 +782,7 @@ pub fn bench_args_preprocess(
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::items_after_test_module)]
 mod tests {
+    use crate::cli::plan::id_catalog;
     use super::{
         bench_args_filter, bench_args_from_validate, bench_args_normalize_primers,
         bench_args_profile_overrepresented, bench_args_profile_read_lengths,
