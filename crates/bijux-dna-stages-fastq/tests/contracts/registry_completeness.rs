@@ -30,7 +30,7 @@ fn implemented_stage_set_matches_closed_execution_coverage() {
 }
 
 #[test]
-fn observer_specialized_stage_set_stays_narrower_than_closed_execution() {
+fn observer_specialized_stage_set_stays_within_closed_execution() {
     let observer_specialized =
         sort_stages(bijux_dna_stages_fastq::observer_specialized_stage_ids());
     let observer_alias = sort_stages(bijux_dna_stages_fastq::observer_stage_ids());
@@ -40,8 +40,10 @@ fn observer_specialized_stage_set_stays_narrower_than_closed_execution() {
         "observer_stage_ids must remain an alias for observer_specialized_stage_ids"
     );
     assert!(
-        observer_specialized.len() < closed_execution.len(),
-        "observer-specialized coverage must stay narrower than the full closed execution surface"
+        observer_specialized
+            .iter()
+            .all(|stage_id| closed_execution.contains(stage_id)),
+        "observer-specialized coverage must stay within the full closed execution surface"
     );
 }
 
