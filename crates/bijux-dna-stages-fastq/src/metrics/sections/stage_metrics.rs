@@ -520,7 +520,7 @@ pub fn stage_metrics_for_plan(
                 "bases_out": bases_out,
                 "pairs_in": governed_report.as_ref().and_then(|report| report.pairs_in),
                 "pairs_out": governed_report.as_ref().and_then(|report| report.pairs_out),
-                "paired_mode": governed_report.as_ref().map(|report| report.paired_mode.clone()),
+                "paired_mode": governed_report.as_ref().map(|report| report.paired_mode),
                 "primer_set_id": governed_report.as_ref().map(|report| report.primer_set_id.clone()),
                 "marker_id": governed_report.as_ref().and_then(|report| report.marker_id.clone()),
                 "orientation_policy": governed_report.as_ref().map(|report| report.orientation_policy.clone()),

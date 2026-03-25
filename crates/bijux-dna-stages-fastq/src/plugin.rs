@@ -1446,21 +1446,21 @@ fn validate_semantic_metrics(artifacts: &[ArtifactRef]) -> Option<serde_json::Va
     }
     Some(serde_json::json!({
         "tool_id": report.as_ref().map(|value| value.tool_id.clone()).or_else(|| manifest.as_ref().map(|value| value.tool_id.clone())),
-        "validation_mode": report.as_ref().map(|value| serde_json::to_value(&value.validation_mode).ok()).flatten().unwrap_or(serde_json::Value::Null),
-        "pair_sync_policy": report.as_ref().map(|value| serde_json::to_value(&value.pair_sync_policy).ok()).flatten().unwrap_or(serde_json::Value::Null),
-        "failure_class": report.as_ref().map(|value| serde_json::to_value(&value.failure_class).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "validation_mode": report.as_ref().and_then(|value| serde_json::to_value(&value.validation_mode).ok()).unwrap_or(serde_json::Value::Null),
+        "pair_sync_policy": report.as_ref().and_then(|value| serde_json::to_value(&value.pair_sync_policy).ok()).unwrap_or(serde_json::Value::Null),
+        "failure_class": report.as_ref().and_then(|value| serde_json::to_value(&value.failure_class).ok()).unwrap_or(serde_json::Value::Null),
         "strict_pass": report.as_ref().map(|value| serde_json::json!(value.strict_pass)).unwrap_or(serde_json::Value::Null),
         "exit_code": report.as_ref().map(|value| serde_json::json!(value.exit_code)).unwrap_or(serde_json::Value::Null),
         "validated_inputs": report.as_ref().map(|value| serde_json::json!(value.validated_inputs)).unwrap_or(serde_json::Value::Null),
         "validated_reads_r1": report.as_ref().map(|value| serde_json::json!(value.validated_reads_r1)).unwrap_or(serde_json::Value::Null),
-        "validated_reads_r2": report.as_ref().map(|value| serde_json::to_value(value.validated_reads_r2).ok()).flatten().unwrap_or(serde_json::Value::Null),
-        "validated_pairs": report.as_ref().map(|value| serde_json::to_value(value.validated_pairs).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "validated_reads_r2": report.as_ref().and_then(|value| serde_json::to_value(value.validated_reads_r2).ok()).unwrap_or(serde_json::Value::Null),
+        "validated_pairs": report.as_ref().and_then(|value| serde_json::to_value(value.validated_pairs).ok()).unwrap_or(serde_json::Value::Null),
         "status_r1": report.as_ref().map(|value| serde_json::json!(value.status_r1)).unwrap_or(serde_json::Value::Null),
         "status_r2": report.as_ref().map(|value| serde_json::json!(value.status_r2)).unwrap_or(serde_json::Value::Null),
         "pair_sync_checked": report.as_ref().map(|value| serde_json::json!(value.pair_sync_checked)).or_else(|| manifest.as_ref().map(|value| serde_json::json!(value.pair_sync_checked))).unwrap_or(serde_json::Value::Null),
-        "pair_sync_pass": report.as_ref().map(|value| serde_json::to_value(value.pair_sync_pass).ok()).flatten().or_else(|| manifest.as_ref().map(|value| serde_json::to_value(value.pair_sync_pass).ok()).flatten()).unwrap_or(serde_json::Value::Null),
-        "pair_count_match": report.as_ref().map(|value| serde_json::to_value(value.pair_count_match).ok()).flatten().unwrap_or(serde_json::Value::Null),
-        "paired_mode": manifest.as_ref().map(|value| serde_json::to_value(&value.paired_mode).ok()).flatten().unwrap_or(serde_json::Value::Null),
+        "pair_sync_pass": report.as_ref().and_then(|value| serde_json::to_value(value.pair_sync_pass).ok()).or_else(|| manifest.as_ref().and_then(|value| serde_json::to_value(value.pair_sync_pass).ok())).unwrap_or(serde_json::Value::Null),
+        "pair_count_match": report.as_ref().and_then(|value| serde_json::to_value(value.pair_count_match).ok()).unwrap_or(serde_json::Value::Null),
+        "paired_mode": manifest.as_ref().and_then(|value| serde_json::to_value(value.paired_mode).ok()).unwrap_or(serde_json::Value::Null),
         "validated_stream_ids": manifest.as_ref().map(|value| serde_json::json!(value.validated_stream_ids)).unwrap_or(serde_json::Value::Null),
         "validation_report": manifest.as_ref().map(|value| serde_json::json!(value.validation_report)).unwrap_or(serde_json::Value::Null),
     }))
@@ -3103,8 +3103,7 @@ mod tests {
                 "raw_backend_report": "bowtie2.host.metrics.txt",
                 "raw_backend_report_format": "bowtie2_met_file",
                 "backend_metrics": {"reads_removed": 30}
-            }"#
-            .to_string(),
+            }"#,
         )
         .expect("write report");
         let plan = bijux_dna_stage_contract::StagePlanV1 {
