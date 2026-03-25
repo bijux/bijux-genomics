@@ -242,6 +242,7 @@ pub fn preprocess_pipeline_graph_for_stage_order(stages: &[StageId]) -> Pipeline
                 if let Some(reads_upstream) = first_present_stage(
                     &present,
                     &[
+                        "fastq.correct_errors",
                         "fastq.filter_reads",
                         "fastq.trim_reads",
                         "fastq.validate_reads",
@@ -360,12 +361,21 @@ fn primary_upstream_candidates(stage_id: &str) -> &'static [&'static str] {
             "fastq.trim_terminal_damage",
             "fastq.validate_reads",
         ],
-        "fastq.correct_errors"
-        | "fastq.extract_umis"
-        | "fastq.profile_reads"
+        "fastq.correct_errors" | "fastq.extract_umis" | "fastq.deplete_rrna" => &[
+            "fastq.filter_reads",
+            "fastq.trim_reads",
+            "fastq.validate_reads",
+        ],
+        "fastq.profile_reads"
         | "fastq.profile_overrepresented_sequences"
-        | "fastq.screen_taxonomy"
-        | "fastq.deplete_rrna" => &[
+        | "fastq.screen_taxonomy" => &[
+            "fastq.filter_low_complexity",
+            "fastq.remove_duplicates",
+            "fastq.merge_pairs",
+            "fastq.deplete_rrna",
+            "fastq.deplete_reference_contaminants",
+            "fastq.deplete_host",
+            "fastq.correct_errors",
             "fastq.filter_reads",
             "fastq.trim_reads",
             "fastq.validate_reads",
@@ -396,7 +406,7 @@ mod tests {
 
     #[test]
     fn report_qc_edges_bind_governed_artifacts_instead_of_generic_stage_edges() {
-        let pipeline = preprocess_pipeline_graph_for_stage_order(&vec![
+        let pipeline = preprocess_pipeline_graph_for_stage_order(&[
             StageId::from_static("fastq.validate_reads"),
             StageId::from_static("fastq.report_qc"),
         ]);
@@ -423,7 +433,7 @@ mod tests {
 
     #[test]
     fn report_qc_keeps_parallel_artifact_joins_for_multiple_contributors() {
-        let pipeline = preprocess_pipeline_graph_for_stage_order(&vec![
+        let pipeline = preprocess_pipeline_graph_for_stage_order(&[
             StageId::from_static("fastq.detect_adapters"),
             StageId::from_static("fastq.profile_reads"),
             StageId::from_static("fastq.report_qc"),

@@ -3,6 +3,7 @@
 Public modules exported from src/lib.rs:
 - banks
 - bench_repository
+- execution_support
 - id_catalog
 - invariants
 - metrics

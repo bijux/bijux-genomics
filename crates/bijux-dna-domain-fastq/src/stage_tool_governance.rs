@@ -278,7 +278,7 @@ pub fn stage_benchmark_governance(stage_id: &StageId) -> Option<StageBenchmarkGo
     scenarios.sort_by(|left, right| left.scenario_id.cmp(&right.scenario_id));
     scenarios.dedup_by(|left, right| left.scenario_id == right.scenario_id);
 
-    let mut comparison_input_artifact_ids = comparison_contract
+    let comparison_input_artifact_ids = comparison_contract
         .as_ref()
         .map(|contract| {
             contract
@@ -288,10 +288,8 @@ pub fn stage_benchmark_governance(stage_id: &StageId) -> Option<StageBenchmarkGo
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default();
-    comparison_input_artifact_ids.sort();
-    comparison_input_artifact_ids.dedup();
 
-    let mut comparison_artifact_ids = comparison_contract
+    let comparison_artifact_ids = comparison_contract
         .as_ref()
         .map(|contract| {
             vec![
@@ -301,8 +299,6 @@ pub fn stage_benchmark_governance(stage_id: &StageId) -> Option<StageBenchmarkGo
             ]
         })
         .unwrap_or_default();
-    comparison_artifact_ids.sort();
-    comparison_artifact_ids.dedup();
 
     Some(StageBenchmarkGovernance {
         stage_id: stage_id.clone(),

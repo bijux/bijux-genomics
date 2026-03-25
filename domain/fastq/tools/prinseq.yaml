@@ -46,6 +46,7 @@ stage_ids:
   - "fastq.trim_reads"
   - "fastq.filter_reads"
   - "fastq.filter_low_complexity"
+planned_stage_ids:
   - "fastq.profile_read_lengths"
 stage_contracts:
   fastq.trim_reads:
@@ -76,16 +77,16 @@ stage_contracts:
     required_inputs:
       - "reads_r1"
     expected_artifacts:
+      - "report_json"
       - "length_distribution_tsv"
       - "length_distribution_json"
-    notes: "PRINSEQ length profiling emits deterministic length-distribution summaries."
+    notes: "PRINSEQ length profiling emits deterministic length-distribution summaries and the governed summary report."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
   - "report_json"
   - "filtered_reads_r1"
   - "filtered_reads_r2"
-  - "report_json"
   - "filtered_fastq_r1"
   - "filtered_fastq_r2"
   - "filter_report_json"

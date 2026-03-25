@@ -85,7 +85,8 @@ stage_contracts:
       - "trimmed_reads_r1"
       - "trimmed_reads_r2"
       - "report_json"
-    notes: "AdapterRemoval terminal-damage trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, and emits a governed damage-trim report without a backend-native raw report artifact."
+      - "raw_backend_report_json"
+    notes: "AdapterRemoval terminal-damage trimming admits reads_r1 as the canonical required port, accepts an optional reads_r2 mate for paired layouts, emits a governed damage-trim report, and preserves the backend-native JSON report."
   fastq.merge_pairs:
     required_inputs:
       - "reads_r1"
@@ -97,7 +98,7 @@ stage_contracts:
       - "report_json"
       - "raw_backend_report_txt"
     notes: "AdapterRemoval merge mode emits governed merged and unmerged read artifacts, the canonical merge report, and the native AdapterRemoval settings file for provenance."
-expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
+expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_json", "raw_backend_report_txt"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "adapterremoval --version"

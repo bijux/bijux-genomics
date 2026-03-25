@@ -607,6 +607,10 @@ stage_default_settings:
     bbduk:
       profile: adna_sane_default
       notes: kmer and quality filtering preset
+  fastq.infer_asvs:
+    dada2:
+      profile: adna_sane_default
+      notes: amplicon denoising preset with governed ASV and representative-sequence outputs
   fastq.index_reference:
     star:
       profile: adna_sane_default
@@ -615,6 +619,9 @@ stage_default_settings:
       profile: adna_sane_default
       notes: Bowtie2 host-screen index preset
   fastq.merge_pairs:
+    adapterremoval:
+      profile: adna_sane_default
+      notes: adapter-aware overlap merge preset with integrated collapse reporting
     pear:
       profile: adna_sane_default
       notes: overlap merge baseline preset
@@ -642,6 +649,9 @@ stage_default_settings:
       profile: adna_sane_default
       notes: deterministic sequence normalization helper preset
   fastq.profile_overrepresented_sequences:
+    fastq_scan:
+      profile: adna_sane_default
+      notes: governed overrepresented-sequence scan preset with canonical ranked summaries
     fastqc:
       profile: adna_sane_default
       notes: overrepresented-sequence reporting preset
@@ -652,12 +662,6 @@ stage_default_settings:
     seqkit_stats:
       profile: adna_sane_default
       notes: deterministic read-length histogram preset
-    prinseq:
-      profile: adna_sane_default
-      notes: legacy read-length profiling preset
-    fastp:
-      profile: adna_sane_default
-      notes: stats-only length summary preset
   fastq.profile_reads:
     seqkit_stats:
       profile: adna_sane_default
@@ -751,6 +755,12 @@ stage_default_settings:
       profile: adna_sane_default
       notes: deterministic post-trim summary preset
   fastq.validate_reads:
+    fastq_scan:
+      profile: adna_sane_default
+      notes: governed structural validation preset with canonical lineage manifest output
+    fastqc:
+      profile: adna_sane_default
+      notes: read-structure validation preset with governed summary normalization
     fastqvalidator:
       profile: adna_sane_default
       notes: strict fastq validation preset
@@ -945,6 +955,8 @@ pipeline_compositions:
   - fastq.trim_terminal_damage
   - fastq.trim_reads
   - fastq.filter_reads
+  - fastq.correct_errors
+  - fastq.extract_umis
   - fastq.index_reference
   - fastq.deplete_host
   - fastq.deplete_reference_contaminants
@@ -1157,13 +1169,13 @@ stage_resource_hints:
     threads: 4
 stage_output_size_estimates_mb:
   fastq.cluster_otus:
+    report_json: 8.0
     otu_table: 8.0
     otu_representatives: 3.0
     taxonomy_ready_fasta: 3.0
     taxonomy_ready_fastq: 6.0
   fastq.correct_errors:
     corrected_reads_r1: 900.0
-    corrected_reads_r2: 900.0
     report_json: 8.0
   fastq.deplete_host:
     host_depleted_reads_r1: 950.0
@@ -1176,6 +1188,7 @@ stage_output_size_estimates_mb:
     rrna_report_tsv: 6.0
     rrna_report_json: 4.0
   fastq.detect_adapters:
+    report_json: 5.0
     adapter_report: 5.0
   fastq.extract_umis:
     umi_reads_r1: 700.0
@@ -1185,13 +1198,16 @@ stage_output_size_estimates_mb:
     filter_report_json: 8.0
   fastq.filter_reads:
     filtered_reads_r1: 1800.0
+    report_json: 8.0
   fastq.index_reference:
     reference_index: 5000.0
+    report_json: 8.0
   fastq.infer_asvs:
     asv_table_tsv: 8.0
     asv_sequences_fasta: 3.0
     taxonomy_ready_fasta: 3.0
     taxonomy_ready_fastq: 6.0
+    report_json: 8.0
   fastq.merge_pairs:
     merged_reads: 1400.0
     report_json: 8.0
@@ -1200,12 +1216,15 @@ stage_output_size_estimates_mb:
     report_json: 1.0
   fastq.normalize_primers:
     normalized_reads_r1: 1800.0
+    report_json: 8.0
     primer_orientation_report: 3.0
     primer_stats_json: 2.0
   fastq.profile_overrepresented_sequences:
     overrepresented_sequences_tsv: 4.0
     overrepresented_sequences_json: 2.0
+    report_json: 4.0
   fastq.profile_read_lengths:
+    report_json: 4.0
     length_distribution_tsv: 3.0
     length_distribution_json: 2.0
   fastq.profile_reads:
@@ -1215,7 +1234,6 @@ stage_output_size_estimates_mb:
     chimera_filtered_reads: 1500.0
     report_json: 6.0
     chimera_metrics_json: 4.0
-    uchime_report_tsv: 6.0
   fastq.remove_duplicates:
     dedup_reads_r1: 1200.0
     duplicate_classes_tsv: 1.0

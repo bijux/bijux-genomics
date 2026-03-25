@@ -12,7 +12,7 @@ outputs:
     data_type: "json"
     cardinality: "One"
   - name: "otu_table"
-    data_type: "table"
+    data_type: "tsv"
     cardinality: "One"
   - name: "otu_representatives"
     data_type: "fasta"

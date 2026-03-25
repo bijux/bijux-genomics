@@ -29,6 +29,8 @@ artifact_ids:
   - corrected_reads_r2
   - dedup_reads_r1
   - dedup_reads_r2
+  - duplicate_classes_tsv
+  - duplicate_provenance_json
   - dedup_tool_benchmark_cohort_json
   - dedup_tool_comparison_json
   - dedup_tool_normalization_json
@@ -100,6 +102,8 @@ artifact_ids:
   - read_length_tool_comparison_json
   - read_length_tool_normalization_json
   - reference_index
+  - raw_backend_report_json
+  - raw_backend_report_txt
   - report_json
   - rrna_filtered_reads_r1
   - rrna_filtered_reads_r2
@@ -132,6 +136,7 @@ artifact_ids:
   - umi_extraction_tool_benchmark_cohort_json
   - umi_extraction_tool_comparison_json
   - umi_extraction_tool_normalization_json
+  - uchime_report_tsv
   - governed_qc_inputs_manifest
   - validation_tool_benchmark_cohort_json
   - validation_tool_comparison_json

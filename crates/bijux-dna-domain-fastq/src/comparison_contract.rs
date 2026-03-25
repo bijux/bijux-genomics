@@ -31,13 +31,7 @@ fn comparison_input_artifact_ids_for_manifest_stage(stage_id: &str) -> Vec<Strin
     let mut artifact_ids = stage_output_ids_in_manifest_order(stage_id)
         .unwrap_or_default()
         .into_iter()
-        .filter(|artifact_id| {
-            !artifact_id.starts_with("raw_backend_report")
-                && !matches!(
-                    (stage_id, artifact_id.as_str()),
-                    ("fastq.report_qc", "multiqc_report" | "multiqc_data")
-                )
-        })
+        .filter(|artifact_id| !artifact_id.starts_with("raw_backend_report"))
         .collect::<Vec<_>>();
     prioritize_provenance_artifact(stage_id, &mut artifact_ids);
     artifact_ids
@@ -118,7 +112,12 @@ fn prioritize_provenance_artifact(stage_id: &str, artifact_ids: &mut Vec<String>
             "duplicate_classes_tsv",
         ],
         "fastq.remove_chimeras" => &["report_json", "uchime_report_tsv", "chimera_metrics_json"],
-        "fastq.report_qc" => &["report_json", "governed_qc_inputs_manifest"],
+        "fastq.report_qc" => &[
+            "report_json",
+            "governed_qc_inputs_manifest",
+            "multiqc_report",
+            "multiqc_data",
+        ],
         _ => &[],
     };
     if prioritized_artifact_ids.is_empty() {
