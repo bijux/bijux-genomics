@@ -90,6 +90,125 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
     }
 }
 
+/// Load bench results for a stage/tool across the corpus.
+///
+/// # Errors
+/// Returns an error if the bench database cannot be opened or parsed.
+pub fn get_results_from_sqlite(
+    stage: &StageId,
+    tool: &str,
+    corpus: &BenchCorpus,
+    context: &BenchQueryContext,
+    out_dir: &Path,
+) -> Result<Vec<BenchResultRecord>> {
+    let table = table_for_stage(stage)
+        .ok_or_else(|| anyhow!("unsupported stage for bench query: {}", stage.as_str()))?;
+    let bench_dir_name = bijux_dna_domain_fastq::bench_dir_name(stage)
+        .ok_or_else(|| anyhow!("unsupported stage for bench dir: {}", stage.as_str()))?;
+    let mut records = Vec::with_capacity(corpus.datasets.len());
+
+    for dataset in &corpus.datasets {
+        let bench_dir = bijux_dna_infra::bench_base_dir(out_dir, bench_dir_name, dataset.id);
+        let sqlite_path = bench_dir.join("bench.sqlite");
+        if !sqlite_path.exists() {
+            records.push(BenchResultRecord {
+                dataset_id: dataset.id.to_string(),
+                tool: tool.to_string(),
+                runtime_s: None,
+                memory_mb: None,
+                exit_code: None,
+                metrics: None,
+                status: BenchResultStatus::Missing,
+            });
+            continue;
+        }
+        let conn = Connection::open(&sqlite_path)
+            .with_context(|| format!("open bench sqlite for {}", dataset.id))?;
+        let mut stmt = conn.prepare(&format!(
+            "SELECT runtime_s, memory_mb, exit_code, metrics_json, parameters_json \
+             FROM {table} \
+             WHERE tool = ?1 AND input_hash = ?2 \
+               AND (?3 IS NULL OR image_digest = ?3) \
+               AND (?4 IS NULL OR params_hash = ?4) \
+             ORDER BY record_id DESC, inserted_at DESC"
+        ))?;
+        let rows = stmt.query_map(
+            params![
+                tool,
+                dataset.sha256_r1,
+                context.image_digest.as_deref(),
+                context.params_hash.as_deref()
+            ],
+            |row| {
+                let runtime_s: f64 = row.get(0)?;
+                let memory_mb: f64 = row.get(1)?;
+                let exit_code: i64 = row.get(2)?;
+                let metrics_json: String = row.get(3)?;
+                let parameters_json: String = row.get(4)?;
+                Ok((
+                    runtime_s,
+                    memory_mb,
+                    exit_code,
+                    metrics_json,
+                    parameters_json,
+                ))
+            },
+        );
+        let mut legacy_candidate = None;
+        let mut exact_candidate = None;
+        for row in rows? {
+            let (runtime_s, memory_mb, exit_code, metrics_json, parameters_json) = row?;
+            let parameters: JsonValue = serde_json::from_str(&parameters_json)
+                .with_context(|| format!("parse benchmark parameters for {}", dataset.id))?;
+            let candidate = (runtime_s, memory_mb, exit_code, metrics_json);
+            match context.match_against_parameters(&parameters) {
+                BenchQueryContextMatch::Exact => {
+                    exact_candidate = Some(candidate);
+                    break;
+                }
+                BenchQueryContextMatch::LegacyCompatible => {
+                    legacy_candidate.get_or_insert(candidate);
+                }
+                BenchQueryContextMatch::NoMatch => {}
+            }
+        }
+
+        match exact_candidate.or(legacy_candidate) {
+            Some((runtime_s, memory_mb, exit_code, metrics_json)) => {
+                let metrics: JsonValue = serde_json::from_str(&metrics_json)
+                    .with_context(|| format!("parse metrics for {}", dataset.id))?;
+                let status = if exit_code == 0 {
+                    BenchResultStatus::Success
+                } else {
+                    BenchResultStatus::Failure
+                };
+                records.push(BenchResultRecord {
+                    dataset_id: dataset.id.to_string(),
+                    tool: tool.to_string(),
+                    runtime_s: Some(runtime_s),
+                    memory_mb: Some(memory_mb),
+                    exit_code: Some(exit_code),
+                    metrics: Some(metrics),
+                    status,
+                });
+            }
+            None => {
+                records.push(BenchResultRecord {
+                    dataset_id: dataset.id.to_string(),
+                    tool: tool.to_string(),
+                    runtime_s: None,
+                    memory_mb: None,
+                    exit_code: None,
+                    metrics: None,
+                    status: BenchResultStatus::Missing,
+                });
+            }
+        }
+    }
+
+    Ok(records)
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -453,13 +572,15 @@ mod tests {
         );
         bijux_dna_infra::ensure_dir(&bench_dir)?;
 
+        let fastp_lineage_hash = format!("{}=fastp", STAGE_TRIM_READS.as_str());
+        let bbduk_lineage_hash = format!("{}=bbduk", STAGE_TRIM_READS.as_str());
         let fastp_lineage = BenchQueryContext::new()
             .with_stage_contract_hash("contract-a")
-            .with_lineage_hash("fastq.trim_reads=fastp")
+            .with_lineage_hash(&fastp_lineage_hash)
             .embed_in_parameters(&serde_json::json!({}));
         let bbduk_lineage = BenchQueryContext::new()
             .with_stage_contract_hash("contract-a")
-            .with_lineage_hash("fastq.trim_reads=bbduk")
+            .with_lineage_hash(&bbduk_lineage_hash)
             .embed_in_parameters(&serde_json::json!({}));
         create_bench_db(
             &bench_dir.join("bench.sqlite"),
@@ -495,130 +616,11 @@ mod tests {
             &corpus,
             &BenchQueryContext::new()
                 .with_stage_contract_hash("contract-a")
-                .with_lineage_hash("fastq.trim_reads=fastp"),
+                .with_lineage_hash(&fastp_lineage_hash),
         )?;
 
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].runtime_s, Some(3.0));
         Ok(())
     }
-}
-
-/// Load bench results for a stage/tool across the corpus.
-///
-/// # Errors
-/// Returns an error if the bench database cannot be opened or parsed.
-pub fn get_results_from_sqlite(
-    stage: &StageId,
-    tool: &str,
-    corpus: &BenchCorpus,
-    context: &BenchQueryContext,
-    out_dir: &Path,
-) -> Result<Vec<BenchResultRecord>> {
-    let table = table_for_stage(stage)
-        .ok_or_else(|| anyhow!("unsupported stage for bench query: {}", stage.as_str()))?;
-    let bench_dir_name = bijux_dna_domain_fastq::bench_dir_name(stage)
-        .ok_or_else(|| anyhow!("unsupported stage for bench dir: {}", stage.as_str()))?;
-    let mut records = Vec::with_capacity(corpus.datasets.len());
-
-    for dataset in &corpus.datasets {
-        let bench_dir = bijux_dna_infra::bench_base_dir(out_dir, bench_dir_name, dataset.id);
-        let sqlite_path = bench_dir.join("bench.sqlite");
-        if !sqlite_path.exists() {
-            records.push(BenchResultRecord {
-                dataset_id: dataset.id.to_string(),
-                tool: tool.to_string(),
-                runtime_s: None,
-                memory_mb: None,
-                exit_code: None,
-                metrics: None,
-                status: BenchResultStatus::Missing,
-            });
-            continue;
-        }
-        let conn = Connection::open(&sqlite_path)
-            .with_context(|| format!("open bench sqlite for {}", dataset.id))?;
-        let mut stmt = conn.prepare(&format!(
-            "SELECT runtime_s, memory_mb, exit_code, metrics_json, parameters_json \
-             FROM {table} \
-             WHERE tool = ?1 AND input_hash = ?2 \
-               AND (?3 IS NULL OR image_digest = ?3) \
-               AND (?4 IS NULL OR params_hash = ?4) \
-             ORDER BY record_id DESC, inserted_at DESC"
-        ))?;
-        let rows = stmt.query_map(
-            params![
-                tool,
-                dataset.sha256_r1,
-                context.image_digest.as_deref(),
-                context.params_hash.as_deref()
-            ],
-            |row| {
-                let runtime_s: f64 = row.get(0)?;
-                let memory_mb: f64 = row.get(1)?;
-                let exit_code: i64 = row.get(2)?;
-                let metrics_json: String = row.get(3)?;
-                let parameters_json: String = row.get(4)?;
-                Ok((
-                    runtime_s,
-                    memory_mb,
-                    exit_code,
-                    metrics_json,
-                    parameters_json,
-                ))
-            },
-        );
-        let mut legacy_candidate = None;
-        let mut exact_candidate = None;
-        for row in rows? {
-            let (runtime_s, memory_mb, exit_code, metrics_json, parameters_json) = row?;
-            let parameters: JsonValue = serde_json::from_str(&parameters_json)
-                .with_context(|| format!("parse benchmark parameters for {}", dataset.id))?;
-            let candidate = (runtime_s, memory_mb, exit_code, metrics_json);
-            match context.match_against_parameters(&parameters) {
-                BenchQueryContextMatch::Exact => {
-                    exact_candidate = Some(candidate);
-                    break;
-                }
-                BenchQueryContextMatch::LegacyCompatible => {
-                    legacy_candidate.get_or_insert(candidate);
-                }
-                BenchQueryContextMatch::NoMatch => {}
-            }
-        }
-
-        match exact_candidate.or(legacy_candidate) {
-            Some((runtime_s, memory_mb, exit_code, metrics_json)) => {
-                let metrics: JsonValue = serde_json::from_str(&metrics_json)
-                    .with_context(|| format!("parse metrics for {}", dataset.id))?;
-                let status = if exit_code == 0 {
-                    BenchResultStatus::Success
-                } else {
-                    BenchResultStatus::Failure
-                };
-                records.push(BenchResultRecord {
-                    dataset_id: dataset.id.to_string(),
-                    tool: tool.to_string(),
-                    runtime_s: Some(runtime_s),
-                    memory_mb: Some(memory_mb),
-                    exit_code: Some(exit_code),
-                    metrics: Some(metrics),
-                    status,
-                });
-            }
-            None => {
-                records.push(BenchResultRecord {
-                    dataset_id: dataset.id.to_string(),
-                    tool: tool.to_string(),
-                    runtime_s: None,
-                    memory_mb: None,
-                    exit_code: None,
-                    metrics: None,
-                    status: BenchResultStatus::Missing,
-                });
-            }
-        }
-    }
-
-    Ok(records)
 }

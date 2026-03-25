@@ -279,7 +279,7 @@ pub fn insert_fastq_trim_polyg_v1(
     Ok(())
 }
 
-/// Load a polyG trim benchmark record from SQLite if present.
+/// Load a polyG trim benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
@@ -382,7 +382,7 @@ pub fn insert_fastq_trim_terminal_damage_v1(
     Ok(())
 }
 
-/// Load a terminal-damage trim benchmark record from SQLite if present.
+/// Load a terminal-damage trim benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.

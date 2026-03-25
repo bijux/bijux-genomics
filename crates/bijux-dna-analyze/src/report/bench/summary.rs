@@ -16,6 +16,7 @@ use crate::aggregate::{
 use crate::decision::score::{build_rankings, RankInput, RankingEntry};
 use crate::failure::{classify_raw_failure, BenchmarkFailure};
 
+#[must_use]
 pub fn gate_payload(failures: &[BenchmarkFailure]) -> serde_json::Value {
     let rationale: Vec<serde_json::Value> = failures
         .iter()
@@ -33,6 +34,7 @@ pub fn gate_payload(failures: &[BenchmarkFailure]) -> serde_json::Value {
         "rationale": rationale
     })
 }
+#[must_use]
 pub fn median(mut values: Vec<f64>) -> f64 {
     if values.is_empty() {
         return 0.0;
@@ -47,10 +49,12 @@ pub fn median(mut values: Vec<f64>) -> f64 {
 }
 
 #[allow(clippy::cast_precision_loss)]
+#[must_use]
 pub fn u64_to_f64(value: u64) -> f64 {
     value as f64
 }
 
+#[must_use]
 pub fn ratio_u64(num: u64, denom: u64) -> f64 {
     if denom == 0 {
         0.0
@@ -438,6 +442,10 @@ pub fn rank_trim_tools(
 }
 
 #[allow(dead_code)]
+/// Rank poly-G trimming tools by retained-read metrics and execution costs.
+///
+/// # Errors
+/// Returns an error if ranking computation fails.
 pub fn rank_trim_polyg_tools(
     records: &[BenchmarkRecord<FastqTrimPolygMetrics>],
 ) -> Result<BTreeMap<String, Vec<RankingEntry>>> {
@@ -445,6 +453,10 @@ pub fn rank_trim_polyg_tools(
 }
 
 #[allow(dead_code)]
+/// Rank terminal-damage trimming tools by retained-read metrics and execution costs.
+///
+/// # Errors
+/// Returns an error if ranking computation fails.
 pub fn rank_trim_terminal_damage_tools(
     records: &[BenchmarkRecord<FastqTrimTerminalDamageMetrics>],
 ) -> Result<BTreeMap<String, Vec<RankingEntry>>> {
