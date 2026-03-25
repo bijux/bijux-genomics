@@ -89,7 +89,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         ),
         (
             StageId::from_static("fastq.trim_terminal_damage"),
-            ToolId::from_static("cutadapt"),
+            ToolId::from_static(id_catalog::TOOL_CUTADAPT),
         ),
         (
             StageId::from_static("fastq.filter_reads"),
@@ -105,7 +105,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         ),
         (
             StageId::from_static("fastq.merge_pairs"),
-            ToolId::from_static("pear"),
+            ToolId::from_static(id_catalog::TOOL_PEAR),
         ),
         (
             StageId::from_static("fastq.screen_taxonomy"),
