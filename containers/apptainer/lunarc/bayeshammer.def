@@ -51,6 +51,8 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     tar -xzf /tmp/spades.tar.gz -C /opt && \
     cp -r /opt/SPAdes-4.2.0-Linux/bin/* /usr/local/bin/ && \
     cp -r /opt/SPAdes-4.2.0-Linux/share/spades /usr/local/share/ && \
+    chmod +x /usr/local/share/spades/spades.py && \
+    ln -sf /usr/local/share/spades/spades.py /usr/local/bin/spades.py && \
 
     cd / && \
     rm -rf /opt/SPAdes-4.2.0-Linux /tmp/spades.tar.gz && \
@@ -61,13 +63,23 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     printf '%s\n' \
       '#!/usr/bin/env bash' \
       'set -e' \
+      'spades_entry=/usr/local/bin/spades.py' \
+      'if [ ! -x "$spades_entry" ]; then' \
+      '  echo "error: spades.py not installed at $spades_entry" >&2' \
+      '  exit 127' \
+      'fi' \
       'case "$1" in' \
       '  --version) echo "4.2.0"; exit 0 ;;' \
-      '  --help|-h) exec spades.py --only-error-correction --help ;;' \
+      '  --help|-h|"") exec "$spades_entry" --only-error-correction --help ;;' \
+      '  --__bijux_invalid_flag__*) echo "error: bayeshammer does not support $1" >&2; exit 2 ;;' \
       'esac' \
-      'exec spades.py --only-error-correction "$@"' \
+      'exec "$spades_entry" --only-error-correction "$@"' \
       > /usr/local/bin/bayeshammer && \
     chmod +x /usr/local/bin/bayeshammer
+    mkdir -p /opt/bijux && \
+    printf '%s\n' '{"tool":"bayeshammer","version":"4.2.0","source":"https://github.com/ablab/spades","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
+    chmod +x /usr/local/bin/bijux-tool-info
 
 %runscript
     if [ $# -eq 0 ]; then
