@@ -33,6 +33,7 @@ fn tree_contract_is_minimal() {
     let src_dir = root.join("src");
     let allowed_src = [
         "execution_plan.rs",
+        "executor_registry.rs",
         "stage_plan.rs",
         "stage_plugin.rs",
         "plan_run.rs",
