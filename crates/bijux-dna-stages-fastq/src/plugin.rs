@@ -2213,11 +2213,12 @@ mod tests {
         fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
         fs::write(
             &report_path,
-            r#"{
+            format!(
+                r#"{{
                 "schema_version": "bijux.fastq.filter_reads.report.v3",
                 "stage": "fastq.filter_reads",
                 "stage_id": "fastq.filter_reads",
-                "tool_id": id_catalog::TOOL_FASTP,
+                "tool_id": "{tool_id}",
                 "paired_mode": "single_end",
                 "threads": 8,
                 "input_r1": "reads.fastq.gz",
@@ -2253,13 +2254,15 @@ mod tests {
                 "exit_code": 0,
                 "raw_backend_report": null,
                 "raw_backend_report_format": "fastp_json",
-                "backend_metrics": {
+                "backend_metrics": {{
                     "schema_version": "bijux.fastp.metrics.v1",
                     "passed_filter_reads": 95,
                     "too_many_n_reads": 2,
                     "too_short_reads": 1
-                }
-            }"#,
+                }}
+            }}"#,
+                tool_id = id_catalog::TOOL_FASTP
+            ),
         )
         .expect("write report");
         let plan = bijux_dna_stage_contract::StagePlanV1 {

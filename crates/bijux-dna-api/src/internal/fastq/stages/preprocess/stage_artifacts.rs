@@ -815,11 +815,12 @@ mod stage_artifact_tests {
     fn write_trim_terminal_damage_report(stage_root: &std::path::Path) -> Result<()> {
         std::fs::write(
             stage_root.join("trim_terminal_damage_report.json"),
-            r#"{
+            format!(
+                r#"{{
                 "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
                 "stage": "fastq.trim_terminal_damage",
                 "stage_id": "fastq.trim_terminal_damage",
-                "tool_id": bijux_dna_core::id_catalog::TOOL_CUTADAPT,
+                "tool_id": "{tool_id}",
                 "paired_mode": "single_end",
                 "threads": 4,
                 "damage_mode": "ancient",
@@ -845,8 +846,8 @@ mod stage_artifact_tests {
                 "ct_ga_asymmetry_post_r1": 0.11,
                 "ct_ga_asymmetry_pre_r2": null,
                 "ct_ga_asymmetry_post_r2": null,
-                "terminal_base_composition_pre_r1": {"C": 12},
-                "terminal_base_composition_post_r1": {"C": 4},
+                "terminal_base_composition_pre_r1": {{"C": 12}},
+                "terminal_base_composition_post_r1": {{"C": 4}},
                 "terminal_base_composition_pre_r2": null,
                 "terminal_base_composition_post_r2": null,
                 "raw_backend_report": "cutadapt.raw.json",
@@ -854,8 +855,10 @@ mod stage_artifact_tests {
                 "runtime_s": 4.0,
                 "memory_mb": 32.0,
                 "used_fallback": false,
-                "backend_metrics": {"reads_profiled_r1": 100}
-            }"#,
+                "backend_metrics": {{"reads_profiled_r1": 100}}
+            }}"#,
+                tool_id = bijux_dna_core::id_catalog::TOOL_CUTADAPT
+            ),
         )?;
         Ok(())
     }
@@ -877,11 +880,12 @@ mod stage_artifact_tests {
     fn write_trim_polyg_report(stage_root: &std::path::Path) -> Result<()> {
         std::fs::write(
             stage_root.join("trim_polyg_tails_report.json"),
-            r#"{
+            format!(
+                r#"{{
                 "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
                 "stage": "fastq.trim_polyg_tails",
                 "stage_id": "fastq.trim_polyg_tails",
-                "tool_id": bijux_dna_core::id_catalog::TOOL_FASTP,
+                "tool_id": "{tool_id}",
                 "paired_mode": "single_end",
                 "threads": 6,
                 "trim_polyg": true,
@@ -906,11 +910,13 @@ mod stage_artifact_tests {
                 "memory_mb": 28.0,
                 "raw_backend_report": "trim_polyg_tails_report.fastp.json",
                 "raw_backend_report_format": "fastp_json",
-                "backend_metrics": {
+                "backend_metrics": {{
                     "schema_version": "bijux.fastp.metrics.v1",
                     "passed_filter_reads": 96
-                }
-            }"#,
+                }}
+            }}"#,
+                tool_id = bijux_dna_core::id_catalog::TOOL_FASTP
+            ),
         )?;
         Ok(())
     }
@@ -1174,7 +1180,8 @@ mod stage_artifact_tests {
     fn write_report_qc_report(stage_root: &std::path::Path) -> Result<()> {
         std::fs::write(
             stage_root.join("report_qc_report.json"),
-            r#"{
+            format!(
+                r#"{{
                 "schema_version": "bijux.fastq.report_qc.report.v2",
                 "stage": "fastq.report_qc",
                 "stage_id": "fastq.report_qc",
@@ -1206,24 +1213,26 @@ mod stage_artifact_tests {
                 "governed_qc_contributor_stage_ids": ["fastq.detect_adapters", "fastq.screen_taxonomy"],
                 "governed_qc_contributor_tool_ids": [
                     "fastqc",
-                    bijux_dna_core::id_catalog::TOOL_KRAKEN2
+                    "{kraken2_tool}"
                 ],
                 "governed_qc_contributors": [
-                    {
+                    {{
                         "contributor_id": "fastq.detect_adapters.fastqc",
                         "stage_id": "fastq.detect_adapters",
                         "tool_id": "fastqc",
                         "artifact_id": "report_json",
                         "artifact_role": "report_json",
                         "path": "adapter_report.json"
-                    }
+                    }}
                 ],
                 "governed_qc_lineage_hash": "lineage",
                 "governed_qc_inputs_manifest": "governed_qc_inputs_manifest.json",
                 "runtime_s": 2.0,
                 "memory_mb": 96.0,
                 "exit_code": 0
-            }"#,
+            }}"#,
+                kraken2_tool = bijux_dna_core::id_catalog::TOOL_KRAKEN2
+            ),
         )?;
         Ok(())
     }
