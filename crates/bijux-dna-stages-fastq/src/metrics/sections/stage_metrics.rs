@@ -902,13 +902,15 @@ pub fn stage_metrics_for_plan(
         id_catalog::FASTQ_QC_POST => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
-            let output = if outputs.is_empty() {
-                input
+            let output = input;
+            let pairs_in = if inputs.len() >= 2 {
+                let r1 = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+                let r2 = stats_or_zero(inputs.get(1).map(PathBuf::as_path))?;
+                Some(r1.reads.min(r2.reads))
             } else {
-                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
-                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
+                None
             };
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            let pairs_out = pairs_in;
             let out_dir = path_from_params(&plan.params, "out_dir")
                 .unwrap_or_else(|| outputs.first().cloned().unwrap_or_default());
             let raw_dir = out_dir.join("fastqc_raw");
@@ -1125,12 +1127,7 @@ pub fn stage_metrics_for_plan(
         id_catalog::FASTQ_STATS_NEUTRAL => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
-            let output = if outputs.is_empty() {
-                input
-            } else {
-                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
-                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
-            };
+            let output = input;
             let governed_report = path_from_params(&plan.params, "qc_json")
                 .or_else(|| {
                     plan.io
