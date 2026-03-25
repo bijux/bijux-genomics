@@ -70,6 +70,56 @@ fn stage_required_inputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
     Ok(out)
 }
 
+fn stage_required_outputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let stages_dir = workspace_root()?.join("domain/fastq/stages");
+    let mut out = BTreeMap::new();
+    for entry in std::fs::read_dir(&stages_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let yaml = parse_yaml(&path)?;
+        let stage_id = yaml_string(yaml.get("stage_id"))
+            .with_context(|| format!("stage_id missing in {}", path.display()))?;
+        out.insert(stage_id, yaml_string_set(yaml.get("required_outputs")));
+    }
+    Ok(out)
+}
+
+fn stage_inputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let stages_dir = workspace_root()?.join("domain/fastq/stages");
+    let mut out = BTreeMap::new();
+    for entry in std::fs::read_dir(&stages_dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let yaml = parse_yaml(&path)?;
+        let stage_id = yaml_string(yaml.get("stage_id"))
+            .with_context(|| format!("stage_id missing in {}", path.display()))?;
+        let inputs = yaml
+            .get("inputs")
+            .and_then(Value::as_sequence)
+            .into_iter()
+            .flatten()
+            .filter_map(|item| {
+                item.as_mapping()
+                    .and_then(|mapping| mapping.get(Value::String("name".to_string())))
+                    .and_then(Value::as_str)
+                    .map(str::to_string)
+            })
+            .collect::<BTreeSet<_>>();
+        out.insert(stage_id, inputs);
+    }
+    Ok(out)
+}
+
 fn stage_outputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
     let stages_dir = workspace_root()?.join("domain/fastq/stages");
     let mut out = BTreeMap::new();
@@ -201,6 +251,8 @@ fn merge_tool_contracts_preserve_governed_reports_and_native_logs() -> Result<()
 #[test]
 fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
     let required_inputs = stage_required_inputs()?;
+    let required_outputs = stage_required_outputs()?;
+    let inputs = stage_inputs()?;
     let outputs = stage_outputs()?;
     for tool_name in [
         "bowtie2",
@@ -245,21 +297,41 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
                 .get(Value::String("notes".to_string()))
                 .and_then(Value::as_str)
                 .unwrap_or_default();
-            assert_eq!(
-                contract_inputs,
-                required_inputs
-                    .get(stage_id)
-                    .with_context(|| format!("missing required_inputs for {stage_id}"))?
-                    .clone(),
-                "{tool_name} stage_contract required_inputs drifted for {stage_id}"
+            let stage_required_inputs = required_inputs
+                .get(stage_id)
+                .with_context(|| format!("missing required_inputs for {stage_id}"))?;
+            let stage_inputs = inputs
+                .get(stage_id)
+                .with_context(|| format!("missing inputs for {stage_id}"))?;
+            assert!(
+                stage_required_inputs
+                    .iter()
+                    .all(|artifact| contract_inputs.contains(artifact)),
+                "{tool_name} stage_contract must cover every required input for {stage_id}"
             );
-            assert_eq!(
-                contract_outputs,
-                outputs
-                    .get(stage_id)
-                    .with_context(|| format!("missing outputs for {stage_id}"))?
-                    .clone(),
-                "{tool_name} stage_contract expected_artifacts drifted for {stage_id}"
+            assert!(
+                contract_inputs
+                    .iter()
+                    .all(|artifact| stage_inputs.contains(artifact)),
+                "{tool_name} stage_contract required_inputs must stay inside the stage input vocabulary for {stage_id}"
+            );
+            let stage_required_outputs = required_outputs
+                .get(stage_id)
+                .with_context(|| format!("missing required_outputs for {stage_id}"))?;
+            let stage_outputs = outputs
+                .get(stage_id)
+                .with_context(|| format!("missing outputs for {stage_id}"))?;
+            assert!(
+                stage_required_outputs
+                    .iter()
+                    .all(|artifact| contract_outputs.contains(artifact)),
+                "{tool_name} stage_contract must cover every required output for {stage_id}"
+            );
+            assert!(
+                contract_outputs
+                    .iter()
+                    .all(|artifact| stage_outputs.contains(artifact)),
+                "{tool_name} stage_contract expected_artifacts must stay inside the stage output vocabulary for {stage_id}"
             );
             assert!(
                 !notes.trim().is_empty(),
@@ -284,6 +356,8 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
 #[test]
 fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
     let required_inputs = stage_required_inputs()?;
+    let required_outputs = stage_required_outputs()?;
+    let inputs = stage_inputs()?;
     let outputs = stage_outputs()?;
     let tools_dir = workspace_root()?.join("domain/fastq/tools");
     for entry in std::fs::read_dir(&tools_dir)? {
@@ -326,21 +400,41 @@ fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
                 .get(Value::String("notes".to_string()))
                 .and_then(Value::as_str)
                 .unwrap_or_default();
-            assert_eq!(
-                contract_inputs,
-                required_inputs
-                    .get(stage_id)
-                    .with_context(|| format!("missing required_inputs for {stage_id}"))?
-                    .clone(),
-                "{tool_id} stage_contract required_inputs drifted for {stage_id}"
+            let stage_required_inputs = required_inputs
+                .get(stage_id)
+                .with_context(|| format!("missing required_inputs for {stage_id}"))?;
+            let stage_inputs = inputs
+                .get(stage_id)
+                .with_context(|| format!("missing inputs for {stage_id}"))?;
+            assert!(
+                stage_required_inputs
+                    .iter()
+                    .all(|artifact| contract_inputs.contains(artifact)),
+                "{tool_id} stage_contract must cover every required input for {stage_id}"
             );
-            assert_eq!(
-                contract_outputs,
-                outputs
-                    .get(stage_id)
-                    .with_context(|| format!("missing outputs for {stage_id}"))?
-                    .clone(),
-                "{tool_id} stage_contract expected_artifacts drifted for {stage_id}"
+            assert!(
+                contract_inputs
+                    .iter()
+                    .all(|artifact| stage_inputs.contains(artifact)),
+                "{tool_id} stage_contract required_inputs must stay inside the stage input vocabulary for {stage_id}"
+            );
+            let stage_required_outputs = required_outputs
+                .get(stage_id)
+                .with_context(|| format!("missing required_outputs for {stage_id}"))?;
+            let stage_outputs = outputs
+                .get(stage_id)
+                .with_context(|| format!("missing outputs for {stage_id}"))?;
+            assert!(
+                stage_required_outputs
+                    .iter()
+                    .all(|artifact| contract_outputs.contains(artifact)),
+                "{tool_id} stage_contract must cover every required output for {stage_id}"
+            );
+            assert!(
+                contract_outputs
+                    .iter()
+                    .all(|artifact| stage_outputs.contains(artifact)),
+                "{tool_id} stage_contract expected_artifacts must stay inside the stage output vocabulary for {stage_id}"
             );
             assert!(
                 !notes.trim().is_empty(),

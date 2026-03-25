@@ -270,7 +270,7 @@ fn trim_terminal_damage_fixtures_cover_supported_backends() -> Result<()> {
     let fixture_dir = workspace_root()?.join("domain/fastq/fixtures/fastq.trim_terminal_damage");
     let mut fixture_tools = std::fs::read_dir(&fixture_dir)
         .with_context(|| format!("read {}", fixture_dir.display()))?
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             let path = entry.path();
             (path.extension().and_then(|ext| ext.to_str()) == Some("txt"))

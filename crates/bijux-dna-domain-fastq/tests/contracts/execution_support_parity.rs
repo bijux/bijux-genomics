@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
+type ExecutionSupportManifestRow = (String, String, Option<String>, BTreeSet<String>);
+
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -63,7 +65,7 @@ fn stage_manifest_planned_tools() -> Result<BTreeMap<String, BTreeSet<String>>> 
     Ok(out)
 }
 
-fn execution_support_manifest() -> Result<Vec<(String, String, Option<String>, BTreeSet<String>)>> {
+fn execution_support_manifest() -> Result<Vec<ExecutionSupportManifestRow>> {
     let raw =
         std::fs::read_to_string(workspace_root()?.join("domain/fastq/execution_support.yaml"))
             .context("read domain/fastq/execution_support.yaml")?;

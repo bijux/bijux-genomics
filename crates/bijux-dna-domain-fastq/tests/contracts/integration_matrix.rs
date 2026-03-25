@@ -1,10 +1,9 @@
 use std::collections::BTreeSet;
 
-use anyhow::Result;
 use bijux_dna_core::ids::{StageId, ToolId};
 
 #[test]
-fn integration_matrix_covers_indexed_stage_tool_bindings() -> Result<()> {
+fn integration_matrix_covers_indexed_stage_tool_bindings() {
     let indexed = bijux_dna_domain_fastq::stage_tool_bindings()
         .into_iter()
         .map(|binding| {
@@ -30,7 +29,38 @@ fn integration_matrix_covers_indexed_stage_tool_bindings() -> Result<()> {
         indexed, from_stage_api,
         "stage_tool_bindings_for_stage must partition the full integration matrix"
     );
-    Ok(())
+}
+
+fn stage_tool_binding(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+) -> bijux_dna_domain_fastq::StageToolBinding {
+    bijux_dna_domain_fastq::stage_tool_binding(stage_id, tool_id)
+        .unwrap_or_else(|| panic!("governed binding missing for {stage_id} / {tool_id}"))
+}
+
+fn governance_profile(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+) -> bijux_dna_domain_fastq::StageToolGovernanceProfile {
+    bijux_dna_domain_fastq::stage_tool_governance_profile(stage_id, tool_id).unwrap_or_else(|| {
+        panic!("governance profile missing for stage {stage_id} and tool {tool_id}")
+    })
+}
+
+fn capability_contract(
+    stage_id: &StageId,
+    tool_id: &ToolId,
+    level: bijux_dna_domain_fastq::RuntimeNormalizationLevel,
+) -> bijux_dna_domain_fastq::StageToolCapabilityContract {
+    bijux_dna_domain_fastq::stage_tool_capability_contract(stage_id, tool_id, level).unwrap_or_else(
+        || panic!("capability contract missing for stage {stage_id} and tool {tool_id}"),
+    )
+}
+
+fn benchmark_governance(stage_id: &StageId) -> bijux_dna_domain_fastq::StageBenchmarkGovernance {
+    bijux_dna_domain_fastq::stage_benchmark_governance(stage_id)
+        .unwrap_or_else(|| panic!("benchmark governance missing for {stage_id}"))
 }
 
 #[test]
@@ -196,8 +226,7 @@ fn benchmark_scenarios_attach_to_governed_stages() {
 fn integration_matrix_distinguishes_governed_and_planned_bindings() {
     let infer_asvs_stage = StageId::from_static("fastq.infer_asvs");
     let dada2 = ToolId::from_static("dada2");
-    let infer_binding = bijux_dna_domain_fastq::stage_tool_binding(&infer_asvs_stage, &dada2)
-        .expect("governed binding");
+    let infer_binding = stage_tool_binding(&infer_asvs_stage, &dada2);
     assert_eq!(
         infer_binding.integration_level,
         bijux_dna_domain_fastq::ToolIntegrationLevel::GovernedContract
@@ -205,8 +234,7 @@ fn integration_matrix_distinguishes_governed_and_planned_bindings() {
 
     let trim_stage = StageId::from_static("fastq.trim_reads");
     let fastp = ToolId::from_static("fastp");
-    let trim_binding =
-        bijux_dna_domain_fastq::stage_tool_binding(&trim_stage, &fastp).expect("governed binding");
+    let trim_binding = stage_tool_binding(&trim_stage, &fastp);
     assert_eq!(
         trim_binding.integration_level,
         bijux_dna_domain_fastq::ToolIntegrationLevel::GovernedContract
@@ -215,11 +243,10 @@ fn integration_matrix_distinguishes_governed_and_planned_bindings() {
 
 #[test]
 fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
-    let validation_profile = bijux_dna_domain_fastq::stage_tool_governance_profile(
+    let validation_profile = governance_profile(
         &StageId::from_static("fastq.validate_reads"),
         &ToolId::from_static("fastqvalidator"),
-    )
-    .expect("validation governance profile");
+    );
     assert!(validation_profile.default_tool);
     assert!(validation_profile.admitted_runtime_tool);
     assert!(validation_profile.is_plannable());
@@ -230,7 +257,7 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
     );
     assert_eq!(
         validation_profile.comparison_input_artifact_ids,
-        vec!["validated_reads_manifest", "validation_report"]
+        vec!["validation_report", "validated_reads_manifest"]
     );
     assert!(validation_profile.has_governed_benchmark_contract());
     assert_eq!(
@@ -242,11 +269,10 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
         bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::BenchmarkComparable
     );
 
-    let infer_profile = bijux_dna_domain_fastq::stage_tool_governance_profile(
+    let infer_profile = governance_profile(
         &StageId::from_static("fastq.infer_asvs"),
         &ToolId::from_static("dada2"),
-    )
-    .expect("infer_asvs governance profile");
+    );
     assert!(infer_profile.default_tool);
     assert!(infer_profile.admitted_runtime_tool);
     assert!(infer_profile.is_plannable());
@@ -261,14 +287,13 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
         bijux_dna_domain_fastq::StageToolBenchmarkContractMaturity::None
     );
 
-    let trim_profile = bijux_dna_domain_fastq::stage_tool_governance_profile(
+    let trim_profile = governance_profile(
         &StageId::from_static("fastq.trim_reads"),
         &ToolId::from_static("fastp"),
-    )
-    .expect("trim governance profile");
+    );
     assert_eq!(
         trim_profile.normalization_maturity(),
-        bijux_dna_domain_fastq::StageToolNormalizationMaturity::GenericEnvelope
+        bijux_dna_domain_fastq::StageToolNormalizationMaturity::ObserverSpecialized
     );
     assert_eq!(
         trim_profile.benchmark_contract_maturity(),
@@ -301,45 +326,51 @@ fn governed_qc_contract_is_owned_by_domain() {
 fn stage_tool_capability_contract_is_owned_by_domain() {
     let trim_stage = StageId::from_static("fastq.trim_reads");
     let fastp = ToolId::from_static("fastp");
-    let trim_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+    let trim_capability = capability_contract(
         &trim_stage,
         &fastp,
         bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
-    )
-    .expect("trim capability");
+    );
     assert!(trim_capability.runnable);
-    assert!(trim_capability.parse_normalized);
+    assert!(!trim_capability.parse_normalized);
     assert!(!trim_capability.benchmark_normalized);
     assert!(!trim_capability.comparable);
 
+    let trim_observer_capability = capability_contract(
+        &trim_stage,
+        &fastp,
+        bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
+    );
+    assert!(trim_observer_capability.runnable);
+    assert!(trim_observer_capability.parse_normalized);
+    assert!(trim_observer_capability.benchmark_normalized);
+    assert!(!trim_observer_capability.comparable);
+
     let detect_stage = StageId::from_static("fastq.detect_adapters");
     let fastqc = ToolId::from_static("fastqc");
-    let detect_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+    let detect_capability = capability_contract(
         &detect_stage,
         &fastqc,
         bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
-    )
-    .expect("detect capability");
+    );
     assert!(detect_capability.benchmark_normalized);
     assert!(detect_capability.comparable);
 
     let infer_stage = StageId::from_static("fastq.infer_asvs");
     let dada2 = ToolId::from_static("dada2");
-    let infer_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+    let infer_capability = capability_contract(
         &infer_stage,
         &dada2,
         bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
-    )
-    .expect("infer capability");
+    );
     assert!(infer_capability.runnable);
     assert!(!infer_capability.parse_normalized);
 
-    let infer_observer_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+    let infer_observer_capability = capability_contract(
         &infer_stage,
         &dada2,
         bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
-    )
-    .expect("infer observer capability");
+    );
     assert!(infer_observer_capability.runnable);
     assert!(infer_observer_capability.parse_normalized);
     assert!(!infer_observer_capability.benchmark_normalized);
@@ -349,9 +380,9 @@ fn stage_tool_capability_contract_is_owned_by_domain() {
         bijux_dna_domain_fastq::benchmark_readiness_for_stage_tool(
             &trim_stage,
             &fastp,
-            bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
+            bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
         ),
-        Some(bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedExecution)
+        Some(bijux_dna_domain_fastq::BenchmarkReadinessLevel::GovernedBenchmarkCohort)
     );
 }
 
@@ -359,8 +390,7 @@ fn stage_tool_capability_contract_is_owned_by_domain() {
 fn infer_asvs_governance_profile_exposes_closed_runtime_and_observer_surface() {
     let infer_stage = StageId::from_static("fastq.infer_asvs");
     let dada2 = ToolId::from_static("dada2");
-    let profile = bijux_dna_domain_fastq::stage_tool_governance_profile(&infer_stage, &dada2)
-        .expect("infer_asvs governance profile");
+    let profile = governance_profile(&infer_stage, &dada2);
     assert!(profile.default_tool);
     assert!(profile.admitted_runtime_tool);
     assert!(profile.is_plannable());
@@ -375,21 +405,19 @@ fn infer_asvs_governance_profile_exposes_closed_runtime_and_observer_surface() {
     );
     assert!(!profile.has_governed_benchmark_contract());
 
-    let generic_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+    let generic_capability = capability_contract(
         &infer_stage,
         &dada2,
         bijux_dna_domain_fastq::RuntimeNormalizationLevel::GenericEnvelope,
-    )
-    .expect("infer_asvs generic capability");
+    );
     assert!(generic_capability.runnable);
     assert!(!generic_capability.parse_normalized);
 
-    let observer_capability = bijux_dna_domain_fastq::stage_tool_capability_contract(
+    let observer_capability = capability_contract(
         &infer_stage,
         &dada2,
         bijux_dna_domain_fastq::RuntimeNormalizationLevel::ObserverSpecialized,
-    )
-    .expect("infer_asvs observer capability");
+    );
     assert!(observer_capability.runnable);
     assert!(observer_capability.parse_normalized);
     assert_eq!(
@@ -404,10 +432,7 @@ fn infer_asvs_governance_profile_exposes_closed_runtime_and_observer_surface() {
 
 #[test]
 fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
-    let report_qc = bijux_dna_domain_fastq::stage_benchmark_governance(&StageId::from_static(
-        "fastq.report_qc",
-    ))
-    .expect("report_qc benchmark governance");
+    let report_qc = benchmark_governance(&StageId::from_static("fastq.report_qc"));
     assert!(report_qc.has_governed_benchmark_contract());
     assert_eq!(report_qc.scenarios.len(), 1);
     assert_eq!(
@@ -424,10 +449,7 @@ fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
         ]
     );
 
-    let polyg = bijux_dna_domain_fastq::stage_benchmark_governance(&StageId::from_static(
-        "fastq.trim_polyg_tails",
-    ))
-    .expect("trim_polyg benchmark governance");
+    let polyg = benchmark_governance(&StageId::from_static("fastq.trim_polyg_tails"));
     assert!(polyg.has_governed_benchmark_contract());
     assert_eq!(polyg.scenarios[0].scenario_id, "polyg_trim_fairness");
 }

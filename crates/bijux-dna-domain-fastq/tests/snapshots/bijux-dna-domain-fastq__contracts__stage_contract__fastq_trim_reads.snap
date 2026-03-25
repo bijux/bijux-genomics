@@ -54,13 +54,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "atropos",
     "bbduk",
     "adapterremoval",
+    "alientrimmer",
+    "fastx_clipper",
+    "leehom",
     "trimmomatic",
     "trim_galore",
     "prinseq",
     "seqkit",
-    "skewer",
-    "leehom",
-    "alientrimmer",
-    "fastx_clipper"
+    "seqpurge",
+    "skewer"
   ]
 }

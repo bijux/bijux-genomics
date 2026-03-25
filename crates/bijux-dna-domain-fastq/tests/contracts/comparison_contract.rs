@@ -2,6 +2,19 @@ use anyhow::Result;
 use bijux_dna_core::ids::StageId;
 use std::collections::BTreeSet;
 
+fn comparison_contract(stage_id: &StageId) -> bijux_dna_domain_fastq::StageComparisonContract {
+    bijux_dna_domain_fastq::comparison_contract_for_stage(stage_id)
+        .unwrap_or_else(|| panic!("comparison contract missing for {}", stage_id.as_str()))
+}
+
+fn workspace_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .unwrap_or_else(|| panic!("workspace root"))
+        .to_path_buf()
+}
+
 #[test]
 fn benchmark_stages_publish_comparison_artifact_contracts() {
     let trim_stage = StageId::from_static("fastq.trim_reads");
@@ -15,9 +28,7 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         ]
     );
     assert_eq!(
-        bijux_dna_domain_fastq::comparison_contract_for_stage(&trim_stage)
-            .expect("trim comparison contract")
-            .comparison_artifact_id,
+        comparison_contract(&trim_stage).comparison_artifact_id,
         "trim_tool_comparison_json"
     );
     assert_eq!(
@@ -40,9 +51,7 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         ]
     );
     assert_eq!(
-        bijux_dna_domain_fastq::comparison_contract_for_stage(&screen_stage)
-            .expect("taxonomy comparison contract")
-            .comparison_artifact_id,
+        comparison_contract(&screen_stage).comparison_artifact_id,
         "taxonomy_tool_comparison_json"
     );
 
@@ -304,19 +313,15 @@ fn benchmark_stages_publish_comparison_artifact_contracts() {
         vec![
             "report_json".to_string(),
             "governed_qc_inputs_manifest".to_string(),
+            "multiqc_report".to_string(),
+            "multiqc_data".to_string(),
         ]
     );
 }
 
 #[test]
 fn comparison_artifacts_stay_inside_fastq_artifact_vocabulary() -> Result<()> {
-    let yaml = std::fs::read_to_string(
-        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .and_then(std::path::Path::parent)
-            .expect("workspace root")
-            .join("domain/fastq/artifacts.yaml"),
-    )?;
+    let yaml = std::fs::read_to_string(workspace_root().join("domain/fastq/artifacts.yaml"))?;
     for artifact_id in bijux_dna_domain_fastq::benchmark_comparison_artifact_ids() {
         assert!(
             yaml.contains(&format!("  - {artifact_id}")),
@@ -344,7 +349,7 @@ fn comparison_inputs_remain_inside_governed_stage_outputs() {
         "fastq.profile_overrepresented_sequences",
     ] {
         let output_ids = bijux_dna_domain_fastq::stage_output_ids(stage_id)
-            .expect("stage outputs must exist for governed benchmark stage");
+            .unwrap_or_else(|| panic!("stage outputs must exist for governed benchmark stage"));
         let output_ids = output_ids.into_iter().collect::<BTreeSet<_>>();
         let comparison_inputs = bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(
             &StageId::new(stage_id.to_string()),
