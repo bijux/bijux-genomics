@@ -37,11 +37,11 @@ if [[ "${1:-}" == "--version" ]]; then
   echo "ibdhap 0.1.0-planned"
   exit 0
 fi
-if [[ "${1:-}" == "--help" ]]; then
+if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
   echo "ibdhap planned wrapper; upstream integration pending."
   exit 0
 fi
-echo "ibdhap: planned wrapper (no upstream binary integrated yet)" >&2
+echo "error: ibdhap runtime payload is not bundled in this planned wrapper image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/ibdhap

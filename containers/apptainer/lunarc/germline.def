@@ -41,7 +41,7 @@ if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
   echo "germline 1.5.3 wrapper image (frontend policy build)"
   exit 0
 fi
-echo "germline wrapper: runtime payload not bundled in this image" >&2
+echo "error: germline runtime payload is not bundled in this image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/germline

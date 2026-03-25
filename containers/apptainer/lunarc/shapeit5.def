@@ -38,7 +38,7 @@ if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
   echo "SHAPEIT5 wrapper image. Upstream: https://odelaneau.github.io/shapeit5/"
   exit 0
 fi
-echo "SHAPEIT5 binary not bundled in this planned wrapper image." >&2
+echo "error: shapeit5 runtime payload is not bundled in this planned wrapper image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/shapeit5

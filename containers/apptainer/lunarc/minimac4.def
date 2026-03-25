@@ -38,7 +38,7 @@ if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
   echo "Minimac4 wrapper image. Upstream: https://genome.sph.umich.edu/wiki/Minimac4"
   exit 0
 fi
-echo "Minimac4 binary not bundled in this planned wrapper image." >&2
+echo "error: minimac4 runtime payload is not bundled in this planned wrapper image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/minimac4
