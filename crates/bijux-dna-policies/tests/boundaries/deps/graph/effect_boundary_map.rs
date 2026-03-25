@@ -21,6 +21,10 @@ const ALLOWLIST: &[(&str, &str)] = &[
         "/crates/bijux-dna-stages-vcf/",
         "transitional realization path while runtime effects are being extracted",
     ),
+    (
+        "/crates/bijux-dev-dna/",
+        "versioned development automation owns repository-scoped process and filesystem effects",
+    ),
 ];
 
 const EFFECT_PATTERNS: &[&str] = &[

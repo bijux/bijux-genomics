@@ -8,9 +8,13 @@ use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 use clap::Parser;
 use sha2::Digest as _;
 
+#[cfg(debug_assertions)]
 use crate::commands::root_command_handlers::{
-    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root, handle_ena_root,
-    handle_environment_root, handle_lab_root, handle_registry_root, handle_tool_root,
+    handle_ci_root, handle_config_root, handle_domain_root, handle_ena_root, handle_lab_root,
+    handle_tool_root,
+};
+use crate::commands::root_command_handlers::{
+    handle_corpus_root, handle_environment_root, handle_registry_root,
 };
 use crate::commands::{bam, bench, cli, fastq, hpc, run_plan, vcf};
 
@@ -99,52 +103,14 @@ pub fn parse_process_cli(argv: &[String]) -> cli::Cli {
     cli::Cli::parse_from(normalized)
 }
 
-#[cfg(test)]
-mod argv_normalization_contracts {
-    use super::normalize_cli_argv;
-
-    fn argv(values: &[&str]) -> Vec<String> {
-        values.iter().map(|value| (*value).to_string()).collect()
-    }
-
-    #[test]
-    fn direct_runtime_and_host_runtime_routes_normalize_to_the_same_surface() {
-        let direct = normalize_cli_argv(&argv(&["bijux-dna", "registry", "list-stages"]));
-        let host_route = normalize_cli_argv(&argv(&["bijux", "dna", "registry", "list-stages"]));
-        let legacy_direct =
-            normalize_cli_argv(&argv(&["bijux-dna", "dna", "registry", "list-stages"]));
-
-        assert_eq!(direct, host_route);
-        assert_eq!(direct, legacy_direct);
-    }
-
-    #[test]
-    fn host_runtime_route_preserves_global_options_before_the_namespace() {
-        let host_route = normalize_cli_argv(&argv(&[
-            "bijux",
-            "--json",
-            "--platform",
-            "test",
-            "dna",
-            "env",
-            "info",
-        ]));
-
-        assert_eq!(
-            host_route,
-            argv(&["bijux-dna", "--json", "--platform", "test", "env", "info"])
-        );
-    }
-}
-
 /// # Errors
 /// Returns an error if CLI execution fails.
 pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
-    let argv = args
+    let argv_parts = args
         .iter()
         .map(|value| (*value).to_string())
         .collect::<Vec<_>>();
-    let cli = parse_cli_from_argv(&argv)?;
+    let cli = parse_cli_from_argv(&argv_parts)?;
     run_with_cli(&cli, cwd)
 }
 
@@ -372,9 +338,9 @@ fn stage_requires_banks(stage_id: &str) -> bool {
         || key.contains("detect_adapters")
 }
 
-fn handle_observability_commands(dna_command: &cli::DnaCommand, _cwd: &Path) -> Result<bool> {
-    #[cfg(debug_assertions)]
-    let cwd = _cwd;
+fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> Result<bool> {
+    #[cfg(not(debug_assertions))]
+    let _ = cwd;
 
     match dna_command {
         #[cfg(debug_assertions)]
@@ -385,7 +351,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, _cwd: &Path) -> 
                     args.view
                 ));
             }
-            let run_dir = _cwd.join(&args.search_root).join(&args.run_id);
+            let run_dir = cwd.join(&args.search_root).join(&args.run_id);
             let telemetry_path = run_dir.join("run_artifacts").join("telemetry.jsonl");
             let raw = std::fs::read_to_string(&telemetry_path)
                 .with_context(|| format!("read {}", telemetry_path.display()))?;
@@ -962,4 +928,42 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
         println!("scope_closure_checklist={}", path.display());
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod argv_normalization_contracts {
+    use super::normalize_cli_argv;
+
+    fn argv(values: &[&str]) -> Vec<String> {
+        values.iter().map(|value| (*value).to_string()).collect()
+    }
+
+    #[test]
+    fn direct_runtime_and_host_runtime_routes_normalize_to_the_same_surface() {
+        let direct = normalize_cli_argv(&argv(&["bijux-dna", "registry", "list-stages"]));
+        let host_route = normalize_cli_argv(&argv(&["bijux", "dna", "registry", "list-stages"]));
+        let legacy_direct =
+            normalize_cli_argv(&argv(&["bijux-dna", "dna", "registry", "list-stages"]));
+
+        assert_eq!(direct, host_route);
+        assert_eq!(direct, legacy_direct);
+    }
+
+    #[test]
+    fn host_runtime_route_preserves_global_options_before_the_namespace() {
+        let host_route = normalize_cli_argv(&argv(&[
+            "bijux",
+            "--json",
+            "--platform",
+            "test",
+            "dna",
+            "env",
+            "info",
+        ]));
+
+        assert_eq!(
+            host_route,
+            argv(&["bijux-dna", "--json", "--platform", "test", "env", "info"])
+        );
+    }
 }

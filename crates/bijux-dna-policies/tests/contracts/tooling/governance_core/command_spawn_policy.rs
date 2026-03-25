@@ -20,6 +20,7 @@ fn is_allowed_command_path(path: &Path) -> bool {
         || path_str.contains("/crates/bijux-dna-environment/src/resolve/")
         || path_str.contains("/crates/bijux-dna-environment-qa/src/bin/")
         || path_str.contains("/crates/bijux-dna-environment-qa/src/image_qa/")
+        || path_str.contains("/crates/bijux-dev-dna/")
         || path_str.contains("/crates/bijux-dna-stages-vcf/")
 }
 

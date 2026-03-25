@@ -8,11 +8,11 @@ fn policy__contracts__cli_app_prefix_policy__root_cli_requires_app_prefix() {
         .parent()
         .and_then(Path::parent)
         .expect("workspace root");
-    let parse_file = root.join("crates/bijux-dna/src/commands/cli/parse/common.rs");
-    let src = std::fs::read_to_string(&parse_file).expect("read parse common");
+    let parse_file = root.join("crates/bijux-dna/src/commands/cli/parse/parse_root_and_analyze.rs");
+    let src = std::fs::read_to_string(&parse_file).expect("read root parser");
 
     let root_enum = src
-        .split("pub enum RootCommand")
+        .split("pub enum DnaCommand")
         .nth(1)
         .and_then(|s| s.split("}\n\n#[derive").next())
         .unwrap_or("");
@@ -32,7 +32,7 @@ fn policy__contracts__cli_app_prefix_policy__root_cli_requires_app_prefix() {
 
     bijux_dna_policies::policy_assert!(
         !has_non_dna_root_variant,
-        "root CLI must only expose app-prefixed commands (`bijux <app> ...`); found non-dna root variant in {}",
+        "root CLI must only expose DNA app-prefixed commands (`bijux dna ...` or `bijux-dna ...`); found unexpected root variant in {}",
         parse_file.display()
     );
 }
