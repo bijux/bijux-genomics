@@ -39,7 +39,7 @@
         "name": "reference",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/reference.fasta",
-        "role": "index"
+        "role": "reference"
       },
       {
         "name": "fastq_r2",
