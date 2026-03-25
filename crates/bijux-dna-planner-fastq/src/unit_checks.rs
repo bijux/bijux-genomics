@@ -19,8 +19,8 @@ fn select_trim_tools_dedup_and_sort() {
 }
 
 #[test]
-fn select_trim_tools_rejects_tools_outside_execution_support() {
-    let tools = vec!["skewer".to_string()];
+fn select_trim_tools_rejects_unknown_tools() {
+    let tools = vec!["not_a_tool".to_string()];
     match select_trim_tools(&tools, false) {
         Ok(_) => panic!("expected failure"),
         Err(err) => assert!(err.to_string().contains("unsupported tool")),
@@ -29,7 +29,7 @@ fn select_trim_tools_rejects_tools_outside_execution_support() {
 
 #[test]
 fn select_trim_tools_keeps_contract_even_when_opt_in_flag_is_set() {
-    let tools = vec!["skewer".to_string()];
+    let tools = vec!["not_a_tool".to_string()];
     match select_trim_tools(&tools, true) {
         Ok(_) => panic!("expected failure"),
         Err(err) => assert!(err.to_string().contains("unsupported tool")),
@@ -37,11 +37,13 @@ fn select_trim_tools_keeps_contract_even_when_opt_in_flag_is_set() {
 }
 
 #[test]
-fn select_trim_tools_rejects_backends_without_governed_runtime_support() {
-    let tools = vec!["leehom".to_string()];
+fn select_trim_tools_accepts_newly_governed_adapter_backends() {
+    let tools = vec!["skewer".to_string(), "leehom".to_string()];
     match select_trim_tools(&tools, false) {
-        Ok(_) => panic!("expected failure"),
-        Err(err) => assert!(err.to_string().contains("unsupported tool")),
+        Ok(normalized) => {
+            assert_eq!(normalized, vec!["leehom".to_string(), "skewer".to_string()]);
+        }
+        Err(err) => panic!("expected governed trim tools to normalize: {err}"),
     }
 }
 
@@ -371,17 +373,17 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
 }
 
 #[test]
-fn stage_tool_capability_no_longer_treats_planned_bindings_as_plannable() {
+fn stage_tool_capability_surfaces_current_infer_asvs_runtime_contract() {
     let capability = crate::stage_api::stage_tool_capability(
         &StageId::from_static("fastq.infer_asvs"),
         &ToolId::from_static("dada2"),
     )
-    .expect("declared FASTQ ASV binding must still surface a capability row");
+    .expect("FASTQ ASV binding must surface the governed runtime capability row");
 
     assert!(capability.declared);
-    assert!(!capability.plannable);
-    assert!(!capability.runnable);
-    assert!(!capability.parse_normalized);
+    assert!(capability.plannable);
+    assert!(capability.runnable);
+    assert!(capability.parse_normalized);
     assert!(!capability.benchmark_normalized);
     assert!(!capability.comparable);
 }
@@ -403,7 +405,7 @@ fn stage_tool_capability_uses_manifest_normalization_modes() {
     )
     .expect("fastp trim capability must exist");
     assert!(trim_reads.parse_normalized);
-    assert!(!trim_reads.benchmark_normalized);
+    assert!(trim_reads.benchmark_normalized);
     assert!(!trim_reads.comparable);
 }
 
@@ -528,9 +530,9 @@ fn expand_pipeline_stage_tool_routes_materializes_graph_bound_stage_bindings() {
     let (expanded_pipeline, expanded_stage_tools) =
         expand_pipeline_stage_tool_routes(&pipeline, &toolsets).expect("expand routes");
 
-    assert_eq!(expanded_pipeline.nodes.len(), 4);
+    assert_eq!(expanded_pipeline.nodes.len(), 3);
     assert_eq!(expanded_pipeline.edges.len(), 2);
-    assert_eq!(expanded_stage_tools.len(), 4);
+    assert_eq!(expanded_stage_tools.len(), 3);
     assert!(expanded_stage_tools.iter().any(|selection| {
         selection.stage_id == "fastq.trim_reads"
             && selection.tool_id == "bbduk"
@@ -578,8 +580,8 @@ fn expand_pipeline_stage_tool_routes_keys_repeated_stage_nodes_by_instance_id() 
     let (expanded_pipeline, expanded_stage_tools) =
         expand_pipeline_stage_tool_routes(&pipeline, &toolsets).expect("expand routes");
 
-    assert_eq!(expanded_pipeline.nodes.len(), 8);
-    assert_eq!(expanded_stage_tools.len(), 8);
+    assert_eq!(expanded_pipeline.nodes.len(), 4);
+    assert_eq!(expanded_stage_tools.len(), 4);
     assert!(expanded_stage_tools.iter().any(|selection| {
         selection
             .stage_instance_id

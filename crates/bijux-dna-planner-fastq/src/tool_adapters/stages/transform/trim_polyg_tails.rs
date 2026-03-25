@@ -455,6 +455,6 @@ mod tests {
         assert_eq!(plan.resources.threads, 7);
         assert_eq!(plan.effective_params["threads"], serde_json::json!(7));
         assert_eq!(plan.params["threads"], serde_json::json!(7));
-        assert!(plan.command.template[2].contains("--thread 7"));
+        assert!(plan.command.template[2].contains("'--thread' '7'"));
     }
 }

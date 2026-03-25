@@ -158,30 +158,31 @@ fn detect_adapters_command(
 mod tests {
     use super::plan;
     use anyhow::Result;
-    use bijux_dna_core::prelude::ToolExecutionSpecV1;
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    };
 
     #[test]
     fn detect_adapters_plan_emits_canonical_report_and_full_input_scope() -> Result<()> {
         let temp = std::env::temp_dir().join("bijux-detect-adapters-plan-test");
         std::fs::create_dir_all(&temp)?;
-        let tool: ToolExecutionSpecV1 = serde_json::from_value(serde_json::json!({
-            "tool_id": "fastqc",
-            "tool_version": "0.12.1",
-            "image": {
-                "image": "bijuxdna/fastqc",
-                "digest": "sha256:test"
+        let tool = ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("fastqc"),
+            tool_version: "0.12.1".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijuxdna/fastqc".to_string(),
+                digest: Some("sha256:test".to_string()),
             },
-            "command": {
-                "template": ["fastqc", "{{reads_r1}}"]
+            command: CommandSpecV1 {
+                template: vec!["fastqc".to_string(), "{{reads_r1}}".to_string()],
             },
-            "resources": {
-                "cpus": null,
-                "memory_gb": null,
-                "threads": 4,
-                "tmp_gb": null,
-                "wallclock_s": null
-            }
-        }))?;
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 4,
+            },
+        };
         let r1 = temp.join("reads_R1.fastq.gz");
         let r2 = temp.join("reads_R2.fastq.gz");
         let out_dir = temp.join("out");
