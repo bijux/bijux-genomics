@@ -179,11 +179,13 @@ fn execution_graph_getters_and_edge_accessors_are_stable() {
     assert_eq!(edge.from().as_str(), "a");
     assert_eq!(edge.to().as_str(), "b");
     assert_eq!(
-        edge.from_output_id().map(|artifact| artifact.as_str()),
+        edge.from_output_id()
+            .map(bijux_dna_core::contract::ArtifactId::as_str),
         Some("out")
     );
     assert_eq!(
-        edge.to_input_id().map(|artifact| artifact.as_str()),
+        edge.to_input_id()
+            .map(bijux_dna_core::contract::ArtifactId::as_str),
         Some("in")
     );
 
@@ -214,13 +216,13 @@ fn execution_graph_getters_and_edge_accessors_are_stable() {
     assert_eq!(
         graph.edges()[0]
             .from_output_id()
-            .map(|artifact| artifact.as_str()),
+            .map(bijux_dna_core::contract::ArtifactId::as_str),
         Some("out")
     );
     assert_eq!(
         graph.edges()[0]
             .to_input_id()
-            .map(|artifact| artifact.as_str()),
+            .map(bijux_dna_core::contract::ArtifactId::as_str),
         Some("in")
     );
     assert!(graph.retry_policy().max_attempts >= 1);

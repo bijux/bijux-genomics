@@ -207,10 +207,11 @@ mod tests {
 
     #[test]
     fn pipeline_spec_rejects_legacy_stage_lists() {
-        let error = serde_json::from_value::<PipelineSpec>(serde_json::json!({
+        let Err(error) = serde_json::from_value::<PipelineSpec>(serde_json::json!({
             "stages": ["fastq.validate_reads", "fastq.trim_reads"]
-        }))
-        .expect_err("legacy stage lists should no longer deserialize");
+        })) else {
+            panic!("legacy stage lists should no longer deserialize");
+        };
         assert!(error.to_string().contains("unknown field `stages`"));
     }
 
