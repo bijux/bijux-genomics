@@ -34,6 +34,10 @@ use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json
 
 const STAGE_ID: &str = "fastq.profile_overrepresented_sequences";
 
+/// Benchmark FASTQ overrepresented-sequence profiling tools.
+///
+/// # Errors
+/// Returns an error if planning, execution, report parsing, or persistence fails.
 pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -248,12 +252,12 @@ fn materialize_overrepresented_outputs(
         0.0
     } else {
         top.first()
-            .map_or(0.0, |(_, count)| *count as f64 / total as f64)
+            .map_or(0.0, |(_, count)| u64_to_f64(*count) / u64_to_f64(total))
     };
     let flagged_sequences = top
         .iter()
-        .filter(|(_, count)| total > 0 && (*count as f64 / total as f64) >= 0.01)
-        .count() as u64;
+        .filter(|(_, count)| total > 0 && (u64_to_f64(*count) / u64_to_f64(total)) >= 0.01)
+        .count();
 
     let rows = top
         .iter()
@@ -261,7 +265,7 @@ fn materialize_overrepresented_outputs(
             let fraction = if total == 0 {
                 0.0
             } else {
-                *count as f64 / total as f64
+                u64_to_f64(*count) / u64_to_f64(total)
             };
             OverrepresentedSequenceRowV1 {
                 sequence: sequence.clone(),
@@ -278,10 +282,15 @@ fn materialize_overrepresented_outputs(
 
     let mut tsv = String::from("sequence\tcount\tfraction\tflag\n");
     for row in &rows {
-        tsv.push_str(&format!(
-            "{}\t{}\t{:.6}\t{}\n",
-            row.sequence, row.count, row.fraction, row.flag
-        ));
+        tsv.push_str(&row.sequence);
+        tsv.push('\t');
+        tsv.push_str(&row.count.to_string());
+        tsv.push('\t');
+        let fraction_text = format!("{:.6}", row.fraction);
+        tsv.push_str(&fraction_text);
+        tsv.push('\t');
+        tsv.push_str(&row.flag);
+        tsv.push('\n');
     }
     bijux_dna_infra::atomic_write_bytes(output_tsv, tsv.as_bytes())?;
     bijux_dna_infra::atomic_write_json(
@@ -289,8 +298,8 @@ fn materialize_overrepresented_outputs(
         &serde_json::json!({
             "schema_version": "bijux.fastq.profile_overrepresented_sequences.v1",
             "top_k": top_k,
-            "sequence_count": rows.len(),
-            "flagged_sequences": flagged_sequences,
+            "sequence_count": usize_to_u64(rows.len()),
+            "flagged_sequences": usize_to_u64(flagged_sequences),
             "top_fraction": top_fraction,
             "rows": rows,
         }),
@@ -336,19 +345,21 @@ fn read_overrepresented_payload(path: &Path) -> Result<OverrepresentedPayload> {
         sequence_count: value
             .get("sequence_count")
             .and_then(serde_json::Value::as_u64)
-            .unwrap_or(rows.len() as u64),
+            .unwrap_or_else(|| usize_to_u64(rows.len())),
         flagged_sequences: value
             .get("flagged_sequences")
             .and_then(serde_json::Value::as_u64)
             .unwrap_or_else(|| {
                 rows.iter()
                     .filter(|row| row.flag == "overrepresented")
-                    .count() as u64
+                    .count()
+                    .try_into()
+                    .unwrap_or(u64::MAX)
             }),
         top_fraction: value
             .get("top_fraction")
             .and_then(serde_json::Value::as_f64)
-            .unwrap_or_else(|| rows.first().map(|row| row.fraction).unwrap_or(0.0)),
+            .unwrap_or_else(|| rows.first().map_or(0.0, |row| row.fraction)),
     };
     metrics.validate()?;
     Ok(OverrepresentedPayload { metrics, rows })
@@ -382,4 +393,12 @@ fn open_fastq_lines(path: &Path) -> Result<Vec<String>> {
         .lines()
         .collect::<std::result::Result<Vec<_>, _>>()
         .with_context(|| format!("read fastq {}", path.display()))
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn usize_to_u64(value: usize) -> u64 {
+    value.try_into().unwrap_or(u64::MAX)
 }

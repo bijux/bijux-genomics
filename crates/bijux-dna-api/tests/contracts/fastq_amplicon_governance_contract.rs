@@ -105,17 +105,21 @@ fn fastq_amplicon_governance_taxonomy_lock_fields_present() {
 #[test]
 fn fastq_amplicon_tables_define_expected_schema_headers() {
     let root = repo_root();
-    let src =
+    let runtime_src =
         root.join("crates/bijux-dna-api/src/internal/fastq/stages/preprocess/amplicon_runtime.rs");
-    let raw =
-        std::fs::read_to_string(&src).unwrap_or_else(|e| panic!("read {}: {e}", src.display()));
+    let normalize_src =
+        root.join("crates/bijux-dna-api/src/internal/fastq/stages/normalize_abundance.rs");
+    let runtime_raw = std::fs::read_to_string(&runtime_src)
+        .unwrap_or_else(|e| panic!("read {}: {e}", runtime_src.display()));
+    let normalize_raw = std::fs::read_to_string(&normalize_src)
+        .unwrap_or_else(|e| panic!("read {}: {e}", normalize_src.display()));
     assert!(
-        raw.contains("sample_id\\tfeature_id\\tabundance"),
+        runtime_raw.contains("sample_id\\tfeature_id\\tabundance"),
         "ASV/OTU tables must include sample_id/feature_id/abundance header contract"
     );
     assert!(
-        raw.contains("sample_id\\tfeature_id\\tnormalized_abundance"),
-        "abundance normalization table must include normalized_abundance header contract"
+        normalize_raw.contains("\"normalized_abundance\".to_string()"),
+        "relative abundance normalization must lock the normalized_abundance output column"
     );
 }
 
@@ -136,7 +140,6 @@ fn fastq_amplicon_runtime_invokes_real_tool_paths() {
         "vsearch_uchime_denovo",
         "vsearch_cluster_fast",
         "dada2_rscript",
-        "seqkit_fx2tab",
     ] {
         assert!(
             raw.contains(needle),

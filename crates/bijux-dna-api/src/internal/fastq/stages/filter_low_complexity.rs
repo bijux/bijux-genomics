@@ -35,6 +35,8 @@ use crate::internal::handlers::fastq::{
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
+/// # Errors
+/// Returns an error if planning, execution, metrics derivation, or persistence fails.
 pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -229,7 +231,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     let output_stats_r1 = if execution.exit_code == 0 && output_reads.exists() {
         observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads)?
     } else {
-        bench_inputs.input_stats.clone()
+        bench_inputs.input_stats
     };
     let output_stats_r2 = if let Some(output_reads_r2) = output_reads_r2 {
         if execution.exit_code == 0 && output_reads_r2.exists() {
@@ -240,7 +242,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
                 output_reads_r2,
             )?)
         } else {
-            input_stats_r2.cloned()
+            input_stats_r2.copied()
         }
     } else {
         None
@@ -411,16 +413,16 @@ fn combine_seqkit_metrics(
     let weighted_mean_q = if total_bases == 0 {
         0.0
     } else {
-        ((primary.mean_q * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
-            / total_bases as f64
+        ((primary.mean_q * u64_to_f64(primary.bases))
+            + secondary.map_or(0.0, |stats| stats.mean_q * u64_to_f64(stats.bases)))
+            / u64_to_f64(total_bases)
     };
     let weighted_gc = if total_bases == 0 {
         0.0
     } else {
-        ((primary.gc_percent * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.gc_percent * stats.bases as f64))
-            / total_bases as f64
+        ((primary.gc_percent * u64_to_f64(primary.bases))
+            + secondary.map_or(0.0, |stats| stats.gc_percent * u64_to_f64(stats.bases)))
+            / u64_to_f64(total_bases)
     };
     SeqkitMetrics {
         reads: primary.reads + secondary_reads,
@@ -428,4 +430,8 @@ fn combine_seqkit_metrics(
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
     }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

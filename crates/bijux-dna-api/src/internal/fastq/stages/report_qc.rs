@@ -90,7 +90,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     let tools = filter_tools_by_role(STAGE_REPORT_QC.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_qc_post_bench(catalog, platform, runner_override, args)?;
     let governed_qc = load_required_qc_inputs_manifest(
-        aggregation_scope.clone(),
+        &aggregation_scope,
         args.governed_qc_manifest.as_deref(),
         &bench_inputs.bench_dir,
         &bench_inputs.tools_root,
@@ -284,7 +284,7 @@ fn discover_qc_inputs_manifest_path(
 }
 
 fn load_required_qc_inputs_manifest(
-    aggregation_scope: QcAggregationScope,
+    aggregation_scope: &QcAggregationScope,
     manifest_path: Option<&Path>,
     bench_dir: &Path,
     tools_root: &Path,
@@ -560,12 +560,12 @@ fn derive_qc_post_metrics(
     let trimmed_fastqc_dir = out_dir.join("fastqc_trimmed");
     let reads_in = input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
     let bases_in = input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
-    let weighted_q_sum = input_stats.mean_q * input_stats.bases as f64
-        + input_stats_r2.map_or(0.0, |stats| stats.mean_q * stats.bases as f64);
+    let weighted_q_sum = input_stats.mean_q * u64_to_f64(input_stats.bases)
+        + input_stats_r2.map_or(0.0, |stats| stats.mean_q * u64_to_f64(stats.bases));
     let mean_q = if bases_in == 0 {
         0.0
     } else {
-        weighted_q_sum / bases_in as f64
+        weighted_q_sum / u64_to_f64(bases_in)
     };
     FastqQcPostMetrics {
         reads_in,
@@ -603,6 +603,10 @@ fn derive_qc_post_metrics(
         multiqc_report: path_if_exists(&multiqc_report),
         multiqc_data: path_if_exists(&multiqc_data),
     }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -953,6 +957,7 @@ fn benchmark_query_context(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::{
         build_qc_post_record, derive_qc_post_metrics, derived_governed_qc_lineage_hash,
@@ -981,7 +986,7 @@ mod tests {
     fn required_governed_qc_manifest_is_enforced() {
         let temp = tempfile::tempdir().expect("tempdir");
         let error = load_required_qc_inputs_manifest(
-            QcAggregationScope::GovernedQcArtifacts,
+            &QcAggregationScope::GovernedQcArtifacts,
             None,
             temp.path(),
             temp.path(),
@@ -1027,7 +1032,7 @@ mod tests {
         .expect("manifest");
 
         let governed = load_required_qc_inputs_manifest(
-            QcAggregationScope::GovernedQcArtifacts,
+            &QcAggregationScope::GovernedQcArtifacts,
             None,
             temp.path(),
             &tools_root,
@@ -1567,18 +1572,26 @@ mod tests {
         )
         .expect("record");
 
-        assert_eq!(record.metrics.metrics.contamination_rate, 0.23);
+        assert!((record.metrics.metrics.contamination_rate - 0.23).abs() < f64::EPSILON);
 
         let governed_report: ReportQcReportV1 = serde_json::from_str(
             &std::fs::read_to_string(temp.path().join("report_qc_report.json"))
                 .expect("report json"),
         )
         .expect("parse governed report");
-        assert_eq!(governed_report.contamination_rate, 0.23);
-        assert_eq!(governed_report.adapter_content_max, Some(0.12));
-        assert_eq!(governed_report.adapter_content_mean, Some(0.04));
-        assert_eq!(governed_report.duplication_rate, Some(0.11));
-        assert_eq!(governed_report.n_rate, Some(0.002));
+        assert!((governed_report.contamination_rate - 0.23).abs() < f64::EPSILON);
+        assert!(governed_report
+            .adapter_content_max
+            .is_some_and(|value| (value - 0.12).abs() < f64::EPSILON));
+        assert!(governed_report
+            .adapter_content_mean
+            .is_some_and(|value| (value - 0.04).abs() < f64::EPSILON));
+        assert!(governed_report
+            .duplication_rate
+            .is_some_and(|value| (value - 0.11).abs() < f64::EPSILON));
+        assert!(governed_report
+            .n_rate
+            .is_some_and(|value| (value - 0.002).abs() < f64::EPSILON));
         assert_eq!(governed_report.kmer_warning_count, Some(3));
         assert_eq!(governed_report.overrepresented_sequence_count, Some(2));
     }

@@ -28,6 +28,10 @@ use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
+/// Benchmark FASTQ reference indexing tools under governed stage contracts.
+///
+/// # Errors
+/// Returns an error if planning, execution, indexing, or persistence fails.
 pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -174,18 +178,19 @@ fn build_index_reference_record(
     let index_artifact = params
         .get("reference_index")
         .and_then(serde_json::Value::as_str)
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| out_dir.join("reference_index"));
+        .map_or_else(|| out_dir.join("reference_index"), std::path::PathBuf::from);
     let report_json = params
         .get("report_json")
         .and_then(serde_json::Value::as_str)
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| out_dir.join("index_reference_report.json"));
+        .map_or_else(
+            || out_dir.join("index_reference_report.json"),
+            std::path::PathBuf::from,
+        );
     let index_root = out_dir.join("reference_index");
     let reference_bytes = std::fs::metadata(reference_fasta)
         .with_context(|| format!("stat {}", reference_fasta.display()))?
         .len();
-    let emitted_files = collect_index_reference_files(&index_root)?;
+    let emitted_files = collect_index_reference_files(&index_root);
     let report = canonical_index_reference_report(
         tool,
         params,
@@ -236,12 +241,10 @@ fn build_index_reference_record(
     Ok(record)
 }
 
-fn collect_index_reference_files(
-    index_root: &std::path::Path,
-) -> Result<Vec<IndexReferenceFileEntryV1>> {
+fn collect_index_reference_files(index_root: &std::path::Path) -> Vec<IndexReferenceFileEntryV1> {
     let mut files = Vec::new();
     if !index_root.exists() {
-        return Ok(files);
+        return files;
     }
     for entry in walkdir::WalkDir::new(index_root).into_iter().flatten() {
         if !entry.file_type().is_file() {
@@ -260,7 +263,7 @@ fn collect_index_reference_files(
         });
     }
     files.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));
-    Ok(files)
+    files
 }
 
 fn canonical_index_reference_report(

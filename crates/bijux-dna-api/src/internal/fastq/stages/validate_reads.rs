@@ -293,7 +293,7 @@ fn build_validate_record(
     let metrics = derive_validate_metrics(
         &bench_inputs.input_stats,
         bench_inputs.input_stats_r2.as_ref(),
-        &report_path,
+        report_path,
     );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -357,12 +357,10 @@ fn derive_validate_metrics(
         .and_then(|raw| parse_validation_report(&raw).ok());
     let reads_total = parsed_report
         .as_ref()
-        .map(validate_report_reads_total)
-        .unwrap_or(reads_in);
+        .map_or(reads_in, validate_report_reads_total);
     let reads_invalid = parsed_report
         .as_ref()
-        .map(validate_report_reads_invalid)
-        .unwrap_or(0)
+        .map_or(0, validate_report_reads_invalid)
         .min(reads_total);
     let reads_valid = reads_total.saturating_sub(reads_invalid);
     FastqValidateMetrics {
@@ -403,7 +401,8 @@ fn validate_report_reads_total(report: &bijux_dna_domain_fastq::ValidationReport
 
 fn validate_report_reads_invalid(report: &bijux_dna_domain_fastq::ValidationReportV1) -> u64 {
     match report.failure_class {
-        bijux_dna_domain_fastq::ValidateFailureClass::None => 0,
+        bijux_dna_domain_fastq::ValidateFailureClass::None
+        | bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => 0,
         bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => report
             .validated_reads_r1
             .abs_diff(report.validated_reads_r2.unwrap_or(0)),
@@ -417,7 +416,6 @@ fn validate_report_reads_invalid(report: &bijux_dna_domain_fastq::ValidationRepo
             }
             invalid
         }
-        bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => 0,
     }
 }
 
@@ -463,7 +461,7 @@ mod tests {
         derive_validate_metrics, required_plan_output_path, validate_plan_options,
         validation_failures_are_fatal,
     };
-    use bijux_dna_core::contract::{ArtifactRole, StageIO};
+    use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::measure::SeqkitMetrics;
     use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
@@ -486,7 +484,7 @@ mod tests {
             command: CommandSpecV1 {
                 template: vec!["fastqvalidator".to_string()],
             },
-            resources: Default::default(),
+            resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
                 outputs: vec![
@@ -510,11 +508,13 @@ mod tests {
         };
 
         assert_eq!(
-            required_plan_output_path(&plan, "validation_report").expect("report path"),
+            required_plan_output_path(&plan, "validation_report")
+                .unwrap_or_else(|err| panic!("report path: {err}")),
             PathBuf::from("custom/validation.json")
         );
         assert_eq!(
-            required_plan_output_path(&plan, "validated_reads_manifest").expect("manifest path"),
+            required_plan_output_path(&plan, "validated_reads_manifest")
+                .unwrap_or_else(|err| panic!("manifest path: {err}")),
             PathBuf::from("custom/validated_reads_manifest.json")
         );
     }
@@ -534,7 +534,7 @@ mod tests {
             command: CommandSpecV1 {
                 template: vec!["fastqvalidator".to_string()],
             },
-            resources: Default::default(),
+            resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
                 outputs: vec![ArtifactRef::required(
@@ -550,8 +550,10 @@ mod tests {
             reason: PlanDecisionReason::default(),
         };
 
-        let error = required_plan_output_path(&plan, "validated_reads_manifest")
-            .expect_err("missing manifest must be rejected");
+        let error = match required_plan_output_path(&plan, "validated_reads_manifest") {
+            Ok(path) => panic!("missing manifest must be rejected: {}", path.display()),
+            Err(err) => err,
+        };
         assert!(error
             .to_string()
             .contains("missing governed output `validated_reads_manifest`"));
@@ -575,7 +577,7 @@ mod tests {
             pair_sync_policy: Some("skip_header_sync".to_string()),
         };
 
-        let options = validate_plan_options(&args).expect("options");
+        let options = validate_plan_options(&args).unwrap_or_else(|err| panic!("options: {err}"));
         assert_eq!(options.threads, Some(9));
         assert_eq!(
             options.validation_mode,
@@ -605,7 +607,7 @@ mod tests {
             pair_sync_policy: None,
         };
 
-        let options = validate_plan_options(&args).expect("options");
+        let options = validate_plan_options(&args).unwrap_or_else(|err| panic!("options: {err}"));
         assert_eq!(
             options.pair_sync_policy,
             bijux_dna_domain_fastq::params::validate::PairSyncPolicy::NotApplicable
@@ -630,13 +632,13 @@ mod tests {
             pair_sync_policy: None,
         };
 
-        let options = validate_plan_options(&args).expect("options");
+        let options = validate_plan_options(&args).unwrap_or_else(|err| panic!("options: {err}"));
         assert!(!validation_failures_are_fatal(&args, &options));
     }
 
     #[test]
     fn derive_validate_metrics_prefers_governed_report_counts() {
-        let temp = tempfile::tempdir().expect("tempdir");
+        let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let report_path = temp.path().join("validation.json");
         std::fs::write(
             &report_path,
@@ -666,7 +668,7 @@ mod tests {
             })
             .to_string(),
         )
-        .expect("write report");
+        .unwrap_or_else(|err| panic!("write report: {err}"));
 
         let metrics = derive_validate_metrics(
             &SeqkitMetrics {

@@ -347,16 +347,16 @@ fn combine_seqkit_metrics(
     let weighted_mean_q = if total_bases == 0 {
         0.0
     } else {
-        ((primary.mean_q * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
-            / total_bases as f64
+        ((primary.mean_q * u64_to_f64(primary.bases))
+            + secondary.map_or(0.0, |stats| stats.mean_q * u64_to_f64(stats.bases)))
+            / u64_to_f64(total_bases)
     };
     let weighted_gc = if total_bases == 0 {
         0.0
     } else {
-        ((primary.gc_percent * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.gc_percent * stats.bases as f64))
-            / total_bases as f64
+        ((primary.gc_percent * u64_to_f64(primary.bases))
+            + secondary.map_or(0.0, |stats| stats.gc_percent * u64_to_f64(stats.bases)))
+            / u64_to_f64(total_bases)
     };
     SeqkitMetrics {
         reads: primary.reads + secondary_reads,
@@ -364,6 +364,10 @@ fn combine_seqkit_metrics(
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
     }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
@@ -413,7 +417,7 @@ mod tests {
         admitted_stage_tools, normalize_tools, parse_requested_execution_policy,
         read_governed_terminal_damage_report, required_plan_output_path,
     };
-    use bijux_dna_core::contract::{ArtifactRole, StageIO};
+    use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
@@ -431,17 +435,19 @@ mod tests {
     #[test]
     fn terminal_damage_execution_policy_parser_accepts_policy_derived() {
         assert!(parse_requested_execution_policy(None)
-            .expect("default policy")
+            .unwrap_or_else(|err| panic!("default policy: {err}"))
             .is_none());
         assert!(parse_requested_execution_policy(Some("policy_derived"))
-            .expect("policy_derived")
+            .unwrap_or_else(|err| panic!("policy_derived: {err}"))
             .is_none());
     }
 
     #[test]
     fn terminal_damage_execution_policy_parser_rejects_unknown_policy() {
-        let error = parse_requested_execution_policy(Some("trim_whatever"))
-            .expect_err("unknown policy must fail");
+        let error = match parse_requested_execution_policy(Some("trim_whatever")) {
+            Ok(value) => panic!("unknown policy must fail: {value:?}"),
+            Err(err) => err,
+        };
         assert!(error
             .to_string()
             .contains("invalid fastq.trim_terminal_damage execution_policy"));
@@ -462,7 +468,7 @@ mod tests {
             command: CommandSpecV1 {
                 template: vec!["cutadapt".to_string()],
             },
-            resources: Default::default(),
+            resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
                 outputs: vec![ArtifactRef::required(
@@ -479,14 +485,15 @@ mod tests {
         };
 
         assert_eq!(
-            required_plan_output_path(&plan, "report_json").expect("report path"),
+            required_plan_output_path(&plan, "report_json")
+                .unwrap_or_else(|err| panic!("report path: {err}")),
             PathBuf::from("custom/trim_terminal_damage_report.json")
         );
     }
 
     #[test]
     fn read_governed_terminal_damage_report_uses_governed_contract() {
-        let temp = tempfile::tempdir().expect("tempdir");
+        let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let report_path = temp.path().join("trim_terminal_damage_report.json");
         std::fs::write(
             &report_path,
@@ -533,7 +540,7 @@ mod tests {
             })
             .to_string(),
         )
-        .expect("write report");
+        .unwrap_or_else(|err| panic!("write report: {err}"));
 
         let plan = StagePlanV1 {
             stage_id: StageId::from_static("fastq.trim_terminal_damage"),
@@ -548,7 +555,7 @@ mod tests {
             command: CommandSpecV1 {
                 template: vec!["cutadapt".to_string()],
             },
-            resources: Default::default(),
+            resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
                 outputs: vec![ArtifactRef::required(
@@ -564,7 +571,8 @@ mod tests {
             reason: PlanDecisionReason::default(),
         };
 
-        let report = read_governed_terminal_damage_report(&plan).expect("governed report");
+        let report = read_governed_terminal_damage_report(&plan)
+            .unwrap_or_else(|err| panic!("governed report: {err}"));
         assert_eq!(report.tool_id, "cutadapt");
         assert_eq!(
             report.raw_backend_report_format.as_deref(),

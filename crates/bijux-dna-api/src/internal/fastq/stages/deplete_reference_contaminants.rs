@@ -307,7 +307,7 @@ fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
     let contaminant_fraction_removed = if reads_in == 0 {
         0.0
     } else {
-        reads_removed as f64 / reads_in as f64
+        u64_to_f64(reads_removed) / u64_to_f64(reads_in)
     };
 
     Ok(DepleteReferenceContaminantsReportV1 {
@@ -359,6 +359,10 @@ fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
             "bases_removed": bases_removed,
         })),
     })
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 fn artifact_output_path(

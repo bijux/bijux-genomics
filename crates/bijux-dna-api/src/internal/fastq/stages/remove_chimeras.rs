@@ -29,6 +29,10 @@ use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json
 
 const STAGE_ID: &str = "fastq.remove_chimeras";
 
+/// Benchmark FASTQ chimera-removal tools under governed contracts.
+///
+/// # Errors
+/// Returns an error if planning, execution, report parsing, or persistence fails.
 pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -176,28 +180,29 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let chimera_fraction = if reads_in == 0 {
             0.0
         } else {
-            chimeras_removed as f64 / reads_in as f64
+            u64_to_f64(chimeras_removed) / u64_to_f64(reads_in)
         };
         let effective_params: ChimeraDetectionEffectiveParams =
             serde_json::from_value(plan.effective_params.clone())
                 .map_err(|error| anyhow!("parse remove_chimeras effective params: {error}"))?;
-        let report = build_remove_chimeras_report(
-            tool,
-            &effective_params,
-            &args.r1,
-            &filtered_reads.path,
-            &metrics_output.path,
-            chimeras_fasta.as_deref(),
-            uchime_report_tsv.as_deref(),
+        let report_inputs = RemoveChimerasReportInputs {
+            tool_id: tool,
+            effective_params: &effective_params,
+            input_reads: &args.r1,
+            output_reads: &filtered_reads.path,
+            chimera_metrics_json: &metrics_output.path,
+            chimeras_fasta: chimeras_fasta.as_deref(),
+            uchime_report_tsv: uchime_report_tsv.as_deref(),
             reads_in,
             reads_out,
             chimeras_removed,
             chimera_fraction,
             used_fallback,
-            execution.runtime_s,
-            execution.memory_mb,
-            execution.exit_code,
-        );
+            runtime_s: execution.runtime_s,
+            memory_mb: execution.memory_mb,
+            exit_code: execution.exit_code,
+        };
+        let report = build_remove_chimeras_report(&report_inputs);
         bijux_dna_infra::atomic_write_json(&report_output.path, &report)?;
         bijux_dna_infra::atomic_write_json(
             &metrics_output.path,
@@ -259,14 +264,14 @@ fn parse_uchime_summary(path: Option<&std::path::Path>) -> Option<serde_json::Va
     }))
 }
 
-fn build_remove_chimeras_report(
-    tool_id: &str,
-    effective_params: &ChimeraDetectionEffectiveParams,
-    input_reads: &std::path::Path,
-    output_reads: &std::path::Path,
-    chimera_metrics_json: &std::path::Path,
-    chimeras_fasta: Option<&std::path::Path>,
-    uchime_report_tsv: Option<&std::path::Path>,
+struct RemoveChimerasReportInputs<'a> {
+    tool_id: &'a str,
+    effective_params: &'a ChimeraDetectionEffectiveParams,
+    input_reads: &'a std::path::Path,
+    output_reads: &'a std::path::Path,
+    chimera_metrics_json: &'a std::path::Path,
+    chimeras_fasta: Option<&'a std::path::Path>,
+    uchime_report_tsv: Option<&'a std::path::Path>,
     reads_in: u64,
     reads_out: u64,
     chimeras_removed: u64,
@@ -275,34 +280,41 @@ fn build_remove_chimeras_report(
     runtime_s: f64,
     memory_mb: f64,
     exit_code: i32,
-) -> RemoveChimerasReportV1 {
+}
+
+fn build_remove_chimeras_report(inputs: &RemoveChimerasReportInputs<'_>) -> RemoveChimerasReportV1 {
     RemoveChimerasReportV1 {
         schema_version: REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_ID.to_string(),
         stage_id: STAGE_ID.to_string(),
-        tool_id: tool_id.to_string(),
+        tool_id: inputs.tool_id.to_string(),
         paired_mode: PairedMode::SingleEnd,
-        threads: effective_params.threads,
-        method: effective_params.method.clone(),
-        detection_scope: effective_params.detection_scope.clone(),
-        chimera_removed_definition: effective_params.chimera_removed_definition.clone(),
-        input_reads: input_reads.display().to_string(),
-        output_reads: output_reads.display().to_string(),
-        chimera_metrics_json: chimera_metrics_json.display().to_string(),
-        chimeras_fasta: chimeras_fasta.map(|path| path.display().to_string()),
-        uchime_report_tsv: uchime_report_tsv.map(|path| path.display().to_string()),
-        reads_in: Some(reads_in),
-        reads_out: Some(reads_out),
-        chimeras_removed: Some(chimeras_removed),
-        chimera_fraction: Some(chimera_fraction),
-        used_fallback,
-        raw_backend_report: uchime_report_tsv.map(|path| path.display().to_string()),
-        raw_backend_report_format: uchime_report_tsv
-            .map(|_| effective_params.raw_backend_report_format.clone()),
-        runtime_s: Some(runtime_s),
-        memory_mb: Some(memory_mb),
-        exit_code: Some(exit_code),
-        backend_metrics: parse_uchime_summary(uchime_report_tsv),
+        threads: inputs.effective_params.threads,
+        method: inputs.effective_params.method.clone(),
+        detection_scope: inputs.effective_params.detection_scope.clone(),
+        chimera_removed_definition: inputs.effective_params.chimera_removed_definition.clone(),
+        input_reads: inputs.input_reads.display().to_string(),
+        output_reads: inputs.output_reads.display().to_string(),
+        chimera_metrics_json: inputs.chimera_metrics_json.display().to_string(),
+        chimeras_fasta: inputs.chimeras_fasta.map(|path| path.display().to_string()),
+        uchime_report_tsv: inputs
+            .uchime_report_tsv
+            .map(|path| path.display().to_string()),
+        reads_in: Some(inputs.reads_in),
+        reads_out: Some(inputs.reads_out),
+        chimeras_removed: Some(inputs.chimeras_removed),
+        chimera_fraction: Some(inputs.chimera_fraction),
+        used_fallback: inputs.used_fallback,
+        raw_backend_report: inputs
+            .uchime_report_tsv
+            .map(|path| path.display().to_string()),
+        raw_backend_report_format: inputs
+            .uchime_report_tsv
+            .map(|_| inputs.effective_params.raw_backend_report_format.clone()),
+        runtime_s: Some(inputs.runtime_s),
+        memory_mb: Some(inputs.memory_mb),
+        exit_code: Some(inputs.exit_code),
+        backend_metrics: parse_uchime_summary(inputs.uchime_report_tsv),
     }
 }
 
@@ -333,4 +345,8 @@ fn governed_chimera_params(threads: u32) -> ChimeraDetectionEffectiveParams {
                 .to_string(),
         fallback_behavior: "copy_input_reads_and_mark_report".to_string(),
     }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

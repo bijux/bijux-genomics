@@ -293,14 +293,18 @@ fn build_screen_record(
         .params
         .get("report")
         .and_then(serde_json::Value::as_str)
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| out_dir.join("screen_report.tsv"));
+        .map_or_else(
+            || out_dir.join("screen_report.tsv"),
+            std::path::PathBuf::from,
+        );
     let classification_report_path = plan
         .params
         .get("assignments")
         .and_then(serde_json::Value::as_str)
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| out_dir.join("classification_report.json"));
+        .map_or_else(
+            || out_dir.join("classification_report.json"),
+            std::path::PathBuf::from,
+        );
     let reads_in = bench_inputs.input_stats.reads
         + bench_inputs
             .input_stats_r2
@@ -325,7 +329,7 @@ fn build_screen_record(
         stage: STAGE_SCREEN_TAXONOMY.as_str().to_string(),
         stage_id: STAGE_SCREEN_TAXONOMY.as_str().to_string(),
         tool_id: tool.to_string(),
-        paired_mode: effective_params.paired_mode.clone(),
+        paired_mode: effective_params.paired_mode,
         threads: effective_params.threads,
         classifier: effective_params.classifier.clone(),
         report_format: effective_params.report_format.clone(),

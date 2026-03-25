@@ -840,8 +840,7 @@ fn execution_step_batches(graph: &ExecutionGraph) -> Result<Vec<Vec<ExecutionSte
             .map(|step_id| {
                 graph.step_by_id(step_id).cloned().ok_or_else(|| {
                     anyhow!(
-                        "execution graph is missing planned step {} during runtime batching",
-                        step_id
+                        "execution graph is missing planned step {step_id} during runtime batching"
                     )
                 })
             })
@@ -994,7 +993,7 @@ fn execute_preprocess_batch(
     } else {
         let total = pending.len();
         let queue = std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::from(
-            pending.iter().cloned().collect::<Vec<_>>(),
+            pending.clone(),
         )));
         let results: std::sync::Arc<std::sync::Mutex<Vec<Option<Result<StageResultV1>>>>> =
             std::sync::Arc::new(std::sync::Mutex::new(Vec::with_capacity(total)));
@@ -1059,6 +1058,7 @@ fn execute_preprocess_batch(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod pipeline_run_tests {
     use super::{
         enforce_stage_applicability, execution_step_batches, planner_selection_surfaces,

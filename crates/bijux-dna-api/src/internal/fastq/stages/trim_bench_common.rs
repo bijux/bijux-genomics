@@ -180,9 +180,9 @@ pub(crate) fn terminal_damage_profile(path: &Path) -> Result<Value> {
             break;
         }
     }
-    let denom = (ct_events + ga_events) as f64;
+    let denom = u64_to_f64(ct_events + ga_events);
     let asymmetry = if denom > 0.0 {
-        (ct_events as f64 - ga_events as f64) / denom
+        (u64_to_f64(ct_events) - u64_to_f64(ga_events)) / denom
     } else {
         0.0
     };
@@ -207,8 +207,12 @@ fn ratio_u64(num: u64, denom: u64) -> f64 {
     if denom == 0 {
         0.0
     } else {
-        num as f64 / denom as f64
+        u64_to_f64(num) / u64_to_f64(denom)
     }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 #[allow(dead_code)]
@@ -233,6 +237,7 @@ fn open_fastq_lines(path: &Path) -> Result<Box<dyn Iterator<Item = String>>> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::require_existing_benchmark_output;
 

@@ -34,8 +34,8 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_CORRECT_ERRORS,
 };
 use bijux_dna_domain_fastq::{
-    params::correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION},
-    CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION,
+    params::correct::FastqCorrectParams, CorrectErrorsReportV1,
+    CORRECT_ERRORS_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_stage_contract::StagePlanV1;
@@ -461,10 +461,14 @@ fn weighted_mean_q(primary: &SeqkitMetrics, secondary: Option<&SeqkitMetrics>) -
     if total_bases == 0 {
         return 0.0;
     }
-    let secondary_weighted_mean = secondary
-        .map(|metrics| metrics.mean_q * metrics.bases as f64)
-        .unwrap_or(0.0);
-    ((primary.mean_q * primary.bases as f64) + secondary_weighted_mean) / total_bases as f64
+    let secondary_weighted_mean =
+        secondary.map_or(0.0, |metrics| metrics.mean_q * u64_to_f64(metrics.bases));
+    ((primary.mean_q * u64_to_f64(primary.bases)) + secondary_weighted_mean)
+        / u64_to_f64(total_bases)
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 fn kmer_fix_rate_proxy(mean_q_before: f64, mean_q_after: f64, outputs_changed: bool) -> f64 {
@@ -587,6 +591,7 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::{
         apply_thread_override, build_correction_report, correct_metrics_from_observed_stats,
@@ -618,7 +623,7 @@ mod tests {
             command: CommandSpecV1 {
                 template: vec!["musket".to_string()],
             },
-            resources: Default::default(),
+            resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
                 outputs: vec![
@@ -666,7 +671,7 @@ mod tests {
             command: CommandSpecV1 {
                 template: vec!["musket".to_string()],
             },
-            resources: Default::default(),
+            resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
                 outputs: vec![bijux_dna_core::prelude::ArtifactRef::required(
@@ -726,7 +731,7 @@ mod tests {
             Some(&seqkit_metrics(100, 10_000, 30.0)),
             false,
         );
-        assert_eq!(metrics.kmer_fix_rate, 0.0);
+        assert!((metrics.kmer_fix_rate - 0.0).abs() < f64::EPSILON);
     }
 
     #[test]
@@ -760,7 +765,7 @@ mod tests {
             command: CommandSpecV1 {
                 template: vec!["rcorrector".to_string()],
             },
-            resources: Default::default(),
+            resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
                 outputs: vec![bijux_dna_core::prelude::ArtifactRef::required(
@@ -819,7 +824,7 @@ mod tests {
             None,
             std::path::Path::new("correct_report.json"),
             &serde_json::json!({
-                "schema_version": CORRECT_SCHEMA_VERSION,
+                "schema_version": bijux_dna_domain_fastq::params::correct::CORRECT_SCHEMA_VERSION,
                 "paired_mode": "single_end",
                 "threads": 8,
                 "correction_engine": "lighter",

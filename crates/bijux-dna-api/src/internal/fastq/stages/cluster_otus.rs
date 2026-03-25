@@ -81,51 +81,62 @@ pub(crate) fn count_cluster_otus_representatives(path: &std::path::Path) -> Resu
         .count() as u64)
 }
 
+pub(crate) struct ClusterOtusReportInputs<'a> {
+    pub tool_id: &'a str,
+    pub input_reads: &'a std::path::Path,
+    pub otu_table: &'a std::path::Path,
+    pub otu_representatives: &'a std::path::Path,
+    pub taxonomy_reference_fasta: &'a std::path::Path,
+    pub taxonomy_reads_fastq: &'a std::path::Path,
+    pub report_json: &'a std::path::Path,
+    pub effective_params: &'a OtuClusteringEffectiveParams,
+    pub table_metrics: ClusterOtusTableMetrics,
+    pub representative_sequence_count: u64,
+    pub runtime_s: Option<f64>,
+    pub memory_mb: Option<f64>,
+    pub exit_code: Option<i32>,
+    pub used_fallback: bool,
+    pub raw_backend_report: Option<&'a std::path::Path>,
+    pub backend_metrics: Option<serde_json::Value>,
+}
+
 pub(crate) fn canonical_cluster_otus_report(
-    tool_id: &str,
-    input_reads: &std::path::Path,
-    otu_table: &std::path::Path,
-    otu_representatives: &std::path::Path,
-    taxonomy_ready_fasta: &std::path::Path,
-    taxonomy_ready_fastq: &std::path::Path,
-    report_json: &std::path::Path,
-    effective_params: &OtuClusteringEffectiveParams,
-    table_metrics: ClusterOtusTableMetrics,
-    representative_sequence_count: u64,
-    runtime_s: Option<f64>,
-    memory_mb: Option<f64>,
-    exit_code: Option<i32>,
-    used_fallback: bool,
-    raw_backend_report: Option<&std::path::Path>,
-    backend_metrics: Option<serde_json::Value>,
+    inputs: ClusterOtusReportInputs<'_>,
 ) -> ClusterOtusReportV1 {
     ClusterOtusReportV1 {
         schema_version: CLUSTER_OTUS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_ID.to_string(),
         stage_id: STAGE_ID.to_string(),
-        tool_id: tool_id.to_string(),
-        otu_identity: effective_params.identity_threshold,
-        threads: effective_params.threads,
-        input_reads: input_reads.display().to_string(),
-        otu_table: otu_table.display().to_string(),
-        otu_representatives: otu_representatives.display().to_string(),
-        taxonomy_ready_fasta: taxonomy_ready_fasta.display().to_string(),
-        taxonomy_ready_fastq: taxonomy_ready_fastq.display().to_string(),
-        report_json: report_json.display().to_string(),
-        otu_count: table_metrics.otu_count,
-        sample_count: table_metrics.sample_count,
-        representative_sequence_count,
-        output_table_kind: effective_params.output_table_kind.clone(),
-        used_fallback,
-        runtime_s,
-        memory_mb,
-        exit_code,
-        raw_backend_report: raw_backend_report.map(|path| path.display().to_string()),
-        raw_backend_report_format: effective_params.raw_backend_report_format.clone(),
-        backend_metrics,
+        tool_id: inputs.tool_id.to_string(),
+        otu_identity: inputs.effective_params.identity_threshold,
+        threads: inputs.effective_params.threads,
+        input_reads: inputs.input_reads.display().to_string(),
+        otu_table: inputs.otu_table.display().to_string(),
+        otu_representatives: inputs.otu_representatives.display().to_string(),
+        taxonomy_ready_fasta: inputs.taxonomy_reference_fasta.display().to_string(),
+        taxonomy_ready_fastq: inputs.taxonomy_reads_fastq.display().to_string(),
+        report_json: inputs.report_json.display().to_string(),
+        otu_count: inputs.table_metrics.otu_count,
+        sample_count: inputs.table_metrics.sample_count,
+        representative_sequence_count: inputs.representative_sequence_count,
+        output_table_kind: inputs.effective_params.output_table_kind.clone(),
+        used_fallback: inputs.used_fallback,
+        runtime_s: inputs.runtime_s,
+        memory_mb: inputs.memory_mb,
+        exit_code: inputs.exit_code,
+        raw_backend_report: inputs
+            .raw_backend_report
+            .map(|path| path.display().to_string()),
+        raw_backend_report_format: inputs.effective_params.raw_backend_report_format.clone(),
+        backend_metrics: inputs.backend_metrics,
     }
 }
 
+/// Benchmark FASTQ OTU clustering tools against governed stage contracts.
+///
+/// # Errors
+/// Returns an error if input discovery, planning, execution, report materialization,
+/// or `SQLite` persistence fails.
 pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -225,8 +236,8 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
         let payload = materialize_amplicon_stage_outputs_for_bench(&out_dir, &step)?;
         let otu_table = output_path(&plan, "otu_table")?;
         let otu_representatives = output_path(&plan, "otu_representatives")?;
-        let taxonomy_ready_fasta = output_path(&plan, "taxonomy_ready_fasta")?;
-        let taxonomy_ready_fastq = output_path(&plan, "taxonomy_ready_fastq")?;
+        let taxonomy_reference_fasta = output_path(&plan, "taxonomy_ready_fasta")?;
+        let taxonomy_reads_fastq = output_path(&plan, "taxonomy_ready_fastq")?;
         let report_json = output_path(&plan, "report_json")?;
         let table_metrics = read_cluster_otus_table_metrics(&otu_table)?;
         let representative_count = count_cluster_otus_representatives(&otu_representatives)?;
@@ -242,31 +253,31 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
             serde_json::from_value(plan.effective_params.clone())
                 .context("parse cluster_otus effective params")?;
         let raw_backend_report = out_dir.join("otu_clusters.uc");
-        let report = canonical_cluster_otus_report(
-            tool,
-            &args.r1,
-            &otu_table,
-            &otu_representatives,
-            &taxonomy_ready_fasta,
-            &taxonomy_ready_fastq,
-            &report_json,
-            &effective_params,
+        let report = canonical_cluster_otus_report(ClusterOtusReportInputs {
+            tool_id: tool,
+            input_reads: &args.r1,
+            otu_table: &otu_table,
+            otu_representatives: &otu_representatives,
+            taxonomy_reference_fasta: &taxonomy_reference_fasta,
+            taxonomy_reads_fastq: &taxonomy_reads_fastq,
+            report_json: &report_json,
+            effective_params: &effective_params,
             table_metrics,
-            representative_count,
-            Some(execution.runtime_s),
-            Some(execution.memory_mb),
-            Some(execution.exit_code),
-            payload
+            representative_sequence_count: representative_count,
+            runtime_s: Some(execution.runtime_s),
+            memory_mb: Some(execution.memory_mb),
+            exit_code: Some(execution.exit_code),
+            used_fallback: payload
                 .get("used_fallback")
                 .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false),
-            raw_backend_report
+            raw_backend_report: raw_backend_report
                 .exists()
                 .then_some(raw_backend_report.as_path()),
-            Some(serde_json::json!({
+            backend_metrics: Some(serde_json::json!({
                 "tool_payload": payload,
             })),
-        );
+        });
         bijux_dna_infra::atomic_write_json(&report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),

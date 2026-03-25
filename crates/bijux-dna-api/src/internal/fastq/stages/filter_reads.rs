@@ -231,7 +231,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let output_stats_r1 = if execution.exit_code == 0 && output_reads.exists() {
         observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads)?
     } else {
-        bench_inputs.input_stats.clone()
+        bench_inputs.input_stats
     };
     let output_stats_r2 = if let Some(output_reads_r2) = output_reads_r2 {
         if execution.exit_code == 0 && output_reads_r2.exists() {
@@ -242,7 +242,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
                 output_reads_r2,
             )?)
         } else {
-            input_stats_r2.cloned()
+            input_stats_r2.copied()
         }
     } else {
         None
@@ -288,8 +288,10 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         input_r1: params
             .get("input_r1")
             .and_then(serde_json::Value::as_str)
-            .map(ToString::to_string)
-            .unwrap_or_else(|| bench_inputs.r1.display().to_string()),
+            .map_or_else(
+                || bench_inputs.r1.display().to_string(),
+                ToString::to_string,
+            ),
         input_r2: params
             .get("input_r2")
             .and_then(serde_json::Value::as_str)
@@ -398,6 +400,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
 }
 
 #[derive(Debug, Clone, Copy, Default)]
+#[allow(clippy::struct_field_names)]
 struct FilterRemovalCounts {
     reads_removed_by_n: u64,
     reads_removed_by_entropy: u64,
@@ -464,6 +467,7 @@ fn derive_filter_removal_counts(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::{derive_filter_removal_counts, parse_filter_backend_metrics};
 
