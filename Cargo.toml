@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/bijux-dev-dna",
+members = ["crates/bijux-dna-dev",
   "crates/bijux-dna",
   "crates/bijux-dna-analyze",
   "crates/bijux-dna-api",

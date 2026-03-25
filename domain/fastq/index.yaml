@@ -1,5 +1,5 @@
 # GENERATED FILE - DO NOT EDIT
-# Regenerate with: cargo run -p bijux-dev-dna -- domain run generate-index -- fastq
+# Regenerate with: cargo run -p bijux-dna-dev -- domain run generate-index -- fastq
 
 domain: fastq
 domain_version: v1

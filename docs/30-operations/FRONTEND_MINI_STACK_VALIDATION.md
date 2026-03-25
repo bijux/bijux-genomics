@@ -13,8 +13,8 @@ This document does not define heavy-corpus performance or production-scale accep
 The mini validator must enforce all checks listed below.
 
 ## Runner
-- Script: `cargo run -q -p bijux-dev-dna -- tooling run validate-frontend-mini-domain-stacks`
-- Check wrapper: `cargo run -q -p bijux-dev-dna -- checks run check-frontend-mini-domain-validation`
+- Script: `cargo run -q -p bijux-dna-dev -- tooling run validate-frontend-mini-domain-stacks`
+- Check wrapper: `cargo run -q -p bijux-dna-dev -- checks run check-frontend-mini-domain-validation`
 - Output summary: `artifacts/domain/frontend-mini-validation/summary.json`
 
 ## What Is Validated
@@ -27,7 +27,7 @@ The mini validator must enforce all checks listed below.
   - `gl` (low depth)
   - `pseudohaploid` (mid depth)
   - `diploid` (high depth)
-  via `cargo run -p bijux-dev-dna -- tooling run simulate-coverage-regime`.
+  via `cargo run -p bijux-dna-dev -- tooling run simulate-coverage-regime`.
 - BAM authenticity consistency is validated from stage contract + fixtures (`authenticct`, `pmdtools`, `damageprofiler`).
 
 ## Current Gap (Detected by Validator)

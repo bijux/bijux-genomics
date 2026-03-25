@@ -9,7 +9,7 @@ use support::workspace_root;
 fn policy__contracts__apptainer_vm_output_policy__builder_enforces_vm_local_writable_and_copy_back()
 {
     let root = workspace_root();
-    let path = root.join("crates/bijux-dev-dna/src/commands/containers.rs");
+    let path = root.join("crates/bijux-dna-dev/src/commands/containers.rs");
     let content = std::fs::read_to_string(&path).expect("read native container workflows");
 
     let required = [

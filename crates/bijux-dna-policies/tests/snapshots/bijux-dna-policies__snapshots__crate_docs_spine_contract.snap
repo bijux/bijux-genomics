@@ -3,8 +3,8 @@ source: crates/bijux-dna-policies/tests/boundaries/surface/docs/docs_spine_contr
 assertion_line: 33
 expression: "bijux_dna_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 ---
-[bijux-dev-dna]
-# bijux-dev-dna Docs Index
+[bijux-dna-dev]
+# bijux-dna-dev Docs Index
 
 ## Scope
 - [SCOPE.md](SCOPE.md)
@@ -23,7 +23,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 - Extend runtime adapters under `src/runtime` when a workflow needs a new boundary-owned capability.
 
 ## How to Test
-- Run `cargo test -p bijux-dev-dna`.
+- Run `cargo test -p bijux-dna-dev`.
 - Run `cargo test -p bijux-dna-policies policy__boundaries__docs_index_quality__docs_index_has_required_sections -- --nocapture`.
 
 [bijux-dna]

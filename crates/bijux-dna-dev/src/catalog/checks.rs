@@ -153,7 +153,7 @@ pub fn check_registry() -> Vec<CheckDefinition> {
                 "run",
                 "-q",
                 "-p",
-                "bijux-dev-dna",
+                "bijux-dna-dev",
                 "--",
                 "hpc",
                 "run",

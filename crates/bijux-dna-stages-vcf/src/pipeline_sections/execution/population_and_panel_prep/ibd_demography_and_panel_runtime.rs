@@ -196,7 +196,7 @@ pub fn run_prepare_reference_panel_stage(
         .ok_or_else(|| anyhow!("panel path has no parent: {}", panel_vcf.display()))?;
     if panel_parent.file_name().and_then(|x| x.to_str()) != Some("raw") {
         bail!(
-            "panel materialization refusal: panel must be acquired via cargo run -q -p bijux-dev-dna -- tooling run acquire-panels and live under .../raw/"
+            "panel materialization refusal: panel must be acquired via cargo run -q -p bijux-dna-dev -- tooling run acquire-panels and live under .../raw/"
         );
     }
     let source_panel_root = panel_parent

@@ -18,7 +18,7 @@ LINT_PARALLEL_COMMANDS_FILE ?= makes/lint.parallel.commands.txt
 COVERAGE_BASELINE = artifacts/coverage/baseline.json
 COVERAGE_THRESHOLDS := configs/coverage/thresholds.toml
 COVERAGE_OUT = coverage.json
-DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dev-dna
+DEV_DNA_BIN ?= $(CARGO_TARGET_DIR)/debug/bijux-dna-dev
 DEV_DNA_BOOTSTRAP ?= makes/bin/dev_dna_bootstrap.sh
 RUST_GATE_BIN ?= makes/bin/rust_gate.sh
 RS_ARTIFACT_ROOT ?= $(ARTIFACT_ROOT)/rust
@@ -39,7 +39,7 @@ RS_COVERAGE_DIR ?= $(RS_ARTIFACT_ROOT)/coverage/$(RS_RUN_ID)
 RS_LCOV_FILE ?= $(RS_COVERAGE_DIR)/lcov.info
 RS_COVERAGE_TEST_REPORT ?= $(RS_COVERAGE_DIR)/nextest.log
 RS_COVERAGE_SUMMARY_REPORT ?= $(RS_COVERAGE_DIR)/summary.txt
-RS_CLIPPY_EXCLUDES ?= bijux-dev-dna
+RS_CLIPPY_EXCLUDES ?= bijux-dna-dev
 NEXTEST_STATUS_LEVEL ?= all
 NEXTEST_FINAL_STATUS_LEVEL ?= all
 
@@ -217,7 +217,7 @@ audit-rs: ## Run Rust advisory and license audits.
 
 _audit:
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run ci-audit
+	@cargo run -q -p bijux-dna-dev -- tooling run ci-audit
 
 coverage:
 	@$(ensure_artifact_env)
@@ -233,7 +233,7 @@ coverage-workspace: ## Run the governed coverage control-plane lane.
 
 _coverage:
 	@$(ensure_artifact_env)
-	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" cargo run -q -p bijux-dev-dna -- tooling run ci-coverage
+	@NEXTEST_CONFIG="$(NEXTEST_CONFIG)" TEST_FEATURES="$(TEST_FEATURES)" NEXTEST_PROFILE="$(NEXTEST_PROFILE)" NEXTEST_TEST_THREADS="$(NEXTEST_TEST_THREADS)" RUN_IGNORED="$(RUN_IGNORED)" COVERAGE_OUT="$(COVERAGE_OUT)" COVERAGE_BASELINE="$(COVERAGE_BASELINE)" COVERAGE_THRESHOLDS="$(COVERAGE_THRESHOLDS)" cargo run -q -p bijux-dna-dev -- tooling run ci-coverage
 
 doctor:
 	@$(ensure_artifact_env)
@@ -241,32 +241,32 @@ doctor:
 
 _doctor:
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run repo-doctor --fast
-	@cargo run -q -p bijux-dev-dna -- checks run check-legacy-automation-removed
-	@cargo run -q -p bijux-dev-dna -- checks run check-config-schema
-	@cargo run -q -p bijux-dev-dna -- checks run check-nextest-profile-contract
-	@cargo run -q -p bijux-dev-dna -- checks run check-runtime-profiles-contract
-	@cargo run -q -p bijux-dev-dna -- checks run check-logging-contract
-	@cargo run -q -p bijux-dev-dna -- checks run check-hpc-rsync-docs-parity
-	@cargo run -q -p bijux-dev-dna -- checks run check-run-directory-layout
-	@cargo run -q -p bijux-dev-dna -- checks run check-registry-required-tools-parity
-	@cargo run -q -p bijux-dev-dna -- checks run check-domain-tool-parity
-	@cargo run -q -p bijux-dev-dna -- checks run check-stage-domain-parity
-	@cargo run -q -p bijux-dev-dna -- checks run check-stage-registry-governance
-	@cargo run -q -p bijux-dev-dna -- checks run check-enabled-vcf-panel-metadata
-	@cargo run -q -p bijux-dev-dna -- checks run check-param-registry-completeness
-	@cargo run -q -p bijux-dev-dna -- checks run check-deprecations-enforcement
-	@cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-makes
+	@cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast
+	@cargo run -q -p bijux-dna-dev -- checks run check-legacy-automation-removed
+	@cargo run -q -p bijux-dna-dev -- checks run check-config-schema
+	@cargo run -q -p bijux-dna-dev -- checks run check-nextest-profile-contract
+	@cargo run -q -p bijux-dna-dev -- checks run check-runtime-profiles-contract
+	@cargo run -q -p bijux-dna-dev -- checks run check-logging-contract
+	@cargo run -q -p bijux-dna-dev -- checks run check-hpc-rsync-docs-parity
+	@cargo run -q -p bijux-dna-dev -- checks run check-run-directory-layout
+	@cargo run -q -p bijux-dna-dev -- checks run check-registry-required-tools-parity
+	@cargo run -q -p bijux-dna-dev -- checks run check-domain-tool-parity
+	@cargo run -q -p bijux-dna-dev -- checks run check-stage-domain-parity
+	@cargo run -q -p bijux-dna-dev -- checks run check-stage-registry-governance
+	@cargo run -q -p bijux-dna-dev -- checks run check-enabled-vcf-panel-metadata
+	@cargo run -q -p bijux-dna-dev -- checks run check-param-registry-completeness
+	@cargo run -q -p bijux-dna-dev -- checks run check-deprecations-enforcement
+	@cargo run -q -p bijux-dna-dev -- checks run check-no-raw-cargo-in-makes
 
 _install-ci-tools: ## Install required cargo tools once per CI job.
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run ci-install-tools
+	@cargo run -q -p bijux-dna-dev -- tooling run ci-install-tools
 
 _domain-gates: _domain-validate _domain-inventory-drift _check-generated-configs _check-generated-config-headers
 
 ci:
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run repo-doctor --fast
+	@cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast
 	@$(MAKE) fmt lint audit test coverage
 
 _check:
@@ -284,26 +284,26 @@ _clean-artifact-scratch:
 	@mkdir -p "$(ARTIFACT_ROOT)/tmp"
 
 _policy-fast: ## Run fast policy checks (no snapshots)
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets policy-fast
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets policy-fast
 	$(MAKE) _domain-gates
 
 _ssot-policy-fast: ## Fast-fail SSOT and registry policy checks.
-	cargo run -q -p bijux-dev-dna -- checks run check-ssot-guardrails
+	cargo run -q -p bijux-dna-dev -- checks run check-ssot-guardrails
 	$(MAKE) _domain-gates
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets ssot-policy-fast
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets ssot-policy-fast
 
 _test-profile-invariants: ## Run pipeline profile invariant contract tests.
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets test-profile-invariants
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets test-profile-invariants
 
 _registry-lint: ## Run strict tool registry reproducibility policy checks.
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets registry-lint
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets registry-lint
 
 _unit-contract-fast: ## Fast unit/contract checks for critical crates.
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets unit-contract-fast
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets unit-contract-fast
 
 _release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
 	$(MAKE) _registry-lint
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets release-readiness
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets release-readiness
 
 _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) _ssot-policy-fast
@@ -329,125 +329,125 @@ _quick: ## Quick local gate: fmt + clippy + unit + invariant tests.
 	$(MAKE) _registry-lint
 
 _policy-full: ## Run full policy suite
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets policy-full
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets policy-full
 	$(MAKE) _domain-gates
 
 _domain-validate:
-	cargo run -q -p bijux-dev-dna -- domain run validate
+	cargo run -q -p bijux-dna-dev -- domain run validate
 
 domain-validate:
-	cargo run -q -p bijux-dev-dna -- domain run validate
+	cargo run -q -p bijux-dna-dev -- domain run validate
 
 _domain-coverage:
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets domain-coverage
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets domain-coverage
 
 _domain-inventory-drift:
-	cargo run -q -p bijux-dev-dna -- domain run inventory-drift
+	cargo run -q -p bijux-dna-dev -- domain run inventory-drift
 
 _snapshots:
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets snapshots
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets snapshots
 
 _snapshots-accept:
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets snapshots-accept
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets snapshots-accept
 
 _snapshots-review:
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets snapshots-review
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets snapshots-review
 
 _fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta workflow.
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets fix-snapshots
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets fix-snapshots
 
 _test-triage: ## Group failed tests from a saved nextest log.
-	@cargo run -q -p bijux-dev-dna -- test run test-triage "$(ARTIFACTS_DIR)/test-logs/latest.log"
+	@cargo run -q -p bijux-dna-dev -- test run test-triage "$(ARTIFACTS_DIR)/test-logs/latest.log"
 
 generate-configs:
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run generate-configs
+	@cargo run -q -p bijux-dna-dev -- tooling run generate-configs
 
 _generate-configs:
 	@$(MAKE) generate-configs
 
 _check-generated-configs:
-	cargo run -q -p bijux-dev-dna -- checks run check-generated-configs
+	cargo run -q -p bijux-dna-dev -- checks run check-generated-configs
 
 _check-generated-config-headers:
-	cargo run -q -p bijux-dev-dna -- checks run check-generated-config-headers
+	cargo run -q -p bijux-dna-dev -- checks run check-generated-config-headers
 
 _policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/control-plane surfaces.
-	cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-makes
-	cargo run -q -p bijux-dev-dna -- checks run check-no-raw-cargo-in-automation
+	cargo run -q -p bijux-dna-dev -- checks run check-no-raw-cargo-in-makes
+	cargo run -q -p bijux-dna-dev -- checks run check-no-raw-cargo-in-automation
 
 flake-hunt: ## Run repeated flake hunt for an expression (EXPR required, RUNS optional).
 	@$(ensure_artifact_env)
 	@if [ -z "$(EXPR)" ]; then echo "EXPR is required, e.g. make flake-hunt EXPR='test(...)' RUNS=20" >&2; exit 2; fi
-	@cargo run -q -p bijux-dev-dna -- tooling run flake-hunt --expr "$(EXPR)" --runs "$(or $(RUNS),20)"
+	@cargo run -q -p bijux-dna-dev -- tooling run flake-hunt --expr "$(EXPR)" --runs "$(or $(RUNS),20)"
 
 realness-gate: ## Run strict realness checks (placeholder artifacts + planner realization).
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- checks run check-domain-realization
-	@cargo run -q -p bijux-dev-dna -- checks run check-no-fake-artifacts
+	@cargo run -q -p bijux-dna-dev -- checks run check-domain-realization
+	@cargo run -q -p bijux-dna-dev -- checks run check-no-fake-artifacts
 
 _policy-index: ## Generate policy index under artifacts/.
-	@cargo run -q -p bijux-dev-dna -- tooling run generate-policy-index
+	@cargo run -q -p bijux-dna-dev -- tooling run generate-policy-index
 
 _policy-only-fast-gate: ## Compile+run policies and critical contract crates only.
-	@cargo run -q -p bijux-dev-dna -- tooling run cargo-targets policy-only-fast-gate
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets policy-only-fast-gate
 
 _control-plane-inventory: ## Generate control-plane inventory under artifacts/
-	@cargo run -q -p bijux-dev-dna -- tooling run inventory
+	@cargo run -q -p bijux-dna-dev -- tooling run inventory
 
 _config-inventory: ## Generate config inventory under artifacts/
-	@cargo run -q -p bijux-dev-dna -- tooling run config-inventory
+	@cargo run -q -p bijux-dna-dev -- tooling run config-inventory
 
 _smoke-fastq: ## Quick local FASTQ smoke dry-run.
-	@cargo run -q -p bijux-dev-dna -- smoke run run fastq
+	@cargo run -q -p bijux-dna-dev -- smoke run run fastq
 
 _smoke-bam: ## Quick local BAM smoke dry-run.
-	@cargo run -q -p bijux-dev-dna -- smoke run run bam
+	@cargo run -q -p bijux-dna-dev -- smoke run run bam
 
 local-certification-gate: ## Run local mini-domain certification suite and emit bundle.
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run certification-gate
+	@cargo run -q -p bijux-dna-dev -- tooling run certification-gate
 
 vcf-certification: ## Local-only VCF certification run (sequential VCF stage contract suite).
 	@$(ensure_artifact_env)
-	@NEXTEST_PROFILE="$(NEXTEST_PROFILE_CERT)" cargo run -q -p bijux-dev-dna -- tooling run cargo-targets vcf-certification
+	@NEXTEST_PROFILE="$(NEXTEST_PROFILE_CERT)" cargo run -q -p bijux-dna-dev -- tooling run cargo-targets vcf-certification
 
 certify-fastq: ## Local FASTQ certification smoke.
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run certify-fastq
+	@cargo run -q -p bijux-dna-dev -- tooling run certify-fastq
 
 certify-bam: ## Local BAM certification smoke.
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run certify-bam
+	@cargo run -q -p bijux-dna-dev -- tooling run certify-bam
 
 certify-vcf: ## Local VCF certification suite.
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run certify-vcf
+	@cargo run -q -p bijux-dna-dev -- tooling run certify-vcf
 
 certify-all: ## Local cross-domain certification bundle (FASTQ+BAM+VCF downstream mini).
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- tooling run certify-all
+	@cargo run -q -p bijux-dna-dev -- tooling run certify-all
 
 examples-validate:
 	@$(MAKE) _examples-validate
 
 _examples-validate:
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-structure
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-index-ssot
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-corpus-manifests
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-corpus-checksums
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-corpus-layout
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-golden
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-runner-contract
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-cli-snapshot
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-notebook-policy
-	cargo run -q -p bijux-dev-dna -- checks run check-examples-policy
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-structure
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-index-ssot
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-corpus-manifests
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-corpus-checksums
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-corpus-layout
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-golden
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-runner-contract
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-cli-snapshot
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-notebook-policy
+	cargo run -q -p bijux-dna-dev -- checks run check-examples-policy
 
 refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
-	@cargo run -q -p bijux-dev-dna -- assets run refresh-toy
+	@cargo run -q -p bijux-dna-dev -- assets run refresh-toy
 
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
-	@cargo run -q -p bijux-dev-dna -- assets run refresh-golden
+	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
 .PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs audit audit-rs coverage coverage-rs coverage-workspace ci doctor _check _verify-artifact-env \
 		_clean-artifact-scratch \
@@ -464,16 +464,16 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 
 release-gate: ## Minimal publishable gate (docs + lint + registry/container locks).
 	@$(ensure_artifact_env)
-	@cargo run -q -p bijux-dev-dna -- docs run check-doc-links
-	@cargo run -q -p bijux-dev-dna -- checks run check-docs-build-contract
-	@cargo run -q -p bijux-dev-dna -- checks run check-tool-registry-lock
-	@cargo run -q -p bijux-dev-dna -- containers run check-version-lock
-	@cargo run -q -p bijux-dev-dna -- containers run check-version-authority
-	@cargo run -q -p bijux-dev-dna -- checks run check-root-layout
+	@cargo run -q -p bijux-dna-dev -- docs run check-doc-links
+	@cargo run -q -p bijux-dna-dev -- checks run check-docs-build-contract
+	@cargo run -q -p bijux-dna-dev -- checks run check-tool-registry-lock
+	@cargo run -q -p bijux-dna-dev -- containers run check-version-lock
+	@cargo run -q -p bijux-dna-dev -- containers run check-version-authority
+	@cargo run -q -p bijux-dna-dev -- checks run check-root-layout
 	@$(MAKE) certify-vcf
 
 _ci-profile-fast:
-	@cargo run -q -p bijux-dev-dna -- tooling run ci-fast
+	@cargo run -q -p bijux-dna-dev -- tooling run ci-fast
 
 _ci-profile-slow:
-	@cargo run -q -p bijux-dev-dna -- tooling run ci-slow
+	@cargo run -q -p bijux-dna-dev -- tooling run ci-slow

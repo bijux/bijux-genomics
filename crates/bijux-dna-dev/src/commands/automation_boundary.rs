@@ -105,7 +105,7 @@ pub(crate) fn check_no_raw_cargo_in_makes(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let raw_cargo_re = Regex::new(r"^\t@?.*\bcargo(\s|$)").expect("regex");
-    let allowed_re = Regex::new(r"cargo\s+run\s+(-q\s+)?-p\s+bijux-dev-dna\s+--").expect("regex");
+    let allowed_re = Regex::new(r"cargo\s+run\s+(-q\s+)?-p\s+bijux-dna-dev\s+--").expect("regex");
     let install_note_re = Regex::new(r"cargo install").expect("regex");
     let mut violations = Vec::new();
     for file in make_files(workspace)? {
@@ -128,7 +128,7 @@ pub(crate) fn check_no_raw_cargo_in_makes(
     if violations.is_empty() {
         return pass(
             check,
-            "make surface delegates through bijux-dev-dna without legacy automation",
+            "make surface delegates through bijux-dna-dev without legacy automation",
         );
     }
     fail(check, violations.join("\n"))

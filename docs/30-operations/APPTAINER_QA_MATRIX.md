@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-qa-matrix -->
+<!-- Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-qa-matrix -->
 
 # APPTAINER_QA_MATRIX
 

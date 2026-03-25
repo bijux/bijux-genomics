@@ -185,13 +185,13 @@ fn assets_refresh_golden(workspace: &Workspace, args: &[String]) -> Result<OpsCo
             r"# GENERATE
 
 ## Command(s)
-Generated via `cargo run -p bijux-dev-dna -- assets run refresh-golden`.
+Generated via `cargo run -p bijux-dna-dev -- assets run refresh-golden`.
 
 ## Tool versions
-- `bijux-dev-dna`, `cargo`, and `rustc` versions are recorded in `artifacts/assets-refresh/golden/report.json`.
+- `bijux-dna-dev`, `cargo`, and `rustc` versions are recorded in `artifacts/assets-refresh/golden/report.json`.
 
 ## Input origins
-- Derived from repository mini reference toy runs (`cargo run -p bijux-dev-dna -- test run toy-runs -- refresh --accept --profile all`).
+- Derived from repository mini reference toy runs (`cargo run -p bijux-dna-dev -- test run toy-runs -- refresh --accept --profile all`).
 
 ## Expected outputs
 - `manifest.json`
@@ -217,7 +217,7 @@ Generated via `cargo run -p bijux-dev-dna -- assets run refresh-golden`.
         &out_dir,
         &report_path,
         "golden/toy-runs-v1",
-        "cargo run -p bijux-dev-dna -- assets run refresh-golden",
+        "cargo run -p bijux-dna-dev -- assets run refresh-golden",
     )?;
     replace_dir(&out_dir, &target_dir)?;
     success_line(format!("golden refresh: wrote {}", target_dir.display()))
@@ -281,13 +281,13 @@ fn assets_refresh_toy(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         r"# GENERATE
 
 ## Command(s)
-Generated via `cargo run -p bijux-dev-dna -- assets run refresh-toy`.
+Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 
 ## Tool versions
-- `bijux-dev-dna`, `cargo`, and `rustc` versions are recorded in `artifacts/assets-refresh/toy/report.json`.
+- `bijux-dna-dev`, `cargo`, and `rustc` versions are recorded in `artifacts/assets-refresh/toy/report.json`.
 
 ## Input origins
-- Synthetic deterministic toy records authored in `bijux-dev-dna` assets control-plane commands.
+- Synthetic deterministic toy records authored in `bijux-dna-dev` assets control-plane commands.
 
 ## Expected outputs
 - `fastq/reads_1.fastq`
@@ -302,7 +302,7 @@ Generated via `cargo run -p bijux-dev-dna -- assets run refresh-toy`.
         &stage_dir,
         &report_path,
         "toy/core-v1",
-        "cargo run -p bijux-dev-dna -- assets run refresh-toy",
+        "cargo run -p bijux-dna-dev -- assets run refresh-toy",
     )?;
     replace_dir(&stage_dir, &target_dir)?;
     success_line(format!("toy refresh: wrote {}", target_dir.display()))
@@ -471,7 +471,7 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
 fn tooling_cargo_targets(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let Some(subcommand) = args.first().map(String::as_str) else {
         return Ok(OpsCommandOutcome::failure(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run cargo-targets -- <subcommand> [args...]\n",
+            "Usage: cargo run -p bijux-dna-dev -- tooling run cargo-targets -- <subcommand> [args...]\n",
         ));
     };
     let envs = artifact_env(workspace)?;
@@ -1166,7 +1166,7 @@ fn tooling_certify_vcf(workspace: &Workspace, args: &[String]) -> Result<OpsComm
 fn tooling_certify_domains(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let Some(mode) = args.first().map(String::as_str) else {
         return Ok(OpsCommandOutcome::failure(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run certify-domains -- <fastq|bam|vcf|all>\n",
+            "Usage: cargo run -p bijux-dna-dev -- tooling run certify-domains -- <fastq|bam|vcf|all>\n",
         ));
     };
     tooling_certify_domains_with_mode(workspace, mode)
@@ -1180,7 +1180,7 @@ fn tooling_certify_domains_with_mode(
         "fastq" | "bam" | "vcf" | "all" => {}
         _ => {
             return Ok(OpsCommandOutcome::failure(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run certify-domains -- <fastq|bam|vcf|all>\n",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run certify-domains -- <fastq|bam|vcf|all>\n",
             ))
         }
     }
@@ -1558,7 +1558,7 @@ fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Result<OpsComma
             }
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- tooling run flake-hunt -- --expr '<nextest-filter>' [--runs N]",
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run flake-hunt -- --expr '<nextest-filter>' [--runs N]",
                 )
             }
             other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n"))),
@@ -1743,12 +1743,12 @@ fn tooling_check_config_snapshot(
         [flag] if flag == "--if-config-changed" => true,
         [flag] if flag == "--help" || flag == "-h" => {
             return success_line(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run check-config-snapshot -- [--if-config-changed]",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run check-config-snapshot -- [--if-config-changed]",
             )
         }
         _ => {
             return Ok(OpsCommandOutcome::failure(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run check-config-snapshot -- [--if-config-changed]\n",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run check-config-snapshot -- [--if-config-changed]\n",
             ))
         }
     };
@@ -1767,14 +1767,14 @@ fn tooling_check_config_snapshot(
 
     if read_utf8(&baseline)? != read_utf8(&actual)? {
         return Ok(OpsCommandOutcome::failure(
-            "config snapshot drift detected; regenerate via cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot\n",
+            "config snapshot drift detected; regenerate via cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot\n",
         ));
     }
     if !read_utf8(&baseline)?
         .lines()
         .any(|line| {
             line.trim()
-                == "# generator = cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot"
+                == "# generator = cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot"
         })
     {
         return Ok(OpsCommandOutcome::failure(
@@ -1783,7 +1783,7 @@ fn tooling_check_config_snapshot(
     }
     if !marker_file.is_file() {
         return Ok(OpsCommandOutcome::failure(
-            "config snapshot marker missing: run cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot\n",
+            "config snapshot marker missing: run cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot\n",
         ));
     }
     let marker = read_utf8(&marker_file)?;
@@ -1796,7 +1796,7 @@ fn tooling_check_config_snapshot(
     let actual_sha = sha256_hex(&baseline)?;
     if marker_sha.is_empty() || marker_sha != actual_sha {
         return Ok(OpsCommandOutcome::failure(
-            "config snapshot marker is stale: run cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot\n",
+            "config snapshot marker is stale: run cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot\n",
         ));
     }
     success_line("config snapshot: OK")
@@ -1818,7 +1818,7 @@ fn tooling_generate_config_tree_snapshot(
     write_utf8(
         &marker_file,
         &format!(
-            "generator=cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot\nsnapshot_sha256={}\n",
+            "generator=cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot\nsnapshot_sha256={}\n",
             sha256_hex(&out)?
         ),
     )?;
@@ -1891,13 +1891,13 @@ fn tooling_clean_docs(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         [] => workspace.path("artifacts/docs"),
         [flag] if flag == "--help" || flag == "-h" => {
             return success_line(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run clean-docs -- [artifacts/docs-root]",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run clean-docs -- [artifacts/docs-root]",
             )
         }
         [path] => resolve_workspace_path(workspace, path),
         _ => {
             return Ok(OpsCommandOutcome::failure(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run clean-docs -- [artifacts/docs-root]\n",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run clean-docs -- [artifacts/docs-root]\n",
             ))
         }
     };
@@ -1925,7 +1925,7 @@ fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) -> Result<O
         match args[index].as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- tooling run acquire-reference -- [--download] [--species <species-id>] [--build <build-id>] [--cache-root <dir>] [--verbose]",
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run acquire-reference -- [--download] [--species <species-id>] [--build <build-id>] [--cache-root <dir>] [--verbose]",
                 )
             }
             "--download" => {
@@ -2143,7 +2143,7 @@ fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsC
         match args[index].as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- tooling run acquire-panels -- [--download] [--panel <panel-id>] [--cache-root <dir>] [--verbose]",
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run acquire-panels -- [--download] [--panel <panel-id>] [--cache-root <dir>] [--verbose]",
                 )
             }
             "--download" => {
@@ -2318,7 +2318,7 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
         match args[index].as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- tooling run acquire-maps -- [--download] [--map <map-id>] [--cache-root <dir>] [--verbose]",
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run acquire-maps -- [--download] [--map <map-id>] [--cache-root <dir>] [--verbose]",
                 )
             }
             "--download" => {
@@ -2435,7 +2435,7 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
 fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [flag] if flag == "--help" || flag == "-h") || args.is_empty() {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run benchmarks -- <fastq-stage|fastq-preprocess|fastq-all|fastq-status|bam-stage|bam-pipeline|bam-all>",
+            "Usage: cargo run -p bijux-dna-dev -- tooling run benchmarks -- <fastq-stage|fastq-preprocess|fastq-all|fastq-status|bam-stage|bam-pipeline|bam-all>",
         );
     }
     let mode = args[0].as_str();
@@ -2636,7 +2636,7 @@ fn tooling_benchmark_integrity_mini(
         match args[index].as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- tooling run benchmark-integrity-mini -- [--sample-id <id>] [--r1 <fastq>] [--out <dir>]",
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run benchmark-integrity-mini -- [--sample-id <id>] [--r1 <fastq>] [--out <dir>]",
                 )
             }
             "--sample-id" => {
@@ -2684,7 +2684,7 @@ fn tooling_benchmark_integrity_mini(
             "run".to_string(),
             "-q".to_string(),
             "-p".to_string(),
-            "bijux-dev-dna".to_string(),
+            "bijux-dna-dev".to_string(),
             "--".to_string(),
             "tooling".to_string(),
             "run".to_string(),
@@ -2709,7 +2709,7 @@ fn tooling_benchmark_integrity_mini(
             "run".to_string(),
             "-q".to_string(),
             "-p".to_string(),
-            "bijux-dev-dna".to_string(),
+            "bijux-dna-dev".to_string(),
             "--".to_string(),
             "tooling".to_string(),
             "run".to_string(),
@@ -3240,7 +3240,7 @@ fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<O
         match args[index].as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- tooling run coverage-summary -- <report> [--baseline <path>] [--check-thresholds <path>] [--show-uncovered|--verbose] [--show-worst] [--worst-count N]",
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run coverage-summary -- <report> [--baseline <path>] [--check-thresholds <path>] [--show-uncovered|--verbose] [--show-worst] [--worst-count N]",
                 )
             }
             "--baseline" => {
@@ -3517,7 +3517,7 @@ fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<O
 fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") || args.is_empty() {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run crash-triage -- <crash_provenance.json>",
+            "Usage: cargo run -p bijux-dna-dev -- tooling run crash-triage -- <crash_provenance.json>",
         );
     }
     let path = PathBuf::from(&args[0]);
@@ -3592,7 +3592,7 @@ fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> Result<OpsCo
 }
 
 fn tooling_deprecate_vcf_knob(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dev-dna -- tooling run deprecate-vcf-knob -- --stage <stage_id> --knob <name> --phase <warn|fail|remove> --replacement <name> --rationale <text>";
+    let usage = "Usage: cargo run -p bijux-dna-dev -- tooling run deprecate-vcf-knob -- --stage <stage_id> --knob <name> --phase <warn|fail|remove> --replacement <name> --rationale <text>";
     let mut stage = None;
     let mut knob = None;
     let mut phase = None;
@@ -3680,7 +3680,7 @@ fn tooling_deprecate_vcf_panel(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dev-dna -- tooling run deprecate-vcf-panel -- --panel <panel_id> --phase <warn|fail|remove> --replacement <panel_id> --rationale <text>";
+    let usage = "Usage: cargo run -p bijux-dna-dev -- tooling run deprecate-vcf-panel -- --panel <panel_id> --phase <warn|fail|remove> --replacement <panel_id> --rationale <text>";
     let mut panel = None;
     let mut phase = None;
     let mut replacement = None;
@@ -3758,7 +3758,7 @@ fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsComma
     let mode = args.first().map(String::as_str).unwrap_or_default();
     if matches!(mode, "--help" | "-h") || mode.is_empty() {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run docs-build -- <build|lint|serve>",
+            "Usage: cargo run -p bijux-dna-dev -- tooling run docs-build -- <build|lint|serve>",
         );
     }
     let cfg_path = PathBuf::from(env_or_default("DOCS_CFG", "configs/docs/mkdocs.toml"));
@@ -3927,7 +3927,7 @@ fn tooling_generate_panel_compatibility_matrix(
     });
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-panel-compatibility-matrix -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-panel-compatibility-matrix -->".to_string(),
         String::new(),
         "# PANEL_COMPATIBILITY_MATRIX".to_string(),
         String::new(),
@@ -4087,7 +4087,7 @@ fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     control_plane_lines.push('\n');
     control_plane_lines.push_str(&walk_file_list(
         workspace,
-        "crates/bijux-dev-dna/src",
+        "crates/bijux-dna-dev/src",
         Some("rs"),
     )?);
     write_utf8(&control_plane_out, &control_plane_lines)?;
@@ -4126,12 +4126,12 @@ fn tooling_make_help(workspace: &Workspace, args: &[String]) -> Result<OpsComman
         [flag] if flag == "--internal" => true,
         [flag] if matches!(flag.as_str(), "--help" | "-h" | "--dry-run" | "--verbose") => {
             return success_line(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run make-help -- [--internal]",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run make-help -- [--internal]",
             )
         }
         _ => {
             return Ok(OpsCommandOutcome::failure(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run make-help -- [--internal]\n",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run make-help -- [--internal]\n",
             ))
         }
     };
@@ -4191,7 +4191,7 @@ fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Result<OpsComm
     let mode = args.first().map_or("--fast", String::as_str);
     if matches!(mode, "--help" | "-h") {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run repo-doctor -- [--fast|--full]",
+            "Usage: cargo run -p bijux-dna-dev -- tooling run repo-doctor -- [--fast|--full]",
         );
     }
     let mut aggregate = String::new();
@@ -4247,7 +4247,7 @@ fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Result<OpsComm
 
 fn tooling_run_bijux(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args.first().map(String::as_str), Some("--help" | "-h")) {
-        return success_line("Usage: cargo run -p bijux-dev-dna -- tooling run bijux -- <args...>");
+        return success_line("Usage: cargo run -p bijux-dna-dev -- tooling run bijux -- <args...>");
     }
     run_program(
         workspace,
@@ -4327,7 +4327,7 @@ fn tooling_simulate_coverage_regime(
 ) -> Result<OpsCommandOutcome> {
     if matches!(args.first().map(String::as_str), Some("--help" | "-h")) || args.is_empty() {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run simulate-coverage-regime -- <mean_depth_x> [--profile <name>]",
+            "Usage: cargo run -p bijux-dna-dev -- tooling run simulate-coverage-regime -- <mean_depth_x> [--profile <name>]",
         );
     }
     let mean_depth = args[0]
@@ -4475,12 +4475,12 @@ fn tooling_generate_domain_coverage_doc(
         [flag, value] if flag == "--out" => resolve_workspace_path(workspace, value),
         [flag] if flag == "--help" || flag == "-h" => {
             return success_line(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run generate-domain-coverage-doc -- --out <path>",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run generate-domain-coverage-doc -- --out <path>",
             )
         }
         _ => {
             return Ok(OpsCommandOutcome::failure(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run generate-domain-coverage-doc -- --out <path>\n",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run generate-domain-coverage-doc -- --out <path>\n",
             ))
         }
     };
@@ -4536,12 +4536,12 @@ fn tooling_generate_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCo
             [] => workspace.path("docs"),
             [flag] if flag == "--help" || flag == "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- tooling run generate-docs -- [out-root]",
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run generate-docs -- [out-root]",
                 )
             }
             [out] => resolve_workspace_path(workspace, out),
             _ => return Ok(OpsCommandOutcome::failure(
-                "Usage: cargo run -p bijux-dev-dna -- tooling run generate-docs -- [out-root]\n",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run generate-docs -- [out-root]\n",
             )),
         };
     fs::create_dir_all(out_root.join("00-intro"))
@@ -5079,7 +5079,7 @@ fn docs_check_generated_docs(workspace: &Workspace, args: &[String]) -> Result<O
             "run".to_string(),
             "-q".to_string(),
             "-p".to_string(),
-            "bijux-dev-dna".to_string(),
+            "bijux-dna-dev".to_string(),
             "--".to_string(),
             "containers".to_string(),
             "run".to_string(),
@@ -5251,7 +5251,7 @@ fn examples_generate_index(workspace: &Workspace, args: &[String]) -> Result<Ops
             }
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- examples run generate-index -- [--out <path>]",
+                    "Usage: cargo run -p bijux-dna-dev -- examples run generate-index -- [--out <path>]",
                 )
             }
             other => return Err(anyhow!("unexpected arg: {other}")),
@@ -5300,7 +5300,7 @@ fn examples_generate_index(workspace: &Workspace, args: &[String]) -> Result<Ops
     rows.sort_by(|left, right| left.0.cmp(&right.0));
     let mut lines = vec![
         "# GENERATED FILE - DO NOT EDIT".to_string(),
-        "# Regenerate with: cargo run -p bijux-dev-dna -- examples run generate-index".to_string(),
+        "# Regenerate with: cargo run -p bijux-dna-dev -- examples run generate-index".to_string(),
         "examples:".to_string(),
     ];
     for (example_id, domain, corpus, outputs, rel) in rows {
@@ -5349,14 +5349,14 @@ fn examples_check_index(workspace: &Workspace, args: &[String]) -> Result<OpsCom
         return success_line("examples index: OK");
     }
     Ok(OpsCommandOutcome::failure(
-        "examples/index.yaml drift; regenerate with cargo run -p bijux-dev-dna -- examples run generate-index\n",
+        "examples/index.yaml drift; regenerate with cargo run -p bijux-dna-dev -- examples run generate-index\n",
     ))
 }
 
 fn examples_run(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- examples run run -- [--allow-non-artifacts|--allow-non-isolate] <example-id>",
+            "Usage: cargo run -p bijux-dna-dev -- examples run run -- [--allow-non-artifacts|--allow-non-isolate] <example-id>",
         );
     }
     let mut allow_non_artifacts = false;
@@ -5497,7 +5497,7 @@ fn examples_run(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutc
 fn examples_check_drift(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- examples run check-drift -- <example-id>",
+            "Usage: cargo run -p bijux-dna-dev -- examples run check-drift -- <example-id>",
         );
     }
     if args.len() != 1 {
@@ -5533,7 +5533,7 @@ fn hpc_validate_frontend_constraints(
         .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
     {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- hpc run validate-frontend-constraints -- [--dry-run|--confirm]",
+            "Usage: cargo run -p bijux-dna-dev -- hpc run validate-frontend-constraints -- [--dry-run|--confirm]",
         );
     }
     let mut dry_run = true;
@@ -5640,7 +5640,7 @@ fn hpc_run_frontend_mini_e2e(workspace: &Workspace, args: &[String]) -> Result<O
         .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
     {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- hpc run run-frontend-mini-e2e -- [--dry-run|--confirm]",
+            "Usage: cargo run -p bijux-dna-dev -- hpc run run-frontend-mini-e2e -- [--dry-run|--confirm]",
         );
     }
     let mut dry_run = true;
@@ -5751,7 +5751,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
     {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- hpc run lunarc-pull -- [--dry-run|--confirm] [--include-profile <name>] [--exclude-profile <name>]",
+            "Usage: cargo run -p bijux-dna-dev -- hpc run lunarc-pull -- [--dry-run|--confirm] [--include-profile <name>] [--exclude-profile <name>]",
         );
     }
     let mut dry_run = true;
@@ -5939,7 +5939,7 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
     {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- hpc run lunarc-push -- [--dry-run|--confirm] [--exclude-profile <name>]",
+            "Usage: cargo run -p bijux-dna-dev -- hpc run lunarc-push -- [--dry-run|--confirm] [--exclude-profile <name>]",
         );
     }
     let mut dry_run = true;
@@ -6152,7 +6152,7 @@ fn lab_run_pipelines(workspace: &Workspace, args: &[String]) -> Result<OpsComman
 
 fn smoke_run(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
-        return success_line("Usage: cargo run -p bijux-dev-dna -- smoke run run -- <fastq|bam>");
+        return success_line("Usage: cargo run -p bijux-dna-dev -- smoke run run -- <fastq|bam>");
     }
     match args.first().map(String::as_str) {
         Some("fastq") if args.len() == 1 => smoke_fastq(workspace, &[]),
@@ -6236,7 +6236,7 @@ fn test_control_plane_smoke(workspace: &Workspace, args: &[String]) -> Result<Op
         match arg.as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- test run test-control-plane-smoke -- [--dry-run]",
+                    "Usage: cargo run -p bijux-dna-dev -- test run test-control-plane-smoke -- [--dry-run]",
                 )
             }
             "--dry-run" => dry_run = true,
@@ -6266,7 +6266,7 @@ fn test_control_plane_smoke(workspace: &Workspace, args: &[String]) -> Result<Op
                 "run".to_string(),
                 "-q".to_string(),
                 "-p".to_string(),
-                "bijux-dev-dna".to_string(),
+                "bijux-dna-dev".to_string(),
                 "--".to_string(),
             ]
             .into_iter()
@@ -6285,7 +6285,7 @@ fn test_control_plane_smoke(workspace: &Workspace, args: &[String]) -> Result<Op
                 "run".to_string(),
                 "-q".to_string(),
                 "-p".to_string(),
-                "bijux-dev-dna".to_string(),
+                "bijux-dna-dev".to_string(),
                 "--".to_string(),
                 "hpc".to_string(),
                 "run".to_string(),
@@ -6311,7 +6311,7 @@ fn test_control_plane_smoke(workspace: &Workspace, args: &[String]) -> Result<Op
 fn test_triage(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- test run test-triage -- [artifacts/test-logs/latest.log]",
+            "Usage: cargo run -p bijux-dna-dev -- test run test-triage -- [artifacts/test-logs/latest.log]",
         );
     }
     let path = args.first().map_or_else(
@@ -6386,7 +6386,7 @@ fn test_triage(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutco
 fn test_reproduce_failure(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- test run reproduce-failure -- <nextest-jsonl-log>",
+            "Usage: cargo run -p bijux-dna-dev -- test run reproduce-failure -- <nextest-jsonl-log>",
         );
     }
     let path = args
@@ -6445,7 +6445,7 @@ fn test_reproduce_failure(workspace: &Workspace, args: &[String]) -> Result<OpsC
 fn test_fastq_gold_repro(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
-            "Usage: cargo run -p bijux-dev-dna -- test run fastq-gold-repro -- [out-dir]",
+            "Usage: cargo run -p bijux-dna-dev -- test run fastq-gold-repro -- [out-dir]",
         );
     }
     let out_base = args.first().map_or_else(
@@ -6519,7 +6519,7 @@ fn test_toy_runs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOut
         match args[index].as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dev-dna -- test run toy-runs -- [run|check|refresh|demo] [--profile <fastq|bam|vcf|all>] [--out <dir>] [--accept] [--sync-golden]",
+                    "Usage: cargo run -p bijux-dna-dev -- test run toy-runs -- [run|check|refresh|demo] [--profile <fastq|bam|vcf|all>] [--out <dir>] [--accept] [--sync-golden]",
                 )
             }
             "--profile" => {
@@ -7728,7 +7728,7 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
     }
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-tool-index -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-tool-index -->".to_string(),
         String::new(),
         "# TOOL_INDEX".to_string(),
         String::new(),
@@ -7818,7 +7818,7 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
     let domain_root = workspace.path("domain");
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-domain-coverage-doc -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-domain-coverage-doc -->".to_string(),
         String::new(),
         "# DOMAIN_COVERAGE".to_string(),
         String::new(),
@@ -7865,7 +7865,7 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
         .unwrap_or_default();
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-repo-root-map -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-repo-root-map -->".to_string(),
         String::new(),
         "# REPO_ROOT_MAP".to_string(),
         String::new(),
@@ -7918,7 +7918,7 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
         "| Control Plane Path | Purpose |".to_string(),
         "|---|---|".to_string(),
     ]);
-    for rel in ["crates/bijux-dev-dna", "makes"] {
+    for rel in ["crates/bijux-dna-dev", "makes"] {
         let path = workspace.path(rel);
         let purpose =
             read_purpose_line(&path.join("README.md"))?.unwrap_or_else(|| "-".to_string());
@@ -7948,7 +7948,7 @@ fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()
     }
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-compatibility-matrix -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-compatibility-matrix -->".to_string(),
         String::new(),
         "# COMPATIBILITY_MATRIX".to_string(),
         String::new(),
@@ -7999,7 +7999,7 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
     let docs_root = workspace.path("docs");
     let mut lines = vec![
         "# GENERATED FILE - DO NOT EDIT".to_string(),
-        "# Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-docs-graph"
+        "# Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-docs-graph"
             .to_string(),
         String::new(),
     ];
@@ -8099,7 +8099,7 @@ fn write_refresh_report(
 
 fn refresh_tool_versions() -> Value {
     json!({
-        "bijux-dev-dna": env!("CARGO_PKG_VERSION"),
+        "bijux-dna-dev": env!("CARGO_PKG_VERSION"),
         "cargo": command_version_line("cargo", &["--version"]),
         "rustc": command_version_line("rustc", &["--version"]),
     })
@@ -8171,7 +8171,7 @@ fn config_tree_snapshot_text(workspace: &Workspace) -> Result<String> {
     files.sort();
     let mut lines = vec![
         "# GENERATED - DO NOT EDIT".to_string(),
-        "# generator = cargo run -p bijux-dev-dna -- tooling run generate-config-tree-snapshot"
+        "# generator = cargo run -p bijux-dna-dev -- tooling run generate-config-tree-snapshot"
             .to_string(),
         "# schema_version = 1".to_string(),
         "# owner = bijux-dna-infra".to_string(),
@@ -8191,9 +8191,9 @@ fn config_snapshot_inputs_changed(workspace: &Workspace) -> Result<bool> {
     }
     let watched = [
         "configs/",
-        "crates/bijux-dev-dna/src/model/ops.rs",
-        "crates/bijux-dev-dna/src/commands/ops.rs",
-        "crates/bijux-dev-dna/src/catalog/ops.rs",
+        "crates/bijux-dna-dev/src/model/ops.rs",
+        "crates/bijux-dna-dev/src/commands/ops.rs",
+        "crates/bijux-dna-dev/src/catalog/ops.rs",
     ];
     let mut staged_args = vec![
         "diff".to_string(),
@@ -8318,11 +8318,11 @@ fn resolve_optional_output_arg(
     match args {
         [] => Ok(workspace.path(default_rel)),
         [flag] if flag == "--help" || flag == "-h" => Err(anyhow!(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run {command} -- [out]"
+            "Usage: cargo run -p bijux-dna-dev -- tooling run {command} -- [out]"
         )),
         [out] => Ok(resolve_workspace_path(workspace, out)),
         _ => Err(anyhow!(
-            "Usage: cargo run -p bijux-dev-dna -- tooling run {command} -- [out]"
+            "Usage: cargo run -p bijux-dna-dev -- tooling run {command} -- [out]"
         )),
     }
 }

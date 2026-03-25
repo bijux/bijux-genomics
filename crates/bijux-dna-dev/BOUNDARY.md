@@ -1,4 +1,4 @@
-# bijux-dev-dna Boundary Contract
+# bijux-dna-dev Boundary Contract
 
 ## Why this crate exists
 Provides versioned control-plane automation for repository checks, domain automation, container governance, and other developer workflows.

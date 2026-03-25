@@ -27,18 +27,18 @@ Target -> implementation mapping (no hidden magic):
 - `test-slow` -> `makes/bin/rust_gate.sh test-slow`
 - `test-all` -> `makes/bin/rust_gate.sh test-all`
 - `coverage` -> `makes/bin/rust_gate.sh coverage`
-- `doctor` -> `cargo run -q -p bijux-dev-dna -- tooling run repo-doctor --fast` + fast parity checks
+- `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
 - `ci` -> `make fmt lint audit test coverage` under the shared `artifacts/` contract
 
 Rust gate artifact layout:
 - fast Rust gates write under `artifacts/rust/`
-- `make lint` is the fast product-crate clippy lane and excludes `bijux-dev-dna`
+- `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
 - workspace governance checks remain available through `make lint-workspace`
 
 CI profile automation:
-- Fast: `cargo run -q -p bijux-dev-dna -- tooling run ci-fast`
-- Slow: `cargo run -q -p bijux-dev-dna -- tooling run ci-slow`
+- Fast: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`
+- Slow: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
 
 Current internal targets surfaced by help:
 - `domain-validate`

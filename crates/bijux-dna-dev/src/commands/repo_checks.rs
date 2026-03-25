@@ -171,7 +171,7 @@ pub(crate) fn check_benchmark_integrity_policy(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let native_ops = read(&workspace.path("crates/bijux-dev-dna/src/commands/ops.rs"))?;
+    let native_ops = read(&workspace.path("crates/bijux-dna-dev/src/commands/ops.rs"))?;
     let mut errors = Vec::new();
     if !native_ops.contains("tooling_benchmarks") {
         errors.push("native tooling benchmarks workflow must exist".to_string());
@@ -681,7 +681,7 @@ pub(crate) fn check_docs_build_contract(
         ));
     }
 
-    let native_ops = read(&workspace.path("crates/bijux-dev-dna/src/commands/ops.rs"))?;
+    let native_ops = read(&workspace.path("crates/bijux-dna-dev/src/commands/ops.rs"))?;
     if !native_ops.contains("XDG_CACHE_HOME") {
         violations.push(
             "docs-build-contract: native docs workflow must set XDG_CACHE_HOME to artifacts/docs/.cache".to_string(),
@@ -1219,7 +1219,7 @@ pub(crate) fn check_no_target_paths_in_tests(
             {
                 continue;
             }
-            if rel == "crates/bijux-dev-dna/src/commands/repo_checks.rs" {
+            if rel == "crates/bijux-dna-dev/src/commands/repo_checks.rs" {
                 continue;
             }
             if !source_like_scan_path(&rel) {
@@ -1260,7 +1260,7 @@ pub(crate) fn check_no_user_path_literals(
             {
                 continue;
             }
-            if rel == "crates/bijux-dev-dna/src/commands/repo_checks.rs" {
+            if rel == "crates/bijux-dna-dev/src/commands/repo_checks.rs" {
                 continue;
             }
             if rel.starts_with("examples/") || rel.ends_with(".md") {
@@ -1508,7 +1508,7 @@ pub(crate) fn check_rustflags_consistency(
                 continue;
             }
             let raw = read(entry.path())?;
-            if raw.contains("RUSTFLAGS=") && rel != "crates/bijux-dev-dna/src/commands/ops.rs" {
+            if raw.contains("RUSTFLAGS=") && rel != "crates/bijux-dna-dev/src/commands/ops.rs" {
                 violations.push(rel);
             }
         }
@@ -1753,7 +1753,7 @@ pub(crate) fn check_tool_registry_lock(
         );
     }
     let marker_text = read(&marker)?;
-    if !marker_text.contains("generated_by=bijux-dev-dna domain run lock-registry")
+    if !marker_text.contains("generated_by=bijux-dna-dev domain run lock-registry")
         || !marker_text.contains(&format!("lock_sha256={actual}"))
     {
         return fail(check, "tool registry lock marker is stale or invalid");

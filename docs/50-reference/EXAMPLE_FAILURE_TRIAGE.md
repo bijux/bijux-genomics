@@ -4,7 +4,7 @@
 Provide a fast, repeatable workflow for debugging failed example runs.
 
 ## Scope
-Applies to failures from `cargo run -q -p bijux-dev-dna -- examples run run` and related example policy checks.
+Applies to failures from `cargo run -q -p bijux-dna-dev -- examples run run` and related example policy checks.
 
 ## Non-goals
 - Replacing crate-level debugging docs.
@@ -22,7 +22,7 @@ Applies to failures from `cargo run -q -p bijux-dev-dna -- examples run run` and
 
 ## Triage Steps
 1. Re-run the example:
-   - `cargo run -q -p bijux-dev-dna -- examples run run <example-id>`
+   - `cargo run -q -p bijux-dna-dev -- examples run run <example-id>`
 2. Inspect generated bundle and logs:
    - `artifacts/examples/<example-id>/bundle.tar.gz`
    - `.../run_report.json`
@@ -31,10 +31,10 @@ Applies to failures from `cargo run -q -p bijux-dev-dna -- examples run run` and
    - `diff -u examples/.../golden/plan.json .../plan.json`
    - `diff -u examples/.../golden/explain.json .../explain.json`
 4. Validate corpus inputs:
-   - `cargo run -q -p bijux-dev-dna -- checks run check-examples-corpus-manifests`
-   - `cargo run -q -p bijux-dev-dna -- checks run check-examples-corpus-checksums`
+   - `cargo run -q -p bijux-dna-dev -- checks run check-examples-corpus-manifests`
+   - `cargo run -q -p bijux-dna-dev -- checks run check-examples-corpus-checksums`
 5. Validate CLI snapshot if command surface changed:
-   - `cargo run -q -p bijux-dev-dna -- checks run check-cli-command-snapshot`
+   - `cargo run -q -p bijux-dna-dev -- checks run check-cli-command-snapshot`
 
 ## Examples
 - `fastq_qc_pre_bench` fails with golden drift:

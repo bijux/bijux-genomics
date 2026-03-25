@@ -7,7 +7,7 @@
 - `src/commands/containers.rs` owns container-control contract coverage and generated-output checks.
 
 ## How to run
-- `cargo test -p bijux-dev-dna`
+- `cargo test -p bijux-dna-dev`
 - `cargo test -p bijux-dna-policies policy__boundaries__docs_spine__crate_docs_contract -- --nocapture`
 
 ## Notes

@@ -17,7 +17,7 @@ fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_determi
         .arg("run")
         .arg("-q")
         .arg("-p")
-        .arg("bijux-dev-dna")
+        .arg("bijux-dna-dev")
         .arg("--")
         .arg("test")
         .arg("run")
@@ -29,7 +29,7 @@ fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_determi
         .arg("--out")
         .arg(root.join("artifacts/toy_policy_check"))
         .status()
-        .unwrap_or_else(|err| panic!("run bijux-dev-dna test run toy-runs check: {err}"));
+        .unwrap_or_else(|err| panic!("run bijux-dna-dev test run toy-runs check: {err}"));
     assert!(status.success(), "toy golden check failed");
 }
 
@@ -40,7 +40,7 @@ fn policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_fla
         .arg("run")
         .arg("-q")
         .arg("-p")
-        .arg("bijux-dev-dna")
+        .arg("bijux-dna-dev")
         .arg("--")
         .arg("test")
         .arg("run")
@@ -53,7 +53,7 @@ fn policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_fla
         .arg(root.join("artifacts/toy_policy_check_refresh"))
         .status()
         .unwrap_or_else(|err| {
-            panic!("run bijux-dev-dna test run toy-runs refresh without accept: {err}")
+            panic!("run bijux-dna-dev test run toy-runs refresh without accept: {err}")
         });
     assert!(
         !status.success(),
@@ -67,8 +67,8 @@ fn policy__contracts__toy_golden_runs_policy__make_refresh_targets_use_assets_sc
     let mk = std::fs::read_to_string(root.join("makes/cargo.mk"))
         .unwrap_or_else(|err| panic!("read makes/cargo.mk: {err}"));
     assert!(
-        mk.contains("cargo run -q -p bijux-dev-dna -- assets run refresh-toy")
-            && mk.contains("cargo run -q -p bijux-dev-dna -- assets run refresh-golden"),
+        mk.contains("cargo run -q -p bijux-dna-dev -- assets run refresh-toy")
+            && mk.contains("cargo run -q -p bijux-dna-dev -- assets run refresh-golden"),
         "toy refresh targets must call the native assets control plane"
     );
 }

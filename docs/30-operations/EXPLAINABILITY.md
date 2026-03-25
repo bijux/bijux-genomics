@@ -23,7 +23,7 @@ Ensures scientific transparency.
 - Planner records why fastp was selected for trimming.
 - Planner records coverage evidence and selected VCF calling regime (`gl`, `pseudohaploid`, or `diploid`).
 - Planner records applied threshold profile (for example `modern_wgs_shotgun`) and observed mean depth statistics.
-- Use `cargo run -q -p bijux-dev-dna -- tooling run simulate-coverage-regime <mean_depth_x> --profile <regime_profile>` to debug regime selection deterministically.
+- Use `cargo run -q -p bijux-dna-dev -- tooling run simulate-coverage-regime <mean_depth_x> --profile <regime_profile>` to debug regime selection deterministically.
 
 ## Failure modes
 - Missing reasons or hashes fails explainability checks.

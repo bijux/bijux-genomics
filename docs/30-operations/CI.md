@@ -17,8 +17,8 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
 - `coverage`
 
 ## CI Profiles
-- Fast CI profile: `cargo run -q -p bijux-dev-dna -- tooling run ci-fast`
-- Slow CI profile: `cargo run -q -p bijux-dev-dna -- tooling run ci-slow`
+- Fast CI profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`
+- Slow CI profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
 - Fast profile intent: static/policy/contract gates with deterministic runner settings.
 - Slow profile intent: heavier coverage/docs/release-readiness checks.
 - Test/coverage runner defaults are pinned in `configs/rust/nextest.toml` and `configs/coverage/runner.toml`.
@@ -43,8 +43,8 @@ Applies only to the files and workflows referenced in this document.
 ## Examples
 - Local: `make ci`
 - HPC profile enabled: `ARTIFACT_ROOT=artifacts make ci`
-- Fast profile: `cargo run -q -p bijux-dev-dna -- tooling run ci-fast`
-- Slow profile: `cargo run -q -p bijux-dev-dna -- tooling run ci-slow`
+- Fast profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`
+- Slow profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
 
 ## Failure modes
 - Running CI-related scripts outside the shared artifact contract fails by policy.

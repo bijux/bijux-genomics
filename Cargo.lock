@@ -253,23 +253,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
-name = "bijux-dev-dna"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bijux-dna-policies",
- "chrono",
- "clap",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "sha2",
- "toml",
- "walkdir",
-]
-
-[[package]]
 name = "bijux-dna"
 version = "0.1.0"
 dependencies = [
@@ -446,6 +429,23 @@ dependencies = [
  "bijux-dna-policies",
  "serde",
  "toml",
+]
+
+[[package]]
+name = "bijux-dna-dev"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-policies",
+ "chrono",
+ "clap",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "toml",
+ "walkdir",
 ]
 
 [[package]]
