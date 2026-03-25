@@ -185,7 +185,7 @@ fn explicit_terminal_damage_policy_override_forces_trim_execution() {
         2,
         Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim),
     )
-    .expect("explicit override must resolve");
+    .unwrap_or_else(|err| panic!("explicit override must resolve: {err}"));
     assert_eq!(
         policy.execution_policy,
         TerminalDamageExecutionPolicy::ExplicitTerminalTrim
@@ -196,13 +196,14 @@ fn explicit_terminal_damage_policy_override_forces_trim_execution() {
 
 #[test]
 fn preserve_udg_policy_rejects_non_udg_damage_mode() {
-    let error = resolve_terminal_damage_policy_with_override(
+    let Err(error) = resolve_terminal_damage_policy_with_override(
         DamageMode::Ancient,
         2,
         2,
         Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds),
-    )
-    .expect_err("preserve policy must reject ancient damage mode");
+    ) else {
+        panic!("preserve policy must reject ancient damage mode");
+    };
     assert!(error
         .to_string()
         .contains("preserve_udg_trimmed_ends requires damage_mode=udg_trimmed"));
@@ -242,13 +243,15 @@ fn remove_duplicates_params_roundtrip_with_stage_specific_schema() {
 #[test]
 fn remove_duplicates_parser_matches_public_stage_descriptor() {
     let stage_id = StageId::from_static("fastq.remove_duplicates");
-    let descriptor = stage_param_descriptor(&stage_id)
-        .expect("remove_duplicates must publish its governed parameter descriptor");
+    let descriptor = stage_param_descriptor(&stage_id).unwrap_or_else(|| {
+        panic!("remove_duplicates must publish its governed parameter descriptor")
+    });
     assert_eq!(descriptor.param_type_id, "fastq.remove_duplicates");
     let params = remove_duplicates_defaults(true);
-    let value = serde_json::to_value(&params).expect("serialize remove_duplicates params");
+    let value = serde_json::to_value(&params)
+        .unwrap_or_else(|err| panic!("serialize remove_duplicates params: {err}"));
     let parsed = parse_effective_params(&stage_id, &value)
-        .expect("parse remove_duplicates effective params");
+        .unwrap_or_else(|| panic!("parse remove_duplicates effective params"));
     match parsed {
         EffectiveParams::RemoveDuplicates(parsed) => assert_eq!(parsed, params),
         other => panic!("unexpected effective params variant: {other:?}"),
@@ -366,7 +369,7 @@ fn otu_clustering_params_roundtrip_with_domain_default_threshold() {
     };
     let decoded: OtuClusteringEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, "bijux.params.edna.v1");
-    assert_eq!(decoded.identity_threshold, DEFAULT_OTU_IDENTITY_THRESHOLD,);
+    assert!((decoded.identity_threshold - DEFAULT_OTU_IDENTITY_THRESHOLD).abs() < f64::EPSILON);
     assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.output_table_kind, "otu_abundance_table");
     assert_eq!(decoded.report_artifact, "report_json");
@@ -439,7 +442,7 @@ fn host_depletion_params_roundtrip_with_reference_provenance_fields() {
     assert_eq!(decoded.masking_policy, ReferenceMaskingPolicy::HardMasked);
     assert_eq!(decoded.decoy_policy, ReferenceDecoyPolicy::Included);
     assert_eq!(decoded.decoy_catalog_id.as_deref(), Some("host_decoys"));
-    assert_eq!(decoded.identity_threshold, 0.95);
+    assert!((decoded.identity_threshold - 0.95).abs() < f64::EPSILON);
     assert_eq!(
         decoded.retained_read_policy,
         ReadRetentionPolicy::KeepNonHostReads,

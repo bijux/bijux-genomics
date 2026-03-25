@@ -30,7 +30,9 @@ fn preflight_rejects_single_end_input_for_paired_only_stages() {
         "fastq.correct_errors",
         "fastq.extract_umis",
     ] {
-        let err = preflight_stage(stage_id, FastqArtifactKind::SingleEnd).unwrap_err();
+        let Err(err) = preflight_stage(stage_id, FastqArtifactKind::SingleEnd) else {
+            panic!("single-end inputs must be rejected for {stage_id}");
+        };
         assert!(err.to_string().contains("accepted kinds"));
     }
 }

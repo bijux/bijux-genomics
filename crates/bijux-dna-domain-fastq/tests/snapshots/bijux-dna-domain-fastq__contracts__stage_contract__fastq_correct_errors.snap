@@ -5,9 +5,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 {
   "inputs": {
     "accepted_kinds": [
+      "SingleEnd",
       "PairedEnd"
     ],
-    "kind": "PairedEnd"
+    "kind": "SingleEnd"
   },
   "metrics": {
     "classes": [
@@ -24,8 +25,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "outputs": {
     "emits_fastq": true,
-    "kind": "PairedEnd",
+    "kind": "SingleEnd",
     "possible_kinds": [
+      "SingleEnd",
       "PairedEnd"
     ]
   },

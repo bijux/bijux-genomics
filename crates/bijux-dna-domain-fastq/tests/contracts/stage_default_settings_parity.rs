@@ -123,7 +123,6 @@ fn indexed_stage_default_settings() -> Result<BTreeMap<String, BTreeSet<String>>
                 current_stage = Some(stage.clone());
                 out.entry(stage).or_default();
             }
-            continue;
         }
     }
     Ok(out)

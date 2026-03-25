@@ -15,8 +15,7 @@ fn newly_benchmarked_fastq_stage_families_publish_scenarios() {
         let scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&stage);
         assert!(
             !scenarios.is_empty(),
-            "{} must publish at least one benchmark scenario",
-            stage_id
+            "{stage_id} must publish at least one benchmark scenario"
         );
     }
 }

@@ -49,6 +49,8 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "banks",
         "contaminant_bank",
         "bench_repository",
+        "cluster_otus_artifacts",
+        "artifacts::{",
         "comparison_contract",
         "execution_support",
         "integration_matrix",
@@ -65,6 +67,9 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "run",
         "params",
         "invariants",
+        "observer_contract",
+        "qc_contract",
+        "stage_tool_governance",
         "RawFailure",
     ];
     for line in &pub_use_lines {

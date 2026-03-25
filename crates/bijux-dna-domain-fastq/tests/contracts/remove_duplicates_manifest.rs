@@ -36,7 +36,7 @@ fn external_tool_allowlist() -> Result<serde_json::Value> {
 fn remove_duplicates_fixture_tool_ids() -> Result<Vec<String>> {
     let dir = workspace_root()?.join("domain/fastq/fixtures/fastq.remove_duplicates");
     let mut tool_ids = std::fs::read_dir(&dir)?
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             entry
                 .path()

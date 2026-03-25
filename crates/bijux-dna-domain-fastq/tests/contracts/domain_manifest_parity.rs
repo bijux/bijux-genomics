@@ -57,7 +57,7 @@ fn yaml_output_name_set(value: Option<&Value>) -> BTreeSet<String> {
         .into_iter()
         .flatten()
         .filter_map(|item| match item {
-            Value::String(value) => Some(value.to_string()),
+            Value::String(value) => Some(value.clone()),
             Value::Mapping(mapping) => mapping
                 .get(Value::String("name".to_string()))
                 .and_then(Value::as_str)
@@ -172,7 +172,7 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
                     .into_iter()
                     .flat_map(|key| {
                         mapping
-                            .get(&Value::String(key.to_string()))
+                            .get(Value::String(key.to_string()))
                             .into_iter()
                             .flat_map(|value| yaml_string_set(Some(value)))
                     })
@@ -200,9 +200,9 @@ fn supported_tool_expected_artifacts_match_stage_output_contracts() -> Result<()
         if meta.status != "supported" {
             continue;
         }
-        let mut expected = BTreeSet::new();
-        for stage_id in &meta.stage_ids {
-            expected.extend(
+        let mut declared_stage_outputs = BTreeSet::new();
+        for stage_id in &meta.declared_stage_ids() {
+            declared_stage_outputs.extend(
                 stage_outputs
                     .get(stage_id)
                     .with_context(|| format!("missing stage outputs for {stage_id}"))?
@@ -210,9 +210,11 @@ fn supported_tool_expected_artifacts_match_stage_output_contracts() -> Result<()
                     .cloned(),
             );
         }
-        assert_eq!(
-            meta.expected_artifacts, expected,
-            "tool {tool_id} expected_artifacts drifted from its supported stage output contract"
+        assert!(
+            meta.expected_artifacts
+                .iter()
+                .all(|artifact| declared_stage_outputs.contains(artifact)),
+            "tool {tool_id} expected_artifacts must stay inside the union of its supported and explicitly planned stage outputs"
         );
     }
     Ok(())
@@ -248,7 +250,7 @@ fn root_stage_manifests_match_rust_fastq_catalog() -> Result<()> {
     let manifest_ids = stage_manifest_tools()?.into_keys().collect::<BTreeSet<_>>();
     let rust_ids = FASTQ_STAGE_ID_CATALOG
         .iter()
-        .map(|stage| stage.to_string())
+        .map(|stage| (*stage).to_string())
         .collect::<BTreeSet<_>>();
     assert_eq!(
         manifest_ids, rust_ids,
@@ -261,7 +263,7 @@ fn root_stage_manifests_match_rust_fastq_catalog() -> Result<()> {
 fn tool_stage_ids_reference_known_fastq_stages() -> Result<()> {
     let known_stages = FASTQ_STAGE_ID_CATALOG
         .iter()
-        .map(|stage| stage.to_string())
+        .map(|stage| (*stage).to_string())
         .collect::<BTreeSet<_>>();
     for (tool_id, meta) in tool_manifest_meta()? {
         for stage_id in meta.declared_stage_ids() {

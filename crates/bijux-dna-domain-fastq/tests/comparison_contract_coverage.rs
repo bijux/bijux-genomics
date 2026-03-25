@@ -1,11 +1,13 @@
 use bijux_dna_core::ids::StageId;
 
+fn comparison_contract(stage_id: &'static str) -> bijux_dna_domain_fastq::StageComparisonContract {
+    bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(stage_id))
+        .unwrap_or_else(|| panic!("{stage_id} comparison contract must exist"))
+}
+
 #[test]
 fn detect_adapters_exposes_stage_family_comparison_contract() {
-    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
-        "fastq.detect_adapters",
-    ))
-    .expect("detect_adapters comparison contract must exist");
+    let contract = comparison_contract("fastq.detect_adapters");
 
     assert_eq!(
         contract.cohort_artifact_id,
@@ -23,10 +25,7 @@ fn detect_adapters_exposes_stage_family_comparison_contract() {
 
 #[test]
 fn deplete_rrna_exposes_stage_family_comparison_contract() {
-    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
-        "fastq.deplete_rrna",
-    ))
-    .expect("deplete_rrna comparison contract must exist");
+    let contract = comparison_contract("fastq.deplete_rrna");
 
     assert_eq!(
         contract.cohort_artifact_id,
@@ -53,10 +52,7 @@ fn deplete_rrna_exposes_stage_family_comparison_contract() {
 
 #[test]
 fn deplete_host_exposes_stage_family_comparison_contract() {
-    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
-        "fastq.deplete_host",
-    ))
-    .expect("deplete_host comparison contract must exist");
+    let contract = comparison_contract("fastq.deplete_host");
 
     assert_eq!(
         contract.cohort_artifact_id,
@@ -84,10 +80,7 @@ fn deplete_host_exposes_stage_family_comparison_contract() {
 
 #[test]
 fn deplete_reference_contaminants_exposes_stage_family_comparison_contract() {
-    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
-        "fastq.deplete_reference_contaminants",
-    ))
-    .expect("deplete_reference_contaminants comparison contract must exist");
+    let contract = comparison_contract("fastq.deplete_reference_contaminants");
 
     assert_eq!(
         contract.cohort_artifact_id,
@@ -113,10 +106,7 @@ fn deplete_reference_contaminants_exposes_stage_family_comparison_contract() {
 
 #[test]
 fn extract_umis_exposes_stage_family_comparison_contract() {
-    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
-        "fastq.extract_umis",
-    ))
-    .expect("extract_umis comparison contract must exist");
+    let contract = comparison_contract("fastq.extract_umis");
 
     assert_eq!(
         contract.cohort_artifact_id,
@@ -134,10 +124,7 @@ fn extract_umis_exposes_stage_family_comparison_contract() {
 
 #[test]
 fn report_qc_exposes_stage_family_comparison_contract() {
-    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
-        "fastq.report_qc",
-    ))
-    .expect("report_qc comparison contract must exist");
+    let contract = comparison_contract("fastq.report_qc");
 
     assert_eq!(
         contract.cohort_artifact_id,
@@ -153,29 +140,28 @@ fn report_qc_exposes_stage_family_comparison_contract() {
     );
     assert_eq!(
         contract.comparison_input_artifact_ids,
-        &["report_json", "governed_qc_inputs_manifest",]
+        &[
+            "report_json",
+            "governed_qc_inputs_manifest",
+            "multiqc_report",
+            "multiqc_data",
+        ]
     );
 }
 
 #[test]
 fn validate_reads_exposes_lineage_aware_comparison_contract() {
-    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
-        "fastq.validate_reads",
-    ))
-    .expect("validate_reads comparison contract must exist");
+    let contract = comparison_contract("fastq.validate_reads");
 
     assert_eq!(
         contract.comparison_input_artifact_ids,
-        &["validated_reads_manifest", "validation_report"]
+        &["validation_report", "validated_reads_manifest"]
     );
 }
 
 #[test]
 fn trim_polyg_tails_exposes_stage_family_comparison_contract() {
-    let contract = bijux_dna_domain_fastq::comparison_contract_for_stage(&StageId::from_static(
-        "fastq.trim_polyg_tails",
-    ))
-    .expect("trim_polyg_tails comparison contract must exist");
+    let contract = comparison_contract("fastq.trim_polyg_tails");
 
     assert_eq!(
         contract.cohort_artifact_id,

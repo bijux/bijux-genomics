@@ -4,7 +4,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "amplicon_semantics": {
-    "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids"
+    "decision_semantics": "legal in amplicon mode when ASV path disabled; outputs clustered centroids and a canonical governed clustering report"
   },
   "inputs": {
     "accepted_kinds": [

@@ -9,11 +9,18 @@ use bijux_dna_domain_fastq::{
     FASTQ_STAGE_ID_CATALOG,
 };
 
+fn stage_support(stage_id: &str) -> bijux_dna_domain_fastq::StageExecutionSupport {
+    all_stage_execution_support()
+        .into_iter()
+        .find(|support| support.stage_id.as_str() == stage_id)
+        .unwrap_or_else(|| panic!("{stage_id} must stay in the execution support manifest"))
+}
+
 #[test]
 fn execution_support_manifest_covers_every_fastq_stage() {
     let domain_stage_ids = FASTQ_STAGE_ID_CATALOG
         .iter()
-        .map(|stage| stage.to_string())
+        .map(|stage| (*stage).to_string())
         .collect::<BTreeSet<_>>();
     let execution_stage_ids = all_stage_execution_support()
         .into_iter()
@@ -215,9 +222,6 @@ fn execution_support_reports_benchmark_stage_sets_from_manifest_truth() {
     assert!(plannable.contains("fastq.infer_asvs"));
     assert!(runnable.contains("fastq.infer_asvs"));
 
-    let support = all_stage_execution_support()
-        .into_iter()
-        .find(|support| support.stage_id.as_str() == "fastq.profile_reads")
-        .expect("fastq.profile_reads must stay in the execution support manifest");
+    let support = stage_support("fastq.profile_reads");
     assert_eq!(support.benchmark_support, BenchmarkSupport::None);
 }
