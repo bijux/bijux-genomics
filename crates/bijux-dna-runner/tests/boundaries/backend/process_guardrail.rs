@@ -19,6 +19,7 @@ fn is_allowed_command_path(path: &Path) -> bool {
         || path_str.contains("/crates/bijux-dna-environment/src/resolve/")
         || path_str.contains("/crates/bijux-dna-environment-qa/src/bin/")
         || path_str.contains("/crates/bijux-dna-environment-qa/src/image_qa/")
+        || path_str.contains("/crates/bijux-dna-dev/")
 }
 
 #[test]
@@ -57,7 +58,7 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
 
     assert!(
         offenders.is_empty(),
-        "process command spawning must be confined to bijux-dna-runner or bijux-dna-environment tooling:\n{}",
+        "process command spawning must be confined to bijux-dna-runner, bijux-dna-dev, or bijux-dna-environment tooling:\n{}",
         offenders.join("\n")
     );
 }
