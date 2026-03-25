@@ -441,26 +441,15 @@ fn render_generic_validation_backend_command(
     stream_placeholder: &str,
 ) -> Result<Vec<String>> {
     let reads_binding = Some(reads.display().to_string());
+    // Generic validators run once per stream, so any read-stream placeholder resolves to the
+    // stream currently being validated.
     crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
             ("reads", reads_binding.clone()),
-            (
-                "reads_r1",
-                if stream_placeholder == "reads_r1" {
-                    reads_binding.clone()
-                } else {
-                    None
-                },
-            ),
-            (
-                "reads_r2",
-                if stream_placeholder == "reads_r2" {
-                    reads_binding
-                } else {
-                    None
-                },
-            ),
+            ("reads_r1", reads_binding.clone()),
+            ("reads_r2", reads_binding.clone()),
+            (stream_placeholder, reads_binding),
         ],
     )
 }
