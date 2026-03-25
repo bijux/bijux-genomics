@@ -8,13 +8,14 @@ CLEAN_CONTEXT ?= 1
 ALLOW_DIRTY ?= 0
 INCLUDE_CONTAINERS_MANIFEST ?= 0
 DATA_MANIFEST_GLOB ?=
-LUNARC_APPTAINER_DIR ?= $(LUNARC_ROOT)/bijux-dna-apptainer
-LUNARC_APPTAINER_ARTIFACT_DIR ?= $(LUNARC_REPO_DIR)/artifacts/lunarc-apptainer
-LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-apptainer
+LUNARC_CONTAINERS_ROOT ?= $(LUNARC_ROOT)/bijux-dna-containers
+LUNARC_APPTAINER_DIR ?= $(LUNARC_CONTAINERS_ROOT)/apptainer
+LUNARC_APPTAINER_ARTIFACT_DIR ?= $(LUNARC_REPO_DIR)/artifacts/containers/hpc/frontend-smoke
+LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-containers/apptainer
 LUNARC_APPTAINER_JOBS ?= 10
 LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
 LUNARC_FRONTEND_SENTINEL ?= $(LUNARC_ROOT)/bijux-dna
-LUNARC_APPTAINER_BASE_SEED_DIR ?= $(LUNARC_ROOT)/apptainer-build/base
+LUNARC_APPTAINER_BASE_SEED_DIR ?= $(LUNARC_CONTAINERS_ROOT)/base
 
 _push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
 	@LUNARC_HOST="$(LUNARC_HOST)" \
@@ -129,7 +130,7 @@ apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lun
 			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
 		tail -n 20 "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/apptainer/summary.txt"'
 
-apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-apptainer
+apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-containers/apptainer
 	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
 		echo "refusing pull-to-local target on frontend host; run this from your local machine"; \
 		exit 2; \
