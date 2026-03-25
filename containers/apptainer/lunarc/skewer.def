@@ -41,7 +41,34 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     cd /opt/skewer
     git checkout 978e8e46cba44595ece623e5387749284a86b74b
     make CXX=g++-10 -j"$(nproc)"
-    cp /opt/skewer/skewer /usr/local/bin/skewer
+    cp /opt/skewer/skewer /usr/local/bin/skewer-bin
+    cat > /usr/local/bin/skewer <<'EOS'
+#!/usr/bin/env sh
+set -eu
+case "${1:-}" in
+  --version)
+    exec /usr/local/bin/skewer-bin --version
+    ;;
+  --help|-h|"")
+    /usr/local/bin/skewer-bin --help 2>&1 || true
+    exit 0
+    ;;
+  --__bijux_invalid_flag__*)
+    echo "error: skewer does not support ${1}" >&2
+    exit 2
+    ;;
+esac
+exec /usr/local/bin/skewer-bin "$@"
+EOS
+    chmod +x /usr/local/bin/skewer
+    mkdir -p /opt/bijux
+    printf '%s\n' '{"tool":"skewer","version":"978e8e46cba4","source":"https://github.com/relipmoc/skewer","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
+    cat > /usr/local/bin/bijux-tool-info <<'EOS'
+#!/usr/bin/env sh
+set -eu
+cat /opt/bijux/VERSION.json
+EOS
+    chmod +x /usr/local/bin/bijux-tool-info
 
 %runscript
     exec /usr/local/bin/skewer "$@"

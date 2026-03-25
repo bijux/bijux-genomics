@@ -71,13 +71,26 @@ case "${1:-}" in
     exit 0
     ;;
   --help|-h|"")
-    exec /usr/local/bin/seqtk-bin --help
+    /usr/local/bin/seqtk-bin 2>&1 || true
+    exit 0
+    ;;
+  --__bijux_invalid_flag__*)
+    echo "error: seqtk does not support ${1}" >&2
+    exit 2
     ;;
 esac
 
 exec /usr/local/bin/seqtk-bin "$@"
 EOF
     chmod 0755 /usr/local/bin/seqtk
+    mkdir -p /opt/bijux
+    printf '%s\n' '{"tool":"seqtk","version":"1.5-r133","source":"https://github.com/lh3/seqtk","license":"Apache-2.0"}' > /opt/bijux/VERSION.json
+    cat > /usr/local/bin/bijux-tool-info <<'EOF'
+#!/usr/bin/env sh
+set -eu
+cat /opt/bijux/VERSION.json
+EOF
+    chmod 0755 /usr/local/bin/bijux-tool-info
 
     # Clean up the build tree.
     cd /
