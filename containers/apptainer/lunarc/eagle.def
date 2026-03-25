@@ -38,7 +38,7 @@ if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
   echo "EAGLE wrapper image. Upstream: https://alkesgroup.broadinstitute.org/Eagle/"
   exit 0
 fi
-echo "EAGLE binary not bundled in this planned wrapper image." >&2
+echo "error: eagle runtime payload is not bundled in this planned wrapper image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/eagle

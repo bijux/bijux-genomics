@@ -41,7 +41,7 @@ if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
   echo "beagle 5.4 wrapper image (frontend policy build)"
   exit 0
 fi
-echo "beagle 5.4 wrapper: runtime payload not bundled in this image" >&2
+echo "error: beagle 5.4 runtime payload is not bundled in this image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/beagle

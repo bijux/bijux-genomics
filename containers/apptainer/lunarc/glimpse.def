@@ -38,7 +38,7 @@ if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
   echo "GLIMPSE wrapper image. Upstream: https://odelaneau.github.io/GLIMPSE/"
   exit 0
 fi
-echo "GLIMPSE binary not bundled in this planned wrapper image." >&2
+echo "error: glimpse runtime payload is not bundled in this planned wrapper image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/glimpse
