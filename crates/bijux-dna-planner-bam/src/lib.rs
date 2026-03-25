@@ -531,7 +531,7 @@ fn stage_order_for_profile(profile: &PipelineProfile) -> Result<Vec<BamStage>> {
         .capabilities
         .required_stages
         .iter()
-        .map(|stage_id| BamStage::try_from(stage_id.as_str()).map_err(anyhow::Error::from))
+        .map(|stage_id| BamStage::try_from(stage_id.as_str()))
         .collect()
 }
 
