@@ -201,7 +201,7 @@ fn repo_legacy_automation_references(
         }
         for entry in WalkDir::new(root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             if !entry.file_type().is_file() {
                 continue;

@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::bench::fastq_args as engine_args;
 use bijux_dna_api::v1::api::run::{StageId, ToolId};
+use std::path::{Path, PathBuf};
 
 use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
@@ -670,8 +671,7 @@ fn resolve_bench_tools(stage: &str, raw_tools: &[String]) -> Result<Vec<String>>
         "csv"
     };
 
-    let cwd = std::env::current_dir().map_err(|err| anyhow!("resolve cwd: {err}"))?;
-    let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
+    let registry_path = resolve_registry_path()?;
     let all_tools = registry_tools_for_stage(&registry_path, stage, "all")?;
     if all_tools.is_empty() {
         return Err(anyhow!("no compatible tools found for stage `{stage}`"));
@@ -695,6 +695,34 @@ fn resolve_bench_tools(stage: &str, raw_tools: &[String]) -> Result<Vec<String>>
         }
     }
     Ok(selected)
+}
+
+fn resolve_registry_path() -> Result<PathBuf> {
+    let cwd = std::env::current_dir().map_err(|err| anyhow!("resolve cwd: {err}"))?;
+    let cwd_registry = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
+    if cwd_registry.exists() {
+        return Ok(cwd_registry);
+    }
+
+    let workspace_registry = bijux_dna_infra::configs_file(
+        workspace_root_from_manifest().as_path(),
+        "ci/registry/tool_registry.toml",
+    );
+    if workspace_registry.exists() {
+        return Ok(workspace_registry);
+    }
+
+    Ok(cwd_registry)
+}
+
+fn workspace_root_from_manifest() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map_or_else(
+            || PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+            Path::to_path_buf,
+        )
 }
 
 fn bench_tools_resolved_implicitly(raw_tools: &[String]) -> bool {
@@ -747,6 +775,7 @@ pub fn bench_args_preprocess(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::items_after_test_module)]
 mod tests {
     use super::{
         bench_args_filter, bench_args_from_validate, bench_args_normalize_primers,

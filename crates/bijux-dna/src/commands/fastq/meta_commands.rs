@@ -39,6 +39,7 @@ use crate::commands::command_prelude::{
     EnvCommand, Objective, Path, PipelinesCommand, PoliciesCommand, RankInput, Result,
 };
 
+#[allow(clippy::too_many_lines)]
 pub(crate) fn handle_meta_commands(
     cli: &Cli,
     dna_command: &DnaCommand,
@@ -82,7 +83,7 @@ pub(crate) fn handle_meta_commands(
                         .iter()
                         .filter_map(|stage_id| {
                             let key = bijux_dna_api::v1::api::run::StageId::new(
-                                (*stage_id).to_string(),
+                                (*stage_id).clone(),
                             );
                             registry.stages().get(&key).map(|stage| {
                                 serde_json::json!({

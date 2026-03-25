@@ -141,7 +141,7 @@ fn write_utf8(path: &Path, content: &str) -> Result<()> {
 }
 
 fn scalar_from_text(text: &str, key: &str) -> Result<Option<String>> {
-    let pattern = format!(r#"(?m)^{}:\s*(.+?)\s*$"#, regex::escape(key));
+    let pattern = format!(r"(?m)^{}:\s*(.+?)\s*$", regex::escape(key));
     let re = regex(&pattern)?;
     Ok(re
         .captures(text)
@@ -161,7 +161,7 @@ fn scalar_from_text(text: &str, key: &str) -> Result<Option<String>> {
 
 fn list_block(text: &str, key: &str) -> Result<Vec<String>> {
     let start_re = regex(&format!(r"^{}:\s*$", regex::escape(key)))?;
-    let item_re = regex(r#"^\s*-\s*([^\s#]+)\s*$"#)?;
+    let item_re = regex(r"^\s*-\s*([^\s#]+)\s*$")?;
     let top_level_re = regex(r"^[A-Za-z0-9_]+:\s*")?;
     let mut values = Vec::new();
     let mut in_block = false;
@@ -734,8 +734,8 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
     let mut errors = Vec::new();
     let required_sections = ["inputs", "outputs", "key parameters", "validity limits"];
     let stage_re = regex(r#"(?m)^stage_id:\s*"?([^"\n#]+)"?\s*$"#)?;
-    let stage_line_re = regex(r#"(?m)^\s{2}([a-z0-9._-]+):\s*(.*)$"#)?;
-    let nested_item_re = regex(r#"^\s{4}-\s*([a-z0-9._-]+)\s*$"#)?;
+    let stage_line_re = regex(r"(?m)^\s{2}([a-z0-9._-]+):\s*(.*)$")?;
+    let nested_item_re = regex(r"^\s{4}-\s*([a-z0-9._-]+)\s*$")?;
     let top_level_re = regex(r"^[A-Za-z0-9_]+:\s*")?;
 
     for dom_dir in domain_directories(workspace)? {
@@ -797,9 +797,8 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
             }
             let has_doc_rationale =
                 regex(&format!(r"{}.*rationale", regex::escape(&stage_lower)))?.is_match(&text);
-            let has_idx_default =
-                regex(&format!(r#"(?m)^\s{{2}}{}:\s*.+$"#, regex::escape(&stage)))?
-                    .is_match(&idx_text);
+            let has_idx_default = regex(&format!(r"(?m)^\s{{2}}{}:\s*.+$", regex::escape(&stage)))?
+                .is_match(&idx_text);
 
             let mut has_idx_rationale = false;
             if let Some(start_index) = active_default_start {
@@ -807,8 +806,7 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
                     if top_level_re.is_match(line) {
                         break;
                     }
-                    if regex(&format!(r#"^\s{{2}}{}:\s*.+$"#, regex::escape(&stage)))?
-                        .is_match(line)
+                    if regex(&format!(r"^\s{{2}}{}:\s*.+$", regex::escape(&stage)))?.is_match(line)
                     {
                         has_idx_rationale = true;
                         break;
@@ -901,7 +899,7 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
 
 fn check_doc_links(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let mut errors = Vec::new();
-    let link_re = regex(r#"\[[^\]]*\]\(([^)]+)\)"#)?;
+    let link_re = regex(r"\[[^\]]*\]\(([^)]+)\)")?;
     for dom_dir in domain_directories(workspace)? {
         let docs_dir = dom_dir.join("docs");
         if !docs_dir.is_dir() {
@@ -1179,12 +1177,7 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let mut errors = Vec::new();
     let production_bindings = production_bindings(workspace)?;
     let downstream = workspace.path("configs/ci/stages/stages_vcf_downstream.toml");
-    if !downstream.is_file() {
-        errors.push(format!(
-            "{}: missing required downstream stages registry file",
-            downstream.display()
-        ));
-    } else {
+    if downstream.is_file() {
         let rows = toml_stages(&downstream)?;
         if rows.is_empty() {
             errors.push(format!(
@@ -1224,12 +1217,17 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                 ));
             }
         }
+    } else {
+        errors.push(format!(
+            "{}: missing required downstream stages registry file",
+            downstream.display()
+        ));
     }
 
     let repeated_token_re = regex(r"__")?;
     let snake_case_re = regex(r"^[a-z0-9_]+$")?;
     let stage_slug_re = regex(r"^[a-z0-9_]+$")?;
-    let metric_item_re = regex(r#"(?m)^\s*-\s*[a-z0-9_]+\s*$"#)?;
+    let metric_item_re = regex(r"(?m)^\s*-\s*[a-z0-9_]+\s*$")?;
     let metric_entry_re = regex(r#"(?m)^\s*-\s*id:\s*"?[a-z0-9_]+"?\s*$"#)?;
 
     for dom_dir in domain_directories(workspace)? {
@@ -1280,12 +1278,7 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                     ));
                 }
                 let prefix = format!("{dom}.");
-                if !stage_id_value.starts_with(&prefix) {
-                    errors.push(format!(
-                        "{}: stage_id must use '<domain>.<stage_slug>' format",
-                        stage_file.display()
-                    ));
-                } else {
+                if stage_id_value.starts_with(&prefix) {
                     let slug = stage_id_value.trim_start_matches(&prefix);
                     if !stage_slug_re.is_match(slug) {
                         errors.push(format!(
@@ -1312,6 +1305,11 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                             ));
                         }
                     }
+                } else {
+                    errors.push(format!(
+                        "{}: stage_id must use '<domain>.<stage_slug>' format",
+                        stage_file.display()
+                    ));
                 }
             } else {
                 errors.push(format!("{}: missing stage_id", stage_file.display()));
@@ -1421,9 +1419,7 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                 workspace.rel(&metrics_schema).display()
             ));
         }
-        if !metrics_file.is_file() {
-            errors.push(format!("{}: missing metrics.yaml", dom_dir.display()));
-        } else {
+        if metrics_file.is_file() {
             let text = read_utf8(&metrics_file)?;
             let keys = top_level_keys(&text)?;
             if metrics_schema.is_file() {
@@ -1486,6 +1482,8 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                     metrics_file.display()
                 ));
             }
+        } else {
+            errors.push(format!("{}: missing metrics.yaml", dom_dir.display()));
         }
 
         let artifacts_file = dom_dir.join("artifacts.yaml");
@@ -1497,9 +1495,7 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                 workspace.rel(&artifacts_schema).display()
             ));
         }
-        if !artifacts_file.is_file() {
-            errors.push(format!("{}: missing artifacts.yaml", dom_dir.display()));
-        } else {
+        if artifacts_file.is_file() {
             let text = read_utf8(&artifacts_file)?;
             let keys = top_level_keys(&text)?;
             if artifacts_schema.is_file() {
@@ -1562,6 +1558,8 @@ fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommandOutcome> {
                     artifacts_file.display()
                 ));
             }
+        } else {
+            errors.push(format!("{}: missing artifacts.yaml", dom_dir.display()));
         }
 
         let mut fixture_pairs = BTreeSet::new();
@@ -1730,8 +1728,7 @@ fn check_external_tool_policy(workspace: &Workspace) -> Result<DomainCommandOutc
         .collect::<Vec<_>>();
     if !missing_required.is_empty() {
         errors.push(format!(
-            "configs/domain/external_tools.toml missing required external markers: {:?}",
-            missing_required
+            "configs/domain/external_tools.toml missing required external markers: {missing_required:?}"
         ));
     }
     if errors.is_empty() {
@@ -1745,7 +1742,7 @@ fn check_fixture_contracts(workspace: &Workspace) -> Result<DomainCommandOutcome
     let mut errors = Vec::new();
     let stage_re = regex(r#"(?m)^stage_id:\s*"?([^"\n#]+)"?\s*$"#)?;
     let tool_re = regex(r#"(?m)^tool_id:\s*"?([^"\n#]+)"?\s*$"#)?;
-    let readme_stage_re = regex(r#"(?im)^\s*[-*]\s*`?([^`\n]+)`?\s*:.*intent"#)?;
+    let readme_stage_re = regex(r"(?im)^\s*[-*]\s*`?([^`\n]+)`?\s*:.*intent")?;
     let snake_case = regex(r"^[a-z0-9_]+$")?;
 
     for dom_dir in domain_directories(workspace)? {
@@ -1824,8 +1821,7 @@ fn check_fixture_contracts(workspace: &Workspace) -> Result<DomainCommandOutcome
                     let has_intent = readme_stage_re.captures_iter(&readme_text).any(|captures| {
                         captures
                             .get(1)
-                            .map(|value| value.as_str().trim() == stage_name)
-                            .unwrap_or(false)
+                            .is_some_and(|value| value.as_str().trim() == stage_name)
                     });
                     if !has_intent {
                         errors.push(format!(
@@ -1842,7 +1838,7 @@ fn check_fixture_contracts(workspace: &Workspace) -> Result<DomainCommandOutcome
                         entry.path().extension().and_then(|ext| ext.to_str()) == Some("txt")
                     })
                     .collect::<Vec<_>>();
-                fixture_files.sort_by_key(|entry| entry.path());
+                fixture_files.sort_by_key(std::fs::DirEntry::path);
 
                 for fixture in fixture_files {
                     let path = fixture.path();
@@ -2408,7 +2404,7 @@ fn check_reference_bundle_lock(workspace: &Workspace) -> Result<DomainCommandOut
 fn parse_stage_catalog(path: &Path, const_name: &str) -> Result<BTreeSet<String>> {
     let text = read_utf8(path)?;
     let pattern = format!(
-        r#"(?s)pub\s+const\s+{}:\s*&\[\s*&str\s*\]\s*=\s*&\[(.*?)\];"#,
+        r"(?s)pub\s+const\s+{}:\s*&\[\s*&str\s*\]\s*=\s*&\[(.*?)\];",
         regex::escape(const_name)
     );
     let captures = regex(&pattern)?

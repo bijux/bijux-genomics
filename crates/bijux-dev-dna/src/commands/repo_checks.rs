@@ -402,7 +402,7 @@ pub(crate) fn check_artifact_env_contract(
     let mut leaks = Vec::new();
     for entry in WalkDir::new(&snapshots)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -487,7 +487,7 @@ pub(crate) fn check_assets_reference_schema(
         Regex::new(r"^\s*[A-Za-z0-9_]+_ids:\s*$").context("compile preset key regex")?;
     let yaml_iter = WalkDir::new(&ref_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| {
             matches!(
@@ -531,7 +531,7 @@ pub(crate) fn check_assets_reference_schema(
     }
     for entry in std::fs::read_dir(&ref_root)
         .with_context(|| format!("read {}", ref_root.display()))?
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         let dir = entry.path();
         if !dir.is_dir() {
@@ -541,7 +541,7 @@ pub(crate) fn check_assets_reference_schema(
         let mut preset_files = Vec::new();
         for child in std::fs::read_dir(&dir)
             .with_context(|| format!("read {}", dir.display()))?
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             let path = child.path();
             if !path.is_file() {
@@ -589,13 +589,13 @@ pub(crate) fn check_assets_reference_schema(
                         let _ = lines.next();
                         continue;
                     }
-                    if !next.starts_with("      - ") && !next.starts_with("    - ") {
-                        if Regex::new(r"^\s*[A-Za-z0-9_]+:\s*")
+                    if !next.starts_with("      - ")
+                        && !next.starts_with("    - ")
+                        && Regex::new(r"^\s*[A-Za-z0-9_]+:\s*")
                             .context("compile nested key regex")?
                             .is_match(next)
-                        {
-                            break;
-                        }
+                    {
+                        break;
                     }
                     let Some(item) = trimmed.strip_prefix("- ") else {
                         break;
@@ -929,10 +929,12 @@ pub(crate) fn check_gitignore_contract(
         .map(|pattern| format!("missing required pattern: {pattern}"))
         .collect::<Vec<_>>();
     for line in raw.lines().map(str::trim) {
-        if line.starts_with('!') && line.contains("target") {
-            if line != "!/artifacts/isolate/**" && line != "!/artifacts/isolate/" {
-                violations.push(format!("forbidden target unignore pattern: {line}"));
-            }
+        if line.starts_with('!')
+            && line.contains("target")
+            && line != "!/artifacts/isolate/**"
+            && line != "!/artifacts/isolate/"
+        {
+            violations.push(format!("forbidden target unignore pattern: {line}"));
         }
     }
     if violations.is_empty() {
@@ -957,7 +959,7 @@ pub(crate) fn check_hidden_tmp_usage(
     for root in roots {
         for entry in WalkDir::new(&root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             if !entry.file_type().is_file() {
                 continue;
@@ -993,7 +995,7 @@ pub(crate) fn check_hpc_safety(
     let mut violations = Vec::new();
     for entry in WalkDir::new(&root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -1035,9 +1037,7 @@ pub(crate) fn check_hpc_rsync_docs_parity(
     let rsync_dir = workspace.path("configs/hpc/rsync");
     let mut violations = Vec::new();
 
-    if !index_path.is_file() {
-        violations.push("configs/hpc/rsync/index.md missing".to_string());
-    } else {
+    if index_path.is_file() {
         let index = read(&index_path)?;
         if !index.to_lowercase().contains("owner") {
             violations.push(
@@ -1061,6 +1061,8 @@ pub(crate) fn check_hpc_rsync_docs_parity(
                 ));
             }
         }
+    } else {
+        violations.push("configs/hpc/rsync/index.md missing".to_string());
     }
 
     if violations.is_empty() {
@@ -1102,8 +1104,7 @@ pub(crate) fn check_make_help_sync(
     fail(
         check,
         format!(
-            "README targets and make help drifted\nreadme={:?}\nhelp={:?}",
-            readme_targets, help_targets
+            "README targets and make help drifted\nreadme={readme_targets:?}\nhelp={help_targets:?}"
         ),
     )
 }
@@ -1153,7 +1154,7 @@ pub(crate) fn check_no_fake_artifacts(
     for root in source_roots {
         for entry in WalkDir::new(&root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             if !entry.file_type().is_file() {
                 continue;
@@ -1174,7 +1175,7 @@ pub(crate) fn check_no_fake_artifacts(
         }
         for entry in WalkDir::new(&root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             if !entry.file_type().is_file() {
                 continue;
@@ -1207,7 +1208,7 @@ pub(crate) fn check_no_target_paths_in_tests(
     for root in [workspace.path("crates"), workspace.path("makes")] {
         for entry in WalkDir::new(&root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             if !entry.file_type().is_file() {
                 continue;
@@ -1248,7 +1249,7 @@ pub(crate) fn check_no_user_path_literals(
     for root in [workspace.path("crates"), workspace.path("makes")] {
         for entry in WalkDir::new(&root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             if !entry.file_type().is_file() {
                 continue;
@@ -1320,7 +1321,7 @@ pub(crate) fn check_readme_links(
         for capture in code_link_re.captures_iter(&raw) {
             let path = workspace.path(&capture[1]);
             if !path.exists() {
-                missing.push(format!("{rel} -> {}", capture[1].to_string()));
+                missing.push(format!("{rel} -> {}", &capture[1]));
             }
         }
     }
@@ -1473,7 +1474,7 @@ pub(crate) fn check_rustflags_consistency(
     let mut violations = Vec::new();
     for entry in WalkDir::new(workspace.path("crates"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -1497,7 +1498,7 @@ pub(crate) fn check_rustflags_consistency(
         }
         for entry in WalkDir::new(&path)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             if !entry.file_type().is_file() {
                 continue;
@@ -1562,7 +1563,7 @@ fn repo_readme_paths(workspace: &Workspace) -> Result<Vec<String>> {
     let mut paths = Vec::new();
     for entry in WalkDir::new(&workspace.root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         let rel = workspace.rel(entry.path()).display().to_string();
         if rel.starts_with("artifacts/") || rel.starts_with("target/") {
@@ -1609,12 +1610,8 @@ pub(crate) fn check_ssot_guardrails(
         .lines()
         .filter(|line| !line.trim().is_empty())
         .collect::<Vec<_>>();
-    let registry_changed = changed
-        .iter()
-        .any(|path| *path == "configs/ci/registry/tool_registry.toml");
-    let lock_changed = changed
-        .iter()
-        .any(|path| *path == "configs/ci/registry/tool_registry_lock.sha256");
+    let registry_changed = changed.contains(&"configs/ci/registry/tool_registry.toml");
+    let lock_changed = changed.contains(&"configs/ci/registry/tool_registry_lock.sha256");
     if registry_changed && !lock_changed {
         return fail(
             check,
@@ -1681,7 +1678,7 @@ pub(crate) fn check_species_aliases(
         authority_species.insert(species_id.to_string());
     }
     for (alias, species) in aliases {
-        let alias = alias.to_string();
+        let alias = alias.clone();
         let species = species.as_str().unwrap_or("").to_string();
         if alias != alias.to_lowercase() {
             errors.push(format!("alias `{alias}` must be lowercase"));
@@ -1698,7 +1695,7 @@ pub(crate) fn check_species_aliases(
         }
     }
     for (species, build) in default_builds {
-        let species = species.to_string();
+        let species = species.clone();
         let build = build.as_str().unwrap_or("");
         match authority_default_build.get(&species) {
             Some(expected) if expected == build => {}

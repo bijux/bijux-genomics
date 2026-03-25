@@ -287,7 +287,7 @@ where
     let timer = Instant::now();
     let result = action();
     let ended_at = Utc::now();
-    let exit_code = if result.is_ok() { 0 } else { 1 };
+    let exit_code = i32::from(result.is_err());
     let status = if exit_code == 0 { "ok" } else { "fail" };
     write_timing(
         group,

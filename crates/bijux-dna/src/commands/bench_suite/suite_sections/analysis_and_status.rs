@@ -385,6 +385,7 @@ fn validate_governed_stage_tool_bindings(suite: &SuiteSpec) -> Result<()> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::items_after_test_module)]
 mod suite_contract_tests {
     use super::{validate_suite_contracts, FairnessSpec, SuiteSpec, SuiteStage};
 
@@ -418,7 +419,7 @@ mod suite_contract_tests {
 
     #[test]
     fn suite_validation_rejects_unguarded_stage_tools() {
-        let suite = governed_suite("fastq.trim_reads", &["seqpurge"]);
+        let suite = governed_suite("fastq.trim_reads", &["imaginarytool"]);
         let error = validate_suite_contracts(&suite)
             .expect_err("planned or missing registry tool must fail");
         assert!(error.to_string().contains("not admitted in governed registry"));
