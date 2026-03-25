@@ -3,29 +3,6 @@ source: crates/bijux-dna-policies/tests/boundaries/surface/docs/docs_spine_contr
 assertion_line: 33
 expression: "bijux_dna_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 ---
-[bijux-dna-dev]
-# bijux-dna-dev Docs Index
-
-## Scope
-- [SCOPE.md](SCOPE.md)
-
-## Effects
-- Repository-scoped filesystem reads and writes for automation artifacts.
-- Process execution for explicit development workflows and repository checks.
-
-## Boundaries
-- [ARCHITECTURE.md](ARCHITECTURE.md)
-- `BOUNDARY.md`
-- `PUBLIC_API.md`
-
-## Extension Points
-- Add new cataloged commands under `src/catalog` and wire them through `src/commands`.
-- Extend runtime adapters under `src/runtime` when a workflow needs a new boundary-owned capability.
-
-## How to Test
-- Run `cargo test -p bijux-dna-dev`.
-- Run `cargo test -p bijux-dna-policies policy__boundaries__docs_index_quality__docs_index_has_required_sections -- --nocapture`.
-
 [bijux-dna]
 # bijux-dna Docs Index
 
@@ -239,6 +216,31 @@ Public modules are `contract`, `id_catalog`, `ids`, `metrics`, and `prelude`.
 
 ## How to Test
 - [TESTS.md](TESTS.md)
+
+[bijux-dna-dev]
+# bijux-dna-dev Docs Index
+
+## Scope
+- [SCOPE.md](SCOPE.md)
+
+## Effects
+- Repository-scoped filesystem reads and writes for automation artifacts.
+- Process execution for explicit development workflows and repository checks.
+
+## Boundaries
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- `BOUNDARY.md`
+- `PUBLIC_API.md`
+- [TESTS.md](TESTS.md)
+
+## Extension Points
+- Add new cataloged commands under `src/catalog` and wire them through `src/commands`.
+- Extend runtime adapters under `src/runtime` when a workflow needs a new boundary-owned capability.
+
+## How to Test
+- Run `cargo test -p bijux-dna-dev`.
+- Read [TESTS.md](TESTS.md) for command-module coverage.
+- Run `cargo test -p bijux-dna-policies policy__boundaries__docs_index_quality__docs_index_has_required_sections -- --nocapture`.
 
 [bijux-dna-domain-bam]
 # bijux-dna-domain-bam Docs Index

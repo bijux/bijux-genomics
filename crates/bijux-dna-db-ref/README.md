@@ -18,10 +18,10 @@ Pure lookup behavior over checked-in config/lock material; no hidden side effect
 Owns reference governance contracts and consumes `bijux-dna-domain-vcf` species/reference types.
 
 ## Artifacts / Contracts
-- [crates/bijux-dna-db-ref/docs/INDEX.md](crates/bijux-dna-db-ref/docs/INDEX.md)
-- [crates/bijux-dna-db-ref/docs/SCOPE.md](crates/bijux-dna-db-ref/docs/SCOPE.md)
-- [crates/bijux-dna-db-ref/docs/ARCHITECTURE.md](crates/bijux-dna-db-ref/docs/ARCHITECTURE.md)
-- [crates/bijux-dna-db-ref/docs/TESTS.md](crates/bijux-dna-db-ref/docs/TESTS.md)
+- [docs/INDEX.md](docs/INDEX.md)
+- [docs/SCOPE.md](docs/SCOPE.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/TESTS.md](docs/TESTS.md)
 
 ## Failure modes
 - Unknown species/build alias.
@@ -38,4 +38,4 @@ Owns reference governance contracts and consumes `bijux-dna-domain-vcf` species/
 - `tests/schemas/README.md`
 
 ## Where the docs live
-All crate docs are in [`crates/bijux-dna-db-ref/docs/`](crates/bijux-dna-db-ref/docs/INDEX.md), with test guidance in [`crates/bijux-dna-db-ref/docs/TESTS.md`](crates/bijux-dna-db-ref/docs/TESTS.md).
+All crate docs are in [`docs/`](docs/INDEX.md), with test guidance in [`docs/TESTS.md`](docs/TESTS.md).
