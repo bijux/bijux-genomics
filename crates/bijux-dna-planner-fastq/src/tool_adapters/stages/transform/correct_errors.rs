@@ -527,7 +527,7 @@ mod tests {
             Path::new("out"),
             &CorrectPlanOptions {
                 quality_encoding: QualityEncoding::Phred64,
-                ..CorrectPlanOptions::default()
+                ..CorrectPlanOptions::baseline()
             },
         )
         .expect_err("unsupported quality encoding must fail");
@@ -545,7 +545,7 @@ mod tests {
             &CorrectPlanOptions {
                 threads: Some(7),
                 quality_encoding: QualityEncoding::Phred64,
-                ..CorrectPlanOptions::default()
+                ..CorrectPlanOptions::baseline()
             },
         )
         .expect("bayeshammer should accept explicit phred64 encoding");
@@ -584,7 +584,7 @@ mod tests {
             Path::new("reads.fastq.gz"),
             None,
             Path::new("out"),
-            &CorrectPlanOptions::default(),
+            &CorrectPlanOptions::baseline(),
         )
         .expect_err("lighter must require genome_size");
 
@@ -600,7 +600,7 @@ mod tests {
             Path::new("out"),
             &CorrectPlanOptions {
                 kmer_size: Some(31),
-                ..CorrectPlanOptions::default()
+                ..CorrectPlanOptions::baseline()
             },
         )
         .expect("musket plan should accept explicit kmer size");
@@ -618,7 +618,7 @@ mod tests {
             Path::new("out"),
             &CorrectPlanOptions {
                 max_memory_gb: Some(24),
-                ..CorrectPlanOptions::default()
+                ..CorrectPlanOptions::baseline()
             },
         )
         .expect("bayeshammer plan should accept explicit memory limit");
@@ -641,7 +641,7 @@ mod tests {
             &CorrectPlanOptions {
                 genome_size: Some(3_200_000),
                 trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
-                ..CorrectPlanOptions::default()
+                ..CorrectPlanOptions::baseline()
             },
         )
         .expect("lighter should accept trusted kmer artifacts");
@@ -670,7 +670,7 @@ mod tests {
             &CorrectPlanOptions {
                 quality_encoding: QualityEncoding::Phred64,
                 max_memory_gb: Some(24),
-                ..CorrectPlanOptions::default()
+                ..CorrectPlanOptions::baseline()
             },
         )
         .expect("bayeshammer plan should carry executable correction settings");
@@ -693,7 +693,7 @@ mod tests {
             Path::new("out"),
             &CorrectPlanOptions {
                 trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
-                ..CorrectPlanOptions::default()
+                ..CorrectPlanOptions::baseline()
             },
         )
         .expect_err("unsupported trusted kmer mappings must fail");

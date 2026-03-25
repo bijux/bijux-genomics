@@ -333,7 +333,7 @@ mod tests {
             None,
             Path::new("reference.index"),
             Path::new("out"),
-            &DepleteHostPlanOptions::default(),
+            &DepleteHostPlanOptions::baseline(),
             "star",
         )?;
 
@@ -352,7 +352,7 @@ mod tests {
             Path::new("out"),
             &DepleteHostPlanOptions {
                 host_identity_threshold: 0.97,
-                ..DepleteHostPlanOptions::default()
+                ..DepleteHostPlanOptions::baseline()
             },
             "bowtie2_build",
         )
@@ -371,7 +371,7 @@ mod tests {
             Path::new("out"),
             &DepleteHostPlanOptions {
                 threads: Some(8),
-                ..DepleteHostPlanOptions::default()
+                ..DepleteHostPlanOptions::baseline()
             },
             "bowtie2_build",
         )?;
