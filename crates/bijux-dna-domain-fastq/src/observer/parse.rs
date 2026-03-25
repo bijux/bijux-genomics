@@ -2800,11 +2800,12 @@ mod tests {
     #[test]
     fn parse_filter_reads_report_parses_governed_contract() -> Result<()> {
         let parsed = parse_filter_reads_report(
-            r#"{
+            &format!(
+                r#"{{
                 "schema_version": "bijux.fastq.filter_reads.report.v3",
                 "stage": "fastq.filter_reads",
                 "stage_id": "fastq.filter_reads",
-                "tool_id": id_catalog::TOOL_FASTP,
+                "tool_id": "{tool_id}",
                 "paired_mode": "paired_end",
                 "threads": 4,
                 "input_r1": "reads_R1.fastq.gz",
@@ -2840,11 +2841,13 @@ mod tests {
                 "exit_code": 0,
                 "raw_backend_report": "fastp.json",
                 "raw_backend_report_format": "fastp_json",
-                "backend_metrics": {
+                "backend_metrics": {{
                     "passed_filter_reads": 95,
                     "too_many_n_reads": 2
-                }
-            }"#,
+                }}
+            }}"#,
+                tool_id = id_catalog::TOOL_FASTP
+            ),
         )?;
         assert_eq!(parsed.tool_id, id_catalog::TOOL_FASTP);
         assert_eq!(parsed.reads_removed_by_n, 2);
