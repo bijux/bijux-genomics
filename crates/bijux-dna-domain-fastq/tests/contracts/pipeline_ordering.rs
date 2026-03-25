@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde_yaml::Value;
+use serde_json::Value;
 
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -13,7 +13,7 @@ fn workspace_root() -> Result<PathBuf> {
 
 fn parse_yaml(path: &Path) -> Result<Value> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+    bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
 #[test]
@@ -21,9 +21,9 @@ fn pre_hpc_pipeline_depletes_before_merging_pairs() -> Result<()> {
     let index = parse_yaml(&workspace_root()?.join("domain/fastq/index.yaml"))?;
     let pipeline = index
         .get("pipeline_compositions")
-        .and_then(Value::as_mapping)
-        .and_then(|compositions| compositions.get(Value::String("pre_hpc_best".to_string())))
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_object)
+        .and_then(|compositions| compositions.get("pre_hpc_best"))
+        .and_then(Value::as_array)
         .context("pipeline_compositions.pre_hpc_best")?
         .iter()
         .filter_map(Value::as_str)
@@ -58,9 +58,9 @@ fn pre_hpc_pipeline_matches_canonical_shotgun_order() -> Result<()> {
     let index = parse_yaml(&workspace_root()?.join("domain/fastq/index.yaml"))?;
     let pipeline = index
         .get("pipeline_compositions")
-        .and_then(Value::as_mapping)
-        .and_then(|compositions| compositions.get(Value::String("pre_hpc_best".to_string())))
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_object)
+        .and_then(|compositions| compositions.get("pre_hpc_best"))
+        .and_then(Value::as_array)
         .context("pipeline_compositions.pre_hpc_best")?
         .iter()
         .filter_map(Value::as_str)

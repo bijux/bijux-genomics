@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde_yaml::Value;
+use serde_json::Value;
 
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -14,7 +14,7 @@ fn workspace_root() -> Result<PathBuf> {
 
 fn parse_yaml(path: &Path) -> Result<Value> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+    bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
 fn yaml_string(value: Option<&Value>) -> Option<String> {
@@ -23,7 +23,7 @@ fn yaml_string(value: Option<&Value>) -> Option<String> {
 
 fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
     value
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .into_iter()
         .flatten()
         .filter_map(Value::as_str)
@@ -33,12 +33,12 @@ fn yaml_string_set(value: Option<&Value>) -> BTreeSet<String> {
 
 fn yaml_output_name_set(value: Option<&Value>) -> BTreeSet<String> {
     value
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .into_iter()
         .flatten()
         .filter_map(|item| {
-            item.as_mapping()
-                .and_then(|mapping| mapping.get(Value::String("name".to_string())))
+            item.as_object()
+                .and_then(|mapping| mapping.get("name"))
                 .and_then(Value::as_str)
                 .map(str::to_string)
         })
@@ -105,12 +105,12 @@ fn stage_inputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
         let inputs = yaml
             .get("inputs")
-            .and_then(Value::as_sequence)
+            .and_then(Value::as_array)
             .into_iter()
             .flatten()
             .filter_map(|item| {
-                item.as_mapping()
-                    .and_then(|mapping| mapping.get(Value::String("name".to_string())))
+                item.as_object()
+                    .and_then(|mapping| mapping.get("name"))
                     .and_then(Value::as_str)
                     .map(str::to_string)
             })
@@ -136,12 +136,12 @@ fn stage_outputs() -> Result<BTreeMap<String, BTreeSet<String>>> {
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
         let outputs = yaml
             .get("outputs")
-            .and_then(Value::as_sequence)
+            .and_then(Value::as_array)
             .into_iter()
             .flatten()
             .filter_map(|item| {
-                item.as_mapping()
-                    .and_then(|mapping| mapping.get(Value::String("name".to_string())))
+                item.as_object()
+                    .and_then(|mapping| mapping.get("name"))
                     .and_then(Value::as_str)
                     .map(str::to_string)
             })
@@ -173,10 +173,9 @@ fn seqkit_stats_and_vsearch_execution_contracts_cover_supported_artifacts() -> R
         let output_names = yaml_output_name_set(yaml.get("outputs"));
         let execution_contract = yaml
             .get("execution_contract")
-            .and_then(Value::as_mapping)
+            .and_then(Value::as_object)
             .with_context(|| format!("{tool_name} missing execution_contract"))?;
-        let expected_outputs =
-            yaml_string_set(execution_contract.get(Value::String("expected_outputs".to_string())));
+        let expected_outputs = yaml_string_set(execution_contract.get("expected_outputs"));
         let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         for artifact in required_artifacts {
             assert!(
@@ -211,18 +210,16 @@ fn merge_tool_contracts_preserve_governed_reports_and_native_logs() -> Result<()
         let outputs = yaml_output_name_set(yaml.get("outputs"));
         let stage_contract = yaml
             .get("stage_contracts")
-            .and_then(Value::as_mapping)
-            .and_then(|contracts| contracts.get(Value::String("fastq.merge_pairs".to_string())))
-            .and_then(Value::as_mapping)
+            .and_then(Value::as_object)
+            .and_then(|contracts| contracts.get("fastq.merge_pairs"))
+            .and_then(Value::as_object)
             .with_context(|| format!("{tool_name} missing fastq.merge_pairs stage_contract"))?;
-        let expected_artifacts =
-            yaml_string_set(stage_contract.get(Value::String("expected_artifacts".to_string())));
+        let expected_artifacts = yaml_string_set(stage_contract.get("expected_artifacts"));
         let execution_contract = yaml
             .get("execution_contract")
-            .and_then(Value::as_mapping)
+            .and_then(Value::as_object)
             .with_context(|| format!("{tool_name} missing execution_contract"))?;
-        let expected_outputs =
-            yaml_string_set(execution_contract.get(Value::String("expected_outputs".to_string())));
+        let expected_outputs = yaml_string_set(execution_contract.get("expected_outputs"));
 
         for artifact in [
             "merged_reads",
@@ -270,31 +267,27 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
         let yaml = parse_yaml(&tool_path)?;
         let stage_contracts = yaml
             .get("stage_contracts")
-            .and_then(Value::as_mapping)
+            .and_then(Value::as_object)
             .with_context(|| format!("{tool_name} missing stage_contracts"))?;
         let stage_ids = declared_stage_ids(&yaml);
         let expected_artifacts = yaml_string_set(yaml.get("expected_artifacts"));
         assert_eq!(
             stage_contracts
                 .keys()
-                .filter_map(Value::as_str)
-                .map(str::to_string)
+                .cloned()
                 .collect::<BTreeSet<_>>(),
             stage_ids,
             "{tool_name} stage_contracts must cover every declared stage"
         );
         for stage_id in &stage_ids {
             let stage_contract = stage_contracts
-                .get(Value::String(stage_id.clone()))
-                .and_then(Value::as_mapping)
+                .get(stage_id)
+                .and_then(Value::as_object)
                 .with_context(|| format!("{tool_name} missing stage_contract for {stage_id}"))?;
-            let contract_inputs =
-                yaml_string_set(stage_contract.get(Value::String("required_inputs".to_string())));
-            let contract_outputs = yaml_string_set(
-                stage_contract.get(Value::String("expected_artifacts".to_string())),
-            );
+            let contract_inputs = yaml_string_set(stage_contract.get("required_inputs"));
+            let contract_outputs = yaml_string_set(stage_contract.get("expected_artifacts"));
             let notes = stage_contract
-                .get(Value::String("notes".to_string()))
+                .get("notes")
                 .and_then(Value::as_str)
                 .unwrap_or_default();
             let stage_required_inputs = required_inputs
@@ -340,10 +333,8 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
         }
         let union = stage_contracts
             .values()
-            .filter_map(Value::as_mapping)
-            .flat_map(|stage_contract| {
-                yaml_string_set(stage_contract.get(Value::String("expected_artifacts".to_string())))
-            })
+            .filter_map(Value::as_object)
+            .flat_map(|stage_contract| yaml_string_set(stage_contract.get("expected_artifacts")))
             .collect::<BTreeSet<_>>();
         assert_eq!(
             union, expected_artifacts,
@@ -372,7 +363,7 @@ fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
         let Some(tool_id) = yaml_string(yaml.get("tool_id")) else {
             continue;
         };
-        let Some(stage_contracts) = yaml.get("stage_contracts").and_then(Value::as_mapping) else {
+        let Some(stage_contracts) = yaml.get("stage_contracts").and_then(Value::as_object) else {
             continue;
         };
         let stage_ids = declared_stage_ids(&yaml);
@@ -380,24 +371,20 @@ fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
         assert_eq!(
             stage_contracts
                 .keys()
-                .filter_map(Value::as_str)
-                .map(str::to_string)
+                .cloned()
                 .collect::<BTreeSet<_>>(),
             stage_ids,
             "{tool_id} stage_contracts must cover every declared stage"
         );
         for stage_id in &stage_ids {
             let stage_contract = stage_contracts
-                .get(Value::String(stage_id.clone()))
-                .and_then(Value::as_mapping)
+                .get(stage_id)
+                .and_then(Value::as_object)
                 .with_context(|| format!("{tool_id} missing stage_contract for {stage_id}"))?;
-            let contract_inputs =
-                yaml_string_set(stage_contract.get(Value::String("required_inputs".to_string())));
-            let contract_outputs = yaml_string_set(
-                stage_contract.get(Value::String("expected_artifacts".to_string())),
-            );
+            let contract_inputs = yaml_string_set(stage_contract.get("required_inputs"));
+            let contract_outputs = yaml_string_set(stage_contract.get("expected_artifacts"));
             let notes = stage_contract
-                .get(Value::String("notes".to_string()))
+                .get("notes")
                 .and_then(Value::as_str)
                 .unwrap_or_default();
             let stage_required_inputs = required_inputs
@@ -443,10 +430,8 @@ fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
         }
         let union = stage_contracts
             .values()
-            .filter_map(Value::as_mapping)
-            .flat_map(|stage_contract| {
-                yaml_string_set(stage_contract.get(Value::String("expected_artifacts".to_string())))
-            })
+            .filter_map(Value::as_object)
+            .flat_map(|stage_contract| yaml_string_set(stage_contract.get("expected_artifacts")))
             .collect::<BTreeSet<_>>();
         assert_eq!(
             union, expected_artifacts,

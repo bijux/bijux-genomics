@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde_yaml::Value;
+use serde_json::Value;
 
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -13,7 +13,7 @@ fn workspace_root() -> Result<PathBuf> {
 
 fn parse_yaml(path: &Path) -> Result<Value> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+    bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
 #[test]
@@ -22,7 +22,7 @@ fn detect_adapters_manifest_accepts_optional_read_two() -> Result<()> {
     let yaml = parse_yaml(&path)?;
     let inputs = yaml
         .get("inputs")
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .context("inputs")?;
     let input_names = inputs
         .iter()
@@ -35,7 +35,7 @@ fn detect_adapters_manifest_accepts_optional_read_two() -> Result<()> {
 
     let allowed_missingness = yaml
         .get("allowed_missingness")
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .context("allowed_missingness")?
         .iter()
         .filter_map(Value::as_str)
@@ -46,7 +46,7 @@ fn detect_adapters_manifest_accepts_optional_read_two() -> Result<()> {
     );
     let output_names = yaml
         .get("outputs")
-        .and_then(Value::as_sequence)
+        .and_then(Value::as_array)
         .context("outputs")?
         .iter()
         .filter_map(|output| output.get("name").and_then(Value::as_str))

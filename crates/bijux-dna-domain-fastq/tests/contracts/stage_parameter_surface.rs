@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde_yaml::Value;
+use serde_json::Value;
 
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -14,7 +14,7 @@ fn workspace_root() -> Result<PathBuf> {
 fn stage_manifest(stage_name: &str) -> Result<Value> {
     let path = workspace_root()?.join(format!("domain/fastq/stages/{stage_name}.yaml"));
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+    bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
 fn stage_parameter_names(stage_name: &str) -> Result<Vec<String>> {
@@ -23,7 +23,7 @@ fn stage_parameter_names(stage_name: &str) -> Result<Vec<String>> {
         return Ok(Vec::new());
     };
     parameters
-        .as_sequence()
+        .as_array()
         .with_context(|| format!("parameters must be a sequence in {stage_name}.yaml"))?
         .iter()
         .map(|entry| {
@@ -42,7 +42,7 @@ fn stage_metric_names(stage_name: &str) -> Result<Vec<String>> {
         return Ok(Vec::new());
     };
     metrics
-        .as_sequence()
+        .as_array()
         .with_context(|| format!("metrics must be a sequence in {stage_name}.yaml"))?
         .iter()
         .map(|entry| {

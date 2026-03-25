@@ -122,8 +122,10 @@ fn manifest() -> &'static ExecutionSupportManifest {
     static MANIFEST: OnceLock<ExecutionSupportManifest> = OnceLock::new();
     MANIFEST.get_or_init(|| {
         let manifest: ExecutionSupportManifest =
-            serde_yaml::from_str(include_str!("../../../domain/fastq/execution_support.yaml"))
-                .unwrap_or_else(|err| panic!("parse domain/fastq/execution_support.yaml: {err}"));
+            bijux_dna_infra::formats::parse_yaml(include_str!(
+                "../../../domain/fastq/execution_support.yaml"
+            ))
+            .unwrap_or_else(|err| panic!("parse domain/fastq/execution_support.yaml: {err}"));
         assert_eq!(
             manifest.schema_version, "bijux.fastq.execution_support.v1",
             "unexpected FASTQ execution support schema version",

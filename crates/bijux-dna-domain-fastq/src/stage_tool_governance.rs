@@ -93,7 +93,7 @@ fn tool_layout_manifests() -> &'static BTreeMap<(String, String), StageToolInput
             include_str!("../../../domain/fastq/tools/vsearch.yaml"),
             include_str!("../../../domain/fastq/tools/alientrimmer.yaml"),
         ] {
-            let manifest: ToolLayoutManifestRecord = serde_yaml::from_str(raw)
+            let manifest: ToolLayoutManifestRecord = bijux_dna_infra::formats::parse_yaml(raw)
                 .unwrap_or_else(|err| panic!("parse fastq tool layout manifest: {err}"));
             for (stage_id, stage_contract) in manifest.stage_contracts {
                 let requires_reads_r2 = stage_contract
