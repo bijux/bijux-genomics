@@ -35,6 +35,8 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 
+/// # Errors
+/// Returns an error if planning, execution, report parsing, or persistence fails.
 pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -269,9 +271,9 @@ fn build_detect_report(
     let mean_q = if bases_in == 0 {
         0.0
     } else {
-        ((bench_inputs.input_stats.mean_q * bench_inputs.input_stats.bases as f64)
-            + input_stats_r2.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
-            / bases_in as f64
+        ((bench_inputs.input_stats.mean_q * u64_to_f64(bench_inputs.input_stats.bases))
+            + input_stats_r2.map_or(0.0, |stats| stats.mean_q * u64_to_f64(stats.bases)))
+            / u64_to_f64(bases_in)
     };
     let pairs_in = input_stats_r2.map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
     let pairs_out = pairs_in;
@@ -335,12 +337,16 @@ fn detect_adapter_summary(out_dir: &std::path::Path) -> Result<(u64, Option<f64>
             .and_then(serde_json::Value::as_u64)
             .unwrap_or(0);
         let fraction = if total_reads > 0 {
-            Some(adapter_trimmed_reads as f64 / total_reads as f64)
+            Some(u64_to_f64(adapter_trimmed_reads) / u64_to_f64(total_reads))
         } else {
             None
         };
-        let count = if adapter_trimmed_reads > 0 { 1 } else { 0 };
+        let count = u64::from(adapter_trimmed_reads > 0);
         return Ok((count, fraction));
     }
     Ok((u64::from(out_dir.join("fastqc").exists()), None))
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

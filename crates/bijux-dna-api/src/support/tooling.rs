@@ -119,7 +119,7 @@ mod tests {
             parameters: Vec::new(),
             metrics: Vec::new(),
             description: None,
-            behavior: Default::default(),
+            behavior: bijux_dna_core::prelude::tooling::StageBehavior::default(),
             image_requirements: None,
             extends: None,
         });
@@ -147,19 +147,25 @@ mod tests {
             domain_dir.join("fastq").is_dir(),
             "workspace domain dir must resolve the repo domain tree"
         );
-        load_workspace_registry().expect("workspace registry should load from resolved domain dir");
+        load_workspace_registry().unwrap_or_else(|err| {
+            panic!("workspace registry should load from resolved domain dir: {err}")
+        });
     }
 
     #[test]
     fn role_filtering_rejects_disallowed_toolsets_instead_of_reenabling_them() {
         let registry = test_registry(ToolRole::Experimental);
-        let error = filter_tools_by_role(
+        let error = match filter_tools_by_role(
             "fastq.test_stage",
             &["demo_tool".to_string()],
             &registry,
             false,
-        )
-        .expect_err("disallowed toolsets must not silently bypass role filtering");
+        ) {
+            Ok(value) => {
+                panic!("disallowed toolsets must not silently bypass role filtering: {value:?}")
+            }
+            Err(err) => err,
+        };
 
         assert!(error
             .to_string()
@@ -175,7 +181,7 @@ mod tests {
             &registry,
             false,
         )
-        .expect("authoritative tool should survive filtering");
+        .unwrap_or_else(|err| panic!("authoritative tool should survive filtering: {err}"));
 
         assert_eq!(filtered, vec!["demo_tool".to_string()]);
     }

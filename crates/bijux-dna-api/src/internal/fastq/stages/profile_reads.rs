@@ -318,7 +318,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
 fn run_stats_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    _args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqStatsArgs,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqStatsArgs,
     bench_inputs: &StatsBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
@@ -339,7 +339,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         &bench_inputs.r1,
         bench_inputs.r2.as_deref(),
         &tool_dir,
-        _args.threads,
+        args.threads,
     )?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let params = plan.params.clone();
@@ -649,9 +649,8 @@ fn materialize_profile_reads_outputs(
         .iter()
         .map(|summary| summary.bases)
         .sum::<u64>();
-    let mean_q = weighted_optional_metric(mate_summaries, |summary| summary.mean_q).unwrap_or(0.0);
-    let gc_percent =
-        weighted_optional_metric(mate_summaries, |summary| summary.gc_percent).unwrap_or(0.0);
+    let mean_q = weighted_optional_metric(mate_summaries, |summary| summary.mean_q);
+    let gc_percent = weighted_optional_metric(mate_summaries, |summary| summary.gc_percent);
     let backend_metrics = mate_summaries
         .iter()
         .map(|summary| SeqkitToolMetricsV1 {
@@ -737,32 +736,38 @@ fn materialize_profile_reads_outputs(
 fn weighted_optional_metric(
     summaries: &[ProfileReadsMateSummaryV1],
     selector: impl Fn(&ProfileReadsMateSummaryV1) -> Option<f64>,
-) -> Option<f64> {
+) -> f64 {
     let total_bases = summaries.iter().map(|summary| summary.bases).sum::<u64>();
     if total_bases == 0 {
-        return Some(0.0);
+        return 0.0;
     }
     let weighted_sum = summaries.iter().fold(0.0, |acc, summary| {
-        acc + selector(summary).unwrap_or(0.0) * summary.bases as f64
+        acc + selector(summary).unwrap_or(0.0) * u64_to_f64(summary.bases)
     });
-    Some(weighted_sum / total_bases as f64)
+    weighted_sum / u64_to_f64(total_bases)
 }
 
 fn profile_reads_tsv(mate_summaries: &[ProfileReadsMateSummaryV1]) -> String {
     let mut out = String::from("label\treads\tbases\tmean_q\tgc_percent\n");
     for summary in mate_summaries {
-        out.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\n",
-            summary.label,
-            summary.reads,
-            summary.bases,
-            summary
+        out.push_str(&summary.label);
+        out.push('\t');
+        out.push_str(&summary.reads.to_string());
+        out.push('\t');
+        out.push_str(&summary.bases.to_string());
+        out.push('\t');
+        out.push_str(
+            &summary
                 .mean_q
                 .map_or_else(String::new, |value| format!("{value:.3}")),
-            summary
+        );
+        out.push('\t');
+        out.push_str(
+            &summary
                 .gc_percent
-                .map_or_else(String::new, |value| format!("{value:.3}"))
-        ));
+                .map_or_else(String::new, |value| format!("{value:.3}")),
+        );
+        out.push('\n');
     }
     out
 }
@@ -770,7 +775,10 @@ fn profile_reads_tsv(mate_summaries: &[ProfileReadsMateSummaryV1]) -> String {
 fn profile_reads_histogram_tsv(length_histogram: &[LengthHistogramBin]) -> String {
     let mut out = String::from("length\tcount\n");
     for bin in length_histogram {
-        out.push_str(&format!("{}\t{}\n", bin.length, bin.count));
+        out.push_str(&bin.length.to_string());
+        out.push('\t');
+        out.push_str(&bin.count.to_string());
+        out.push('\n');
     }
     out
 }
@@ -791,4 +799,8 @@ fn combine_length_histograms(
     bins.into_iter()
         .map(|(length, count)| LengthHistogramBin { length, count })
         .collect()
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

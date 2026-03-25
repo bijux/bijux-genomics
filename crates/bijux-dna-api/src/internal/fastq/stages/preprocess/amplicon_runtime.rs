@@ -41,9 +41,7 @@ fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone());
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("trim_terminal_damage_report.json"));
+                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("trim_terminal_damage_report.json"), |artifact| artifact.path.clone());
             let raw_backend_report = outputs
                 .iter()
                 .find(|artifact| artifact.name.as_str() == "raw_backend_report_json")
@@ -233,19 +231,13 @@ fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone());
             let primer_stats = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "primer_stats_json")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("primer_stats.json"));
+                .find(|artifact| artifact.name.as_str() == "primer_stats_json").map_or_else(|| out_dir.join("primer_stats.json"), |artifact| artifact.path.clone());
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("normalize_primers_report.json"));
+                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("normalize_primers_report.json"), |artifact| artifact.path.clone());
             let orientation = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "primer_orientation_report")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("primer_orientation.tsv"));
+                .find(|artifact| artifact.name.as_str() == "primer_orientation_report").map_or_else(|| out_dir.join("primer_orientation.tsv"), |artifact| artifact.path.clone());
             let primer_governance = resolve_primer_set_governance(None)?;
             let tool_id = normalize_primers_tool_id(planned);
             let planned_report = planned_normalize_primers_report(
@@ -259,30 +251,22 @@ fn materialize_amplicon_stage_outputs(
                 tool_id,
             );
             let primer_set_id = planned_report
-                .as_ref()
-                .map(|report| report.primer_set_id.clone())
-                .unwrap_or_else(|| primer_governance.primer_set_id.clone());
+                .as_ref().map_or_else(|| primer_governance.primer_set_id.clone(), |report| report.primer_set_id.clone());
             let marker_id = planned_report
                 .as_ref()
                 .and_then(|report| report.marker_id.clone())
                 .or_else(|| Some(primer_governance.marker_id.clone()));
             let primer_fasta = planned_report
                 .as_ref()
-                .and_then(|report| report.primer_fasta.as_ref())
-                .map(std::path::PathBuf::from)
-                .unwrap_or_else(|| primer_governance.primer_fasta.clone());
+                .and_then(|report| report.primer_fasta.as_ref()).map_or_else(|| primer_governance.primer_fasta.clone(), std::path::PathBuf::from);
             let orientation_policy = planned_report
-                .as_ref()
-                .map(|report| report.orientation_policy.clone())
-                .unwrap_or_else(|| "normalize_to_forward_primer".to_string());
+                .as_ref().map_or_else(|| "normalize_to_forward_primer".to_string(), |report| report.orientation_policy.clone());
             let max_mismatch_rate = planned_report
                 .as_ref()
-                .map(|report| report.max_mismatch_rate)
-                .unwrap_or(0.10_f64);
+                .map_or(0.10_f64, |report| report.max_mismatch_rate);
             let min_overlap_bp = planned_report
                 .as_ref()
-                .map(|report| u64::from(report.min_overlap_bp))
-                .unwrap_or(10_u64);
+                .map_or(10_u64, |report| u64::from(report.min_overlap_bp));
             let stage_ok = match tool_id {
                 "cutadapt" => {
                     let mut args = vec![
@@ -385,7 +369,7 @@ fn materialize_amplicon_stage_outputs(
                 primer_fasta: Some(primer_fasta.display().to_string()),
                 orientation_policy: orientation_policy.clone(),
                 max_mismatch_rate,
-                min_overlap_bp: min_overlap_bp as u32,
+                min_overlap_bp: u64_to_u32(min_overlap_bp).unwrap_or(10),
                 input_r1: input.display().to_string(),
                 input_r2: input_r2.as_ref().map(|path| path.display().to_string()),
                 output_r1: primary.display().to_string(),
@@ -398,7 +382,7 @@ fn materialize_amplicon_stage_outputs(
                 pairs_out: output_r2.as_ref().map(|_| reads_out.unwrap_or(0)),
                 primer_trimmed_reads: primer_trimmed_fraction
                     .zip(reads_in)
-                    .map(|(fraction, reads)| (fraction * reads as f64).round() as u64),
+                    .and_then(|(fraction, reads)| rounded_fraction_count(fraction, reads)),
                 primer_trimmed_fraction,
                 orientation_forward_fraction,
                 primer_orientation_report: orientation.display().to_string(),
@@ -459,24 +443,16 @@ fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone());
             let metrics = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "chimera_metrics_json")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("chimera_metrics.json"));
+                .find(|artifact| artifact.name.as_str() == "chimera_metrics_json").map_or_else(|| out_dir.join("chimera_metrics.json"), |artifact| artifact.path.clone());
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("remove_chimeras_report.json"));
+                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("remove_chimeras_report.json"), |artifact| artifact.path.clone());
             let chimera_fasta = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "chimeras_fasta")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("chimeras.fasta"));
+                .find(|artifact| artifact.name.as_str() == "chimeras_fasta").map_or_else(|| out_dir.join("chimeras.fasta"), |artifact| artifact.path.clone());
             let uchime_out = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "uchime_report_tsv")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("uchime.tsv"));
+                .find(|artifact| artifact.name.as_str() == "uchime_report_tsv").map_or_else(|| out_dir.join("uchime.tsv"), |artifact| artifact.path.clone());
             let vsearch_ok = command_exists("vsearch")
                 && run_stage_command(
                     out_dir,
@@ -510,7 +486,7 @@ fn materialize_amplicon_stage_outputs(
             let chimera_fraction = match (reads_in, chimeras_removed) {
                 (Some(0), _) => Some(0.0),
                 (Some(input_reads), Some(removed_reads)) => {
-                    Some(removed_reads as f64 / input_reads as f64)
+                    Some(amplicon_u64_to_f64(removed_reads) / amplicon_u64_to_f64(input_reads))
                 }
                 _ => parse_uchime_fraction(&uchime_out),
             };
@@ -549,9 +525,7 @@ fn materialize_amplicon_stage_outputs(
             let taxonomy_fastq_out = out_dir.join("taxonomy_ready.fastq");
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("cluster_otus_report.json"));
+                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("cluster_otus_report.json"), |artifact| artifact.path.clone());
             let effective_params = infer_cluster_otus_effective_params(planned);
             let otu_input_fasta = out_dir.join("otu_input.fasta");
             let otu_clusters_uc = out_dir.join("otu_clusters.uc");
@@ -601,29 +575,30 @@ fn materialize_amplicon_stage_outputs(
                 crate::internal::fastq::stages::cluster_otus::count_cluster_otus_representatives(
                     &otu_fasta,
                 )?;
-            let report =
-                crate::internal::fastq::stages::cluster_otus::canonical_cluster_otus_report(
-                    "vsearch",
-                    &input,
-                    &otu_table,
-                    &otu_fasta,
-                    &taxonomy_ready_fasta,
-                    &taxonomy_fastq_out,
-                    &report_json,
-                    &effective_params,
+            let report = crate::internal::fastq::stages::cluster_otus::canonical_cluster_otus_report(
+                crate::internal::fastq::stages::cluster_otus::ClusterOtusReportInputs {
+                    tool_id: "vsearch",
+                    input_reads: &input,
+                    otu_table: &otu_table,
+                    otu_representatives: &otu_fasta,
+                    taxonomy_reference_fasta: &taxonomy_ready_fasta,
+                    taxonomy_reads_fastq: &taxonomy_fastq_out,
+                    report_json: &report_json,
+                    effective_params: &effective_params,
                     table_metrics,
-                    representative_count,
-                    None,
-                    None,
-                    Some(0),
-                    !vsearch_ok,
-                    otu_clusters_uc
+                    representative_sequence_count: representative_count,
+                    runtime_s: None,
+                    memory_mb: None,
+                    exit_code: Some(0),
+                    used_fallback: !vsearch_ok,
+                    raw_backend_report: otu_clusters_uc
                         .exists()
                         .then_some(otu_clusters_uc.as_path()),
-                    Some(serde_json::json!({
+                    backend_metrics: Some(serde_json::json!({
                         "materialized_from": "amplicon_runtime",
                     })),
-                );
+                },
+            );
             bijux_dna_infra::atomic_write_json(&report_json, &report)?;
             payload = serde_json::json!({
                 "otu_count": table_metrics.otu_count,
@@ -649,9 +624,7 @@ fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone());
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("infer_asvs_report.json"));
+                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("infer_asvs_report.json"), |artifact| artifact.path.clone());
             let dada2_script = out_dir.join("dada2_entrypoint.R");
             let dada2_inputs = out_dir.join("dada2_inputs.json");
             if !dada2_script.exists() {
@@ -718,25 +691,27 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
                 crate::internal::fastq::stages::infer_asvs::count_fasta_records(&asv_fasta)?;
             let used_fallback = !infer_ok;
             let report = crate::internal::fastq::stages::infer_asvs::canonical_infer_asvs_report(
-                infer_asvs_tool_id(planned),
-                &input,
-                input_r2.as_deref(),
-                &asv_table,
-                &asv_fasta,
-                &taxonomy_ready_fasta,
-                &taxonomy_fastq_out,
-                &report_json,
-                &effective_params,
-                table_metrics,
-                representative_sequence_count,
-                None,
-                None,
-                Some(0),
-                used_fallback,
-                Some(serde_json::json!({
-                    "entrypoint_script": dada2_script,
-                    "dada2_inputs": dada2_inputs,
-                })),
+                crate::internal::fastq::stages::infer_asvs::InferAsvsReportInputs {
+                    tool_id: infer_asvs_tool_id(planned),
+                    input_r1: &input,
+                    input_r2: input_r2.as_deref(),
+                    asv_table_tsv: &asv_table,
+                    asv_sequences_fasta: &asv_fasta,
+                    taxonomy_reference_fasta: &taxonomy_ready_fasta,
+                    taxonomy_reads_fastq: &taxonomy_fastq_out,
+                    report_json: &report_json,
+                    effective_params: &effective_params,
+                    table_metrics,
+                    representative_sequence_count,
+                    runtime_s: None,
+                    memory_mb: None,
+                    exit_code: Some(0),
+                    used_fallback,
+                    backend_metrics: Some(serde_json::json!({
+                        "entrypoint_script": dada2_script,
+                        "dada2_inputs": dada2_inputs,
+                    })),
+                },
             );
             bijux_dna_infra::atomic_write_json(&report_json, &report)?;
             payload = serde_json::json!({
@@ -752,14 +727,10 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
         "fastq.normalize_abundance" => {
             let normalized_table = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "normalized_abundance_tsv")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("abundance_normalized.tsv"));
+                .find(|artifact| artifact.name.as_str() == "normalized_abundance_tsv").map_or_else(|| out_dir.join("abundance_normalized.tsv"), |artifact| artifact.path.clone());
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json")
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| out_dir.join("normalize_abundance_report.json"));
+                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("normalize_abundance_report.json"), |artifact| artifact.path.clone());
             let method = normalize_abundance_method(planned);
             let tool_id = normalize_abundance_tool_id(planned);
             let effective_params =
@@ -869,7 +840,7 @@ fn parse_orientation_forward_fraction(orientation_report: &std::path::Path) -> O
     if total == 0 {
         return None;
     }
-    Some(forward as f64 / total as f64)
+    Some(amplicon_u64_to_f64(forward) / amplicon_u64_to_f64(total))
 }
 
 fn normalize_primers_tool_id(planned: &ExecutionStep) -> &'static str {
@@ -964,9 +935,9 @@ fn combined_terminal_damage_asymmetry(
         return None;
     }
     Some(
-        ((primary_asymmetry * primary_reads as f64)
-            + (secondary_asymmetry * secondary_reads as f64))
-            / total_reads as f64,
+        ((primary_asymmetry * amplicon_u64_to_f64(primary_reads))
+            + (secondary_asymmetry * amplicon_u64_to_f64(secondary_reads)))
+            / amplicon_u64_to_f64(total_reads),
     )
 }
 
@@ -1186,7 +1157,26 @@ fn parse_uchime_fraction(path: &std::path::Path) -> Option<f64> {
         .lines()
         .filter(|line| line.split('\t').next_back().is_some_and(|flag| flag == "Y"))
         .count() as u64;
-    Some(flagged_records as f64 / parsed_records as f64)
+    Some(amplicon_u64_to_f64(flagged_records) / amplicon_u64_to_f64(parsed_records))
+}
+
+fn u64_to_u32(value: u64) -> Option<u32> {
+    u32::try_from(value).ok()
+}
+
+fn rounded_fraction_count(fraction: f64, total: u64) -> Option<u64> {
+    if !fraction.is_finite() || fraction <= 0.0 {
+        return Some(0);
+    }
+    let rounded = (fraction * amplicon_u64_to_f64(total)).round();
+    if !rounded.is_finite() || rounded < 0.0 {
+        return None;
+    }
+    format!("{rounded:.0}").parse::<u64>().ok()
+}
+
+fn amplicon_u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 fn governed_remove_chimeras_report(
@@ -1256,6 +1246,7 @@ fn governed_remove_chimeras_report(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod amplicon_runtime_tests {
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -1318,7 +1309,7 @@ mod amplicon_runtime_tests {
 
         assert_eq!(report.primer_set_id, "16s_v4");
         assert_eq!(report.orientation_policy, "normalize_to_reverse_complement");
-        assert_eq!(report.max_mismatch_rate, 0.05);
+        assert!((report.max_mismatch_rate - 0.05).abs() < f64::EPSILON);
         assert_eq!(report.min_overlap_bp, 14);
     }
 

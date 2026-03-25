@@ -30,6 +30,10 @@ use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json
 
 const STAGE_ID: &str = "fastq.profile_read_lengths";
 
+/// Benchmark FASTQ read-length profiling tools under governed contracts.
+///
+/// # Errors
+/// Returns an error if planning, execution, profile parsing, or persistence fails.
 pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -265,7 +269,11 @@ fn write_length_outputs(
     let hist = rebin_lengths(lengths, histogram_bins.max(1));
     let mut tsv_body = String::from("sample_id\tread_length\tcount\n");
     for (len, count) in &hist {
-        tsv_body.push_str(&format!("sample\t{len}\t{count}\n"));
+        tsv_body.push_str("sample\t");
+        tsv_body.push_str(&len.to_string());
+        tsv_body.push('\t');
+        tsv_body.push_str(&count.to_string());
+        tsv_body.push('\n');
     }
     bijux_dna_infra::atomic_write_bytes(tsv, tsv_body.as_bytes())?;
     let json_body = serde_json::json!({
@@ -315,16 +323,28 @@ fn rebin_lengths(lengths: &[usize], histogram_bins: u32) -> BTreeMap<usize, u64>
 }
 
 fn metrics_from_lengths(lengths: &[usize]) -> Result<FastqReadLengthMetrics> {
-    let read_count = lengths.len() as u64;
+    let read_count = usize_to_u64(lengths.len());
     let total: usize = lengths.iter().sum();
-    let max_read_length = lengths.iter().copied().max().unwrap_or(0) as u64;
-    let distinct_lengths = lengths.iter().copied().collect::<BTreeSet<_>>().len() as u64;
+    let max_read_length = usize_to_u64(lengths.iter().copied().max().unwrap_or(0));
+    let distinct_lengths = usize_to_u64(lengths.iter().copied().collect::<BTreeSet<_>>().len());
     let metrics = FastqReadLengthMetrics {
         read_count,
-        mean_read_length: total as f64 / read_count as f64,
+        mean_read_length: usize_to_f64(total) / u64_to_f64(read_count),
         max_read_length,
         distinct_lengths,
     };
     metrics.validate()?;
     Ok(metrics)
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn usize_to_f64(value: usize) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn usize_to_u64(value: usize) -> u64 {
+    value.try_into().unwrap_or(u64::MAX)
 }

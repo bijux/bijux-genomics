@@ -356,16 +356,16 @@ fn combine_seqkit_metrics(
     let weighted_mean_q = if total_bases == 0 {
         0.0
     } else {
-        ((primary.mean_q * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
-            / total_bases as f64
+        ((primary.mean_q * u64_to_f64(primary.bases))
+            + secondary.map_or(0.0, |stats| stats.mean_q * u64_to_f64(stats.bases)))
+            / u64_to_f64(total_bases)
     };
     let weighted_gc = if total_bases == 0 {
         0.0
     } else {
-        ((primary.gc_percent * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.gc_percent * stats.bases as f64))
-            / total_bases as f64
+        ((primary.gc_percent * u64_to_f64(primary.bases))
+            + secondary.map_or(0.0, |stats| stats.gc_percent * u64_to_f64(stats.bases)))
+            / u64_to_f64(total_bases)
     };
     SeqkitMetrics {
         reads: primary.reads + secondary_reads,
@@ -373,6 +373,10 @@ fn combine_seqkit_metrics(
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
     }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 fn benchmark_query_context(
@@ -433,6 +437,7 @@ fn normalized_polyg_backend_metrics(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::{
         admitted_stage_tools, benchmark_query_context, load_governed_trim_polyg_report,

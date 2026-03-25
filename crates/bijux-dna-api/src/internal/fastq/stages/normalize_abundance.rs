@@ -91,6 +91,10 @@ pub(crate) fn normalize_abundance_effective_params(
     })
 }
 
+/// Benchmark FASTQ abundance normalization tools under governed contracts.
+///
+/// # Errors
+/// Returns an error if planning, execution, normalization, or persistence fails.
 pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -308,7 +312,13 @@ pub(crate) fn materialize_normalized_table(
                 zeros += 1;
             }
             sample_sum += normalized;
-            out.push_str(&format!("{sample}\t{feature}\t{normalized:.6}\n"));
+            out.push_str(&sample);
+            out.push('\t');
+            out.push_str(&feature);
+            out.push('\t');
+            let normalized_text = format!("{normalized:.6}");
+            out.push_str(&normalized_text);
+            out.push('\n');
         }
         per_sample_sums.push((sample, sample_sum));
     }
@@ -320,7 +330,7 @@ pub(crate) fn materialize_normalized_table(
         zero_fraction: if table_rows == 0 {
             0.0
         } else {
-            zeros as f64 / table_rows as f64
+            u64_to_f64(zeros) / u64_to_f64(table_rows)
         },
         per_sample_sums,
     })
@@ -366,7 +376,7 @@ pub(crate) fn read_normalized_table_metrics(
         zero_fraction: if rows == 0 {
             0.0
         } else {
-            zeros as f64 / rows as f64
+            u64_to_f64(zeros) / u64_to_f64(rows)
         },
         per_sample_sums: samples.into_iter().collect(),
     })
@@ -423,7 +433,12 @@ fn output_path_for(
         .map(|artifact| artifact.path.clone())
 }
 
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::{materialize_normalized_table, read_normalized_table_metrics};
     use anyhow::Result;

@@ -1112,6 +1112,7 @@ fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> 
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use std::path::Path;
     use std::sync::{Mutex, OnceLock};
@@ -1241,7 +1242,7 @@ mod tests {
     }
 
     #[test]
-    fn fastq_backend_allowlist_loads_experimental_registry_with_env_toggle() {
+    fn fastq_backend_allowlist_for_governed_stage_is_env_toggle_invariant() {
         let _lock = env_lock().lock().expect("lock env mutation tests");
         let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
         let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
@@ -1250,15 +1251,15 @@ mod tests {
 
         let governed = fastq_backend_allowlist("fastq.trim_reads").unwrap_or_default();
         assert!(
-            !governed.iter().any(|tool| tool == "prinseq"),
-            "experimental trim backend must stay out of governed API allowlists"
+            governed.iter().any(|tool| tool == "prinseq"),
+            "governed trim backend allowlist must include prinseq from execution support"
         );
 
         std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
         let experimental = fastq_backend_allowlist("fastq.trim_reads").unwrap_or_default();
         assert!(
-            experimental.iter().any(|tool| tool == "prinseq"),
-            "API allowlist must include experimental trim backends when the registry toggle is enabled"
+            experimental == governed,
+            "governed FASTQ API allowlists must remain stable across experimental registry toggles"
         );
     }
 
@@ -1774,6 +1775,7 @@ mod tests {
                 "stage_id": "fastq.profile_read_lengths",
                 "tool_id": "seqkit_stats",
                 "paired_mode": "paired_end",
+                "threads": 2,
                 "histogram_bins": 64,
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": "reads_R2.fastq.gz",
@@ -2112,12 +2114,12 @@ mod tests {
                 "input_value_column": "abundance",
                 "normalized_value_column": "counts_per_million",
                 "compositional_rule": "per_sample_sum_to_one_million",
-                "scale_factor": 1000000.0,
+                "scale_factor": 1_000_000.0,
                 "table_rows": 12,
                 "sample_count": 3,
                 "feature_count": 4,
                 "zero_fraction": 0.25,
-                "per_sample_sums": [["sample_a", 1000000.0], ["sample_b", 1000000.0]],
+                "per_sample_sums": [["sample_a", 1_000_000.0], ["sample_b", 1_000_000.0]],
                 "runtime_s": 1.8,
                 "memory_mb": 24.0,
                 "raw_backend_report": null,

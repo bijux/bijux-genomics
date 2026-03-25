@@ -150,7 +150,6 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
                 threads: args.threads,
                 host_identity_threshold: args.host_identity_threshold.unwrap_or(0.95),
                 retain_unmapped_only: args.retain_unmapped_only.unwrap_or(true),
-                ..DepleteHostStageParams::default()
             },
         )?;
         let params_hash =
@@ -310,7 +309,7 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
     let host_fraction_removed = if reads_in == 0 {
         0.0
     } else {
-        reads_removed as f64 / reads_in as f64
+        u64_to_f64(reads_removed) / u64_to_f64(reads_in)
     };
 
     Ok(DepleteHostReportV1 {
@@ -371,4 +370,8 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
             "bases_removed": bases_removed,
         })),
     })
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

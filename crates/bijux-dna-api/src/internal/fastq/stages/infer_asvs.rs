@@ -46,13 +46,13 @@ pub(crate) fn infer_asvs_options_from_args(
 ) -> bijux_dna_planner_fastq::InferAsvsStageParams {
     let mut options = bijux_dna_planner_fastq::InferAsvsStageParams::default();
     if let Some(denoising_method) = args.denoising_method.as_ref() {
-        options.denoising_method = denoising_method.clone();
+        options.denoising_method.clone_from(denoising_method);
     }
     if let Some(pooling_mode) = args.pooling_mode.as_ref() {
-        options.pooling_mode = pooling_mode.clone();
+        options.pooling_mode.clone_from(pooling_mode);
     }
     if let Some(chimera_policy) = args.chimera_policy.as_ref() {
-        options.chimera_policy = chimera_policy.clone();
+        options.chimera_policy.clone_from(chimera_policy);
     }
     options.threads = args.threads;
     options
@@ -91,55 +91,61 @@ pub(crate) fn count_fasta_records(path: &Path) -> Result<u64> {
         .count() as u64)
 }
 
-pub(crate) fn canonical_infer_asvs_report(
-    tool_id: &str,
-    input_r1: &Path,
-    input_r2: Option<&Path>,
-    asv_table_tsv: &Path,
-    asv_sequences_fasta: &Path,
-    taxonomy_ready_fasta: &Path,
-    taxonomy_ready_fastq: &Path,
-    report_json: &Path,
-    effective_params: &AsvInferenceEffectiveParams,
-    table_metrics: InferAsvsTableMetrics,
-    representative_sequence_count: u64,
-    runtime_s: Option<f64>,
-    memory_mb: Option<f64>,
-    exit_code: Option<i32>,
-    used_fallback: bool,
-    backend_metrics: Option<serde_json::Value>,
-) -> InferAsvsReportV1 {
+pub(crate) struct InferAsvsReportInputs<'a> {
+    pub tool_id: &'a str,
+    pub input_r1: &'a Path,
+    pub input_r2: Option<&'a Path>,
+    pub asv_table_tsv: &'a Path,
+    pub asv_sequences_fasta: &'a Path,
+    pub taxonomy_reference_fasta: &'a Path,
+    pub taxonomy_reads_fastq: &'a Path,
+    pub report_json: &'a Path,
+    pub effective_params: &'a AsvInferenceEffectiveParams,
+    pub table_metrics: InferAsvsTableMetrics,
+    pub representative_sequence_count: u64,
+    pub runtime_s: Option<f64>,
+    pub memory_mb: Option<f64>,
+    pub exit_code: Option<i32>,
+    pub used_fallback: bool,
+    pub backend_metrics: Option<serde_json::Value>,
+}
+
+pub(crate) fn canonical_infer_asvs_report(inputs: InferAsvsReportInputs<'_>) -> InferAsvsReportV1 {
     InferAsvsReportV1 {
         schema_version: INFER_ASVS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_ID.to_string(),
         stage_id: STAGE_ID.to_string(),
-        tool_id: tool_id.to_string(),
-        paired_mode: effective_params.paired_mode,
-        denoising_method: effective_params.denoising_method.clone(),
-        pooling_mode: effective_params.pooling_mode.clone(),
-        chimera_policy: effective_params.chimera_policy.clone(),
-        requires_r_runtime: effective_params.requires_r_runtime,
-        output_table_kind: effective_params.output_table_kind.clone(),
-        input_reads_r1: input_r1.display().to_string(),
-        input_reads_r2: input_r2.map(|path| path.display().to_string()),
-        asv_table_tsv: asv_table_tsv.display().to_string(),
-        asv_sequences_fasta: asv_sequences_fasta.display().to_string(),
-        taxonomy_ready_fasta: taxonomy_ready_fasta.display().to_string(),
-        taxonomy_ready_fastq: taxonomy_ready_fastq.display().to_string(),
-        report_json: report_json.display().to_string(),
-        asv_count: table_metrics.asv_count,
-        sample_count: table_metrics.sample_count,
-        representative_sequence_count,
-        used_fallback,
-        raw_backend_report: Some(report_json.display().to_string()),
+        tool_id: inputs.tool_id.to_string(),
+        paired_mode: inputs.effective_params.paired_mode,
+        denoising_method: inputs.effective_params.denoising_method.clone(),
+        pooling_mode: inputs.effective_params.pooling_mode.clone(),
+        chimera_policy: inputs.effective_params.chimera_policy.clone(),
+        requires_r_runtime: inputs.effective_params.requires_r_runtime,
+        output_table_kind: inputs.effective_params.output_table_kind.clone(),
+        input_reads_r1: inputs.input_r1.display().to_string(),
+        input_reads_r2: inputs.input_r2.map(|path| path.display().to_string()),
+        asv_table_tsv: inputs.asv_table_tsv.display().to_string(),
+        asv_sequences_fasta: inputs.asv_sequences_fasta.display().to_string(),
+        taxonomy_ready_fasta: inputs.taxonomy_reference_fasta.display().to_string(),
+        taxonomy_ready_fastq: inputs.taxonomy_reads_fastq.display().to_string(),
+        report_json: inputs.report_json.display().to_string(),
+        asv_count: inputs.table_metrics.asv_count,
+        sample_count: inputs.table_metrics.sample_count,
+        representative_sequence_count: inputs.representative_sequence_count,
+        used_fallback: inputs.used_fallback,
+        raw_backend_report: Some(inputs.report_json.display().to_string()),
         raw_backend_report_format: Some("infer_asvs_governed_report_json".to_string()),
-        runtime_s,
-        memory_mb,
-        exit_code,
-        backend_metrics,
+        runtime_s: inputs.runtime_s,
+        memory_mb: inputs.memory_mb,
+        exit_code: inputs.exit_code,
+        backend_metrics: inputs.backend_metrics,
     }
 }
 
+/// Benchmark FASTQ ASV inference tools under governed execution contracts.
+///
+/// # Errors
+/// Returns an error if planning, execution, artifact parsing, or persistence fails.
 pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -248,8 +254,8 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         enforce_amplicon_qc_thresholds_for_bench(&out_dir, STAGE_ID, &payload)?;
         let asv_table_tsv = output_path(&plan, "asv_table_tsv")?;
         let asv_sequences_fasta = output_path(&plan, "asv_sequences_fasta")?;
-        let taxonomy_ready_fasta = output_path(&plan, "taxonomy_ready_fasta")?;
-        let taxonomy_ready_fastq = output_path(&plan, "taxonomy_ready_fastq")?;
+        let taxonomy_ref_path = output_path(&plan, "taxonomy_ready_fasta")?;
+        let taxonomy_reads_path = output_path(&plan, "taxonomy_ready_fastq")?;
         let report_json = output_path(&plan, "report_json")?;
         let table_metrics = read_infer_asvs_table_metrics(&asv_table_tsv)?;
         let representative_sequence_count = count_fasta_records(&asv_sequences_fasta)?;
@@ -261,27 +267,27 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         let effective_params: AsvInferenceEffectiveParams =
             serde_json::from_value(plan.effective_params.clone())
                 .context("parse infer_asvs effective params")?;
-        let report = canonical_infer_asvs_report(
-            tool,
-            &args.r1,
-            args.r2.as_deref(),
-            &asv_table_tsv,
-            &asv_sequences_fasta,
-            &taxonomy_ready_fasta,
-            &taxonomy_ready_fastq,
-            &report_json,
-            &effective_params,
+        let report = canonical_infer_asvs_report(InferAsvsReportInputs {
+            tool_id: tool,
+            input_r1: &args.r1,
+            input_r2: args.r2.as_deref(),
+            asv_table_tsv: &asv_table_tsv,
+            asv_sequences_fasta: &asv_sequences_fasta,
+            taxonomy_reference_fasta: &taxonomy_ref_path,
+            taxonomy_reads_fastq: &taxonomy_reads_path,
+            report_json: &report_json,
+            effective_params: &effective_params,
             table_metrics,
             representative_sequence_count,
-            Some(execution.runtime_s),
-            Some(execution.memory_mb),
-            Some(execution.exit_code),
-            payload
+            runtime_s: Some(execution.runtime_s),
+            memory_mb: Some(execution.memory_mb),
+            exit_code: Some(execution.exit_code),
+            used_fallback: payload
                 .get("used_fallback")
                 .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false),
-            Some(payload),
-        );
+            backend_metrics: Some(payload),
+        });
         bijux_dna_infra::atomic_write_json(&report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),

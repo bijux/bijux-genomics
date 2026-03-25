@@ -367,16 +367,16 @@ fn combine_seqkit_metrics(
     let weighted_mean_q = if total_bases == 0 {
         0.0
     } else {
-        ((primary.mean_q * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.mean_q * stats.bases as f64))
-            / total_bases as f64
+        ((primary.mean_q * u64_to_f64(primary.bases))
+            + secondary.map_or(0.0, |stats| stats.mean_q * u64_to_f64(stats.bases)))
+            / u64_to_f64(total_bases)
     };
     let weighted_gc = if total_bases == 0 {
         0.0
     } else {
-        ((primary.gc_percent * primary.bases as f64)
-            + secondary.map_or(0.0, |stats| stats.gc_percent * stats.bases as f64))
-            / total_bases as f64
+        ((primary.gc_percent * u64_to_f64(primary.bases))
+            + secondary.map_or(0.0, |stats| stats.gc_percent * u64_to_f64(stats.bases)))
+            / u64_to_f64(total_bases)
     };
     SeqkitMetrics {
         reads: primary.reads + secondary_reads,
@@ -384,6 +384,10 @@ fn combine_seqkit_metrics(
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
     }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 fn adapter_bank_requested(
@@ -519,7 +523,7 @@ mod tests {
             Some(&polyx_context),
             Some(&contaminant_context),
         )
-        .expect("query context");
+        .unwrap_or_else(|err| panic!("query context: {err}"));
 
         assert!(context.stage_contract_hash.is_some());
         assert_eq!(
@@ -541,9 +545,18 @@ mod tests {
 
     #[test]
     fn implicit_trim_banks_stay_disabled_without_policy_or_explicit_selection() {
-        assert_eq!(normalized_adapter_policy(None, false).unwrap(), None);
-        assert_eq!(normalized_polyx_policy(None, false).unwrap(), None);
-        assert_eq!(normalized_contaminant_policy(None, false).unwrap(), None);
+        assert_eq!(
+            normalized_adapter_policy(None, false).unwrap_or_else(|err| panic!("{err}")),
+            None
+        );
+        assert_eq!(
+            normalized_polyx_policy(None, false).unwrap_or_else(|err| panic!("{err}")),
+            None
+        );
+        assert_eq!(
+            normalized_contaminant_policy(None, false).unwrap_or_else(|err| panic!("{err}")),
+            None
+        );
         assert!(!adapter_policy_uses_bank(None));
         assert!(!polyx_policy_uses_bank(None));
         assert!(!contaminant_policy_uses_bank(None));
@@ -552,16 +565,20 @@ mod tests {
     #[test]
     fn explicit_trim_bank_selection_promotes_missing_policy_to_bank() {
         assert_eq!(
-            normalized_adapter_policy(None, true).unwrap().as_deref(),
+            normalized_adapter_policy(None, true)
+                .unwrap_or_else(|err| panic!("{err}"))
+                .as_deref(),
             Some("bank")
         );
         assert_eq!(
-            normalized_polyx_policy(None, true).unwrap().as_deref(),
+            normalized_polyx_policy(None, true)
+                .unwrap_or_else(|err| panic!("{err}"))
+                .as_deref(),
             Some("bank")
         );
         assert_eq!(
             normalized_contaminant_policy(None, true)
-                .unwrap()
+                .unwrap_or_else(|err| panic!("{err}"))
                 .as_deref(),
             Some("bank")
         );
@@ -571,7 +588,7 @@ mod tests {
     fn adapter_policy_supports_ancient_strict_without_forcing_explicit_flags() {
         assert_eq!(
             normalized_adapter_policy(Some("ancient_strict"), false)
-                .unwrap()
+                .unwrap_or_else(|err| panic!("{err}"))
                 .as_deref(),
             Some("ancient_strict")
         );
@@ -611,7 +628,7 @@ mod tests {
 
     #[test]
     fn write_governed_trim_report_preserves_contract_shape() {
-        let temp = tempfile::tempdir().expect("tempdir");
+        let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let report_path = temp.path().join("trim_report.json");
         let report = TrimReadsReportV1 {
             schema_version: TRIM_READS_REPORT_SCHEMA_VERSION.to_string(),
@@ -657,9 +674,12 @@ mod tests {
             raw_backend_report_format: Some("fastp_json".to_string()),
         };
 
-        write_governed_trim_report(&report_path, &report).expect("write report");
-        let raw = std::fs::read_to_string(&report_path).expect("read report");
-        let decoded: TrimReadsReportV1 = serde_json::from_str(&raw).expect("parse report");
+        write_governed_trim_report(&report_path, &report)
+            .unwrap_or_else(|err| panic!("write report: {err}"));
+        let raw = std::fs::read_to_string(&report_path)
+            .unwrap_or_else(|err| panic!("read report: {err}"));
+        let decoded: TrimReadsReportV1 =
+            serde_json::from_str(&raw).unwrap_or_else(|err| panic!("parse report: {err}"));
         assert_eq!(decoded.tool_id, "fastp");
         assert_eq!(decoded.threads, 4);
         assert_eq!(

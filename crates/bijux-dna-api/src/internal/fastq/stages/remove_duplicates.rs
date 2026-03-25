@@ -88,6 +88,10 @@ fn resolve_remove_duplicates_tools(
     Ok(compatible)
 }
 
+/// Benchmark FASTQ duplicate-removal tools under governed contracts.
+///
+/// # Errors
+/// Returns an error if planning, execution, report parsing, or persistence fails.
 pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -265,6 +269,10 @@ fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext
     bijux_dna_domain_fastq::governed_stage_bench_query_context(STAGE_ID)
 }
 
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
 #[cfg(test)]
 fn deduplicate_report_counts(
     input_reads_r1: u64,
@@ -278,7 +286,7 @@ fn deduplicate_report_counts(
     let dedup_rate = if reads_in == 0 {
         0.0
     } else {
-        duplicate_reads as f64 / reads_in as f64
+        u64_to_f64(duplicate_reads) / u64_to_f64(reads_in)
     };
     DuplicateReportCounts {
         reads_in,
@@ -325,7 +333,7 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
     let dedup_rate = if reads_in == 0 {
         0.0
     } else {
-        duplicate_reads as f64 / reads_in as f64
+        u64_to_f64(duplicate_reads) / u64_to_f64(reads_in)
     };
     if !report.dedup_rate.is_finite() || !(0.0..=1.0).contains(&report.dedup_rate) {
         return Err(anyhow!(
@@ -377,13 +385,13 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
             ));
         }
     }
-    if report.pairs_in.is_some() || report.pairs_out.is_some() {
-        if report.pair_count_match != Some(true) {
-            return Err(anyhow!(
+    if (report.pairs_in.is_some() || report.pairs_out.is_some())
+        && report.pair_count_match != Some(true)
+    {
+        return Err(anyhow!(
                 "governed remove-duplicates report {} is inconsistent: paired reports must set pair_count_match=true",
                 report_path.display(),
             ));
-        }
     }
     let classified_duplicates_removed: u64 = report
         .duplicate_classes
@@ -411,7 +419,7 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
         duplicate_reads,
         dedup_rate: report.dedup_rate,
         tool: Some(report.tool_id),
-        paired_mode: serde_json::to_value(&report.paired_mode)?
+        paired_mode: serde_json::to_value(report.paired_mode)?
             .as_str()
             .map(ToString::to_string),
         dedup_mode: Some(
@@ -445,6 +453,7 @@ fn required_plan_output_path(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use std::path::PathBuf;
 
@@ -571,7 +580,7 @@ mod tests {
         assert_eq!(counts.reads_in, 200);
         assert_eq!(counts.reads_out, 160);
         assert_eq!(counts.duplicate_reads, 40);
-        assert_eq!(counts.dedup_rate, 0.2);
+        assert!((counts.dedup_rate - 0.2).abs() < f64::EPSILON);
         assert_eq!(counts.tool.as_deref(), Some("clumpify"));
         assert_eq!(counts.duplicate_class_count, Some(1));
     }
@@ -587,7 +596,7 @@ mod tests {
         assert_eq!(counts.reads_in, 200);
         assert_eq!(counts.reads_out, 160);
         assert_eq!(counts.duplicate_reads, 40);
-        assert_eq!(counts.dedup_rate, 0.2);
+        assert!((counts.dedup_rate - 0.2).abs() < f64::EPSILON);
     }
 
     #[test]

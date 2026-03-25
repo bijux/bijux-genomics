@@ -34,6 +34,10 @@ use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json
 
 const STAGE_ID: &str = "fastq.normalize_primers";
 
+/// Benchmark FASTQ primer normalization tools under governed contracts.
+///
+/// # Errors
+/// Returns an error if planning, execution, report parsing, or persistence fails.
 pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -115,7 +119,6 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                 min_overlap_bp: args.min_overlap_bp.unwrap_or(10),
                 strict_5p_anchor: args.strict_5p_anchor.unwrap_or(true),
                 allow_iupac_codes: args.allow_iupac_codes.unwrap_or(true),
-                ..Default::default()
             },
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
@@ -224,7 +227,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                     .min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
             }),
             primer_trimmed_reads: primer_trimmed_fraction
-                .map(|fraction| (fraction * reads_in_total as f64).round() as u64),
+                .and_then(|fraction| rounded_fraction_count(fraction, reads_in_total)),
             primer_trimmed_fraction,
             orientation_forward_fraction,
             primer_orientation_report: orientation_report.display().to_string(),
@@ -310,4 +313,19 @@ fn artifact_path_optional(
         .iter()
         .find(|artifact| artifact.name.as_str() == artifact_name)
         .map(|artifact| artifact.path.clone())
+}
+
+fn rounded_fraction_count(fraction: f64, total: u64) -> Option<u64> {
+    if !fraction.is_finite() || fraction <= 0.0 {
+        return Some(0);
+    }
+    let rounded = (fraction * u64_to_f64(total)).round();
+    if !rounded.is_finite() || rounded < 0.0 {
+        return None;
+    }
+    format!("{rounded:.0}").parse::<u64>().ok()
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }

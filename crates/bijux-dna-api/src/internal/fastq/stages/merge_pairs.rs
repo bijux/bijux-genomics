@@ -81,6 +81,10 @@ fn required_plan_output_path<'a>(
         .ok_or_else(|| anyhow!("planned merge output `{artifact_name}` missing"))
 }
 
+/// Benchmark FASTQ read-merging tools under governed stage contracts.
+///
+/// # Errors
+/// Returns an error if planning, execution, report parsing, or persistence fails.
 pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -282,7 +286,24 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     Ok(record)
 }
 
+fn merge_input_hash(r1: &Path, r2: &Path) -> Result<String> {
+    let r1_hash = hash_file_sha256(r1).context("hash merge r1")?;
+    let r2_hash = hash_file_sha256(r2).context("hash merge r2")?;
+    params_hash(&serde_json::json!({ "r1": r1_hash, "r2": r2_hash }))
+        .context("combine paired merge input hashes")
+}
+
+fn observe_merge_stats<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner: RuntimeKind,
+    merged_reads: &Path,
+) -> Result<bijux_dna_core::prelude::measure::SeqkitMetrics> {
+    observe_fastq_stats(catalog, platform, runner, merged_reads)
+}
+
 #[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
     use super::{merge_plan_options, parse_unmerged_read_policy};
     use bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs;
@@ -324,20 +345,4 @@ mod tests {
             .to_string()
             .contains("unsupported fastq.merge_pairs unmerged_read_policy `maybe`"));
     }
-}
-
-fn merge_input_hash(r1: &Path, r2: &Path) -> Result<String> {
-    let r1_hash = hash_file_sha256(r1).context("hash merge r1")?;
-    let r2_hash = hash_file_sha256(r2).context("hash merge r2")?;
-    params_hash(&serde_json::json!({ "r1": r1_hash, "r2": r2_hash }))
-        .context("combine paired merge input hashes")
-}
-
-fn observe_merge_stats<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-    runner: RuntimeKind,
-    merged_reads: &Path,
-) -> Result<bijux_dna_core::prelude::measure::SeqkitMetrics> {
-    observe_fastq_stats(catalog, platform, runner, merged_reads)
 }
