@@ -41,5 +41,5 @@ Outputs are written as generated artifacts and are safe to overwrite.
 - `crates/bijux-dna-domain-compiler/src/lib.rs`
 
 ## Where the docs live
-- [crates/bijux-dna-domain-compiler/docs/INDEX.md](crates/bijux-dna-domain-compiler/docs/INDEX.md)
-- [crates/bijux-dna-domain-compiler/docs/TESTS.md](crates/bijux-dna-domain-compiler/docs/TESTS.md)
+- [docs/INDEX.md](docs/INDEX.md)
+- [docs/TESTS.md](docs/TESTS.md)

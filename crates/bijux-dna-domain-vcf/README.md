@@ -17,10 +17,10 @@ Effects are pure data transforms with deterministic serde payloads and stable sc
 Owns VCF param typing contracts and consumes workspace ID/catalog contracts.
 
 ## Artifacts / Contracts
-- [crates/bijux-dna-domain-vcf/docs/INDEX.md](crates/bijux-dna-domain-vcf/docs/INDEX.md)
-- [crates/bijux-dna-domain-vcf/docs/SCOPE.md](crates/bijux-dna-domain-vcf/docs/SCOPE.md)
-- [crates/bijux-dna-domain-vcf/docs/ARCHITECTURE.md](crates/bijux-dna-domain-vcf/docs/ARCHITECTURE.md)
-- [crates/bijux-dna-domain-vcf/docs/TESTS.md](crates/bijux-dna-domain-vcf/docs/TESTS.md)
+- [docs/INDEX.md](docs/INDEX.md)
+- [docs/SCOPE.md](docs/SCOPE.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/TESTS.md](docs/TESTS.md)
 
 ## Failure modes
 Schema drift, missing version fields, or invalid param roundtrips break contracts.
@@ -34,4 +34,4 @@ Schema drift, missing version fields, or invalid param roundtrips break contract
 - `src/params/mod.rs`
 
 ## Where the docs live
-All crate docs live under `crates/bijux-dna-domain-vcf/docs/`, indexed by [crates/bijux-dna-domain-vcf/docs/INDEX.md](crates/bijux-dna-domain-vcf/docs/INDEX.md).
+All crate docs live under `docs/`, indexed by [docs/INDEX.md](docs/INDEX.md).
