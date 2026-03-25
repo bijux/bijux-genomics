@@ -167,6 +167,10 @@ outputs:
             ("fastq.filter_reads", filter_stage.to_string()),
         ];
         validate_tool_output_subset(tool, &stage_specs, Path::new("tool.yaml"))
-            .expect("shared tool outputs should validate against the union of bound stages");
+            .unwrap_or_else(|err| {
+                panic!(
+                    "shared tool outputs should validate against the union of bound stages: {err}"
+                )
+            });
     }
 }

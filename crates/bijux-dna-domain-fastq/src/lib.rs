@@ -135,7 +135,10 @@ pub use observer_contract::{
     observer_specialized_stage_tool_bindings, ObserverSpecializationContract,
 };
 pub use params::correct::FastqCorrectParams;
-pub use params::defaults::{correct_defaults, stats_defaults, umi_defaults};
+pub use params::defaults::{
+    correct_defaults, overrepresented_profile_defaults, read_length_profile_defaults,
+    stats_defaults, umi_defaults,
+};
 pub use params::stats::{
     FastqOverrepresentedProfileParams, FastqReadLengthProfileParams, FastqStatsParams,
 };

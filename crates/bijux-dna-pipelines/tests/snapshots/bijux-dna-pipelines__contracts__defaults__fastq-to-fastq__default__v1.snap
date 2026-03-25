@@ -179,6 +179,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "fastq.correct_errors": {
       "conservative_mode": false,
       "correction_engine": "rcorrector",
+      "genome_size": null,
       "kmer_size": null,
       "max_memory_gb": null,
       "paired_mode": "single_end",
@@ -188,7 +189,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "trusted_kmer_artifact": null
     },
     "fastq.detect_adapters": {
+      "evidence_artifact_id": "report_json",
       "evidence_engine": "fastqc",
+      "evidence_format": "fastqc_summary",
+      "evidence_scope": "full_input",
       "inspection_mode": "evidence_only",
       "paired_mode": "single_end",
       "report_only": true,
@@ -220,30 +224,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "min_len": null,
       "paired_mode": "single_end",
       "schema_version": "bijux.fastq.params.merge_pairs.v1",
-      "threads": 1,
+      "threads": 6,
       "unmerged_read_policy": "emit_unmerged_pairs"
     },
     "fastq.profile_overrepresented_sequences": {
       "paired_mode": "single_end",
-      "schema_version": "bijux.fastq.params.stats.v1",
-      "threads": 1
+      "schema_version": "bijux.fastq.params.overrepresented_profile.v1",
+      "threads": 2,
+      "top_k": 50
     },
     "fastq.profile_read_lengths": {
+      "histogram_bins": 100,
       "paired_mode": "single_end",
-      "schema_version": "bijux.fastq.params.stats.v1",
-      "threads": 1
+      "schema_version": "bijux.fastq.params.read_length_profile.v1",
+      "threads": 2
     },
     "fastq.profile_reads": {
       "paired_mode": "single_end",
       "schema_version": "bijux.fastq.params.stats.v1",
-      "threads": 1
+      "threads": 2
     },
     "fastq.report_qc": {
       "aggregation_engine": "multiqc",
-      "aggregation_scope": "fastq_qc_inputs",
+      "aggregation_scope": "governed_qc_artifacts",
       "paired_mode": "single_end",
-      "schema_version": "bijux.fastq.params.report_qc.v1",
-      "threads": 1
+      "schema_version": "bijux.fastq.params.report_qc.v1"
     },
     "fastq.screen_taxonomy": {
       "assignment_format": "kraken_assignments",
@@ -251,28 +256,28 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "contaminant_db": null,
       "database_artifact_id": "taxonomy_db",
       "database_build_id": null,
+      "database_catalog_id": "taxonomy_reference",
+      "database_digest": null,
+      "database_namespace": "read_screening",
       "database_scope": "read_screening",
       "emit_unclassified": true,
       "minimum_confidence": null,
       "paired_mode": "single_end",
       "report_format": "kraken_report",
       "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
-      "threads": 1
+      "threads": 4
     },
     "fastq.trim_polyg_tails": {
-      "adapter_policy": "none",
-      "contaminant_policy": null,
-      "min_len": 0,
-      "n_policy": null,
+      "min_polyg_run": 10,
       "paired_mode": "single_end",
-      "polyx_policy": "trim",
-      "q_cutoff": null,
-      "threads": 1
+      "schema_version": "bijux.fastq.params.trim_polyg_tails.v1",
+      "threads": 4,
+      "trim_polyg": true
     },
     "fastq.trim_reads": {
       "adapter_policy": "none",
       "contaminant_policy": null,
-      "min_len": 0,
+      "min_len": 30,
       "n_policy": null,
       "paired_mode": "single_end",
       "polyx_policy": null,
@@ -280,19 +285,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "threads": 1
     },
     "fastq.trim_terminal_damage": {
-      "adapter_policy": "terminal_damage",
-      "contaminant_policy": null,
-      "min_len": 0,
-      "n_policy": null,
+      "damage_mode": "ancient",
+      "execution_policy": "explicit_terminal_trim",
       "paired_mode": "single_end",
-      "polyx_policy": null,
-      "q_cutoff": null,
-      "threads": 1
+      "schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
+      "threads": 1,
+      "trim_3p_bases": 2,
+      "trim_5p_bases": 2
     },
     "fastq.validate_reads": {
+      "pair_sync_policy": "not_applicable",
       "paired_mode": "single_end",
-      "q_cutoff": null,
-      "threads": 1
+      "schema_version": "bijux.fastq.params.validate_reads.v1",
+      "threads": 4,
+      "validation_mode": "strict"
     }
   },
   "pipeline_id": "fastq-to-fastq__default__v1",

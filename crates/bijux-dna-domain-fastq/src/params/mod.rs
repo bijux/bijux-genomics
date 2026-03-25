@@ -263,6 +263,7 @@ impl FromStr for DamageMode {
 pub enum EffectiveParams {
     Validate(validate::ValidateEffectiveParams),
     Stats(stats::FastqStatsParams),
+    ReadLengthProfile(stats::FastqReadLengthProfileParams),
     Correct(correct::FastqCorrectParams),
     Umi(umi::FastqUmiParams),
     DetectAdapters(detect_adapters::DetectAdaptersEffectiveParams),
@@ -278,6 +279,7 @@ pub enum EffectiveParams {
     Rrna(screen::RrnaEffectiveParams),
     Screen(screen::ScreenEffectiveParams),
     ReportQc(qc_post::QcPostEffectiveParams),
+    OverrepresentedProfile(stats::FastqOverrepresentedProfileParams),
     PrimerNormalization(edna::PrimerNormalizationEffectiveParams),
     ChimeraDetection(edna::ChimeraDetectionEffectiveParams),
     AsvInference(edna::AsvInferenceEffectiveParams),
@@ -291,6 +293,7 @@ impl EffectiveParams {
         match self {
             Self::Validate(params) => params.missing_required_fields(),
             Self::Stats(params) => params.missing_required_fields(),
+            Self::ReadLengthProfile(params) => params.missing_required_fields(),
             Self::Correct(params) => params.missing_required_fields(),
             Self::Umi(params) => params.missing_required_fields(),
             Self::DetectAdapters(params) => params.missing_required_fields(),
@@ -306,6 +309,7 @@ impl EffectiveParams {
             Self::Rrna(params) => params.missing_required_fields(),
             Self::Screen(params) => params.missing_required_fields(),
             Self::ReportQc(params) => params.missing_required_fields(),
+            Self::OverrepresentedProfile(params) => params.missing_required_fields(),
             Self::PrimerNormalization(_)
             | Self::ChimeraDetection(_)
             | Self::AsvInference(_)
@@ -319,6 +323,7 @@ impl EffectiveParams {
         match self {
             Self::Validate(params) => params.retention_conditions(),
             Self::Stats(params) => params.retention_conditions(),
+            Self::ReadLengthProfile(params) => serde_json::to_value(params).unwrap_or_default(),
             Self::Correct(params) => params.retention_conditions(),
             Self::Umi(params) => params.retention_conditions(),
             Self::DetectAdapters(params) => params.retention_conditions(),
@@ -334,6 +339,9 @@ impl EffectiveParams {
             Self::Rrna(params) => params.retention_conditions(),
             Self::Screen(params) => params.retention_conditions(),
             Self::ReportQc(params) => params.retention_conditions(),
+            Self::OverrepresentedProfile(params) => {
+                serde_json::to_value(params).unwrap_or_default()
+            }
             Self::PrimerNormalization(params) => serde_json::to_value(params).unwrap_or_default(),
             Self::ChimeraDetection(params) => serde_json::to_value(params).unwrap_or_default(),
             Self::AsvInference(params) => serde_json::to_value(params).unwrap_or_default(),
@@ -361,9 +369,9 @@ pub fn parse_effective_params(
             .map(EffectiveParams::Stats);
     }
     if stage_id == &STAGE_PROFILE_READ_LENGTHS {
-        return serde_json::from_value::<stats::FastqStatsParams>(value.clone())
+        return serde_json::from_value::<stats::FastqReadLengthProfileParams>(value.clone())
             .ok()
-            .map(EffectiveParams::Stats);
+            .map(EffectiveParams::ReadLengthProfile);
     }
     if stage_id == &STAGE_CORRECT_ERRORS {
         return serde_json::from_value::<correct::FastqCorrectParams>(value.clone())
@@ -454,9 +462,9 @@ pub fn parse_effective_params(
             .map(EffectiveParams::ReportQc);
     }
     if stage_id == &STAGE_PROFILE_OVERREPRESENTED_SEQUENCES {
-        return serde_json::from_value::<stats::FastqStatsParams>(value.clone())
+        return serde_json::from_value::<stats::FastqOverrepresentedProfileParams>(value.clone())
             .ok()
-            .map(EffectiveParams::Stats);
+            .map(EffectiveParams::OverrepresentedProfile);
     }
     if stage_id == &STAGE_NORMALIZE_PRIMERS {
         return serde_json::from_value::<edna::PrimerNormalizationEffectiveParams>(value.clone())

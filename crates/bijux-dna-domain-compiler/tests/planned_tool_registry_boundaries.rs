@@ -25,7 +25,7 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
 
     let governed_registry =
         std::fs::read_to_string(out_dir.path().join("ci/registry/tool_registry.toml"))?;
-    for planned_tool in ["dada2", "diamond", "dustmasker", "seqfu", "seqpurge"] {
+    for planned_tool in ["dada2", "diamond", "dustmasker", "seqfu"] {
         assert!(
             !governed_registry.contains(&format!("tool_id = \"{planned_tool}\"")),
             "planned-only FASTQ tool {planned_tool} must stay out of the governed registry"
@@ -36,13 +36,27 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
         "fastq_scan must enter the governed registry once its containerized runtime closes"
     );
 
+    let stage_blocks = governed_registry
+        .split("[[stages]]")
+        .map(str::trim)
+        .collect::<Vec<_>>();
+    let screen_taxonomy = stage_blocks
+        .iter()
+        .find(|block| block.contains("id = \"fastq.screen_taxonomy\""))
+        .copied()
+        .unwrap_or_default();
     assert!(
-        governed_registry.contains("planned_out_of_scope = [\"diamond\"]"),
+        screen_taxonomy.contains("planned_out_of_scope = [\"diamond\"]"),
         "stage catalog must keep planned FASTQ alternatives visible for governed taxonomy screening"
     );
+    let trim_reads = stage_blocks
+        .iter()
+        .find(|block| block.contains("id = \"fastq.trim_reads\""))
+        .copied()
+        .unwrap_or_default();
     assert!(
-        governed_registry.contains("planned_out_of_scope = [\"seqpurge\"]"),
-        "stage catalog must keep planned FASTQ alternatives visible for governed trim planning"
+        trim_reads.contains("planned_out_of_scope = []"),
+        "stage catalog must represent fastq.trim_reads planning scope explicitly when all alternatives are governed"
     );
 
     Ok(())
