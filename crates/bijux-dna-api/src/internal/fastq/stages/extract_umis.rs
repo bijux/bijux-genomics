@@ -208,12 +208,12 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     let output_stats_r1 = if execution.exit_code == 0 && output_r1.exists() {
         observe_fastq_stats(catalog, platform, platform.runner, &output_r1)?
     } else {
-        input_stats.clone()
+        *input_stats
     };
     let output_stats_r2 = if execution.exit_code == 0 && output_r2.exists() {
         observe_fastq_stats(catalog, platform, platform.runner, &output_r2)?
     } else {
-        input_stats_r2.clone()
+        *input_stats_r2
     };
     let report = build_umi_report(
         tool,
@@ -236,7 +236,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         bases_out: report.bases_out,
         pairs_in: report.pairs_in,
         pairs_out: report.pairs_out,
-        dedup_rate: 0.0,
+        reads_with_umi: report.reads_with_umi,
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -337,7 +337,7 @@ fn build_umi_report(
             .and_then(serde_json::Value::as_str)
             .map(ToString::to_string),
         backend_metrics: Some(serde_json::json!({
-            "reads_with_umi_fraction": if reads_in == 0 { 0.0 } else { reads_with_umi as f64 / reads_in as f64 },
+            "reads_with_umi_fraction": if reads_in == 0 { 0.0 } else { u64_to_f64(reads_with_umi) / u64_to_f64(reads_in) },
             "raw_backend_report_present": raw_backend_report.is_some(),
         })),
     }
@@ -351,6 +351,11 @@ fn weighted_mean_q(
     if total_bases == 0 {
         0.0
     } else {
-        ((r1.mean_q * r1.bases as f64) + (r2.mean_q * r2.bases as f64)) / total_bases as f64
+        ((r1.mean_q * u64_to_f64(r1.bases)) + (r2.mean_q * u64_to_f64(r2.bases)))
+            / u64_to_f64(total_bases)
     }
+}
+
+fn u64_to_f64(value: u64) -> f64 {
+    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
