@@ -51,7 +51,7 @@ pub(crate) fn handle_meta_commands(
     }
 
     match dna_command {
-        DnaCommand::Pipelines(command) => match command {
+        DnaCommand::Pipelines(args) => match &args.command {
             PipelinesCommand::List {
                 domain,
                 show_experimental,
@@ -321,8 +321,8 @@ pub(crate) fn handle_meta_commands(
                 Ok(true)
             }
         },
-        DnaCommand::Analyze(command) | DnaCommand::Explain(command) => {
-            match command {
+        DnaCommand::Analyze(args) | DnaCommand::Explain(args) => {
+            match &args.command {
                 AnalyzeCommand::Runs(args) => {
                     let query = bijux_dna_api::v1::api::run::RunQuery {
                         stage: args.stage.clone(),
@@ -500,8 +500,8 @@ pub(crate) fn handle_meta_commands(
             }
             Ok(true)
         }
-        DnaCommand::Environment(command) => {
-            match command {
+        DnaCommand::Environment(args) => {
+            match &args.command {
                 EnvCommand::List => {
                     let cwd = std::env::current_dir()?;
                     let registry_path =
@@ -697,12 +697,12 @@ pub(crate) fn handle_meta_commands(
             }
             Ok(true)
         }
-        DnaCommand::Bench(command) => {
+        DnaCommand::Bench(args) => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
-            match command {
+            match &args.command {
                 BenchCommand::Run(args) => {
                     let run_dir = crate::commands::bench_suite::run_suite(
                         &std::env::current_dir()?,

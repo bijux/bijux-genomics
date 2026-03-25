@@ -13,9 +13,10 @@ pub(crate) fn handle_fastq_bench(
     dna_command: &DnaCommand,
     registry: &bijux_dna_api::v1::api::run::ToolRegistry,
 ) -> Result<bool> {
-    let DnaCommand::Fastq(command) = dna_command else {
+    let DnaCommand::Fastq(args) = dna_command else {
         return Ok(false);
     };
+    let command = &args.command;
 
     let (allow_silver, allow_experimental) = tool_tier_policy_for_fastq(command);
     set_tool_tier_policy(allow_silver, allow_experimental);

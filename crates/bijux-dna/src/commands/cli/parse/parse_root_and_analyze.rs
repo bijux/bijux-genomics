@@ -42,33 +42,60 @@ pub struct StatusArgs {
     pub hpc: bool,
 }
 
+macro_rules! nested_root_command_args {
+    ($name:ident, $command:ty) => {
+        #[derive(Debug, Args)]
+        pub struct $name {
+            #[command(subcommand)]
+            pub command: $command,
+        }
+    };
+}
+
+nested_root_command_args!(EnvRootArgs, EnvCommand);
+nested_root_command_args!(RegistryRootArgs, RegistryCommand);
+nested_root_command_args!(EnaRootArgs, EnaCommand);
+nested_root_command_args!(CorpusRootArgs, CorpusCommand);
+nested_root_command_args!(ToolRootArgs, ToolCommand);
+nested_root_command_args!(DomainRootArgs, DomainCommand);
+nested_root_command_args!(LabRootArgs, LabCommand);
+nested_root_command_args!(ConfigRootArgs, ConfigCommand);
+nested_root_command_args!(FastqRootArgs, FastqCommand);
+nested_root_command_args!(BamRootArgs, BamCommand);
+nested_root_command_args!(VcfRootArgs, VcfCommand);
+nested_root_command_args!(PipelinesRootArgs, PipelinesCommand);
+nested_root_command_args!(AnalyzeRootArgs, AnalyzeCommand);
+nested_root_command_args!(BenchRootArgs, BenchCommand);
+nested_root_command_args!(PoliciesRootArgs, PoliciesCommand);
+nested_root_command_args!(CiRootArgs, CiCommand);
+
 #[derive(Debug, Subcommand)]
 pub enum DnaCommand {
     #[command(name = "env", alias = "environment")]
-    Environment(EnvCommand),
-    Registry(RegistryCommand),
+    Environment(EnvRootArgs),
+    Registry(RegistryRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Ena(EnaCommand),
-    Corpus(CorpusCommand),
+    Ena(EnaRootArgs),
+    Corpus(CorpusRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Tool(ToolCommand),
+    Tool(ToolRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Domain(DomainCommand),
+    Domain(DomainRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Lab(LabCommand),
+    Lab(LabRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Config(ConfigCommand),
+    Config(ConfigRootArgs),
     Status(StatusArgs),
     #[command(name = "run")]
-    Fastq(FastqCommand),
+    Fastq(FastqRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Bam(BamCommand),
+    Bam(BamRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Vcf(VcfCommand),
+    Vcf(VcfRootArgs),
     #[command(name = "plan")]
-    Pipelines(PipelinesCommand),
-    Analyze(AnalyzeCommand),
-    Explain(AnalyzeCommand),
+    Pipelines(PipelinesRootArgs),
+    Analyze(AnalyzeRootArgs),
+    Explain(AnalyzeRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     ValidateManifests,
     #[cfg_attr(not(debug_assertions), command(hide = true))]
@@ -79,11 +106,11 @@ pub enum DnaCommand {
     Replay(ReplayArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Compare(CompareArgs),
-    Bench(BenchCommand),
+    Bench(BenchRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Policies(PoliciesCommand),
+    Policies(PoliciesRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
-    Ci(CiCommand),
+    Ci(CiRootArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]
     Debug(DebugArgs),
     #[cfg_attr(not(debug_assertions), command(hide = true))]

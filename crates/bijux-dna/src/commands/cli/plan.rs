@@ -26,7 +26,7 @@ const TOOL_SEQKIT_STATS: &str = "seqkit_stats";
 #[must_use]
 pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs) {
     match command {
-        DnaCommand::Fastq(command) => match command {
+        DnaCommand::Fastq(args) => match &args.command {
             FastqCommand::ListStages
             | FastqCommand::Stages
             | FastqCommand::Doctor
@@ -94,7 +94,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
                 args.common.clone(),
             ),
         },
-        DnaCommand::Bam(command) => match command {
+        DnaCommand::Bam(args) => match &args.command {
             BamCommand::ListStages | BamCommand::Explain { .. } => (
                 StageId::from_static("bam.validate"),
                 ToolId::from_static(TOOL_SAMTOOLS),
@@ -110,7 +110,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
                 CommonArgs::default(),
             ),
         },
-        DnaCommand::Vcf(command) => match command {
+        DnaCommand::Vcf(args) => match &args.command {
             VcfCommand::Plan { .. } | VcfCommand::Explain { .. } => (
                 StageId::from_static("vcf.stats"),
                 ToolId::from_static("bcftools"),
@@ -806,8 +806,8 @@ mod tests {
     fn fastq_command_routing_uses_canonical_stage_ids() {
         let cases = [
             (
-                DnaCommand::Fastq(FastqCommand::Filter(
-                    crate::commands::cli::parse::FastqFilterArgs {
+                DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
+                    command: FastqCommand::Filter(crate::commands::cli::parse::FastqFilterArgs {
                         common: CommonArgs::default(),
                         sample_id: None,
                         r1: None,
@@ -816,32 +816,44 @@ mod tests {
                         max_n: None,
                         low_complexity_threshold: None,
                         kmer_ref: None,
-                    },
-                )),
+                    }),
+                }),
                 "fastq.filter_reads",
             ),
             (
-                DnaCommand::Fastq(FastqCommand::Merge(CommonArgs::default())),
+                DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
+                    command: FastqCommand::Merge(CommonArgs::default()),
+                }),
                 "fastq.merge_pairs",
             ),
             (
-                DnaCommand::Fastq(FastqCommand::Contam(CommonArgs::default())),
+                DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
+                    command: FastqCommand::Contam(CommonArgs::default()),
+                }),
                 "fastq.deplete_reference_contaminants",
             ),
             (
-                DnaCommand::Fastq(FastqCommand::Umi(CommonArgs::default())),
+                DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
+                    command: FastqCommand::Umi(CommonArgs::default()),
+                }),
                 "fastq.extract_umis",
             ),
             (
-                DnaCommand::Fastq(FastqCommand::ErrorCorrect(CommonArgs::default())),
+                DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
+                    command: FastqCommand::ErrorCorrect(CommonArgs::default()),
+                }),
                 "fastq.correct_errors",
             ),
             (
-                DnaCommand::Fastq(FastqCommand::Qc(CommonArgs::default())),
+                DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
+                    command: FastqCommand::Qc(CommonArgs::default()),
+                }),
                 "fastq.report_qc",
             ),
             (
-                DnaCommand::Fastq(FastqCommand::Align(CommonArgs::default())),
+                DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
+                    command: FastqCommand::Align(CommonArgs::default()),
+                }),
                 "fastq.index_reference",
             ),
         ];
@@ -854,8 +866,11 @@ mod tests {
 
     #[test]
     fn fastq_qc_command_uses_multiqc_backend() {
-        let (stage, tool, _common) =
-            resolve_stage_tool(&DnaCommand::Fastq(FastqCommand::Qc(CommonArgs::default())));
+        let (stage, tool, _common) = resolve_stage_tool(&DnaCommand::Fastq(
+            crate::commands::cli::parse::FastqRootArgs {
+                command: FastqCommand::Qc(CommonArgs::default()),
+            },
+        ));
         assert_eq!(stage.as_str(), "fastq.report_qc");
         assert_eq!(tool.as_str(), "multiqc");
     }

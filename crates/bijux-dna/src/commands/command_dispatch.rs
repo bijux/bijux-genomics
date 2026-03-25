@@ -146,24 +146,24 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
 
     let dna_command = &cli.command;
     match dna_command {
-        cli::DnaCommand::Environment(command) => {
-            return handle_environment_root(command, cwd);
+        cli::DnaCommand::Environment(args) => {
+            return handle_environment_root(&args.command, cwd);
         }
-        cli::DnaCommand::Registry(command) => return handle_registry_root(command, cwd),
+        cli::DnaCommand::Registry(args) => return handle_registry_root(&args.command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Ena(command) => return handle_ena_root(command, cwd),
-        cli::DnaCommand::Corpus(command) => return handle_corpus_root(command, cwd),
+        cli::DnaCommand::Ena(args) => return handle_ena_root(&args.command, cwd),
+        cli::DnaCommand::Corpus(args) => return handle_corpus_root(&args.command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Tool(command) => return handle_tool_root(command, cwd),
+        cli::DnaCommand::Tool(args) => return handle_tool_root(&args.command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Domain(command) => return handle_domain_root(command, cwd),
+        cli::DnaCommand::Domain(args) => return handle_domain_root(&args.command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Lab(command) => return handle_lab_root(command, cwd),
+        cli::DnaCommand::Lab(args) => return handle_lab_root(&args.command, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Config(command) => return handle_config_root(command, cwd),
+        cli::DnaCommand::Config(args) => return handle_config_root(&args.command, cwd),
         cli::DnaCommand::Status(args) => return handle_status_root(args, cwd),
         #[cfg(debug_assertions)]
-        cli::DnaCommand::Ci(command) => return handle_ci_root(command, cwd),
+        cli::DnaCommand::Ci(args) => return handle_ci_root(&args.command, cwd),
         _ => {}
     }
 
