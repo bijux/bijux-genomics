@@ -109,7 +109,8 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_ARTIFACT_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			$$py_arg \
-			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"'
+			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"; \
+		cargo run -q -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- "$(LUNARC_APPTAINER_ARTIFACT_DIR)"'
 
 apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lunarc frontend
 	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
@@ -128,6 +129,7 @@ apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lun
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			APPTAINER_PYTHON_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" \
 			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
+		cargo run -q -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- "$(LUNARC_APPTAINER_ARTIFACT_DIR)"; \
 		tail -n 20 "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/apptainer/summary.txt"'
 
 apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-containers/apptainer
@@ -176,7 +178,8 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 			ARTIFACT_DIR="$(LUNARC_APPTAINER_DIR)" \
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			$$py_arg \
-			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"
+			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/build-all-j$(LUNARC_APPTAINER_JOBS).log"; \
+		cargo run -q -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- "$(LUNARC_APPTAINER_DIR)"
 
 apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 	@if [ -d "$(LUNARC_FRONTEND_SENTINEL)" ]; then :; else \
@@ -196,6 +199,7 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 			APPTAINER_UBUNTU_BASE_SIF="$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" \
 			$$py_arg \
 			cargo run -q -p bijux-dna-dev -- containers run smoke-apptainer | tee "$(LUNARC_APPTAINER_DIR)/logs/smoke-all-j$(LUNARC_APPTAINER_JOBS).log"; \
+		cargo run -q -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- "$(LUNARC_APPTAINER_DIR)"; \
 		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"
 
 apptainer-hpc-clean: ## Remove frontend apptainer output dir
