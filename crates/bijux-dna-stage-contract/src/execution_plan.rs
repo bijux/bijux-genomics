@@ -3,9 +3,9 @@ use std::collections::{BTreeMap, HashSet};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use bijux_dna_core::id_catalog;
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{ArtifactRef, ToolConstraints};
+use bijux_dna_core::id_catalog;
 use bijux_dna_core::prelude::ContainerImageRefV1;
 
 use crate::stage_plan::{PlanDecisionReason, StagePlanV1};

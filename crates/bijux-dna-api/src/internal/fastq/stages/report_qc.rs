@@ -1081,7 +1081,8 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let multiqc_data = temp.path().join("multiqc_data");
         bijux_dna_infra::ensure_dir(&multiqc_data).expect("multiqc data dir");
-        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report").expect("report");
+        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report")
+            .expect("report");
         let raw_fastqc_dir = temp
             .path()
             .join("governed_qc_inputs/detect_adapters/fastqc/fastqc");
@@ -1274,7 +1275,8 @@ mod tests {
     fn qc_post_record_preserves_planner_written_governed_qc_manifest() {
         let temp = tempfile::tempdir().expect("tempdir");
         bijux_dna_infra::ensure_dir(temp.path().join("multiqc_data")).expect("multiqc data dir");
-        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report").expect("report");
+        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report")
+            .expect("report");
         let input_artifact = temp.path().join("trim_report.json");
         let raw_fastqc_dir = temp.path().join("raw_fastqc");
         bijux_dna_infra::write_bytes(&input_artifact, b"{}").expect("input artifact");
@@ -1394,7 +1396,8 @@ mod tests {
     fn qc_post_record_preserves_upstream_qc_summary_signals() {
         let temp = tempfile::tempdir().expect("tempdir");
         bijux_dna_infra::ensure_dir(temp.path().join("multiqc_data")).expect("multiqc data dir");
-        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report").expect("report");
+        bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report")
+            .expect("report");
 
         let detect_report = temp.path().join("adapter_report.json");
         bijux_dna_infra::write_bytes(

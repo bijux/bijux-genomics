@@ -51,7 +51,9 @@ fn domain_index_contract() -> &'static DomainIndexContract {
     static CONTRACT: OnceLock<DomainIndexContract> = OnceLock::new();
     CONTRACT.get_or_init(|| {
         bijux_dna_infra::formats::parse_yaml(include_str!("../../../domain/fastq/index.yaml"))
-            .unwrap_or_else(|err| panic!("parse domain/fastq/index.yaml integration contract: {err}"))
+            .unwrap_or_else(|err| {
+                panic!("parse domain/fastq/index.yaml integration contract: {err}")
+            })
     })
 }
 

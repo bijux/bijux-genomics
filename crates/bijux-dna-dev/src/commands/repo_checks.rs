@@ -1288,7 +1288,8 @@ pub(crate) fn check_output_roots(
         std::fs::remove_dir_all(&sentinel)
             .with_context(|| format!("remove {}", sentinel.display()))?;
     }
-    bijux_dna_infra::ensure_dir(&sentinel).with_context(|| format!("create {}", sentinel.display()))?;
+    bijux_dna_infra::ensure_dir(&sentinel)
+        .with_context(|| format!("create {}", sentinel.display()))?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;

@@ -589,7 +589,8 @@ mod tests {
     fn deduplicate_metrics_accept_legacy_key_value_reports() {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("deduplicate_report.txt");
-        bijux_dna_infra::write_bytes(&report_path, "reads_in=200\nreads_out=160\n").expect("write report");
+        bijux_dna_infra::write_bytes(&report_path, "reads_in=200\nreads_out=160\n")
+            .expect("write report");
 
         let counts =
             load_deduplicate_report_counts(&report_path).expect("load parser-backed dedup report");

@@ -70,8 +70,8 @@ fn execution_support_manifest() -> Result<Vec<ExecutionSupportManifestRow>> {
     let raw =
         std::fs::read_to_string(workspace_root()?.join("domain/fastq/execution_support.yaml"))
             .context("read domain/fastq/execution_support.yaml")?;
-    let yaml: Value =
-        bijux_dna_infra::formats::parse_yaml(&raw).context("parse domain/fastq/execution_support.yaml")?;
+    let yaml: Value = bijux_dna_infra::formats::parse_yaml(&raw)
+        .context("parse domain/fastq/execution_support.yaml")?;
     let stages = yaml
         .get("stages")
         .and_then(Value::as_array)

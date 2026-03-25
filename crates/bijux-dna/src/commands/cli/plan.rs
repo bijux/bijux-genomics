@@ -791,8 +791,8 @@ mod tests {
         bench_args_filter, bench_args_from_validate, bench_args_normalize_primers,
         bench_args_profile_overrepresented, bench_args_profile_read_lengths,
         bench_args_remove_chimeras, bench_args_remove_duplicates, bench_args_trim,
-        bench_args_trim_polyg, bench_args_trim_terminal_damage, resolve_stage_tool,
-        TOOL_CUTADAPT, TOOL_FASTP,
+        bench_args_trim_polyg, bench_args_trim_terminal_damage, resolve_stage_tool, TOOL_CUTADAPT,
+        TOOL_FASTP,
     };
     use crate::commands::cli::parse::{
         BenchFastqFilterArgs, BenchFastqNormalizePrimersArgs, BenchFastqProfileOverrepresentedArgs,

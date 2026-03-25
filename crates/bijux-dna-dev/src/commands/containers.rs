@@ -508,7 +508,8 @@ fn read_utf8(path: &std::path::Path) -> Result<String> {
 
 fn write_utf8(path: &std::path::Path, content: &str) -> Result<()> {
     if let Some(parent) = path.parent() {
-        bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))?;
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
     }
     bijux_dna_infra::write_bytes(path, content).with_context(|| format!("write {}", path.display()))
 }
@@ -1458,7 +1459,8 @@ fn generate_license_metadata(
         _ => return Err(anyhow!(usage.to_string())),
     };
     let entries = license_metadata_entries(workspace)?;
-    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
     let expected_files = entries
         .iter()
         .map(|entry| format!("{}.license.toml", entry.tool))
@@ -1473,7 +1475,8 @@ fn generate_license_metadata(
             continue;
         };
         if !expected_files.contains(name) {
-            bijux_dna_infra::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+            bijux_dna_infra::remove_file(&path)
+                .with_context(|| format!("remove {}", path.display()))?;
         }
     }
     for entry in &entries {
@@ -2011,7 +2014,8 @@ fn generate_tool_docs(workspace: &Workspace, args: &[String]) -> Result<Containe
         [dir] => path_from_arg(workspace, dir),
         _ => return Err(anyhow!(usage.to_string())),
     };
-    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
     let outputs = tool_docs_content(workspace)?;
     let expected_files = outputs.keys().cloned().collect::<BTreeSet<_>>();
     for path in fs::read_dir(&out_dir)
@@ -2024,7 +2028,8 @@ fn generate_tool_docs(workspace: &Workspace, args: &[String]) -> Result<Containe
             continue;
         };
         if !expected_files.contains(name) {
-            bijux_dna_infra::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+            bijux_dna_infra::remove_file(&path)
+                .with_context(|| format!("remove {}", path.display()))?;
         }
     }
     for (name, content) in outputs {
@@ -8251,7 +8256,8 @@ fn check_apptainer_rebuild_repro(
         return success_line(format!("apptainer rebuild repro: skip (no def for {tool})"));
     }
     let tmp_root = artifact_root_path(workspace)?.join("tmp");
-    bijux_dna_infra::ensure_dir(&tmp_root).with_context(|| format!("create {}", tmp_root.display()))?;
+    bijux_dna_infra::ensure_dir(&tmp_root)
+        .with_context(|| format!("create {}", tmp_root.display()))?;
     let run1 = tmp_root.join(format!("{tool}.repro1.sif"));
     let run2 = tmp_root.join(format!("{tool}.repro2.sif"));
     let build1 = run_program_with_env(
@@ -10015,7 +10021,8 @@ fn run_build_apptainer_hpc_frontend(
         return Ok(aggregate);
     }
     let out_dir = workspace.path("artifacts/containers/hpc");
-    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
     let host = current_host_name(workspace);
     let frontend_json = out_dir.join("frontend-sif-digests.json");
     write_frontend_sif_digests(
@@ -10065,7 +10072,8 @@ fn run_apptainer_frontend_smoke(
         return Ok(host_policy);
     }
     let proof_root = workspace.path("artifacts/containers/hpc/frontend-smoke");
-    bijux_dna_infra::ensure_dir(&proof_root).with_context(|| format!("create {}", proof_root.display()))?;
+    bijux_dna_infra::ensure_dir(&proof_root)
+        .with_context(|| format!("create {}", proof_root.display()))?;
     let smoke = run_environment_smoke_for_with_env(
         workspace,
         "apptainer",
@@ -10123,7 +10131,8 @@ fn run_apptainer_frontend_security(
         return Ok(host_policy);
     }
     let out_dir = workspace.path("artifacts/containers/hpc/frontend-security/run");
-    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
     let mut aggregate = ContainerCommandOutcome::success(String::new());
     for (name, outcome) in [
         ("check-version-hash-pin", check_version_hash_pin(workspace)?),
@@ -10199,7 +10208,8 @@ fn run_apptainer_frontend_reproducibility(
         &env_or_default("ISO_RUN_ID", "frontend-repro"),
     );
     let out_dir = workspace.path("artifacts/containers/hpc/frontend-reproducibility/run");
-    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
     let sample = sampled_apptainer_defs(workspace, &seed, sample_count);
     let mut items = Vec::new();
     let mut aggregate = ContainerCommandOutcome::success(String::new());
@@ -10831,7 +10841,8 @@ fn write_frontend_security_summary(
     let mut critical_unallowlisted = Vec::new();
     let mut license_mismatches = Vec::new();
     let vuln_dir = out_dir.join("vuln");
-    bijux_dna_infra::ensure_dir(&vuln_dir).with_context(|| format!("create {}", vuln_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&vuln_dir)
+        .with_context(|| format!("create {}", vuln_dir.display()))?;
 
     for entry in manifests {
         let row = read_json(entry.path())?;
@@ -11130,7 +11141,8 @@ fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<()> {
             "ensure-images plan requires configs/ci/tools/images.toml, configs/ci/registry/tool_registry_lock.sha256, and configs/ci/tools/hpc_image_naming.toml"
         ));
     }
-    bijux_dna_infra::ensure_dir(&out_dir).with_context(|| format!("create {}", out_dir.display()))?;
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
     let images_sha = sha256_file_hex(&images_toml)?;
     let lock_sha = std::fs::read_to_string(&lock_sha_file)
         .with_context(|| format!("read {}", lock_sha_file.display()))?

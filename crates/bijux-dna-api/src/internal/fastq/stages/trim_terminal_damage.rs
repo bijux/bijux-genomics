@@ -414,8 +414,8 @@ fn read_governed_terminal_damage_report(
 #[cfg(test)]
 mod tests {
     use super::{
-        admitted_stage_tools, parse_requested_execution_policy, resolve_requested_tools,
-        read_governed_terminal_damage_report, required_plan_output_path,
+        admitted_stage_tools, parse_requested_execution_policy,
+        read_governed_terminal_damage_report, required_plan_output_path, resolve_requested_tools,
     };
     use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};

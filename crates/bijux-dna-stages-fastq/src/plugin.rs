@@ -1492,7 +1492,8 @@ mod tests {
 
     fn write_fastq(path: &std::path::Path, read_id: &str, sequence: &str) {
         let quality = "#".repeat(sequence.len());
-        bijux_dna_infra::write_bytes(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n")).expect("write fastq");
+        bijux_dna_infra::write_bytes(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n"))
+            .expect("write fastq");
     }
 
     fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
@@ -1688,7 +1689,8 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let dedup_reads_path = temp.path().join("dedup.fastq");
         bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&dedup_reads_path, b"@r1\nACGT\n+\n####\n").expect("write dedup reads");
+        bijux_dna_infra::write_bytes(&dedup_reads_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write dedup reads");
         let report_path = temp.path().join("deduplicate_report.json");
         bijux_dna_infra::write_bytes(
             &report_path,
@@ -1946,7 +1948,8 @@ mod tests {
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_terminal_damage_report.json");
         bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nCG\n+\n##\n").expect("write trimmed reads");
+        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nCG\n+\n##\n")
+            .expect("write trimmed reads");
         bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
@@ -2069,8 +2072,10 @@ mod tests {
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_report.json");
         let raw_backend_report_path = temp.path().join("trim_report.fastp.json");
-        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n")
+            .expect("write reads");
+        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write trimmed reads");
         bijux_dna_infra::write_bytes(
             &raw_backend_report_path,
             serde_json::json!({
@@ -2209,8 +2214,10 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let filtered_reads_path = temp.path().join("filtered.fastq");
         let report_path = temp.path().join("filter_report.json");
-        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTNNNN\n+\n########\n")
+            .expect("write reads");
+        bijux_dna_infra::write_bytes(&filtered_reads_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write filtered");
         bijux_dna_infra::write_bytes(
             &report_path,
             format!(
@@ -2330,8 +2337,10 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let filtered_reads_path = temp.path().join("filtered.fastq");
         let report_path = temp.path().join("low_complexity_report.json");
-        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTNNNN\n+\n########\n")
+            .expect("write reads");
+        bijux_dna_infra::write_bytes(&filtered_reads_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write filtered");
         bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
@@ -2443,8 +2452,10 @@ mod tests {
         let report_path = temp.path().join("umi_report.json");
         bijux_dna_infra::write_bytes(&reads_r1, b"@r1\nACGT\n+\n####\n").expect("write reads");
         bijux_dna_infra::write_bytes(&reads_r2, b"@r1\nTGCA\n+\n####\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&umi_r1, b"@r1_UMI:AAAA\nACGT\n+\n####\n").expect("write umi reads");
-        bijux_dna_infra::write_bytes(&umi_r2, b"@r1_UMI:AAAA\nTGCA\n+\n####\n").expect("write umi reads");
+        bijux_dna_infra::write_bytes(&umi_r1, b"@r1_UMI:AAAA\nACGT\n+\n####\n")
+            .expect("write umi reads");
+        bijux_dna_infra::write_bytes(&umi_r2, b"@r1_UMI:AAAA\nTGCA\n+\n####\n")
+            .expect("write umi reads");
         bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
@@ -2563,8 +2574,10 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
-        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n")
+            .expect("write reads");
+        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write trimmed reads");
         bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
@@ -2682,8 +2695,10 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
-        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGTGGGG\n+\n########\n")
+            .expect("write reads");
+        bijux_dna_infra::write_bytes(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write trimmed reads");
         bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
@@ -2889,8 +2904,10 @@ mod tests {
         let report_tsv = temp.path().join("rrna_report.tsv");
         let report_json = temp.path().join("rrna_report.json");
         bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
-        bijux_dna_infra::write_bytes(&report_tsv, b"sample\treads_removed\tfraction\n").expect("write tsv");
+        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n")
+            .expect("write filtered reads");
+        bijux_dna_infra::write_bytes(&report_tsv, b"sample\treads_removed\tfraction\n")
+            .expect("write tsv");
         bijux_dna_infra::write_bytes(
             &report_json,
             serde_json::json!({
@@ -2991,7 +3008,8 @@ mod tests {
         let output_path = temp.path().join("contaminant_screened.fastq.gz");
         let report_json = temp.path().join("contaminant_screen_report.json");
         bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n")
+            .expect("write filtered reads");
         bijux_dna_infra::write_bytes(
             &report_json,
             serde_json::json!({
@@ -3086,7 +3104,8 @@ mod tests {
         let output_path = temp.path().join("host_depleted.fastq.gz");
         let report_json = temp.path().join("host_depletion_report.json");
         bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n")
+            .expect("write filtered reads");
         bijux_dna_infra::write_bytes(
             &report_json,
             r#"{
@@ -3190,10 +3209,14 @@ mod tests {
         let corrected_r1_path = temp.path().join("corrected_R1.fastq");
         let corrected_r2_path = temp.path().join("corrected_R2.fastq");
         let report_path = temp.path().join("correct_report.json");
-        bijux_dna_infra::write_bytes(&reads_r1_path, b"@r1\nACGT\n+\n####\n").expect("write reads r1");
-        bijux_dna_infra::write_bytes(&reads_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write reads r2");
-        bijux_dna_infra::write_bytes(&corrected_r1_path, b"@r1\nACGT\n+\n####\n").expect("write corrected r1");
-        bijux_dna_infra::write_bytes(&corrected_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write corrected r2");
+        bijux_dna_infra::write_bytes(&reads_r1_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write reads r1");
+        bijux_dna_infra::write_bytes(&reads_r2_path, b"@r1\nTGCA\n+\n####\n")
+            .expect("write reads r2");
+        bijux_dna_infra::write_bytes(&corrected_r1_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write corrected r1");
+        bijux_dna_infra::write_bytes(&corrected_r2_path, b"@r1\nTGCA\n+\n####\n")
+            .expect("write corrected r2");
         bijux_dna_infra::write_bytes(
             &report_path,
             serde_json::json!({
@@ -3331,7 +3354,8 @@ mod tests {
         let report_path = temp.path().join("multiqc_report.html");
         let data_dir = temp.path().join("multiqc_data");
         let manifest_path = temp.path().join("governed_qc_inputs_manifest.json");
-        bijux_dna_infra::write_bytes(&qc_input_path, b"@r1\nACGT\n+\n####\n").expect("write qc input");
+        bijux_dna_infra::write_bytes(&qc_input_path, b"@r1\nACGT\n+\n####\n")
+            .expect("write qc input");
         bijux_dna_infra::ensure_dir(&data_dir).expect("multiqc data dir");
         bijux_dna_infra::write_bytes(
             data_dir.join("multiqc_general_stats.json"),
