@@ -1,4 +1,11 @@
-use super::*;
+#[cfg(not(feature = "bam_downstream"))]
+use anyhow::anyhow;
+
+use super::{
+    default_params_for_stage, parse_bqsr_mode, parse_contamination_scope, parse_expected_sex,
+    parse_udg_model, BamRunArgs, BamStage, Path, PipelineProfile, Result, StagePlanRequest,
+    StagePlanV1, ToolExecutionSpecV1,
+};
 
 pub(super) fn plan_damage_recalibration_stage(
     stage: BamStage,

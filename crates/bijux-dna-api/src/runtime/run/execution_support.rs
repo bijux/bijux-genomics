@@ -1,4 +1,4 @@
-use super::*;
+use super::{anyhow, ExecuteRunRequest, Path, PathBuf, Result};
 
 pub(super) fn maybe_emit_reference_manifest(
     request: &ExecuteRunRequest,

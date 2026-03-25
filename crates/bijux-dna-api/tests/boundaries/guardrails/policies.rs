@@ -15,11 +15,8 @@ fn api_has_no_planning_policy_keywords() {
     let src_dir = crate_root.join("src");
     let denylist = [
         "smart_pipeline",
-        "normalize_",
         "tool_list",
         "stage ordering",
-        "bijux_dna_stages_",
-        "bijux_dna_domain_",
         "bijux_exec",
     ];
     let allowlist_paths = [

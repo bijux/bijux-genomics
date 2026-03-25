@@ -51,9 +51,9 @@ mod tests {
         let validate_dir = temp.path().join("validate");
         bijux_dna_infra::ensure_dir(&validate_dir)?;
         let validate_bam = validate_dir.join("in.bam");
-        let validate_bai = validate_dir.join("in.bam.bai");
+        let validate_index = validate_dir.join("in.bam.bai");
         std::fs::write(&validate_bam, b"@HD\tVN:1.6\n")?;
-        std::fs::write(&validate_bai, b"bai")?;
+        std::fs::write(&validate_index, b"bai")?;
         bijux_dna_infra::atomic_write_bytes(
             &validate_dir.join("flagstat.txt"),
             b"10 + 0 in total (QC-passed reads + QC-failed reads)\n8 + 0 mapped (80.00% : N/A)\n2 + 0 duplicates\n",
@@ -78,9 +78,9 @@ mod tests {
         let mapping_dir = temp.path().join("mapping_summary");
         bijux_dna_infra::ensure_dir(&mapping_dir)?;
         let mapping_bam = mapping_dir.join("in.bam");
-        let mapping_bai = mapping_dir.join("in.bam.bai");
+        let mapping_index = mapping_dir.join("in.bam.bai");
         std::fs::write(&mapping_bam, b"@HD\tVN:1.6\n")?;
-        std::fs::write(&mapping_bai, b"bai")?;
+        std::fs::write(&mapping_index, b"bai")?;
         bijux_dna_infra::atomic_write_bytes(
             &mapping_dir.join("flagstat.txt"),
             b"20 + 0 in total (QC-passed reads + QC-failed reads)\n15 + 0 mapped (75.00% : N/A)\n",
