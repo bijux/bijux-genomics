@@ -39,7 +39,7 @@ fn run_fastq_toy(out_dir: &Path) -> Result<PathBuf> {
 }
 
 #[test]
-fn fastq_small_pipeline_emits_multi_stage_manifest() -> Result<()> {
+fn slow__fastq_small_pipeline_emits_multi_stage_manifest() -> Result<()> {
     let temp = tempfile::tempdir()?;
     let run_dir = run_fastq_toy(temp.path())?;
     let manifest_path = run_dir.join("manifest.json");

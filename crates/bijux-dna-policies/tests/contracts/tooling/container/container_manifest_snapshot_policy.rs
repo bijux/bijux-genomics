@@ -16,7 +16,7 @@ fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
 }
 
 #[test]
-fn policy__contracts__container_manifest_snapshot_policy__generated_manifest_matches_committed_snapshot(
+fn slow__policy__contracts__container_manifest_snapshot_policy__generated_manifest_matches_committed_snapshot(
 ) {
     let root = support::workspace_root();
     let snapshot_path = root.join(

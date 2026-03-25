@@ -35,6 +35,8 @@ Rust gate artifact layout:
 - fast Rust gates write under `artifacts/rust/`
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
 - workspace governance checks remain available through `make lint-workspace`
+- `make test` is the fast Rust lane: it excludes `slow__` tests and enforces a 10-second per-test budget
+- `make test-slow` and `make test-all` are the lanes for tests that exceed the fast-lane budget
 
 CI profile automation:
 - Fast: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`

@@ -34,7 +34,7 @@ fn policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_determi
 }
 
 #[test]
-fn policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_flag() {
+fn slow__policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_flag() {
     let root = support::workspace_root();
     let status = std::process::Command::new("cargo")
         .arg("run")

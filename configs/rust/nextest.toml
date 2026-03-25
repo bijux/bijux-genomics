@@ -3,12 +3,21 @@
 # purpose = Contract config for configs/rust/nextest.toml
 # authority = bijux-dna-infra
 # stability = stable
-# last_updated = 2026-02-13
+# last_updated = 2026-03-25
 
 [profile.default]
 retries = { count = 1, backoff = "fixed", delay = "1s" }
 
 [profile.ci]
+retries = { count = 0, backoff = "fixed", delay = "1s" }
+fail-fast = false
+test-threads = 1
+slow-timeout = { period = "10s", terminate-after = 1 }
+failure-output = "immediate"
+success-output = "never"
+status-level = "pass"
+
+[profile.full]
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = false
 test-threads = 1
@@ -37,6 +46,7 @@ status-level = "fail"
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = true
 test-threads = 8
+slow-timeout = { period = "10s", terminate-after = 1 }
 failure-output = "immediate-final"
 success-output = "never"
 status-level = "pass"
