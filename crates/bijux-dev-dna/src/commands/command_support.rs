@@ -27,7 +27,7 @@ pub(crate) fn make_files(workspace: &Workspace) -> Result<Vec<PathBuf>> {
     let mut files = vec![workspace.path("Makefile")];
     for entry in WalkDir::new(workspace.path("makes"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;

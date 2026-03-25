@@ -839,9 +839,7 @@ fn iso_run_id() -> String {
 }
 
 fn policy_path(workspace: &Workspace, env_key: &str, default_rel: &str) -> PathBuf {
-    std::env::var(env_key)
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| workspace.path(default_rel))
+    std::env::var(env_key).map_or_else(|_| workspace.path(default_rel), PathBuf::from)
 }
 
 fn apptainer_def_paths(workspace: &Workspace) -> Vec<PathBuf> {
@@ -849,7 +847,7 @@ fn apptainer_def_paths(workspace: &Workspace) -> Vec<PathBuf> {
         .into_iter()
         .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("def"))
         .collect::<Vec<_>>();
     paths.sort();
@@ -1635,7 +1633,7 @@ fn generate_network_usage_content(workspace: &Workspace) -> Result<String> {
         .into_iter()
         .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .filter(|path| {
             path.extension().and_then(|ext| ext.to_str()) == Some("def")
                 || path
@@ -1719,10 +1717,10 @@ fn check_network_disclosure(
         _ => return Err(anyhow!("Usage: cargo run -p bijux-dev-dna -- containers run check-network-disclosure -- [--offline]")),
     } || std::env::var("BIJUX_OFFLINE").as_deref() == Ok("1");
 
-    let report = std::env::var("ISO_ROOT")
-        .map(PathBuf::from)
-        .map(|root| root.join("containers/network_usage.json"))
-        .unwrap_or_else(|_| workspace.path("artifacts/containers/network_usage.json"));
+    let report = std::env::var("ISO_ROOT").map(PathBuf::from).map_or_else(
+        |_| workspace.path("artifacts/containers/network_usage.json"),
+        |root| root.join("containers/network_usage.json"),
+    );
     write_utf8(&report, &generate_network_usage_content(workspace)?)?;
 
     let network_doc = workspace.path("containers/docs/NETWORK_USAGE.md");
@@ -2641,7 +2639,7 @@ fn check_version_immutability(workspace: &Workspace) -> Result<ContainerCommandO
     if let Some(table) = previous_value.as_table() {
         for (tool, row) in table {
             if let Some(row) = row.as_table() {
-                previous_rows.insert(tool.to_string(), row.clone());
+                previous_rows.insert(tool.clone(), row.clone());
             }
         }
     }
@@ -3201,7 +3199,7 @@ fn check_version_authority(workspace: &Workspace) -> Result<ContainerCommandOutc
     if lock
         .get("items")
         .and_then(serde_json::Value::as_array)
-        .is_none_or(|items| items.is_empty())
+        .is_none_or(std::vec::Vec::is_empty)
     {
         errors.push("- lock.json items must be a non-empty list".to_string());
     }
@@ -3340,7 +3338,7 @@ fn promote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
         Ok(options) => options,
         Err(error) if error.to_string() == "help" => return success_line(usage),
         Err(error) => {
-            return Ok(ContainerCommandOutcome::failure(format!("{}\n", error)));
+            return Ok(ContainerCommandOutcome::failure(format!("{error}\n")));
         }
     };
     let tool = parse_required_option("promote", &options, "tool")
@@ -3437,7 +3435,7 @@ fn demote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerComman
     let options = match parse_named_options("demote", args) {
         Ok(options) => options,
         Err(error) if error.to_string() == "help" => return success_line(usage),
-        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{}\n", error))),
+        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{error}\n"))),
     };
     let tool = parse_required_option("demote", &options, "tool")
         .map_err(|error| anyhow!("{usage}\n{error}"))?;
@@ -3478,7 +3476,7 @@ fn deprecate_version(workspace: &Workspace, args: &[String]) -> Result<Container
     let options = match parse_named_options("deprecate-version", args) {
         Ok(options) => options,
         Err(error) if error.to_string() == "help" => return success_line(usage),
-        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{}\n", error))),
+        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{error}\n"))),
     };
     let tool = parse_required_option("deprecate-version", &options, "tool")
         .map_err(|error| anyhow!("{usage}\n{error}"))?;
@@ -3556,7 +3554,7 @@ fn tool_lifecycle(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
     let options = match parse_named_options("tool-lifecycle", args) {
         Ok(options) => options,
         Err(error) if error.to_string() == "help" => return success_line(usage),
-        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{}\n", error))),
+        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{error}\n"))),
     };
     let tool = parse_required_option("tool-lifecycle", &options, "tool")
         .map_err(|error| anyhow!("{usage}{error}"))?;
@@ -3716,7 +3714,7 @@ fn check_apptainer_frontend_security(
     if summary
         .get("items")
         .and_then(serde_json::Value::as_array)
-        .is_none_or(|items| items.is_empty())
+        .is_none_or(std::vec::Vec::is_empty)
     {
         errors.push("no SBOM/SIF items recorded".to_string());
     }
@@ -4028,9 +4026,7 @@ fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOu
                 errors.push(format!("{rel}: missing label contract key '{alias}'"));
             }
         }
-        if !text.contains("%environment") {
-            errors.push(format!("{rel}: missing %environment section"));
-        } else {
+        if text.contains("%environment") {
             let env = text
                 .split("%environment")
                 .nth(1)
@@ -4044,10 +4040,10 @@ fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOu
             if env.contains("/Users/") || env.contains("/home/") {
                 errors.push(format!("{rel}: %environment contains user-specific path"));
             }
-        }
-        if !text.contains("%post") {
-            errors.push(format!("{rel}: missing %post section"));
         } else {
+            errors.push(format!("{rel}: missing %environment section"));
+        }
+        if text.contains("%post") {
             let post = text
                 .split("%post")
                 .nth(1)
@@ -4090,6 +4086,8 @@ fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOu
                 // This script was originally handled by a separate post-pin check, so keep the
                 // hardening surface focused on hardening-only findings.
             }
+        } else {
+            errors.push(format!("{rel}: missing %post section"));
         }
         if let Some(captures) = version_re.captures(&text) {
             let value = captures
@@ -4368,9 +4366,10 @@ fn generate_local_apptainer_digests(
         "artifacts/containers/hpc/local-sif-digests.json",
         usage,
     )?;
-    let sif_dir = std::env::var("SIF_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| workspace.path("artifacts/containers/apptainer/sif"));
+    let sif_dir = std::env::var("SIF_DIR").map_or_else(
+        |_| workspace.path("artifacts/containers/apptainer/sif"),
+        PathBuf::from,
+    );
     let mut rows = Vec::new();
     if sif_dir.exists() {
         let mut paths = fs::read_dir(&sif_dir)
@@ -4490,17 +4489,17 @@ fn compare_frontend_local_sif_hash(
         .collect::<Vec<_>>();
     if !missing_frontend.is_empty() {
         lines.extend([
-            "".to_string(),
+            String::new(),
             "## Missing On Frontend".to_string(),
-            "".to_string(),
+            String::new(),
         ]);
         lines.extend(missing_frontend.iter().map(|tool| format!("- `{tool}`")));
     }
     if !missing_local.is_empty() {
         lines.extend([
-            "".to_string(),
+            String::new(),
             "## Missing Locally".to_string(),
-            "".to_string(),
+            String::new(),
         ]);
         lines.extend(missing_local.iter().map(|tool| format!("- `{tool}`")));
     }
@@ -4511,9 +4510,9 @@ fn compare_frontend_local_sif_hash(
         .collect::<Vec<_>>();
     if !mismatch.is_empty() {
         lines.extend([
-            "".to_string(),
+            String::new(),
             "## Deterministic Causes To Document".to_string(),
-            "".to_string(),
+            String::new(),
             "- base image digest drift".to_string(),
             "- build timestamp embedded in image".to_string(),
             "- tool download source changed".to_string(),
@@ -4622,17 +4621,17 @@ fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutc
         if patching_rules.trim().is_empty() {
             errors.push(format!("{tool_id}: patching_rules must be non-empty"));
         }
-        if !checksum.starts_with("sha256:") {
-            errors.push(format!(
-                "{tool_id}: upstream_checksum must start with sha256:"
-            ));
-        } else {
+        if checksum.starts_with("sha256:") {
             let digest = checksum.trim_start_matches("sha256:");
             if digest != "pending" && !checksum_re.is_match(digest) {
                 errors.push(format!(
                     "{tool_id}: upstream_checksum must be sha256:<64hex> or sha256:pending"
                 ));
             }
+        } else {
+            errors.push(format!(
+                "{tool_id}: upstream_checksum must start with sha256:"
+            ));
         }
     }
     for tool_id in rows.keys() {
@@ -4873,7 +4872,8 @@ fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOu
             "images",
             images
                 .iter()
-                .filter_map(|(key, value)| value.is_table().then(|| key.clone()))
+                .filter(|&(_key, value)| value.is_table())
+                .map(|(key, _value)| key.clone())
                 .collect::<BTreeSet<_>>(),
         ),
         (
@@ -4909,21 +4909,20 @@ fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOu
             })
         {
             errors.push(format!(
-                "id parity: '{tool_id}' present in {:?} but missing from registry",
-                present
+                "id parity: '{tool_id}' present in {present:?} but missing from registry"
             ));
         }
     }
     let name_map = workspace.path("containers/docs/TOOL_NAME_MAP.md");
-    if !name_map.exists() {
-        errors.push("missing containers/docs/TOOL_NAME_MAP.md".to_string());
-    } else {
+    if name_map.exists() {
         let text = read_utf8(&name_map)?;
         for tool_id in tools.keys() {
             if !text.contains(&format!("`{tool_id}`")) {
                 errors.push(format!("tool-name-map missing tool id '{tool_id}'"));
             }
         }
+    } else {
+        errors.push("missing containers/docs/TOOL_NAME_MAP.md".to_string());
     }
     if errors.is_empty() {
         return success_line("tool-name-collision: OK");
@@ -5126,22 +5125,22 @@ fn check_toolkit_bundles(workspace: &Workspace) -> Result<ContainerCommandOutcom
                 "apptainer_only" if !has_apptainer => {
                     errors.push(format!(
                         "{bundle_id}: production tool '{tool}' requires apptainer container"
-                    ))
+                    ));
                 }
                 "docker_only" if !has_docker => {
                     errors.push(format!(
                         "{bundle_id}: production tool '{tool}' requires docker container"
-                    ))
+                    ));
                 }
                 "docker_apptainer" if !(has_apptainer && has_docker) => {
                     errors.push(format!(
                         "{bundle_id}: production tool '{tool}' requires both docker and apptainer containers"
-                    ))
+                    ));
                 }
                 "none" if !(has_apptainer || has_docker) => {
                     errors.push(format!(
                         "{bundle_id}: production tool '{tool}' has no container definition"
-                    ))
+                    ));
                 }
                 _ => {}
             }
@@ -5208,7 +5207,7 @@ fn check_hpc_image_naming(
         .cloned()
         .unwrap_or_default();
     let mut errors = Vec::new();
-    for row in rows.iter() {
+    for row in &rows {
         let tool = row
             .get("tool")
             .and_then(serde_json::Value::as_str)
@@ -5378,7 +5377,7 @@ fn check_tool_id_contract(workspace: &Workspace) -> Result<ContainerCommandOutco
     let mut status_by_id = BTreeMap::new();
     let mut errors = Vec::new();
     for (index, header) in required_headers.iter().enumerate() {
-        if lines.get(index).map(|line| line.as_str()) != Some(*header) {
+        if lines.get(index).map(std::string::String::as_str) != Some(*header) {
             errors.push(format!(
                 "header line {} mismatch: expected '{}'",
                 index + 1,
@@ -5609,12 +5608,7 @@ fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome
         }
     }
     let dockerignore = workspace.path("containers/docker/arm64/.dockerignore");
-    if !dockerignore.exists() {
-        errors.push(
-            "containers/docker/arm64/.dockerignore: missing (required for context minimization)"
-                .to_string(),
-        );
-    } else {
+    if dockerignore.exists() {
         let dockerignore_text = read_utf8(&dockerignore)?;
         for pattern in [
             ".git",
@@ -5630,6 +5624,11 @@ fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome
                 ));
             }
         }
+    } else {
+        errors.push(
+            "containers/docker/arm64/.dockerignore: missing (required for context minimization)"
+                .to_string(),
+        );
     }
     for path in dockerfile_paths(workspace)? {
         for (index, line) in read_utf8(&path)?.lines().enumerate() {
@@ -5813,7 +5812,7 @@ fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome>
     let version_re =
         Regex::new(r#"org\.opencontainers\.image\.version="?([A-Za-z0-9_.:-]+)"?"#).expect("regex");
     let apptainer_version_re =
-        Regex::new(r#"org\.opencontainers\.image\.version\s+([^\s]+)"#).expect("regex");
+        Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)").expect("regex");
     let mut docker_versions = BTreeMap::new();
     let mut errors = Vec::new();
     for path in dockerfile_paths(workspace)? {
@@ -5822,7 +5821,7 @@ fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome>
         let missing = required
             .iter()
             .filter(|label| !text.contains(**label))
-            .cloned()
+            .copied()
             .collect::<Vec<_>>();
         if !missing.is_empty() {
             errors.push(format!("{rel} missing labels: {}", missing.join(", ")));
@@ -5871,8 +5870,7 @@ fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome>
             .unwrap_or_default();
         if docker_version != &apptainer_version {
             errors.push(format!(
-                "version parity mismatch for {tool_id}: docker={} apptainer={apptainer_version}",
-                docker_version
+                "version parity mismatch for {tool_id}: docker={docker_version} apptainer={apptainer_version}"
             ));
         }
     }
@@ -5946,7 +5944,7 @@ fn check_docker_unpinned_apt(workspace: &Workspace) -> Result<ContainerCommandOu
 
 fn check_docker_version_sync(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let versions = tool_versions(workspace)?;
-    let arg_re = Regex::new(r#"^ARG\s+TOOL_VERSION\s*=\s*([^\s#]+)\s*$"#).expect("regex");
+    let arg_re = Regex::new(r"^ARG\s+TOOL_VERSION\s*=\s*([^\s#]+)\s*$").expect("regex");
     let mut errors = Vec::new();
     for dockerfile in dockerfile_paths(workspace)? {
         let tool = dockerfile
@@ -6214,9 +6212,10 @@ fn check_runtime_downloads(workspace: &Workspace) -> Result<ContainerCommandOutc
 }
 
 fn check_vuln_allowlist(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let path = std::env::var("ALLOWLIST")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| workspace.path("configs/ci/tools/vuln_allowlist.toml"));
+    let path = std::env::var("ALLOWLIST").map_or_else(
+        |_| workspace.path("configs/ci/tools/vuln_allowlist.toml"),
+        PathBuf::from,
+    );
     if !path.exists() {
         return Ok(ContainerCommandOutcome::failure(format!(
             "vuln allowlist: missing {}\n",
@@ -7113,12 +7112,14 @@ fn check_smoke_contract(workspace: &Workspace) -> Result<ContainerCommandOutcome
 }
 
 fn check_smoke_contract_lock(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let lock_path = std::env::var("LOCK_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| workspace.path("containers/versions/lock.json"));
-    let summary_path = std::env::var("SUMMARY_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json"));
+    let lock_path = std::env::var("LOCK_PATH").map_or_else(
+        |_| workspace.path("containers/versions/lock.json"),
+        PathBuf::from,
+    );
+    let summary_path = std::env::var("SUMMARY_PATH").map_or_else(
+        |_| workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json"),
+        PathBuf::from,
+    );
 
     if !lock_path.exists() {
         return Ok(ContainerCommandOutcome::failure(format!(
@@ -7310,14 +7311,12 @@ fn check_vcf_imputation_toolchain(workspace: &Workspace) -> Result<ContainerComm
         .collect::<Vec<_>>();
     if !missing_in_required.is_empty() {
         errors.push(format!(
-            "required_tools_vcf_downstream missing registry ids: {:?}",
-            missing_in_required
+            "required_tools_vcf_downstream missing registry ids: {missing_in_required:?}"
         ));
     }
     if !missing_in_registry.is_empty() {
         errors.push(format!(
-            "required_tools_vcf_downstream has unknown ids: {:?}",
-            missing_in_registry
+            "required_tools_vcf_downstream has unknown ids: {missing_in_registry:?}"
         ));
     }
 
@@ -7337,8 +7336,7 @@ fn check_vcf_imputation_toolchain(workspace: &Workspace) -> Result<ContainerComm
             .collect::<BTreeSet<_>>();
         if !runtimes.contains("docker") || !runtimes.contains("apptainer") {
             errors.push(format!(
-                "{tool}: runtimes must include docker+apptainer, got {:?}",
-                runtimes
+                "{tool}: runtimes must include docker+apptainer, got {runtimes:?}"
             ));
         }
         for key in [
@@ -7774,15 +7772,14 @@ fn check_build_provenance(workspace: &Workspace) -> Result<ContainerCommandOutco
                 ));
                 continue;
             }
-            let payload = match read_json(&manifest_path) {
-                Ok(payload) => payload,
-                Err(_) => {
-                    errors.push(format!(
-                        "{tool}: invalid json in {}",
-                        manifest_path.display()
-                    ));
-                    continue;
-                }
+            let payload = if let Ok(payload) = read_json(&manifest_path) {
+                payload
+            } else {
+                errors.push(format!(
+                    "{tool}: invalid json in {}",
+                    manifest_path.display()
+                ));
+                continue;
             };
             if payload.get("status").and_then(serde_json::Value::as_str) != Some("ok") {
                 errors.push(format!("{tool}: manifest status is not ok"));
@@ -8852,14 +8849,12 @@ fn check_vcf_downstream_bundle_coverage(workspace: &Workspace) -> Result<Contain
     let mut errors = Vec::new();
     if tools.is_disjoint(&phasing_required) {
         errors.push(format!(
-            "vcf_downstream bundle requires at least one phasing tool from {:?}",
-            phasing_required
+            "vcf_downstream bundle requires at least one phasing tool from {phasing_required:?}"
         ));
     }
     if tools.is_disjoint(&imputation_required) {
         errors.push(format!(
-            "vcf_downstream bundle requires at least one imputation tool from {:?}",
-            imputation_required
+            "vcf_downstream bundle requires at least one imputation tool from {imputation_required:?}"
         ));
     }
     if errors.is_empty() {
@@ -8898,8 +8893,7 @@ fn summary(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOut
     }
 
     let manifest_dir = std::env::var("MANIFEST_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| workspace.path("artifacts/containers"));
+        .map_or_else(|_| workspace.path("artifacts/containers"), PathBuf::from);
     if !manifest_dir.is_dir() {
         return Ok(ContainerCommandOutcome {
             exit_code: 2,
@@ -9033,11 +9027,11 @@ fn run_env_prep(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
         "prep".to_string(),
         container_type,
     ]);
-    if !stage.is_empty() {
+    if stage.is_empty() {
+        argv.push(tools);
+    } else {
         argv.push("--stage".to_string());
         argv.push(stage);
-    } else {
-        argv.push(tools);
     }
     run_argv(workspace, &argv)
 }
@@ -9054,11 +9048,11 @@ fn run_env_smoke(workspace: &Workspace, args: &[String]) -> Result<ContainerComm
         "smoke".to_string(),
         container_type,
     ]);
-    if !stage.is_empty() {
+    if stage.is_empty() {
+        argv.push(tools);
+    } else {
         argv.push("--stage".to_string());
         argv.push(stage);
-    } else {
-        argv.push(tools);
     }
     run_argv(workspace, &argv)
 }
@@ -9605,8 +9599,10 @@ fn run_container_doctor(workspace: &Workspace, args: &[String]) -> Result<Contai
         let registry_entry = registry_tool_rows(workspace)?
             .into_iter()
             .find(|row| row.get("id").and_then(toml::Value::as_str) == Some(tool_id.as_str()))
-            .map(toml::Value::Table)
-            .unwrap_or_else(|| toml::Value::Table(Default::default()));
+            .map_or_else(
+                || toml::Value::Table(Default::default()),
+                toml::Value::Table,
+            );
         let version_lock = lock_items_by_tool(workspace)?
             .remove(&tool_id)
             .unwrap_or_else(|| serde_json::json!({}));
@@ -9808,7 +9804,7 @@ fn run_docker_build_all(workspace: &Workspace, args: &[String]) -> Result<Contai
 fn current_host_name(workspace: &Workspace) -> String {
     run_program_with_env(workspace, "hostname", &["-f".to_string()], &[])
         .ok()
-        .filter(|out| out.is_success())
+        .filter(super::super::model::container::ContainerCommandOutcome::is_success)
         .and_then(|out| {
             out.stdout
                 .lines()
@@ -9878,7 +9874,7 @@ fn write_frontend_sif_digests(sif_dir: &Path, out: &Path, host: &str) -> Result<
     let mut items = Vec::new();
     for entry in WalkDir::new(sif_dir)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("sif")
@@ -10666,7 +10662,7 @@ fn write_frontend_repro_summary(
         .map(|row| {
             row.get("checks")
                 .and_then(serde_json::Value::as_object)
-                .map(|checks| {
+                .map_or(0, |checks| {
                     ["same_cache_twice", "clean_cache_match", "purge_cache_match"]
                         .into_iter()
                         .filter(|key| {
@@ -10677,7 +10673,6 @@ fn write_frontend_repro_summary(
                         })
                         .count()
                 })
-                .unwrap_or(0)
         })
         .sum::<usize>();
     let confidence = if total_checks == 0 {
@@ -10779,7 +10774,7 @@ fn write_frontend_security_summary(
             .filter_map(|row| {
                 row.get("cve")
                     .and_then(toml::Value::as_str)
-                    .map(|cve| cve.to_ascii_uppercase())
+                    .map(str::to_ascii_uppercase)
             })
             .collect::<BTreeSet<_>>()
     } else {
@@ -10813,7 +10808,7 @@ fn write_frontend_security_summary(
     let manifests = WalkDir::new(out_dir)
         .max_depth(1)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("json"))
         .filter(|entry| {
@@ -11001,12 +10996,7 @@ fn write_frontend_security_summary(
             "unknown": counts.get("unknown").copied().unwrap_or(0),
         }));
         let license_file = workspace.path(&format!("containers/licenses/{tool}.license.toml"));
-        if !license_file.is_file() {
-            license_mismatches.push(format!(
-                "{tool}: missing {}",
-                workspace.rel(&license_file).display()
-            ));
-        } else {
+        if license_file.is_file() {
             let license = load_toml(&license_file)?;
             if license
                 .get("spdx")
@@ -11020,6 +11010,11 @@ fn write_frontend_security_summary(
                     workspace.rel(&license_file).display()
                 ));
             }
+        } else {
+            license_mismatches.push(format!(
+                "{tool}: missing {}",
+                workspace.rel(&license_file).display()
+            ));
         }
     }
 
@@ -11053,10 +11048,10 @@ fn write_frontend_security_summary(
         String::new(),
         format!("- host: `{}`", current_host_name(workspace)),
         format!("- scanner: `{}`", scanner.unwrap_or("none")),
-        format!("- sif_count: `{}`", summary_json.get("items").and_then(serde_json::Value::as_array).map(Vec::len).unwrap_or(0)),
+        format!("- sif_count: `{}`", summary_json.get("items").and_then(serde_json::Value::as_array).map_or(0, Vec::len)),
         format!("- critical_total: `{}`", critical_total),
-        format!("- critical_unallowlisted: `{}`", summary_json.get("critical_unallowlisted").and_then(serde_json::Value::as_array).map(Vec::len).unwrap_or(0)),
-        format!("- license_mismatches: `{}`", summary_json.get("license_mismatches").and_then(serde_json::Value::as_array).map(Vec::len).unwrap_or(0)),
+        format!("- critical_unallowlisted: `{}`", summary_json.get("critical_unallowlisted").and_then(serde_json::Value::as_array).map_or(0, Vec::len)),
+        format!("- license_mismatches: `{}`", summary_json.get("license_mismatches").and_then(serde_json::Value::as_array).map_or(0, Vec::len)),
         format!("- gate_status: `{}`", if ok { "PASS" } else { "FAIL" }),
         String::new(),
         "## SBOM Index".to_string(),
@@ -11265,7 +11260,7 @@ fn write_vuln_hook_report(
     let mut rows = Vec::new();
     for entry in WalkDir::new(sbom_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("txt")
@@ -11273,8 +11268,7 @@ fn write_vuln_hook_report(
                 .path()
                 .file_name()
                 .and_then(|value| value.to_str())
-                .map(|name| name.ends_with(".packages.txt"))
-                .unwrap_or(false)
+                .is_some_and(|name| name.ends_with(".packages.txt"))
         {
             continue;
         }
@@ -11317,15 +11311,15 @@ fn write_vuln_hook_report(
                     .output()
             }
             .with_context(|| format!("run {scanner} for {}", entry.path().display()))?;
-            let summary = if !output.stdout.is_empty() {
-                String::from_utf8_lossy(&output.stdout)
-                    .chars()
-                    .take(2000)
-                    .collect::<String>()
-            } else {
+            let summary = if output.stdout.is_empty() {
                 String::from_utf8_lossy(&output.stderr)
                     .chars()
                     .take(500)
+                    .collect::<String>()
+            } else {
+                String::from_utf8_lossy(&output.stdout)
+                    .chars()
+                    .take(2000)
                     .collect::<String>()
             };
             row["status"] = serde_json::Value::String(if output.status.success() {

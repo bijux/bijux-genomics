@@ -182,7 +182,7 @@ fn assets_refresh_golden(workspace: &Workspace, args: &[String]) -> Result<OpsCo
         }
         write_utf8(
             &bundle.join("GENERATE.md"),
-            r#"# GENERATE
+            r"# GENERATE
 
 ## Command(s)
 Generated via `cargo run -p bijux-dev-dna -- assets run refresh-golden`.
@@ -199,7 +199,7 @@ Generated via `cargo run -p bijux-dev-dna -- assets run refresh-golden`.
 - `artifact_checksums.json`
 - `report.html`
 - `CHECKSUMS.sha256`
-"#,
+",
         )?;
         write_checksum_manifest(
             &bundle.join("CHECKSUMS.sha256"),
@@ -278,7 +278,7 @@ fn assets_refresh_toy(workspace: &Workspace, args: &[String]) -> Result<OpsComma
 
     write_utf8(
         &stage_dir.join("GENERATE.md"),
-        r#"# GENERATE
+        r"# GENERATE
 
 ## Command(s)
 Generated via `cargo run -p bijux-dev-dna -- assets run refresh-toy`.
@@ -295,7 +295,7 @@ Generated via `cargo run -p bijux-dev-dna -- assets run refresh-toy`.
 - `bam/toy.sam`
 - `vcf/toy.vcf`
 - `CHECKSUMS.sha256`
-"#,
+",
     )?;
 
     write_refresh_report(
@@ -330,13 +330,13 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
 
     let mut yaml_files = WalkDir::new(&ref_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| entry.path().to_path_buf())
         .filter(|path| {
             matches!(
                 path.extension().and_then(|ext| ext.to_str()),
-                Some("yaml") | Some("yml")
+                Some("yaml" | "yml")
             )
         })
         .collect::<Vec<_>>();
@@ -380,7 +380,7 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
 
     let mut banks = fs::read_dir(&ref_root)
         .with_context(|| format!("read {}", ref_root.display()))?
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_dir())
         .collect::<Vec<_>>();
@@ -389,12 +389,12 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
     for bank_dir in banks {
         let mut bank_files = fs::read_dir(&bank_dir)
             .with_context(|| format!("read {}", bank_dir.display()))?
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
             .map(|entry| entry.path())
             .filter(|path| {
                 matches!(
                     path.extension().and_then(|ext| ext.to_str()),
-                    Some("yaml") | Some("yml")
+                    Some("yaml" | "yml")
                 ) && !path
                     .file_name()
                     .and_then(|name| name.to_str())
@@ -405,12 +405,12 @@ fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<O
         bank_files.sort();
         let mut preset_files = fs::read_dir(&bank_dir)
             .with_context(|| format!("read {}", bank_dir.display()))?
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
             .map(|entry| entry.path())
             .filter(|path| {
                 matches!(
                     path.extension().and_then(|ext| ext.to_str()),
-                    Some("yaml") | Some("yml")
+                    Some("yaml" | "yml")
                 ) && path
                     .file_name()
                     .and_then(|name| name.to_str())
@@ -986,19 +986,22 @@ fn tooling_ci_test(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     set_assets_readonly(workspace, true)?;
     let envs = ci_test_env(workspace, false)?;
     let expr = resolved_nextest_expression(false);
-    let mut argv = vec![
-        "nextest".to_string(),
-        "run".to_string(),
-        env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml"),
-        "--workspace".to_string(),
-        env_or_default("TEST_FEATURES", "--all-features"),
-        "--profile".to_string(),
-        resolved_nextest_profile(false)?,
-        "--test-threads".to_string(),
-        resolved_nextest_threads(false)?,
-        "--no-tests".to_string(),
-        env_or_default("NEXTEST_NO_TESTS", "pass"),
-    ];
+    let nextest_config =
+        env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
+    let test_features = env_or_default("TEST_FEATURES", "--all-features");
+    let no_tests = env_or_default("NEXTEST_NO_TESTS", "pass");
+    let mut argv = std::iter::once("nextest".to_string())
+        .chain(std::iter::once("run".to_string()))
+        .chain(nextest_config.split_whitespace().map(ToOwned::to_owned))
+        .chain(std::iter::once("--workspace".to_string()))
+        .chain(test_features.split_whitespace().map(ToOwned::to_owned))
+        .chain(std::iter::once("--profile".to_string()))
+        .chain(std::iter::once(resolved_nextest_profile(false)?))
+        .chain(std::iter::once("--test-threads".to_string()))
+        .chain(std::iter::once(resolved_nextest_threads(false)?))
+        .chain(std::iter::once("--no-tests".to_string()))
+        .chain(std::iter::once(no_tests))
+        .collect::<Vec<_>>();
     let run_ignored = resolved_run_ignored(false)?;
     if !run_ignored.is_empty() {
         argv.extend(run_ignored.split_whitespace().map(ToOwned::to_owned));
@@ -1021,19 +1024,26 @@ fn tooling_ci_test_slow(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     ensure_help_only("ci-test-slow", args)?;
     set_assets_readonly(workspace, true)?;
     let envs = ci_test_env(workspace, true)?;
-    let mut argv = vec![
-        "nextest".to_string(),
-        "run".to_string(),
-        env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml"),
-        "--workspace".to_string(),
-        env_or_default("TEST_FEATURES", "--all-features"),
-        "--profile".to_string(),
-        std::env::var("NEXTEST_PROFILE").unwrap_or_else(|_| "slow-integration".to_string()),
-        "--test-threads".to_string(),
-        std::env::var("NEXTEST_TEST_THREADS").unwrap_or_else(|_| "8".to_string()),
-        "--no-tests".to_string(),
-        env_or_default("NEXTEST_NO_TESTS", "pass"),
-    ];
+    let nextest_config =
+        env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
+    let test_features = env_or_default("TEST_FEATURES", "--all-features");
+    let no_tests = env_or_default("NEXTEST_NO_TESTS", "pass");
+    let mut argv = std::iter::once("nextest".to_string())
+        .chain(std::iter::once("run".to_string()))
+        .chain(nextest_config.split_whitespace().map(ToOwned::to_owned))
+        .chain(std::iter::once("--workspace".to_string()))
+        .chain(test_features.split_whitespace().map(ToOwned::to_owned))
+        .chain(std::iter::once("--profile".to_string()))
+        .chain(std::iter::once(
+            std::env::var("NEXTEST_PROFILE").unwrap_or_else(|_| "slow-integration".to_string()),
+        ))
+        .chain(std::iter::once("--test-threads".to_string()))
+        .chain(std::iter::once(
+            std::env::var("NEXTEST_TEST_THREADS").unwrap_or_else(|_| "8".to_string()),
+        ))
+        .chain(std::iter::once("--no-tests".to_string()))
+        .chain(std::iter::once(no_tests))
+        .collect::<Vec<_>>();
     argv.extend(
         std::env::var("RUN_IGNORED")
             .unwrap_or_else(|_| "--run-ignored all".to_string())
@@ -1416,17 +1426,17 @@ fn tooling_certify_domains_with_mode(
                 } else if manifest_path.exists() {
                     let manifest = read_json_value(&manifest_path)?;
                     let manifest_schema = value_string(manifest.get("schema_version"));
-                    if !manifest_schema.is_empty() {
+                    if manifest_schema.is_empty() {
+                        errors.push(format!(
+                            "{example_id}: neither report nor manifest declares schema_version"
+                        ));
+                    } else {
                         check_schema_doc(
                             manifest_schema,
                             &doc,
                             &mut seen_schema_versions,
                             &mut errors,
                         );
-                    } else {
-                        errors.push(format!(
-                            "{example_id}: neither report nor manifest declares schema_version"
-                        ));
                     }
                 } else {
                     errors.push(format!(
@@ -1844,7 +1854,7 @@ fn tooling_check_config_paths(workspace: &Workspace, args: &[String]) -> Result<
         }
         for entry in WalkDir::new(&root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             if !entry.file_type().is_file() {
                 continue;
@@ -2265,8 +2275,7 @@ fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsC
             "file_count": file_count,
         }));
     }
-    lock_rows
-        .sort_by(|left, right| value_string(left.get("id")).cmp(&value_string(right.get("id"))));
+    lock_rows.sort_by_key(|left| value_string(left.get("id")));
     let payload = json!({
         "schema_version": 2,
         "generated_at_utc": stable_now_utc_string(),
@@ -3095,13 +3104,12 @@ fn tooling_validate_frontend_mini_domain_stacks(
         ]
     {
         errors.push(format!(
-            "bam.authenticity compatible_tools mismatch: {:?}",
-            tools
+            "bam.authenticity compatible_tools mismatch: {tools:?}"
         ));
     }
     for entry in WalkDir::new(workspace.path("domain/bam/fixtures/bam.authenticity"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("txt")
@@ -3168,7 +3176,7 @@ fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<Op
     let out_md = workspace.path("artifacts/inventory/configs.md");
     let mut config_files = WalkDir::new(workspace.path("configs"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
         .collect::<Vec<_>>();
@@ -3182,7 +3190,7 @@ fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<Op
 
     let mut md_lines = vec![
         "# Config Inventory".to_string(),
-        "".to_string(),
+        String::new(),
         "| Path | Schema Version | Owner |".to_string(),
         "|---|---:|---|".to_string(),
     ];
@@ -3309,7 +3317,7 @@ fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<O
                 }
             }
         }
-        crate_dir.to_string()
+        crate_dir.clone()
     }
 
     fn load_coverage_report(path: &Path) -> Result<BTreeMap<String, CoverageEntry>> {
@@ -3920,22 +3928,22 @@ fn tooling_generate_panel_compatibility_matrix(
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-panel-compatibility-matrix -->".to_string(),
-        "".to_string(),
+        String::new(),
         "# PANEL_COMPATIBILITY_MATRIX".to_string(),
-        "".to_string(),
+        String::new(),
         "## Purpose".to_string(),
         "Defines generated compatibility coverage for species/build, panel/map pairs, and downstream tool backends.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Scope".to_string(),
         "Derived from panel and map catalogs to document declared tool-tag compatibility.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Non-goals".to_string(),
         "- Replacing stage-level validation or runtime compatibility checks.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Contracts".to_string(),
         "- Matrix rows are generated from catalog authority and must not be hand-edited.".to_string(),
         "- Missing species/build map entries must be represented explicitly as unsupported rows.".to_string(),
-        "".to_string(),
+        String::new(),
         "| Species | Build | Panel ID | Map ID | Tool Backend | Supported | Notes |".to_string(),
         "|---|---|---|---|---|---|---|".to_string(),
     ];
@@ -4024,13 +4032,13 @@ fn tooling_generate_policy_index(
     let out_file = workspace.path("artifacts/policies/index.md");
     let mut lines = vec![
         "# Policy Test Index".to_string(),
-        "".to_string(),
+        String::new(),
         "Generated from crates/bijux-dna-policies/tests.".to_string(),
-        "".to_string(),
+        String::new(),
     ];
     let mut files = WalkDir::new(workspace.path("crates/bijux-dna-policies/tests"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
         .map(|entry| entry.path().to_path_buf())
@@ -4088,7 +4096,7 @@ fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     let mut lines = vec!["docs_index_coverage".to_string()];
     let mut dirs = WalkDir::new(workspace.path("docs"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_dir())
         .map(|entry| entry.path().to_path_buf())
         .collect::<Vec<_>>();
@@ -4180,7 +4188,7 @@ fn tooling_make_help(workspace: &Workspace, args: &[String]) -> Result<OpsComman
 }
 
 fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
-    let mode = args.first().map(String::as_str).unwrap_or("--fast");
+    let mode = args.first().map_or("--fast", String::as_str);
     if matches!(mode, "--help" | "-h") {
         return success_line(
             "Usage: cargo run -p bijux-dev-dna -- tooling run repo-doctor -- [--fast|--full]",
@@ -4582,7 +4590,7 @@ fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&docs_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -4615,7 +4623,7 @@ fn docs_check_doc_depth(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     let mut violations = Vec::new();
     for entry in WalkDir::new(&docs_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -4668,7 +4676,7 @@ fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     let mut publication = Vec::new();
     for entry in WalkDir::new(&docs_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
@@ -4699,8 +4707,7 @@ fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCom
                 entry
                     .path()
                     .parent()
-                    .map(|parent| parent.join(target))
-                    .unwrap_or_else(|| workspace.root.join(target))
+                    .map_or_else(|| workspace.root.join(target), |parent| parent.join(target))
             };
             if !candidate.exists() {
                 missing.push(format!("{rel} -> {target}"));
@@ -4856,7 +4863,7 @@ fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
     for entry in WalkDir::new(&docs_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
@@ -4887,8 +4894,7 @@ fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCo
                 entry
                     .path()
                     .parent()
-                    .map(|parent| parent.join(target))
-                    .unwrap_or_else(|| workspace.root.join(target))
+                    .map_or_else(|| workspace.root.join(target), |parent| parent.join(target))
             };
             if !candidate.exists() {
                 errors.push(format!("{rel} -> {target}"));
@@ -4898,14 +4904,14 @@ fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     for dir in std::iter::once(docs_root.clone()).chain(
         WalkDir::new(&docs_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
             .filter(|entry| entry.file_type().is_dir())
             .map(|entry| entry.path().to_path_buf()),
     ) {
         let markdowns = fs::read_dir(&dir)
             .ok()
             .into_iter()
-            .flat_map(|entries| entries.filter_map(|entry| entry.ok()))
+            .flat_map(|entries| entries.filter_map(std::result::Result::ok))
             .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("md"))
             .count();
         if markdowns > 0 && !dir.join("index.md").exists() {
@@ -4917,7 +4923,7 @@ fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCo
     }
     let all_docs = WalkDir::new(&docs_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| {
             entry.file_type().is_file()
                 && entry.path().extension().and_then(|ext| ext.to_str()) == Some("md")
@@ -4952,7 +4958,7 @@ fn docs_check_domain_doc_references(
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-domain-doc-references", args)?;
     let stage_id_re = Regex::new(r#"^\s*id\s*=\s*"([^"]+)""#)?;
-    let domain_stage_re = Regex::new(r#"^\s*-\s*((?:fastq|bam|vcf)\.[a-z0-9_]+)"#)?;
+    let domain_stage_re = Regex::new(r"^\s*-\s*((?:fastq|bam|vcf)\.[a-z0-9_]+)")?;
     let tool_id_re = Regex::new(r#"^\s*(?:id|tool_id)\s*=\s*"([^"]+)""#)?;
     let docs_stage_re = Regex::new(r"`((?:fastq|bam)\.[a-z0-9_]+)`")?;
     let docs_tool_re = Regex::new(r"`tool:([a-z0-9][a-z0-9._-]*)`")?;
@@ -4995,7 +5001,7 @@ fn docs_check_domain_doc_references(
     let mut errors = Vec::new();
     for entry in WalkDir::new(workspace.path("docs"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
     {
         let raw = read_utf8(entry.path())?;
@@ -5040,15 +5046,14 @@ fn docs_check_generated_docs(workspace: &Workspace, args: &[String]) -> Result<O
     }
     for entry in WalkDir::new(workspace.path("docs"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
     {
         if entry
             .path()
             .file_name()
             .and_then(|value| value.to_str())
-            .map(|name| name.ends_with(".generated.md"))
-            .unwrap_or(false)
+            .is_some_and(|name| name.ends_with(".generated.md"))
         {
             ensure_generated_header_path(workspace, entry.path(), &mut errors)?;
         }
@@ -5146,7 +5151,7 @@ fn docs_check_no_placeholder_language(
     let mut violations = Vec::new();
     for entry in WalkDir::new(workspace.path("docs"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
     {
         let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
@@ -5559,9 +5564,7 @@ fn hpc_validate_frontend_constraints(
     let work_dir = std::env::var("WORK_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
-            std::env::var("ISO_ROOT")
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| workspace.path("artifacts"))
+            std::env::var("ISO_ROOT").map_or_else(|_| workspace.path("artifacts"), PathBuf::from)
         });
     let policy: TomlValue = toml::from_str(&read_utf8(&policy_path)?)?;
     let host = hostname(workspace)?;
@@ -6311,10 +6314,10 @@ fn test_triage(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutco
             "Usage: cargo run -p bijux-dev-dna -- test run test-triage -- [artifacts/test-logs/latest.log]",
         );
     }
-    let path = args
-        .first()
-        .map(|value| path_from_arg(workspace, value))
-        .unwrap_or_else(|| workspace.path("artifacts/test-logs/latest.log"));
+    let path = args.first().map_or_else(
+        || workspace.path("artifacts/test-logs/latest.log"),
+        |value| path_from_arg(workspace, value),
+    );
     if !path.is_file() {
         return success_line(format!(
             "missing log file: {}\nhint: run make test | tee artifacts/test-logs/<name>.log and copy to artifacts/test-logs/latest.log",
@@ -6445,10 +6448,10 @@ fn test_fastq_gold_repro(workspace: &Workspace, args: &[String]) -> Result<OpsCo
             "Usage: cargo run -p bijux-dev-dna -- test run fastq-gold-repro -- [out-dir]",
         );
     }
-    let out_base = args
-        .first()
-        .map(|value| path_from_arg(workspace, value))
-        .unwrap_or_else(|| workspace.path("artifacts/test/fastq-gold-repro"));
+    let out_base = args.first().map_or_else(
+        || workspace.path("artifacts/test/fastq-gold-repro"),
+        |value| path_from_arg(workspace, value),
+    );
     let run_a = out_base.join("run_a");
     let run_b = out_base.join("run_b");
     if run_a.exists() {
@@ -6684,7 +6687,7 @@ fn run_programs_with_env(
 fn walk_file_list(workspace: &Workspace, root: &str, extension: Option<&str>) -> Result<String> {
     let mut files = WalkDir::new(workspace.path(root))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| {
             extension.is_none()
@@ -6839,7 +6842,7 @@ fn collect_warning_strings_json(value: &Value, out: &mut Vec<String>) {
                                 Value::String(value) => Some(value.clone()),
                                 other if !other.is_null() => Some(other.to_string()),
                                 _ => None,
-                            }))
+                            }));
                         }
                         Value::String(item) => out.push(item.clone()),
                         other if !other.is_null() => out.push(other.to_string()),
@@ -6869,10 +6872,10 @@ fn sorted_unique(values: Vec<String>) -> Vec<String> {
 fn find_first_named_file(base: &Path, name: &str) -> Option<PathBuf> {
     let mut matches = WalkDir::new(base)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.file_name().to_string_lossy() == name)
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .collect::<Vec<_>>();
     matches.sort();
     matches.into_iter().next()
@@ -6978,12 +6981,14 @@ fn stable_now_utc_string() -> String {
         .ok()
         .and_then(|value| value.parse::<i64>().ok())
         .and_then(|epoch| chrono::DateTime::<Utc>::from_timestamp(epoch, 0))
-        .map(|value| value.to_rfc3339_opts(chrono::SecondsFormat::Secs, true))
-        .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string())
+        .map_or_else(
+            || "1970-01-01T00:00:00Z".to_string(),
+            |value| value.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        )
 }
 
 fn stable_now_utc_compact() -> String {
-    stable_now_utc_string().replace(':', "").replace('-', "")
+    stable_now_utc_string().replace([':', '-'], "")
 }
 
 fn materialize_controlled_file(
@@ -7286,7 +7291,7 @@ fn set_assets_readonly(workspace: &Workspace, readonly: bool) -> Result<()> {
 
         for entry in WalkDir::new(workspace.path("assets"))
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
         {
             let metadata = std::fs::metadata(entry.path())
                 .with_context(|| format!("read metadata {}", entry.path().display()))?;
@@ -7513,7 +7518,10 @@ fn build_combined_toy_report(run_root: &Path, selected: &[&str]) -> Result<PathB
 
 fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
     fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
-    for entry in WalkDir::new(src).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(src)
+        .into_iter()
+        .filter_map(std::result::Result::ok)
+    {
         let rel = match entry.path().strip_prefix(src) {
             Ok(rel) => rel,
             Err(_) => continue,
@@ -7721,28 +7729,28 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-tool-index -->".to_string(),
-        "".to_string(),
+        String::new(),
         "# TOOL_INDEX".to_string(),
-        "".to_string(),
+        String::new(),
         "## Purpose".to_string(),
         "Generated index of registry tools with stage bindings and container references/self-reports.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Scope".to_string(),
         "Source of truth = registry contracts + `artifacts/containers/summary.json` self-reports when available.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Non-goals".to_string(),
         "- Replacing full scientific method docs for each domain.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Contracts".to_string(),
         "- Manual edits are forbidden; regenerate via native control-plane.".to_string(),
         "- Source of truth is registry + containers; this file is a rendered view.".to_string(),
         "- Tool admission policy is documented in `docs/50-reference/TOOL_ADMISSION.md`.".to_string(),
-        "".to_string(),
+        String::new(),
         "See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)".to_string(),
         "See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)".to_string(),
-        "".to_string(),
+        String::new(),
         "## VCF Downstream / IBD Toolkit".to_string(),
-        "".to_string(),
+        String::new(),
     ];
     for (tool_id, info) in &vcf_downstream {
         let stages = info
@@ -7767,7 +7775,7 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
         ));
     }
     lines.extend([
-        "".to_string(),
+        String::new(),
         "| Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |"
             .to_string(),
         "|---|---|---|---|---|---|---|".to_string(),
@@ -7811,26 +7819,26 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-domain-coverage-doc -->".to_string(),
-        "".to_string(),
+        String::new(),
         "# DOMAIN_COVERAGE".to_string(),
-        "".to_string(),
+        String::new(),
         "## Purpose".to_string(),
         "Generated coverage table for domain stages/tools/fixtures.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Scope".to_string(),
         "Derived from `domain/*/{stages,tools,fixtures}`.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Non-goals".to_string(),
         "- Replacing per-domain scientific specifications.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Contracts".to_string(),
         "- Generated-only document; manual edits are forbidden.".to_string(),
         "- Counts must be deterministic for a fixed repository state.".to_string(),
-        "".to_string(),
+        String::new(),
         "| Domain | Stage Count | Tool Count | Fixture Count |".to_string(),
         "|---|---:|---:|---:|".to_string(),
     ];
-    for entry in fs::read_dir(&domain_root)?.filter_map(|entry| entry.ok()) {
+    for entry in fs::read_dir(&domain_root)?.filter_map(std::result::Result::ok) {
         let path = entry.path();
         if !path.is_dir() {
             continue;
@@ -7858,26 +7866,26 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-repo-root-map -->".to_string(),
-        "".to_string(),
+        String::new(),
         "# REPO_ROOT_MAP".to_string(),
-        "".to_string(),
+        String::new(),
         "## Purpose".to_string(),
         "Generated map of repository root entries with inferred ownership and intent.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Scope".to_string(),
         "Top-level workspace paths only.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Non-goals".to_string(),
         "- Replacing detailed per-subtree architecture docs.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Contracts".to_string(),
         "- Ownership for config paths is sourced from `configs/OWNERS.toml`.".to_string(),
         "- Script subtree intent is sourced from README `Purpose:` lines.".to_string(),
-        "".to_string(),
+        String::new(),
         "| Path | Kind | Owner | Purpose |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
-    for entry in fs::read_dir(&workspace.root)?.filter_map(|entry| entry.ok()) {
+    for entry in fs::read_dir(&workspace.root)?.filter_map(std::result::Result::ok) {
         let path = entry.path();
         let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
             continue;
@@ -7905,7 +7913,7 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
         lines.push(format!("| `{rel}` | `{kind}` | `{owner}` | {purpose} |"));
     }
     lines.extend([
-        "".to_string(),
+        String::new(),
         "## Automation Intent".to_string(),
         "| Control Plane Path | Purpose |".to_string(),
         "|---|---|".to_string(),
@@ -7941,24 +7949,24 @@ fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-compatibility-matrix -->".to_string(),
-        "".to_string(),
+        String::new(),
         "# COMPATIBILITY_MATRIX".to_string(),
-        "".to_string(),
+        String::new(),
         "## Purpose".to_string(),
         "Generated compatibility matrix derived from pipeline profile IDs and tool registry inventory.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Scope".to_string(),
         format!(
             "Profiles sourced from `crates/bijux-dna-core/src/id_catalog.rs`; registries include {tool_count} tool entries."
         ),
-        "".to_string(),
+        String::new(),
         "## Non-goals".to_string(),
         "- Replacing detailed per-domain migration guides.".to_string(),
-        "".to_string(),
+        String::new(),
         "## Contracts".to_string(),
         "- Matrix is generated-only and must not be manually edited.".to_string(),
         "- Breaking contract changes require version/schema updates and matrix regeneration.".to_string(),
-        "".to_string(),
+        String::new(),
         "| Pipeline Profile | Domain | Stability | Plan Contract | Report Contract | Compatibility Rule |".to_string(),
         "|---|---|---|---|---|---|".to_string(),
     ];
@@ -7993,13 +8001,13 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
         "# GENERATED FILE - DO NOT EDIT".to_string(),
         "# Regenerate with: cargo run -p bijux-dev-dna -- tooling run generate-docs-graph"
             .to_string(),
-        "".to_string(),
+        String::new(),
     ];
     let mut dirs = vec![docs_root.clone()];
     dirs.extend(
         WalkDir::new(&docs_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(std::result::Result::ok)
             .filter(|entry| entry.file_type().is_dir())
             .map(|entry| entry.path().to_path_buf()),
     );
@@ -8011,7 +8019,7 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
         }
         let from = workspace.rel(&index).display().to_string();
         let mut children = Vec::new();
-        for entry in fs::read_dir(&dir)?.filter_map(|entry| entry.ok()) {
+        for entry in fs::read_dir(&dir)?.filter_map(std::result::Result::ok) {
             let path = entry.path();
             if path.is_file()
                 && path.extension().and_then(|ext| ext.to_str()) == Some("md")
@@ -8031,7 +8039,7 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
             lines.push(format!("  \"{child}\","));
         }
         lines.push("]".to_string());
-        lines.push("".to_string());
+        lines.push(String::new());
     }
     write_utf8(out, &lines.join("\n"))
 }
@@ -8056,7 +8064,7 @@ fn write_refresh_report(
 ) -> Result<()> {
     let mut files = WalkDir::new(content_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| entry.path().to_path_buf())
         .collect::<Vec<_>>();
@@ -8128,7 +8136,10 @@ fn replace_dir(src: &Path, dst: &Path) -> Result<()> {
 
 fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
     fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
-    for entry in WalkDir::new(src).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(src)
+        .into_iter()
+        .filter_map(std::result::Result::ok)
+    {
         let path = entry.path();
         let rel = path.strip_prefix(src).context("strip copy source prefix")?;
         if rel.as_os_str().is_empty() {
@@ -8153,7 +8164,7 @@ fn config_tree_snapshot_text(workspace: &Workspace) -> Result<String> {
     let configs_root = workspace.path("configs");
     let mut files = WalkDir::new(&configs_root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
         .collect::<Vec<_>>();
@@ -8190,7 +8201,7 @@ fn config_snapshot_inputs_changed(workspace: &Workspace) -> Result<bool> {
         "--cached".to_string(),
         "--".to_string(),
     ];
-    staged_args.extend(watched.iter().map(|item| item.to_string()));
+    staged_args.extend(watched.iter().map(|item| (*item).to_string()));
     let staged = run_program(workspace, "git", &staged_args)?;
     if staged.is_success() && !staged.stdout.trim().is_empty() {
         return Ok(true);
@@ -8201,7 +8212,7 @@ fn config_snapshot_inputs_changed(workspace: &Workspace) -> Result<bool> {
         "--name-only".to_string(),
         "--".to_string(),
     ];
-    working_args.extend(watched.iter().map(|item| item.to_string()));
+    working_args.extend(watched.iter().map(|item| (*item).to_string()));
     let working = run_program(workspace, "git", &working_args)?;
     Ok(!working.is_success() || !working.stdout.trim().is_empty())
 }
@@ -8211,7 +8222,7 @@ fn count_schema_filtered(dir: PathBuf) -> Result<usize> {
         return Ok(0);
     }
     Ok(fs::read_dir(dir)?
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| {
             entry.path().extension().and_then(|ext| ext.to_str()) == Some("yaml")
                 && entry.file_name().to_string_lossy() != "_schema.yaml"
@@ -8226,15 +8237,14 @@ fn glob_count(dir: PathBuf, suffix: &str) -> Result<usize> {
     let wanted = suffix.trim_start_matches('*');
     Ok(WalkDir::new(dir)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| {
             entry
                 .path()
                 .file_name()
                 .and_then(|value| value.to_str())
-                .map(|name| name.ends_with(wanted))
-                .unwrap_or(false)
+                .is_some_and(|name| name.ends_with(wanted))
         })
         .count())
 }
