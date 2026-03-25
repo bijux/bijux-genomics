@@ -11,6 +11,7 @@ use bijux_dna_domain_fastq::FastqPipelineMode;
 use bijux_dna_domain_fastq::{STAGE_TRIM_READS, STAGE_VALIDATE_READS};
 use bijux_dna_stage_contract::StagePlanV1;
 
+#[allow(clippy::duplicate_mod)]
 #[path = "../../support/tool_registry.rs"]
 mod tool_registry_support;
 

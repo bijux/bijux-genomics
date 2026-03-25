@@ -3,6 +3,7 @@ use bijux_dna_planner_fastq::stage_api::args::{BenchFastqPreprocessArgs, FastqPl
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
+#[allow(clippy::duplicate_mod)]
 #[path = "../support/tool_registry.rs"]
 mod tool_registry_support;
 
