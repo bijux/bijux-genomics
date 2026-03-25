@@ -1489,6 +1489,7 @@ mod tests {
         VALIDATION_REPORT_SCHEMA_VERSION,
     };
     use anyhow::Result;
+    use bijux_dna_core::id_catalog;
 
     fn assert_f64_eq(left: f64, right: f64) {
         assert!((left - right).abs() < f64::EPSILON);
@@ -1578,7 +1579,7 @@ mod tests {
                 "schema_version": TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
                 "stage": "fastq.trim_terminal_damage",
                 "stage_id": "fastq.trim_terminal_damage",
-                "tool_id": "cutadapt",
+                "tool_id": id_catalog::TOOL_CUTADAPT,
                 "paired_mode": "paired_end",
                 "threads": 4,
                 "damage_mode": "ancient",
@@ -1639,7 +1640,7 @@ mod tests {
                 "schema_version": "bijux.fastq.trim_reads.report.v2",
                 "stage": "fastq.trim_reads",
                 "stage_id": "fastq.trim_reads",
-                "tool_id": "fastp",
+                "tool_id": id_catalog::TOOL_FASTP,
                 "paired_mode": "paired_end",
                 "threads": 4,
                 "input_r1": "reads_R1.fastq.gz",
@@ -1681,7 +1682,7 @@ mod tests {
             .to_string(),
         )?;
 
-        assert_eq!(parsed.tool_id, "fastp");
+        assert_eq!(parsed.tool_id, id_catalog::TOOL_FASTP);
         assert_eq!(parsed.threads, 4);
         assert_eq!(parsed.paired_mode, PairedMode::PairedEnd);
         assert_eq!(parsed.adapter_policy, "bank");
@@ -1706,10 +1707,10 @@ mod tests {
                 "schema_version": SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
                 "stage": "fastq.screen_taxonomy",
                 "stage_id": "fastq.screen_taxonomy",
-                "tool_id": "kraken2",
+                "tool_id": id_catalog::TOOL_KRAKEN2,
                 "paired_mode": "paired_end",
                 "threads": 8,
-                "classifier": "kraken2",
+                "classifier": id_catalog::TOOL_KRAKEN2,
                 "report_format": "kraken_report",
                 "assignment_format": "kraken_assignments",
                 "database_catalog_id": "taxonomy_reference",
@@ -1745,7 +1746,7 @@ mod tests {
             })
             .to_string(),
         )?;
-        assert_eq!(parsed.tool_id, "kraken2");
+        assert_eq!(parsed.tool_id, id_catalog::TOOL_KRAKEN2);
         assert_eq!(parsed.threads, 8);
         assert_eq!(parsed.top_taxa.len(), 1);
         assert_eq!(parsed.top_taxa[0].label, "bacteria");
@@ -2073,11 +2074,11 @@ mod tests {
                 "multiqc_data": "multiqc_data",
                 "governed_qc_input_count": 3,
                 "governed_qc_contributor_stage_ids": ["fastq.trim_reads"],
-                "governed_qc_contributor_tool_ids": ["fastp"],
+                "governed_qc_contributor_tool_ids": [id_catalog::TOOL_FASTP],
                 "governed_qc_contributors": [{
                     "contributor_id": "fastq.trim_reads.fastp",
                     "stage_id": "fastq.trim_reads",
-                    "tool_id": "fastp",
+                    "tool_id": id_catalog::TOOL_FASTP,
                     "artifact_id": "report_json",
                     "artifact_role": "report_json",
                     "path": "trim/report.json"
@@ -2803,7 +2804,7 @@ mod tests {
                 "schema_version": "bijux.fastq.filter_reads.report.v3",
                 "stage": "fastq.filter_reads",
                 "stage_id": "fastq.filter_reads",
-                "tool_id": "fastp",
+                "tool_id": id_catalog::TOOL_FASTP,
                 "paired_mode": "paired_end",
                 "threads": 4,
                 "input_r1": "reads_R1.fastq.gz",
@@ -2845,7 +2846,7 @@ mod tests {
                 }
             }"#,
         )?;
-        assert_eq!(parsed.tool_id, "fastp");
+        assert_eq!(parsed.tool_id, id_catalog::TOOL_FASTP);
         assert_eq!(parsed.reads_removed_by_n, 2);
         assert_eq!(parsed.reads_out, 95);
         Ok(())

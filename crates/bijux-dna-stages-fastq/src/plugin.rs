@@ -5,6 +5,7 @@ use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_dna_stage_contract::{
     StageEventHintV1, StageInvocationV1, StagePlugin, StagePluginOutputV1, StageReportPartV1,
 };
+use std::fs;
 
 use crate::metrics;
 use crate::observer::{
@@ -285,7 +286,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_merge_pairs_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -315,14 +316,14 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "multiqc_data")
             .map(|artifact| artifact.path.join("multiqc_general_stats.json"))
             .filter(|path| path.exists())
-            .and_then(|path| std::fs::read_to_string(path).ok())
+            .and_then(|path| fs::read_to_string(path).ok())
             .and_then(|raw| parse_multiqc_general_stats_metrics(&raw).ok());
         if let Some(report_path) = artifacts
             .iter()
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_report_qc_report(&raw_report) {
                     return serde_json::json!({
                         "aggregation_engine": report.aggregation_engine,
@@ -347,7 +348,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "governed_qc_inputs_manifest")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_manifest) = std::fs::read_to_string(manifest_path) {
+            if let Ok(raw_manifest) = fs::read_to_string(manifest_path) {
                 if let Ok(manifest) = serde_json::from_str::<serde_json::Value>(&raw_manifest) {
                     let contributor_entries = manifest
                         .get("contributors")
@@ -440,7 +441,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_normalize_primers_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -469,7 +470,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_index_reference_report(&raw_report) {
                     return serde_json::json!({
                         "threads": report.threads,
@@ -491,7 +492,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_normalize_abundance_report(&raw_report) {
                     return serde_json::json!({
                         "method": report.method,
@@ -518,7 +519,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_infer_asvs_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -548,7 +549,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_cluster_otus_report(&raw_report) {
                     return serde_json::json!({
                         "otu_identity": report.otu_identity,
@@ -575,7 +576,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "qc_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_profile_reads_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -603,7 +604,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_profile_read_lengths_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -629,7 +630,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_profile_overrepresented_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -654,12 +655,12 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_remove_duplicates_report(&raw_report) {
                     let provenance = artifacts
                         .iter()
                         .find(|artifact| artifact.name.as_str() == "duplicate_provenance_json")
-                        .and_then(|artifact| std::fs::read_to_string(&artifact.path).ok())
+                        .and_then(|artifact| fs::read_to_string(&artifact.path).ok())
                         .and_then(|raw| parse_remove_duplicates_provenance(&raw).ok());
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -685,7 +686,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_remove_chimeras_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -713,7 +714,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_detect_adapters_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -743,7 +744,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_trim_reads_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
                         (
@@ -811,8 +812,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         report.raw_backend_report.as_deref(),
                         report.raw_backend_report_format.as_deref(),
                     ) {
-                        if let Ok(raw_backend_payload) = std::fs::read_to_string(raw_backend_report)
-                        {
+                        if let Ok(raw_backend_payload) = fs::read_to_string(raw_backend_report) {
                             match raw_backend_report_format {
                                 "fastp_json" => {
                                     if let Ok(metrics) = parse_fastp_metrics(&raw_backend_payload) {
@@ -859,7 +859,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "filter_report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_filter_low_complexity_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
                         (
@@ -916,7 +916,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_extract_umis_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
                         (
@@ -971,7 +971,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_filter_reads_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
                         (
@@ -1069,8 +1069,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         report.raw_backend_report.as_deref(),
                         report.raw_backend_report_format.as_deref(),
                     ) {
-                        if let Ok(raw_backend_payload) = std::fs::read_to_string(raw_backend_report)
-                        {
+                        if let Ok(raw_backend_payload) = fs::read_to_string(raw_backend_report) {
                             match raw_backend_report_format {
                                 "fastp_json" => {
                                     if let Ok(metrics) = parse_fastp_metrics(&raw_backend_payload) {
@@ -1117,7 +1116,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 let parsed: Result<(u64, u64), _> = parse_deduplicate_report(&raw_report);
                 if let Ok((reads_in, reads_out)) = parsed {
                     let duplicates_removed = reads_in.saturating_sub(reads_out);
@@ -1142,7 +1141,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_terminal_damage_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -1170,7 +1169,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_trim_polyg_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
                         (
@@ -1228,8 +1227,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
                         report.raw_backend_report.as_deref(),
                         report.raw_backend_report_format.as_deref(),
                     ) {
-                        if let Ok(raw_backend_report) = std::fs::read_to_string(raw_backend_report)
-                        {
+                        if let Ok(raw_backend_report) = fs::read_to_string(raw_backend_report) {
                             match raw_backend_report_format {
                                 "fastp_json" => {
                                     if let Ok(metrics) = parse_fastp_metrics(&raw_backend_report) {
@@ -1276,7 +1274,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_correct_errors_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -1308,7 +1306,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "classification_report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_screen_taxonomy_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -1336,7 +1334,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "rrna_report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_deplete_rrna_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -1364,7 +1362,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "contaminant_screen_report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_deplete_reference_contaminants_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -1392,7 +1390,7 @@ fn observed_semantic_metrics(plan: &StagePlanV1, artifacts: &[ArtifactRef]) -> s
             .find(|artifact| artifact.name.as_str() == "host_depletion_report_json")
             .map(|artifact| artifact.path.as_path())
         {
-            if let Ok(raw_report) = std::fs::read_to_string(report_path) {
+            if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_deplete_host_report(&raw_report) {
                     return serde_json::json!({
                         "paired_mode": report.paired_mode,
@@ -1428,7 +1426,7 @@ fn validate_semantic_metrics(artifacts: &[ArtifactRef]) -> Option<serde_json::Va
         .find(|artifact| artifact.name.as_str() == "validation_report")
         .map(|artifact| artifact.path.as_path())
         .and_then(|report_path| {
-            std::fs::read_to_string(report_path)
+            fs::read_to_string(report_path)
                 .ok()
                 .and_then(|raw_report| parse_validation_report(&raw_report).ok())
         });
@@ -1437,7 +1435,7 @@ fn validate_semantic_metrics(artifacts: &[ArtifactRef]) -> Option<serde_json::Va
         .find(|artifact| artifact.name.as_str() == "validated_reads_manifest")
         .map(|artifact| artifact.path.as_path())
         .and_then(|manifest_path| {
-            std::fs::read_to_string(manifest_path)
+            fs::read_to_string(manifest_path)
                 .ok()
                 .and_then(|raw_manifest| parse_validated_reads_manifest(&raw_manifest).ok())
         });
@@ -1494,8 +1492,7 @@ mod tests {
 
     fn write_fastq(path: &std::path::Path, read_id: &str, sequence: &str) {
         let quality = "#".repeat(sequence.len());
-        std::fs::write(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n"))
-            .expect("write fastq");
+        fs::write(path, format!("@{read_id}\n{sequence}\n+\n{quality}\n")).expect("write fastq");
     }
 
     fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
@@ -1612,8 +1609,8 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("adapter_report.json");
         let evidence_dir = temp.path().join("fastqc");
-        std::fs::create_dir_all(&evidence_dir).expect("create evidence dir");
-        std::fs::write(
+        fs::create_dir_all(&evidence_dir).expect("create evidence dir");
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.detect_adapters.report.v2",
@@ -1690,10 +1687,10 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let reads_path = temp.path().join("reads.fastq");
         let dedup_reads_path = temp.path().join("dedup.fastq");
-        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        std::fs::write(&dedup_reads_path, b"@r1\nACGT\n+\n####\n").expect("write dedup reads");
+        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        fs::write(&dedup_reads_path, b"@r1\nACGT\n+\n####\n").expect("write dedup reads");
         let report_path = temp.path().join("deduplicate_report.json");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "reads_in": 12_u64,
@@ -1761,9 +1758,9 @@ mod tests {
         write_fastq(&reads_r1_path, "r1", "ACGT");
         write_fastq(&reads_r2_path, "r1", "TGCA");
         write_fastq(&merged_reads_path, "merged", "ACGTTGCA");
-        std::fs::write(&unmerged_r1_path, b"").expect("write empty unmerged r1");
-        std::fs::write(&unmerged_r2_path, b"").expect("write empty unmerged r2");
-        std::fs::write(
+        fs::write(&unmerged_r1_path, b"").expect("write empty unmerged r1");
+        fs::write(&unmerged_r2_path, b"").expect("write empty unmerged r2");
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.merge_pairs.report.v2",
@@ -1859,7 +1856,7 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("validation_report.json");
         let manifest_path = temp.path().join("validated_reads_manifest.json");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::to_string(&ValidationReportV1 {
                 schema_version: VALIDATION_REPORT_SCHEMA_VERSION.to_string(),
@@ -1888,7 +1885,7 @@ mod tests {
             .expect("serialize report"),
         )
         .expect("write report");
-        std::fs::write(
+        fs::write(
             &manifest_path,
             serde_json::to_string(&ValidatedReadsManifestV1 {
                 schema_version: VALIDATED_READS_MANIFEST_SCHEMA_VERSION.to_string(),
@@ -1948,15 +1945,15 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_terminal_damage_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        std::fs::write(&trimmed_reads_path, b"@r1\nCG\n+\n##\n").expect("write trimmed reads");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        fs::write(&trimmed_reads_path, b"@r1\nCG\n+\n##\n").expect("write trimmed reads");
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_terminal_damage.report.v2",
                 "stage": "fastq.trim_terminal_damage",
                 "stage_id": "fastq.trim_terminal_damage",
-                "tool_id": "cutadapt",
+                "tool_id": id_catalog::TOOL_CUTADAPT,
                 "paired_mode": "single_end",
                 "threads": 4,
                 "damage_mode": "ancient",
@@ -1998,7 +1995,7 @@ mod tests {
         .expect("write report");
         let plan = bijux_dna_stage_contract::StagePlanV1 {
             stage_id: StageId::from_static("fastq.trim_terminal_damage"),
-            tool_id: ToolId::from_static("cutadapt"),
+            tool_id: ToolId::from_static(id_catalog::TOOL_CUTADAPT),
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
@@ -2072,9 +2069,9 @@ mod tests {
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_report.json");
         let raw_backend_report_path = temp.path().join("trim_report.fastp.json");
-        std::fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        std::fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
+        fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        fs::write(
             &raw_backend_report_path,
             serde_json::json!({
                 "filtering_result": {
@@ -2087,13 +2084,13 @@ mod tests {
             .to_string(),
         )
         .expect("write raw backend report");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_reads.report.v2",
                 "stage": "fastq.trim_reads",
                 "stage_id": "fastq.trim_reads",
-                "tool_id": "fastp",
+                "tool_id": id_catalog::TOOL_FASTP,
                 "paired_mode": "single_end",
                 "threads": 4,
                 "input_r1": "reads.fastq",
@@ -2137,7 +2134,7 @@ mod tests {
         .expect("write report");
         let plan = bijux_dna_stage_contract::StagePlanV1 {
             stage_id: StageId::from_static("fastq.trim_reads"),
-            tool_id: ToolId::from_static("fastp"),
+            tool_id: ToolId::from_static(id_catalog::TOOL_FASTP),
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
@@ -2212,15 +2209,15 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let filtered_reads_path = temp.path().join("filtered.fastq");
         let report_path = temp.path().join("filter_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
-        std::fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
+        fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
+        fs::write(
             &report_path,
             r#"{
                 "schema_version": "bijux.fastq.filter_reads.report.v3",
                 "stage": "fastq.filter_reads",
                 "stage_id": "fastq.filter_reads",
-                "tool_id": "fastp",
+                "tool_id": id_catalog::TOOL_FASTP,
                 "paired_mode": "single_end",
                 "threads": 8,
                 "input_r1": "reads.fastq.gz",
@@ -2267,7 +2264,7 @@ mod tests {
         .expect("write report");
         let plan = bijux_dna_stage_contract::StagePlanV1 {
             stage_id: StageId::from_static("fastq.filter_reads"),
-            tool_id: ToolId::from_static("fastp"),
+            tool_id: ToolId::from_static(id_catalog::TOOL_FASTP),
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
@@ -2330,9 +2327,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let filtered_reads_path = temp.path().join("filtered.fastq");
         let report_path = temp.path().join("low_complexity_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
-        std::fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGTNNNN\n+\n########\n").expect("write reads");
+        fs::write(&filtered_reads_path, b"@r1\nACGT\n+\n####\n").expect("write filtered");
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.filter_low_complexity.report.v2",
@@ -2441,11 +2438,11 @@ mod tests {
         let umi_r1 = temp.path().join("umi_reads_R1.fastq");
         let umi_r2 = temp.path().join("umi_reads_R2.fastq");
         let report_path = temp.path().join("umi_report.json");
-        std::fs::write(&reads_r1, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        std::fs::write(&reads_r2, b"@r1\nTGCA\n+\n####\n").expect("write reads");
-        std::fs::write(&umi_r1, b"@r1_UMI:AAAA\nACGT\n+\n####\n").expect("write umi reads");
-        std::fs::write(&umi_r2, b"@r1_UMI:AAAA\nTGCA\n+\n####\n").expect("write umi reads");
-        std::fs::write(
+        fs::write(&reads_r1, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        fs::write(&reads_r2, b"@r1\nTGCA\n+\n####\n").expect("write reads");
+        fs::write(&umi_r1, b"@r1_UMI:AAAA\nACGT\n+\n####\n").expect("write umi reads");
+        fs::write(&umi_r2, b"@r1_UMI:AAAA\nTGCA\n+\n####\n").expect("write umi reads");
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.extract_umis.report.v2",
@@ -2563,15 +2560,15 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        std::fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
+        fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
                 "stage": "fastq.trim_polyg_tails",
                 "stage_id": "fastq.trim_polyg_tails",
-                "tool_id": "fastp",
+                "tool_id": id_catalog::TOOL_FASTP,
                 "paired_mode": "single_end",
                 "threads": 4_u64,
                 "trim_polyg": true,
@@ -2609,7 +2606,7 @@ mod tests {
         .expect("write report");
         let plan = bijux_dna_stage_contract::StagePlanV1 {
             stage_id: StageId::from_static("fastq.trim_polyg_tails"),
-            tool_id: ToolId::from_static("fastp"),
+            tool_id: ToolId::from_static(id_catalog::TOOL_FASTP),
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
@@ -2682,9 +2679,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let trimmed_reads_path = temp.path().join("trimmed.fastq");
         let report_path = temp.path().join("trim_polyg_tails_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
-        std::fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGTGGGG\n+\n########\n").expect("write reads");
+        fs::write(&trimmed_reads_path, b"@r1\nACGT\n+\n####\n").expect("write trimmed reads");
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.trim_polyg_tails.report.v2",
@@ -2779,22 +2776,22 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let summary_path = temp.path().join("kraken2.report.tsv");
         let report_path = temp.path().join("kraken2.classifications.json");
-        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        fs::write(
             &summary_path,
             b"unclassified\t23\t23.0%\nbacteria\t77\t77.0%\n",
         )
         .expect("write summary");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.screen_taxonomy.report.v2",
                 "stage": "fastq.screen_taxonomy",
                 "stage_id": "fastq.screen_taxonomy",
-                "tool_id": "kraken2",
+                "tool_id": id_catalog::TOOL_KRAKEN2,
                 "paired_mode": "single_end",
                 "threads": 8,
-                "classifier": "kraken2",
+                "classifier": id_catalog::TOOL_KRAKEN2,
                 "report_format": "kraken_report",
                 "assignment_format": "kraken_assignments",
                 "database_catalog_id": "taxonomy_reference",
@@ -2833,7 +2830,7 @@ mod tests {
         .expect("write report");
         let plan = bijux_dna_stage_contract::StagePlanV1 {
             stage_id: StageId::from_static("fastq.screen_taxonomy"),
-            tool_id: ToolId::from_static("kraken2"),
+            tool_id: ToolId::from_static(id_catalog::TOOL_KRAKEN2),
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
@@ -2867,7 +2864,7 @@ mod tests {
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["classifier"],
-            serde_json::json!("kraken2")
+            serde_json::json!(id_catalog::TOOL_KRAKEN2)
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
@@ -2888,10 +2885,10 @@ mod tests {
         let output_path = temp.path().join("rrna_filtered.fastq.gz");
         let report_tsv = temp.path().join("rrna_report.tsv");
         let report_json = temp.path().join("rrna_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        std::fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
-        std::fs::write(&report_tsv, b"sample\treads_removed\tfraction\n").expect("write tsv");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        fs::write(&report_tsv, b"sample\treads_removed\tfraction\n").expect("write tsv");
+        fs::write(
             &report_json,
             serde_json::json!({
                 "schema_version": "bijux.fastq.deplete_rrna.report.v2",
@@ -2990,9 +2987,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let output_path = temp.path().join("contaminant_screened.fastq.gz");
         let report_json = temp.path().join("contaminant_screen_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        std::fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        fs::write(
             &report_json,
             serde_json::json!({
                 "schema_version": "bijux.fastq.deplete_reference_contaminants.report.v2",
@@ -3085,9 +3082,9 @@ mod tests {
         let reads_path = temp.path().join("reads.fastq");
         let output_path = temp.path().join("host_depleted.fastq.gz");
         let report_json = temp.path().join("host_depletion_report.json");
-        std::fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-        std::fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
-        std::fs::write(
+        fs::write(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
+        fs::write(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
+        fs::write(
             &report_json,
             r#"{
                 "schema_version": "bijux.fastq.deplete_host.report.v2",
@@ -3190,11 +3187,11 @@ mod tests {
         let corrected_r1_path = temp.path().join("corrected_R1.fastq");
         let corrected_r2_path = temp.path().join("corrected_R2.fastq");
         let report_path = temp.path().join("correct_report.json");
-        std::fs::write(&reads_r1_path, b"@r1\nACGT\n+\n####\n").expect("write reads r1");
-        std::fs::write(&reads_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write reads r2");
-        std::fs::write(&corrected_r1_path, b"@r1\nACGT\n+\n####\n").expect("write corrected r1");
-        std::fs::write(&corrected_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write corrected r2");
-        std::fs::write(
+        fs::write(&reads_r1_path, b"@r1\nACGT\n+\n####\n").expect("write reads r1");
+        fs::write(&reads_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write reads r2");
+        fs::write(&corrected_r1_path, b"@r1\nACGT\n+\n####\n").expect("write corrected r1");
+        fs::write(&corrected_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write corrected r2");
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.correct_errors.report.v2",
@@ -3331,14 +3328,14 @@ mod tests {
         let report_path = temp.path().join("multiqc_report.html");
         let data_dir = temp.path().join("multiqc_data");
         let manifest_path = temp.path().join("governed_qc_inputs_manifest.json");
-        std::fs::write(&qc_input_path, b"@r1\nACGT\n+\n####\n").expect("write qc input");
-        std::fs::create_dir_all(&data_dir).expect("multiqc data dir");
-        std::fs::write(
+        fs::write(&qc_input_path, b"@r1\nACGT\n+\n####\n").expect("write qc input");
+        fs::create_dir_all(&data_dir).expect("multiqc data dir");
+        fs::write(
             data_dir.join("multiqc_general_stats.json"),
             include_str!("../tests/fixtures/tool_metrics/default/multiqc_general_stats.json"),
         )
         .expect("write multiqc general stats");
-        std::fs::write(
+        fs::write(
             &report_json_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.report_qc.report.v2",
@@ -3364,7 +3361,10 @@ mod tests {
                 "multiqc_data": data_dir,
                 "governed_qc_input_count": 2,
                 "governed_qc_contributor_stage_ids": ["fastq.trim_reads", "fastq.validate_reads"],
-                "governed_qc_contributor_tool_ids": ["fastp", "fastqvalidator"],
+                "governed_qc_contributor_tool_ids": [
+                    id_catalog::TOOL_FASTP,
+                    "fastqvalidator"
+                ],
                 "governed_qc_contributors": [],
                 "governed_qc_lineage_hash": "fastq.trim_reads.fastp=report_json",
                 "governed_qc_inputs_manifest": manifest_path,
@@ -3375,7 +3375,7 @@ mod tests {
             .to_string(),
         )
         .expect("write governed report");
-        std::fs::write(
+        fs::write(
             &manifest_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.report_qc.inputs.v1",
@@ -3467,7 +3467,7 @@ mod tests {
         );
         assert_eq!(
             output.report_parts[0].payload["semantic_metrics"]["contributor_tool_ids"],
-            serde_json::json!(["fastp", "fastqvalidator"])
+            serde_json::json!([id_catalog::TOOL_FASTP, "fastqvalidator"])
         );
         assert_eq!(
             output.report_parts[0].payload["semantic_metrics"]["multiqc_sample_count"],
@@ -3499,7 +3499,7 @@ mod tests {
         let provenance_path = temp.path().join("duplicate_provenance.json");
         write_fastq(&reads_path, "r1", "ACGT");
         write_fastq(&dedup_reads_path, "r1", "ACGT");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.report.v2",
@@ -3537,7 +3537,7 @@ mod tests {
             .to_string(),
         )
         .expect("write dedup report");
-        std::fs::write(
+        fs::write(
             &provenance_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_duplicates.provenance.v2",
@@ -3618,7 +3618,7 @@ mod tests {
         let reads_r1_path = temp.path().join("reads_R1.fastq");
         let report_path = temp.path().join("qc.json");
         write_fastq(&reads_r1_path, "r1", "ACGT");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.profile_reads.report.v2",
@@ -3712,13 +3712,13 @@ mod tests {
         let report_path = temp.path().join("normalize_primers_report.json");
         write_fastq(&reads_path, "r1", "ACGT");
         write_fastq(&normalized_reads_path, "r1", "ACGT");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.normalize_primers.report.v2",
                 "stage": "fastq.normalize_primers",
                 "stage_id": "fastq.normalize_primers",
-                "tool_id": "cutadapt",
+                "tool_id": id_catalog::TOOL_CUTADAPT,
                 "paired_mode": "single_end",
                 "primer_set_id": "16S_universal_v1",
                 "marker_id": "16S",
@@ -3754,7 +3754,7 @@ mod tests {
 
         let plan = bijux_dna_stage_contract::StagePlanV1 {
             stage_id: StageId::from_static("fastq.normalize_primers"),
-            tool_id: ToolId::from_static("cutadapt"),
+            tool_id: ToolId::from_static(id_catalog::TOOL_CUTADAPT),
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
@@ -3798,7 +3798,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("normalize_abundance_report.json");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.normalize_abundance.report.v2",
@@ -3872,7 +3872,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("infer_asvs_report.json");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.infer_asvs.report.v2",
@@ -3945,7 +3945,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("cluster_otus_report.json");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.cluster_otus.report.v2",
@@ -4014,7 +4014,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("index_reference_report.json");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.index_reference.report.v2",
@@ -4084,7 +4084,7 @@ mod tests {
         let reads_r1_path = temp.path().join("reads_R1.fastq");
         let report_path = temp.path().join("profile_read_lengths_report.json");
         write_fastq(&reads_r1_path, "r1", "ACGT");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.profile_read_lengths.report.v2",
@@ -4165,7 +4165,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("overrepresented_report.json");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.profile_overrepresented.report.v2",
@@ -4239,7 +4239,7 @@ mod tests {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
         let report_path = temp.path().join("remove_chimeras_report.json");
-        std::fs::write(
+        fs::write(
             &report_path,
             serde_json::json!({
                 "schema_version": "bijux.fastq.remove_chimeras.report.v2",

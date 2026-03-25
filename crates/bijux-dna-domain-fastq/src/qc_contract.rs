@@ -96,7 +96,7 @@ mod tests {
     use bijux_dna_core::ids::StageId;
 
     #[test]
-    fn governed_qc_registry_includes_all_governed_qc_stage_families() {
+    fn governed_qc_producers_include_all_governed_qc_stage_families() {
         let producers = governed_qc_producer_stage_ids();
         assert!(producers.contains(&StageId::from_static("fastq.validate_reads")));
         assert!(producers.contains(&StageId::from_static("fastq.detect_adapters")));

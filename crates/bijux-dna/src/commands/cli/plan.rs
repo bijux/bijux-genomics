@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::bench::fastq_args as engine_args;
 use bijux_dna_api::v1::api::run::{StageId, ToolId};
+use bijux_dna_core::id_catalog;
 use std::path::{Path, PathBuf};
 
 use crate::commands::cli::env::registry_tools_for_stage;
@@ -29,12 +30,12 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             | FastqCommand::Compare(_)
             | FastqCommand::Run(_) => (
                 StageId::from_static("fastq.trim_reads"),
-                ToolId::from_static("fastp"),
+                ToolId::from_static(id_catalog::TOOL_FASTP),
                 CommonArgs::default(),
             ),
             FastqCommand::Trim(args) => (
                 StageId::from_static("fastq.trim_reads"),
-                ToolId::from_static("fastp"),
+                ToolId::from_static(id_catalog::TOOL_FASTP),
                 args.common.clone(),
             ),
             FastqCommand::ValidateReads(args) => (
@@ -44,12 +45,12 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             ),
             FastqCommand::ProfileReads(common) => (
                 StageId::from_static("fastq.profile_reads"),
-                ToolId::from_static("seqkit_stats"),
+                ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
                 common.clone(),
             ),
             FastqCommand::Filter(args) => (
                 StageId::from_static("fastq.filter_reads"),
-                ToolId::from_static("fastp"),
+                ToolId::from_static(id_catalog::TOOL_FASTP),
                 args.common.clone(),
             ),
             FastqCommand::Merge(common) => (
@@ -74,7 +75,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             ),
             FastqCommand::Qc(common) => (
                 StageId::from_static("fastq.report_qc"),
-                ToolId::from_static("multiqc"),
+                ToolId::from_static(id_catalog::TOOL_MULTIQC),
                 common.clone(),
             ),
             FastqCommand::Align(common) => (
@@ -91,12 +92,16 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
         DnaCommand::Bam { command } => match command {
             BamCommand::ListStages | BamCommand::Explain { .. } => (
                 StageId::from_static("bam.validate"),
-                ToolId::from_static("samtools"),
+                ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
                 CommonArgs::default(),
             ),
             BamCommand::Run(args) => (
                 StageId::new(args.stage.stage().as_str()),
-                ToolId::new(args.tool.clone().unwrap_or_else(|| "samtools".to_string())),
+                ToolId::new(
+                    args.tool
+                        .clone()
+                        .unwrap_or_else(|| id_catalog::TOOL_SAMTOOLS.to_string()),
+                ),
                 CommonArgs::default(),
             ),
         },
@@ -114,7 +119,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
         },
         _ => (
             StageId::from_static("fastq.trim_reads"),
-            ToolId::from_static("fastp"),
+            ToolId::from_static(id_catalog::TOOL_FASTP),
             CommonArgs::default(),
         ),
     }
@@ -912,7 +917,7 @@ mod tests {
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec!["fastp".to_string()],
+            tools: vec![id_catalog::TOOL_FASTP.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -941,7 +946,7 @@ mod tests {
     }
 
     #[test]
-    fn remove_chimeras_bench_args_preserve_thread_override() {
+    fn remove_chimeras_bench_args_preserve_thread_setting() {
         let args = BenchFastqRemoveChimerasArgs {
             sample_id: "sample".to_string(),
             r1: PathBuf::from("reads.fastq.gz"),
@@ -961,7 +966,7 @@ mod tests {
     }
 
     #[test]
-    fn profile_overrepresented_bench_args_preserve_thread_override() {
+    fn profile_overrepresented_bench_args_preserve_thread_setting() {
         let args = BenchFastqProfileOverrepresentedArgs {
             sample_id: "sample".to_string(),
             r1: PathBuf::from("reads_R1.fastq.gz"),
@@ -983,13 +988,13 @@ mod tests {
     }
 
     #[test]
-    fn trim_polyg_bench_args_preserve_thread_override() {
+    fn trim_polyg_bench_args_preserve_thread_setting() {
         let args = BenchFastqTrimPolygArgs {
             sample_id: "sample".to_string(),
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec!["fastp".to_string()],
+            tools: vec![id_catalog::TOOL_FASTP.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -1007,13 +1012,13 @@ mod tests {
     }
 
     #[test]
-    fn trim_terminal_damage_bench_args_preserve_thread_override() {
+    fn trim_terminal_damage_bench_args_preserve_thread_setting() {
         let args = BenchFastqTrimTerminalDamageArgs {
             sample_id: "sample".to_string(),
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec!["cutadapt".to_string()],
+            tools: vec![id_catalog::TOOL_CUTADAPT.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -1035,13 +1040,13 @@ mod tests {
     }
 
     #[test]
-    fn normalize_primers_bench_args_preserve_governed_overrides() {
+    fn normalize_primers_bench_args_preserve_governed_settings() {
         let args = BenchFastqNormalizePrimersArgs {
             sample_id: "sample".to_string(),
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: None,
             out: PathBuf::from("out"),
-            tools: vec!["cutadapt".to_string()],
+            tools: vec![id_catalog::TOOL_CUTADAPT.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -1068,13 +1073,13 @@ mod tests {
     }
 
     #[test]
-    fn trim_reads_bench_args_preserve_thread_override() {
+    fn trim_reads_bench_args_preserve_thread_setting() {
         let args = BenchFastqTrimArgs {
             sample_id: "sample".to_string(),
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec!["fastp".to_string()],
+            tools: vec![id_catalog::TOOL_FASTP.to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
@@ -1102,7 +1107,7 @@ mod tests {
     }
 
     #[test]
-    fn profile_read_lengths_bench_args_preserve_thread_override() {
+    fn profile_read_lengths_bench_args_preserve_thread_setting() {
         let args = BenchFastqProfileReadLengthsArgs {
             sample_id: "sample".to_string(),
             r1: PathBuf::from("reads_R1.fastq.gz"),
@@ -1124,7 +1129,7 @@ mod tests {
     }
 
     #[test]
-    fn remove_duplicates_bench_args_preserve_thread_override() {
+    fn remove_duplicates_bench_args_preserve_thread_setting() {
         let args = BenchFastqRemoveDuplicatesArgs {
             sample_id: "sample".to_string(),
             r1: PathBuf::from("reads_R1.fastq.gz"),

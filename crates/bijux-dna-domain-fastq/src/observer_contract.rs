@@ -1,4 +1,7 @@
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::{
+    id_catalog,
+    ids::{StageId, ToolId},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ObserverSpecializationContract {
@@ -20,7 +23,7 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.filter_reads",
-        tool_id: "fastp",
+        tool_id: id_catalog::TOOL_FASTP,
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
@@ -125,7 +128,7 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.normalize_primers",
-        tool_id: "cutadapt",
+        tool_id: id_catalog::TOOL_CUTADAPT,
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
@@ -185,7 +188,7 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.screen_taxonomy",
-        tool_id: "kraken2",
+        tool_id: id_catalog::TOOL_KRAKEN2,
         semantic_surface: "classification_report_json",
     },
     ObserverSpecializationContract {
@@ -205,12 +208,12 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.trim_reads",
-        tool_id: "fastp",
+        tool_id: id_catalog::TOOL_FASTP,
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
         stage_id: "fastq.trim_reads",
-        tool_id: "cutadapt",
+        tool_id: id_catalog::TOOL_CUTADAPT,
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
@@ -275,7 +278,7 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.trim_terminal_damage",
-        tool_id: "cutadapt",
+        tool_id: id_catalog::TOOL_CUTADAPT,
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
@@ -285,7 +288,7 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.trim_polyg_tails",
-        tool_id: "fastp",
+        tool_id: id_catalog::TOOL_FASTP,
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
@@ -366,7 +369,10 @@ mod tests {
         is_observer_specialized_stage_tool, observer_semantic_surface_for_stage_tool,
         observer_specialization_contracts, observer_specialized_stage_tool_bindings,
     };
-    use bijux_dna_core::ids::{StageId, ToolId};
+    use bijux_dna_core::{
+        id_catalog,
+        ids::{StageId, ToolId},
+    };
 
     #[test]
     fn observer_contracts_cover_current_specialized_fastq_tools() {
@@ -377,11 +383,11 @@ mod tests {
         )));
         assert!(bindings.contains(&(
             StageId::from_static("fastq.report_qc"),
-            ToolId::from_static("multiqc")
+            ToolId::from_static(id_catalog::TOOL_MULTIQC)
         )));
         assert!(bindings.contains(&(
             StageId::from_static("fastq.screen_taxonomy"),
-            ToolId::from_static("kraken2")
+            ToolId::from_static(id_catalog::TOOL_KRAKEN2)
         )));
         assert!(bindings.contains(&(
             StageId::from_static("fastq.correct_errors"),
@@ -389,11 +395,11 @@ mod tests {
         )));
         assert!(bindings.contains(&(
             StageId::from_static("fastq.normalize_primers"),
-            ToolId::from_static("cutadapt")
+            ToolId::from_static(id_catalog::TOOL_CUTADAPT)
         )));
         assert!(bindings.contains(&(
             StageId::from_static("fastq.normalize_abundance"),
-            ToolId::from_static("seqkit")
+            ToolId::from_static(id_catalog::TOOL_SEQKIT)
         )));
         assert!(bindings.contains(&(
             StageId::from_static("fastq.remove_chimeras"),
@@ -406,7 +412,7 @@ mod tests {
         assert_eq!(
             observer_semantic_surface_for_stage_tool(
                 &StageId::from_static("fastq.detect_adapters"),
-                &ToolId::from_static("fastqc"),
+                &ToolId::from_static(id_catalog::TOOL_FASTQC),
             ),
             Some("report_json")
         );
@@ -427,21 +433,21 @@ mod tests {
         assert_eq!(
             observer_semantic_surface_for_stage_tool(
                 &StageId::from_static("fastq.trim_reads"),
-                &ToolId::from_static("fastp"),
+                &ToolId::from_static(id_catalog::TOOL_FASTP),
             ),
             Some("report_json")
         );
         assert_eq!(
             observer_semantic_surface_for_stage_tool(
                 &StageId::from_static("fastq.normalize_primers"),
-                &ToolId::from_static("cutadapt"),
+                &ToolId::from_static(id_catalog::TOOL_CUTADAPT),
             ),
             Some("report_json")
         );
         assert_eq!(
             observer_semantic_surface_for_stage_tool(
                 &StageId::from_static("fastq.normalize_abundance"),
-                &ToolId::from_static("seqkit"),
+                &ToolId::from_static(id_catalog::TOOL_SEQKIT),
             ),
             Some("report_json")
         );
