@@ -126,6 +126,34 @@ pub fn plan_with_options(
     })
 }
 
+fn detect_adapters_command(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    adapter_evidence_dir: &Path,
+    threads: u32,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "fastqc" => {
+            let mut command = vec![
+                "fastqc".to_string(),
+                "--outdir".to_string(),
+                adapter_evidence_dir.display().to_string(),
+                "--threads".to_string(),
+                threads.to_string(),
+                r1.display().to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.push(r2.display().to_string());
+            }
+            Ok(command)
+        }
+        _ => Err(anyhow!(
+            "unsupported adapter detection tool for stage planning: {tool_id}"
+        )),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::plan;
@@ -171,33 +199,5 @@ mod tests {
         );
         assert_eq!(plan.effective_params["evidence_artifact_id"], "report_json");
         Ok(())
-    }
-}
-
-fn detect_adapters_command(
-    tool_id: &str,
-    r1: &Path,
-    r2: Option<&Path>,
-    adapter_evidence_dir: &Path,
-    threads: u32,
-) -> Result<Vec<String>> {
-    match tool_id {
-        "fastqc" => {
-            let mut command = vec![
-                "fastqc".to_string(),
-                "--outdir".to_string(),
-                adapter_evidence_dir.display().to_string(),
-                "--threads".to_string(),
-                threads.to_string(),
-                r1.display().to_string(),
-            ];
-            if let Some(r2) = r2 {
-                command.push(r2.display().to_string());
-            }
-            Ok(command)
-        }
-        _ => Err(anyhow!(
-            "unsupported adapter detection tool for stage planning: {tool_id}"
-        )),
     }
 }
