@@ -1735,7 +1735,9 @@ mod tests {
                     {"label": "unclassified", "percent": 23.0},
                     {"label": "bacteria", "percent": 77.0}
                 ],
-                "top_taxa": ["bacteria"],
+                "top_taxa": [
+                    {"label": "bacteria", "percent": 77.0}
+                ],
                 "runtime_s": 12.5,
                 "memory_mb": 512.0
             })
@@ -2197,6 +2199,7 @@ mod tests {
                 "stage_id": "fastq.remove_duplicates",
                 "tool_id": "fastuniq",
                 "paired_mode": "paired_end",
+                "threads": 4,
                 "dedup_mode": "exact",
                 "keep_order": true,
                 "duplicates_removed": 18,

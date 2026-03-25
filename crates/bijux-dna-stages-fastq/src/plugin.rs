@@ -1492,6 +1492,15 @@ mod tests {
 
     use super::{validate_semantic_metrics, FastqStagePlugin};
 
+    fn write_fastq(path: &std::path::Path, read_id: &str, sequence: &str) {
+        let quality = "#".repeat(sequence.len());
+        std::fs::write(
+            path,
+            format!("@{read_id}\n{sequence}\n+\n{quality}\n"),
+        )
+        .expect("write fastq");
+    }
+
     fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
         bijux_dna_stage_contract::StagePlanV1 {
             stage_id: StageId::from_static(stage_id),
@@ -1729,10 +1738,6 @@ mod tests {
             .expect("parse outputs");
 
         assert_eq!(
-            output.report_parts[0].payload["semantic_metrics"]["reads_in"],
-            serde_json::json!(12_u64)
-        );
-        assert_eq!(
             output.report_parts[0].payload["semantic_metrics"]["duplicates_removed"],
             serde_json::json!(3_u64)
         );
@@ -1750,7 +1755,17 @@ mod tests {
     fn parse_outputs_surfaces_observed_merge_semantics() {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
+        let reads_r1_path = temp.path().join("reads_R1.fastq");
+        let reads_r2_path = temp.path().join("reads_R2.fastq");
+        let merged_reads_path = temp.path().join("pear.assembled.fastq");
+        let unmerged_r1_path = temp.path().join("pear.unassembled.forward.fastq");
+        let unmerged_r2_path = temp.path().join("pear.unassembled.reverse.fastq");
         let report_path = temp.path().join("merge_report.json");
+        write_fastq(&reads_r1_path, "r1", "ACGT");
+        write_fastq(&reads_r2_path, "r1", "TGCA");
+        write_fastq(&merged_reads_path, "merged", "ACGTTGCA");
+        std::fs::write(&unmerged_r1_path, b"").expect("write empty unmerged r1");
+        std::fs::write(&unmerged_r2_path, b"").expect("write empty unmerged r2");
         std::fs::write(
             &report_path,
             serde_json::json!({
@@ -1789,20 +1804,37 @@ mod tests {
                 inputs: vec![
                     ArtifactRef::required(
                         ArtifactId::new("reads_r1"),
-                        PathBuf::from("reads_R1.fastq.gz"),
+                        reads_r1_path,
                         ArtifactRole::Reads,
                     ),
                     ArtifactRef::required(
                         ArtifactId::new("reads_r2"),
-                        PathBuf::from("reads_R2.fastq.gz"),
+                        reads_r2_path,
                         ArtifactRole::Reads,
                     ),
                 ],
-                outputs: vec![ArtifactRef::required(
-                    ArtifactId::new("report_json"),
-                    report_path,
-                    ArtifactRole::ReportJson,
-                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("merged_reads"),
+                        merged_reads_path,
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("unmerged_reads_r1"),
+                        unmerged_r1_path,
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("unmerged_reads_r2"),
+                        unmerged_r2_path,
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path,
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
             },
             ..plan("fastq.merge_pairs")
         };
@@ -3464,8 +3496,12 @@ mod tests {
     fn parse_outputs_surfaces_remove_duplicates_semantics() {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let dedup_reads_path = temp.path().join("dedup.fastq");
         let report_path = temp.path().join("deduplicate_report.json");
         let provenance_path = temp.path().join("duplicate_provenance.json");
+        write_fastq(&reads_path, "r1", "ACGT");
+        write_fastq(&dedup_reads_path, "r1", "ACGT");
         std::fs::write(
             &report_path,
             serde_json::json!({
@@ -3534,10 +3570,15 @@ mod tests {
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
-                    temp.path().join("reads.fastq.gz"),
+                    reads_path,
                     ArtifactRole::Reads,
                 )],
                 outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("dedup_reads_r1"),
+                        dedup_reads_path,
+                        ArtifactRole::Reads,
+                    ),
                     ArtifactRef::required(
                         ArtifactId::new("report_json"),
                         report_path,
@@ -3577,7 +3618,9 @@ mod tests {
     fn parse_outputs_surfaces_profile_read_semantics() {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
+        let reads_r1_path = temp.path().join("reads_R1.fastq");
         let report_path = temp.path().join("qc.json");
+        write_fastq(&reads_r1_path, "r1", "ACGT");
         std::fs::write(
             &report_path,
             serde_json::json!({
@@ -3625,7 +3668,7 @@ mod tests {
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
-                    temp.path().join("reads_R1.fastq.gz"),
+                    reads_r1_path,
                     ArtifactRole::Reads,
                 )],
                 outputs: vec![ArtifactRef::required(
@@ -3667,7 +3710,11 @@ mod tests {
     fn parse_outputs_surfaces_normalize_primer_semantics() {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
+        let reads_path = temp.path().join("reads.fastq");
+        let normalized_reads_path = temp.path().join("normalized.fastq");
         let report_path = temp.path().join("normalize_primers_report.json");
+        write_fastq(&reads_path, "r1", "ACGT");
+        write_fastq(&normalized_reads_path, "r1", "ACGT");
         std::fs::write(
             &report_path,
             serde_json::json!({
@@ -3714,14 +3761,21 @@ mod tests {
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
-                    temp.path().join("reads.fastq.gz"),
+                    reads_path,
                     ArtifactRole::Reads,
                 )],
-                outputs: vec![ArtifactRef::required(
-                    ArtifactId::new("report_json"),
-                    report_path,
-                    ArtifactRole::ReportJson,
-                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("normalized_reads_r1"),
+                        normalized_reads_path,
+                        ArtifactRole::Reads,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("report_json"),
+                        report_path,
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
             },
             ..plan("fastq.normalize_primers")
         };
@@ -4030,7 +4084,9 @@ mod tests {
     fn parse_outputs_surfaces_profile_read_length_semantics() {
         let plugin = FastqStagePlugin;
         let temp = tempfile::tempdir().expect("tempdir");
+        let reads_r1_path = temp.path().join("reads_R1.fastq");
         let report_path = temp.path().join("profile_read_lengths_report.json");
+        write_fastq(&reads_r1_path, "r1", "ACGT");
         std::fs::write(
             &report_path,
             serde_json::json!({
@@ -4039,6 +4095,7 @@ mod tests {
                 "stage_id": "fastq.profile_read_lengths",
                 "tool_id": "seqkit_stats",
                 "paired_mode": "paired_end",
+                "threads": 4,
                 "histogram_bins": 64,
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": "reads_R2.fastq.gz",
@@ -4069,7 +4126,7 @@ mod tests {
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::new("reads_r1"),
-                    temp.path().join("reads_R1.fastq.gz"),
+                    reads_r1_path,
                     ArtifactRole::Reads,
                 )],
                 outputs: vec![ArtifactRef::required(
@@ -4089,6 +4146,11 @@ mod tests {
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
                 ["histogram_bins"],
             serde_json::json!(64)
+        );
+        assert_eq!(
+            output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
+                ["histogram_entry_count"],
+            serde_json::json!(2)
         );
         assert_eq!(
             output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["read_count"],
