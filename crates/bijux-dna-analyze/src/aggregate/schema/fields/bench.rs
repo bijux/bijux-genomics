@@ -1,4 +1,4 @@
-pub const FASTQ_TRIM_METRICS: [MetricId; 13] = [
+pub const FASTQ_TRIM_METRICS: [MetricId; 19] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
@@ -8,13 +8,19 @@ pub const FASTQ_TRIM_METRICS: [MetricId; 13] = [
     MetricId::MeanQBefore,
     MetricId::MeanQAfter,
     MetricId::DeltaMetrics,
+    MetricId::PairedMode,
+    MetricId::AdapterPolicy,
+    MetricId::PolyxPolicy,
+    MetricId::NPolicy,
+    MetricId::ContaminantPolicy,
+    MetricId::RawBackendReportFormat,
     MetricId::AdapterPreset,
     MetricId::AdapterBankId,
     MetricId::AdapterBankHash,
     MetricId::AdapterOverrides,
 ];
 
-pub const FASTQ_TRIM_TERMINAL_DAMAGE_METRICS: [MetricId; 12] = [
+pub const FASTQ_TRIM_POLYG_METRICS: [MetricId; 18] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
@@ -24,12 +30,37 @@ pub const FASTQ_TRIM_TERMINAL_DAMAGE_METRICS: [MetricId; 12] = [
     MetricId::MeanQBefore,
     MetricId::MeanQAfter,
     MetricId::DeltaMetrics,
+    MetricId::PairedMode,
+    MetricId::Threads,
+    MetricId::TrimPolyg,
+    MetricId::MinPolygRun,
+    MetricId::BasesTrimmedPolyg,
+    MetricId::RawBackendReportFormat,
+    MetricId::PolyxBankId,
+    MetricId::PolyxBankHash,
+    MetricId::PolyxPreset,
+];
+
+pub const FASTQ_TRIM_TERMINAL_DAMAGE_METRICS: [MetricId; 16] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
+    MetricId::MeanQBefore,
+    MetricId::MeanQAfter,
+    MetricId::DamageMode,
+    MetricId::ExecutionPolicy,
+    MetricId::RequestedTrim5pBases,
+    MetricId::RequestedTrim3pBases,
     MetricId::UdgClassification,
     MetricId::CtGaAsymmetryPre,
     MetricId::CtGaAsymmetryPost,
+    MetricId::DeltaMetrics,
 ];
 
-pub const FASTQ_VALIDATE_METRICS: [MetricId; 10] = [
+pub const FASTQ_VALIDATE_METRICS: [MetricId; 17] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
@@ -40,6 +71,13 @@ pub const FASTQ_VALIDATE_METRICS: [MetricId; 10] = [
     MetricId::ReadsValid,
     MetricId::ReadsInvalid,
     MetricId::MeanQ,
+    MetricId::ValidatedInputs,
+    MetricId::ValidatedPairs,
+    MetricId::PairSyncChecked,
+    MetricId::PairSyncPass,
+    MetricId::PairCountMatch,
+    MetricId::StrictPass,
+    MetricId::FailureClass,
 ];
 
 pub const FASTQ_FILTER_METRICS: [MetricId; 16] = [
@@ -117,10 +155,10 @@ pub const FASTQ_UMI_METRICS: [MetricId; 7] = [
     MetricId::BasesOut,
     MetricId::PairsIn,
     MetricId::PairsOut,
-    MetricId::DedupRate,
+    MetricId::ReadsWithUmi,
 ];
 
-pub const FASTQ_SCREEN_METRICS: [MetricId; 8] = [
+pub const FASTQ_SCREEN_METRICS: [MetricId; 17] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
@@ -128,7 +166,16 @@ pub const FASTQ_SCREEN_METRICS: [MetricId; 8] = [
     MetricId::PairsIn,
     MetricId::PairsOut,
     MetricId::ContaminationRate,
+    MetricId::ClassifiedFraction,
+    MetricId::UnclassifiedFraction,
+    MetricId::Classifier,
+    MetricId::ReportFormat,
+    MetricId::DatabaseCatalogId,
+    MetricId::DatabaseArtifactId,
+    MetricId::MinimumConfidence,
+    MetricId::EmitUnclassified,
     MetricId::ContaminationSummary,
+    MetricId::TopTaxa,
 ];
 
 pub const FASTQ_STATS_METRICS: [MetricId; 5] = [
@@ -179,7 +226,7 @@ pub const FASTQ_QC_POST_INVARIANTS: [&str; 3] = [
 
 pub const FASTQ_UMI_INVARIANTS: [&str; 3] = [
     "reads_out <= reads_in",
-    "dedup_rate in [0, 1]",
+    "reads_with_umi <= reads_out",
     "counts are non-negative",
 ];
 

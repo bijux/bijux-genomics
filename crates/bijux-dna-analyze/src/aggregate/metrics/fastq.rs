@@ -619,7 +619,7 @@ pub struct FastqUmiMetrics {
     pub pairs_in: Option<u64>,
     #[serde(default)]
     pub pairs_out: Option<u64>,
-    pub dedup_rate: f64,
+    pub reads_with_umi: u64,
 }
 
 impl StageMetricSchema for FastqUmiMetrics {
@@ -632,9 +632,9 @@ impl StageMetricSchema for FastqUmiMetrics {
                 "reads_out must be <= reads_in".to_string(),
             ));
         }
-        if !self.dedup_rate.is_finite() || !(0.0..=1.0).contains(&self.dedup_rate) {
+        if self.reads_with_umi > self.reads_out {
             return Err(BenchError::Validation(
-                "dedup_rate must be within [0, 1]".to_string(),
+                "reads_with_umi must be <= reads_out".to_string(),
             ));
         }
         Ok(())

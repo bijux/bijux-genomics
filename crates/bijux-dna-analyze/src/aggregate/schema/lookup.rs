@@ -18,12 +18,12 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
         defs::StageMetricKind::FastqTrimPolyg => defs::StageMetricSpec {
             stage: "fastq.trim_polyg_tails",
             version: 1,
-            metrics: &fields::FASTQ_TRIM_METRICS,
+            metrics: &fields::FASTQ_TRIM_POLYG_METRICS,
             invariants: &fields::FASTQ_TRIM_INVARIANTS,
         },
         defs::StageMetricKind::FastqTrimTerminalDamage => defs::StageMetricSpec {
             stage: "fastq.trim_terminal_damage",
-            version: 2,
+            version: 1,
             metrics: &fields::FASTQ_TRIM_TERMINAL_DAMAGE_METRICS,
             invariants: &fields::FASTQ_TRIM_INVARIANTS,
         },
