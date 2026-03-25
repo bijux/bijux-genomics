@@ -74,8 +74,8 @@ pub(super) fn handle_debug_command(
             Ok(Some(true))
         }
         #[cfg(debug_assertions)]
-        DnaCommand::Policies(command) => {
-            match command {
+        DnaCommand::Policies(args) => {
+            match &args.command {
                 PoliciesCommand::Audit { out } => {
                     workspace_audit(out)?;
                 }

@@ -1,5 +1,5 @@
-        DnaCommand::Environment(command) => {
-            match command {
+        DnaCommand::Environment(args) => {
+            match &args.command {
                 EnvCommand::List => {
                     let cwd = std::env::current_dir()?;
                     let registry_path = bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml");
@@ -188,12 +188,12 @@
             }
             Ok(true)
         }
-        DnaCommand::Bench(command) => {
+        DnaCommand::Bench(args) => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
-            match command {
+            match &args.command {
                 BenchCommand::Run(args) => {
                     let run_dir = crate::commands::bench_suite::run_suite(
                         &std::env::current_dir()?,
