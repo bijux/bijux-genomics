@@ -22,10 +22,26 @@ fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
         return Some(digest.to_string());
     }
     let container_ref = tool.container_ref.as_deref().unwrap_or("");
-    container_ref
+    if let Some(digest) = container_ref
         .split("@sha256:")
         .nth(1)
         .map(std::string::ToString::to_string)
+    {
+        return Some(digest);
+    }
+
+    let stable_material = [
+        tool.id.as_str(),
+        tool.version.as_deref().unwrap_or(""),
+        pin,
+        container_ref,
+        tool.apptainer_def.as_deref().unwrap_or(""),
+    ]
+    .join("\n");
+    if stable_material.trim().is_empty() {
+        return None;
+    }
+    Some(format!("{:x}", Sha256::digest(stable_material.as_bytes())))
 }
 
 fn build_apptainer_image(def_path: &Path, sif_path: &Path) -> Result<()> {
@@ -462,5 +478,21 @@ mod tests {
         };
 
         assert_eq!(expected_registry_digest(&row).as_deref(), Some("def456"));
+    }
+
+    #[test]
+    fn expected_registry_digest_falls_back_to_stable_pin_material_hash() {
+        let row = RegistryRow {
+            id: "alientrimmer".to_string(),
+            version: Some("0.4.0".to_string()),
+            pinned_commit: Some("release:0.4.0".to_string()),
+            container_ref: Some("bijuxdna/alientrimmer:0.4.0".to_string()),
+            apptainer_def: Some("containers/apptainer/lunarc/alientrimmer.def".to_string()),
+            ..RegistryRow::default()
+        };
+
+        let digest = expected_registry_digest(&row).expect("fallback digest");
+        assert_eq!(digest.len(), 64);
+        assert!(digest.chars().all(|char| char.is_ascii_hexdigit()));
     }
 }

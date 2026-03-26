@@ -170,6 +170,129 @@ pub fn ensure_apptainer_images(
     })
 }
 
+/// # Errors
+/// Returns an error if registry parsing, Apptainer build/smoke, or manifest writes fail.
+pub fn ensure_apptainer_tools(
+    registry_path: &Path,
+    hpc_root: &Path,
+    tool_ids: &[String],
+    force_smoke: bool,
+    repair_mismatch: bool,
+) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let tools = parse_tools_registry_rows(&raw)?
+        .into_iter()
+        .map(|row| (row.id.clone(), row))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let requested = tool_ids
+        .iter()
+        .map(|tool_id| tool_id.trim())
+        .filter(|tool_id| !tool_id.is_empty())
+        .collect::<std::collections::BTreeSet<_>>();
+    if requested.is_empty() {
+        return Err(anyhow!("no tool ids provided for apptainer ensure"));
+    }
+
+    let root = hpc_root.to_path_buf();
+    let containers_root = root.join("bijux-dna-container");
+    let data_root = root.join("corpus_01");
+    let results_root = root.join("results");
+    bijux_dna_api::v1::api::run::ensure_dir(&containers_root)?;
+    bijux_dna_api::v1::api::run::ensure_dir(&data_root)?;
+    bijux_dna_api::v1::api::run::ensure_dir(&results_root)?;
+
+    let mut auto_demoted = Vec::new();
+    for tool_id in requested {
+        let tool = tools
+            .get(tool_id)
+            .ok_or_else(|| anyhow!("tool not found in registry: {tool_id}"))?;
+        let has_apptainer = tool.runtimes.iter().any(|runtime| runtime == "apptainer");
+        if !has_apptainer {
+            return Err(anyhow!("tool `{tool_id}` does not support apptainer"));
+        }
+        let def_rel = tool
+            .apptainer_def
+            .as_deref()
+            .ok_or_else(|| anyhow!("tool `{tool_id}` is missing apptainer_def"))?;
+        let registry_digest = expected_registry_digest(tool)
+            .ok_or_else(|| anyhow!("tool {tool_id} is missing a stable apptainer cache key"))?;
+        let tool_dir = containers_root.join(tool_id);
+        bijux_dna_api::v1::api::run::ensure_dir(&tool_dir)?;
+        let sif_path = tool_dir.join(format!("{registry_digest}.sif"));
+        let smoke_manifest_path = tool_dir.join(format!("{registry_digest}.smoke_manifest.json"));
+        let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
+        quarantine_unexpected_sifs(
+            &tool_dir,
+            &registry_digest,
+            repair_mismatch,
+            &containers_root,
+        )?;
+        if !sif_path.exists() {
+            let def_path = std::env::current_dir()?.join(def_rel);
+            build_apptainer_image(&def_path, &sif_path)?;
+        }
+
+        let sif_sha256 = hash_file_sha256_hex(&sif_path)?;
+        let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
+        if !do_quick_smoke {
+            continue;
+        }
+
+        let version_cmd = tool
+            .smoke_version_cmd
+            .clone()
+            .or(tool.version_cmd.clone())
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| format!("{tool_id} --version"));
+        let help_cmd = tool
+            .smoke_help_cmd
+            .clone()
+            .or(tool.help_cmd.clone())
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| format!("{tool_id} --help"));
+        let smoke = run_smoke_with_manifest(
+            &sif_path,
+            tool_id,
+            tool.stage_ids
+                .first()
+                .map(std::string::String::as_str)
+                .unwrap_or("tool.apptainer"),
+            &registry_digest,
+            &sif_sha256,
+            &version_cmd,
+            &help_cmd,
+            tool.smoke_require_help.unwrap_or(true),
+            &tool.smoke_probes,
+            tool.java_heap_mb,
+            tool.upstream.as_deref().unwrap_or("unknown"),
+            &data_root,
+            &results_root,
+        );
+        if smoke.status != "ok" {
+            auto_demoted.push(tool_id.to_string());
+        }
+        bijux_dna_infra::atomic_write_json(&smoke_manifest_path, &smoke)
+            .with_context(|| format!("write {}", smoke_manifest_path.display()))?;
+        bijux_dna_infra::atomic_write_json(&compat_smoke_manifest_path, &smoke)
+            .with_context(|| format!("write {}", compat_smoke_manifest_path.display()))?;
+    }
+
+    if !auto_demoted.is_empty() {
+        let payload = serde_json::json!({
+            "schema_version": "bijux.apptainer_auto_demote.v1",
+            "tools": auto_demoted,
+            "updated_at_unix_s": now_unix_s(),
+            "reason": "help/version smoke failure",
+        });
+        let path = containers_root.join("auto_demoted_tools.json");
+        bijux_dna_infra::atomic_write_json(&path, &payload)
+            .with_context(|| format!("write {}", path.display()))?;
+    }
+
+    Ok(())
+}
+
 fn quarantine_unexpected_sifs(
     tool_dir: &Path,
     expected_digest: &str,
