@@ -29,7 +29,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.version 0.6.10
     org.opencontainers.image.tool trim_galore
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/opt/trim-galore-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     DEBIAN_FRONTEND=noninteractive
     TZ=UTC
@@ -45,6 +45,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     apt-get install -y --no-install-recommends \
         python3 \
         python3-pip \
+        python3-venv \
         python3-dev \
         build-essential \
         fastqc \
@@ -67,8 +68,11 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 
     rm -f /tmp/trimgalore.tar.gz
 
-    # Install cutadapt (Trim Galore relies on it for adapter trimming)
-    python3 -m pip install --no-cache-dir cutadapt
+    # Install cutadapt (Trim Galore relies on it for adapter trimming).
+    python3 -m venv /opt/trim-galore-venv
+    /opt/trim-galore-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel
+    /opt/trim-galore-venv/bin/pip install --no-cache-dir cutadapt
+    ln -sf /opt/trim-galore-venv/bin/cutadapt /usr/local/bin/cutadapt
 
     # Clean up apt lists.
     rm -rf /var/lib/apt/lists/*
