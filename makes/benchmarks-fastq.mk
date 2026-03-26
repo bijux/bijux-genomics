@@ -124,6 +124,14 @@ _benchmark-merge-corpus-01: ## Benchmark fastq.merge_pairs across the paired cor
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
+_benchmark-report-qc-corpus-01: ## Benchmark fastq.report_qc across corpus-01
+	@python3 makes/bin/run_fastq_report_qc_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",)
+
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
 		--repo-root . \
@@ -194,6 +202,14 @@ _benchmark-merge-corpus-01-report: ## Render the corpus-01 merge benchmark dossi
 	@python3 makes/bin/render_fastq_merge_pairs_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.merge_pairs/corpus-01
 
+_benchmark-report-qc-corpus-01-report: ## Render the corpus-01 report-qc benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_report_qc_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_report_qc_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.report_qc/corpus-01
+
 .PHONY: _benchmark-fastq-stage _benchmark-all _benchmark-trim _benchmark-validate _benchmark-filter \
 	_benchmark-merge _benchmark-correct _benchmark-qc-post _benchmark-umi \
 	_benchmark-stats _benchmark-screen _benchmark-preprocess _benchmark-status \
@@ -201,9 +217,10 @@ _benchmark-merge-corpus-01-report: ## Render the corpus-01 merge benchmark dossi
 	_benchmark-trim-reads-corpus-01 _benchmark-trim-terminal-damage-corpus-01 \
 	_benchmark-detect-adapters-corpus-01 _benchmark-profile-reads-corpus-01 \
 	_benchmark-profile-read-lengths-corpus-01 _benchmark-profile-overrepresented-corpus-01 \
-	_benchmark-merge-corpus-01 \
+	_benchmark-merge-corpus-01 _benchmark-report-qc-corpus-01 \
 	_benchmark-validate-corpus-01-report _benchmark-trim-polyg-corpus-01-report \
 	_benchmark-trim-reads-corpus-01-report _benchmark-trim-terminal-damage-corpus-01-report \
 	_benchmark-detect-adapters-corpus-01-report _benchmark-profile-reads-corpus-01-report \
 	_benchmark-profile-read-lengths-corpus-01-report \
-	_benchmark-profile-overrepresented-corpus-01-report _benchmark-merge-corpus-01-report
+	_benchmark-profile-overrepresented-corpus-01-report _benchmark-merge-corpus-01-report \
+	_benchmark-report-qc-corpus-01-report
