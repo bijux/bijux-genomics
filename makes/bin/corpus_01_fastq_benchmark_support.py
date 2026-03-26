@@ -49,6 +49,13 @@ TRIM_READS_BENCHMARK_CONTRACT = TrimBenchmarkContract(
 )
 
 
+TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT = TrimBenchmarkContract(
+    stage_id="fastq.trim_terminal_damage",
+    scenario_id="terminal_damage_fairness",
+    tools=["adapterremoval", "cutadapt", "seqkit"],
+)
+
+
 def trim_reads_benchmark_defaults() -> dict:
     return {
         "min_length": 30,
@@ -60,6 +67,15 @@ def trim_reads_benchmark_defaults() -> dict:
         "adapter_bank_preset": None,
         "polyx_preset": None,
         "contaminant_preset": None,
+    }
+
+
+def trim_terminal_damage_benchmark_defaults() -> dict:
+    return {
+        "damage_mode": "ancient",
+        "execution_policy": "explicit_terminal_trim",
+        "trim_5p_bases": 2,
+        "trim_3p_bases": 2,
     }
 
 
