@@ -123,6 +123,7 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
             )
         local_results_root = canonical_run_root.parents[2]
         missing_report_count = 0
+        tool_roster_drift_samples: list[str] = []
         for run in run_manifest.get("runs", []):
             report_json = run.get("report_json")
             if not report_json:
@@ -131,12 +132,41 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
             localized_report = localize_results_path(str(report_json), local_results_root)
             if not localized_report.is_file():
                 missing_report_count += 1
+                continue
+            report = load_json(localized_report)
+            observed_tools = sorted(
+                {
+                    str(
+                        record.get("context", {}).get("tool")
+                        or record.get("context", {}).get("parameters", {}).get("tool")
+                    )
+                    for record in report.get("records", [])
+                    if record.get("context", {}).get("tool")
+                    or record.get("context", {}).get("parameters", {}).get("tool")
+                }
+            )
+            if observed_tools != sorted(tools):
+                tool_roster_drift_samples.append(
+                    f"{run.get('sample_id')} observed {observed_tools!r}"
+                )
         if missing_report_count:
             append_issue(
                 issues,
                 stage_id,
                 "missing-localized-report-json",
                 f"{missing_report_count} run rows do not resolve to a local report.json",
+            )
+        if tool_roster_drift_samples:
+            append_issue(
+                issues,
+                stage_id,
+                "report-tool-roster-drift",
+                "; ".join(tool_roster_drift_samples[:3])
+                + (
+                    f" (+{len(tool_roster_drift_samples) - 3} more)"
+                    if len(tool_roster_drift_samples) > 3
+                    else ""
+                ),
             )
 
     return {

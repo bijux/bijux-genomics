@@ -11,12 +11,11 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     PROFILE_READS_BENCHMARK_CONTRACT,
-    discover_normalized_samples,
     load_corpus_spec,
     load_json,
     localize_results_path,
     preferred_report_run_root,
-    validate_corpus_contract,
+    resolve_corpus_metadata,
 )
 
 
@@ -264,9 +263,9 @@ def render_markdown(summary: dict) -> str:
 def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
-    corpus_root = Path(args.corpus_root).resolve()
+    corpus_root = Path(args.corpus_root).expanduser()
     run_root = (
-        Path(args.run_root).resolve()
+        Path(args.run_root).expanduser().resolve()
         if args.run_root
         else preferred_report_run_root(
             corpus_root,
@@ -280,10 +279,13 @@ def main() -> int:
     spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
     validate_profile_reads_run_manifest_contract(run_manifest)
-    metadata_by_sample = validate_corpus_contract(
+    expected_sample_ids = [run["sample_id"] for run in run_manifest["runs"]]
+    metadata_by_sample = resolve_corpus_metadata(
+        repo_root,
         corpus_root,
         spec,
-        discover_normalized_samples(corpus_root),
+        expected_sample_ids=expected_sample_ids,
+        fallback_stage_id=PROFILE_READS_BENCHMARK_CONTRACT.stage_id,
     )
 
     sample_rows: list[dict] = []
@@ -292,10 +294,8 @@ def main() -> int:
     era_counts: dict[str, int] = defaultdict(int)
     layout_counts: dict[str, int] = defaultdict(int)
 
-    expected_sample_ids: list[str] = []
     for run in run_manifest["runs"]:
         sample_id = run["sample_id"]
-        expected_sample_ids.append(sample_id)
         metadata = metadata_by_sample.get(sample_id, {})
         cohort_key = f"{metadata.get('era', 'unknown')}_{metadata.get('layout', run['layout'])}"
         cohort_counts[cohort_key] += 1

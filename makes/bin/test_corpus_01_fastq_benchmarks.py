@@ -13,6 +13,7 @@ if str(BIN_DIR) not in sys.path:
 
 import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
+import audit_published_corpus_01_fastq_results as published_results_audit
 import run_fastq_merge_pairs_corpus_01 as merge_runner
 import run_fastq_trim_reads_corpus_01 as trim_reads_runner
 import run_fastq_trim_terminal_damage_corpus_01 as terminal_damage_runner
@@ -35,6 +36,7 @@ import render_fastq_trim_terminal_damage_corpus_01_report as terminal_damage_rep
 import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 import normalize_lunarc_results_mirror as normalize_results_mirror
+import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
@@ -272,6 +274,146 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertTrue(raw_run_root.exists())
             self.assertEqual(report["actions"][0]["status"], "skipped_existing_target")
 
+    def test_repair_results_manifests_reconstructs_detect_adapters_run_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_root = (
+                Path(tmpdir)
+                / "results"
+                / "corpus_01"
+                / "fastq.detect_adapters"
+                / "lunarc"
+            )
+            sample_report = (
+                run_root
+                / "bench"
+                / "detect_adapters"
+                / "sample_0001"
+                / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "platform": "lunarc-apptainer",
+                                    "parameters": {
+                                        "input_r1": "/home/bijan/bijux/corpus_01/normalized/sample_0001_R1.fastq.gz",
+                                        "out_dir": "/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc",
+                                        "report_json": "/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc/adapter_report.json",
+                                        "threads": 1,
+                                        "tool": "fastqc",
+                                    },
+                                }
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = repair_results_manifests.repair_stage(
+                run_root,
+                "fastq.detect_adapters",
+            )
+            manifest = json.loads((run_root / "run_manifest.json").read_text(encoding="utf-8"))
+
+            self.assertEqual(result["status"], "reconstructed-stage-run-manifest")
+            self.assertEqual(manifest["stage_id"], "fastq.detect_adapters")
+            self.assertEqual(manifest["scenario_id"], "detect_adapters_fairness")
+            self.assertEqual(manifest["runs"][0]["report_json"], str(sample_report.resolve()))
+
+    def test_repair_results_manifests_refuses_partial_validate_tool_roster(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_root = (
+                Path(tmpdir)
+                / "results"
+                / "corpus_01"
+                / "fastq.validate_reads"
+                / "lunarc"
+            )
+            sample_report = (
+                run_root
+                / "bench"
+                / "validate_reads"
+                / "sample_0001"
+                / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "fastqvalidator",
+                                    "platform": "lunarc-apptainer",
+                                    "parameters": {
+                                        "input_r1": "/home/bijan/bijux/corpus_01/normalized/sample_0001_R1.fastq.gz",
+                                        "threads": 4,
+                                    },
+                                }
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = repair_results_manifests.repair_stage(
+                run_root,
+                "fastq.validate_reads",
+            )
+
+            self.assertEqual(result["status"], "tool-roster-incomplete")
+            self.assertFalse((run_root / "run_manifest.json").exists())
+
+    def test_repair_results_manifests_normalizes_merge_report_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_root = (
+                Path(tmpdir)
+                / "results"
+                / "corpus_01"
+                / "fastq.merge_pairs"
+                / "lunarc"
+            )
+            sample_report = (
+                run_root
+                / "bench"
+                / "merge_pairs"
+                / "sample_0001"
+                / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text('{"records":[{}]}\n', encoding="utf-8")
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "stage_id": "fastq.merge_pairs",
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "report_json": "/home/bijan/bijux/results/corpus_01/fastq.merge_pairs/lunarc/bench/merge/sample_0001/report.json",
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = repair_results_manifests.repair_stage(
+                run_root,
+                "fastq.merge_pairs",
+            )
+            manifest = json.loads((run_root / "run_manifest.json").read_text(encoding="utf-8"))
+
+            self.assertEqual(result["status"], "updated-existing-manifest")
+            self.assertEqual(manifest["runs"][0]["report_json"], str(sample_report.resolve()))
+
 
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
@@ -482,6 +624,83 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 any(
                     issue["issue_id"] == "sample-results-tool-coverage-drift"
                     for issue in validate_report["issues"]
+                )
+            )
+
+
+class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
+    def test_result_audit_flags_partial_tool_roster_in_sample_reports(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+            docs_root.mkdir(parents=True)
+            (docs_root / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "run_root": str(
+                            Path(tmpdir)
+                            / "mirror"
+                            / "corpus_01"
+                            / "fastq.validate_reads"
+                            / "lunarc"
+                        ),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            run_root = Path(tmpdir) / "mirror" / "corpus_01" / "fastq.validate_reads" / "lunarc"
+            sample_report = run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "fastqvalidator",
+                                }
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "scenario_id": "validation_fairness",
+                        "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                        "dry_run": False,
+                        "sample_limit": None,
+                        "samples_failed": 0,
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            report = published_results_audit.audit_stage(
+                repo_root,
+                "fastq.validate_reads",
+                "validation_fairness",
+                ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+            )
+
+            self.assertEqual(report["status"], "incomplete")
+            self.assertTrue(
+                any(
+                    issue["issue_id"] == "report-tool-roster-drift"
+                    for issue in report["issues"]
                 )
             )
 

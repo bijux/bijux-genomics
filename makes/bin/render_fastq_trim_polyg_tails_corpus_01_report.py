@@ -11,12 +11,11 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     TRIM_POLYG_BENCHMARK_CONTRACT,
-    discover_normalized_samples,
     load_corpus_spec,
     load_json,
     localize_results_path,
     preferred_report_run_root,
-    validate_corpus_contract,
+    resolve_corpus_metadata,
 )
 
 
@@ -222,9 +221,9 @@ def render_markdown(summary: dict) -> str:
 def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
-    corpus_root = Path(args.corpus_root).resolve()
+    corpus_root = Path(args.corpus_root).expanduser()
     run_root = (
-        Path(args.run_root).resolve()
+        Path(args.run_root).expanduser().resolve()
         if args.run_root
         else preferred_report_run_root(
             corpus_root,
@@ -238,10 +237,13 @@ def main() -> int:
     spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
     validate_trim_polyg_run_manifest_contract(run_manifest)
-    metadata_by_sample = validate_corpus_contract(
+    expected_sample_ids = [run["sample_id"] for run in run_manifest["runs"]]
+    metadata_by_sample = resolve_corpus_metadata(
+        repo_root,
         corpus_root,
         spec,
-        discover_normalized_samples(corpus_root),
+        expected_sample_ids=expected_sample_ids,
+        fallback_stage_id=TRIM_POLYG_BENCHMARK_CONTRACT.stage_id,
     )
 
     sample_rows: list[dict] = []
@@ -350,7 +352,7 @@ def main() -> int:
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "platform": run_manifest["platform"],
         "corpus_root": run_manifest["corpus_root"],
-        "run_root": run_manifest["out_root"],
+        "run_root": str(run_root),
         "samples_total": run_manifest["samples_total"],
         "samples_failed": run_manifest["samples_failed"],
         "tools": run_manifest["tools"],
