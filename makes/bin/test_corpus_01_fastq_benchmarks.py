@@ -15,6 +15,8 @@ import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
+import render_fastq_merge_pairs_corpus_01_briefing as merge_briefing
+import render_fastq_merge_pairs_corpus_01_report as merge_report
 import render_fastq_profile_overrepresented_sequences_corpus_01_briefing as overrepresented_briefing
 import render_fastq_profile_overrepresented_sequences_corpus_01_report as overrepresented_report
 import render_fastq_profile_read_lengths_corpus_01_briefing as profile_read_lengths_briefing
@@ -116,6 +118,23 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 ["fastp", "bbduk"],
             )
 
+    def test_select_paired_samples_rejects_unbalanced_subset(self) -> None:
+        spec = {
+            "target_ancient_pe": 1,
+            "target_modern_pe": 1,
+        }
+        samples = [
+            {"sample_id": "sample_0001"},
+            {"sample_id": "sample_0002"},
+        ]
+        metadata_by_sample = {
+            "sample_0001": {"era": "ancient", "layout": "pe"},
+            "sample_0002": {"era": "ancient", "layout": "pe"},
+        }
+
+        with self.assertRaises(SystemExit):
+            support.select_paired_samples(spec, samples, metadata_by_sample)
+
 
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
@@ -178,6 +197,11 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
         self.assertIn("Completed stage dossiers: `1`", markdown)
         self.assertIn("Publication issues: `3`", markdown)
         self.assertIn("`fastq.trim_reads`: `incomplete` (`3` issues)", markdown)
+
+    def test_merge_stage_is_tracked_in_publication_audit(self) -> None:
+        stage_ids = [contract.stage_id for contract in benchmark_docs_audit.STAGE_CONTRACTS]
+
+        self.assertIn("fastq.merge_pairs", stage_ids)
 
 
 class TrimPolygReportingTests(unittest.TestCase):
@@ -506,6 +530,156 @@ class TrimReadsReportingTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             trim_reads_report.validate_trim_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+            )
+
+
+class MergeReportingTests(unittest.TestCase):
+    def test_merge_runtime_summary_tracks_runtime_and_merge_rate(self) -> None:
+        rows = [
+            {
+                "tool": "pear",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "merge_rate": "0.80",
+                "base_retention": "0.70",
+                "reads_merged": "800",
+            },
+            {
+                "tool": "pear",
+                "runtime_s": "1.2",
+                "exit_code": "0",
+                "merge_rate": "0.84",
+                "base_retention": "0.74",
+                "reads_merged": "840",
+            },
+            {
+                "tool": "bbmerge",
+                "runtime_s": "2.0",
+                "exit_code": "0",
+                "merge_rate": "0.81",
+                "base_retention": "0.72",
+                "reads_merged": "810",
+            },
+            {
+                "tool": "bbmerge",
+                "runtime_s": "2.2",
+                "exit_code": "0",
+                "merge_rate": "0.82",
+                "base_retention": "0.71",
+                "reads_merged": "820",
+            },
+        ]
+
+        summary_rows = merge_briefing.tool_runtime_summary(rows)
+        by_tool = {row["tool"]: row for row in summary_rows}
+
+        self.assertAlmostEqual(by_tool["pear"]["median_runtime_s"], 1.1)
+        self.assertAlmostEqual(by_tool["pear"]["median_merge_rate"], 0.82)
+        self.assertAlmostEqual(by_tool["pear"]["mean_reads_merged"], 820.0)
+        self.assertGreater(
+            by_tool["bbmerge"]["slowdown_vs_fastest_median"],
+            by_tool["pear"]["slowdown_vs_fastest_median"],
+        )
+
+    def test_merge_outliers_capture_slowest_and_best_merge_tool(self) -> None:
+        rows = [
+            {
+                "sample_id": "sample_0008",
+                "accession": "ACC8",
+                "era": "ancient",
+                "layout": "pe",
+                "size_band": "under_500mb",
+                "study_accession": "PRJ8",
+                "tool": "pear",
+                "runtime_s": "3.0",
+                "merge_rate": "0.83",
+            },
+            {
+                "sample_id": "sample_0008",
+                "accession": "ACC8",
+                "era": "ancient",
+                "layout": "pe",
+                "size_band": "under_500mb",
+                "study_accession": "PRJ8",
+                "tool": "bbmerge",
+                "runtime_s": "4.5",
+                "merge_rate": "0.79",
+            },
+        ]
+
+        outliers = merge_briefing.sample_runtime_outliers(rows)
+
+        self.assertEqual(outliers[0]["slowest_tool"], "bbmerge")
+        self.assertEqual(outliers[0]["best_merge_rate_tool"], "pear")
+        self.assertAlmostEqual(outliers[0]["best_merge_rate"], 0.83)
+
+    def test_merge_markdown_mentions_paired_only_contract(self) -> None:
+        summary = {
+            "generated_at_utc": "2026-03-26T00:00:00+00:00",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.merge_pairs/lunarc",
+            "scenario_id": "merge_fairness",
+            "samples_total": 10,
+            "samples_failed": 0,
+            "tools": ["adapterremoval", "pear"],
+            "merge_overlap": 11,
+            "min_length": 20,
+            "unmerged_read_policy": "emit_unmerged_pairs",
+            "era_counts": {"ancient": 5, "modern": 5},
+            "cohort_counts": {"ancient_pe": 5, "modern_pe": 5},
+            "headline": {
+                "fastest_tool": "pear",
+                "fastest_runtime_s": 1.1,
+                "best_merge_rate_tool": "pear",
+                "best_merge_rate": 0.82,
+                "best_base_retention_tool": "pear",
+                "best_base_retention": 0.72,
+            },
+            "tool_summary": [
+                {
+                    "tool": "pear",
+                    "records": 10,
+                    "pass_rate": 1.0,
+                    "median_runtime_s": 1.1,
+                    "median_merge_rate": 0.82,
+                    "median_base_retention": 0.72,
+                    "mean_reads_merged": 820.0,
+                }
+            ],
+        }
+
+        markdown = merge_report.render_markdown(summary)
+
+        self.assertIn("Samples benchmarked: `10` paired-end inputs", markdown)
+        self.assertIn("unmerged_read_policy: `emit_unmerged_pairs`", markdown)
+
+    def test_merge_report_contract_rejects_rate_drift(self) -> None:
+        run_manifest = {
+            "tools": ["pear"],
+            "merge_overlap": 11,
+            "min_length": 20,
+            "unmerged_read_policy": "emit_unmerged_pairs",
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0008",
+                "tool": "pear",
+                "layout": "pe",
+                "merge_overlap": 11,
+                "min_length": 20,
+                "unmerged_read_policy": "emit_unmerged_pairs",
+                "pairs_in": 100,
+                "reads_merged": 80,
+                "reads_unmerged": 20,
+                "merge_rate": 0.70,
+            }
+        ]
+
+        with self.assertRaises(SystemExit):
+            merge_report.validate_merge_row_contract(
                 run_manifest=run_manifest,
                 sample_rows=sample_rows,
             )
