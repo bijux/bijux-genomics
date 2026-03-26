@@ -11,10 +11,10 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     MERGE_PAIRS_BENCHMARK_CONTRACT,
-    default_results_stage_root,
     load_corpus_spec,
     load_json,
     merge_pairs_benchmark_defaults,
+    preferred_report_run_root,
     resolve_corpus_metadata,
 )
 
@@ -269,11 +269,11 @@ def render_markdown(summary: dict) -> str:
 def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
-    corpus_root = Path(args.corpus_root).resolve()
+    corpus_root = Path(args.corpus_root).expanduser()
     run_root = (
-        Path(args.run_root).resolve()
+        Path(args.run_root).expanduser().resolve()
         if args.run_root
-        else default_results_stage_root(
+        else preferred_report_run_root(
             corpus_root, MERGE_PAIRS_BENCHMARK_CONTRACT.stage_id
         ).resolve()
     )
