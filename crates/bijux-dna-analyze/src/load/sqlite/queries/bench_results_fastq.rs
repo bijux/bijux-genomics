@@ -7,7 +7,7 @@ use serde_json::Value as JsonValue;
 use bijux_dna_core::contract::{BenchResultRecord, BenchResultStatus};
 use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_fastq::bench_repository::BenchQueryContextMatch;
-use bijux_dna_domain_fastq::{BenchCorpus, BenchQueryContext, BenchResultsRepository};
+use bijux_dna_domain_fastq::{BenchCorpus, BenchDataset, BenchQueryContext, BenchResultsRepository};
 
 #[derive(Debug, Clone)]
 pub struct SqliteBenchResultsRepository {
