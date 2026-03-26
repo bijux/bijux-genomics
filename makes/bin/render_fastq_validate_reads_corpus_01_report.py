@@ -10,9 +10,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
+    discover_normalized_samples,
     load_corpus_spec,
     load_json,
-    sample_accession_map,
+    validate_corpus_contract,
 )
 
 
@@ -142,7 +143,11 @@ def main() -> int:
 
     spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
-    metadata_by_sample = sample_accession_map(corpus_root, spec)
+    metadata_by_sample = validate_corpus_contract(
+        corpus_root,
+        spec,
+        discover_normalized_samples(corpus_root),
+    )
 
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
