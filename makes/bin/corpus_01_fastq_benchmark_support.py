@@ -24,6 +24,23 @@ class CorpusBenchmarkContract:
     tools: list[str]
 
 
+@dataclass(frozen=True)
+class ReportQcContributorContract:
+    stage_id: str
+    tool_id: str
+    artifact_id: str
+    artifact_role: str
+    relative_path: str
+
+    @property
+    def contributor_id(self) -> str:
+        return f"{self.stage_id}.{self.tool_id}"
+
+    @property
+    def artifact_name(self) -> str:
+        return f"{self.stage_id}.tool.{self.tool_id}.{self.artifact_id}"
+
+
 DETECT_ADAPTERS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.detect_adapters",
     scenario_id="detect_adapters_fairness",
@@ -59,6 +76,13 @@ MERGE_PAIRS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
 )
 
 
+REPORT_QC_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.report_qc",
+    scenario_id="qc_aggregation_fairness",
+    tools=["multiqc"],
+)
+
+
 TRIM_POLYG_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.trim_polyg_tails",
     scenario_id="polyg_trim_fairness",
@@ -88,6 +112,52 @@ TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     scenario_id="terminal_damage_fairness",
     tools=["adapterremoval", "cutadapt", "seqkit"],
 )
+
+
+REPORT_QC_CONTRIBUTOR_CONTRACTS = [
+    ReportQcContributorContract(
+        stage_id="fastq.validate_reads",
+        tool_id="fastqvalidator",
+        artifact_id="validation_report",
+        artifact_role="report_json",
+        relative_path="validation_report.json",
+    ),
+    ReportQcContributorContract(
+        stage_id="fastq.validate_reads",
+        tool_id="fastqvalidator",
+        artifact_id="validated_reads_manifest",
+        artifact_role="summary_json",
+        relative_path="validated_reads_manifest.json",
+    ),
+    ReportQcContributorContract(
+        stage_id="fastq.detect_adapters",
+        tool_id="fastqc",
+        artifact_id="report_json",
+        artifact_role="report_json",
+        relative_path="adapter_report.json",
+    ),
+    ReportQcContributorContract(
+        stage_id="fastq.detect_adapters",
+        tool_id="fastqc",
+        artifact_id="adapter_evidence_dir",
+        artifact_role="stage_report",
+        relative_path="fastqc",
+    ),
+    ReportQcContributorContract(
+        stage_id="fastq.profile_reads",
+        tool_id="seqkit_stats",
+        artifact_id="qc_json",
+        artifact_role="metrics_json",
+        relative_path="qc.json",
+    ),
+    ReportQcContributorContract(
+        stage_id="fastq.profile_read_lengths",
+        tool_id="seqkit_stats",
+        artifact_id="length_distribution_json",
+        artifact_role="metrics_json",
+        relative_path="length_distribution.json",
+    ),
+]
 
 
 def trim_reads_benchmark_defaults() -> dict:
@@ -123,6 +193,26 @@ def merge_pairs_benchmark_defaults() -> dict:
 
 def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
     return corpus_root.parent / "results" / corpus_root.name / stage_id / "lunarc"
+
+
+def stage_run_dir_name(stage_id: str) -> str:
+    domain, stage = stage_id.split(".", 1)
+    if domain != "fastq":
+        raise SystemExit(f"unsupported corpus benchmark domain for {stage_id}")
+    return stage.replace(".", "_")
+
+
+def benchmark_sample_root(run_root: Path, stage_id: str, sample_id: str) -> Path:
+    return run_root / "bench" / stage_run_dir_name(stage_id) / sample_id
+
+
+def benchmark_tool_root(
+    run_root: Path,
+    stage_id: str,
+    sample_id: str,
+    tool_id: str,
+) -> Path:
+    return benchmark_sample_root(run_root, stage_id, sample_id) / "tools" / tool_id
 
 
 def parse_simple_toml(path: Path) -> dict:
