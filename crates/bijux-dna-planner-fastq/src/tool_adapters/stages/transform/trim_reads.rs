@@ -1028,7 +1028,7 @@ fn bbduk_trim_command_template(
         .join("bbduk_contaminants.fa");
     let raw_backend_report = raw_backend_report_path(report_json, "bbduk", "stats.txt");
     let mut command = vec![
-        "bbduk.sh".to_string(),
+        "bbduk".to_string(),
         format!("in={}", r1.display()),
         format!("out={}", output_r1.display()),
         format!("stats={}", raw_backend_report.display()),

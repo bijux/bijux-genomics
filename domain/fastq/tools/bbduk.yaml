@@ -11,7 +11,7 @@ container:
   image: "bijuxdna/bbduk"
   digest: "sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
 command_template:
-  - "bbduk.sh"
+  - "bbduk"
   - "in={{reads_r1}}"
   - "out={{filtered_reads_r1}}"
 outputs:
