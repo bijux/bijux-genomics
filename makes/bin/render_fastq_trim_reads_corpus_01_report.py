@@ -15,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     discover_normalized_samples,
     load_corpus_spec,
     load_json,
+    load_published_sample_metadata,
     trim_reads_benchmark_defaults,
     validate_corpus_contract,
 )
@@ -65,6 +66,13 @@ def normalize_metric(record: dict, key: str):
     metrics = record.get("metrics", {})
     metrics_payload = metrics.get("metrics", metrics)
     return metrics_payload.get(key)
+
+
+def metric_or_run_default(record: dict, key: str, run_manifest: dict):
+    value = normalize_metric(record, key)
+    if value is not None:
+        return value
+    return run_manifest.get(key)
 
 
 def expected_raw_backend_report_format(tool: str) -> str | None:
@@ -228,6 +236,16 @@ def render_markdown(summary: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def load_sample_metadata(repo_root: Path, corpus_root: Path, spec: dict) -> dict[str, dict]:
+    if (corpus_root / "normalized").is_dir():
+        return validate_corpus_contract(
+            corpus_root,
+            spec,
+            discover_normalized_samples(corpus_root),
+        )
+    return load_published_sample_metadata(repo_root, spec)
+
+
 def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
@@ -245,11 +263,11 @@ def main() -> int:
     defaults = trim_reads_benchmark_defaults()
     run_manifest = load_json(run_root / "run_manifest.json")
     validate_trim_run_manifest_contract(run_manifest)
-    metadata_by_sample = validate_corpus_contract(
-        corpus_root,
-        spec,
-        discover_normalized_samples(corpus_root),
-    )
+    run_manifest.setdefault("quality_cutoff", defaults["quality_cutoff"])
+    run_manifest.setdefault("adapter_bank_preset", defaults["adapter_bank_preset"])
+    run_manifest.setdefault("polyx_preset", defaults["polyx_preset"])
+    run_manifest.setdefault("contaminant_preset", defaults["contaminant_preset"])
+    metadata_by_sample = load_sample_metadata(repo_root, corpus_root, spec)
 
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
@@ -298,26 +316,40 @@ def main() -> int:
                 "mean_q_delta": delta_metrics.get("mean_q_delta", 0.0)
                 if isinstance(delta_metrics, dict)
                 else 0.0,
-                "min_length": normalize_metric(record, "min_length"),
-                "quality_cutoff": normalize_metric(record, "quality_cutoff"),
-                "n_policy": normalize_metric(record, "n_policy"),
-                "adapter_policy": normalize_metric(record, "adapter_policy"),
-                "polyx_policy": normalize_metric(record, "polyx_policy"),
-                "contaminant_policy": normalize_metric(record, "contaminant_policy"),
-                "adapter_bank_preset": normalize_metric(record, "adapter_preset"),
-                "polyx_preset": normalize_metric(record, "polyx_preset"),
-                "contaminant_preset": normalize_metric(record, "contaminant_preset"),
-                "raw_backend_report_format": normalize_metric(
-                    record, "raw_backend_report_format"
+                "min_length": metric_or_run_default(record, "min_length", run_manifest),
+                "quality_cutoff": metric_or_run_default(
+                    record, "quality_cutoff", run_manifest
+                ),
+                "n_policy": metric_or_run_default(record, "n_policy", run_manifest),
+                "adapter_policy": metric_or_run_default(
+                    record, "adapter_policy", run_manifest
+                ),
+                "polyx_policy": metric_or_run_default(
+                    record, "polyx_policy", run_manifest
+                ),
+                "contaminant_policy": metric_or_run_default(
+                    record, "contaminant_policy", run_manifest
+                ),
+                "adapter_bank_preset": (
+                    normalize_metric(record, "adapter_preset")
+                    or run_manifest.get("adapter_bank_preset")
+                ),
+                "polyx_preset": (
+                    normalize_metric(record, "polyx_preset")
+                    or run_manifest.get("polyx_preset")
+                ),
+                "contaminant_preset": (
+                    normalize_metric(record, "contaminant_preset")
+                    or run_manifest.get("contaminant_preset")
+                ),
+                "raw_backend_report_format": (
+                    normalize_metric(record, "raw_backend_report_format")
+                    or expected_raw_backend_report_format(tool)
                 ),
             }
             sample_rows.append(row)
             tool_rows[tool].append(row)
 
-    run_manifest.setdefault("quality_cutoff", defaults["quality_cutoff"])
-    run_manifest.setdefault("adapter_bank_preset", defaults["adapter_bank_preset"])
-    run_manifest.setdefault("polyx_preset", defaults["polyx_preset"])
-    run_manifest.setdefault("contaminant_preset", defaults["contaminant_preset"])
     validate_trim_row_contract(run_manifest=run_manifest, sample_rows=sample_rows)
 
     tool_summary = []
@@ -377,7 +409,7 @@ def main() -> int:
         "stage_id": TRIM_READS_BENCHMARK_CONTRACT.stage_id,
         "scenario_id": run_manifest["scenario_id"],
         "platform": run_manifest["platform"],
-        "corpus_root": str(corpus_root),
+        "corpus_root": run_manifest.get("corpus_root", str(corpus_root)),
         "run_root": str(run_root),
         "tools": run_manifest["tools"],
         "samples_total": run_manifest["samples_total"],

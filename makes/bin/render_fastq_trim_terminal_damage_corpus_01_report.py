@@ -15,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     discover_normalized_samples,
     load_corpus_spec,
     load_json,
+    load_published_sample_metadata,
     validate_corpus_contract,
 )
 
@@ -64,6 +65,13 @@ def normalize_metric(record: dict, key: str):
     metrics = record.get("metrics", {})
     metrics_payload = metrics.get("metrics", metrics)
     return metrics_payload.get(key)
+
+
+def metric_or_run_default(record: dict, key: str, run_manifest: dict):
+    value = normalize_metric(record, key)
+    if value is not None:
+        return value
+    return run_manifest.get(key)
 
 
 def expected_raw_backend_report_format(tool: str) -> str | None:
@@ -219,6 +227,16 @@ def render_markdown(summary: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def load_sample_metadata(repo_root: Path, corpus_root: Path, spec: dict) -> dict[str, dict]:
+    if (corpus_root / "normalized").is_dir():
+        return validate_corpus_contract(
+            corpus_root,
+            spec,
+            discover_normalized_samples(corpus_root),
+        )
+    return load_published_sample_metadata(repo_root, spec)
+
+
 def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
@@ -237,11 +255,7 @@ def main() -> int:
     spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
     validate_terminal_damage_run_manifest_contract(run_manifest)
-    metadata_by_sample = validate_corpus_contract(
-        corpus_root,
-        spec,
-        discover_normalized_samples(corpus_root),
-    )
+    metadata_by_sample = load_sample_metadata(repo_root, corpus_root, spec)
 
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
@@ -295,22 +309,29 @@ def main() -> int:
                 "mean_q_delta": delta_metrics.get("mean_q_delta", 0.0)
                 if isinstance(delta_metrics, dict)
                 else 0.0,
-                "damage_mode": normalize_metric(record, "damage_mode"),
-                "execution_policy": normalize_metric(record, "execution_policy"),
-                "trim_5p_bases": normalize_metric(record, "trim_5p_bases"),
-                "trim_3p_bases": normalize_metric(record, "trim_3p_bases"),
-                "requested_trim_5p_bases": normalize_metric(
-                    record, "requested_trim_5p_bases"
+                "damage_mode": metric_or_run_default(record, "damage_mode", run_manifest),
+                "execution_policy": metric_or_run_default(
+                    record, "execution_policy", run_manifest
                 ),
-                "requested_trim_3p_bases": normalize_metric(
-                    record, "requested_trim_3p_bases"
+                "trim_5p_bases": metric_or_run_default(
+                    record, "trim_5p_bases", run_manifest
+                ),
+                "trim_3p_bases": metric_or_run_default(
+                    record, "trim_3p_bases", run_manifest
+                ),
+                "requested_trim_5p_bases": metric_or_run_default(
+                    record, "requested_trim_5p_bases", run_manifest
+                ),
+                "requested_trim_3p_bases": metric_or_run_default(
+                    record, "requested_trim_3p_bases", run_manifest
                 ),
                 "udg_classification": normalize_metric(record, "udg_classification"),
                 "ct_ga_asymmetry_pre": pre,
                 "ct_ga_asymmetry_post": post,
                 "asymmetry_reduction": asymmetry_reduction,
-                "raw_backend_report_format": normalize_metric(
-                    record, "raw_backend_report_format"
+                "raw_backend_report_format": (
+                    normalize_metric(record, "raw_backend_report_format")
+                    or expected_raw_backend_report_format(tool)
                 ),
             }
             sample_rows.append(row)
@@ -356,20 +377,24 @@ def main() -> int:
             (row for row in tool_summary if row["median_base_retention"] is not None),
             key=lambda row: row["median_base_retention"],
         )
-        largest_asymmetry_reduction = max(
-            (row for row in tool_summary if row["mean_asymmetry_reduction"] is not None),
-            key=lambda row: row["mean_asymmetry_reduction"],
-        )
         headline = {
             "fastest_tool": fastest["tool"],
             "fastest_runtime_s": fastest["median_runtime_s"],
             "best_base_retention_tool": best_base_retention["tool"],
             "best_base_retention": best_base_retention["median_base_retention"],
-            "largest_asymmetry_reduction_tool": largest_asymmetry_reduction["tool"],
-            "largest_asymmetry_reduction": largest_asymmetry_reduction[
-                "mean_asymmetry_reduction"
-            ],
         }
+        asymmetry_rows = [
+            row for row in tool_summary if row["mean_asymmetry_reduction"] is not None
+        ]
+        if asymmetry_rows:
+            largest_asymmetry_reduction = max(
+                asymmetry_rows,
+                key=lambda row: row["mean_asymmetry_reduction"],
+            )
+            headline["largest_asymmetry_reduction_tool"] = largest_asymmetry_reduction["tool"]
+            headline["largest_asymmetry_reduction"] = largest_asymmetry_reduction[
+                "mean_asymmetry_reduction"
+            ]
 
     summary = {
         "schema_version": "bijux.fastq.trim_terminal_damage.corpus_summary.v1",
@@ -378,7 +403,7 @@ def main() -> int:
         "stage_id": TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT.stage_id,
         "scenario_id": run_manifest["scenario_id"],
         "platform": run_manifest["platform"],
-        "corpus_root": str(corpus_root),
+        "corpus_root": run_manifest.get("corpus_root", str(corpus_root)),
         "run_root": str(run_root),
         "tools": run_manifest["tools"],
         "samples_total": run_manifest["samples_total"],
