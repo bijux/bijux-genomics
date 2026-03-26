@@ -27,8 +27,9 @@ mod tests {
 
     use crate::resolve::{
         apptainer_sif_path, available_runners_with, cache_dir, docker_image_exists_with,
-        load_image_catalog_from_file, resolve_image, select_best_runner, validate_images_for_stage,
-        EnvError, ImageRef, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
+        hydrate_catalog_digests_from_registry, load_image_catalog_from_file, resolve_image,
+        select_best_runner, validate_images_for_stage, EnvError, ImageRef, PlatformSpec,
+        ResolvedImage, RuntimeKind, ToolImageSpec,
     };
     use bijux_dna_infra::atomic_write_bytes;
 
@@ -173,6 +174,61 @@ arch = "arm64"
         let catalog = load_image_catalog_from_file(&path)?;
         assert!(catalog.contains_key("fastp"));
         let _ = bijux_dna_infra::remove_file(&path);
+        Ok(())
+    }
+
+    #[test]
+    fn registry_digest_hydration_fills_missing_digest() -> Result<(), EnvError> {
+        let temp_dir = tempfile::tempdir().map_err(std::io::Error::other)?;
+        let images_path = temp_dir.path().join("images.toml");
+        let registry_path = temp_dir.path().join("tool_registry.toml");
+        atomic_write_bytes(&images_path, b"[fastqc]\nversion = \"latest-pinned\"\n")
+            .map_err(std::io::Error::other)?;
+        atomic_write_bytes(
+            &registry_path,
+            br#"[[tools]]
+id = "fastqc"
+container_ref = "bijuxdna/fastqc@sha256:abc123"
+"#,
+        )
+        .map_err(std::io::Error::other)?;
+
+        let mut catalog = load_image_catalog_from_file(&images_path)?;
+        hydrate_catalog_digests_from_registry(&mut catalog, &registry_path)?;
+
+        assert_eq!(
+            catalog.get("fastqc").and_then(|spec| spec.digest.as_deref()),
+            Some("sha256:abc123")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn registry_digest_hydration_preserves_existing_digest() -> Result<(), EnvError> {
+        let temp_dir = tempfile::tempdir().map_err(std::io::Error::other)?;
+        let images_path = temp_dir.path().join("images.toml");
+        let registry_path = temp_dir.path().join("tool_registry.toml");
+        atomic_write_bytes(
+            &images_path,
+            b"[fastqc]\nversion = \"latest-pinned\"\ndigest = \"sha256:kept\"\n",
+        )
+        .map_err(std::io::Error::other)?;
+        atomic_write_bytes(
+            &registry_path,
+            br#"[[tools]]
+id = "fastqc"
+container_ref = "bijuxdna/fastqc@sha256:abc123"
+"#,
+        )
+        .map_err(std::io::Error::other)?;
+
+        let mut catalog = load_image_catalog_from_file(&images_path)?;
+        hydrate_catalog_digests_from_registry(&mut catalog, &registry_path)?;
+
+        assert_eq!(
+            catalog.get("fastqc").and_then(|spec| spec.digest.as_deref()),
+            Some("sha256:kept")
+        );
         Ok(())
     }
 

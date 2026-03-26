@@ -110,6 +110,20 @@ struct PlatformsFile {
     pub platforms: BTreeMap<String, PlatformSpecRaw>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+struct RegistryImagePinFile {
+    #[serde(default)]
+    tools: Vec<RegistryImagePinRow>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+struct RegistryImagePinRow {
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    container_ref: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ImageRef {
@@ -310,7 +324,10 @@ pub fn resolve_image(
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
 pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
     let path = bijux_dna_infra::configs_file(Path::new("."), "ci/tools/images.toml");
-    load_image_catalog_from_file(&path)
+    let mut catalog = load_image_catalog_from_file(&path)?;
+    let registry_path = bijux_dna_infra::configs_file(Path::new("."), "ci/registry/tool_registry.toml");
+    hydrate_catalog_digests_from_registry(&mut catalog, &registry_path)?;
+    Ok(catalog)
 }
 
 /// Load tool images from a specific TOML file.
@@ -341,6 +358,36 @@ pub(crate) fn load_image_catalog_from_file(
         }
     }
     Ok(catalog)
+}
+
+fn hydrate_catalog_digests_from_registry(
+    catalog: &mut HashMap<String, ToolImageSpec>,
+    registry_path: &Path,
+) -> Result<(), EnvError> {
+    if !registry_path.is_file() {
+        return Ok(());
+    }
+    let contents = std::fs::read_to_string(registry_path)?;
+    let registry: RegistryImagePinFile =
+        bijux_dna_infra::formats::parse_toml(&contents).map_err(|err| EnvError::Parse(err.message))?;
+    for tool in registry.tools {
+        if tool.id.trim().is_empty() {
+            continue;
+        }
+        let Some(container_ref) = tool.container_ref.as_deref() else {
+            continue;
+        };
+        let Some((_, digest)) = container_ref.split_once("@sha256:") else {
+            continue;
+        };
+        let Some(spec) = catalog.get_mut(&tool.id) else {
+            continue;
+        };
+        if spec.digest.is_none() {
+            spec.digest = Some(format!("sha256:{digest}"));
+        }
+    }
+    Ok(())
 }
 
 /// Validate that tools have image entries.
