@@ -224,6 +224,62 @@ class TrimPolygReportingTests(unittest.TestCase):
         self.assertIn("PolyX preset: `illumina_twocolor`", markdown)
         self.assertIn("Mean bases trimmed", markdown)
 
+    def test_trim_polyg_report_contract_rejects_mixed_preset_rows(self) -> None:
+        run_manifest = {
+            "tools": ["fastp", "bbduk"],
+            "polyx_preset": "illumina_twocolor",
+            "min_polyg_run": 10,
+            "trim_polyg": True,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "fastp",
+                "raw_backend_report_format": "fastp_json",
+                "polyx_preset": "illumina_twocolor",
+                "min_polyg_run": 10,
+                "trim_polyg": True,
+            },
+            {
+                "sample_id": "sample_0001",
+                "tool": "bbduk",
+                "raw_backend_report_format": "bbduk_stats",
+                "polyx_preset": "wrong_preset",
+                "min_polyg_run": 10,
+                "trim_polyg": True,
+            },
+        ]
+
+        with self.assertRaises(SystemExit):
+            trim_polyg_report.validate_trim_polyg_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+            )
+
+    def test_trim_polyg_report_contract_rejects_missing_tool_rows(self) -> None:
+        run_manifest = {
+            "tools": ["fastp", "bbduk"],
+            "polyx_preset": "illumina_twocolor",
+            "min_polyg_run": 10,
+            "trim_polyg": True,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "fastp",
+                "raw_backend_report_format": "fastp_json",
+                "polyx_preset": "illumina_twocolor",
+                "min_polyg_run": 10,
+                "trim_polyg": True,
+            }
+        ]
+
+        with self.assertRaises(SystemExit):
+            trim_polyg_report.validate_trim_polyg_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
