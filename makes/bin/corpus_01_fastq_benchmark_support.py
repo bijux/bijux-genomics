@@ -150,3 +150,31 @@ def validate_corpus_contract(
             f"found {dict(sorted(actual_counts.items()))}"
         )
     return metadata_by_sample
+
+
+def normalize_tool_csv(raw: str) -> list[str]:
+    tools: list[str] = []
+    seen: set[str] = set()
+    for tool in (entry.strip() for entry in raw.split(",")):
+        if not tool or tool in seen:
+            continue
+        seen.add(tool)
+        tools.append(tool)
+    if not tools:
+        raise SystemExit("tool roster must not be empty")
+    return tools
+
+
+def require_exact_tool_roster(
+    stage_id: str,
+    tools: list[str],
+    expected: list[str],
+) -> list[str]:
+    expected_set = set(expected)
+    tools_set = set(tools)
+    if tools_set != expected_set:
+        raise SystemExit(
+            f"{stage_id} corpus benchmark requires the full governed tool roster "
+            f"{expected}, received {tools}"
+        )
+    return [tool for tool in expected if tool in tools_set]

@@ -13,6 +13,8 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     discover_normalized_samples,
     load_corpus_spec,
+    normalize_tool_csv,
+    require_exact_tool_roster,
     validate_corpus_contract,
 )
 
@@ -156,6 +158,11 @@ def main() -> int:
 
     samples = discover_normalized_samples(corpus_root)
     validate_corpus_contract(corpus_root, spec, samples)
+    tools = require_exact_tool_roster(
+        "fastq.trim_polyg_tails",
+        normalize_tool_csv(args.tools),
+        ["fastp", "bbduk"],
+    )
     trim_polyg = parse_optional_bool(args.trim_polyg)
     runs: list[SampleRun] = []
     failures = 0
@@ -180,7 +187,7 @@ def main() -> int:
         command = build_command(
             out_root=out_root,
             platform=args.platform,
-            tools=args.tools,
+            tools=",".join(tools),
             threads=args.threads,
             jobs=args.jobs,
             polyx_preset=args.polyx_preset,
@@ -210,7 +217,7 @@ def main() -> int:
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "corpus_id": spec["corpus_id"],
         "platform": args.platform,
-        "tools": [tool for tool in args.tools.split(",") if tool],
+        "tools": tools,
         "threads": args.threads,
         "jobs": args.jobs,
         "polyx_preset": args.polyx_preset,
