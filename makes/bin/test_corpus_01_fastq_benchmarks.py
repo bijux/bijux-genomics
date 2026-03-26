@@ -34,6 +34,7 @@ import render_fastq_trim_terminal_damage_corpus_01_briefing as terminal_damage_b
 import render_fastq_trim_terminal_damage_corpus_01_report as terminal_damage_report
 import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
+import normalize_lunarc_results_mirror as normalize_results_mirror
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
@@ -217,6 +218,59 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertEqual(sorted(metadata), ["sample_0001", "sample_0002", "sample_0003", "sample_0004"])
             self.assertEqual(metadata["sample_0002"]["layout"], "pe")
             self.assertEqual(metadata["sample_0004"]["era"], "modern")
+
+    def test_normalize_results_mirror_moves_raw_lunarc_tree_into_canonical_layout(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            results_root = Path(tmpdir) / "results"
+            raw_run_root = (
+                results_root
+                / "home"
+                / "bijan"
+                / "bijux"
+                / "results"
+                / "corpus_01"
+                / "fastq.merge_pairs"
+                / "lunarc"
+            )
+            raw_run_root.mkdir(parents=True)
+            (raw_run_root / "run_manifest.json").write_text("{}", encoding="utf-8")
+
+            report = normalize_results_mirror.normalize_results_root(
+                results_root,
+                "corpus_01",
+                dry_run=False,
+            )
+
+            canonical_run_root = results_root / "corpus_01" / "fastq.merge_pairs" / "lunarc"
+            self.assertTrue((canonical_run_root / "run_manifest.json").is_file())
+            self.assertFalse(raw_run_root.exists())
+            self.assertEqual(report["actions"][0]["status"], "moved")
+
+    def test_normalize_results_mirror_skips_existing_canonical_target(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            results_root = Path(tmpdir) / "results"
+            raw_run_root = (
+                results_root
+                / "home"
+                / "bijan"
+                / "bijux"
+                / "results"
+                / "corpus_01"
+                / "fastq.merge_pairs"
+                / "lunarc"
+            )
+            canonical_run_root = results_root / "corpus_01" / "fastq.merge_pairs" / "lunarc"
+            raw_run_root.mkdir(parents=True)
+            canonical_run_root.mkdir(parents=True)
+
+            report = normalize_results_mirror.normalize_results_root(
+                results_root,
+                "corpus_01",
+                dry_run=False,
+            )
+
+            self.assertTrue(raw_run_root.exists())
+            self.assertEqual(report["actions"][0]["status"], "skipped_existing_target")
 
 
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
