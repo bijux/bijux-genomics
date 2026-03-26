@@ -37,6 +37,7 @@ STAGE_CONTRACTS = [
         "fastq.trim_terminal_damage",
         "terminal_damage_fairness",
     ),
+    StagePublicationContract("fastq.report_qc", "qc_aggregation_fairness"),
 ]
 
 REQUIRED_STAGE_FILES = [

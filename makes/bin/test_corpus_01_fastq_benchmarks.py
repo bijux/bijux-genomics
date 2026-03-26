@@ -203,6 +203,11 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
 
         self.assertIn("fastq.merge_pairs", stage_ids)
 
+    def test_report_qc_stage_is_tracked_in_publication_audit(self) -> None:
+        stage_ids = [contract.stage_id for contract in benchmark_docs_audit.STAGE_CONTRACTS]
+
+        self.assertIn("fastq.report_qc", stage_ids)
+
 
 class TrimPolygReportingTests(unittest.TestCase):
     def test_trim_polyg_summary_tracks_runtime_and_retention(self) -> None:
