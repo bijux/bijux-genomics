@@ -173,8 +173,7 @@ mod tests {
             },
             command: bijux_dna_core::prelude::CommandSpecV1 {
                 template: vec![
-                    "seqkit".to_string(),
-                    "stats".to_string(),
+                    "seqkit_stats".to_string(),
                     "-a".to_string(),
                     "-T".to_string(),
                     "-j".to_string(),
@@ -208,8 +207,7 @@ mod tests {
         assert_eq!(
             plan.command.template,
             vec![
-                "seqkit",
-                "stats",
+                "seqkit_stats",
                 "-a",
                 "-T",
                 "-j",

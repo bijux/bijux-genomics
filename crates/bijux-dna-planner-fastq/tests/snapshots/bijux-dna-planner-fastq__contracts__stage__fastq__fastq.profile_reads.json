@@ -10,8 +10,7 @@
   },
   "command": {
     "template": [
-      "seqkit",
-      "stats",
+      "seqkit_stats",
       "-a",
       "-T",
       "-j",
