@@ -1,0 +1,72 @@
+{
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_id": "corpus-01",
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-26T11:34:11.220600+00:00",
+  "headline": {
+    "fastest_runtime_s": 1.2545895885,
+    "fastest_tool": "fastq_scan",
+    "highest_top_fraction": 0.0018666067294443546,
+    "highest_top_fraction_tool": "fastq_scan",
+    "largest_sequence_count": 50.0,
+    "largest_sequence_count_tool": "fastq_scan"
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "may_change_read_count": false,
+  "mutates_fastq": false,
+  "platform": "lunarc-apptainer",
+  "report_only": true,
+  "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_overrepresented_sequences/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "overrepresented_sequence_fairness",
+  "schema_version": "bijux.fastq.profile_overrepresented_sequences.corpus_summary.v1",
+  "stage_id": "fastq.profile_overrepresented_sequences",
+  "tool_summary": [
+    {
+      "median_flagged_sequences": 0.0,
+      "median_runtime_s": 1.2545895885,
+      "median_sequence_count": 50.0,
+      "median_top_fraction": 0.0018666067294443546,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "fastq_scan"
+    },
+    {
+      "median_flagged_sequences": 0.0,
+      "median_runtime_s": 7.0868341,
+      "median_sequence_count": 50.0,
+      "median_top_fraction": 0.0018666067294443546,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "fastqc"
+    },
+    {
+      "median_flagged_sequences": 0.0,
+      "median_runtime_s": 1.9788887355,
+      "median_sequence_count": 50.0,
+      "median_top_fraction": 0.0018666067294443546,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "seqkit"
+    }
+  ],
+  "tools": [
+    "fastq_scan",
+    "fastqc",
+    "seqkit"
+  ],
+  "top_k": 50
+}
