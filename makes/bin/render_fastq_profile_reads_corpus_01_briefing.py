@@ -87,6 +87,19 @@ def validate_summary_contract(summary: dict) -> None:
         )
     if not summary.get("tools"):
         raise SystemExit("profile-reads briefing drift: summary tools must not be empty")
+    expected_contract = {
+        "report_only": True,
+        "mutates_fastq": False,
+        "may_change_read_count": False,
+        "raw_backend_report_format": "seqkit_stats_tsv",
+        "length_histogram_source": "seqkit_fx2tab",
+    }
+    for key, expected in expected_contract.items():
+        if summary.get(key) != expected:
+            raise SystemExit(
+                "profile-reads briefing drift: "
+                f"expected {key}={expected!r}, found {summary.get(key)!r}"
+            )
 
 
 def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
@@ -99,6 +112,12 @@ def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
             "profile-reads briefing drift: "
             f"expected tools {expected_tools}, found {observed_tools}"
         )
+    for row in rows:
+        if float(row["histogram_bin_count"]) <= 0:
+            raise SystemExit(
+                "profile-reads briefing drift: "
+                f"histogram_bin_count must be positive for {row['sample_id']}/{row['tool']}"
+            )
 
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
