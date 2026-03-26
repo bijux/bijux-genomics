@@ -1,0 +1,8 @@
+tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,median_mean_q,median_gc_percent,median_read_length,median_histogram_bin_count
+seqkit_stats,era_layout,ancient_pe,5,2.773230,1.155074,0.000000,56.085066,75.696602,13.000000
+seqkit_stats,era_layout,ancient_se,5,2.687101,1.281872,0.000000,45.840000,80.353720,156.000000
+seqkit_stats,era_layout,modern_pe,5,6.404591,9.727954,0.000000,53.365000,36.000000,1.000000
+seqkit_stats,era_layout,modern_se,5,4.219139,1.866079,0.000000,45.150000,76.000000,1.000000
+seqkit_stats,size_band,under_1000mb,1,11.431040,11.431040,0.000000,45.150000,101.000000,1.000000
+seqkit_stats,size_band,under_100mb,12,1.066575,1.083907,0.000000,46.300000,76.000000,85.000000
+seqkit_stats,size_band,under_500mb,7,8.027195,8.932152,0.000000,50.470000,76.000000,1.000000
