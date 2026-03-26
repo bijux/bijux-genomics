@@ -18,7 +18,6 @@ use crate::command_runner::{run_command, CommandOutputV1};
 
 #[derive(Debug, Clone, Copy)]
 enum RunnerEffectKind {
-    UnsupportedRuntime,
     Filesystem,
     CommandSpawn,
     ContainerLifecycle,
@@ -28,7 +27,6 @@ enum RunnerEffectKind {
 impl RunnerEffectKind {
     const fn code(self) -> &'static str {
         match self {
-            Self::UnsupportedRuntime => "unsupported_runtime",
             Self::Filesystem => "filesystem",
             Self::CommandSpawn => "command_spawn",
             Self::ContainerLifecycle => "container_lifecycle",
@@ -81,11 +79,35 @@ fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
     Ok(hashes)
 }
 
+fn rewrite_container_path(value: &str, host_root: &Path, container_root: &str) -> String {
+    let host_root = host_root.display().to_string();
+    if value == host_root {
+        return container_root.to_string();
+    }
+    let host_prefix = format!("{host_root}/");
+    let container_prefix = format!("{container_root}/");
+    value.replace(&host_prefix, &container_prefix)
+}
+
+fn container_command_template(
+    template: &[String],
+    input_root: &Path,
+    out_dir: &Path,
+) -> Vec<String> {
+    template
+        .iter()
+        .map(|part| {
+            let rewritten_input = rewrite_container_path(part, input_root, "/data/input");
+            rewrite_container_path(&rewritten_input, out_dir, "/data/output")
+        })
+        .collect()
+}
+
 fn build_apptainer_exec_args(
     step: &ExecutionStep,
     input_root: &Path,
     out_dir: &Path,
-    runner: RuntimeKind,
+    _runner: RuntimeKind,
 ) -> Result<Vec<String>> {
     let input_mount = format!("{}:/data/input:ro", input_root.display());
     let output_mount = format!("{}:/data/output", out_dir.display());
@@ -112,16 +134,12 @@ fn build_apptainer_exec_args(
         args.push("--pwd".to_string());
         args.push(workdir_in_container);
     }
-    if !network_allowed() {
-        match runner {
-            RuntimeKind::Apptainer => {
-                args.push("--net".to_string());
-            }
-            RuntimeKind::Singularity | RuntimeKind::Docker => {}
-        }
-    }
     args.push(step.image.image.clone());
-    args.extend(step.command.template.clone());
+    args.extend(container_command_template(
+        &step.command.template,
+        input_root,
+        out_dir,
+    ));
     if args.is_empty() {
         return Err(runner_failure(
             RunnerEffectKind::CommandSpawn,
@@ -154,6 +172,17 @@ fn runtime_env_exports() -> Vec<(String, String)> {
     pairs
 }
 
+fn configured_memory_mb(step: &ExecutionStep) -> f64 {
+    if let Ok(value) = std::env::var("BIJUX_STAGE_MEMORY_MB") {
+        if let Ok(parsed) = value.parse::<f64>() {
+            if parsed.is_finite() && parsed > 0.0 {
+                return parsed;
+            }
+        }
+    }
+    f64::from(step.resources.mem_gb.max(1)) * 1024.0
+}
+
 /// Execute a single step using docker.
 ///
 /// # Errors
@@ -176,6 +205,7 @@ pub fn execute_step(
     let input_root = common_parent(&inputs).unwrap_or_else(|| out_dir.clone());
     let input_mount = format!("{}:/data/input:ro", input_root.display());
     let output_mount = format!("{}:/data/output", out_dir.display());
+    let command_template = container_command_template(&step.command.template, &input_root, out_dir);
 
     let (output, exit_code, stdout, stderr, runtime_s, memory_mb) = match runner {
         RuntimeKind::Docker => {
@@ -215,7 +245,7 @@ pub fn execute_step(
                 output_mount,
                 step.image.image.clone(),
             ]);
-            args.extend(step.command.template.clone());
+            args.extend(command_template.clone());
 
             let output = run_command("docker", &args)
                 .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
@@ -256,7 +286,7 @@ pub fn execute_step(
             let stdout = output.stdout.clone();
             let stderr = output.stderr.clone();
             let runtime_s = output.runtime_s;
-            let memory_mb = 0.0;
+            let memory_mb = configured_memory_mb(step);
             (output, exit_code, stdout, stderr, runtime_s, memory_mb)
         }
     };
@@ -351,9 +381,6 @@ fn build_observer_command_args(
                 "--bind".to_string(),
                 mount_arg,
             ];
-            if !network_allowed() && runner == RuntimeKind::Apptainer {
-                command_args.push("--net".to_string());
-            }
             command_args.push(image.to_string());
             command_args.extend(args.iter().cloned());
             let bin = if runner == RuntimeKind::Apptainer {
@@ -519,7 +546,7 @@ fn write_tool_invocation(
 
 #[cfg(test)]
 mod tests {
-    use super::build_observer_command_args;
+    use super::{build_observer_command_args, container_command_template};
     use bijux_dna_environment::api::RuntimeKind;
     use std::path::Path;
 
@@ -558,5 +585,23 @@ mod tests {
         assert!(args.contains(&"--bind".to_string()));
         assert!(args.contains(&"/tmp/input:/data:ro".to_string()));
         assert!(args.contains(&"/containers/seqkit.sif".to_string()));
+    }
+
+    #[test]
+    fn container_command_template_rewrites_mounted_input_and_output_paths() {
+        let template = vec![
+            "sh".to_string(),
+            "-lc".to_string(),
+            "validator /tmp/corpus/sample_0004_R1.fastq.gz > /tmp/out/validation_r1.log && printf '%s' /tmp/out/validation.json"
+                .to_string(),
+        ];
+
+        let rewritten =
+            container_command_template(&template, Path::new("/tmp/corpus"), Path::new("/tmp/out"));
+
+        assert_eq!(rewritten[0], "sh");
+        assert!(rewritten[2].contains("/data/input/sample_0004_R1.fastq.gz"));
+        assert!(rewritten[2].contains("/data/output/validation_r1.log"));
+        assert!(rewritten[2].contains("/data/output/validation.json"));
     }
 }
