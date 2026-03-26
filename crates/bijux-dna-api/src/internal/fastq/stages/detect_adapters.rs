@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, prepare_trim_bench,
+    benchmark_image_identity, build_benchmark_context, prepare_trim_bench,
 };
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
@@ -129,12 +129,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
         let params_hash = stable_params_hash(&plan.params);
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_detect_adapters_v1(
             &conn,
             tool,

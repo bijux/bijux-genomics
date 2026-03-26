@@ -45,6 +45,7 @@ use bijux_dna_runtime::recording::{
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
 };
 
+use super::trim_bench_common::benchmark_image_identity;
 use crate::public_bridge::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_PROFILE_READS,
 };
@@ -127,12 +128,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             args.threads,
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         let cached = fetch_fastq_stats_v1(
             &conn,
             &tool,
@@ -344,12 +340,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let plan_json = StagePlanJson::from_plan(&plan);
     let params = plan.params.clone();
     let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-    let image_digest = tool_spec
-        .image
-        .digest
-        .as_ref()
-        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-        .clone();
+    let image_digest = benchmark_image_identity(tool_spec);
     let run_id = compute_run_id(
         STAGE_PROFILE_READS.as_str(),
         tool,

@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::{BenchmarkContext, FastqDeltaMetrics};
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -125,6 +126,14 @@ pub(crate) fn build_benchmark_context(
         input_hash,
         parameters: parameters.into(),
     }
+}
+
+pub(crate) fn benchmark_image_identity(tool_spec: &ToolExecutionSpecV1) -> String {
+    tool_spec
+        .image
+        .digest
+        .clone()
+        .unwrap_or_else(|| tool_spec.image.image.clone())
 }
 
 #[allow(dead_code)]
