@@ -14,6 +14,8 @@ if str(BIN_DIR) not in sys.path:
 import corpus_01_fastq_benchmark_support as support
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
+import render_fastq_profile_reads_corpus_01_briefing as profile_reads_briefing
+import render_fastq_profile_reads_corpus_01_report as profile_reads_report
 import render_fastq_trim_reads_corpus_01_briefing as trim_reads_briefing
 import render_fastq_trim_reads_corpus_01_report as trim_reads_report
 import render_fastq_trim_terminal_damage_corpus_01_briefing as terminal_damage_briefing
@@ -671,6 +673,97 @@ class DetectAdaptersReportingTests(unittest.TestCase):
                     "report_only": True,
                     "evidence_scope": "full_input",
                     "evidence_format": "fastqc_summary",
+                }
+            )
+
+
+class ProfileReadsReportingTests(unittest.TestCase):
+    def test_profile_reads_summary_tracks_runtime_and_profile_metrics(self) -> None:
+        histogram = [{"length": 50, "count": 2}, {"length": 75, "count": 2}]
+        derived = profile_reads_report.derived_histogram_metrics(histogram)
+
+        self.assertEqual(derived["histogram_bin_count"], 2)
+        self.assertEqual(derived["max_observed_length"], 75)
+        self.assertAlmostEqual(derived["mean_read_length"], 62.5)
+
+    def test_profile_reads_markdown_mentions_profile_contract(self) -> None:
+        summary = {
+            "generated_at_utc": "2026-03-26T00:00:00+00:00",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_reads/lunarc",
+            "scenario_id": "profile_reads_fairness",
+            "samples_total": 20,
+            "samples_failed": 0,
+            "tools": ["seqkit_stats"],
+            "report_only": True,
+            "mutates_fastq": False,
+            "may_change_read_count": False,
+            "raw_backend_report_format": "seqkit_stats_tsv",
+            "length_histogram_source": "seqkit_fx2tab",
+            "era_counts": {"ancient": 10, "modern": 10},
+            "layout_counts": {"se": 10, "pe": 10},
+            "cohort_counts": {"ancient_pe": 5, "ancient_se": 5, "modern_pe": 5, "modern_se": 5},
+            "headline": {
+                "fastest_tool": "seqkit_stats",
+                "fastest_runtime_s": 1.1,
+                "highest_mean_q_tool": "seqkit_stats",
+                "highest_mean_q": 33.2,
+                "widest_histogram_tool": "seqkit_stats",
+                "widest_histogram_bins": 42,
+            },
+            "tool_summary": [
+                {
+                    "tool": "seqkit_stats",
+                    "records": 20,
+                    "pass_rate": 1.0,
+                    "median_runtime_s": 1.1,
+                    "median_reads_total": 1000.0,
+                    "median_bases_total": 75000.0,
+                    "median_mean_q": 33.2,
+                    "median_gc_percent": 45.0,
+                    "median_read_length": 75.0,
+                    "median_histogram_bin_count": 42.0,
+                }
+            ],
+        }
+
+        markdown = profile_reads_report.render_markdown(summary)
+
+        self.assertIn("raw_backend_report_format: `seqkit_stats_tsv`", markdown)
+        self.assertIn("length_histogram_source: `seqkit_fx2tab`", markdown)
+
+    def test_profile_reads_report_contract_rejects_empty_histograms(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_reads_report.validate_profile_reads_row_contract(
+                run_manifest={"tools": ["seqkit_stats"]},
+                sample_rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "seqkit_stats",
+                        "reads_total": 100,
+                        "bases_total": 1000,
+                        "mean_q": 31.0,
+                        "gc_percent": 45.0,
+                        "histogram_bin_count": 0,
+                    }
+                ],
+                expected_sample_ids=["sample_0001"],
+            )
+
+    def test_profile_reads_report_rejects_dry_run_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_reads_report.validate_profile_reads_run_manifest_contract(
+                {
+                    "stage_id": "fastq.profile_reads",
+                    "scenario_id": "profile_reads_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": True,
+                    "report_only": True,
+                    "mutates_fastq": False,
+                    "may_change_read_count": False,
+                    "raw_backend_report_format": "seqkit_stats_tsv",
+                    "length_histogram_source": "seqkit_fx2tab",
                 }
             )
 
