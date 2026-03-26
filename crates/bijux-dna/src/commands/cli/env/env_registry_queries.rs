@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
 use anyhow::{anyhow, Context, Result};
@@ -54,6 +54,17 @@ pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error if smoke script execution fails.
 pub fn run_env_smoke(runtime: &str, tool: &str) -> Result<()> {
+    if runtime == "apptainer" {
+        let registry_path = current_registry_path()?;
+        ensure_apptainer_tools(
+            &registry_path,
+            &resolved_apptainer_hpc_root()?,
+            &[tool.to_string()],
+            true,
+            false,
+        )?;
+        return Ok(());
+    }
     run_smoke_script(runtime, tool)
 }
 
@@ -148,6 +159,16 @@ pub fn run_env_smoke_for_stage(registry_path: &Path, runtime: &str, stage: &str)
     if tools.is_empty() {
         return Err(anyhow!("no tools found for stage {stage}"));
     }
+    if runtime == "apptainer" {
+        ensure_apptainer_tools(
+            registry_path,
+            &resolved_apptainer_hpc_root()?,
+            &tools,
+            true,
+            false,
+        )?;
+        return Ok(());
+    }
     run_env_with_tools(runtime, &tools, "contract")
 }
 
@@ -160,12 +181,32 @@ pub fn run_env_prep(
     stage: Option<&str>,
 ) -> Result<()> {
     if let Some(tool) = tool {
+        if runtime == "apptainer" {
+            ensure_apptainer_tools(
+                registry_path,
+                &resolved_apptainer_hpc_root()?,
+                &[tool.to_string()],
+                false,
+                false,
+            )?;
+            return Ok(());
+        }
         return run_env_with_tools(runtime, &[tool.to_string()], "version");
     }
     if let Some(stage) = stage {
         let tools = registry_tools_for_stage(registry_path, stage, None, "all")?;
         if tools.is_empty() {
             return Err(anyhow!("no tools found for stage {stage}"));
+        }
+        if runtime == "apptainer" {
+            ensure_apptainer_tools(
+                registry_path,
+                &resolved_apptainer_hpc_root()?,
+                &tools,
+                false,
+                false,
+            )?;
+            return Ok(());
         }
         return run_env_with_tools(runtime, &tools, "version");
     }
@@ -174,6 +215,31 @@ pub fn run_env_prep(
 
 fn run_env_with_tools(runtime: &str, tools: &[String], smoke_level: &str) -> Result<()> {
     run_smoke_script_batch(runtime, tools, smoke_level)
+}
+
+fn current_registry_path() -> Result<PathBuf> {
+    let cwd = std::env::current_dir().context("resolve current working directory")?;
+    Ok(bijux_dna_infra::configs_file(
+        &cwd,
+        "ci/registry/tool_registry.toml",
+    ))
+}
+
+fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
+    if let Ok(root) = std::env::var("BIJUX_HPC_ROOT") {
+        if !root.trim().is_empty() {
+            return Ok(PathBuf::from(root));
+        }
+    }
+    if let Ok(config) = crate::commands::hpc::load_hpc_config() {
+        return Ok(config.resolve_paths().root);
+    }
+    let Some(home) = std::env::var_os("HOME") else {
+        return Err(anyhow!(
+            "unable to resolve Apptainer HPC root: BIJUX_HPC_ROOT, hpc config, and HOME are all missing"
+        ));
+    };
+    Ok(PathBuf::from(home).join("bijux"))
 }
 
 #[cfg(test)]
