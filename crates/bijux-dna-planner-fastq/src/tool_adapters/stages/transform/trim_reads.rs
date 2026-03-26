@@ -11,7 +11,6 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_TRIM_READS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 const ATROPOS_MIN_THREADS: u32 = 2;
-const ATROPOS_BANK_FREE_SENTINEL_ADAPTER: &str = "A{1000}";
 
 #[derive(Debug, Clone, Default)]
 pub struct TrimPlanOptions {
@@ -1168,17 +1167,6 @@ fn atropos_command_template(
                 command.extend(["-A".to_string(), adapter]);
             }
         }
-    } else {
-        command.extend([
-            "-a".to_string(),
-            ATROPOS_BANK_FREE_SENTINEL_ADAPTER.to_string(),
-        ]);
-        if r2.is_some() {
-            command.extend([
-                "-A".to_string(),
-                ATROPOS_BANK_FREE_SENTINEL_ADAPTER.to_string(),
-            ]);
-        }
     }
     if let Some(quality_cutoff) = options.quality_cutoff {
         command.extend(["-q".to_string(), quality_cutoff.to_string()]);
@@ -1248,8 +1236,11 @@ fn adapterremoval_command_template(
             r2.display().to_string(),
             "--output2".to_string(),
             output_r2.display().to_string(),
+            "--singleton".to_string(),
+            "/dev/null".to_string(),
         ]);
     }
+    command.extend(["--discarded".to_string(), "/dev/null".to_string()]);
     if matches!(
         options.resolved_adapter_policy().as_str(),
         "bank" | "ancient_strict"
@@ -1525,4 +1516,55 @@ fn shell_quote_path(path: &Path) -> String {
 
 fn shell_quote_str(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{adapterremoval_command_template, atropos_command_template, TrimPlanOptions};
+    use std::path::Path;
+
+    #[test]
+    fn adapterremoval_trim_redirects_undeclared_side_outputs() {
+        let command = adapterremoval_command_template(
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out/R1.adapterremoval.fastq.gz"),
+            Some(Path::new("out/R2.adapterremoval.fastq.gz")),
+            Path::new("out/trim_report.json"),
+            1,
+            None,
+            &TrimPlanOptions {
+                min_length: Some(30),
+                ..TrimPlanOptions::default()
+            },
+        )
+        .expect("adapterremoval command");
+
+        let script = command.get(2).expect("shell script");
+        assert!(script.contains("'--singleton' '/dev/null'"));
+        assert!(script.contains("'--discarded' '/dev/null'"));
+    }
+
+    #[test]
+    fn atropos_trim_omits_fake_adapter_when_adapter_policy_is_none() {
+        let command = atropos_command_template(
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out/R1.atropos.fastq.gz"),
+            Some(Path::new("out/R2.atropos.fastq.gz")),
+            Path::new("out/trim_report.json"),
+            1,
+            None,
+            &TrimPlanOptions {
+                min_length: Some(30),
+                ..TrimPlanOptions::default()
+            },
+        )
+        .expect("atropos command");
+
+        let script = command.get(2).expect("shell script");
+        assert!(!script.contains("A{1000}"));
+        assert!(!script.contains("'-a'"));
+        assert!(!script.contains("'-A'"));
+    }
 }
