@@ -156,7 +156,7 @@ fn low_complexity_command_template(
 ) -> Result<Vec<String>> {
     if tool.tool_id.as_str() == "bbduk" {
         let mut command = vec![
-            "bbduk.sh".to_string(),
+            "bbduk".to_string(),
             format!("in={}", r1.display()),
             format!("out={}", output_r1.display()),
             format!("entropy={}", options.resolved_entropy_threshold()),
