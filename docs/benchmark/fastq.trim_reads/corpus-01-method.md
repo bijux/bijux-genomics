@@ -1,0 +1,62 @@
+# `fastq.trim_reads` corpus-01 method
+
+## Scope
+- Stage: `fastq.trim_reads`
+- Corpus: `corpus-01`
+- Platform target: `lunarc-apptainer`
+- Benchmark scenario: `trim_fairness`
+
+## Governed tool cohort
+- The benchmark runner resolves the tool roster from `bijux-dna registry list-tools --stage fastq.trim_reads --kind benchmark`.
+- The current governed fairness cohort is:
+  - `adapterremoval`
+  - `atropos`
+  - `bbduk`
+  - `cutadapt`
+  - `fastp`
+  - `prinseq`
+  - `seqkit`
+  - `seqpurge`
+  - `trim_galore`
+  - `trimmomatic`
+
+## Execution contract
+- Use normalized FASTQ inputs from `corpus-01/normalized/`.
+- Require the balanced corpus contract:
+  - `5` ancient single-end
+  - `5` ancient paired-end
+  - `5` modern single-end
+  - `5` modern paired-end
+- Pin one comparable trim policy bundle across the whole cohort:
+  - `min_length = 30`
+  - `quality_cutoff = null`
+  - `n_policy = retain`
+  - `adapter_policy = none`
+  - `polyx_policy = none`
+  - `contaminant_policy = none`
+- Keep bank presets unset for this benchmark contract.
+
+## Why the trim policy is bank-free
+- The full governed trim fairness cohort does not implement bank-driven adapter trimming, polyX trimming, or contaminant handoff uniformly.
+- Enabling those policies would silently benchmark only a subset of the governed cohort.
+- The benchmark therefore measures shared trim behavior first, not profile-specific enrichment behavior.
+
+## Published artifacts
+- `summary.json`: stage-level summary for the corpus run.
+- `sample_results.csv`: one row per sample/tool execution.
+- `tool_runtime_summary.csv`: per-tool runtime and retention summary.
+- `cohort_runtime_summary.csv`: era/layout and size-band breakdowns.
+- `sample_runtime_outliers.csv`: slowest or lowest-retention samples.
+- `lunarc.md`: narrative benchmark dossier for the Lunarc run.
+
+## Workflow
+```bash
+make _benchmark-trim-reads-corpus-01 PLATFORM=lunarc-apptainer CORPUS_ROOT=/home/bijan/bijux/corpus_01
+make _benchmark-trim-reads-corpus-01-report CORPUS_ROOT=/home/bijan/bijux/corpus_01
+```
+
+## Guardrails
+- Reject any run whose tool roster differs from the governed benchmark cohort.
+- Reject any published report whose rows drift from the run manifest policy bundle.
+- Reject any published report that omits a tool row for any sample.
+- Preserve backend-native report provenance through `raw_backend_report_format`.
