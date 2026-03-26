@@ -121,9 +121,13 @@ fn hash_directory(root: &Path) -> Result<String> {
 }
 
 fn rewrite_container_path(value: &str, host_root: &Path, container_root: &str) -> String {
-    let host_root = host_root.display().to_string();
+    let host_root_path = host_root;
+    let host_root = host_root_path.display().to_string();
     if value == host_root {
         return container_root.to_string();
+    }
+    if host_root_path.is_file() {
+        return value.replace(&host_root, container_root);
     }
     let host_prefix = format!("{host_root}/");
     let container_prefix = format!("{container_root}/");
@@ -647,6 +651,30 @@ mod tests {
         assert!(rewritten[2].contains("/data/input/sample_0004_R1.fastq.gz"));
         assert!(rewritten[2].contains("/data/output/validation_r1.log"));
         assert!(rewritten[2].contains("/data/output/validation.json"));
+    }
+
+    #[test]
+    fn container_command_template_rewrites_single_file_mounts_inside_shell_scripts() {
+        let temp = tempdir().expect("tempdir");
+        let input = temp.path().join("sample_0004_R1.fastq.gz");
+        std::fs::write(&input, b"@read\nACGT\n+\n!!!!\n").expect("write input");
+        let out_dir = temp.path().join("out");
+        std::fs::create_dir_all(&out_dir).expect("create out dir");
+        let template = vec![
+            "sh".to_string(),
+            "-lc".to_string(),
+            format!(
+                "seqkit fx2tab -j 1 -n -s {} > {}",
+                input.display(),
+                out_dir.join("reads.tsv").display()
+            ),
+        ];
+
+        let rewritten = container_command_template(&template, &input, &out_dir);
+
+        assert_eq!(rewritten[0], "sh");
+        assert!(rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input"));
+        assert!(rewritten[2].contains("> /data/output/reads.tsv"));
     }
 
     #[test]
