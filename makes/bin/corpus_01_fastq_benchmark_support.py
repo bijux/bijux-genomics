@@ -52,6 +52,13 @@ PROFILE_OVERREPRESENTED_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
 )
 
 
+MERGE_PAIRS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.merge_pairs",
+    scenario_id="merge_fairness",
+    tools=["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"],
+)
+
+
 TRIM_POLYG_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.trim_polyg_tails",
     scenario_id="polyg_trim_fairness",
@@ -103,6 +110,14 @@ def trim_terminal_damage_benchmark_defaults() -> dict:
         "execution_policy": "explicit_terminal_trim",
         "trim_5p_bases": 2,
         "trim_3p_bases": 2,
+    }
+
+
+def merge_pairs_benchmark_defaults() -> dict:
+    return {
+        "merge_overlap": 11,
+        "min_length": 20,
+        "unmerged_read_policy": "emit_unmerged_pairs",
     }
 
 
@@ -241,6 +256,40 @@ def validate_corpus_contract(
             f"found {dict(sorted(actual_counts.items()))}"
         )
     return metadata_by_sample
+
+
+def select_paired_samples(
+    spec: dict,
+    samples: list[dict],
+    metadata_by_sample: dict[str, dict],
+) -> list[dict]:
+    paired_samples = [
+        sample
+        for sample in samples
+        if metadata_by_sample[sample["sample_id"]]["layout"] == "pe"
+    ]
+    actual_counts: dict[str, int] = defaultdict(int)
+    for sample in paired_samples:
+        metadata = metadata_by_sample[sample["sample_id"]]
+        actual_counts[f"{metadata['era']}_{metadata['layout']}"] += 1
+
+    expected_counts = {
+        "ancient_pe": int(spec["target_ancient_pe"]),
+        "modern_pe": int(spec["target_modern_pe"]),
+    }
+    if dict(sorted(actual_counts.items())) != dict(sorted(expected_counts.items())):
+        raise SystemExit(
+            "paired corpus contract drift: "
+            f"expected {dict(sorted(expected_counts.items()))}, "
+            f"found {dict(sorted(actual_counts.items()))}"
+        )
+    expected_total = sum(expected_counts.values())
+    if len(paired_samples) != expected_total:
+        raise SystemExit(
+            f"expected {expected_total} paired normalized samples for corpus-01, "
+            f"found {len(paired_samples)}"
+        )
+    return paired_samples
 
 
 def normalize_tool_csv(raw: str) -> list[str]:
