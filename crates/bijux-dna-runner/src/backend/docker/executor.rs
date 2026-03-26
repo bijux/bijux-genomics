@@ -84,7 +84,12 @@ fn resolve_apptainer_image_for_run(
     platform: &PlatformSpec,
     image: ResolvedImage,
 ) -> Result<ResolvedImage> {
-    let image_path = platform.container_dir.join(format!("{}.sif", spec.tool));
+    let candidates = apptainer_image_candidates(spec, platform);
+    let image_path = candidates
+        .iter()
+        .find(|path| path.is_file())
+        .cloned()
+        .unwrap_or_else(|| candidates[0].clone());
     let resolved = ResolvedImage {
         full_name: image_path.display().to_string(),
         arch: image.arch,
@@ -94,10 +99,47 @@ fn resolve_apptainer_image_for_run(
         return Ok(resolved);
     }
     Err(anyhow!(
-        "apptainer image not found for tool {} at {}",
+        "apptainer image not found for tool {}. checked: {}",
         spec.tool,
-        image_path.display()
+        candidates
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
     ))
+}
+
+fn apptainer_image_candidates(spec: &ToolImageSpec, platform: &PlatformSpec) -> Vec<PathBuf> {
+    let mut candidates = vec![platform.container_dir.join(format!("{}.sif", spec.tool))];
+    if let Some(digest) = spec.digest.as_deref() {
+        let registry_root = apptainer_registry_root(&platform.container_dir);
+        let normalized_digest = digest.strip_prefix("sha256:").unwrap_or(digest);
+        candidates.push(
+            registry_root
+                .join(&spec.tool)
+                .join(format!("{normalized_digest}.sif")),
+        );
+        candidates.push(registry_root.join(&spec.tool).join(format!("{digest}.sif")));
+    }
+    candidates.dedup();
+    candidates
+}
+
+fn apptainer_registry_root(container_dir: &Path) -> PathBuf {
+    let parent = container_dir.parent();
+    let grandparent = parent.and_then(Path::parent);
+    let is_flat_lunarc_dir = container_dir
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name == "sif")
+        && parent
+            .and_then(Path::file_name)
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name == "apptainer");
+    if is_flat_lunarc_dir {
+        return grandparent.unwrap_or(container_dir).to_path_buf();
+    }
+    container_dir.to_path_buf()
 }
 
 /// Execute a container plan and collect command output.
@@ -470,5 +512,37 @@ mod tests {
 
         let error = resolve_image_for_run(&spec, &platform).expect_err("missing sif must fail");
         assert!(error.to_string().contains("apptainer image not found"));
+    }
+
+    #[test]
+    fn resolve_image_for_run_uses_digest_pinned_apptainer_sif_when_flat_name_is_absent(
+    ) -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-runner-apptainer-registry")?;
+        let flat_dir = temp.path().join("apptainer").join("sif");
+        let registry_dir = temp.path().join("fastqc");
+        bijux_dna_infra::ensure_dir(&flat_dir)?;
+        bijux_dna_infra::ensure_dir(&registry_dir)?;
+        let sif_path = registry_dir.join("abc123.sif");
+        bijux_dna_infra::atomic_write_bytes(&sif_path, b"sif")?;
+        let platform = PlatformSpec {
+            name: "lunarc-apptainer".to_string(),
+            runner: RuntimeKind::Apptainer,
+            container_dir: flat_dir,
+            image_prefix: "bijuxdna".to_string(),
+            arch: "amd64".to_string(),
+        };
+        let spec = ToolImageSpec {
+            tool: "fastqc".to_string(),
+            version: "latest-pinned".to_string(),
+            digest: Some("sha256:abc123".to_string()),
+            enabled: None,
+            shipping_policy: None,
+        };
+
+        let image = resolve_image_for_run(&spec, &platform)?;
+
+        assert_eq!(image.full_name, sif_path.display().to_string());
+        assert_eq!(image.runner, RuntimeKind::Apptainer);
+        Ok(())
     }
 }
