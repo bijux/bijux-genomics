@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{
     detect_adapters::{
@@ -84,7 +84,7 @@ pub fn plan_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
+        command: CommandSpecV1 {
             template: command_template,
         },
         resources,
@@ -146,12 +146,40 @@ fn detect_adapters_command(
             if let Some(r2) = r2 {
                 command.push(r2.display().to_string());
             }
-            Ok(command)
+            Ok(wrap_fastqc_command(&command, adapter_evidence_dir))
         }
         _ => Err(anyhow!(
             "unsupported adapter detection tool for stage planning: {tool_id}"
         )),
     }
+}
+
+fn wrap_fastqc_command(command: &[String], output_dir: &Path) -> Vec<String> {
+    vec![
+        "sh".to_string(),
+        "-lc".to_string(),
+        format!(
+            "mkdir -p {}\n{}",
+            shell_quote(output_dir),
+            shell_join(command)
+        ),
+    ]
+}
+
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_str(part))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn shell_quote(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
 #[cfg(test)]
@@ -199,6 +227,10 @@ mod tests {
             serde_json::Value::Null
         );
         assert_eq!(plan.effective_params["evidence_artifact_id"], "report_json");
+        assert_eq!(plan.command.template[0], "sh");
+        assert_eq!(plan.command.template[1], "-lc");
+        assert!(plan.command.template[2].contains("mkdir -p"));
+        assert!(plan.command.template[2].contains("fastqc"));
         Ok(())
     }
 }

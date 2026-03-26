@@ -145,7 +145,7 @@ fn profile_overrepresented_command(
             if let Some(r2) = r2 {
                 command.push(r2.display().to_string());
             }
-            Ok(command)
+            Ok(wrap_fastqc_command(&command, fastqc_dir))
         }
         "seqkit" | "fastq_scan" => {
             let mut command = vec![tool_id.to_string(), r1.display().to_string()];
@@ -158,6 +158,34 @@ fn profile_overrepresented_command(
             "unsupported overrepresented-sequence tool for stage planning: {tool_id}"
         )),
     }
+}
+
+fn wrap_fastqc_command(command: &[String], output_dir: &Path) -> Vec<String> {
+    vec![
+        "sh".to_string(),
+        "-lc".to_string(),
+        format!(
+            "mkdir -p {}\n{}",
+            shell_quote(output_dir),
+            shell_join(command)
+        ),
+    ]
+}
+
+fn shell_join(command: &[String]) -> String {
+    command
+        .iter()
+        .map(|part| shell_quote_str(part))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn shell_quote(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
 #[cfg(test)]
@@ -203,17 +231,11 @@ mod tests {
 
         assert_eq!(plan.resources.threads, 6);
         assert_eq!(
-            plan.command.template,
-            vec![
-                "fastqc",
-                "--outdir",
-                "out/fastqc_overrepresented",
-                "--threads",
-                "6",
-                "reads_R1.fastq.gz",
-                "reads_R2.fastq.gz",
-            ]
+            &plan.command.template[..2],
+            ["sh".to_string(), "-lc".to_string()]
         );
+        assert!(plan.command.template[2].contains("mkdir -p 'out/fastqc_overrepresented'"));
+        assert!(plan.command.template[2].contains("fastqc"));
         assert_eq!(plan.params["threads"], serde_json::json!(6));
         assert_eq!(plan.params["top_k"], serde_json::json!(25));
     }
