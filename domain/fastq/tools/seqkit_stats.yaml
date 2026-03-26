@@ -9,8 +9,7 @@ container:
   image: "bijuxdna/seqkit"
   digest: "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
 command_template:
-  - "seqkit"
-  - "stats"
+  - "seqkit_stats"
   - "-a"
   - "-T"
   - "-j"
