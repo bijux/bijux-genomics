@@ -225,29 +225,30 @@ def render_markdown(
     cohort_rows: list[dict],
     outliers: list[dict],
 ) -> str:
+    reference_tool = summary["tools"][0]
     tool_lookup = {row["tool"]: row for row in runtime_rows}
     fastest = min(runtime_rows, key=lambda row: row["median_runtime_s"])
     modern_pe = cohort_entry(
         cohort_rows,
-        tool="fastqc",
+        tool=reference_tool,
         dimension="era_layout",
         cohort="modern_pe",
     )
     ancient_se = cohort_entry(
         cohort_rows,
-        tool="fastqc",
+        tool=reference_tool,
         dimension="era_layout",
         cohort="ancient_se",
     )
     under_500 = cohort_entry(
         cohort_rows,
-        tool="fastqc",
+        tool=reference_tool,
         dimension="size_band",
         cohort="under_500mb",
     )
     under_100 = cohort_entry(
         cohort_rows,
-        tool="fastqc",
+        tool=reference_tool,
         dimension="size_band",
         cohort="under_100mb",
     )
@@ -280,15 +281,15 @@ def render_markdown(
         f"- Every tool completed successfully on all `{summary['samples_total']}` samples; stage-level sample failures were `{summary['samples_failed']}`."
     )
     lines.append(
-        f"- `fastqc` ran at `p50={fmt_runtime(fastest['median_runtime_s'])}s` with mean candidate-adapter count `{tool_lookup['fastqc']['mean_candidate_adapter_count']:.3f}`."
+        f"- `{fastest['tool']}` ran at `p50={fmt_runtime(fastest['median_runtime_s'])}s` with mean candidate-adapter count `{tool_lookup[reference_tool]['mean_candidate_adapter_count']:.3f}`."
     )
     if modern_pe and ancient_se:
         lines.append(
-            f"- Runtime remains input-driven: `modern_pe` averages `{fmt_runtime(modern_pe['mean_runtime_s'])}s` while `ancient_se` averages `{fmt_runtime(ancient_se['mean_runtime_s'])}s`."
+            f"- Runtime remains input-driven for `{reference_tool}`: `modern_pe` averages `{fmt_runtime(modern_pe['mean_runtime_s'])}s` while `ancient_se` averages `{fmt_runtime(ancient_se['mean_runtime_s'])}s`."
         )
     if under_500 and under_100:
         lines.append(
-            f"- Size-band spread stays visible in the observer stage: `under_500mb` averages `{fmt_runtime(under_500['mean_runtime_s'])}s` versus `{fmt_runtime(under_100['mean_runtime_s'])}s` on `under_100mb` inputs."
+            f"- Size-band spread stays visible in the observer stage for `{reference_tool}`: `under_500mb` averages `{fmt_runtime(under_500['mean_runtime_s'])}s` versus `{fmt_runtime(under_100['mean_runtime_s'])}s` on `under_100mb` inputs."
         )
     lines.append(
         f"- Correctness stayed stable across all `{len(rows)}` tool-sample observations: `exit_code=0` on `{zero_exit}` rows, and the stage preserved `reads_out == reads_in` and `bases_out == bases_in` for every published row."
@@ -301,8 +302,13 @@ def render_markdown(
     )
     lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for row in runtime_rows:
+        trimmed_fraction = (
+            "n/a"
+            if row["mean_adapter_trimmed_fraction"] is None
+            else f"{row['mean_adapter_trimmed_fraction']:.3f}"
+        )
         lines.append(
-            f"| `{row['tool']}` | {fmt_fraction(row['pass_rate'])} | {fmt_runtime(row['mean_runtime_s'])} | {fmt_runtime(row['median_runtime_s'])} | {fmt_runtime(row['p90_runtime_s'])} | {fmt_runtime(row['max_runtime_s'])} | {row['mean_candidate_adapter_count']:.3f} | {row['mean_adapter_trimmed_fraction'] if row['mean_adapter_trimmed_fraction'] is not None else 'n/a'} |"
+            f"| `{row['tool']}` | {fmt_fraction(row['pass_rate'])} | {fmt_runtime(row['mean_runtime_s'])} | {fmt_runtime(row['median_runtime_s'])} | {fmt_runtime(row['p90_runtime_s'])} | {fmt_runtime(row['max_runtime_s'])} | {row['mean_candidate_adapter_count']:.3f} | {trimmed_fraction} |"
         )
     lines.append("")
     lines.append("## Cohort behavior")
