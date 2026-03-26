@@ -45,6 +45,13 @@ PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
 )
 
 
+PROFILE_OVERREPRESENTED_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.profile_overrepresented_sequences",
+    scenario_id="overrepresented_sequence_fairness",
+    tools=["fastqc", "fastq_scan", "seqkit"],
+)
+
+
 TRIM_POLYG_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.trim_polyg_tails",
     scenario_id="polyg_trim_fairness",
