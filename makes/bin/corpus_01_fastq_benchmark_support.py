@@ -14,6 +14,9 @@ except ModuleNotFoundError:
     tomllib = None
 
 
+LOCAL_RESULTS_ROOT = Path("/Users/bijan/bijux/bijux-dna-results")
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -327,6 +330,28 @@ def merge_pairs_benchmark_defaults() -> dict:
 
 def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
     return corpus_root.parent / "results" / corpus_root.name / stage_id / "lunarc"
+
+
+def default_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
+    return LOCAL_RESULTS_ROOT / corpus_root.name / stage_id / "lunarc"
+
+
+def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:
+    local_root = default_local_results_stage_root(corpus_root, stage_id)
+    remote_root = default_results_stage_root(corpus_root, stage_id)
+    if local_root.exists() or not remote_root.exists():
+        return local_root
+    return remote_root
+
+
+def localize_results_path(path_str: str, local_results_root: Path) -> Path:
+    path = Path(path_str)
+    if path.exists():
+        return path
+    marker = "/results/"
+    if marker not in path_str:
+        return path
+    return local_results_root / path_str.split(marker, 1)[1]
 
 
 def validate_benchmark_layout(corpus_root: Path, out_root: Path) -> None:

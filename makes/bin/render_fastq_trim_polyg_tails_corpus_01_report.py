@@ -14,6 +14,8 @@ from corpus_01_fastq_benchmark_support import (
     discover_normalized_samples,
     load_corpus_spec,
     load_json,
+    localize_results_path,
+    preferred_report_run_root,
     validate_corpus_contract,
 )
 
@@ -224,8 +226,12 @@ def main() -> int:
     run_root = (
         Path(args.run_root).resolve()
         if args.run_root
-        else (corpus_root / "benchmarks" / "fastq.trim_polyg_tails" / "lunarc").resolve()
+        else preferred_report_run_root(
+            corpus_root,
+            TRIM_POLYG_BENCHMARK_CONTRACT.stage_id,
+        )
     )
+    local_results_root = run_root.parents[2]
     docs_root = (repo_root / args.docs_root).resolve()
     docs_root.mkdir(parents=True, exist_ok=True)
 
@@ -252,7 +258,7 @@ def main() -> int:
         era_counts[metadata.get("era", "unknown")] += 1
         layout_counts[metadata.get("layout", run["layout"])] += 1
 
-        report_path = Path(run["report_json"])
+        report_path = localize_results_path(run["report_json"], local_results_root)
         if not report_path.is_file():
             continue
         report = load_json(report_path)
