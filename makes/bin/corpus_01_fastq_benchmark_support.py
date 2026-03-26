@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 try:
@@ -13,6 +15,52 @@ except ModuleNotFoundError:
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+@dataclass(frozen=True)
+class TrimBenchmarkContract:
+    stage_id: str
+    scenario_id: str
+    tools: list[str]
+
+
+TRIM_POLYG_BENCHMARK_CONTRACT = TrimBenchmarkContract(
+    stage_id="fastq.trim_polyg_tails",
+    scenario_id="polyg_trim_fairness",
+    tools=["bbduk", "fastp"],
+)
+
+
+TRIM_READS_BENCHMARK_CONTRACT = TrimBenchmarkContract(
+    stage_id="fastq.trim_reads",
+    scenario_id="trim_fairness",
+    tools=[
+        "adapterremoval",
+        "atropos",
+        "bbduk",
+        "cutadapt",
+        "fastp",
+        "prinseq",
+        "seqkit",
+        "seqpurge",
+        "trim_galore",
+        "trimmomatic",
+    ],
+)
+
+
+def trim_reads_benchmark_defaults() -> dict:
+    return {
+        "min_length": 30,
+        "quality_cutoff": None,
+        "n_policy": "retain",
+        "adapter_policy": "none",
+        "polyx_policy": "none",
+        "contaminant_policy": "none",
+        "adapter_bank_preset": None,
+        "polyx_preset": None,
+        "contaminant_preset": None,
+    }
 
 
 def parse_simple_toml(path: Path) -> dict:
@@ -163,6 +211,52 @@ def normalize_tool_csv(raw: str) -> list[str]:
     if not tools:
         raise SystemExit("tool roster must not be empty")
     return tools
+
+
+def run_repo_command(repo_root: Path, *args: str) -> str:
+    completed = subprocess.run(
+        list(args),
+        cwd=repo_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        stderr = completed.stderr.strip()
+        stdout = completed.stdout.strip()
+        detail = stderr or stdout or f"exit code {completed.returncode}"
+        raise SystemExit(f"command failed: {' '.join(args)}: {detail}")
+    return completed.stdout.strip()
+
+
+def registry_tools_for_stage(repo_root: Path, stage_id: str, kind: str) -> list[str]:
+    output = run_repo_command(
+        repo_root,
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "registry",
+        "list-tools",
+        "--stage",
+        stage_id,
+        "--kind",
+        kind,
+    )
+    return normalize_tool_csv(output)
+
+
+def require_canonical_tool_roster(
+    repo_root: Path,
+    stage_id: str,
+    tools: list[str],
+    *,
+    kind: str = "benchmark",
+) -> list[str]:
+    expected = registry_tools_for_stage(repo_root, stage_id, kind)
+    return require_exact_tool_roster(stage_id, tools, expected)
 
 
 def require_exact_tool_roster(
