@@ -441,7 +441,7 @@ def resolve_corpus_metadata(
         repo_root,
         spec,
         stage_id=fallback_stage_id,
-        expected_total=len(expected_sample_ids),
+        expected_total=sum(expected_cohort_counts(spec).values()),
     )
     missing_samples = sorted(set(expected_sample_ids) - set(metadata_by_sample))
     if missing_samples:
