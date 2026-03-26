@@ -1,13 +1,15 @@
 # `corpus-01` FASTQ benchmark publication status
 
-- Stage count: `8`
-- Completed stage dossiers: `6`
-- Publication issues: `2`
+- Stage count: `10`
+- Completed stage dossiers: `7`
+- Publication issues: `3`
 
 ## Stage status
 
 - `fastq.validate_reads`: `complete` (`0` issues)
 - `fastq.detect_adapters`: `complete` (`0` issues)
+- `fastq.merge_pairs`: `incomplete` (`1` issues)
+  - `missing-corpus-dir`: missing benchmark/fastq.merge_pairs/corpus-01
 - `fastq.profile_reads`: `complete` (`0` issues)
 - `fastq.profile_read_lengths`: `complete` (`0` issues)
 - `fastq.profile_overrepresented_sequences`: `complete` (`0` issues)
@@ -16,6 +18,7 @@
   - `missing-corpus-dir`: missing benchmark/fastq.trim_reads/corpus-01
 - `fastq.trim_terminal_damage`: `incomplete` (`1` issues)
   - `missing-corpus-dir`: missing benchmark/fastq.trim_terminal_damage/corpus-01
+- `fastq.report_qc`: `complete` (`0` issues)
 
 ## Contract
 

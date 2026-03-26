@@ -137,6 +137,47 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             support.select_paired_samples(spec, samples, metadata_by_sample)
 
+    def test_resolve_corpus_metadata_falls_back_to_published_docs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+            docs_root.mkdir(parents=True)
+            (docs_root / "sample_results.csv").write_text(
+                "\n".join(
+                    [
+                        "sample_id,accession,era,layout,study_accession,size_band,tool",
+                        "sample_0001,ACC_ANCIENT_SE,ancient,se,PRJ1,under_100mb,fastqvalidator",
+                        "sample_0002,ACC_ANCIENT_PE,ancient,pe,PRJ2,under_100mb,fastqvalidator",
+                        "sample_0003,ACC_MODERN_SE,modern,se,PRJ3,under_500mb,fastqvalidator",
+                        "sample_0004,ACC_MODERN_PE,modern,pe,PRJ4,under_500mb,fastqvalidator",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            corpus_root = repo_root / "missing-corpus"
+            spec = {
+                "target_ancient_se": 1,
+                "target_ancient_pe": 1,
+                "target_modern_se": 1,
+                "target_modern_pe": 1,
+            }
+
+            metadata = support.resolve_corpus_metadata(
+                repo_root,
+                corpus_root,
+                spec,
+                expected_sample_ids=[
+                    "sample_0001",
+                    "sample_0002",
+                    "sample_0003",
+                    "sample_0004",
+                ],
+            )
+
+            self.assertEqual(metadata["sample_0001"]["accession"], "ACC_ANCIENT_SE")
+            self.assertEqual(metadata["sample_0004"]["layout"], "pe")
+
 
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
@@ -476,6 +517,42 @@ class ReportQcReportingTests(unittest.TestCase):
                 sample_rows=sample_rows,
                 expected_sample_ids=["sample_0001"],
             )
+
+    def test_report_qc_enriches_missing_multiqc_artifacts_from_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            data_dir = Path(tmpdir) / "multiqc_data"
+            report_data_dir = data_dir / "multiqc_report_data"
+            report_data_dir.mkdir(parents=True)
+            (data_dir / "multiqc_report.html").write_text("<html></html>\n", encoding="utf-8")
+            (report_data_dir / "multiqc_data.json").write_text(
+                json.dumps(
+                    {
+                        "report_general_stats_data": [
+                            {"sample_a": {"total_sequences": 10}, "sample_b": {"total_sequences": 12}}
+                        ],
+                        "report_plot_data": {
+                            "general_stats_table": {},
+                            "fastqc_sequence_counts_plot": {},
+                            "fastqc_adapter_content_plot": {},
+                        },
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            row = report_qc_report.enrich_multiqc_artifacts(
+                {
+                    "multiqc_data": str(data_dir),
+                    "multiqc_report": "",
+                    "multiqc_sample_count": None,
+                    "multiqc_module_count": None,
+                }
+            )
+
+            self.assertEqual(row["multiqc_sample_count"], 2)
+            self.assertEqual(row["multiqc_module_count"], 3)
+            self.assertEqual(row["multiqc_report"], str(data_dir / "multiqc_report.html"))
 
 
 class TrimReadsReportingTests(unittest.TestCase):

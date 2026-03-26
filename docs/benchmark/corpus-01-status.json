@@ -1,9 +1,9 @@
 {
   "corpus_id": "corpus-01",
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
-  "stage_count": 8,
-  "completed_stage_count": 6,
-  "issue_count": 2,
+  "stage_count": 10,
+  "completed_stage_count": 7,
+  "issue_count": 3,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
@@ -22,6 +22,22 @@
       "status": "complete",
       "issue_count": 0,
       "issues": []
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "scenario_id": "merge_fairness",
+      "method_path": "benchmark/fastq.merge_pairs/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.merge_pairs/corpus-01",
+      "status": "incomplete",
+      "issue_count": 1,
+      "issues": [
+        {
+          "stage_id": "fastq.merge_pairs",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.merge_pairs/corpus-01"
+        }
+      ]
     },
     {
       "stage_id": "fastq.profile_reads",
@@ -90,6 +106,15 @@
           "detail": "missing benchmark/fastq.trim_terminal_damage/corpus-01"
         }
       ]
+    },
+    {
+      "stage_id": "fastq.report_qc",
+      "scenario_id": "qc_aggregation_fairness",
+      "method_path": "benchmark/fastq.report_qc/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.report_qc/corpus-01",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     }
   ]
 }

@@ -213,7 +213,7 @@ fn qc_post_command(
             )?)
             .map_err(|error| anyhow!("serialize governed report_qc report: {error}"))?;
             let mut script = format!(
-                "set -euo pipefail\nprintf '%s\\n' {} > {}\nmultiqc -o {} -n multiqc_report.html",
+                "set -eu\nprintf '%s\\n' {} > {}\nmultiqc -o {} -n multiqc_report.html",
                 shell_quote_str(&manifest),
                 shell_quote_path(governed_qc_manifest),
                 shell_quote_path(multiqc_data),
@@ -492,6 +492,8 @@ mod tests {
         assert!(script.contains("out/governed_qc_inputs_manifest.json"));
         assert!(script.contains("out/report_qc_report.json"));
         assert!(script.contains("multiqc -o 'out/multiqc_data' -n multiqc_report.html"));
+        assert!(script.contains("set -eu\n"));
+        assert!(!script.contains("pipefail"));
         assert!(script.contains("'alpha/fastqc' 'zeta/fastqc'"));
     }
 

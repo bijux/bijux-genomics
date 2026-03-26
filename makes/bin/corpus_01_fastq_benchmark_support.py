@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import csv
 import json
 import subprocess
 from collections import defaultdict
@@ -120,7 +121,7 @@ REPORT_QC_CONTRIBUTOR_CONTRACTS = [
         tool_id="fastqvalidator",
         artifact_id="validation_report",
         artifact_role="report_json",
-        relative_path="validation_report.json",
+        relative_path="validation.json",
     ),
     ReportQcContributorContract(
         stage_id="fastq.validate_reads",
@@ -348,6 +349,105 @@ def validate_corpus_contract(
             "corpus-01 cohort contract drift: "
             f"expected {dict(sorted(expected_counts.items()))}, "
             f"found {dict(sorted(actual_counts.items()))}"
+        )
+    return metadata_by_sample
+
+
+def load_published_sample_metadata(
+    repo_root: Path,
+    spec: dict,
+    *,
+    stage_id: str = "fastq.validate_reads",
+    expected_total: int = 20,
+) -> dict[str, dict]:
+    sample_results = (
+        repo_root / "docs" / "benchmark" / stage_id / "corpus-01" / "sample_results.csv"
+    )
+    if not sample_results.is_file():
+        raise SystemExit(
+            "missing local corpus metadata and published fallback: "
+            f"{sample_results}"
+        )
+
+    metadata_by_sample: dict[str, dict] = {}
+    with sample_results.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            sample_id = row.get("sample_id", "").strip()
+            if not sample_id:
+                continue
+            metadata = {
+                "accession": row.get("accession", "").strip(),
+                "era": row.get("era", "").strip(),
+                "layout": row.get("layout", "").strip(),
+                "study_accession": row.get("study_accession", "").strip(),
+                "size_band": row.get("size_band", "").strip(),
+            }
+            if sample_id in metadata_by_sample:
+                if metadata_by_sample[sample_id] != metadata:
+                    raise SystemExit(
+                        "published sample metadata drift: "
+                        f"inconsistent rows for {sample_id} in {sample_results}"
+                    )
+                continue
+            metadata_by_sample[sample_id] = metadata
+
+    if len(metadata_by_sample) != expected_total:
+        raise SystemExit(
+            "published sample metadata drift: "
+            f"expected {expected_total} unique samples in {sample_results}, "
+            f"found {len(metadata_by_sample)}"
+        )
+
+    expected_counts = expected_cohort_counts(spec)
+    actual_counts: dict[str, int] = defaultdict(int)
+    for sample_id, metadata in sorted(metadata_by_sample.items()):
+        accession = metadata.get("accession")
+        era = metadata.get("era")
+        layout = metadata.get("layout")
+        if not accession or not era or not layout:
+            raise SystemExit(
+                "published sample metadata drift: "
+                f"missing accession/era/layout for {sample_id} in {sample_results}"
+            )
+        actual_counts[f"{era}_{layout}"] += 1
+
+    if dict(sorted(actual_counts.items())) != dict(sorted(expected_counts.items())):
+        raise SystemExit(
+            "published corpus metadata drift: "
+            f"expected {dict(sorted(expected_counts.items()))}, "
+            f"found {dict(sorted(actual_counts.items()))}"
+        )
+
+    return metadata_by_sample
+
+
+def resolve_corpus_metadata(
+    repo_root: Path,
+    corpus_root: Path,
+    spec: dict,
+    *,
+    expected_sample_ids: list[str],
+    fallback_stage_id: str = "fastq.validate_reads",
+) -> dict[str, dict]:
+    if (corpus_root / "normalized").is_dir() and (corpus_root / "MANIFEST.json").is_file():
+        return validate_corpus_contract(
+            corpus_root,
+            spec,
+            discover_normalized_samples(corpus_root, expected_total=len(expected_sample_ids)),
+        )
+
+    metadata_by_sample = load_published_sample_metadata(
+        repo_root,
+        spec,
+        stage_id=fallback_stage_id,
+        expected_total=len(expected_sample_ids),
+    )
+    missing_samples = sorted(set(expected_sample_ids) - set(metadata_by_sample))
+    if missing_samples:
+        raise SystemExit(
+            "published sample metadata drift: "
+            f"missing rows for samples {missing_samples}"
         )
     return metadata_by_sample
 
