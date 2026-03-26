@@ -181,6 +181,43 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertEqual(metadata["sample_0001"]["accession"], "ACC_ANCIENT_SE")
             self.assertEqual(metadata["sample_0004"]["layout"], "pe")
 
+    def test_resolve_corpus_metadata_accepts_paired_subset_from_full_docs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+            docs_root.mkdir(parents=True)
+            (docs_root / "sample_results.csv").write_text(
+                "\n".join(
+                    [
+                        "sample_id,accession,era,layout,study_accession,size_band,tool",
+                        "sample_0001,ACC_ANCIENT_SE,ancient,se,PRJ1,under_100mb,fastqvalidator",
+                        "sample_0002,ACC_ANCIENT_PE,ancient,pe,PRJ2,under_100mb,fastqvalidator",
+                        "sample_0003,ACC_MODERN_SE,modern,se,PRJ3,under_500mb,fastqvalidator",
+                        "sample_0004,ACC_MODERN_PE,modern,pe,PRJ4,under_500mb,fastqvalidator",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            corpus_root = repo_root / "missing-corpus"
+            spec = {
+                "target_ancient_se": 1,
+                "target_ancient_pe": 1,
+                "target_modern_se": 1,
+                "target_modern_pe": 1,
+            }
+
+            metadata = support.resolve_corpus_metadata(
+                repo_root,
+                corpus_root,
+                spec,
+                expected_sample_ids=["sample_0002", "sample_0004"],
+            )
+
+            self.assertEqual(sorted(metadata), ["sample_0001", "sample_0002", "sample_0003", "sample_0004"])
+            self.assertEqual(metadata["sample_0002"]["layout"], "pe")
+            self.assertEqual(metadata["sample_0004"]["era"], "modern")
+
 
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
