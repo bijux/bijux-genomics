@@ -115,3 +115,38 @@ def sample_accession_map(corpus_root: Path, spec: dict) -> dict[str, dict]:
         sample_map.setdefault(sample_id, {}).update(spec_by_accession[accession])
         sample_map[sample_id]["accession"] = accession
     return sample_map
+
+
+def expected_cohort_counts(spec: dict) -> dict[str, int]:
+    return {
+        "ancient_se": int(spec["target_ancient_se"]),
+        "ancient_pe": int(spec["target_ancient_pe"]),
+        "modern_se": int(spec["target_modern_se"]),
+        "modern_pe": int(spec["target_modern_pe"]),
+    }
+
+
+def validate_corpus_contract(
+    corpus_root: Path,
+    spec: dict,
+    samples: list[dict],
+) -> dict[str, dict]:
+    metadata_by_sample = sample_accession_map(corpus_root, spec)
+    actual_counts: dict[str, int] = defaultdict(int)
+
+    for sample in samples:
+        sample_id = sample["sample_id"]
+        metadata = metadata_by_sample.get(sample_id)
+        if metadata is None:
+            raise SystemExit(f"missing accession metadata for normalized sample {sample_id}")
+        cohort = f"{metadata['era']}_{metadata['layout']}"
+        actual_counts[cohort] += 1
+
+    expected_counts = expected_cohort_counts(spec)
+    if dict(sorted(actual_counts.items())) != dict(sorted(expected_counts.items())):
+        raise SystemExit(
+            "corpus-01 cohort contract drift: "
+            f"expected {dict(sorted(expected_counts.items()))}, "
+            f"found {dict(sorted(actual_counts.items()))}"
+        )
+    return metadata_by_sample

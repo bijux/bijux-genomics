@@ -10,7 +10,11 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import discover_normalized_samples, load_corpus_spec
+from corpus_01_fastq_benchmark_support import (
+    discover_normalized_samples,
+    load_corpus_spec,
+    validate_corpus_contract,
+)
 
 
 @dataclass
@@ -132,6 +136,7 @@ def main() -> int:
     out_root.mkdir(parents=True, exist_ok=True)
 
     samples = discover_normalized_samples(corpus_root)
+    validate_corpus_contract(corpus_root, spec, samples)
     runs: list[SampleRun] = []
     failures = 0
 
