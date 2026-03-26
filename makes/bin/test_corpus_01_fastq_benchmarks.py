@@ -1030,6 +1030,87 @@ class ProfileReadLengthsReportingTests(unittest.TestCase):
                     report_path, "seqkit_stats"
                 )
 
+    def test_read_length_briefing_avoids_hardcoded_tool_name(self) -> None:
+        summary = {
+            "stage_id": "fastq.profile_read_lengths",
+            "scenario_id": "read_length_fairness",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_read_lengths/lunarc",
+            "samples_total": 1,
+            "samples_failed": 0,
+            "tools": ["length_observer"],
+            "report_only": True,
+            "mutates_fastq": False,
+            "may_change_read_count": False,
+            "raw_backend_report_format": "seqkit_stats_length_histogram",
+            "histogram_bins": 100,
+            "era_counts": {"ancient": 1, "modern": 0},
+            "layout_counts": {"se": 1, "pe": 0},
+        }
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "ancient",
+                "layout": "se",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "length_observer",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "read_count": "100",
+                "mean_read_length": "50.0",
+                "max_read_length": "75",
+                "distinct_lengths": "12",
+                "report_json_artifact": "/tmp/profile_read_lengths_report.json",
+                "length_distribution_tsv_artifact": "/tmp/length_distribution.tsv",
+                "length_distribution_json_artifact": "/tmp/length_distribution.json",
+            }
+        ]
+        runtime_rows = profile_read_lengths_briefing.tool_runtime_summary(rows)
+        cohort_rows = profile_read_lengths_briefing.cohort_runtime_summary(rows)
+        outliers = profile_read_lengths_briefing.sample_runtime_outliers(rows)
+
+        markdown = profile_read_lengths_briefing.render_markdown(
+            summary, rows, runtime_rows, cohort_rows, outliers
+        )
+
+        self.assertIn("`length_observer` ran at", markdown)
+        self.assertNotIn("`seqkit_stats` ran at", markdown)
+        self.assertIn("Governed artifacts per sample/tool", markdown)
+
+    def test_read_length_briefing_rejects_contract_drift(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_read_lengths_briefing.validate_summary_contract(
+                {
+                    "stage_id": "fastq.profile_read_lengths",
+                    "scenario_id": "read_length_fairness",
+                    "tools": ["seqkit_stats"],
+                    "report_only": True,
+                    "mutates_fastq": False,
+                    "may_change_read_count": False,
+                    "raw_backend_report_format": "wrong",
+                    "histogram_bins": 100,
+                }
+            )
+
+    def test_read_length_briefing_rejects_artifact_row_drift(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_read_lengths_briefing.validate_rows_contract(
+                {"tools": ["seqkit_stats"]},
+                rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "seqkit_stats",
+                        "distinct_lengths": "10",
+                        "report_json_artifact": "/tmp/not-right.json",
+                        "length_distribution_tsv_artifact": "/tmp/length_distribution.tsv",
+                        "length_distribution_json_artifact": "/tmp/length_distribution.json",
+                    }
+                ],
+            )
+
 
 class TerminalDamageReportingTests(unittest.TestCase):
     def test_terminal_damage_summary_tracks_runtime_and_asymmetry(self) -> None:
