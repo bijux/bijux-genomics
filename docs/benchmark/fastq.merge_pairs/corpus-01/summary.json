@@ -1,0 +1,98 @@
+{
+  "schema_version": "bijux.fastq.merge_pairs.corpus_summary.v1",
+  "generated_at_utc": "2026-03-26T19:47:36.775101+00:00",
+  "corpus_id": "corpus-01",
+  "stage_id": "fastq.merge_pairs",
+  "scenario_id": "merge_fairness",
+  "platform": "lunarc-apptainer",
+  "corpus_root": "/System/Volumes/Data/home/bijan/bijux/corpus_01",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/bijux/results/corpus_01/fastq.merge_pairs/lunarc",
+  "samples_total": 10,
+  "samples_failed": 0,
+  "tools": [
+    "adapterremoval",
+    "bbmerge",
+    "flash2",
+    "leehom",
+    "pear",
+    "vsearch"
+  ],
+  "merge_overlap": null,
+  "min_length": null,
+  "unmerged_read_policy": "emit_unmerged_pairs",
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "modern_pe": 5
+  },
+  "era_counts": {
+    "ancient": 5,
+    "modern": 5
+  },
+  "layout_counts": {
+    "pe": 10
+  },
+  "headline": {
+    "fastest_tool": "vsearch",
+    "fastest_runtime_s": 10.1657380725,
+    "best_merge_rate_tool": "adapterremoval",
+    "best_merge_rate": 0.8731265,
+    "best_base_retention_tool": "adapterremoval",
+    "best_base_retention": 0.32485194982677673
+  },
+  "tool_summary": [
+    {
+      "tool": "adapterremoval",
+      "records": 10,
+      "pass_rate": 1.0,
+      "median_runtime_s": 19.1187085955,
+      "median_merge_rate": 0.8731265,
+      "median_base_retention": 0.32485194982677673,
+      "mean_reads_merged": 1040046.9
+    },
+    {
+      "tool": "bbmerge",
+      "records": 10,
+      "pass_rate": 1.0,
+      "median_runtime_s": 55.429713681,
+      "median_merge_rate": 0.5669835,
+      "median_base_retention": 0.2625296746584816,
+      "mean_reads_merged": 425296.9
+    },
+    {
+      "tool": "flash2",
+      "records": 10,
+      "pass_rate": 1.0,
+      "median_runtime_s": 12.1069572315,
+      "median_merge_rate": 0.530556,
+      "median_base_retention": 0.20945840697956286,
+      "mean_reads_merged": 715652.2
+    },
+    {
+      "tool": "leehom",
+      "records": 10,
+      "pass_rate": 1.0,
+      "median_runtime_s": 85.728006487,
+      "median_merge_rate": 0.4016925,
+      "median_base_retention": 0.14300183819289225,
+      "mean_reads_merged": 637122.4
+    },
+    {
+      "tool": "pear",
+      "records": 10,
+      "pass_rate": 1.0,
+      "median_runtime_s": 72.144497855,
+      "median_merge_rate": 0.211299,
+      "median_base_retention": 0.12323570934861405,
+      "mean_reads_merged": 245063.3
+    },
+    {
+      "tool": "vsearch",
+      "records": 10,
+      "pass_rate": 1.0,
+      "median_runtime_s": 10.1657380725,
+      "median_merge_rate": 0.1212425,
+      "median_base_retention": 0.0697027538305391,
+      "mean_reads_merged": 187280.8
+    }
+  ]
+}

@@ -2,8 +2,8 @@
   "corpus_id": "corpus-01",
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
   "stage_count": 10,
-  "completed_stage_count": 7,
-  "issue_count": 3,
+  "completed_stage_count": 8,
+  "issue_count": 2,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
@@ -28,16 +28,9 @@
       "scenario_id": "merge_fairness",
       "method_path": "benchmark/fastq.merge_pairs/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.merge_pairs/corpus-01",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.merge_pairs",
-          "issue_id": "missing-corpus-dir",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.merge_pairs/corpus-01"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.profile_reads",
