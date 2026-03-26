@@ -6,7 +6,7 @@ This benchmark measures the governed `fastq.profile_overrepresented_sequences` s
 
 - Platform: `lunarc-apptainer` on Lunarc
 - Corpus root: `/home/bijan/bijux/corpus_01`
-- Benchmark root: `/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_overrepresented_sequences/lunarc`
+- Benchmark root: `/home/bijan/bijux/results/corpus_01/fastq.profile_overrepresented_sequences/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `fastq_scan, fastqc, seqkit`
 - Sequence-profile contract: report_only=`True`, mutates_fastq=`False`, may_change_read_count=`False`, top_k=`50`

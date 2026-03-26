@@ -6,7 +6,7 @@ This benchmark compares the governed `fastq.trim_polyg_tails` stage across the f
 
 - Platform: `lunarc-apptainer` on Lunarc
 - Corpus root: `/home/bijan/bijux/corpus_01`
-- Benchmark root: `/home/bijan/bijux/corpus_01/benchmarks/fastq.trim_polyg_tails/lunarc`
+- Benchmark root: `/home/bijan/bijux/results/corpus_01/fastq.trim_polyg_tails/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `bbduk, fastp`
 - Chemistry preset: `illumina_twocolor`

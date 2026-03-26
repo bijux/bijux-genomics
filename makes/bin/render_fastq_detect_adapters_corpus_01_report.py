@@ -27,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--run-root",
         default="",
-        help="Benchmark run root. Defaults to <corpus-root>/benchmarks/fastq.detect_adapters/lunarc.",
+        help="Benchmark run root. Defaults to <corpus-root-parent>/results/<corpus-dir>/fastq.detect_adapters/lunarc.",
     )
     parser.add_argument(
         "--docs-root",
