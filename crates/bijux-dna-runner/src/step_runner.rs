@@ -315,26 +315,55 @@ pub fn execute_observer_command(
     args: &[String],
     runner: RuntimeKind,
 ) -> Result<CommandOutputV1> {
-    if runner != RuntimeKind::Docker {
-        return Err(runner_failure(
-            RunnerEffectKind::UnsupportedRuntime,
-            format!("runner {runner:?} not supported for observer execution"),
-        ));
-    }
     let mount_dir = mount_dir
         .canonicalize()
         .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
-    let mount_arg = format!("{}:/data:ro", mount_dir.display());
-    let mut command_args: Vec<String> = vec!["run".to_string(), "--rm".to_string()];
-    if !network_allowed() {
-        command_args.push("--network".to_string());
-        command_args.push("none".to_string());
-    }
-    command_args.extend(["-v".to_string(), mount_arg, image.to_string()]);
-    command_args.extend(args.iter().cloned());
-    let output = run_command("docker", &command_args)
+    let (bin, command_args) = build_observer_command_args(image, &mount_dir, args, runner)?;
+    let output = run_command(bin, &command_args)
         .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
     Ok(output)
+}
+
+fn build_observer_command_args(
+    image: &str,
+    mount_dir: &Path,
+    args: &[String],
+    runner: RuntimeKind,
+) -> Result<(&'static str, Vec<String>)> {
+    let mount_arg = format!("{}:/data:ro", mount_dir.display());
+    match runner {
+        RuntimeKind::Docker => {
+            let mut command_args: Vec<String> = vec!["run".to_string(), "--rm".to_string()];
+            if !network_allowed() {
+                command_args.push("--network".to_string());
+                command_args.push("none".to_string());
+            }
+            command_args.extend(["-v".to_string(), mount_arg, image.to_string()]);
+            command_args.extend(args.iter().cloned());
+            Ok(("docker", command_args))
+        }
+        RuntimeKind::Apptainer | RuntimeKind::Singularity => {
+            let mut command_args = vec![
+                "exec".to_string(),
+                "--cleanenv".to_string(),
+                "--no-home".to_string(),
+                "--containall".to_string(),
+                "--bind".to_string(),
+                mount_arg,
+            ];
+            if !network_allowed() && runner == RuntimeKind::Apptainer {
+                command_args.push("--net".to_string());
+            }
+            command_args.push(image.to_string());
+            command_args.extend(args.iter().cloned());
+            let bin = if runner == RuntimeKind::Apptainer {
+                "apptainer"
+            } else {
+                "singularity"
+            };
+            Ok((bin, command_args))
+        }
+    }
 }
 
 fn network_allowed() -> bool {
@@ -486,4 +515,48 @@ fn write_tool_invocation(
     });
     bijux_dna_infra::atomic_write_json(tool_invocation_path, &invocation)
         .context("write tool_invocation.json")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::build_observer_command_args;
+    use bijux_dna_environment::api::RuntimeKind;
+    use std::path::Path;
+
+    #[test]
+    fn observer_args_use_docker_mounts_for_docker_runner() {
+        let (bin, args) = build_observer_command_args(
+            "bijuxdna/seqkit:latest-pinned-amd64",
+            Path::new("/tmp/input"),
+            &["stats".to_string(), "/data/reads.fastq.gz".to_string()],
+            RuntimeKind::Docker,
+        )
+        .expect("docker observer args");
+
+        assert_eq!(bin, "docker");
+        assert!(args.starts_with(&["run".to_string(), "--rm".to_string()]));
+        assert!(args.contains(&"/tmp/input:/data:ro".to_string()));
+    }
+
+    #[test]
+    fn observer_args_use_apptainer_exec_for_apptainer_runner() {
+        let (bin, args) = build_observer_command_args(
+            "/containers/seqkit.sif",
+            Path::new("/tmp/input"),
+            &["stats".to_string(), "/data/reads.fastq.gz".to_string()],
+            RuntimeKind::Apptainer,
+        )
+        .expect("apptainer observer args");
+
+        assert_eq!(bin, "apptainer");
+        assert!(args.starts_with(&[
+            "exec".to_string(),
+            "--cleanenv".to_string(),
+            "--no-home".to_string(),
+            "--containall".to_string()
+        ]));
+        assert!(args.contains(&"--bind".to_string()));
+        assert!(args.contains(&"/tmp/input:/data:ro".to_string()));
+        assert!(args.contains(&"/containers/seqkit.sif".to_string()));
+    }
 }
