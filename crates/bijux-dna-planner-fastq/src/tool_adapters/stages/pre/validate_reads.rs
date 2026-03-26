@@ -248,13 +248,17 @@ fn validation_command(
             cleanup_dir.as_deref(),
             effective_params.threads,
         )?;
-        let mut command = format!(
+        let mut command = String::new();
+        if let Some(cleanup_dir) = cleanup_dir.as_ref() {
+            command.push_str(&format!("mkdir -p {}\n", shell_quote(cleanup_dir)));
+        }
+        command.push_str(&format!(
             "{} > {} 2>&1\n{status_var}=$?",
             shell_join(&rendered),
             shell_quote(log_path)
-        );
-        if let Some(cleanup_dir) = cleanup_dir {
-            command.push_str(&format!("\nrm -rf {}", shell_quote(&cleanup_dir)));
+        ));
+        if let Some(cleanup_dir) = cleanup_dir.as_ref() {
+            command.push_str(&format!("\nrm -rf {}", shell_quote(cleanup_dir)));
         }
         Ok(command)
     };
@@ -671,6 +675,8 @@ mod tests {
         assert!(script.contains(
             "'fastqc' '--quiet' '--threads' '6' '--outdir' 'out/validation_fastqc_reads_r2' 'reads_R2.fastq.gz'"
         ));
+        assert!(script.contains("mkdir -p 'out/validation_fastqc_reads_r1'"));
+        assert!(script.contains("mkdir -p 'out/validation_fastqc_reads_r2'"));
         assert!(script.contains("rm -rf 'out/validation_fastqc_reads_r1'"));
         assert!(script.contains("rm -rf 'out/validation_fastqc_reads_r2'"));
         assert_eq!(plan.resources.threads, 6);
