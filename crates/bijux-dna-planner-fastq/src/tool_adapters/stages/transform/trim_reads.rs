@@ -10,6 +10,8 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_TRIM_READS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
+const ATROPOS_MIN_THREADS: u32 = 2;
+const ATROPOS_BANK_FREE_SENTINEL_ADAPTER: &str = "A{1000}";
 
 #[derive(Debug, Clone, Default)]
 pub struct TrimPlanOptions {
@@ -53,6 +55,14 @@ impl TrimPlanOptions {
         self.contaminant_policy
             .clone()
             .unwrap_or_else(|| "none".to_string())
+    }
+}
+
+fn normalize_trim_threads(tool_id: &str, threads: u32) -> u32 {
+    if tool_id == "atropos" {
+        threads.max(ATROPOS_MIN_THREADS)
+    } else {
+        threads.max(1)
     }
 }
 
@@ -177,7 +187,8 @@ pub fn plan_with_options(
         return Err(anyhow!("seqpurge trim planning requires paired-end reads"));
     }
     ensure_trim_option_support(&tool.tool_id.0, options)?;
-    let effective_threads = options.resolved_threads(tool.resources.threads);
+    let effective_threads =
+        normalize_trim_threads(tool.tool_id.as_str(), options.resolved_threads(tool.resources.threads));
     let output_r1 = if r2.is_some() {
         out_dir.join(format!("R1.{output_name}"))
     } else {
@@ -341,7 +352,8 @@ fn trim_command_template(
     let adapter_policy = options.resolved_adapter_policy();
     let adapter_sequences = enabled_adapter_sequences(adapter_bank);
     let polyx_policy = options.resolved_polyx_policy();
-    let effective_threads = options.resolved_threads(tool.resources.threads);
+    let effective_threads =
+        normalize_trim_threads(tool.tool_id.as_str(), options.resolved_threads(tool.resources.threads));
     if tool.tool_id.as_str() == "fastp" {
         let raw_backend_report = raw_backend_report_path(report_json, "fastp", "json");
         let mut command = vec![
@@ -1144,7 +1156,7 @@ fn atropos_command_template(
         "atropos".to_string(),
         "trim".to_string(),
         "-T".to_string(),
-        threads.max(1).to_string(),
+        threads.to_string(),
     ];
     if matches!(
         options.resolved_adapter_policy().as_str(),
@@ -1155,6 +1167,17 @@ fn atropos_command_template(
             if r2.is_some() {
                 command.extend(["-A".to_string(), adapter]);
             }
+        }
+    } else {
+        command.extend([
+            "-a".to_string(),
+            ATROPOS_BANK_FREE_SENTINEL_ADAPTER.to_string(),
+        ]);
+        if r2.is_some() {
+            command.extend([
+                "-A".to_string(),
+                ATROPOS_BANK_FREE_SENTINEL_ADAPTER.to_string(),
+            ]);
         }
     }
     if let Some(quality_cutoff) = options.quality_cutoff {
@@ -1211,7 +1234,7 @@ fn adapterremoval_command_template(
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let mut command = vec![
-        "AdapterRemoval".to_string(),
+        "adapterremoval".to_string(),
         "--threads".to_string(),
         threads.max(1).to_string(),
         "--file1".to_string(),
@@ -1376,13 +1399,13 @@ fn trim_galore_command_template(
     script.push('\n');
     script.push_str(&format!(
         "mv {} {}\n",
-        shell_quote_path(&trim_galore_output_path(&working_dir, r1)),
+        shell_quote_path(&trim_galore_output_path(&working_dir, r1, r2.is_some(), 1)),
         shell_quote_path(output_r1),
     ));
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         script.push_str(&format!(
             "mv {} {}\n",
-            shell_quote_path(&trim_galore_output_path(&working_dir, r2)),
+            shell_quote_path(&trim_galore_output_path(&working_dir, r2, true, 2)),
             shell_quote_path(output_r2),
         ));
     }
@@ -1404,19 +1427,40 @@ fn trim_galore_command_template(
     Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
 
-fn trim_galore_output_path(output_dir: &Path, reads: &Path) -> PathBuf {
+fn trim_galore_output_path(
+    output_dir: &Path,
+    reads: &Path,
+    paired_end: bool,
+    mate_index: u8,
+) -> PathBuf {
     let file_name = reads
         .file_name()
         .and_then(|name| name.to_str())
         .unwrap_or("reads.fastq.gz");
     let trimmed_name = if let Some(stripped) = file_name.strip_suffix(".fastq.gz") {
-        format!("{stripped}_trimmed.fq.gz")
+        if paired_end {
+            format!("{stripped}_val_{mate_index}.fq.gz")
+        } else {
+            format!("{stripped}_trimmed.fq.gz")
+        }
     } else if let Some(stripped) = file_name.strip_suffix(".fq.gz") {
-        format!("{stripped}_trimmed.fq.gz")
+        if paired_end {
+            format!("{stripped}_val_{mate_index}.fq.gz")
+        } else {
+            format!("{stripped}_trimmed.fq.gz")
+        }
     } else if let Some(stripped) = file_name.strip_suffix(".fastq") {
-        format!("{stripped}_trimmed.fq")
+        if paired_end {
+            format!("{stripped}_val_{mate_index}.fq")
+        } else {
+            format!("{stripped}_trimmed.fq")
+        }
     } else if let Some(stripped) = file_name.strip_suffix(".fq") {
-        format!("{stripped}_trimmed.fq")
+        if paired_end {
+            format!("{stripped}_val_{mate_index}.fq")
+        } else {
+            format!("{stripped}_trimmed.fq")
+        }
     } else {
         format!("{file_name}_trimmed.fq.gz")
     };

@@ -587,7 +587,9 @@ fn plan_trim_with_options_maps_length_and_quality_for_atropos() -> Result<()> {
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
     assert!(script.contains("'atropos' 'trim'"));
-    assert!(script.contains("'-T' '1'"));
+    assert!(script.contains("'-T' '2'"));
+    assert!(script.contains("'-a' 'A{1000}'"));
+    assert!(script.contains("'-A' 'A{1000}'"));
     assert!(script.contains("'-q' '18'"));
     assert!(script.contains("'-m' '42'"));
     assert!(script.contains("'-pe1' 'reads_R1.fastq.gz'"));
@@ -621,7 +623,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_adapterremoval() -> Result
     assert_eq!(plan.command.template[0], "sh");
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
-    assert!(script.contains("'AdapterRemoval' '--threads' '1'"));
+    assert!(script.contains("'adapterremoval' '--threads' '1'"));
     assert!(script.contains("'--file1' 'reads_R1.fastq.gz'"));
     assert!(script.contains("'--file2' 'reads_R2.fastq.gz'"));
     assert!(script.contains("'--output1' 'out/R1.adapterremoval.fastq.gz'"));
@@ -1213,8 +1215,8 @@ fn plan_trim_galore_uses_output_directory_and_moves_governed_outputs() -> Result
     assert!(script.contains("trim_galore --output_dir"));
     assert!(script.contains("--cores 1"));
     assert!(script.contains("--paired"));
-    assert!(script.contains("reads_R1_trimmed.fq.gz"));
-    assert!(script.contains("reads_R2_trimmed.fq.gz"));
+    assert!(script.contains("reads_R1_val_1.fq.gz"));
+    assert!(script.contains("reads_R2_val_2.fq.gz"));
     assert!(script.contains("trim_report.json"));
     Ok(())
 }

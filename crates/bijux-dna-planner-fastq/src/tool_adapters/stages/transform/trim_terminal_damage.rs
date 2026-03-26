@@ -220,7 +220,7 @@ fn trim_terminal_damage_command(
     match tool_id {
         "adapterremoval" => {
             let mut script = format!(
-                "set -eu\nAdapterRemoval --threads {threads} --trim5p {trim_5p_bases} --trim3p {trim_3p_bases} --file1 {} --output1 {}",
+                "set -eu\nadapterremoval --threads {threads} --trim5p {trim_5p_bases} --trim3p {trim_3p_bases} --file1 {} --output1 {}",
                 shell_quote_path(r1),
                 shell_quote_path(output_r1),
             );
@@ -479,7 +479,7 @@ mod tests {
             .outputs
             .iter()
             .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"));
-        assert!(script.contains("AdapterRemoval --threads 3 --trim5p 2 --trim3p 1"));
+        assert!(script.contains("adapterremoval --threads 3 --trim5p 2 --trim3p 1"));
         assert!(script.contains("--file2 'reads_R2.fastq.gz' --output2 'out/R2.trim_terminal_damage.adapterremoval.fastq.gz'"));
         assert!(script.contains("\"tool_id\":\"adapterremoval\""));
         assert!(script.contains("\"raw_backend_report_format\":null"));
