@@ -50,6 +50,16 @@ def safe_mean(values: list[float]) -> float | None:
     return float(statistics.mean(values))
 
 
+def localize_results_path(path_str: str, local_results_root: Path) -> Path:
+    path = Path(path_str)
+    if path.exists():
+        return path
+    marker = "/results/"
+    if marker not in path_str:
+        return path
+    return local_results_root / path_str.split(marker, 1)[1]
+
+
 def normalize_metric(record: dict, key: str):
     metrics = record.get("metrics", {})
     metrics_payload = metrics.get("metrics", metrics)
@@ -222,6 +232,7 @@ def main() -> int:
     )
     docs_root = (repo_root / args.docs_root).resolve()
     docs_root.mkdir(parents=True, exist_ok=True)
+    local_results_root = run_root.parents[2]
 
     spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
@@ -246,11 +257,14 @@ def main() -> int:
         era_counts[metadata.get("era", "unknown")] += 1
         layout_counts[metadata.get("layout", run["layout"])] += 1
 
-        report_path = Path(run["report_json"])
+        report_path = localize_results_path(run["report_json"], local_results_root)
         if not report_path.is_file():
-            continue
+            raise SystemExit(f"missing report.json for {sample_id}: {report_path}")
         report = load_json(report_path)
-        for record in report.get("records", []):
+        records = report.get("records", [])
+        if not records:
+            raise SystemExit(f"report.json for {sample_id} contains no records")
+        for record in records:
             tool = record.get("context", {}).get("tool", "unknown")
             delta_metrics = normalize_metric(record, "delta_metrics")
             pre = normalize_metric(record, "ct_ga_asymmetry_pre")
