@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
-use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_stats_v1, insert_fastq_stats_v1};
 use bijux_dna_analyze::{
@@ -352,32 +352,10 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
-    let tool_context = execution_kernel::ToolContext {
-        run_id: run_id.clone(),
-        stage_id: STAGE_PROFILE_READS.as_str().to_string(),
-        tool_id: tool.to_string(),
-        sample_id: None,
-        stage_root: run_dirs.logs_dir.clone(),
-        input_root: bench_inputs.r1.parent().map_or_else(
-            || bench_inputs.bench_dir.clone(),
-            std::path::Path::to_path_buf,
-        ),
-        output_root: tool_dir.clone(),
-        tmp_root: run_dirs.logs_dir.join("tmp"),
-        threads: plan.resources.threads.max(1),
-        memory_hint_mb: Some(u64::from(plan.resources.mem_gb).saturating_mul(1024)),
-        compression_threads: Some(1),
-        seed: None,
-        network_policy: NetworkPolicy::Allow,
-    };
-    let execution = execution_kernel::ToolExec::invoke(&execution_kernel::ToolInvocationRequest {
-        step: step.clone(),
-        runner: bench_inputs.runner,
-        context: tool_context,
-        timeout: None,
-        mode: execution_kernel::ToolExecMode::Execute,
-    })?
-    .stage_result;
+    let execution = execute_plans_with_jobs(vec![step.clone()], bench_inputs.runner, bench_jobs(args.jobs))?
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
 
     let length_histogram = combine_length_histograms(
         &bench_inputs.length_hist,
