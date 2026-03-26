@@ -87,9 +87,8 @@ pub fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
 pub fn parse_length_histogram(output: &str) -> Result<Vec<(u64, u64)>> {
     let mut counts: std::collections::BTreeMap<u64, u64> = std::collections::BTreeMap::new();
     for line in output.lines() {
-        let mut parts = line.split('\t');
-        let _id = parts.next();
-        let len = parts
+        let len = line
+            .rsplit('\t')
             .next()
             .ok_or_else(|| anyhow!("seqkit fx2tab length missing"))?;
         let cleaned: String = len.chars().filter(char::is_ascii_digit).collect();
@@ -2113,6 +2112,14 @@ mod tests {
         let stdout = "readA\t100\nreadB\t100\nreadC\t50\n";
         let metrics = parse_length_histogram(stdout)?;
         assert_eq!(metrics.len(), 2);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_length_histogram_uses_fx2tab_length_column() -> Result<()> {
+        let stdout = "readA\tACGT\t####\t4\nreadB\tAC\t##\t2\nreadC\tTT\t!!\t2\n";
+        let metrics = parse_length_histogram(stdout)?;
+        assert_eq!(metrics, vec![(2, 2), (4, 1)]);
         Ok(())
     }
 
