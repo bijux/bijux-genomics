@@ -76,6 +76,14 @@ _benchmark-trim-reads-corpus-01: ## Benchmark fastq.trim_reads across corpus-01
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
+_benchmark-trim-terminal-damage-corpus-01: ## Benchmark fastq.trim_terminal_damage across corpus-01
+	@python3 makes/bin/run_fastq_trim_terminal_damage_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",)
+
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
 		--repo-root . \
@@ -98,10 +106,18 @@ _benchmark-trim-reads-corpus-01-report: ## Render the corpus-01 trim-reads bench
 	@python3 makes/bin/render_fastq_trim_reads_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.trim_reads/corpus-01
 
+_benchmark-trim-terminal-damage-corpus-01-report: ## Render the corpus-01 terminal-damage benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.trim_terminal_damage/corpus-01
+
 .PHONY: _benchmark-fastq-stage _benchmark-all _benchmark-trim _benchmark-validate _benchmark-filter \
 	_benchmark-merge _benchmark-correct _benchmark-qc-post _benchmark-umi \
 	_benchmark-stats _benchmark-screen _benchmark-preprocess _benchmark-status \
 	_benchmark-validate-corpus-01 _benchmark-trim-polyg-corpus-01 \
-	_benchmark-trim-reads-corpus-01 \
+	_benchmark-trim-reads-corpus-01 _benchmark-trim-terminal-damage-corpus-01 \
 	_benchmark-validate-corpus-01-report _benchmark-trim-polyg-corpus-01-report \
-	_benchmark-trim-reads-corpus-01-report
+	_benchmark-trim-reads-corpus-01-report _benchmark-trim-terminal-damage-corpus-01-report
