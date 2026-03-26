@@ -226,11 +226,12 @@ fn trim_terminal_damage_command(
             );
             if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
                 script.push_str(&format!(
-                    " --file2 {} --output2 {}",
+                    " --file2 {} --output2 {} --singleton /dev/null",
                     shell_quote_path(r2),
                     shell_quote_path(output_r2),
                 ));
             }
+            script.push_str(" --discarded /dev/null");
             script.push('\n');
             script.push_str(&format!(
                 "printf '%s\\n' {} > {}\n",
@@ -481,6 +482,8 @@ mod tests {
             .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"));
         assert!(script.contains("adapterremoval --threads 3 --trim5p 2 --trim3p 1"));
         assert!(script.contains("--file2 'reads_R2.fastq.gz' --output2 'out/R2.trim_terminal_damage.adapterremoval.fastq.gz'"));
+        assert!(script.contains("--singleton /dev/null"));
+        assert!(script.contains("--discarded /dev/null"));
         assert!(script.contains("\"tool_id\":\"adapterremoval\""));
         assert!(script.contains("\"raw_backend_report_format\":null"));
         assert!(script.contains("\"threads\":3"));
