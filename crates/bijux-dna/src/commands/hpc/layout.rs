@@ -124,9 +124,9 @@ impl HpcConfig {
     pub fn from_root(root: PathBuf) -> Self {
         let paths = HpcPathsSection {
             repo: root.join("bijux-dna"),
-            containers: root.join("bijux-dna-containers"),
-            data: root.join("bijux-dna-data"),
-            results: root.join("bijux-dna-results"),
+            containers: root.join("bijux-dna-container"),
+            data: root.join("corpus_01"),
+            results: root.join("results"),
         };
         Self {
             hpc: HpcSection { root },
@@ -186,9 +186,9 @@ impl HpcLayout {
         Self {
             root: root.to_path_buf(),
             code_dir: root.join("bijux-dna"),
-            containers_dir: root.join("bijux-dna-containers"),
-            data_dir: root.join("bijux-dna-data"),
-            results_dir: root.join("bijux-dna-results"),
+            containers_dir: root.join("bijux-dna-container"),
+            data_dir: root.join("corpus_01"),
+            results_dir: root.join("results"),
         }
     }
 
@@ -490,9 +490,7 @@ mod tests {
 
     #[test]
     fn hpc_layout_accepts_canonical_shape() {
-        let path = Path::new(
-            "/hpc/root/bijux-dna-results/results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123",
-        );
+        let path = Path::new("/hpc/root/results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123");
         assert!(enforce_hpc_results_layout(path).is_ok());
     }
 

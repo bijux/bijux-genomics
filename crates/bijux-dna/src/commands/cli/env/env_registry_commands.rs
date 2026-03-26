@@ -21,9 +21,9 @@ pub fn ensure_apptainer_images(
     let stage_ids = normalize_stage_ids(domain, stages_csv);
 
     let root = hpc_root.to_path_buf();
-    let containers_root = root.join("bijux-dna-containers");
-    let data_root = root.join("examples").join("bijux-dna-data");
-    let results_root = root.join("bijux-dna-results");
+    let containers_root = root.join("bijux-dna-container");
+    let data_root = root.join("corpus_01");
+    let results_root = root.join("results");
     bijux_dna_api::v1::api::run::ensure_dir(&containers_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&data_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&results_root)?;
@@ -268,7 +268,7 @@ pub fn parse_stage_domain(stage: &str) -> Result<String> {
 /// # Errors
 /// Returns an error if the containers inventory cannot be read.
 pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
-    let containers_dir = root.join("bijux-dna-containers");
+    let containers_dir = root.join("bijux-dna-container");
     let mut entries = Vec::new();
     let mut stack = vec![containers_dir.clone()];
     while let Some(dir) = stack.pop() {
