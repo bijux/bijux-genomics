@@ -1,3 +1,4 @@
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
@@ -598,7 +599,7 @@ fn find_fastq_pair(dir: &Path) -> Result<(PathBuf, PathBuf)> {
 }
 
 fn read_header_names(path: &Path, max_records: usize) -> Result<Vec<String>> {
-    let data = std::fs::read_to_string(path)?;
+    let data = read_fastq_text(path)?;
     let mut names = Vec::new();
     for (idx, line) in data.lines().enumerate() {
         if idx % 4 == 0 {
@@ -624,7 +625,7 @@ fn read_sequence_length_means(
 }
 
 fn read_sequence_lengths(path: &Path, max_records: usize) -> Result<Vec<usize>> {
-    let data = std::fs::read_to_string(path)?;
+    let data = read_fastq_text(path)?;
     let mut lengths = Vec::new();
     for (idx, line) in data.lines().enumerate() {
         if idx % 4 == 1 {
@@ -638,7 +639,7 @@ fn read_sequence_lengths(path: &Path, max_records: usize) -> Result<Vec<usize>> 
 }
 
 fn read_sequences(path: &Path, max_records: usize) -> Result<Vec<String>> {
-    let data = std::fs::read_to_string(path)?;
+    let data = read_fastq_text(path)?;
     let mut seqs = Vec::new();
     for (idx, line) in data.lines().enumerate() {
         if idx % 4 == 1 {
@@ -697,6 +698,45 @@ fn has_overlap(a: &str, b: &str, min_len: usize) -> bool {
         }
     }
     false
+}
+
+fn read_fastq_text(path: &Path) -> Result<String> {
+    let file = std::fs::File::open(path)?;
+    let mut data = String::new();
+    if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        let mut decoder = flate2::read::MultiGzDecoder::new(file);
+        decoder.read_to_string(&mut data)?;
+    } else {
+        let mut reader = std::io::BufReader::new(file);
+        reader.read_to_string(&mut data)?;
+    }
+    Ok(data)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{inspect_headers, read_sequences};
+    use std::io::Write;
+
+    #[test]
+    fn inspect_headers_reads_gzipped_fastq_inputs() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-fastq-contract")?;
+        let path = temp.path().join("reads.fastq.gz");
+        let file = std::fs::File::create(&path)?;
+        let mut encoder = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+        encoder.write_all(b"@read/1\nACGT\n+\n!!!!\n")?;
+        encoder.finish()?;
+
+        let inspection = inspect_headers(&path, None, true)?;
+
+        assert!(inspection.warnings.is_empty());
+        assert_eq!(read_sequences(&path, 1)?, vec!["ACGT".to_string()]);
+        Ok(())
+    }
 }
 fn mean_length(lengths: &[usize]) -> Option<usize> {
     if lengths.is_empty() {
