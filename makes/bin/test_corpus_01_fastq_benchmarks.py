@@ -645,6 +645,22 @@ class DetectAdaptersReportingTests(unittest.TestCase):
                 }
             )
 
+    def test_detect_adapters_report_rejects_sample_limited_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            detect_adapters_report.validate_detect_run_manifest_contract(
+                {
+                    "stage_id": "fastq.detect_adapters",
+                    "scenario_id": "detect_adapters_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": False,
+                    "sample_limit": 2,
+                    "inspection_mode": "evidence_only",
+                    "report_only": True,
+                    "evidence_scope": "full_input",
+                    "evidence_format": "fastqc_summary",
+                }
+            )
+
 
 class TerminalDamageReportingTests(unittest.TestCase):
     def test_terminal_damage_summary_tracks_runtime_and_asymmetry(self) -> None:
