@@ -60,6 +60,54 @@ def normalize_metric(record: dict, key: str):
     return metrics_payload.get(key)
 
 
+def validate_trim_polyg_row_contract(
+    *,
+    run_manifest: dict,
+    sample_rows: list[dict],
+) -> None:
+    expected_tools = run_manifest["tools"]
+    expected_formats = {
+        "fastp": "fastp_json",
+        "bbduk": "bbduk_stats",
+    }
+    rows_by_sample: dict[str, list[dict]] = defaultdict(list)
+    for row in sample_rows:
+        rows_by_sample[row["sample_id"]].append(row)
+        expected_format = expected_formats.get(row["tool"])
+        if expected_format and row["raw_backend_report_format"] != expected_format:
+            raise SystemExit(
+                "trim-polyg benchmark report drift: "
+                f"tool {row['tool']} expected raw_backend_report_format "
+                f"{expected_format}, found {row['raw_backend_report_format']}"
+            )
+        if row["polyx_preset"] != run_manifest["polyx_preset"]:
+            raise SystemExit(
+                "trim-polyg benchmark report drift: "
+                f"expected polyx_preset {run_manifest['polyx_preset']}, "
+                f"found {row['polyx_preset']} for {row['sample_id']}/{row['tool']}"
+            )
+        if row["min_polyg_run"] != run_manifest["min_polyg_run"]:
+            raise SystemExit(
+                "trim-polyg benchmark report drift: "
+                f"expected min_polyg_run {run_manifest['min_polyg_run']}, "
+                f"found {row['min_polyg_run']} for {row['sample_id']}/{row['tool']}"
+            )
+        if run_manifest["trim_polyg"] is not None and row["trim_polyg"] != run_manifest["trim_polyg"]:
+            raise SystemExit(
+                "trim-polyg benchmark report drift: "
+                f"expected trim_polyg {run_manifest['trim_polyg']}, "
+                f"found {row['trim_polyg']} for {row['sample_id']}/{row['tool']}"
+            )
+
+    for sample_id, rows in sorted(rows_by_sample.items()):
+        observed_tools = [row["tool"] for row in rows]
+        if sorted(observed_tools) != sorted(expected_tools):
+            raise SystemExit(
+                "trim-polyg benchmark report drift: "
+                f"sample {sample_id} expected tools {expected_tools}, found {observed_tools}"
+            )
+
+
 def render_markdown(summary: dict) -> str:
     lines: list[str] = []
     lines.append("# `fastq.trim_polyg_tails` on `corpus-01`")
@@ -224,6 +272,11 @@ def main() -> int:
             }
             sample_rows.append(row)
             tool_rows[tool].append(row)
+
+    validate_trim_polyg_row_contract(
+        run_manifest=run_manifest,
+        sample_rows=sample_rows,
+    )
 
     tool_summary: list[dict] = []
     for tool, rows in sorted(tool_rows.items()):
