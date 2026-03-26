@@ -180,6 +180,7 @@ def main() -> int:
         repo_root,
         TRIM_POLYG_BENCHMARK_CONTRACT.stage_id,
         requested_tools,
+        scenario_id=TRIM_POLYG_BENCHMARK_CONTRACT.scenario_id,
     )
     trim_polyg = parse_optional_bool(args.trim_polyg)
     runs: list[SampleRun] = []

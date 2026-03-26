@@ -75,6 +75,7 @@ fn parse_registry(path: &Path) -> Result<String> {
 pub fn registry_tools_for_stage(
     registry_path: &Path,
     stage: &str,
+    scenario: Option<&str>,
     kind: &str,
 ) -> Result<Vec<String>> {
     let parsed = parse_registry(registry_path)?;
@@ -99,7 +100,7 @@ pub fn registry_tools_for_stage(
         "optional" => stage_entry.optional_alternatives,
         "validation" => stage_entry.validation_tools,
         "reporting" => stage_entry.reporting_tools,
-        "benchmark" => benchmark_tools_for_stage(&stage_id)?,
+        "benchmark" => benchmark_tools_for_stage(&stage_id, scenario)?,
         other => {
             return Err(anyhow!(
                 "unsupported registry tool kind `{other}`; expected one of all, primary, optional, validation, reporting, benchmark"
@@ -111,14 +112,28 @@ pub fn registry_tools_for_stage(
     Ok(result)
 }
 
-fn benchmark_tools_for_stage(stage_id: &str) -> Result<Vec<String>> {
-    let benchmark_tools = bijux_dna_planner_fastq::stage_api::benchmark_default_scenario_toolset(
-        &bijux_dna_core::ids::StageId::new(stage_id.to_string()),
-    );
+fn benchmark_tools_for_stage(stage_id: &str, scenario: Option<&str>) -> Result<Vec<String>> {
+    let stage_id = bijux_dna_core::ids::StageId::new(stage_id.to_string());
+    let benchmark_tools = if let Some(scenario_id) = scenario {
+        bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
+            &stage_id,
+            scenario_id,
+        )
+    } else {
+        bijux_dna_planner_fastq::stage_api::benchmark_default_scenario_toolset(&stage_id)
+    };
     if benchmark_tools.is_empty() {
-        return Err(anyhow!(
-            "stage `{stage_id}` does not expose a unique default benchmark cohort"
-        ));
+        return if let Some(scenario_id) = scenario {
+            Err(anyhow!(
+                "stage `{}` does not expose benchmark cohort `{scenario_id}`",
+                stage_id.as_str()
+            ))
+        } else {
+            Err(anyhow!(
+                "stage `{}` does not expose a unique default benchmark cohort",
+                stage_id.as_str()
+            ))
+        };
     }
     Ok(benchmark_tools
         .into_iter()
@@ -129,7 +144,7 @@ fn benchmark_tools_for_stage(stage_id: &str) -> Result<Vec<String>> {
 /// # Errors
 /// Returns an error if stage cannot be resolved.
 pub fn run_env_smoke_for_stage(registry_path: &Path, runtime: &str, stage: &str) -> Result<()> {
-    let tools = registry_tools_for_stage(registry_path, stage, "all")?;
+    let tools = registry_tools_for_stage(registry_path, stage, None, "all")?;
     if tools.is_empty() {
         return Err(anyhow!("no tools found for stage {stage}"));
     }
@@ -148,7 +163,7 @@ pub fn run_env_prep(
         return run_env_with_tools(runtime, &[tool.to_string()], "version");
     }
     if let Some(stage) = stage {
-        let tools = registry_tools_for_stage(registry_path, stage, "all")?;
+        let tools = registry_tools_for_stage(registry_path, stage, None, "all")?;
         if tools.is_empty() {
             return Err(anyhow!("no tools found for stage {stage}"));
         }
@@ -174,7 +189,7 @@ mod tests {
 
     #[test]
     fn registry_benchmark_tools_follow_trim_fairness_cohort() {
-        let tools = registry_tools_for_stage(&registry_path(), "fastq.trim_reads", "benchmark")
+        let tools = registry_tools_for_stage(&registry_path(), "fastq.trim_reads", None, "benchmark")
             .expect("trim benchmark tools");
         assert_eq!(
             tools,
@@ -196,16 +211,28 @@ mod tests {
     #[test]
     fn registry_benchmark_tools_follow_polyg_fairness_cohort() {
         let tools =
-            registry_tools_for_stage(&registry_path(), "fastq.trim_polyg_tails", "benchmark")
+            registry_tools_for_stage(&registry_path(), "fastq.trim_polyg_tails", None, "benchmark")
                 .expect("polyg benchmark tools");
         assert_eq!(tools, vec!["bbduk", "fastp"]);
     }
 
     #[test]
     fn registry_rejects_unknown_tool_kind() {
-        let error = registry_tools_for_stage(&registry_path(), "fastq.trim_reads", "bogus")
+        let error = registry_tools_for_stage(&registry_path(), "fastq.trim_reads", None, "bogus")
             .expect_err("unknown kind should fail");
         assert!(error.to_string().contains("unsupported registry tool kind"));
+    }
+
+    #[test]
+    fn registry_benchmark_tools_follow_explicit_profile_read_length_cohort() {
+        let tools = registry_tools_for_stage(
+            &registry_path(),
+            "fastq.profile_read_lengths",
+            Some("read_length_fairness"),
+            "benchmark",
+        )
+        .expect("read-length benchmark tools");
+        assert_eq!(tools, vec!["seqkit_stats"]);
     }
 }
 

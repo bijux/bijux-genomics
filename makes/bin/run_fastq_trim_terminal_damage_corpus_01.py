@@ -160,6 +160,7 @@ def main() -> int:
         repo_root,
         TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT.stage_id,
         requested_tools,
+        scenario_id=TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT.scenario_id,
     )
     runs: list[SampleRun] = []
     failures = 0

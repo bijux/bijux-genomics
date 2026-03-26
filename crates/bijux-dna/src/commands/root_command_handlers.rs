@@ -238,8 +238,12 @@ pub(crate) fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -
     };
     let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
     match command {
-        cli::RegistryCommand::Tools { stage, kind } => {
-            print_registry_tools(&registry_path, stage.as_deref(), kind)?;
+        cli::RegistryCommand::Tools {
+            stage,
+            scenario,
+            kind,
+        } => {
+            print_registry_tools(&registry_path, stage.as_deref(), scenario.as_deref(), kind)?;
         }
         cli::RegistryCommand::Stages => print_registry_list_stages(&registry_path)?,
         cli::RegistryCommand::ShowTool { id } => print_registry_show_tool(&registry_path, id)?,
