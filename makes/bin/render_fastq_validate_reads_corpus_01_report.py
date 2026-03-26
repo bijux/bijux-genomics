@@ -5,10 +5,14 @@ import argparse
 import csv
 import json
 import statistics
-import tomllib
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+
+try:
+    import tomllib  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    tomllib = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -34,9 +38,37 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def parse_simple_toml(path: Path) -> dict:
+    root: dict = {}
+    samples: list[dict] = []
+    current_sample: dict | None = None
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        if line == "[[samples]]":
+            current_sample = {}
+            samples.append(current_sample)
+            continue
+        key, raw_value = [part.strip() for part in line.split("=", 1)]
+        if raw_value.startswith('"') and raw_value.endswith('"'):
+            value = raw_value[1:-1]
+        elif raw_value.isdigit():
+            value = int(raw_value)
+        else:
+            raise SystemExit(f"unsupported TOML value in {path}: {raw_value}")
+        target = current_sample if current_sample is not None else root
+        target[key] = value
+    root["samples"] = samples
+    return root
+
+
 def load_spec(repo_root: Path) -> dict:
-    with (repo_root / "configs" / "runtime" / "corpora" / "corpus-01.toml").open("rb") as handle:
-        return tomllib.load(handle)
+    path = repo_root / "configs" / "runtime" / "corpora" / "corpus-01.toml"
+    if tomllib is not None:
+        with path.open("rb") as handle:
+            return tomllib.load(handle)
+    return parse_simple_toml(path)
 
 
 def safe_median(values: list[float]) -> float | None:
