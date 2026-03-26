@@ -340,7 +340,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let plan_json = StagePlanJson::from_plan(&plan);
     let params = plan.params.clone();
     let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-    let image_digest = benchmark_image_identity(tool_spec);
+    let image_digest = benchmark_image_identity(&tool_spec);
     let run_id = compute_run_id(
         STAGE_PROFILE_READS.as_str(),
         tool,
