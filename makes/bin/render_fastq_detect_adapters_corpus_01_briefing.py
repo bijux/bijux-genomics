@@ -74,6 +74,33 @@ def optional_float(raw: str) -> float | None:
     return float(raw)
 
 
+def validate_summary_contract(summary: dict) -> None:
+    if summary.get("stage_id") != "fastq.detect_adapters":
+        raise SystemExit(
+            "detect-adapters briefing drift: "
+            f"expected stage_id fastq.detect_adapters, found {summary.get('stage_id')}"
+        )
+    if summary.get("scenario_id") != "detect_adapters_fairness":
+        raise SystemExit(
+            "detect-adapters briefing drift: "
+            f"expected scenario_id detect_adapters_fairness, found {summary.get('scenario_id')}"
+        )
+    if not summary.get("tools"):
+        raise SystemExit("detect-adapters briefing drift: summary tools must not be empty")
+
+
+def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
+    if not rows:
+        raise SystemExit("detect-adapters briefing drift: sample_results.csv must not be empty")
+    expected_tools = sorted(summary["tools"])
+    observed_tools = sorted({row["tool"] for row in rows})
+    if observed_tools != expected_tools:
+        raise SystemExit(
+            "detect-adapters briefing drift: "
+            f"expected tools {expected_tools}, found {observed_tools}"
+        )
+
+
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
     by_tool: dict[str, list[dict]] = defaultdict(list)
     for row in rows:
@@ -365,6 +392,8 @@ def main() -> int:
     docs_root = Path(args.docs_root).resolve()
     summary = load_json(docs_root / "summary.json")
     rows = load_rows(docs_root / "sample_results.csv")
+    validate_summary_contract(summary)
+    validate_rows_contract(summary, rows)
 
     runtime_rows = tool_runtime_summary(rows)
     cohort_rows = cohort_runtime_summary(rows)
