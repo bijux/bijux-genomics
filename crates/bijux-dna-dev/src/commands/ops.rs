@@ -4267,19 +4267,20 @@ fn tooling_run_bijux(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     if matches!(args.first().map(String::as_str), Some("--help" | "-h")) {
         return success_line("Usage: cargo run -p bijux-dna-dev -- tooling run bijux -- <args...>");
     }
-    run_program(
-        workspace,
-        "cargo",
-        &[
-            "run".to_string(),
-            "--bin".to_string(),
-            "bijux-dna".to_string(),
-            "--".to_string(),
-        ]
-        .into_iter()
-        .chain(args.iter().cloned())
-        .collect::<Vec<_>>(),
-    )
+    let mut argv = vec![
+        "run".to_string(),
+        "--bin".to_string(),
+        "bijux-dna".to_string(),
+        "--".to_string(),
+    ];
+    if let Ok(platform) = std::env::var("BIJUX_PLATFORM") {
+        if !platform.trim().is_empty() {
+            argv.push("--platform".to_string());
+            argv.push(platform);
+        }
+    }
+    argv.extend(args.iter().cloned());
+    run_program(workspace, "cargo", &argv)
 }
 
 fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
