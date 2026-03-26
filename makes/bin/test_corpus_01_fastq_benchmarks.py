@@ -19,6 +19,8 @@ import render_fastq_merge_pairs_corpus_01_briefing as merge_briefing
 import render_fastq_merge_pairs_corpus_01_report as merge_report
 import render_fastq_profile_overrepresented_sequences_corpus_01_briefing as overrepresented_briefing
 import render_fastq_profile_overrepresented_sequences_corpus_01_report as overrepresented_report
+import render_fastq_report_qc_corpus_01_briefing as report_qc_briefing
+import render_fastq_report_qc_corpus_01_report as report_qc_report
 import render_fastq_profile_read_lengths_corpus_01_briefing as profile_read_lengths_briefing
 import render_fastq_profile_read_lengths_corpus_01_report as profile_read_lengths_report
 import render_fastq_profile_reads_corpus_01_briefing as profile_reads_briefing
@@ -359,6 +361,120 @@ class TrimPolygReportingTests(unittest.TestCase):
             trim_polyg_report.validate_trim_polyg_row_contract(
                 run_manifest=run_manifest,
                 sample_rows=sample_rows,
+            )
+
+
+class ReportQcReportingTests(unittest.TestCase):
+    def test_report_qc_tool_summary_tracks_multiqc_and_governed_inputs(self) -> None:
+        rows = [
+            {
+                "tool": "multiqc",
+                "runtime_s": "4.2",
+                "exit_code": "0",
+                "multiqc_module_count": "8",
+                "multiqc_sample_count": "1",
+                "governed_qc_input_count": "6",
+                "contamination_rate": "0.012",
+                "mean_q": "34.1",
+            },
+            {
+                "tool": "multiqc",
+                "runtime_s": "4.8",
+                "exit_code": "0",
+                "multiqc_module_count": "9",
+                "multiqc_sample_count": "1",
+                "governed_qc_input_count": "6",
+                "contamination_rate": "0.010",
+                "mean_q": "34.6",
+            },
+        ]
+
+        summary_rows = report_qc_briefing.tool_runtime_summary(rows)
+
+        self.assertEqual(len(summary_rows), 1)
+        self.assertAlmostEqual(summary_rows[0]["median_runtime_s"], 4.5)
+        self.assertAlmostEqual(summary_rows[0]["median_multiqc_module_count"], 8.5)
+        self.assertAlmostEqual(summary_rows[0]["median_governed_qc_input_count"], 6.0)
+        self.assertAlmostEqual(summary_rows[0]["median_mean_q"], 34.35)
+
+    def test_report_qc_markdown_mentions_aggregation_contract(self) -> None:
+        summary = {
+            "generated_at_utc": "2026-03-26T00:00:00+00:00",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/results/corpus_01/fastq.report_qc/lunarc",
+            "scenario_id": "qc_aggregation_fairness",
+            "samples_total": 20,
+            "samples_failed": 0,
+            "tools": ["multiqc"],
+            "aggregation_engine": "multiqc",
+            "aggregation_scope": "governed_qc_artifacts",
+            "report_only": True,
+            "mutates_fastq": False,
+            "may_change_read_count": False,
+            "governed_contributor_stage_ids": [
+                "fastq.validate_reads",
+                "fastq.detect_adapters",
+                "fastq.profile_reads",
+                "fastq.profile_read_lengths",
+            ],
+            "era_counts": {"ancient": 10, "modern": 10},
+            "layout_counts": {"se": 10, "pe": 10},
+            "cohort_counts": {"ancient_pe": 5, "ancient_se": 5, "modern_pe": 5, "modern_se": 5},
+            "headline": {
+                "fastest_tool": "multiqc",
+                "fastest_runtime_s": 4.5,
+                "largest_multiqc_module_tool": "multiqc",
+                "largest_multiqc_module_count": 8.5,
+                "highest_governed_input_tool": "multiqc",
+                "highest_governed_input_count": 6.0,
+            },
+            "tool_summary": [
+                {
+                    "tool": "multiqc",
+                    "records": 20,
+                    "pass_rate": 1.0,
+                    "median_runtime_s": 4.5,
+                    "median_multiqc_module_count": 8.5,
+                    "median_multiqc_sample_count": 1.0,
+                    "median_governed_qc_input_count": 6.0,
+                    "median_contamination_rate": 0.011,
+                    "median_mean_q": 34.35,
+                }
+            ],
+        }
+
+        markdown = report_qc_report.render_markdown(summary)
+
+        self.assertIn("aggregation_engine: `multiqc`", markdown)
+        self.assertIn("Governed contributor stages", markdown)
+        self.assertIn("Median governed inputs", markdown)
+
+    def test_report_qc_report_contract_rejects_mismatched_governed_input_count(self) -> None:
+        run_manifest = {
+            "tools": ["multiqc"],
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "multiqc",
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 1000,
+                "governed_qc_input_count": 5,
+                "expected_governed_qc_input_count": 6,
+                "mean_q": 34.0,
+                "contamination_rate": 0.01,
+                "exit_code": 1,
+            }
+        ]
+
+        with self.assertRaises(SystemExit):
+            report_qc_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
             )
 
 
