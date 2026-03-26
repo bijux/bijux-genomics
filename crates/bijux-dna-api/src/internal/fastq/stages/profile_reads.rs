@@ -350,10 +350,6 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
-    let run_root = out_dir
-        .parent()
-        .ok_or_else(|| anyhow!("profile_reads artifacts dir missing run root"))?
-        .to_path_buf();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
     let tool_context = execution_kernel::ToolContext {
@@ -366,7 +362,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
             || bench_inputs.bench_dir.clone(),
             std::path::Path::to_path_buf,
         ),
-        output_root: run_root,
+        output_root: tool_dir.clone(),
         tmp_root: run_dirs.logs_dir.join("tmp"),
         threads: plan.resources.threads.max(1),
         memory_hint_mb: Some(u64::from(plan.resources.mem_gb).saturating_mul(1024)),
