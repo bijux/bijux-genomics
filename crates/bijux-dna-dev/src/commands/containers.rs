@@ -527,6 +527,58 @@ fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
+fn canonical_container_label_keys() -> [&'static str; 7] {
+    [
+        "org.opencontainers.image.source",
+        "org.opencontainers.image.revision",
+        "org.opencontainers.image.created",
+        "org.opencontainers.image.licenses",
+        "org.opencontainers.image.version",
+        "org.opencontainers.image.tool",
+        "org.opencontainers.image.title",
+    ]
+}
+
+fn missing_container_label_markers(text: &str) -> Vec<&'static str> {
+    canonical_container_label_keys()
+        .into_iter()
+        .filter(|label| !text.contains(label))
+        .collect()
+}
+
+fn docker_image_labels(workspace: &Workspace, image: &str) -> Result<BTreeMap<String, String>> {
+    let inspect = run_program_with_env(
+        workspace,
+        "docker",
+        &[
+            "image".to_string(),
+            "inspect".to_string(),
+            image.to_string(),
+            "--format".to_string(),
+            "{{json .Config.Labels}}".to_string(),
+        ],
+        &[],
+    )?;
+    if !inspect.is_success() {
+        return Err(anyhow!(
+            "docker image inspect failed for {image}: {}",
+            inspect.stderr.trim()
+        ));
+    }
+    let stdout = inspect.stdout.trim();
+    if stdout.is_empty() || stdout == "null" {
+        return Ok(BTreeMap::new());
+    }
+    serde_json::from_str(stdout).with_context(|| format!("parse docker labels for {image}"))
+}
+
+fn canonical_metadata_labels(labels: &BTreeMap<String, String>) -> BTreeMap<&'static str, String> {
+    canonical_container_label_keys()
+        .into_iter()
+        .filter_map(|key| labels.get(key).cloned().map(|value| (key, value)))
+        .collect()
+}
+
 fn load_toml(path: &std::path::Path) -> Result<toml::Value> {
     toml::from_str(&read_utf8(path)?).with_context(|| format!("parse TOML {}", path.display()))
 }
@@ -3965,15 +4017,7 @@ fn check_apptainer_frontend_version_output_lock(
 
 fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let tool_status = tool_status_manifest(workspace)?;
-    let required_labels = [
-        "org.opencontainers.image.source",
-        "org.opencontainers.image.revision",
-        "org.opencontainers.image.created",
-        "org.opencontainers.image.licenses",
-        "org.opencontainers.image.version",
-        "org.opencontainers.image.tool",
-        "org.opencontainers.image.title",
-    ];
+    let required_labels = canonical_container_label_keys();
     let mut errors = Vec::new();
     let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)").expect("regex");
     let from_re = Regex::new(r"(?m)^\s*From:\s+(.+?)\s*$").expect("regex");
@@ -4123,6 +4167,11 @@ fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOu
                     "{rel}: base image repo must follow policy (ubuntu/debian/python/quay.io/*)"
                 ));
             }
+        }
+        if text.contains("/opt/bijux/VERSION.json") || text.contains("bijux-tool-info") {
+            errors.push(format!(
+                "{rel}: duplicate in-image self-report metadata is forbidden; publish metadata must flow through OCI labels"
+            ));
         }
         if text.contains("chmod 777") {
             errors.push(format!("{rel}: chmod 777 forbidden for runtime UID safety"));
@@ -5685,15 +5734,7 @@ fn check_docker_hardening(workspace: &Workspace) -> Result<ContainerCommandOutco
         .captures_iter(&read_utf8(&entrypoint_doc)?)
         .filter_map(|captures| captures.get(1).map(|value| value.as_str().to_string()))
         .collect::<BTreeSet<_>>();
-    let required_labels = [
-        "org.opencontainers.image.source",
-        "org.opencontainers.image.revision",
-        "org.opencontainers.image.created",
-        "org.opencontainers.image.licenses",
-        "org.opencontainers.image.version",
-        "org.opencontainers.image.tool",
-        "org.opencontainers.image.title",
-    ];
+    let required_labels = canonical_container_label_keys();
     let entrypoint_re = Regex::new(r"^ENTRYPOINT\s+\[").expect("regex");
     let cmd_re = Regex::new(r"^CMD\s+\[").expect("regex");
     let cmd_line_re = Regex::new(r"^CMD\s+\[(.+)\]\s*$").expect("regex");
@@ -5854,6 +5895,11 @@ fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome>
                     .map(|value| value.as_str().to_string())
                     .unwrap_or_default(),
             );
+        }
+        if text.contains("/opt/bijux/VERSION.json") || text.contains("bijux-tool-info") {
+            errors.push(format!(
+                "{rel}: duplicate in-image self-report metadata is forbidden; publish metadata must flow through OCI labels"
+            ));
         }
     }
     for path in apptainer_def_paths(workspace) {
@@ -7753,14 +7799,16 @@ fn check_build_provenance(workspace: &Workspace) -> Result<ContainerCommandOutco
                 continue;
             }
             let text = read_utf8(&path)?;
-            if !text.contains("/opt/bijux/VERSION.json") {
+            let missing_labels = missing_container_label_markers(&text);
+            if !missing_labels.is_empty() {
                 errors.push(format!(
-                    "{tool}: {kind} missing provenance file write /opt/bijux/VERSION.json"
+                    "{tool}: {kind} missing OCI metadata labels {}",
+                    missing_labels.join(", ")
                 ));
             }
-            if !text.contains("bijux-tool-info") {
+            if text.contains("/opt/bijux/VERSION.json") || text.contains("bijux-tool-info") {
                 errors.push(format!(
-                    "{tool}: {kind} missing bijux-tool-info self-report command"
+                    "{tool}: {kind} still embeds duplicated self-report metadata; use OCI labels as the canonical metadata surface"
                 ));
             }
         }
@@ -8142,23 +8190,7 @@ fn check_rebuild_repro(workspace: &Workspace, args: &[String]) -> Result<Contain
     if !version1.is_success() {
         return Ok(version1);
     }
-    let version_file1 = run_program_with_env(
-        workspace,
-        "docker",
-        &[
-            "run".to_string(),
-            "--rm".to_string(),
-            "--entrypoint".to_string(),
-            "sh".to_string(),
-            image1.clone(),
-            "-lc".to_string(),
-            "cat /opt/bijux/VERSION.json".to_string(),
-        ],
-        &[],
-    )?;
-    if !version_file1.is_success() {
-        return Ok(version_file1);
-    }
+    let labels1 = docker_image_labels(workspace, &image1)?;
     let build2 = run_program_with_env(workspace, "docker", &build_args(&image2), &[])?;
     if !build2.is_success() {
         return Ok(build2);
@@ -8180,23 +8212,7 @@ fn check_rebuild_repro(workspace: &Workspace, args: &[String]) -> Result<Contain
     if !version2.is_success() {
         return Ok(version2);
     }
-    let version_file2 = run_program_with_env(
-        workspace,
-        "docker",
-        &[
-            "run".to_string(),
-            "--rm".to_string(),
-            "--entrypoint".to_string(),
-            "sh".to_string(),
-            image2,
-            "-lc".to_string(),
-            "cat /opt/bijux/VERSION.json".to_string(),
-        ],
-        &[],
-    )?;
-    if !version_file2.is_success() {
-        return Ok(version_file2);
-    }
+    let labels2 = docker_image_labels(workspace, &image2)?;
 
     let line1 = version1
         .stdout
@@ -8217,11 +8233,13 @@ fn check_rebuild_repro(workspace: &Workspace, args: &[String]) -> Result<Contain
             "rebuild-repro: version mismatch: '{line1}' vs '{line2}'\n"
         )));
     }
-    let digest1 = sha256_hex(version_file1.stdout.as_bytes());
-    let digest2 = sha256_hex(version_file2.stdout.as_bytes());
+    let metadata1 = canonical_metadata_labels(&labels1);
+    let metadata2 = canonical_metadata_labels(&labels2);
+    let digest1 = sha256_hex(serde_json::to_string(&metadata1)?.as_bytes());
+    let digest2 = sha256_hex(serde_json::to_string(&metadata2)?.as_bytes());
     if digest1 != digest2 {
         return Ok(ContainerCommandOutcome::failure(format!(
-            "rebuild-repro: VERSION.json digest mismatch: '{digest1}' vs '{digest2}'\n"
+            "rebuild-repro: OCI metadata label digest mismatch: '{digest1}' vs '{digest2}'\n"
         )));
     }
     success_line(format!("rebuild-repro: OK ({tool})"))

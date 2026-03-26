@@ -429,15 +429,32 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
                 ));
             }
             if path.starts_with(defs_root.join("lunarc")) {
-                if !raw.contains("/opt/bijux/VERSION.json") {
+                for label in [
+                    "org.opencontainers.image.source",
+                    "org.opencontainers.image.revision",
+                    "org.opencontainers.image.created",
+                    "org.opencontainers.image.licenses",
+                    "org.opencontainers.image.version",
+                    "org.opencontainers.image.tool",
+                    "org.opencontainers.image.title",
+                ] {
+                    if !raw.contains(label) {
+                        offenders.push(format!(
+                            "{}: missing OCI metadata label {}",
+                            path.display(),
+                            label
+                        ));
+                    }
+                }
+                if raw.contains("/opt/bijux/VERSION.json") {
                     offenders.push(format!(
-                        "{}: missing provenance file write /opt/bijux/VERSION.json",
+                        "{}: duplicated self-report metadata /opt/bijux/VERSION.json is forbidden; use OCI labels instead",
                         path.display()
                     ));
                 }
-                if !raw.contains("bijux-tool-info") {
+                if raw.contains("bijux-tool-info") {
                     offenders.push(format!(
-                        "{}: missing bijux-tool-info self-report command",
+                        "{}: duplicated self-report command bijux-tool-info is forbidden; use OCI labels instead",
                         path.display()
                     ));
                 }
