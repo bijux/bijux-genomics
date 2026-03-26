@@ -774,6 +774,78 @@ class OverrepresentedReportingTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_overrepresented_report_contract_rejects_excess_ranked_sequences(self) -> None:
+        with self.assertRaises(SystemExit):
+            overrepresented_report.validate_overrepresented_row_contract(
+                run_manifest={"tools": ["fastqc"], "top_k": 5},
+                sample_rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "fastqc",
+                        "sequence_count": 6,
+                        "flagged_sequences": 1,
+                        "top_fraction": 0.1,
+                        "top_k": 5,
+                    }
+                ],
+                expected_sample_ids=["sample_0001"],
+            )
+
+    def test_overrepresented_report_validates_artifact_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_path = (
+                Path(tmpdir)
+                / "bench"
+                / "profile_overrepresented_sequences"
+                / "sample_0001"
+                / "report.json"
+            )
+            tool_dir = report_path.parent / "tools" / "fastqc"
+            tool_dir.mkdir(parents=True)
+            (tool_dir / "overrepresented_sequences.tsv").write_text(
+                "sequence\tcount\nACGT\t4\n",
+                encoding="utf-8",
+            )
+            (tool_dir / "overrepresented_sequences.json").write_text(
+                json.dumps({"sequence_count": 1}) + "\n",
+                encoding="utf-8",
+            )
+            (tool_dir / "overrepresented_report.json").write_text(
+                json.dumps({"top_fraction": 0.2}) + "\n",
+                encoding="utf-8",
+            )
+
+            artifacts = overrepresented_report.validate_artifact_paths(report_path, "fastqc")
+
+        self.assertTrue(
+            artifacts["overrepresented_sequences_tsv_artifact"].endswith(
+                "overrepresented_sequences.tsv"
+            )
+        )
+        self.assertTrue(
+            artifacts["overrepresented_sequences_json_artifact"].endswith(
+                "overrepresented_sequences.json"
+            )
+        )
+
+    def test_overrepresented_report_rejects_empty_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_path = (
+                Path(tmpdir)
+                / "bench"
+                / "profile_overrepresented_sequences"
+                / "sample_0001"
+                / "report.json"
+            )
+            tool_dir = report_path.parent / "tools" / "fastqc"
+            tool_dir.mkdir(parents=True)
+            (tool_dir / "overrepresented_sequences.tsv").write_text("", encoding="utf-8")
+            (tool_dir / "overrepresented_sequences.json").write_text("{}", encoding="utf-8")
+            (tool_dir / "overrepresented_report.json").write_text("{}", encoding="utf-8")
+
+            with self.assertRaises(SystemExit):
+                overrepresented_report.validate_artifact_paths(report_path, "fastqc")
+
 
 class ProfileReadsReportingTests(unittest.TestCase):
     def test_profile_reads_summary_tracks_runtime_and_profile_metrics(self) -> None:
