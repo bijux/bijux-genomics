@@ -518,6 +518,8 @@ class DetectAdaptersReportingTests(unittest.TestCase):
 
     def test_detect_adapters_briefing_avoids_hardcoded_tool_name(self) -> None:
         summary = {
+            "stage_id": "fastq.detect_adapters",
+            "scenario_id": "detect_adapters_fairness",
             "platform": "lunarc-apptainer",
             "corpus_root": "/home/bijan/bijux/corpus_01",
             "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.detect_adapters/lunarc",
@@ -557,6 +559,17 @@ class DetectAdaptersReportingTests(unittest.TestCase):
 
         self.assertIn("`adapter_observer` ran at", markdown)
         self.assertNotIn("`fastqc` ran at", markdown)
+
+    def test_detect_adapters_briefing_rejects_tool_drift(self) -> None:
+        with self.assertRaises(SystemExit):
+            detect_adapters_briefing.validate_rows_contract(
+                {"tools": ["fastqc"]},
+                rows=[
+                    {
+                        "tool": "other_tool",
+                    }
+                ],
+            )
 
     def test_detect_adapters_markdown_mentions_observer_contract(self) -> None:
         summary = {
