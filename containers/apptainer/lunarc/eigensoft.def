@@ -45,14 +45,6 @@ echo "error: smartpca runtime payload is not bundled in this image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/smartpca
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"eigensoft","version":"8.0.0","source":"https://github.com/DReichLab/EIG","license":"GPL-2.0"}' > /opt/bijux/VERSION.json
-    cat >/usr/local/bin/bijux-tool-info <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-cat /opt/bijux/VERSION.json
-SH
-    chmod 0755 /usr/local/bin/bijux-tool-info
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

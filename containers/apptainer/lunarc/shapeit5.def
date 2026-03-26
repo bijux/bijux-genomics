@@ -42,15 +42,6 @@ echo "error: shapeit5 runtime payload is not bundled in this planned wrapper ima
 exit 2
 SH
     chmod 0755 /usr/local/bin/shapeit5
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"shapeit5","version":"planned","source":"https://odelaneau.github.io/shapeit5/","license":"MIT"}' > /opt/bijux/VERSION.json
-    cat >/usr/local/bin/bijux-tool-info <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-cat /opt/bijux/VERSION.json
-SH
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     exec shapeit5 "$@"
 

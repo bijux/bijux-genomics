@@ -71,12 +71,6 @@ EOF
 
     # Clean up apt lists. (don’t try to remove essential packages)
     rm -rf /var/lib/apt/lists/*
-
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"samtools","version":"0.0.0","source":"https://www.htslib.org/","license":"Apache-2.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     if [ $# -eq 0 ]; then
         exec samtools --help

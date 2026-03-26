@@ -58,12 +58,6 @@ EOF
     chmod +x /usr/local/bin/bwa && \
 
     rm -rf /var/lib/apt/lists/*
-
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"bwa","version":"0.7.17","source":"https://github.com/bijux/bijux-dna","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     if [ $# -eq 0 ]; then
         exec /usr/local/bin/bwa --help

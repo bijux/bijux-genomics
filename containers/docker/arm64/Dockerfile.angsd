@@ -23,9 +23,5 @@ FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends     ca-certificates libbz2-1.0 liblzma5 libcurl4 zlib1g && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /opt/angsd/angsd /usr/local/bin/angsd
-RUN mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"angsd","version":"0.940","source":"https://github.com/ANGSD/angsd","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
 ENTRYPOINT ["/usr/local/bin/angsd"]
 CMD ["--help"]

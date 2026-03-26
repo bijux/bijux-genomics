@@ -64,15 +64,6 @@ esac
 exec /usr/local/bin/verifybamid2-bin "$@"
 EOS
     chmod +x /usr/local/bin/verifybamid2
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"verifybamid2","version":"2.0.1","source":"https://github.com/Griffan/VerifyBamID","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
-    cat > /usr/local/bin/bijux-tool-info <<'EOS'
-#!/usr/bin/env sh
-set -eu
-cat /opt/bijux/VERSION.json
-EOS
-    chmod +x /usr/local/bin/bijux-tool-info
-
 %runscript
     exec /usr/local/bin/verifybamid2 "$@"
 

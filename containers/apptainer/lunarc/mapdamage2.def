@@ -68,12 +68,6 @@ fi
 exec python3 -m mapdamage "$@"
 EOS
     chmod +x /usr/local/bin/mapdamage2
-
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"mapdamage2","version":"2.2.2","source":"https://github.com/bijux/bijux-dna","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     exec /usr/local/bin/mapdamage2 "$@"
 

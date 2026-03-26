@@ -31,10 +31,6 @@ RUN printf '%s\n' '#!/usr/bin/env bash' \
     'echo "ibdhap: planned wrapper (no upstream binary integrated yet)" >&2' \
     'exit 2' > /usr/local/bin/ibdhap && \
     chmod 0755 /usr/local/bin/ibdhap && \
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"ibdhap","version":"0.1.0-planned","source":"https://example.invalid/ibdhap","license":"unknown"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
 
 ENTRYPOINT ["/usr/local/bin/ibdhap"]
 CMD ["--help"]

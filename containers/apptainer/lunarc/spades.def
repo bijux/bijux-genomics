@@ -88,12 +88,6 @@ EOF
     rm -rf /opt/SPAdes-4.2.0-Linux /tmp/spades.tar.gz
 
     rm -rf /var/lib/apt/lists/*
-
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"spades","version":"0.0.0","source":"https://github.com/ablab/spades","license":"Apache-2.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     if [ $# -eq 0 ]; then
         exec spades.py --help

@@ -26,10 +26,6 @@ RUN curl -fsSL -o /tmp/germline.tar.gz https://github.com/gusevlab/germline/arch
     tar -xzf /tmp/germline.tar.gz -C /tmp && \
     make -C /tmp/germline-1.5.3 && \
     install -m 0755 /tmp/germline-1.5.3/germline /usr/local/bin/germline && \
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"germline","version":"1.5.3","source":"https://www.cs.columbia.edu/~gusev/germline/","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info && \
     rm -rf /tmp/germline.tar.gz /tmp/germline-1.5.3
 
 ENTRYPOINT ["/usr/local/bin/germline"]

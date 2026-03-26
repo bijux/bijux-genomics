@@ -45,14 +45,6 @@ echo "error: beagle 5.4 runtime payload is not bundled in this image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/beagle
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"beagle","version":"5.4","source":"https://faculty.washington.edu/browning/beagle/beagle.html","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
-    cat >/usr/local/bin/bijux-tool-info <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-cat /opt/bijux/VERSION.json
-SH
-    chmod 0755 /usr/local/bin/bijux-tool-info
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 
