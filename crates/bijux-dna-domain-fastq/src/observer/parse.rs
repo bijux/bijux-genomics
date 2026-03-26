@@ -1281,6 +1281,14 @@ pub fn parse_bbduk_reads_removed(stats_txt: &str) -> Result<u64> {
                 return digits.parse::<u64>().context("parse bbduk reads removed");
             }
         }
+        if line.starts_with("#Matched") || line.starts_with("Matched") {
+            if let Some(field) = line.split_whitespace().nth(1) {
+                let digits: String = field.chars().filter(char::is_ascii_digit).collect();
+                if !digits.is_empty() {
+                    return digits.parse::<u64>().context("parse bbduk matched reads");
+                }
+            }
+        }
     }
     Err(anyhow!("bbduk stats missing reads removed line"))
 }
@@ -2596,6 +2604,15 @@ mod tests {
     fn parse_bbduk_reads_removed_fixture_line() -> Result<()> {
         let removed = parse_bbduk_reads_removed("Reads Removed: 137\n")?;
         assert_eq!(removed, 137);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_bbduk_reads_removed_matches_summary_fixture() -> Result<()> {
+        let removed = parse_bbduk_reads_removed(
+            "#File\treads.fastq.gz\n#Total\t12282618\n#Matched\t0\t0.00000%\n",
+        )?;
+        assert_eq!(removed, 0);
         Ok(())
     }
 
