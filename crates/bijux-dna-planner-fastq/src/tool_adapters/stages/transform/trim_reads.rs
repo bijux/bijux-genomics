@@ -1369,14 +1369,22 @@ fn trim_galore_command_template(
     }
     if let Some(quality_cutoff) = options.quality_cutoff {
         script.push_str(&format!(" -q {quality_cutoff}"));
+    } else {
+        // Trim Galore defaults to quality trimming at Q20 unless it is overridden explicitly.
+        script.push_str(" -q 0");
     }
-    if matches!(
-        options.resolved_adapter_policy().as_str(),
-        "bank" | "ancient_strict"
-    ) {
-        if let Some(adapter_sequence) = enabled_adapter_sequences(adapter_bank).first() {
-            script.push_str(&format!(" --adapter {}", shell_quote_str(adapter_sequence)));
+    match options.resolved_adapter_policy().as_str() {
+        "none" => {
+            // Trim Galore defaults to adapter auto-detection and falls back to Illumina adapters.
+            // Pin a no-op adapter sequence so the governed bank-free cohort stays semantically honest.
+            script.push_str(" --adapter X");
         }
+        "bank" | "ancient_strict" => {
+            if let Some(adapter_sequence) = enabled_adapter_sequences(adapter_bank).first() {
+                script.push_str(&format!(" --adapter {}", shell_quote_str(adapter_sequence)));
+            }
+        }
+        _ => {}
     }
     if r2.is_some() {
         script.push_str(" --paired");
@@ -1520,7 +1528,10 @@ fn shell_quote_str(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{adapterremoval_command_template, atropos_command_template, TrimPlanOptions};
+    use super::{
+        adapterremoval_command_template, atropos_command_template, trim_galore_command_template,
+        TrimPlanOptions,
+    };
     use std::path::Path;
 
     #[test]
@@ -1566,5 +1577,29 @@ mod tests {
         assert!(!script.contains("A{1000}"));
         assert!(!script.contains("'-a'"));
         assert!(!script.contains("'-A'"));
+    }
+
+    #[test]
+    fn trim_galore_trim_disables_default_quality_and_adapter_trimming_for_bank_free_runs() {
+        let command = trim_galore_command_template(
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out/R1.trimmed_trimmed.fq.gz"),
+            Some(Path::new("out/R2.trimmed_trimmed.fq.gz")),
+            Path::new("out/trim_report.json"),
+            1,
+            None,
+            &TrimPlanOptions {
+                min_length: Some(30),
+                ..TrimPlanOptions::default()
+            },
+        )
+        .expect("trim_galore command");
+
+        let script = command.get(2).expect("shell script");
+        assert!(script.contains(" -q 0"));
+        assert!(script.contains(" --adapter X"));
+        assert!(!script.contains(" --adapter2 "));
+        assert!(!script.contains("AGATCGGAAGAGC"));
     }
 }
