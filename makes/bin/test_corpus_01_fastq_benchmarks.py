@@ -806,6 +806,83 @@ class ProfileReadsReportingTests(unittest.TestCase):
                 }
             )
 
+    def test_profile_reads_briefing_avoids_hardcoded_tool_name(self) -> None:
+        summary = {
+            "stage_id": "fastq.profile_reads",
+            "scenario_id": "profile_reads_fairness",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_reads/lunarc",
+            "samples_total": 1,
+            "samples_failed": 0,
+            "tools": ["profile_observer"],
+            "report_only": True,
+            "mutates_fastq": False,
+            "may_change_read_count": False,
+            "raw_backend_report_format": "seqkit_stats_tsv",
+            "length_histogram_source": "seqkit_fx2tab",
+            "era_counts": {"ancient": 1, "modern": 0},
+            "layout_counts": {"se": 1, "pe": 0},
+        }
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "ancient",
+                "layout": "se",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "profile_observer",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "reads_total": "100",
+                "bases_total": "5000",
+                "mean_q": "31.0",
+                "gc_percent": "44.0",
+                "histogram_bin_count": "2",
+                "max_observed_length": "75",
+                "mean_read_length": "50.0",
+            }
+        ]
+        runtime_rows = profile_reads_briefing.tool_runtime_summary(rows)
+        cohort_rows = profile_reads_briefing.cohort_runtime_summary(rows)
+        outliers = profile_reads_briefing.sample_runtime_outliers(rows)
+
+        markdown = profile_reads_briefing.render_markdown(
+            summary, rows, runtime_rows, cohort_rows, outliers
+        )
+
+        self.assertIn("`profile_observer` ran at", markdown)
+        self.assertNotIn("`seqkit_stats` ran at", markdown)
+
+    def test_profile_reads_briefing_rejects_contract_drift(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_reads_briefing.validate_summary_contract(
+                {
+                    "stage_id": "fastq.profile_reads",
+                    "scenario_id": "profile_reads_fairness",
+                    "tools": ["seqkit_stats"],
+                    "report_only": True,
+                    "mutates_fastq": False,
+                    "may_change_read_count": False,
+                    "raw_backend_report_format": "wrong",
+                    "length_histogram_source": "seqkit_fx2tab",
+                }
+            )
+
+    def test_profile_reads_briefing_rejects_histogram_row_drift(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_reads_briefing.validate_rows_contract(
+                {"tools": ["seqkit_stats"]},
+                rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "seqkit_stats",
+                        "histogram_bin_count": "0",
+                    }
+                ],
+            )
+
 
 class TerminalDamageReportingTests(unittest.TestCase):
     def test_terminal_damage_summary_tracks_runtime_and_asymmetry(self) -> None:
