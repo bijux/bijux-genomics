@@ -11,6 +11,7 @@ pub enum StageMetricKind {
     FastqTrimPolyg,
     FastqTrimTerminalDamage,
     FastqValidate,
+    FastqDetectAdapters,
     FastqFilter,
     FastqMerge,
     FastqCorrect,
@@ -18,6 +19,8 @@ pub enum StageMetricKind {
     FastqUmi,
     FastqScreen,
     FastqStats,
+    FastqReadLengths,
+    FastqOverrepresented,
 }
 
 #[derive(Debug, Clone, Copy)]

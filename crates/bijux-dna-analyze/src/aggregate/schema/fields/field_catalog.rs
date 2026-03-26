@@ -11,6 +11,7 @@ pub const METRIC_REGISTRY_CORE: [MetricSpec; 15] = [
         stages: &[
             "fastq.trim_reads",
             "fastq.validate_reads",
+            "fastq.detect_adapters",
             "fastq.filter_reads",
             "fastq.merge_pairs",
             "fastq.correct_errors",
@@ -33,6 +34,7 @@ pub const METRIC_REGISTRY_CORE: [MetricSpec; 15] = [
         stages: &[
             "fastq.trim_reads",
             "fastq.validate_reads",
+            "fastq.detect_adapters",
             "fastq.filter_reads",
             "fastq.merge_pairs",
             "fastq.correct_errors",
