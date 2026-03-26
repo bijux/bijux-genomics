@@ -12,10 +12,12 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT,
+    default_results_stage_root,
     discover_normalized_samples,
     load_corpus_spec,
     normalize_tool_csv,
     require_canonical_tool_roster,
+    validate_benchmark_layout,
     validate_corpus_contract,
 )
 
@@ -142,8 +144,11 @@ def main() -> int:
     out_root = (
         Path(args.out_root).expanduser().resolve()
         if args.out_root
-        else (corpus_root / "benchmarks" / "fastq.profile_read_lengths" / "lunarc")
+        else default_results_stage_root(
+            corpus_root, PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT.stage_id
+        )
     )
+    validate_benchmark_layout(corpus_root, out_root)
     out_root.mkdir(parents=True, exist_ok=True)
 
     samples = discover_normalized_samples(corpus_root)
