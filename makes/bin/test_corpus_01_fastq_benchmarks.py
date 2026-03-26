@@ -12,6 +12,8 @@ if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
 import corpus_01_fastq_benchmark_support as support
+import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
+import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
 import render_fastq_trim_reads_corpus_01_briefing as trim_reads_briefing
 import render_fastq_trim_reads_corpus_01_report as trim_reads_report
 import render_fastq_trim_terminal_damage_corpus_01_briefing as terminal_damage_briefing
@@ -482,6 +484,122 @@ class TrimReadsReportingTests(unittest.TestCase):
                     "scenario_id": "trim_fairness",
                     "tool_kind": "benchmark",
                     "dry_run": True,
+                }
+            )
+
+
+class DetectAdaptersReportingTests(unittest.TestCase):
+    def test_detect_adapters_summary_tracks_runtime_and_signal(self) -> None:
+        rows = [
+            {
+                "tool": "fastqc",
+                "runtime_s": "1.2",
+                "exit_code": "0",
+                "candidate_adapter_count": "2",
+                "adapter_trimmed_fraction": "",
+                "mean_q": "31.5",
+            },
+            {
+                "tool": "fastqc",
+                "runtime_s": "1.4",
+                "exit_code": "0",
+                "candidate_adapter_count": "4",
+                "adapter_trimmed_fraction": "",
+                "mean_q": "32.5",
+            },
+        ]
+
+        summary_rows = detect_adapters_briefing.tool_runtime_summary(rows)
+
+        self.assertEqual(len(summary_rows), 1)
+        self.assertAlmostEqual(summary_rows[0]["median_runtime_s"], 1.3)
+        self.assertAlmostEqual(summary_rows[0]["mean_candidate_adapter_count"], 3.0)
+        self.assertAlmostEqual(summary_rows[0]["median_mean_q"], 32.0)
+
+    def test_detect_adapters_markdown_mentions_observer_contract(self) -> None:
+        summary = {
+            "generated_at_utc": "2026-03-26T00:00:00+00:00",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.detect_adapters/lunarc",
+            "scenario_id": "detect_adapters_fairness",
+            "samples_total": 20,
+            "samples_failed": 0,
+            "tools": ["fastqc"],
+            "inspection_mode": "evidence_only",
+            "report_only": True,
+            "evidence_scope": "full_input",
+            "evidence_format": "fastqc_summary",
+            "era_counts": {"ancient": 10, "modern": 10},
+            "layout_counts": {"se": 10, "pe": 10},
+            "cohort_counts": {"ancient_pe": 5, "ancient_se": 5, "modern_pe": 5, "modern_se": 5},
+            "headline": {
+                "fastest_tool": "fastqc",
+                "fastest_runtime_s": 1.3,
+                "largest_adapter_signal_tool": "fastqc",
+                "largest_adapter_signal": 3.0,
+                "highest_trimmed_fraction_tool": None,
+                "highest_trimmed_fraction": None,
+            },
+            "tool_summary": [
+                {
+                    "tool": "fastqc",
+                    "records": 20,
+                    "pass_rate": 1.0,
+                    "median_runtime_s": 1.3,
+                    "mean_candidate_adapter_count": 3.0,
+                    "mean_adapter_trimmed_fraction": None,
+                    "median_mean_q": 32.0,
+                }
+            ],
+        }
+
+        markdown = detect_adapters_report.render_markdown(summary)
+
+        self.assertIn("inspection_mode: `evidence_only`", markdown)
+        self.assertIn("report_only: `True`", markdown)
+
+    def test_detect_adapters_report_contract_rejects_mutating_rows(self) -> None:
+        run_manifest = {"tools": ["fastqc"]}
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "fastqc",
+                "reads_in": 100,
+                "reads_out": 99,
+                "bases_in": 1000,
+                "bases_out": 1000,
+                "adapter_trimmed_fraction": None,
+            }
+        ]
+
+        with self.assertRaises(SystemExit):
+            detect_adapters_report.validate_detect_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
+            )
+
+    def test_detect_adapters_report_contract_rejects_missing_sample_rows(self) -> None:
+        with self.assertRaises(SystemExit):
+            detect_adapters_report.validate_detect_row_contract(
+                run_manifest={"tools": ["fastqc"]},
+                sample_rows=[],
+                expected_sample_ids=["sample_0001"],
+            )
+
+    def test_detect_adapters_report_rejects_dry_run_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            detect_adapters_report.validate_detect_run_manifest_contract(
+                {
+                    "stage_id": "fastq.detect_adapters",
+                    "scenario_id": "detect_adapters_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": True,
+                    "inspection_mode": "evidence_only",
+                    "report_only": True,
+                    "evidence_scope": "full_input",
+                    "evidence_format": "fastqc_summary",
                 }
             )
 
