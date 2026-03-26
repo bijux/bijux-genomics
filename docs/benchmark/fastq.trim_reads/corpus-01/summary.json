@@ -1,0 +1,139 @@
+{
+  "adapter_bank_preset": null,
+  "adapter_policy": "none",
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "contaminant_policy": "none",
+  "contaminant_preset": null,
+  "corpus_id": "corpus-01",
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-26T22:54:01.759466+00:00",
+  "headline": {
+    "best_base_retention": 1.0,
+    "best_base_retention_tool": "atropos",
+    "best_q_gain": 0.0,
+    "best_q_gain_tool": "adapterremoval",
+    "best_read_retention": 1.0,
+    "best_read_retention_tool": "atropos",
+    "fastest_runtime_s": 1.216278664,
+    "fastest_tool": "seqkit"
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "min_length": 30,
+  "n_policy": "retain",
+  "platform": "lunarc-apptainer",
+  "polyx_policy": "none",
+  "polyx_preset": null,
+  "quality_cutoff": null,
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "trim_fairness",
+  "schema_version": "bijux.fastq.trim_reads.corpus_summary.v1",
+  "stage_id": "fastq.trim_reads",
+  "tool_summary": [
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 0.9796596790297951,
+      "median_read_retention": 0.9982975244926409,
+      "median_runtime_s": 3.1976336434999997,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "adapterremoval"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 24.1701376065,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "atropos"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 3.198806736,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "bbduk"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 5.793699607,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "cutadapt"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 0.9176445574577161,
+      "median_read_retention": 0.9484609768670196,
+      "median_runtime_s": 5.522647689999999,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "fastp"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 2.0132564134999997,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "prinseq"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 1.216278664,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "seqkit"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 20.1041372345,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "trim_galore"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 16.2249017605,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "trimmomatic"
+    }
+  ],
+  "tools": [
+    "adapterremoval",
+    "atropos",
+    "bbduk",
+    "cutadapt",
+    "fastp",
+    "prinseq",
+    "seqkit",
+    "trim_galore",
+    "trimmomatic"
+  ]
+}
