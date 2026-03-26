@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 039523aef3eb373e936130df047ff0c87516b41a
+# source_commit: 0a4314ededd7b40bd3bb9fe2680f6216f49ed2bb
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -36,7 +36,7 @@ smoke_help_cmd = "adapterremoval --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "adapterremoval --help"
 expected_bin = "adapterremoval"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_json", "raw_backend_report_txt"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
@@ -648,7 +648,7 @@ smoke_help_cmd = "fastp --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "fastp --help"
 expected_bin = "fastp"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "report_json", "report_json", "length_distribution_tsv", "length_distribution_json"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with other governed trimming and filtering backends only when stage contract, read layout, and retained report artifacts are matched."
 dockerfile = "containers/docker/arm64/Dockerfile.fastp"
@@ -1328,7 +1328,7 @@ smoke_help_cmd = "prinseq++ --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "prinseq++ --help"
 expected_bin = "prinseq++"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "filtered_reads_r1", "filtered_reads_r2", "report_json", "filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json", "length_distribution_tsv", "length_distribution_json"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "filtered_reads_r1", "filtered_reads_r2", "filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
@@ -1571,40 +1571,6 @@ metrics_schema = "bijux.fastq.stats.v1"
 comparability_notes = "Comparable with governed read-statistics backends when dataset class, read layout, and emitted QC tables are held constant."
 dockerfile = "containers/docker/arm64/Dockerfile.seqkit_stats"
 apptainer_def = "containers/apptainer/lunarc/seqkit_stats.def"
-require_labels = true
-
-[[tools]]
-id = "seqpurge"
-tool_id = "seqpurge"
-domain = "fastq"
-domains = ["fastq"]
-status = "production"
-stage_ids = ["fastq.trim_reads"]
-bindings = ["fastq.trim_reads"]
-tool_role = "trimmer"
-version = "0.1.0"
-default_version = "0.1.0"
-upstream = "https://github.com/seqpurge/seqpurge"
-version_rule = "pinned"
-license = "GPL-3.0"
-citation = "upstream:https://github.com/seqpurge/seqpurge"
-pinned_commit = "sha256:65c1249b64696ad0783c6409126e45f8025851fd4eaf7f651b2df9bda2a0a662"
-pin_strategy = "pinned"
-container_ref = "bijuxdna/seqpurge@sha256:65c1249b64696ad0783c6409126e45f8025851fd4eaf7f651b2df9bda2a0a662"
-runtimes = ["docker", "apptainer"]
-container = true
-version_cmd = "seqpurge --version"
-help_cmd = "seqpurge --help"
-smoke_version_cmd = "seqpurge --version"
-smoke_help_cmd = "seqpurge --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
-healthcheck_cmd = "seqpurge --help"
-expected_bin = "seqpurge"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
-metrics_schema = "bijux.fastq.trim_reads.v1"
-comparability_notes = "Comparable with governed trimming backends for planned paired-end experiments when the same trim stage contract and report artifacts are used."
-dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
-apptainer_def = "containers/apptainer/lunarc/seqpurge.def"
 require_labels = true
 
 [[tools]]
@@ -2245,7 +2211,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Governed ASV inference now uses the admitted containerized dada2 backend and publishes the canonical infer-asvs report plus taxonomy-ready representative sequences."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
@@ -2385,7 +2351,7 @@ requires_reporting = false
 id = "fastq.trim_reads"
 required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
-optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
+optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -2416,3 +2382,4 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
+

@@ -168,7 +168,6 @@ fn trim_reads_stage_manifest_lists_all_supported_backends() -> Result<()> {
             "trim_galore",
             "prinseq",
             "seqkit",
-            "seqpurge",
             "skewer",
         ],
         "trim_reads should publish every governed trim backend carried by the domain and CI registry"

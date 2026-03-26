@@ -16,9 +16,9 @@
   - `fastp`
   - `prinseq`
   - `seqkit`
-  - `seqpurge`
   - `trim_galore`
   - `trimmomatic`
+- `seqpurge` is intentionally excluded from the governed cohort until its Lunarc image exposes a real trimming runtime instead of the current compatibility wrapper.
 
 ## Execution contract
 - Use normalized FASTQ inputs from `corpus-01/normalized/`.

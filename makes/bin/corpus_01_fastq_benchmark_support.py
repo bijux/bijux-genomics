@@ -70,7 +70,6 @@ TRIM_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
         "fastp",
         "prinseq",
         "seqkit",
-        "seqpurge",
         "trim_galore",
         "trimmomatic",
     ],

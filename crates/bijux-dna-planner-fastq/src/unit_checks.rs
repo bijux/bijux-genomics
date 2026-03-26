@@ -50,15 +50,11 @@ fn select_trim_tools_accepts_newly_governed_adapter_backends() {
 
 #[test]
 fn select_trim_tools_accepts_newly_governed_streaming_backends() {
-    let tools = vec!["seqkit".to_string(), "prinseq".to_string(), "seqpurge".to_string()];
+    let tools = vec!["seqkit".to_string(), "prinseq".to_string()];
     match select_trim_tools(&tools, false) {
         Ok(normalized) => assert_eq!(
             normalized,
-            vec![
-                "prinseq".to_string(),
-                "seqkit".to_string(),
-                "seqpurge".to_string()
-            ]
+            vec!["prinseq".to_string(), "seqkit".to_string()]
         ),
         Err(err) => panic!("expected governed trim tools to normalize: {err}"),
     }

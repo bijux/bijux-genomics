@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 039523aef3eb373e936130df047ff0c87516b41a
+# source_commit: 0a4314ededd7b40bd3bb9fe2680f6216f49ed2bb
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -285,7 +285,7 @@ resource_memory_gb = 8
 resource_time_minutes = 30
 resource_threads = 4
 sanity_metrics = ["otu_count", "representative_count"]
-output_size_estimates_mb = ["otu_representatives:3", "otu_table:8", "taxonomy_ready_fasta:3", "taxonomy_ready_fastq:6"]
+output_size_estimates_mb = ["otu_representatives:3", "otu_table:8", "report_json:8", "taxonomy_ready_fasta:3", "taxonomy_ready_fastq:6"]
 qc_thresholds = ["otu_count|warn=<=0|fail=<=0"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -304,7 +304,7 @@ resource_memory_gb = 12
 resource_time_minutes = 45
 resource_threads = 8
 sanity_metrics = ["error_corrected_fraction"]
-output_size_estimates_mb = ["corrected_reads_r1:900", "corrected_reads_r2:900", "report_json:8"]
+output_size_estimates_mb = ["corrected_reads_r1:900", "report_json:8"]
 qc_thresholds = ["error_corrected_fraction|warn=<0.01|fail=<0.001"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -380,7 +380,7 @@ resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
 sanity_metrics = ["adapter_detection_rate"]
-output_size_estimates_mb = ["adapter_report:5"]
+output_size_estimates_mb = ["adapter_report:5", "report_json:5"]
 qc_thresholds = ["adapter_detection_rate|warn=<0.01|fail=<0.001"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -437,7 +437,7 @@ resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
 sanity_metrics = ["reads_filtered_fraction"]
-output_size_estimates_mb = ["filtered_reads_r1:1800"]
+output_size_estimates_mb = ["filtered_reads_r1:1800", "report_json:8"]
 qc_thresholds = ["reads_filtered_fraction|warn=>0.8|fail=>0.9"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
@@ -456,7 +456,7 @@ resource_memory_gb = 8
 resource_time_minutes = 30
 resource_threads = 4
 sanity_metrics = ["index_build_exit_code"]
-output_size_estimates_mb = ["reference_index:5000"]
+output_size_estimates_mb = ["reference_index:5000", "report_json:8"]
 qc_thresholds = ["index_build_exit_code|warn=!=0|fail=!=0"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -475,7 +475,7 @@ resource_memory_gb = 12
 resource_time_minutes = 60
 resource_threads = 4
 sanity_metrics = ["asv_count", "sample_count"]
-output_size_estimates_mb = ["asv_sequences_fasta:3", "asv_table_tsv:8", "taxonomy_ready_fasta:3", "taxonomy_ready_fastq:6"]
+output_size_estimates_mb = ["asv_sequences_fasta:3", "asv_table_tsv:8", "report_json:8", "taxonomy_ready_fasta:3", "taxonomy_ready_fastq:6"]
 qc_thresholds = ["asv_count|warn=<=0|fail=<=0"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -532,7 +532,7 @@ resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
 sanity_metrics = ["primer_trimmed_fraction", "orientation_forward_fraction"]
-output_size_estimates_mb = ["normalized_reads_r1:1800", "primer_orientation_report:3", "primer_stats_json:2"]
+output_size_estimates_mb = ["normalized_reads_r1:1800", "primer_orientation_report:3", "primer_stats_json:2", "report_json:8"]
 qc_thresholds = ["primer_trimmed_fraction|warn=<0.05|fail=<0.01"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -551,7 +551,7 @@ resource_memory_gb = 4
 resource_time_minutes = 15
 resource_threads = 2
 sanity_metrics = ["reads_total"]
-output_size_estimates_mb = ["overrepresented_sequences_json:2", "overrepresented_sequences_tsv:4"]
+output_size_estimates_mb = ["overrepresented_sequences_json:2", "overrepresented_sequences_tsv:4", "report_json:4"]
 qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.2|fail=>0.5"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -570,7 +570,7 @@ resource_memory_gb = 2
 resource_time_minutes = 10
 resource_threads = 2
 sanity_metrics = ["mean_read_length"]
-output_size_estimates_mb = ["length_distribution_json:2", "length_distribution_tsv:3"]
+output_size_estimates_mb = ["length_distribution_json:2", "length_distribution_tsv:3", "report_json:4"]
 qc_thresholds = ["mean_read_length|warn=<30|fail=<20"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -608,7 +608,7 @@ resource_memory_gb = 8
 resource_time_minutes = 25
 resource_threads = 4
 sanity_metrics = ["chimera_fraction", "chimeras_removed"]
-output_size_estimates_mb = ["chimera_filtered_reads:1500", "chimera_metrics_json:4", "report_json:6", "uchime_report_tsv:6"]
+output_size_estimates_mb = ["chimera_filtered_reads:1500", "chimera_metrics_json:4", "report_json:6"]
 qc_thresholds = ["chimera_fraction|warn=>0.4|fail=>0.8"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
@@ -710,7 +710,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
+tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
 id = "fastq.trim_terminal_damage"
@@ -756,7 +756,7 @@ stages = ["bam.align", "bam.validate", "bam.mapping_summary", "bam.filter", "bam
 
 [[pipelines]]
 id = "fastq.pre_hpc_best"
-stages = ["fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_terminal_damage", "fastq.trim_reads", "fastq.filter_reads", "fastq.index_reference", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna", "fastq.merge_pairs", "fastq.remove_duplicates", "fastq.filter_low_complexity", "fastq.profile_reads", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy", "fastq.report_qc"]
+stages = ["fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_terminal_damage", "fastq.trim_reads", "fastq.filter_reads", "fastq.correct_errors", "fastq.extract_umis", "fastq.index_reference", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna", "fastq.merge_pairs", "fastq.remove_duplicates", "fastq.filter_low_complexity", "fastq.profile_reads", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy", "fastq.report_qc"]
 
 [[benchmark_scenarios]]
 id = "bam.contamination_fairness"
