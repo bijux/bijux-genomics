@@ -45,6 +45,13 @@ fn load_domain_tool_yaml(tool_id: &str) -> Option<DomainToolYaml> {
     None
 }
 
+fn constraints_are_default(constraints: &ToolConstraints) -> bool {
+    constraints.runtime == "local"
+        && constraints.mem_gb == 1
+        && constraints.tmp_gb == 1
+        && constraints.threads == 1
+}
+
 /// Build a runtime execution specification from registry and image catalog.
 ///
 /// # Errors
@@ -73,7 +80,7 @@ pub fn build_tool_execution_spec(
             if !domain_tool.command_template.is_empty() {
                 command_template = domain_tool.command_template;
             }
-            if constraints == ToolConstraints::default() {
+            if constraints_are_default(&constraints) {
                 if let Some(domain_constraints) = domain_tool.constraints {
                     constraints = domain_constraints;
                 }
