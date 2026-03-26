@@ -645,7 +645,7 @@ fn seqkit_trim_command_template(
 ) -> Result<Vec<String>> {
     let min_length = options.min_length.unwrap_or(1);
     let mut script = format!(
-        "set -euo pipefail\nseqkit seq -m {min_length} -o {} {}\n",
+        "set -eu\nseqkit seq -m {min_length} -o {} {}\n",
         shell_quote_path(output_r1),
         shell_quote_path(r1),
     );
@@ -993,7 +993,7 @@ fn wrap_trim_command_with_report(
     raw_backend_report: Option<&Path>,
     raw_backend_report_format: Option<&str>,
 ) -> Vec<String> {
-    let mut script = format!("set -euo pipefail\n{}\n", shell_join(&command));
+    let mut script = format!("set -eu\n{}\n", shell_join(&command));
     script.push_str(&write_trim_report_script(
         tool_id,
         r1,
@@ -1074,7 +1074,7 @@ fn bbduk_trim_command_template(
     }
     let contaminant_fasta = contaminant_bank_fasta(contaminant_bank)?;
     let script = format!(
-        "set -euo pipefail\ncat <<'EOF' > {}\n{}\nEOF\n{}\n",
+        "set -eu\ncat <<'EOF' > {}\n{}\nEOF\n{}\n",
         shell_quote_path(&contaminant_ref),
         contaminant_fasta.trim_end(),
         shell_join(&wrapped),
@@ -1345,7 +1345,7 @@ fn trim_galore_command_template(
         .ok_or_else(|| anyhow!("trim_galore output path must have a parent directory"))?;
     let working_dir = output_dir.join("trim_galore_run");
     let mut script = format!(
-        "set -euo pipefail\nmkdir -p {}\ntrim_galore --output_dir {} --cores {}",
+        "set -eu\nmkdir -p {}\ntrim_galore --output_dir {} --cores {}",
         shell_quote_path(&working_dir),
         shell_quote_path(&working_dir),
         threads.max(1),
