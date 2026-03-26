@@ -1,0 +1,66 @@
+{
+  "aggregation_engine": "multiqc",
+  "aggregation_scope": "governed_qc_artifacts",
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_id": "corpus-01",
+  "corpus_root": "/System/Volumes/Data/home/bijan/bijux/corpus_01",
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-26T17:36:08.454547+00:00",
+  "governed_contributor_stage_ids": [
+    "fastq.detect_adapters",
+    "fastq.profile_read_lengths",
+    "fastq.profile_reads",
+    "fastq.validate_reads"
+  ],
+  "governed_contributor_tool_ids": [
+    "fastqc",
+    "fastqvalidator",
+    "seqkit_stats"
+  ],
+  "headline": {
+    "fastest_runtime_s": 2.2759354295,
+    "fastest_tool": "multiqc",
+    "highest_governed_input_count": 6.0,
+    "highest_governed_input_tool": "multiqc",
+    "largest_multiqc_module_count": 11.0,
+    "largest_multiqc_module_tool": "multiqc"
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "may_change_read_count": false,
+  "mutates_fastq": false,
+  "platform": "lunarc-apptainer",
+  "report_only": true,
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.report_qc/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "qc_aggregation_fairness",
+  "schema_version": "bijux.fastq.report_qc.corpus_summary.v1",
+  "stage_id": "fastq.report_qc",
+  "tool_summary": [
+    {
+      "median_contamination_rate": 0.0,
+      "median_governed_qc_input_count": 6.0,
+      "median_mean_q": 0.0,
+      "median_multiqc_module_count": 11.0,
+      "median_multiqc_sample_count": 1.5,
+      "median_runtime_s": 2.2759354295,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "multiqc"
+    }
+  ],
+  "tools": [
+    "multiqc"
+  ]
+}

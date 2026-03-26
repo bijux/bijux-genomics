@@ -1,0 +1,8 @@
+tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,median_multiqc_module_count,median_governed_qc_input_count,median_contamination_rate
+multiqc,era_layout,ancient_pe,5,2.286086,2.303578,11.000000,6.000000,0.000000
+multiqc,era_layout,ancient_se,5,2.361015,2.349082,11.000000,6.000000,0.000000
+multiqc,era_layout,modern_pe,5,2.267245,2.254057,11.000000,6.000000,0.000000
+multiqc,era_layout,modern_se,5,2.181708,2.217222,11.000000,6.000000,0.000000
+multiqc,size_band,under_1000mb,1,2.077554,2.077554,11.000000,6.000000,0.000000
+multiqc,size_band,under_100mb,12,2.305150,2.311115,11.000000,6.000000,0.000000
+multiqc,size_band,under_500mb,7,2.248703,2.252623,11.000000,6.000000,0.000000

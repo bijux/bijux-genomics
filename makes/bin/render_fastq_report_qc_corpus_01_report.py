@@ -12,10 +12,9 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     REPORT_QC_BENCHMARK_CONTRACT,
     default_results_stage_root,
-    discover_normalized_samples,
     load_corpus_spec,
     load_json,
-    validate_corpus_contract,
+    resolve_corpus_metadata,
 )
 
 
@@ -48,6 +47,41 @@ def safe_mean(values: list[float]) -> float | None:
     if not values:
         return None
     return float(statistics.mean(values))
+
+
+def localize_results_path(path_str: str, local_results_root: Path) -> Path:
+    path = Path(path_str)
+    if path.exists():
+        return path
+    marker = "/results/"
+    if marker not in path_str:
+        return path
+    return local_results_root / path_str.split(marker, 1)[1]
+
+
+def enrich_multiqc_artifacts(row: dict) -> dict:
+    data_dir = Path(row["multiqc_data"]) if row.get("multiqc_data") else None
+    if data_dir and not row.get("multiqc_report"):
+        report_path = data_dir / "multiqc_report.html"
+        if report_path.is_file():
+            row["multiqc_report"] = str(report_path)
+    data_json = None
+    if data_dir:
+        candidate = data_dir / "multiqc_report_data" / "multiqc_data.json"
+        if candidate.is_file():
+            data_json = load_json(candidate)
+    if data_json is not None:
+        if row.get("multiqc_sample_count") is None:
+            general_stats = data_json.get("report_general_stats_data")
+            if isinstance(general_stats, list) and general_stats:
+                first = general_stats[0]
+                if isinstance(first, dict):
+                    row["multiqc_sample_count"] = len(first)
+        if row.get("multiqc_module_count") is None:
+            plot_data = data_json.get("report_plot_data")
+            if isinstance(plot_data, dict):
+                row["multiqc_module_count"] = len(plot_data)
+    return row
 
 
 def normalize_metric(record: dict, key: str):
@@ -283,14 +317,17 @@ def main() -> int:
     )
     docs_root = (repo_root / args.docs_root).resolve()
     docs_root.mkdir(parents=True, exist_ok=True)
+    local_results_root = run_root.parents[2]
 
     spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
     validate_run_manifest_contract(run_manifest)
-    metadata_by_sample = validate_corpus_contract(
+    expected_sample_ids = [run["sample_id"] for run in run_manifest["runs"]]
+    metadata_by_sample = resolve_corpus_metadata(
+        repo_root,
         corpus_root,
         spec,
-        discover_normalized_samples(corpus_root),
+        expected_sample_ids=expected_sample_ids,
     )
 
     sample_rows: list[dict] = []
@@ -298,18 +335,15 @@ def main() -> int:
     cohort_counts: dict[str, int] = defaultdict(int)
     era_counts: dict[str, int] = defaultdict(int)
     layout_counts: dict[str, int] = defaultdict(int)
-    expected_sample_ids: list[str] = []
-
     for run in run_manifest["runs"]:
         sample_id = run["sample_id"]
-        expected_sample_ids.append(sample_id)
         metadata = metadata_by_sample.get(sample_id, {})
         cohort_key = f"{metadata.get('era', 'unknown')}_{metadata.get('layout', run['layout'])}"
         cohort_counts[cohort_key] += 1
         era_counts[metadata.get("era", "unknown")] += 1
         layout_counts[metadata.get("layout", run["layout"])] += 1
 
-        report_path = Path(run["report_json"])
+        report_path = localize_results_path(run["report_json"], local_results_root)
         if not report_path.is_file():
             raise SystemExit(
                 "report-qc benchmark report drift: "
@@ -346,18 +380,42 @@ def main() -> int:
                 "governed_qc_lineage_hash": normalize_metric(
                     record, "governed_qc_lineage_hash"
                 ),
-                "raw_fastqc_dir": normalize_metric(record, "raw_fastqc_dir"),
-                "multiqc_report": normalize_metric(record, "multiqc_report"),
-                "multiqc_data": normalize_metric(record, "multiqc_data"),
+                "raw_fastqc_dir": str(
+                    localize_results_path(
+                        normalize_metric(record, "raw_fastqc_dir"),
+                        local_results_root,
+                    )
+                )
+                if normalize_metric(record, "raw_fastqc_dir")
+                else "",
+                "multiqc_report": str(
+                    localize_results_path(
+                        normalize_metric(record, "multiqc_report"),
+                        local_results_root,
+                    )
+                )
+                if normalize_metric(record, "multiqc_report")
+                else "",
+                "multiqc_data": str(
+                    localize_results_path(
+                        normalize_metric(record, "multiqc_data"),
+                        local_results_root,
+                    )
+                )
+                if normalize_metric(record, "multiqc_data")
+                else "",
                 "report_json_artifact": str(
-                    Path(run["report_json"])
+                    localize_results_path(run["report_json"], local_results_root)
                     .parent
-                    .join("tools")
-                    .join(tool)
-                    .join("report_qc_report.json")
+                    .joinpath("tools")
+                    .joinpath(tool)
+                    .joinpath("report_qc_report.json")
                 ),
-                "governed_qc_manifest_artifact": run["governed_qc_manifest"],
+                "governed_qc_manifest_artifact": str(
+                    localize_results_path(run["governed_qc_manifest"], local_results_root)
+                ),
             }
+            row = enrich_multiqc_artifacts(row)
             sample_rows.append(row)
             tool_rows[tool].append(row)
 
