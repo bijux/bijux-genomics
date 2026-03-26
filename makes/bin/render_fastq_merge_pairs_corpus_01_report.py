@@ -66,6 +66,25 @@ def localize_results_path(path_str: str, local_results_root: Path) -> Path:
     return local_results_root / path_str.split(marker, 1)[1]
 
 
+def resolve_merge_report_path(
+    *,
+    sample_id: str,
+    reported_path: str,
+    run_root: Path,
+    local_results_root: Path,
+) -> Path:
+    primary = localize_results_path(reported_path, local_results_root)
+    if primary.is_file():
+        return primary
+    canonical = run_root / "bench" / "merge_pairs" / sample_id / "report.json"
+    if canonical.is_file():
+        return canonical
+    legacy = run_root / "bench" / "merge" / sample_id / "report.json"
+    if legacy.is_file():
+        return legacy
+    return primary
+
+
 def record_parameter(record: dict, key: str):
     return record.get("context", {}).get("parameters", {}).get(key)
 
@@ -295,7 +314,12 @@ def main() -> int:
         era_counts[metadata.get("era", "unknown")] += 1
         layout_counts[metadata.get("layout", run["layout"])] += 1
 
-        report_path = localize_results_path(run["report_json"], local_results_root)
+        report_path = resolve_merge_report_path(
+            sample_id=sample_id,
+            reported_path=run["report_json"],
+            run_root=run_root,
+            local_results_root=local_results_root,
+        )
         if not report_path.is_file():
             raise SystemExit(f"missing report.json for {sample_id}: {report_path}")
         report = load_json(report_path)

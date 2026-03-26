@@ -939,6 +939,22 @@ class MergeReportingTests(unittest.TestCase):
             / "corpus_01/fastq.merge_pairs/lunarc/bench/merge_pairs/sample_0008/report.json",
         )
 
+    def test_merge_report_prefers_canonical_report_path_when_manifest_path_drifts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_root = Path(tmpdir)
+            canonical = run_root / "bench" / "merge_pairs" / "sample_0008" / "report.json"
+            canonical.parent.mkdir(parents=True)
+            canonical.write_text("{}", encoding="utf-8")
+
+            resolved = merge_report.resolve_merge_report_path(
+                sample_id="sample_0008",
+                reported_path="/home/bijan/bijux/results/corpus_01/fastq.merge_pairs/lunarc/bench/merge/sample_0008/report.json",
+                run_root=run_root,
+                local_results_root=Path("/tmp/local-results"),
+            )
+
+            self.assertEqual(resolved, canonical)
+
     def test_trim_reads_report_contract_rejects_missing_tool_rows(self) -> None:
         run_manifest = {
             "tools": ["fastp", "bbduk"],

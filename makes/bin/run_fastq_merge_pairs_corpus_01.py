@@ -138,7 +138,7 @@ def build_command(
 
 
 def report_path(out_root: Path, sample_id: str) -> Path:
-    return out_root / "bench" / "merge" / sample_id / "report.json"
+    return out_root / "bench" / "merge_pairs" / sample_id / "report.json"
 
 
 def run_sample_command(
