@@ -80,6 +80,16 @@ pub const FASTQ_VALIDATE_METRICS: [MetricId; 17] = [
     MetricId::FailureClass,
 ];
 
+pub const FASTQ_DETECT_ADAPTERS_METRICS: [MetricId; 7] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::MeanQ,
+    MetricId::CandidateAdapterCount,
+    MetricId::AdapterTrimmedFraction,
+];
+
 pub const FASTQ_FILTER_METRICS: [MetricId; 16] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
@@ -186,6 +196,19 @@ pub const FASTQ_STATS_METRICS: [MetricId; 5] = [
     MetricId::LengthHistogram,
 ];
 
+pub const FASTQ_READ_LENGTH_METRICS: [MetricId; 4] = [
+    MetricId::ReadCount,
+    MetricId::MeanReadLength,
+    MetricId::MaxReadLength,
+    MetricId::DistinctLengths,
+];
+
+pub const FASTQ_OVERREPRESENTED_METRICS: [MetricId; 3] = [
+    MetricId::SequenceCount,
+    MetricId::FlaggedSequences,
+    MetricId::TopFraction,
+];
+
 pub const FASTQ_TRIM_INVARIANTS: [&str; 4] = [
     "reads_out <= reads_in",
     "bases_out <= bases_in",
@@ -197,6 +220,13 @@ pub const FASTQ_VALIDATE_INVARIANTS: [&str; 3] = [
     "reads_valid + reads_invalid == reads_total",
     "mean_q in [0, 45]",
     "counts are non-negative",
+];
+
+pub const FASTQ_DETECT_ADAPTERS_INVARIANTS: [&str; 4] = [
+    "reads_out == reads_in",
+    "bases_out == bases_in",
+    "mean_q in [0, 45]",
+    "adapter_trimmed_fraction in [0, 1]",
 ];
 
 pub const FASTQ_FILTER_INVARIANTS: [&str; 3] = [
@@ -239,6 +269,17 @@ pub const FASTQ_SCREEN_INVARIANTS: [&str; 4] = [
 
 pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent in [0, 100]"];
 
+pub const FASTQ_READ_LENGTH_INVARIANTS: [&str; 3] = [
+    "mean_read_length >= 0",
+    "max_read_length > 0 when reads are present",
+    "distinct_lengths <= read_count",
+];
+
+pub const FASTQ_OVERREPRESENTED_INVARIANTS: [&str; 2] = [
+    "flagged_sequences <= sequence_count",
+    "top_fraction in [0, 1]",
+];
+
 #[must_use]
 pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
     match stage_id {
@@ -246,6 +287,7 @@ pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
         "fastq.trim_polyg_tails" => Some(StageMetricKind::FastqTrimPolyg),
         "fastq.trim_terminal_damage" => Some(StageMetricKind::FastqTrimTerminalDamage),
         "fastq.validate_reads" => Some(StageMetricKind::FastqValidate),
+        "fastq.detect_adapters" => Some(StageMetricKind::FastqDetectAdapters),
         "fastq.filter_reads" => Some(StageMetricKind::FastqFilter),
         "fastq.merge_pairs" => Some(StageMetricKind::FastqMerge),
         "fastq.correct_errors" => Some(StageMetricKind::FastqCorrect),
@@ -253,6 +295,8 @@ pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
         "fastq.extract_umis" => Some(StageMetricKind::FastqUmi),
         "fastq.screen_taxonomy" => Some(StageMetricKind::FastqScreen),
         "fastq.profile_reads" => Some(StageMetricKind::FastqStats),
+        "fastq.profile_read_lengths" => Some(StageMetricKind::FastqReadLengths),
+        "fastq.profile_overrepresented_sequences" => Some(StageMetricKind::FastqOverrepresented),
         _ => None,
     }
 }

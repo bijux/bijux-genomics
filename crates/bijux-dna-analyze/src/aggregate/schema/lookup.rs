@@ -33,6 +33,12 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             metrics: &fields::FASTQ_VALIDATE_METRICS,
             invariants: &fields::FASTQ_VALIDATE_INVARIANTS,
         },
+        defs::StageMetricKind::FastqDetectAdapters => defs::StageMetricSpec {
+            stage: "fastq.detect_adapters",
+            version: 1,
+            metrics: &fields::FASTQ_DETECT_ADAPTERS_METRICS,
+            invariants: &fields::FASTQ_DETECT_ADAPTERS_INVARIANTS,
+        },
         defs::StageMetricKind::FastqFilter => defs::StageMetricSpec {
             stage: "fastq.filter_reads",
             version: 2,
@@ -74,6 +80,18 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             version: 1,
             metrics: &fields::FASTQ_STATS_METRICS,
             invariants: &fields::FASTQ_STATS_INVARIANTS,
+        },
+        defs::StageMetricKind::FastqReadLengths => defs::StageMetricSpec {
+            stage: "fastq.profile_read_lengths",
+            version: 1,
+            metrics: &fields::FASTQ_READ_LENGTH_METRICS,
+            invariants: &fields::FASTQ_READ_LENGTH_INVARIANTS,
+        },
+        defs::StageMetricKind::FastqOverrepresented => defs::StageMetricSpec {
+            stage: "fastq.profile_overrepresented_sequences",
+            version: 1,
+            metrics: &fields::FASTQ_OVERREPRESENTED_METRICS,
+            invariants: &fields::FASTQ_OVERREPRESENTED_INVARIANTS,
         },
     }
 }
