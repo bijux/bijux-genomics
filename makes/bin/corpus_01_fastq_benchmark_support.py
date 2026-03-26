@@ -23,6 +23,13 @@ class CorpusBenchmarkContract:
     stage_id: str
     scenario_id: str
     tools: list[str]
+    sample_scope: str = "full"
+
+
+@dataclass(frozen=True)
+class CorpusBenchmarkExclusion:
+    stage_id: str
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -74,6 +81,7 @@ MERGE_PAIRS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.merge_pairs",
     scenario_id="merge_fairness",
     tools=["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"],
+    sample_scope="paired",
 )
 
 
@@ -113,6 +121,131 @@ TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     scenario_id="terminal_damage_fairness",
     tools=["adapterremoval", "cutadapt", "seqkit"],
 )
+
+
+NORMALIZE_PRIMERS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.normalize_primers",
+    scenario_id="primer_normalization_fairness",
+    tools=["cutadapt", "seqkit"],
+)
+
+
+FILTER_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.filter_reads",
+    scenario_id="filter_fairness",
+    tools=["bbduk", "fastp", "prinseq", "seqkit"],
+)
+
+
+DEPLETE_RRNA_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.deplete_rrna",
+    scenario_id="rrna_depletion_fairness",
+    tools=["sortmerna"],
+)
+
+
+REMOVE_DUPLICATES_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.remove_duplicates",
+    scenario_id="dedup_fairness",
+    tools=["clumpify", "fastuniq"],
+    sample_scope="paired",
+)
+
+
+FILTER_LOW_COMPLEXITY_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.filter_low_complexity",
+    scenario_id="low_complexity_fairness",
+    tools=["bbduk", "prinseq"],
+)
+
+
+DEPLETE_HOST_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.deplete_host",
+    scenario_id="host_depletion_fairness",
+    tools=["bowtie2"],
+)
+
+
+DEPLETE_REFERENCE_CONTAMINANTS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.deplete_reference_contaminants",
+    scenario_id="contaminant_depletion_fairness",
+    tools=["bowtie2"],
+)
+
+
+CORRECT_ERRORS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.correct_errors",
+    scenario_id="correction_fairness",
+    tools=["bayeshammer", "lighter", "musket", "rcorrector"],
+)
+
+
+EXTRACT_UMIS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.extract_umis",
+    scenario_id="umi_extraction_fairness",
+    tools=["umi_tools"],
+    sample_scope="paired",
+)
+
+
+SCREEN_TAXONOMY_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.screen_taxonomy",
+    scenario_id="screen_fairness",
+    tools=["centrifuge", "kaiju", "kraken2", "krakenuniq"],
+)
+
+
+CORPUS_01_PUBLICATION_CONTRACTS = [
+    CorpusBenchmarkContract(
+        stage_id="fastq.validate_reads",
+        scenario_id="validation_fairness",
+        tools=["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"],
+    ),
+    DETECT_ADAPTERS_BENCHMARK_CONTRACT,
+    PROFILE_READS_BENCHMARK_CONTRACT,
+    PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT,
+    PROFILE_OVERREPRESENTED_BENCHMARK_CONTRACT,
+    NORMALIZE_PRIMERS_BENCHMARK_CONTRACT,
+    TRIM_POLYG_BENCHMARK_CONTRACT,
+    TRIM_READS_BENCHMARK_CONTRACT,
+    FILTER_READS_BENCHMARK_CONTRACT,
+    FILTER_LOW_COMPLEXITY_BENCHMARK_CONTRACT,
+    DEPLETE_RRNA_BENCHMARK_CONTRACT,
+    MERGE_PAIRS_BENCHMARK_CONTRACT,
+    REMOVE_DUPLICATES_BENCHMARK_CONTRACT,
+    DEPLETE_HOST_BENCHMARK_CONTRACT,
+    DEPLETE_REFERENCE_CONTAMINANTS_BENCHMARK_CONTRACT,
+    CORRECT_ERRORS_BENCHMARK_CONTRACT,
+    EXTRACT_UMIS_BENCHMARK_CONTRACT,
+    SCREEN_TAXONOMY_BENCHMARK_CONTRACT,
+    TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT,
+    REPORT_QC_BENCHMARK_CONTRACT,
+]
+
+
+CORPUS_01_PUBLICATION_EXCLUSIONS = [
+    CorpusBenchmarkExclusion(
+        stage_id="fastq.index_reference",
+        reason=(
+            "Reference-index benchmarking measures bundle build throughput rather than "
+            "sample-cohort execution on corpus-01 FASTQ inputs."
+        ),
+    ),
+    CorpusBenchmarkExclusion(
+        stage_id="fastq.cluster_otus",
+        reason=(
+            "OTU clustering is amplicon-specific and does not fit the human whole-genome "
+            "FASTQ cohort contract used by corpus-01."
+        ),
+    ),
+    CorpusBenchmarkExclusion(
+        stage_id="fastq.normalize_abundance",
+        reason=(
+            "Abundance normalization benchmarks require derived abundance tables rather than "
+            "the raw FASTQ corpus-01 publication surface."
+        ),
+    ),
+]
 
 
 REPORT_QC_CONTRIBUTOR_CONTRACTS = [

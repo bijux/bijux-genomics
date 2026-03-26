@@ -2,15 +2,20 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
+from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-
-@dataclass(frozen=True)
-class StagePublicationContract:
-    stage_id: str
-    scenario_id: str
+from corpus_01_fastq_benchmark_support import (
+    CORPUS_01_PUBLICATION_CONTRACTS,
+    CORPUS_01_PUBLICATION_EXCLUSIONS,
+    CorpusBenchmarkContract,
+    CorpusBenchmarkExclusion,
+    expected_cohort_counts,
+    load_corpus_spec,
+)
 
 
 @dataclass(frozen=True)
@@ -20,25 +25,6 @@ class StageAuditIssue:
     severity: str
     detail: str
 
-
-STAGE_CONTRACTS = [
-    StagePublicationContract("fastq.validate_reads", "validation_fairness"),
-    StagePublicationContract("fastq.detect_adapters", "detect_adapters_fairness"),
-    StagePublicationContract("fastq.merge_pairs", "merge_fairness"),
-    StagePublicationContract("fastq.profile_reads", "profile_reads_fairness"),
-    StagePublicationContract("fastq.profile_read_lengths", "read_length_fairness"),
-    StagePublicationContract(
-        "fastq.profile_overrepresented_sequences",
-        "overrepresented_sequence_fairness",
-    ),
-    StagePublicationContract("fastq.trim_polyg_tails", "polyg_trim_fairness"),
-    StagePublicationContract("fastq.trim_reads", "trim_fairness"),
-    StagePublicationContract(
-        "fastq.trim_terminal_damage",
-        "terminal_damage_fairness",
-    ),
-    StagePublicationContract("fastq.report_qc", "qc_aggregation_fairness"),
-]
 
 REQUIRED_STAGE_FILES = [
     "summary.json",
@@ -53,6 +39,11 @@ REQUIRED_STAGE_FILES = [
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit corpus-01 FASTQ benchmark publication completeness under docs/benchmark."
+    )
+    parser.add_argument(
+        "--repo-root",
+        default=".",
+        help="Repository root that contains configs/runtime/corpora/corpus-01.toml.",
     )
     parser.add_argument(
         "--docs-root",
@@ -76,85 +67,357 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def audit_stage(docs_root: Path, contract: StagePublicationContract) -> dict:
+def load_csv_rows(path: Path) -> list[dict]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def expected_counts_for_scope(spec: dict, sample_scope: str) -> tuple[int, dict[str, int]]:
+    full_counts = expected_cohort_counts(spec)
+    if sample_scope == "full":
+        return sum(full_counts.values()), full_counts
+    if sample_scope == "paired":
+        paired_counts = {
+            "ancient_pe": int(spec["target_ancient_pe"]),
+            "modern_pe": int(spec["target_modern_pe"]),
+        }
+        return sum(paired_counts.values()), paired_counts
+    raise SystemExit(f"unsupported corpus publication sample_scope: {sample_scope}")
+
+
+def append_issue(
+    issues: list[StageAuditIssue],
+    stage_id: str,
+    issue_id: str,
+    detail: str,
+) -> None:
+    issues.append(
+        StageAuditIssue(
+            stage_id=stage_id,
+            issue_id=issue_id,
+            severity="error",
+            detail=detail,
+        )
+    )
+
+
+def audit_stage(
+    repo_root: Path,
+    docs_root: Path,
+    contract: CorpusBenchmarkContract,
+) -> dict:
+    spec = load_corpus_spec(repo_root)
+    expected_total, expected_cohort_counts_by_scope = expected_counts_for_scope(
+        spec,
+        contract.sample_scope,
+    )
     stage_root = docs_root / contract.stage_id
     method_path = stage_root / "corpus-01-method.md"
     corpus_root = stage_root / "corpus-01"
     issues: list[StageAuditIssue] = []
 
     if not method_path.is_file():
-        issues.append(
-            StageAuditIssue(
-                stage_id=contract.stage_id,
-                issue_id="missing-method-doc",
-                severity="error",
-                detail=f"missing {method_path.relative_to(docs_root.parent)}",
-            )
+        append_issue(
+            issues,
+            contract.stage_id,
+            "missing-method-doc",
+            f"missing {method_path.relative_to(docs_root.parent)}",
         )
 
     if not corpus_root.is_dir():
-        issues.append(
-            StageAuditIssue(
-                stage_id=contract.stage_id,
-                issue_id="missing-corpus-dir",
-                severity="error",
-                detail=f"missing {corpus_root.relative_to(docs_root.parent)}",
-            )
+        append_issue(
+            issues,
+            contract.stage_id,
+            "missing-corpus-dir",
+            f"missing {corpus_root.relative_to(docs_root.parent)}",
         )
     else:
         for file_name in REQUIRED_STAGE_FILES:
             artifact_path = corpus_root / file_name
             if not artifact_path.is_file():
-                issues.append(
-                    StageAuditIssue(
-                        stage_id=contract.stage_id,
-                        issue_id=f"missing-{file_name.replace('.', '-')}",
-                        severity="error",
-                        detail=f"missing {artifact_path.relative_to(docs_root.parent)}",
-                    )
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    f"missing-{file_name.replace('.', '-')}",
+                    f"missing {artifact_path.relative_to(docs_root.parent)}",
                 )
                 continue
             if artifact_path.stat().st_size == 0:
-                issues.append(
-                    StageAuditIssue(
-                        stage_id=contract.stage_id,
-                        issue_id=f"empty-{file_name.replace('.', '-')}",
-                        severity="error",
-                        detail=f"empty {artifact_path.relative_to(docs_root.parent)}",
-                    )
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    f"empty-{file_name.replace('.', '-')}",
+                    f"empty {artifact_path.relative_to(docs_root.parent)}",
                 )
 
         summary_path = corpus_root / "summary.json"
+        sample_results_path = corpus_root / "sample_results.csv"
+        tool_runtime_summary_path = corpus_root / "tool_runtime_summary.csv"
+        cohort_runtime_summary_path = corpus_root / "cohort_runtime_summary.csv"
+        sample_runtime_outliers_path = corpus_root / "sample_runtime_outliers.csv"
+
         if summary_path.is_file() and summary_path.stat().st_size > 0:
             summary = load_json(summary_path)
             if summary.get("stage_id") != contract.stage_id:
-                issues.append(
-                    StageAuditIssue(
-                        stage_id=contract.stage_id,
-                        issue_id="summary-stage-id-drift",
-                        severity="error",
-                        detail=(
-                            f"{summary_path.relative_to(docs_root.parent)} stage_id="
-                            f"{summary.get('stage_id')!r}"
-                        ),
-                    )
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "summary-stage-id-drift",
+                    (
+                        f"{summary_path.relative_to(docs_root.parent)} stage_id="
+                        f"{summary.get('stage_id')!r}"
+                    ),
                 )
             if summary.get("scenario_id") != contract.scenario_id:
-                issues.append(
-                    StageAuditIssue(
-                        stage_id=contract.stage_id,
-                        issue_id="summary-scenario-id-drift",
-                        severity="error",
-                        detail=(
-                            f"{summary_path.relative_to(docs_root.parent)} scenario_id="
-                            f"{summary.get('scenario_id')!r}"
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "summary-scenario-id-drift",
+                    (
+                        f"{summary_path.relative_to(docs_root.parent)} scenario_id="
+                        f"{summary.get('scenario_id')!r}"
+                    ),
+                )
+            actual_tools = summary.get("tools")
+            if sorted(actual_tools or []) != sorted(contract.tools):
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "summary-tool-roster-drift",
+                    (
+                        f"{summary_path.relative_to(docs_root.parent)} tools="
+                        f"{actual_tools!r} expected {contract.tools!r}"
+                    ),
+                )
+            if int(summary.get("samples_total", 0) or 0) != expected_total:
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "summary-sample-count-drift",
+                    (
+                        f"{summary_path.relative_to(docs_root.parent)} samples_total="
+                        f"{summary.get('samples_total')!r} expected {expected_total}"
+                    ),
+                )
+            if int(summary.get("samples_failed", 0) or 0) != 0:
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "summary-sample-failures",
+                    (
+                        f"{summary_path.relative_to(docs_root.parent)} samples_failed="
+                        f"{summary.get('samples_failed')!r}"
+                    ),
+                )
+            if dict(sorted((summary.get("cohort_counts") or {}).items())) != dict(
+                sorted(expected_cohort_counts_by_scope.items())
+            ):
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "summary-cohort-count-drift",
+                    (
+                        f"{summary_path.relative_to(docs_root.parent)} cohort_counts="
+                        f"{summary.get('cohort_counts')!r} expected "
+                        f"{expected_cohort_counts_by_scope!r}"
+                    ),
+                )
+            summary_tool_rows = summary.get("tool_summary") or []
+            summary_tool_ids = sorted(
+                {
+                    row.get("tool")
+                    for row in summary_tool_rows
+                    if isinstance(row, dict) and row.get("tool")
+                }
+            )
+            if summary_tool_ids != sorted(contract.tools):
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "summary-tool-summary-drift",
+                    (
+                        f"{summary_path.relative_to(docs_root.parent)} tool_summary tools="
+                        f"{summary_tool_ids!r} expected {sorted(contract.tools)!r}"
+                    ),
+                )
+
+        if sample_results_path.is_file() and sample_results_path.stat().st_size > 0:
+            sample_rows = load_csv_rows(sample_results_path)
+            if not sample_rows:
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "empty-sample-results-rows",
+                    f"no CSV rows in {sample_results_path.relative_to(docs_root.parent)}",
+                )
+            else:
+                per_sample_tools: dict[str, list[str]] = defaultdict(list)
+                sample_metadata: dict[str, tuple[str, str, str, str, str]] = {}
+                cohort_counts_by_rows: dict[str, int] = defaultdict(int)
+                observed_tools: set[str] = set()
+
+                for row in sample_rows:
+                    sample_id = row.get("sample_id", "").strip()
+                    tool = row.get("tool", "").strip()
+                    if not sample_id or not tool:
+                        append_issue(
+                            issues,
+                            contract.stage_id,
+                            "sample-results-missing-sample-or-tool",
+                            f"invalid row in {sample_results_path.relative_to(docs_root.parent)}",
+                        )
+                        continue
+                    observed_tools.add(tool)
+                    per_sample_tools[sample_id].append(tool)
+
+                    metadata_tuple = (
+                        row.get("accession", "").strip(),
+                        row.get("era", "").strip(),
+                        row.get("layout", "").strip(),
+                        row.get("study_accession", "").strip(),
+                        row.get("size_band", "").strip(),
+                    )
+                    if sample_id not in sample_metadata:
+                        sample_metadata[sample_id] = metadata_tuple
+                        cohort_key = f"{metadata_tuple[1]}_{metadata_tuple[2]}"
+                        cohort_counts_by_rows[cohort_key] += 1
+                    elif sample_metadata[sample_id] != metadata_tuple:
+                        append_issue(
+                            issues,
+                            contract.stage_id,
+                            "sample-results-metadata-drift",
+                            (
+                                f"{sample_results_path.relative_to(docs_root.parent)} "
+                                f"sample {sample_id} metadata differs across rows"
+                            ),
+                        )
+
+                if sorted(observed_tools) != sorted(contract.tools):
+                    append_issue(
+                        issues,
+                        contract.stage_id,
+                        "sample-results-tool-roster-drift",
+                        (
+                            f"{sample_results_path.relative_to(docs_root.parent)} tools="
+                            f"{sorted(observed_tools)!r} expected {sorted(contract.tools)!r}"
                         ),
                     )
+                if len(sample_metadata) != expected_total:
+                    append_issue(
+                        issues,
+                        contract.stage_id,
+                        "sample-results-sample-count-drift",
+                        (
+                            f"{sample_results_path.relative_to(docs_root.parent)} unique_samples="
+                            f"{len(sample_metadata)!r} expected {expected_total}"
+                        ),
+                    )
+                if dict(sorted(cohort_counts_by_rows.items())) != dict(
+                    sorted(expected_cohort_counts_by_scope.items())
+                ):
+                    append_issue(
+                        issues,
+                        contract.stage_id,
+                        "sample-results-cohort-count-drift",
+                        (
+                            f"{sample_results_path.relative_to(docs_root.parent)} cohort_counts="
+                            f"{dict(sorted(cohort_counts_by_rows.items()))!r} expected "
+                            f"{expected_cohort_counts_by_scope!r}"
+                        ),
+                    )
+                for sample_id, tools in sorted(per_sample_tools.items()):
+                    if sorted(tools) != sorted(contract.tools):
+                        append_issue(
+                            issues,
+                            contract.stage_id,
+                            "sample-results-tool-coverage-drift",
+                            (
+                                f"{sample_results_path.relative_to(docs_root.parent)} sample "
+                                f"{sample_id} tools={sorted(tools)!r} expected "
+                                f"{sorted(contract.tools)!r}"
+                            ),
+                        )
+                expected_row_count = expected_total * len(contract.tools)
+                if len(sample_rows) != expected_row_count:
+                    append_issue(
+                        issues,
+                        contract.stage_id,
+                        "sample-results-row-count-drift",
+                        (
+                            f"{sample_results_path.relative_to(docs_root.parent)} row_count="
+                            f"{len(sample_rows)!r} expected {expected_row_count}"
+                        ),
+                    )
+
+        if tool_runtime_summary_path.is_file() and tool_runtime_summary_path.stat().st_size > 0:
+            tool_rows = load_csv_rows(tool_runtime_summary_path)
+            observed_tools = sorted(
+                row.get("tool", "").strip()
+                for row in tool_rows
+                if row.get("tool", "").strip()
+            )
+            if observed_tools != sorted(contract.tools):
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "tool-runtime-summary-drift",
+                    (
+                        f"{tool_runtime_summary_path.relative_to(docs_root.parent)} tools="
+                        f"{observed_tools!r} expected {sorted(contract.tools)!r}"
+                    ),
+                )
+
+        if cohort_runtime_summary_path.is_file() and cohort_runtime_summary_path.stat().st_size > 0:
+            cohort_rows = load_csv_rows(cohort_runtime_summary_path)
+            era_layout_rows = [
+                row
+                for row in cohort_rows
+                if row.get("dimension", "").strip() in ("", "era_layout")
+            ]
+            observed_cohorts = sorted(
+                {
+                    row.get("cohort", "").strip()
+                    for row in era_layout_rows
+                    if row.get("cohort", "").strip()
+                }
+            )
+            if observed_cohorts != sorted(expected_cohort_counts_by_scope):
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "cohort-runtime-summary-drift",
+                    (
+                        f"{cohort_runtime_summary_path.relative_to(docs_root.parent)} cohorts="
+                        f"{observed_cohorts!r} expected {sorted(expected_cohort_counts_by_scope)!r}"
+                    ),
+                )
+
+        if (
+            sample_runtime_outliers_path.is_file()
+            and sample_runtime_outliers_path.stat().st_size > 0
+        ):
+            outlier_rows = load_csv_rows(sample_runtime_outliers_path)
+            unique_sample_ids = {
+                row.get("sample_id", "").strip()
+                for row in outlier_rows
+                if row.get("sample_id", "").strip()
+            }
+            if len(unique_sample_ids) != expected_total:
+                append_issue(
+                    issues,
+                    contract.stage_id,
+                    "sample-runtime-outlier-coverage-drift",
+                    (
+                        f"{sample_runtime_outliers_path.relative_to(docs_root.parent)} unique_samples="
+                        f"{len(unique_sample_ids)!r} expected {expected_total}"
+                    ),
                 )
 
     return {
         "stage_id": contract.stage_id,
         "scenario_id": contract.scenario_id,
+        "sample_scope": contract.sample_scope,
+        "expected_tool_roster": contract.tools,
         "method_path": str(method_path.relative_to(docs_root.parent)),
         "corpus_path": str(corpus_root.relative_to(docs_root.parent)),
         "status": "complete" if not issues else "incomplete",
@@ -163,16 +426,33 @@ def audit_stage(docs_root: Path, contract: StagePublicationContract) -> dict:
     }
 
 
-def audit_docs(docs_root: Path) -> dict:
-    stage_reports = [audit_stage(docs_root, contract) for contract in STAGE_CONTRACTS]
+def audit_docs(
+    docs_root: Path,
+    *,
+    repo_root: Path | None = None,
+    stage_contracts: list[CorpusBenchmarkContract] | None = None,
+    exclusions: list[CorpusBenchmarkExclusion] | None = None,
+) -> dict:
+    repo_root = repo_root or docs_root.parent.parent
+    stage_contracts = stage_contracts or CORPUS_01_PUBLICATION_CONTRACTS
+    exclusions = exclusions or CORPUS_01_PUBLICATION_EXCLUSIONS
+    stage_reports = [
+        audit_stage(repo_root, docs_root, contract) for contract in stage_contracts
+    ]
     return {
         "corpus_id": "corpus-01",
         "docs_root": str(docs_root),
-        "stage_count": len(stage_reports),
+        "benchmarkable_stage_count": len(stage_contracts) + len(exclusions),
+        "applicable_stage_count": len(stage_reports),
         "completed_stage_count": sum(
             1 for report in stage_reports if report["status"] == "complete"
         ),
+        "incomplete_stage_count": sum(
+            1 for report in stage_reports if report["status"] != "complete"
+        ),
+        "excluded_stage_count": len(exclusions),
         "issue_count": sum(report["issue_count"] for report in stage_reports),
+        "excluded_stages": [asdict(exclusion) for exclusion in exclusions],
         "stages": stage_reports,
     }
 
@@ -181,8 +461,11 @@ def render_markdown(report: dict) -> str:
     lines = [
         "# `corpus-01` FASTQ benchmark publication status",
         "",
-        f"- Stage count: `{report['stage_count']}`",
+        f"- Benchmarkable governed stages: `{report['benchmarkable_stage_count']}`",
+        f"- Corpus-applicable publication stages: `{report['applicable_stage_count']}`",
         f"- Completed stage dossiers: `{report['completed_stage_count']}`",
+        f"- Incomplete stage dossiers: `{report['incomplete_stage_count']}`",
+        f"- Excluded stages: `{report['excluded_stage_count']}`",
         f"- Publication issues: `{report['issue_count']}`",
         "",
         "## Stage status",
@@ -191,26 +474,37 @@ def render_markdown(report: dict) -> str:
     for stage in report["stages"]:
         lines.append(
             f"- `{stage['stage_id']}`: `{stage['status']}`"
-            f" (`{stage['issue_count']}` issues)"
+            f" (`{stage['issue_count']}` issues, scope `{stage['sample_scope']}`)"
         )
         if stage["issues"]:
             for issue in stage["issues"]:
-                lines.append(
-                    f"  - `{issue['issue_id']}`: {issue['detail']}"
-                )
-    lines.append("")
-    lines.append("## Contract")
-    lines.append("")
-    lines.append(
-        "A complete published corpus dossier requires `corpus-01-method.md`, `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, `sample_runtime_outliers.csv`, and `lunarc.md`."
+                lines.append(f"  - `{issue['issue_id']}`: {issue['detail']}")
+    lines.extend(
+        [
+            "",
+            "## Excluded Stages",
+            "",
+        ]
+    )
+    for exclusion in report["excluded_stages"]:
+        lines.append(f"- `{exclusion['stage_id']}`: {exclusion['reason']}")
+    lines.extend(
+        [
+            "",
+            "## Contract",
+            "",
+            "A complete published corpus dossier requires `corpus-01-method.md`, `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, `sample_runtime_outliers.csv`, and `lunarc.md`.",
+            "Published summaries must also match the governed scenario id, exact benchmark tool roster, expected corpus scope (`full` or `paired`), zero sample failures, and complete sample-by-tool coverage.",
+        ]
     )
     return "\n".join(lines) + "\n"
 
 
 def main() -> int:
     args = parse_args()
+    repo_root = Path(args.repo_root).resolve()
     docs_root = Path(args.docs_root).resolve()
-    report = audit_docs(docs_root)
+    report = audit_docs(docs_root, repo_root=repo_root)
 
     json_out = Path(args.json_out).resolve()
     json_out.parent.mkdir(parents=True, exist_ok=True)

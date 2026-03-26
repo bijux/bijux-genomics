@@ -1,13 +1,38 @@
 {
   "corpus_id": "corpus-01",
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
-  "stage_count": 10,
+  "benchmarkable_stage_count": 23,
+  "applicable_stage_count": 20,
   "completed_stage_count": 10,
-  "issue_count": 0,
+  "incomplete_stage_count": 10,
+  "excluded_stage_count": 3,
+  "issue_count": 20,
+  "excluded_stages": [
+    {
+      "stage_id": "fastq.index_reference",
+      "reason": "Reference-index benchmarking measures bundle build throughput rather than sample-cohort execution on corpus-01 FASTQ inputs."
+    },
+    {
+      "stage_id": "fastq.cluster_otus",
+      "reason": "OTU clustering is amplicon-specific and does not fit the human whole-genome FASTQ cohort contract used by corpus-01."
+    },
+    {
+      "stage_id": "fastq.normalize_abundance",
+      "reason": "Abundance normalization benchmarks require derived abundance tables rather than the raw FASTQ corpus-01 publication surface."
+    }
+  ],
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
       "scenario_id": "validation_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "fastq_scan",
+        "fastqc",
+        "fastqvalidator",
+        "fqtools",
+        "seqtk"
+      ],
       "method_path": "benchmark/fastq.validate_reads/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.validate_reads/corpus-01",
       "status": "complete",
@@ -17,6 +42,10 @@
     {
       "stage_id": "fastq.detect_adapters",
       "scenario_id": "detect_adapters_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "fastqc"
+      ],
       "method_path": "benchmark/fastq.detect_adapters/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.detect_adapters/corpus-01",
       "status": "complete",
@@ -24,17 +53,12 @@
       "issues": []
     },
     {
-      "stage_id": "fastq.merge_pairs",
-      "scenario_id": "merge_fairness",
-      "method_path": "benchmark/fastq.merge_pairs/corpus-01-method.md",
-      "corpus_path": "benchmark/fastq.merge_pairs/corpus-01",
-      "status": "complete",
-      "issue_count": 0,
-      "issues": []
-    },
-    {
       "stage_id": "fastq.profile_reads",
       "scenario_id": "profile_reads_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "seqkit_stats"
+      ],
       "method_path": "benchmark/fastq.profile_reads/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.profile_reads/corpus-01",
       "status": "complete",
@@ -44,6 +68,10 @@
     {
       "stage_id": "fastq.profile_read_lengths",
       "scenario_id": "read_length_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "seqkit_stats"
+      ],
       "method_path": "benchmark/fastq.profile_read_lengths/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.profile_read_lengths/corpus-01",
       "status": "complete",
@@ -53,6 +81,12 @@
     {
       "stage_id": "fastq.profile_overrepresented_sequences",
       "scenario_id": "overrepresented_sequence_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "fastqc",
+        "fastq_scan",
+        "seqkit"
+      ],
       "method_path": "benchmark/fastq.profile_overrepresented_sequences/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.profile_overrepresented_sequences/corpus-01",
       "status": "complete",
@@ -60,8 +94,40 @@
       "issues": []
     },
     {
+      "stage_id": "fastq.normalize_primers",
+      "scenario_id": "primer_normalization_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "cutadapt",
+        "seqkit"
+      ],
+      "method_path": "benchmark/fastq.normalize_primers/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.normalize_primers/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.normalize_primers",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.normalize_primers/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.normalize_primers",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.normalize_primers/corpus-01"
+        }
+      ]
+    },
+    {
       "stage_id": "fastq.trim_polyg_tails",
       "scenario_id": "polyg_trim_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "bbduk",
+        "fastp"
+      ],
       "method_path": "benchmark/fastq.trim_polyg_tails/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.trim_polyg_tails/corpus-01",
       "status": "complete",
@@ -71,6 +137,18 @@
     {
       "stage_id": "fastq.trim_reads",
       "scenario_id": "trim_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "adapterremoval",
+        "atropos",
+        "bbduk",
+        "cutadapt",
+        "fastp",
+        "prinseq",
+        "seqkit",
+        "trim_galore",
+        "trimmomatic"
+      ],
       "method_path": "benchmark/fastq.trim_reads/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.trim_reads/corpus-01",
       "status": "complete",
@@ -78,8 +156,277 @@
       "issues": []
     },
     {
+      "stage_id": "fastq.filter_reads",
+      "scenario_id": "filter_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "bbduk",
+        "fastp",
+        "prinseq",
+        "seqkit"
+      ],
+      "method_path": "benchmark/fastq.filter_reads/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.filter_reads/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.filter_reads",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.filter_reads/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.filter_reads",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.filter_reads/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "scenario_id": "low_complexity_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "bbduk",
+        "prinseq"
+      ],
+      "method_path": "benchmark/fastq.filter_low_complexity/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.filter_low_complexity/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.filter_low_complexity",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.filter_low_complexity/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.filter_low_complexity",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.filter_low_complexity/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "scenario_id": "rrna_depletion_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "sortmerna"
+      ],
+      "method_path": "benchmark/fastq.deplete_rrna/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.deplete_rrna/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.deplete_rrna",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.deplete_rrna/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.deplete_rrna",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.deplete_rrna/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "scenario_id": "merge_fairness",
+      "sample_scope": "paired",
+      "expected_tool_roster": [
+        "adapterremoval",
+        "bbmerge",
+        "flash2",
+        "leehom",
+        "pear",
+        "vsearch"
+      ],
+      "method_path": "benchmark/fastq.merge_pairs/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.merge_pairs/corpus-01",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "scenario_id": "dedup_fairness",
+      "sample_scope": "paired",
+      "expected_tool_roster": [
+        "clumpify",
+        "fastuniq"
+      ],
+      "method_path": "benchmark/fastq.remove_duplicates/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.remove_duplicates/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.remove_duplicates",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.remove_duplicates/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.remove_duplicates",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.remove_duplicates/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "scenario_id": "host_depletion_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "bowtie2"
+      ],
+      "method_path": "benchmark/fastq.deplete_host/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.deplete_host/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.deplete_host",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.deplete_host/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.deplete_host",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.deplete_host/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "scenario_id": "contaminant_depletion_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "bowtie2"
+      ],
+      "method_path": "benchmark/fastq.deplete_reference_contaminants/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.deplete_reference_contaminants/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.deplete_reference_contaminants",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.deplete_reference_contaminants/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.deplete_reference_contaminants",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.deplete_reference_contaminants/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "scenario_id": "correction_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "bayeshammer",
+        "lighter",
+        "musket",
+        "rcorrector"
+      ],
+      "method_path": "benchmark/fastq.correct_errors/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.correct_errors/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.correct_errors",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.correct_errors/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.correct_errors",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.correct_errors/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "scenario_id": "umi_extraction_fairness",
+      "sample_scope": "paired",
+      "expected_tool_roster": [
+        "umi_tools"
+      ],
+      "method_path": "benchmark/fastq.extract_umis/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.extract_umis/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.extract_umis",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.extract_umis/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.extract_umis",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.extract_umis/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "scenario_id": "screen_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "centrifuge",
+        "kaiju",
+        "kraken2",
+        "krakenuniq"
+      ],
+      "method_path": "benchmark/fastq.screen_taxonomy/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.screen_taxonomy/corpus-01",
+      "status": "incomplete",
+      "issue_count": 2,
+      "issues": [
+        {
+          "stage_id": "fastq.screen_taxonomy",
+          "issue_id": "missing-method-doc",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.screen_taxonomy/corpus-01-method.md"
+        },
+        {
+          "stage_id": "fastq.screen_taxonomy",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.screen_taxonomy/corpus-01"
+        }
+      ]
+    },
+    {
       "stage_id": "fastq.trim_terminal_damage",
       "scenario_id": "terminal_damage_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "adapterremoval",
+        "cutadapt",
+        "seqkit"
+      ],
       "method_path": "benchmark/fastq.trim_terminal_damage/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.trim_terminal_damage/corpus-01",
       "status": "complete",
@@ -89,6 +436,10 @@
     {
       "stage_id": "fastq.report_qc",
       "scenario_id": "qc_aggregation_fairness",
+      "sample_scope": "full",
+      "expected_tool_roster": [
+        "multiqc"
+      ],
       "method_path": "benchmark/fastq.report_qc/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.report_qc/corpus-01",
       "status": "complete",
