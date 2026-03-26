@@ -398,6 +398,8 @@ fn base_merge_command(
                 unmerged_r2,
                 "--outputcollapsed".to_string(),
                 outputs.merged_reads.display().to_string(),
+                "--outputcollapsedtruncated".to_string(),
+                "/dev/null".to_string(),
                 "--settings".to_string(),
                 outputs
                     .raw_backend_report_txt
@@ -618,4 +620,47 @@ fn normalize_tools_with_allowlist(
         }
     }
     Ok(normalized)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{merge_command_template, merge_outputs, MergeEffectiveParams, MergeEngine};
+    use bijux_dna_core::prelude::{ToolConstraints, ToolExecutionSpecV1, ToolId};
+    use bijux_dna_domain_fastq::params::{merge::UnmergedReadPolicy, PairedMode};
+    use std::path::Path;
+
+    #[test]
+    fn adapterremoval_merge_redirects_collapsed_truncated_side_output() {
+        let outputs =
+            merge_outputs("adapterremoval", Path::new("out")).expect("adapterremoval outputs");
+        let tool = ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("adapterremoval"),
+            tool_version: Some("latest-pinned".to_string()),
+            image: None,
+            resources: ToolConstraints::default(),
+        };
+        let params = MergeEffectiveParams {
+            schema_version: "bijux.fastq.merge.v1".to_string(),
+            paired_mode: PairedMode::PairedEnd,
+            threads: 1,
+            merge_overlap: None,
+            min_len: None,
+            merge_engine: MergeEngine::AdapterRemoval,
+            unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
+        };
+
+        let command = merge_command_template(
+            "adapterremoval",
+            Path::new("sample_R1.fastq.gz"),
+            Path::new("sample_R2.fastq.gz"),
+            Path::new("out"),
+            &outputs,
+            &tool,
+            &params,
+        )
+        .expect("adapterremoval command");
+
+        let script = &command[2];
+        assert!(script.contains("'--outputcollapsedtruncated' '/dev/null'"));
+    }
 }
