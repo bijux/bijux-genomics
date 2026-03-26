@@ -87,11 +87,7 @@ pub fn registry_tools_for_stage(
     };
 
     let mut result = match kind {
-        "primary" => stage_entry.primary_tools,
-        "optional" => stage_entry.optional_alternatives,
-        "validation" => stage_entry.validation_tools,
-        "reporting" => stage_entry.reporting_tools,
-        _ => {
+        "all" => {
             let mut all = Vec::new();
             all.extend(stage_entry.primary_tools);
             all.extend(stage_entry.optional_alternatives);
@@ -99,10 +95,35 @@ pub fn registry_tools_for_stage(
             all.extend(stage_entry.reporting_tools);
             all
         }
+        "primary" => stage_entry.primary_tools,
+        "optional" => stage_entry.optional_alternatives,
+        "validation" => stage_entry.validation_tools,
+        "reporting" => stage_entry.reporting_tools,
+        "benchmark" => benchmark_tools_for_stage(&stage_id)?,
+        other => {
+            return Err(anyhow!(
+                "unsupported registry tool kind `{other}`; expected one of all, primary, optional, validation, reporting, benchmark"
+            ))
+        }
     };
     result.sort();
     result.dedup();
     Ok(result)
+}
+
+fn benchmark_tools_for_stage(stage_id: &str) -> Result<Vec<String>> {
+    let benchmark_tools = bijux_dna_planner_fastq::stage_api::benchmark_default_scenario_toolset(
+        &bijux_dna_core::ids::StageId::new(stage_id.to_string()),
+    );
+    if benchmark_tools.is_empty() {
+        return Err(anyhow!(
+            "stage `{stage_id}` does not expose a unique default benchmark cohort"
+        ));
+    }
+    Ok(benchmark_tools
+        .into_iter()
+        .map(|tool_id| tool_id.to_string())
+        .collect())
 }
 
 /// # Errors
@@ -138,6 +159,54 @@ pub fn run_env_prep(
 
 fn run_env_with_tools(runtime: &str, tools: &[String], smoke_level: &str) -> Result<()> {
     run_smoke_script_batch(runtime, tools, smoke_level)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::registry_tools_for_stage;
+
+    fn registry_path() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../ci/registry/tool_registry.toml")
+            .canonicalize()
+            .expect("canonical registry path")
+    }
+
+    #[test]
+    fn registry_benchmark_tools_follow_trim_fairness_cohort() {
+        let tools = registry_tools_for_stage(&registry_path(), "fastq.trim_reads", "benchmark")
+            .expect("trim benchmark tools");
+        assert_eq!(
+            tools,
+            vec![
+                "adapterremoval",
+                "atropos",
+                "bbduk",
+                "cutadapt",
+                "fastp",
+                "prinseq",
+                "seqkit",
+                "seqpurge",
+                "trim_galore",
+                "trimmomatic",
+            ]
+        );
+    }
+
+    #[test]
+    fn registry_benchmark_tools_follow_polyg_fairness_cohort() {
+        let tools =
+            registry_tools_for_stage(&registry_path(), "fastq.trim_polyg_tails", "benchmark")
+                .expect("polyg benchmark tools");
+        assert_eq!(tools, vec!["bbduk", "fastp"]);
+    }
+
+    #[test]
+    fn registry_rejects_unknown_tool_kind() {
+        let error = registry_tools_for_stage(&registry_path(), "fastq.trim_reads", "bogus")
+            .expect_err("unknown kind should fail");
+        assert!(error.to_string().contains("unsupported registry tool kind"));
+    }
 }
 
 #[derive(Default, Serialize)]
@@ -306,4 +375,3 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
     }
     Ok(rows)
 }
-

@@ -90,7 +90,11 @@ pub enum RegistryCommand {
     Tools {
         #[arg(long)]
         stage: Option<String>,
-        #[arg(long, default_value = "all")]
+        #[arg(
+            long,
+            default_value = "all",
+            help = "Tool kind: all | primary | optional | validation | reporting | benchmark"
+        )]
         kind: String,
     },
     #[command(name = "list-stages", alias = "stages")]
