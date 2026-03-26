@@ -45,7 +45,7 @@ fn adapterremoval_merge_plan_maps_deterministic_collapse_contract() -> Result<()
     )?;
 
     let script = &plan.command.template[2];
-    assert!(script.contains("'AdapterRemoval' '--threads' '7'"));
+    assert!(script.contains("'adapterremoval' '--threads' '7'"));
     assert!(script.contains("'--collapse-deterministic'"));
     assert!(script.contains("'--minalignmentlength' '19'"));
     assert!(script.contains("'--minlength' '70'"));
@@ -57,6 +57,7 @@ fn adapterremoval_merge_plan_maps_deterministic_collapse_contract() -> Result<()
     assert!(script.contains("\"merge_engine\": \"adapter_removal\""));
     assert!(script.contains("\"threads\": 7"));
     assert!(script.contains("\"raw_backend_report_format\": \"adapterremoval_settings\""));
+    assert!(!script.contains("> 'out/adapterremoval.settings' 2>&1"));
     assert_eq!(plan.resources.threads, 7);
     assert_eq!(
         plan.params["raw_backend_report_txt"],

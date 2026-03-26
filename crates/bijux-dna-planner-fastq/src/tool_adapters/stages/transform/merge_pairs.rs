@@ -383,7 +383,7 @@ fn base_merge_command(
                     "/dev/null".to_string()
                 };
             let mut command = vec![
-                "AdapterRemoval".to_string(),
+                "adapterremoval".to_string(),
                 "--threads".to_string(),
                 effective_params.threads.to_string(),
                 "--file1".to_string(),
@@ -551,6 +551,9 @@ fn base_merge_command(
         .map(|part| shell_quote_str(&part))
         .collect::<Vec<_>>()
         .join(" ");
+    if tool == "adapterremoval" {
+        return Ok(command);
+    }
     Ok(outputs
         .raw_backend_report_txt
         .as_ref()
