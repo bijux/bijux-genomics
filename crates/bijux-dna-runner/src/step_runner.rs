@@ -138,15 +138,16 @@ fn container_input_mapping(input_root: &Path) -> (PathBuf, String) {
 fn rewrite_container_path(value: &str, host_root: &Path, container_root: &str) -> String {
     let host_root_path = host_root;
     let host_root = host_root_path.display().to_string();
+    let rewritten = value.replace(&host_root, container_root);
     if value == host_root {
         return container_root.to_string();
     }
     if host_root_path.is_file() {
-        return value.replace(&host_root, container_root);
+        return rewritten;
     }
     let host_prefix = format!("{host_root}/");
     let container_prefix = format!("{container_root}/");
-    value.replace(&host_prefix, &container_prefix)
+    rewritten.replace(&host_prefix, &container_prefix)
 }
 
 fn container_command_template(
@@ -693,6 +694,24 @@ mod tests {
         assert_eq!(rewritten[0], "sh");
         assert!(rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input/sample_0004_R1.fastq.gz"));
         assert!(rewritten[2].contains("> /data/output/reads.tsv"));
+    }
+
+    #[test]
+    fn container_command_template_rewrites_exact_output_root_inside_shell_scripts() {
+        let template = vec![
+            "sh".to_string(),
+            "-lc".to_string(),
+            "flash2 -o flash2 -d /tmp/out -t 1 /tmp/corpus/sample_0004_R1.fastq.gz /tmp/corpus/sample_0004_R2.fastq.gz"
+                .to_string(),
+        ];
+
+        let rewritten =
+            container_command_template(&template, Path::new("/tmp/corpus"), Path::new("/tmp/out"));
+
+        assert_eq!(rewritten[0], "sh");
+        assert!(rewritten[2].contains("-d /data/output"));
+        assert!(rewritten[2].contains("/data/input/sample_0004_R1.fastq.gz"));
+        assert!(rewritten[2].contains("/data/input/sample_0004_R2.fastq.gz"));
     }
 
     #[test]
