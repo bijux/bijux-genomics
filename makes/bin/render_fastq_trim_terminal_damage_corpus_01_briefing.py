@@ -56,6 +56,12 @@ def fmt_runtime(value: float | None) -> str:
     return f"{value:.3f}"
 
 
+def fmt_metric(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.3f}"
+
+
 def fmt_csv_value(value: object) -> object:
     if isinstance(value, float):
         return f"{value:.6f}"
@@ -170,9 +176,13 @@ def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     output: list[dict] = []
     for sample_id, sample_rows in by_sample.items():
         slowest = max(sample_rows, key=lambda row: float(row["runtime_s"]))
-        strongest = max(
-            sample_rows,
-            key=lambda row: float(row["asymmetry_reduction"] or 0.0),
+        asymmetry_rows = [
+            row for row in sample_rows if row["asymmetry_reduction"] not in {"", None}
+        ]
+        strongest = (
+            max(asymmetry_rows, key=lambda row: float(row["asymmetry_reduction"]))
+            if asymmetry_rows
+            else None
         )
         output.append(
             {
@@ -185,9 +195,9 @@ def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
                 "total_runtime_s": sum(float(row["runtime_s"]) for row in sample_rows),
                 "slowest_tool": slowest["tool"],
                 "slowest_runtime_s": float(slowest["runtime_s"]),
-                "strongest_damage_tool": strongest["tool"],
-                "strongest_asymmetry_reduction": float(
-                    strongest["asymmetry_reduction"] or 0.0
+                "strongest_damage_tool": strongest["tool"] if strongest else None,
+                "strongest_asymmetry_reduction": (
+                    float(strongest["asymmetry_reduction"]) if strongest else None
                 ),
             }
         )
@@ -204,8 +214,19 @@ def render_markdown(
 ) -> str:
     fastest = min(runtime_rows, key=lambda row: row["median_runtime_s"])
     slowest = max(runtime_rows, key=lambda row: row["median_runtime_s"])
-    strongest = max(runtime_rows, key=lambda row: row["mean_asymmetry_reduction"])
-    weakest = min(runtime_rows, key=lambda row: row["mean_asymmetry_reduction"])
+    asymmetry_rows = [
+        row for row in runtime_rows if row["mean_asymmetry_reduction"] is not None
+    ]
+    strongest = (
+        max(asymmetry_rows, key=lambda row: row["mean_asymmetry_reduction"])
+        if asymmetry_rows
+        else None
+    )
+    weakest = (
+        min(asymmetry_rows, key=lambda row: row["mean_asymmetry_reduction"])
+        if asymmetry_rows
+        else None
+    )
     zero_exit = sum(1 for row in rows if row["exit_code"] == "0")
 
     lines: list[str] = []
@@ -228,12 +249,17 @@ def render_markdown(
     lines.append(
         f"- Slowest median runtime: `{slowest['tool']}` at `{fmt_runtime(slowest['median_runtime_s'])}` seconds."
     )
-    lines.append(
-        f"- Strongest mean terminal asymmetry reduction: `{strongest['tool']}` at `{strongest['mean_asymmetry_reduction']:.3f}`."
-    )
-    lines.append(
-        f"- Weakest mean terminal asymmetry reduction: `{weakest['tool']}` at `{weakest['mean_asymmetry_reduction']:.3f}`."
-    )
+    if strongest and weakest:
+        lines.append(
+            f"- Strongest mean terminal asymmetry reduction: `{strongest['tool']}` at `{strongest['mean_asymmetry_reduction']:.3f}`."
+        )
+        lines.append(
+            f"- Weakest mean terminal asymmetry reduction: `{weakest['tool']}` at `{weakest['mean_asymmetry_reduction']:.3f}`."
+        )
+    else:
+        lines.append(
+            "- Terminal asymmetry reduction is not published for this corpus run, so backend ranking falls back to runtime and base-retention evidence."
+        )
     lines.append("")
     lines.append("## Run Contract")
     lines.append("")
@@ -254,7 +280,7 @@ def render_markdown(
     lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
     for row in sorted(runtime_rows, key=lambda item: item["median_runtime_s"]):
         lines.append(
-            f"| `{row['tool']}` | {fmt_runtime(row['median_runtime_s'])} | {fmt_runtime(row['p90_runtime_s'])} | {row['median_base_retention']:.3f} | {row['mean_asymmetry_reduction']:.3f} | {row['mean_q_delta']:.3f} | {row['slowdown_vs_fastest_median']:.2f}x |"
+            f"| `{row['tool']}` | {fmt_runtime(row['median_runtime_s'])} | {fmt_runtime(row['p90_runtime_s'])} | {row['median_base_retention']:.3f} | {fmt_metric(row['mean_asymmetry_reduction'])} | {row['mean_q_delta']:.3f} | {row['slowdown_vs_fastest_median']:.2f}x |"
         )
     lines.append("")
     lines.append("## Cohort Behavior")
@@ -263,7 +289,7 @@ def render_markdown(
         "- Ancient and modern samples stay in the same benchmark corpus here so modern data act as a negative-control cohort for damage-aware trimming behavior."
     )
     lines.append(
-        "- The best runtime backend and strongest damage-reduction backend may differ, so this stage should not be judged on latency alone."
+        "- The best runtime backend and strongest damage-reduction backend may differ when asymmetry evidence is available, so this stage should not be judged on latency alone."
     )
     lines.append("")
     lines.append("## Highest-Cost Samples")
@@ -272,7 +298,7 @@ def render_markdown(
     lines.append("| --- | --- | --- | ---: | --- | ---: | --- | ---: |")
     for row in outliers[:5]:
         lines.append(
-            f"| `{row['sample_id']}` | `{row['accession']}` | `{row['era']}_{row['layout']}` | {row['total_runtime_s']:.3f} | `{row['slowest_tool']}` | {row['slowest_runtime_s']:.3f} | `{row['strongest_damage_tool']}` | {row['strongest_asymmetry_reduction']:.3f} |"
+            f"| `{row['sample_id']}` | `{row['accession']}` | `{row['era']}_{row['layout']}` | {row['total_runtime_s']:.3f} | `{row['slowest_tool']}` | {row['slowest_runtime_s']:.3f} | `{row['strongest_damage_tool'] or 'n/a'}` | {fmt_metric(row['strongest_asymmetry_reduction'])} |"
         )
     lines.append("")
     lines.append("## Reproducibility")
