@@ -127,6 +127,16 @@ def validate_artifact_paths(report_path: Path, tool: str) -> dict[str, str]:
             "read-length benchmark report drift: "
             f"missing governed histogram artifacts for {tool}: {missing}"
         )
+    empty = [
+        str(path)
+        for path in [report_json, histogram_tsv, histogram_json]
+        if path.stat().st_size == 0
+    ]
+    if empty:
+        raise SystemExit(
+            "read-length benchmark report drift: "
+            f"empty governed histogram artifacts for {tool}: {empty}"
+        )
     return {
         "report_json_artifact": str(report_json),
         "length_distribution_tsv_artifact": str(histogram_tsv),
