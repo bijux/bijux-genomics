@@ -79,6 +79,8 @@ _benchmark-trim-polyg-corpus-01-report: ## Render the corpus-01 trim-polyg bench
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
 		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.trim_polyg_tails/corpus-01
 
 .PHONY: _benchmark-fastq-stage _benchmark-all _benchmark-trim _benchmark-validate _benchmark-filter \
 	_benchmark-merge _benchmark-correct _benchmark-qc-post _benchmark-umi \
