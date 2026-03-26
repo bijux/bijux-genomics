@@ -18,12 +18,12 @@ bijux-dna-environment = { path = "../bijux-dna-environment" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 sha2.workspace = true
 flate2 = "1"
+walkdir.workspace = true
 
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 assert_cmd = "2"
 tempfile.workspace = true
-walkdir = { workspace = true }
 cargo_metadata = "0.18"
 
 [features]
