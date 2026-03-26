@@ -99,6 +99,11 @@ def validate_summary_contract(summary: dict) -> None:
                 "read-length briefing drift: "
                 f"expected {key}={expected!r}, found {summary.get(key)!r}"
             )
+    if int(summary.get("histogram_bins", 0)) <= 0:
+        raise SystemExit(
+            "read-length briefing drift: "
+            f"histogram_bins must be positive, found {summary.get('histogram_bins')!r}"
+        )
 
 
 def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
@@ -117,6 +122,17 @@ def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
                 "read-length briefing drift: "
                 f"distinct_lengths must be positive for {row['sample_id']}/{row['tool']}"
             )
+        for key, suffix in [
+            ("report_json_artifact", "profile_read_lengths_report.json"),
+            ("length_distribution_tsv_artifact", "length_distribution.tsv"),
+            ("length_distribution_json_artifact", "length_distribution.json"),
+        ]:
+            value = row.get(key, "")
+            if not value or not value.endswith(suffix):
+                raise SystemExit(
+                    "read-length briefing drift: "
+                    f"{key} must end with {suffix!r} for {row['sample_id']}/{row['tool']}"
+                )
 
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
