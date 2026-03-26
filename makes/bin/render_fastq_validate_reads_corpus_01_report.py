@@ -9,10 +9,11 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-try:
-    import tomllib  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    tomllib = None
+from corpus_01_fastq_benchmark_support import (
+    load_corpus_spec,
+    load_json,
+    sample_accession_map,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -33,44 +34,6 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-
-def load_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def parse_simple_toml(path: Path) -> dict:
-    root: dict = {}
-    samples: list[dict] = []
-    current_sample: dict | None = None
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.split("#", 1)[0].strip()
-        if not line:
-            continue
-        if line == "[[samples]]":
-            current_sample = {}
-            samples.append(current_sample)
-            continue
-        key, raw_value = [part.strip() for part in line.split("=", 1)]
-        if raw_value.startswith('"') and raw_value.endswith('"'):
-            value = raw_value[1:-1]
-        elif raw_value.isdigit():
-            value = int(raw_value)
-        else:
-            raise SystemExit(f"unsupported TOML value in {path}: {raw_value}")
-        target = current_sample if current_sample is not None else root
-        target[key] = value
-    root["samples"] = samples
-    return root
-
-
-def load_spec(repo_root: Path) -> dict:
-    path = repo_root / "configs" / "runtime" / "corpora" / "corpus-01.toml"
-    if tomllib is not None:
-        with path.open("rb") as handle:
-            return tomllib.load(handle)
-    return parse_simple_toml(path)
-
-
 def safe_median(values: list[float]) -> float | None:
     if not values:
         return None
@@ -87,39 +50,6 @@ def normalize_metric(record: dict, key: str):
     metrics = record.get("metrics", {})
     metrics_payload = metrics.get("metrics", metrics)
     return metrics_payload.get(key)
-
-
-def sample_accession_map(corpus_root: Path, spec: dict) -> dict[str, dict]:
-    manifest = load_json(corpus_root / "MANIFEST.json")
-    manifest_files = manifest["files"]
-    hash_to_accessions: dict[str, set[str]] = defaultdict(set)
-    for relative_path, digest in manifest_files.items():
-        parts = Path(relative_path).parts
-        if len(parts) >= 2 and parts[0] == "raw":
-            hash_to_accessions[digest].add(parts[1])
-
-    spec_by_accession = {sample["accession"]: sample for sample in spec["samples"]}
-    sample_map: dict[str, dict] = {}
-    for relative_path, digest in manifest_files.items():
-        path = Path(relative_path)
-        if len(path.parts) != 2 or path.parts[0] != "normalized":
-            continue
-        filename = path.name
-        if filename.endswith("_R1.fastq.gz"):
-            sample_id = filename.removesuffix("_R1.fastq.gz")
-        elif filename.endswith("_R2.fastq.gz"):
-            sample_id = filename.removesuffix("_R2.fastq.gz")
-        else:
-            continue
-        accessions = sorted(hash_to_accessions.get(digest, set()))
-        if len(accessions) != 1:
-            raise SystemExit(
-                f"expected one accession for {relative_path}, found {accessions or 'none'}"
-            )
-        accession = accessions[0]
-        sample_map.setdefault(sample_id, {}).update(spec_by_accession[accession])
-        sample_map[sample_id]["accession"] = accession
-    return sample_map
 
 
 def render_markdown(summary: dict) -> str:
@@ -210,7 +140,7 @@ def main() -> int:
     docs_root = (repo_root / args.docs_root).resolve()
     docs_root.mkdir(parents=True, exist_ok=True)
 
-    spec = load_spec(repo_root)
+    spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
     metadata_by_sample = sample_accession_map(corpus_root, spec)
 

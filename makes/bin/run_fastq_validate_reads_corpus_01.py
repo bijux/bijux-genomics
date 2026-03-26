@@ -10,10 +10,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-try:
-    import tomllib  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    tomllib = None
+from corpus_01_fastq_benchmark_support import discover_normalized_samples, load_corpus_spec
 
 
 @dataclass
@@ -68,71 +65,6 @@ def parse_args() -> argparse.Namespace:
         help="Skip samples that already have report.json in the output tree.",
     )
     return parser.parse_args()
-
-
-def parse_simple_toml(path: Path) -> dict:
-    root: dict = {}
-    samples: list[dict] = []
-    current_sample: dict | None = None
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.split("#", 1)[0].strip()
-        if not line:
-            continue
-        if line == "[[samples]]":
-            current_sample = {}
-            samples.append(current_sample)
-            continue
-        key, raw_value = [part.strip() for part in line.split("=", 1)]
-        if raw_value.startswith('"') and raw_value.endswith('"'):
-            value = raw_value[1:-1]
-        elif raw_value.isdigit():
-            value = int(raw_value)
-        else:
-            raise SystemExit(f"unsupported TOML value in {path}: {raw_value}")
-        target = current_sample if current_sample is not None else root
-        target[key] = value
-    root["samples"] = samples
-    return root
-
-
-def load_corpus_spec(repo_root: Path) -> dict:
-    path = repo_root / "configs" / "runtime" / "corpora" / "corpus-01.toml"
-    if tomllib is not None:
-        with path.open("rb") as handle:
-            return tomllib.load(handle)
-    return parse_simple_toml(path)
-
-
-def discover_samples(corpus_root: Path) -> list[dict]:
-    normalized = corpus_root / "normalized"
-    if not normalized.is_dir():
-        raise SystemExit(f"missing normalized corpus directory: {normalized}")
-
-    sample_ids: set[str] = set()
-    for path in normalized.glob("sample_*_R1.fastq.gz"):
-        sample_ids.add(path.name.removesuffix("_R1.fastq.gz"))
-    for path in normalized.glob("sample_*_R2.fastq.gz"):
-        sample_ids.add(path.name.removesuffix("_R2.fastq.gz"))
-
-    samples: list[dict] = []
-    for sample_id in sorted(sample_ids):
-        r1 = normalized / f"{sample_id}_R1.fastq.gz"
-        r2 = normalized / f"{sample_id}_R2.fastq.gz"
-        if not r1.is_file():
-            raise SystemExit(f"missing R1 for sample {sample_id}: {r1}")
-        sample = {
-            "sample_id": sample_id,
-            "r1": r1,
-            "r2": r2 if r2.is_file() else None,
-            "layout": "pe" if r2.is_file() else "se",
-        }
-        samples.append(sample)
-    if len(samples) != 20:
-        raise SystemExit(
-            f"expected 20 normalized samples for corpus-01, found {len(samples)}"
-        )
-    return samples
-
 
 def build_command(
     repo_root: Path,
@@ -199,7 +131,7 @@ def main() -> int:
     )
     out_root.mkdir(parents=True, exist_ok=True)
 
-    samples = discover_samples(corpus_root)
+    samples = discover_normalized_samples(corpus_root)
     runs: list[SampleRun] = []
     failures = 0
 
