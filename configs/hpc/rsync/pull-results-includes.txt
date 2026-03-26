@@ -1,3 +1,4 @@
++ /results/***
 + /bijux-dna-results/***
 + /bijux-dna/logs/***
 + /bijux-dna/**/run_manifest.json

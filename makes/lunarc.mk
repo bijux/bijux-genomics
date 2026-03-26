@@ -1,17 +1,20 @@
 ##@ Lunarc Sync
 
 LUNARC_HOST ?= lunarc
-LUNARC_ROOT ?= $(HOME)/bijux
+LUNARC_ROOT ?= /home/bijan/bijux
 LUNARC_REPO_DIR ?= $(LUNARC_ROOT)/bijux-dna
-LUNARC_PULL_BASE ?= $(HOME)/bijux
+LUNARC_RESULTS_DIR ?= $(LUNARC_ROOT)/results
+LUNARC_CORPUS_ROOT ?= $(LUNARC_ROOT)/corpus_01
+LUNARC_LOCAL_RESULTS_DIR ?= $(HOME)/bijux/bijux-dna-results
+LUNARC_PULL_BASE ?= $(LUNARC_LOCAL_RESULTS_DIR)
 CLEAN_CONTEXT ?= 1
 ALLOW_DIRTY ?= 0
 INCLUDE_CONTAINERS_MANIFEST ?= 0
 DATA_MANIFEST_GLOB ?=
-LUNARC_CONTAINERS_ROOT ?= $(LUNARC_ROOT)/bijux-dna-containers
+LUNARC_CONTAINERS_ROOT ?= $(LUNARC_ROOT)/bijux-dna-container
 LUNARC_APPTAINER_DIR ?= $(LUNARC_CONTAINERS_ROOT)/apptainer
 LUNARC_APPTAINER_ARTIFACT_DIR ?= $(LUNARC_REPO_DIR)/artifacts/containers/hpc/frontend-smoke
-LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-containers/apptainer
+LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-container/apptainer
 LUNARC_APPTAINER_JOBS ?= 10
 LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
 LUNARC_FRONTEND_SENTINEL ?= $(LUNARC_ROOT)/bijux-dna
@@ -39,6 +42,9 @@ _pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: resu
 	@LUNARC_HOST="$(LUNARC_HOST)" \
 	LUNARC_ROOT="$(LUNARC_ROOT)" \
 	LUNARC_REPO_DIR="$(LUNARC_REPO_DIR)" \
+	LUNARC_RESULTS_DIR="$(LUNARC_RESULTS_DIR)" \
+	LUNARC_CONTAINERS_ROOT="$(LUNARC_CONTAINERS_ROOT)" \
+	LUNARC_CORPUS_ROOT="$(LUNARC_CORPUS_ROOT)" \
 	LUNARC_PULL_BASE="$(LUNARC_PULL_BASE)" \
 	INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
@@ -51,6 +57,10 @@ _pull-lunarc-results: ## Recommended: pull results + optional manifests only
 	@LUNARC_HOST="$(LUNARC_HOST)" \
 	LUNARC_ROOT="$(LUNARC_ROOT)" \
 	LUNARC_REPO_DIR="$(LUNARC_REPO_DIR)" \
+	LUNARC_RESULTS_DIR="$(LUNARC_RESULTS_DIR)" \
+	LUNARC_CONTAINERS_ROOT="$(LUNARC_CONTAINERS_ROOT)" \
+	LUNARC_CORPUS_ROOT="$(LUNARC_CORPUS_ROOT)" \
+	LUNARC_PULL_DEST="$(LUNARC_LOCAL_RESULTS_DIR)" \
 	LUNARC_PULL_BASE="$(LUNARC_PULL_BASE)" \
 	INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
@@ -58,6 +68,33 @@ _pull-lunarc-results: ## Recommended: pull results + optional manifests only
 	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull
 
 pull-lunarc-results: _pull-lunarc-results ## Public alias for pull results from Lunarc
+
+pull-lunarc-results-prune: _pull-lunarc-results ## Pull results locally, then clear remote results payload
+	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
+		mkdir -p "$(LUNARC_RESULTS_DIR)"; \
+		find "$(LUNARC_RESULTS_DIR)" -mindepth 1 -maxdepth 1 ! -name site_lock.json -exec rm -rf {} +'
+
+lunarc-footprint: ## Report Lunarc frontend footprint and fail above 20 GB
+	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
+		cd "$(LUNARC_ROOT)"; \
+		total_kb=0; \
+		for dir in bijux-dna bijux-dna-container corpus_01 results; do \
+			size_kb=$$(du -sk "$$dir" 2>/dev/null | awk "{print \$$1}" || true); \
+			size_kb=$${size_kb:-0}; \
+			total_kb=$$((total_kb + size_kb)); \
+			printf "%s\t%s\n" "$$dir" "$$size_kb"; \
+		done; \
+		printf "total\t%s\n" "$$total_kb"; \
+		limit_kb=$$((20 * 1024 * 1024)); \
+		if [ "$$total_kb" -gt "$$limit_kb" ]; then \
+			echo "frontend footprint exceeds 20 GB" >&2; \
+			exit 2; \
+		fi'
+
+lunarc-prune-code: ## Remove transient build residue from the Lunarc repo checkout
+	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
+		rm -rf "$(LUNARC_REPO_DIR)/artifacts" "$(LUNARC_REPO_DIR)/target"; \
+		mkdir -p "$(LUNARC_REPO_DIR)/artifacts"'
 
 apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc frontend
 	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
@@ -132,7 +169,7 @@ apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lun
 		cargo run -q -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- "$(LUNARC_APPTAINER_ARTIFACT_DIR)"; \
 		tail -n 20 "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/apptainer/summary.txt"'
 
-apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-containers/apptainer
+apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-container/apptainer
 	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
 		echo "refusing pull-to-local target on frontend host; run this from your local machine"; \
 		exit 2; \
@@ -207,4 +244,4 @@ apptainer-hpc-clean: ## Remove frontend apptainer output dir
 		rm -rf "$(LUNARC_APPTAINER_DIR)"; \
 		echo "removed $(LUNARC_APPTAINER_DIR)"
 
-.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean
+.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results pull-lunarc-results-prune lunarc-footprint lunarc-prune-code apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean
