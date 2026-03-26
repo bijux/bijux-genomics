@@ -6,7 +6,7 @@ This benchmark measures the governed `fastq.detect_adapters` stage across the cu
 
 - Platform: `lunarc-apptainer` on Lunarc
 - Corpus root: `/home/bijan/bijux/corpus_01`
-- Benchmark root: `/home/bijan/bijux/corpus_01/benchmarks/fastq.detect_adapters/lunarc`
+- Benchmark root: `/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `fastqc`
 - Evidence contract: `evidence_only`, `full_input`, `fastqc_summary`, report_only=`True`

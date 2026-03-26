@@ -6,7 +6,7 @@ This benchmark measures the governed `fastq.profile_reads` stage across the cura
 
 - Platform: `lunarc-apptainer` on Lunarc
 - Corpus root: `/home/bijan/bijux/corpus_01`
-- Benchmark root: `/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_reads/lunarc`
+- Benchmark root: `/home/bijan/bijux/results/corpus_01/fastq.profile_reads/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `seqkit_stats`
 - Profile contract: report_only=`True`, mutates_fastq=`False`, may_change_read_count=`False`, histogram=`seqkit_fx2tab`

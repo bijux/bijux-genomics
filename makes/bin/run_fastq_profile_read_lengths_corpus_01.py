@@ -51,7 +51,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-root",
         default="",
-        help="Benchmark output root. Defaults to <corpus-root>/benchmarks/fastq.profile_read_lengths/lunarc.",
+        help="Benchmark output root. Defaults to <corpus-root-parent>/results/<corpus-dir>/fastq.profile_read_lengths/lunarc.",
     )
     parser.add_argument(
         "--platform",

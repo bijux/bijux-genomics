@@ -6,7 +6,7 @@ This benchmark compares the governed `fastq.validate_reads` stage across all sup
 
 - Platform: `lunarc-apptainer` on Lunarc
 - Corpus root: `/home/bijan/bijux/corpus_01`
-- Benchmark root: `/home/bijan/bijux/corpus_01/benchmarks/fastq.validate_reads/lunarc`
+- Benchmark root: `/home/bijan/bijux/results/corpus_01/fastq.validate_reads/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `fastqvalidator, fastqc, fastq_scan, seqtk, fqtools`
 - Execution profile: one benchmark sample at a time, one worker, one thread per tool invocation
