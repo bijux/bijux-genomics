@@ -4,7 +4,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_environment::api::{
-    docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, ToolImageSpec,
+    docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
 };
 use tracing::warn;
 
@@ -40,6 +40,19 @@ pub fn resolve_image_for_run(
     platform: &PlatformSpec,
 ) -> Result<ResolvedImage> {
     let image = resolve_image(spec, platform)?;
+    match platform.runner {
+        RuntimeKind::Docker => resolve_docker_image_for_run(spec, platform, image),
+        RuntimeKind::Apptainer | RuntimeKind::Singularity => {
+            resolve_apptainer_image_for_run(spec, platform, image)
+        }
+    }
+}
+
+fn resolve_docker_image_for_run(
+    spec: &ToolImageSpec,
+    platform: &PlatformSpec,
+    image: ResolvedImage,
+) -> Result<ResolvedImage> {
     if std::env::var("BIJUX_SKIP_IMAGE_CHECK").is_ok() {
         return Ok(image);
     }
@@ -64,6 +77,27 @@ pub fn resolve_image_for_run(
         }
     }
     Err(anyhow!("docker image not found: {}", image.full_name))
+}
+
+fn resolve_apptainer_image_for_run(
+    spec: &ToolImageSpec,
+    platform: &PlatformSpec,
+    image: ResolvedImage,
+) -> Result<ResolvedImage> {
+    let image_path = platform.container_dir.join(format!("{}.sif", spec.tool));
+    let resolved = ResolvedImage {
+        full_name: image_path.display().to_string(),
+        arch: image.arch,
+        runner: image.runner,
+    };
+    if std::env::var("BIJUX_SKIP_IMAGE_CHECK").is_ok() || image_path.is_file() {
+        return Ok(resolved);
+    }
+    Err(anyhow!(
+        "apptainer image not found for tool {} at {}",
+        spec.tool,
+        image_path.display()
+    ))
 }
 
 /// Execute a container plan and collect command output.
@@ -349,7 +383,8 @@ pub fn docker_rm(container_id: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::assess_execution;
+    use super::{assess_execution, resolve_image_for_run};
+    use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
     use std::path::PathBuf;
 
     #[test]
@@ -387,5 +422,53 @@ mod tests {
         let assessment = assess_execution(1, &[]);
         assert!(!assessment.success);
         assert_eq!(assessment.reason.as_deref(), Some("exit_code=1"));
+    }
+
+    #[test]
+    fn resolve_image_for_run_uses_platform_sif_for_apptainer() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-runner-apptainer")?;
+        let sif_path = temp.path().join("fastqc.sif");
+        bijux_dna_infra::atomic_write_bytes(&sif_path, b"sif")?;
+        let platform = PlatformSpec {
+            name: "lunarc-apptainer".to_string(),
+            runner: RuntimeKind::Apptainer,
+            container_dir: temp.path().to_path_buf(),
+            image_prefix: "bijuxdna".to_string(),
+            arch: "amd64".to_string(),
+        };
+        let spec = ToolImageSpec {
+            tool: "fastqc".to_string(),
+            version: "latest-pinned".to_string(),
+            digest: None,
+            enabled: None,
+            shipping_policy: None,
+        };
+
+        let image = resolve_image_for_run(&spec, &platform)?;
+
+        assert_eq!(image.full_name, sif_path.display().to_string());
+        assert_eq!(image.runner, RuntimeKind::Apptainer);
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_image_for_run_rejects_missing_apptainer_sif() {
+        let platform = PlatformSpec {
+            name: "lunarc-apptainer".to_string(),
+            runner: RuntimeKind::Apptainer,
+            container_dir: PathBuf::from("/tmp/does-not-exist-bijux"),
+            image_prefix: "bijuxdna".to_string(),
+            arch: "amd64".to_string(),
+        };
+        let spec = ToolImageSpec {
+            tool: "fastqc".to_string(),
+            version: "latest-pinned".to_string(),
+            digest: None,
+            enabled: None,
+            shipping_policy: None,
+        };
+
+        let error = resolve_image_for_run(&spec, &platform).expect_err("missing sif must fail");
+        assert!(error.to_string().contains("apptainer image not found"));
     }
 }
