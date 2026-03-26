@@ -505,9 +505,14 @@ pub fn print_registry_list_tools(registry_path: &Path) -> Result<()> {
 
 /// # Errors
 /// Returns an error if registry cannot be read.
-pub fn print_registry_tools(registry_path: &Path, stage: Option<&str>, kind: &str) -> Result<()> {
+pub fn print_registry_tools(
+    registry_path: &Path,
+    stage: Option<&str>,
+    scenario: Option<&str>,
+    kind: &str,
+) -> Result<()> {
     if let Some(stage) = stage {
-        let tools = registry_tools_for_stage(registry_path, stage, kind)?;
+        let tools = registry_tools_for_stage(registry_path, stage, scenario, kind)?;
         println!("{}", tools.join(","));
         return Ok(());
     }

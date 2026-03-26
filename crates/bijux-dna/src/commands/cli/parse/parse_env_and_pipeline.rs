@@ -90,6 +90,8 @@ pub enum RegistryCommand {
     Tools {
         #[arg(long)]
         stage: Option<String>,
+        #[arg(long, requires = "stage")]
+        scenario: Option<String>,
         #[arg(
             long,
             default_value = "all",

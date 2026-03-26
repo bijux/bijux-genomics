@@ -155,6 +155,7 @@ def main() -> int:
         repo_root,
         DETECT_ADAPTERS_BENCHMARK_CONTRACT.stage_id,
         requested_tools,
+        scenario_id=DETECT_ADAPTERS_BENCHMARK_CONTRACT.scenario_id,
     )
     runs: list[SampleRun] = []
     failures = 0

@@ -207,6 +207,7 @@ def main() -> int:
         repo_root,
         TRIM_READS_BENCHMARK_CONTRACT.stage_id,
         requested_tools,
+        scenario_id=TRIM_READS_BENCHMARK_CONTRACT.scenario_id,
     )
     adapter_bank_preset = optional_str(args.adapter_bank_preset)
     polyx_preset = optional_str(args.polyx_preset)

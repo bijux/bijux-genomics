@@ -273,9 +273,14 @@ def run_repo_command(repo_root: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
-def registry_tools_for_stage(repo_root: Path, stage_id: str, kind: str) -> list[str]:
-    output = run_repo_command(
-        repo_root,
+def registry_tools_for_stage(
+    repo_root: Path,
+    stage_id: str,
+    kind: str,
+    *,
+    scenario_id: str | None = None,
+) -> list[str]:
+    command = [
         "cargo",
         "run",
         "-q",
@@ -288,6 +293,12 @@ def registry_tools_for_stage(repo_root: Path, stage_id: str, kind: str) -> list[
         stage_id,
         "--kind",
         kind,
+    ]
+    if scenario_id:
+        command.extend(["--scenario", scenario_id])
+    output = run_repo_command(
+        repo_root,
+        *command,
     )
     return normalize_tool_csv(output)
 
@@ -297,9 +308,15 @@ def require_canonical_tool_roster(
     stage_id: str,
     tools: list[str],
     *,
+    scenario_id: str | None = None,
     kind: str = "benchmark",
 ) -> list[str]:
-    expected = registry_tools_for_stage(repo_root, stage_id, kind)
+    expected = registry_tools_for_stage(
+        repo_root,
+        stage_id,
+        kind,
+        scenario_id=scenario_id,
+    )
     return require_exact_tool_roster(stage_id, tools, expected)
 
 
