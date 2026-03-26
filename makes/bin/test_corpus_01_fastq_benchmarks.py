@@ -1002,6 +1002,20 @@ class MergeReportingTests(unittest.TestCase):
                 }
             )
 
+    def test_trim_reads_report_localizes_lunarc_report_paths(self) -> None:
+        local_results_root = Path("/tmp/local-results")
+
+        localized = trim_reads_report.localize_results_path(
+            "/home/bijan/bijux/results/corpus_01/fastq.trim_reads/lunarc/bench/trim_reads/sample_0008/report.json",
+            local_results_root,
+        )
+
+        self.assertEqual(
+            localized,
+            local_results_root
+            / "corpus_01/fastq.trim_reads/lunarc/bench/trim_reads/sample_0008/report.json",
+        )
+
 
 class DetectAdaptersReportingTests(unittest.TestCase):
     def test_detect_adapters_summary_tracks_runtime_and_signal(self) -> None:
@@ -2028,6 +2042,20 @@ class TerminalDamageReportingTests(unittest.TestCase):
                     "dry_run": True,
                 }
             )
+
+    def test_terminal_damage_report_localizes_lunarc_report_paths(self) -> None:
+        local_results_root = Path("/tmp/local-results")
+
+        localized = terminal_damage_report.localize_results_path(
+            "/home/bijan/bijux/results/corpus_01/fastq.trim_terminal_damage/lunarc/bench/trim_terminal_damage/sample_0008/report.json",
+            local_results_root,
+        )
+
+        self.assertEqual(
+            localized,
+            local_results_root
+            / "corpus_01/fastq.trim_terminal_damage/lunarc/bench/trim_terminal_damage/sample_0008/report.json",
+        )
 
     def test_trim_polyg_report_contract_rejects_missing_tool_rows(self) -> None:
         run_manifest = {
