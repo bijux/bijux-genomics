@@ -184,19 +184,21 @@ fn build_apptainer_exec_args(
         "--bind".to_string(),
         output_mount,
     ];
-    if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
+    let workdir_in_container = if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
         let out_dir_prefix = format!("{}/", out_dir.display());
-        let workdir_in_container = if workdir.starts_with(&out_dir_prefix) {
+        if workdir.starts_with(&out_dir_prefix) {
             format!(
                 "/data/output/{}",
                 workdir.trim_start_matches(&out_dir_prefix)
             )
         } else {
             "/data/output".to_string()
-        };
-        args.push("--pwd".to_string());
-        args.push(workdir_in_container);
-    }
+        }
+    } else {
+        "/data/output".to_string()
+    };
+    args.push("--pwd".to_string());
+    args.push(workdir_in_container);
     args.push(step.image.image.clone());
     args.extend(container_command_template(
         &step.command.template,
@@ -611,8 +613,13 @@ fn write_tool_invocation(
 #[cfg(test)]
 mod tests {
     use super::{
-        build_observer_command_args, container_command_template, hash_inputs, hash_path,
+        build_apptainer_exec_args, build_observer_command_args, container_command_template,
+        hash_inputs, hash_path,
     };
+    use bijux_dna_core::contract::{ArtifactRef, ExecutionStep, StageIO, ToolConstraints};
+    use bijux_dna_core::foundation::{CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_core::ids::{StageId, StepId};
+    use bijux_dna_core::prelude::ArtifactRole;
     use bijux_dna_environment::api::RuntimeKind;
     use std::path::Path;
     use tempfile::tempdir;
@@ -652,6 +659,52 @@ mod tests {
         assert!(args.contains(&"--bind".to_string()));
         assert!(args.contains(&"/tmp/input:/data:ro".to_string()));
         assert!(args.contains(&"/containers/seqkit.sif".to_string()));
+    }
+
+    #[test]
+    fn apptainer_exec_defaults_workdir_to_output_mount() {
+        let step = ExecutionStep {
+            step_id: StepId::from_static("step.trim_reads.tool.seqkit"),
+            stage_id: StageId::from_static("fastq.trim_reads"),
+            command: CommandSpecV1 {
+                template: vec!["seqkit".to_string(), "stats".to_string()],
+            },
+            image: ContainerImageRefV1 {
+                image: "/containers/seqkit.sif".to_string(),
+                digest: None,
+            },
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    "reads".into(),
+                    Path::new("/tmp/input/sample.fastq.gz").to_path_buf(),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    "report".into(),
+                    Path::new("/tmp/out/report.json").to_path_buf(),
+                    ArtifactRole::ReportJson,
+                )],
+            },
+            out_dir: Path::new("/tmp/out").to_path_buf(),
+            aux_images: Default::default(),
+            expected_artifact_ids: Vec::new(),
+            metrics_schema_ids: Vec::new(),
+        };
+
+        let args = build_apptainer_exec_args(
+            &step,
+            Path::new("/tmp/input"),
+            Path::new("/tmp/out"),
+            RuntimeKind::Apptainer,
+        )
+        .expect("apptainer exec args");
+
+        let pwd_index = args
+            .iter()
+            .position(|value| value == "--pwd")
+            .expect("pwd flag present");
+        assert_eq!(args[pwd_index + 1], "/data/output");
     }
 
     #[test]
