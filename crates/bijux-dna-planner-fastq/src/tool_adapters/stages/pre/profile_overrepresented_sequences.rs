@@ -147,7 +147,26 @@ fn profile_overrepresented_command(
             }
             Ok(wrap_fastqc_command(&command, fastqc_dir))
         }
-        "seqkit" | "fastq_scan" => {
+        "seqkit" => {
+            let mut command = vec![
+                "seqkit".to_string(),
+                "fx2tab".to_string(),
+                "-j".to_string(),
+                threads.to_string(),
+                "-n".to_string(),
+                "-s".to_string(),
+                r1.display().to_string(),
+            ];
+            if let Some(r2) = r2 {
+                command.push(r2.display().to_string());
+            }
+            Ok(vec![
+                "sh".to_string(),
+                "-lc".to_string(),
+                format!("{} > /dev/null", shell_join(&command)),
+            ])
+        }
+        "fastq_scan" => {
             let mut command = vec![tool_id.to_string(), r1.display().to_string()];
             if let Some(r2) = r2 {
                 command.push(r2.display().to_string());
@@ -238,5 +257,47 @@ mod tests {
         assert!(plan.command.template[2].contains("fastqc"));
         assert_eq!(plan.params["threads"], serde_json::json!(6));
         assert_eq!(plan.params["top_k"], serde_json::json!(25));
+    }
+
+    fn seqkit_tool() -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::from_static("seqkit"),
+            tool_version: ToolVersion::from("2.9.0"),
+            image: ContainerImageRefV1 {
+                image: "bijuxdna/seqkit".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: vec!["seqkit".to_string(), "{{reads_r1}}".to_string()],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+        }
+    }
+
+    #[test]
+    fn profile_overrepresented_seqkit_plan_streams_sequences() {
+        let plan = plan_with_options(
+            &seqkit_tool(),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            Some(4),
+            Some(50),
+        )
+        .expect("plan");
+
+        assert_eq!(
+            &plan.command.template[..2],
+            ["sh".to_string(), "-lc".to_string()]
+        );
+        assert!(plan.command.template[2].contains("seqkit"));
+        assert!(plan.command.template[2].contains("fx2tab"));
+        assert!(plan.command.template[2].contains("-j '4'"));
+        assert!(plan.command.template[2].contains("> /dev/null"));
     }
 }
