@@ -18,20 +18,27 @@ def load_json(path: Path) -> dict:
 
 
 @dataclass(frozen=True)
-class TrimBenchmarkContract:
+class CorpusBenchmarkContract:
     stage_id: str
     scenario_id: str
     tools: list[str]
 
 
-TRIM_POLYG_BENCHMARK_CONTRACT = TrimBenchmarkContract(
+DETECT_ADAPTERS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.detect_adapters",
+    scenario_id="detect_adapters_fairness",
+    tools=["fastqc"],
+)
+
+
+TRIM_POLYG_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.trim_polyg_tails",
     scenario_id="polyg_trim_fairness",
     tools=["bbduk", "fastp"],
 )
 
 
-TRIM_READS_BENCHMARK_CONTRACT = TrimBenchmarkContract(
+TRIM_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.trim_reads",
     scenario_id="trim_fairness",
     tools=[
@@ -49,7 +56,7 @@ TRIM_READS_BENCHMARK_CONTRACT = TrimBenchmarkContract(
 )
 
 
-TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT = TrimBenchmarkContract(
+TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.trim_terminal_damage",
     scenario_id="terminal_damage_fairness",
     tools=["adapterremoval", "cutadapt", "seqkit"],
