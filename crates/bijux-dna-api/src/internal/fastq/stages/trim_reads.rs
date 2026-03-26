@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::path::Path;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
@@ -317,8 +319,10 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         let metrics_json = serde_json::to_value(&metric_set)?;
-        bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        let metrics_path = out_dir.join("metrics.json");
+        bijux_dna_infra::atomic_write_json(&metrics_path, &metrics_json)
             .context("write trim metrics")?;
+        prune_trim_tool_payload(&out_dir, &report_path, &metrics_path, &governed_report)?;
 
         let context = build_benchmark_context(
             &tool,
@@ -379,6 +383,46 @@ fn combine_seqkit_metrics(
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
     }
+}
+
+fn prune_trim_tool_payload(
+    out_dir: &Path,
+    report_path: &Path,
+    metrics_path: &Path,
+    report: &TrimReadsReportV1,
+) -> Result<()> {
+    let run_artifacts_dir = out_dir.join("run_artifacts");
+    let mut keep = HashSet::new();
+    keep.insert(report_path.to_path_buf());
+    keep.insert(metrics_path.to_path_buf());
+    if let Some(raw_backend_report) = report.raw_backend_report.as_ref() {
+        keep.insert(Path::new(raw_backend_report).to_path_buf());
+    }
+
+    let mut dirs = vec![out_dir.to_path_buf()];
+    while let Some(dir) = dirs.pop() {
+        for entry in
+            fs::read_dir(&dir).with_context(|| format!("read trim tool dir {}", dir.display()))?
+        {
+            let path = entry
+                .with_context(|| format!("read entry in {}", dir.display()))?
+                .path();
+            if path == run_artifacts_dir || path.starts_with(&run_artifacts_dir) {
+                continue;
+            }
+            if path.is_dir() {
+                dirs.push(path);
+                continue;
+            }
+            if keep.contains(&path) {
+                continue;
+            }
+            fs::remove_file(&path)
+                .with_context(|| format!("prune trim payload {}", path.display()))?;
+        }
+    }
+
+    Ok(())
 }
 
 fn u64_to_f64(value: u64) -> f64 {
@@ -695,5 +739,78 @@ mod tests {
         let tool = dummy_tool("fastp", 2);
         let overridden = apply_thread_override(&tool, Some(8));
         assert_eq!(overridden.resources.threads, 8);
+    }
+
+    #[test]
+    fn prune_trim_tool_payload_keeps_reports_and_run_artifacts() {
+        let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let out_dir = temp.path().join("fastp");
+        let run_artifacts = out_dir.join("run_artifacts");
+        fs::create_dir_all(&run_artifacts).expect("mkdir");
+
+        let report_path = out_dir.join("trim_report.json");
+        let metrics_path = out_dir.join("metrics.json");
+        let raw_backend_report = out_dir.join("trim.fastp.json");
+        let trimmed_r1 = out_dir.join("reads_R1.fastq.gz");
+        let trimmed_r2 = out_dir.join("reads_R2.fastq.gz");
+        let stage_report = run_artifacts.join("stage_report.json");
+
+        fs::write(&report_path, "{}").expect("write report");
+        fs::write(&metrics_path, "{}").expect("write metrics");
+        fs::write(&raw_backend_report, "{}").expect("write backend report");
+        fs::write(&trimmed_r1, "trimmed").expect("write r1");
+        fs::write(&trimmed_r2, "trimmed").expect("write r2");
+        fs::write(&stage_report, "{}").expect("write run artifact");
+
+        let report = TrimReadsReportV1 {
+            schema_version: TRIM_READS_REPORT_SCHEMA_VERSION.to_string(),
+            stage: "fastq.trim_reads".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
+            tool_id: "fastp".to_string(),
+            paired_mode: PairedMode::PairedEnd,
+            threads: 4,
+            input_r1: "reads_R1.fastq.gz".to_string(),
+            input_r2: Some("reads_R2.fastq.gz".to_string()),
+            output_r1: trimmed_r1.display().to_string(),
+            output_r2: Some(trimmed_r2.display().to_string()),
+            min_length: 30,
+            quality_cutoff: None,
+            adapter_policy: "none".to_string(),
+            polyx_policy: Some("none".to_string()),
+            n_policy: Some("retain".to_string()),
+            contaminant_policy: Some("none".to_string()),
+            adapter_bank_id: None,
+            adapter_bank_hash: None,
+            adapter_preset: None,
+            adapter_overrides: None,
+            polyx_bank_id: None,
+            polyx_bank_hash: None,
+            polyx_preset: None,
+            contaminant_bank_id: None,
+            contaminant_bank_hash: None,
+            contaminant_preset: None,
+            reads_in: Some(100),
+            reads_out: Some(90),
+            bases_in: Some(1000),
+            bases_out: Some(900),
+            pairs_in: Some(50),
+            pairs_out: Some(45),
+            mean_q_before: Some(28.0),
+            mean_q_after: Some(30.0),
+            runtime_s: Some(1.0),
+            memory_mb: Some(64.0),
+            raw_backend_report: Some(raw_backend_report.display().to_string()),
+            raw_backend_report_format: Some("fastp_json".to_string()),
+        };
+
+        prune_trim_tool_payload(&out_dir, &report_path, &metrics_path, &report)
+            .unwrap_or_else(|err| panic!("prune payload: {err}"));
+
+        assert!(report_path.is_file());
+        assert!(metrics_path.is_file());
+        assert!(raw_backend_report.is_file());
+        assert!(stage_report.is_file());
+        assert!(!trimmed_r1.exists());
+        assert!(!trimmed_r2.exists());
     }
 }

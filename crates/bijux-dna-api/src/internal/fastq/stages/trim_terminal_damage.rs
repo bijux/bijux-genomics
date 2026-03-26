@@ -1,5 +1,6 @@
-use std::collections::HashMap;
-
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::path::{Path, PathBuf};
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
@@ -297,8 +298,16 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             ));
         }
         let metrics_json = serde_json::to_value(&metric_set)?;
-        bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        let metrics_path = out_dir.join("metrics.json");
+        bijux_dna_infra::atomic_write_json(&metrics_path, &metrics_json)
             .context("write trim terminal damage metrics")?;
+        let report_path = required_plan_output_path(&plan, "report_json")?;
+        prune_trim_terminal_damage_payload(
+            &out_dir,
+            report_path,
+            &metrics_path,
+            &governed_report,
+        )?;
 
         let context = build_benchmark_context(
             &tool,
@@ -359,6 +368,46 @@ fn combine_seqkit_metrics(
         mean_q: weighted_mean_q,
         gc_percent: weighted_gc,
     }
+}
+
+fn prune_trim_terminal_damage_payload(
+    out_dir: &Path,
+    report_path: &Path,
+    metrics_path: &Path,
+    report: &bijux_dna_domain_fastq::TrimTerminalDamageReportV1,
+) -> Result<()> {
+    let run_artifacts_dir = out_dir.join("run_artifacts");
+    let mut keep = HashSet::new();
+    keep.insert(report_path.to_path_buf());
+    keep.insert(metrics_path.to_path_buf());
+    if let Some(raw_backend_report) = report.raw_backend_report.as_ref() {
+        keep.insert(Path::new(raw_backend_report).to_path_buf());
+    }
+
+    let mut dirs = vec![out_dir.to_path_buf()];
+    while let Some(dir) = dirs.pop() {
+        for entry in fs::read_dir(&dir)
+            .with_context(|| format!("read terminal damage tool dir {}", dir.display()))?
+        {
+            let path = entry
+                .with_context(|| format!("read entry in {}", dir.display()))?
+                .path();
+            if path == run_artifacts_dir || path.starts_with(&run_artifacts_dir) {
+                continue;
+            }
+            if path.is_dir() {
+                dirs.push(path);
+                continue;
+            }
+            if keep.contains(&path) {
+                continue;
+            }
+            fs::remove_file(&path)
+                .with_context(|| format!("prune terminal damage payload {}", path.display()))?;
+        }
+    }
+
+    Ok(())
 }
 
 fn u64_to_f64(value: u64) -> f64 {
@@ -573,5 +622,80 @@ mod tests {
             report.raw_backend_report_format.as_deref(),
             Some("cutadapt_json")
         );
+    }
+
+    #[test]
+    fn prune_trim_terminal_damage_payload_keeps_reports_and_run_artifacts() {
+        let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let out_dir = temp.path().join("cutadapt");
+        let run_artifacts = out_dir.join("run_artifacts");
+        fs::create_dir_all(&run_artifacts).expect("mkdir");
+
+        let report_path = out_dir.join("trim_terminal_damage_report.json");
+        let metrics_path = out_dir.join("metrics.json");
+        let raw_backend_report = out_dir.join("trim_terminal_damage.cutadapt.raw.json");
+        let trimmed_r1 = out_dir.join("R1.trimmed.fastq.gz");
+        let trimmed_r2 = out_dir.join("R2.trimmed.fastq.gz");
+        let stage_report = run_artifacts.join("stage_report.json");
+
+        fs::write(&report_path, "{}").expect("write report");
+        fs::write(&metrics_path, "{}").expect("write metrics");
+        fs::write(&raw_backend_report, "{}").expect("write backend report");
+        fs::write(&trimmed_r1, "trimmed").expect("write r1");
+        fs::write(&trimmed_r2, "trimmed").expect("write r2");
+        fs::write(&stage_report, "{}").expect("write run artifact");
+
+        let report = bijux_dna_domain_fastq::TrimTerminalDamageReportV1 {
+            schema_version: "bijux.fastq.trim_terminal_damage.report.v2".to_string(),
+            stage: "fastq.trim_terminal_damage".to_string(),
+            stage_id: "fastq.trim_terminal_damage".to_string(),
+            tool_id: "cutadapt".to_string(),
+            paired_mode: bijux_dna_domain_fastq::PairedMode::PairedEnd,
+            threads: 2,
+            damage_mode: "ancient".to_string(),
+            execution_policy: parse_terminal_damage_execution_policy(Some("explicit_terminal_trim"))
+                .unwrap_or_else(|err| panic!("execution policy: {err}")),
+            trim_5p_bases: 2,
+            trim_3p_bases: 2,
+            requested_trim_5p_bases: 2,
+            requested_trim_3p_bases: 2,
+            udg_classification: "non_udg".to_string(),
+            input_r1: "reads_R1.fastq.gz".to_string(),
+            input_r2: Some("reads_R2.fastq.gz".to_string()),
+            output_r1: trimmed_r1.display().to_string(),
+            output_r2: Some(trimmed_r2.display().to_string()),
+            reads_in: Some(100),
+            reads_out: Some(90),
+            bases_in: Some(1000),
+            bases_out: Some(900),
+            mean_q_before: Some(28.0),
+            mean_q_after: Some(30.0),
+            ct_ga_asymmetry_pre: Some(0.4),
+            ct_ga_asymmetry_post: Some(0.1),
+            ct_ga_asymmetry_pre_r1: None,
+            ct_ga_asymmetry_post_r1: None,
+            ct_ga_asymmetry_pre_r2: None,
+            ct_ga_asymmetry_post_r2: None,
+            terminal_base_composition_pre_r1: None,
+            terminal_base_composition_post_r1: None,
+            terminal_base_composition_pre_r2: None,
+            terminal_base_composition_post_r2: None,
+            raw_backend_report: Some(raw_backend_report.display().to_string()),
+            raw_backend_report_format: Some("cutadapt_json".to_string()),
+            runtime_s: Some(1.0),
+            memory_mb: Some(64.0),
+            used_fallback: false,
+            backend_metrics: None,
+        };
+
+        prune_trim_terminal_damage_payload(&out_dir, &report_path, &metrics_path, &report)
+            .unwrap_or_else(|err| panic!("prune payload: {err}"));
+
+        assert!(report_path.is_file());
+        assert!(metrics_path.is_file());
+        assert!(raw_backend_report.is_file());
+        assert!(stage_report.is_file());
+        assert!(!trimmed_r1.exists());
+        assert!(!trimmed_r2.exists());
     }
 }
