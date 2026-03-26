@@ -141,6 +141,24 @@ def validate_profile_reads_row_contract(
                 "profile-reads benchmark report drift: "
                 f"histogram_bin_count must be positive for {row['sample_id']}/{row['tool']}"
             )
+        mean_read_length = row["mean_read_length"]
+        max_observed_length = row["max_observed_length"]
+        if mean_read_length is None or float(mean_read_length) <= 0.0:
+            raise SystemExit(
+                "profile-reads benchmark report drift: "
+                f"mean_read_length must be positive for {row['sample_id']}/{row['tool']}"
+            )
+        if max_observed_length is None or float(max_observed_length) < float(mean_read_length):
+            raise SystemExit(
+                "profile-reads benchmark report drift: "
+                f"max_observed_length must be >= mean_read_length for {row['sample_id']}/{row['tool']}"
+            )
+        expected_mean_read_length = float(row["bases_total"]) / float(row["reads_total"])
+        if abs(expected_mean_read_length - float(mean_read_length)) > 1e-6:
+            raise SystemExit(
+                "profile-reads benchmark report drift: "
+                f"mean_read_length must equal bases_total/reads_total for {row['sample_id']}/{row['tool']}"
+            )
     for sample_id, rows in sorted(rows_by_sample.items()):
         observed_tools = [row["tool"] for row in rows]
         if sorted(observed_tools) != sorted(expected_tools):
