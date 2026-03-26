@@ -13,9 +13,17 @@ use crate::command_runner::invocation_hash;
 #[derive(Debug, Deserialize, Default)]
 struct DomainToolYaml {
     #[serde(default)]
+    container: DomainToolContainer,
+    #[serde(default)]
     command_template: Vec<String>,
     #[serde(default)]
     constraints: Option<ToolConstraints>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct DomainToolContainer {
+    #[serde(default)]
+    digest: Option<String>,
 }
 
 fn workspace_root() -> PathBuf {
@@ -73,10 +81,14 @@ pub fn build_tool_execution_spec(
         .get(tool_id.as_str())
         .ok_or_else(|| anyhow!("tool {tool_id} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
+    let mut image_digest = spec.digest.clone();
     let mut command_template = manifest.command_template.clone();
     let mut constraints = manifest.constraints.clone();
-    if command_template.is_empty() {
-        if let Some(domain_tool) = load_domain_tool_yaml(tool_id.as_str()) {
+    if let Some(domain_tool) = load_domain_tool_yaml(tool_id.as_str()) {
+        if image_digest.is_none() {
+            image_digest = domain_tool.container.digest.clone();
+        }
+        if command_template.is_empty() {
             if !domain_tool.command_template.is_empty() {
                 command_template = domain_tool.command_template;
             }
@@ -92,7 +104,7 @@ pub fn build_tool_execution_spec(
         tool_version: spec.version.clone(),
         image: ContainerImageRefV1 {
             image: image.full_name,
-            digest: spec.digest.clone(),
+            digest: image_digest,
         },
         command: CommandSpecV1 {
             template: command_template,
