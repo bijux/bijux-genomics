@@ -137,6 +137,8 @@ _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
 		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_validate_reads_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.validate_reads/corpus-01
 
 _benchmark-trim-polyg-corpus-01-report: ## Render the corpus-01 trim-polyg benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_report.py \
@@ -210,6 +212,26 @@ _benchmark-report-qc-corpus-01-report: ## Render the corpus-01 report-qc benchma
 	@python3 makes/bin/render_fastq_report_qc_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.report_qc/corpus-01
 
+_benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publication coverage
+	@python3 makes/bin/audit_corpus_01_fastq_benchmark_docs.py \
+		--repo-root . \
+		--docs-root docs/benchmark \
+		--json-out docs/benchmark/corpus-01-status.json \
+		--markdown-out docs/benchmark/corpus-01-status.md
+
+_benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ dossiers and refresh publication status
+	@$(MAKE) _benchmark-validate-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-detect-adapters-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-profile-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-profile-read-lengths-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-profile-overrepresented-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-trim-polyg-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-trim-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-trim-terminal-damage-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-merge-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-report-qc-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-corpus-01-publication-status
+
 .PHONY: _benchmark-fastq-stage _benchmark-all _benchmark-trim _benchmark-validate _benchmark-filter \
 	_benchmark-merge _benchmark-correct _benchmark-qc-post _benchmark-umi \
 	_benchmark-stats _benchmark-screen _benchmark-preprocess _benchmark-status \
@@ -223,4 +245,5 @@ _benchmark-report-qc-corpus-01-report: ## Render the corpus-01 report-qc benchma
 	_benchmark-detect-adapters-corpus-01-report _benchmark-profile-reads-corpus-01-report \
 	_benchmark-profile-read-lengths-corpus-01-report \
 	_benchmark-profile-overrepresented-corpus-01-report _benchmark-merge-corpus-01-report \
-	_benchmark-report-qc-corpus-01-report
+	_benchmark-report-qc-corpus-01-report _benchmark-corpus-01-publication-status \
+	_benchmark-corpus-01-published-dossiers
