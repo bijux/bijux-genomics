@@ -14,6 +14,8 @@ if str(BIN_DIR) not in sys.path:
 import corpus_01_fastq_benchmark_support as support
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
+import render_fastq_profile_read_lengths_corpus_01_briefing as profile_read_lengths_briefing
+import render_fastq_profile_read_lengths_corpus_01_report as profile_read_lengths_report
 import render_fastq_profile_reads_corpus_01_briefing as profile_reads_briefing
 import render_fastq_profile_reads_corpus_01_report as profile_reads_report
 import render_fastq_trim_reads_corpus_01_briefing as trim_reads_briefing
@@ -881,6 +883,113 @@ class ProfileReadsReportingTests(unittest.TestCase):
                         "histogram_bin_count": "0",
                     }
                 ],
+            )
+
+
+class ProfileReadLengthsReportingTests(unittest.TestCase):
+    def test_read_length_markdown_mentions_histogram_contract(self) -> None:
+        summary = {
+            "generated_at_utc": "2026-03-26T00:00:00+00:00",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_read_lengths/lunarc",
+            "scenario_id": "read_length_fairness",
+            "samples_total": 20,
+            "samples_failed": 0,
+            "tools": ["seqkit_stats"],
+            "report_only": True,
+            "mutates_fastq": False,
+            "may_change_read_count": False,
+            "raw_backend_report_format": "seqkit_stats_length_histogram",
+            "histogram_bins": 100,
+            "era_counts": {"ancient": 10, "modern": 10},
+            "layout_counts": {"se": 10, "pe": 10},
+            "cohort_counts": {"ancient_pe": 5, "ancient_se": 5, "modern_pe": 5, "modern_se": 5},
+            "headline": {
+                "fastest_tool": "seqkit_stats",
+                "fastest_runtime_s": 1.2,
+                "highest_max_read_length_tool": "seqkit_stats",
+                "highest_max_read_length": 151.0,
+                "widest_length_support_tool": "seqkit_stats",
+                "widest_length_support": 48.0,
+            },
+            "tool_summary": [
+                {
+                    "tool": "seqkit_stats",
+                    "records": 20,
+                    "pass_rate": 1.0,
+                    "median_runtime_s": 1.2,
+                    "median_read_count": 1000.0,
+                    "median_mean_read_length": 74.2,
+                    "median_max_read_length": 151.0,
+                    "median_distinct_lengths": 48.0,
+                }
+            ],
+        }
+
+        markdown = profile_read_lengths_report.render_markdown(summary)
+
+        self.assertIn("raw_backend_report_format: `seqkit_stats_length_histogram`", markdown)
+        self.assertIn("histogram_bins: `100`", markdown)
+
+    def test_read_length_report_contract_rejects_invalid_distinct_lengths(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_read_lengths_report.validate_read_length_row_contract(
+                run_manifest={"tools": ["seqkit_stats"]},
+                sample_rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "seqkit_stats",
+                        "read_count": 100,
+                        "mean_read_length": 50.0,
+                        "max_read_length": 75,
+                        "distinct_lengths": 101,
+                    }
+                ],
+                expected_sample_ids=["sample_0001"],
+            )
+
+    def test_read_length_report_rejects_sample_limited_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_read_lengths_report.validate_read_length_run_manifest_contract(
+                {
+                    "stage_id": "fastq.profile_read_lengths",
+                    "scenario_id": "read_length_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": False,
+                    "sample_limit": 2,
+                    "report_only": True,
+                    "mutates_fastq": False,
+                    "may_change_read_count": False,
+                    "raw_backend_report_format": "seqkit_stats_length_histogram",
+                    "histogram_bins": 100,
+                    "length_histogram_artifacts": [
+                        "report_json",
+                        "length_distribution_tsv",
+                        "length_distribution_json",
+                    ],
+                }
+            )
+
+    def test_read_length_report_rejects_nonpositive_histogram_bins(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_read_lengths_report.validate_read_length_run_manifest_contract(
+                {
+                    "stage_id": "fastq.profile_read_lengths",
+                    "scenario_id": "read_length_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": False,
+                    "report_only": True,
+                    "mutates_fastq": False,
+                    "may_change_read_count": False,
+                    "raw_backend_report_format": "seqkit_stats_length_histogram",
+                    "histogram_bins": 0,
+                    "length_histogram_artifacts": [
+                        "report_json",
+                        "length_distribution_tsv",
+                        "length_distribution_json",
+                    ],
+                }
             )
 
 
