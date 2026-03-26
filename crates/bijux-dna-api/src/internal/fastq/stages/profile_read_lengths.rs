@@ -24,7 +24,9 @@ use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use uuid::Uuid;
 
-use crate::internal::fastq::stages::trim_bench_common::build_benchmark_context;
+use crate::internal::fastq::stages::trim_bench_common::{
+    benchmark_image_identity, build_benchmark_context,
+};
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
@@ -92,12 +94,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
                 args.histogram_bins,
             )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_read_lengths_v1(
             &conn,
             tool,

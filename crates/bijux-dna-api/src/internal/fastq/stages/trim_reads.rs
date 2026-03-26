@@ -21,8 +21,8 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 
 use super::trim_bench_common::{
-    build_benchmark_context, derive_trim_delta, json_string, observe_fastq_stats,
-    prepare_trim_bench,
+    benchmark_image_identity, build_benchmark_context, derive_trim_delta, json_string,
+    observe_fastq_stats, prepare_trim_bench,
 };
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -213,12 +213,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         )?
         .embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_trim_v2(
             &conn,
             &tool,
