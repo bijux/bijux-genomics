@@ -90,6 +90,14 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
     }
 }
 
+fn benchmark_input_hashes(dataset: &BenchDataset) -> [Option<String>; 2] {
+    let primary = Some(dataset.sha256_r1.to_string());
+    let paired = dataset
+        .sha256_r2
+        .map(|sha256_r2| format!("{}+{sha256_r2}", dataset.sha256_r1));
+    [primary, paired]
+}
+
 /// Load bench results for a stage/tool across the corpus.
 ///
 /// # Errors
@@ -124,18 +132,21 @@ pub fn get_results_from_sqlite(
         }
         let conn = Connection::open(&sqlite_path)
             .with_context(|| format!("open bench sqlite for {}", dataset.id))?;
+        let [primary_input_hash, paired_input_hash] = benchmark_input_hashes(dataset);
         let mut stmt = conn.prepare(&format!(
             "SELECT runtime_s, memory_mb, exit_code, metrics_json, parameters_json \
              FROM {table} \
-             WHERE tool = ?1 AND input_hash = ?2 \
-               AND (?3 IS NULL OR image_digest = ?3) \
-               AND (?4 IS NULL OR params_hash = ?4) \
+             WHERE tool = ?1 \
+               AND (input_hash = ?2 OR (?3 IS NOT NULL AND input_hash = ?3)) \
+               AND (?4 IS NULL OR image_digest = ?4) \
+               AND (?5 IS NULL OR params_hash = ?5) \
              ORDER BY record_id DESC, inserted_at DESC"
         ))?;
         let rows = stmt.query_map(
             params![
                 tool,
-                dataset.sha256_r1,
+                primary_input_hash,
+                paired_input_hash,
                 context.image_digest.as_deref(),
                 context.params_hash.as_deref()
             ],
@@ -348,6 +359,20 @@ mod tests {
                 sha256_r1: "hash_a",
                 sha256_r2: None,
                 paired: false,
+            }],
+        )
+    }
+
+    fn bench_paired_corpus_fixture() -> BenchCorpus {
+        BenchCorpus::new(
+            BenchCorpusId::Fastq5Set,
+            vec![BenchDataset {
+                id: "DATA_PE",
+                r1: PathBuf::from("/dev/null"),
+                r2: Some(PathBuf::from("/dev/null")),
+                sha256_r1: "hash_r1",
+                sha256_r2: Some("hash_r2"),
+                paired: true,
             }],
         )
     }
@@ -621,6 +646,50 @@ mod tests {
 
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].runtime_s, Some(3.0));
+        Ok(())
+    }
+
+    #[test]
+    fn sqlite_repository_matches_paired_input_hashes() -> Result<(), Box<dyn std::error::Error>> {
+        let temp = bijux_dna_testkit::tempdir_for("bench-results-fastq-paired-input-hash");
+        let root_dir = temp.path().to_path_buf();
+        let corpus = bench_paired_corpus_fixture();
+        let bench_dir = bijux_dna_infra::bench_base_dir(
+            &root_dir,
+            bench_dir_name(&STAGE_DETECT_ADAPTERS).unwrap_or("unknown"),
+            corpus.datasets[0].id,
+        );
+        bijux_dna_infra::ensure_dir(&bench_dir)?;
+        create_bench_db(
+            &bench_dir.join("bench.sqlite"),
+            "bench_fastq_detect_adapters_v1",
+            &[BenchRowFixture {
+                tool: "fastqc".to_string(),
+                input_hash: format!(
+                    "{}+{}",
+                    corpus.datasets[0].sha256_r1,
+                    corpus.datasets[0].sha256_r2.expect("paired hash"),
+                ),
+                image_digest: "sha256:image-a".to_string(),
+                params_hash: "params-a".to_string(),
+                parameters_json: "{}".to_string(),
+                runtime_s: 5.0,
+                memory_mb: 128.0,
+                exit_code: 0,
+            }],
+        )?;
+
+        let records = get_results_from_sqlite(
+            &STAGE_DETECT_ADAPTERS,
+            "fastqc",
+            &corpus,
+            &BenchQueryContext::new(),
+            &root_dir,
+        )?;
+
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].runtime_s, Some(5.0));
+        assert_eq!(records[0].status, BenchResultStatus::Success);
         Ok(())
     }
 }
