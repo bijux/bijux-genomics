@@ -220,7 +220,7 @@ fn trim_terminal_damage_command(
     match tool_id {
         "adapterremoval" => {
             let mut script = format!(
-                "set -euo pipefail\nAdapterRemoval --threads {threads} --trim5p {trim_5p_bases} --trim3p {trim_3p_bases} --file1 {} --output1 {}",
+                "set -eu\nAdapterRemoval --threads {threads} --trim5p {trim_5p_bases} --trim3p {trim_3p_bases} --file1 {} --output1 {}",
                 shell_quote_path(r1),
                 shell_quote_path(output_r1),
             );
@@ -243,7 +243,7 @@ fn trim_terminal_damage_command(
             let raw_backend_report = raw_backend_report.ok_or_else(|| {
                 anyhow!("cutadapt terminal-damage planning requires raw backend report path")
             })?;
-            let mut script = format!("set -euo pipefail\ncutadapt --cores {threads}");
+            let mut script = format!("set -eu\ncutadapt --cores {threads}");
             if trim_5p_bases > 0 {
                 script.push_str(&format!(" -u {}", trim_5p_bases));
             }
@@ -276,7 +276,7 @@ fn trim_terminal_damage_command(
         "seqkit" => {
             let region = terminal_trim_region(trim_5p_bases, trim_3p_bases);
             let mut script = format!(
-                "set -euo pipefail\nseqkit subseq -j {threads} -r {} {} -o {}\n",
+                "set -eu\nseqkit subseq -j {threads} -r {} {} -o {}\n",
                 shell_quote_str(&region),
                 shell_quote_path(r1),
                 shell_quote_path(output_r1),

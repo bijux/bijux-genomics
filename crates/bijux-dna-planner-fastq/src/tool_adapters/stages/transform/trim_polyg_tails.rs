@@ -329,7 +329,7 @@ fn wrap_polyg_command_with_report(
         raw_backend_report_format: Some(raw_report_format.to_string()),
         backend_metrics: None,
     };
-    let mut script = format!("set -euo pipefail\n{}\n", shell_join(&command));
+    let mut script = format!("set -eu\n{}\n", shell_join(&command));
     script.push_str(&format!(
         "printf '%s\\n' {} > {}\n",
         shell_quote_str(&serde_json::to_string(&payload).expect("serialize trim polyg report")),
