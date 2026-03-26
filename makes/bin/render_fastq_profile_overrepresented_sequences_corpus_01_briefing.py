@@ -116,10 +116,42 @@ def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
             f"expected tools {expected_tools}, found {observed_tools}"
         )
     for row in rows:
+        if float(row["sequence_count"]) < 0:
+            raise SystemExit(
+                "overrepresented briefing drift: "
+                f"sequence_count must be non-negative for {row['sample_id']}/{row['tool']}"
+            )
+        if float(row["flagged_sequences"]) < 0:
+            raise SystemExit(
+                "overrepresented briefing drift: "
+                f"flagged_sequences must be non-negative for {row['sample_id']}/{row['tool']}"
+            )
+        if float(row["flagged_sequences"]) > float(row["sequence_count"]):
+            raise SystemExit(
+                "overrepresented briefing drift: "
+                f"flagged_sequences must be <= sequence_count for {row['sample_id']}/{row['tool']}"
+            )
+        if float(row["sequence_count"]) > float(summary["top_k"]):
+            raise SystemExit(
+                "overrepresented briefing drift: "
+                f"sequence_count must be <= top_k for {row['sample_id']}/{row['tool']}"
+            )
         if float(row["top_fraction"]) < 0.0 or float(row["top_fraction"]) > 1.0:
             raise SystemExit(
                 "overrepresented briefing drift: "
                 f"top_fraction must be within [0, 1] for {row['sample_id']}/{row['tool']}"
+            )
+        if int(row["top_k"]) != int(summary["top_k"]):
+            raise SystemExit(
+                "overrepresented briefing drift: "
+                f"top_k must equal summary top_k for {row['sample_id']}/{row['tool']}"
+            )
+        if float(row["sequence_count"]) == 0.0 and (
+            float(row["flagged_sequences"]) != 0.0 or float(row["top_fraction"]) != 0.0
+        ):
+            raise SystemExit(
+                "overrepresented briefing drift: "
+                f"empty ranked outputs must carry zero flagged_sequences and zero top_fraction for {row['sample_id']}/{row['tool']}"
             )
         for key, suffix in [
             ("overrepresented_sequences_tsv_artifact", "overrepresented_sequences.tsv"),
