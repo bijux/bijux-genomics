@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
@@ -304,7 +304,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         let report_path = required_plan_output_path(&plan, "report_json")?;
         prune_trim_terminal_damage_payload(
             &out_dir,
-            report_path,
+            &report_path,
             &metrics_path,
             &governed_report,
         )?;
@@ -374,7 +374,7 @@ fn prune_trim_terminal_damage_payload(
     out_dir: &Path,
     report_path: &Path,
     metrics_path: &Path,
-    report: &bijux_dna_domain_fastq::TrimTerminalDamageReportV1,
+    report: &bijux_dna_domain_fastq::TerminalDamageReportV1,
 ) -> Result<()> {
     let run_artifacts_dir = out_dir.join("run_artifacts");
     let mut keep = HashSet::new();
@@ -645,7 +645,7 @@ mod tests {
         fs::write(&trimmed_r2, "trimmed").expect("write r2");
         fs::write(&stage_report, "{}").expect("write run artifact");
 
-        let report = bijux_dna_domain_fastq::TrimTerminalDamageReportV1 {
+        let report = bijux_dna_domain_fastq::TerminalDamageReportV1 {
             schema_version: "bijux.fastq.trim_terminal_damage.report.v2".to_string(),
             stage: "fastq.trim_terminal_damage".to_string(),
             stage_id: "fastq.trim_terminal_damage".to_string(),
