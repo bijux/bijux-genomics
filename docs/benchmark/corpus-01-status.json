@@ -2,8 +2,8 @@
   "corpus_id": "corpus-01",
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
   "stage_count": 10,
-  "completed_stage_count": 8,
-  "issue_count": 2,
+  "completed_stage_count": 9,
+  "issue_count": 1,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
@@ -89,16 +89,9 @@
       "scenario_id": "terminal_damage_fairness",
       "method_path": "benchmark/fastq.trim_terminal_damage/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.trim_terminal_damage/corpus-01",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.trim_terminal_damage",
-          "issue_id": "missing-corpus-dir",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.trim_terminal_damage/corpus-01"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.report_qc",

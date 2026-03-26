@@ -1,0 +1,70 @@
+{
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_id": "corpus-01",
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "damage_mode": "ancient",
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "execution_policy": "explicit_terminal_trim",
+  "generated_at_utc": "2026-03-26T22:09:55.998538+00:00",
+  "headline": {
+    "best_base_retention": 0.9522198975727316,
+    "best_base_retention_tool": "cutadapt",
+    "fastest_runtime_s": 3.2754220199999997,
+    "fastest_tool": "adapterremoval"
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "platform": "lunarc-apptainer",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_terminal_damage/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "terminal_damage_fairness",
+  "schema_version": "bijux.fastq.trim_terminal_damage.corpus_summary.v1",
+  "stage_id": "fastq.trim_terminal_damage",
+  "tool_summary": [
+    {
+      "mean_asymmetry_reduction": null,
+      "mean_q_delta": 0.0,
+      "median_base_retention": 0.9415197950545889,
+      "median_runtime_s": 3.2754220199999997,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "adapterremoval"
+    },
+    {
+      "mean_asymmetry_reduction": null,
+      "mean_q_delta": 0.0,
+      "median_base_retention": 0.9522198975727316,
+      "median_runtime_s": 7.717151182,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "cutadapt"
+    },
+    {
+      "mean_asymmetry_reduction": null,
+      "mean_q_delta": 0.0,
+      "median_base_retention": 0.9473684210526315,
+      "median_runtime_s": 3.7994894710000002,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "seqkit"
+    }
+  ],
+  "tools": [
+    "adapterremoval",
+    "cutadapt",
+    "seqkit"
+  ],
+  "trim_3p_bases": 2,
+  "trim_5p_bases": 2
+}

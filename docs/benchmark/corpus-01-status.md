@@ -1,8 +1,8 @@
 # `corpus-01` FASTQ benchmark publication status
 
 - Stage count: `10`
-- Completed stage dossiers: `8`
-- Publication issues: `2`
+- Completed stage dossiers: `9`
+- Publication issues: `1`
 
 ## Stage status
 
@@ -15,8 +15,7 @@
 - `fastq.trim_polyg_tails`: `complete` (`0` issues)
 - `fastq.trim_reads`: `incomplete` (`1` issues)
   - `missing-corpus-dir`: missing benchmark/fastq.trim_reads/corpus-01
-- `fastq.trim_terminal_damage`: `incomplete` (`1` issues)
-  - `missing-corpus-dir`: missing benchmark/fastq.trim_terminal_damage/corpus-01
+- `fastq.trim_terminal_damage`: `complete` (`0` issues)
 - `fastq.report_qc`: `complete` (`0` issues)
 
 ## Contract
