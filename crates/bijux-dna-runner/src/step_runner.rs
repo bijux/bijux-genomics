@@ -159,8 +159,8 @@ fn container_command_template(
     template
         .iter()
         .map(|part| {
-            let rewritten_input = rewrite_container_path(part, input_root, &container_input_root);
-            rewrite_container_path(&rewritten_input, out_dir, "/data/output")
+            let rewritten_output = rewrite_container_path(part, out_dir, "/data/output");
+            rewrite_container_path(&rewritten_output, input_root, &container_input_root)
         })
         .collect()
 }
@@ -712,6 +712,27 @@ mod tests {
         assert!(rewritten[2].contains("-d /data/output"));
         assert!(rewritten[2].contains("/data/input/sample_0004_R1.fastq.gz"));
         assert!(rewritten[2].contains("/data/input/sample_0004_R2.fastq.gz"));
+    }
+
+    #[test]
+    fn container_command_template_keeps_output_paths_writable_when_out_dir_is_under_input_root() {
+        let template = vec![
+            "sh".to_string(),
+            "-lc".to_string(),
+            "printf '%s' /tmp/results/corpus_01/fastq.report_qc/lunarc/bench/report_qc/sample_0001/tools/multiqc/report_qc_report.json > /tmp/results/corpus_01/fastq.report_qc/lunarc/bench/report_qc/sample_0001/tools/multiqc/report_qc_report.json".to_string(),
+        ];
+
+        let rewritten = container_command_template(
+            &template,
+            Path::new("/tmp/results/corpus_01"),
+            Path::new(
+                "/tmp/results/corpus_01/fastq.report_qc/lunarc/bench/report_qc/sample_0001/tools/multiqc",
+            ),
+        );
+
+        assert_eq!(rewritten[0], "sh");
+        assert!(rewritten[2].contains("/data/output/report_qc_report.json"));
+        assert!(!rewritten[2].contains("/data/input/fastq.report_qc"));
     }
 
     #[test]
