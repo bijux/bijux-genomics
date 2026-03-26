@@ -57,6 +57,8 @@ case "$1" in
   --version|-v)
     echo "2.3"
     exit 0;;
+  --help|-h|"")
+    exec /usr/local/bin/fqtools-bin -h;;
   *)
     exec /usr/local/bin/fqtools-bin "$@";;
 esac

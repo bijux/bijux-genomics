@@ -62,6 +62,8 @@ RUN printf '%s\n' \
   '  --version|-v)' \
   '    echo "${FQTOOLS_VERSION#v}"' \
   '    exit 0;;' \
+  '  --help|-h|"")' \
+  '    exec /usr/local/bin/fqtools-bin -h;;' \
   '  *)' \
   '    exec /usr/local/bin/fqtools-bin "$@";;' \
   'esac' \
