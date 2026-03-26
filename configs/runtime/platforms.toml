@@ -12,3 +12,9 @@ runner = "docker"
 container_dir = "containers/docker/arm64"
 image_prefix = "bijuxdna"
 arch = "arm64"
+
+[platforms.lunarc-apptainer]
+runner = "apptainer"
+container_dir = "/home/bijan/bijux/bijux-dna-apptainer/sif"
+image_prefix = "bijuxdna"
+arch = "amd64"
