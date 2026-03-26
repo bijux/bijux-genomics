@@ -846,6 +846,93 @@ class OverrepresentedReportingTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 overrepresented_report.validate_artifact_paths(report_path, "fastqc")
 
+    def test_overrepresented_briefing_avoids_hardcoded_tool_name(self) -> None:
+        summary = {
+            "stage_id": "fastq.profile_overrepresented_sequences",
+            "scenario_id": "overrepresented_sequence_fairness",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_overrepresented_sequences/lunarc",
+            "samples_total": 1,
+            "samples_failed": 0,
+            "tools": ["observer_a"],
+            "top_k": 50,
+            "report_only": True,
+            "mutates_fastq": False,
+            "may_change_read_count": False,
+            "era_counts": {"ancient": 1, "modern": 0},
+            "layout_counts": {"se": 1, "pe": 0},
+        }
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "ancient",
+                "layout": "se",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "observer_a",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "sequence_count": "5",
+                "flagged_sequences": "1",
+                "top_fraction": "0.1",
+                "top_k": "50",
+                "overrepresented_sequences_tsv_artifact": "/tmp/overrepresented_sequences.tsv",
+                "overrepresented_sequences_json_artifact": "/tmp/overrepresented_sequences.json",
+                "report_json_artifact": "/tmp/overrepresented_report.json",
+            }
+        ]
+
+        runtime_rows = overrepresented_briefing.tool_runtime_summary(rows)
+        cohort_rows = overrepresented_briefing.cohort_runtime_summary(rows)
+        outliers = overrepresented_briefing.sample_runtime_outliers(rows)
+
+        markdown = overrepresented_briefing.render_markdown(
+            summary, rows, runtime_rows, cohort_rows, outliers
+        )
+
+        self.assertIn("`observer_a` ran at", markdown)
+        self.assertNotIn("`fastqc` ran at", markdown)
+
+    def test_overrepresented_briefing_rejects_sequence_count_drift(self) -> None:
+        with self.assertRaises(SystemExit):
+            overrepresented_briefing.validate_rows_contract(
+                {"tools": ["fastqc"], "top_k": 5},
+                rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "fastqc",
+                        "sequence_count": "6",
+                        "flagged_sequences": "1",
+                        "top_fraction": "0.1",
+                        "top_k": "5",
+                        "overrepresented_sequences_tsv_artifact": "/tmp/overrepresented_sequences.tsv",
+                        "overrepresented_sequences_json_artifact": "/tmp/overrepresented_sequences.json",
+                        "report_json_artifact": "/tmp/overrepresented_report.json",
+                    }
+                ],
+            )
+
+    def test_overrepresented_briefing_rejects_artifact_suffix_drift(self) -> None:
+        with self.assertRaises(SystemExit):
+            overrepresented_briefing.validate_rows_contract(
+                {"tools": ["fastqc"], "top_k": 50},
+                rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "fastqc",
+                        "sequence_count": "5",
+                        "flagged_sequences": "1",
+                        "top_fraction": "0.1",
+                        "top_k": "50",
+                        "overrepresented_sequences_tsv_artifact": "/tmp/wrong.tsv",
+                        "overrepresented_sequences_json_artifact": "/tmp/overrepresented_sequences.json",
+                        "report_json_artifact": "/tmp/overrepresented_report.json",
+                    }
+                ],
+            )
+
 
 class ProfileReadsReportingTests(unittest.TestCase):
     def test_profile_reads_summary_tracks_runtime_and_profile_metrics(self) -> None:
