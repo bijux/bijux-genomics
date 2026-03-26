@@ -14,6 +14,8 @@ if str(BIN_DIR) not in sys.path:
 import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import run_fastq_merge_pairs_corpus_01 as merge_runner
+import run_fastq_trim_reads_corpus_01 as trim_reads_runner
+import run_fastq_trim_terminal_damage_corpus_01 as terminal_damage_runner
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
 import render_fastq_merge_pairs_corpus_01_briefing as merge_briefing
@@ -1001,6 +1003,16 @@ class MergeReportingTests(unittest.TestCase):
                     "dry_run": True,
                 }
             )
+
+    def test_trim_reads_runner_parse_args_supports_sample_jobs(self) -> None:
+        original_argv = sys.argv
+        try:
+            sys.argv = ["run_fastq_trim_reads_corpus_01.py", "--sample-jobs", "3"]
+            args = trim_reads_runner.parse_args()
+        finally:
+            sys.argv = original_argv
+
+        self.assertEqual(args.sample_jobs, 3)
 
     def test_trim_reads_report_localizes_lunarc_report_paths(self) -> None:
         local_results_root = Path("/tmp/local-results")
@@ -2042,6 +2054,20 @@ class TerminalDamageReportingTests(unittest.TestCase):
                     "dry_run": True,
                 }
             )
+
+    def test_terminal_damage_runner_parse_args_supports_sample_jobs(self) -> None:
+        original_argv = sys.argv
+        try:
+            sys.argv = [
+                "run_fastq_trim_terminal_damage_corpus_01.py",
+                "--sample-jobs",
+                "4",
+            ]
+            args = terminal_damage_runner.parse_args()
+        finally:
+            sys.argv = original_argv
+
+        self.assertEqual(args.sample_jobs, 4)
 
     def test_terminal_damage_report_localizes_lunarc_report_paths(self) -> None:
         local_results_root = Path("/tmp/local-results")
