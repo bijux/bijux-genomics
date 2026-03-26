@@ -165,7 +165,7 @@ fn flash2_merge_plan_rejects_min_length_policy() {
 }
 
 #[test]
-fn bbmerge_merge_plan_maps_threads() -> Result<()> {
+fn bbmerge_merge_plan_maps_threads_and_min_length() -> Result<()> {
     let plan = plan_merge_with_options(
         &tool("bbmerge"),
         Path::new("reads_R1.fastq.gz"),
@@ -174,7 +174,7 @@ fn bbmerge_merge_plan_maps_threads() -> Result<()> {
         &MergePlanOptions {
             threads: Some(8),
             merge_overlap: Some(20),
-            min_length: None,
+            min_length: Some(75),
             unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
         },
     )?;
@@ -182,9 +182,12 @@ fn bbmerge_merge_plan_maps_threads() -> Result<()> {
     let script = &plan.command.template[2];
     assert!(script.contains("'threads=8'"));
     assert!(script.contains("'minoverlap=20'"));
+    assert!(script.contains("'mininsert=75'"));
     assert!(script.contains("\"threads\": 8"));
+    assert!(script.contains("\"min_len\": 75"));
     assert!(script.contains("\"raw_backend_report_format\": \"bbmerge_log\""));
     assert_eq!(plan.resources.threads, 8);
+    assert_eq!(plan.params["min_length"], serde_json::json!(75));
     Ok(())
 }
 

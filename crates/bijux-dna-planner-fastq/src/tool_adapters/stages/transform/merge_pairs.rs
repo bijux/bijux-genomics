@@ -257,7 +257,9 @@ fn merge_artifacts(
 }
 
 fn validate_merge_options(tool: &str, options: &MergePlanOptions) -> Result<()> {
-    if options.min_length.is_some() && !matches!(tool, "adapterremoval" | "pear" | "vsearch") {
+    if options.min_length.is_some()
+        && !matches!(tool, "adapterremoval" | "pear" | "vsearch" | "bbmerge")
+    {
         return Err(anyhow!(
             "merge planning does not yet map min_length for {tool}"
         ));
@@ -508,6 +510,9 @@ fn base_merge_command(
             }
             if let Some(merge_overlap) = effective_params.merge_overlap {
                 command.push(format!("minoverlap={merge_overlap}"));
+            }
+            if let Some(min_len) = effective_params.min_len {
+                command.push(format!("mininsert={min_len}"));
             }
             command
         }
