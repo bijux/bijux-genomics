@@ -5817,8 +5817,13 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     let lunarc_host = env_or_default("LUNARC_HOST", "lunarc");
     let lunarc_root = env_or_default("LUNARC_ROOT", "${HOME}/bijux");
     let lunarc_repo_dir = env_or_default("LUNARC_REPO_DIR", &format!("{lunarc_root}/bijux-dna"));
-    let lunarc_pull_base = env_or_default("LUNARC_PULL_BASE", "${HOME}/bijux");
+    let lunarc_pull_base = env_or_default("LUNARC_PULL_BASE", "${HOME}/bijux/bijux-dna-results");
+    let lunarc_pull_dest = env_or_empty("LUNARC_PULL_DEST");
     let pull_mode = env_or_default("PULL_MODE", "results");
+    let lunarc_results_dir = env_or_default("LUNARC_RESULTS_DIR", &format!("{lunarc_root}/results"));
+    let lunarc_containers_root =
+        env_or_default("LUNARC_CONTAINERS_ROOT", &format!("{lunarc_root}/bijux-dna-container"));
+    let lunarc_corpus_root = env_or_default("LUNARC_CORPUS_ROOT", &format!("{lunarc_root}/corpus_01"));
     let include_containers_manifest = env_or_default("INCLUDE_CONTAINERS_MANIFEST", "0") == "1";
     let data_manifest_glob = env_or_empty("DATA_MANIFEST_GLOB");
     let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
@@ -5832,16 +5837,20 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             pull_results_include = workspace.path(&rel);
         }
     }
-    let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
-    let dest = PathBuf::from(lunarc_pull_base.replace("${HOME}", &env_or_default("HOME", "")))
-        .join(format!("lunarc-{timestamp}"));
+    let home = env_or_default("HOME", "");
+    let dest = if lunarc_pull_dest.is_empty() {
+        let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
+        PathBuf::from(lunarc_pull_base.replace("${HOME}", &home)).join(format!("lunarc-{timestamp}"))
+    } else {
+        PathBuf::from(lunarc_pull_dest.replace("${HOME}", &home))
+    };
     if dry_run {
         return success_line(format!(
             "[dry-run] would pull mode={pull_mode} from {lunarc_host}:{lunarc_root} to {}",
             dest.display()
         ));
     }
-    if dest.exists() {
+    if lunarc_pull_dest.is_empty() && dest.exists() {
         return Ok(OpsCommandOutcome::failure(format!(
             "refusing pull: destination already exists: {}\n",
             dest.display()
@@ -5878,21 +5887,21 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         if !outcome.is_success() {
             return Ok(outcome);
         }
-        pulled_paths.push(format!("{lunarc_root}/bijux-dna-results/"));
+        pulled_paths.push(format!("{lunarc_results_dir}/"));
         if include_containers_manifest {
-            bijux_dna_infra::ensure_dir(dest.join("bijux-dna-containers"))?;
+            bijux_dna_infra::ensure_dir(dest.join("bijux-dna-container"))?;
             let _ = run_program(
                 workspace,
                 "rsync",
                 &[
                     "-az".to_string(),
-                    format!("{lunarc_host}:{lunarc_root}/bijux-dna-containers/manifest/"),
-                    dest.join("bijux-dna-containers/manifest")
+                    format!("{lunarc_host}:{lunarc_containers_root}/manifest/"),
+                    dest.join("bijux-dna-container/manifest")
                         .display()
                         .to_string(),
                 ],
             )?;
-            pulled_paths.push(format!("{lunarc_root}/bijux-dna-containers/manifest/"));
+            pulled_paths.push(format!("{lunarc_containers_root}/manifest/"));
         }
         if !data_manifest_glob.is_empty() {
             for rel in data_manifest_glob
@@ -5901,7 +5910,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                 .filter(|value| !value.is_empty())
             {
                 let clean_rel = rel.trim_start_matches('/');
-                let target = dest.join("bijux-dna-data").join(clean_rel);
+                let target = dest.join("corpus_01").join(clean_rel);
                 if let Some(parent) = target.parent() {
                     bijux_dna_infra::ensure_dir(parent)?;
                 }
@@ -5910,11 +5919,11 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                     "rsync",
                     &[
                         "-az".to_string(),
-                        format!("{lunarc_host}:{lunarc_root}/bijux-dna-data/{clean_rel}"),
+                        format!("{lunarc_host}:{lunarc_corpus_root}/{clean_rel}"),
                         target.display().to_string(),
                     ],
                 )?;
-                pulled_paths.push(format!("{lunarc_root}/bijux-dna-data/{clean_rel}"));
+                pulled_paths.push(format!("{lunarc_corpus_root}/{clean_rel}"));
             }
         }
     }
