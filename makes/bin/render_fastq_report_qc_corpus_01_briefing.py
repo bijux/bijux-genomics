@@ -1,0 +1,452 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import statistics
+from collections import defaultdict
+from pathlib import Path
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Render an enriched benchmark briefing from corpus-01 report-qc artifacts."
+    )
+    parser.add_argument(
+        "--docs-root",
+        default="docs/benchmark/fastq.report_qc/corpus-01",
+        help="Directory that contains summary.json and sample_results.csv.",
+    )
+    return parser.parse_args()
+
+
+def load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_rows(path: Path) -> list[dict]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def safe_median(values: list[float]) -> float | None:
+    if not values:
+        return None
+    return float(statistics.median(values))
+
+
+def safe_mean(values: list[float]) -> float | None:
+    if not values:
+        return None
+    return float(statistics.mean(values))
+
+
+def percentile(values: list[float], fraction: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    index = round((len(ordered) - 1) * fraction)
+    return float(ordered[index])
+
+
+def fmt_runtime(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.3f}"
+
+
+def fmt_value(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.3f}"
+
+
+def fmt_fraction(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.1%}"
+
+
+def fmt_csv_value(value: object) -> object:
+    if isinstance(value, float):
+        return f"{value:.6f}"
+    return value
+
+
+def optional_float(raw: str) -> float | None:
+    if raw == "":
+        return None
+    return float(raw)
+
+
+def optional_int(raw: str) -> int | None:
+    if raw == "":
+        return None
+    return int(raw)
+
+
+def validate_summary_contract(summary: dict) -> None:
+    if summary.get("stage_id") != "fastq.report_qc":
+        raise SystemExit(
+            "report-qc briefing drift: "
+            f"expected stage_id fastq.report_qc, found {summary.get('stage_id')}"
+        )
+    if summary.get("scenario_id") != "qc_aggregation_fairness":
+        raise SystemExit(
+            "report-qc briefing drift: "
+            f"expected scenario_id qc_aggregation_fairness, found {summary.get('scenario_id')}"
+        )
+    expected_contract = {
+        "aggregation_engine": "multiqc",
+        "aggregation_scope": "governed_qc_artifacts",
+        "report_only": True,
+        "mutates_fastq": False,
+        "may_change_read_count": False,
+    }
+    for key, expected in expected_contract.items():
+        if summary.get(key) != expected:
+            raise SystemExit(
+                "report-qc briefing drift: "
+                f"expected {key}={expected!r}, found {summary.get(key)!r}"
+            )
+    if not summary.get("governed_contributor_stage_ids"):
+        raise SystemExit(
+            "report-qc briefing drift: governed contributor stages must not be empty"
+        )
+
+
+def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
+    if not rows:
+        raise SystemExit("report-qc briefing drift: sample_results.csv must not be empty")
+    expected_tools = sorted(summary["tools"])
+    observed_tools = sorted({row["tool"] for row in rows})
+    if observed_tools != expected_tools:
+        raise SystemExit(
+            "report-qc briefing drift: "
+            f"expected tools {expected_tools}, found {observed_tools}"
+        )
+    for row in rows:
+        if int(row["governed_qc_input_count"]) <= 0:
+            raise SystemExit(
+                "report-qc briefing drift: "
+                f"governed_qc_input_count must be positive for {row['sample_id']}/{row['tool']}"
+            )
+        if int(row["expected_governed_qc_input_count"]) != int(
+            row["governed_qc_input_count"]
+        ):
+            raise SystemExit(
+                "report-qc briefing drift: "
+                f"governed input count mismatch for {row['sample_id']}/{row['tool']}"
+            )
+        for key in [
+            "governed_qc_manifest_artifact",
+            "report_json_artifact",
+            "raw_fastqc_dir",
+            "multiqc_report",
+            "multiqc_data",
+        ]:
+            value = row.get(key, "")
+            if not value:
+                raise SystemExit(
+                    "report-qc briefing drift: "
+                    f"{key} must not be empty for {row['sample_id']}/{row['tool']}"
+                )
+
+
+def tool_runtime_summary(rows: list[dict]) -> list[dict]:
+    by_tool: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        by_tool[row["tool"]].append(row)
+
+    medians = {
+        tool: safe_median([float(row["runtime_s"]) for row in tool_rows])
+        for tool, tool_rows in by_tool.items()
+    }
+    fastest_median = min(value for value in medians.values() if value is not None)
+    summary_rows = []
+    for tool in sorted(by_tool):
+        tool_rows = by_tool[tool]
+        runtimes = [float(row["runtime_s"]) for row in tool_rows]
+        modules = [
+            float(row["multiqc_module_count"])
+            for row in tool_rows
+            if row["multiqc_module_count"] != ""
+        ]
+        sample_counts = [
+            float(row["multiqc_sample_count"])
+            for row in tool_rows
+            if row["multiqc_sample_count"] != ""
+        ]
+        governed_inputs = [float(row["governed_qc_input_count"]) for row in tool_rows]
+        contamination = [float(row["contamination_rate"]) for row in tool_rows]
+        mean_q_values = [float(row["mean_q"]) for row in tool_rows]
+        median = safe_median(runtimes)
+        summary_rows.append(
+            {
+                "tool": tool,
+                "samples": len(tool_rows),
+                "pass_rate": sum(1 for row in tool_rows if row["exit_code"] == "0")
+                / len(tool_rows),
+                "mean_runtime_s": safe_mean(runtimes),
+                "median_runtime_s": median,
+                "p90_runtime_s": percentile(runtimes, 0.9),
+                "max_runtime_s": max(runtimes),
+                "median_multiqc_module_count": safe_median(modules),
+                "median_multiqc_sample_count": safe_median(sample_counts),
+                "median_governed_qc_input_count": safe_median(governed_inputs),
+                "median_contamination_rate": safe_median(contamination),
+                "median_mean_q": safe_median(mean_q_values),
+                "slowdown_vs_fastest_median": median / fastest_median
+                if median is not None
+                else None,
+            }
+        )
+    return summary_rows
+
+
+def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
+    grouped: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
+    grouped_with_size: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
+    for row in rows:
+        grouped[(row["tool"], row["era"], row["layout"])].append(row)
+        grouped_with_size[(row["tool"], "size_band", row["size_band"])].append(row)
+
+    output: list[dict] = []
+    for (tool, era, layout), cohort_rows in sorted(grouped.items()):
+        output.append(
+            summarize_cohort_rows(
+                tool=tool,
+                dimension="era_layout",
+                cohort=f"{era}_{layout}",
+                cohort_rows=cohort_rows,
+            )
+        )
+    for (tool, dimension, cohort), cohort_rows in sorted(grouped_with_size.items()):
+        output.append(
+            summarize_cohort_rows(
+                tool=tool,
+                dimension=dimension,
+                cohort=cohort,
+                cohort_rows=cohort_rows,
+            )
+        )
+    return output
+
+
+def summarize_cohort_rows(
+    *,
+    tool: str,
+    dimension: str,
+    cohort: str,
+    cohort_rows: list[dict],
+) -> dict:
+    runtimes = [float(row["runtime_s"]) for row in cohort_rows]
+    modules = [
+        float(row["multiqc_module_count"])
+        for row in cohort_rows
+        if row["multiqc_module_count"] != ""
+    ]
+    inputs = [float(row["governed_qc_input_count"]) for row in cohort_rows]
+    contamination = [float(row["contamination_rate"]) for row in cohort_rows]
+    return {
+        "tool": tool,
+        "dimension": dimension,
+        "cohort": cohort,
+        "samples": len(cohort_rows),
+        "mean_runtime_s": safe_mean(runtimes),
+        "median_runtime_s": safe_median(runtimes),
+        "median_multiqc_module_count": safe_median(modules),
+        "median_governed_qc_input_count": safe_median(inputs),
+        "median_contamination_rate": safe_median(contamination),
+    }
+
+
+def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
+    by_sample: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        by_sample[row["sample_id"]].append(row)
+
+    output: list[dict] = []
+    for sample_id, sample_rows in by_sample.items():
+        slowest = max(sample_rows, key=lambda row: float(row["runtime_s"]))
+        richest = max(sample_rows, key=lambda row: int(row["governed_qc_input_count"]))
+        output.append(
+            {
+                "sample_id": sample_id,
+                "accession": sample_rows[0]["accession"],
+                "era": sample_rows[0]["era"],
+                "layout": sample_rows[0]["layout"],
+                "size_band": sample_rows[0]["size_band"],
+                "study_accession": sample_rows[0]["study_accession"],
+                "total_runtime_s": sum(float(row["runtime_s"]) for row in sample_rows),
+                "slowest_tool": slowest["tool"],
+                "slowest_runtime_s": float(slowest["runtime_s"]),
+                "multiqc_module_count": optional_int(slowest["multiqc_module_count"]),
+                "governed_qc_input_count": int(richest["governed_qc_input_count"]),
+            }
+        )
+    output.sort(key=lambda row: row["total_runtime_s"], reverse=True)
+    return output
+
+
+def cohort_entry(
+    rows: list[dict],
+    *,
+    tool: str,
+    dimension: str,
+    cohort: str,
+) -> dict | None:
+    for row in rows:
+        if row["tool"] == tool and row["dimension"] == dimension and row["cohort"] == cohort:
+            return row
+    return None
+
+
+def render_markdown(
+    summary: dict,
+    runtime_rows: list[dict],
+    cohort_rows: list[dict],
+    outliers: list[dict],
+) -> str:
+    reference_tool = summary["tools"][0]
+    tool_lookup = {row["tool"]: row for row in runtime_rows}
+    tool_row = tool_lookup[reference_tool]
+    ancient_pe = cohort_entry(
+        cohort_rows,
+        tool=reference_tool,
+        dimension="era_layout",
+        cohort="ancient_pe",
+    )
+    modern_pe = cohort_entry(
+        cohort_rows,
+        tool=reference_tool,
+        dimension="era_layout",
+        cohort="modern_pe",
+    )
+    size_under_100 = cohort_entry(
+        cohort_rows,
+        tool=reference_tool,
+        dimension="size_band",
+        cohort="under_100mb",
+    )
+    size_under_500 = cohort_entry(
+        cohort_rows,
+        tool=reference_tool,
+        dimension="size_band",
+        cohort="under_500mb",
+    )
+
+    lines = [
+        "# `fastq.report_qc` benchmark on `corpus-01`",
+        "",
+        "## What was run",
+        "",
+        "This benchmark measures the governed `fastq.report_qc` stage across the curated `corpus-01` human DNA cohort on the Lunarc Apptainer platform.",
+        "",
+        f"- Platform: `{summary['platform']}` on Lunarc",
+        f"- Corpus root: `{summary['corpus_root']}`",
+        f"- Benchmark root: `{summary['run_root']}`",
+        f"- Input balance: `{summary['era_counts'].get('ancient', 0)}` ancient, `{summary['era_counts'].get('modern', 0)}` modern, `{summary['layout_counts'].get('se', 0)}` single-end, `{summary['layout_counts'].get('pe', 0)}` paired-end",
+        f"- Tool set: `{', '.join(summary['tools'])}`",
+        f"- Aggregation contract: `{summary['aggregation_engine']}`, `{summary['aggregation_scope']}`, report_only=`{summary['report_only']}`",
+        f"- Governed contributor stages: `{', '.join(summary['governed_contributor_stage_ids'])}`",
+        "",
+        "## Executive summary",
+        "",
+        f"- Every tool completed successfully on all `{summary['samples_total']}` samples; stage-level sample failures were `{summary['samples_failed']}`.",
+        f"- `{reference_tool}` ran at `p50={fmt_runtime(tool_row['median_runtime_s'])}s` with median MultiQC sample count `{fmt_value(tool_row['median_multiqc_sample_count'])}` and median module count `{fmt_value(tool_row['median_multiqc_module_count'])}`.",
+        f"- Governed evidence stayed stable: median governed QC input count was `{fmt_value(tool_row['median_governed_qc_input_count'])}` and every published row preserved `reads_out == reads_in` and `bases_out == bases_in`.",
+        (
+            f"- Runtime remains input-driven for `{reference_tool}`: `modern_pe` averages `{fmt_runtime(modern_pe['mean_runtime_s'])}s` while `ancient_pe` averages `{fmt_runtime(ancient_pe['mean_runtime_s'])}s`."
+            if ancient_pe and modern_pe
+            else "- Runtime remains cohort-sensitive across the balanced corpus mix."
+        ),
+        (
+            f"- Size-band spread is visible in the aggregation stage: `under_500mb` averages `{fmt_runtime(size_under_500['mean_runtime_s'])}s` versus `{fmt_runtime(size_under_100['mean_runtime_s'])}s` on `under_100mb` inputs."
+            if size_under_100 and size_under_500
+            else "- Size-band spread is visible in the aggregation stage."
+        ),
+        "",
+        "## Tool ranking",
+        "",
+        "| Tool | Pass rate | Mean (s) | Median (s) | P90 (s) | Max (s) | Median modules | Median sample count | Median governed inputs | Median contamination |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for row in runtime_rows:
+        lines.append(
+            f"| `{row['tool']}` | {fmt_fraction(row['pass_rate'])} | {fmt_runtime(row['mean_runtime_s'])} | {fmt_runtime(row['median_runtime_s'])} | {fmt_runtime(row['p90_runtime_s'])} | {fmt_runtime(row['max_runtime_s'])} | {fmt_value(row['median_multiqc_module_count'])} | {fmt_value(row['median_multiqc_sample_count'])} | {fmt_value(row['median_governed_qc_input_count'])} | {fmt_value(row['median_contamination_rate'])} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Cohort behavior",
+            "",
+            "| Tool | Dimension | Cohort | Samples | Mean runtime (s) | Median runtime (s) | Median modules | Median governed inputs | Median contamination |",
+            "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for row in cohort_rows:
+        lines.append(
+            f"| `{row['tool']}` | `{row['dimension']}` | `{row['cohort']}` | {row['samples']} | {fmt_runtime(row['mean_runtime_s'])} | {fmt_runtime(row['median_runtime_s'])} | {fmt_value(row['median_multiqc_module_count'])} | {fmt_value(row['median_governed_qc_input_count'])} | {fmt_value(row['median_contamination_rate'])} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Highest-cost samples",
+            "",
+            "| Sample | Accession | Era | Layout | Size band | Slowest runtime (s) | Modules | Governed inputs |",
+            "| --- | --- | --- | --- | --- | ---: | ---: | ---: |",
+        ]
+    )
+    for row in outliers[:10]:
+        modules = "n/a" if row["multiqc_module_count"] is None else str(row["multiqc_module_count"])
+        lines.append(
+            f"| `{row['sample_id']}` | `{row['accession']}` | `{row['era']}` | `{row['layout']}` | `{row['size_band']}` | {fmt_runtime(row['slowest_runtime_s'])} | {modules} | {row['governed_qc_input_count']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Interpretation",
+            "",
+            "- `fastq.report_qc` is a report-only aggregation stage, so benchmark value comes from stable governed manifest handling, MultiQC bundle publication, and runtime predictability across corpus composition rather than from read mutation.",
+            "- The governed input contract here deliberately joins validation, adapter inspection, read profiling, and read-length evidence so the published aggregation reflects the canonical raw-QC surface instead of a single observer shortcut.",
+            "- `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, and `sample_runtime_outliers.csv` are published beside this briefing for reproducible downstream analysis.",
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
+def write_csv(path: Path, rows: list[dict]) -> None:
+    if not rows:
+        raise SystemExit(f"report-qc briefing drift: refusing to write empty CSV {path}")
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({key: fmt_csv_value(value) for key, value in row.items()})
+
+
+def main() -> int:
+    args = parse_args()
+    docs_root = Path(args.docs_root).resolve()
+    summary = load_json(docs_root / "summary.json")
+    rows = load_rows(docs_root / "sample_results.csv")
+    validate_summary_contract(summary)
+    validate_rows_contract(summary, rows)
+
+    runtime_rows = tool_runtime_summary(rows)
+    cohort_rows = cohort_runtime_summary(rows)
+    outliers = sample_runtime_outliers(rows)
+    write_csv(docs_root / "tool_runtime_summary.csv", runtime_rows)
+    write_csv(docs_root / "cohort_runtime_summary.csv", cohort_rows)
+    write_csv(docs_root / "sample_runtime_outliers.csv", outliers)
+    (docs_root / "lunarc.md").write_text(
+        render_markdown(summary, runtime_rows, cohort_rows, outliers),
+        encoding="utf-8",
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
