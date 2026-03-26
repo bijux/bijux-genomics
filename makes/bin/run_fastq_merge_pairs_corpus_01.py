@@ -89,8 +89,8 @@ def build_command(
     tools: str,
     threads: int,
     jobs: int,
-    merge_overlap: int,
-    min_length: int,
+    merge_overlap: int | None,
+    min_length: int | None,
     unmerged_read_policy: str,
     sample: dict,
 ) -> list[str]:
@@ -118,13 +118,13 @@ def build_command(
         tools,
         "--threads",
         str(threads),
-        "--merge-overlap",
-        str(merge_overlap),
-        "--min-length",
-        str(min_length),
         "--unmerged-read-policy",
         unmerged_read_policy,
     ]
+    if merge_overlap is not None:
+        command.extend(["--merge-overlap", str(merge_overlap)])
+    if min_length is not None:
+        command.extend(["--min-length", str(min_length)])
     if jobs > 1:
         command.extend(["--jobs", str(jobs)])
     return command

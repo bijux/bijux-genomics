@@ -62,6 +62,12 @@ def record_parameter(record: dict, key: str):
     return record.get("context", {}).get("parameters", {}).get(key)
 
 
+def format_merge_setting(value) -> str:
+    if value is None:
+        return "governed tool default"
+    return str(value)
+
+
 def validate_merge_run_manifest_contract(run_manifest: dict) -> None:
     if run_manifest.get("dry_run"):
         raise SystemExit(
@@ -157,8 +163,8 @@ def render_markdown(summary: dict) -> str:
         f"- Era balance: `{summary['era_counts'].get('ancient', 0)}` ancient, `{summary['era_counts'].get('modern', 0)}` modern"
     )
     lines.append(f"- Tool roster: `{', '.join(summary['tools'])}`")
-    lines.append(f"- merge_overlap: `{summary['merge_overlap']}`")
-    lines.append(f"- min_length: `{summary['min_length']}`")
+    lines.append(f"- merge_overlap: `{format_merge_setting(summary['merge_overlap'])}`")
+    lines.append(f"- min_length: `{format_merge_setting(summary['min_length'])}`")
     lines.append(f"- unmerged_read_policy: `{summary['unmerged_read_policy']}`")
     lines.append("")
     lines.append("## Executive Summary")

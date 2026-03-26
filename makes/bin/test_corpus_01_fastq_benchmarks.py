@@ -625,8 +625,8 @@ class MergeReportingTests(unittest.TestCase):
             "samples_total": 10,
             "samples_failed": 0,
             "tools": ["adapterremoval", "pear"],
-            "merge_overlap": 11,
-            "min_length": 20,
+            "merge_overlap": None,
+            "min_length": None,
             "unmerged_read_policy": "emit_unmerged_pairs",
             "era_counts": {"ancient": 5, "modern": 5},
             "cohort_counts": {"ancient_pe": 5, "modern_pe": 5},
@@ -654,13 +654,15 @@ class MergeReportingTests(unittest.TestCase):
         markdown = merge_report.render_markdown(summary)
 
         self.assertIn("Samples benchmarked: `10` paired-end inputs", markdown)
+        self.assertIn("merge_overlap: `governed tool default`", markdown)
+        self.assertIn("min_length: `governed tool default`", markdown)
         self.assertIn("unmerged_read_policy: `emit_unmerged_pairs`", markdown)
 
     def test_merge_report_contract_rejects_rate_drift(self) -> None:
         run_manifest = {
             "tools": ["pear"],
-            "merge_overlap": 11,
-            "min_length": 20,
+            "merge_overlap": None,
+            "min_length": None,
             "unmerged_read_policy": "emit_unmerged_pairs",
         }
         sample_rows = [
@@ -668,8 +670,8 @@ class MergeReportingTests(unittest.TestCase):
                 "sample_id": "sample_0008",
                 "tool": "pear",
                 "layout": "pe",
-                "merge_overlap": 11,
-                "min_length": 20,
+                "merge_overlap": None,
+                "min_length": None,
                 "unmerged_read_policy": "emit_unmerged_pairs",
                 "pairs_in": 100,
                 "reads_merged": 80,

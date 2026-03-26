@@ -68,6 +68,12 @@ def fmt_decimal(value: float | None) -> str:
     return f"{value:.3f}"
 
 
+def format_merge_setting(value) -> str:
+    if value is None:
+        return "governed tool default"
+    return str(value)
+
+
 def fmt_csv_value(value: object) -> object:
     if isinstance(value, float):
         return f"{value:.6f}"
@@ -285,7 +291,7 @@ def render_markdown(
     )
     lines.append(f"- Tool set: `{', '.join(summary['tools'])}`")
     lines.append(
-        f"- Fixed merge contract: overlap `{summary['merge_overlap']}`, min merged length `{summary['min_length']}`, unmerged policy `{summary['unmerged_read_policy']}`"
+        f"- Fixed merge contract: overlap `{format_merge_setting(summary['merge_overlap'])}`, min merged length `{format_merge_setting(summary['min_length'])}`, unmerged policy `{summary['unmerged_read_policy']}`"
     )
     lines.append(
         "- Execution profile: one benchmark sample at a time, one worker, with sample-level outputs retained in the Lunarc results tree and mirrored locally."
