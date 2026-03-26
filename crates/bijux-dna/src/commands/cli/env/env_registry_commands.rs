@@ -57,36 +57,18 @@ pub fn ensure_apptainer_images(
             let Some(def_rel) = tool.apptainer_def.as_deref() else {
                 continue;
             };
-            let expected_digest = expected_registry_digest(tool)
+            let registry_digest = expected_registry_digest(tool)
                 .ok_or_else(|| anyhow!("tool {tool_id} is missing sha256 pin in registry"))?;
             let tool_dir = containers_root.join(&tool_id);
             bijux_dna_api::v1::api::run::ensure_dir(&tool_dir)?;
-            let sif_path = tool_dir.join(format!("{expected_digest}.sif"));
+            let sif_path = tool_dir.join(format!("{registry_digest}.sif"));
             let smoke_manifest_path =
-                tool_dir.join(format!("{expected_digest}.smoke_manifest.json"));
+                tool_dir.join(format!("{registry_digest}.smoke_manifest.json"));
             let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
             let mut built_this = false;
-
-            if sif_path.exists() {
-                let actual = hash_file_sha256_hex(&sif_path)?;
-                if actual != expected_digest {
-                    if repair_mismatch {
-                        quarantine_file(
-                            &sif_path,
-                            &containers_root.join("quarantine"),
-                            "digest_mismatch",
-                        )?;
-                    } else {
-                        return Err(anyhow!(
-                            "digest mismatch for existing SIF {}; rerun with --repair-mismatch",
-                            sif_path.display()
-                        ));
-                    }
-                }
-            }
             quarantine_unexpected_sifs(
                 &tool_dir,
-                &expected_digest,
+                &registry_digest,
                 repair_mismatch,
                 &containers_root,
             )?;
@@ -99,12 +81,7 @@ pub fn ensure_apptainer_images(
                 built += 1;
             }
 
-            let actual_digest = hash_file_sha256_hex(&sif_path)?;
-            if actual_digest != expected_digest {
-                return Err(anyhow!(
-                    "digest mismatch for {tool_id}: expected {expected_digest}, got {actual_digest}"
-                ));
-            }
+            let sif_sha256 = hash_file_sha256_hex(&sif_path)?;
 
             let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
             let version_cmd = tool
@@ -134,8 +111,8 @@ pub fn ensure_apptainer_images(
                     &sif_path,
                     &tool_id,
                     stage_id,
-                    &expected_digest,
-                    &actual_digest,
+                    &registry_digest,
+                    &sif_sha256,
                     &version_cmd,
                     &help_cmd,
                     require_help,
@@ -160,8 +137,8 @@ pub fn ensure_apptainer_images(
                 tool_id: tool_id.clone(),
                 stage_id: stage_id.clone(),
                 sif_path: sif_path.display().to_string(),
-                expected_digest: expected_digest.clone(),
-                actual_digest,
+                registry_digest: registry_digest.clone(),
+                sif_sha256,
                 built: built_this,
                 quick_smoked: do_quick_smoke,
                 status,
