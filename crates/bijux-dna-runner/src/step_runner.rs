@@ -9,7 +9,9 @@ use bijux_dna_core::prelude::hashing::{
     input_fingerprint, parameters_fingerprint, params_hash, run_id_from_hashes,
 };
 use bijux_dna_environment::api::RuntimeKind;
+use sha2::{Digest, Sha256};
 use uuid::Uuid;
+use walkdir::WalkDir;
 
 use crate::backend::docker::executor::{
     docker_logs, docker_wait, docker_wait_timeout, parse_mem_to_mb,
@@ -73,10 +75,49 @@ fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
     let mut hashes = Vec::with_capacity(inputs.len());
     for path in inputs {
         if path.exists() {
-            hashes.push(bijux_dna_infra::hash_file_sha256(path)?);
+            hashes.push(hash_path(path)?);
         }
     }
     Ok(hashes)
+}
+
+fn hash_path(path: &Path) -> Result<String> {
+    if path.is_file() {
+        return Ok(bijux_dna_infra::hash_file_sha256(path)?);
+    }
+    if path.is_dir() {
+        return hash_directory(path);
+    }
+    Err(anyhow!("unsupported hash input path type: {}", path.display()))
+}
+
+fn hash_directory(root: &Path) -> Result<String> {
+    let mut hasher = Sha256::new();
+    let mut entries = WalkDir::new(root)
+        .follow_links(false)
+        .into_iter()
+        .collect::<std::result::Result<Vec<_>, _>>()
+        .context("walk directory for hashing")?;
+    entries.sort_by(|left, right| left.path().cmp(right.path()));
+
+    for entry in entries {
+        let path = entry.path();
+        if path == root {
+            continue;
+        }
+        let relative = path
+            .strip_prefix(root)
+            .with_context(|| format!("strip directory prefix for {}", path.display()))?;
+        hasher.update(relative.to_string_lossy().as_bytes());
+        if entry.file_type().is_dir() {
+            hasher.update(b"\0dir\0");
+            continue;
+        }
+        hasher.update(b"\0file\0");
+        hasher.update(bijux_dna_infra::hash_file_sha256(path)?.as_bytes());
+    }
+
+    Ok(format!("{:x}", hasher.finalize()))
 }
 
 fn rewrite_container_path(value: &str, host_root: &Path, container_root: &str) -> String {
@@ -546,9 +587,12 @@ fn write_tool_invocation(
 
 #[cfg(test)]
 mod tests {
-    use super::{build_observer_command_args, container_command_template};
+    use super::{
+        build_observer_command_args, container_command_template, hash_inputs, hash_path,
+    };
     use bijux_dna_environment::api::RuntimeKind;
     use std::path::Path;
+    use tempfile::tempdir;
 
     #[test]
     fn observer_args_use_docker_mounts_for_docker_runner() {
@@ -603,5 +647,31 @@ mod tests {
         assert!(rewritten[2].contains("/data/input/sample_0004_R1.fastq.gz"));
         assert!(rewritten[2].contains("/data/output/validation_r1.log"));
         assert!(rewritten[2].contains("/data/output/validation.json"));
+    }
+
+    #[test]
+    fn hash_path_supports_directory_outputs() {
+        let temp = tempdir().expect("tempdir");
+        let root = temp.path().join("fastqc");
+        std::fs::create_dir_all(root.join("nested")).expect("create dir tree");
+        std::fs::write(root.join("nested").join("summary.txt"), b"adapter-summary")
+            .expect("write file");
+
+        let digest = hash_path(&root).expect("hash directory");
+
+        assert_eq!(digest.len(), 64);
+    }
+
+    #[test]
+    fn hash_inputs_ignores_missing_paths_and_hashes_directories() {
+        let temp = tempdir().expect("tempdir");
+        let root = temp.path().join("fastqc");
+        std::fs::create_dir_all(&root).expect("create dir");
+        std::fs::write(root.join("summary.txt"), b"adapter-summary").expect("write file");
+
+        let hashes = hash_inputs(&[root, temp.path().join("missing.txt")]).expect("hash inputs");
+
+        assert_eq!(hashes.len(), 1);
+        assert_eq!(hashes[0].len(), 64);
     }
 }
