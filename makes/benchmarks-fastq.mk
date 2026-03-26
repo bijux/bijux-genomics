@@ -8,6 +8,7 @@ R1 ?=
 R2 ?=
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
+CORPUS_ROOT ?= /home/bijan/bijux/corpus_01
 
 BENCH_TOOLS_ARGS = $(if $(TOOLS),--tools $(TOOLS),)
 BENCH_EXPERIMENTAL_ARGS = $(if $(filter 1 true yes,$(ALLOW_EXPERIMENTAL)),--allow-experimental,)
@@ -51,6 +52,15 @@ _benchmark-all: ## Run all FASTQ benchmarks sequentially for one explicit sample
 _benchmark-status: ## Show canonical benchmark suite/config directories and detected suites
 	@BIJUX_BIN="$(BIJUX_BIN)" BIJUX_PLATFORM="$(PLATFORM)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks fastq-status
 
+_benchmark-validate-corpus-01: ## Benchmark fastq.validate_reads across corpus-01
+	@python3 makes/bin/run_fastq_validate_reads_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",)
+
 .PHONY: _benchmark-fastq-stage _benchmark-all _benchmark-trim _benchmark-validate _benchmark-filter \
 	_benchmark-merge _benchmark-correct _benchmark-qc-post _benchmark-umi \
-	_benchmark-stats _benchmark-screen _benchmark-preprocess _benchmark-status
+	_benchmark-stats _benchmark-screen _benchmark-preprocess _benchmark-status \
+	_benchmark-validate-corpus-01
