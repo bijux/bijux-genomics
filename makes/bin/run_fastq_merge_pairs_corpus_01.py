@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -59,6 +60,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument(
+        "--sample-jobs",
+        type=int,
+        default=1,
+        help="Number of corpus samples to benchmark concurrently.",
+    )
     parser.add_argument("--sample-limit", type=int, default=0)
     parser.add_argument("--merge-overlap", type=int, default=defaults["merge_overlap"])
     parser.add_argument("--min-length", type=int, default=defaults["min_length"])
@@ -134,6 +141,27 @@ def report_path(out_root: Path, sample_id: str) -> Path:
     return out_root / "bench" / "merge" / sample_id / "report.json"
 
 
+def run_sample_command(
+    *,
+    repo_root: Path,
+    sample: dict,
+    command: list[str],
+    sample_report: Path,
+) -> SampleRun:
+    completed = subprocess.run(command, cwd=repo_root, check=False)
+    status = "completed" if completed.returncode == 0 else "failed"
+    return SampleRun(
+        sample_id=sample["sample_id"],
+        r1=str(sample["r1"]),
+        r2=str(sample["r2"]),
+        layout=sample["layout"],
+        status=status,
+        exit_code=completed.returncode,
+        command=command,
+        report_json=str(sample_report),
+    )
+
+
 def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
@@ -167,12 +195,13 @@ def main() -> int:
         scenario_id=MERGE_PAIRS_BENCHMARK_CONTRACT.scenario_id,
     )
 
-    runs: list[SampleRun] = []
+    runs: list[SampleRun | None] = [None] * len(samples)
     failures = 0
-    for sample in samples:
+    pending: list[tuple[int, dict, Path, list[str]]] = []
+    for sample_index, sample in enumerate(samples):
         sample_report = report_path(out_root, sample["sample_id"])
         if args.resume and sample_report.is_file():
-            runs.append(
+            runs[sample_index] = (
                 SampleRun(
                     sample_id=sample["sample_id"],
                     r1=str(sample["r1"]),
@@ -198,25 +227,45 @@ def main() -> int:
             sample=sample,
         )
         if args.dry_run:
-            completed_return_code = 0
-            status = "dry_run"
-        else:
-            completed = subprocess.run(command, cwd=repo_root, check=False)
-            completed_return_code = completed.returncode
-            status = "completed" if completed.returncode == 0 else "failed"
-            if completed.returncode != 0:
-                failures += 1
-        runs.append(
-            SampleRun(
-                sample_id=sample["sample_id"],
-                r1=str(sample["r1"]),
-                r2=str(sample["r2"]),
-                layout=sample["layout"],
-                status=status,
-                exit_code=completed_return_code,
-                command=command,
-                report_json=str(sample_report),
+            runs[sample_index] = (
+                SampleRun(
+                    sample_id=sample["sample_id"],
+                    r1=str(sample["r1"]),
+                    r2=str(sample["r2"]),
+                    layout=sample["layout"],
+                    status="dry_run",
+                    exit_code=0,
+                    command=command,
+                    report_json=str(sample_report),
+                )
             )
+            continue
+        pending.append((sample_index, sample, sample_report, command))
+
+    if pending:
+        max_workers = max(1, args.sample_jobs)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(
+                    run_sample_command,
+                    repo_root=repo_root,
+                    sample=sample,
+                    command=command,
+                    sample_report=sample_report,
+                ): sample_index
+                for sample_index, sample, sample_report, command in pending
+            }
+            for future in as_completed(futures):
+                sample_index = futures[future]
+                run = future.result()
+                runs[sample_index] = run
+                if run.exit_code != 0:
+                    failures += 1
+
+    completed_runs = [run for run in runs if run is not None]
+    if len(completed_runs) != len(samples):
+        raise SystemExit(
+            f"merge corpus runner drift: expected {len(samples)} sample runs, found {len(completed_runs)}"
         )
 
     payload = {
@@ -230,6 +279,7 @@ def main() -> int:
         "tools": tools,
         "threads": args.threads,
         "jobs": args.jobs,
+        "sample_jobs": args.sample_jobs,
         "sample_limit": args.sample_limit or None,
         "dry_run": args.dry_run,
         "merge_overlap": args.merge_overlap,
@@ -238,9 +288,9 @@ def main() -> int:
         "repo_root": str(repo_root),
         "corpus_root": str(corpus_root),
         "out_root": str(out_root),
-        "samples_total": len(runs),
+        "samples_total": len(completed_runs),
         "samples_failed": failures,
-        "runs": [asdict(run) for run in runs],
+        "runs": [asdict(run) for run in completed_runs],
     }
     (out_root / "run_manifest.json").write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",

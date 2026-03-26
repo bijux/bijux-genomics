@@ -13,6 +13,7 @@ if str(BIN_DIR) not in sys.path:
 
 import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
+import run_fastq_merge_pairs_corpus_01 as merge_runner
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
 import render_fastq_merge_pairs_corpus_01_briefing as merge_briefing
@@ -734,6 +735,16 @@ class TrimReadsReportingTests(unittest.TestCase):
 
 
 class MergeReportingTests(unittest.TestCase):
+    def test_merge_runner_parse_args_supports_sample_jobs(self) -> None:
+        original_argv = sys.argv
+        try:
+            sys.argv = ["run_fastq_merge_pairs_corpus_01.py", "--sample-jobs", "3"]
+            args = merge_runner.parse_args()
+        finally:
+            sys.argv = original_argv
+
+        self.assertEqual(args.sample_jobs, 3)
+
     def test_merge_runtime_summary_tracks_runtime_and_merge_rate(self) -> None:
         rows = [
             {
