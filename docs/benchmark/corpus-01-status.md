@@ -5,7 +5,7 @@
 - Completed stage dossiers: `10`
 - Incomplete stage dossiers: `10`
 - Excluded stages: `3`
-- Publication issues: `20`
+- Publication issues: `10`
 
 ## Stage status
 
@@ -14,38 +14,28 @@
 - `fastq.profile_reads`: `complete` (`0` issues, scope `full`)
 - `fastq.profile_read_lengths`: `complete` (`0` issues, scope `full`)
 - `fastq.profile_overrepresented_sequences`: `complete` (`0` issues, scope `full`)
-- `fastq.normalize_primers`: `incomplete` (`2` issues, scope `full`)
-  - `missing-method-doc`: missing benchmark/fastq.normalize_primers/corpus-01-method.md
+- `fastq.normalize_primers`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.normalize_primers/corpus-01
 - `fastq.trim_polyg_tails`: `complete` (`0` issues, scope `full`)
 - `fastq.trim_reads`: `complete` (`0` issues, scope `full`)
-- `fastq.filter_reads`: `incomplete` (`2` issues, scope `full`)
-  - `missing-method-doc`: missing benchmark/fastq.filter_reads/corpus-01-method.md
+- `fastq.filter_reads`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.filter_reads/corpus-01
-- `fastq.filter_low_complexity`: `incomplete` (`2` issues, scope `full`)
-  - `missing-method-doc`: missing benchmark/fastq.filter_low_complexity/corpus-01-method.md
+- `fastq.filter_low_complexity`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.filter_low_complexity/corpus-01
-- `fastq.deplete_rrna`: `incomplete` (`2` issues, scope `full`)
-  - `missing-method-doc`: missing benchmark/fastq.deplete_rrna/corpus-01-method.md
+- `fastq.deplete_rrna`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_rrna/corpus-01
 - `fastq.merge_pairs`: `complete` (`0` issues, scope `paired`)
-- `fastq.remove_duplicates`: `incomplete` (`2` issues, scope `paired`)
-  - `missing-method-doc`: missing benchmark/fastq.remove_duplicates/corpus-01-method.md
+- `fastq.remove_duplicates`: `incomplete` (`1` issues, scope `paired`)
   - `missing-corpus-dir`: missing benchmark/fastq.remove_duplicates/corpus-01
-- `fastq.deplete_host`: `incomplete` (`2` issues, scope `full`)
-  - `missing-method-doc`: missing benchmark/fastq.deplete_host/corpus-01-method.md
+- `fastq.deplete_host`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_host/corpus-01
-- `fastq.deplete_reference_contaminants`: `incomplete` (`2` issues, scope `full`)
-  - `missing-method-doc`: missing benchmark/fastq.deplete_reference_contaminants/corpus-01-method.md
+- `fastq.deplete_reference_contaminants`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_reference_contaminants/corpus-01
-- `fastq.correct_errors`: `incomplete` (`2` issues, scope `full`)
-  - `missing-method-doc`: missing benchmark/fastq.correct_errors/corpus-01-method.md
+- `fastq.correct_errors`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.correct_errors/corpus-01
-- `fastq.extract_umis`: `incomplete` (`2` issues, scope `paired`)
-  - `missing-method-doc`: missing benchmark/fastq.extract_umis/corpus-01-method.md
+- `fastq.extract_umis`: `incomplete` (`1` issues, scope `paired`)
   - `missing-corpus-dir`: missing benchmark/fastq.extract_umis/corpus-01
-- `fastq.screen_taxonomy`: `incomplete` (`2` issues, scope `full`)
-  - `missing-method-doc`: missing benchmark/fastq.screen_taxonomy/corpus-01-method.md
+- `fastq.screen_taxonomy`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.screen_taxonomy/corpus-01
 - `fastq.trim_terminal_damage`: `complete` (`0` issues, scope `full`)
 - `fastq.report_qc`: `complete` (`0` issues, scope `full`)

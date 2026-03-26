@@ -6,7 +6,7 @@
   "completed_stage_count": 10,
   "incomplete_stage_count": 10,
   "excluded_stage_count": 3,
-  "issue_count": 20,
+  "issue_count": 10,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -104,14 +104,8 @@
       "method_path": "benchmark/fastq.normalize_primers/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.normalize_primers/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.normalize_primers",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.normalize_primers/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.normalize_primers",
           "issue_id": "missing-corpus-dir",
@@ -168,14 +162,8 @@
       "method_path": "benchmark/fastq.filter_reads/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.filter_reads/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.filter_reads",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.filter_reads/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.filter_reads",
           "issue_id": "missing-corpus-dir",
@@ -195,14 +183,8 @@
       "method_path": "benchmark/fastq.filter_low_complexity/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.filter_low_complexity/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.filter_low_complexity",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.filter_low_complexity/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.filter_low_complexity",
           "issue_id": "missing-corpus-dir",
@@ -221,14 +203,8 @@
       "method_path": "benchmark/fastq.deplete_rrna/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.deplete_rrna/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.deplete_rrna",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.deplete_rrna/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.deplete_rrna",
           "issue_id": "missing-corpus-dir",
@@ -266,14 +242,8 @@
       "method_path": "benchmark/fastq.remove_duplicates/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.remove_duplicates/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.remove_duplicates",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.remove_duplicates/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.remove_duplicates",
           "issue_id": "missing-corpus-dir",
@@ -292,14 +262,8 @@
       "method_path": "benchmark/fastq.deplete_host/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.deplete_host/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.deplete_host",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.deplete_host/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.deplete_host",
           "issue_id": "missing-corpus-dir",
@@ -318,14 +282,8 @@
       "method_path": "benchmark/fastq.deplete_reference_contaminants/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.deplete_reference_contaminants/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.deplete_reference_contaminants",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.deplete_reference_contaminants/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.deplete_reference_contaminants",
           "issue_id": "missing-corpus-dir",
@@ -347,14 +305,8 @@
       "method_path": "benchmark/fastq.correct_errors/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.correct_errors/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.correct_errors",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.correct_errors/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.correct_errors",
           "issue_id": "missing-corpus-dir",
@@ -373,14 +325,8 @@
       "method_path": "benchmark/fastq.extract_umis/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.extract_umis/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.extract_umis",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.extract_umis/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.extract_umis",
           "issue_id": "missing-corpus-dir",
@@ -402,14 +348,8 @@
       "method_path": "benchmark/fastq.screen_taxonomy/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.screen_taxonomy/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
-        {
-          "stage_id": "fastq.screen_taxonomy",
-          "issue_id": "missing-method-doc",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.screen_taxonomy/corpus-01-method.md"
-        },
         {
           "stage_id": "fastq.screen_taxonomy",
           "issue_id": "missing-corpus-dir",
