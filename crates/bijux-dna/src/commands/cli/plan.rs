@@ -682,12 +682,12 @@ fn resolve_bench_tools(stage: &str, raw_tools: &[String]) -> Result<Vec<String>>
     };
 
     let registry_path = resolve_registry_path()?;
-    let all_tools = registry_tools_for_stage(&registry_path, stage, "all")?;
+    let all_tools = registry_tools_for_stage(&registry_path, stage, None, "all")?;
     if all_tools.is_empty() {
         return Err(anyhow!("no compatible tools found for stage `{stage}`"));
     }
     let mut selected = match mode {
-        "auto" => registry_tools_for_stage(&registry_path, stage, "primary")?,
+        "auto" => registry_tools_for_stage(&registry_path, stage, None, "primary")?,
         "all" => all_tools.clone(),
         _ => normalized,
     };
