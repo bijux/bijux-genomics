@@ -21,13 +21,13 @@ The benchmark must run the full governed benchmark roster for `fastq.merge_pairs
 - `pear`
 - `vsearch`
 
-The comparison contract is pinned to one merge configuration for every backend:
+The comparison contract is pinned to one governed merge policy across every backend:
 
-- `merge_overlap = 11`
-- `min_length = 20`
+- `merge_overlap = governed tool default`
+- `min_length = governed tool default`
 - `unmerged_read_policy = emit_unmerged_pairs`
 
-These settings follow the scientific defaults recorded in [SCIENTIFIC_DEFAULTS.md](/Users/bijan/bijux/bijux-dna/docs/20-science/SCIENTIFIC_DEFAULTS.md).
+This stage intentionally leaves overlap threshold and minimum merged length at each backend's governed default because the supported capability surface is not identical across the full roster. The shared fairness contract is instead the fixed unmerged mate policy plus identical paired inputs on the same platform.
 
 ## Execution rules
 
@@ -49,6 +49,7 @@ A complete published dossier for this stage contains:
 
 ## Interpretation guardrails
 
-- Merge-rate comparisons are valid only when overlap threshold, minimum merged length, and unmerged mate policy are fixed.
+- Merge-rate comparisons are valid only when every backend sees the same paired inputs and the same governed unmerged mate policy.
+- Backend-specific overlap and merged-length defaults must be documented, not overwritten silently, because those defaults are part of the observed scientific behavior.
 - Runtime comparisons should be interpreted alongside merge rate and base retention, not in isolation.
 - Ancient paired libraries are retained because they stress short-fragment overlap handling that modern libraries may not expose.
