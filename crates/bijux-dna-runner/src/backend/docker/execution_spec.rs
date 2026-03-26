@@ -1,9 +1,49 @@
+use std::path::{Path, PathBuf};
+
 use anyhow::{anyhow, Result};
-use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1};
+use bijux_dna_core::prelude::{
+    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
+};
 use bijux_dna_environment::api::{PlatformSpec, ToolImageCatalog};
+use serde::Deserialize;
 
 use crate::backend::docker::executor::resolve_image_for_run;
 use crate::command_runner::invocation_hash;
+
+#[derive(Debug, Deserialize, Default)]
+struct DomainToolYaml {
+    #[serde(default)]
+    command_template: Vec<String>,
+    #[serde(default)]
+    constraints: Option<ToolConstraints>,
+}
+
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .map_or_else(
+            || PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+            Path::to_path_buf,
+        )
+}
+
+fn load_domain_tool_yaml(tool_id: &str) -> Option<DomainToolYaml> {
+    for domain_name in ["fastq", "bam"] {
+        let path = workspace_root()
+            .join("domain")
+            .join(domain_name)
+            .join("tools")
+            .join(format!("{tool_id}.yaml"));
+        if !path.exists() {
+            continue;
+        }
+        let raw = std::fs::read_to_string(path).ok()?;
+        let parsed: DomainToolYaml = bijux_dna_infra::formats::parse_yaml(&raw).ok()?;
+        return Some(parsed);
+    }
+    None
+}
 
 /// Build a runtime execution specification from registry and image catalog.
 ///
@@ -26,6 +66,20 @@ pub fn build_tool_execution_spec(
         .get(tool_id.as_str())
         .ok_or_else(|| anyhow!("tool {tool_id} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
+    let mut command_template = manifest.command_template.clone();
+    let mut constraints = manifest.constraints.clone();
+    if command_template.is_empty() {
+        if let Some(domain_tool) = load_domain_tool_yaml(tool_id.as_str()) {
+            if !domain_tool.command_template.is_empty() {
+                command_template = domain_tool.command_template;
+            }
+            if constraints == ToolConstraints::default() {
+                if let Some(domain_constraints) = domain_tool.constraints {
+                    constraints = domain_constraints;
+                }
+            }
+        }
+    }
     Ok(ToolExecutionSpecV1 {
         tool_id: tool_id.clone(),
         tool_version: spec.version.clone(),
@@ -34,9 +88,9 @@ pub fn build_tool_execution_spec(
             digest: spec.digest.clone(),
         },
         command: CommandSpecV1 {
-            template: manifest.command_template.clone(),
+            template: command_template,
         },
-        resources: manifest.constraints.clone(),
+        resources: constraints,
     })
 }
 
