@@ -60,6 +60,14 @@ pub(super) fn filter_removals_from_bbduk_stats(
                 removed = digits.parse::<u64>().ok();
             }
         }
+        if removed.is_none() && (line.starts_with("#Matched") || line.starts_with("Matched")) {
+            if let Some(field) = line.split_whitespace().nth(1) {
+                let digits: String = field.chars().filter(char::is_ascii_digit).collect();
+                if !digits.is_empty() {
+                    removed = digits.parse::<u64>().ok();
+                }
+            }
+        }
     }
     let removed = removed?;
     Some(FilterRemovalCounts {
