@@ -196,6 +196,26 @@ def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
     return corpus_root.parent / "results" / corpus_root.name / stage_id / "lunarc"
 
 
+def validate_benchmark_layout(corpus_root: Path, out_root: Path) -> None:
+    try:
+        out_root.relative_to(corpus_root)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit(
+            "benchmark output root must not live under the corpus data tree: "
+            f"{out_root}. Use {corpus_root.parent / 'results' / corpus_root.name} instead."
+        )
+
+    legacy_benchmarks_root = corpus_root / "benchmarks"
+    if legacy_benchmarks_root.exists():
+        raise SystemExit(
+            "legacy benchmark outputs still exist under the corpus data tree: "
+            f"{legacy_benchmarks_root}. Mirror them locally, delete the embedded benchmark tree, "
+            f"and keep active outputs under {corpus_root.parent / 'results' / corpus_root.name}."
+        )
+
+
 def stage_run_dir_name(stage_id: str) -> str:
     domain, stage = stage_id.split(".", 1)
     if domain != "fastq":
