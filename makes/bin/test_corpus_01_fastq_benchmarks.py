@@ -882,7 +882,51 @@ class MergeReportingTests(unittest.TestCase):
             merge_report.validate_merge_row_contract(
                 run_manifest=run_manifest,
                 sample_rows=sample_rows,
+                expected_sample_ids=["sample_0008"],
             )
+
+    def test_merge_report_contract_rejects_missing_sample_rows(self) -> None:
+        run_manifest = {
+            "tools": ["pear"],
+            "merge_overlap": None,
+            "min_length": None,
+            "unmerged_read_policy": "emit_unmerged_pairs",
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0008",
+                "tool": "pear",
+                "layout": "pe",
+                "merge_overlap": None,
+                "min_length": None,
+                "unmerged_read_policy": "emit_unmerged_pairs",
+                "pairs_in": 100,
+                "reads_merged": 80,
+                "reads_unmerged": 20,
+                "merge_rate": 0.8,
+            }
+        ]
+
+        with self.assertRaises(SystemExit):
+            merge_report.validate_merge_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0008", "sample_0009"],
+            )
+
+    def test_merge_report_localizes_remote_results_path(self) -> None:
+        local_results_root = Path("/tmp/local-results")
+
+        localized = merge_report.localize_results_path(
+            "/home/bijan/bijux/results/corpus_01/fastq.merge_pairs/lunarc/bench/merge_pairs/sample_0008/report.json",
+            local_results_root,
+        )
+
+        self.assertEqual(
+            localized,
+            local_results_root
+            / "corpus_01/fastq.merge_pairs/lunarc/bench/merge_pairs/sample_0008/report.json",
+        )
 
     def test_trim_reads_report_contract_rejects_missing_tool_rows(self) -> None:
         run_manifest = {

@@ -12,12 +12,10 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     MERGE_PAIRS_BENCHMARK_CONTRACT,
     default_results_stage_root,
-    discover_normalized_samples,
     load_corpus_spec,
     load_json,
     merge_pairs_benchmark_defaults,
-    select_paired_samples,
-    validate_corpus_contract,
+    resolve_corpus_metadata,
 )
 
 
@@ -56,6 +54,16 @@ def safe_fraction(numerator: float, denominator: float) -> float | None:
     if denominator == 0:
         return None
     return numerator / denominator
+
+
+def localize_results_path(path_str: str, local_results_root: Path) -> Path:
+    path = Path(path_str)
+    if path.exists():
+        return path
+    marker = "/results/"
+    if marker not in path_str:
+        return path
+    return local_results_root / path_str.split(marker, 1)[1]
 
 
 def record_parameter(record: dict, key: str):
@@ -98,7 +106,12 @@ def validate_merge_run_manifest_contract(run_manifest: dict) -> None:
         )
 
 
-def validate_merge_row_contract(*, run_manifest: dict, sample_rows: list[dict]) -> None:
+def validate_merge_row_contract(
+    *,
+    run_manifest: dict,
+    sample_rows: list[dict],
+    expected_sample_ids: list[str],
+) -> None:
     expected_tools = run_manifest["tools"]
     rows_by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in sample_rows:
@@ -145,6 +158,12 @@ def validate_merge_row_contract(*, run_manifest: dict, sample_rows: list[dict]) 
                 "merge benchmark report drift: "
                 f"sample {sample_id} expected tools {expected_tools}, found {observed_tools}"
             )
+    missing_samples = sorted(set(expected_sample_ids) - set(rows_by_sample))
+    if missing_samples:
+        raise SystemExit(
+            "merge benchmark report drift: "
+            f"missing published rows for samples {missing_samples}"
+        )
 
 
 def render_markdown(summary: dict) -> str:
@@ -241,16 +260,21 @@ def main() -> int:
     )
     docs_root = (repo_root / args.docs_root).resolve()
     docs_root.mkdir(parents=True, exist_ok=True)
+    local_results_root = run_root.parents[2]
 
     spec = load_corpus_spec(repo_root)
     defaults = merge_pairs_benchmark_defaults()
     run_manifest = load_json(run_root / "run_manifest.json")
     validate_merge_run_manifest_contract(run_manifest)
+    expected_sample_ids = [run["sample_id"] for run in run_manifest["runs"]]
 
-    all_samples = discover_normalized_samples(corpus_root)
-    metadata_by_sample = validate_corpus_contract(corpus_root, spec, all_samples)
-    paired_samples = select_paired_samples(spec, all_samples, metadata_by_sample)
-    paired_sample_ids = {sample["sample_id"] for sample in paired_samples}
+    metadata_by_sample = resolve_corpus_metadata(
+        repo_root,
+        corpus_root,
+        spec,
+        expected_sample_ids=expected_sample_ids,
+    )
+    paired_sample_ids = set(expected_sample_ids)
 
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
@@ -271,7 +295,7 @@ def main() -> int:
         era_counts[metadata.get("era", "unknown")] += 1
         layout_counts[metadata.get("layout", run["layout"])] += 1
 
-        report_path = Path(run["report_json"])
+        report_path = localize_results_path(run["report_json"], local_results_root)
         if not report_path.is_file():
             raise SystemExit(f"missing report.json for {sample_id}: {report_path}")
         report = load_json(report_path)
@@ -319,7 +343,11 @@ def main() -> int:
     run_manifest.setdefault(
         "unmerged_read_policy", defaults["unmerged_read_policy"]
     )
-    validate_merge_row_contract(run_manifest=run_manifest, sample_rows=sample_rows)
+    validate_merge_row_contract(
+        run_manifest=run_manifest,
+        sample_rows=sample_rows,
+        expected_sample_ids=expected_sample_ids,
+    )
 
     tool_summary = []
     for tool in sorted(tool_rows):
