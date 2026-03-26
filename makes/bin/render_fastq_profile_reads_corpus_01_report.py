@@ -276,8 +276,16 @@ def main() -> int:
 
         report_path = Path(run["report_json"])
         if not report_path.is_file():
-            continue
+            raise SystemExit(
+                "profile-reads benchmark report drift: "
+                f"missing report.json for {sample_id}: {report_path}"
+            )
         report = load_json(report_path)
+        if not report.get("records"):
+            raise SystemExit(
+                "profile-reads benchmark report drift: "
+                f"report.json for {sample_id} contains no records"
+            )
         for record in report.get("records", []):
             tool = record.get("context", {}).get("tool", "unknown")
             length_histogram = normalize_metric(record, "length_histogram") or []
