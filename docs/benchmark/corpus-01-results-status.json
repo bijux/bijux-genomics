@@ -1,77 +1,39 @@
 {
   "corpus_id": "corpus-01",
   "published_stage_count": 10,
-  "complete_stage_count": 3,
-  "incomplete_stage_count": 7,
-  "issue_count": 15,
+  "complete_stage_count": 7,
+  "incomplete_stage_count": 3,
+  "issue_count": 7,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
         {
           "stage_id": "fastq.validate_reads",
-          "issue_id": "summary-run-root-drift",
-          "detail": "summary run_root=/home/bijan/bijux/corpus_01/benchmarks/fastq.validate_reads/lunarc expected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.validate_reads/lunarc"
-        },
-        {
-          "stage_id": "fastq.validate_reads",
-          "issue_id": "missing-stage-run-manifest",
-          "detail": "missing /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.validate_reads/lunarc/run_manifest.json"
+          "issue_id": "report-tool-roster-drift",
+          "detail": "sample_0001 observed ['fastqvalidator']; sample_0002 observed ['fastqvalidator']; sample_0003 observed ['fastqvalidator'] (+17 more)"
         }
       ]
     },
     {
       "stage_id": "fastq.detect_adapters",
-      "status": "incomplete",
-      "issue_count": 2,
-      "issues": [
-        {
-          "stage_id": "fastq.detect_adapters",
-          "issue_id": "summary-run-root-drift",
-          "detail": "summary run_root=/home/bijan/bijux/corpus_01/benchmarks/fastq.detect_adapters/lunarc expected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.detect_adapters/lunarc"
-        },
-        {
-          "stage_id": "fastq.detect_adapters",
-          "issue_id": "missing-stage-run-manifest",
-          "detail": "missing /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.detect_adapters/lunarc/run_manifest.json"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.profile_reads",
-      "status": "incomplete",
-      "issue_count": 2,
-      "issues": [
-        {
-          "stage_id": "fastq.profile_reads",
-          "issue_id": "summary-run-root-drift",
-          "detail": "summary run_root=/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_reads/lunarc expected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_reads/lunarc"
-        },
-        {
-          "stage_id": "fastq.profile_reads",
-          "issue_id": "missing-stage-run-manifest",
-          "detail": "missing /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_reads/lunarc/run_manifest.json"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.profile_read_lengths",
-      "status": "incomplete",
-      "issue_count": 2,
-      "issues": [
-        {
-          "stage_id": "fastq.profile_read_lengths",
-          "issue_id": "summary-run-root-drift",
-          "detail": "summary run_root=/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_read_lengths/lunarc expected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_read_lengths/lunarc"
-        },
-        {
-          "stage_id": "fastq.profile_read_lengths",
-          "issue_id": "missing-stage-run-manifest",
-          "detail": "missing /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_read_lengths/lunarc/run_manifest.json"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.profile_overrepresented_sequences",
@@ -125,15 +87,9 @@
     },
     {
       "stage_id": "fastq.merge_pairs",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.merge_pairs",
-          "issue_id": "missing-localized-report-json",
-          "detail": "10 run rows do not resolve to a local report.json"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.trim_terminal_damage",
