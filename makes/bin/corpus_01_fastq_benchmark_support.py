@@ -121,6 +121,10 @@ def merge_pairs_benchmark_defaults() -> dict:
     }
 
 
+def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
+    return corpus_root.parent / "results" / corpus_root.name / stage_id / "lunarc"
+
+
 def parse_simple_toml(path: Path) -> dict:
     root: dict = {}
     samples: list[dict] = []
