@@ -516,6 +516,48 @@ class DetectAdaptersReportingTests(unittest.TestCase):
         self.assertAlmostEqual(summary_rows[0]["mean_candidate_adapter_count"], 3.0)
         self.assertAlmostEqual(summary_rows[0]["median_mean_q"], 32.0)
 
+    def test_detect_adapters_briefing_avoids_hardcoded_tool_name(self) -> None:
+        summary = {
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.detect_adapters/lunarc",
+            "samples_total": 1,
+            "samples_failed": 0,
+            "tools": ["adapter_observer"],
+            "inspection_mode": "evidence_only",
+            "report_only": True,
+            "evidence_scope": "full_input",
+            "evidence_format": "fastqc_summary",
+            "era_counts": {"ancient": 1, "modern": 0},
+            "layout_counts": {"se": 1, "pe": 0},
+        }
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "ancient",
+                "layout": "se",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "adapter_observer",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "candidate_adapter_count": "2",
+                "adapter_trimmed_fraction": "",
+                "mean_q": "31.0",
+            }
+        ]
+        runtime_rows = detect_adapters_briefing.tool_runtime_summary(rows)
+        cohort_rows = detect_adapters_briefing.cohort_runtime_summary(rows)
+        outliers = detect_adapters_briefing.sample_runtime_outliers(rows)
+
+        markdown = detect_adapters_briefing.render_markdown(
+            summary, rows, runtime_rows, cohort_rows, outliers
+        )
+
+        self.assertIn("`adapter_observer` ran at", markdown)
+        self.assertNotIn("`fastqc` ran at", markdown)
+
     def test_detect_adapters_markdown_mentions_observer_contract(self) -> None:
         summary = {
             "generated_at_utc": "2026-03-26T00:00:00+00:00",
