@@ -746,6 +746,28 @@ class ProfileReadsReportingTests(unittest.TestCase):
                         "mean_q": 31.0,
                         "gc_percent": 45.0,
                         "histogram_bin_count": 0,
+                        "max_observed_length": 75,
+                        "mean_read_length": 10.0,
+                    }
+                ],
+                expected_sample_ids=["sample_0001"],
+            )
+
+    def test_profile_reads_report_contract_rejects_histogram_length_drift(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_reads_report.validate_profile_reads_row_contract(
+                run_manifest={"tools": ["seqkit_stats"]},
+                sample_rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "seqkit_stats",
+                        "reads_total": 100,
+                        "bases_total": 1000,
+                        "mean_q": 31.0,
+                        "gc_percent": 45.0,
+                        "histogram_bin_count": 10,
+                        "max_observed_length": 5,
+                        "mean_read_length": 10.0,
                     }
                 ],
                 expected_sample_ids=["sample_0001"],
@@ -759,6 +781,23 @@ class ProfileReadsReportingTests(unittest.TestCase):
                     "scenario_id": "profile_reads_fairness",
                     "tool_kind": "benchmark",
                     "dry_run": True,
+                    "report_only": True,
+                    "mutates_fastq": False,
+                    "may_change_read_count": False,
+                    "raw_backend_report_format": "seqkit_stats_tsv",
+                    "length_histogram_source": "seqkit_fx2tab",
+                }
+            )
+
+    def test_profile_reads_report_rejects_sample_limited_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_reads_report.validate_profile_reads_run_manifest_contract(
+                {
+                    "stage_id": "fastq.profile_reads",
+                    "scenario_id": "profile_reads_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": False,
+                    "sample_limit": 2,
                     "report_only": True,
                     "mutates_fastq": False,
                     "may_change_read_count": False,
