@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
+    TRIM_POLYG_BENCHMARK_CONTRACT,
     discover_normalized_samples,
     load_corpus_spec,
     load_json,
@@ -106,6 +107,30 @@ def validate_trim_polyg_row_contract(
                 "trim-polyg benchmark report drift: "
                 f"sample {sample_id} expected tools {expected_tools}, found {observed_tools}"
             )
+
+
+def validate_trim_polyg_run_manifest_contract(run_manifest: dict) -> None:
+    if run_manifest.get("dry_run"):
+        raise SystemExit("trim-polyg benchmark report rendering requires an executed run, not --dry-run output")
+    stage_id = run_manifest.get("stage_id", TRIM_POLYG_BENCHMARK_CONTRACT.stage_id)
+    scenario_id = run_manifest.get(
+        "scenario_id", TRIM_POLYG_BENCHMARK_CONTRACT.scenario_id
+    )
+    tool_kind = run_manifest.get("tool_kind", "benchmark")
+    if stage_id != TRIM_POLYG_BENCHMARK_CONTRACT.stage_id:
+        raise SystemExit(
+            "trim-polyg benchmark report drift: "
+            f"expected stage_id {TRIM_POLYG_BENCHMARK_CONTRACT.stage_id}, found {stage_id}"
+        )
+    if scenario_id != TRIM_POLYG_BENCHMARK_CONTRACT.scenario_id:
+        raise SystemExit(
+            "trim-polyg benchmark report drift: "
+            f"expected scenario_id {TRIM_POLYG_BENCHMARK_CONTRACT.scenario_id}, found {scenario_id}"
+        )
+    if tool_kind != "benchmark":
+        raise SystemExit(
+            f"trim-polyg benchmark report drift: expected tool_kind benchmark, found {tool_kind}"
+        )
 
 
 def render_markdown(summary: dict) -> str:
@@ -206,6 +231,7 @@ def main() -> int:
 
     spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
+    validate_trim_polyg_run_manifest_contract(run_manifest)
     metadata_by_sample = validate_corpus_contract(
         corpus_root,
         spec,

@@ -472,6 +472,17 @@ class TrimReadsReportingTests(unittest.TestCase):
                 sample_rows=sample_rows,
             )
 
+    def test_trim_reads_report_rejects_dry_run_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            trim_reads_report.validate_trim_run_manifest_contract(
+                {
+                    "stage_id": "fastq.trim_reads",
+                    "scenario_id": "trim_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": True,
+                }
+            )
+
     def test_trim_polyg_report_contract_rejects_missing_tool_rows(self) -> None:
         run_manifest = {
             "tools": ["fastp", "bbduk"],
