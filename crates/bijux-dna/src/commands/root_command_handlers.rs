@@ -5,7 +5,11 @@ use bijux_dna_domain_compiler::{domain_coverage_report, validate_domain, Validat
 
 use crate::commands::{cli, corpus, ena, hpc};
 
-pub(crate) fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
+pub(crate) fn handle_environment_root(
+    command: &cli::EnvCommand,
+    cwd: &Path,
+    platform_name: Option<&str>,
+) -> Result<()> {
     use crate::commands::cli::env::{
         ensure_apptainer_images, env_doctor, generate_apptainer_qa_matrix_markdown,
         lint_apptainer_defs, parse_stage_domain, print_env_export_json, print_env_images,
@@ -155,8 +159,8 @@ pub(crate) fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> 
             )?;
         }
         cli::EnvCommand::Images | cli::EnvCommand::Info | cli::EnvCommand::Doctor => {
-            let platform =
-                load_platform(None).map_err(|err| anyhow!("failed to load platform: {err}"))?;
+            let platform = load_platform(platform_name)
+                .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             match command {

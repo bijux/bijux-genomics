@@ -147,7 +147,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     let dna_command = &cli.command;
     match dna_command {
         cli::DnaCommand::Environment(args) => {
-            return handle_environment_root(&args.command, cwd);
+            return handle_environment_root(&args.command, cwd, cli.platform.as_deref());
         }
         cli::DnaCommand::Registry(args) => return handle_registry_root(&args.command, cwd),
         #[cfg(debug_assertions)]
