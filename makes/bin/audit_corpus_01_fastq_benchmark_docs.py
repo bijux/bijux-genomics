@@ -24,6 +24,7 @@ class StageAuditIssue:
 STAGE_CONTRACTS = [
     StagePublicationContract("fastq.validate_reads", "validation_fairness"),
     StagePublicationContract("fastq.detect_adapters", "detect_adapters_fairness"),
+    StagePublicationContract("fastq.merge_pairs", "merge_fairness"),
     StagePublicationContract("fastq.profile_reads", "profile_reads_fairness"),
     StagePublicationContract("fastq.profile_read_lengths", "read_length_fairness"),
     StagePublicationContract(
