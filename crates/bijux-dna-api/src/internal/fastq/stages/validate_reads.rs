@@ -124,9 +124,8 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
         let image_digest = tool_spec
             .image
             .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+            .clone()
+            .unwrap_or_else(|| tool_spec.image.image.clone());
         if let Ok(Some(record)) = fetch_fastq_validate_v1(
             &conn,
             &tool,
