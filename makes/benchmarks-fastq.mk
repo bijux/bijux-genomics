@@ -108,6 +108,14 @@ _benchmark-profile-read-lengths-corpus-01: ## Benchmark fastq.profile_read_lengt
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
+_benchmark-profile-overrepresented-corpus-01: ## Benchmark fastq.profile_overrepresented_sequences across corpus-01
+	@python3 makes/bin/run_fastq_profile_overrepresented_sequences_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",)
+
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
 		--repo-root . \
@@ -162,14 +170,23 @@ _benchmark-profile-read-lengths-corpus-01-report: ## Render the corpus-01 read-l
 	@python3 makes/bin/render_fastq_profile_read_lengths_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.profile_read_lengths/corpus-01
 
+_benchmark-profile-overrepresented-corpus-01-report: ## Render the corpus-01 overrepresented benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.profile_overrepresented_sequences/corpus-01
+
 .PHONY: _benchmark-fastq-stage _benchmark-all _benchmark-trim _benchmark-validate _benchmark-filter \
 	_benchmark-merge _benchmark-correct _benchmark-qc-post _benchmark-umi \
 	_benchmark-stats _benchmark-screen _benchmark-preprocess _benchmark-status \
 	_benchmark-validate-corpus-01 _benchmark-trim-polyg-corpus-01 \
 	_benchmark-trim-reads-corpus-01 _benchmark-trim-terminal-damage-corpus-01 \
 	_benchmark-detect-adapters-corpus-01 _benchmark-profile-reads-corpus-01 \
-	_benchmark-profile-read-lengths-corpus-01 \
+	_benchmark-profile-read-lengths-corpus-01 _benchmark-profile-overrepresented-corpus-01 \
 	_benchmark-validate-corpus-01-report _benchmark-trim-polyg-corpus-01-report \
 	_benchmark-trim-reads-corpus-01-report _benchmark-trim-terminal-damage-corpus-01-report \
 	_benchmark-detect-adapters-corpus-01-report _benchmark-profile-reads-corpus-01-report \
-	_benchmark-profile-read-lengths-corpus-01-report
+	_benchmark-profile-read-lengths-corpus-01-report \
+	_benchmark-profile-overrepresented-corpus-01-report
