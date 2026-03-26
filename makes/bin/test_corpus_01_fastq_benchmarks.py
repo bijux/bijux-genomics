@@ -992,6 +992,44 @@ class ProfileReadLengthsReportingTests(unittest.TestCase):
                 }
             )
 
+    def test_read_length_report_rejects_nonpositive_mean_length(self) -> None:
+        with self.assertRaises(SystemExit):
+            profile_read_lengths_report.validate_read_length_row_contract(
+                run_manifest={"tools": ["seqkit_stats"]},
+                sample_rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "seqkit_stats",
+                        "read_count": 100,
+                        "mean_read_length": 0.0,
+                        "max_read_length": 75,
+                        "distinct_lengths": 10,
+                    }
+                ],
+                expected_sample_ids=["sample_0001"],
+            )
+
+    def test_read_length_artifact_check_rejects_empty_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_path = Path(tmpdir) / "bench" / "profile_read_lengths" / "sample_0001" / "report.json"
+            tool_dir = report_path.parent / "tools" / "seqkit_stats"
+            tool_dir.mkdir(parents=True)
+            report_path.write_text("{}", encoding="utf-8")
+            (tool_dir / "profile_read_lengths_report.json").write_text(
+                "{}",
+                encoding="utf-8",
+            )
+            (tool_dir / "length_distribution.tsv").write_text("", encoding="utf-8")
+            (tool_dir / "length_distribution.json").write_text(
+                "{\"histogram\": []}",
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(SystemExit):
+                profile_read_lengths_report.validate_artifact_paths(
+                    report_path, "seqkit_stats"
+                )
+
 
 class TerminalDamageReportingTests(unittest.TestCase):
     def test_terminal_damage_summary_tracks_runtime_and_asymmetry(self) -> None:
