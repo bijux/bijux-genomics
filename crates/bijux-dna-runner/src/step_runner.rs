@@ -120,6 +120,21 @@ fn hash_directory(root: &Path) -> Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+fn container_input_mapping(input_root: &Path) -> (PathBuf, String) {
+    if input_root.is_file() {
+        let mount_root = input_root
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| PathBuf::from("/"));
+        let file_name = input_root
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "input".to_string());
+        return (mount_root, format!("/data/input/{file_name}"));
+    }
+    (input_root.to_path_buf(), "/data/input".to_string())
+}
+
 fn rewrite_container_path(value: &str, host_root: &Path, container_root: &str) -> String {
     let host_root_path = host_root;
     let host_root = host_root_path.display().to_string();
@@ -139,10 +154,11 @@ fn container_command_template(
     input_root: &Path,
     out_dir: &Path,
 ) -> Vec<String> {
+    let (_, container_input_root) = container_input_mapping(input_root);
     template
         .iter()
         .map(|part| {
-            let rewritten_input = rewrite_container_path(part, input_root, "/data/input");
+            let rewritten_input = rewrite_container_path(part, input_root, &container_input_root);
             rewrite_container_path(&rewritten_input, out_dir, "/data/output")
         })
         .collect()
@@ -154,7 +170,8 @@ fn build_apptainer_exec_args(
     out_dir: &Path,
     _runner: RuntimeKind,
 ) -> Result<Vec<String>> {
-    let input_mount = format!("{}:/data/input:ro", input_root.display());
+    let (input_mount_root, _) = container_input_mapping(input_root);
+    let input_mount = format!("{}:/data/input:ro", input_mount_root.display());
     let output_mount = format!("{}:/data/output", out_dir.display());
     let mut args: Vec<String> = vec![
         "exec".to_string(),
@@ -248,7 +265,8 @@ pub fn execute_step(
         .map(|input| input.path.clone())
         .collect();
     let input_root = common_parent(&inputs).unwrap_or_else(|| out_dir.clone());
-    let input_mount = format!("{}:/data/input:ro", input_root.display());
+    let (input_mount_root, _) = container_input_mapping(&input_root);
+    let input_mount = format!("{}:/data/input:ro", input_mount_root.display());
     let output_mount = format!("{}:/data/output", out_dir.display());
     let command_template = container_command_template(&step.command.template, &input_root, out_dir);
 
@@ -673,8 +691,20 @@ mod tests {
         let rewritten = container_command_template(&template, &input, &out_dir);
 
         assert_eq!(rewritten[0], "sh");
-        assert!(rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input"));
+        assert!(rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input/sample_0004_R1.fastq.gz"));
         assert!(rewritten[2].contains("> /data/output/reads.tsv"));
+    }
+
+    #[test]
+    fn container_input_mapping_preserves_single_file_basename() {
+        let temp = tempdir().expect("tempdir");
+        let input = temp.path().join("sample_0004_R1.fastq.gz");
+        std::fs::write(&input, b"@read\nACGT\n+\n!!!!\n").expect("write input");
+
+        let (mount_root, container_root) = container_input_mapping(&input);
+
+        assert_eq!(mount_root, temp.path());
+        assert_eq!(container_root, "/data/input/sample_0004_R1.fastq.gz");
     }
 
     #[test]
