@@ -115,8 +115,8 @@ def trim_terminal_damage_benchmark_defaults() -> dict:
 
 def merge_pairs_benchmark_defaults() -> dict:
     return {
-        "merge_overlap": 11,
-        "min_length": 20,
+        "merge_overlap": None,
+        "min_length": None,
         "unmerged_read_policy": "emit_unmerged_pairs",
     }
 
