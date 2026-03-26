@@ -625,7 +625,9 @@ fn normalize_tools_with_allowlist(
 #[cfg(test)]
 mod tests {
     use super::{merge_command_template, merge_outputs, MergeEffectiveParams, MergeEngine};
-    use bijux_dna_core::prelude::{ToolConstraints, ToolExecutionSpecV1, ToolId};
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    };
     use bijux_dna_domain_fastq::params::{merge::UnmergedReadPolicy, PairedMode};
     use std::path::Path;
 
@@ -635,8 +637,14 @@ mod tests {
             merge_outputs("adapterremoval", Path::new("out")).expect("adapterremoval outputs");
         let tool = ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("adapterremoval"),
-            tool_version: Some("latest-pinned".to_string()),
-            image: None,
+            tool_version: "latest-pinned".to_string(),
+            image: ContainerImageRefV1 {
+                image: "docker.io/bijuxdna/adapterremoval:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: Vec::new(),
+            },
             resources: ToolConstraints::default(),
         };
         let params = MergeEffectiveParams {
