@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
+use std::fs;
 use std::path::Path;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -256,9 +258,11 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let out_dir = report_path
         .parent()
         .ok_or_else(|| anyhow!("merge report has no parent"))?;
+    let metrics_path = out_dir.join("metrics.json");
     let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+    bijux_dna_infra::atomic_write_json(&metrics_path, &metrics_json)
         .context("write merge metrics")?;
+    prune_merge_tool_payload(out_dir, report_path, &metrics_path, &report)?;
 
     let context = build_benchmark_context(
         &report.tool_id,
@@ -286,6 +290,46 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     Ok(record)
 }
 
+fn prune_merge_tool_payload(
+    out_dir: &Path,
+    report_path: &Path,
+    metrics_path: &Path,
+    report: &MergePairsReportV1,
+) -> Result<()> {
+    let run_artifacts_dir = out_dir.join("run_artifacts");
+    let mut keep = HashSet::new();
+    keep.insert(report_path.to_path_buf());
+    keep.insert(metrics_path.to_path_buf());
+    if let Some(raw_backend_report) = report.raw_backend_report.as_ref() {
+        keep.insert(Path::new(raw_backend_report).to_path_buf());
+    }
+
+    let mut dirs = vec![out_dir.to_path_buf()];
+    while let Some(dir) = dirs.pop() {
+        for entry in
+            fs::read_dir(&dir).with_context(|| format!("read merge tool dir {}", dir.display()))?
+        {
+            let path = entry
+                .with_context(|| format!("read entry in {}", dir.display()))?
+                .path();
+            if path == run_artifacts_dir || path.starts_with(&run_artifacts_dir) {
+                continue;
+            }
+            if path.is_dir() {
+                dirs.push(path);
+                continue;
+            }
+            if keep.contains(&path) {
+                continue;
+            }
+            fs::remove_file(&path)
+                .with_context(|| format!("prune merge payload {}", path.display()))?;
+        }
+    }
+
+    Ok(())
+}
+
 fn merge_input_hash(r1: &Path, r2: &Path) -> Result<String> {
     let r1_hash = hash_file_sha256(r1).context("hash merge r1")?;
     let r2_hash = hash_file_sha256(r2).context("hash merge r2")?;
@@ -305,9 +349,14 @@ fn observe_merge_stats<S: ::std::hash::BuildHasher>(
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::unwrap_used)]
 mod tests {
-    use super::{merge_plan_options, parse_unmerged_read_policy};
+    use super::{merge_plan_options, parse_unmerged_read_policy, prune_merge_tool_payload};
+    use bijux_dna_domain_fastq::params::merge::MergeEngine;
+    use bijux_dna_domain_fastq::params::PairedMode;
+    use bijux_dna_domain_fastq::MergePairsReportV1;
     use bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs;
+    use std::fs;
     use std::path::PathBuf;
+    use tempfile::tempdir;
 
     #[test]
     fn merge_plan_options_carry_declared_policy_surface() {
@@ -344,5 +393,75 @@ mod tests {
         assert!(err
             .to_string()
             .contains("unsupported fastq.merge_pairs unmerged_read_policy `maybe`"));
+    }
+
+    #[test]
+    fn prune_merge_tool_payload_keeps_reports_and_run_artifacts() {
+        let temp = tempdir().expect("tempdir");
+        let out_dir = temp.path().join("pear");
+        let run_artifacts = out_dir.join("run_artifacts");
+        fs::create_dir_all(&run_artifacts).expect("mkdir");
+
+        let merged_reads = out_dir.join("pear.assembled.fastq");
+        let unmerged_r1 = out_dir.join("pear.unassembled.forward.fastq");
+        let unmerged_r2 = out_dir.join("pear.unassembled.reverse.fastq");
+        let discarded = out_dir.join("pear.discarded.fastq");
+        let raw_backend_report = out_dir.join("pear.log");
+        let report_path = out_dir.join("merge_report.json");
+        let metrics_path = out_dir.join("metrics.json");
+        let stage_report = run_artifacts.join("stage_report.json");
+
+        for path in [
+            &merged_reads,
+            &unmerged_r1,
+            &unmerged_r2,
+            &discarded,
+            &raw_backend_report,
+            &report_path,
+            &metrics_path,
+            &stage_report,
+        ] {
+            fs::write(path, "{}").expect("write fixture");
+        }
+
+        let report = MergePairsReportV1 {
+            schema_version: "bijux.fastq.merge_pairs.report.v2".to_string(),
+            stage: "fastq.merge_pairs".to_string(),
+            stage_id: "fastq.merge_pairs".to_string(),
+            tool_id: "pear".to_string(),
+            paired_mode: PairedMode::PairedEnd,
+            merge_engine: MergeEngine::Pear,
+            threads: 1,
+            merge_overlap: None,
+            min_len: None,
+            unmerged_read_policy:
+                bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy::EmitUnmergedPairs,
+            input_r1: "reads_R1.fastq.gz".to_string(),
+            input_r2: "reads_R2.fastq.gz".to_string(),
+            merged_reads: merged_reads.display().to_string(),
+            unmerged_reads_r1: Some(unmerged_r1.display().to_string()),
+            unmerged_reads_r2: Some(unmerged_r2.display().to_string()),
+            reads_r1: 10,
+            reads_r2: 10,
+            reads_merged: 8,
+            reads_unmerged: 2,
+            merge_rate: 0.8,
+            runtime_s: Some(1.0),
+            memory_mb: Some(8.0),
+            raw_backend_report: Some(raw_backend_report.display().to_string()),
+            raw_backend_report_format: Some("pear_log".to_string()),
+        };
+
+        prune_merge_tool_payload(&out_dir, &report_path, &metrics_path, &report)
+            .expect("prune merge payload");
+
+        assert!(report_path.is_file());
+        assert!(metrics_path.is_file());
+        assert!(raw_backend_report.is_file());
+        assert!(stage_report.is_file());
+        assert!(!merged_reads.exists());
+        assert!(!unmerged_r1.exists());
+        assert!(!unmerged_r2.exists());
+        assert!(!discarded.exists());
     }
 }
