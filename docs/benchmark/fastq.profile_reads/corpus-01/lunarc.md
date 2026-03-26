@@ -6,7 +6,7 @@ This benchmark measures the governed `fastq.profile_reads` stage across the cura
 
 - Platform: `lunarc-apptainer` on Lunarc
 - Corpus root: `/home/bijan/bijux/corpus_01`
-- Benchmark root: `/home/bijan/bijux/results/corpus_01/fastq.profile_reads/lunarc`
+- Benchmark root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_reads/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `seqkit_stats`
 - Profile contract: report_only=`True`, mutates_fastq=`False`, may_change_read_count=`False`, histogram=`seqkit_fx2tab`
@@ -15,43 +15,43 @@ This benchmark measures the governed `fastq.profile_reads` stage across the cura
 ## Executive summary
 
 - Every tool completed successfully on all `20` samples; stage-level sample failures were `0`.
-- `seqkit_stats` ran at `p50=1.627s` with median mean Q `0.000` and median GC `46.540`.
-- Runtime remains input-driven for `seqkit_stats`: `modern_pe` averages `6.405s` while `ancient_se` averages `2.687s`.
-- Size-band spread remains visible for `seqkit_stats`: `under_500mb` averages `8.027s` versus `1.067s` on `under_100mb` inputs.
+- `seqkit_stats` ran at `p50=1.614s` with median mean Q `0.000` and median GC `46.540`.
+- Runtime remains input-driven for `seqkit_stats`: `modern_pe` averages `6.442s` while `ancient_se` averages `2.772s`.
+- Size-band spread remains visible for `seqkit_stats`: `under_500mb` averages `8.120s` versus `1.083s` on `under_100mb` inputs.
 - Correctness stayed stable across all `20` tool-sample observations: `exit_code=0` on `20` rows, and every published row kept positive totals with non-empty histogram support.
 
 ## Tool ranking
 
 | Tool | Pass rate | Mean (s) | Median (s) | P90 (s) | Max (s) | Median reads | Median bases | Median Q | Median GC | Median read length |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `seqkit_stats` | 100.0% | 4.021 | 1.627 | 10.054 | 11.431 | 1241122.500 | 78085583.500 | 0.000 | 46.540 | 76.000 |
+| `seqkit_stats` | 100.0% | 4.091 | 1.614 | 10.027 | 11.984 | 1241122.500 | 78085583.500 | 0.000 | 46.540 | 76.000 |
 
 ## Cohort behavior
 
 | Tool | Dimension | Cohort | Samples | Mean runtime (s) | Median runtime (s) | Median Q | Median GC | Median read length | Median histogram bins |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `seqkit_stats` | `era_layout` | `ancient_pe` | 5 | 2.773 | 1.155 | 0.000 | 56.085 | 75.697 | 13.000 |
-| `seqkit_stats` | `era_layout` | `ancient_se` | 5 | 2.687 | 1.282 | 0.000 | 45.840 | 80.354 | 156.000 |
-| `seqkit_stats` | `era_layout` | `modern_pe` | 5 | 6.405 | 9.728 | 0.000 | 53.365 | 36.000 | 1.000 |
-| `seqkit_stats` | `era_layout` | `modern_se` | 5 | 4.219 | 1.866 | 0.000 | 45.150 | 76.000 | 1.000 |
-| `seqkit_stats` | `size_band` | `under_1000mb` | 1 | 11.431 | 11.431 | 0.000 | 45.150 | 101.000 | 1.000 |
-| `seqkit_stats` | `size_band` | `under_100mb` | 12 | 1.067 | 1.084 | 0.000 | 46.300 | 76.000 | 85.000 |
-| `seqkit_stats` | `size_band` | `under_500mb` | 7 | 8.027 | 8.932 | 0.000 | 50.470 | 76.000 | 1.000 |
+| `seqkit_stats` | `era_layout` | `ancient_pe` | 5 | 2.758 | 1.171 | 0.000 | 56.085 | 75.697 | 13.000 |
+| `seqkit_stats` | `era_layout` | `ancient_se` | 5 | 2.772 | 1.295 | 0.000 | 45.840 | 80.354 | 156.000 |
+| `seqkit_stats` | `era_layout` | `modern_pe` | 5 | 6.442 | 9.948 | 0.000 | 53.365 | 36.000 | 1.000 |
+| `seqkit_stats` | `era_layout` | `modern_se` | 5 | 4.392 | 1.864 | 0.000 | 45.150 | 76.000 | 1.000 |
+| `seqkit_stats` | `size_band` | `under_1000mb` | 1 | 11.984 | 11.984 | 0.000 | 45.150 | 101.000 | 1.000 |
+| `seqkit_stats` | `size_band` | `under_100mb` | 12 | 1.083 | 1.093 | 0.000 | 46.300 | 76.000 | 85.000 |
+| `seqkit_stats` | `size_band` | `under_500mb` | 7 | 8.120 | 9.274 | 0.000 | 50.470 | 76.000 | 1.000 |
 
 ## Highest-cost samples
 
 | Sample | Accession | Era | Layout | Size band | Slowest runtime (s) | Histogram bins | Max observed length |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: |
-| `sample_0006` | `DRR001073` | `modern` | `se` | `under_1000mb` | 11.431 | 1.000 | 101.000 |
-| `sample_0003` | `DRR000550` | `modern` | `pe` | `under_500mb` | 11.201 | 1.000 | 36.000 |
-| `sample_0001` | `DRR000093` | `modern` | `pe` | `under_500mb` | 10.054 | 1.000 | 36.000 |
-| `sample_0002` | `DRR000095` | `modern` | `pe` | `under_500mb` | 9.728 | 1.000 | 36.000 |
-| `sample_0018` | `ERR769591` | `ancient` | `se` | `under_500mb` | 8.932 | 158.000 | 187.000 |
-| `sample_0013` | `ERR15886310` | `ancient` | `pe` | `under_500mb` | 5.937 | 1.000 | 76.000 |
-| `sample_0008` | `DRR001083` | `modern` | `se` | `under_500mb` | 5.385 | 1.000 | 140.000 |
-| `sample_0012` | `ERR15886307` | `ancient` | `pe` | `under_500mb` | 4.954 | 1.000 | 76.000 |
-| `sample_0017` | `ERR769590` | `ancient` | `se` | `under_100mb` | 1.930 | 158.000 | 187.000 |
-| `sample_0007` | `DRR001076` | `modern` | `se` | `under_100mb` | 1.866 | 1.000 | 76.000 |
+| `sample_0006` | `DRR001073` | `modern` | `se` | `under_1000mb` | 11.984 | 1.000 | 101.000 |
+| `sample_0003` | `DRR000550` | `modern` | `pe` | `under_500mb` | 11.120 | 1.000 | 36.000 |
+| `sample_0002` | `DRR000095` | `modern` | `pe` | `under_500mb` | 10.027 | 1.000 | 36.000 |
+| `sample_0001` | `DRR000093` | `modern` | `pe` | `under_500mb` | 9.948 | 1.000 | 36.000 |
+| `sample_0018` | `ERR769591` | `ancient` | `se` | `under_500mb` | 9.274 | 158.000 | 187.000 |
+| `sample_0013` | `ERR15886310` | `ancient` | `pe` | `under_500mb` | 5.975 | 1.000 | 76.000 |
+| `sample_0008` | `DRR001083` | `modern` | `se` | `under_500mb` | 5.718 | 1.000 | 140.000 |
+| `sample_0012` | `ERR15886307` | `ancient` | `pe` | `under_500mb` | 4.781 | 1.000 | 76.000 |
+| `sample_0017` | `ERR769590` | `ancient` | `se` | `under_100mb` | 1.913 | 158.000 | 187.000 |
+| `sample_0007` | `DRR001076` | `modern` | `se` | `under_100mb` | 1.864 | 1.000 | 76.000 |
 
 ## Interpretation
 

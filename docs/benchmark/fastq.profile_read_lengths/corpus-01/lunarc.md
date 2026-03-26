@@ -6,7 +6,7 @@ This benchmark measures the governed `fastq.profile_read_lengths` stage across t
 
 - Platform: `lunarc-apptainer` on Lunarc
 - Corpus root: `/home/bijan/bijux/corpus_01`
-- Benchmark root: `/home/bijan/bijux/results/corpus_01/fastq.profile_read_lengths/lunarc`
+- Benchmark root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_read_lengths/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `seqkit_stats`
 - Length-profile contract: report_only=`True`, mutates_fastq=`False`, may_change_read_count=`False`, histogram_bins=`100`
@@ -16,9 +16,9 @@ This benchmark measures the governed `fastq.profile_read_lengths` stage across t
 ## Executive summary
 
 - Every tool completed successfully on all `20` samples; stage-level sample failures were `0`.
-- `seqkit_stats` ran at `p50=1.603s` with median mean read length `76.000` and median distinct-length support `7.000`.
-- Runtime remains input-driven for `seqkit_stats`: `modern_pe` averages `6.456s` while `ancient_se` averages `2.694s`.
-- Size-band spread remains visible for `seqkit_stats`: `under_500mb` averages `8.074s` versus `1.065s` on `under_100mb` inputs.
+- `seqkit_stats` ran at `p50=1.646s` with median mean read length `76.000` and median distinct-length support `7.000`.
+- Runtime remains input-driven for `seqkit_stats`: `modern_pe` averages `6.370s` while `ancient_se` averages `2.890s`.
+- Size-band spread remains visible for `seqkit_stats`: `under_500mb` averages `8.134s` versus `1.084s` on `under_100mb` inputs.
 - Correctness stayed stable across all `20` tool-sample observations: `exit_code=0` on `20` rows, and every published row carried governed histogram artifacts plus valid length-distribution metrics.
 - Histogram resolution stayed pinned at `100` bins, so cross-sample comparisons use one deterministic bucket budget.
 
@@ -26,34 +26,34 @@ This benchmark measures the governed `fastq.profile_read_lengths` stage across t
 
 | Tool | Pass rate | Mean (s) | Median (s) | P90 (s) | Max (s) | Median read count | Median mean length | Median max length | Median distinct lengths |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `seqkit_stats` | 100.0% | 4.036 | 1.603 | 10.231 | 11.426 | 1241122.500 | 76.000 | 76.000 | 7.000 |
+| `seqkit_stats` | 100.0% | 4.071 | 1.646 | 9.917 | 11.478 | 1241122.500 | 76.000 | 76.000 | 7.000 |
 
 ## Cohort behavior
 
 | Tool | Dimension | Cohort | Samples | Mean runtime (s) | Median runtime (s) | Median mean length | Median max length | Median distinct lengths |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `seqkit_stats` | `era_layout` | `ancient_pe` | 5 | 2.786 | 1.160 | 75.697 | 76.000 | 13.000 |
-| `seqkit_stats` | `era_layout` | `ancient_se` | 5 | 2.694 | 1.264 | 80.354 | 185.000 | 156.000 |
-| `seqkit_stats` | `era_layout` | `modern_pe` | 5 | 6.456 | 10.003 | 36.000 | 36.000 | 1.000 |
-| `seqkit_stats` | `era_layout` | `modern_se` | 5 | 4.208 | 1.849 | 76.000 | 76.000 | 1.000 |
-| `seqkit_stats` | `size_band` | `under_1000mb` | 1 | 11.426 | 11.426 | 101.000 | 101.000 | 1.000 |
-| `seqkit_stats` | `size_band` | `under_100mb` | 12 | 1.065 | 1.080 | 76.000 | 99.500 | 85.000 |
-| `seqkit_stats` | `size_band` | `under_500mb` | 7 | 8.074 | 8.927 | 76.000 | 76.000 | 1.000 |
+| `seqkit_stats` | `era_layout` | `ancient_pe` | 5 | 2.769 | 1.189 | 75.697 | 76.000 | 13.000 |
+| `seqkit_stats` | `era_layout` | `ancient_se` | 5 | 2.890 | 1.277 | 80.354 | 185.000 | 156.000 |
+| `seqkit_stats` | `era_layout` | `modern_pe` | 5 | 6.370 | 9.892 | 36.000 | 36.000 | 1.000 |
+| `seqkit_stats` | `era_layout` | `modern_se` | 5 | 4.255 | 1.877 | 76.000 | 76.000 | 1.000 |
+| `seqkit_stats` | `size_band` | `under_1000mb` | 1 | 11.478 | 11.478 | 101.000 | 101.000 | 1.000 |
+| `seqkit_stats` | `size_band` | `under_100mb` | 12 | 1.084 | 1.104 | 76.000 | 99.500 | 85.000 |
+| `seqkit_stats` | `size_band` | `under_500mb` | 7 | 8.134 | 9.892 | 76.000 | 76.000 | 1.000 |
 
 ## Highest-cost samples
 
 | Sample | Accession | Era | Layout | Size band | Slowest runtime (s) | Distinct lengths | Max read length |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: |
-| `sample_0006` | `DRR001073` | `modern` | `se` | `under_1000mb` | 11.426 | 1.000 | 101.000 |
-| `sample_0003` | `DRR000550` | `modern` | `pe` | `under_500mb` | 11.016 | 1.000 | 36.000 |
-| `sample_0002` | `DRR000095` | `modern` | `pe` | `under_500mb` | 10.231 | 1.000 | 36.000 |
-| `sample_0001` | `DRR000093` | `modern` | `pe` | `under_500mb` | 10.003 | 1.000 | 36.000 |
-| `sample_0018` | `ERR769591` | `ancient` | `se` | `under_500mb` | 8.927 | 158.000 | 187.000 |
-| `sample_0013` | `ERR15886310` | `ancient` | `pe` | `under_500mb` | 6.011 | 1.000 | 76.000 |
-| `sample_0008` | `DRR001083` | `modern` | `se` | `under_500mb` | 5.400 | 1.000 | 140.000 |
-| `sample_0012` | `ERR15886307` | `ancient` | `pe` | `under_500mb` | 4.926 | 1.000 | 76.000 |
-| `sample_0017` | `ERR769590` | `ancient` | `se` | `under_100mb` | 2.003 | 158.000 | 187.000 |
-| `sample_0007` | `DRR001076` | `modern` | `se` | `under_100mb` | 1.849 | 1.000 | 76.000 |
+| `sample_0006` | `DRR001073` | `modern` | `se` | `under_1000mb` | 11.478 | 1.000 | 101.000 |
+| `sample_0003` | `DRR000550` | `modern` | `pe` | `under_500mb` | 10.964 | 1.000 | 36.000 |
+| `sample_0002` | `DRR000095` | `modern` | `pe` | `under_500mb` | 9.917 | 1.000 | 36.000 |
+| `sample_0018` | `ERR769591` | `ancient` | `se` | `under_500mb` | 9.914 | 158.000 | 187.000 |
+| `sample_0001` | `DRR000093` | `modern` | `pe` | `under_500mb` | 9.892 | 1.000 | 36.000 |
+| `sample_0013` | `ERR15886310` | `ancient` | `pe` | `under_500mb` | 5.987 | 1.000 | 76.000 |
+| `sample_0008` | `DRR001083` | `modern` | `se` | `under_500mb` | 5.459 | 1.000 | 140.000 |
+| `sample_0012` | `ERR15886307` | `ancient` | `pe` | `under_500mb` | 4.804 | 1.000 | 76.000 |
+| `sample_0017` | `ERR769590` | `ancient` | `se` | `under_100mb` | 1.945 | 158.000 | 187.000 |
+| `sample_0007` | `DRR001076` | `modern` | `se` | `under_100mb` | 1.877 | 1.000 | 76.000 |
 
 ## Interpretation
 
