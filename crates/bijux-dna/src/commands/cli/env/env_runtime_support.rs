@@ -165,6 +165,18 @@ fn run_apptainer_exec(
     data_root: &Path,
     results_root: &Path,
 ) -> Result<String> {
+    let bind_args = apptainer_bind_args(data_root, results_root)?;
+    let cmd = format!(
+        "apptainer exec --containall --cleanenv --net --network none {} '{}' sh -lc '{}'",
+        bind_args,
+        sif_path.display(),
+        command.replace('\'', "'\\''")
+    );
+    bijux_dna_api::v1::api::env::run_shell_capture(&cmd)
+        .with_context(|| format!("apptainer exec {}", sif_path.display()))
+}
+
+fn apptainer_bind_args(data_root: &Path, results_root: &Path) -> Result<String> {
     if !data_root.exists() {
         return Err(anyhow!("input bind root missing: {}", data_root.display()));
     }
@@ -174,23 +186,16 @@ fn run_apptainer_exec(
             results_root.display()
         ));
     }
+
+    let mut binds = vec![
+        format!("--bind '{}:/bijux/input:ro'", data_root.display()),
+        format!("--bind '{}:/bijux/output:rw'", results_root.display()),
+    ];
     let banks_root = data_root.join("banks");
-    if !banks_root.exists() {
-        return Err(anyhow!("db bind root missing: {}", banks_root.display()));
+    if banks_root.exists() {
+        binds.push(format!("--bind '{}:/bijux/db:ro'", banks_root.display()));
     }
-    let input_bind = format!("{}:/bijux/input:ro", data_root.display());
-    let output_bind = format!("{}:/bijux/output:rw", results_root.display());
-    let db_bind = format!("{}:/bijux/db:ro", banks_root.display());
-    let cmd = format!(
-        "apptainer exec --containall --cleanenv --net --network none --bind '{}' --bind '{}' --bind '{}' '{}' sh -lc '{}'",
-        input_bind,
-        output_bind,
-        db_bind,
-        sif_path.display(),
-        command.replace('\'', "'\\''")
-    );
-    bijux_dna_api::v1::api::env::run_shell_capture(&cmd)
-        .with_context(|| format!("apptainer exec {}", sif_path.display()))
+    Ok(binds.join(" "))
 }
 
 fn hash_file_sha256_hex(path: &Path) -> Result<String> {
@@ -405,6 +410,36 @@ mod tests {
         };
         std::env::set_var("HOME", temp.path());
         assert!(ensure_cache_writable(RuntimeKind::Docker));
+        Ok(())
+    }
+
+    #[test]
+    fn apptainer_bind_args_skips_missing_db_root() -> anyhow::Result<()> {
+        let temp = bijux_dna_api::v1::api::run::temp_dir("bijux")?;
+        let data_root = temp.path().join("corpus_01");
+        let results_root = temp.path().join("results");
+        std::fs::create_dir_all(&data_root)?;
+        std::fs::create_dir_all(&results_root)?;
+
+        let binds = apptainer_bind_args(&data_root, &results_root)?;
+
+        assert!(binds.contains("/bijux/input:ro"));
+        assert!(binds.contains("/bijux/output:rw"));
+        assert!(!binds.contains("/bijux/db:ro"));
+        Ok(())
+    }
+
+    #[test]
+    fn apptainer_bind_args_includes_db_root_when_present() -> anyhow::Result<()> {
+        let temp = bijux_dna_api::v1::api::run::temp_dir("bijux")?;
+        let data_root = temp.path().join("corpus_01");
+        let results_root = temp.path().join("results");
+        std::fs::create_dir_all(data_root.join("banks"))?;
+        std::fs::create_dir_all(&results_root)?;
+
+        let binds = apptainer_bind_args(&data_root, &results_root)?;
+
+        assert!(binds.contains("/bijux/db:ro"));
         Ok(())
     }
 
