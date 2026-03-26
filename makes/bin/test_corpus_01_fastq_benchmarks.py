@@ -14,6 +14,8 @@ if str(BIN_DIR) not in sys.path:
 import corpus_01_fastq_benchmark_support as support
 import render_fastq_trim_reads_corpus_01_briefing as trim_reads_briefing
 import render_fastq_trim_reads_corpus_01_report as trim_reads_report
+import render_fastq_trim_terminal_damage_corpus_01_briefing as terminal_damage_briefing
+import render_fastq_trim_terminal_damage_corpus_01_report as terminal_damage_report
 import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 
@@ -478,6 +480,160 @@ class TrimReadsReportingTests(unittest.TestCase):
                 {
                     "stage_id": "fastq.trim_reads",
                     "scenario_id": "trim_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": True,
+                }
+            )
+
+
+class TerminalDamageReportingTests(unittest.TestCase):
+    def test_terminal_damage_summary_tracks_runtime_and_asymmetry(self) -> None:
+        rows = [
+            {
+                "tool": "cutadapt",
+                "runtime_s": "0.8",
+                "exit_code": "0",
+                "base_retention": "0.95",
+                "asymmetry_reduction": "0.25",
+                "mean_q_delta": "0.30",
+            },
+            {
+                "tool": "cutadapt",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "base_retention": "0.93",
+                "asymmetry_reduction": "0.20",
+                "mean_q_delta": "0.20",
+            },
+            {
+                "tool": "seqkit",
+                "runtime_s": "1.6",
+                "exit_code": "0",
+                "base_retention": "0.97",
+                "asymmetry_reduction": "0.05",
+                "mean_q_delta": "0.10",
+            },
+            {
+                "tool": "seqkit",
+                "runtime_s": "1.8",
+                "exit_code": "0",
+                "base_retention": "0.96",
+                "asymmetry_reduction": "0.04",
+                "mean_q_delta": "0.10",
+            },
+        ]
+
+        summary_rows = terminal_damage_briefing.tool_runtime_summary(rows)
+        by_tool = {row["tool"]: row for row in summary_rows}
+
+        self.assertAlmostEqual(by_tool["cutadapt"]["median_runtime_s"], 0.9)
+        self.assertAlmostEqual(by_tool["cutadapt"]["mean_asymmetry_reduction"], 0.225)
+        self.assertGreater(
+            by_tool["seqkit"]["median_base_retention"],
+            by_tool["cutadapt"]["median_base_retention"],
+        )
+
+    def test_terminal_damage_markdown_mentions_damage_policy(self) -> None:
+        summary = {
+            "generated_at_utc": "2026-03-26T00:00:00+00:00",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.trim_terminal_damage/lunarc",
+            "scenario_id": "terminal_damage_fairness",
+            "samples_total": 20,
+            "samples_failed": 0,
+            "tools": ["adapterremoval", "cutadapt", "seqkit"],
+            "damage_mode": "ancient",
+            "execution_policy": "explicit_terminal_trim",
+            "trim_5p_bases": 2,
+            "trim_3p_bases": 2,
+            "era_counts": {"ancient": 10, "modern": 10},
+            "layout_counts": {"se": 10, "pe": 10},
+            "cohort_counts": {"ancient_pe": 5, "ancient_se": 5, "modern_pe": 5, "modern_se": 5},
+            "headline": {
+                "fastest_tool": "cutadapt",
+                "fastest_runtime_s": 0.9,
+                "best_base_retention_tool": "seqkit",
+                "best_base_retention": 0.965,
+                "largest_asymmetry_reduction_tool": "cutadapt",
+                "largest_asymmetry_reduction": 0.225,
+            },
+            "tool_summary": [
+                {
+                    "tool": "cutadapt",
+                    "records": 20,
+                    "pass_rate": 1.0,
+                    "median_runtime_s": 0.9,
+                    "median_base_retention": 0.94,
+                    "mean_asymmetry_reduction": 0.225,
+                    "mean_q_delta": 0.25,
+                }
+            ],
+        }
+
+        markdown = terminal_damage_report.render_markdown(summary)
+
+        self.assertIn("execution_policy: `explicit_terminal_trim`", markdown)
+        self.assertIn("Mean asymmetry reduction", markdown)
+
+    def test_terminal_damage_report_contract_rejects_policy_drift(self) -> None:
+        run_manifest = {
+            "tools": ["adapterremoval", "cutadapt", "seqkit"],
+            "damage_mode": "ancient",
+            "execution_policy": "explicit_terminal_trim",
+            "trim_5p_bases": 2,
+            "trim_3p_bases": 2,
+            "requested_trim_5p_bases": 2,
+            "requested_trim_3p_bases": 2,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "adapterremoval",
+                "raw_backend_report_format": None,
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 2,
+                "trim_3p_bases": 2,
+                "requested_trim_5p_bases": 2,
+                "requested_trim_3p_bases": 2,
+            },
+            {
+                "sample_id": "sample_0001",
+                "tool": "cutadapt",
+                "raw_backend_report_format": "cutadapt_json",
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 1,
+                "trim_3p_bases": 2,
+                "requested_trim_5p_bases": 2,
+                "requested_trim_3p_bases": 2,
+            },
+            {
+                "sample_id": "sample_0001",
+                "tool": "seqkit",
+                "raw_backend_report_format": None,
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 2,
+                "trim_3p_bases": 2,
+                "requested_trim_5p_bases": 2,
+                "requested_trim_3p_bases": 2,
+            },
+        ]
+
+        with self.assertRaises(SystemExit):
+            terminal_damage_report.validate_terminal_damage_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+            )
+
+    def test_terminal_damage_report_rejects_dry_run_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            terminal_damage_report.validate_terminal_damage_run_manifest_contract(
+                {
+                    "stage_id": "fastq.trim_terminal_damage",
+                    "scenario_id": "terminal_damage_fairness",
                     "tool_kind": "benchmark",
                     "dry_run": True,
                 }
