@@ -124,6 +124,14 @@ def validate_artifact_paths(report_path: Path, tool: str) -> dict[str, str]:
             "overrepresented benchmark report drift: "
             f"missing governed overrepresented artifacts for {tool}: {missing}"
         )
+    empty = [
+        str(path) for path in [output_tsv, output_json, report_json] if path.stat().st_size == 0
+    ]
+    if empty:
+        raise SystemExit(
+            "overrepresented benchmark report drift: "
+            f"empty governed overrepresented artifacts for {tool}: {empty}"
+        )
     return {
         "overrepresented_sequences_tsv_artifact": str(output_tsv),
         "overrepresented_sequences_json_artifact": str(output_json),
@@ -156,10 +164,22 @@ def validate_overrepresented_row_contract(
                 "overrepresented benchmark report drift: "
                 f"flagged_sequences must be <= sequence_count for {row['sample_id']}/{row['tool']}"
             )
+        if int(row["sequence_count"]) > int(row["top_k"]):
+            raise SystemExit(
+                "overrepresented benchmark report drift: "
+                f"sequence_count must be <= top_k for {row['sample_id']}/{row['tool']}"
+            )
         if not 0.0 <= float(row["top_fraction"]) <= 1.0:
             raise SystemExit(
                 "overrepresented benchmark report drift: "
                 f"top_fraction must be within [0, 1] for {row['sample_id']}/{row['tool']}"
+            )
+        if int(row["sequence_count"]) == 0 and (
+            int(row["flagged_sequences"]) != 0 or float(row["top_fraction"]) != 0.0
+        ):
+            raise SystemExit(
+                "overrepresented benchmark report drift: "
+                f"empty ranked outputs must carry zero flagged_sequences and zero top_fraction for {row['sample_id']}/{row['tool']}"
             )
         if int(row["top_k"]) != int(run_manifest["top_k"]):
             raise SystemExit(
