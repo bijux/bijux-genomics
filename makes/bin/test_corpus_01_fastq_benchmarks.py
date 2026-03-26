@@ -222,7 +222,23 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
             docs_root = Path(tmpdir) / "docs" / "benchmark"
+            corpus_spec = repo_root / "configs" / "runtime" / "corpora"
+            corpus_spec.mkdir(parents=True)
+            (corpus_spec / "corpus-01.toml").write_text(
+                "\n".join(
+                    [
+                        'corpus_id = "corpus-01"',
+                        "target_ancient_se = 1",
+                        "target_ancient_pe = 1",
+                        "target_modern_se = 1",
+                        "target_modern_pe = 1",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
             stage_root = docs_root / "fastq.validate_reads"
             corpus_root = stage_root / "corpus-01"
             corpus_root.mkdir(parents=True)
@@ -238,7 +254,18 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 encoding="utf-8",
             )
             (corpus_root / "sample_results.csv").write_text("sample_id,tool\n", encoding="utf-8")
-            report = benchmark_docs_audit.audit_docs(docs_root)
+            report = benchmark_docs_audit.audit_docs(
+                docs_root,
+                repo_root=repo_root,
+                stage_contracts=[
+                    support.CorpusBenchmarkContract(
+                        stage_id="fastq.validate_reads",
+                        scenario_id="validation_fairness",
+                        tools=["fastqvalidator"],
+                    )
+                ],
+                exclusions=[],
+            )
             validate_report = next(
                 stage for stage in report["stages"] if stage["stage_id"] == "fastq.validate_reads"
             )
@@ -251,20 +278,31 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
 
     def test_render_markdown_summarizes_completion_and_issue_count(self) -> None:
         report = {
-            "stage_count": 2,
+            "benchmarkable_stage_count": 3,
+            "applicable_stage_count": 2,
             "completed_stage_count": 1,
+            "incomplete_stage_count": 1,
+            "excluded_stage_count": 1,
             "issue_count": 3,
+            "excluded_stages": [
+                {
+                    "stage_id": "fastq.index_reference",
+                    "reason": "reference bundle benchmark",
+                }
+            ],
             "stages": [
                 {
                     "stage_id": "fastq.validate_reads",
                     "status": "complete",
                     "issue_count": 0,
                     "issues": [],
+                    "sample_scope": "full",
                 },
                 {
                     "stage_id": "fastq.trim_reads",
                     "status": "incomplete",
                     "issue_count": 3,
+                    "sample_scope": "full",
                     "issues": [
                         {
                             "issue_id": "missing-corpus-dir",
@@ -277,19 +315,121 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
 
         markdown = benchmark_docs_audit.render_markdown(report)
 
+        self.assertIn("Benchmarkable governed stages: `3`", markdown)
         self.assertIn("Completed stage dossiers: `1`", markdown)
         self.assertIn("Publication issues: `3`", markdown)
-        self.assertIn("`fastq.trim_reads`: `incomplete` (`3` issues)", markdown)
+        self.assertIn("`fastq.trim_reads`: `incomplete` (`3` issues, scope `full`)", markdown)
+        self.assertIn("`fastq.index_reference`: reference bundle benchmark", markdown)
 
     def test_merge_stage_is_tracked_in_publication_audit(self) -> None:
-        stage_ids = [contract.stage_id for contract in benchmark_docs_audit.STAGE_CONTRACTS]
+        stage_ids = [
+            contract.stage_id for contract in benchmark_docs_audit.CORPUS_01_PUBLICATION_CONTRACTS
+        ]
 
         self.assertIn("fastq.merge_pairs", stage_ids)
 
     def test_report_qc_stage_is_tracked_in_publication_audit(self) -> None:
-        stage_ids = [contract.stage_id for contract in benchmark_docs_audit.STAGE_CONTRACTS]
+        stage_ids = [
+            contract.stage_id for contract in benchmark_docs_audit.CORPUS_01_PUBLICATION_CONTRACTS
+        ]
 
         self.assertIn("fastq.report_qc", stage_ids)
+
+    def test_audit_docs_rejects_missing_tool_coverage_in_sample_results(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark"
+            corpus_spec = repo_root / "configs" / "runtime" / "corpora"
+            corpus_spec.mkdir(parents=True)
+            (corpus_spec / "corpus-01.toml").write_text(
+                "\n".join(
+                    [
+                        'corpus_id = "corpus-01"',
+                        "target_ancient_se = 1",
+                        "target_ancient_pe = 1",
+                        "target_modern_se = 1",
+                        "target_modern_pe = 1",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            stage_root = docs_root / "fastq.validate_reads"
+            corpus_root = stage_root / "corpus-01"
+            corpus_root.mkdir(parents=True)
+            (stage_root / "corpus-01-method.md").write_text("# method\n", encoding="utf-8")
+            (corpus_root / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "scenario_id": "validation_fairness",
+                        "tools": ["fastqvalidator", "seqtk"],
+                        "samples_total": 4,
+                        "samples_failed": 0,
+                        "cohort_counts": {
+                            "ancient_pe": 1,
+                            "ancient_se": 1,
+                            "modern_pe": 1,
+                            "modern_se": 1,
+                        },
+                        "tool_summary": [
+                            {"tool": "fastqvalidator"},
+                            {"tool": "seqtk"},
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "sample_results.csv").write_text(
+                "\n".join(
+                    [
+                        "sample_id,accession,era,layout,study_accession,size_band,tool",
+                        "sample_0001,ACC1,ancient,se,PRJ1,under_100mb,fastqvalidator",
+                        "sample_0002,ACC2,ancient,pe,PRJ2,under_100mb,fastqvalidator",
+                        "sample_0003,ACC3,modern,se,PRJ3,under_500mb,fastqvalidator",
+                        "sample_0004,ACC4,modern,pe,PRJ4,under_500mb,fastqvalidator",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "tool_runtime_summary.csv").write_text(
+                "tool\nfastqvalidator\nseqtk\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "cohort_runtime_summary.csv").write_text(
+                "cohort\nancient_pe\nancient_se\nmodern_pe\nmodern_se\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "sample_runtime_outliers.csv").write_text(
+                "sample_id\nsample_0001\nsample_0002\nsample_0003\nsample_0004\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "lunarc.md").write_text("# dossier\n", encoding="utf-8")
+
+            report = benchmark_docs_audit.audit_docs(
+                docs_root,
+                repo_root=repo_root,
+                stage_contracts=[
+                    support.CorpusBenchmarkContract(
+                        stage_id="fastq.validate_reads",
+                        scenario_id="validation_fairness",
+                        tools=["fastqvalidator", "seqtk"],
+                    )
+                ],
+                exclusions=[],
+            )
+            validate_report = report["stages"][0]
+
+            self.assertEqual(validate_report["status"], "incomplete")
+            self.assertTrue(
+                any(
+                    issue["issue_id"] == "sample-results-tool-coverage-drift"
+                    for issue in validate_report["issues"]
+                )
+            )
 
 
 class TrimPolygReportingTests(unittest.TestCase):
