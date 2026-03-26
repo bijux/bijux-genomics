@@ -26,7 +26,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.title authenticct
 
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/opt/authenticct-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     export TZ=UTC
     DEBIAN_FRONTEND=noninteractive
@@ -42,13 +42,15 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     git clone https://github.com/StephanePeyregne/AuthentiCT.git /opt/authenticct
     cd /opt/authenticct
     git checkout --detach f58b25c448c8d9afebcdddd351cbae84fd5f6bab
-    python3 -m pip install --no-cache-dir .
+    python3 -m venv /opt/authenticct-venv
+    /opt/authenticct-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel
+    /opt/authenticct-venv/bin/pip install --no-cache-dir .
 
     cat > /usr/local/bin/authenticct <<'EOS'
 #!/usr/bin/env sh
 set -eu
 run_authenticct() {
-  exec python3 -m AuthentiCT.cli "$@"
+  exec /opt/authenticct-venv/bin/python -m AuthentiCT.cli "$@"
 }
 case "${1:-}" in
   --version)

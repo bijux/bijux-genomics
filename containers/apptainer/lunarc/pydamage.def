@@ -26,7 +26,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.title pydamage
 
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/opt/pydamage-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
     export TZ=UTC
     DEBIAN_FRONTEND=noninteractive
@@ -40,7 +40,9 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     git clone --depth 1 https://github.com/maxibor/pydamage.git /opt/pydamage
     cd /opt/pydamage
     git checkout 08f1d0f2d1981d350decbf10964f989e9567ddbf
-    python3 -m pip install --no-cache-dir .
+    python3 -m venv /opt/pydamage-venv
+    /opt/pydamage-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel
+    /opt/pydamage-venv/bin/pip install --no-cache-dir .
 
     cat > /usr/local/bin/pydamage <<'EOS'
 #!/usr/bin/env sh
@@ -51,7 +53,7 @@ case "${1:-}" in
     exit 0
     ;;
 esac
-exec python3 -m pydamage "$@"
+exec /opt/pydamage-venv/bin/python -m pydamage "$@"
 EOS
     chmod +x /usr/local/bin/pydamage
 %runscript
