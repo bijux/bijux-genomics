@@ -1216,7 +1216,10 @@ fn plan_trim_galore_uses_output_directory_and_moves_governed_outputs() -> Result
     assert!(script.contains("--cores 1"));
     assert!(script.contains("--paired"));
     assert!(script.contains("reads_R1_val_1.fq.gz"));
+    assert!(script.contains("reads_R1_trimmed.fq.gz"));
     assert!(script.contains("reads_R2_val_2.fq.gz"));
+    assert!(script.contains("reads_R2_trimmed.fq.gz"));
+    assert!(script.contains("trim_galore did not produce an expected output file"));
     assert!(script.contains("trim_report.json"));
     Ok(())
 }

@@ -1397,16 +1397,14 @@ fn trim_galore_command_template(
         script.push_str(&shell_quote_path(r2));
     }
     script.push('\n');
-    script.push_str(&format!(
-        "mv {} {}\n",
-        shell_quote_path(&trim_galore_output_path(&working_dir, r1, r2.is_some(), 1)),
-        shell_quote_path(output_r1),
+    script.push_str(&move_trim_galore_output_script(
+        &trim_galore_output_paths(&working_dir, r1, r2.is_some(), 1),
+        output_r1,
     ));
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
-        script.push_str(&format!(
-            "mv {} {}\n",
-            shell_quote_path(&trim_galore_output_path(&working_dir, r2, true, 2)),
-            shell_quote_path(output_r2),
+        script.push_str(&move_trim_galore_output_script(
+            &trim_galore_output_paths(&working_dir, r2, true, 2),
+            output_r2,
         ));
     }
     script.push_str(&write_trim_report_script(
@@ -1427,44 +1425,75 @@ fn trim_galore_command_template(
     Ok(vec!["sh".to_string(), "-lc".to_string(), script])
 }
 
-fn trim_galore_output_path(
+fn move_trim_galore_output_script(candidates: &[PathBuf], output_path: &Path) -> String {
+    let mut script = String::from("trim_galore_output_moved=0\n");
+    for candidate in candidates {
+        script.push_str(&format!(
+            "if [ -f {} ]; then mv {} {}; trim_galore_output_moved=1; fi\n",
+            shell_quote_path(candidate),
+            shell_quote_path(candidate),
+            shell_quote_path(output_path),
+        ));
+    }
+    script.push_str(
+        "[ \"$trim_galore_output_moved\" = 1 ] || { echo 'trim_galore did not produce an expected output file' >&2; exit 1; }\n",
+    );
+    script
+}
+
+fn trim_galore_output_paths(
     output_dir: &Path,
     reads: &Path,
     paired_end: bool,
     mate_index: u8,
-) -> PathBuf {
+) -> Vec<PathBuf> {
     let file_name = reads
         .file_name()
         .and_then(|name| name.to_str())
         .unwrap_or("reads.fastq.gz");
-    let trimmed_name = if let Some(stripped) = file_name.strip_suffix(".fastq.gz") {
+    let candidate_names = if let Some(stripped) = file_name.strip_suffix(".fastq.gz") {
         if paired_end {
-            format!("{stripped}_val_{mate_index}.fq.gz")
+            vec![
+                format!("{stripped}_val_{mate_index}.fq.gz"),
+                format!("{stripped}_trimmed.fq.gz"),
+            ]
         } else {
-            format!("{stripped}_trimmed.fq.gz")
+            vec![format!("{stripped}_trimmed.fq.gz")]
         }
     } else if let Some(stripped) = file_name.strip_suffix(".fq.gz") {
         if paired_end {
-            format!("{stripped}_val_{mate_index}.fq.gz")
+            vec![
+                format!("{stripped}_val_{mate_index}.fq.gz"),
+                format!("{stripped}_trimmed.fq.gz"),
+            ]
         } else {
-            format!("{stripped}_trimmed.fq.gz")
+            vec![format!("{stripped}_trimmed.fq.gz")]
         }
     } else if let Some(stripped) = file_name.strip_suffix(".fastq") {
         if paired_end {
-            format!("{stripped}_val_{mate_index}.fq")
+            vec![
+                format!("{stripped}_val_{mate_index}.fq"),
+                format!("{stripped}_trimmed.fq"),
+            ]
         } else {
-            format!("{stripped}_trimmed.fq")
+            vec![format!("{stripped}_trimmed.fq")]
         }
     } else if let Some(stripped) = file_name.strip_suffix(".fq") {
         if paired_end {
-            format!("{stripped}_val_{mate_index}.fq")
+            vec![
+                format!("{stripped}_val_{mate_index}.fq"),
+                format!("{stripped}_trimmed.fq"),
+            ]
         } else {
-            format!("{stripped}_trimmed.fq")
+            vec![format!("{stripped}_trimmed.fq")]
         }
     } else {
-        format!("{file_name}_trimmed.fq.gz")
+        vec![format!("{file_name}_trimmed.fq.gz")]
     };
-    output_dir.join(trimmed_name)
+    candidate_names
+        .into_iter()
+        .map(|name| output_dir.join(name))
+        .collect()
 }
 
 fn enabled_adapter_sequences(adapter_bank: Option<&serde_json::Value>) -> Vec<String> {
