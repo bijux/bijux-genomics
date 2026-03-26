@@ -60,6 +60,10 @@ def validate_detect_run_manifest_contract(run_manifest: dict) -> None:
         raise SystemExit(
             "detect-adapters benchmark report rendering requires an executed run, not --dry-run output"
         )
+    if run_manifest.get("sample_limit") is not None:
+        raise SystemExit(
+            "detect-adapters benchmark report rendering requires the full corpus run, not --sample-limit output"
+        )
     if run_manifest.get("stage_id") != DETECT_ADAPTERS_BENCHMARK_CONTRACT.stage_id:
         raise SystemExit(
             "detect-adapters benchmark report drift: "
