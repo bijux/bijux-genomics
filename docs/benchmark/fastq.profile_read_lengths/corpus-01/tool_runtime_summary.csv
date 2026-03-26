@@ -1,0 +1,2 @@
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,median_read_count,median_mean_read_length,median_max_read_length,median_distinct_lengths,slowdown_vs_fastest_median
+seqkit_stats,20,1.000000,4.035840,1.603276,10.231439,11.425770,1241122.500000,76.000000,76.000000,7.000000,1.000000

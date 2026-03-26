@@ -1,0 +1,54 @@
+{
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_id": "corpus-01",
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-26T11:58:08.532770+00:00",
+  "headline": {
+    "fastest_runtime_s": 1.60327628,
+    "fastest_tool": "seqkit_stats",
+    "highest_max_read_length": 76.0,
+    "highest_max_read_length_tool": "seqkit_stats",
+    "widest_length_support": 7.0,
+    "widest_length_support_tool": "seqkit_stats"
+  },
+  "histogram_bins": 100,
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "may_change_read_count": false,
+  "mutates_fastq": false,
+  "platform": "lunarc-apptainer",
+  "raw_backend_report_format": "seqkit_stats_length_histogram",
+  "report_only": true,
+  "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_read_lengths/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "read_length_fairness",
+  "schema_version": "bijux.fastq.profile_read_lengths.corpus_summary.v1",
+  "stage_id": "fastq.profile_read_lengths",
+  "tool_summary": [
+    {
+      "median_distinct_lengths": 7.0,
+      "median_max_read_length": 76.0,
+      "median_mean_read_length": 76.0,
+      "median_read_count": 1241122.5,
+      "median_runtime_s": 1.60327628,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "seqkit_stats"
+    }
+  ],
+  "tools": [
+    "seqkit_stats"
+  ]
+}
