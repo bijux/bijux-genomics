@@ -102,6 +102,28 @@ def validate_trim_row_contract(*, run_manifest: dict, sample_rows: list[dict]) -
             )
 
 
+def validate_trim_run_manifest_contract(run_manifest: dict) -> None:
+    if run_manifest.get("dry_run"):
+        raise SystemExit("trim benchmark report rendering requires an executed run, not --dry-run output")
+    stage_id = run_manifest.get("stage_id", TRIM_READS_BENCHMARK_CONTRACT.stage_id)
+    scenario_id = run_manifest.get("scenario_id", TRIM_READS_BENCHMARK_CONTRACT.scenario_id)
+    tool_kind = run_manifest.get("tool_kind", "benchmark")
+    if stage_id != TRIM_READS_BENCHMARK_CONTRACT.stage_id:
+        raise SystemExit(
+            "trim benchmark report drift: "
+            f"expected stage_id {TRIM_READS_BENCHMARK_CONTRACT.stage_id}, found {stage_id}"
+        )
+    if scenario_id != TRIM_READS_BENCHMARK_CONTRACT.scenario_id:
+        raise SystemExit(
+            "trim benchmark report drift: "
+            f"expected scenario_id {TRIM_READS_BENCHMARK_CONTRACT.scenario_id}, found {scenario_id}"
+        )
+    if tool_kind != "benchmark":
+        raise SystemExit(
+            f"trim benchmark report drift: expected tool_kind benchmark, found {tool_kind}"
+        )
+
+
 def render_markdown(summary: dict) -> str:
     lines: list[str] = []
     lines.append("# `fastq.trim_reads` on `corpus-01`")
@@ -210,6 +232,7 @@ def main() -> int:
     spec = load_corpus_spec(repo_root)
     defaults = trim_reads_benchmark_defaults()
     run_manifest = load_json(run_root / "run_manifest.json")
+    validate_trim_run_manifest_contract(run_manifest)
     metadata_by_sample = validate_corpus_contract(
         corpus_root,
         spec,
