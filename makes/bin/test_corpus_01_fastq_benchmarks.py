@@ -12,6 +12,7 @@ if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
 import corpus_01_fastq_benchmark_support as support
+import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
 import render_fastq_profile_overrepresented_sequences_corpus_01_briefing as overrepresented_briefing
@@ -114,6 +115,69 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 ["fastp"],
                 ["fastp", "bbduk"],
             )
+
+
+class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
+    def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            docs_root = Path(tmpdir) / "docs" / "benchmark"
+            stage_root = docs_root / "fastq.validate_reads"
+            corpus_root = stage_root / "corpus-01"
+            corpus_root.mkdir(parents=True)
+            (stage_root / "corpus-01-method.md").write_text("# method\n", encoding="utf-8")
+            (corpus_root / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "scenario_id": "validation_fairness",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "sample_results.csv").write_text("sample_id,tool\n", encoding="utf-8")
+            report = benchmark_docs_audit.audit_docs(docs_root)
+            validate_report = next(
+                stage for stage in report["stages"] if stage["stage_id"] == "fastq.validate_reads"
+            )
+
+            self.assertEqual(validate_report["status"], "incomplete")
+            self.assertGreaterEqual(validate_report["issue_count"], 4)
+            self.assertTrue(
+                any(issue["issue_id"] == "missing-lunarc-md" for issue in validate_report["issues"])
+            )
+
+    def test_render_markdown_summarizes_completion_and_issue_count(self) -> None:
+        report = {
+            "stage_count": 2,
+            "completed_stage_count": 1,
+            "issue_count": 3,
+            "stages": [
+                {
+                    "stage_id": "fastq.validate_reads",
+                    "status": "complete",
+                    "issue_count": 0,
+                    "issues": [],
+                },
+                {
+                    "stage_id": "fastq.trim_reads",
+                    "status": "incomplete",
+                    "issue_count": 3,
+                    "issues": [
+                        {
+                            "issue_id": "missing-corpus-dir",
+                            "detail": "missing docs/benchmark/fastq.trim_reads/corpus-01",
+                        }
+                    ],
+                },
+            ],
+        }
+
+        markdown = benchmark_docs_audit.render_markdown(report)
+
+        self.assertIn("Completed stage dossiers: `1`", markdown)
+        self.assertIn("Publication issues: `3`", markdown)
+        self.assertIn("`fastq.trim_reads`: `incomplete` (`3` issues)", markdown)
 
 
 class TrimPolygReportingTests(unittest.TestCase):
