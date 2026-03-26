@@ -326,6 +326,9 @@ def render_markdown(
     lines.append(
         f"- Length-profile contract: report_only=`{summary['report_only']}`, mutates_fastq=`{summary['mutates_fastq']}`, may_change_read_count=`{summary['may_change_read_count']}`, histogram_bins=`{summary['histogram_bins']}`"
     )
+    lines.append(
+        "- Governed artifacts per sample/tool: `profile_read_lengths_report.json`, `length_distribution.tsv`, and `length_distribution.json`."
+    )
     lines.append("- Execution profile: one benchmark sample at a time, one worker, governed thread budget")
     lines.append("")
     lines.append("## Executive summary")
@@ -346,6 +349,9 @@ def render_markdown(
         )
     lines.append(
         f"- Correctness stayed stable across all `{len(rows)}` tool-sample observations: `exit_code=0` on `{zero_exit}` rows, and every published row carried governed histogram artifacts plus valid length-distribution metrics."
+    )
+    lines.append(
+        f"- Histogram resolution stayed pinned at `{summary['histogram_bins']}` bins, so cross-sample comparisons use one deterministic bucket budget."
     )
     lines.append("")
     lines.append("## Tool ranking")
@@ -386,6 +392,9 @@ def render_markdown(
     )
     lines.append(
         "- Because the current governed benchmark cohort is a single backend, this dossier acts as a corpus-wide stability baseline for future regressions and future backend additions."
+    )
+    lines.append(
+        "- Artifact integrity matters as much as the metrics here: without the governed TSV and JSON histogram outputs, downstream comparisons lose their canonical surface."
     )
     lines.append(
         "- `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, and `sample_runtime_outliers.csv` are published beside this briefing for reproducible downstream analysis."
