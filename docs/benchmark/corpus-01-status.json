@@ -1,0 +1,95 @@
+{
+  "corpus_id": "corpus-01",
+  "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
+  "stage_count": 8,
+  "completed_stage_count": 6,
+  "issue_count": 2,
+  "stages": [
+    {
+      "stage_id": "fastq.validate_reads",
+      "scenario_id": "validation_fairness",
+      "method_path": "benchmark/fastq.validate_reads/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.validate_reads/corpus-01",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "scenario_id": "detect_adapters_fairness",
+      "method_path": "benchmark/fastq.detect_adapters/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.detect_adapters/corpus-01",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "scenario_id": "profile_reads_fairness",
+      "method_path": "benchmark/fastq.profile_reads/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.profile_reads/corpus-01",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "scenario_id": "read_length_fairness",
+      "method_path": "benchmark/fastq.profile_read_lengths/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.profile_read_lengths/corpus-01",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "scenario_id": "overrepresented_sequence_fairness",
+      "method_path": "benchmark/fastq.profile_overrepresented_sequences/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.profile_overrepresented_sequences/corpus-01",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "scenario_id": "polyg_trim_fairness",
+      "method_path": "benchmark/fastq.trim_polyg_tails/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.trim_polyg_tails/corpus-01",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "scenario_id": "trim_fairness",
+      "method_path": "benchmark/fastq.trim_reads/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.trim_reads/corpus-01",
+      "status": "incomplete",
+      "issue_count": 1,
+      "issues": [
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.trim_reads/corpus-01"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "scenario_id": "terminal_damage_fairness",
+      "method_path": "benchmark/fastq.trim_terminal_damage/corpus-01-method.md",
+      "corpus_path": "benchmark/fastq.trim_terminal_damage/corpus-01",
+      "status": "incomplete",
+      "issue_count": 1,
+      "issues": [
+        {
+          "stage_id": "fastq.trim_terminal_damage",
+          "issue_id": "missing-corpus-dir",
+          "severity": "error",
+          "detail": "missing benchmark/fastq.trim_terminal_damage/corpus-01"
+        }
+      ]
+    }
+  ]
+}

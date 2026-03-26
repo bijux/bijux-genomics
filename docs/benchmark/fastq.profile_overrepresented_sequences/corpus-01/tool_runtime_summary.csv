@@ -1,0 +1,4 @@
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,median_sequence_count,median_flagged_sequences,median_top_fraction,slowdown_vs_fastest_median
+fastq_scan,20,1.000000,2.274905,1.254590,4.364592,8.826199,50.000000,0.000000,0.001867,1.000000
+fastqc,20,1.000000,15.532197,7.086834,35.560281,41.571845,50.000000,0.000000,0.001867,5.648727
+seqkit,20,1.000000,5.108478,1.978889,13.161716,14.576878,50.000000,0.000000,0.001867,1.577320
