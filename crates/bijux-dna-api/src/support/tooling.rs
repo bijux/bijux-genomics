@@ -47,8 +47,13 @@ pub fn ensure_bench_runner(
     runner_override: Option<bijux_dna_environment::api::RuntimeKind>,
 ) -> Result<bijux_dna_environment::api::RuntimeKind> {
     let runner = runner_override.unwrap_or(platform.runner);
-    if runner != bijux_dna_environment::api::RuntimeKind::Docker {
-        return Err(anyhow!("benchmarking supports docker only for now"));
+    if !matches!(
+        runner,
+        bijux_dna_environment::api::RuntimeKind::Docker
+            | bijux_dna_environment::api::RuntimeKind::Apptainer
+            | bijux_dna_environment::api::RuntimeKind::Singularity
+    ) {
+        return Err(anyhow!("benchmarking does not support runner {runner}"));
     }
     Ok(runner)
 }
