@@ -51,8 +51,8 @@ fn run_smoke_with_manifest(
     sif_path: &Path,
     tool_id: &str,
     stage_id: &str,
-    expected_digest: &str,
-    actual_digest: &str,
+    registry_digest: &str,
+    sif_sha256: &str,
     version_cmd: &str,
     help_cmd: &str,
     require_help: bool,
@@ -117,8 +117,8 @@ fn run_smoke_with_manifest(
         tool_id: tool_id.to_string(),
         stage_id: stage_id.to_string(),
         status: status.to_string(),
-        expected_digest: expected_digest.to_string(),
-        actual_digest: actual_digest.to_string(),
+        registry_digest: registry_digest.to_string(),
+        sif_sha256: sif_sha256.to_string(),
         version_cmd: version_cmd.to_string(),
         help_cmd: help_cmd.to_string(),
         version: if parsed_version.is_empty() {
@@ -406,5 +406,26 @@ mod tests {
         std::env::set_var("HOME", temp.path());
         assert!(ensure_cache_writable(RuntimeKind::Docker));
         Ok(())
+    }
+
+    #[test]
+    fn expected_registry_digest_prefers_pinned_commit() {
+        let row = RegistryRow {
+            pinned_commit: Some("sha256:abc123".to_string()),
+            container_ref: Some("bijuxdna/fastqc@sha256:def456".to_string()),
+            ..RegistryRow::default()
+        };
+
+        assert_eq!(expected_registry_digest(&row).as_deref(), Some("abc123"));
+    }
+
+    #[test]
+    fn expected_registry_digest_falls_back_to_container_ref() {
+        let row = RegistryRow {
+            container_ref: Some("bijuxdna/fastqc@sha256:def456".to_string()),
+            ..RegistryRow::default()
+        };
+
+        assert_eq!(expected_registry_digest(&row).as_deref(), Some("def456"));
     }
 }
