@@ -18,7 +18,7 @@ fn toolset_modes_separate_default_governed_benchmark_and_all_bindings() {
     assert!(governed_tools
         .iter()
         .any(|tool_id| tool_id.as_str() == "fastp"));
-    assert!(governed_tools
+    assert!(!governed_tools
         .iter()
         .any(|tool_id| tool_id.as_str() == "seqpurge"));
 

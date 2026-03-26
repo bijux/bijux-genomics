@@ -92,7 +92,6 @@ stages:
       - "trim_galore"
       - "prinseq"
       - "seqkit"
-      - "seqpurge"
       - "skewer"
   - stage_id: "fastq.filter_reads"
     execution_status: "closed"

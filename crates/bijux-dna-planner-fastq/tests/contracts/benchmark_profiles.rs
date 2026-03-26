@@ -149,7 +149,6 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             "fastp",
             "prinseq",
             "seqkit",
-            "seqpurge",
             "trim_galore",
             "trimmomatic",
         ]
@@ -168,7 +167,6 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             "fastp",
             "prinseq",
             "seqkit",
-            "seqpurge",
             "trim_galore",
             "trimmomatic",
         ]

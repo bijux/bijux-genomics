@@ -126,7 +126,6 @@ compatible_tools:
   - trim_galore
   - prinseq
   - seqkit
-  - seqpurge
   - skewer
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:

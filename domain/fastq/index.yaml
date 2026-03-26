@@ -133,7 +133,6 @@ governed_tool_ids:
   - rcorrector
   - seqkit
   - seqkit_stats
-  - seqpurge
   - seqtk
   - skewer
   - sortmerna
@@ -221,7 +220,6 @@ stage_tool_compatibility:
   - trim_galore
   - prinseq
   - seqkit
-  - seqpurge
   - skewer
   fastq.trim_terminal_damage:
   - adapterremoval
@@ -316,7 +314,6 @@ stage_tool_integration:
     leehom: governed_contract
     prinseq: governed_contract
     seqkit: governed_contract
-    seqpurge: governed_contract
     skewer: governed_contract
     trim_galore: governed_contract
     trimmomatic: governed_contract
