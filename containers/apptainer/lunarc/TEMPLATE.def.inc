@@ -9,5 +9,5 @@
 # 3) %labels with OCI source/revision/created/licenses/version/tool/title
 # 4) %environment exports PATH + LC_ALL + TZ
 # 5) %post begins with `set -eux` and includes cleanup
-# 6) %post writes provenance file to /opt/bijux/VERSION.json when feasible
+# 6) OCI labels are the canonical provenance surface; do not duplicate metadata in /opt/bijux
 # 7) %runscript uses exec <tool> "$@" and predictable help behavior
