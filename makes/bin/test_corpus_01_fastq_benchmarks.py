@@ -12,6 +12,8 @@ if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
 import corpus_01_fastq_benchmark_support as support
+import render_fastq_trim_reads_corpus_01_briefing as trim_reads_briefing
+import render_fastq_trim_reads_corpus_01_report as trim_reads_report
 import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 
@@ -252,6 +254,220 @@ class TrimPolygReportingTests(unittest.TestCase):
 
         with self.assertRaises(SystemExit):
             trim_polyg_report.validate_trim_polyg_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+            )
+
+
+class TrimReadsReportingTests(unittest.TestCase):
+    def test_trim_reads_summary_tracks_runtime_and_retention(self) -> None:
+        rows = [
+            {
+                "tool": "fastp",
+                "runtime_s": "0.8",
+                "exit_code": "0",
+                "base_retention": "0.97",
+                "read_retention": "0.96",
+                "mean_q_delta": "0.30",
+            },
+            {
+                "tool": "fastp",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "base_retention": "0.95",
+                "read_retention": "0.94",
+                "mean_q_delta": "0.40",
+            },
+            {
+                "tool": "bbduk",
+                "runtime_s": "1.6",
+                "exit_code": "0",
+                "base_retention": "0.96",
+                "read_retention": "0.93",
+                "mean_q_delta": "0.20",
+            },
+            {
+                "tool": "bbduk",
+                "runtime_s": "1.8",
+                "exit_code": "0",
+                "base_retention": "0.94",
+                "read_retention": "0.91",
+                "mean_q_delta": "0.10",
+            },
+        ]
+
+        summary_rows = trim_reads_briefing.tool_runtime_summary(rows)
+        by_tool = {row["tool"]: row for row in summary_rows}
+
+        self.assertAlmostEqual(by_tool["fastp"]["median_runtime_s"], 0.9)
+        self.assertAlmostEqual(by_tool["fastp"]["median_base_retention"], 0.96)
+        self.assertAlmostEqual(by_tool["fastp"]["median_read_retention"], 0.95)
+        self.assertGreater(
+            by_tool["bbduk"]["slowdown_vs_fastest_median"],
+            by_tool["fastp"]["slowdown_vs_fastest_median"],
+        )
+
+    def test_trim_reads_outliers_capture_slowest_and_lowest_retention_tools(self) -> None:
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_500mb",
+                "study_accession": "PRJ1",
+                "tool": "fastp",
+                "runtime_s": "5.0",
+                "base_retention": "0.98",
+            },
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_500mb",
+                "study_accession": "PRJ1",
+                "tool": "bbduk",
+                "runtime_s": "6.5",
+                "base_retention": "0.91",
+            },
+        ]
+
+        outliers = trim_reads_briefing.sample_runtime_outliers(rows)
+
+        self.assertEqual(outliers[0]["slowest_tool"], "bbduk")
+        self.assertEqual(outliers[0]["lowest_retention_tool"], "bbduk")
+        self.assertAlmostEqual(outliers[0]["lowest_base_retention"], 0.91)
+
+    def test_trim_reads_markdown_mentions_trim_policy_bundle(self) -> None:
+        summary = {
+            "generated_at_utc": "2026-03-26T00:00:00+00:00",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.trim_reads/lunarc",
+            "scenario_id": "trim_fairness",
+            "samples_total": 20,
+            "samples_failed": 0,
+            "tools": ["fastp", "bbduk"],
+            "min_length": 30,
+            "quality_cutoff": None,
+            "n_policy": "retain",
+            "adapter_policy": "none",
+            "polyx_policy": "none",
+            "contaminant_policy": "none",
+            "era_counts": {"ancient": 10, "modern": 10},
+            "layout_counts": {"se": 10, "pe": 10},
+            "cohort_counts": {"ancient_pe": 5, "ancient_se": 5, "modern_pe": 5, "modern_se": 5},
+            "headline": {
+                "fastest_tool": "fastp",
+                "fastest_runtime_s": 0.9,
+                "best_base_retention_tool": "fastp",
+                "best_base_retention": 0.96,
+                "best_read_retention_tool": "fastp",
+                "best_read_retention": 0.95,
+                "best_q_gain_tool": "fastp",
+                "best_q_gain": 0.35,
+            },
+            "tool_summary": [
+                {
+                    "tool": "fastp",
+                    "records": 20,
+                    "pass_rate": 1.0,
+                    "median_runtime_s": 0.9,
+                    "median_base_retention": 0.96,
+                    "median_read_retention": 0.95,
+                    "mean_q_delta": 0.35,
+                }
+            ],
+        }
+
+        markdown = trim_reads_report.render_markdown(summary)
+
+        self.assertIn("adapter_policy: `none`", markdown)
+        self.assertIn("Median read retention", markdown)
+
+    def test_trim_reads_report_contract_rejects_policy_drift(self) -> None:
+        run_manifest = {
+            "tools": ["fastp", "bbduk"],
+            "min_length": 30,
+            "quality_cutoff": None,
+            "n_policy": "retain",
+            "adapter_policy": "none",
+            "polyx_policy": "none",
+            "contaminant_policy": "none",
+            "adapter_bank_preset": None,
+            "polyx_preset": None,
+            "contaminant_preset": None,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "fastp",
+                "raw_backend_report_format": "fastp_json",
+                "min_length": 30,
+                "quality_cutoff": None,
+                "n_policy": "retain",
+                "adapter_policy": "none",
+                "polyx_policy": "none",
+                "contaminant_policy": "none",
+                "adapter_bank_preset": None,
+                "polyx_preset": None,
+                "contaminant_preset": None,
+            },
+            {
+                "sample_id": "sample_0001",
+                "tool": "bbduk",
+                "raw_backend_report_format": "bbduk_stats",
+                "min_length": 20,
+                "quality_cutoff": None,
+                "n_policy": "retain",
+                "adapter_policy": "none",
+                "polyx_policy": "none",
+                "contaminant_policy": "none",
+                "adapter_bank_preset": None,
+                "polyx_preset": None,
+                "contaminant_preset": None,
+            },
+        ]
+
+        with self.assertRaises(SystemExit):
+            trim_reads_report.validate_trim_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+            )
+
+    def test_trim_reads_report_contract_rejects_missing_tool_rows(self) -> None:
+        run_manifest = {
+            "tools": ["fastp", "bbduk"],
+            "min_length": 30,
+            "quality_cutoff": None,
+            "n_policy": "retain",
+            "adapter_policy": "none",
+            "polyx_policy": "none",
+            "contaminant_policy": "none",
+            "adapter_bank_preset": None,
+            "polyx_preset": None,
+            "contaminant_preset": None,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "fastp",
+                "raw_backend_report_format": "fastp_json",
+                "min_length": 30,
+                "quality_cutoff": None,
+                "n_policy": "retain",
+                "adapter_policy": "none",
+                "polyx_policy": "none",
+                "contaminant_policy": "none",
+                "adapter_bank_preset": None,
+                "polyx_preset": None,
+                "contaminant_preset": None,
+            }
+        ]
+
+        with self.assertRaises(SystemExit):
+            trim_reads_report.validate_trim_row_contract(
                 run_manifest=run_manifest,
                 sample_rows=sample_rows,
             )
