@@ -52,14 +52,6 @@ echo "plink2 wrapper: runtime payload not bundled in this image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/plink2
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"plink2","version":"2.00a5","source":"https://www.cog-genomics.org/plink/2.0/","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
-    cat >/usr/local/bin/bijux-tool-info <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-cat /opt/bijux/VERSION.json
-SH
-    chmod 0755 /usr/local/bin/bijux-tool-info
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

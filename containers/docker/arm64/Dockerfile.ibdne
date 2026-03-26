@@ -31,10 +31,6 @@ RUN printf '%s\n' '#!/usr/bin/env bash' \
     'echo "ibdne: planned wrapper (no upstream binary integrated yet)" >&2' \
     'exit 2' > /usr/local/bin/ibdne && \
     chmod 0755 /usr/local/bin/ibdne && \
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"ibdne","version":"1.0-planned","source":"https://faculty.washington.edu/browning/ibdne.shtml","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
 
 ENTRYPOINT ["/usr/local/bin/ibdne"]
 CMD ["--help"]

@@ -54,12 +54,6 @@ fi
 exec /usr/local/bin/bracken-bin "$@"
 SH
     chmod +x /usr/local/bin/bracken
-
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"bracken","version":"2.9","source":"https://github.com/bijux/bijux-dna","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     exec /usr/local/bin/bracken "$@"
 

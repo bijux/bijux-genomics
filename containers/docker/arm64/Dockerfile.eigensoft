@@ -26,10 +26,6 @@ RUN curl -fsSL -o /tmp/eigensoft.tar.gz https://github.com/DReichLab/EIG/archive
     tar -xzf /tmp/eigensoft.tar.gz -C /tmp && \
     make -C /tmp/EIG-8.0.0/src && \
     install -m 0755 /tmp/EIG-8.0.0/bin/smartpca /usr/local/bin/smartpca && \
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"eigensoft","version":"8.0.0","source":"https://github.com/DReichLab/EIG","license":"GPL-2.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info && \
     rm -rf /tmp/eigensoft.tar.gz /tmp/EIG-8.0.0
 
 ENTRYPOINT ["/usr/local/bin/smartpca"]

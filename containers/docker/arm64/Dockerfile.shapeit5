@@ -31,9 +31,5 @@ fi
 echo "SHAPEIT5 binary not bundled in this planned wrapper image." >&2
 exit 2
 SH
-RUN mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"shapeit5","version":"planned","source":"https://odelaneau.github.io/shapeit5/","license":"MIT"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env bash' 'set -euo pipefail' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
 ENTRYPOINT ["/usr/local/bin/shapeit5"]
 CMD ["--help"]

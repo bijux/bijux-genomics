@@ -61,15 +61,6 @@ esac
 exec /usr/local/bin/skewer-bin "$@"
 EOS
     chmod +x /usr/local/bin/skewer
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"skewer","version":"978e8e46cba4","source":"https://github.com/relipmoc/skewer","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
-    cat > /usr/local/bin/bijux-tool-info <<'EOS'
-#!/usr/bin/env sh
-set -eu
-cat /opt/bijux/VERSION.json
-EOS
-    chmod +x /usr/local/bin/bijux-tool-info
-
 %runscript
     exec /usr/local/bin/skewer "$@"
 

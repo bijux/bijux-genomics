@@ -77,15 +77,6 @@ esac
 exec /usr/local/bin/sortmerna-bin "$@"
 EOF
     chmod 0755 /usr/local/bin/sortmerna
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"sortmerna","version":"4.3.7","source":"https://github.com/biocore/sortmerna","license":"Apache-2.0"}' > /opt/bijux/VERSION.json
-    cat > /usr/local/bin/bijux-tool-info <<'EOF'
-#!/usr/bin/env sh
-set -eu
-cat /opt/bijux/VERSION.json
-EOF
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
     rm -rf /var/lib/apt/lists/*
 
     # Note: do not purge ca-certificates (TLS is useful on HPC and cheap to keep).

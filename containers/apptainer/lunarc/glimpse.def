@@ -42,15 +42,6 @@ echo "error: glimpse runtime payload is not bundled in this planned wrapper imag
 exit 2
 SH
     chmod 0755 /usr/local/bin/glimpse
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"glimpse","version":"planned","source":"https://odelaneau.github.io/GLIMPSE/","license":"MIT"}' > /opt/bijux/VERSION.json
-    cat >/usr/local/bin/bijux-tool-info <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-cat /opt/bijux/VERSION.json
-SH
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     exec glimpse "$@"
 

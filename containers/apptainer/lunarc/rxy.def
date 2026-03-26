@@ -61,15 +61,6 @@ ry=$(printf '%s\n' "$idx" | awk '$1=="chrY" || $1=="Y" {s+=$3} END{print s+0}')
 printf 'RX=%s\nRY=%s\nRXY=%s\n' "$rx" "$ry" "$(awk -v x="$rx" -v y="$ry" 'BEGIN{if(y==0){print "inf"} else {printf "%.6f", x/y}}')"
 EOS
     chmod +x /usr/local/bin/rxy
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"rxy","version":"1.0.0","source":"https://github.com/bijux/bijux-dna","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
-    cat > /usr/local/bin/bijux-tool-info <<'EOS'
-#!/usr/bin/env sh
-set -eu
-cat /opt/bijux/VERSION.json
-EOS
-    chmod +x /usr/local/bin/bijux-tool-info
-
 %runscript
     exec /usr/local/bin/rxy "$@"
 

@@ -45,14 +45,6 @@ echo "error: germline runtime payload is not bundled in this image" >&2
 exit 2
 SH
     chmod 0755 /usr/local/bin/germline
-    mkdir -p /opt/bijux
-    printf '%s\n' '{"tool":"germline","version":"1.5.3","source":"https://www.cs.columbia.edu/~gusev/germline/","license":"GPL-3.0"}' > /opt/bijux/VERSION.json
-    cat >/usr/local/bin/bijux-tool-info <<'SH'
-#!/usr/bin/env bash
-set -euo pipefail
-cat /opt/bijux/VERSION.json
-SH
-    chmod 0755 /usr/local/bin/bijux-tool-info
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

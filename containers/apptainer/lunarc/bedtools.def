@@ -35,12 +35,6 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     umask 022
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq && apt-get install -y --no-install-recommends bedtools ca-certificates && rm -rf /var/lib/apt/lists/*
-
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"bedtools","version":"2.31.1","source":"https://github.com/bijux/bijux-dna","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     exec /usr/bin/bedtools "$@"
 

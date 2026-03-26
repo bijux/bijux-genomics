@@ -79,12 +79,6 @@ EOF
     cd / && \
     rm -rf /opt/pear-0.9.6-src /tmp/pear.tar.gz && \
     rm -rf /var/lib/apt/lists/*
-
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"pear","version":"0.9.6","source":"https://sco.h-its.org/exelixis/web/software/pear/","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     if [ $# -eq 0 ]; then
         exec /usr/local/bin/pear --help

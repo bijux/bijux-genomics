@@ -45,11 +45,6 @@ exec seqkit stats "$@"
 EOS
     chmod 0755 /usr/local/bin/seqpurge
     rm -rf /var/lib/apt/lists/*
-    mkdir -p /opt/bijux && \
-    printf '%s\n' '{"tool":"seqpurge","version":"0.1.0","source":"https://github.com/bijux/bijux-dna","license":"GPL-3.0"}' > /opt/bijux/VERSION.json && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'cat /opt/bijux/VERSION.json' > /usr/local/bin/bijux-tool-info && \
-    chmod 0755 /usr/local/bin/bijux-tool-info
-
 %runscript
     if [ $# -eq 0 ]; then
         exec seqpurge --help
