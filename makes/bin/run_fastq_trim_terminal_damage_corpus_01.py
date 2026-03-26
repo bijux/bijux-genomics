@@ -12,6 +12,7 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT,
+    default_results_stage_root,
     discover_normalized_samples,
     load_corpus_spec,
     normalize_tool_csv,
@@ -43,7 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-root",
         default="",
-        help="Benchmark output root. Defaults to <corpus-root>/benchmarks/fastq.trim_terminal_damage/lunarc.",
+        help="Benchmark output root. Defaults to <corpus-root-parent>/results/<corpus-dir>/fastq.trim_terminal_damage/lunarc.",
     )
     parser.add_argument(
         "--platform",
@@ -143,7 +144,9 @@ def main() -> int:
     out_root = (
         Path(args.out_root).expanduser().resolve()
         if args.out_root
-        else (corpus_root / "benchmarks" / "fastq.trim_terminal_damage" / "lunarc")
+        else default_results_stage_root(
+            corpus_root, TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT.stage_id
+        )
     )
     out_root.mkdir(parents=True, exist_ok=True)
 

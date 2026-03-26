@@ -55,6 +55,8 @@ make _benchmark-trim-reads-corpus-01 PLATFORM=lunarc-apptainer CORPUS_ROOT=/home
 make _benchmark-trim-reads-corpus-01-report CORPUS_ROOT=/home/bijan/bijux/corpus_01
 ```
 
+By default, the runner and report renderer resolve the Lunarc run root to `/home/bijan/bijux/results/corpus_01/fastq.trim_reads/lunarc`.
+
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
 - Reject any published report whose rows drift from the run manifest policy bundle.

@@ -48,6 +48,8 @@ make _benchmark-trim-terminal-damage-corpus-01 PLATFORM=lunarc-apptainer CORPUS_
 make _benchmark-trim-terminal-damage-corpus-01-report CORPUS_ROOT=/home/bijan/bijux/corpus_01
 ```
 
+By default, the runner and report renderer resolve the Lunarc run root to `/home/bijan/bijux/results/corpus_01/fastq.trim_terminal_damage/lunarc`.
+
 ## Artifact Contract
 
 The runner writes the execution manifest under the Lunarc run root:

@@ -11,6 +11,7 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT,
+    default_results_stage_root,
     discover_normalized_samples,
     load_corpus_spec,
     load_json,
@@ -27,7 +28,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--run-root",
         default="",
-        help="Benchmark run root. Defaults to <corpus-root>/benchmarks/fastq.trim_terminal_damage/lunarc.",
+        help="Benchmark run root. Defaults to <corpus-root-parent>/results/<corpus-dir>/fastq.trim_terminal_damage/lunarc.",
     )
     parser.add_argument(
         "--docs-root",
@@ -215,7 +216,9 @@ def main() -> int:
     run_root = (
         Path(args.run_root).resolve()
         if args.run_root
-        else (corpus_root / "benchmarks" / "fastq.trim_terminal_damage" / "lunarc").resolve()
+        else default_results_stage_root(
+            corpus_root, TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT.stage_id
+        )
     )
     docs_root = (repo_root / args.docs_root).resolve()
     docs_root.mkdir(parents=True, exist_ok=True)
