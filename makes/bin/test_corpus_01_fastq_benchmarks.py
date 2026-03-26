@@ -14,6 +14,8 @@ if str(BIN_DIR) not in sys.path:
 import corpus_01_fastq_benchmark_support as support
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
+import render_fastq_profile_overrepresented_sequences_corpus_01_briefing as overrepresented_briefing
+import render_fastq_profile_overrepresented_sequences_corpus_01_report as overrepresented_report
 import render_fastq_profile_read_lengths_corpus_01_briefing as profile_read_lengths_briefing
 import render_fastq_profile_read_lengths_corpus_01_report as profile_read_lengths_report
 import render_fastq_profile_reads_corpus_01_briefing as profile_reads_briefing
@@ -676,6 +678,100 @@ class DetectAdaptersReportingTests(unittest.TestCase):
                     "evidence_scope": "full_input",
                     "evidence_format": "fastqc_summary",
                 }
+            )
+
+
+class OverrepresentedReportingTests(unittest.TestCase):
+    def test_overrepresented_markdown_mentions_top_k_contract(self) -> None:
+        summary = {
+            "generated_at_utc": "2026-03-26T00:00:00+00:00",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/bijux/corpus_01",
+            "run_root": "/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_overrepresented_sequences/lunarc",
+            "scenario_id": "overrepresented_sequence_fairness",
+            "samples_total": 20,
+            "samples_failed": 0,
+            "tools": ["fastqc", "fastq_scan", "seqkit"],
+            "top_k": 50,
+            "report_only": True,
+            "mutates_fastq": False,
+            "may_change_read_count": False,
+            "era_counts": {"ancient": 10, "modern": 10},
+            "layout_counts": {"se": 10, "pe": 10},
+            "cohort_counts": {"ancient_pe": 5, "ancient_se": 5, "modern_pe": 5, "modern_se": 5},
+            "headline": {
+                "fastest_tool": "seqkit",
+                "fastest_runtime_s": 0.8,
+                "largest_sequence_count_tool": "fastqc",
+                "largest_sequence_count": 12.0,
+                "highest_top_fraction_tool": "fastq_scan",
+                "highest_top_fraction": 0.12,
+            },
+            "tool_summary": [
+                {
+                    "tool": "seqkit",
+                    "records": 20,
+                    "pass_rate": 1.0,
+                    "median_runtime_s": 0.8,
+                    "median_sequence_count": 10.0,
+                    "median_flagged_sequences": 2.0,
+                    "median_top_fraction": 0.09,
+                }
+            ],
+        }
+
+        markdown = overrepresented_report.render_markdown(summary)
+
+        self.assertIn("top_k: `50`", markdown)
+        self.assertIn("Median flagged sequences", markdown)
+
+    def test_overrepresented_report_rejects_dry_run_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            overrepresented_report.validate_overrepresented_run_manifest_contract(
+                {
+                    "stage_id": "fastq.profile_overrepresented_sequences",
+                    "scenario_id": "overrepresented_sequence_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": True,
+                }
+            )
+
+    def test_overrepresented_report_rejects_sample_limited_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            overrepresented_report.validate_overrepresented_run_manifest_contract(
+                {
+                    "stage_id": "fastq.profile_overrepresented_sequences",
+                    "scenario_id": "overrepresented_sequence_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": False,
+                    "sample_limit": 4,
+                    "report_only": True,
+                    "mutates_fastq": False,
+                    "may_change_read_count": False,
+                    "top_k": 50,
+                    "overrepresented_artifacts": [
+                        "overrepresented_sequences_tsv",
+                        "overrepresented_sequences_json",
+                        "report_json",
+                    ],
+                }
+            )
+
+    def test_overrepresented_report_contract_rejects_missing_sample_tool_rows(self) -> None:
+        with self.assertRaises(SystemExit):
+            overrepresented_report.validate_overrepresented_row_contract(
+                run_manifest={"tools": ["fastqc", "seqkit"], "top_k": 50},
+                sample_rows=[
+                    {
+                        "sample_id": "sample_0001",
+                        "tool": "fastqc",
+                        "sequence_count": 5,
+                        "flagged_sequences": 1,
+                        "top_fraction": 0.1,
+                        "top_k": 50,
+                    }
+                ],
+                expected_sample_ids=["sample_0001"],
             )
 
 
