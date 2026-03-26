@@ -91,7 +91,12 @@ def validate_detect_run_manifest_contract(run_manifest: dict) -> None:
             )
 
 
-def validate_detect_row_contract(*, run_manifest: dict, sample_rows: list[dict]) -> None:
+def validate_detect_row_contract(
+    *,
+    run_manifest: dict,
+    sample_rows: list[dict],
+    expected_sample_ids: list[str],
+) -> None:
     expected_tools = run_manifest["tools"]
     rows_by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in sample_rows:
@@ -119,6 +124,12 @@ def validate_detect_row_contract(*, run_manifest: dict, sample_rows: list[dict])
                 "detect-adapters benchmark report drift: "
                 f"sample {sample_id} expected tools {expected_tools}, found {observed_tools}"
             )
+    missing_samples = sorted(set(expected_sample_ids) - set(rows_by_sample))
+    if missing_samples:
+        raise SystemExit(
+            "detect-adapters benchmark report drift: "
+            f"missing published rows for samples {missing_samples}"
+        )
 
 
 def render_markdown(summary: dict) -> str:
@@ -235,8 +246,10 @@ def main() -> int:
     era_counts: dict[str, int] = defaultdict(int)
     layout_counts: dict[str, int] = defaultdict(int)
 
+    expected_sample_ids: list[str] = []
     for run in run_manifest["runs"]:
         sample_id = run["sample_id"]
+        expected_sample_ids.append(sample_id)
         metadata = metadata_by_sample.get(sample_id, {})
         cohort_key = f"{metadata.get('era', 'unknown')}_{metadata.get('layout', run['layout'])}"
         cohort_counts[cohort_key] += 1
@@ -245,7 +258,10 @@ def main() -> int:
 
         report_path = Path(run["report_json"])
         if not report_path.is_file():
-            continue
+            raise SystemExit(
+                "detect-adapters benchmark report drift: "
+                f"missing report.json for {sample_id}: {report_path}"
+            )
         report = load_json(report_path)
         for record in report.get("records", []):
             tool = record.get("context", {}).get("tool", "unknown")
@@ -273,7 +289,11 @@ def main() -> int:
             sample_rows.append(row)
             tool_rows[tool].append(row)
 
-    validate_detect_row_contract(run_manifest=run_manifest, sample_rows=sample_rows)
+    validate_detect_row_contract(
+        run_manifest=run_manifest,
+        sample_rows=sample_rows,
+        expected_sample_ids=expected_sample_ids,
+    )
 
     tool_summary = []
     for tool in sorted(tool_rows):
