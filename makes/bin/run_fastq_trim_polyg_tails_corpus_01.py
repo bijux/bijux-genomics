@@ -11,10 +11,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
+    TRIM_POLYG_BENCHMARK_CONTRACT,
     discover_normalized_samples,
     load_corpus_spec,
     normalize_tool_csv,
-    require_exact_tool_roster,
+    require_canonical_tool_roster,
     validate_corpus_contract,
 )
 
@@ -57,11 +58,17 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--tools",
-        default="fastp,bbduk",
-        help="Comma-separated trim-polyg tool ids.",
+        default="",
+        help="Comma-separated trim-polyg tool ids. Defaults to the governed benchmark cohort.",
     )
     parser.add_argument("--threads", type=int, default=1)
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument(
+        "--sample-limit",
+        type=int,
+        default=0,
+        help="Optional positive limit for local or frontend preflight runs.",
+    )
     parser.add_argument(
         "--polyx-preset",
         default="illumina_twocolor",
@@ -74,6 +81,12 @@ def parse_args() -> argparse.Namespace:
         action=argparse.BooleanOptionalAction,
         default=True,
         help="Skip samples that already have report.json in the output tree.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Write the run manifest without executing sample commands.",
     )
     return parser.parse_args()
 
@@ -158,10 +171,15 @@ def main() -> int:
 
     samples = discover_normalized_samples(corpus_root)
     validate_corpus_contract(corpus_root, spec, samples)
-    tools = require_exact_tool_roster(
-        "fastq.trim_polyg_tails",
-        normalize_tool_csv(args.tools),
-        ["fastp", "bbduk"],
+    if args.sample_limit > 0:
+        samples = samples[: args.sample_limit]
+    requested_tools = (
+        normalize_tool_csv(args.tools) if args.tools else TRIM_POLYG_BENCHMARK_CONTRACT.tools
+    )
+    tools = require_canonical_tool_roster(
+        repo_root,
+        TRIM_POLYG_BENCHMARK_CONTRACT.stage_id,
+        requested_tools,
     )
     trim_polyg = parse_optional_bool(args.trim_polyg)
     runs: list[SampleRun] = []
@@ -195,10 +213,15 @@ def main() -> int:
             min_polyg_run=args.min_polyg_run,
             sample=sample,
         )
-        completed = subprocess.run(command, cwd=repo_root, check=False)
-        status = "completed" if completed.returncode == 0 else "failed"
-        if completed.returncode != 0:
-            failures += 1
+        if args.dry_run:
+            completed_return_code = 0
+            status = "dry_run"
+        else:
+            completed = subprocess.run(command, cwd=repo_root, check=False)
+            completed_return_code = completed.returncode
+            status = "completed" if completed.returncode == 0 else "failed"
+            if completed.returncode != 0:
+                failures += 1
         runs.append(
             SampleRun(
                 sample_id=sample["sample_id"],
@@ -206,7 +229,7 @@ def main() -> int:
                 r2=str(sample["r2"]) if sample["r2"] is not None else None,
                 layout=sample["layout"],
                 status=status,
-                exit_code=completed.returncode,
+                exit_code=completed_return_code,
                 command=command,
                 report_json=str(sample_report),
             )
@@ -216,10 +239,15 @@ def main() -> int:
         "schema_version": "bijux.fastq.trim_polyg_tails.corpus_run.v1",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "corpus_id": spec["corpus_id"],
+        "stage_id": TRIM_POLYG_BENCHMARK_CONTRACT.stage_id,
+        "scenario_id": TRIM_POLYG_BENCHMARK_CONTRACT.scenario_id,
+        "tool_kind": "benchmark",
         "platform": args.platform,
         "tools": tools,
         "threads": args.threads,
         "jobs": args.jobs,
+        "sample_limit": args.sample_limit or None,
+        "dry_run": args.dry_run,
         "polyx_preset": args.polyx_preset,
         "trim_polyg": trim_polyg,
         "min_polyg_run": args.min_polyg_run,
