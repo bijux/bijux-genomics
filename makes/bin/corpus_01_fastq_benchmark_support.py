@@ -38,6 +38,13 @@ PROFILE_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
 )
 
 
+PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
+    stage_id="fastq.profile_read_lengths",
+    scenario_id="read_length_fairness",
+    tools=["seqkit_stats"],
+)
+
+
 TRIM_POLYG_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.trim_polyg_tails",
     scenario_id="polyg_trim_fairness",
