@@ -1524,8 +1524,11 @@ fn leehom_trim_command_template(
         .ok_or_else(|| anyhow!("leehom output path must have a parent directory"))?;
     let log_path = raw_backend_report_path(report_json, "leehom", "log");
     let (adapter_r1, adapter_r2) = resolved_adapter_pair(adapter_bank);
-
-    let mut script = format!("set -eu\nmkdir -p {}\nleehom", shell_quote_path(output_dir));
+    let mut script = format!(
+        "set -eu\nmkdir -p {}\ncd {}\nleehom",
+        shell_quote_path(output_dir),
+        shell_quote_path(output_dir),
+    );
     script.push_str(&format!(
         " -fq1 {} -t {} -f {}",
         shell_quote_path(r1),
@@ -1539,20 +1542,42 @@ fn leehom_trim_command_template(
             shell_quote_str(&adapter_r2),
         ));
     }
+    script.push_str(&format!(
+        " -fqo leehom --log {}",
+        shell_quote_path(&log_path),
+    ));
+    script.push('\n');
     if let Some(output_r2) = output_r2 {
         script.push_str(&format!(
-            " -fqope1 {} -fqope2 {} -fqope1f /dev/null -fqope2f /dev/null -fqose /dev/null -fqosef /dev/null",
+            "mv {} {}\n",
+            shell_quote_str("leehom_r1.fq.gz"),
             shell_quote_path(output_r1),
+        ));
+        script.push_str(&format!(
+            "mv {} {}\n",
+            shell_quote_str("leehom_r2.fq.gz"),
             shell_quote_path(output_r2),
+        ));
+        script.push_str(&format!(
+            "rm -f {} {} {} {}\n",
+            shell_quote_str("leehom.fq.gz"),
+            shell_quote_str("leehom.fail.fq.gz"),
+            shell_quote_str("leehom_r1.fail.fq.gz"),
+            shell_quote_str("leehom_r2.fail.fq.gz"),
         ));
     } else {
         script.push_str(&format!(
-            " -fqose {} -fqosef /dev/null",
+            "mv {} {}\n",
+            shell_quote_str("leehom.fq.gz"),
             shell_quote_path(output_r1),
         ));
+        script.push_str(&format!(
+            "rm -f {} {} {}\n",
+            shell_quote_str("leehom.fail.fq.gz"),
+            shell_quote_str("leehom_r1.fail.fq.gz"),
+            shell_quote_str("leehom_r2.fail.fq.gz"),
+        ));
     }
-    script.push_str(&format!(" --log {}", shell_quote_path(&log_path)));
-    script.push('\n');
     script.push_str(&write_trim_report_script(
         "leehom",
         r1,
@@ -1987,9 +2012,9 @@ fn shell_quote_str(value: &str) -> String {
 mod tests {
     use super::{
         adapterremoval_command_template, alientrimmer_command_template, atropos_command_template,
-        fastx_clipper_command_template, leehom_trim_command_template,
-        skewer_trim_command_template, trim_galore_command_template, TrimPlanOptions,
-        FALLBACK_TRIM_ADAPTER_R1, FALLBACK_TRIM_ADAPTER_R2,
+        fastx_clipper_command_template, leehom_trim_command_template, skewer_trim_command_template,
+        trim_galore_command_template, TrimPlanOptions, FALLBACK_TRIM_ADAPTER_R1,
+        FALLBACK_TRIM_ADAPTER_R2,
     };
     use std::path::Path;
 
@@ -2163,16 +2188,14 @@ mod tests {
         .expect("leehom command");
 
         let script = command.get(2).expect("shell script");
-        assert!(script.contains(
-            &format!(
-                "leehom -fq1 'reads_R1.fastq.gz' -t 8 -f '{}' -fq2 'reads_R2.fastq.gz' -s '{}'",
-                FALLBACK_TRIM_ADAPTER_R1,
-                FALLBACK_TRIM_ADAPTER_R2
-            )
-        ));
-        assert!(
-            script.contains("-fqope1 'out/R1.leehom.fastq.gz' -fqope2 'out/R2.leehom.fastq.gz'")
-        );
+        assert!(script.contains(&format!(
+            "cd 'out'\nleehom -fq1 'reads_R1.fastq.gz' -t 8 -f '{}' -fq2 'reads_R2.fastq.gz' -s '{}'",
+            FALLBACK_TRIM_ADAPTER_R1, FALLBACK_TRIM_ADAPTER_R2
+        )));
+        assert!(script.contains("-fqo leehom --log 'out/trim_report.leehom.log'"));
+        assert!(script.contains("mv 'leehom_r1.fq.gz' 'out/R1.leehom.fastq.gz'"));
+        assert!(script.contains("mv 'leehom_r2.fq.gz' 'out/R2.leehom.fastq.gz'"));
+        assert!(script.contains("rm -f 'leehom.fq.gz' 'leehom.fail.fq.gz' 'leehom_r1.fail.fq.gz' 'leehom_r2.fail.fq.gz'"));
         assert!(script.contains("--log 'out/trim_report.leehom.log'"));
     }
 }
