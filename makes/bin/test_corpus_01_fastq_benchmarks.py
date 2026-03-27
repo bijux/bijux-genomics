@@ -17,6 +17,7 @@ import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import audit_published_corpus_01_fastq_results as published_results_audit
 import run_fastq_deplete_host_corpus_01 as deplete_host_runner
+import run_fastq_deplete_reference_contaminants_corpus_01 as deplete_reference_contaminants_runner
 import run_fastq_deplete_rrna_corpus_01 as deplete_rrna_runner
 import run_fastq_filter_reads_corpus_01 as filter_reads_runner
 import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
@@ -29,6 +30,8 @@ import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefi
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
 import render_fastq_deplete_host_corpus_01_briefing as deplete_host_briefing
 import render_fastq_deplete_host_corpus_01_report as deplete_host_report
+import render_fastq_deplete_reference_contaminants_corpus_01_briefing as deplete_reference_contaminants_briefing
+import render_fastq_deplete_reference_contaminants_corpus_01_report as deplete_reference_contaminants_report
 import render_fastq_deplete_rrna_corpus_01_briefing as deplete_rrna_briefing
 import render_fastq_deplete_rrna_corpus_01_report as deplete_rrna_report
 import render_fastq_filter_reads_corpus_01_briefing as filter_reads_briefing
@@ -105,6 +108,13 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["reference_index_backend"], "bowtie2_build")
         self.assertAlmostEqual(defaults["host_identity_threshold"], 0.95)
         self.assertTrue(defaults["retain_unmapped_only"])
+
+    def test_deplete_reference_contaminants_defaults_match_governed_suite(self) -> None:
+        defaults = support.deplete_reference_contaminants_benchmark_defaults()
+        self.assertEqual(defaults["threads"], 8)
+        self.assertEqual(defaults["reference_catalog_id"], "contaminant_reference")
+        self.assertEqual(defaults["reference_index_backend"], "bowtie2_build")
+        self.assertEqual(defaults["decoy_mode"], "phix_and_spikeins")
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -634,6 +644,27 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertAlmostEqual(args.host_identity_threshold, 0.99)
         self.assertFalse(args.retain_unmapped_only)
 
+    def test_deplete_reference_contaminants_runner_parse_args_supports_policy_overrides(
+        self,
+    ) -> None:
+        argv = [
+            "run_fastq_deplete_reference_contaminants_corpus_01.py",
+            "--sample-jobs",
+            "2",
+            "--threads",
+            "6",
+            "--reference-index",
+            "/refs/contaminants",
+            "--decoy-mode",
+            "phix_and_spikeins",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = deplete_reference_contaminants_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 2)
+        self.assertEqual(args.threads, 6)
+        self.assertEqual(args.reference_index, "/refs/contaminants")
+        self.assertEqual(args.decoy_mode, "phix_and_spikeins")
+
     def test_deplete_rrna_runner_shared_index_layout_is_stable(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             out_root = Path(tmpdir) / "results"
@@ -1122,6 +1153,36 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_deplete_reference_contaminants_report_contract_rejects_policy_drift(
+        self,
+    ) -> None:
+        run_manifest = {
+            "tools": ["bowtie2"],
+            "reference_catalog_id": "contaminant_reference",
+            "reference_index_backend": "bowtie2_build",
+            "decoy_mode": "phix_and_spikeins",
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "bowtie2",
+                "reference_catalog_id": "contaminant_reference",
+                "reference_index_backend": "bowtie2_build",
+                "decoy_mode": "adapter_dimers",
+                "raw_backend_report_format": "bowtie2_met_file",
+                "reads_in": 100,
+                "reads_out": 90,
+                "bases_in": 1000,
+                "bases_out": 900,
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            deplete_reference_contaminants_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
+            )
+
     def test_filter_reads_report_contract_rejects_parameter_drift(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "fastp", "prinseq", "seqkit"],
@@ -1313,6 +1374,36 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(summary_rows[0]["tool"], "bowtie2")
         self.assertAlmostEqual(summary_rows[0]["mean_host_fraction_removed"], 0.31)
         self.assertAlmostEqual(summary_rows[0]["mean_reads_removed"], 62.0)
+
+    def test_deplete_reference_contaminants_briefing_summarizes_fraction_removed(
+        self,
+    ) -> None:
+        rows = [
+            {
+                "tool": "bowtie2",
+                "runtime_s": "1.0",
+                "read_retention": "0.96",
+                "base_retention": "0.97",
+                "contaminant_fraction_removed": "0.04",
+                "reads_removed": "8",
+                "exit_code": "0",
+            },
+            {
+                "tool": "bowtie2",
+                "runtime_s": "1.4",
+                "read_retention": "0.95",
+                "base_retention": "0.96",
+                "contaminant_fraction_removed": "0.05",
+                "reads_removed": "10",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = deplete_reference_contaminants_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "bowtie2")
+        self.assertAlmostEqual(
+            summary_rows[0]["mean_contaminant_fraction_removed"], 0.045
+        )
+        self.assertAlmostEqual(summary_rows[0]["mean_reads_removed"], 9.0)
 
     def test_remove_duplicates_briefing_summarizes_duplicate_reads(self) -> None:
         rows = [

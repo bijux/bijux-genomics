@@ -183,6 +183,15 @@ _benchmark-deplete-host-corpus-01: ## Benchmark fastq.deplete_host across corpus
 		$(if $(TOOLS),--tools "$(TOOLS)",) \
 		$(if $(REFERENCE_INDEX),--reference-index "$(REFERENCE_INDEX)",)
 
+_benchmark-deplete-reference-contaminants-corpus-01: ## Benchmark fastq.deplete_reference_contaminants across corpus-01
+	@python3 makes/bin/run_fastq_deplete_reference_contaminants_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",) \
+		$(if $(REFERENCE_INDEX),--reference-index "$(REFERENCE_INDEX)",)
+
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
 		--repo-root . \
@@ -310,6 +319,14 @@ _benchmark-deplete-host-corpus-01-report: ## Render the corpus-01 deplete-host b
 		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
 	@python3 makes/bin/render_fastq_deplete_host_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.deplete_host/corpus-01
+
+_benchmark-deplete-reference-contaminants-corpus-01-report: ## Render the corpus-01 deplete-reference-contaminants benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_deplete_reference_contaminants_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_deplete_reference_contaminants_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.deplete_reference_contaminants/corpus-01
 
 _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publication coverage
 	@python3 makes/bin/audit_corpus_01_fastq_benchmark_docs.py \
