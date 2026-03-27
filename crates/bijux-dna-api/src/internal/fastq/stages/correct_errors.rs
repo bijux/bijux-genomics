@@ -2,7 +2,9 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
-use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
+use crate::internal::fastq::stages::trim_bench_common::{
+    benchmark_image_identity, require_existing_benchmark_output,
+};
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
@@ -164,12 +166,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_correct_v1(
             &conn,
             tool,
@@ -390,11 +387,7 @@ fn build_correct_record(
     let context = BenchmarkContext {
         tool: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),
-        image_digest: tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+        image_digest: benchmark_image_identity(tool_spec),
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
         input_hash: bench_inputs.input_hash.clone(),

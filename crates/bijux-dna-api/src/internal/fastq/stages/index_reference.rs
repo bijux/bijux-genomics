@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::fastq::stages::trim_bench_common::benchmark_image_identity;
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
@@ -103,12 +104,7 @@ pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
                 },
             )?;
         let params_hash = stable_params_hash(&plan.params);
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_index_reference_v1(
             &conn,
             tool,
@@ -218,11 +214,7 @@ fn build_index_reference_record(
     let context = BenchmarkContext {
         tool: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),
-        image_digest: tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+        image_digest: benchmark_image_identity(tool_spec),
         runner: runner.to_string(),
         platform: platform.name.clone(),
         input_hash: input_hash.to_string(),

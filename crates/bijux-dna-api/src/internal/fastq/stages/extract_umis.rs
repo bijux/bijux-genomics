@@ -23,7 +23,7 @@ use bijux_dna_runner::step_runner::StageResultV1;
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, observe_fastq_stats,
+    benchmark_image_identity, build_benchmark_context, observe_fastq_stats,
 };
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
@@ -121,12 +121,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             },
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_umi_v1(
             &conn,
             tool,
@@ -250,11 +245,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     let context = build_benchmark_context(
         tool,
         tool_spec.tool_version.clone(),
-        tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+        benchmark_image_identity(tool_spec),
         platform.runner,
         platform,
         input_hash.to_string(),
