@@ -117,6 +117,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             bench_inputs.r2.as_deref(),
             &out_dir,
             &ScreenPlanOptions {
+                database_root: args.database_root.clone(),
                 threads: args.threads,
             },
         )?;

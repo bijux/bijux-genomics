@@ -22,6 +22,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ScreenPlanOptions {
+    pub database_root: Option<std::path::PathBuf>,
     pub threads: Option<u32>,
 }
 
@@ -55,6 +56,9 @@ pub fn plan_screen_with_options(
     options: &ScreenPlanOptions,
 ) -> Result<StagePlanV1> {
     let mut effective_params = screen_defaults(r2.is_some());
+    if let Some(database_root) = options.database_root.as_ref() {
+        effective_params.contaminant_db = Some(database_root.display().to_string());
+    }
     if let Some(threads) = options.threads {
         effective_params.threads = threads.max(1);
     }
@@ -120,6 +124,13 @@ pub fn plan_screen_with_effective_params(
         r1.to_path_buf(),
         ArtifactRole::Reads,
     )];
+    if let Some(database_root) = effective_params.contaminant_db.as_ref() {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("taxonomy_database_root"),
+            std::path::PathBuf::from(database_root),
+            ArtifactRole::Reference,
+        ));
+    }
     if let Some(r2) = r2 {
         inputs.push(ArtifactRef::required(
             ArtifactId::from_static("reads_r2"),
@@ -177,6 +188,7 @@ pub fn plan_screen_with_effective_params(
             "assignments": outputs.assignments,
             "threads": effective_params.threads,
             "contaminant_db": effective_params.contaminant_db,
+            "database_root": effective_params.contaminant_db,
             "database_catalog_id": effective_params.database_catalog_id,
             "database_artifact_id": effective_params.database_artifact_id,
             "database_build_id": effective_params.database_build_id,
@@ -204,29 +216,6 @@ fn screen_command_template(
     classification_report_path: &Path,
     effective_params: &ScreenEffectiveParams,
 ) -> Result<Vec<String>> {
-    let rendered = crate::tool_adapters::template_render::render_command_template(
-        &tool.command.template,
-        &[
-            ("reads", Some(r1.display().to_string())),
-            ("reads_r1", Some(r1.display().to_string())),
-            ("reads_r2", r2.map(|path| path.display().to_string())),
-            ("screen_report_tsv", Some(report_path.display().to_string())),
-            (
-                "classification_report_json",
-                Some(classification_report_path.display().to_string()),
-            ),
-            ("threads", Some(effective_params.threads.to_string())),
-        ],
-    )?;
-    let command = rendered
-        .into_iter()
-        .filter(|token| !token.is_empty())
-        .collect::<Vec<_>>();
-    if command.is_empty() {
-        return Err(anyhow!(
-            "screen taxonomy command template resolved to an empty command"
-        ));
-    }
     let governed_report = ScreenTaxonomyReportV1 {
         schema_version: SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_ID.as_str().to_string(),
@@ -263,6 +252,45 @@ fn screen_command_template(
         runtime_s: None,
         memory_mb: None,
     };
+    let command = if let Some(database_root) = effective_params.contaminant_db.as_deref() {
+        let native_assignments_path = classification_report_path.with_extension("native.tsv");
+        let native_report_path = report_path.with_extension("native.tsv");
+        screen_native_command(
+            &tool.tool_id.0,
+            Path::new(database_root),
+            r1,
+            r2,
+            &native_report_path,
+            &native_assignments_path,
+            report_path,
+            effective_params.threads,
+        )?
+    } else {
+        let rendered = crate::tool_adapters::template_render::render_command_template(
+            &tool.command.template,
+            &[
+                ("reads", Some(r1.display().to_string())),
+                ("reads_r1", Some(r1.display().to_string())),
+                ("reads_r2", r2.map(|path| path.display().to_string())),
+                ("screen_report_tsv", Some(report_path.display().to_string())),
+                (
+                    "classification_report_json",
+                    Some(classification_report_path.display().to_string()),
+                ),
+                ("threads", Some(effective_params.threads.to_string())),
+            ],
+        )?;
+        let command = rendered
+            .into_iter()
+            .filter(|token| !token.is_empty())
+            .collect::<Vec<_>>();
+        if command.is_empty() {
+            return Err(anyhow!(
+                "screen taxonomy command template resolved to an empty command"
+            ));
+        }
+        command
+    };
     let script = format!(
         "set -euo pipefail\n{}\nprintf '%s\\n' {} > {}\n",
         shell_join(&command),
@@ -273,6 +301,173 @@ fn screen_command_template(
         shell_quote_path(classification_report_path),
     );
     Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+}
+
+fn screen_native_command(
+    tool_id: &str,
+    database_root: &Path,
+    r1: &Path,
+    r2: Option<&Path>,
+    native_report_path: &Path,
+    native_assignments_path: &Path,
+    normalized_report_path: &Path,
+    threads: u32,
+) -> Result<Vec<String>> {
+    let script = match tool_id {
+        "kraken2" => kraken2_screen_script(
+            database_root,
+            r1,
+            r2,
+            native_report_path,
+            native_assignments_path,
+            normalized_report_path,
+            threads,
+        ),
+        "krakenuniq" => krakenuniq_screen_script(
+            database_root,
+            r1,
+            r2,
+            native_report_path,
+            native_assignments_path,
+            normalized_report_path,
+            threads,
+        ),
+        "centrifuge" => centrifuge_screen_script(
+            database_root,
+            r1,
+            r2,
+            native_report_path,
+            native_assignments_path,
+            normalized_report_path,
+            threads,
+        ),
+        "kaiju" => kaiju_screen_script(
+            database_root,
+            r1,
+            r2,
+            native_report_path,
+            native_assignments_path,
+            normalized_report_path,
+            threads,
+        ),
+        _ => return Err(anyhow!("unsupported taxonomy screening tool: {tool_id}")),
+    };
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+}
+
+fn kraken2_screen_script(
+    database_root: &Path,
+    r1: &Path,
+    r2: Option<&Path>,
+    native_report_path: &Path,
+    native_assignments_path: &Path,
+    normalized_report_path: &Path,
+    threads: u32,
+) -> String {
+    let reads_clause = if let Some(r2) = r2 {
+        format!("--paired {} {}", shell_quote_path(r1), shell_quote_path(r2),)
+    } else {
+        shell_quote_path(r1)
+    };
+    format!(
+        "mkdir -p {db}\n\
+         kraken2 --db {db} --threads {threads} --report {native_report} --output {native_assignments} {reads}\n\
+         awk -F '\\t' 'NF >= 6 {{ label=$6; sub(/^[[:space:]]+/, \"\", label); pct=$1; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", label, pct }}' {native_report} > {normalized_report}\n",
+        db = shell_quote_path(&database_root.join("kraken2")),
+        threads = threads,
+        native_report = shell_quote_path(native_report_path),
+        native_assignments = shell_quote_path(native_assignments_path),
+        reads = reads_clause,
+        normalized_report = shell_quote_path(normalized_report_path),
+    )
+}
+
+fn krakenuniq_screen_script(
+    database_root: &Path,
+    r1: &Path,
+    r2: Option<&Path>,
+    native_report_path: &Path,
+    native_assignments_path: &Path,
+    normalized_report_path: &Path,
+    threads: u32,
+) -> String {
+    let reads_clause = if let Some(r2) = r2 {
+        format!("--paired {} {}", shell_quote_path(r1), shell_quote_path(r2),)
+    } else {
+        shell_quote_path(r1)
+    };
+    format!(
+        "mkdir -p {db}\n\
+         krakenuniq --db {db} --threads {threads} --fastq-input --report-file {native_report} --output {native_assignments} {reads}\n\
+         awk -F '\\t' 'NF >= 6 {{ label=$6; sub(/^[[:space:]]+/, \"\", label); pct=$1; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", label, pct }}' {native_report} > {normalized_report}\n",
+        db = shell_quote_path(&database_root.join("krakenuniq")),
+        threads = threads,
+        native_report = shell_quote_path(native_report_path),
+        native_assignments = shell_quote_path(native_assignments_path),
+        reads = reads_clause,
+        normalized_report = shell_quote_path(normalized_report_path),
+    )
+}
+
+fn centrifuge_screen_script(
+    database_root: &Path,
+    r1: &Path,
+    r2: Option<&Path>,
+    native_report_path: &Path,
+    native_assignments_path: &Path,
+    normalized_report_path: &Path,
+    threads: u32,
+) -> String {
+    let reads_clause = if let Some(r2) = r2 {
+        format!("-1 {} -2 {}", shell_quote_path(r1), shell_quote_path(r2),)
+    } else {
+        format!("-U {}", shell_quote_path(r1))
+    };
+    format!(
+        "mkdir -p {db_root}\n\
+         centrifuge -x {db_prefix} -q {reads} -S {native_assignments} --report-file {native_report} -p {threads}\n\
+         awk -F '\\t' 'NF >= 7 {{ if ($1 == \"name\") next; pct=$7; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", $1, pct }}' {native_report} > {normalized_report}\n",
+        db_root = shell_quote_path(&database_root.join("centrifuge")),
+        db_prefix = shell_quote_path(&database_root.join("centrifuge").join("reference")),
+        reads = reads_clause,
+        native_assignments = shell_quote_path(native_assignments_path),
+        native_report = shell_quote_path(native_report_path),
+        threads = threads,
+        normalized_report = shell_quote_path(normalized_report_path),
+    )
+}
+
+fn kaiju_screen_script(
+    database_root: &Path,
+    r1: &Path,
+    r2: Option<&Path>,
+    native_report_path: &Path,
+    native_assignments_path: &Path,
+    normalized_report_path: &Path,
+    threads: u32,
+) -> String {
+    let reads_clause = if let Some(r2) = r2 {
+        format!("-i {} -j {}", shell_quote_path(r1), shell_quote_path(r2),)
+    } else {
+        format!("-i {}", shell_quote_path(r1))
+    };
+    let kaiju_root = database_root.join("kaiju");
+    let taxonomy_root = database_root.join("taxonomy");
+    format!(
+        "mkdir -p {kaiju_root}\n\
+         kaiju -t {nodes} -f {db_fmi} {reads} -o {native_assignments} -z {threads}\n\
+         kaiju2table -t {nodes} -n {names} -r genus -o {native_report} {native_assignments}\n\
+         awk -F '\\t' 'NF >= 6 {{ if ($1 == \"percent\") next; label=$6; sub(/^[[:space:]]+/, \"\", label); pct=$1; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", label, pct }}' {native_report} > {normalized_report}\n",
+        kaiju_root = shell_quote_path(&kaiju_root),
+        nodes = shell_quote_path(&taxonomy_root.join("nodes.dmp")),
+        names = shell_quote_path(&taxonomy_root.join("names.dmp")),
+        db_fmi = shell_quote_path(&kaiju_root.join("kaiju_db.fmi")),
+        reads = reads_clause,
+        native_assignments = shell_quote_path(native_assignments_path),
+        native_report = shell_quote_path(native_report_path),
+        threads = threads,
+        normalized_report = shell_quote_path(normalized_report_path),
+    )
 }
 
 fn normalize_tools_with_allowlist(
@@ -410,7 +605,10 @@ mod tests {
             Path::new("reads_R1.fastq.gz"),
             None,
             Path::new("out"),
-            &ScreenPlanOptions { threads: Some(12) },
+            &ScreenPlanOptions {
+                database_root: Some(std::path::PathBuf::from("taxonomy_db")),
+                threads: Some(12),
+            },
         )?;
         assert_eq!(plan.stage_id, STAGE_ID);
         assert_eq!(plan.resources.threads, 12);
@@ -419,6 +617,7 @@ mod tests {
         assert_eq!(plan.command.template[0], "sh");
         assert_eq!(plan.command.template[1], "-lc");
         assert!(plan.command.template[2].contains("kraken2"));
+        assert!(plan.command.template[2].contains("taxonomy_db/kraken2"));
         assert!(plan.command.template[2].contains("out/kraken2.report.tsv"));
         assert!(plan.command.template[2].contains("out/kraken2.classifications.json"));
         assert!(plan.command.template[2]

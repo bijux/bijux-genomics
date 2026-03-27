@@ -780,6 +780,8 @@ pub struct BenchFastqScreenArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
+    #[arg(long, help = "Set the governed taxonomy database root")]
+    pub database_root: Option<PathBuf>,
     #[arg(
         long,
         value_delimiter = ',',
