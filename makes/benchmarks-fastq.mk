@@ -124,6 +124,14 @@ _benchmark-filter-low-complexity-corpus-01: ## Benchmark fastq.filter_low_comple
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
+_benchmark-filter-reads-corpus-01: ## Benchmark fastq.filter_reads across corpus-01
+	@python3 makes/bin/run_fastq_filter_reads_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",)
+
 _benchmark-remove-duplicates-corpus-01: ## Benchmark fastq.remove_duplicates across the paired corpus-01 cohort
 	@python3 makes/bin/run_fastq_remove_duplicates_corpus_01.py \
 		--repo-root . \
@@ -238,6 +246,14 @@ _benchmark-filter-low-complexity-corpus-01-report: ## Render the corpus-01 filte
 	@python3 makes/bin/render_fastq_filter_low_complexity_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.filter_low_complexity/corpus-01
 
+_benchmark-filter-reads-corpus-01-report: ## Render the corpus-01 filter-reads benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_filter_reads_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_filter_reads_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.filter_reads/corpus-01
+
 _benchmark-remove-duplicates-corpus-01-report: ## Render the corpus-01 remove-duplicates benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_remove_duplicates_corpus_01_report.py \
 		--repo-root . \
@@ -292,6 +308,7 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	@$(MAKE) _benchmark-profile-read-lengths-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-profile-overrepresented-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-normalize-primers-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-filter-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-filter-low-complexity-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-deplete-rrna-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-trim-polyg-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
@@ -308,13 +325,15 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	_benchmark-trim-reads-corpus-01 _benchmark-trim-terminal-damage-corpus-01 \
 	_benchmark-detect-adapters-corpus-01 _benchmark-profile-reads-corpus-01 \
 	_benchmark-profile-read-lengths-corpus-01 _benchmark-profile-overrepresented-corpus-01 \
-	_benchmark-filter-low-complexity-corpus-01 _benchmark-deplete-rrna-corpus-01 \
+	_benchmark-filter-low-complexity-corpus-01 _benchmark-filter-reads-corpus-01 \
+	_benchmark-deplete-rrna-corpus-01 \
 	_benchmark-merge-corpus-01 _benchmark-report-qc-corpus-01 \
 	_benchmark-validate-corpus-01-report _benchmark-trim-polyg-corpus-01-report \
 	_benchmark-trim-reads-corpus-01-report _benchmark-trim-terminal-damage-corpus-01-report \
 	_benchmark-detect-adapters-corpus-01-report _benchmark-profile-reads-corpus-01-report \
 	_benchmark-profile-read-lengths-corpus-01-report \
 	_benchmark-profile-overrepresented-corpus-01-report \
-	_benchmark-filter-low-complexity-corpus-01-report _benchmark-deplete-rrna-corpus-01-report _benchmark-merge-corpus-01-report \
+	_benchmark-filter-low-complexity-corpus-01-report \
+	_benchmark-filter-reads-corpus-01-report _benchmark-deplete-rrna-corpus-01-report _benchmark-merge-corpus-01-report \
 	_benchmark-report-qc-corpus-01-report _benchmark-corpus-01-publication-status \
 	_benchmark-corpus-01-published-dossiers

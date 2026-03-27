@@ -327,6 +327,18 @@ def filter_low_complexity_benchmark_defaults() -> dict:
     }
 
 
+def filter_reads_benchmark_defaults() -> dict:
+    return {
+        "max_n": 0,
+        "max_n_fraction": None,
+        "max_n_count": 3,
+        "low_complexity_threshold": 20.0,
+        "entropy_threshold": 18.0,
+        "kmer_ref": None,
+        "polyx_policy": "trim",
+    }
+
+
 def remove_duplicates_benchmark_defaults() -> dict:
     return {
         "dedup_mode": "exact",
