@@ -234,6 +234,9 @@ def render_markdown(
     lines.append(f"- Scenario: `{summary['scenario_id']}`")
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- umi_pattern: `{summary['umi_pattern']}`")
+    lines.append(
+        f"- allow_missing_umi_headers: `{summary['allow_missing_umi_headers']}`"
+    )
     lines.append("")
     lines.append("## Tool Ranking")
     lines.append("")
@@ -272,6 +275,9 @@ def render_markdown(
     lines.append("")
     lines.append(
         "- This paired-only briefing keeps the UMI pattern explicit so later barcode-policy changes cannot masquerade as benchmark regressions."
+    )
+    lines.append(
+        "- Missing-header bypass is recorded in the run contract because `corpus-01` is a human DNA cohort rather than a native UMI corpus."
     )
     lines.append(
         "- The per-sample CSV artifacts make it easy to inspect whether runtime outliers coincide with weaker read retention or weaker UMI detection."

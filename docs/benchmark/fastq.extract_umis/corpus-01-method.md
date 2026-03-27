@@ -20,6 +20,7 @@
 - Hold one governed UMI extraction policy across the full paired cohort:
   - identical paired input hashes
   - identical UMI pattern and parsing policy
+  - identical missing-header bypass policy when `corpus-01` inputs do not carry native UMI headers
   - identical mate-synchronization contract for retained reads
 - Preserve governed UMI reports and extracted read paths in every successful sample row.
 
@@ -41,4 +42,5 @@
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
 - Reject any dossier that contains single-end samples.
+- Reject any dossier that does not record whether missing-header bypass was enabled.
 - Reject any dossier that omits a tool row for any paired sample.

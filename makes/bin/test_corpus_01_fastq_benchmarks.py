@@ -150,6 +150,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         defaults = support.extract_umis_benchmark_defaults()
         self.assertEqual(defaults["threads"], 4)
         self.assertEqual(defaults["umi_pattern"], "NNNNNNNN")
+        self.assertTrue(defaults["allow_missing_umi_headers"])
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -764,12 +765,36 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "6",
             "--umi-pattern",
             "NNNNNNNNNN",
+            "--no-allow-missing-umi-headers",
         ]
         with mock.patch.object(sys, "argv", argv):
             args = extract_umis_runner.parse_args()
         self.assertEqual(args.sample_jobs, 2)
         self.assertEqual(args.threads, 6)
         self.assertEqual(args.umi_pattern, "NNNNNNNNNN")
+        self.assertFalse(args.allow_missing_umi_headers)
+
+    def test_extract_umis_runner_sets_missing_header_bypass_env(self) -> None:
+        sample = {
+            "sample_id": "sample_0002",
+            "r1": Path("/tmp/sample_0002_R1.fastq.gz"),
+            "r2": Path("/tmp/sample_0002_R2.fastq.gz"),
+            "layout": "pe",
+        }
+        with mock.patch.object(
+            extract_umis_runner.subprocess,
+            "run",
+            return_value=mock.Mock(returncode=0),
+        ) as run_mock:
+            run = extract_umis_runner.run_sample_command(
+                repo_root=Path("/tmp/repo"),
+                sample=sample,
+                command=["cargo", "run"],
+                sample_report=Path("/tmp/report.json"),
+                allow_missing_umi_headers=True,
+            )
+        self.assertEqual(run.exit_code, 0)
+        self.assertEqual(run_mock.call_args.kwargs["env"]["BIJUX_ALLOW_NO_UMI"], "1")
 
     def test_correct_errors_runner_dry_run_selects_paired_subset_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

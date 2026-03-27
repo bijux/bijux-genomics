@@ -465,6 +465,7 @@ def extract_umis_benchmark_defaults() -> dict:
     return {
         "threads": 4,
         "umi_pattern": "NNNNNNNN",
+        "allow_missing_umi_headers": True,
     }
 
 

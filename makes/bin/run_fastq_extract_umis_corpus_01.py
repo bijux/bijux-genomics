@@ -56,6 +56,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sample-limit", type=int, default=0)
     parser.add_argument("--umi-pattern", default=defaults["umi_pattern"])
     parser.add_argument(
+        "--allow-missing-umi-headers",
+        action=argparse.BooleanOptionalAction,
+        default=defaults["allow_missing_umi_headers"],
+    )
+    parser.add_argument(
         "--resume",
         action=argparse.BooleanOptionalAction,
         default=True,
@@ -144,8 +149,14 @@ def run_sample_command(
     sample: dict,
     command: list[str],
     sample_report: Path,
+    allow_missing_umi_headers: bool,
 ) -> SampleRun:
-    completed = subprocess.run(command, cwd=repo_root, check=False)
+    env = os.environ.copy()
+    if allow_missing_umi_headers:
+        env["BIJUX_ALLOW_NO_UMI"] = "1"
+    else:
+        env.pop("BIJUX_ALLOW_NO_UMI", None)
+    completed = subprocess.run(command, cwd=repo_root, check=False, env=env)
     return SampleRun(
         sample_id=sample["sample_id"],
         r1=str(sample["r1"]),
@@ -249,6 +260,7 @@ def main() -> int:
                     sample=sample,
                     command=command,
                     sample_report=sample_report,
+                    allow_missing_umi_headers=args.allow_missing_umi_headers,
                 ): sample_index
                 for sample_index, sample, sample_report, command in pending
             }
@@ -278,6 +290,7 @@ def main() -> int:
         "dry_run": args.dry_run,
         "sample_scope": "paired",
         "umi_pattern": args.umi_pattern,
+        "allow_missing_umi_headers": args.allow_missing_umi_headers,
         "samples_total": len(runs),
         "samples_failed": failures,
         "runs": [asdict(run) for run in runs if run is not None],
