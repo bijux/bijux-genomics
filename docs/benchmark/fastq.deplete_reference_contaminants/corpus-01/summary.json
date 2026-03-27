@@ -1,0 +1,54 @@
+{
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "decoy_mode": "phix_and_spikeins",
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-27T16:43:40.354148+00:00",
+  "headline": {
+    "best_read_retention": 1.0,
+    "best_read_retention_tool": "bowtie2",
+    "fastest_runtime_s": 18.53432674,
+    "fastest_tool": "bowtie2",
+    "strongest_depletion_fraction": 1.4470251333795416e-07,
+    "strongest_depletion_tool": "bowtie2"
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "platform": "lunarc-apptainer",
+  "reference_catalog_id": "contaminant_reference",
+  "reference_index": "/lunarc/nobackup/projects/snic2019-34-3/.cache/bijux-reference/contaminants/phix_and_spikeins/bowtie2/reference",
+  "reference_index_backend": "bowtie2_build",
+  "reference_index_digest": "8f0f646e6e37ed01b2a33291e96c2a38eeedeb3ca6f8175b685bd6f98719fc8f",
+  "reference_index_size_bytes": 8389212,
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_reference_contaminants/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "contaminant_depletion_fairness",
+  "schema_version": "bijux.fastq.deplete_reference_contaminants.corpus_summary.v1",
+  "stage_id": "fastq.deplete_reference_contaminants",
+  "tool_summary": [
+    {
+      "mean_contaminant_fraction_removed": 1.4470251333795416e-07,
+      "mean_reads_removed": 0.2,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 18.53432674,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "bowtie2"
+    }
+  ],
+  "tools": [
+    "bowtie2"
+  ]
+}
