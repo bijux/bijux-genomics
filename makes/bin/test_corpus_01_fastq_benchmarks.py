@@ -84,6 +84,17 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(tools, ["fastp"])
         self.assertIsNone(error)
 
+    def test_resolve_stage_toolset_falls_back_without_registry_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tools, error = support.resolve_stage_toolset(
+                Path(tmpdir),
+                "fastq.trim_reads",
+                ["fastp"],
+            )
+
+        self.assertEqual(tools, ["fastp"])
+        self.assertIsNone(error)
+
     def test_filter_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_reads_benchmark_defaults()
         self.assertEqual(defaults["threads"], 8)
@@ -2455,6 +2466,111 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
             )
         )
         self.assertEqual(trim_report["expected_tool_roster"], ["bbduk", "fastp"])
+
+    def test_audit_docs_flags_publication_subset_against_stage_toolset(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark"
+            corpus_spec = repo_root / "configs" / "runtime" / "corpora"
+            corpus_spec.mkdir(parents=True)
+            (corpus_spec / "corpus-01.toml").write_text(
+                "\n".join(
+                    [
+                        'corpus_id = "corpus-01"',
+                        "target_ancient_se = 1",
+                        "target_ancient_pe = 1",
+                        "target_modern_se = 1",
+                        "target_modern_pe = 1",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            stage_root = docs_root / "fastq.trim_reads"
+            corpus_root = stage_root / "corpus-01"
+            corpus_root.mkdir(parents=True)
+            (stage_root / "corpus-01-method.md").write_text("# method\n", encoding="utf-8")
+            (corpus_root / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "stage_id": "fastq.trim_reads",
+                        "scenario_id": "trim_fairness",
+                        "tools": ["fastp"],
+                        "samples_total": 4,
+                        "samples_failed": 0,
+                        "cohort_counts": {
+                            "ancient_pe": 1,
+                            "ancient_se": 1,
+                            "modern_pe": 1,
+                            "modern_se": 1,
+                        },
+                        "tool_summary": [
+                            {"tool": "fastp"},
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "sample_results.csv").write_text(
+                "\n".join(
+                    [
+                        "sample_id,accession,era,layout,study_accession,size_band,tool",
+                        "sample_0001,ACC1,ancient,se,PRJ1,under_100mb,fastp",
+                        "sample_0002,ACC2,ancient,pe,PRJ2,under_100mb,fastp",
+                        "sample_0003,ACC3,modern,se,PRJ3,under_500mb,fastp",
+                        "sample_0004,ACC4,modern,pe,PRJ4,under_500mb,fastp",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "tool_runtime_summary.csv").write_text(
+                "tool\nfastp\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "cohort_runtime_summary.csv").write_text(
+                "dimension,cohort\nera_layout,ancient_pe\nera_layout,ancient_se\nera_layout,modern_pe\nera_layout,modern_se\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "sample_runtime_outliers.csv").write_text(
+                "sample_id\nsample_0001\nsample_0002\nsample_0003\nsample_0004\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "lunarc.md").write_text("# dossier\n", encoding="utf-8")
+
+            with mock.patch.object(
+                benchmark_docs_audit,
+                "resolve_benchmark_tool_roster",
+                return_value=(["fastp"], None),
+            ):
+                with mock.patch.object(
+                    benchmark_docs_audit,
+                    "resolve_stage_toolset",
+                    return_value=(["bbduk", "fastp"], None),
+                ):
+                    report = benchmark_docs_audit.audit_docs(
+                        docs_root,
+                        repo_root=repo_root,
+                        stage_contracts=[
+                            support.CorpusBenchmarkContract(
+                                stage_id="fastq.trim_reads",
+                                scenario_id="trim_fairness",
+                                tools=["fastp"],
+                            )
+                        ],
+                        exclusions=[],
+                    )
+
+        trim_report = report["stages"][0]
+        self.assertEqual(trim_report["status"], "incomplete")
+        self.assertTrue(
+            any(
+                issue["issue_id"] == "publication-toolset-subset"
+                for issue in trim_report["issues"]
+            )
+        )
 
 
 class CorpusBenchmarkResultsAuditTests(unittest.TestCase):

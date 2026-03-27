@@ -906,6 +906,23 @@ def registry_tools_for_stage(
     return normalize_tool_csv(output)
 
 
+def registry_all_tools_for_stage(repo_root: Path, stage_id: str) -> list[str]:
+    output = run_repo_command(
+        repo_root,
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "registry",
+        "list-tools",
+        "--stage",
+        stage_id,
+    )
+    return normalize_tool_csv(output)
+
+
 def require_canonical_tool_roster(
     repo_root: Path,
     stage_id: str,
@@ -979,6 +996,26 @@ def resolve_benchmark_tool_roster(
                 scenario_id or "",
             )
         )
+    except SystemExit as err:
+        return list(fallback), str(err)
+    return tools, None
+
+
+@lru_cache(maxsize=None)
+def _cached_stage_toolset(repo_root_str: str, stage_id: str) -> tuple[str, ...]:
+    repo_root = Path(repo_root_str)
+    return tuple(registry_all_tools_for_stage(repo_root, stage_id))
+
+
+def resolve_stage_toolset(
+    repo_root: Path,
+    stage_id: str,
+    fallback: list[str],
+) -> tuple[list[str], str | None]:
+    if not registry_contract_is_available(repo_root):
+        return list(fallback), None
+    try:
+        tools = list(_cached_stage_toolset(str(repo_root.resolve()), stage_id))
     except SystemExit as err:
         return list(fallback), str(err)
     return tools, None
