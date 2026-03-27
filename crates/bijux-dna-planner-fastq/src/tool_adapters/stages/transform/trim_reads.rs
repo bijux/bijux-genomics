@@ -526,9 +526,7 @@ fn trim_command_template(
             options,
         );
     }
-    if tool.tool_id.as_str() == "trimmomatic"
-        && (options.min_length.is_some() || options.quality_cutoff.is_some())
-    {
+    if tool.tool_id.as_str() == "trimmomatic" {
         return trimmomatic_command_template(
             r1,
             r2,
