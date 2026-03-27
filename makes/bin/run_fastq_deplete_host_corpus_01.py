@@ -16,6 +16,7 @@ from corpus_01_fastq_benchmark_support import (
     artifact_bundle_exists,
     artifact_bundle_size_bytes,
     benchmark_runtime_env,
+    default_host_reference_index_root,
     default_results_stage_root,
     deplete_host_benchmark_defaults,
     discover_normalized_samples,
@@ -199,16 +200,22 @@ def run_sample_command(
     )
 
 
-def resolve_reference_index(args: argparse.Namespace) -> Path:
-    if not args.reference_index.strip():
-        raise SystemExit(
-            "fastq.deplete_host corpus benchmarking requires --reference-index "
-            "(or BIJUX_HOST_REFERENCE_INDEX) so the governed host index is explicit."
-        )
-    reference_index = Path(args.reference_index).expanduser().resolve()
+def resolve_reference_index(args: argparse.Namespace, out_root: Path) -> Path:
+    requested_path = args.reference_index.strip()
+    if requested_path:
+        reference_index = Path(requested_path).expanduser().resolve()
+    else:
+        reference_index = default_host_reference_index_root(
+            out_root,
+            reference_catalog_id=args.reference_catalog_id,
+            reference_index_backend=args.reference_index_backend,
+        ).resolve()
     if not artifact_bundle_exists(reference_index):
         raise SystemExit(
-            f"missing host reference index bundle or prefix matches: {reference_index}"
+            "missing host reference index bundle or prefix matches: "
+            f"{reference_index}. Populate the governed default under "
+            f"{default_host_reference_index_root(out_root, reference_catalog_id=args.reference_catalog_id, reference_index_backend=args.reference_index_backend)} "
+            "or override it with --reference-index / BIJUX_HOST_REFERENCE_INDEX."
         )
     return reference_index
 
@@ -229,11 +236,10 @@ def main() -> int:
             corpus_root, DEPLETE_HOST_BENCHMARK_CONTRACT.stage_id
         )
     )
-    reference_index = resolve_reference_index(args)
-    reference_index_digest = sha256_artifact_bundle(reference_index)
-
     validate_benchmark_layout(corpus_root, out_root)
     out_root.mkdir(parents=True, exist_ok=True)
+    reference_index = resolve_reference_index(args, out_root)
+    reference_index_digest = sha256_artifact_bundle(reference_index)
     runtime_env = benchmark_runtime_env(out_root)
 
     samples = discover_normalized_samples(corpus_root)

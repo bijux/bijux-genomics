@@ -144,6 +144,9 @@ def validate_trim_run_manifest_contract(run_manifest: dict) -> None:
 
 
 def render_markdown(summary: dict) -> str:
+    def format_trim_setting(value):
+        return "governed tool default" if value is None else value
+
     lines: list[str] = []
     lines.append("# `fastq.trim_reads` on `corpus-01`")
     lines.append("")
@@ -162,8 +165,10 @@ def render_markdown(summary: dict) -> str:
         f"- Era balance: `{summary['era_counts'].get('ancient', 0)}` ancient, `{summary['era_counts'].get('modern', 0)}` modern"
     )
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
-    lines.append(f"- min_length: `{summary['min_length']}`")
-    lines.append(f"- quality_cutoff: `{summary['quality_cutoff']}`")
+    lines.append(f"- min_length: `{format_trim_setting(summary['min_length'])}`")
+    lines.append(
+        f"- quality_cutoff: `{format_trim_setting(summary['quality_cutoff'])}`"
+    )
     lines.append(f"- n_policy: `{summary['n_policy']}`")
     lines.append(f"- adapter_policy: `{summary['adapter_policy']}`")
     lines.append(f"- polyx_policy: `{summary['polyx_policy']}`")

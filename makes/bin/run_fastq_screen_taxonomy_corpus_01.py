@@ -16,6 +16,7 @@ from corpus_01_fastq_benchmark_support import (
     artifact_bundle_exists,
     artifact_bundle_size_bytes,
     benchmark_runtime_env,
+    default_screen_taxonomy_database_root,
     default_results_stage_root,
     discover_normalized_samples,
     load_corpus_spec,
@@ -182,16 +183,23 @@ def run_sample_command(
     )
 
 
-def resolve_database_root(args: argparse.Namespace) -> Path:
-    if not args.database_root.strip():
-        raise SystemExit(
-            "fastq.screen_taxonomy corpus benchmarking requires --database-root "
-            "(or BIJUX_TAXONOMY_DB) so the governed taxonomy database lineage is explicit."
-        )
-    database_root = Path(args.database_root).expanduser().resolve()
+def resolve_database_root(args: argparse.Namespace, out_root: Path) -> Path:
+    requested_path = args.database_root.strip()
+    if requested_path:
+        database_root = Path(requested_path).expanduser().resolve()
+    else:
+        database_root = default_screen_taxonomy_database_root(
+            out_root,
+            database_namespace=args.database_namespace,
+            database_scope=args.database_scope,
+            database_artifact_id=args.database_artifact_id,
+        ).resolve()
     if not artifact_bundle_exists(database_root):
         raise SystemExit(
-            f"missing taxonomy database bundle or prefix matches: {database_root}"
+            "missing taxonomy database bundle or prefix matches: "
+            f"{database_root}. Populate the governed default under "
+            f"{default_screen_taxonomy_database_root(out_root, database_namespace=args.database_namespace, database_scope=args.database_scope, database_artifact_id=args.database_artifact_id)} "
+            "or override it with --database-root / BIJUX_TAXONOMY_DB."
         )
     return database_root
 
@@ -212,11 +220,10 @@ def main() -> int:
             corpus_root, SCREEN_TAXONOMY_BENCHMARK_CONTRACT.stage_id
         )
     )
-    database_root = resolve_database_root(args)
-    database_digest = sha256_artifact_bundle(database_root)
-
     validate_benchmark_layout(corpus_root, out_root)
     out_root.mkdir(parents=True, exist_ok=True)
+    database_root = resolve_database_root(args, out_root)
+    database_digest = sha256_artifact_bundle(database_root)
     runtime_env = benchmark_runtime_env(out_root)
 
     samples = discover_normalized_samples(corpus_root)
