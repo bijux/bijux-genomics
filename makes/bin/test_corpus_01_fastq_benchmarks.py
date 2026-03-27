@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 BIN_DIR = ROOT / "makes" / "bin"
@@ -634,67 +635,68 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
             docs_root.mkdir(parents=True)
-            (docs_root / "summary.json").write_text(
-                json.dumps(
-                    {
-                        "corpus_root": "/home/bijan/bijux/corpus_01",
-                        "run_root": str(
-                            Path(tmpdir)
-                            / "mirror"
-                            / "corpus_01"
-                            / "fastq.validate_reads"
-                            / "lunarc"
-                        ),
-                    }
+            local_results_root = Path(tmpdir) / "mirror"
+            with mock.patch.object(support, "LOCAL_RESULTS_ROOT", local_results_root):
+                run_root = (
+                    local_results_root
+                    / "corpus_01"
+                    / "fastq.validate_reads"
+                    / "lunarc"
                 )
-                + "\n",
-                encoding="utf-8",
-            )
-            run_root = Path(tmpdir) / "mirror" / "corpus_01" / "fastq.validate_reads" / "lunarc"
-            sample_report = run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
-            sample_report.parent.mkdir(parents=True)
-            sample_report.write_text(
-                json.dumps(
-                    {
-                        "records": [
-                            {
-                                "context": {
-                                    "tool": "fastqvalidator",
+                (docs_root / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "corpus_root": "/home/bijan/bijux/corpus_01",
+                            "run_root": str(run_root),
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                sample_report = run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
+                sample_report.parent.mkdir(parents=True)
+                sample_report.write_text(
+                    json.dumps(
+                        {
+                            "records": [
+                                {
+                                    "context": {
+                                        "tool": "fastqvalidator",
+                                    }
                                 }
-                            }
-                        ]
-                    }
+                            ]
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
-            (run_root / "run_manifest.json").write_text(
-                json.dumps(
-                    {
-                        "stage_id": "fastq.validate_reads",
-                        "scenario_id": "validation_fairness",
-                        "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-                        "dry_run": False,
-                        "sample_limit": None,
-                        "samples_failed": 0,
-                        "runs": [
-                            {
-                                "sample_id": "sample_0001",
-                                "report_json": str(sample_report),
-                            }
-                        ],
-                    }
+                (run_root / "run_manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "stage_id": "fastq.validate_reads",
+                            "scenario_id": "validation_fairness",
+                            "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                            "dry_run": False,
+                            "sample_limit": None,
+                            "samples_failed": 0,
+                            "runs": [
+                                {
+                                    "sample_id": "sample_0001",
+                                    "report_json": str(sample_report),
+                                }
+                            ],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
 
-            report = published_results_audit.audit_stage(
-                repo_root,
-                "fastq.validate_reads",
-                "validation_fairness",
-                ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-            )
+                report = published_results_audit.audit_stage(
+                    repo_root,
+                    "fastq.validate_reads",
+                    "validation_fairness",
+                    ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                )
 
             self.assertEqual(report["status"], "incomplete")
             self.assertTrue(
