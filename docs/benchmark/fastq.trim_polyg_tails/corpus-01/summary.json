@@ -29,7 +29,9 @@
   "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
+  "scenario_id": "polyg_trim_fairness",
   "schema_version": "bijux.fastq.trim_polyg_tails.corpus_summary.v1",
+  "stage_id": "fastq.trim_polyg_tails",
   "tool_summary": [
     {
       "mean_bases_trimmed_polyg": 101119.8,

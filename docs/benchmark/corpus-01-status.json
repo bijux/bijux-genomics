@@ -3,10 +3,10 @@
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
   "benchmarkable_stage_count": 23,
   "applicable_stage_count": 20,
-  "completed_stage_count": 10,
-  "incomplete_stage_count": 10,
+  "completed_stage_count": 13,
+  "incomplete_stage_count": 7,
   "excluded_stage_count": 3,
-  "issue_count": 12,
+  "issue_count": 7,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -35,22 +35,9 @@
       ],
       "method_path": "benchmark/fastq.validate_reads/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.validate_reads/corpus-01",
-      "status": "incomplete",
-      "issue_count": 2,
-      "issues": [
-        {
-          "stage_id": "fastq.validate_reads",
-          "issue_id": "summary-stage-id-drift",
-          "severity": "error",
-          "detail": "benchmark/fastq.validate_reads/corpus-01/summary.json stage_id=None"
-        },
-        {
-          "stage_id": "fastq.validate_reads",
-          "issue_id": "summary-scenario-id-drift",
-          "severity": "error",
-          "detail": "benchmark/fastq.validate_reads/corpus-01/summary.json scenario_id=None"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.detect_adapters",
@@ -129,22 +116,9 @@
       ],
       "method_path": "benchmark/fastq.trim_polyg_tails/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.trim_polyg_tails/corpus-01",
-      "status": "incomplete",
-      "issue_count": 2,
-      "issues": [
-        {
-          "stage_id": "fastq.trim_polyg_tails",
-          "issue_id": "summary-stage-id-drift",
-          "severity": "error",
-          "detail": "benchmark/fastq.trim_polyg_tails/corpus-01/summary.json stage_id=None"
-        },
-        {
-          "stage_id": "fastq.trim_polyg_tails",
-          "issue_id": "summary-scenario-id-drift",
-          "severity": "error",
-          "detail": "benchmark/fastq.trim_polyg_tails/corpus-01/summary.json scenario_id=None"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.trim_reads",
@@ -252,16 +226,9 @@
       ],
       "method_path": "benchmark/fastq.remove_duplicates/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.remove_duplicates/corpus-01",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.remove_duplicates",
-          "issue_id": "summary-cohort-count-drift",
-          "severity": "error",
-          "detail": "benchmark/fastq.remove_duplicates/corpus-01/summary.json cohort_counts=None expected {'ancient_pe': 5, 'modern_pe': 5}"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.deplete_host",

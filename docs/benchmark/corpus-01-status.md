@@ -2,24 +2,20 @@
 
 - Benchmarkable governed stages: `23`
 - Corpus-applicable publication stages: `20`
-- Completed stage dossiers: `10`
-- Incomplete stage dossiers: `10`
+- Completed stage dossiers: `13`
+- Incomplete stage dossiers: `7`
 - Excluded stages: `3`
-- Publication issues: `12`
+- Publication issues: `7`
 
 ## Stage status
 
-- `fastq.validate_reads`: `incomplete` (`2` issues, scope `full`)
-  - `summary-stage-id-drift`: benchmark/fastq.validate_reads/corpus-01/summary.json stage_id=None
-  - `summary-scenario-id-drift`: benchmark/fastq.validate_reads/corpus-01/summary.json scenario_id=None
+- `fastq.validate_reads`: `complete` (`0` issues, scope `full`)
 - `fastq.detect_adapters`: `complete` (`0` issues, scope `full`)
 - `fastq.profile_reads`: `complete` (`0` issues, scope `full`)
 - `fastq.profile_read_lengths`: `complete` (`0` issues, scope `full`)
 - `fastq.profile_overrepresented_sequences`: `complete` (`0` issues, scope `full`)
 - `fastq.normalize_primers`: `complete` (`0` issues, scope `full`)
-- `fastq.trim_polyg_tails`: `incomplete` (`2` issues, scope `full`)
-  - `summary-stage-id-drift`: benchmark/fastq.trim_polyg_tails/corpus-01/summary.json stage_id=None
-  - `summary-scenario-id-drift`: benchmark/fastq.trim_polyg_tails/corpus-01/summary.json scenario_id=None
+- `fastq.trim_polyg_tails`: `complete` (`0` issues, scope `full`)
 - `fastq.trim_reads`: `complete` (`0` issues, scope `full`)
 - `fastq.filter_reads`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.filter_reads/corpus-01
@@ -27,8 +23,7 @@
 - `fastq.deplete_rrna`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_rrna/corpus-01
 - `fastq.merge_pairs`: `complete` (`0` issues, scope `paired`)
-- `fastq.remove_duplicates`: `incomplete` (`1` issues, scope `paired`)
-  - `summary-cohort-count-drift`: benchmark/fastq.remove_duplicates/corpus-01/summary.json cohort_counts=None expected {'ancient_pe': 5, 'modern_pe': 5}
+- `fastq.remove_duplicates`: `complete` (`0` issues, scope `paired`)
 - `fastq.deplete_host`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_host/corpus-01
 - `fastq.deplete_reference_contaminants`: `incomplete` (`1` issues, scope `full`)
