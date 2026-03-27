@@ -118,6 +118,18 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertAlmostEqual(defaults["host_identity_threshold"], 0.95)
         self.assertTrue(defaults["retain_unmapped_only"])
 
+    def test_localize_results_path_supports_cache_results_root(self) -> None:
+        localized = support.localize_results_path(
+            "/lunarc/nobackup/projects/snic2019-34-3/.cache/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json",
+            Path("/tmp/local-results"),
+        )
+
+        self.assertEqual(
+            localized,
+            Path("/tmp/local-results")
+            / "corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json",
+        )
+
     def test_deplete_reference_contaminants_defaults_match_governed_suite(self) -> None:
         defaults = support.deplete_reference_contaminants_benchmark_defaults()
         self.assertEqual(defaults["threads"], 8)
