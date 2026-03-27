@@ -9,9 +9,13 @@ __pycache__/
 **/__pycache__/
 *.py[cod]
 .pytest_cache/
+**/.pytest_cache/
 .mypy_cache/
+**/.mypy_cache/
 .ruff_cache/
+**/.ruff_cache/
 .hypothesis/
+**/.hypothesis/
 
 # IDEs
 /.idea/
