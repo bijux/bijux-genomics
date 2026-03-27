@@ -237,10 +237,6 @@ fn rrna_command(
                 command.push("--reads".to_string());
                 command.push(r2.display().to_string());
             }
-            if filtered_reads_r2.is_some() {
-                command.push("--paired_out".to_string());
-                command.push("--out2".to_string());
-            }
             let single_output_globs = format!(
                 "{} {} {} {}",
                 shell_quote_str(&format!("{}*.fastq.gz", other_prefix.display())),
