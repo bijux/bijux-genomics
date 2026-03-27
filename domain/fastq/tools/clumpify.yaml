@@ -9,9 +9,9 @@ container:
   image: "bijuxdna/clumpify"
   digest: "sha256:pending"
 command_template:
-  - "sh"
+  - "bash"
   - "-lc"
-  - "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\n"
+  - "set -euo pipefail\nclumpify in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\n"
 outputs:
   - name: "dedup_reads_r1"
     data_type: "fastq"
@@ -70,8 +70,8 @@ stage_contracts:
 expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
-version_cmd: "clumpify.sh --version"
-help_cmd: "clumpify.sh --help"
+version_cmd: "clumpify --version"
+help_cmd: "clumpify --help"
 comparability:
   comparable_with: ["fastuniq"]
   non_comparable_with: []
