@@ -22,8 +22,10 @@ from corpus_01_fastq_benchmark_support import (
     load_corpus_spec,
     normalize_tool_csv,
     require_canonical_tool_roster,
+    resolve_artifact_lineage_json,
     screen_taxonomy_benchmark_defaults,
     sha256_artifact_bundle,
+    sha256_file,
     validate_benchmark_layout,
     validate_corpus_contract,
 )
@@ -224,6 +226,7 @@ def main() -> int:
     out_root.mkdir(parents=True, exist_ok=True)
     database_root = resolve_database_root(args, out_root)
     database_digest = sha256_artifact_bundle(database_root)
+    database_lineage_json = resolve_artifact_lineage_json(database_root)
     runtime_env = benchmark_runtime_env(out_root)
 
     samples = discover_normalized_samples(corpus_root)
@@ -328,6 +331,14 @@ def main() -> int:
         "database_root": str(database_root),
         "database_digest": database_digest,
         "database_size_bytes": artifact_bundle_size_bytes(database_root),
+        "database_lineage_json": (
+            str(database_lineage_json) if database_lineage_json is not None else None
+        ),
+        "database_lineage_digest": (
+            sha256_file(database_lineage_json)
+            if database_lineage_json is not None
+            else None
+        ),
         "database_catalog_id": args.database_catalog_id,
         "database_artifact_id": args.database_artifact_id,
         "database_namespace": args.database_namespace,

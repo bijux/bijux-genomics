@@ -233,6 +233,7 @@ def render_markdown(
     lines.append(f"- Scenario: `{summary['scenario_id']}`")
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- database_digest: `{summary['database_digest']}`")
+    lines.append(f"- database_lineage_digest: `{summary['database_lineage_digest']}`")
     lines.append(f"- database_catalog_id: `{summary['database_catalog_id']}`")
     lines.append(f"- database_artifact_id: `{summary['database_artifact_id']}`")
     lines.append(f"- database_namespace: `{summary['database_namespace']}`")

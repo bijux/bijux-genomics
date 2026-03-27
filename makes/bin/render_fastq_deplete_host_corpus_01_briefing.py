@@ -235,6 +235,9 @@ def render_markdown(
     lines.append(f"- Scenario: `{summary['scenario_id']}`")
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- reference_index_digest: `{summary['reference_index_digest']}`")
+    lines.append(
+        f"- reference_index_lineage_digest: `{summary['reference_index_lineage_digest']}`"
+    )
     lines.append(f"- reference_catalog_id: `{summary['reference_catalog_id']}`")
     lines.append(f"- reference_index_backend: `{summary['reference_index_backend']}`")
     lines.append(f"- host_identity_threshold: `{summary['host_identity_threshold']}`")

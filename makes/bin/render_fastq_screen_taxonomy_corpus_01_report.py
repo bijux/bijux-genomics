@@ -98,6 +98,14 @@ def validate_run_manifest_contract(run_manifest: dict) -> None:
         raise SystemExit(
             "screen-taxonomy benchmark report drift: run manifest must record database_digest"
         )
+    if not run_manifest.get("database_lineage_json"):
+        raise SystemExit(
+            "screen-taxonomy benchmark report drift: run manifest must record database_lineage_json"
+        )
+    if not run_manifest.get("database_lineage_digest"):
+        raise SystemExit(
+            "screen-taxonomy benchmark report drift: run manifest must record database_lineage_digest"
+        )
     for key, value in defaults.items():
         run_manifest.setdefault(key, value)
 
@@ -170,6 +178,8 @@ def render_markdown(summary: dict) -> str:
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- database_root: `{summary['database_root']}`")
     lines.append(f"- database_digest: `{summary['database_digest']}`")
+    lines.append(f"- database_lineage_json: `{summary['database_lineage_json']}`")
+    lines.append(f"- database_lineage_digest: `{summary['database_lineage_digest']}`")
     lines.append(f"- database_catalog_id: `{summary['database_catalog_id']}`")
     lines.append(f"- database_artifact_id: `{summary['database_artifact_id']}`")
     lines.append(f"- database_namespace: `{summary['database_namespace']}`")
@@ -358,6 +368,8 @@ def main() -> int:
         "database_root": run_manifest["database_root"],
         "database_digest": run_manifest["database_digest"],
         "database_size_bytes": run_manifest["database_size_bytes"],
+        "database_lineage_json": run_manifest["database_lineage_json"],
+        "database_lineage_digest": run_manifest["database_lineage_digest"],
         "database_catalog_id": run_manifest["database_catalog_id"],
         "database_artifact_id": run_manifest["database_artifact_id"],
         "database_namespace": run_manifest["database_namespace"],

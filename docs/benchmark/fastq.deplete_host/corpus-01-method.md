@@ -44,6 +44,7 @@
   - `makes/bin/render_fastq_deplete_host_corpus_01_briefing.py`
 - If `--reference-index` is omitted, the runner expects the governed default under `/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_host/<reference_catalog_id>/<reference_index_backend>/index/` on Lunarc.
 - The host-reference path remains replaceable through `--reference-index` or `BIJUX_HOST_REFERENCE_INDEX`.
+- The governed host-reference bundle is expected to carry `lineage.json` beside the resolved index prefix so the run manifest can record both the bundle digest and the lineage digest.
 - A publishable dossier begins once an executed Lunarc run is rendered into `docs/benchmark/fastq.deplete_host/corpus-01/` under the audit contract described above.
 
 ## Guardrails

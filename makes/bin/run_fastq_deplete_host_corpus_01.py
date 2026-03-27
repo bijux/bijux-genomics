@@ -24,7 +24,9 @@ from corpus_01_fastq_benchmark_support import (
     normalize_tool_csv,
     require_canonical_tool_roster,
     resolve_bowtie2_index_prefix,
+    resolve_artifact_lineage_json,
     sha256_artifact_bundle,
+    sha256_file,
     validate_benchmark_layout,
     validate_corpus_contract,
 )
@@ -245,6 +247,7 @@ def main() -> int:
     out_root.mkdir(parents=True, exist_ok=True)
     reference_index = resolve_reference_index(args, out_root)
     reference_index_digest = sha256_artifact_bundle(reference_index)
+    reference_index_lineage_json = resolve_artifact_lineage_json(reference_index)
     runtime_env = benchmark_runtime_env(out_root)
 
     samples = discover_normalized_samples(corpus_root)
@@ -351,6 +354,16 @@ def main() -> int:
         "reference_index": str(reference_index),
         "reference_index_digest": reference_index_digest,
         "reference_index_size_bytes": artifact_bundle_size_bytes(reference_index),
+        "reference_index_lineage_json": (
+            str(reference_index_lineage_json)
+            if reference_index_lineage_json is not None
+            else None
+        ),
+        "reference_index_lineage_digest": (
+            sha256_file(reference_index_lineage_json)
+            if reference_index_lineage_json is not None
+            else None
+        ),
         "reference_catalog_id": args.reference_catalog_id,
         "reference_index_backend": args.reference_index_backend,
         "host_identity_threshold": args.host_identity_threshold,
