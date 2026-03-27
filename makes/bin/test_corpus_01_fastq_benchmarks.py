@@ -267,6 +267,32 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 support.resolve_bowtie2_index_prefix(index_root)
 
+    def test_resolve_artifact_lineage_json_prefers_directory_lineage(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bundle_root = Path(tmpdir) / "taxonomy_db"
+            bundle_root.mkdir()
+            lineage_path = bundle_root / "lineage.json"
+            lineage_path.write_text("{}", encoding="utf-8")
+
+            self.assertEqual(
+                support.resolve_artifact_lineage_json(bundle_root),
+                lineage_path.resolve(),
+            )
+
+    def test_resolve_artifact_lineage_json_supports_prefix_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            index_root = Path(tmpdir) / "index"
+            index_root.mkdir()
+            prefix = index_root / "reference"
+            (index_root / "reference.1.bt2").write_text("a", encoding="utf-8")
+            lineage_path = index_root / "lineage.json"
+            lineage_path.write_text("{}", encoding="utf-8")
+
+            self.assertEqual(
+                support.resolve_artifact_lineage_json(prefix),
+                lineage_path.resolve(),
+            )
+
     def test_correct_errors_defaults_match_governed_suite(self) -> None:
         defaults = support.correct_errors_benchmark_defaults()
         self.assertEqual(defaults["threads"], 8)
@@ -1570,6 +1596,20 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_deplete_host_report_contract_requires_reference_lineage(self) -> None:
+        with self.assertRaises(SystemExit):
+            deplete_host_report.validate_run_manifest_contract(
+                {
+                    "dry_run": False,
+                    "sample_limit": None,
+                    "stage_id": support.DEPLETE_HOST_BENCHMARK_CONTRACT.stage_id,
+                    "scenario_id": support.DEPLETE_HOST_BENCHMARK_CONTRACT.scenario_id,
+                    "tool_kind": "benchmark",
+                    "reference_index": "/refs/host/reference",
+                    "reference_index_digest": "sha256:index",
+                }
+            )
+
     def test_deplete_reference_contaminants_report_contract_rejects_policy_drift(
         self,
     ) -> None:
@@ -1629,6 +1669,20 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 run_manifest=run_manifest,
                 sample_rows=sample_rows,
                 expected_sample_ids=["sample_0001"],
+            )
+
+    def test_screen_taxonomy_report_contract_requires_database_lineage(self) -> None:
+        with self.assertRaises(SystemExit):
+            screen_taxonomy_report.validate_run_manifest_contract(
+                {
+                    "dry_run": False,
+                    "sample_limit": None,
+                    "stage_id": support.SCREEN_TAXONOMY_BENCHMARK_CONTRACT.stage_id,
+                    "scenario_id": support.SCREEN_TAXONOMY_BENCHMARK_CONTRACT.scenario_id,
+                    "tool_kind": "benchmark",
+                    "database_root": "/refs/taxonomy_db",
+                    "database_digest": "sha256:db",
+                }
             )
 
     def test_correct_errors_report_contract_rejects_policy_drift(self) -> None:

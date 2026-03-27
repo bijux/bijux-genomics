@@ -115,6 +115,19 @@ def sha256_artifact_bundle(path: Path) -> str:
     return digest.hexdigest()
 
 
+def resolve_artifact_lineage_json(path: Path) -> Path | None:
+    resolved = path.expanduser().resolve()
+    candidates: list[Path] = []
+    if resolved.is_dir():
+        candidates.append(resolved / "lineage.json")
+    else:
+        candidates.append(resolved.parent / "lineage.json")
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 @dataclass(frozen=True)
 class CorpusBenchmarkContract:
     stage_id: str

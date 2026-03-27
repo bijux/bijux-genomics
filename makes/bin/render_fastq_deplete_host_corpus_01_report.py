@@ -106,6 +106,14 @@ def validate_run_manifest_contract(run_manifest: dict) -> None:
         raise SystemExit(
             "deplete-host benchmark report drift: run manifest must record reference_index_digest"
         )
+    if not run_manifest.get("reference_index_lineage_json"):
+        raise SystemExit(
+            "deplete-host benchmark report drift: run manifest must record reference_index_lineage_json"
+        )
+    if not run_manifest.get("reference_index_lineage_digest"):
+        raise SystemExit(
+            "deplete-host benchmark report drift: run manifest must record reference_index_lineage_digest"
+        )
     for key, value in defaults.items():
         run_manifest.setdefault(key, value)
 
@@ -201,6 +209,12 @@ def render_markdown(summary: dict) -> str:
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- reference_index: `{summary['reference_index']}`")
     lines.append(f"- reference_index_digest: `{summary['reference_index_digest']}`")
+    lines.append(
+        f"- reference_index_lineage_json: `{summary['reference_index_lineage_json']}`"
+    )
+    lines.append(
+        f"- reference_index_lineage_digest: `{summary['reference_index_lineage_digest']}`"
+    )
     lines.append(f"- reference_catalog_id: `{summary['reference_catalog_id']}`")
     lines.append(f"- reference_index_backend: `{summary['reference_index_backend']}`")
     lines.append(f"- host_identity_threshold: `{summary['host_identity_threshold']}`")
@@ -393,6 +407,8 @@ def main() -> int:
         "reference_index": run_manifest["reference_index"],
         "reference_index_digest": run_manifest["reference_index_digest"],
         "reference_index_size_bytes": run_manifest["reference_index_size_bytes"],
+        "reference_index_lineage_json": run_manifest["reference_index_lineage_json"],
+        "reference_index_lineage_digest": run_manifest["reference_index_lineage_digest"],
         "reference_catalog_id": run_manifest["reference_catalog_id"],
         "reference_index_backend": run_manifest["reference_index_backend"],
         "host_identity_threshold": run_manifest["host_identity_threshold"],

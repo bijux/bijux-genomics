@@ -43,6 +43,7 @@
   - `makes/bin/render_fastq_screen_taxonomy_corpus_01_briefing.py`
 - If `--database-root` is omitted, the runner expects the governed default under `/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/<database_namespace>/<database_scope>/<database_artifact_id>/` on Lunarc.
 - The taxonomy database path remains replaceable through `--database-root` or `BIJUX_TAXONOMY_DB`.
+- The governed taxonomy bundle is expected to carry `lineage.json` at the database root so the run manifest can record both the database digest and the lineage digest.
 - A publishable dossier begins once an executed Lunarc run is rendered into `docs/benchmark/fastq.screen_taxonomy/corpus-01/` under the audit contract described above.
 
 ## Guardrails
