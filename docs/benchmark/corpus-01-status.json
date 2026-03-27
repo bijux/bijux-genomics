@@ -26,6 +26,13 @@
       "stage_id": "fastq.validate_reads",
       "scenario_id": "validation_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "fastq_scan",
+        "fastqc",
+        "fastqvalidator",
+        "fqtools",
+        "seqtk"
+      ],
       "expected_tool_roster": [
         "fastq_scan",
         "fastqc",
@@ -43,6 +50,9 @@
       "stage_id": "fastq.detect_adapters",
       "scenario_id": "detect_adapters_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "fastqc"
+      ],
       "expected_tool_roster": [
         "fastqc"
       ],
@@ -56,6 +66,9 @@
       "stage_id": "fastq.profile_reads",
       "scenario_id": "profile_reads_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "seqkit_stats"
+      ],
       "expected_tool_roster": [
         "seqkit_stats"
       ],
@@ -69,6 +82,9 @@
       "stage_id": "fastq.profile_read_lengths",
       "scenario_id": "read_length_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "seqkit_stats"
+      ],
       "expected_tool_roster": [
         "seqkit_stats"
       ],
@@ -82,9 +98,14 @@
       "stage_id": "fastq.profile_overrepresented_sequences",
       "scenario_id": "overrepresented_sequence_fairness",
       "sample_scope": "full",
-      "expected_tool_roster": [
+      "contract_tool_roster": [
         "fastqc",
         "fastq_scan",
+        "seqkit"
+      ],
+      "expected_tool_roster": [
+        "fastq_scan",
+        "fastqc",
         "seqkit"
       ],
       "method_path": "benchmark/fastq.profile_overrepresented_sequences/corpus-01-method.md",
@@ -97,6 +118,9 @@
       "stage_id": "fastq.normalize_primers",
       "scenario_id": "primer_normalization_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "cutadapt"
+      ],
       "expected_tool_roster": [
         "cutadapt"
       ],
@@ -110,6 +134,10 @@
       "stage_id": "fastq.trim_polyg_tails",
       "scenario_id": "polyg_trim_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "bbduk",
+        "fastp"
+      ],
       "expected_tool_roster": [
         "bbduk",
         "fastp"
@@ -124,6 +152,17 @@
       "stage_id": "fastq.trim_reads",
       "scenario_id": "trim_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "adapterremoval",
+        "atropos",
+        "bbduk",
+        "cutadapt",
+        "fastp",
+        "prinseq",
+        "seqkit",
+        "trim_galore",
+        "trimmomatic"
+      ],
       "expected_tool_roster": [
         "adapterremoval",
         "atropos",
@@ -145,6 +184,12 @@
       "stage_id": "fastq.filter_reads",
       "scenario_id": "filter_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "bbduk",
+        "fastp",
+        "prinseq",
+        "seqkit"
+      ],
       "expected_tool_roster": [
         "bbduk",
         "fastp",
@@ -161,6 +206,10 @@
       "stage_id": "fastq.filter_low_complexity",
       "scenario_id": "low_complexity_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "bbduk",
+        "prinseq"
+      ],
       "expected_tool_roster": [
         "bbduk",
         "prinseq"
@@ -175,6 +224,9 @@
       "stage_id": "fastq.deplete_rrna",
       "scenario_id": "rrna_depletion_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "sortmerna"
+      ],
       "expected_tool_roster": [
         "sortmerna"
       ],
@@ -188,6 +240,14 @@
       "stage_id": "fastq.merge_pairs",
       "scenario_id": "merge_fairness",
       "sample_scope": "paired",
+      "contract_tool_roster": [
+        "adapterremoval",
+        "bbmerge",
+        "flash2",
+        "leehom",
+        "pear",
+        "vsearch"
+      ],
       "expected_tool_roster": [
         "adapterremoval",
         "bbmerge",
@@ -206,6 +266,10 @@
       "stage_id": "fastq.remove_duplicates",
       "scenario_id": "dedup_fairness",
       "sample_scope": "paired",
+      "contract_tool_roster": [
+        "clumpify",
+        "fastuniq"
+      ],
       "expected_tool_roster": [
         "clumpify",
         "fastuniq"
@@ -220,6 +284,9 @@
       "stage_id": "fastq.deplete_host",
       "scenario_id": "host_depletion_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "bowtie2"
+      ],
       "expected_tool_roster": [
         "bowtie2"
       ],
@@ -240,6 +307,9 @@
       "stage_id": "fastq.deplete_reference_contaminants",
       "scenario_id": "contaminant_depletion_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "bowtie2"
+      ],
       "expected_tool_roster": [
         "bowtie2"
       ],
@@ -253,6 +323,12 @@
       "stage_id": "fastq.correct_errors",
       "scenario_id": "correction_fairness",
       "sample_scope": "paired",
+      "contract_tool_roster": [
+        "bayeshammer",
+        "lighter",
+        "musket",
+        "rcorrector"
+      ],
       "expected_tool_roster": [
         "bayeshammer",
         "lighter",
@@ -276,6 +352,9 @@
       "stage_id": "fastq.extract_umis",
       "scenario_id": "umi_extraction_fairness",
       "sample_scope": "paired",
+      "contract_tool_roster": [
+        "umi_tools"
+      ],
       "expected_tool_roster": [
         "umi_tools"
       ],
@@ -289,6 +368,12 @@
       "stage_id": "fastq.screen_taxonomy",
       "scenario_id": "screen_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "centrifuge",
+        "kaiju",
+        "kraken2",
+        "krakenuniq"
+      ],
       "expected_tool_roster": [
         "centrifuge",
         "kaiju",
@@ -312,6 +397,11 @@
       "stage_id": "fastq.trim_terminal_damage",
       "scenario_id": "terminal_damage_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "adapterremoval",
+        "cutadapt",
+        "seqkit"
+      ],
       "expected_tool_roster": [
         "adapterremoval",
         "cutadapt",
@@ -327,6 +417,9 @@
       "stage_id": "fastq.report_qc",
       "scenario_id": "qc_aggregation_fairness",
       "sample_scope": "full",
+      "contract_tool_roster": [
+        "multiqc"
+      ],
       "expected_tool_roster": [
         "multiqc"
       ],

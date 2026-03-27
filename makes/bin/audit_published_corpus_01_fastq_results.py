@@ -11,6 +11,7 @@ from corpus_01_fastq_benchmark_support import (
     default_local_results_stage_root,
     load_json,
     localize_results_path,
+    resolve_benchmark_tool_roster,
 )
 
 
@@ -51,6 +52,27 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
     summary_path = docs_root / "summary.json"
     summary = load_json(summary_path)
     issues: list[StageResultIssue] = []
+    expected_tools, roster_resolution_error = resolve_benchmark_tool_roster(
+        repo_root,
+        stage_id,
+        scenario_id,
+        tools,
+    )
+
+    if roster_resolution_error is not None:
+        append_issue(
+            issues,
+            stage_id,
+            "benchmark-tool-roster-unresolved",
+            roster_resolution_error,
+        )
+    elif sorted(expected_tools) != sorted(tools):
+        append_issue(
+            issues,
+            stage_id,
+            "contract-tool-roster-drift",
+            f"contract tools={sorted(tools)!r} expected governed benchmark roster {sorted(expected_tools)!r}",
+        )
 
     corpus_root = Path(str(summary.get("corpus_root", "")))
     canonical_run_root = default_local_results_stage_root(corpus_root, stage_id)
@@ -93,12 +115,12 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
                 "run-manifest-scenario-id-drift",
                 f"run_manifest scenario_id={run_manifest.get('scenario_id')!r}",
             )
-        if sorted(run_manifest.get("tools") or []) != sorted(tools):
+        if sorted(run_manifest.get("tools") or []) != sorted(expected_tools):
             append_issue(
                 issues,
                 stage_id,
                 "run-manifest-tool-roster-drift",
-                f"run_manifest tools={run_manifest.get('tools')!r} expected {tools!r}",
+                f"run_manifest tools={run_manifest.get('tools')!r} expected {expected_tools!r}",
             )
         if run_manifest.get("dry_run"):
             append_issue(
@@ -145,7 +167,7 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
                     or record.get("context", {}).get("parameters", {}).get("tool")
                 }
             )
-            if observed_tools != sorted(tools):
+            if observed_tools != sorted(expected_tools):
                 tool_roster_drift_samples.append(
                     f"{run.get('sample_id')} observed {observed_tools!r}"
                 )

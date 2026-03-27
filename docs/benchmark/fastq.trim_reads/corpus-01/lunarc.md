@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-- `10` governed trim backends were benchmarked across `20` human samples (`180/180` zero-exit tool-sample observations).
+- `9` governed trim backends were benchmarked across `20` human samples (`180/180` zero-exit tool-sample observations).
 - Fastest median runtime: `seqkit` at `1.216` seconds.
 - Slowest median runtime: `atropos` at `24.170` seconds.
 - Highest median base retention: `atropos` at `1.000`.

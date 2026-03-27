@@ -72,6 +72,18 @@ import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
+    def test_resolve_benchmark_tool_roster_falls_back_without_registry_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tools, error = support.resolve_benchmark_tool_roster(
+                Path(tmpdir),
+                "fastq.trim_reads",
+                "trim_fairness",
+                ["fastp"],
+            )
+
+        self.assertEqual(tools, ["fastp"])
+        self.assertIsNone(error)
+
     def test_filter_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_reads_benchmark_defaults()
         self.assertEqual(defaults["threads"], 8)
@@ -2284,8 +2296,169 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 )
             )
 
+    def test_audit_docs_flags_contract_roster_drift_against_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark"
+            corpus_spec = repo_root / "configs" / "runtime" / "corpora"
+            corpus_spec.mkdir(parents=True)
+            (corpus_spec / "corpus-01.toml").write_text(
+                "\n".join(
+                    [
+                        'corpus_id = "corpus-01"',
+                        "target_ancient_se = 1",
+                        "target_ancient_pe = 1",
+                        "target_modern_se = 1",
+                        "target_modern_pe = 1",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            stage_root = docs_root / "fastq.trim_reads"
+            corpus_root = stage_root / "corpus-01"
+            corpus_root.mkdir(parents=True)
+            (stage_root / "corpus-01-method.md").write_text("# method\n", encoding="utf-8")
+            (corpus_root / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "stage_id": "fastq.trim_reads",
+                        "scenario_id": "trim_fairness",
+                        "tools": ["fastp"],
+                        "samples_total": 4,
+                        "samples_failed": 0,
+                        "cohort_counts": {
+                            "ancient_pe": 1,
+                            "ancient_se": 1,
+                            "modern_pe": 1,
+                            "modern_se": 1,
+                        },
+                        "tool_summary": [
+                            {"tool": "fastp"},
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "sample_results.csv").write_text(
+                "\n".join(
+                    [
+                        "sample_id,accession,era,layout,study_accession,size_band,tool",
+                        "sample_0001,ACC1,ancient,se,PRJ1,under_100mb,fastp",
+                        "sample_0002,ACC2,ancient,pe,PRJ2,under_100mb,fastp",
+                        "sample_0003,ACC3,modern,se,PRJ3,under_500mb,fastp",
+                        "sample_0004,ACC4,modern,pe,PRJ4,under_500mb,fastp",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "tool_runtime_summary.csv").write_text(
+                "tool\nfastp\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "cohort_runtime_summary.csv").write_text(
+                "dimension,cohort\nera_layout,ancient_pe\nera_layout,ancient_se\nera_layout,modern_pe\nera_layout,modern_se\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "sample_runtime_outliers.csv").write_text(
+                "sample_id\nsample_0001\nsample_0002\nsample_0003\nsample_0004\n",
+                encoding="utf-8",
+            )
+            (corpus_root / "lunarc.md").write_text("# dossier\n", encoding="utf-8")
+
+            with mock.patch.object(
+                benchmark_docs_audit,
+                "resolve_benchmark_tool_roster",
+                return_value=(["bbduk", "fastp"], None),
+            ):
+                report = benchmark_docs_audit.audit_docs(
+                    docs_root,
+                    repo_root=repo_root,
+                    stage_contracts=[
+                        support.CorpusBenchmarkContract(
+                            stage_id="fastq.trim_reads",
+                            scenario_id="trim_fairness",
+                            tools=["fastp"],
+                        )
+                    ],
+                    exclusions=[],
+                )
+
+        trim_report = report["stages"][0]
+        self.assertEqual(trim_report["status"], "incomplete")
+        self.assertTrue(
+            any(
+                issue["issue_id"] == "contract-tool-roster-drift"
+                for issue in trim_report["issues"]
+            )
+        )
+        self.assertEqual(trim_report["expected_tool_roster"], ["bbduk", "fastp"])
+
 
 class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
+    def test_result_audit_flags_contract_roster_drift_against_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+            docs_root.mkdir(parents=True)
+            local_results_root = Path(tmpdir) / "mirror"
+            with mock.patch.object(support, "LOCAL_RESULTS_ROOT", local_results_root):
+                run_root = (
+                    local_results_root
+                    / "corpus_01"
+                    / "fastq.validate_reads"
+                    / "lunarc"
+                )
+                run_root.mkdir(parents=True)
+                (docs_root / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "corpus_root": "/home/bijan/bijux/corpus_01",
+                            "run_root": str(run_root),
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                (run_root / "run_manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "stage_id": "fastq.validate_reads",
+                            "scenario_id": "validation_fairness",
+                            "tools": ["fastqvalidator"],
+                            "dry_run": False,
+                            "sample_limit": None,
+                            "samples_failed": 0,
+                            "runs": [],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+
+                with mock.patch.object(
+                    published_results_audit,
+                    "resolve_benchmark_tool_roster",
+                    return_value=(["fastqvalidator", "seqtk"], None),
+                ):
+                    report = published_results_audit.audit_stage(
+                        repo_root,
+                        "fastq.validate_reads",
+                        "validation_fairness",
+                        ["fastqvalidator"],
+                    )
+
+        self.assertEqual(report["status"], "incomplete")
+        self.assertTrue(
+            any(
+                issue["issue_id"] == "contract-tool-roster-drift"
+                for issue in report["issues"]
+            )
+        )
+
     def test_result_audit_flags_partial_tool_roster_in_sample_reports(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -2792,6 +2965,71 @@ class TrimReadsReportingTests(unittest.TestCase):
 
         self.assertIn("adapter_policy: `none`", markdown)
         self.assertIn("Median read retention", markdown)
+
+    def test_trim_reads_briefing_uses_dynamic_tool_and_sample_counts(self) -> None:
+        summary = {
+            "platform": "lunarc-apptainer",
+            "stage_id": "fastq.trim_reads",
+            "scenario_id": "trim_fairness",
+            "samples_total": 2,
+            "tools": ["fastp", "bbduk"],
+            "min_length": 30,
+            "quality_cutoff": None,
+            "n_policy": "retain",
+            "adapter_policy": "none",
+            "polyx_policy": "none",
+            "contaminant_policy": "none",
+        }
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "fastp",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "base_retention": "0.95",
+                "read_retention": "0.94",
+                "mean_q_delta": "0.2",
+            },
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "bbduk",
+                "runtime_s": "2.0",
+                "exit_code": "0",
+                "base_retention": "0.96",
+                "read_retention": "0.95",
+                "mean_q_delta": "0.1",
+            },
+        ]
+        runtime_rows = trim_reads_briefing.tool_runtime_summary(rows)
+        cohort_rows = [
+            {
+                "tool": "fastp",
+                "dimension": "era_layout",
+                "cohort": "modern_pe",
+                "median_runtime_s": 1.0,
+            },
+            {
+                "tool": "fastp",
+                "dimension": "era_layout",
+                "cohort": "ancient_se",
+                "median_runtime_s": 0.8,
+            },
+        ]
+        outliers = trim_reads_briefing.sample_runtime_outliers(rows)
+
+        markdown = trim_reads_briefing.render_markdown(summary, rows, runtime_rows, cohort_rows, outliers)
+
+        self.assertIn("`2` governed trim backends were benchmarked across `2` human samples", markdown)
 
     def test_trim_reads_report_contract_rejects_policy_drift(self) -> None:
         run_manifest = {
@@ -4099,6 +4337,65 @@ class TerminalDamageReportingTests(unittest.TestCase):
 
         self.assertIn("execution_policy: `explicit_terminal_trim`", markdown)
         self.assertIn("Mean asymmetry reduction", markdown)
+
+    def test_terminal_damage_briefing_uses_dynamic_tool_and_sample_counts(self) -> None:
+        summary = {
+            "platform": "lunarc-apptainer",
+            "stage_id": "fastq.trim_terminal_damage",
+            "scenario_id": "terminal_damage_fairness",
+            "samples_total": 2,
+            "tools": ["cutadapt", "seqkit"],
+            "damage_mode": "ancient",
+            "execution_policy": "explicit_terminal_trim",
+            "trim_5p_bases": 2,
+            "trim_3p_bases": 2,
+        }
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "cutadapt",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "base_retention": "0.95",
+                "asymmetry_reduction": "0.20",
+                "mean_q_delta": "0.2",
+            },
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "seqkit",
+                "runtime_s": "2.0",
+                "exit_code": "0",
+                "base_retention": "0.96",
+                "asymmetry_reduction": "0.10",
+                "mean_q_delta": "0.1",
+            },
+        ]
+        runtime_rows = terminal_damage_briefing.tool_runtime_summary(rows)
+        cohort_rows = []
+        outliers = terminal_damage_briefing.sample_runtime_outliers(rows)
+
+        markdown = terminal_damage_briefing.render_markdown(
+            summary,
+            rows,
+            runtime_rows,
+            cohort_rows,
+            outliers,
+        )
+
+        self.assertIn(
+            "`2` governed terminal-damage backends were benchmarked across `2` samples",
+            markdown,
+        )
 
     def test_terminal_damage_report_contract_rejects_policy_drift(self) -> None:
         run_manifest = {
