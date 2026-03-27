@@ -484,9 +484,9 @@ mod tests {
     fn expected_registry_digest_falls_back_to_stable_pin_material_hash() {
         let row = RegistryRow {
             id: "alientrimmer".to_string(),
-            version: Some("0.4.0".to_string()),
-            pinned_commit: Some("release:0.4.0".to_string()),
-            container_ref: Some("bijuxdna/alientrimmer:0.4.0".to_string()),
+            version: Some("3.2".to_string()),
+            pinned_commit: Some("git:6ec40283b87f845dbb833342633258c8e7c18333".to_string()),
+            container_ref: Some("bijuxdna/alientrimmer:3.2".to_string()),
             apptainer_def: Some("containers/apptainer/lunarc/alientrimmer.def".to_string()),
             ..RegistryRow::default()
         };

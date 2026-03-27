@@ -7,8 +7,8 @@
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=0.4.0
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+ARG TOOL_VERSION=3.2
+LABEL org.opencontainers.image.source="https://gitlab.pasteur.fr/GIPhy/AlienTrimmer" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \
@@ -18,19 +18,223 @@ LABEL org.opencontainers.image.title="alientrimmer"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ARG TOOL_VERSION
-RUN cat > /usr/local/bin/alientrimmer <<'SH' && chmod +x /usr/local/bin/alientrimmer
-#!/bin/sh
-set -eu
-if [ "${1:-}" = "--version" ]; then
-  echo "AlienTrimmer 0.4.0"
-  exit 0
+ARG ALIENTRIMMER_VERSION=3.2
+ARG ALIENTRIMMER_SHA256=5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        ca-certificates \
+        curl \
+        openjdk-17-jdk-headless && \
+    curl -L "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer/-/archive/${ALIENTRIMMER_VERSION}/AlienTrimmer-${ALIENTRIMMER_VERSION}.tar.gz" \
+        -o /tmp/alientrimmer.tar.gz && \
+    echo "${ALIENTRIMMER_SHA256}  /tmp/alientrimmer.tar.gz" | sha256sum -c - && \
+    tar -xzf /tmp/alientrimmer.tar.gz -C /opt && \
+    cd "/opt/AlienTrimmer-${ALIENTRIMMER_VERSION}/src" && \
+    javac AlienTrimmer.java && \
+    printf 'Main-Class: AlienTrimmer\n' > MANIFEST.MF && \
+    jar -cmf MANIFEST.MF AlienTrimmer.jar AlienTrimmer*.class && \
+    rm -f MANIFEST.MF AlienTrimmer*.class && \
+    cat > /usr/local/bin/alientrimmer <<'SH' && \
+    chmod +x /usr/local/bin/alientrimmer && \
+    ln -sf /usr/local/bin/alientrimmer /usr/local/bin/AlienTrimmer && \
+    rm -f /tmp/alientrimmer.tar.gz && \
+    rm -rf /var/lib/apt/lists/*
+#!/usr/bin/env bash
+set -euo pipefail
+
+jar_path="/opt/AlienTrimmer-3.2/src/AlienTrimmer.jar"
+java_bin="${JAVA_BIN:-java}"
+java_args=(-Xms256m -Xmx256m)
+
+run_alientrimmer() {
+  "${java_bin}" "${java_args[@]}" -jar "${jar_path}" "$@"
+}
+
+emit_version() {
+  printf '3.2\n'
+}
+
+move_output() {
+  local source="$1"
+  local destination="$2"
+  if [[ -z "${destination}" ]]; then
+    return 0
+  fi
+  if [[ ! -f "${source}" ]]; then
+    printf 'missing AlienTrimmer output: %s\n' "${source}" >&2
+    return 1
+  fi
+  mkdir -p "$(dirname "${destination}")"
+  mv "${source}" "${destination}"
+}
+
+if [[ $# -eq 0 ]]; then
+  exec "${java_bin}" "${java_args[@]}" -jar "${jar_path}"
 fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
-  echo "AlienTrimmer wrapper. Upstream source: https://gite.lirmm.fr/clegrand/AlienTrimmer"
-  exit 0
+
+case "${1:-}" in
+  --version)
+    emit_version
+    exit 0
+    ;;
+  --help|-h)
+    exec "${java_bin}" "${java_args[@]}" -jar "${jar_path}"
+    ;;
+esac
+
+legacy_mode=0
+has_modern_alien_flags=0
+args=("$@")
+
+for ((idx = 0; idx < ${#args[@]}; idx++)); do
+  arg="${args[idx]}"
+  case "${arg}" in
+    -a|--a1|--a2)
+      has_modern_alien_flags=1
+      ((idx += 1))
+      ;;
+    -if|-ir|-cf|-cr|-of|-or|-os)
+      legacy_mode=1
+      ((idx += 1))
+      ;;
+    -c)
+      if (( idx + 1 < ${#args[@]} )) && (( has_modern_alien_flags == 0 )); then
+        value="${args[idx + 1]}"
+        if [[ ! "${value}" =~ ^[0-9]+$ || -e "${value}" ]]; then
+          legacy_mode=1
+        fi
+      fi
+      ((idx += 1))
+      ;;
+    -i|-1|-2|-o|-k|-m|-q|-p|-l)
+      ((idx += 1))
+      ;;
+  esac
+done
+
+if (( legacy_mode == 0 )); then
+  exec "${java_bin}" "${java_args[@]}" -jar "${jar_path}" "$@"
 fi
-echo "AlienTrimmer binary not bundled; use help/version in this pre-HPC registry peer image." >&2
-exit 2
+
+translated=()
+legacy_single_out=""
+legacy_r1_out=""
+legacy_r2_out=""
+legacy_singletons_out=""
+explicit_gzip=0
+
+while (($#)); do
+  case "$1" in
+    -if)
+      translated+=(-1 "$2")
+      shift 2
+      ;;
+    -ir)
+      translated+=(-2 "$2")
+      shift 2
+      ;;
+    -cf)
+      translated+=(--a1 "$2")
+      shift 2
+      ;;
+    -cr)
+      translated+=(--a2 "$2")
+      shift 2
+      ;;
+    -c)
+      translated+=(-a "$2")
+      shift 2
+      ;;
+    -o)
+      legacy_single_out="$2"
+      shift 2
+      ;;
+    -of)
+      legacy_r1_out="$2"
+      shift 2
+      ;;
+    -or)
+      legacy_r2_out="$2"
+      shift 2
+      ;;
+    -os)
+      legacy_singletons_out="$2"
+      shift 2
+      ;;
+    -z)
+      explicit_gzip=1
+      translated+=(-z)
+      shift
+      ;;
+    --help|-h)
+      exec "${java_bin}" "${java_args[@]}" -jar "${jar_path}"
+      ;;
+    --version)
+      emit_version
+      exit 0
+      ;;
+    *)
+      translated+=("$1")
+      shift
+      ;;
+  esac
+done
+
+requested_outputs=()
+for output_path in \
+  "${legacy_single_out}" \
+  "${legacy_r1_out}" \
+  "${legacy_r2_out}" \
+  "${legacy_singletons_out}"
+do
+  if [[ -n "${output_path}" ]]; then
+    requested_outputs+=("${output_path}")
+  fi
+done
+
+if [[ ${#requested_outputs[@]} -eq 0 ]]; then
+  exec "${java_bin}" "${java_args[@]}" -jar "${jar_path}" "${translated[@]}"
+fi
+
+gzip_output_count=0
+plain_output_count=0
+for output_path in "${requested_outputs[@]}"; do
+  case "${output_path}" in
+    *.gz) ((gzip_output_count += 1)) ;;
+    *) ((plain_output_count += 1)) ;;
+  esac
+done
+
+if (( gzip_output_count > 0 && plain_output_count > 0 )); then
+  printf 'legacy AlienTrimmer output paths must agree on gzip suffix\n' >&2
+  exit 2
+fi
+
+if (( gzip_output_count > 0 && explicit_gzip == 0 )); then
+  translated+=(-z)
+fi
+
+temp_dir="$(mktemp -d)"
+trap 'rm -rf "${temp_dir}"' EXIT
+output_base="${temp_dir}/alientrimmer"
+translated+=(-o "${output_base}")
+
+run_alientrimmer "${translated[@]}"
+
+suffix=".fastq"
+if (( gzip_output_count > 0 || explicit_gzip == 1 )); then
+  suffix=".fastq.gz"
+fi
+
+move_output "${output_base}${suffix}" "${legacy_single_out}"
+move_output "${output_base}.1${suffix}" "${legacy_r1_out}"
+move_output "${output_base}.2${suffix}" "${legacy_r2_out}"
+move_output "${output_base}.S${suffix}" "${legacy_singletons_out}"
 SH
+
+WORKDIR /data
 ENTRYPOINT ["/usr/local/bin/alientrimmer"]
 CMD ["--help"]

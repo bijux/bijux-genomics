@@ -1,9 +1,9 @@
 schema_version: bijux.tool.v2
 tool_id: alientrimmer
-upstream: https://gite.lirmm.fr/clegrand/AlienTrimmer
+upstream: https://gitlab.pasteur.fr/GIPhy/AlienTrimmer
 versioning_strategy: pinned
 pin_strategy: pinned
-default_version: 0.4.0
+default_version: 3.2
 install_kind: container
 license: GPL-3.0
 citation: pending:tool-publication
