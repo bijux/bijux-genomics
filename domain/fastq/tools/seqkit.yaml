@@ -125,4 +125,4 @@ comparability:
     - "seqfu"
     - "trimmomatic"
   non_comparable_with: []
-comparability_notes: "Comparable with governed read filtering, primer normalization, and abundance normalization backends only inside the same stage contract and lineage."
+comparability_notes: "Comparable with governed read filtering, trimming, and abundance-normalization backends only inside the same stage contract and lineage."
