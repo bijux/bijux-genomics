@@ -16,6 +16,7 @@ if str(BIN_DIR) not in sys.path:
 import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import audit_published_corpus_01_fastq_results as published_results_audit
+import run_fastq_correct_errors_corpus_01 as correct_errors_runner
 import run_fastq_deplete_host_corpus_01 as deplete_host_runner
 import run_fastq_deplete_reference_contaminants_corpus_01 as deplete_reference_contaminants_runner
 import run_fastq_deplete_rrna_corpus_01 as deplete_rrna_runner
@@ -29,6 +30,8 @@ import run_fastq_trim_reads_corpus_01 as trim_reads_runner
 import run_fastq_trim_terminal_damage_corpus_01 as terminal_damage_runner
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
+import render_fastq_correct_errors_corpus_01_briefing as correct_errors_briefing
+import render_fastq_correct_errors_corpus_01_report as correct_errors_report
 import render_fastq_deplete_host_corpus_01_briefing as deplete_host_briefing
 import render_fastq_deplete_host_corpus_01_report as deplete_host_report
 import render_fastq_deplete_reference_contaminants_corpus_01_briefing as deplete_reference_contaminants_briefing
@@ -128,6 +131,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["database_scope"], "read_screening")
         self.assertIsNone(defaults["minimum_confidence"])
         self.assertTrue(defaults["emit_unclassified"])
+
+    def test_correct_errors_defaults_match_governed_suite(self) -> None:
+        defaults = support.correct_errors_benchmark_defaults()
+        self.assertEqual(defaults["threads"], 8)
+        self.assertEqual(defaults["quality_encoding"], "phred33")
+        self.assertIsNone(defaults["kmer_size"])
+        self.assertIsNone(defaults["genome_size"])
+        self.assertIsNone(defaults["max_memory_gb"])
+        self.assertIsNone(defaults["trusted_kmer_artifact"])
+        self.assertFalse(defaults["conservative_mode"])
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -702,6 +715,37 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.database_catalog_id, "taxonomy_reference_v2")
         self.assertEqual(args.database_artifact_id, "taxonomy_db_2026_03")
 
+    def test_correct_errors_runner_parse_args_supports_policy_overrides(self) -> None:
+        argv = [
+            "run_fastq_correct_errors_corpus_01.py",
+            "--sample-jobs",
+            "2",
+            "--threads",
+            "6",
+            "--quality-encoding",
+            "phred33",
+            "--kmer-size",
+            "31",
+            "--genome-size",
+            "2800000",
+            "--max-memory-gb",
+            "16",
+            "--trusted-kmer-artifact",
+            "/refs/trusted.kmers",
+            "--conservative-mode",
+            "false",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = correct_errors_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 2)
+        self.assertEqual(args.threads, 6)
+        self.assertEqual(args.quality_encoding, "phred33")
+        self.assertEqual(args.kmer_size, 31)
+        self.assertEqual(args.genome_size, 2800000)
+        self.assertEqual(args.max_memory_gb, 16)
+        self.assertEqual(args.trusted_kmer_artifact, "/refs/trusted.kmers")
+        self.assertFalse(args.conservative_mode)
+
     def test_deplete_rrna_runner_shared_index_layout_is_stable(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             out_root = Path(tmpdir) / "results"
@@ -1251,6 +1295,42 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_correct_errors_report_contract_rejects_policy_drift(self) -> None:
+        run_manifest = {
+            "tools": ["lighter"],
+            "quality_encoding": "phred33",
+            "kmer_size": 31,
+            "genome_size": 2800000,
+            "max_memory_gb": None,
+            "trusted_kmer_artifact": "trusted.kmers",
+            "conservative_mode": False,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "layout": "se",
+                "tool": "lighter",
+                "paired_mode": "single_end",
+                "quality_encoding": "phred33",
+                "kmer_size": 29,
+                "genome_size": 2800000,
+                "max_memory_gb": None,
+                "trusted_kmer_artifact": "trusted.kmers",
+                "conservative_mode": False,
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 1000,
+                "corrected_reads": 10,
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            correct_errors_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
+            )
+
     def test_filter_reads_report_contract_rejects_parameter_drift(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "fastp", "prinseq", "seqkit"],
@@ -1498,6 +1578,32 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(summary_rows[0]["tool"], "kraken2")
         self.assertAlmostEqual(summary_rows[0]["mean_contamination_rate"], 0.04)
         self.assertAlmostEqual(summary_rows[0]["mean_classified_fraction"], 0.96)
+
+    def test_correct_errors_briefing_summarizes_quality_uplift(self) -> None:
+        rows = [
+            {
+                "tool": "lighter",
+                "runtime_s": "2.0",
+                "read_retention": "1.0",
+                "corrected_reads": "10",
+                "kmer_fix_rate": "0.04",
+                "mean_q_delta": "0.8",
+                "exit_code": "0",
+            },
+            {
+                "tool": "lighter",
+                "runtime_s": "4.0",
+                "read_retention": "1.0",
+                "corrected_reads": "12",
+                "kmer_fix_rate": "0.06",
+                "mean_q_delta": "1.2",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = correct_errors_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "lighter")
+        self.assertAlmostEqual(summary_rows[0]["mean_kmer_fix_rate"], 0.05)
+        self.assertAlmostEqual(summary_rows[0]["mean_quality_uplift"], 1.0)
 
     def test_remove_duplicates_briefing_summarizes_duplicate_reads(self) -> None:
         rows = [
