@@ -58,6 +58,11 @@ def normalize_metric(record: dict, key: str):
     return metrics_payload.get(key)
 
 
+def normalize_parameter(record: dict, key: str):
+    parameters = record.get("context", {}).get("parameters", {})
+    return parameters.get(key)
+
+
 def delta_metric(record: dict, key: str) -> float:
     delta_metrics = normalize_metric(record, "delta_metrics")
     if not isinstance(delta_metrics, dict):
@@ -226,7 +231,6 @@ def main() -> int:
         corpus_root,
         spec,
         expected_sample_ids=expected_sample_ids,
-        fallback_stage_id=FILTER_LOW_COMPLEXITY_BENCHMARK_CONTRACT.stage_id,
     )
 
     sample_rows: list[dict] = []
@@ -269,14 +273,14 @@ def main() -> int:
                 "base_retention": delta_metric(record, "base_retention"),
                 "read_retention": delta_metric(record, "read_retention"),
                 "mean_q_delta": delta_metric(record, "mean_q_delta"),
-                "entropy_threshold": normalize_metric(record, "entropy_threshold"),
-                "polyx_threshold": normalize_metric(record, "polyx_threshold"),
+                "entropy_threshold": normalize_parameter(record, "entropy_threshold"),
+                "polyx_threshold": normalize_parameter(record, "polyx_threshold"),
                 "reads_removed_low_complexity": normalize_metric(
                     record, "reads_removed_low_complexity"
                 )
                 or 0,
-                "paired_mode": normalize_metric(record, "paired_mode"),
-                "raw_backend_report_format": normalize_metric(
+                "paired_mode": normalize_parameter(record, "paired_mode"),
+                "raw_backend_report_format": normalize_parameter(
                     record, "raw_backend_report_format"
                 ),
             }
