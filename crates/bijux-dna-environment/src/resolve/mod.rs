@@ -243,10 +243,39 @@ pub(crate) fn load_platform_from_file(
     Ok(PlatformSpec {
         name: selected.to_string(),
         runner: raw.runner,
-        container_dir: raw.container_dir.clone(),
+        container_dir: resolved_container_dir(raw),
         image_prefix: raw.image_prefix.clone(),
         arch: raw.arch.clone(),
     })
+}
+
+fn resolved_container_dir(raw: &PlatformSpecRaw) -> PathBuf {
+    if !matches!(raw.runner, RuntimeKind::Apptainer | RuntimeKind::Singularity) {
+        return raw.container_dir.clone();
+    }
+    if let Ok(path) = std::env::var("BIJUX_APPTAINER_CONTAINER_DIR") {
+        if !path.trim().is_empty() {
+            return PathBuf::from(path);
+        }
+    }
+    if let Ok(path) = std::env::var("BIJUX_CACHE_ROOT") {
+        if !path.trim().is_empty() {
+            return PathBuf::from(path)
+                .join("bijux-dna-container")
+                .join("apptainer")
+                .join("sif");
+        }
+    }
+    if let Ok(path) = std::env::var("BIJUX_HPC_ROOT") {
+        if !path.trim().is_empty() {
+            return PathBuf::from(path)
+                .join(".cache")
+                .join("bijux-dna-container")
+                .join("apptainer")
+                .join("sif");
+        }
+    }
+    raw.container_dir.clone()
 }
 
 pub(crate) fn available_runners_with<F>(probe: F) -> Vec<RuntimeKind>
@@ -318,6 +347,42 @@ pub fn resolve_image(
     })
 }
 
+#[cfg(test)]
+mod tests {
+    use super::{load_platform_from_file, RuntimeKind};
+
+    #[test]
+    fn load_platform_prefers_cache_root_for_apptainer_platforms() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-platform-cache-root")?;
+        let platform_path = temp.path().join("platforms.toml");
+        std::fs::write(
+            &platform_path,
+            r#"
+default = "lunarc-apptainer"
+
+[platforms.lunarc-apptainer]
+runner = "apptainer"
+container_dir = "/home/bijan/bijux/bijux-dna-container/apptainer/sif"
+image_prefix = "bijuxdna"
+arch = "amd64"
+"#,
+        )?;
+        std::env::set_var("BIJUX_CACHE_ROOT", "/scratch/cache-root");
+        let platform = load_platform_from_file(&platform_path, Some("lunarc-apptainer"))?;
+        std::env::remove_var("BIJUX_CACHE_ROOT");
+
+        assert_eq!(platform.runner, RuntimeKind::Apptainer);
+        assert_eq!(
+            platform.container_dir,
+            std::path::Path::new("/scratch/cache-root")
+                .join("bijux-dna-container")
+                .join("apptainer")
+                .join("sif")
+        );
+        Ok(())
+    }
+}
+
 /// Load tool images from configs/ci/tools/images.toml.
 ///
 /// # Errors
@@ -360,7 +425,7 @@ pub(crate) fn load_image_catalog_from_file(
     Ok(catalog)
 }
 
-fn hydrate_catalog_digests_from_registry(
+pub(crate) fn hydrate_catalog_digests_from_registry(
     catalog: &mut HashMap<String, ToolImageSpec>,
     registry_path: &Path,
 ) -> Result<(), EnvError> {
