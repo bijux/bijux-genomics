@@ -329,6 +329,7 @@ def filter_low_complexity_benchmark_defaults() -> dict:
 
 def filter_reads_benchmark_defaults() -> dict:
     return {
+        "threads": 8,
         "max_n": 0,
         "max_n_fraction": None,
         "max_n_count": 3,
@@ -359,6 +360,7 @@ def normalize_primers_benchmark_defaults() -> dict:
 
 def deplete_rrna_benchmark_defaults() -> dict:
     return {
+        "threads": 4,
         "rrna_bundle_id": "sortmerna_v4_3_default_db",
         "min_identity": 0.95,
     }
