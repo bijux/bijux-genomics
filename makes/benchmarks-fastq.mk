@@ -124,6 +124,14 @@ _benchmark-filter-low-complexity-corpus-01: ## Benchmark fastq.filter_low_comple
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
+_benchmark-remove-duplicates-corpus-01: ## Benchmark fastq.remove_duplicates across the paired corpus-01 cohort
+	@python3 makes/bin/run_fastq_remove_duplicates_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",)
+
 _benchmark-merge-corpus-01: ## Benchmark fastq.merge_pairs across the paired corpus-01 cohort
 	@python3 makes/bin/run_fastq_merge_pairs_corpus_01.py \
 		--repo-root . \
@@ -211,6 +219,14 @@ _benchmark-filter-low-complexity-corpus-01-report: ## Render the corpus-01 filte
 		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
 	@python3 makes/bin/render_fastq_filter_low_complexity_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.filter_low_complexity/corpus-01
+
+_benchmark-remove-duplicates-corpus-01-report: ## Render the corpus-01 remove-duplicates benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_remove_duplicates_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_remove_duplicates_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.remove_duplicates/corpus-01
 
 _benchmark-merge-corpus-01-report: ## Render the corpus-01 merge benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_merge_pairs_corpus_01_report.py \
