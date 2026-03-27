@@ -13,7 +13,7 @@
 
 # VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
-From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f
+From: python:3.9-slim@sha256:dad5b29e3506c35e0fd222736f4d4ef25d21b219acdd73f7bb41d59996ca8e0d
 
 %labels
     MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
@@ -44,13 +44,16 @@ From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d751
     apt-get install -y --no-install-recommends \
         ca-certificates \
         build-essential \
+        git \
         python3 \
         python3-pip \
-        python3-venv
+        python3-venv \
+        liblzma-dev
 
     python3 -m venv /opt/umi-tools-venv
     /opt/umi-tools-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel
-    /opt/umi-tools-venv/bin/pip install --no-cache-dir --no-deps "umi_tools==1.1.6"
+    /opt/umi-tools-venv/bin/pip install --no-cache-dir \
+        "git+https://github.com/CGATOxford/UMI-tools.git@v${VERSION_UMI_TOOLS}"
     install -m 0755 /opt/umi-tools-venv/bin/umi_tools /usr/local/bin/umi_tools-bin
 
     # Create a wrapper for stable --version and --help behavior.
@@ -83,8 +86,7 @@ EOF
     fi
 
 %help
-    UMI-tools v1.1.6 installed into /opt/venv (Python 3.10).
-    Upstream sdist forces ez_setup -> setuptools==10.0 (breaks on Python 3.10 due to missing 'symbol').
-    This image bypasses pip download/metadata, patches setup.py, then installs locally.
+    UMI-tools v1.1.6 installed into /opt/umi-tools-venv (Python 3.9).
+    This image installs from the upstream Git tag rather than the legacy sdist path so Apptainer builds avoid the ez_setup/setuptools bootstrap failure.
     Wrapper: umi_tools
     Real binary: umi_tools-bin
