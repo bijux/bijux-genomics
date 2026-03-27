@@ -143,6 +143,10 @@ def tool_root(out_root: Path, sample_id: str, tool: str) -> Path:
     return out_root / "bench" / "deplete_rrna" / sample_id / "tools" / tool
 
 
+def sortmerna_sample_workdir(out_root: Path, sample_id: str) -> Path:
+    return tool_root(out_root, sample_id, "sortmerna") / "sortmerna_workdir"
+
+
 def sortmerna_shared_index_dir(out_root: Path, rrna_bundle_id: str) -> Path:
     return (
         out_root
@@ -193,7 +197,7 @@ def prepare_sortmerna_sample_workdir(
 ) -> Path:
     shared_idx_dir = sortmerna_shared_index_dir(out_root, rrna_bundle_id)
     shared_idx_dir.mkdir(parents=True, exist_ok=True)
-    sample_workdir = tool_root(out_root, sample_id, "sortmerna") / "sortmerna_workdir"
+    sample_workdir = sortmerna_sample_workdir(out_root, sample_id)
     sample_workdir.mkdir(parents=True, exist_ok=True)
     sample_idx_dir = sample_workdir / "idx"
     if sample_idx_dir.is_symlink() or sample_idx_dir.is_file():
@@ -213,12 +217,18 @@ def promote_sortmerna_sample_index_cache(
     rrna_bundle_id: str,
 ) -> Path:
     shared_idx_dir = sortmerna_shared_index_dir(out_root, rrna_bundle_id)
-    sample_idx_dir = tool_root(out_root, sample_id, "sortmerna") / "sortmerna_workdir" / "idx"
+    sample_idx_dir = sortmerna_sample_workdir(out_root, sample_id) / "idx"
     if not sample_idx_dir.is_dir():
         raise FileNotFoundError(f"missing SortMeRNA sample idx dir: {sample_idx_dir}")
     if not sortmerna_shared_index_seeded(shared_idx_dir):
         _clone_index_cache(sample_idx_dir, shared_idx_dir)
     return shared_idx_dir
+
+
+def prune_sortmerna_sample_payload(out_root: Path, sample_id: str) -> None:
+    sample_workdir = sortmerna_sample_workdir(out_root, sample_id)
+    if sample_workdir.is_dir():
+        shutil.rmtree(sample_workdir)
 
 
 def warm_sortmerna_shared_index_cache(
@@ -362,6 +372,8 @@ def main() -> int:
     for sample_index, sample in enumerate(samples):
         sample_report = report_path(out_root, sample["sample_id"])
         if args.resume and sample_report.is_file():
+            if tools == ["sortmerna"] and not args.dry_run:
+                prune_sortmerna_sample_payload(out_root, sample["sample_id"])
             runs[sample_index] = SampleRun(
                 sample_id=sample["sample_id"],
                 r1=str(sample["r1"]),
@@ -426,6 +438,7 @@ def main() -> int:
                     promote_sortmerna_sample_index_cache(
                         out_root, sample["sample_id"], args.rrna_bundle_id
                     )
+                    prune_sortmerna_sample_payload(out_root, sample["sample_id"])
             for _, sample, _, _ in pending:
                 prepare_sortmerna_sample_workdir(
                     out_root, sample["sample_id"], args.rrna_bundle_id
@@ -447,6 +460,8 @@ def main() -> int:
                 runs[sample_index] = run
                 if run.exit_code != 0:
                     failures += 1
+                elif tools == ["sortmerna"]:
+                    prune_sortmerna_sample_payload(out_root, run.sample_id)
 
     manifest = {
         "schema_version": "bijux.fastq.deplete_rrna.corpus_run.v1",
