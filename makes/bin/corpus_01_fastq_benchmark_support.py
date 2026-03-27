@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import subprocess
 from collections import defaultdict
@@ -19,6 +20,68 @@ LOCAL_RESULTS_ROOT = Path("/Users/bijan/bijux/bijux-dna-results")
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _prefix_bundle_members(path: Path) -> list[Path]:
+    if path.exists():
+        return [path]
+    parent = path.parent
+    if not parent.is_dir():
+        return []
+    return sorted(
+        candidate
+        for candidate in parent.glob(f"{path.name}*")
+        if candidate.is_file() or candidate.is_dir()
+    )
+
+
+def artifact_bundle_exists(path: Path) -> bool:
+    return bool(_prefix_bundle_members(path))
+
+
+def artifact_bundle_size_bytes(path: Path) -> int:
+    total = 0
+    for member in _prefix_bundle_members(path):
+        if member.is_file():
+            total += member.stat().st_size
+            continue
+        for nested in sorted(candidate for candidate in member.rglob("*") if candidate.is_file()):
+            total += nested.stat().st_size
+    return total
+
+
+def sha256_artifact_bundle(path: Path) -> str:
+    members = _prefix_bundle_members(path)
+    if not members:
+        raise FileNotFoundError(f"missing artifact bundle: {path}")
+
+    digest = hashlib.sha256()
+    for member in members:
+        if member.is_file():
+            digest.update(member.name.encode("utf-8"))
+            digest.update(b"\0file\0")
+            digest.update(sha256_file(member).encode("utf-8"))
+            continue
+
+        for nested in sorted(member.rglob("*")):
+            if nested == member:
+                continue
+            relative = nested.relative_to(member.parent)
+            digest.update(relative.as_posix().encode("utf-8"))
+            if nested.is_dir():
+                digest.update(b"\0dir\0")
+                continue
+            digest.update(b"\0file\0")
+            digest.update(sha256_file(nested).encode("utf-8"))
+    return digest.hexdigest()
 
 
 @dataclass(frozen=True)
@@ -363,6 +426,56 @@ def deplete_rrna_benchmark_defaults() -> dict:
         "threads": 4,
         "rrna_bundle_id": "sortmerna_v4_3_default_db",
         "min_identity": 0.95,
+    }
+
+
+def deplete_host_benchmark_defaults() -> dict:
+    return {
+        "threads": 8,
+        "reference_catalog_id": "host_reference",
+        "reference_index_backend": "bowtie2_build",
+        "host_identity_threshold": 0.95,
+        "retain_unmapped_only": True,
+    }
+
+
+def deplete_reference_contaminants_benchmark_defaults() -> dict:
+    return {
+        "threads": 8,
+        "reference_catalog_id": "contaminant_reference",
+        "reference_index_backend": "bowtie2_build",
+        "decoy_mode": "phix_and_spikeins",
+    }
+
+
+def correct_errors_benchmark_defaults() -> dict:
+    return {
+        "threads": 8,
+        "quality_encoding": "phred33",
+        "kmer_size": None,
+        "genome_size": None,
+        "max_memory_gb": None,
+        "trusted_kmer_artifact": None,
+        "conservative_mode": False,
+    }
+
+
+def extract_umis_benchmark_defaults() -> dict:
+    return {
+        "threads": 4,
+        "umi_pattern": "NNNNNNNN",
+    }
+
+
+def screen_taxonomy_benchmark_defaults() -> dict:
+    return {
+        "threads": 8,
+        "database_catalog_id": "taxonomy_reference",
+        "database_artifact_id": "taxonomy_db",
+        "database_namespace": "read_screening",
+        "database_scope": "read_screening",
+        "minimum_confidence": None,
+        "emit_unclassified": True,
     }
 
 
