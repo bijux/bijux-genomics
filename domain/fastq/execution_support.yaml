@@ -61,7 +61,6 @@ stages:
     default_tool: "cutadapt"
     admitted_tools:
       - "cutadapt"
-      - "seqkit"
   - stage_id: "fastq.trim_polyg_tails"
     execution_status: "closed"
     planning_support: "stage_family"
