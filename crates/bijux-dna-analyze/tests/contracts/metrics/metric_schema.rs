@@ -1,7 +1,8 @@
 use bijux_dna_analyze::{
     metric_set, BenchmarkRecord, FastqCorrectMetrics, FastqDeltaMetrics, FastqFilterMetrics,
-    FastqMergeMetrics, FastqQcPostMetrics, FastqScreenMetrics, FastqStatsMetrics, FastqTrimMetrics,
-    FastqUmiMetrics, FastqValidateMetrics, LengthHistogramBin, MetricSet,
+    FastqLowComplexityMetrics, FastqMergeMetrics, FastqQcPostMetrics, FastqScreenMetrics,
+    FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics, FastqValidateMetrics,
+    LengthHistogramBin, MetricSet,
 };
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 
@@ -247,6 +248,23 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         },
     });
     assert_eq!(filter.metrics_schema, "fastq_filter_reads_v2");
+
+    let low_complexity = metric_set(FastqLowComplexityMetrics {
+        reads_in: 100,
+        reads_out: 92,
+        bases_in: 1000,
+        bases_out: 910,
+        reads_removed_low_complexity: 8,
+        mean_q_before: 30.0,
+        mean_q_after: 30.5,
+        delta_metrics: FastqDeltaMetrics {
+            read_retention: 0.92,
+            base_retention: 0.91,
+            mean_q_delta: 0.5,
+            gc_delta: 0.01,
+        },
+    });
+    assert_eq!(low_complexity.metrics_schema, "fastq_filter_low_complexity_v1");
 
     let merge = metric_set(FastqMergeMetrics {
         reads_in: 100,
