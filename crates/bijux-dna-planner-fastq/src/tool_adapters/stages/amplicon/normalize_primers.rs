@@ -87,6 +87,13 @@ pub fn plan_with_options(
             ArtifactRole::Reads,
         ));
     }
+    if let Some(primer_fasta) = &options.primer_fasta {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("primer_fasta"),
+            primer_fasta.clone(),
+            ArtifactRole::Reference,
+        ));
+    }
     let mut outputs = vec![ArtifactRef::required(
         ArtifactId::from_static("normalized_reads_r1"),
         output_r1.clone(),
@@ -159,7 +166,7 @@ pub fn plan_with_options(
             "strict_5p_anchor": options.strict_5p_anchor,
             "allow_iupac_codes": options.allow_iupac_codes,
             "raw_backend_report": primer_stats,
-            "raw_backend_report_format": match tool.tool_id.0.as_str() {
+            "raw_backend_report_format": match &*tool.tool_id.0 {
                 "cutadapt" => Some("cutadapt_json"),
                 _ => None,
             },
