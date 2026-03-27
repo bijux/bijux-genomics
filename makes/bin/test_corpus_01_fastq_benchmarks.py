@@ -494,6 +494,164 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
 
             self.assertFalse(sample_workdir.exists())
 
+    def test_deplete_rrna_runner_resume_requires_successful_sample_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_path = Path(tmpdir) / "report.json"
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "failures": [],
+                        "gate": {"passes": True},
+                        "records": [{"context": {"tool": "sortmerna"}}],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self.assertTrue(
+                deplete_rrna_runner.sample_report_is_resume_ready(report_path)
+            )
+
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "failures": [
+                            {
+                                "kind": "tool_exit",
+                                "reason": "tool `sortmerna` failed with status 143",
+                            }
+                        ],
+                        "gate": {"passes": False},
+                        "records": [],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self.assertFalse(
+                deplete_rrna_runner.sample_report_is_resume_ready(report_path)
+            )
+
+    def test_deplete_rrna_runner_reruns_stale_resume_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            repo_root.mkdir()
+            corpus_root = Path(tmpdir) / "corpus_01"
+            normalized_root = corpus_root / "normalized"
+            normalized_root.mkdir(parents=True)
+            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
+            r1_path.write_text("reads", encoding="utf-8")
+            rrna_db = Path(tmpdir) / "sortmerna_v4_3_default_db.fasta"
+            rrna_db.write_text(">rrna\nACGT\n", encoding="utf-8")
+            out_root = Path(tmpdir) / "results"
+            stale_sample_root = out_root / "bench" / "deplete_rrna" / "sample_0001"
+            stale_sample_root.mkdir(parents=True)
+            stale_marker = stale_sample_root / "stale.marker"
+            stale_marker.write_text("old", encoding="utf-8")
+            stale_report = stale_sample_root / "report.json"
+            stale_report.write_text(
+                json.dumps(
+                    {
+                        "failures": [
+                            {
+                                "kind": "tool_exit",
+                                "reason": "tool `sortmerna` failed with status 143",
+                            }
+                        ],
+                        "gate": {"passes": False},
+                        "records": [],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            def fake_run(command: list[str], cwd: Path, check: bool = False):
+                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
+                self.assertFalse(stale_marker.exists())
+                fresh_report = out_root / "bench" / "deplete_rrna" / "sample_0001" / "report.json"
+                fresh_report.parent.mkdir(parents=True, exist_ok=True)
+                fresh_report.write_text(
+                    json.dumps(
+                        {
+                            "failures": [],
+                            "gate": {"passes": True},
+                            "records": [{"context": {"tool": "sortmerna"}}],
+                            "semantic_metrics": [],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                return mock.Mock(returncode=0)
+
+            argv = [
+                "run_fastq_deplete_rrna_corpus_01.py",
+                "--repo-root",
+                str(repo_root),
+                "--corpus-root",
+                str(corpus_root),
+                "--out-root",
+                str(out_root),
+                "--rrna-db",
+                str(rrna_db),
+            ]
+            with mock.patch.object(sys, "argv", argv):
+                with mock.patch.object(
+                    deplete_rrna_runner,
+                    "load_corpus_spec",
+                    return_value={"preferred_root": str(corpus_root)},
+                ):
+                    with mock.patch.object(
+                        deplete_rrna_runner,
+                        "discover_normalized_samples",
+                        return_value=[
+                            {
+                                "sample_id": "sample_0001",
+                                "r1": r1_path,
+                                "r2": None,
+                                "layout": "se",
+                            }
+                        ],
+                    ):
+                        with mock.patch.object(
+                            deplete_rrna_runner,
+                            "validate_benchmark_layout",
+                        ):
+                            with mock.patch.object(
+                                deplete_rrna_runner,
+                                "validate_corpus_contract",
+                            ):
+                                with mock.patch.object(
+                                    deplete_rrna_runner,
+                                    "require_canonical_tool_roster",
+                                    return_value=["sortmerna"],
+                                ):
+                                    with mock.patch.object(
+                                        deplete_rrna_runner,
+                                        "warm_sortmerna_shared_index_cache",
+                                    ):
+                                        with mock.patch.object(
+                                            deplete_rrna_runner,
+                                            "sortmerna_shared_index_seeded",
+                                            return_value=True,
+                                        ):
+                                            with mock.patch.object(
+                                                deplete_rrna_runner.subprocess,
+                                                "run",
+                                                side_effect=fake_run,
+                                            ) as run_mock:
+                                                exit_code = deplete_rrna_runner.main()
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(run_mock.call_count, 1)
+            self.assertFalse(stale_marker.exists())
+            manifest = json.loads(
+                (out_root / "run_manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["samples_failed"], 0)
+            self.assertEqual(manifest["runs"][0]["status"], "completed")
+
     def test_normalize_primers_report_contract_rejects_policy_drift(self) -> None:
         run_manifest = {
             "tools": ["cutadapt"],
