@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -110,9 +111,9 @@ fn resolve_apptainer_image_for_run(
 }
 
 fn apptainer_image_candidates(spec: &ToolImageSpec, platform: &PlatformSpec) -> Vec<PathBuf> {
+    let registry_root = apptainer_registry_root(&platform.container_dir);
     let mut candidates = vec![platform.container_dir.join(format!("{}.sif", spec.tool))];
     if let Some(digest) = spec.digest.as_deref() {
-        let registry_root = apptainer_registry_root(&platform.container_dir);
         let normalized_digest = digest.strip_prefix("sha256:").unwrap_or(digest);
         candidates.push(
             registry_root
@@ -120,9 +121,26 @@ fn apptainer_image_candidates(spec: &ToolImageSpec, platform: &PlatformSpec) -> 
                 .join(format!("{normalized_digest}.sif")),
         );
         candidates.push(registry_root.join(&spec.tool).join(format!("{digest}.sif")));
+    } else if let Some(unique_sif) = unique_registry_sif(&registry_root, &spec.tool) {
+        candidates.push(unique_sif);
     }
     candidates.dedup();
     candidates
+}
+
+fn unique_registry_sif(registry_root: &Path, tool: &str) -> Option<PathBuf> {
+    let tool_dir = registry_root.join(tool);
+    let entries = fs::read_dir(&tool_dir).ok()?;
+    let mut sifs = entries
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "sif"))
+        .collect::<Vec<_>>();
+    sifs.sort();
+    if sifs.len() == 1 {
+        return sifs.into_iter().next();
+    }
+    None
 }
 
 fn apptainer_registry_root(container_dir: &Path) -> PathBuf {
@@ -535,6 +553,38 @@ mod tests {
             tool: "fastqc".to_string(),
             version: "latest-pinned".to_string(),
             digest: Some("sha256:abc123".to_string()),
+            enabled: None,
+            shipping_policy: None,
+        };
+
+        let image = resolve_image_for_run(&spec, &platform)?;
+
+        assert_eq!(image.full_name, sif_path.display().to_string());
+        assert_eq!(image.runner, RuntimeKind::Apptainer);
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_image_for_run_uses_single_registry_sif_when_digest_is_missing() -> anyhow::Result<()>
+    {
+        let temp = bijux_dna_infra::temp_dir("bijux-runner-apptainer-unique-registry")?;
+        let flat_dir = temp.path().join("apptainer").join("sif");
+        let registry_dir = temp.path().join("seqkit");
+        bijux_dna_infra::ensure_dir(&flat_dir)?;
+        bijux_dna_infra::ensure_dir(&registry_dir)?;
+        let sif_path = registry_dir.join("pending.sif");
+        bijux_dna_infra::atomic_write_bytes(&sif_path, b"sif")?;
+        let platform = PlatformSpec {
+            name: "lunarc-apptainer".to_string(),
+            runner: RuntimeKind::Apptainer,
+            container_dir: flat_dir,
+            image_prefix: "bijuxdna".to_string(),
+            arch: "amd64".to_string(),
+        };
+        let spec = ToolImageSpec {
+            tool: "seqkit".to_string(),
+            version: "latest-pinned".to_string(),
+            digest: None,
             enabled: None,
             shipping_policy: None,
         };
