@@ -184,9 +184,7 @@ fn low_complexity_command_template(
             output_r1.display().to_string(),
             "-out_bad".to_string(),
             "/dev/null".to_string(),
-            "-lc_method".to_string(),
-            "entropy".to_string(),
-            "-lc_threshold".to_string(),
+            "-lc_entropy".to_string(),
             options.resolved_entropy_threshold().to_string(),
         ];
         if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
@@ -351,6 +349,6 @@ mod tests {
             .command
             .template
             .windows(2)
-            .any(|window| window == ["-lc_threshold", "0.5"]));
+            .any(|window| window == ["-lc_entropy", "0.5"]));
     }
 }
