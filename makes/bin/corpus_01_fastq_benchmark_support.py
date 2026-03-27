@@ -517,10 +517,10 @@ def benchmark_runtime_env(out_root: Path) -> dict[str, str]:
     cache_root = infer_cache_root(out_root)
     if cache_root is None:
         return env
-    env.setdefault("BIJUX_CACHE_ROOT", str(cache_root))
-    env.setdefault("XDG_CACHE_HOME", str(cache_root))
+    env["BIJUX_CACHE_ROOT"] = str(cache_root)
+    env["XDG_CACHE_HOME"] = str(cache_root)
     if cache_root.name == ".cache":
-        env.setdefault("BIJUX_HPC_ROOT", str(cache_root.parent))
+        env["BIJUX_HPC_ROOT"] = str(cache_root.parent)
     return env
 
 
