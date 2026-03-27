@@ -10,7 +10,6 @@
 - The benchmark runner must resolve the roster from `bijux-dna registry list-tools --stage fastq.normalize_primers --kind benchmark`.
 - The current governed fairness cohort is:
   - `cutadapt`
-  - `seqkit`
 
 ## Execution contract
 - Use normalized FASTQ inputs from `corpus-01/normalized/`.
@@ -39,8 +38,8 @@
 - `lunarc.md`: narrative benchmark dossier for the Lunarc run.
 
 ## Publication gate
-- This stage does not yet have a committed `corpus-01` runner and report renderer under `makes/bin/`.
-- A publishable dossier begins once those entrypoints materialize `docs/benchmark/fastq.normalize_primers/corpus-01/` under the audit contract described above.
+- The committed corpus entrypoints are `makes/bin/run_fastq_normalize_primers_corpus_01.py`, `makes/bin/render_fastq_normalize_primers_corpus_01_report.py`, and `makes/bin/render_fastq_normalize_primers_corpus_01_briefing.py`.
+- A publishable dossier begins once those entrypoints materialize `docs/benchmark/fastq.normalize_primers/corpus-01/` from a full Lunarc corpus run under the audit contract described above.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

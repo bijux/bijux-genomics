@@ -148,6 +148,14 @@ _benchmark-report-qc-corpus-01: ## Benchmark fastq.report_qc across corpus-01
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
+_benchmark-normalize-primers-corpus-01: ## Benchmark fastq.normalize_primers across corpus-01
+	@python3 makes/bin/run_fastq_normalize_primers_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",)
+
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
 		--repo-root . \
@@ -244,6 +252,14 @@ _benchmark-report-qc-corpus-01-report: ## Render the corpus-01 report-qc benchma
 	@python3 makes/bin/render_fastq_report_qc_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.report_qc/corpus-01
 
+_benchmark-normalize-primers-corpus-01-report: ## Render the corpus-01 normalize-primers benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_normalize_primers_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_normalize_primers_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.normalize_primers/corpus-01
+
 _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publication coverage
 	@python3 makes/bin/audit_corpus_01_fastq_benchmark_docs.py \
 		--repo-root . \
@@ -257,6 +273,7 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	@$(MAKE) _benchmark-profile-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-profile-read-lengths-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-profile-overrepresented-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-normalize-primers-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-filter-low-complexity-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-trim-polyg-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-trim-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
