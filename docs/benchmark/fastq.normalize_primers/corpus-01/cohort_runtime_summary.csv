@@ -1,0 +1,8 @@
+tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,median_read_retention,mean_primer_trimmed_fraction,median_orientation_forward_fraction
+cutadapt,era_layout,ancient_pe,5,20.382717,9.421291,1.000000,0.000000,0.000000
+cutadapt,era_layout,ancient_se,5,21.364193,8.519394,1.000000,0.000000,0.000000
+cutadapt,era_layout,modern_pe,5,48.877487,77.685753,1.000000,0.000000,0.000000
+cutadapt,era_layout,modern_se,5,26.612165,10.521997,1.000000,0.000000,0.000000
+cutadapt,size_band,under_1000mb,1,76.905052,76.905052,1.000000,0.000000,0.000000
+cutadapt,size_band,under_100mb,12,6.364731,6.361516,1.000000,0.000000,0.000000
+cutadapt,size_band,under_500mb,7,61.842999,76.045519,1.000000,0.000000,0.000000

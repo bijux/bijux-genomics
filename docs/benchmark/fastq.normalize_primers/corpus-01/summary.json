@@ -1,0 +1,53 @@
+{
+  "schema_version": "bijux.fastq.normalize_primers.corpus_summary.v1",
+  "generated_at_utc": "2026-03-27T04:14:07.841387+00:00",
+  "stage_id": "fastq.normalize_primers",
+  "scenario_id": "primer_normalization_fairness",
+  "platform": "lunarc-apptainer",
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.normalize_primers/lunarc",
+  "tools": [
+    "cutadapt"
+  ],
+  "samples_total": 20,
+  "samples_failed": 0,
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "primer_set_id": "16S_universal_v1",
+  "orientation_policy": "normalize_to_forward_primer",
+  "max_mismatch_rate": 0.1,
+  "min_overlap_bp": 10,
+  "strict_5p_anchor": true,
+  "allow_iupac_codes": true,
+  "headline": {
+    "fastest_tool": "cutadapt",
+    "fastest_runtime_s": 9.971643884999999,
+    "strongest_trim_tool": "cutadapt",
+    "strongest_trim_fraction": 0.0,
+    "most_forward_tool": "cutadapt",
+    "most_forward_fraction": 0.0
+  },
+  "tool_summary": [
+    {
+      "tool": "cutadapt",
+      "records": 20,
+      "pass_rate": 1.0,
+      "median_runtime_s": 9.971643884999999,
+      "median_read_retention": 1.0,
+      "mean_primer_trimmed_fraction": 0.0,
+      "median_orientation_forward_fraction": 0.0
+    }
+  ]
+}

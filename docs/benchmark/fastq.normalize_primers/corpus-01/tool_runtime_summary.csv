@@ -1,0 +1,2 @@
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,median_read_retention,mean_primer_trimmed_fraction,median_orientation_forward_fraction,slowdown_vs_fastest_median
+cutadapt,20,1.000000,29.309141,9.971644,77.685753,84.757552,1.000000,0.000000,0.000000,1.000000

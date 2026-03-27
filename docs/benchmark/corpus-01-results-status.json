@@ -1,7 +1,7 @@
 {
   "corpus_id": "corpus-01",
-  "published_stage_count": 12,
-  "complete_stage_count": 12,
+  "published_stage_count": 13,
+  "complete_stage_count": 13,
   "incomplete_stage_count": 0,
   "issue_count": 0,
   "stages": [
@@ -31,6 +31,12 @@
     },
     {
       "stage_id": "fastq.profile_overrepresented_sequences",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
       "status": "complete",
       "issue_count": 0,
       "issues": []
