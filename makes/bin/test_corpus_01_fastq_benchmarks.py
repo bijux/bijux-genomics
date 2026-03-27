@@ -276,6 +276,10 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertIsNone(defaults["max_memory_gb"])
         self.assertIsNone(defaults["trusted_kmer_artifact"])
         self.assertFalse(defaults["conservative_mode"])
+        self.assertEqual(
+            support.CORRECT_ERRORS_BENCHMARK_CONTRACT.tools,
+            ["bayeshammer", "lighter", "musket", "rcorrector"],
+        )
         self.assertEqual(support.CORRECT_ERRORS_BENCHMARK_CONTRACT.sample_scope, "paired")
 
     def test_extract_umis_defaults_match_governed_suite(self) -> None:
