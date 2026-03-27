@@ -8,6 +8,7 @@ import os
 import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 try:
@@ -935,3 +936,49 @@ def require_exact_tool_roster(
             f"{expected}, received {tools}"
         )
     return [tool for tool in expected if tool in tools_set]
+
+
+def registry_contract_is_available(repo_root: Path) -> bool:
+    return (repo_root / "Cargo.toml").is_file() and (
+        repo_root / "configs" / "ci" / "registry" / "tool_registry.toml"
+    ).is_file()
+
+
+@lru_cache(maxsize=None)
+def _cached_registry_tools_for_stage(
+    repo_root_str: str,
+    stage_id: str,
+    kind: str,
+    scenario_id: str,
+) -> tuple[str, ...]:
+    repo_root = Path(repo_root_str)
+    return tuple(
+        registry_tools_for_stage(
+            repo_root,
+            stage_id,
+            kind,
+            scenario_id=scenario_id or None,
+        )
+    )
+
+
+def resolve_benchmark_tool_roster(
+    repo_root: Path,
+    stage_id: str,
+    scenario_id: str | None,
+    fallback: list[str],
+) -> tuple[list[str], str | None]:
+    if not registry_contract_is_available(repo_root):
+        return list(fallback), None
+    try:
+        tools = list(
+            _cached_registry_tools_for_stage(
+                str(repo_root.resolve()),
+                stage_id,
+                "benchmark",
+                scenario_id or "",
+            )
+        )
+    except SystemExit as err:
+        return list(fallback), str(err)
+    return tools, None

@@ -236,7 +236,7 @@ def render_markdown(
     lines.append("## Executive Summary")
     lines.append("")
     lines.append(
-        f"- `10` governed trim backends were benchmarked across `20` human samples (`{zero_exit}/{len(rows)}` zero-exit tool-sample observations)."
+        f"- `{len(runtime_rows)}` governed trim backends were benchmarked across `{summary['samples_total']}` human samples (`{zero_exit}/{len(rows)}` zero-exit tool-sample observations)."
     )
     lines.append(
         f"- Fastest median runtime: `{fastest['tool']}` at `{fmt_runtime(fastest['median_runtime_s'])}` seconds."

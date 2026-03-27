@@ -15,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     CorpusBenchmarkExclusion,
     expected_cohort_counts,
     load_corpus_spec,
+    resolve_benchmark_tool_roster,
 )
 
 
@@ -115,6 +116,30 @@ def audit_stage(
     method_path = stage_root / "corpus-01-method.md"
     corpus_root = stage_root / "corpus-01"
     issues: list[StageAuditIssue] = []
+    expected_tools, roster_resolution_error = resolve_benchmark_tool_roster(
+        repo_root,
+        contract.stage_id,
+        contract.scenario_id,
+        contract.tools,
+    )
+
+    if roster_resolution_error is not None:
+        append_issue(
+            issues,
+            contract.stage_id,
+            "benchmark-tool-roster-unresolved",
+            roster_resolution_error,
+        )
+    elif sorted(expected_tools) != sorted(contract.tools):
+        append_issue(
+            issues,
+            contract.stage_id,
+            "contract-tool-roster-drift",
+            (
+                f"contract tools={sorted(contract.tools)!r} expected governed benchmark "
+                f"roster {sorted(expected_tools)!r}"
+            ),
+        )
 
     if not method_path.is_file():
         append_issue(
@@ -179,14 +204,14 @@ def audit_stage(
                     ),
                 )
             actual_tools = summary.get("tools")
-            if sorted(actual_tools or []) != sorted(contract.tools):
+            if sorted(actual_tools or []) != sorted(expected_tools):
                 append_issue(
                     issues,
                     contract.stage_id,
                     "summary-tool-roster-drift",
                     (
                         f"{summary_path.relative_to(docs_root.parent)} tools="
-                        f"{actual_tools!r} expected {contract.tools!r}"
+                        f"{actual_tools!r} expected {expected_tools!r}"
                     ),
                 )
             if int(summary.get("samples_total", 0) or 0) != expected_total:
@@ -230,14 +255,14 @@ def audit_stage(
                     if isinstance(row, dict) and row.get("tool")
                 }
             )
-            if summary_tool_ids != sorted(contract.tools):
+            if summary_tool_ids != sorted(expected_tools):
                 append_issue(
                     issues,
                     contract.stage_id,
                     "summary-tool-summary-drift",
                     (
                         f"{summary_path.relative_to(docs_root.parent)} tool_summary tools="
-                        f"{summary_tool_ids!r} expected {sorted(contract.tools)!r}"
+                        f"{summary_tool_ids!r} expected {sorted(expected_tools)!r}"
                     ),
                 )
 
@@ -292,14 +317,14 @@ def audit_stage(
                             ),
                         )
 
-                if sorted(observed_tools) != sorted(contract.tools):
+                if sorted(observed_tools) != sorted(expected_tools):
                     append_issue(
                         issues,
                         contract.stage_id,
                         "sample-results-tool-roster-drift",
                         (
                             f"{sample_results_path.relative_to(docs_root.parent)} tools="
-                            f"{sorted(observed_tools)!r} expected {sorted(contract.tools)!r}"
+                            f"{sorted(observed_tools)!r} expected {sorted(expected_tools)!r}"
                         ),
                     )
                 if len(sample_metadata) != expected_total:
@@ -326,7 +351,7 @@ def audit_stage(
                         ),
                     )
                 for sample_id, tools in sorted(per_sample_tools.items()):
-                    if sorted(tools) != sorted(contract.tools):
+                    if sorted(tools) != sorted(expected_tools):
                         append_issue(
                             issues,
                             contract.stage_id,
@@ -334,10 +359,10 @@ def audit_stage(
                             (
                                 f"{sample_results_path.relative_to(docs_root.parent)} sample "
                                 f"{sample_id} tools={sorted(tools)!r} expected "
-                                f"{sorted(contract.tools)!r}"
+                                f"{sorted(expected_tools)!r}"
                             ),
                         )
-                expected_row_count = expected_total * len(contract.tools)
+                expected_row_count = expected_total * len(expected_tools)
                 if len(sample_rows) != expected_row_count:
                     append_issue(
                         issues,
@@ -356,14 +381,14 @@ def audit_stage(
                 for row in tool_rows
                 if row.get("tool", "").strip()
             )
-            if observed_tools != sorted(contract.tools):
+            if observed_tools != sorted(expected_tools):
                 append_issue(
                     issues,
                     contract.stage_id,
                     "tool-runtime-summary-drift",
                     (
                         f"{tool_runtime_summary_path.relative_to(docs_root.parent)} tools="
-                        f"{observed_tools!r} expected {sorted(contract.tools)!r}"
+                        f"{observed_tools!r} expected {sorted(expected_tools)!r}"
                     ),
                 )
 
@@ -417,7 +442,8 @@ def audit_stage(
         "stage_id": contract.stage_id,
         "scenario_id": contract.scenario_id,
         "sample_scope": contract.sample_scope,
-        "expected_tool_roster": contract.tools,
+        "contract_tool_roster": contract.tools,
+        "expected_tool_roster": expected_tools,
         "method_path": str(method_path.relative_to(docs_root.parent)),
         "corpus_path": str(corpus_root.relative_to(docs_root.parent)),
         "status": "complete" if not issues else "incomplete",
