@@ -15,14 +15,14 @@
     {
       "apptainer_def": "containers/apptainer/lunarc/alientrimmer.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.alientrimmer",
-      "pinned_commit": "release:0.4.0",
+      "pinned_commit": "git:6ec40283b87f845dbb833342633258c8e7c18333",
       "runtimes": [
         "docker",
         "apptainer"
       ],
       "tool_id": "alientrimmer",
-      "upstream": "https://gite.lirmm.fr/clegrand/AlienTrimmer",
-      "version": "0.4.0"
+      "upstream": "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer",
+      "version": "3.2"
     },
     {
       "apptainer_def": "containers/apptainer/lunarc/angsd.def",
