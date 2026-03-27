@@ -1,7 +1,7 @@
 {
   "corpus_id": "corpus-01",
-  "published_stage_count": 13,
-  "complete_stage_count": 13,
+  "published_stage_count": 14,
+  "complete_stage_count": 14,
   "incomplete_stage_count": 0,
   "issue_count": 0,
   "stages": [
@@ -49,6 +49,12 @@
     },
     {
       "stage_id": "fastq.trim_reads",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.filter_reads",
       "status": "complete",
       "issue_count": 0,
       "issues": []

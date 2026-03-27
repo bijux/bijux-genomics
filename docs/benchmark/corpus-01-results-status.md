@@ -1,7 +1,7 @@
 # `corpus-01` published result mirror status
 
-- Published stages audited: `13`
-- Complete mirrored stages: `13`
+- Published stages audited: `14`
+- Complete mirrored stages: `14`
 - Incomplete mirrored stages: `0`
 - Mirror issues: `0`
 
@@ -15,6 +15,7 @@
 - `fastq.normalize_primers`: `complete` (`0` issues)
 - `fastq.trim_polyg_tails`: `complete` (`0` issues)
 - `fastq.trim_reads`: `complete` (`0` issues)
+- `fastq.filter_reads`: `complete` (`0` issues)
 - `fastq.filter_low_complexity`: `complete` (`0` issues)
 - `fastq.merge_pairs`: `complete` (`0` issues)
 - `fastq.remove_duplicates`: `complete` (`0` issues)
