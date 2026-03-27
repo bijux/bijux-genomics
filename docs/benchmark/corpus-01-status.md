@@ -2,26 +2,29 @@
 
 - Benchmarkable governed stages: `23`
 - Corpus-applicable publication stages: `20`
-- Completed stage dossiers: `10`
-- Incomplete stage dossiers: `10`
+- Completed stage dossiers: `9`
+- Incomplete stage dossiers: `11`
 - Excluded stages: `3`
-- Publication issues: `10`
+- Publication issues: `13`
 
 ## Stage status
 
-- `fastq.validate_reads`: `complete` (`0` issues, scope `full`)
+- `fastq.validate_reads`: `incomplete` (`2` issues, scope `full`)
+  - `summary-stage-id-drift`: benchmark/fastq.validate_reads/corpus-01/summary.json stage_id=None
+  - `summary-scenario-id-drift`: benchmark/fastq.validate_reads/corpus-01/summary.json scenario_id=None
 - `fastq.detect_adapters`: `complete` (`0` issues, scope `full`)
 - `fastq.profile_reads`: `complete` (`0` issues, scope `full`)
 - `fastq.profile_read_lengths`: `complete` (`0` issues, scope `full`)
 - `fastq.profile_overrepresented_sequences`: `complete` (`0` issues, scope `full`)
 - `fastq.normalize_primers`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.normalize_primers/corpus-01
-- `fastq.trim_polyg_tails`: `complete` (`0` issues, scope `full`)
+- `fastq.trim_polyg_tails`: `incomplete` (`2` issues, scope `full`)
+  - `summary-stage-id-drift`: benchmark/fastq.trim_polyg_tails/corpus-01/summary.json stage_id=None
+  - `summary-scenario-id-drift`: benchmark/fastq.trim_polyg_tails/corpus-01/summary.json scenario_id=None
 - `fastq.trim_reads`: `complete` (`0` issues, scope `full`)
 - `fastq.filter_reads`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.filter_reads/corpus-01
-- `fastq.filter_low_complexity`: `incomplete` (`1` issues, scope `full`)
-  - `missing-corpus-dir`: missing benchmark/fastq.filter_low_complexity/corpus-01
+- `fastq.filter_low_complexity`: `complete` (`0` issues, scope `full`)
 - `fastq.deplete_rrna`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_rrna/corpus-01
 - `fastq.merge_pairs`: `complete` (`0` issues, scope `paired`)

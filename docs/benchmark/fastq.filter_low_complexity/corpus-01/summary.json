@@ -1,0 +1,61 @@
+{
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "entropy_threshold": 0.55,
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-27T01:59:56.233507+00:00",
+  "headline": {
+    "best_base_retention": 0.9993151076925884,
+    "best_base_retention_tool": "bbduk",
+    "fastest_runtime_s": 3.4677261995,
+    "fastest_tool": "bbduk",
+    "strongest_filter_reads": 245897.55,
+    "strongest_filter_tool": "bbduk"
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "platform": "lunarc-apptainer",
+  "polyx_threshold": null,
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_low_complexity/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "low_complexity_fairness",
+  "schema_version": "bijux.fastq.filter_low_complexity.corpus_summary.v1",
+  "stage_id": "fastq.filter_low_complexity",
+  "tool_summary": [
+    {
+      "mean_q_delta": 0.0,
+      "mean_reads_removed_low_complexity": 245897.55,
+      "median_base_retention": 0.9993151076925884,
+      "median_read_retention": 0.9988115970432441,
+      "median_runtime_s": 3.4677261995,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "bbduk"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "mean_reads_removed_low_complexity": 92116.8,
+      "median_base_retention": 0.9992197378674104,
+      "median_read_retention": 0.9991693054946835,
+      "median_runtime_s": 7.3795423765,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "prinseq"
+    }
+  ],
+  "tools": [
+    "bbduk",
+    "prinseq"
+  ]
+}
