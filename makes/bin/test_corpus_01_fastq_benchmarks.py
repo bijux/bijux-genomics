@@ -72,6 +72,15 @@ import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
+    def test_trim_reads_defaults_match_governed_suite(self) -> None:
+        defaults = support.trim_reads_benchmark_defaults()
+        self.assertIsNone(defaults["min_length"])
+        self.assertIsNone(defaults["quality_cutoff"])
+        self.assertEqual(defaults["n_policy"], "retain")
+        self.assertEqual(defaults["adapter_policy"], "none")
+        self.assertEqual(defaults["polyx_policy"], "none")
+        self.assertEqual(defaults["contaminant_policy"], "none")
+
     def test_resolve_benchmark_tool_roster_falls_back_without_registry_contract(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tools, error = support.resolve_benchmark_tool_roster(
@@ -141,6 +150,21 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertAlmostEqual(defaults["host_identity_threshold"], 0.95)
         self.assertTrue(defaults["retain_unmapped_only"])
 
+    def test_default_host_reference_index_root_prefers_cache_extra_data(self) -> None:
+        out_root = Path(
+            "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc"
+        )
+        self.assertEqual(
+            support.default_host_reference_index_root(
+                out_root,
+                reference_catalog_id="host_reference",
+                reference_index_backend="bowtie2_build",
+            ).resolve(),
+            Path(
+                "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index"
+            ).resolve(),
+        )
+
     def test_localize_results_path_supports_cache_results_root(self) -> None:
         localized = support.localize_results_path(
             "/lunarc/nobackup/projects/snic2019-34-3/.cache/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json",
@@ -169,6 +193,24 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["database_scope"], "read_screening")
         self.assertIsNone(defaults["minimum_confidence"])
         self.assertTrue(defaults["emit_unclassified"])
+
+    def test_default_screen_taxonomy_database_root_prefers_cache_extra_data(
+        self,
+    ) -> None:
+        out_root = Path(
+            "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.screen_taxonomy/lunarc"
+        )
+        self.assertEqual(
+            support.default_screen_taxonomy_database_root(
+                out_root,
+                database_namespace="read_screening",
+                database_scope="read_screening",
+                database_artifact_id="taxonomy_db",
+            ).resolve(),
+            Path(
+                "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
+            ).resolve(),
+        )
 
     def test_correct_errors_defaults_match_governed_suite(self) -> None:
         defaults = support.correct_errors_benchmark_defaults()

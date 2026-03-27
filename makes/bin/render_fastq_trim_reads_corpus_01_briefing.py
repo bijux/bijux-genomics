@@ -211,6 +211,9 @@ def render_markdown(
     cohort_rows: list[dict],
     outliers: list[dict],
 ) -> str:
+    def format_trim_setting(value):
+        return "governed tool default" if value is None else value
+
     tool_lookup = {row["tool"]: row for row in runtime_rows}
     fastest = min(runtime_rows, key=lambda row: row["median_runtime_s"])
     slowest = max(runtime_rows, key=lambda row: row["median_runtime_s"])
@@ -257,8 +260,10 @@ def render_markdown(
     lines.append(f"- Stage: `{summary['stage_id']}`")
     lines.append(f"- Scenario: `{summary['scenario_id']}`")
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
-    lines.append(f"- min_length: `{summary['min_length']}`")
-    lines.append(f"- quality_cutoff: `{summary['quality_cutoff']}`")
+    lines.append(f"- min_length: `{format_trim_setting(summary['min_length'])}`")
+    lines.append(
+        f"- quality_cutoff: `{format_trim_setting(summary['quality_cutoff'])}`"
+    )
     lines.append(f"- n_policy: `{summary['n_policy']}`")
     lines.append(f"- adapter_policy: `{summary['adapter_policy']}`")
     lines.append(f"- polyx_policy: `{summary['polyx_policy']}`")

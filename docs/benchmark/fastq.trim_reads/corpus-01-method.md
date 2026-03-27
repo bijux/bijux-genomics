@@ -10,12 +10,16 @@
 - The benchmark runner resolves the tool roster from `bijux-dna registry list-tools --stage fastq.trim_reads --kind benchmark`.
 - The current governed fairness cohort is:
   - `adapterremoval`
+  - `alientrimmer`
   - `atropos`
   - `bbduk`
   - `cutadapt`
   - `fastp`
+  - `fastx_clipper`
+  - `leehom`
   - `prinseq`
   - `seqkit`
+  - `skewer`
   - `trim_galore`
   - `trimmomatic`
 - `seqpurge` is intentionally excluded from the governed cohort until its Lunarc image exposes a real trimming runtime instead of the current compatibility wrapper.
@@ -28,7 +32,7 @@
   - `5` modern single-end
   - `5` modern paired-end
 - Pin one comparable trim policy bundle across the whole cohort:
-  - `min_length = 30`
+  - `min_length = governed tool default`
   - `quality_cutoff = null`
   - `n_policy = retain`
   - `adapter_policy = none`

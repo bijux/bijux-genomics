@@ -172,12 +172,16 @@ TRIM_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     scenario_id="trim_fairness",
     tools=[
         "adapterremoval",
+        "alientrimmer",
         "atropos",
         "bbduk",
         "cutadapt",
         "fastp",
+        "fastx_clipper",
+        "leehom",
         "prinseq",
         "seqkit",
+        "skewer",
         "trim_galore",
         "trimmomatic",
     ],
@@ -365,7 +369,7 @@ REPORT_QC_CONTRIBUTOR_CONTRACTS = [
 
 def trim_reads_benchmark_defaults() -> dict:
     return {
-        "min_length": 30,
+        "min_length": None,
         "quality_cutoff": None,
         "n_policy": "retain",
         "adapter_policy": "none",
@@ -517,6 +521,46 @@ def benchmark_runtime_env(out_root: Path) -> dict[str, str]:
     if cache_root.name == ".cache":
         env.setdefault("BIJUX_HPC_ROOT", str(cache_root.parent))
     return env
+
+
+def default_extra_data_root(out_root: Path) -> Path:
+    cache_root = infer_cache_root(out_root)
+    if cache_root is not None:
+        return cache_root / "extra-data"
+    return LOCAL_RESULTS_ROOT / "extra-data"
+
+
+def default_host_reference_index_root(
+    out_root: Path,
+    *,
+    reference_catalog_id: str,
+    reference_index_backend: str,
+) -> Path:
+    return (
+        default_extra_data_root(out_root)
+        / "benchmark"
+        / "fastq.deplete_host"
+        / reference_catalog_id
+        / reference_index_backend
+        / "index"
+    )
+
+
+def default_screen_taxonomy_database_root(
+    out_root: Path,
+    *,
+    database_namespace: str,
+    database_scope: str,
+    database_artifact_id: str,
+) -> Path:
+    return (
+        default_extra_data_root(out_root)
+        / "benchmark"
+        / "fastq.screen_taxonomy"
+        / database_namespace
+        / database_scope
+        / database_artifact_id
+    )
 
 
 def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:
