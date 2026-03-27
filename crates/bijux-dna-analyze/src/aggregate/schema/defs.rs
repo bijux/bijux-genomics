@@ -19,6 +19,7 @@ pub enum StageMetricKind {
     FastqCorrect,
     FastqQcPost,
     FastqUmi,
+    FastqDepleteRrna,
     FastqScreen,
     FastqNormalizePrimers,
     FastqStats,

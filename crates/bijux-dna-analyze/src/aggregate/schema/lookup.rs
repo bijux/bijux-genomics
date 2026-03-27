@@ -81,6 +81,12 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             metrics: &fields::FASTQ_UMI_METRICS,
             invariants: &fields::FASTQ_UMI_INVARIANTS,
         },
+        defs::StageMetricKind::FastqDepleteRrna => defs::StageMetricSpec {
+            stage: "fastq.deplete_rrna",
+            version: 1,
+            metrics: &fields::FASTQ_DEPLETE_RRNA_METRICS,
+            invariants: &fields::FASTQ_DEPLETE_RRNA_INVARIANTS,
+        },
         defs::StageMetricKind::FastqScreen => defs::StageMetricSpec {
             stage: "fastq.screen_taxonomy",
             version: 1,
