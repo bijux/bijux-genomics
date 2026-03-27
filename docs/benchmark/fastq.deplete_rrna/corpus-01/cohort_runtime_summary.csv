@@ -1,0 +1,8 @@
+tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,median_read_retention,median_base_retention,mean_rrna_fraction_removed
+sortmerna,era_layout,ancient_pe,5,175.144018,67.973534,1.000000,1.000000,0.000000
+sortmerna,era_layout,ancient_se,5,137.138340,70.625642,1.000000,1.000000,0.000000
+sortmerna,era_layout,modern_pe,5,1237.500786,416.483166,1.000000,1.000000,0.002770
+sortmerna,era_layout,modern_se,5,330.350225,107.534873,0.991303,0.991303,0.005839
+sortmerna,size_band,under_1000mb,1,1008.113584,1008.113584,1.000000,1.000000,0.000000
+sortmerna,size_band,under_100mb,12,55.570594,53.137588,1.000000,1.000000,0.002433
+sortmerna,size_band,under_500mb,7,1103.672305,416.483166,1.000000,1.000000,0.001978
