@@ -331,7 +331,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .map(|tool_id| tool_id.as_str())
             .collect::<Vec<_>>(),
-        vec!["lighter", "musket", "rcorrector"]
+        vec!["bayeshammer", "lighter", "musket", "rcorrector"]
     );
     assert_eq!(
         correction_cohorts[0]
@@ -339,7 +339,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .map(|tool_id| tool_id.as_str())
             .collect::<Vec<_>>(),
-        vec!["lighter", "musket", "rcorrector"]
+        vec!["bayeshammer", "lighter", "musket", "rcorrector"]
     );
 
     let otu_stage = StageId::from_static("fastq.cluster_otus");

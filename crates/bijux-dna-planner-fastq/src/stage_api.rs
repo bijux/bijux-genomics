@@ -192,11 +192,6 @@ pub fn benchmark_profile_for_stage_tool(
             BenchmarkReadinessLevel::ObserverSpecializedBenchmark
         }
     })?;
-    let readiness = if excludes_tool_from_governed_benchmark_cohort(stage_id, tool_id) {
-        BenchmarkReadinessLevel::GovernedExecution
-    } else {
-        readiness
-    };
     Some(StageToolBenchmarkProfile {
         stage_id: capability.stage_id,
         tool_id: capability.tool_id,
@@ -205,17 +200,6 @@ pub fn benchmark_profile_for_stage_tool(
         benchmark_scenarios: capability.benchmark_scenarios,
         readiness,
     })
-}
-
-fn excludes_tool_from_governed_benchmark_cohort(stage_id: &StageId, tool_id: &ToolId) -> bool {
-    matches!(
-        (stage_id.as_str(), tool_id.as_str()),
-        // BayesHammer currently violates the governed fastq.correct_errors retention contract on
-        // paired corpus inputs by dropping reads during correction. Keep it runnable, but exclude
-        // it from the governed benchmark cohort until the stage contract and backend behavior
-        // align again.
-        ("fastq.correct_errors", "bayeshammer")
-    )
 }
 
 #[must_use]

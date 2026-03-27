@@ -370,6 +370,8 @@ fn correct_command_template(
             script.push_str(&format!(" -o {}\n", shell_quote_path(&work_dir)));
             script.push_str(&move_bayeshammer_outputs_script(
                 &work_dir.join("corrected"),
+                input_r1,
+                input_r2,
                 output_r1,
                 output_r2,
             ));
@@ -431,6 +433,8 @@ fn move_corrected_outputs_script(
 
 fn move_bayeshammer_outputs_script(
     search_dir: &Path,
+    input_r1: &Path,
+    input_r2: Option<&Path>,
     output_r1: &Path,
     output_r2: Option<&Path>,
 ) -> String {
@@ -445,18 +449,123 @@ fn move_bayeshammer_outputs_script(
         shell_quote_path(&unsorted_list_path),
     );
     if let Some(output_r2) = output_r2 {
+        let reconstruction_python = r#"import gzip
+import os
+
+input_r1 = os.environ["INPUT_R1"]
+input_r2 = os.environ["INPUT_R2"]
+paired_r1 = os.environ["PAIRED_R1"]
+paired_r2 = os.environ["PAIRED_R2"]
+unpaired_path = os.environ.get("UNPAIRED_PATH", "")
+output_r1 = os.environ["OUTPUT_R1"]
+output_r2 = os.environ["OUTPUT_R2"]
+
+def read_fastq(path):
+    opener = gzip.open if path.endswith(".gz") else open
+    with opener(path, "rt", encoding="utf-8") as handle:
+        while True:
+            header = handle.readline()
+            if not header:
+                break
+            sequence = handle.readline()
+            plus = handle.readline()
+            quality = handle.readline()
+            if not quality:
+                raise SystemExit(f"incomplete FASTQ record in {path}")
+            yield (
+                header.rstrip("\n"),
+                sequence.rstrip("\n"),
+                plus.rstrip("\n"),
+                quality.rstrip("\n"),
+            )
+
+def write_fastq(path, records):
+    with gzip.open(path, "wt", encoding="utf-8") as handle:
+        for header, sequence, plus, quality in records:
+            handle.write(header + "\n")
+            handle.write(sequence + "\n")
+            handle.write(plus + "\n")
+            handle.write(quality + "\n")
+
+def read_key(record):
+    token = record[0].split()[0]
+    if token.startswith("@"):
+        token = token[1:]
+    if token.endswith("/1") or token.endswith("/2"):
+        token = token[:-2]
+    return token
+
+def sequence_distance(lhs, rhs):
+    overlap = min(len(lhs), len(rhs))
+    mismatches = sum(1 for i in range(overlap) if lhs[i] != rhs[i])
+    return mismatches + abs(len(lhs) - len(rhs))
+
+original_r1 = list(read_fastq(input_r1))
+original_r2 = list(read_fastq(input_r2))
+if len(original_r1) != len(original_r2):
+    raise SystemExit(
+        "BayesHammer reconstruction requires paired inputs with matching record counts"
+    )
+
+paired_r1_by_key = {}
+for record in read_fastq(paired_r1):
+    paired_r1_by_key[read_key(record)] = record
+
+paired_r2_by_key = {}
+for record in read_fastq(paired_r2):
+    paired_r2_by_key[read_key(record)] = record
+
+unpaired_by_key = {}
+if unpaired_path:
+    for record in read_fastq(unpaired_path):
+        key = read_key(record)
+        unpaired_by_key.setdefault(key, []).append(record)
+
+reconstructed_r1 = []
+reconstructed_r2 = []
+for original_r1_record, original_r2_record in zip(original_r1, original_r2):
+    key = read_key(original_r1_record)
+    corrected_r1 = paired_r1_by_key.get(key)
+    corrected_r2 = paired_r2_by_key.get(key)
+    unpaired_records = unpaired_by_key.get(key, [])
+    for unpaired_record in unpaired_records:
+        score_r1 = sequence_distance(unpaired_record[1], original_r1_record[1])
+        score_r2 = sequence_distance(unpaired_record[1], original_r2_record[1])
+        if corrected_r1 is None and (corrected_r2 is not None or score_r1 <= score_r2):
+            corrected_r1 = unpaired_record
+            continue
+        if corrected_r2 is None:
+            corrected_r2 = unpaired_record
+            continue
+        if score_r1 <= score_r2:
+            corrected_r1 = unpaired_record
+        else:
+            corrected_r2 = unpaired_record
+
+    reconstructed_r1.append(corrected_r1 or original_r1_record)
+    reconstructed_r2.append(corrected_r2 or original_r2_record)
+
+write_fastq(output_r1, reconstructed_r1)
+write_fastq(output_r2, reconstructed_r2)
+"#;
         script.push_str(&format!(
             "r1_output=$(grep '/[^/]*R1[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
 r2_output=$(grep '/[^/]*R2[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
+unpaired_output=$(grep '/[^/]*R_unpaired[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
 if [ -z \"$r1_output\" ] || [ -z \"$r2_output\" ]; then echo \"expected BayesHammer paired corrected outputs in {}\" >&2; cat {} >&2; exit 64; fi\n\
-normalize_fastq_output \"$r1_output\" {}\n\
-normalize_fastq_output \"$r2_output\" {}\n",
+INPUT_R1={} INPUT_R2={} PAIRED_R1=\"$r1_output\" PAIRED_R2=\"$r2_output\" UNPAIRED_PATH=\"$unpaired_output\" OUTPUT_R1={} OUTPUT_R2={} python3 - <<'PY'\n\
+{}\
+PY\n",
+            shell_quote_path(&list_path),
             shell_quote_path(&list_path),
             shell_quote_path(&list_path),
             shell_quote_path(search_dir),
             shell_quote_path(&list_path),
+            shell_quote_path(input_r1),
+            shell_quote_path(input_r2.expect("paired BayesHammer reconstruction requires R2 input")),
             shell_quote_path(output_r1),
             shell_quote_path(output_r2),
+            reconstruction_python,
         ));
     } else {
         script.push_str(&format!(
@@ -788,7 +897,10 @@ mod tests {
         assert!(script.contains("R1"));
         assert!(script.contains("r2_output=$(grep"));
         assert!(script.contains("R2"));
-        assert!(!script.contains("expected 2 corrected outputs"));
+        assert!(script.contains("unpaired_output=$(grep"));
+        assert!(script.contains("R_unpaired"));
+        assert!(script.contains("INPUT_R1='reads_R1.fastq.gz'"));
+        assert!(script.contains("def read_fastq(path):\n    opener = gzip.open"));
     }
 
     #[test]

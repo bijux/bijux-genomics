@@ -275,7 +275,7 @@ DEPLETE_REFERENCE_CONTAMINANTS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
 CORRECT_ERRORS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.correct_errors",
     scenario_id="correction_fairness",
-    tools=["lighter", "musket", "rcorrector"],
+    tools=["bayeshammer", "lighter", "musket", "rcorrector"],
     sample_scope="paired",
 )
 
