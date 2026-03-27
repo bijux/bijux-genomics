@@ -257,11 +257,13 @@ def main() -> int:
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
     era_counts: dict[str, int] = defaultdict(int)
+    cohort_counts: dict[str, int] = defaultdict(int)
 
     for run in run_manifest["runs"]:
         sample_id = run["sample_id"]
         metadata = metadata_by_sample[sample_id]
         era_counts[metadata["era"]] += 1
+        cohort_counts[f"{metadata['era']}_{metadata['layout']}"] += 1
         report_path = localize_results_path(run["report_json"], local_results_root)
         if not report_path.is_file():
             raise SystemExit(f"missing report.json for {sample_id}: {report_path}")
@@ -341,6 +343,7 @@ def main() -> int:
         "dedup_mode": run_manifest["dedup_mode"],
         "keep_order": run_manifest["keep_order"],
         "era_counts": dict(sorted(era_counts.items())),
+        "cohort_counts": dict(sorted(cohort_counts.items())),
         "headline": {
             "fastest_tool": fastest["tool"],
             "fastest_runtime_s": fastest["median_runtime_s"],
