@@ -47,7 +47,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
-        self.assertEqual(defaults["polyx_threshold"], 20)
+        self.assertIsNone(defaults["polyx_threshold"])
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

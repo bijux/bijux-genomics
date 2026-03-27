@@ -96,7 +96,7 @@ def build_command(
     threads: int,
     jobs: int,
     entropy_threshold: float,
-    polyx_threshold: int,
+    polyx_threshold: int | None,
     sample: dict,
 ) -> list[str]:
     command = [
@@ -121,13 +121,13 @@ def build_command(
         tools,
         "--entropy-threshold",
         str(entropy_threshold),
-        "--polyx-threshold",
-        str(polyx_threshold),
     ]
     if jobs > 1:
         command.extend(["--jobs", str(jobs)])
     if threads > 1:
         command.extend(["--threads", str(threads)])
+    if polyx_threshold is not None:
+        command.extend(["--polyx-threshold", str(polyx_threshold)])
     if sample["r2"] is not None:
         command.extend(["--r2", str(sample["r2"])])
     return command

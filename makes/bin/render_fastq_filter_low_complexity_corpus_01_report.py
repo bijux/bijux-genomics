@@ -137,6 +137,11 @@ def validate_row_contract(*, run_manifest: dict, sample_rows: list[dict]) -> Non
 
 
 def render_markdown(summary: dict) -> str:
+    polyx_threshold = (
+        "unset"
+        if summary["polyx_threshold"] is None
+        else str(summary["polyx_threshold"])
+    )
     lines: list[str] = []
     lines.append("# `fastq.filter_low_complexity` on `corpus-01`")
     lines.append("")
@@ -156,7 +161,7 @@ def render_markdown(summary: dict) -> str:
     )
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- entropy_threshold: `{summary['entropy_threshold']}`")
-    lines.append(f"- polyx_threshold: `{summary['polyx_threshold']}`")
+    lines.append(f"- polyx_threshold: `{polyx_threshold}`")
     lines.append("")
     lines.append("## Executive Summary")
     lines.append("")
