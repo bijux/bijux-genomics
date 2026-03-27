@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -15,6 +16,7 @@ if str(BIN_DIR) not in sys.path:
 import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import audit_published_corpus_01_fastq_results as published_results_audit
+import run_fastq_deplete_rrna_corpus_01 as deplete_rrna_runner
 import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
 import run_fastq_normalize_primers_corpus_01 as normalize_primers_runner
 import run_fastq_remove_duplicates_corpus_01 as remove_duplicates_runner
@@ -23,6 +25,8 @@ import run_fastq_trim_reads_corpus_01 as trim_reads_runner
 import run_fastq_trim_terminal_damage_corpus_01 as terminal_damage_runner
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
+import render_fastq_deplete_rrna_corpus_01_briefing as deplete_rrna_briefing
+import render_fastq_deplete_rrna_corpus_01_report as deplete_rrna_report
 import render_fastq_filter_low_complexity_corpus_01_briefing as filter_low_complexity_briefing
 import render_fastq_filter_low_complexity_corpus_01_report as filter_low_complexity_report
 import render_fastq_normalize_primers_corpus_01_briefing as normalize_primers_briefing
@@ -70,6 +74,11 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["min_overlap_bp"], 10)
         self.assertTrue(defaults["strict_5p_anchor"])
         self.assertTrue(defaults["allow_iupac_codes"])
+
+    def test_deplete_rrna_defaults_match_governed_suite(self) -> None:
+        defaults = support.deplete_rrna_benchmark_defaults()
+        self.assertEqual(defaults["rrna_bundle_id"], "sortmerna_v4_3_default_db")
+        self.assertAlmostEqual(defaults["min_identity"], 0.95)
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -300,6 +309,125 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertAlmostEqual(args.max_mismatch_rate, 0.05)
         self.assertFalse(args.strict_5p_anchor)
 
+    def test_deplete_rrna_runner_parse_args_supports_bundle_overrides(self) -> None:
+        argv = [
+            "run_fastq_deplete_rrna_corpus_01.py",
+            "--sample-jobs",
+            "3",
+            "--rrna-db",
+            "/refs/sortmerna_v4_3_default_db.fasta",
+            "--rrna-bundle-id",
+            "sortmerna_v4_3_default_db",
+            "--min-identity",
+            "0.95",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = deplete_rrna_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 3)
+        self.assertEqual(args.rrna_db, "/refs/sortmerna_v4_3_default_db.fasta")
+        self.assertEqual(args.rrna_bundle_id, "sortmerna_v4_3_default_db")
+        self.assertAlmostEqual(args.min_identity, 0.95)
+
+    def test_deplete_rrna_runner_shared_index_layout_is_stable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_root = Path(tmpdir) / "results"
+            shared_idx_dir = deplete_rrna_runner.sortmerna_shared_index_dir(
+                out_root,
+                "sortmerna_v4_3_default_db",
+            )
+            prepared = deplete_rrna_runner.prepare_sortmerna_sample_workdir(
+                out_root,
+                "sample_0001",
+                "sortmerna_v4_3_default_db",
+            )
+
+            sample_idx_dir = (
+                out_root
+                / "bench"
+                / "deplete_rrna"
+                / "sample_0001"
+                / "tools"
+                / "sortmerna"
+                / "sortmerna_workdir"
+                / "idx"
+            )
+            self.assertEqual(prepared, shared_idx_dir)
+            self.assertTrue(sample_idx_dir.is_dir())
+            self.assertFalse(any(sample_idx_dir.iterdir()))
+
+    def test_deplete_rrna_runner_lunarc_container_input_path_rewrites_bind_root(
+        self,
+    ) -> None:
+        with mock.patch.object(
+            deplete_rrna_runner.Path,
+            "home",
+            return_value=Path("/home/tester"),
+        ):
+            self.assertEqual(
+                deplete_rrna_runner.lunarc_container_input_path(
+                    Path("/home/tester/bijux/reference/rrna/db.fasta")
+                ),
+                "/data/input/reference/rrna/db.fasta",
+            )
+
+    def test_deplete_rrna_runner_promotes_sample_index_into_shared_cache(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_root = Path(tmpdir) / "results"
+            local_idx_dir = (
+                out_root
+                / "bench"
+                / "deplete_rrna"
+                / "sample_0001"
+                / "tools"
+                / "sortmerna"
+                / "sortmerna_workdir"
+                / "idx"
+            )
+            local_idx_dir.mkdir(parents=True)
+            (local_idx_dir / "reference.stats").write_text("seed", encoding="utf-8")
+
+            shared_idx_dir = deplete_rrna_runner.promote_sortmerna_sample_index_cache(
+                out_root,
+                "sample_0001",
+                "sortmerna_v4_3_default_db",
+            )
+
+            self.assertTrue((shared_idx_dir / "reference.stats").is_file())
+
+    def test_deplete_rrna_runner_clones_seeded_cache_into_sample_workdir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_root = Path(tmpdir) / "results"
+            shared_idx_dir = deplete_rrna_runner.sortmerna_shared_index_dir(
+                out_root,
+                "sortmerna_v4_3_default_db",
+            )
+            shared_idx_dir.mkdir(parents=True)
+            (shared_idx_dir / "reference.stats").write_text("seed", encoding="utf-8")
+
+            deplete_rrna_runner.prepare_sortmerna_sample_workdir(
+                out_root,
+                "sample_0002",
+                "sortmerna_v4_3_default_db",
+            )
+            sample_idx_dir = (
+                out_root
+                / "bench"
+                / "deplete_rrna"
+                / "sample_0002"
+                / "tools"
+                / "sortmerna"
+                / "sortmerna_workdir"
+                / "idx"
+            )
+
+            self.assertTrue((sample_idx_dir / "reference.stats").is_file())
+            self.assertEqual(
+                os.stat(sample_idx_dir / "reference.stats").st_nlink,
+                os.stat(shared_idx_dir / "reference.stats").st_nlink,
+            )
+
     def test_normalize_primers_report_contract_rejects_policy_drift(self) -> None:
         run_manifest = {
             "tools": ["cutadapt"],
@@ -356,6 +484,31 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertAlmostEqual(
             summary_rows[0]["median_orientation_forward_fraction"], 0.95
         )
+
+    def test_deplete_rrna_report_contract_rejects_bundle_drift(self) -> None:
+        run_manifest = {
+            "tools": ["sortmerna"],
+            "rrna_bundle_id": "sortmerna_v4_3_default_db",
+            "min_identity": 0.95,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "sortmerna",
+                "database_artifact_id": "legacy_rrna_db",
+                "min_identity": 0.95,
+                "reads_in": 100,
+                "reads_out": 90,
+                "bases_in": 1000,
+                "bases_out": 900,
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            deplete_rrna_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
+            )
 
     def test_filter_low_complexity_report_contract_rejects_missing_tool_row(self) -> None:
         run_manifest = {
@@ -430,6 +583,32 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         summary_rows = filter_low_complexity_briefing.tool_runtime_summary(rows)
         self.assertEqual(summary_rows[0]["tool"], "bbduk")
         self.assertEqual(summary_rows[0]["mean_reads_removed_low_complexity"], 11.0)
+
+    def test_deplete_rrna_briefing_summarizes_fraction_removed(self) -> None:
+        rows = [
+            {
+                "tool": "sortmerna",
+                "runtime_s": "1.0",
+                "read_retention": "0.98",
+                "base_retention": "0.98",
+                "rrna_fraction_removed": "0.02",
+                "reads_removed": "20",
+                "exit_code": "0",
+            },
+            {
+                "tool": "sortmerna",
+                "runtime_s": "1.2",
+                "read_retention": "0.99",
+                "base_retention": "0.99",
+                "rrna_fraction_removed": "0.01",
+                "reads_removed": "10",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = deplete_rrna_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "sortmerna")
+        self.assertAlmostEqual(summary_rows[0]["mean_rrna_fraction_removed"], 0.015)
+        self.assertAlmostEqual(summary_rows[0]["mean_reads_removed"], 15.0)
 
     def test_remove_duplicates_briefing_summarizes_duplicate_reads(self) -> None:
         rows = [

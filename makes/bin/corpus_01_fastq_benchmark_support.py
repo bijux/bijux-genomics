@@ -345,6 +345,13 @@ def normalize_primers_benchmark_defaults() -> dict:
     }
 
 
+def deplete_rrna_benchmark_defaults() -> dict:
+    return {
+        "rrna_bundle_id": "sortmerna_v4_3_default_db",
+        "min_identity": 0.95,
+    }
+
+
 def merge_pairs_benchmark_defaults() -> dict:
     return {
         "merge_overlap": None,
