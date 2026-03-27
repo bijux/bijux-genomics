@@ -233,6 +233,11 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     },
     ObserverSpecializationContract {
         stage_id: "fastq.trim_reads",
+        tool_id: "alientrimmer",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
         tool_id: "trimmomatic",
         semantic_surface: "report_json",
     },
@@ -249,6 +254,21 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
     ObserverSpecializationContract {
         stage_id: "fastq.trim_reads",
         tool_id: "seqkit",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "fastx_clipper",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "leehom",
+        semantic_surface: "report_json",
+    },
+    ObserverSpecializationContract {
+        stage_id: "fastq.trim_reads",
+        tool_id: "skewer",
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
@@ -405,6 +425,22 @@ mod tests {
             StageId::from_static("fastq.remove_chimeras"),
             ToolId::from_static("vsearch")
         )));
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.trim_reads"),
+            ToolId::from_static("alientrimmer")
+        )));
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.trim_reads"),
+            ToolId::from_static("fastx_clipper")
+        )));
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.trim_reads"),
+            ToolId::from_static("leehom")
+        )));
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.trim_reads"),
+            ToolId::from_static("skewer")
+        )));
     }
 
     #[test]
@@ -434,6 +470,34 @@ mod tests {
             observer_semantic_surface_for_stage_tool(
                 &StageId::from_static("fastq.trim_reads"),
                 &ToolId::from_static(id_catalog::TOOL_FASTP),
+            ),
+            Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.trim_reads"),
+                &ToolId::from_static("alientrimmer"),
+            ),
+            Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.trim_reads"),
+                &ToolId::from_static("fastx_clipper"),
+            ),
+            Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.trim_reads"),
+                &ToolId::from_static("leehom"),
+            ),
+            Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.trim_reads"),
+                &ToolId::from_static("skewer"),
             ),
             Some("report_json")
         );
