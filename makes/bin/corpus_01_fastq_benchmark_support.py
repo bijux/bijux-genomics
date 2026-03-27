@@ -129,7 +129,7 @@ TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
 NORMALIZE_PRIMERS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.normalize_primers",
     scenario_id="primer_normalization_fairness",
-    tools=["cutadapt", "seqkit"],
+    tools=["cutadapt"],
 )
 
 
@@ -331,6 +331,17 @@ def remove_duplicates_benchmark_defaults() -> dict:
     return {
         "dedup_mode": "exact",
         "keep_order": True,
+    }
+
+
+def normalize_primers_benchmark_defaults() -> dict:
+    return {
+        "primer_set_id": "16S_universal_v1",
+        "orientation_policy": "normalize_to_forward_primer",
+        "max_mismatch_rate": 0.10,
+        "min_overlap_bp": 10,
+        "strict_5p_anchor": True,
+        "allow_iupac_codes": True,
     }
 
 

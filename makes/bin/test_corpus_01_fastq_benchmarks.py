@@ -16,6 +16,7 @@ import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import audit_published_corpus_01_fastq_results as published_results_audit
 import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
+import run_fastq_normalize_primers_corpus_01 as normalize_primers_runner
 import run_fastq_remove_duplicates_corpus_01 as remove_duplicates_runner
 import run_fastq_merge_pairs_corpus_01 as merge_runner
 import run_fastq_trim_reads_corpus_01 as trim_reads_runner
@@ -24,6 +25,8 @@ import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefi
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
 import render_fastq_filter_low_complexity_corpus_01_briefing as filter_low_complexity_briefing
 import render_fastq_filter_low_complexity_corpus_01_report as filter_low_complexity_report
+import render_fastq_normalize_primers_corpus_01_briefing as normalize_primers_briefing
+import render_fastq_normalize_primers_corpus_01_report as normalize_primers_report
 import render_fastq_remove_duplicates_corpus_01_briefing as remove_duplicates_briefing
 import render_fastq_remove_duplicates_corpus_01_report as remove_duplicates_report
 import render_fastq_merge_pairs_corpus_01_briefing as merge_briefing
@@ -56,6 +59,17 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         defaults = support.remove_duplicates_benchmark_defaults()
         self.assertEqual(defaults["dedup_mode"], "exact")
         self.assertTrue(defaults["keep_order"])
+
+    def test_normalize_primers_defaults_match_governed_suite(self) -> None:
+        defaults = support.normalize_primers_benchmark_defaults()
+        self.assertEqual(defaults["primer_set_id"], "16S_universal_v1")
+        self.assertEqual(
+            defaults["orientation_policy"], "normalize_to_forward_primer"
+        )
+        self.assertAlmostEqual(defaults["max_mismatch_rate"], 0.10)
+        self.assertEqual(defaults["min_overlap_bp"], 10)
+        self.assertTrue(defaults["strict_5p_anchor"])
+        self.assertTrue(defaults["allow_iupac_codes"])
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -266,6 +280,82 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.sample_jobs, 2)
         self.assertEqual(args.dedup_mode, "exact")
         self.assertFalse(args.keep_order)
+
+    def test_normalize_primers_runner_parse_args_supports_policy_overrides(self) -> None:
+        argv = [
+            "run_fastq_normalize_primers_corpus_01.py",
+            "--sample-jobs",
+            "2",
+            "--primer-set-id",
+            "16S_universal_v1",
+            "--max-mismatch-rate",
+            "0.05",
+            "--strict-5p-anchor",
+            "false",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = normalize_primers_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 2)
+        self.assertEqual(args.primer_set_id, "16S_universal_v1")
+        self.assertAlmostEqual(args.max_mismatch_rate, 0.05)
+        self.assertFalse(args.strict_5p_anchor)
+
+    def test_normalize_primers_report_contract_rejects_policy_drift(self) -> None:
+        run_manifest = {
+            "tools": ["cutadapt"],
+            "primer_set_id": "16S_universal_v1",
+            "orientation_policy": "normalize_to_forward_primer",
+            "max_mismatch_rate": 0.10,
+            "min_overlap_bp": 10,
+            "strict_5p_anchor": True,
+            "allow_iupac_codes": True,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "cutadapt",
+                "primer_set_id": "16S_universal_v1",
+                "orientation_policy": "normalize_to_forward_primer",
+                "max_mismatch_rate": 0.10,
+                "min_overlap_bp": 10,
+                "strict_5p_anchor": False,
+                "allow_iupac_codes": True,
+                "raw_backend_report_format": "cutadapt_json",
+                "reads_in": 100,
+                "reads_out": 100,
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            normalize_primers_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
+            )
+
+    def test_normalize_primers_briefing_summarizes_orientation_fraction(self) -> None:
+        rows = [
+            {
+                "tool": "cutadapt",
+                "runtime_s": "2.0",
+                "read_retention": "1.0",
+                "primer_trimmed_fraction": "0.04",
+                "orientation_forward_fraction": "0.93",
+                "exit_code": "0",
+            },
+            {
+                "tool": "cutadapt",
+                "runtime_s": "4.0",
+                "read_retention": "1.0",
+                "primer_trimmed_fraction": "0.06",
+                "orientation_forward_fraction": "0.97",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = normalize_primers_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "cutadapt")
+        self.assertAlmostEqual(
+            summary_rows[0]["median_orientation_forward_fraction"], 0.95
+        )
 
     def test_filter_low_complexity_report_contract_rejects_missing_tool_row(self) -> None:
         run_manifest = {
