@@ -51,6 +51,12 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             metrics: &fields::FASTQ_LOW_COMPLEXITY_METRICS,
             invariants: &fields::FASTQ_LOW_COMPLEXITY_INVARIANTS,
         },
+        defs::StageMetricKind::FastqDeduplicate => defs::StageMetricSpec {
+            stage: "fastq.remove_duplicates",
+            version: 1,
+            metrics: &fields::FASTQ_DEDUPLICATE_METRICS,
+            invariants: &fields::FASTQ_DEDUPLICATE_INVARIANTS,
+        },
         defs::StageMetricKind::FastqMerge => defs::StageMetricSpec {
             stage: "fastq.merge_pairs",
             version: 1,

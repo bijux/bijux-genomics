@@ -139,9 +139,9 @@ fn clumpify_tool() -> ToolExecutionSpecV1 {
         },
         command: CommandSpecV1 {
             template: vec![
-                "sh".to_string(),
+                "bash".to_string(),
                 "-lc".to_string(),
-                "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\n".to_string(),
+                "set -euo pipefail\nclumpify in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\n".to_string(),
             ],
         },
         resources: ToolConstraints {

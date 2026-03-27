@@ -335,7 +335,7 @@ fn deduplicate_command(
     );
     script.push_str(&format!(
         "printf '{}' \"$duplicates_removed\" \"$dedup_rate\" {} {} {} {} {} {} > {}\n",
-        escape_printf_format(&provenance_format),
+        provenance_format,
         shell_quote_str(&json_path_token(&backend_log)?),
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
@@ -360,7 +360,7 @@ fn deduplicate_command(
     );
     script.push_str(&format!(
         "printf '{}' {} {} {} {} \"$reads_in\" \"$reads_out\" \"$reads_in_r2\" \"$reads_out_r2\" \"$pairs_in\" \"$pairs_out\" \"$pair_count_match\" \"$duplicates_removed\" \"$dedup_rate\" {} {} \"$duplicates_removed\" {} > {}\n",
-        escape_printf_format(&report_format),
+        report_format,
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
         shell_quote_str(&json_path_token(output_r1)?),
@@ -370,7 +370,7 @@ fn deduplicate_command(
         shell_quote_str(&json_path_token(&backend_log)?),
         shell_quote_path(report),
     ));
-    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+    Ok(vec!["bash".to_string(), "-lc".to_string(), script])
 }
 
 fn validate_deduplicate_options(
@@ -429,10 +429,6 @@ fn json_optional_path_token(path: Option<&Path>) -> Result<String> {
         .map_err(|error| anyhow!("serialize optional path token for deduplicate report: {error}"))
 }
 
-fn escape_printf_format(value: &str) -> String {
-    value.replace('%', "%%")
-}
-
 fn json_string_literal(value: &str) -> Result<String> {
     serde_json::to_string(value)
         .map_err(|error| anyhow!("serialize deduplicate string literal: {error}"))
@@ -467,14 +463,14 @@ mod tests {
             command: CommandSpecV1 {
                 template: match tool_id {
                     "fastuniq" => vec![
-                        "sh".to_string(),
+                        "bash".to_string(),
                         "-lc".to_string(),
-                        "set -euo pipefail\nprintf '%s\\n%s\\n' '{{reads_r1}}' '{{reads_r2}}' > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o '{{dedup_reads_r1}}' -p '{{dedup_reads_r2}}' > '{{out_dir}}/fastuniq.log' 2>&1\n".to_string(),
+                        "set -euo pipefail\nwork_dir='{{out_dir}}/fastuniq_workspace'\nmkdir -p \"$work_dir\"\ngzip -dc -- '{{reads_r1}}' > \"$work_dir/input_r1.fastq\"\ngzip -dc -- '{{reads_r2}}' > \"$work_dir/input_r2.fastq\"\nprintf '%s\\n%s\\n' \"$work_dir/input_r1.fastq\" \"$work_dir/input_r2.fastq\" > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o \"$work_dir/output_r1.fastq\" -p \"$work_dir/output_r2.fastq\" > '{{out_dir}}/fastuniq.log' 2>&1\ngzip -c \"$work_dir/output_r1.fastq\" > '{{dedup_reads_r1}}'\ngzip -c \"$work_dir/output_r2.fastq\" > '{{dedup_reads_r2}}'\nrm -rf \"$work_dir\"\n".to_string(),
                     ],
                     "clumpify" => vec![
-                        "sh".to_string(),
+                        "bash".to_string(),
                         "-lc".to_string(),
-                        "set -euo pipefail\nclumpify.sh in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\n".to_string(),
+                        "set -euo pipefail\nclumpify in='{{reads_r1}}' {{paired_io_args}} out='{{dedup_reads_r1}}' {{dedup_mode_args}} {{keep_order_args}} {{threads_args}} > '{{out_dir}}/clumpify.log' 2>&1\n".to_string(),
                     ],
                     _ => vec!["unused".to_string()],
                 },
@@ -510,17 +506,20 @@ mod tests {
             Path::new("out"),
         )
         .expect("deduplicate planner should build fastuniq command");
-        assert_eq!(plan.command.template[0], "sh");
+        assert_eq!(plan.command.template[0], "bash");
         assert_eq!(plan.command.template[1], "-lc");
         let script = &plan.command.template[2];
         assert!(script.contains("fastuniq_inputs.txt"));
+        assert!(script.contains("fastuniq_workspace"));
         assert!(script.contains("fastuniq.log"));
+        assert!(script.contains("gzip -dc"));
+        assert!(script.contains("gzip -c"));
         assert!(script.contains("\"tool_id\":\"fastuniq\""));
         assert!(script.contains("bijux.fastq.remove_duplicates.report.v2"));
         assert!(script.contains("bijux.fastq.remove_duplicates.provenance.v2"));
         assert!(!script.contains("bijux.fastq.remove_duplicates.report.v1"));
         assert!(script.contains("count_fastq_reads"));
-        assert!(script.contains("\"reads_in\":%%s"));
+        assert!(script.contains("\"reads_in\":%s"));
         assert_eq!(
             plan.params["report_json"],
             serde_json::json!("out/deduplicate_report.json")
@@ -561,10 +560,10 @@ mod tests {
         )
         .expect("clumpify single-end dedup planning should succeed");
 
-        assert_eq!(plan.command.template[0], "sh");
+        assert_eq!(plan.command.template[0], "bash");
         assert_eq!(plan.command.template[1], "-lc");
         let script = &plan.command.template[2];
-        assert!(script.contains("clumpify.sh"));
+        assert!(script.contains("clumpify "));
         assert!(script.contains("clumpify.log"));
         assert!(script.contains("\"tool_id\":\"clumpify\""));
         assert!(script.contains("\"raw_backend_report_format\":\"clumpify_log\""));
