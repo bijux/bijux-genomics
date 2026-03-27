@@ -61,7 +61,9 @@ pub fn plan_screen_with_options(
     effective_params.report_format = report_format;
     effective_params.assignment_format = assignment_format;
     if let Some(database_root) = options.database_root.as_ref() {
-        effective_params.contaminant_db = Some(database_root.display().to_string());
+        let resolved_database_root =
+            std::fs::canonicalize(database_root).unwrap_or_else(|_| database_root.clone());
+        effective_params.contaminant_db = Some(resolved_database_root.display().to_string());
     }
     if let Some(threads) = options.threads {
         effective_params.threads = threads.max(1);
@@ -256,7 +258,7 @@ fn screen_command_template(
         runtime_s: None,
         memory_mb: None,
     };
-    let command = if let Some(database_root) = effective_params.contaminant_db.as_deref() {
+    let command_body = if let Some(database_root) = effective_params.contaminant_db.as_deref() {
         let native_assignments_path = classification_report_path.with_extension("native.tsv");
         let native_report_path = report_path.with_extension("native.tsv");
         screen_native_command(
@@ -293,11 +295,11 @@ fn screen_command_template(
                 "screen taxonomy command template resolved to an empty command"
             ));
         }
-        command
+        shell_join(&command)
     };
     let script = format!(
-        "set -euo pipefail\n{}\nprintf '%s\\n' {} > {}\n",
-        shell_join(&command),
+        "set -eu\n{}\nprintf '%s\\n' {} > {}\n",
+        command_body,
         shell_quote_str(
             &serde_json::to_string(&governed_report)
                 .map_err(|error| anyhow!("serialize governed taxonomy screen report: {error}"))?,
@@ -316,7 +318,7 @@ fn screen_native_command(
     native_assignments_path: &Path,
     normalized_report_path: &Path,
     threads: u32,
-) -> Result<Vec<String>> {
+) -> Result<String> {
     let script = match tool_id {
         "kraken2" => kraken2_screen_script(
             database_root,
@@ -356,7 +358,7 @@ fn screen_native_command(
         ),
         _ => return Err(anyhow!("unsupported taxonomy screening tool: {tool_id}")),
     };
-    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+    Ok(script)
 }
 
 fn kraken2_screen_script(
@@ -627,6 +629,9 @@ mod tests {
         assert!(plan.command.template[2]
             .contains("\"schema_version\":\"bijux.fastq.screen_taxonomy.report.v2\""));
         assert!(plan.command.template[2].contains("\"tool_id\":\"kraken2\""));
+        assert_eq!(plan.io.inputs.len(), 2);
+        assert_eq!(plan.io.inputs[0].role, ArtifactRole::Reads);
+        assert_eq!(plan.io.inputs[1].role, ArtifactRole::Reference);
         assert!(plan
             .command
             .template
