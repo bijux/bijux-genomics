@@ -1,21 +1,15 @@
 {
   "corpus_id": "corpus-01",
   "published_stage_count": 10,
-  "complete_stage_count": 7,
-  "incomplete_stage_count": 3,
-  "issue_count": 7,
+  "complete_stage_count": 10,
+  "incomplete_stage_count": 0,
+  "issue_count": 0,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.validate_reads",
-          "issue_id": "report-tool-roster-drift",
-          "detail": "sample_0001 observed ['fastqvalidator']; sample_0002 observed ['fastqvalidator']; sample_0003 observed ['fastqvalidator'] (+17 more)"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.detect_adapters",
@@ -37,47 +31,15 @@
     },
     {
       "stage_id": "fastq.profile_overrepresented_sequences",
-      "status": "incomplete",
-      "issue_count": 3,
-      "issues": [
-        {
-          "stage_id": "fastq.profile_overrepresented_sequences",
-          "issue_id": "summary-run-root-drift",
-          "detail": "summary run_root=/home/bijan/bijux/corpus_01/benchmarks/fastq.profile_overrepresented_sequences/lunarc expected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc"
-        },
-        {
-          "stage_id": "fastq.profile_overrepresented_sequences",
-          "issue_id": "missing-local-run-root",
-          "detail": "missing /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc"
-        },
-        {
-          "stage_id": "fastq.profile_overrepresented_sequences",
-          "issue_id": "missing-stage-run-manifest",
-          "detail": "missing /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc/run_manifest.json"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.trim_polyg_tails",
-      "status": "incomplete",
-      "issue_count": 3,
-      "issues": [
-        {
-          "stage_id": "fastq.trim_polyg_tails",
-          "issue_id": "summary-run-root-drift",
-          "detail": "summary run_root=/home/bijan/bijux/corpus_01/benchmarks/fastq.trim_polyg_tails/lunarc expected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc"
-        },
-        {
-          "stage_id": "fastq.trim_polyg_tails",
-          "issue_id": "missing-local-run-root",
-          "detail": "missing /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc"
-        },
-        {
-          "stage_id": "fastq.trim_polyg_tails",
-          "issue_id": "missing-stage-run-manifest",
-          "detail": "missing /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc/run_manifest.json"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.trim_reads",

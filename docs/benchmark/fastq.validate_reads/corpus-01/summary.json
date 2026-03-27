@@ -10,14 +10,14 @@
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-26T23:41:01.145624+00:00",
+  "generated_at_utc": "2026-03-27T00:47:32.237998+00:00",
   "headline": {
-    "fastest_runtime_s": 3.892542991,
-    "fastest_tool": "fastqvalidator",
+    "fastest_runtime_s": 2.9696421305,
+    "fastest_tool": "fastq_scan",
     "highest_pass_rate": 1.0,
-    "highest_pass_rate_tool": "fastqvalidator",
+    "highest_pass_rate_tool": "fastq_scan",
     "largest_invalid_read_count": 0,
-    "largest_invalid_read_tool": "fastqvalidator"
+    "largest_invalid_read_tool": "fastq_scan"
   },
   "layout_counts": {
     "pe": 10,
@@ -30,12 +30,44 @@
   "schema_version": "bijux.fastq.validate_reads.corpus_summary.v1",
   "tool_summary": [
     {
-      "median_runtime_s": 3.892542991,
+      "median_runtime_s": 2.9696421305,
+      "pass_rate": 1.0,
+      "reads_invalid_total": 0,
+      "records": 20,
+      "strict_pass_rate": null,
+      "tool": "fastq_scan"
+    },
+    {
+      "median_runtime_s": 9.418649843,
+      "pass_rate": 1.0,
+      "reads_invalid_total": 0,
+      "records": 20,
+      "strict_pass_rate": null,
+      "tool": "fastqc"
+    },
+    {
+      "median_runtime_s": 3.923331385,
       "pass_rate": 1.0,
       "reads_invalid_total": 0,
       "records": 20,
       "strict_pass_rate": null,
       "tool": "fastqvalidator"
+    },
+    {
+      "median_runtime_s": 3.174274755,
+      "pass_rate": 1.0,
+      "reads_invalid_total": 0,
+      "records": 20,
+      "strict_pass_rate": null,
+      "tool": "fqtools"
+    },
+    {
+      "median_runtime_s": 2.9777196415,
+      "pass_rate": 1.0,
+      "reads_invalid_total": 0,
+      "records": 20,
+      "strict_pass_rate": null,
+      "tool": "seqtk"
     }
   ],
   "tools": [
