@@ -45,6 +45,12 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             metrics: &fields::FASTQ_FILTER_METRICS,
             invariants: &fields::FASTQ_FILTER_INVARIANTS,
         },
+        defs::StageMetricKind::FastqLowComplexity => defs::StageMetricSpec {
+            stage: "fastq.filter_low_complexity",
+            version: 1,
+            metrics: &fields::FASTQ_LOW_COMPLEXITY_METRICS,
+            invariants: &fields::FASTQ_LOW_COMPLEXITY_INVARIANTS,
+        },
         defs::StageMetricKind::FastqMerge => defs::StageMetricSpec {
             stage: "fastq.merge_pairs",
             version: 1,

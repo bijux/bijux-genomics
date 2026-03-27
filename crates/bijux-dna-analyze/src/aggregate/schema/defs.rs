@@ -13,6 +13,7 @@ pub enum StageMetricKind {
     FastqValidate,
     FastqDetectAdapters,
     FastqFilter,
+    FastqLowComplexity,
     FastqMerge,
     FastqCorrect,
     FastqQcPost,
