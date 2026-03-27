@@ -394,7 +394,10 @@ def main() -> int:
     failures = 0
     pending: list[tuple[int, dict, Path, list[str]]] = []
     for sample_index, sample in enumerate(samples):
+        current_sample_root = sample_root(out_root, sample["sample_id"])
         sample_report = report_path(out_root, sample["sample_id"])
+        if args.resume and current_sample_root.is_dir() and not sample_report.is_file():
+            reset_sample_payload(out_root, sample["sample_id"])
         if args.resume and sample_report.is_file():
             if sample_report_is_resume_ready(sample_report):
                 if tools == ["sortmerna"] and not args.dry_run:
