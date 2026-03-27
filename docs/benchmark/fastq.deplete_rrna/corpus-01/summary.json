@@ -1,0 +1,53 @@
+{
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-27T14:52:56.379261+00:00",
+  "headline": {
+    "best_read_retention": 1.0,
+    "best_read_retention_tool": "sortmerna",
+    "fastest_runtime_s": 84.630887522,
+    "fastest_tool": "sortmerna",
+    "strongest_depletion_fraction": 0.0021522934183533624,
+    "strongest_depletion_tool": "sortmerna"
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "min_identity": 0.95,
+  "platform": "lunarc-apptainer",
+  "rrna_bundle_digest": "sha256:50e80a1a2d1e8c4e2265d3d84c082f258166d4d8f628cd0956c04b15c5fc1a53",
+  "rrna_bundle_id": "sortmerna_v4_3_default_db",
+  "rrna_bundle_size_bytes": 146741693,
+  "rrna_db": "/home/bijan/bijux/reference/rrna/sortmerna_v4_3_default_db.fasta",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_rrna/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "rrna_depletion_fairness",
+  "schema_version": "bijux.fastq.deplete_rrna.corpus_summary.v1",
+  "stage_id": "fastq.deplete_rrna",
+  "tool_summary": [
+    {
+      "mean_reads_removed": 9646.25,
+      "mean_rrna_fraction_removed": 0.0021522934183533624,
+      "median_base_retention": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 84.630887522,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "sortmerna"
+    }
+  ],
+  "tools": [
+    "sortmerna"
+  ]
+}

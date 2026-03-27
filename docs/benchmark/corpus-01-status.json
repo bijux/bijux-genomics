@@ -3,10 +3,10 @@
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
   "benchmarkable_stage_count": 23,
   "applicable_stage_count": 20,
-  "completed_stage_count": 15,
-  "incomplete_stage_count": 5,
+  "completed_stage_count": 16,
+  "incomplete_stage_count": 4,
   "excluded_stage_count": 3,
-  "issue_count": 5,
+  "issue_count": 4,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -180,16 +180,9 @@
       ],
       "method_path": "benchmark/fastq.deplete_rrna/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.deplete_rrna/corpus-01",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.deplete_rrna",
-          "issue_id": "missing-corpus-dir",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.deplete_rrna/corpus-01"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.merge_pairs",

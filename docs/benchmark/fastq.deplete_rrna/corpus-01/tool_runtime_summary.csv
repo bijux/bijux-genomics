@@ -1,0 +1,2 @@
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,median_read_retention,median_base_retention,mean_rrna_fraction_removed,mean_reads_removed,slowdown_vs_fastest_median
+sortmerna,20,1.000000,470.033342,84.630888,455.105500,5290.197098,1.000000,1.000000,0.002152,9646.250000,1.000000
