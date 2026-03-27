@@ -300,27 +300,6 @@ fn materialize_amplicon_stage_outputs(
                             &args,
                         )
                 }
-                "seqkit" => {
-                    if input_r2.is_some() {
-                        false
-                    } else {
-                        command_exists("seqkit")
-                            && run_stage_command(
-                                out_dir,
-                                "seqkit_normalize_primers",
-                                "seqkit",
-                                &[
-                                    "grep".to_string(),
-                                    "-r".to_string(),
-                                    "-p".to_string(),
-                                    "PRIMER".to_string(),
-                                    "-o".to_string(),
-                                    primary.to_string_lossy().to_string(),
-                                    input.to_string_lossy().to_string(),
-                                ],
-                            )
-                    }
-                }
                 _ => false,
             };
             if !stage_ok || !primary.exists() {
