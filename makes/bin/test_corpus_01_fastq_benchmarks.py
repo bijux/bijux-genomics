@@ -317,6 +317,233 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.entropy_threshold, 17.5)
         self.assertEqual(args.polyx_policy, "trim")
 
+    def test_filter_reads_runner_resume_requires_successful_sample_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_path = Path(tmpdir) / "report.json"
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "failures": [],
+                        "gate": {"passes": True},
+                        "records": [{"context": {"tool": "fastp"}}],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self.assertTrue(
+                filter_reads_runner.sample_report_is_resume_ready(report_path)
+            )
+
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "failures": [
+                            {
+                                "kind": "tool_exit",
+                                "reason": "tool `fastp` failed with status 143",
+                            }
+                        ],
+                        "gate": {"passes": False},
+                        "records": [],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self.assertFalse(
+                filter_reads_runner.sample_report_is_resume_ready(report_path)
+            )
+
+    def test_filter_reads_runner_reruns_stale_resume_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            repo_root.mkdir()
+            corpus_root = Path(tmpdir) / "corpus_01"
+            normalized_root = corpus_root / "normalized"
+            normalized_root.mkdir(parents=True)
+            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
+            r1_path.write_text("reads", encoding="utf-8")
+            out_root = Path(tmpdir) / "results"
+            stale_sample_root = out_root / "bench" / "filter" / "sample_0001"
+            stale_sample_root.mkdir(parents=True)
+            stale_marker = stale_sample_root / "stale.marker"
+            stale_marker.write_text("old", encoding="utf-8")
+            stale_report = stale_sample_root / "report.json"
+            stale_report.write_text(
+                json.dumps(
+                    {
+                        "failures": [
+                            {
+                                "kind": "tool_exit",
+                                "reason": "tool `fastp` failed with status 143",
+                            }
+                        ],
+                        "gate": {"passes": False},
+                        "records": [],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            def fake_run(command: list[str], cwd: Path, check: bool = False):
+                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
+                self.assertFalse(stale_marker.exists())
+                fresh_report = out_root / "bench" / "filter" / "sample_0001" / "report.json"
+                fresh_report.parent.mkdir(parents=True, exist_ok=True)
+                fresh_report.write_text(
+                    json.dumps(
+                        {
+                            "failures": [],
+                            "gate": {"passes": True},
+                            "records": [{"context": {"tool": "fastp"}}],
+                            "semantic_metrics": [],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                return mock.Mock(returncode=0)
+
+            argv = [
+                "run_fastq_filter_reads_corpus_01.py",
+                "--repo-root",
+                str(repo_root),
+                "--corpus-root",
+                str(corpus_root),
+                "--out-root",
+                str(out_root),
+            ]
+            with mock.patch.object(sys, "argv", argv):
+                with mock.patch.object(
+                    filter_reads_runner,
+                    "load_corpus_spec",
+                    return_value={"preferred_root": str(corpus_root)},
+                ):
+                    with mock.patch.object(
+                        filter_reads_runner,
+                        "discover_normalized_samples",
+                        return_value=[
+                            {
+                                "sample_id": "sample_0001",
+                                "r1": r1_path,
+                                "r2": None,
+                                "layout": "se",
+                            }
+                        ],
+                    ):
+                        with mock.patch.object(
+                            filter_reads_runner,
+                            "validate_benchmark_layout",
+                        ):
+                            with mock.patch.object(
+                                filter_reads_runner,
+                                "validate_corpus_contract",
+                            ):
+                                with mock.patch.object(
+                                    filter_reads_runner,
+                                    "require_canonical_tool_roster",
+                                    return_value=["fastp"],
+                                ):
+                                    with mock.patch.object(
+                                        filter_reads_runner.subprocess,
+                                        "run",
+                                        side_effect=fake_run,
+                                    ) as run_mock:
+                                        exit_code = filter_reads_runner.main()
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(run_mock.call_count, 1)
+            self.assertFalse(stale_marker.exists())
+
+    def test_filter_reads_runner_resets_orphaned_sample_payload_before_resume(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            repo_root.mkdir()
+            corpus_root = Path(tmpdir) / "corpus_01"
+            normalized_root = corpus_root / "normalized"
+            normalized_root.mkdir(parents=True)
+            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
+            r1_path.write_text("reads", encoding="utf-8")
+            out_root = Path(tmpdir) / "results"
+            orphaned_sample_root = out_root / "bench" / "filter" / "sample_0001"
+            orphaned_sample_root.mkdir(parents=True)
+            stale_marker = orphaned_sample_root / "stale.marker"
+            stale_marker.write_text("old", encoding="utf-8")
+
+            def fake_run(command: list[str], cwd: Path, check: bool = False):
+                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
+                self.assertFalse(stale_marker.exists())
+                fresh_report = out_root / "bench" / "filter" / "sample_0001" / "report.json"
+                fresh_report.parent.mkdir(parents=True, exist_ok=True)
+                fresh_report.write_text(
+                    json.dumps(
+                        {
+                            "failures": [],
+                            "gate": {"passes": True},
+                            "records": [{"context": {"tool": "fastp"}}],
+                            "semantic_metrics": [],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                return mock.Mock(returncode=0)
+
+            argv = [
+                "run_fastq_filter_reads_corpus_01.py",
+                "--repo-root",
+                str(repo_root),
+                "--corpus-root",
+                str(corpus_root),
+                "--out-root",
+                str(out_root),
+            ]
+            with mock.patch.object(sys, "argv", argv):
+                with mock.patch.object(
+                    filter_reads_runner,
+                    "load_corpus_spec",
+                    return_value={"preferred_root": str(corpus_root)},
+                ):
+                    with mock.patch.object(
+                        filter_reads_runner,
+                        "discover_normalized_samples",
+                        return_value=[
+                            {
+                                "sample_id": "sample_0001",
+                                "r1": r1_path,
+                                "r2": None,
+                                "layout": "se",
+                            }
+                        ],
+                    ):
+                        with mock.patch.object(
+                            filter_reads_runner,
+                            "validate_benchmark_layout",
+                        ):
+                            with mock.patch.object(
+                                filter_reads_runner,
+                                "validate_corpus_contract",
+                            ):
+                                with mock.patch.object(
+                                    filter_reads_runner,
+                                    "require_canonical_tool_roster",
+                                    return_value=["fastp"],
+                                ):
+                                    with mock.patch.object(
+                                        filter_reads_runner.subprocess,
+                                        "run",
+                                        side_effect=fake_run,
+                                    ) as run_mock:
+                                        exit_code = filter_reads_runner.main()
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(run_mock.call_count, 1)
+            self.assertFalse(stale_marker.exists())
+
     def test_remove_duplicates_runner_parse_args_supports_sample_jobs(self) -> None:
         argv = [
             "run_fastq_remove_duplicates_corpus_01.py",
