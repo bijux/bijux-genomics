@@ -251,7 +251,7 @@ fn rrna_command(
                 shell_quote_str(&format!("{}*.fq", other_prefix.display())),
             );
             let paired_fwd_globs = format!(
-                "{} {} {} {} {} {} {} {}",
+                "{} {} {} {} {} {} {} {} {} {} {} {}",
                 shell_quote_str(&format!("{}*paired*fwd*.fastq.gz", other_prefix.display())),
                 shell_quote_str(&format!("{}*paired*fwd*.fq.gz", other_prefix.display())),
                 shell_quote_str(&format!("{}*paired*fwd*.fastq", other_prefix.display())),
@@ -260,9 +260,13 @@ fn rrna_command(
                 shell_quote_str(&format!("{}*fwd*.fq.gz", other_prefix.display())),
                 shell_quote_str(&format!("{}*fwd*.fastq", other_prefix.display())),
                 shell_quote_str(&format!("{}*fwd*.fq", other_prefix.display())),
+                shell_quote_str(&format!("{}/fwd_*.fastq.gz", readb_dir.display())),
+                shell_quote_str(&format!("{}/fwd_*.fq.gz", readb_dir.display())),
+                shell_quote_str(&format!("{}/fwd_*.fastq", readb_dir.display())),
+                shell_quote_str(&format!("{}/fwd_*.fq", readb_dir.display())),
             );
             let paired_rev_globs = format!(
-                "{} {} {} {} {} {} {} {}",
+                "{} {} {} {} {} {} {} {} {} {} {} {}",
                 shell_quote_str(&format!("{}*paired*rev*.fastq.gz", other_prefix.display())),
                 shell_quote_str(&format!("{}*paired*rev*.fq.gz", other_prefix.display())),
                 shell_quote_str(&format!("{}*paired*rev*.fastq", other_prefix.display())),
@@ -271,6 +275,17 @@ fn rrna_command(
                 shell_quote_str(&format!("{}*rev*.fq.gz", other_prefix.display())),
                 shell_quote_str(&format!("{}*rev*.fastq", other_prefix.display())),
                 shell_quote_str(&format!("{}*rev*.fq", other_prefix.display())),
+                shell_quote_str(&format!("{}/rev_*.fastq.gz", readb_dir.display())),
+                shell_quote_str(&format!("{}/rev_*.fq.gz", readb_dir.display())),
+                shell_quote_str(&format!("{}/rev_*.fastq", readb_dir.display())),
+                shell_quote_str(&format!("{}/rev_*.fq", readb_dir.display())),
+            );
+            let readb_single_globs = format!(
+                "{} {} {} {}",
+                shell_quote_str(&format!("{}/fwd_*.fastq.gz", readb_dir.display())),
+                shell_quote_str(&format!("{}/fwd_*.fq.gz", readb_dir.display())),
+                shell_quote_str(&format!("{}/fwd_*.fastq", readb_dir.display())),
+                shell_quote_str(&format!("{}/fwd_*.fq", readb_dir.display())),
             );
             let script = format!(
                 "set -euo pipefail\nshopt -s nullglob\nnormalize_fastq_output() {{ src=\"$1\"; dest=\"$2\"; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }}\ncollect_output_from_globs() {{ dest=\"$1\"; shift; local pattern candidate matches=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${{matches[@]}}\"; do if [ -f \"$candidate\" ]; then normalize_fastq_output \"$candidate\" \"$dest\"; return 0; fi; done; done; printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; }}\nrm -rf {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p {work_dir} {idx_dir} {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p \"$(dirname {filtered_reads_r1})\" \"$(dirname {report_tsv})\" \"$(dirname {report_json})\"\nrm -f {filtered_reads_r1} {filtered_reads_r2_cleanup} {report_tsv} {report_json}\n{sortmerna_command}\n",
@@ -296,9 +311,10 @@ fn rrna_command(
                 )
             } else {
                 format!(
-                    "{script}collect_output_from_globs {filtered_reads_r1} {single_output_globs}\n",
+                    "{script}collect_output_from_globs {filtered_reads_r1} {single_output_globs} {readb_single_globs}\n",
                     filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
                     single_output_globs = single_output_globs,
+                    readb_single_globs = readb_single_globs,
                 )
             };
             let script = format!(
