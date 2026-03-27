@@ -20,7 +20,7 @@ use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_correct_tools;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::fastq::correct_errors::{
-    plan_correct_with_options, CorrectPlanOptions,
+    plan_correct_with_options, project_correct_options_for_tool, CorrectPlanOptions,
 };
 use bijux_dna_planner_fastq::stage_api::observer::{input_fastq_stats, parse_seqkit_stats};
 use bijux_dna_planner_fastq::stage_api::FastqArtifactKind;
@@ -149,11 +149,8 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         let tool_spec = apply_thread_override(&tool_spec, args.threads);
         let tool_spec = apply_memory_override(&tool_spec, args.max_memory_gb);
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_correct_with_options(
-            &tool_spec,
-            &bench_inputs.r1,
-            bench_inputs.r2.as_deref(),
-            &out_dir,
+        let projected_options = project_correct_options_for_tool(
+            tool,
             &CorrectPlanOptions {
                 threads: args.threads,
                 quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
@@ -163,6 +160,13 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
                 trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
                 conservative_mode: args.conservative_mode.unwrap_or(false),
             },
+        );
+        let plan = plan_correct_with_options(
+            &tool_spec,
+            &bench_inputs.r1,
+            bench_inputs.r2.as_deref(),
+            &out_dir,
+            &projected_options,
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
@@ -596,10 +600,13 @@ mod tests {
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
     };
+    use bijux_dna_planner_fastq::stage_api::fastq::correct_errors::{
+        project_correct_options_for_tool, CorrectPlanOptions,
+    };
     use bijux_dna_runner::step_runner::StageResultV1;
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
 
     #[test]
     fn correct_record_paths_follow_plan_outputs() {
@@ -798,6 +805,27 @@ mod tests {
         };
         let overridden = apply_thread_override(&spec, Some(7));
         assert_eq!(overridden.resources.threads, 7);
+    }
+
+    #[test]
+    fn benchmark_projection_strips_lighter_only_fields_for_musket() {
+        let projected = project_correct_options_for_tool(
+            "musket",
+            &CorrectPlanOptions {
+                threads: Some(8),
+                kmer_size: Some(31),
+                genome_size: Some(3_200_000),
+                max_memory_gb: Some(24),
+                trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
+                ..CorrectPlanOptions::baseline()
+            },
+        );
+
+        assert_eq!(projected.threads, Some(8));
+        assert_eq!(projected.kmer_size, Some(31));
+        assert_eq!(projected.genome_size, None);
+        assert_eq!(projected.max_memory_gb, None);
+        assert_eq!(projected.trusted_kmer_artifact, None);
     }
 
     #[test]

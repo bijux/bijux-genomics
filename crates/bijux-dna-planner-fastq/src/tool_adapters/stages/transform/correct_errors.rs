@@ -24,6 +24,35 @@ pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     normalize_tools_with_allowlist(tools, &allowlist)
 }
 
+#[must_use]
+pub fn project_correct_options_for_tool(
+    tool_id: &str,
+    options: &CorrectPlanOptions,
+) -> CorrectPlanOptions {
+    let mut projected = options.clone();
+    match tool_id {
+        "lighter" => {}
+        "musket" => {
+            projected.genome_size = None;
+            projected.max_memory_gb = None;
+            projected.trusted_kmer_artifact = None;
+        }
+        "bayeshammer" => {
+            projected.kmer_size = None;
+            projected.genome_size = None;
+            projected.trusted_kmer_artifact = None;
+        }
+        "rcorrector" => {
+            projected.kmer_size = None;
+            projected.genome_size = None;
+            projected.max_memory_gb = None;
+            projected.trusted_kmer_artifact = None;
+        }
+        _ => {}
+    }
+    projected
+}
+
 /// Build a correct plan.
 ///
 /// # Errors
@@ -216,7 +245,7 @@ fn correct_command_template(
         .ok_or_else(|| anyhow!("correction report path must have a parent directory"))?
         .join(format!("{tool_id}_work"));
     let mut script = format!(
-        "set -euo pipefail\nmkdir -p {}\nnormalize_fastq_output() {{ src=\"$1\"; dest=\"$2\"; case \"$src\" in *.gz) mv -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }}\n",
+        "set -eu\nmkdir -p {}\nnormalize_fastq_output() {{ src=\"$1\"; dest=\"$2\"; case \"$src\" in *.gz) mv -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }}\n",
         shell_quote_path(&work_dir),
     );
     match tool_id {
@@ -320,11 +349,10 @@ fn correct_command_template(
                 script.push_str(&format!(" -s {}", shell_quote_path(input_r1)));
             }
             script.push_str(&format!(" -o {}\n", shell_quote_path(&work_dir)));
-            script.push_str(&move_corrected_outputs_script(
+            script.push_str(&move_bayeshammer_outputs_script(
                 &work_dir.join("corrected"),
                 output_r1,
                 output_r2,
-                false,
             ));
         }
         _ => return Err(anyhow!("unsupported tool: {tool_id}")),
@@ -356,11 +384,15 @@ fn move_corrected_outputs_script(
     };
     let expected_count = if output_r2.is_some() { 2 } else { 1 };
     let list_path = search_dir.join("corrected_outputs.list");
+    let unsorted_list_path = search_dir.join("corrected_outputs.unsorted");
     let mut script = format!(
-        "find {} -type f {} | LC_ALL=C sort > {}\nactual_outputs=$(wc -l < {} | tr -d '[:space:]')\nif [ \"$actual_outputs\" -ne {} ]; then echo \"expected {} corrected outputs in {} but found $actual_outputs\" >&2; exit 64; fi\nnormalize_fastq_output \"$(sed -n '1p' {})\" {}\n",
+        "find {} -type f {} > {}\nLC_ALL=C sort {} > {}\nrm -f {}\nactual_outputs=$(wc -l < {} | tr -d '[:space:]')\nif [ \"$actual_outputs\" -ne {} ]; then echo \"expected {} corrected outputs in {} but found $actual_outputs\" >&2; exit 64; fi\nnormalize_fastq_output \"$(sed -n '1p' {})\" {}\n",
         shell_quote_path(search_dir),
         patterns,
+        shell_quote_path(&unsorted_list_path),
+        shell_quote_path(&unsorted_list_path),
         shell_quote_path(&list_path),
+        shell_quote_path(&unsorted_list_path),
         shell_quote_path(&list_path),
         expected_count,
         expected_count,
@@ -373,6 +405,49 @@ fn move_corrected_outputs_script(
             "normalize_fastq_output \"$(sed -n '2p' {})\" {}\n",
             shell_quote_path(&list_path),
             shell_quote_path(output_r2),
+        ));
+    }
+    script
+}
+
+fn move_bayeshammer_outputs_script(
+    search_dir: &Path,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+) -> String {
+    let list_path = search_dir.join("corrected_outputs.list");
+    let unsorted_list_path = search_dir.join("corrected_outputs.unsorted");
+    let mut script = format!(
+        "find {} -type f \\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\) > {}\nLC_ALL=C sort {} > {}\nrm -f {}\n",
+        shell_quote_path(search_dir),
+        shell_quote_path(&unsorted_list_path),
+        shell_quote_path(&unsorted_list_path),
+        shell_quote_path(&list_path),
+        shell_quote_path(&unsorted_list_path),
+    );
+    if let Some(output_r2) = output_r2 {
+        script.push_str(&format!(
+            "r1_output=$(grep '/[^/]*R1[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
+r2_output=$(grep '/[^/]*R2[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
+if [ -z \"$r1_output\" ] || [ -z \"$r2_output\" ]; then echo \"expected BayesHammer paired corrected outputs in {}\" >&2; cat {} >&2; exit 64; fi\n\
+normalize_fastq_output \"$r1_output\" {}\n\
+normalize_fastq_output \"$r2_output\" {}\n",
+            shell_quote_path(&list_path),
+            shell_quote_path(&list_path),
+            shell_quote_path(search_dir),
+            shell_quote_path(&list_path),
+            shell_quote_path(output_r1),
+            shell_quote_path(output_r2),
+        ));
+    } else {
+        script.push_str(&format!(
+            "actual_outputs=$(wc -l < {} | tr -d '[:space:]')\n\
+if [ \"$actual_outputs\" -ne 1 ]; then echo \"expected 1 corrected output in {} but found $actual_outputs\" >&2; exit 64; fi\n\
+normalize_fastq_output \"$(sed -n '1p' {})\" {}\n",
+            shell_quote_path(&list_path),
+            shell_quote_path(search_dir),
+            shell_quote_path(&list_path),
+            shell_quote_path(output_r1),
         ));
     }
     script
@@ -610,6 +685,45 @@ mod tests {
     }
 
     #[test]
+    fn project_correct_options_drops_lighter_only_fields_for_musket() {
+        let projected = project_correct_options_for_tool(
+            "musket",
+            &CorrectPlanOptions {
+                kmer_size: Some(31),
+                genome_size: Some(3_200_000),
+                max_memory_gb: Some(24),
+                trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
+                ..CorrectPlanOptions::baseline()
+            },
+        );
+
+        assert_eq!(projected.kmer_size, Some(31));
+        assert_eq!(projected.genome_size, None);
+        assert_eq!(projected.max_memory_gb, None);
+        assert_eq!(projected.trusted_kmer_artifact, None);
+    }
+
+    #[test]
+    fn project_correct_options_preserves_lighter_specific_fields() {
+        let projected = project_correct_options_for_tool(
+            "lighter",
+            &CorrectPlanOptions {
+                kmer_size: Some(31),
+                genome_size: Some(3_200_000),
+                trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
+                ..CorrectPlanOptions::baseline()
+            },
+        );
+
+        assert_eq!(projected.kmer_size, Some(31));
+        assert_eq!(projected.genome_size, Some(3_200_000));
+        assert_eq!(
+            projected.trusted_kmer_artifact,
+            Some(Path::new("trusted.kmers").to_path_buf())
+        );
+    }
+
+    #[test]
     fn plan_correct_maps_explicit_memory_limit_for_bayeshammer() {
         let plan = plan_correct_with_options(
             &tool("bayeshammer"),
@@ -629,6 +743,43 @@ mod tests {
         );
         assert!(plan.command.template[2].contains("bayeshammer"));
         assert!(plan.command.template[2].contains(" -m 24"));
+    }
+
+    #[test]
+    fn plan_correct_ignores_bayeshammer_unpaired_sidecar_output() {
+        let plan = plan_correct_with_options(
+            &tool("bayeshammer"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            &CorrectPlanOptions::baseline(),
+        )
+        .expect("bayeshammer plan should build for paired inputs");
+
+        let script = &plan.command.template[2];
+        assert!(script.contains("r1_output=$(grep"));
+        assert!(script.contains("R1"));
+        assert!(script.contains("r2_output=$(grep"));
+        assert!(script.contains("R2"));
+        assert!(!script.contains("expected 2 corrected outputs"));
+    }
+
+    #[test]
+    fn plan_correct_uses_posix_sh_safe_collection_script() {
+        let plan = plan_correct_with_options(
+            &tool("bayeshammer"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            &CorrectPlanOptions::baseline(),
+        )
+        .expect("bayeshammer plan should build for paired inputs");
+
+        let script = &plan.command.template[2];
+        assert!(script.starts_with("set -eu\n"));
+        assert!(!script.contains("pipefail"));
+        assert!(script.contains("corrected_outputs.unsorted"));
+        assert!(script.contains("LC_ALL=C sort"));
     }
 
     #[test]
