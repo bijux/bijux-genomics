@@ -17,6 +17,7 @@ import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import audit_published_corpus_01_fastq_results as published_results_audit
 import run_fastq_deplete_rrna_corpus_01 as deplete_rrna_runner
+import run_fastq_filter_reads_corpus_01 as filter_reads_runner
 import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
 import run_fastq_normalize_primers_corpus_01 as normalize_primers_runner
 import run_fastq_remove_duplicates_corpus_01 as remove_duplicates_runner
@@ -27,6 +28,8 @@ import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefi
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
 import render_fastq_deplete_rrna_corpus_01_briefing as deplete_rrna_briefing
 import render_fastq_deplete_rrna_corpus_01_report as deplete_rrna_report
+import render_fastq_filter_reads_corpus_01_briefing as filter_reads_briefing
+import render_fastq_filter_reads_corpus_01_report as filter_reads_report
 import render_fastq_filter_low_complexity_corpus_01_briefing as filter_low_complexity_briefing
 import render_fastq_filter_low_complexity_corpus_01_report as filter_low_complexity_report
 import render_fastq_normalize_primers_corpus_01_briefing as normalize_primers_briefing
@@ -54,6 +57,16 @@ import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
+    def test_filter_reads_defaults_match_governed_suite(self) -> None:
+        defaults = support.filter_reads_benchmark_defaults()
+        self.assertEqual(defaults["max_n"], 0)
+        self.assertIsNone(defaults["max_n_fraction"])
+        self.assertEqual(defaults["max_n_count"], 3)
+        self.assertEqual(defaults["low_complexity_threshold"], 20.0)
+        self.assertEqual(defaults["entropy_threshold"], 18.0)
+        self.assertIsNone(defaults["kmer_ref"])
+        self.assertEqual(defaults["polyx_policy"], "trim")
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
@@ -273,6 +286,31 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             args = filter_low_complexity_runner.parse_args()
         self.assertEqual(args.sample_jobs, 3)
         self.assertEqual(args.entropy_threshold, 0.6)
+
+    def test_filter_reads_runner_parse_args_supports_filter_overrides(self) -> None:
+        argv = [
+            "run_fastq_filter_reads_corpus_01.py",
+            "--sample-jobs",
+            "2",
+            "--max-n",
+            "0",
+            "--max-n-count",
+            "5",
+            "--low-complexity-threshold",
+            "19.5",
+            "--entropy-threshold",
+            "17.5",
+            "--polyx-policy",
+            "trim",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = filter_reads_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 2)
+        self.assertEqual(args.max_n, 0)
+        self.assertEqual(args.max_n_count, 5)
+        self.assertEqual(args.low_complexity_threshold, 19.5)
+        self.assertEqual(args.entropy_threshold, 17.5)
+        self.assertEqual(args.polyx_policy, "trim")
 
     def test_remove_duplicates_runner_parse_args_supports_sample_jobs(self) -> None:
         argv = [
@@ -510,6 +548,42 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_filter_reads_report_contract_rejects_parameter_drift(self) -> None:
+        run_manifest = {
+            "tools": ["bbduk", "fastp", "prinseq", "seqkit"],
+            "max_n": 0,
+            "max_n_fraction": None,
+            "max_n_count": 3,
+            "low_complexity_threshold": 20.0,
+            "entropy_threshold": 18.0,
+            "kmer_ref": None,
+            "polyx_policy": "trim",
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "fastp",
+                "max_n": 0,
+                "max_n_fraction": None,
+                "max_n_count": 2,
+                "low_complexity_threshold": 20.0,
+                "entropy_threshold": 18.0,
+                "kmer_ref": None,
+                "polyx_policy": "trim",
+                "raw_backend_report_format": "fastp_json",
+                "reads_in": 100,
+                "reads_out": 90,
+                "bases_in": 1000,
+                "bases_out": 900,
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            filter_reads_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
+            )
+
     def test_filter_low_complexity_report_contract_rejects_missing_tool_row(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "prinseq"],
@@ -583,6 +657,36 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         summary_rows = filter_low_complexity_briefing.tool_runtime_summary(rows)
         self.assertEqual(summary_rows[0]["tool"], "bbduk")
         self.assertEqual(summary_rows[0]["mean_reads_removed_low_complexity"], 11.0)
+
+    def test_filter_reads_briefing_summarizes_reads_dropped(self) -> None:
+        rows = [
+            {
+                "tool": "fastp",
+                "runtime_s": "2.0",
+                "base_retention": "0.96",
+                "read_retention": "0.95",
+                "reads_dropped": "10",
+                "reads_removed_low_complexity": "3",
+                "reads_removed_by_n": "2",
+                "mean_q_delta": "0.1",
+                "exit_code": "0",
+            },
+            {
+                "tool": "fastp",
+                "runtime_s": "4.0",
+                "base_retention": "0.95",
+                "read_retention": "0.94",
+                "reads_dropped": "14",
+                "reads_removed_low_complexity": "4",
+                "reads_removed_by_n": "1",
+                "mean_q_delta": "0.2",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = filter_reads_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "fastp")
+        self.assertEqual(summary_rows[0]["mean_reads_dropped"], 12.0)
+        self.assertEqual(summary_rows[0]["mean_reads_removed_by_n"], 1.5)
 
     def test_deplete_rrna_briefing_summarizes_fraction_removed(self) -> None:
         rows = [
