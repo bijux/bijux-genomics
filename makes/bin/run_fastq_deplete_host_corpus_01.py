@@ -23,6 +23,7 @@ from corpus_01_fastq_benchmark_support import (
     load_corpus_spec,
     normalize_tool_csv,
     require_canonical_tool_roster,
+    resolve_bowtie2_index_prefix,
     sha256_artifact_bundle,
     validate_benchmark_layout,
     validate_corpus_contract,
@@ -203,13 +204,17 @@ def run_sample_command(
 def resolve_reference_index(args: argparse.Namespace, out_root: Path) -> Path:
     requested_path = args.reference_index.strip()
     if requested_path:
-        reference_index = Path(requested_path).expanduser().resolve()
+        requested_index = Path(requested_path).expanduser().resolve()
     else:
-        reference_index = default_host_reference_index_root(
+        requested_index = default_host_reference_index_root(
             out_root,
             reference_catalog_id=args.reference_catalog_id,
             reference_index_backend=args.reference_index_backend,
         ).resolve()
+    try:
+        reference_index = resolve_bowtie2_index_prefix(requested_index)
+    except (FileNotFoundError, ValueError) as error:
+        raise SystemExit(str(error)) from error
     if not artifact_bundle_exists(reference_index):
         raise SystemExit(
             "missing host reference index bundle or prefix matches: "

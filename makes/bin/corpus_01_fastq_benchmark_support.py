@@ -49,6 +49,33 @@ def artifact_bundle_exists(path: Path) -> bool:
     return bool(_prefix_bundle_members(path))
 
 
+def resolve_bowtie2_index_prefix(path: Path) -> Path:
+    resolved = path.expanduser().resolve()
+    if not resolved.is_dir():
+        return resolved
+    prefixes = sorted(
+        {
+            candidate.name.removesuffix(".1.bt2")
+            for candidate in resolved.glob("*.1.bt2")
+            if candidate.is_file()
+        }
+        | {
+            candidate.name.removesuffix(".1.bt2l")
+            for candidate in resolved.glob("*.1.bt2l")
+            if candidate.is_file()
+        }
+    )
+    if not prefixes:
+        raise FileNotFoundError(
+            f"missing Bowtie2 index prefix under directory: {resolved}"
+        )
+    if len(prefixes) != 1:
+        raise ValueError(
+            f"ambiguous Bowtie2 index prefixes under directory {resolved}: {prefixes!r}"
+        )
+    return resolved / prefixes[0]
+
+
 def artifact_bundle_size_bytes(path: Path) -> int:
     total = 0
     for member in _prefix_bundle_members(path):

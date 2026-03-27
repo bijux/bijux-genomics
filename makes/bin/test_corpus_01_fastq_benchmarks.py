@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -246,6 +247,24 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
             ).resolve(),
         )
+
+    def test_resolve_bowtie2_index_prefix_maps_directory_to_unique_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            index_root = Path(tmpdir) / "index"
+            index_root.mkdir()
+            (index_root / "reference.1.bt2").write_text("a", encoding="utf-8")
+            (index_root / "reference.2.bt2").write_text("b", encoding="utf-8")
+            self.assertEqual(
+                support.resolve_bowtie2_index_prefix(index_root).resolve(),
+                (index_root / "reference").resolve(),
+            )
+
+    def test_resolve_bowtie2_index_prefix_rejects_empty_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            index_root = Path(tmpdir) / "index"
+            index_root.mkdir()
+            with self.assertRaises(FileNotFoundError):
+                support.resolve_bowtie2_index_prefix(index_root)
 
     def test_correct_errors_defaults_match_governed_suite(self) -> None:
         defaults = support.correct_errors_benchmark_defaults()
@@ -793,6 +812,24 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertAlmostEqual(args.host_identity_threshold, 0.99)
         self.assertFalse(args.retain_unmapped_only)
 
+    def test_deplete_host_runner_resolves_directory_reference_index_to_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_root = Path(tmpdir) / "results"
+            out_root.mkdir()
+            index_root = Path(tmpdir) / "index"
+            index_root.mkdir()
+            (index_root / "reference.1.bt2").write_text("a", encoding="utf-8")
+            (index_root / "reference.2.bt2").write_text("b", encoding="utf-8")
+            args = SimpleNamespace(
+                reference_index=str(index_root),
+                reference_catalog_id="host_reference",
+                reference_index_backend="bowtie2_build",
+            )
+            self.assertEqual(
+                deplete_host_runner.resolve_reference_index(args, out_root).resolve(),
+                (index_root / "reference").resolve(),
+            )
+
     def test_deplete_reference_contaminants_runner_parse_args_supports_policy_overrides(
         self,
     ) -> None:
@@ -813,6 +850,22 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.threads, 6)
         self.assertEqual(args.reference_index, "/refs/contaminants")
         self.assertEqual(args.decoy_mode, "phix_and_spikeins")
+
+    def test_deplete_reference_contaminants_runner_resolves_directory_reference_index_to_prefix(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            index_root = Path(tmpdir) / "index"
+            index_root.mkdir()
+            (index_root / "reference.1.bt2").write_text("a", encoding="utf-8")
+            (index_root / "reference.2.bt2").write_text("b", encoding="utf-8")
+            args = SimpleNamespace(reference_index=str(index_root))
+            self.assertEqual(
+                deplete_reference_contaminants_runner.resolve_reference_index(
+                    args
+                ).resolve(),
+                (index_root / "reference").resolve(),
+            )
 
     def test_screen_taxonomy_runner_parse_args_supports_database_overrides(
         self,
