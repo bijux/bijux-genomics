@@ -405,7 +405,7 @@ fn krakenuniq_screen_script(
     format!(
         "mkdir -p {db}\n\
          krakenuniq --db {db} --threads {threads} --fastq-input --report-file {native_report} --output {native_assignments} {reads}\n\
-         awk -F '\\t' 'NF >= 6 {{ label=$6; sub(/^[[:space:]]+/, \"\", label); pct=$1; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", label, pct }}' {native_report} > {normalized_report}\n",
+         awk -F '\\t' 'NF >= 9 {{ if ($1 == \"%\") next; label=$9; sub(/^[[:space:]]+/, \"\", label); pct=$1; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", label, pct }}' {native_report} > {normalized_report}\n",
         db = shell_quote_path(&database_root.join("krakenuniq")),
         threads = threads,
         native_report = shell_quote_path(native_report_path),
@@ -706,5 +706,25 @@ mod tests {
         .expect_err("mismatched classifier must fail");
 
         assert!(error.to_string().contains("classifier"));
+    }
+
+    #[test]
+    fn krakenuniq_screen_plan_skips_native_header_and_uses_tax_name_column() -> Result<()> {
+        let plan = plan_screen_with_options(
+            &tool("krakenuniq"),
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out"),
+            &ScreenPlanOptions {
+                database_root: Some(std::path::PathBuf::from("taxonomy_db")),
+                threads: Some(8),
+            },
+        )?;
+
+        assert!(plan.command.template[2].contains("krakenuniq --db 'taxonomy_db/krakenuniq'"));
+        assert!(plan.command.template[2].contains("NF >= 9"));
+        assert!(plan.command.template[2].contains("if ($1 == \"%\") next"));
+        assert!(plan.command.template[2].contains("label=$9"));
+        Ok(())
     }
 }
