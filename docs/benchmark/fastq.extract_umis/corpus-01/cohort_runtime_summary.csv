@@ -1,0 +1,5 @@
+tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,median_read_retention,mean_reads_with_umi_fraction
+umi_tools,era_layout,ancient_pe,5,52.508657,23.211440,1.000000,1.000000
+umi_tools,era_layout,modern_pe,5,115.517503,177.006888,1.000000,1.000000
+umi_tools,size_band,under_100mb,5,12.524020,9.567694,1.000000,1.000000
+umi_tools,size_band,under_500mb,5,155.502140,177.006888,1.000000,1.000000

@@ -1,0 +1,11 @@
+sample_id,accession,era,layout,size_band,study_accession,total_stage_runtime_s,slowest_tool,slowest_runtime_s,strongest_tool,reads_with_umi_fraction
+sample_0003,DRR000550,modern,pe,under_500mb,PRJDA50447,199.687700,umi_tools,199.687700,umi_tools,1.000000
+sample_0001,DRR000093,modern,pe,under_500mb,PRJDA41121,189.662723,umi_tools,189.662723,umi_tools,1.000000
+sample_0002,DRR000095,modern,pe,under_500mb,PRJDA41121,177.006888,umi_tools,177.006888,umi_tools,1.000000
+sample_0013,ERR15886310,ancient,pe,under_500mb,PRJEB101287,120.378423,umi_tools,120.378423,umi_tools,1.000000
+sample_0012,ERR15886307,ancient,pe,under_500mb,PRJEB101287,90.774964,umi_tools,90.774964,umi_tools,1.000000
+sample_0011,ERR15108349,ancient,pe,under_100mb,PRJEB80740,23.211440,umi_tools,23.211440,umi_tools,1.000000
+sample_0014,ERR4210492,ancient,pe,under_100mb,PRJEB38152,18.610761,umi_tools,18.610761,umi_tools,1.000000
+sample_0015,ERR4210542,ancient,pe,under_100mb,PRJEB38152,9.567694,umi_tools,9.567694,umi_tools,1.000000
+sample_0009,DRR015482,modern,pe,under_100mb,PRJDB2640,6.702415,umi_tools,6.702415,umi_tools,1.000000
+sample_0010,DRR015568,modern,pe,under_100mb,PRJDB2640,4.527789,umi_tools,4.527789,umi_tools,1.000000

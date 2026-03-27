@@ -58,6 +58,14 @@ def normalize_metric(record: dict, key: str):
     return metrics_payload.get(key)
 
 
+def normalize_parameter(record: dict, key: str):
+    context = record.get("context", {})
+    parameters = context.get("parameters", {})
+    if not isinstance(parameters, dict):
+        return None
+    return parameters.get(key)
+
+
 def validate_run_manifest_contract(run_manifest: dict) -> None:
     defaults = extract_umis_benchmark_defaults()
     if run_manifest.get("dry_run"):
@@ -269,8 +277,11 @@ def main() -> int:
                 "tool": tool,
                 "runtime_s": float(record.get("execution", {}).get("runtime_s") or 0.0),
                 "exit_code": int(record.get("execution", {}).get("exit_code") or 0),
-                "paired_mode": normalize_metric(record, "paired_mode"),
+                "paired_mode": normalize_metric(record, "paired_mode")
+                or normalize_parameter(record, "paired_mode")
+                or ("paired_end" if metadata["layout"] == "pe" else None),
                 "umi_pattern": normalize_metric(record, "umi_pattern")
+                or normalize_parameter(record, "umi_pattern")
                 or run_manifest["umi_pattern"],
                 "reads_in": reads_in,
                 "reads_out": reads_out,
@@ -285,7 +296,8 @@ def main() -> int:
                 "mean_q_after": float(normalize_metric(record, "mean_q_after") or 0.0),
                 "raw_backend_report_format": normalize_metric(
                     record, "raw_backend_report_format"
-                ),
+                )
+                or normalize_parameter(record, "raw_backend_report_format"),
             }
             sample_rows.append(row)
             tool_rows[tool].append(row)

@@ -1510,6 +1510,34 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_extract_umis_report_reads_fallback_values_from_context_parameters(
+        self,
+    ) -> None:
+        record = {
+            "context": {
+                "parameters": {
+                    "umi_pattern": "NNNNNNNN",
+                    "raw_backend_report_format": "umi_tools_log",
+                }
+            },
+            "metrics": {
+                "metrics": {
+                    "reads_in": 100,
+                    "reads_out": 100,
+                    "reads_with_umi": 100,
+                }
+            },
+        }
+
+        self.assertEqual(
+            extract_umis_report.normalize_parameter(record, "umi_pattern"),
+            "NNNNNNNN",
+        )
+        self.assertEqual(
+            extract_umis_report.normalize_parameter(record, "raw_backend_report_format"),
+            "umi_tools_log",
+        )
+
     def test_filter_reads_report_contract_rejects_parameter_drift(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "fastp", "prinseq", "seqkit"],

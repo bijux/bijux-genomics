@@ -1,0 +1,39 @@
+{
+  "allow_missing_umi_headers": true,
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "era_counts": {
+    "ancient": 5,
+    "modern": 5
+  },
+  "generated_at_utc": "2026-03-27T14:47:56.370815+00:00",
+  "headline": {
+    "best_retention": 1.0,
+    "best_retention_tool": "umi_tools",
+    "best_umi_detection": 5104575.4,
+    "best_umi_detection_tool": "umi_tools",
+    "fastest_runtime_s": 56.9932019935,
+    "fastest_tool": "umi_tools"
+  },
+  "platform": "lunarc-apptainer",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc",
+  "samples_failed": 0,
+  "samples_total": 10,
+  "scenario_id": "umi_extraction_fairness",
+  "schema_version": "bijux.fastq.extract_umis.corpus_summary.v1",
+  "stage_id": "fastq.extract_umis",
+  "tool_summary": [
+    {
+      "mean_reads_with_umi": 5104575.4,
+      "mean_reads_with_umi_fraction": 1.0,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 56.9932019935,
+      "pass_rate": 1.0,
+      "records": 10,
+      "tool": "umi_tools"
+    }
+  ],
+  "tools": [
+    "umi_tools"
+  ],
+  "umi_pattern": "NNNNNNNN"
+}
