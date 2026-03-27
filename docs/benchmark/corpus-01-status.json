@@ -3,10 +3,10 @@
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
   "benchmarkable_stage_count": 23,
   "applicable_stage_count": 20,
-  "completed_stage_count": 13,
-  "incomplete_stage_count": 7,
+  "completed_stage_count": 14,
+  "incomplete_stage_count": 6,
   "excluded_stage_count": 3,
-  "issue_count": 7,
+  "issue_count": 6,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -153,16 +153,9 @@
       ],
       "method_path": "benchmark/fastq.filter_reads/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.filter_reads/corpus-01",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.filter_reads",
-          "issue_id": "missing-corpus-dir",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.filter_reads/corpus-01"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.filter_low_complexity",

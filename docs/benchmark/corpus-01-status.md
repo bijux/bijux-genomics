@@ -2,10 +2,10 @@
 
 - Benchmarkable governed stages: `23`
 - Corpus-applicable publication stages: `20`
-- Completed stage dossiers: `13`
-- Incomplete stage dossiers: `7`
+- Completed stage dossiers: `14`
+- Incomplete stage dossiers: `6`
 - Excluded stages: `3`
-- Publication issues: `7`
+- Publication issues: `6`
 
 ## Stage status
 
@@ -17,8 +17,7 @@
 - `fastq.normalize_primers`: `complete` (`0` issues, scope `full`)
 - `fastq.trim_polyg_tails`: `complete` (`0` issues, scope `full`)
 - `fastq.trim_reads`: `complete` (`0` issues, scope `full`)
-- `fastq.filter_reads`: `incomplete` (`1` issues, scope `full`)
-  - `missing-corpus-dir`: missing benchmark/fastq.filter_reads/corpus-01
+- `fastq.filter_reads`: `complete` (`0` issues, scope `full`)
 - `fastq.filter_low_complexity`: `complete` (`0` issues, scope `full`)
 - `fastq.deplete_rrna`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_rrna/corpus-01

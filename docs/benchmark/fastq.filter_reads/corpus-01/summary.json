@@ -1,0 +1,92 @@
+{
+  "schema_version": "bijux.fastq.filter_reads.corpus_summary.v1",
+  "generated_at_utc": "2026-03-27T13:35:26.810415+00:00",
+  "stage_id": "fastq.filter_reads",
+  "scenario_id": "filter_fairness",
+  "platform": "lunarc-apptainer",
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_reads/lunarc",
+  "samples_total": 20,
+  "samples_failed": 0,
+  "tools": [
+    "bbduk",
+    "fastp",
+    "prinseq",
+    "seqkit"
+  ],
+  "cohort_counts": {
+    "modern_pe": 5,
+    "modern_se": 5,
+    "ancient_pe": 5,
+    "ancient_se": 5
+  },
+  "era_counts": {
+    "modern": 10,
+    "ancient": 10
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "max_n": 0,
+  "max_n_fraction": null,
+  "max_n_count": 3,
+  "low_complexity_threshold": 20.0,
+  "entropy_threshold": 18.0,
+  "kmer_ref": null,
+  "polyx_policy": "trim",
+  "headline": {
+    "fastest_tool": "seqkit",
+    "fastest_runtime_s": 1.2393459485,
+    "best_base_retention_tool": "bbduk",
+    "best_base_retention": 1.0,
+    "strongest_filter_tool": "fastp",
+    "strongest_filter_reads": 284465.7
+  },
+  "tool_summary": [
+    {
+      "tool": "bbduk",
+      "records": 20,
+      "pass_rate": 1.0,
+      "median_runtime_s": 3.445475685,
+      "median_read_retention": 1.0,
+      "median_base_retention": 1.0,
+      "mean_reads_dropped": 0.0,
+      "mean_reads_removed_low_complexity": 0.0,
+      "mean_reads_removed_by_n": 0.0
+    },
+    {
+      "tool": "fastp",
+      "records": 20,
+      "pass_rate": 1.0,
+      "median_runtime_s": 4.149594178,
+      "median_read_retention": 0.9522734851196926,
+      "median_base_retention": 0.9195357447801441,
+      "mean_reads_dropped": 284465.7,
+      "mean_reads_removed_low_complexity": 0.0,
+      "mean_reads_removed_by_n": 1265.35
+    },
+    {
+      "tool": "prinseq",
+      "records": 20,
+      "pass_rate": 1.0,
+      "median_runtime_s": 1.9619578039999999,
+      "median_read_retention": 1.0,
+      "median_base_retention": 1.0,
+      "mean_reads_dropped": 0.0,
+      "mean_reads_removed_low_complexity": 0.0,
+      "mean_reads_removed_by_n": 0.0
+    },
+    {
+      "tool": "seqkit",
+      "records": 20,
+      "pass_rate": 1.0,
+      "median_runtime_s": 1.2393459485,
+      "median_read_retention": 1.0,
+      "median_base_retention": 1.0,
+      "mean_reads_dropped": 0.0,
+      "mean_reads_removed_low_complexity": 0.0,
+      "mean_reads_removed_by_n": 0.0
+    }
+  ]
+}

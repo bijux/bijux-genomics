@@ -259,12 +259,14 @@ def main() -> int:
 
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
+    cohort_counts: dict[str, int] = defaultdict(int)
     era_counts: dict[str, int] = defaultdict(int)
     layout_counts: dict[str, int] = defaultdict(int)
 
     for run in run_manifest["runs"]:
         sample_id = run["sample_id"]
         metadata = metadata_by_sample[sample_id]
+        cohort_counts[f"{metadata['era']}_{metadata['layout']}"] += 1
         era_counts[metadata["era"]] += 1
         layout_counts[metadata["layout"]] += 1
 
@@ -385,6 +387,7 @@ def main() -> int:
         "samples_total": len(expected_sample_ids),
         "samples_failed": run_manifest["samples_failed"],
         "tools": run_manifest["tools"],
+        "cohort_counts": dict(cohort_counts),
         "era_counts": dict(era_counts),
         "layout_counts": dict(layout_counts),
         "max_n": run_manifest["max_n"],
