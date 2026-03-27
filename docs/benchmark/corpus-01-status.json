@@ -6,7 +6,7 @@
   "completed_stage_count": 17,
   "incomplete_stage_count": 3,
   "excluded_stage_count": 3,
-  "issue_count": 3,
+  "issue_count": 5,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -293,13 +293,19 @@
       "method_path": "benchmark/fastq.deplete_host/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.deplete_host/corpus-01",
       "status": "incomplete",
-      "issue_count": 1,
+      "issue_count": 2,
       "issues": [
         {
           "stage_id": "fastq.deplete_host",
           "issue_id": "missing-corpus-dir",
           "severity": "error",
           "detail": "missing benchmark/fastq.deplete_host/corpus-01"
+        },
+        {
+          "stage_id": "fastq.deplete_host",
+          "issue_id": "synthetic-host-reference-lineage",
+          "severity": "error",
+          "detail": "artifacts/reference_store/Homo sapiens/GRCh38/refs/raw/reference.fa.gz is an ASCII synthetic placeholder payload rather than a real compressed reference, so corpus-01 deplete_host cannot publish against that lineage."
         }
       ]
     },
@@ -383,13 +389,19 @@
       "method_path": "benchmark/fastq.screen_taxonomy/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.screen_taxonomy/corpus-01",
       "status": "incomplete",
-      "issue_count": 1,
+      "issue_count": 2,
       "issues": [
         {
           "stage_id": "fastq.screen_taxonomy",
           "issue_id": "missing-corpus-dir",
           "severity": "error",
           "detail": "missing benchmark/fastq.screen_taxonomy/corpus-01"
+        },
+        {
+          "stage_id": "fastq.screen_taxonomy",
+          "issue_id": "minimal-taxonomy-database-lineage",
+          "severity": "error",
+          "detail": "the available Lunarc cache lineage bijux-reference/taxonomy/minimal_screen_v1 is a PhiX174/UniVec smoke-test database, so corpus-01 screen_taxonomy cannot publish against it as a full taxonomy benchmark."
         }
       ]
     },
