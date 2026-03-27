@@ -58,11 +58,13 @@ def resolve_bowtie2_index_prefix(path: Path) -> Path:
             candidate.name.removesuffix(".1.bt2")
             for candidate in resolved.glob("*.1.bt2")
             if candidate.is_file()
+            and not candidate.name.endswith(".rev.1.bt2")
         }
         | {
             candidate.name.removesuffix(".1.bt2l")
             for candidate in resolved.glob("*.1.bt2l")
             if candidate.is_file()
+            and not candidate.name.endswith(".rev.1.bt2l")
         }
     )
     if not prefixes:

@@ -254,6 +254,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             index_root.mkdir()
             (index_root / "reference.1.bt2").write_text("a", encoding="utf-8")
             (index_root / "reference.2.bt2").write_text("b", encoding="utf-8")
+            (index_root / "reference.rev.1.bt2").write_text("c", encoding="utf-8")
             self.assertEqual(
                 support.resolve_bowtie2_index_prefix(index_root).resolve(),
                 (index_root / "reference").resolve(),
