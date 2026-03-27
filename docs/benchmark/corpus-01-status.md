@@ -5,7 +5,7 @@
 - Completed stage dossiers: `17`
 - Incomplete stage dossiers: `3`
 - Excluded stages: `3`
-- Publication issues: `3`
+- Publication issues: `5`
 
 ## Stage status
 
@@ -22,14 +22,16 @@
 - `fastq.deplete_rrna`: `complete` (`0` issues, scope `full`)
 - `fastq.merge_pairs`: `complete` (`0` issues, scope `paired`)
 - `fastq.remove_duplicates`: `complete` (`0` issues, scope `paired`)
-- `fastq.deplete_host`: `incomplete` (`1` issues, scope `full`)
+- `fastq.deplete_host`: `incomplete` (`2` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_host/corpus-01
+  - `synthetic-host-reference-lineage`: artifacts/reference_store/Homo sapiens/GRCh38/refs/raw/reference.fa.gz is an ASCII synthetic placeholder payload rather than a real compressed reference, so corpus-01 deplete_host cannot publish against that lineage.
 - `fastq.deplete_reference_contaminants`: `complete` (`0` issues, scope `full`)
 - `fastq.correct_errors`: `incomplete` (`1` issues, scope `paired`)
   - `missing-corpus-dir`: missing benchmark/fastq.correct_errors/corpus-01
 - `fastq.extract_umis`: `complete` (`0` issues, scope `paired`)
-- `fastq.screen_taxonomy`: `incomplete` (`1` issues, scope `full`)
+- `fastq.screen_taxonomy`: `incomplete` (`2` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.screen_taxonomy/corpus-01
+  - `minimal-taxonomy-database-lineage`: the available Lunarc cache lineage bijux-reference/taxonomy/minimal_screen_v1 is a PhiX174/UniVec smoke-test database, so corpus-01 screen_taxonomy cannot publish against it as a full taxonomy benchmark.
 - `fastq.trim_terminal_damage`: `complete` (`0` issues, scope `full`)
 - `fastq.report_qc`: `complete` (`0` issues, scope `full`)
 

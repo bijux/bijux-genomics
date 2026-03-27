@@ -61,6 +61,11 @@ def parse_args() -> argparse.Namespace:
         default="docs/benchmark/corpus-01-status.md",
         help="Markdown audit output path.",
     )
+    parser.add_argument(
+        "--findings-in",
+        default="docs/benchmark/corpus-01-publication-findings.json",
+        help="Supplemental stage findings to surface alongside automated publication audit issues.",
+    )
     return parser.parse_args()
 
 
@@ -91,21 +96,48 @@ def append_issue(
     stage_id: str,
     issue_id: str,
     detail: str,
+    *,
+    severity: str = "error",
 ) -> None:
     issues.append(
         StageAuditIssue(
             stage_id=stage_id,
             issue_id=issue_id,
-            severity="error",
+            severity=severity,
             detail=detail,
         )
     )
+
+
+def load_supplemental_findings(path: Path) -> dict[str, list[StageAuditIssue]]:
+    if not path.is_file():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    findings_by_stage: dict[str, list[StageAuditIssue]] = defaultdict(list)
+    for finding in payload.get("findings", []):
+        stage_id = str(finding.get("stage_id", "")).strip()
+        issue_id = str(finding.get("issue_id", "")).strip()
+        detail = str(finding.get("detail", "")).strip()
+        if not stage_id or not issue_id or not detail:
+            raise SystemExit(
+                f"invalid supplemental finding in {path}: stage_id, issue_id, and detail are required"
+            )
+        findings_by_stage[stage_id].append(
+            StageAuditIssue(
+                stage_id=stage_id,
+                issue_id=issue_id,
+                severity=str(finding.get("severity", "error")).strip() or "error",
+                detail=detail,
+            )
+        )
+    return findings_by_stage
 
 
 def audit_stage(
     repo_root: Path,
     docs_root: Path,
     contract: CorpusBenchmarkContract,
+    supplemental_issues: list[StageAuditIssue] | None = None,
 ) -> dict:
     spec = load_corpus_spec(repo_root)
     expected_total, expected_cohort_counts_by_scope = expected_counts_for_scope(
@@ -438,6 +470,9 @@ def audit_stage(
                     ),
                 )
 
+    for supplemental_issue in supplemental_issues or []:
+        issues.append(supplemental_issue)
+
     return {
         "stage_id": contract.stage_id,
         "scenario_id": contract.scenario_id,
@@ -458,12 +493,20 @@ def audit_docs(
     repo_root: Path | None = None,
     stage_contracts: list[CorpusBenchmarkContract] | None = None,
     exclusions: list[CorpusBenchmarkExclusion] | None = None,
+    supplemental_findings: dict[str, list[StageAuditIssue]] | None = None,
 ) -> dict:
     repo_root = repo_root or docs_root.parent.parent
     stage_contracts = stage_contracts or CORPUS_01_PUBLICATION_CONTRACTS
     exclusions = exclusions or CORPUS_01_PUBLICATION_EXCLUSIONS
+    supplemental_findings = supplemental_findings or {}
     stage_reports = [
-        audit_stage(repo_root, docs_root, contract) for contract in stage_contracts
+        audit_stage(
+            repo_root,
+            docs_root,
+            contract,
+            supplemental_issues=supplemental_findings.get(contract.stage_id, []),
+        )
+        for contract in stage_contracts
     ]
     return {
         "corpus_id": "corpus-01",
@@ -530,7 +573,12 @@ def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
     docs_root = Path(args.docs_root).resolve()
-    report = audit_docs(docs_root, repo_root=repo_root)
+    findings_path = Path(args.findings_in).resolve()
+    report = audit_docs(
+        docs_root,
+        repo_root=repo_root,
+        supplemental_findings=load_supplemental_findings(findings_path),
+    )
 
     json_out = Path(args.json_out).resolve()
     json_out.parent.mkdir(parents=True, exist_ok=True)
