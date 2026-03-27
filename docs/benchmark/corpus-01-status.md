@@ -2,10 +2,10 @@
 
 - Benchmarkable governed stages: `23`
 - Corpus-applicable publication stages: `20`
-- Completed stage dossiers: `16`
-- Incomplete stage dossiers: `4`
+- Completed stage dossiers: `17`
+- Incomplete stage dossiers: `3`
 - Excluded stages: `3`
-- Publication issues: `4`
+- Publication issues: `3`
 
 ## Stage status
 
@@ -24,8 +24,7 @@
 - `fastq.remove_duplicates`: `complete` (`0` issues, scope `paired`)
 - `fastq.deplete_host`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_host/corpus-01
-- `fastq.deplete_reference_contaminants`: `incomplete` (`1` issues, scope `full`)
-  - `missing-corpus-dir`: missing benchmark/fastq.deplete_reference_contaminants/corpus-01
+- `fastq.deplete_reference_contaminants`: `complete` (`0` issues, scope `full`)
 - `fastq.correct_errors`: `incomplete` (`1` issues, scope `paired`)
   - `missing-corpus-dir`: missing benchmark/fastq.correct_errors/corpus-01
 - `fastq.extract_umis`: `complete` (`0` issues, scope `paired`)

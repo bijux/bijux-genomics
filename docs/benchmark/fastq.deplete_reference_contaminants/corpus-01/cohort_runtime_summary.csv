@@ -1,0 +1,8 @@
+tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,median_read_retention,median_base_retention,mean_contaminant_fraction_removed
+bowtie2,era_layout,ancient_pe,5,20.167632,7.427334,1.000000,1.000000,0.000001
+bowtie2,era_layout,ancient_se,5,33.682103,15.614915,1.000000,1.000000,0.000000
+bowtie2,era_layout,modern_pe,5,38.022717,58.581054,1.000000,1.000000,0.000000
+bowtie2,era_layout,modern_se,5,57.144387,21.453739,1.000000,1.000000,0.000000
+bowtie2,size_band,under_1000mb,1,162.160162,162.160162,1.000000,1.000000,0.000000
+bowtie2,size_band,under_100mb,12,9.968298,7.852513,1.000000,1.000000,0.000000
+bowtie2,size_band,under_500mb,7,66.186351,61.719769,1.000000,1.000000,0.000000
