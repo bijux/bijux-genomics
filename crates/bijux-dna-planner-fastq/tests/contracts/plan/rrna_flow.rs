@@ -105,6 +105,7 @@ fn rrna_stage_recovers_retained_reads_from_sortmerna_readb_fallbacks() -> Result
         .find(|part| part.contains("collect_output_from_globs"))
         .expect("paired sortmerna wrapper script");
     assert!(!paired_script.contains("--other"));
+    assert!(!paired_script.contains("--aligned"));
     assert!(!paired_script.contains("--paired_out"));
     assert!(!paired_script.contains("--out2"));
     assert!(paired_script.contains("out/sortmerna_workdir/readb/fwd_*.fq.gz"));
@@ -124,6 +125,7 @@ fn rrna_stage_recovers_retained_reads_from_sortmerna_readb_fallbacks() -> Result
         .find(|part| part.contains("collect_output_from_globs"))
         .expect("single-end sortmerna wrapper script");
     assert!(!single_script.contains("--other"));
+    assert!(!single_script.contains("--aligned"));
     assert!(single_script.contains("out/sortmerna_workdir/readb/fwd_*.fq.gz"));
     Ok(())
 }
