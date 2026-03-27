@@ -209,6 +209,14 @@ _benchmark-correct-errors-corpus-01: ## Benchmark fastq.correct_errors across co
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
+_benchmark-extract-umis-corpus-01: ## Benchmark fastq.extract_umis across the paired corpus-01 cohort
+	@python3 makes/bin/run_fastq_extract_umis_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",)
+
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
 		--repo-root . \
@@ -361,6 +369,14 @@ _benchmark-correct-errors-corpus-01-report: ## Render the corpus-01 correct-erro
 	@python3 makes/bin/render_fastq_correct_errors_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.correct_errors/corpus-01
 
+_benchmark-extract-umis-corpus-01-report: ## Render the corpus-01 extract-umis benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_extract_umis_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_extract_umis_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.extract_umis/corpus-01
+
 _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publication coverage
 	@python3 makes/bin/audit_corpus_01_fastq_benchmark_docs.py \
 		--repo-root . \
@@ -394,7 +410,7 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	_benchmark-profile-read-lengths-corpus-01 _benchmark-profile-overrepresented-corpus-01 \
 	_benchmark-filter-low-complexity-corpus-01 _benchmark-filter-reads-corpus-01 \
 	_benchmark-deplete-rrna-corpus-01 _benchmark-screen-taxonomy-corpus-01 \
-	_benchmark-correct-errors-corpus-01 \
+	_benchmark-correct-errors-corpus-01 _benchmark-extract-umis-corpus-01 \
 	_benchmark-merge-corpus-01 _benchmark-report-qc-corpus-01 \
 	_benchmark-validate-corpus-01-report _benchmark-trim-polyg-corpus-01-report \
 	_benchmark-trim-reads-corpus-01-report _benchmark-trim-terminal-damage-corpus-01-report \
@@ -403,6 +419,6 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	_benchmark-profile-overrepresented-corpus-01-report \
 	_benchmark-filter-low-complexity-corpus-01-report \
 	_benchmark-filter-reads-corpus-01-report _benchmark-deplete-rrna-corpus-01-report _benchmark-screen-taxonomy-corpus-01-report \
-	_benchmark-correct-errors-corpus-01-report _benchmark-merge-corpus-01-report \
+	_benchmark-correct-errors-corpus-01-report _benchmark-extract-umis-corpus-01-report _benchmark-merge-corpus-01-report \
 	_benchmark-report-qc-corpus-01-report _benchmark-corpus-01-publication-status \
 	_benchmark-corpus-01-published-dossiers

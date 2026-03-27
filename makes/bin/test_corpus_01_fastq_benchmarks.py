@@ -20,6 +20,7 @@ import run_fastq_correct_errors_corpus_01 as correct_errors_runner
 import run_fastq_deplete_host_corpus_01 as deplete_host_runner
 import run_fastq_deplete_reference_contaminants_corpus_01 as deplete_reference_contaminants_runner
 import run_fastq_deplete_rrna_corpus_01 as deplete_rrna_runner
+import run_fastq_extract_umis_corpus_01 as extract_umis_runner
 import run_fastq_screen_taxonomy_corpus_01 as screen_taxonomy_runner
 import run_fastq_filter_reads_corpus_01 as filter_reads_runner
 import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
@@ -38,6 +39,8 @@ import render_fastq_deplete_reference_contaminants_corpus_01_briefing as deplete
 import render_fastq_deplete_reference_contaminants_corpus_01_report as deplete_reference_contaminants_report
 import render_fastq_deplete_rrna_corpus_01_briefing as deplete_rrna_briefing
 import render_fastq_deplete_rrna_corpus_01_report as deplete_rrna_report
+import render_fastq_extract_umis_corpus_01_briefing as extract_umis_briefing
+import render_fastq_extract_umis_corpus_01_report as extract_umis_report
 import render_fastq_screen_taxonomy_corpus_01_briefing as screen_taxonomy_briefing
 import render_fastq_screen_taxonomy_corpus_01_report as screen_taxonomy_report
 import render_fastq_filter_reads_corpus_01_briefing as filter_reads_briefing
@@ -141,6 +144,11 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertIsNone(defaults["max_memory_gb"])
         self.assertIsNone(defaults["trusted_kmer_artifact"])
         self.assertFalse(defaults["conservative_mode"])
+
+    def test_extract_umis_defaults_match_governed_suite(self) -> None:
+        defaults = support.extract_umis_benchmark_defaults()
+        self.assertEqual(defaults["threads"], 4)
+        self.assertEqual(defaults["umi_pattern"], "NNNNNNNN")
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -746,6 +754,22 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.trusted_kmer_artifact, "/refs/trusted.kmers")
         self.assertFalse(args.conservative_mode)
 
+    def test_extract_umis_runner_parse_args_supports_pattern_overrides(self) -> None:
+        argv = [
+            "run_fastq_extract_umis_corpus_01.py",
+            "--sample-jobs",
+            "2",
+            "--threads",
+            "6",
+            "--umi-pattern",
+            "NNNNNNNNNN",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = extract_umis_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 2)
+        self.assertEqual(args.threads, 6)
+        self.assertEqual(args.umi_pattern, "NNNNNNNNNN")
+
     def test_deplete_rrna_runner_shared_index_layout_is_stable(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             out_root = Path(tmpdir) / "results"
@@ -1331,6 +1355,31 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_extract_umis_report_contract_rejects_single_end_row(self) -> None:
+        run_manifest = {
+            "tools": ["umi_tools"],
+            "umi_pattern": "NNNNNNNN",
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "layout": "se",
+                "tool": "umi_tools",
+                "paired_mode": "single_end",
+                "umi_pattern": "NNNNNNNN",
+                "raw_backend_report_format": "umi_tools_log",
+                "reads_in": 100,
+                "reads_out": 100,
+                "reads_with_umi": 100,
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            extract_umis_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
+            )
+
     def test_filter_reads_report_contract_rejects_parameter_drift(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "fastp", "prinseq", "seqkit"],
@@ -1604,6 +1653,32 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(summary_rows[0]["tool"], "lighter")
         self.assertAlmostEqual(summary_rows[0]["mean_kmer_fix_rate"], 0.05)
         self.assertAlmostEqual(summary_rows[0]["mean_quality_uplift"], 1.0)
+
+    def test_extract_umis_briefing_summarizes_detection_fraction(self) -> None:
+        rows = [
+            {
+                "tool": "umi_tools",
+                "runtime_s": "2.0",
+                "read_retention": "1.0",
+                "reads_with_umi": "180",
+                "reads_with_umi_fraction": "0.90",
+                "exit_code": "0",
+            },
+            {
+                "tool": "umi_tools",
+                "runtime_s": "4.0",
+                "read_retention": "1.0",
+                "reads_with_umi": "190",
+                "reads_with_umi_fraction": "0.95",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = extract_umis_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "umi_tools")
+        self.assertAlmostEqual(summary_rows[0]["mean_reads_with_umi"], 185.0)
+        self.assertAlmostEqual(
+            summary_rows[0]["mean_reads_with_umi_fraction"], 0.925
+        )
 
     def test_remove_duplicates_briefing_summarizes_duplicate_reads(self) -> None:
         rows = [
