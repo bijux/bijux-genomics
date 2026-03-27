@@ -267,6 +267,7 @@ mod tests {
                 "fastp",
                 "prinseq",
                 "seqkit",
+                "seqpurge",
                 "trim_galore",
                 "trimmomatic",
             ]
