@@ -1,0 +1,47 @@
+{
+  "schema_version": "bijux.fastq.remove_duplicates.corpus_summary.v1",
+  "generated_at_utc": "2026-03-27T03:20:34.260971+00:00",
+  "platform": "lunarc-apptainer",
+  "stage_id": "fastq.remove_duplicates",
+  "scenario_id": "dedup_fairness",
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.remove_duplicates/lunarc",
+  "samples_total": 10,
+  "samples_failed": 0,
+  "tools": [
+    "clumpify",
+    "fastuniq"
+  ],
+  "dedup_mode": "exact",
+  "keep_order": true,
+  "era_counts": {
+    "ancient": 5,
+    "modern": 5
+  },
+  "headline": {
+    "fastest_tool": "clumpify",
+    "fastest_runtime_s": 21.29198539,
+    "best_dedup_tool": "clumpify",
+    "best_dedup_rate": 0.0877581720265,
+    "strongest_tool": "clumpify",
+    "strongest_duplicate_reads": 1194672.1
+  },
+  "tool_summary": [
+    {
+      "tool": "clumpify",
+      "records": 10,
+      "pass_rate": 1.0,
+      "median_runtime_s": 21.29198539,
+      "median_dedup_rate": 0.0877581720265,
+      "mean_duplicate_reads": 1194672.1
+    },
+    {
+      "tool": "fastuniq",
+      "records": 10,
+      "pass_rate": 1.0,
+      "median_runtime_s": 32.362611375,
+      "median_dedup_rate": 0.060864731228,
+      "mean_duplicate_reads": 1064557.7
+    }
+  ]
+}

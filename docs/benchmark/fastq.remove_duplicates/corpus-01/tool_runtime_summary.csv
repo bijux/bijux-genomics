@@ -1,0 +1,3 @@
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,median_dedup_rate,mean_duplicate_reads,slowdown_vs_fastest_median
+clumpify,10,1.000000,50.881000,21.291985,140.543777,190.810034,0.087758,1194672.100000,1.000000
+fastuniq,10,1.000000,47.254887,32.362611,106.902786,142.621358,0.060865,1064557.700000,1.519943

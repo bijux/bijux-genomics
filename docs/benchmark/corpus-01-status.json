@@ -265,9 +265,9 @@
       "issues": [
         {
           "stage_id": "fastq.remove_duplicates",
-          "issue_id": "missing-corpus-dir",
+          "issue_id": "summary-cohort-count-drift",
           "severity": "error",
-          "detail": "missing benchmark/fastq.remove_duplicates/corpus-01"
+          "detail": "benchmark/fastq.remove_duplicates/corpus-01/summary.json cohort_counts=None expected {'ancient_pe': 5, 'modern_pe': 5}"
         }
       ]
     },
