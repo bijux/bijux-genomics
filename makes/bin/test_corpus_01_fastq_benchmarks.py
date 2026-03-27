@@ -3340,6 +3340,278 @@ class TrimReadsReportingTests(unittest.TestCase):
                 sample_rows=sample_rows,
             )
 
+    def test_trim_reads_report_rejects_dry_run_manifest(self) -> None:
+        with self.assertRaises(SystemExit):
+            trim_reads_report.validate_trim_run_manifest_contract(
+                {
+                    "stage_id": "fastq.trim_reads",
+                    "scenario_id": "trim_fairness",
+                    "tool_kind": "benchmark",
+                    "dry_run": True,
+                }
+            )
+
+    def test_trim_reads_runner_parse_args_supports_sample_jobs(self) -> None:
+        original_argv = sys.argv
+        try:
+            sys.argv = ["run_fastq_trim_reads_corpus_01.py", "--sample-jobs", "3"]
+            args = trim_reads_runner.parse_args()
+        finally:
+            sys.argv = original_argv
+
+        self.assertEqual(args.sample_jobs, 3)
+
+    def test_trim_reads_runner_resume_requires_successful_sample_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_path = Path(tmpdir) / "report.json"
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "failures": [],
+                        "gate": {"passes": True},
+                        "records": [{"context": {"tool": "fastp"}}],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self.assertTrue(trim_reads_runner.sample_report_is_resume_ready(report_path))
+
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "failures": [
+                            {
+                                "kind": "tool_exit",
+                                "reason": "tool `alientrimmer` failed with status 2",
+                            }
+                        ],
+                        "gate": {"passes": False},
+                        "records": [],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            self.assertFalse(
+                trim_reads_runner.sample_report_is_resume_ready(report_path)
+            )
+
+    def test_trim_reads_runner_reruns_stale_resume_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            repo_root.mkdir()
+            corpus_root = Path(tmpdir) / "corpus_01"
+            normalized_root = corpus_root / "normalized"
+            normalized_root.mkdir(parents=True)
+            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
+            r1_path.write_text("reads", encoding="utf-8")
+            out_root = Path(tmpdir) / "results"
+            stale_sample_root = out_root / "bench" / "trim_reads" / "sample_0001"
+            stale_sample_root.mkdir(parents=True)
+            stale_marker = stale_sample_root / "stale.marker"
+            stale_marker.write_text("old", encoding="utf-8")
+            stale_report = stale_sample_root / "report.json"
+            stale_report.write_text(
+                json.dumps(
+                    {
+                        "failures": [
+                            {
+                                "kind": "tool_exit",
+                                "reason": "tool `alientrimmer` failed with status 2",
+                            }
+                        ],
+                        "gate": {"passes": False},
+                        "records": [],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            def fake_run(command: list[str], cwd: Path, check: bool = False):
+                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
+                self.assertFalse(stale_marker.exists())
+                fresh_report = (
+                    out_root / "bench" / "trim_reads" / "sample_0001" / "report.json"
+                )
+                fresh_report.parent.mkdir(parents=True, exist_ok=True)
+                fresh_report.write_text(
+                    json.dumps(
+                        {
+                            "failures": [],
+                            "gate": {"passes": True},
+                            "records": [{"context": {"tool": "fastp"}}],
+                            "semantic_metrics": [],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                return mock.Mock(returncode=0)
+
+            argv = [
+                "run_fastq_trim_reads_corpus_01.py",
+                "--repo-root",
+                str(repo_root),
+                "--corpus-root",
+                str(corpus_root),
+                "--out-root",
+                str(out_root),
+            ]
+            with mock.patch.object(sys, "argv", argv):
+                with mock.patch.object(
+                    trim_reads_runner,
+                    "load_corpus_spec",
+                    return_value={
+                        "corpus_id": "corpus-01",
+                        "preferred_root": str(corpus_root),
+                    },
+                ):
+                    with mock.patch.object(
+                        trim_reads_runner,
+                        "discover_normalized_samples",
+                        return_value=[
+                            {
+                                "sample_id": "sample_0001",
+                                "r1": r1_path,
+                                "r2": None,
+                                "layout": "se",
+                            }
+                        ],
+                    ):
+                        with mock.patch.object(
+                            trim_reads_runner,
+                            "validate_corpus_contract",
+                        ):
+                            with mock.patch.object(
+                                trim_reads_runner,
+                                "require_canonical_tool_roster",
+                                return_value=["fastp"],
+                            ):
+                                with mock.patch.object(
+                                    trim_reads_runner.subprocess,
+                                    "run",
+                                    side_effect=fake_run,
+                                ) as run_mock:
+                                    exit_code = trim_reads_runner.main()
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(run_mock.call_count, 1)
+            self.assertFalse(stale_marker.exists())
+            manifest = json.loads(
+                (out_root / "run_manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["samples_failed"], 0)
+            self.assertEqual(manifest["runs"][0]["status"], "completed")
+
+    def test_trim_reads_runner_resets_orphaned_sample_payload_before_resume(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            repo_root.mkdir()
+            corpus_root = Path(tmpdir) / "corpus_01"
+            normalized_root = corpus_root / "normalized"
+            normalized_root.mkdir(parents=True)
+            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
+            r1_path.write_text("reads", encoding="utf-8")
+            out_root = Path(tmpdir) / "results"
+            orphaned_sample_root = out_root / "bench" / "trim_reads" / "sample_0001"
+            orphaned_sample_root.mkdir(parents=True)
+            stale_marker = orphaned_sample_root / "stale.marker"
+            stale_marker.write_text("old", encoding="utf-8")
+
+            def fake_run(command: list[str], cwd: Path, check: bool = False):
+                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
+                self.assertFalse(stale_marker.exists())
+                fresh_report = (
+                    out_root / "bench" / "trim_reads" / "sample_0001" / "report.json"
+                )
+                fresh_report.parent.mkdir(parents=True, exist_ok=True)
+                fresh_report.write_text(
+                    json.dumps(
+                        {
+                            "failures": [],
+                            "gate": {"passes": True},
+                            "records": [{"context": {"tool": "fastp"}}],
+                            "semantic_metrics": [],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                return mock.Mock(returncode=0)
+
+            argv = [
+                "run_fastq_trim_reads_corpus_01.py",
+                "--repo-root",
+                str(repo_root),
+                "--corpus-root",
+                str(corpus_root),
+                "--out-root",
+                str(out_root),
+            ]
+            with mock.patch.object(sys, "argv", argv):
+                with mock.patch.object(
+                    trim_reads_runner,
+                    "load_corpus_spec",
+                    return_value={
+                        "corpus_id": "corpus-01",
+                        "preferred_root": str(corpus_root),
+                    },
+                ):
+                    with mock.patch.object(
+                        trim_reads_runner,
+                        "discover_normalized_samples",
+                        return_value=[
+                            {
+                                "sample_id": "sample_0001",
+                                "r1": r1_path,
+                                "r2": None,
+                                "layout": "se",
+                            }
+                        ],
+                    ):
+                        with mock.patch.object(
+                            trim_reads_runner,
+                            "validate_corpus_contract",
+                        ):
+                            with mock.patch.object(
+                                trim_reads_runner,
+                                "require_canonical_tool_roster",
+                                return_value=["fastp"],
+                            ):
+                                with mock.patch.object(
+                                    trim_reads_runner.subprocess,
+                                    "run",
+                                    side_effect=fake_run,
+                                ) as run_mock:
+                                    exit_code = trim_reads_runner.main()
+
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(run_mock.call_count, 1)
+            self.assertFalse(stale_marker.exists())
+            manifest = json.loads(
+                (out_root / "run_manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["samples_failed"], 0)
+            self.assertEqual(manifest["runs"][0]["status"], "completed")
+
+    def test_trim_reads_report_localizes_lunarc_report_paths(self) -> None:
+        local_results_root = Path("/tmp/local-results")
+
+        localized = trim_reads_report.localize_results_path(
+            "/home/bijan/bijux/results/corpus_01/fastq.trim_reads/lunarc/bench/trim_reads/sample_0008/report.json",
+            local_results_root,
+        )
+
+        self.assertEqual(
+            localized,
+            local_results_root
+            / "corpus_01/fastq.trim_reads/lunarc/bench/trim_reads/sample_0008/report.json",
+        )
+
 
 class MergeReportingTests(unittest.TestCase):
     def test_merge_runner_parse_args_supports_sample_jobs(self) -> None:
@@ -3561,78 +3833,6 @@ class MergeReportingTests(unittest.TestCase):
             )
 
             self.assertEqual(resolved, canonical)
-
-    def test_trim_reads_report_contract_rejects_missing_tool_rows(self) -> None:
-        run_manifest = {
-            "tools": ["fastp", "bbduk"],
-            "min_length": 30,
-            "quality_cutoff": None,
-            "n_policy": "retain",
-            "adapter_policy": "none",
-            "polyx_policy": "none",
-            "contaminant_policy": "none",
-            "adapter_bank_preset": None,
-            "polyx_preset": None,
-            "contaminant_preset": None,
-        }
-        sample_rows = [
-            {
-                "sample_id": "sample_0001",
-                "tool": "fastp",
-                "raw_backend_report_format": "fastp_json",
-                "min_length": 30,
-                "quality_cutoff": None,
-                "n_policy": "retain",
-                "adapter_policy": "none",
-                "polyx_policy": "none",
-                "contaminant_policy": "none",
-                "adapter_bank_preset": None,
-                "polyx_preset": None,
-                "contaminant_preset": None,
-            }
-        ]
-
-        with self.assertRaises(SystemExit):
-            trim_reads_report.validate_trim_row_contract(
-                run_manifest=run_manifest,
-                sample_rows=sample_rows,
-            )
-
-    def test_trim_reads_report_rejects_dry_run_manifest(self) -> None:
-        with self.assertRaises(SystemExit):
-            trim_reads_report.validate_trim_run_manifest_contract(
-                {
-                    "stage_id": "fastq.trim_reads",
-                    "scenario_id": "trim_fairness",
-                    "tool_kind": "benchmark",
-                    "dry_run": True,
-                }
-            )
-
-    def test_trim_reads_runner_parse_args_supports_sample_jobs(self) -> None:
-        original_argv = sys.argv
-        try:
-            sys.argv = ["run_fastq_trim_reads_corpus_01.py", "--sample-jobs", "3"]
-            args = trim_reads_runner.parse_args()
-        finally:
-            sys.argv = original_argv
-
-        self.assertEqual(args.sample_jobs, 3)
-
-    def test_trim_reads_report_localizes_lunarc_report_paths(self) -> None:
-        local_results_root = Path("/tmp/local-results")
-
-        localized = trim_reads_report.localize_results_path(
-            "/home/bijan/bijux/results/corpus_01/fastq.trim_reads/lunarc/bench/trim_reads/sample_0008/report.json",
-            local_results_root,
-        )
-
-        self.assertEqual(
-            localized,
-            local_results_root
-            / "corpus_01/fastq.trim_reads/lunarc/bench/trim_reads/sample_0008/report.json",
-        )
-
 
 class DetectAdaptersReportingTests(unittest.TestCase):
     def test_detect_adapters_summary_tracks_runtime_and_signal(self) -> None:
