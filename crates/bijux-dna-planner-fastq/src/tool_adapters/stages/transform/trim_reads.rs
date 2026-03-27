@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
@@ -487,6 +488,42 @@ fn trim_command_template(
             options,
         );
     }
+    if tool.tool_id.as_str() == "fastx_clipper" {
+        return fastx_clipper_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        );
+    }
+    if tool.tool_id.as_str() == "skewer" {
+        return skewer_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        );
+    }
+    if tool.tool_id.as_str() == "leehom" {
+        return leehom_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        );
+    }
     if tool.tool_id.as_str() == "trimmomatic"
         && (options.min_length.is_some() || options.quality_cutoff.is_some())
     {
@@ -638,7 +675,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
     ) {
         match tool_id {
             "fastp" | "cutadapt" | "atropos" | "adapterremoval" | "alientrimmer"
-            | "trim_galore" => {}
+            | "trim_galore" | "fastx_clipper" | "skewer" | "leehom" => {}
             _ => {
                 return Err(anyhow!(
                     "trim planning does not yet execute adapter bank policies for {tool_id}"
@@ -652,7 +689,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
     }
     match tool_id {
         "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
-        | "alientrimmer" | "trim_galore" => Ok(()),
+        | "alientrimmer" | "trim_galore" | "skewer" => Ok(()),
         "prinseq" => Ok(()),
         "seqkit" if options.quality_cutoff.is_none() => Ok(()),
         "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
@@ -1037,7 +1074,68 @@ fn wrap_trim_command_with_report(
         raw_backend_report,
         raw_backend_report_format,
     ));
-    vec!["sh".to_string(), "-lc".to_string(), script]
+    wrap_trim_shell_script_with_report(
+        script,
+        output_r1,
+        output_r2,
+        report_json,
+        raw_backend_report,
+    )
+}
+
+fn wrap_trim_shell_script_with_report(
+    script: String,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    raw_backend_report: Option<&Path>,
+) -> Vec<String> {
+    let mut dir_paths = BTreeSet::<PathBuf>::new();
+    for path in [
+        Some(output_r1),
+        output_r2,
+        Some(report_json),
+        raw_backend_report,
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if let Some(parent) = path.parent() {
+            dir_paths.insert(parent.to_path_buf());
+        }
+    }
+    let mut wrapped = String::from("set -eu\n");
+    if !dir_paths.is_empty() {
+        wrapped.push_str("mkdir -p");
+        for path in dir_paths {
+            wrapped.push(' ');
+            wrapped.push_str(&shell_quote_path(&path));
+        }
+        wrapped.push('\n');
+    }
+    wrapped.push_str(script.strip_prefix("set -eu\n").unwrap_or(&script));
+    vec!["sh".to_string(), "-lc".to_string(), wrapped]
+}
+
+fn move_first_existing_output_script(
+    candidates: &[PathBuf],
+    output_path: &Path,
+    label: &str,
+) -> String {
+    let mut script = String::from("trim_output_moved=0\n");
+    for candidate in candidates {
+        script.push_str(&format!(
+            "if [ -f {} ]; then mv {} {}; trim_output_moved=1; fi\n",
+            shell_quote_path(candidate),
+            shell_quote_path(candidate),
+            shell_quote_path(output_path),
+        ));
+    }
+    script.push_str(&format!(
+        "[ \"$trim_output_moved\" = 1 ] || {{ echo '{}' >&2; exit 1; }}\n",
+        label.replace('\'', "\"")
+    ));
+    script
 }
 
 fn bbduk_trim_command_template(
@@ -1225,6 +1323,257 @@ fn atropos_command_template(
         options,
         None,
         None,
+    ))
+}
+
+fn fastx_clipper_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let adapter_sequence = enabled_adapter_sequences(adapter_bank)
+        .into_iter()
+        .next()
+        .unwrap_or_else(|| "X".to_string());
+    let mut script = String::from("set -eu\n");
+    script.push_str(&fastx_clipper_single_command(
+        r1,
+        output_r1,
+        &adapter_sequence,
+        options.min_length,
+    ));
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        script.push_str(&fastx_clipper_single_command(
+            r2,
+            output_r2,
+            &adapter_sequence,
+            options.min_length,
+        ));
+    }
+    script.push_str(&write_trim_report_script(
+        "fastx_clipper",
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+        threads,
+        adapter_bank,
+        None,
+        None,
+        options,
+        None,
+        None,
+    ));
+    Ok(wrap_trim_shell_script_with_report(
+        script,
+        output_r1,
+        output_r2,
+        report_json,
+        None,
+    ))
+}
+
+fn fastx_clipper_single_command(
+    input: &Path,
+    output: &Path,
+    adapter_sequence: &str,
+    min_length: Option<u32>,
+) -> String {
+    let mut command = format!(
+        "fastx_clipper -Q33 -a {} -i {} -o {}",
+        shell_quote_str(adapter_sequence),
+        shell_quote_path(input),
+        shell_quote_path(output),
+    );
+    if let Some(min_length) = min_length {
+        command.push_str(&format!(" -l {min_length}"));
+    }
+    if output.extension().is_some_and(|ext| ext == "gz") {
+        command.push_str(" -z");
+    }
+    command.push('\n');
+    command
+}
+
+fn skewer_trim_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let output_dir = output_r1
+        .parent()
+        .ok_or_else(|| anyhow!("skewer output path must have a parent directory"))?;
+    let prefix = output_dir.join("skewer");
+    let adapter_sequences = enabled_adapter_sequences(adapter_bank);
+    let adapter_r1 = adapter_sequences
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "X".to_string());
+    let adapter_r2 = adapter_sequences
+        .get(1)
+        .cloned()
+        .unwrap_or_else(|| adapter_r1.clone());
+
+    let mut script = format!("set -eu\nmkdir -p {}\nskewer", shell_quote_path(output_dir));
+    if r2.is_some() {
+        script.push_str(" -m pe");
+    } else {
+        script.push_str(" -m tail");
+    }
+    script.push_str(&format!(
+        " -t {} -o {} -x {}",
+        threads.max(1),
+        shell_quote_path(&prefix),
+        shell_quote_str(&adapter_r1),
+    ));
+    if r2.is_some() {
+        script.push_str(&format!(" -y {}", shell_quote_str(&adapter_r2)));
+    }
+    if let Some(min_length) = options.min_length {
+        script.push_str(&format!(" -l {min_length}"));
+    }
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        script.push_str(&format!(" -q {quality_cutoff}"));
+    }
+    if output_r1.extension().is_some_and(|ext| ext == "gz") {
+        script.push_str(" -z");
+    }
+    script.push(' ');
+    script.push_str(&shell_quote_path(r1));
+    if let Some(r2) = r2 {
+        script.push(' ');
+        script.push_str(&shell_quote_path(r2));
+    }
+    script.push('\n');
+    if let Some(output_r2) = output_r2 {
+        script.push_str(&move_first_existing_output_script(
+            &[
+                prefix.with_file_name("skewer-trimmed-pair1.fastq.gz"),
+                prefix.with_file_name("skewer-trimmed-pair1.fastq"),
+            ],
+            output_r1,
+            "skewer R1 output",
+        ));
+        script.push_str(&move_first_existing_output_script(
+            &[
+                prefix.with_file_name("skewer-trimmed-pair2.fastq.gz"),
+                prefix.with_file_name("skewer-trimmed-pair2.fastq"),
+            ],
+            output_r2,
+            "skewer R2 output",
+        ));
+    } else {
+        script.push_str(&move_first_existing_output_script(
+            &[
+                prefix.with_file_name("skewer-trimmed.fastq.gz"),
+                prefix.with_file_name("skewer-trimmed.fastq"),
+            ],
+            output_r1,
+            "skewer output",
+        ));
+    }
+    script.push_str(&write_trim_report_script(
+        "skewer",
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+        threads,
+        adapter_bank,
+        None,
+        None,
+        options,
+        None,
+        None,
+    ));
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+}
+
+fn leehom_trim_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let output_dir = output_r1
+        .parent()
+        .ok_or_else(|| anyhow!("leehom output path must have a parent directory"))?;
+    let log_path = raw_backend_report_path(report_json, "leehom", "log");
+    let adapter_sequences = enabled_adapter_sequences(adapter_bank);
+    let adapter_r1 = adapter_sequences
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "X".to_string());
+    let adapter_r2 = adapter_sequences
+        .get(1)
+        .cloned()
+        .unwrap_or_else(|| adapter_r1.clone());
+
+    let mut script = format!("set -eu\nmkdir -p {}\nleehom", shell_quote_path(output_dir));
+    script.push_str(&format!(
+        " -fq1 {} -t {} -f {}",
+        shell_quote_path(r1),
+        threads.max(1),
+        shell_quote_str(&adapter_r1),
+    ));
+    if let Some(r2) = r2 {
+        script.push_str(&format!(
+            " -fq2 {} -s {}",
+            shell_quote_path(r2),
+            shell_quote_str(&adapter_r2),
+        ));
+    }
+    if let Some(output_r2) = output_r2 {
+        script.push_str(&format!(
+            " -fqope1 {} -fqope2 {} -fqope1f /dev/null -fqope2f /dev/null -fqose /dev/null -fqosef /dev/null",
+            shell_quote_path(output_r1),
+            shell_quote_path(output_r2),
+        ));
+    } else {
+        script.push_str(&format!(
+            " -fqose {} -fqosef /dev/null",
+            shell_quote_path(output_r1),
+        ));
+    }
+    script.push_str(&format!(" --log {}", shell_quote_path(&log_path)));
+    script.push('\n');
+    script.push_str(&write_trim_report_script(
+        "leehom",
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+        threads,
+        adapter_bank,
+        None,
+        None,
+        options,
+        None,
+        None,
+    ));
+    Ok(wrap_trim_shell_script_with_report(
+        script,
+        output_r1,
+        output_r2,
+        report_json,
+        Some(log_path.as_path()),
     ))
 }
 
@@ -1623,8 +1972,9 @@ fn shell_quote_str(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        adapterremoval_command_template, alientrimmer_command_template,
-        atropos_command_template, trim_galore_command_template, TrimPlanOptions,
+        adapterremoval_command_template, alientrimmer_command_template, atropos_command_template,
+        fastx_clipper_command_template, leehom_trim_command_template, skewer_trim_command_template,
+        trim_galore_command_template, TrimPlanOptions,
     };
     use std::path::Path;
 
@@ -1668,6 +2018,7 @@ mod tests {
         .expect("atropos command");
 
         let script = command.get(2).expect("shell script");
+        assert!(script.contains("mkdir -p 'out'"));
         assert!(!script.contains("A{1000}"));
         assert!(!script.contains("'-a'"));
         assert!(!script.contains("'-A'"));
@@ -1725,5 +2076,69 @@ mod tests {
         assert!(script.contains(" -l 30"));
         assert!(script.contains(" -q 13"));
         assert!(script.contains(" -z"));
+    }
+
+    #[test]
+    fn fastx_clipper_trim_executes_both_mates_with_explicit_outputs() {
+        let command = fastx_clipper_command_template(
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out/R1.fastx_clipper.fastq.gz"),
+            Some(Path::new("out/R2.fastx_clipper.fastq.gz")),
+            Path::new("out/trim_report.json"),
+            8,
+            None,
+            &TrimPlanOptions::default(),
+        )
+        .expect("fastx_clipper command");
+
+        let script = command.get(2).expect("shell script");
+        assert!(script.contains("mkdir -p 'out'"));
+        assert!(script.contains("fastx_clipper -Q33 -a 'X' -i 'reads_R1.fastq.gz' -o 'out/R1.fastx_clipper.fastq.gz' -z"));
+        assert!(script.contains("fastx_clipper -Q33 -a 'X' -i 'reads_R2.fastq.gz' -o 'out/R2.fastx_clipper.fastq.gz' -z"));
+    }
+
+    #[test]
+    fn skewer_trim_materializes_paired_outputs_from_named_prefix() {
+        let command = skewer_trim_command_template(
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out/R1.skewer.fastq.gz"),
+            Some(Path::new("out/R2.skewer.fastq.gz")),
+            Path::new("out/trim_report.json"),
+            8,
+            None,
+            &TrimPlanOptions::default(),
+        )
+        .expect("skewer command");
+
+        let script = command.get(2).expect("shell script");
+        assert!(script.contains("skewer -m pe -t 8 -o 'out/skewer' -x 'X' -y 'X' -z 'reads_R1.fastq.gz' 'reads_R2.fastq.gz'"));
+        assert!(script.contains("skewer-trimmed-pair1.fastq.gz"));
+        assert!(script.contains("skewer-trimmed-pair2.fastq.gz"));
+    }
+
+    #[test]
+    fn leehom_trim_routes_trimmed_pair_outputs_explicitly() {
+        let command = leehom_trim_command_template(
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out/R1.leehom.fastq.gz"),
+            Some(Path::new("out/R2.leehom.fastq.gz")),
+            Path::new("out/trim_report.json"),
+            8,
+            None,
+            &TrimPlanOptions::default(),
+        )
+        .expect("leehom command");
+
+        let script = command.get(2).expect("shell script");
+        assert!(script.contains(
+            "leehom -fq1 'reads_R1.fastq.gz' -t 8 -f 'X' -fq2 'reads_R2.fastq.gz' -s 'X'"
+        ));
+        assert!(
+            script.contains("-fqope1 'out/R1.leehom.fastq.gz' -fqope2 'out/R2.leehom.fastq.gz'")
+        );
+        assert!(script.contains("--log 'out/trim_report.leehom.log'"));
     }
 }
