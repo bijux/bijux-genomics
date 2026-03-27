@@ -1,11 +1,15 @@
 {
   "allow_missing_umi_headers": true,
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "modern_pe": 5
+  },
   "corpus_root": "/home/bijan/bijux/corpus_01",
   "era_counts": {
     "ancient": 5,
     "modern": 5
   },
-  "generated_at_utc": "2026-03-27T14:47:56.370815+00:00",
+  "generated_at_utc": "2026-03-27T14:48:55.221738+00:00",
   "headline": {
     "best_retention": 1.0,
     "best_retention_tool": "umi_tools",
