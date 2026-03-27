@@ -323,7 +323,7 @@ def trim_terminal_damage_benchmark_defaults() -> dict:
 def filter_low_complexity_benchmark_defaults() -> dict:
     return {
         "entropy_threshold": 0.55,
-        "polyx_threshold": 20,
+        "polyx_threshold": None,
     }
 
 

@@ -230,7 +230,9 @@ def render_markdown(
     )
     lines.append(f"- Tool set: `{', '.join(summary['tools'])}`")
     lines.append(f"- entropy_threshold: `{summary['entropy_threshold']}`")
-    lines.append(f"- polyx_threshold: `{summary['polyx_threshold']}`")
+    lines.append(
+        f"- polyx_threshold: `{'unset' if summary['polyx_threshold'] is None else summary['polyx_threshold']}`"
+    )
     lines.append("")
     lines.append("## Executive summary")
     lines.append("")
