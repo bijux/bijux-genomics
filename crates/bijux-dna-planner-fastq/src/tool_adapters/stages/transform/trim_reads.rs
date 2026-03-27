@@ -12,6 +12,8 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_TRIM_READS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 const ATROPOS_MIN_THREADS: u32 = 2;
+const FALLBACK_TRIM_ADAPTER_R1: &str = "CGTACGATTCGAGCTAGTCCGATGCTTACGATCGTTCAGAGTAC";
+const FALLBACK_TRIM_ADAPTER_R2: &str = "TGCATCGACTAGCGTTACGTCAGTATCGGATCAGTTCGATGACA";
 
 #[derive(Debug, Clone, Default)]
 pub struct TrimPlanOptions {
@@ -1266,6 +1268,7 @@ fn atropos_command_template(
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
+    let (adapter_r1, adapter_r2) = resolved_adapter_pair(adapter_bank);
     let mut command = vec![
         "atropos".to_string(),
         "trim".to_string(),
@@ -1282,6 +1285,12 @@ fn atropos_command_template(
                 command.extend(["-A".to_string(), adapter]);
             }
         }
+    } else {
+        command.extend(["-a".to_string(), adapter_r1.clone()]);
+        if r2.is_some() {
+            command.extend(["-A".to_string(), adapter_r2]);
+        }
+        command.extend(["-O".to_string(), adapter_r1.len().to_string()]);
     }
     if let Some(quality_cutoff) = options.quality_cutoff {
         command.extend(["-q".to_string(), quality_cutoff.to_string()]);
@@ -1336,10 +1345,7 @@ fn fastx_clipper_command_template(
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
-    let adapter_sequence = enabled_adapter_sequences(adapter_bank)
-        .into_iter()
-        .next()
-        .unwrap_or_else(|| "X".to_string());
+    let adapter_sequence = resolved_adapter_pair(adapter_bank).0;
     let mut script = String::from("set -eu\n");
     script.push_str(&fastx_clipper_single_command(
         r1,
@@ -1385,12 +1391,22 @@ fn fastx_clipper_single_command(
     adapter_sequence: &str,
     min_length: Option<u32>,
 ) -> String {
-    let mut command = format!(
-        "fastx_clipper -Q33 -a {} -i {} -o {}",
-        shell_quote_str(adapter_sequence),
-        shell_quote_path(input),
-        shell_quote_path(output),
-    );
+    let mut command = if input.extension().is_some_and(|ext| ext == "gz") {
+        format!(
+            "gzip -dc {} | fastx_clipper -Q33 -a {} -o {}",
+            shell_quote_path(input),
+            shell_quote_str(adapter_sequence),
+            shell_quote_path(output),
+        )
+    } else {
+        format!(
+            "fastx_clipper -Q33 -a {} -i {} -o {}",
+            shell_quote_str(adapter_sequence),
+            shell_quote_path(input),
+            shell_quote_path(output),
+        )
+    };
+    command.push_str(&format!(" -M {}", adapter_sequence.len()));
     if let Some(min_length) = min_length {
         command.push_str(&format!(" -l {min_length}"));
     }
@@ -1415,15 +1431,7 @@ fn skewer_trim_command_template(
         .parent()
         .ok_or_else(|| anyhow!("skewer output path must have a parent directory"))?;
     let prefix = output_dir.join("skewer");
-    let adapter_sequences = enabled_adapter_sequences(adapter_bank);
-    let adapter_r1 = adapter_sequences
-        .first()
-        .cloned()
-        .unwrap_or_else(|| "X".to_string());
-    let adapter_r2 = adapter_sequences
-        .get(1)
-        .cloned()
-        .unwrap_or_else(|| adapter_r1.clone());
+    let (adapter_r1, adapter_r2) = resolved_adapter_pair(adapter_bank);
 
     let mut script = format!("set -eu\nmkdir -p {}\nskewer", shell_quote_path(output_dir));
     if r2.is_some() {
@@ -1515,15 +1523,7 @@ fn leehom_trim_command_template(
         .parent()
         .ok_or_else(|| anyhow!("leehom output path must have a parent directory"))?;
     let log_path = raw_backend_report_path(report_json, "leehom", "log");
-    let adapter_sequences = enabled_adapter_sequences(adapter_bank);
-    let adapter_r1 = adapter_sequences
-        .first()
-        .cloned()
-        .unwrap_or_else(|| "X".to_string());
-    let adapter_r2 = adapter_sequences
-        .get(1)
-        .cloned()
-        .unwrap_or_else(|| adapter_r1.clone());
+    let (adapter_r1, adapter_r2) = resolved_adapter_pair(adapter_bank);
 
     let mut script = format!("set -eu\nmkdir -p {}\nleehom", shell_quote_path(output_dir));
     script.push_str(&format!(
@@ -1663,15 +1663,8 @@ fn alientrimmer_command_template(
         .ok_or_else(|| anyhow!("alientrimmer output path must have a parent directory"))?;
     let adapter_file = output_dir.join("alientrimmer_adapters.txt");
     let adapter_sequences = match options.resolved_adapter_policy().as_str() {
-        "bank" | "ancient_strict" => {
-            let sequences = enabled_adapter_sequences(adapter_bank);
-            if sequences.is_empty() {
-                vec!["X".to_string()]
-            } else {
-                sequences
-            }
-        }
-        _ => vec!["X".to_string()],
+        "bank" | "ancient_strict" => enabled_adapter_sequences(adapter_bank),
+        _ => vec![fallback_trim_adapter_sequence(0).to_string()],
     };
     let adapter_payload = adapter_sequences.join("\n");
     let mut script = format!(
@@ -1953,6 +1946,27 @@ fn enabled_adapter_sequences(adapter_bank: Option<&serde_json::Value>) -> Vec<St
         .collect()
 }
 
+fn fallback_trim_adapter_sequence(index: usize) -> &'static str {
+    if index == 0 {
+        FALLBACK_TRIM_ADAPTER_R1
+    } else {
+        FALLBACK_TRIM_ADAPTER_R2
+    }
+}
+
+fn resolved_adapter_pair(adapter_bank: Option<&serde_json::Value>) -> (String, String) {
+    let adapter_sequences = enabled_adapter_sequences(adapter_bank);
+    let adapter_r1 = adapter_sequences
+        .first()
+        .cloned()
+        .unwrap_or_else(|| fallback_trim_adapter_sequence(0).to_string());
+    let adapter_r2 = adapter_sequences
+        .get(1)
+        .cloned()
+        .unwrap_or_else(|| fallback_trim_adapter_sequence(1).to_string());
+    (adapter_r1, adapter_r2)
+}
+
 fn shell_join(command: &[String]) -> String {
     command
         .iter()
@@ -1973,8 +1987,9 @@ fn shell_quote_str(value: &str) -> String {
 mod tests {
     use super::{
         adapterremoval_command_template, alientrimmer_command_template, atropos_command_template,
-        fastx_clipper_command_template, leehom_trim_command_template, skewer_trim_command_template,
-        trim_galore_command_template, TrimPlanOptions,
+        fastx_clipper_command_template, leehom_trim_command_template,
+        skewer_trim_command_template, trim_galore_command_template, TrimPlanOptions,
+        FALLBACK_TRIM_ADAPTER_R1, FALLBACK_TRIM_ADAPTER_R2,
     };
     use std::path::Path;
 
@@ -2001,7 +2016,7 @@ mod tests {
     }
 
     #[test]
-    fn atropos_trim_omits_fake_adapter_when_adapter_policy_is_none() {
+    fn atropos_trim_requires_full_overlap_for_fallback_adapter_when_adapter_policy_is_none() {
         let command = atropos_command_template(
             Path::new("reads_R1.fastq.gz"),
             Some(Path::new("reads_R2.fastq.gz")),
@@ -2019,9 +2034,9 @@ mod tests {
 
         let script = command.get(2).expect("shell script");
         assert!(script.contains("mkdir -p 'out'"));
-        assert!(!script.contains("A{1000}"));
-        assert!(!script.contains("'-a'"));
-        assert!(!script.contains("'-A'"));
+        assert!(script.contains(&format!("'-a' '{}'", FALLBACK_TRIM_ADAPTER_R1)));
+        assert!(script.contains(&format!("'-A' '{}'", FALLBACK_TRIM_ADAPTER_R2)));
+        assert!(script.contains(&format!("'-O' '{}'", FALLBACK_TRIM_ADAPTER_R1.len())));
     }
 
     #[test]
@@ -2068,7 +2083,10 @@ mod tests {
 
         let script = command.get(2).expect("shell script");
         assert!(script.contains("alientrimmer_adapters.txt"));
-        assert!(script.contains("\nX\nEOF\nalientrimmer"));
+        assert!(script.contains(&format!(
+            "\n{}\nEOF\nalientrimmer",
+            FALLBACK_TRIM_ADAPTER_R1
+        )));
         assert!(script.contains(" -if 'reads_R1.fastq.gz'"));
         assert!(script.contains(" -ir 'reads_R2.fastq.gz'"));
         assert!(script.contains(" -of 'out/R1.alientrimmer.fastq.gz'"));
@@ -2094,8 +2112,16 @@ mod tests {
 
         let script = command.get(2).expect("shell script");
         assert!(script.contains("mkdir -p 'out'"));
-        assert!(script.contains("fastx_clipper -Q33 -a 'X' -i 'reads_R1.fastq.gz' -o 'out/R1.fastx_clipper.fastq.gz' -z"));
-        assert!(script.contains("fastx_clipper -Q33 -a 'X' -i 'reads_R2.fastq.gz' -o 'out/R2.fastx_clipper.fastq.gz' -z"));
+        assert!(script.contains(&format!(
+            "gzip -dc 'reads_R1.fastq.gz' | fastx_clipper -Q33 -a '{}' -o 'out/R1.fastx_clipper.fastq.gz' -M {} -z",
+            FALLBACK_TRIM_ADAPTER_R1,
+            FALLBACK_TRIM_ADAPTER_R1.len()
+        )));
+        assert!(script.contains(&format!(
+            "gzip -dc 'reads_R2.fastq.gz' | fastx_clipper -Q33 -a '{}' -o 'out/R2.fastx_clipper.fastq.gz' -M {} -z",
+            FALLBACK_TRIM_ADAPTER_R1,
+            FALLBACK_TRIM_ADAPTER_R1.len()
+        )));
     }
 
     #[test]
@@ -2113,7 +2139,11 @@ mod tests {
         .expect("skewer command");
 
         let script = command.get(2).expect("shell script");
-        assert!(script.contains("skewer -m pe -t 8 -o 'out/skewer' -x 'X' -y 'X' -z 'reads_R1.fastq.gz' 'reads_R2.fastq.gz'"));
+        assert!(script.contains(&format!(
+            "skewer -m pe -t 8 -o 'out/skewer' -x '{}' -y '{}' -z 'reads_R1.fastq.gz' 'reads_R2.fastq.gz'",
+            FALLBACK_TRIM_ADAPTER_R1,
+            FALLBACK_TRIM_ADAPTER_R2
+        )));
         assert!(script.contains("skewer-trimmed-pair1.fastq.gz"));
         assert!(script.contains("skewer-trimmed-pair2.fastq.gz"));
     }
@@ -2134,7 +2164,11 @@ mod tests {
 
         let script = command.get(2).expect("shell script");
         assert!(script.contains(
-            "leehom -fq1 'reads_R1.fastq.gz' -t 8 -f 'X' -fq2 'reads_R2.fastq.gz' -s 'X'"
+            &format!(
+                "leehom -fq1 'reads_R1.fastq.gz' -t 8 -f '{}' -fq2 'reads_R2.fastq.gz' -s '{}'",
+                FALLBACK_TRIM_ADAPTER_R1,
+                FALLBACK_TRIM_ADAPTER_R2
+            )
         ));
         assert!(
             script.contains("-fqope1 'out/R1.leehom.fastq.gz' -fqope2 'out/R2.leehom.fastq.gz'")
