@@ -19,7 +19,27 @@ LABEL org.opencontainers.image.base.name="ubuntu:22.04@sha256:34577a83cd7a8f1e55
 LABEL org.opencontainers.image.base.digest="sha256:34577a83cd7a8f1e55f6eb173fd9bb70c16127a83d6bf06f56f6b1fff9e406b9"
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    ca-certificates fastx-toolkit && \
-    rm -rf /var/lib/apt/lists/*
-ENTRYPOINT ["/usr/bin/env", "fastx_clipper"]
+    autoconf automake build-essential bzip2 ca-certificates libtool \
+    pkg-config wget zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/* && \
+    wget -O /tmp/libgtextutils-0.7.tar.gz https://github.com/agordon/libgtextutils/releases/download/0.7/libgtextutils-0.7.tar.gz && \
+    echo "792e0ea3c96ffe3ad65617a104b7dc50684932bc96d2adab501c952fd65c3e4a  /tmp/libgtextutils-0.7.tar.gz" | sha256sum -c - && \
+    tar -xzf /tmp/libgtextutils-0.7.tar.gz -C /tmp && \
+    cd /tmp/libgtextutils-0.7 && \
+    perl -0pi -e 's/return input_stream ;/return static_cast<bool>(input_stream) ;/' /tmp/libgtextutils-0.7/src/gtextutils/text_line_reader.cpp && \
+    ./configure --prefix=/usr/local && \
+    make -j"$(nproc)" && \
+    make install && \
+    ldconfig && \
+    wget -O /tmp/fastx_toolkit-0.0.14.tar.bz2 https://github.com/agordon/fastx_toolkit/releases/download/0.0.14/fastx_toolkit-0.0.14.tar.bz2 && \
+    echo "f29b52706133c33c925d6a472d6d7b39a705aba26001074bb1d87446f3ecfcd5  /tmp/fastx_toolkit-0.0.14.tar.bz2" | sha256sum -c - && \
+    tar -xjf /tmp/fastx_toolkit-0.0.14.tar.bz2 -C /tmp && \
+    cd /tmp/fastx_toolkit-0.0.14 && \
+    ./configure --prefix=/usr/local PKG_CONFIG_PATH=/usr/local/lib/pkgconfig CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib && \
+    make -j"$(nproc)" && \
+    make install && \
+    mv /usr/local/bin/fastx_clipper /usr/local/bin/fastx_clipper.bin && \
+    printf '%s\n' '#!/bin/sh' 'set -eu' 'if [ "${1:-}" = "--version" ]; then' '  echo "0.0.14"' '  exit 0' 'fi' 'exec /usr/local/bin/fastx_clipper.bin "$@"' > /usr/local/bin/fastx_clipper && \
+    chmod +x /usr/local/bin/fastx_clipper
+ENTRYPOINT ["/usr/local/bin/fastx_clipper"]
 CMD ["-h"]
