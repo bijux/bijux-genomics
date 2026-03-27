@@ -14,6 +14,10 @@
   ],
   "dedup_mode": "exact",
   "keep_order": true,
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "modern_pe": 5
+  },
   "era_counts": {
     "ancient": 5,
     "modern": 5

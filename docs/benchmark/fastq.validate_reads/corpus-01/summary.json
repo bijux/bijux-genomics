@@ -27,7 +27,9 @@
   "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.validate_reads/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
+  "scenario_id": "validation_fairness",
   "schema_version": "bijux.fastq.validate_reads.corpus_summary.v1",
+  "stage_id": "fastq.validate_reads",
   "tool_summary": [
     {
       "median_runtime_s": 2.9696421305,
