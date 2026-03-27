@@ -217,6 +217,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["threads"], 8)
         self.assertEqual(defaults["quality_encoding"], "phred33")
         self.assertIsNone(defaults["kmer_size"])
+        self.assertEqual(defaults["musket_kmer_budget"], 536_870_912)
         self.assertEqual(defaults["genome_size"], 3_200_000_000)
         self.assertIsNone(defaults["max_memory_gb"])
         self.assertIsNone(defaults["trusted_kmer_artifact"])
@@ -832,6 +833,8 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "phred33",
             "--kmer-size",
             "31",
+            "--musket-kmer-budget",
+            "536870912",
             "--genome-size",
             "2800000",
             "--max-memory-gb",
@@ -847,6 +850,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.threads, 6)
         self.assertEqual(args.quality_encoding, "phred33")
         self.assertEqual(args.kmer_size, 31)
+        self.assertEqual(args.musket_kmer_budget, 536870912)
         self.assertEqual(args.genome_size, 2800000)
         self.assertEqual(args.max_memory_gb, 16)
         self.assertEqual(args.trusted_kmer_artifact, "/refs/trusted.kmers")
@@ -912,6 +916,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 sample_limit=0,
                 quality_encoding="phred33",
                 kmer_size=None,
+                musket_kmer_budget=536_870_912,
                 genome_size=3_200_000_000,
                 max_memory_gb=None,
                 trusted_kmer_artifact="",
@@ -1538,6 +1543,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "tools": ["lighter"],
             "quality_encoding": "phred33",
             "kmer_size": 31,
+            "musket_kmer_budget": 536870912,
             "genome_size": 2800000,
             "max_memory_gb": None,
             "trusted_kmer_artifact": "trusted.kmers",
@@ -1551,6 +1557,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 "paired_mode": "single_end",
                 "quality_encoding": "phred33",
                 "kmer_size": 29,
+                "musket_kmer_budget": None,
                 "genome_size": 2800000,
                 "max_memory_gb": None,
                 "trusted_kmer_artifact": "trusted.kmers",

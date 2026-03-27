@@ -67,6 +67,36 @@ def correction_effect(record: dict) -> dict:
     return payload if isinstance(payload, dict) else {}
 
 
+def projected_policy(run_manifest: dict, tool: str) -> dict[str, object]:
+    projected = {
+        "quality_encoding": run_manifest["quality_encoding"],
+        "kmer_size": run_manifest["kmer_size"],
+        "musket_kmer_budget": run_manifest["musket_kmer_budget"],
+        "genome_size": run_manifest["genome_size"],
+        "max_memory_gb": run_manifest["max_memory_gb"],
+        "trusted_kmer_artifact": run_manifest["trusted_kmer_artifact"],
+        "conservative_mode": run_manifest["conservative_mode"],
+    }
+    if tool == "musket":
+        projected["genome_size"] = None
+        projected["max_memory_gb"] = None
+        projected["trusted_kmer_artifact"] = None
+    elif tool == "lighter":
+        projected["musket_kmer_budget"] = None
+    elif tool == "bayeshammer":
+        projected["kmer_size"] = None
+        projected["musket_kmer_budget"] = None
+        projected["genome_size"] = None
+        projected["trusted_kmer_artifact"] = None
+    elif tool == "rcorrector":
+        projected["kmer_size"] = None
+        projected["musket_kmer_budget"] = None
+        projected["genome_size"] = None
+        projected["max_memory_gb"] = None
+        projected["trusted_kmer_artifact"] = None
+    return projected
+
+
 def validate_run_manifest_contract(run_manifest: dict) -> None:
     defaults = correct_errors_benchmark_defaults()
     if run_manifest.get("dry_run"):
@@ -107,18 +137,20 @@ def validate_row_contract(
     rows_by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in sample_rows:
         rows_by_sample[row["sample_id"]].append(row)
+        expected_policy = projected_policy(run_manifest, row["tool"])
         for key in [
             "quality_encoding",
             "kmer_size",
+            "musket_kmer_budget",
             "genome_size",
             "max_memory_gb",
             "trusted_kmer_artifact",
             "conservative_mode",
         ]:
-            if row[key] != run_manifest[key]:
+            if row[key] != expected_policy[key]:
                 raise SystemExit(
                     "correct-errors benchmark report drift: "
-                    f"expected {key} {run_manifest[key]!r}, found {row[key]!r} "
+                    f"expected {key} {expected_policy[key]!r}, found {row[key]!r} "
                     f"for {row['sample_id']}/{row['tool']}"
                 )
         expected_paired_mode = "paired_end" if row["layout"] == "pe" else "single_end"
@@ -180,6 +212,7 @@ def render_markdown(summary: dict) -> str:
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- quality_encoding: `{summary['quality_encoding']}`")
     lines.append(f"- kmer_size: `{summary['kmer_size']}`")
+    lines.append(f"- musket_kmer_budget: `{summary['musket_kmer_budget']}`")
     lines.append(f"- genome_size: `{summary['genome_size']}`")
     lines.append(f"- max_memory_gb: `{summary['max_memory_gb']}`")
     lines.append(f"- trusted_kmer_artifact: `{summary['trusted_kmer_artifact']}`")
@@ -290,6 +323,7 @@ def main() -> int:
                 "quality_encoding": normalize_metric(record, "quality_encoding")
                 or run_manifest["quality_encoding"],
                 "kmer_size": normalize_metric(record, "kmer_size"),
+                "musket_kmer_budget": normalize_metric(record, "musket_kmer_budget"),
                 "genome_size": normalize_metric(record, "genome_size"),
                 "max_memory_gb": normalize_metric(record, "max_memory_gb"),
                 "trusted_kmer_artifact": normalize_metric(record, "trusted_kmer_artifact"),
@@ -362,6 +396,7 @@ def main() -> int:
         "layout_counts": dict(sorted(layout_counts.items())),
         "quality_encoding": run_manifest["quality_encoding"],
         "kmer_size": run_manifest["kmer_size"],
+        "musket_kmer_budget": run_manifest["musket_kmer_budget"],
         "genome_size": run_manifest["genome_size"],
         "max_memory_gb": run_manifest["max_memory_gb"],
         "trusted_kmer_artifact": run_manifest["trusted_kmer_artifact"],

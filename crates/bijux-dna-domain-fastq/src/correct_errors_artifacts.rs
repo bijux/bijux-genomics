@@ -21,6 +21,7 @@ pub struct CorrectErrorsReportV1 {
     pub correction_engine: CorrectionEngine,
     pub quality_encoding: QualityEncoding,
     pub kmer_size: Option<u32>,
+    pub musket_kmer_budget: Option<u64>,
     pub genome_size: Option<u64>,
     pub max_memory_gb: Option<u32>,
     pub trusted_kmer_artifact: Option<PathBuf>,
@@ -68,6 +69,7 @@ mod tests {
             correction_engine: CorrectionEngine::Lighter,
             quality_encoding: QualityEncoding::Phred33,
             kmer_size: Some(31),
+            musket_kmer_budget: None,
             genome_size: Some(3_000_000),
             max_memory_gb: Some(16),
             trusted_kmer_artifact: Some(PathBuf::from("trusted.kmers")),
@@ -108,6 +110,7 @@ mod tests {
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "lighter");
         assert_eq!(decoded.kmer_size, Some(31));
+        assert_eq!(decoded.musket_kmer_budget, None);
         assert_eq!(decoded.corrected_reads, Some(100));
     }
 }

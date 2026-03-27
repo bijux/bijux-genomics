@@ -233,6 +233,7 @@ fn benchmark_fanout_propagates_typed_correct_error_params() -> anyhow::Result<()
                     threads: Some(6),
                     quality_encoding: QualityEncoding::Phred33,
                     kmer_size: Some(31),
+                    musket_kmer_budget: None,
                     genome_size: Some(2_500_000),
                     max_memory_gb: None,
                     trusted_kmer_artifact: Some(trusted.clone()),

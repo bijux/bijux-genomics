@@ -648,6 +648,8 @@ pub struct BenchFastqCorrectArgs {
     #[arg(long)]
     pub kmer_size: Option<u32>,
     #[arg(long)]
+    pub musket_kmer_budget: Option<u64>,
+    #[arg(long)]
     pub genome_size: Option<u64>,
     #[arg(long)]
     pub max_memory_gb: Option<u32>,

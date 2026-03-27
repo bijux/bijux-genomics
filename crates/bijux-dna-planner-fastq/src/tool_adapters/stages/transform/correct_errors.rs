@@ -39,11 +39,13 @@ pub fn project_correct_options_for_tool(
         }
         "bayeshammer" => {
             projected.kmer_size = None;
+            projected.musket_kmer_budget = None;
             projected.genome_size = None;
             projected.trusted_kmer_artifact = None;
         }
         "rcorrector" => {
             projected.kmer_size = None;
+            projected.musket_kmer_budget = None;
             projected.genome_size = None;
             projected.max_memory_gb = None;
             projected.trusted_kmer_artifact = None;
@@ -96,6 +98,7 @@ pub fn plan_correct_with_options(
         correction_engine: correction_engine.clone(),
         quality_encoding: options.quality_encoding.clone(),
         kmer_size: options.kmer_size,
+        musket_kmer_budget: options.musket_kmer_budget,
         genome_size: options.genome_size,
         max_memory_gb: options.max_memory_gb,
         trusted_kmer_artifact: options.trusted_kmer_artifact.clone(),
@@ -178,6 +181,7 @@ pub fn plan_correct_with_options(
             "threads": effective_threads,
             "quality_encoding": options.quality_encoding,
             "kmer_size": options.kmer_size,
+            "musket_kmer_budget": options.musket_kmer_budget,
             "genome_size": options.genome_size,
             "max_memory_gb": options.max_memory_gb,
             "trusted_kmer_artifact": options.trusted_kmer_artifact,
@@ -201,9 +205,19 @@ fn validate_correct_options(tool_id: &str, options: &CorrectPlanOptions) -> Resu
             "{tool_id} error-correction planning does not yet map kmer_size into backend execution"
         ));
     }
+    if options.musket_kmer_budget.is_some() && tool_id != "musket" {
+        return Err(anyhow!(
+            "{tool_id} error-correction planning does not yet map musket_kmer_budget into backend execution"
+        ));
+    }
     if options.genome_size.is_some() && tool_id != "lighter" {
         return Err(anyhow!(
             "{tool_id} error-correction planning does not yet map genome_size into backend execution"
+        ));
+    }
+    if tool_id == "musket" && options.musket_kmer_budget.is_none() {
+        return Err(anyhow!(
+            "musket error-correction planning requires musket_kmer_budget to build the governed command"
         ));
     }
     if tool_id == "lighter" && options.genome_size.is_none() {
@@ -271,8 +285,13 @@ fn correct_command_template(
         }
         "musket" => {
             let kmer_size = options.kmer_size.unwrap_or(21);
+            let musket_kmer_budget = options
+                .musket_kmer_budget
+                .ok_or_else(|| anyhow!("musket requires musket_kmer_budget"))?;
             let prefix = work_dir.join("corrected");
-            script.push_str(&format!("musket -p {threads} -k {kmer_size}"));
+            script.push_str(&format!(
+                "musket -p {threads} -k {kmer_size} {musket_kmer_budget}"
+            ));
             if let Some(input_r2) = input_r2 {
                 script.push_str(&format!(
                     " -omulti {} -inorder {} {}",
@@ -474,6 +493,7 @@ fn write_correction_report_script(
         correction_engine: correction_engine.clone(),
         quality_encoding: options.quality_encoding.clone(),
         kmer_size: options.kmer_size,
+        musket_kmer_budget: options.musket_kmer_budget,
         genome_size: options.genome_size,
         max_memory_gb: options.max_memory_gb,
         trusted_kmer_artifact: options.trusted_kmer_artifact.clone(),
@@ -675,13 +695,18 @@ mod tests {
             Path::new("out"),
             &CorrectPlanOptions {
                 kmer_size: Some(31),
+                musket_kmer_budget: Some(536_870_912),
                 ..CorrectPlanOptions::baseline()
             },
         )
         .expect("musket plan should accept explicit kmer size");
 
         assert_eq!(plan.effective_params["kmer_size"], serde_json::json!(31));
-        assert!(plan.command.template[2].contains("musket -p 1 -k 31"));
+        assert_eq!(
+            plan.effective_params["musket_kmer_budget"],
+            serde_json::json!(536_870_912_u64)
+        );
+        assert!(plan.command.template[2].contains("musket -p 1 -k 31 536870912"));
     }
 
     #[test]
@@ -690,6 +715,7 @@ mod tests {
             "musket",
             &CorrectPlanOptions {
                 kmer_size: Some(31),
+                musket_kmer_budget: Some(536_870_912),
                 genome_size: Some(3_200_000),
                 max_memory_gb: Some(24),
                 trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
@@ -698,6 +724,7 @@ mod tests {
         );
 
         assert_eq!(projected.kmer_size, Some(31));
+        assert_eq!(projected.musket_kmer_budget, Some(536_870_912));
         assert_eq!(projected.genome_size, None);
         assert_eq!(projected.max_memory_gb, None);
         assert_eq!(projected.trusted_kmer_artifact, None);
@@ -850,5 +877,22 @@ mod tests {
         .expect_err("unsupported trusted kmer mappings must fail");
 
         assert!(error.to_string().contains("trusted_kmer_artifact"));
+    }
+
+    #[test]
+    fn plan_correct_requires_musket_kmer_budget_for_musket() {
+        let error = plan_correct_with_options(
+            &tool("musket"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            &CorrectPlanOptions {
+                kmer_size: Some(31),
+                ..CorrectPlanOptions::baseline()
+            },
+        )
+        .expect_err("musket must require an explicit k-mer budget");
+
+        assert!(error.to_string().contains("musket_kmer_budget"));
     }
 }

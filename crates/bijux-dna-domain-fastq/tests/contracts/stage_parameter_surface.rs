@@ -81,6 +81,7 @@ fn correct_errors_manifest_exposes_typed_error_correction_controls() -> Result<(
             "threads",
             "quality_encoding",
             "kmer_size",
+            "musket_kmer_budget",
             "genome_size",
             "max_memory_gb",
             "trusted_kmer_artifact",
