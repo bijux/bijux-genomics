@@ -15,11 +15,14 @@ if str(BIN_DIR) not in sys.path:
 import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import audit_published_corpus_01_fastq_results as published_results_audit
+import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
 import run_fastq_merge_pairs_corpus_01 as merge_runner
 import run_fastq_trim_reads_corpus_01 as trim_reads_runner
 import run_fastq_trim_terminal_damage_corpus_01 as terminal_damage_runner
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
+import render_fastq_filter_low_complexity_corpus_01_briefing as filter_low_complexity_briefing
+import render_fastq_filter_low_complexity_corpus_01_report as filter_low_complexity_report
 import render_fastq_merge_pairs_corpus_01_briefing as merge_briefing
 import render_fastq_merge_pairs_corpus_01_report as merge_report
 import render_fastq_profile_overrepresented_sequences_corpus_01_briefing as overrepresented_briefing
@@ -41,6 +44,11 @@ import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
+    def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
+        defaults = support.filter_low_complexity_benchmark_defaults()
+        self.assertEqual(defaults["entropy_threshold"], 0.55)
+        self.assertEqual(defaults["polyx_threshold"], 20)
+
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             corpus_root = Path(tmpdir)
@@ -221,6 +229,65 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertEqual(sorted(metadata), ["sample_0001", "sample_0002", "sample_0003", "sample_0004"])
             self.assertEqual(metadata["sample_0002"]["layout"], "pe")
             self.assertEqual(metadata["sample_0004"]["era"], "modern")
+
+    def test_filter_low_complexity_runner_parse_args_supports_sample_jobs(self) -> None:
+        argv = [
+            "run_fastq_filter_low_complexity_corpus_01.py",
+            "--sample-jobs",
+            "3",
+            "--entropy-threshold",
+            "0.6",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = filter_low_complexity_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 3)
+        self.assertEqual(args.entropy_threshold, 0.6)
+
+    def test_filter_low_complexity_report_contract_rejects_missing_tool_row(self) -> None:
+        run_manifest = {
+            "tools": ["bbduk", "prinseq"],
+            "entropy_threshold": 0.55,
+            "polyx_threshold": 20,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "bbduk",
+                "entropy_threshold": 0.55,
+                "polyx_threshold": 20,
+                "raw_backend_report_format": "bbduk_stats",
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            filter_low_complexity_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+            )
+
+    def test_filter_low_complexity_briefing_summarizes_removed_reads(self) -> None:
+        rows = [
+            {
+                "tool": "bbduk",
+                "runtime_s": "2.0",
+                "base_retention": "0.92",
+                "read_retention": "0.90",
+                "reads_removed_low_complexity": "10",
+                "mean_q_delta": "0.2",
+                "exit_code": "0",
+            },
+            {
+                "tool": "bbduk",
+                "runtime_s": "4.0",
+                "base_retention": "0.91",
+                "read_retention": "0.89",
+                "reads_removed_low_complexity": "12",
+                "mean_q_delta": "0.3",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = filter_low_complexity_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "bbduk")
+        self.assertEqual(summary_rows[0]["mean_reads_removed_low_complexity"], 11.0)
 
     def test_normalize_results_mirror_moves_raw_lunarc_tree_into_canonical_layout(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
