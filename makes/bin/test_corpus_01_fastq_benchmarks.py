@@ -144,6 +144,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertIsNone(defaults["max_memory_gb"])
         self.assertIsNone(defaults["trusted_kmer_artifact"])
         self.assertFalse(defaults["conservative_mode"])
+        self.assertEqual(support.CORRECT_ERRORS_BENCHMARK_CONTRACT.sample_scope, "paired")
 
     def test_extract_umis_defaults_match_governed_suite(self) -> None:
         defaults = support.extract_umis_benchmark_defaults()
@@ -769,6 +770,98 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.sample_jobs, 2)
         self.assertEqual(args.threads, 6)
         self.assertEqual(args.umi_pattern, "NNNNNNNNNN")
+
+    def test_correct_errors_runner_dry_run_selects_paired_subset_only(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "repo"
+            corpus_root = Path(tmpdir) / "corpus"
+            out_root = Path(tmpdir) / "results"
+            repo_root.mkdir()
+            corpus_root.mkdir()
+
+            args = mock.Mock(
+                repo_root=str(repo_root),
+                corpus_root=str(corpus_root),
+                out_root=str(out_root),
+                platform="lunarc-apptainer",
+                tools="",
+                threads=8,
+                jobs=1,
+                sample_jobs=1,
+                sample_limit=0,
+                quality_encoding="phred33",
+                kmer_size=None,
+                genome_size=None,
+                max_memory_gb=None,
+                trusted_kmer_artifact="",
+                conservative_mode=False,
+                resume=True,
+                dry_run=True,
+            )
+            all_samples = [
+                {
+                    "sample_id": "sample_0001",
+                    "r1": corpus_root / "sample_0001_R1.fastq.gz",
+                    "r2": None,
+                    "layout": "se",
+                },
+                {
+                    "sample_id": "sample_0002",
+                    "r1": corpus_root / "sample_0002_R1.fastq.gz",
+                    "r2": corpus_root / "sample_0002_R2.fastq.gz",
+                    "layout": "pe",
+                },
+                {
+                    "sample_id": "sample_0003",
+                    "r1": corpus_root / "sample_0003_R1.fastq.gz",
+                    "r2": corpus_root / "sample_0003_R2.fastq.gz",
+                    "layout": "pe",
+                },
+            ]
+            metadata_by_sample = {
+                "sample_0001": {"layout": "se", "era": "ancient"},
+                "sample_0002": {"layout": "pe", "era": "ancient"},
+                "sample_0003": {"layout": "pe", "era": "modern"},
+            }
+
+            with mock.patch.object(correct_errors_runner, "parse_args", return_value=args):
+                with mock.patch.object(
+                    correct_errors_runner,
+                    "load_corpus_spec",
+                    return_value={
+                        "preferred_root": str(corpus_root),
+                        "target_ancient_pe": 1,
+                        "target_modern_pe": 1,
+                    },
+                ):
+                    with mock.patch.object(
+                        correct_errors_runner,
+                        "validate_benchmark_layout",
+                    ):
+                        with mock.patch.object(
+                            correct_errors_runner,
+                            "discover_normalized_samples",
+                            return_value=all_samples,
+                        ):
+                            with mock.patch.object(
+                                correct_errors_runner,
+                                "validate_corpus_contract",
+                                return_value=metadata_by_sample,
+                            ):
+                                with mock.patch.object(
+                                    correct_errors_runner,
+                                    "require_canonical_tool_roster",
+                                    return_value=["bayeshammer", "lighter", "musket", "rcorrector"],
+                                ):
+                                    exit_code = correct_errors_runner.main()
+
+            self.assertEqual(exit_code, 0)
+            manifest = json.loads((out_root / "run_manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["samples_total"], 2)
+            self.assertEqual(
+                [run["sample_id"] for run in manifest["runs"]],
+                ["sample_0002", "sample_0003"],
+            )
 
     def test_deplete_rrna_runner_shared_index_layout_is_stable(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

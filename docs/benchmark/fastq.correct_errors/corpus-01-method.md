@@ -5,6 +5,7 @@
 - Corpus: `corpus-01`
 - Platform target: `lunarc-apptainer`
 - Benchmark scenario: `correction_fairness`
+- Sample scope: paired-end subset only
 
 ## Governed tool cohort
 - The benchmark runner must resolve the roster from `bijux-dna registry list-tools --stage fastq.correct_errors --kind benchmark`.
@@ -15,13 +16,11 @@
   - `rcorrector`
 
 ## Execution contract
-- Use normalized FASTQ inputs from `corpus-01/normalized/`.
-- Require the balanced corpus contract:
-  - `5` ancient single-end
+- Use only the paired-end subset of `corpus-01/normalized/`.
+- Require the balanced paired corpus contract:
   - `5` ancient paired-end
-  - `5` modern single-end
   - `5` modern paired-end
-- Hold one governed correction contract across the whole corpus:
+- Hold one governed correction contract across the paired cohort:
   - identical input hashes
   - identical correction-policy hash
   - identical derived genome-size and k-mer inputs wherever the governed backend contract requires them
@@ -36,10 +35,14 @@
 - `lunarc.md`: narrative benchmark dossier for the Lunarc run.
 
 ## Publication gate
-- This stage does not yet have a committed `corpus-01` runner and report renderer under `makes/bin/`.
-- A publishable dossier begins once those entrypoints materialize `docs/benchmark/fastq.correct_errors/corpus-01/` under the audit contract described above.
+- Governed publication uses:
+  - `makes/bin/run_fastq_correct_errors_corpus_01.py`
+  - `makes/bin/render_fastq_correct_errors_corpus_01_report.py`
+  - `makes/bin/render_fastq_correct_errors_corpus_01_briefing.py`
+- A publishable dossier begins once an executed Lunarc run is rendered into `docs/benchmark/fastq.correct_errors/corpus-01/` under the audit contract described above.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
-- Reject any dossier that omits a tool row for any sample.
+- Reject any dossier that contains single-end samples.
+- Reject any dossier that omits a tool row for any paired sample.
 - Reject any dossier whose correction-policy hash differs across tools or samples.

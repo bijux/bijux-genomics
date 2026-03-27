@@ -209,7 +209,7 @@ def render_markdown(
     lines.append("## What was run")
     lines.append("")
     lines.append(
-        "This benchmark compares the governed `fastq.correct_errors` stage across the full `corpus-01` human DNA cohort on the Lunarc Apptainer platform."
+        "This benchmark compares the governed `fastq.correct_errors` stage across the paired-end `corpus-01` human DNA cohort on the Lunarc Apptainer platform."
     )
     lines.append("")
     lines.append("## Executive Summary")

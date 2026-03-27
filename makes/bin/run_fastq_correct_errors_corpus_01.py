@@ -21,6 +21,7 @@ from corpus_01_fastq_benchmark_support import (
     load_corpus_spec,
     normalize_tool_csv,
     require_canonical_tool_roster,
+    select_paired_samples,
     sha256_artifact_bundle,
     validate_benchmark_layout,
     validate_corpus_contract,
@@ -236,8 +237,9 @@ def main() -> int:
     validate_benchmark_layout(corpus_root, out_root)
     out_root.mkdir(parents=True, exist_ok=True)
 
-    samples = discover_normalized_samples(corpus_root)
-    validate_corpus_contract(corpus_root, spec, samples)
+    all_samples = discover_normalized_samples(corpus_root)
+    metadata_by_sample = validate_corpus_contract(corpus_root, spec, all_samples)
+    samples = select_paired_samples(spec, all_samples, metadata_by_sample)
     if args.sample_limit > 0:
         samples = samples[: args.sample_limit]
     requested_tools = (
