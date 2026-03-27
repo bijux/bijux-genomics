@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, observe_fastq_stats, prepare_trim_bench,
+    benchmark_image_identity, build_benchmark_context, observe_fastq_stats, prepare_trim_bench,
 };
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -156,12 +156,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         )?;
         let params_hash =
             params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_deplete_reference_contaminants_v1(
             &conn,
             &tool,

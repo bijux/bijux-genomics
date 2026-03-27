@@ -38,7 +38,7 @@ use crate::internal::handlers::fastq::{
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
-use super::trim_bench_common::build_benchmark_context;
+use super::trim_bench_common::{benchmark_image_identity, build_benchmark_context};
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -121,12 +121,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             },
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_screen_v1(
             &conn,
             &tool,
@@ -397,12 +392,7 @@ fn build_screen_record(
     let context = build_benchmark_context(
         tool,
         tool_spec.tool_version.clone(),
-        tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone(),
+        benchmark_image_identity(tool_spec),
         bench_inputs.runner,
         platform,
         bench_inputs.input_hash.clone(),
