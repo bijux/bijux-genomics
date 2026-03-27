@@ -1,12 +1,6 @@
 {
   "findings": [
     {
-      "stage_id": "fastq.deplete_host",
-      "issue_id": "synthetic-host-reference-lineage",
-      "severity": "error",
-      "detail": "artifacts/reference_store/Homo sapiens/GRCh38/refs/raw/reference.fa.gz is an ASCII synthetic placeholder payload rather than a real compressed reference, so corpus-01 deplete_host cannot publish against that lineage."
-    },
-    {
       "stage_id": "fastq.screen_taxonomy",
       "issue_id": "minimal-taxonomy-database-lineage",
       "severity": "error",

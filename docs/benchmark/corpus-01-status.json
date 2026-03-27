@@ -6,7 +6,7 @@
   "completed_stage_count": 16,
   "incomplete_stage_count": 4,
   "excluded_stage_count": 3,
-  "issue_count": 32,
+  "issue_count": 30,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -452,19 +452,13 @@
       "method_path": "benchmark/fastq.deplete_host/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.deplete_host/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
         {
           "stage_id": "fastq.deplete_host",
           "issue_id": "missing-corpus-dir",
           "severity": "error",
           "detail": "missing benchmark/fastq.deplete_host/corpus-01"
-        },
-        {
-          "stage_id": "fastq.deplete_host",
-          "issue_id": "synthetic-host-reference-lineage",
-          "severity": "error",
-          "detail": "artifacts/reference_store/Homo sapiens/GRCh38/refs/raw/reference.fa.gz is an ASCII synthetic placeholder payload rather than a real compressed reference, so corpus-01 deplete_host cannot publish against that lineage."
         }
       ]
     },
@@ -489,11 +483,13 @@
       "scenario_id": "correction_fairness",
       "sample_scope": "paired",
       "contract_tool_roster": [
+        "bayeshammer",
         "lighter",
         "musket",
         "rcorrector"
       ],
       "expected_tool_roster": [
+        "bayeshammer",
         "lighter",
         "musket",
         "rcorrector"
@@ -501,14 +497,8 @@
       "method_path": "benchmark/fastq.correct_errors/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.correct_errors/corpus-01",
       "status": "incomplete",
-      "issue_count": 3,
+      "issue_count": 2,
       "issues": [
-        {
-          "stage_id": "fastq.correct_errors",
-          "issue_id": "publication-toolset-subset",
-          "severity": "error",
-          "detail": "fastq.correct_errors publication contract covers ['lighter', 'musket', 'rcorrector'] but governed stage toolset also admits ['bayeshammer']"
-        },
         {
           "stage_id": "fastq.correct_errors",
           "issue_id": "missing-corpus-dir",
