@@ -327,6 +327,13 @@ def filter_low_complexity_benchmark_defaults() -> dict:
     }
 
 
+def remove_duplicates_benchmark_defaults() -> dict:
+    return {
+        "dedup_mode": "exact",
+        "keep_order": True,
+    }
+
+
 def merge_pairs_benchmark_defaults() -> dict:
     return {
         "merge_overlap": None,

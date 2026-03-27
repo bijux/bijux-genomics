@@ -16,6 +16,7 @@ import corpus_01_fastq_benchmark_support as support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import audit_published_corpus_01_fastq_results as published_results_audit
 import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
+import run_fastq_remove_duplicates_corpus_01 as remove_duplicates_runner
 import run_fastq_merge_pairs_corpus_01 as merge_runner
 import run_fastq_trim_reads_corpus_01 as trim_reads_runner
 import run_fastq_trim_terminal_damage_corpus_01 as terminal_damage_runner
@@ -23,6 +24,8 @@ import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefi
 import render_fastq_detect_adapters_corpus_01_report as detect_adapters_report
 import render_fastq_filter_low_complexity_corpus_01_briefing as filter_low_complexity_briefing
 import render_fastq_filter_low_complexity_corpus_01_report as filter_low_complexity_report
+import render_fastq_remove_duplicates_corpus_01_briefing as remove_duplicates_briefing
+import render_fastq_remove_duplicates_corpus_01_report as remove_duplicates_report
 import render_fastq_merge_pairs_corpus_01_briefing as merge_briefing
 import render_fastq_merge_pairs_corpus_01_report as merge_report
 import render_fastq_profile_overrepresented_sequences_corpus_01_briefing as overrepresented_briefing
@@ -48,6 +51,11 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
         self.assertIsNone(defaults["polyx_threshold"])
+
+    def test_remove_duplicates_defaults_match_governed_suite(self) -> None:
+        defaults = support.remove_duplicates_benchmark_defaults()
+        self.assertEqual(defaults["dedup_mode"], "exact")
+        self.assertTrue(defaults["keep_order"])
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -243,6 +251,22 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.sample_jobs, 3)
         self.assertEqual(args.entropy_threshold, 0.6)
 
+    def test_remove_duplicates_runner_parse_args_supports_sample_jobs(self) -> None:
+        argv = [
+            "run_fastq_remove_duplicates_corpus_01.py",
+            "--sample-jobs",
+            "2",
+            "--dedup-mode",
+            "exact",
+            "--keep-order",
+            "false",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = remove_duplicates_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 2)
+        self.assertEqual(args.dedup_mode, "exact")
+        self.assertFalse(args.keep_order)
+
     def test_filter_low_complexity_report_contract_rejects_missing_tool_row(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "prinseq"],
@@ -262,6 +286,34 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             filter_low_complexity_report.validate_row_contract(
                 run_manifest=run_manifest,
                 sample_rows=sample_rows,
+            )
+
+    def test_remove_duplicates_report_contract_rejects_single_end_row(self) -> None:
+        run_manifest = {
+            "tools": ["clumpify", "fastuniq"],
+            "dedup_mode": "exact",
+            "keep_order": True,
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "layout": "se",
+                "tool": "clumpify",
+                "dedup_mode": "exact",
+                "keep_order": True,
+                "paired_mode": "single_end",
+                "raw_backend_report_format": "clumpify_log",
+                "reads_in": 100,
+                "reads_out": 90,
+                "duplicate_reads": 10,
+                "pair_count_match": None,
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            remove_duplicates_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
             )
 
     def test_filter_low_complexity_briefing_summarizes_removed_reads(self) -> None:
@@ -288,6 +340,27 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         summary_rows = filter_low_complexity_briefing.tool_runtime_summary(rows)
         self.assertEqual(summary_rows[0]["tool"], "bbduk")
         self.assertEqual(summary_rows[0]["mean_reads_removed_low_complexity"], 11.0)
+
+    def test_remove_duplicates_briefing_summarizes_duplicate_reads(self) -> None:
+        rows = [
+            {
+                "tool": "clumpify",
+                "runtime_s": "2.0",
+                "dedup_rate": "0.10",
+                "duplicate_reads": "10",
+                "exit_code": "0",
+            },
+            {
+                "tool": "clumpify",
+                "runtime_s": "4.0",
+                "dedup_rate": "0.12",
+                "duplicate_reads": "12",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = remove_duplicates_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "clumpify")
+        self.assertEqual(summary_rows[0]["mean_duplicate_reads"], 11.0)
 
     def test_normalize_results_mirror_moves_raw_lunarc_tree_into_canonical_layout(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
