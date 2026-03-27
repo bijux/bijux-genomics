@@ -41,6 +41,12 @@
         "path": "reads_R1.fastq.gz",
         "role": "reads",
         "optional": false
+      },
+      {
+        "name": "rrna_reference",
+        "path": "rrna_reference",
+        "role": "reference",
+        "optional": false
       }
     ],
     "outputs": [
@@ -70,6 +76,7 @@
     "filtered_reads_r2": null,
     "input_r1": "reads_R1.fastq.gz",
     "input_r2": null,
+    "database_artifact_id": "rrna_reference",
     "min_identity": 0.95,
     "report_json": "out/rrna_report.json",
     "report_tsv": "out/rrna_report.tsv",
