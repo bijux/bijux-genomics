@@ -635,28 +635,9 @@ fn project_correct_errors_params_for_tool(
     tool_id: &str,
     params: &CorrectErrorsStageParams,
 ) -> CorrectErrorsStageParams {
-    let mut projected = params.clone();
-    match tool_id {
-        "lighter" => {}
-        "musket" => {
-            projected.genome_size = None;
-            projected.max_memory_gb = None;
-            projected.trusted_kmer_artifact = None;
-        }
-        "bayeshammer" => {
-            projected.kmer_size = None;
-            projected.genome_size = None;
-            projected.trusted_kmer_artifact = None;
-        }
-        "rcorrector" => {
-            projected.kmer_size = None;
-            projected.genome_size = None;
-            projected.max_memory_gb = None;
-            projected.trusted_kmer_artifact = None;
-        }
-        _ => {}
-    }
-    projected
+    crate::tool_adapters::stages::transform::correct_errors::project_correct_options_for_tool(
+        tool_id, params,
+    )
 }
 
 fn comparison_command_for_stage(

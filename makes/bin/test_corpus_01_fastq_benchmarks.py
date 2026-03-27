@@ -164,7 +164,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["threads"], 8)
         self.assertEqual(defaults["quality_encoding"], "phred33")
         self.assertIsNone(defaults["kmer_size"])
-        self.assertIsNone(defaults["genome_size"])
+        self.assertEqual(defaults["genome_size"], 3_200_000_000)
         self.assertIsNone(defaults["max_memory_gb"])
         self.assertIsNone(defaults["trusted_kmer_artifact"])
         self.assertFalse(defaults["conservative_mode"])
@@ -859,7 +859,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 sample_limit=0,
                 quality_encoding="phred33",
                 kmer_size=None,
-                genome_size=None,
+                genome_size=3_200_000_000,
                 max_memory_gb=None,
                 trusted_kmer_artifact="",
                 conservative_mode=False,
@@ -919,7 +919,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                                 with mock.patch.object(
                                     correct_errors_runner,
                                     "require_canonical_tool_roster",
-                                    return_value=["bayeshammer", "lighter", "musket", "rcorrector"],
+                                    return_value=["lighter", "musket", "rcorrector"],
                                 ):
                                     exit_code = correct_errors_runner.main()
 

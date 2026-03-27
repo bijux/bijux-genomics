@@ -244,7 +244,7 @@ DEPLETE_REFERENCE_CONTAMINANTS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
 CORRECT_ERRORS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.correct_errors",
     scenario_id="correction_fairness",
-    tools=["bayeshammer", "lighter", "musket", "rcorrector"],
+    tools=["lighter", "musket", "rcorrector"],
     sample_scope="paired",
 )
 
@@ -456,7 +456,7 @@ def correct_errors_benchmark_defaults() -> dict:
         "threads": 8,
         "quality_encoding": "phred33",
         "kmer_size": None,
-        "genome_size": None,
+        "genome_size": 3_200_000_000,
         "max_memory_gb": None,
         "trusted_kmer_artifact": None,
         "conservative_mode": False,
