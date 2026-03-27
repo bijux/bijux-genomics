@@ -3401,12 +3401,13 @@ class TrimReadsReportingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir) / "repo"
             repo_root.mkdir()
-            corpus_root = Path(tmpdir) / "corpus_01"
+            cache_root = Path(tmpdir) / ".cache"
+            corpus_root = cache_root / "corpus_01"
             normalized_root = corpus_root / "normalized"
             normalized_root.mkdir(parents=True)
             r1_path = normalized_root / "sample_0001_R1.fastq.gz"
             r1_path.write_text("reads", encoding="utf-8")
-            out_root = Path(tmpdir) / "results"
+            out_root = cache_root / "bijux-dna-results"
             stale_sample_root = out_root / "bench" / "trim_reads" / "sample_0001"
             stale_sample_root.mkdir(parents=True)
             stale_marker = stale_sample_root / "stale.marker"
@@ -3429,9 +3430,20 @@ class TrimReadsReportingTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            def fake_run(command: list[str], cwd: Path, check: bool = False):
+            def fake_run(
+                command: list[str],
+                cwd: Path,
+                check: bool = False,
+                env: dict[str, str] | None = None,
+            ):
                 self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
                 self.assertFalse(stale_marker.exists())
+                self.assertIsNotNone(env)
+                self.assertEqual(Path(env["BIJUX_CACHE_ROOT"]).resolve(), cache_root.resolve())
+                self.assertEqual(
+                    Path(env["BIJUX_HPC_ROOT"]).resolve(),
+                    Path(tmpdir).resolve(),
+                )
                 fresh_report = (
                     out_root / "bench" / "trim_reads" / "sample_0001" / "report.json"
                 )
@@ -3511,20 +3523,32 @@ class TrimReadsReportingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir) / "repo"
             repo_root.mkdir()
-            corpus_root = Path(tmpdir) / "corpus_01"
+            cache_root = Path(tmpdir) / ".cache"
+            corpus_root = cache_root / "corpus_01"
             normalized_root = corpus_root / "normalized"
             normalized_root.mkdir(parents=True)
             r1_path = normalized_root / "sample_0001_R1.fastq.gz"
             r1_path.write_text("reads", encoding="utf-8")
-            out_root = Path(tmpdir) / "results"
+            out_root = cache_root / "bijux-dna-results"
             orphaned_sample_root = out_root / "bench" / "trim_reads" / "sample_0001"
             orphaned_sample_root.mkdir(parents=True)
             stale_marker = orphaned_sample_root / "stale.marker"
             stale_marker.write_text("old", encoding="utf-8")
 
-            def fake_run(command: list[str], cwd: Path, check: bool = False):
+            def fake_run(
+                command: list[str],
+                cwd: Path,
+                check: bool = False,
+                env: dict[str, str] | None = None,
+            ):
                 self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
                 self.assertFalse(stale_marker.exists())
+                self.assertIsNotNone(env)
+                self.assertEqual(Path(env["BIJUX_CACHE_ROOT"]).resolve(), cache_root.resolve())
+                self.assertEqual(
+                    Path(env["BIJUX_HPC_ROOT"]).resolve(),
+                    Path(tmpdir).resolve(),
+                )
                 fresh_report = (
                     out_root / "bench" / "trim_reads" / "sample_0001" / "report.json"
                 )

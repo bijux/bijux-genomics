@@ -14,6 +14,7 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     TRIM_READS_BENCHMARK_CONTRACT,
+    benchmark_runtime_env,
     default_results_stage_root,
     discover_normalized_samples,
     load_corpus_spec,
@@ -219,8 +220,9 @@ def run_sample_command(
     sample: dict,
     command: list[str],
     sample_report: Path,
+    env: dict[str, str],
 ) -> SampleRun:
-    completed = subprocess.run(command, cwd=repo_root, check=False)
+    completed = subprocess.run(command, cwd=repo_root, check=False, env=env)
     status = "completed" if completed.returncode == 0 else "failed"
     return SampleRun(
         sample_id=sample["sample_id"],
@@ -269,6 +271,7 @@ def main() -> int:
     runs: list[SampleRun | None] = [None] * len(samples)
     failures = 0
     pending: list[tuple[int, dict, Path, list[str]]] = []
+    runtime_env = benchmark_runtime_env(out_root)
 
     for sample_index, sample in enumerate(samples):
         sample_report = report_path(out_root, sample["sample_id"])
@@ -335,6 +338,7 @@ def main() -> int:
                     sample=sample,
                     command=command,
                     sample_report=sample_report,
+                    env=runtime_env,
                 ): sample_index
                 for sample_index, sample, sample_report, command in pending
             }
