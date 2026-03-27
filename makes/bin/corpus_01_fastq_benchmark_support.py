@@ -4,6 +4,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import os
 import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
@@ -495,6 +496,26 @@ def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
 
 def default_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
     return LOCAL_RESULTS_ROOT / corpus_root.name / stage_id / "lunarc"
+
+
+def infer_cache_root(path: Path) -> Path | None:
+    resolved = path.expanduser().resolve()
+    if ".cache" not in resolved.parts:
+        return None
+    cache_index = resolved.parts.index(".cache")
+    return Path(*resolved.parts[: cache_index + 1])
+
+
+def benchmark_runtime_env(out_root: Path) -> dict[str, str]:
+    env = os.environ.copy()
+    cache_root = infer_cache_root(out_root)
+    if cache_root is None:
+        return env
+    env.setdefault("BIJUX_CACHE_ROOT", str(cache_root))
+    env.setdefault("XDG_CACHE_HOME", str(cache_root))
+    if cache_root.name == ".cache":
+        env.setdefault("BIJUX_HPC_ROOT", str(cache_root.parent))
+    return env
 
 
 def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:

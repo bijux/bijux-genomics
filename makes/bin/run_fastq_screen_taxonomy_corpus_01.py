@@ -15,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     SCREEN_TAXONOMY_BENCHMARK_CONTRACT,
     artifact_bundle_exists,
     artifact_bundle_size_bytes,
+    benchmark_runtime_env,
     default_results_stage_root,
     discover_normalized_samples,
     load_corpus_spec,
@@ -160,11 +161,12 @@ def reset_sample_payload(out_root: Path, sample_id: str) -> None:
 def run_sample_command(
     *,
     repo_root: Path,
+    runtime_env: dict[str, str],
     sample: dict,
     command: list[str],
     sample_report: Path,
 ) -> SampleRun:
-    completed = subprocess.run(command, cwd=repo_root, check=False)
+    completed = subprocess.run(command, cwd=repo_root, check=False, env=runtime_env)
     return SampleRun(
         sample_id=sample["sample_id"],
         r1=str(sample["r1"]),
@@ -212,6 +214,7 @@ def main() -> int:
 
     validate_benchmark_layout(corpus_root, out_root)
     out_root.mkdir(parents=True, exist_ok=True)
+    runtime_env = benchmark_runtime_env(out_root)
 
     samples = discover_normalized_samples(corpus_root)
     validate_corpus_contract(corpus_root, spec, samples)
@@ -280,6 +283,7 @@ def main() -> int:
                 executor.submit(
                     run_sample_command,
                     repo_root=repo_root,
+                    runtime_env=runtime_env,
                     sample=sample,
                     command=command,
                     sample_report=sample_report,
