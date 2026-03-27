@@ -32,8 +32,11 @@
 - `lunarc.md`: narrative benchmark dossier for the Lunarc run.
 
 ## Publication gate
-- This stage does not yet have a committed `corpus-01` runner and report renderer under `makes/bin/`.
-- A publishable dossier begins once those entrypoints materialize `docs/benchmark/fastq.extract_umis/corpus-01/` under the audit contract described above.
+- Governed publication uses:
+  - `makes/bin/run_fastq_extract_umis_corpus_01.py`
+  - `makes/bin/render_fastq_extract_umis_corpus_01_report.py`
+  - `makes/bin/render_fastq_extract_umis_corpus_01_briefing.py`
+- A publishable dossier begins once an executed Lunarc run is rendered into `docs/benchmark/fastq.extract_umis/corpus-01/` under the audit contract described above.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
