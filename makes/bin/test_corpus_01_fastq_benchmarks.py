@@ -59,6 +59,7 @@ import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_filter_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_reads_benchmark_defaults()
+        self.assertEqual(defaults["threads"], 8)
         self.assertEqual(defaults["max_n"], 0)
         self.assertIsNone(defaults["max_n_fraction"])
         self.assertEqual(defaults["max_n_count"], 3)
@@ -90,6 +91,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
 
     def test_deplete_rrna_defaults_match_governed_suite(self) -> None:
         defaults = support.deplete_rrna_benchmark_defaults()
+        self.assertEqual(defaults["threads"], 4)
         self.assertEqual(defaults["rrna_bundle_id"], "sortmerna_v4_3_default_db")
         self.assertAlmostEqual(defaults["min_identity"], 0.95)
 
@@ -292,6 +294,8 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "run_fastq_filter_reads_corpus_01.py",
             "--sample-jobs",
             "2",
+            "--threads",
+            "6",
             "--max-n",
             "0",
             "--max-n-count",
@@ -306,6 +310,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         with mock.patch.object(sys, "argv", argv):
             args = filter_reads_runner.parse_args()
         self.assertEqual(args.sample_jobs, 2)
+        self.assertEqual(args.threads, 6)
         self.assertEqual(args.max_n, 0)
         self.assertEqual(args.max_n_count, 5)
         self.assertEqual(args.low_complexity_threshold, 19.5)
@@ -352,6 +357,8 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "run_fastq_deplete_rrna_corpus_01.py",
             "--sample-jobs",
             "3",
+            "--threads",
+            "6",
             "--rrna-db",
             "/refs/sortmerna_v4_3_default_db.fasta",
             "--rrna-bundle-id",
@@ -362,6 +369,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         with mock.patch.object(sys, "argv", argv):
             args = deplete_rrna_runner.parse_args()
         self.assertEqual(args.sample_jobs, 3)
+        self.assertEqual(args.threads, 6)
         self.assertEqual(args.rrna_db, "/refs/sortmerna_v4_3_default_db.fasta")
         self.assertEqual(args.rrna_bundle_id, "sortmerna_v4_3_default_db")
         self.assertAlmostEqual(args.min_identity, 0.95)

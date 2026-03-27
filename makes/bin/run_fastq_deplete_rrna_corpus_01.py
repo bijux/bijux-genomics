@@ -58,7 +58,7 @@ def parse_args() -> argparse.Namespace:
         default=os.environ.get("BIJUX_PLATFORM", "lunarc-apptainer"),
     )
     parser.add_argument("--tools", default="")
-    parser.add_argument("--threads", type=int, default=1)
+    parser.add_argument("--threads", type=int, default=defaults["threads"])
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--sample-jobs", type=int, default=1)
     parser.add_argument("--sample-limit", type=int, default=0)
