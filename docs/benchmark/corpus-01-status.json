@@ -266,7 +266,7 @@
     {
       "stage_id": "fastq.correct_errors",
       "scenario_id": "correction_fairness",
-      "sample_scope": "full",
+      "sample_scope": "paired",
       "expected_tool_roster": [
         "bayeshammer",
         "lighter",

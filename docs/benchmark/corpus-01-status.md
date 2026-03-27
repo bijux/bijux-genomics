@@ -27,7 +27,7 @@
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_host/corpus-01
 - `fastq.deplete_reference_contaminants`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_reference_contaminants/corpus-01
-- `fastq.correct_errors`: `incomplete` (`1` issues, scope `full`)
+- `fastq.correct_errors`: `incomplete` (`1` issues, scope `paired`)
   - `missing-corpus-dir`: missing benchmark/fastq.correct_errors/corpus-01
 - `fastq.extract_umis`: `incomplete` (`1` issues, scope `paired`)
   - `missing-corpus-dir`: missing benchmark/fastq.extract_umis/corpus-01

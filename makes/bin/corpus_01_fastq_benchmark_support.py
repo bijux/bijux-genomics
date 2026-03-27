@@ -243,6 +243,7 @@ CORRECT_ERRORS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.correct_errors",
     scenario_id="correction_fairness",
     tools=["bayeshammer", "lighter", "musket", "rcorrector"],
+    sample_scope="paired",
 )
 
 
