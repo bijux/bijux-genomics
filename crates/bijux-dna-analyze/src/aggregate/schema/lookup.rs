@@ -81,6 +81,24 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             metrics: &fields::FASTQ_UMI_METRICS,
             invariants: &fields::FASTQ_UMI_INVARIANTS,
         },
+        defs::StageMetricKind::FastqIndexReference => defs::StageMetricSpec {
+            stage: "fastq.index_reference",
+            version: 1,
+            metrics: &fields::FASTQ_INDEX_REFERENCE_METRICS,
+            invariants: &fields::FASTQ_INDEX_REFERENCE_INVARIANTS,
+        },
+        defs::StageMetricKind::FastqDepleteHost => defs::StageMetricSpec {
+            stage: "fastq.deplete_host",
+            version: 1,
+            metrics: &fields::FASTQ_DEPLETE_HOST_METRICS,
+            invariants: &fields::FASTQ_DEPLETE_HOST_INVARIANTS,
+        },
+        defs::StageMetricKind::FastqDepleteReferenceContaminants => defs::StageMetricSpec {
+            stage: "fastq.deplete_reference_contaminants",
+            version: 1,
+            metrics: &fields::FASTQ_DEPLETE_REFERENCE_CONTAMINANTS_METRICS,
+            invariants: &fields::FASTQ_DEPLETE_REFERENCE_CONTAMINANTS_INVARIANTS,
+        },
         defs::StageMetricKind::FastqDepleteRrna => defs::StageMetricSpec {
             stage: "fastq.deplete_rrna",
             version: 1,
