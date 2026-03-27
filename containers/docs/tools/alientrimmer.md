@@ -1,11 +1,11 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->
+<!-- source: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -->
 # alientrimmer
 
 Purpose: generated per-tool container contract summary.
 
-- Version: `0.4.0`
-- License: `NOASSERTION`
+- Version: `3.2`
+- License: `GPL-3.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

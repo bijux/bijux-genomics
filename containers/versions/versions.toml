@@ -16,6 +16,7 @@ source = "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer"
 date_pinned = "2026-03-27"
 pinned_commit = "6ec40283b87f845dbb833342633258c8e7c18333"
 source_sha256 = "5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730"
+upstream_license = "GPL-3.0"
 
 [angsd]
 version = "0.940"

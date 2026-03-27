@@ -1,9 +1,9 @@
 {
-  "build_date_utc": "2026-02-16T01:12:42+01:00",
+  "build_date_utc": "2026-03-27T21:24:55+01:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
-  "generator_script": "cargo run -p bijux-dev-dna -- containers run generate-version-lock",
-  "generator_sha256": "24dc753603a0243b27a509d511de2e76d2a0a3feff79ba1a37e0ea9d197ab0b0",
+  "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
+  "generator_sha256": "d0f98d70b39d0ba869e08e368fe8b3eabc1f2552c921308e197e3201a5da90f2",
   "items": [
     {
       "entry_sha256": "210a5704a7808bc100194718200397dc4ccdb34ef14250fe0638c765d9c69d60",
@@ -38,20 +38,20 @@
       "version": "1.0.0"
     },
     {
-      "entry_sha256": "abd155bc794fa52053ad203e9d1bc359a0527d4625d32091e23ea3d7d14679f0",
+      "entry_sha256": "9fbbe666a1cfc4b06fc0af2865fe23cf54ff6562faa487a32f41e5d5d9c32724",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "0000000000000000000000000000000000000000",
+      "pinned_commit": "6ec40283b87f845dbb833342633258c8e7c18333",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://gite.lirmm.fr/clegrand/AlienTrimmer",
-      "source_sha256": "",
+      "source": "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer",
+      "source_sha256": "5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730",
       "status": "production",
       "tool": "alientrimmer",
-      "version": "0.4.0"
+      "version": "3.2"
     },
     {
       "entry_sha256": "a3b23608dd47a1b546ff4c80d576d793b97c4c91b671f8599d55548345dc0e32",
@@ -243,6 +243,22 @@
       "source_sha256": "",
       "status": "production",
       "tool": "bowtie2",
+      "version": "2.5.4"
+    },
+    {
+      "entry_sha256": "2ca4abcfb655a27dd6a735810a10ddc0c4d49f2f0b141939d7ef863514929f5d",
+      "frontend_resolved_sif_sha256": "",
+      "frontend_sif_digest_sha256": "",
+      "frontend_smoke_version_output_sha256": "",
+      "image_size_bytes": 0,
+      "pinned_commit": "0000000000000000000000000000000000000000",
+      "resolved_image_digest": "",
+      "resolved_sif_sha256": "",
+      "sif_digest_sha256": "",
+      "source": "https://github.com/BenLangmead/bowtie2",
+      "source_sha256": "",
+      "status": "production",
+      "tool": "bowtie2_build",
       "version": "2.5.4"
     },
     {
@@ -1400,6 +1416,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "6953e07c98f980435503844c1f2ebb8f5d50791b32dca35144dc49075a373005",
+  "source_sha256": "edc6444248cbba3ccfbe9fc60a25799865d0dc9318c902dbd1e56fac3255a1a6",
   "version_map_source": "artifacts/containers/version_map.json"
 }

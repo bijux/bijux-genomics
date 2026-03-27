@@ -43,7 +43,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 |---|---|---|---|---|---|---|
 | `adapterremoval` | `trimmer` | `fastq.trim_reads` | `bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d` | `latest-pinned` | upstream:https://github.com/MikkelSchubert/adapterremoval | `experimental` |
 | `addeam` | `transform` | `bam.damage` | `bijuxdna/addeam:latest-pinned` | `latest-pinned` | upstream:https://github.com/LouisPwr/AdDeam | `experimental` |
-| `alientrimmer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/alientrimmer:0.4.0` | `0.4.0` | upstream:https://gite.lirmm.fr/clegrand/AlienTrimmer | `production` |
+| `alientrimmer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/alientrimmer:3.2` | `3.2` | upstream:https://gitlab.pasteur.fr/GIPhy/AlienTrimmer | `production` |
 | `angsd` | `genotyping` | `vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation` | `@` | `0.940` | Korneliussen et al. 2014, BMC Bioinformatics 15:356 | `planned` |
 | `atropos` | `trimmer` | `fastq.trim_reads` | `bijuxdna/atropos@sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d` | `1.1.31` | upstream:https://github.com/jdidion/atropos | `experimental` |
 | `authenticct` | `transform` | `bam.authenticity` | `bijuxdna/authenticct:1.0.0` | `1.0.0` | upstream:https://github.com/StephanePeyregne/AuthentiCT | `production` |
