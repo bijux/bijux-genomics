@@ -202,6 +202,7 @@ struct LegacyCorrectErrorsReportV1 {
     output_r1: String,
     output_r2: Option<String>,
     kmer_size: Option<u32>,
+    musket_kmer_budget: Option<u64>,
     genome_size: Option<u64>,
     max_memory_gb: Option<u32>,
     trusted_kmer_artifact: Option<std::path::PathBuf>,
@@ -244,6 +245,7 @@ fn parse_legacy_correct_errors_report(report_json: &str) -> Result<CorrectErrors
         correction_engine: legacy.correction_engine,
         quality_encoding: legacy.quality_encoding,
         kmer_size: legacy.kmer_size,
+        musket_kmer_budget: legacy.musket_kmer_budget,
         genome_size: legacy.genome_size,
         max_memory_gb: legacy.max_memory_gb,
         trusted_kmer_artifact: legacy.trusted_kmer_artifact,
@@ -2696,6 +2698,7 @@ mod tests {
                 "correction_engine": "lighter",
                 "quality_encoding": "phred33",
                 "kmer_size": 31,
+                "musket_kmer_budget": null,
                 "genome_size": 2500000,
                 "max_memory_gb": null,
                 "trusted_kmer_artifact": "trusted_kmers.fa",
@@ -2734,6 +2737,7 @@ mod tests {
         assert_eq!(parsed.tool_id, "lighter");
         assert_eq!(parsed.threads, 8);
         assert_eq!(parsed.kmer_size, Some(31));
+        assert_eq!(parsed.musket_kmer_budget, None);
         assert_eq!(parsed.corrected_reads, Some(100));
         Ok(())
     }
@@ -2752,6 +2756,7 @@ mod tests {
                 "output_r1": "out/reads_r1.fastq.gz",
                 "output_r2": "out/reads_r2.fastq.gz",
                 "kmer_size": null,
+                "musket_kmer_budget": null,
                 "genome_size": null,
                 "max_memory_gb": null,
                 "trusted_kmer_artifact": null,

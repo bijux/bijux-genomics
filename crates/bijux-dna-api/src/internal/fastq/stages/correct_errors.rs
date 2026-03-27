@@ -155,6 +155,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
                 threads: args.threads,
                 quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
                 kmer_size: args.kmer_size,
+                musket_kmer_budget: args.musket_kmer_budget,
                 genome_size: args.genome_size,
                 max_memory_gb: args.max_memory_gb,
                 trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
@@ -507,6 +508,7 @@ fn build_correction_report(
         correction_engine: effective_params.correction_engine,
         quality_encoding: effective_params.quality_encoding,
         kmer_size: effective_params.kmer_size,
+        musket_kmer_budget: effective_params.musket_kmer_budget,
         genome_size: effective_params.genome_size,
         max_memory_gb: effective_params.max_memory_gb,
         trusted_kmer_artifact: effective_params.trusted_kmer_artifact,
@@ -814,6 +816,7 @@ mod tests {
             &CorrectPlanOptions {
                 threads: Some(8),
                 kmer_size: Some(31),
+                musket_kmer_budget: Some(536_870_912),
                 genome_size: Some(3_200_000),
                 max_memory_gb: Some(24),
                 trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
@@ -823,6 +826,7 @@ mod tests {
 
         assert_eq!(projected.threads, Some(8));
         assert_eq!(projected.kmer_size, Some(31));
+        assert_eq!(projected.musket_kmer_budget, Some(536_870_912));
         assert_eq!(projected.genome_size, None);
         assert_eq!(projected.max_memory_gb, None);
         assert_eq!(projected.trusted_kmer_artifact, None);
@@ -850,6 +854,7 @@ mod tests {
                 "threads": 8,
                 "correction_engine": "lighter",
                 "quality_encoding": "phred33",
+                "musket_kmer_budget": null,
                 "genome_size": 3_200_000_u64,
                 "trusted_kmer_artifact": "trusted.kmers",
                 "conservative_mode": false,

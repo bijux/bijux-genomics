@@ -235,6 +235,7 @@ def render_markdown(
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- quality_encoding: `{summary['quality_encoding']}`")
     lines.append(f"- kmer_size: `{summary['kmer_size']}`")
+    lines.append(f"- musket_kmer_budget: `{summary['musket_kmer_budget']}`")
     lines.append(f"- genome_size: `{summary['genome_size']}`")
     lines.append(f"- max_memory_gb: `{summary['max_memory_gb']}`")
     lines.append(f"- trusted_kmer_artifact_digest: `{summary['trusted_kmer_artifact_digest']}`")

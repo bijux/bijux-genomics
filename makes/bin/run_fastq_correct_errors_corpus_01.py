@@ -72,6 +72,11 @@ def parse_args() -> argparse.Namespace:
         default=defaults["quality_encoding"],
     )
     parser.add_argument("--kmer-size", type=int, default=defaults["kmer_size"])
+    parser.add_argument(
+        "--musket-kmer-budget",
+        type=int,
+        default=defaults["musket_kmer_budget"],
+    )
     parser.add_argument("--genome-size", type=int, default=defaults["genome_size"])
     parser.add_argument(
         "--max-memory-gb",
@@ -109,6 +114,7 @@ def build_command(
     jobs: int,
     quality_encoding: str,
     kmer_size: int | None,
+    musket_kmer_budget: int | None,
     genome_size: int | None,
     max_memory_gb: int | None,
     trusted_kmer_artifact: Path | None,
@@ -146,6 +152,8 @@ def build_command(
         command.extend(["--r2", str(sample["r2"])])
     if kmer_size is not None:
         command.extend(["--kmer-size", str(kmer_size)])
+    if musket_kmer_budget is not None:
+        command.extend(["--musket-kmer-budget", str(musket_kmer_budget)])
     if genome_size is not None:
         command.extend(["--genome-size", str(genome_size)])
     if max_memory_gb is not None:
@@ -288,6 +296,7 @@ def main() -> int:
             jobs=args.jobs,
             quality_encoding=args.quality_encoding,
             kmer_size=args.kmer_size,
+            musket_kmer_budget=args.musket_kmer_budget,
             genome_size=args.genome_size,
             max_memory_gb=args.max_memory_gb,
             trusted_kmer_artifact=trusted_kmer_artifact,
@@ -347,6 +356,7 @@ def main() -> int:
         "dry_run": args.dry_run,
         "quality_encoding": args.quality_encoding,
         "kmer_size": args.kmer_size,
+        "musket_kmer_budget": args.musket_kmer_budget,
         "genome_size": args.genome_size,
         "max_memory_gb": args.max_memory_gb,
         "trusted_kmer_artifact": (

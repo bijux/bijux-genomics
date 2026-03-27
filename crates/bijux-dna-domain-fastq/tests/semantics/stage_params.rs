@@ -67,6 +67,7 @@ fn correct_params_roundtrip_and_schema_version() {
     assert_eq!(decoded.correction_engine, CorrectionEngine::Rcorrector);
     assert_eq!(decoded.quality_encoding, QualityEncoding::Phred33);
     assert_eq!(decoded.kmer_size, None);
+    assert_eq!(decoded.musket_kmer_budget, None);
     assert_eq!(decoded.genome_size, None);
     assert_eq!(decoded.max_memory_gb, None);
     assert_eq!(decoded.trusted_kmer_artifact, None);

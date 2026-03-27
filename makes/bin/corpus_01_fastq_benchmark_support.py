@@ -460,6 +460,7 @@ def correct_errors_benchmark_defaults() -> dict:
         "threads": 8,
         "quality_encoding": "phred33",
         "kmer_size": None,
+        "musket_kmer_budget": 536_870_912,
         "genome_size": 3_200_000_000,
         "max_memory_gb": None,
         "trusted_kmer_artifact": None,
