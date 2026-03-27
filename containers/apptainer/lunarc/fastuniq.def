@@ -31,25 +31,39 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 %post
     set -eux
     umask 022
+    VERSION_FASTUNIQ=1.1
+    export VERSION_FASTUNIQ
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
-    apt-get install -y --no-install-recommends seqkit
+    apt-get install -y --no-install-recommends build-essential ca-certificates curl
+    curl -fsSL "https://sourceforge.net/projects/fastuniq/files/FastUniq-${VERSION_FASTUNIQ}.tar.gz/download" -o /tmp/FastUniq.tar.gz
+    tar -xzf /tmp/FastUniq.tar.gz -C /tmp
+    make -C /tmp/FastUniq/source
+    install -d /usr/local/libexec
+    install -m 0755 /tmp/FastUniq/source/fastuniq /usr/local/libexec/fastuniq.real
     cat > /usr/local/bin/fastuniq <<'EOS'
 #!/usr/bin/env sh
 set -eu
 case "${1:-}" in
   --version) echo "${VERSION_FASTUNIQ}"; exit 0 ;;
-  --help|-h|"") echo "fastuniq compatibility wrapper (seqkit rmdup)"; exit 0 ;;
+  --help|-h|"")
+    cat <<'EOH'
+FastUniq 1.1
+Usage: fastuniq -i <input_list.txt> -t <q|f|p> -o <out1> [-p <out2>] [-c <0|1>]
+EOH
+    exit 0
+    ;;
 esac
-exec seqkit rmdup "$@"
+exec /usr/local/libexec/fastuniq.real "$@"
 EOS
     chmod 0755 /usr/local/bin/fastuniq
+    rm -rf /tmp/FastUniq /tmp/FastUniq.tar.gz
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
-        exec fastuniq --help
+        exec fastuniq -h
     else
         exec fastuniq "$@"
     fi
 %help
-    fastuniq compatibility image.
+    FastUniq image built from upstream source.

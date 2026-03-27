@@ -8,9 +8,9 @@ container:
   image: "bijuxdna/fastuniq"
   digest: "sha256:pending"
 command_template:
-  - "sh"
+  - "bash"
   - "-lc"
-  - "set -euo pipefail\nprintf '%s\\n%s\\n' '{{reads_r1}}' '{{reads_r2}}' > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o '{{dedup_reads_r1}}' -p '{{dedup_reads_r2}}' > '{{out_dir}}/fastuniq.log' 2>&1\n"
+  - "set -euo pipefail\nwork_dir='{{out_dir}}/fastuniq_workspace'\nmkdir -p \"$work_dir\"\ngzip -dc -- '{{reads_r1}}' > \"$work_dir/input_r1.fastq\"\ngzip -dc -- '{{reads_r2}}' > \"$work_dir/input_r2.fastq\"\nprintf '%s\\n%s\\n' \"$work_dir/input_r1.fastq\" \"$work_dir/input_r2.fastq\" > '{{out_dir}}/fastuniq_inputs.txt'\nfastuniq -i '{{out_dir}}/fastuniq_inputs.txt' -t q -o \"$work_dir/output_r1.fastq\" -p \"$work_dir/output_r2.fastq\" > '{{out_dir}}/fastuniq.log' 2>&1\ngzip -c \"$work_dir/output_r1.fastq\" > '{{dedup_reads_r1}}'\ngzip -c \"$work_dir/output_r2.fastq\" > '{{dedup_reads_r2}}'\nrm -rf \"$work_dir\"\n"
 outputs:
   - name: "dedup_reads_r1"
     data_type: "fastq"

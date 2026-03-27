@@ -24,12 +24,34 @@ ENV VERSION_FASTUNIQ=${VERSION_FASTUNIQ}
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      seqkit && \
-    printf '#!/bin/sh\n' > /usr/local/bin/fastuniq && \
-    printf 'if [ "$1" = "--version" ]; then echo "$VERSION_FASTUNIQ"; exit 0; fi\n' >> /usr/local/bin/fastuniq && \
-    printf 'if [ "$1" = "--help" ] || [ "$#" -eq 0 ]; then echo "fastuniq compatibility wrapper (seqkit rmdup)"; exit 0; fi\n' >> /usr/local/bin/fastuniq && \
-    printf 'exec seqkit rmdup "$@"\n' >> /usr/local/bin/fastuniq && \
+      build-essential \
+      ca-certificates \
+      curl && \
+    curl -fsSL "https://sourceforge.net/projects/fastuniq/files/FastUniq-${VERSION_FASTUNIQ}.tar.gz/download" -o /tmp/FastUniq.tar.gz && \
+    tar -xzf /tmp/FastUniq.tar.gz -C /tmp && \
+    make -C /tmp/FastUniq/source && \
+    install -d /usr/local/libexec && \
+    install -m 0755 /tmp/FastUniq/source/fastuniq /usr/local/libexec/fastuniq.real && \
+    cat <<'EOF' > /usr/local/bin/fastuniq && \
+#!/bin/sh
+set -eu
+case "${1:-}" in
+  --version)
+    echo "${VERSION_FASTUNIQ}"
+    exit 0
+    ;;
+  --help|-h|"")
+    cat <<'EOH'
+FastUniq 1.1
+Usage: fastuniq -i <input_list.txt> -t <q|f|p> -o <out1> [-p <out2>] [-c <0|1>]
+EOH
+    exit 0
+    ;;
+esac
+exec /usr/local/libexec/fastuniq.real "$@"
+EOF
     chmod +x /usr/local/bin/fastuniq && \
+    rm -rf /tmp/FastUniq /tmp/FastUniq.tar.gz && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
