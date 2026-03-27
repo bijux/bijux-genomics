@@ -41,7 +41,7 @@ pub fn plan_screen(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_screen_with_effective_params(tool, r1, r2, out_dir, &screen_defaults(r2.is_some()))
+    plan_screen_with_options(tool, r1, r2, out_dir, &ScreenPlanOptions::default())
 }
 
 /// Build a screen plan with explicit governed stage options.
@@ -56,6 +56,10 @@ pub fn plan_screen_with_options(
     options: &ScreenPlanOptions,
 ) -> Result<StagePlanV1> {
     let mut effective_params = screen_defaults(r2.is_some());
+    let (classifier, report_format, assignment_format) = classifier_contract(&tool.tool_id.0)?;
+    effective_params.classifier = classifier;
+    effective_params.report_format = report_format;
+    effective_params.assignment_format = assignment_format;
     if let Some(database_root) = options.database_root.as_ref() {
         effective_params.contaminant_db = Some(database_root.display().to_string());
     }
