@@ -32,7 +32,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     make install && \
     ldconfig && \
     wget -O /tmp/fastx_toolkit-0.0.14.tar.bz2 https://github.com/agordon/fastx_toolkit/releases/download/0.0.14/fastx_toolkit-0.0.14.tar.bz2 && \
-    echo "f29b52706133c33c925d6a472d6d7b39a705aba26001074bb1d87446f3ecfcd5  /tmp/fastx_toolkit-0.0.14.tar.bz2" | sha256sum -c - && \
+    echo "9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806  /tmp/fastx_toolkit-0.0.14.tar.bz2" | sha256sum -c - && \
     tar -xjf /tmp/fastx_toolkit-0.0.14.tar.bz2 -C /tmp && \
     cd /tmp/fastx_toolkit-0.0.14 && \
     ./configure --prefix=/usr/local PKG_CONFIG_PATH=/usr/local/lib/pkgconfig CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib && \
