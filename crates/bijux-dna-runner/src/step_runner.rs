@@ -135,6 +135,50 @@ fn container_input_mapping(input_root: &Path) -> (PathBuf, String) {
     (input_root.to_path_buf(), "/data/input".to_string())
 }
 
+fn preserve_absolute_input_paths(inputs: &[PathBuf]) -> bool {
+    common_parent(inputs).is_some_and(|path| path == PathBuf::from("/"))
+}
+
+fn input_bind_root(input: &Path) -> PathBuf {
+    if input.exists() {
+        if input.is_file() {
+            return input
+                .parent()
+                .map(Path::to_path_buf)
+                .unwrap_or_else(|| PathBuf::from("/"));
+        }
+        return input.to_path_buf();
+    }
+    input
+        .parent()
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("/"))
+}
+
+fn collapse_bind_roots(mut roots: Vec<PathBuf>) -> Vec<PathBuf> {
+    roots.sort_by(|left, right| {
+        left.components()
+            .count()
+            .cmp(&right.components().count())
+            .then_with(|| left.cmp(right))
+    });
+    let mut collapsed = Vec::<PathBuf>::new();
+    for root in roots {
+        if collapsed.iter().any(|existing| root.starts_with(existing)) {
+            continue;
+        }
+        collapsed.push(root);
+    }
+    collapsed
+}
+
+fn input_bind_roots(inputs: &[PathBuf], input_root: &Path, preserve_absolute: bool) -> Vec<PathBuf> {
+    if !preserve_absolute {
+        return vec![container_input_mapping(input_root).0];
+    }
+    collapse_bind_roots(inputs.iter().map(|input| input_bind_root(input)).collect())
+}
+
 fn rewrite_container_path(value: &str, host_root: &Path, container_root: &str) -> String {
     let host_root_path = host_root;
     let host_root = host_root_path.display().to_string();
@@ -154,36 +198,49 @@ fn container_command_template(
     template: &[String],
     input_root: &Path,
     out_dir: &Path,
+    preserve_absolute_inputs: bool,
 ) -> Vec<String> {
     let (_, container_input_root) = container_input_mapping(input_root);
     template
         .iter()
         .map(|part| {
             let rewritten_output = rewrite_container_path(part, out_dir, "/data/output");
-            rewrite_container_path(&rewritten_output, input_root, &container_input_root)
+            if preserve_absolute_inputs {
+                rewritten_output
+            } else {
+                rewrite_container_path(&rewritten_output, input_root, &container_input_root)
+            }
         })
         .collect()
 }
 
 fn build_apptainer_exec_args(
     step: &ExecutionStep,
+    inputs: &[PathBuf],
     input_root: &Path,
     out_dir: &Path,
     _runner: RuntimeKind,
 ) -> Result<Vec<String>> {
-    let (input_mount_root, _) = container_input_mapping(input_root);
-    let input_mount = format!("{}:/data/input:ro", input_mount_root.display());
+    let preserve_absolute_inputs = preserve_absolute_input_paths(inputs);
+    let bind_roots = input_bind_roots(inputs, input_root, preserve_absolute_inputs);
     let output_mount = format!("{}:/data/output", out_dir.display());
     let mut args: Vec<String> = vec![
         "exec".to_string(),
         "--cleanenv".to_string(),
         "--no-home".to_string(),
         "--containall".to_string(),
-        "--bind".to_string(),
-        input_mount,
-        "--bind".to_string(),
-        output_mount,
     ];
+    for bind_root in bind_roots {
+        let input_mount = if preserve_absolute_inputs {
+            format!("{}:{}:ro", bind_root.display(), bind_root.display())
+        } else {
+            format!("{}:/data/input:ro", bind_root.display())
+        };
+        args.push("--bind".to_string());
+        args.push(input_mount);
+    }
+    args.push("--bind".to_string());
+    args.push(output_mount);
     let workdir_in_container = if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
         let out_dir_prefix = format!("{}/", out_dir.display());
         if workdir.starts_with(&out_dir_prefix) {
@@ -204,6 +261,7 @@ fn build_apptainer_exec_args(
         &step.command.template,
         input_root,
         out_dir,
+        preserve_absolute_inputs,
     ));
     if args.is_empty() {
         return Err(runner_failure(
@@ -268,10 +326,15 @@ pub fn execute_step(
         .map(|input| input.path.clone())
         .collect();
     let input_root = common_parent(&inputs).unwrap_or_else(|| out_dir.clone());
-    let (input_mount_root, _) = container_input_mapping(&input_root);
-    let input_mount = format!("{}:/data/input:ro", input_mount_root.display());
+    let preserve_absolute_inputs = preserve_absolute_input_paths(&inputs);
+    let bind_roots = input_bind_roots(&inputs, &input_root, preserve_absolute_inputs);
     let output_mount = format!("{}:/data/output", out_dir.display());
-    let command_template = container_command_template(&step.command.template, &input_root, out_dir);
+    let command_template = container_command_template(
+        &step.command.template,
+        &input_root,
+        out_dir,
+        preserve_absolute_inputs,
+    );
 
     let (output, exit_code, stdout, stderr, runtime_s, memory_mb) = match runner {
         RuntimeKind::Docker => {
@@ -304,13 +367,16 @@ pub fn execute_step(
                 args.push("--network".to_string());
                 args.push("none".to_string());
             }
-            args.extend([
-                "-v".to_string(),
-                input_mount,
-                "-v".to_string(),
-                output_mount,
-                step.image.image.clone(),
-            ]);
+            for bind_root in &bind_roots {
+                let input_mount = if preserve_absolute_inputs {
+                    format!("{}:{}:ro", bind_root.display(), bind_root.display())
+                } else {
+                    format!("{}:/data/input:ro", bind_root.display())
+                };
+                args.push("-v".to_string());
+                args.push(input_mount);
+            }
+            args.extend(["-v".to_string(), output_mount, step.image.image.clone()]);
             args.extend(command_template.clone());
 
             let output = run_command("docker", &args)
@@ -340,7 +406,7 @@ pub fn execute_step(
             (output, exit_code, stdout, stderr, runtime_s, memory_mb)
         }
         RuntimeKind::Apptainer | RuntimeKind::Singularity => {
-            let args = build_apptainer_exec_args(step, &input_root, out_dir, runner)?;
+            let args = build_apptainer_exec_args(step, &inputs, &input_root, out_dir, runner)?;
             let bin = if runner == RuntimeKind::Apptainer {
                 "apptainer"
             } else {
@@ -614,14 +680,15 @@ fn write_tool_invocation(
 mod tests {
     use super::{
         build_apptainer_exec_args, build_observer_command_args, container_command_template,
-        hash_inputs, hash_path,
+        container_input_mapping, hash_inputs, hash_path,
     };
-    use bijux_dna_core::contract::{ArtifactRef, ExecutionStep, StageIO, ToolConstraints};
-    use bijux_dna_core::foundation::{CommandSpecV1, ContainerImageRefV1};
-    use bijux_dna_core::ids::{StageId, StepId};
-    use bijux_dna_core::prelude::ArtifactRole;
+    use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId,
+        StepId,
+    };
     use bijux_dna_environment::api::RuntimeKind;
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
     use tempfile::tempdir;
 
     #[test]
@@ -676,12 +743,12 @@ mod tests {
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
-                    "reads".into(),
+                    ArtifactId::from_static("reads"),
                     Path::new("/tmp/input/sample.fastq.gz").to_path_buf(),
                     ArtifactRole::Reads,
                 )],
                 outputs: vec![ArtifactRef::required(
-                    "report".into(),
+                    ArtifactId::from_static("report"),
                     Path::new("/tmp/out/report.json").to_path_buf(),
                     ArtifactRole::ReportJson,
                 )],
@@ -694,6 +761,7 @@ mod tests {
 
         let args = build_apptainer_exec_args(
             &step,
+            &[PathBuf::from("/tmp/input/sample.fastq.gz")],
             Path::new("/tmp/input"),
             Path::new("/tmp/out"),
             RuntimeKind::Apptainer,
@@ -716,8 +784,12 @@ mod tests {
                 .to_string(),
         ];
 
-        let rewritten =
-            container_command_template(&template, Path::new("/tmp/corpus"), Path::new("/tmp/out"));
+        let rewritten = container_command_template(
+            &template,
+            Path::new("/tmp/corpus"),
+            Path::new("/tmp/out"),
+            false,
+        );
 
         assert_eq!(rewritten[0], "sh");
         assert!(rewritten[2].contains("/data/input/sample_0004_R1.fastq.gz"));
@@ -742,7 +814,7 @@ mod tests {
             ),
         ];
 
-        let rewritten = container_command_template(&template, &input, &out_dir);
+        let rewritten = container_command_template(&template, &input, &out_dir, false);
 
         assert_eq!(rewritten[0], "sh");
         assert!(rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input/sample_0004_R1.fastq.gz"));
@@ -758,8 +830,12 @@ mod tests {
                 .to_string(),
         ];
 
-        let rewritten =
-            container_command_template(&template, Path::new("/tmp/corpus"), Path::new("/tmp/out"));
+        let rewritten = container_command_template(
+            &template,
+            Path::new("/tmp/corpus"),
+            Path::new("/tmp/out"),
+            false,
+        );
 
         assert_eq!(rewritten[0], "sh");
         assert!(rewritten[2].contains("-d /data/output"));
@@ -781,6 +857,7 @@ mod tests {
             Path::new(
                 "/tmp/results/corpus_01/fastq.report_qc/lunarc/bench/report_qc/sample_0001/tools/multiqc",
             ),
+            false,
         );
 
         assert_eq!(rewritten[0], "sh");
@@ -798,6 +875,29 @@ mod tests {
 
         assert_eq!(mount_root, temp.path());
         assert_eq!(container_root, "/data/input/sample_0004_R1.fastq.gz");
+    }
+
+    #[test]
+    fn container_command_template_preserves_absolute_inputs_for_mixed_roots() {
+        let template = vec![
+            "bowtie2".to_string(),
+            "-x".to_string(),
+            "/lunarc/nobackup/projects/snic2019-34-3/.cache/bijux-reference/contaminants/phix/bowtie2/reference".to_string(),
+            "-S".to_string(),
+            "/dev/null".to_string(),
+            "-1".to_string(),
+            "/home/bijan/bijux/corpus_01/normalized/sample_0001_R1.fastq.gz".to_string(),
+            "--met-file".to_string(),
+            "/tmp/out/bowtie2.metrics.txt".to_string(),
+        ];
+
+        let rewritten =
+            container_command_template(&template, Path::new("/"), Path::new("/tmp/out"), true);
+
+        assert_eq!(rewritten[2], template[2]);
+        assert_eq!(rewritten[4], "/dev/null");
+        assert_eq!(rewritten[6], template[6]);
+        assert_eq!(rewritten[8], "/data/output/bowtie2.metrics.txt");
     }
 
     #[test]
