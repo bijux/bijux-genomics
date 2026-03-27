@@ -3,10 +3,10 @@
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
   "benchmarkable_stage_count": 23,
   "applicable_stage_count": 20,
-  "completed_stage_count": 15,
-  "incomplete_stage_count": 5,
+  "completed_stage_count": 16,
+  "incomplete_stage_count": 4,
   "excluded_stage_count": 3,
-  "issue_count": 10,
+  "issue_count": 32,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -126,16 +126,9 @@
       ],
       "method_path": "benchmark/fastq.normalize_primers/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.normalize_primers/corpus-01",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.normalize_primers",
-          "issue_id": "publication-toolset-subset",
-          "severity": "error",
-          "detail": "fastq.normalize_primers publication contract covers ['cutadapt'] but governed stage toolset also admits ['seqkit']"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.trim_polyg_tails",
@@ -161,36 +154,188 @@
       "sample_scope": "full",
       "contract_tool_roster": [
         "adapterremoval",
+        "alientrimmer",
         "atropos",
         "bbduk",
         "cutadapt",
         "fastp",
+        "fastx_clipper",
+        "leehom",
         "prinseq",
         "seqkit",
+        "skewer",
         "trim_galore",
         "trimmomatic"
       ],
       "expected_tool_roster": [
         "adapterremoval",
+        "alientrimmer",
         "atropos",
         "bbduk",
         "cutadapt",
         "fastp",
+        "fastx_clipper",
+        "leehom",
         "prinseq",
         "seqkit",
+        "skewer",
         "trim_galore",
         "trimmomatic"
       ],
       "method_path": "benchmark/fastq.trim_reads/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.trim_reads/corpus-01",
       "status": "incomplete",
-      "issue_count": 1,
+      "issue_count": 25,
       "issues": [
         {
           "stage_id": "fastq.trim_reads",
-          "issue_id": "publication-toolset-subset",
+          "issue_id": "summary-tool-roster-drift",
           "severity": "error",
-          "detail": "fastq.trim_reads publication contract covers ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] but governed stage toolset also admits ['alientrimmer', 'fastx_clipper', 'leehom', 'skewer']"
+          "detail": "benchmark/fastq.trim_reads/corpus-01/summary.json tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "summary-tool-summary-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/summary.json tool_summary tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-roster-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0001 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0002 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0003 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0004 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0005 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0006 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0007 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0008 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0009 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0010 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0011 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0012 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0013 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0014 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0015 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0016 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0017 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0018 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0019 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-tool-coverage-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0020 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "sample-results-row-count-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv row_count=180 expected 260"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "tool-runtime-summary-drift",
+          "severity": "error",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/tool_runtime_summary.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
         }
       ]
     },
@@ -356,7 +501,7 @@
       "method_path": "benchmark/fastq.correct_errors/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.correct_errors/corpus-01",
       "status": "incomplete",
-      "issue_count": 4,
+      "issue_count": 3,
       "issues": [
         {
           "stage_id": "fastq.correct_errors",
@@ -375,12 +520,6 @@
           "issue_id": "bayeshammer-retention-contract-drift",
           "severity": "error",
           "detail": "the governed BayesHammer path on Lunarc drops reads on paired corpus-01 inputs, which violates the fastq.correct_errors retention contract (`may_change_read_count = false`), so BayesHammer cannot be counted as a corpus-complete governed benchmark backend yet."
-        },
-        {
-          "stage_id": "fastq.correct_errors",
-          "issue_id": "musket-kmer-budget-unmapped",
-          "severity": "error",
-          "detail": "the governed Musket adapter still emits `musket -k <kmer_size>` even though Musket 1.1 requires `-k <kmer_size> <estimated_total_kmers>`, so the current corpus-01 benchmark path cannot yet produce valid Musket corrected outputs."
         }
       ]
     },
