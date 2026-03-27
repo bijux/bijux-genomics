@@ -144,25 +144,97 @@ fn index_reference_command(
 ) -> Result<Vec<String>> {
     match tool_id {
         "bowtie2_build" => Ok(vec![
-            "bowtie2-build".to_string(),
-            "--threads".to_string(),
-            threads.to_string(),
-            reference_fasta.display().to_string(),
-            output.display().to_string(),
+            "sh".to_string(),
+            "-lc".to_string(),
+            format!(
+                "set -eu\nmkdir -p {}\nbowtie2-build --threads {} {} {}",
+                shell_quote_path(
+                    output
+                        .parent()
+                        .ok_or_else(|| anyhow!("index output has no parent: {}", output.display()))?
+                ),
+                threads,
+                shell_quote_path(reference_fasta),
+                shell_quote_path(output),
+            ),
         ]),
         "star" => Ok(vec![
-            "STAR".to_string(),
-            "--runMode".to_string(),
-            "genomeGenerate".to_string(),
-            "--runThreadN".to_string(),
-            threads.to_string(),
-            "--genomeDir".to_string(),
-            output.display().to_string(),
-            "--genomeFastaFiles".to_string(),
-            reference_fasta.display().to_string(),
+            "sh".to_string(),
+            "-lc".to_string(),
+            format!(
+                "set -eu\nmkdir -p {}\nSTAR --runMode genomeGenerate --runThreadN {} --genomeDir {} --genomeFastaFiles {}",
+                shell_quote_path(output),
+                threads,
+                shell_quote_path(output),
+                shell_quote_path(reference_fasta),
+            ),
         ]),
         _ => Err(anyhow!(
             "unsupported reference indexing tool for stage planning: {tool_id}"
         )),
+    }
+}
+
+fn shell_quote_path(path: &Path) -> String {
+    shell_quote_str(&path.display().to_string())
+}
+
+fn shell_quote_str(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
+    };
+
+    fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: tool_id.try_into().expect("tool id"),
+            tool_version: "test".to_string(),
+            image: ContainerImageRefV1 {
+                image: "tool".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 { template: vec![] },
+            resources: ToolConstraints {
+                runtime: "local".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+        }
+    }
+
+    #[test]
+    fn bowtie2_build_command_creates_parent_directory() {
+        let plan = plan_with_options(
+            &tool("bowtie2_build"),
+            Path::new("reference.fa"),
+            Path::new("out"),
+            &IndexReferencePlanOptions { threads: Some(4) },
+        )
+        .expect("plan");
+        assert_eq!(plan.command.template[0], "sh");
+        assert!(plan.command.template[2].contains("mkdir -p 'out/reference_index/bowtie2'"));
+        assert!(plan.command.template[2].contains(
+            "bowtie2-build --threads 4 'reference.fa' 'out/reference_index/bowtie2/reference'"
+        ));
+    }
+
+    #[test]
+    fn star_command_creates_genome_dir() {
+        let plan = plan_with_options(
+            &tool("star"),
+            Path::new("reference.fa"),
+            Path::new("out"),
+            &IndexReferencePlanOptions { threads: Some(6) },
+        )
+        .expect("plan");
+        assert_eq!(plan.command.template[0], "sh");
+        assert!(plan.command.template[2].contains("mkdir -p 'out/reference_index/star'"));
+        assert!(plan.command.template[2].contains("STAR --runMode genomeGenerate --runThreadN 6 --genomeDir 'out/reference_index/star' --genomeFastaFiles 'reference.fa'"));
     }
 }
