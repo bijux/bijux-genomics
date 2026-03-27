@@ -1,0 +1,9 @@
+tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,median_dedup_rate,mean_duplicate_reads
+clumpify,era_layout,ancient_pe,5,70.955552,11.151922,0.017887,50536.800000
+clumpify,era_layout,modern_pe,5,30.806447,31.432049,0.145361,2338807.400000
+fastuniq,era_layout,ancient_pe,5,45.212065,17.045398,0.009713,36116.800000
+fastuniq,era_layout,modern_pe,5,49.297709,47.679825,0.100962,2092998.600000
+clumpify,size_band,under_100mb,5,5.984938,4.894947,0.030156,37427.000000
+clumpify,size_band,under_500mb,5,95.777061,84.485670,0.145361,2351917.200000
+fastuniq,size_band,under_100mb,5,8.447732,6.890443,0.020768,29385.800000
+fastuniq,size_band,under_500mb,5,86.062042,83.961104,0.100962,2099729.600000

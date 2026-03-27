@@ -1,7 +1,7 @@
 {
   "corpus_id": "corpus-01",
-  "published_stage_count": 11,
-  "complete_stage_count": 11,
+  "published_stage_count": 12,
+  "complete_stage_count": 12,
   "incomplete_stage_count": 0,
   "issue_count": 0,
   "stages": [
@@ -55,6 +55,12 @@
     },
     {
       "stage_id": "fastq.merge_pairs",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
       "status": "complete",
       "issue_count": 0,
       "issues": []

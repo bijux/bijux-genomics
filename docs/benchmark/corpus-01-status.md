@@ -29,7 +29,7 @@
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_rrna/corpus-01
 - `fastq.merge_pairs`: `complete` (`0` issues, scope `paired`)
 - `fastq.remove_duplicates`: `incomplete` (`1` issues, scope `paired`)
-  - `missing-corpus-dir`: missing benchmark/fastq.remove_duplicates/corpus-01
+  - `summary-cohort-count-drift`: benchmark/fastq.remove_duplicates/corpus-01/summary.json cohort_counts=None expected {'ancient_pe': 5, 'modern_pe': 5}
 - `fastq.deplete_host`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.deplete_host/corpus-01
 - `fastq.deplete_reference_contaminants`: `incomplete` (`1` issues, scope `full`)
