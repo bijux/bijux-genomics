@@ -90,6 +90,9 @@ def validate_run_manifest_contract(run_manifest: dict) -> None:
             "extract-umis benchmark report drift: run manifest must record paired sample_scope"
         )
     run_manifest.setdefault("umi_pattern", defaults["umi_pattern"])
+    run_manifest.setdefault(
+        "allow_missing_umi_headers", defaults["allow_missing_umi_headers"]
+    )
 
 
 def validate_row_contract(
@@ -167,6 +170,9 @@ def render_markdown(summary: dict) -> str:
     )
     lines.append(f"- Tools: `{', '.join(summary['tools'])}`")
     lines.append(f"- umi_pattern: `{summary['umi_pattern']}`")
+    lines.append(
+        f"- allow_missing_umi_headers: `{summary['allow_missing_umi_headers']}`"
+    )
     lines.append("")
     lines.append("## Executive Summary")
     lines.append("")
@@ -198,6 +204,9 @@ def render_markdown(summary: dict) -> str:
     lines.append("")
     lines.append(
         "- This paired-only benchmark keeps the governed UMI parsing contract explicit, so later pattern changes cannot silently invalidate comparisons."
+    )
+    lines.append(
+        "- `corpus-01` is not a native UMI cohort, so the dossier records whether missing-header bypass was enabled during execution."
     )
     lines.append(
         "- Published per-sample rows keep read-retention and UMI-detection behavior auditable alongside runtime."
@@ -326,6 +335,7 @@ def main() -> int:
         "samples_failed": int(run_manifest.get("samples_failed", 0)),
         "era_counts": dict(sorted(era_counts.items())),
         "umi_pattern": run_manifest["umi_pattern"],
+        "allow_missing_umi_headers": run_manifest["allow_missing_umi_headers"],
         "headline": {
             "fastest_tool": fastest["tool"],
             "fastest_runtime_s": fastest["median_runtime_s"],
