@@ -165,6 +165,41 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             ).resolve(),
         )
 
+    def test_benchmark_runtime_env_overrides_stale_cache_layout(self) -> None:
+        out_root = Path(
+            "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc"
+        )
+        stale_cache_root = os.environ.get("BIJUX_CACHE_ROOT")
+        stale_xdg_cache = os.environ.get("XDG_CACHE_HOME")
+        stale_hpc_root = os.environ.get("BIJUX_HPC_ROOT")
+        try:
+            os.environ["BIJUX_CACHE_ROOT"] = "/tmp/stale-cache-root"
+            os.environ["XDG_CACHE_HOME"] = "/tmp/stale-xdg-cache"
+            os.environ["BIJUX_HPC_ROOT"] = "/tmp/stale-hpc-root"
+
+            env = support.benchmark_runtime_env(out_root)
+            expected_cache_root = support.infer_cache_root(out_root)
+            self.assertIsNotNone(expected_cache_root)
+            expected_cache_root = expected_cache_root.resolve()
+            expected_hpc_root = expected_cache_root.parent
+
+            self.assertEqual(Path(env["BIJUX_CACHE_ROOT"]).resolve(), expected_cache_root)
+            self.assertEqual(Path(env["XDG_CACHE_HOME"]).resolve(), expected_cache_root)
+            self.assertEqual(Path(env["BIJUX_HPC_ROOT"]).resolve(), expected_hpc_root)
+        finally:
+            if stale_cache_root is None:
+                os.environ.pop("BIJUX_CACHE_ROOT", None)
+            else:
+                os.environ["BIJUX_CACHE_ROOT"] = stale_cache_root
+            if stale_xdg_cache is None:
+                os.environ.pop("XDG_CACHE_HOME", None)
+            else:
+                os.environ["XDG_CACHE_HOME"] = stale_xdg_cache
+            if stale_hpc_root is None:
+                os.environ.pop("BIJUX_HPC_ROOT", None)
+            else:
+                os.environ["BIJUX_HPC_ROOT"] = stale_hpc_root
+
     def test_localize_results_path_supports_cache_results_root(self) -> None:
         localized = support.localize_results_path(
             "/lunarc/nobackup/projects/snic2019-34-3/.cache/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json",
