@@ -22,6 +22,7 @@ from corpus_01_fastq_benchmark_support import (
     load_corpus_spec,
     normalize_tool_csv,
     require_canonical_tool_roster,
+    resolve_bowtie2_index_prefix,
     sha256_artifact_bundle,
     validate_benchmark_layout,
     validate_corpus_contract,
@@ -185,7 +186,11 @@ def resolve_reference_index(args: argparse.Namespace) -> Path:
             "--reference-index (or BIJUX_CONTAMINANT_REFERENCE_INDEX) so the governed "
             "contaminant index is explicit."
         )
-    reference_index = Path(args.reference_index).expanduser().resolve()
+    requested_index = Path(args.reference_index).expanduser().resolve()
+    try:
+        reference_index = resolve_bowtie2_index_prefix(requested_index)
+    except (FileNotFoundError, ValueError) as error:
+        raise SystemExit(str(error)) from error
     if not artifact_bundle_exists(reference_index):
         raise SystemExit(
             f"missing contaminant reference index bundle or prefix matches: {reference_index}"
