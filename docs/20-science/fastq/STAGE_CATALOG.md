@@ -172,7 +172,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Inputs/Outputs: reads -> normalized_reads_r1/normalized_reads_r2, primer_orientation_report, primer_stats_json.
 - Metrics: primer-trimmed reads, retained reads.
 - Defaults: forward-primer normalization with strict 5' anchoring and IUPAC-aware matching.
-- Tools: cutadapt.
+- Tools: cutadapt, seqkit.
 - References: `domain/fastq/stages/normalize_primers.yaml`, `domain/fastq/tools/`.
 
 ### fastq.remove_chimeras {#fastq-remove-chimeras}
