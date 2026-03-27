@@ -29,53 +29,65 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 %environment
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
-    TZ=UTC
     DEBIAN_FRONTEND=noninteractive
+    TZ=UTC
+    export VERSION_SPADES=4.2.0
 
 %post
     set -eux
     umask 022
-    export TZ=UTC
     export DEBIAN_FRONTEND=noninteractive
 
-    BUILD_DEPS="wget xz-utils" && \
-    RUNTIME_DEPS="libgomp1 python3 python3-yaml" && \
-
-    apt-get update && \
+    # Section 1: Install runtime dependencies.
+    apt-get update
     apt-get install -y --no-install-recommends \
-        ${BUILD_DEPS} \
-        ${RUNTIME_DEPS} && \
+        wget \
+        python3 \
+        ca-certificates \
+        grep
+    apt-get install -y --no-install-recommends libgomp1
+    test -e /usr/lib/x86_64-linux-gnu/libgomp.so.1
 
-    wget -qO /tmp/spades.tar.gz \
-        "https://github.com/ablab/spades/releases/download/v4.2.0/SPAdes-4.2.0-Linux.tar.gz" && \
-    tar -xzf /tmp/spades.tar.gz -C /opt && \
-    cp -r /opt/SPAdes-4.2.0-Linux/bin/* /usr/local/bin/ && \
-    cp -r /opt/SPAdes-4.2.0-Linux/share/spades /usr/local/share/ && \
-    chmod +x /usr/local/share/spades/spades.py && \
-    ln -sf /usr/local/share/spades/spades.py /usr/local/bin/spades.py && \
+    # Section 2: Fetch prebuilt SPAdes release.
+    cd /tmp
+    wget -q -O spades.tar.gz \
+      "https://github.com/ablab/spades/releases/download/v4.2.0/SPAdes-4.2.0-Linux.tar.gz"
 
-    cd / && \
-    rm -rf /opt/SPAdes-4.2.0-Linux /tmp/spades.tar.gz && \
-    apt-get clean && \
+    mkdir -p /opt
+    tar -xzf spades.tar.gz -C /opt
+
+    # Section 3: Install binaries and shared assets.
+    cp -r /opt/SPAdes-4.2.0-Linux/bin/* /usr/local/bin/
+    ln -sf spades.py /usr/local/bin/spades
+    mkdir -p /usr/local/share
+    cp -r /opt/SPAdes-4.2.0-Linux/share/spades /usr/local/share/
+
+    # Section 4: Run sanity checks and fail on version mismatch.
+    /usr/local/bin/spades --version | grep -q "4.2.0"
+
+    # Section 5: Create a BayesHammer wrapper with a uniform CLI.
+    cat > /usr/local/bin/bayeshammer <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "${1:-}" in
+  --version)
+    exec spades --version
+    ;;
+  --help|-h|"")
+    exec spades --only-error-correction --help
+    ;;
+esac
+
+exec spades --only-error-correction "$@"
+EOF
+    chmod 0755 /usr/local/bin/bayeshammer
+
+    # Section 6: Clean up build tree.
+    cd /
+    rm -rf /opt/SPAdes-4.2.0-Linux /tmp/spades.tar.gz
+
     rm -rf /var/lib/apt/lists/*
-
-    # Create a wrapper script for bayeshammer.
-    printf '%s\n' \
-      '#!/usr/bin/env bash' \
-      'set -e' \
-      'spades_entry=/usr/local/bin/spades.py' \
-      'if [ ! -x "$spades_entry" ]; then' \
-      '  echo "error: spades.py not installed at $spades_entry" >&2' \
-      '  exit 127' \
-      'fi' \
-      'case "$1" in' \
-      '  --version) echo "4.2.0"; exit 0 ;;' \
-      '  --help|-h|"") exec "$spades_entry" --only-error-correction --help ;;' \
-      '  --__bijux_invalid_flag__*) echo "error: bayeshammer does not support $1" >&2; exit 2 ;;' \
-      'esac' \
-      'exec "$spades_entry" --only-error-correction "$@"' \
-      > /usr/local/bin/bayeshammer && \
-    chmod +x /usr/local/bin/bayeshammer
 %runscript
     if [ $# -eq 0 ]; then
         exec /usr/local/bin/bayeshammer --help
@@ -85,5 +97,5 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 
 %help
     This Apptainer image provides BayesHammer (via SPAdes v4.2.0 error correction module).
-    The default command is 'bayeshammer', which runs 'spades.py --only-error-correction'.
+    The default command is 'bayeshammer', which runs 'spades --only-error-correction'.
     Run without arguments to display help, or provide arguments to execute error correction.

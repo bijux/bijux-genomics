@@ -300,7 +300,7 @@ fn correct_command_template(
             ));
         }
         "bayeshammer" => {
-            script.push_str("spades.py --only-error-correction");
+            script.push_str("bayeshammer");
             script.push_str(&format!(" --threads {threads}"));
             let phred_offset = match options.quality_encoding {
                 QualityEncoding::Phred33 => 33,
@@ -627,7 +627,7 @@ mod tests {
             plan.effective_params["max_memory_gb"],
             serde_json::json!(24)
         );
-        assert!(plan.command.template[2].contains("spades.py --only-error-correction"));
+        assert!(plan.command.template[2].contains("bayeshammer"));
         assert!(plan.command.template[2].contains(" -m 24"));
     }
 
