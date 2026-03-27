@@ -214,6 +214,13 @@ pub const FASTQ_SCREEN_METRICS: [MetricId; 17] = [
     MetricId::TopTaxa,
 ];
 
+pub const FASTQ_NORMALIZE_PRIMERS_METRICS: [MetricId; 4] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::PrimerTrimmedFraction,
+    MetricId::OrientationForwardFraction,
+];
+
 pub const FASTQ_STATS_METRICS: [MetricId; 5] = [
     MetricId::ReadsTotal,
     MetricId::BasesTotal,
@@ -307,6 +314,13 @@ pub const FASTQ_SCREEN_INVARIANTS: [&str; 4] = [
     "counts are non-negative",
 ];
 
+pub const FASTQ_NORMALIZE_PRIMERS_INVARIANTS: [&str; 4] = [
+    "reads_out <= reads_in",
+    "primer_trimmed_fraction in [0, 1]",
+    "orientation_forward_fraction in [0, 1]",
+    "counts are non-negative",
+];
+
 pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent in [0, 100]"];
 
 pub const FASTQ_READ_LENGTH_INVARIANTS: [&str; 3] = [
@@ -336,6 +350,7 @@ pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
         "fastq.report_qc" => Some(StageMetricKind::FastqQcPost),
         "fastq.extract_umis" => Some(StageMetricKind::FastqUmi),
         "fastq.screen_taxonomy" => Some(StageMetricKind::FastqScreen),
+        "fastq.normalize_primers" => Some(StageMetricKind::FastqNormalizePrimers),
         "fastq.profile_reads" => Some(StageMetricKind::FastqStats),
         "fastq.profile_read_lengths" => Some(StageMetricKind::FastqReadLengths),
         "fastq.profile_overrepresented_sequences" => Some(StageMetricKind::FastqOverrepresented),

@@ -87,6 +87,12 @@ pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
             metrics: &fields::FASTQ_SCREEN_METRICS,
             invariants: &fields::FASTQ_SCREEN_INVARIANTS,
         },
+        defs::StageMetricKind::FastqNormalizePrimers => defs::StageMetricSpec {
+            stage: "fastq.normalize_primers",
+            version: 1,
+            metrics: &fields::FASTQ_NORMALIZE_PRIMERS_METRICS,
+            invariants: &fields::FASTQ_NORMALIZE_PRIMERS_INVARIANTS,
+        },
         defs::StageMetricKind::FastqStats => defs::StageMetricSpec {
             stage: "fastq.profile_reads",
             version: 1,

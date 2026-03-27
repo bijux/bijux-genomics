@@ -240,7 +240,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         derived: false,
     },
 ];
-pub const METRIC_REGISTRY_FASTQ: [MetricSpec; 73] = [
+pub const METRIC_REGISTRY_FASTQ: [MetricSpec; 75] = [
     MetricSpec {
         id: MetricId::ContaminationRate,
         name: "contamination_rate",
@@ -308,6 +308,26 @@ pub const METRIC_REGISTRY_FASTQ: [MetricSpec; 73] = [
         direction: MetricDirection::LowerBetter,
         range: Some(MetricRange { min: 0.0, max: 1.0 }),
         stages: &["fastq.detect_adapters"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::PrimerTrimmedFraction,
+        name: "primer_trimmed_fraction",
+        meaning: "Fraction of reads that required governed primer trimming",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange { min: 0.0, max: 1.0 }),
+        stages: &["fastq.normalize_primers"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::OrientationForwardFraction,
+        name: "orientation_forward_fraction",
+        meaning: "Fraction of reads reported in the governed forward orientation",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange { min: 0.0, max: 1.0 }),
+        stages: &["fastq.normalize_primers"],
         measured: true,
         derived: false,
     },

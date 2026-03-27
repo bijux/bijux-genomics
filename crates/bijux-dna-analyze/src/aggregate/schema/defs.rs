@@ -20,6 +20,7 @@ pub enum StageMetricKind {
     FastqQcPost,
     FastqUmi,
     FastqScreen,
+    FastqNormalizePrimers,
     FastqStats,
     FastqReadLengths,
     FastqOverrepresented,
