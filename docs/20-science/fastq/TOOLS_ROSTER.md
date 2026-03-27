@@ -35,7 +35,7 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.screen_taxonomy | kraken2, krakenuniq, centrifuge, metaphlan, kaiju, fastq_screen | Read-level screening and profiling backends only |
 | fastq.report_qc | multiqc | Aggregated QC reporting |
 | fastq.trim_terminal_damage | cutadapt, seqkit | Terminal-damage-aware trimming/masking |
-| fastq.normalize_primers | cutadapt, seqkit | Primer normalization with explicit sequence handling |
+| fastq.normalize_primers | cutadapt | Primer normalization with explicit sequence handling |
 | fastq.remove_chimeras | vsearch | Chimera removal in amplicon workflows |
 | fastq.cluster_otus | vsearch | OTU clustering |
 | fastq.infer_asvs | no admitted backend yet | Stage contract is defined, but governed runtime admission for ASV inference is still pending |
