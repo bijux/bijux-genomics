@@ -174,6 +174,15 @@ _benchmark-deplete-rrna-corpus-01: ## Benchmark fastq.deplete_rrna across corpus
 		$(if $(RRNA_DB),--rrna-db "$(RRNA_DB)",) \
 		$(if $(RRNA_BUNDLE_ID),--rrna-bundle-id "$(RRNA_BUNDLE_ID)",)
 
+_benchmark-deplete-host-corpus-01: ## Benchmark fastq.deplete_host across corpus-01
+	@python3 makes/bin/run_fastq_deplete_host_corpus_01.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
+		$(if $(TOOLS),--tools "$(TOOLS)",) \
+		$(if $(REFERENCE_INDEX),--reference-index "$(REFERENCE_INDEX)",)
+
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
 		--repo-root . \
@@ -293,6 +302,14 @@ _benchmark-deplete-rrna-corpus-01-report: ## Render the corpus-01 deplete-rrna b
 		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
 	@python3 makes/bin/render_fastq_deplete_rrna_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.deplete_rrna/corpus-01
+
+_benchmark-deplete-host-corpus-01-report: ## Render the corpus-01 deplete-host benchmark dossier into docs/
+	@python3 makes/bin/render_fastq_deplete_host_corpus_01_report.py \
+		--repo-root . \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+	@python3 makes/bin/render_fastq_deplete_host_corpus_01_briefing.py \
+		--docs-root docs/benchmark/fastq.deplete_host/corpus-01
 
 _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publication coverage
 	@python3 makes/bin/audit_corpus_01_fastq_benchmark_docs.py \
