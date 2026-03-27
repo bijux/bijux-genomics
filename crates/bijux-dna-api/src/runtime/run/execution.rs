@@ -5,6 +5,20 @@ use super::{
     ExecuteRunRequest, ExecuteRunResult, Instant, Path, PathBuf, Result, RunnerContractKind,
 };
 
+fn common_input_root(paths: &[PathBuf]) -> Option<PathBuf> {
+    let mut iter = paths.iter();
+    let first = iter.next()?.clone();
+    let mut prefix = first;
+    for path in iter {
+        while !path.starts_with(&prefix) {
+            if !prefix.pop() {
+                return None;
+            }
+        }
+    }
+    Some(prefix)
+}
+
 /// # Errors
 /// Returns an error if execution fails.
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
@@ -197,15 +211,19 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         .plan
         .io
         .inputs
-        .first()
-        .and_then(|artifact| {
-            request
-                .plan
-                .out_dir
-                .join(&artifact.path)
-                .parent()
-                .map(Path::to_path_buf)
+        .iter()
+        .map(|artifact| request.plan.out_dir.join(&artifact.path))
+        .map(|path| {
+            if path.is_dir() {
+                path
+            } else {
+                path.parent()
+                    .map(Path::to_path_buf)
+                    .unwrap_or_else(|| path.clone())
+            }
         })
+        .collect::<Vec<_>>();
+    let input_root = common_input_root(&input_root)
         .unwrap_or_else(|| request.plan.out_dir.clone());
     let network_policy = if request
         .plan

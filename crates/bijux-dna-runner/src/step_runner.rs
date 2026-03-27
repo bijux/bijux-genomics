@@ -88,7 +88,10 @@ fn hash_path(path: &Path) -> Result<String> {
     if path.is_dir() {
         return hash_directory(path);
     }
-    Err(anyhow!("unsupported hash input path type: {}", path.display()))
+    Err(anyhow!(
+        "unsupported hash input path type: {}",
+        path.display()
+    ))
 }
 
 fn hash_directory(root: &Path) -> Result<String> {
@@ -111,6 +114,13 @@ fn hash_directory(root: &Path) -> Result<String> {
         hasher.update(relative.to_string_lossy().as_bytes());
         if entry.file_type().is_dir() {
             hasher.update(b"\0dir\0");
+            continue;
+        }
+        if entry.file_type().is_symlink() {
+            hasher.update(b"\0symlink\0");
+            let target = std::fs::read_link(path)
+                .with_context(|| format!("read directory hash symlink {}", path.display()))?;
+            hasher.update(target.to_string_lossy().as_bytes());
             continue;
         }
         hasher.update(b"\0file\0");
@@ -172,7 +182,11 @@ fn collapse_bind_roots(mut roots: Vec<PathBuf>) -> Vec<PathBuf> {
     collapsed
 }
 
-fn input_bind_roots(inputs: &[PathBuf], input_root: &Path, preserve_absolute: bool) -> Vec<PathBuf> {
+fn input_bind_roots(
+    inputs: &[PathBuf],
+    input_root: &Path,
+    preserve_absolute: bool,
+) -> Vec<PathBuf> {
     if !preserve_absolute {
         return vec![container_input_mapping(input_root).0];
     }
@@ -684,8 +698,7 @@ mod tests {
     };
     use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};
     use bijux_dna_core::prelude::{
-        ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId,
-        StepId,
+        ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId,
     };
     use bijux_dna_environment::api::RuntimeKind;
     use std::path::{Path, PathBuf};
@@ -817,7 +830,9 @@ mod tests {
         let rewritten = container_command_template(&template, &input, &out_dir, false);
 
         assert_eq!(rewritten[0], "sh");
-        assert!(rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input/sample_0004_R1.fastq.gz"));
+        assert!(
+            rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input/sample_0004_R1.fastq.gz")
+        );
         assert!(rewritten[2].contains("> /data/output/reads.tsv"));
     }
 
@@ -909,6 +924,20 @@ mod tests {
             .expect("write file");
 
         let digest = hash_path(&root).expect("hash directory");
+
+        assert_eq!(digest.len(), 64);
+    }
+
+    #[test]
+    fn hash_path_supports_directory_symlinks() {
+        let temp = tempdir().expect("tempdir");
+        let root = temp.path().join("taxonomy");
+        std::fs::create_dir_all(root.join("kraken2")).expect("create db dir");
+        std::fs::write(root.join("kraken2").join("hash.k2d"), b"kraken-hash").expect("write db");
+        std::os::unix::fs::symlink(root.join("kraken2"), root.join("krakenuniq"))
+            .expect("create db symlink");
+
+        let digest = hash_path(&root).expect("hash directory with symlink");
 
         assert_eq!(digest.len(), 64);
     }
