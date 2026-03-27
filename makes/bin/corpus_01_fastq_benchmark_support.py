@@ -509,10 +509,10 @@ def localize_results_path(path_str: str, local_results_root: Path) -> Path:
     path = Path(path_str)
     if path.exists():
         return path
-    marker = "/results/"
-    if marker not in path_str:
-        return path
-    return local_results_root / path_str.split(marker, 1)[1]
+    for marker in ("/results/", "/bijux-dna-results/"):
+        if marker in path_str:
+            return local_results_root / path_str.split(marker, 1)[1]
+    return path
 
 
 def validate_benchmark_layout(corpus_root: Path, out_root: Path) -> None:
