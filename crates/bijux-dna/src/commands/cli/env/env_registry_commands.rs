@@ -1,3 +1,14 @@
+fn shared_cache_root(root: &Path) -> PathBuf {
+    if root
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name == ".cache")
+    {
+        return root.to_path_buf();
+    }
+    root.join(".cache")
+}
+
 /// # Errors
 /// Returns an error if registry parsing, Apptainer build/smoke, or manifest writes fail.
 pub fn ensure_apptainer_images(
@@ -20,10 +31,10 @@ pub fn ensure_apptainer_images(
         .collect::<std::collections::BTreeMap<_, _>>();
     let stage_ids = normalize_stage_ids(domain, stages_csv);
 
-    let root = hpc_root.to_path_buf();
-    let containers_root = root.join("bijux-dna-container");
-    let data_root = root.join("corpus_01");
-    let results_root = root.join("results");
+    let cache_root = shared_cache_root(hpc_root);
+    let containers_root = cache_root.join("bijux-dna-container");
+    let data_root = cache_root.join("corpus_01");
+    let results_root = cache_root.join("results");
     bijux_dna_api::v1::api::run::ensure_dir(&containers_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&data_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&results_root)?;
@@ -194,10 +205,10 @@ pub fn ensure_apptainer_tools(
         return Err(anyhow!("no tool ids provided for apptainer ensure"));
     }
 
-    let root = hpc_root.to_path_buf();
-    let containers_root = root.join("bijux-dna-container");
-    let data_root = root.join("corpus_01");
-    let results_root = root.join("results");
+    let cache_root = shared_cache_root(hpc_root);
+    let containers_root = cache_root.join("bijux-dna-container");
+    let data_root = cache_root.join("corpus_01");
+    let results_root = cache_root.join("results");
     bijux_dna_api::v1::api::run::ensure_dir(&containers_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&data_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&results_root)?;
@@ -368,7 +379,7 @@ pub fn parse_stage_domain(stage: &str) -> Result<String> {
 /// # Errors
 /// Returns an error if the containers inventory cannot be read.
 pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
-    let containers_dir = root.join("bijux-dna-container");
+    let containers_dir = shared_cache_root(root).join("bijux-dna-container");
     let mut entries = Vec::new();
     let mut stack = vec![containers_dir.clone()];
     while let Some(dir) = stack.pop() {
@@ -456,6 +467,30 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
     }
     lines.push(String::new());
     Ok(lines.join("\n"))
+}
+
+#[cfg(test)]
+mod env_registry_command_tests {
+    use super::shared_cache_root;
+    use std::path::Path;
+
+    #[test]
+    fn shared_cache_root_appends_cache_for_hpc_root() {
+        let root = Path::new("/home/bijan/lu2024-12-24");
+        assert_eq!(
+            shared_cache_root(root),
+            Path::new("/home/bijan/lu2024-12-24/.cache")
+        );
+    }
+
+    #[test]
+    fn shared_cache_root_keeps_cache_root_stable() {
+        let root = Path::new("/home/bijan/lu2024-12-24/.cache");
+        assert_eq!(
+            shared_cache_root(root),
+            Path::new("/home/bijan/lu2024-12-24/.cache")
+        );
+    }
 }
 
 /// # Errors
