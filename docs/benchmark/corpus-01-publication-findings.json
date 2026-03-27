@@ -11,6 +11,18 @@
       "issue_id": "minimal-taxonomy-database-lineage",
       "severity": "error",
       "detail": "the available Lunarc cache lineage bijux-reference/taxonomy/minimal_screen_v1 is a PhiX174/UniVec smoke-test database, so corpus-01 screen_taxonomy cannot publish against it as a full taxonomy benchmark."
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "issue_id": "bayeshammer-retention-contract-drift",
+      "severity": "error",
+      "detail": "the governed BayesHammer path on Lunarc drops reads on paired corpus-01 inputs, which violates the fastq.correct_errors retention contract (`may_change_read_count = false`), so BayesHammer cannot be counted as a corpus-complete governed benchmark backend yet."
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "issue_id": "musket-kmer-budget-unmapped",
+      "severity": "error",
+      "detail": "the governed Musket adapter still emits `musket -k <kmer_size>` even though Musket 1.1 requires `-k <kmer_size> <estimated_total_kmers>`, so the current corpus-01 benchmark path cannot yet produce valid Musket corrected outputs."
     }
   ]
 }

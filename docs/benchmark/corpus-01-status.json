@@ -3,10 +3,10 @@
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
   "benchmarkable_stage_count": 23,
   "applicable_stage_count": 20,
-  "completed_stage_count": 17,
-  "incomplete_stage_count": 3,
+  "completed_stage_count": 15,
+  "incomplete_stage_count": 5,
   "excluded_stage_count": 3,
-  "issue_count": 5,
+  "issue_count": 10,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -126,9 +126,16 @@
       ],
       "method_path": "benchmark/fastq.normalize_primers/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.normalize_primers/corpus-01",
-      "status": "complete",
-      "issue_count": 0,
-      "issues": []
+      "status": "incomplete",
+      "issue_count": 1,
+      "issues": [
+        {
+          "stage_id": "fastq.normalize_primers",
+          "issue_id": "publication-toolset-subset",
+          "severity": "error",
+          "detail": "fastq.normalize_primers publication contract covers ['cutadapt'] but governed stage toolset also admits ['seqkit']"
+        }
+      ]
     },
     {
       "stage_id": "fastq.trim_polyg_tails",
@@ -176,9 +183,16 @@
       ],
       "method_path": "benchmark/fastq.trim_reads/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.trim_reads/corpus-01",
-      "status": "complete",
-      "issue_count": 0,
-      "issues": []
+      "status": "incomplete",
+      "issue_count": 1,
+      "issues": [
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "publication-toolset-subset",
+          "severity": "error",
+          "detail": "fastq.trim_reads publication contract covers ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] but governed stage toolset also admits ['alientrimmer', 'fastx_clipper', 'leehom', 'skewer']"
+        }
+      ]
     },
     {
       "stage_id": "fastq.filter_reads",
@@ -330,13 +344,11 @@
       "scenario_id": "correction_fairness",
       "sample_scope": "paired",
       "contract_tool_roster": [
-        "bayeshammer",
         "lighter",
         "musket",
         "rcorrector"
       ],
       "expected_tool_roster": [
-        "bayeshammer",
         "lighter",
         "musket",
         "rcorrector"
@@ -344,13 +356,31 @@
       "method_path": "benchmark/fastq.correct_errors/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.correct_errors/corpus-01",
       "status": "incomplete",
-      "issue_count": 1,
+      "issue_count": 4,
       "issues": [
+        {
+          "stage_id": "fastq.correct_errors",
+          "issue_id": "publication-toolset-subset",
+          "severity": "error",
+          "detail": "fastq.correct_errors publication contract covers ['lighter', 'musket', 'rcorrector'] but governed stage toolset also admits ['bayeshammer']"
+        },
         {
           "stage_id": "fastq.correct_errors",
           "issue_id": "missing-corpus-dir",
           "severity": "error",
           "detail": "missing benchmark/fastq.correct_errors/corpus-01"
+        },
+        {
+          "stage_id": "fastq.correct_errors",
+          "issue_id": "bayeshammer-retention-contract-drift",
+          "severity": "error",
+          "detail": "the governed BayesHammer path on Lunarc drops reads on paired corpus-01 inputs, which violates the fastq.correct_errors retention contract (`may_change_read_count = false`), so BayesHammer cannot be counted as a corpus-complete governed benchmark backend yet."
+        },
+        {
+          "stage_id": "fastq.correct_errors",
+          "issue_id": "musket-kmer-budget-unmapped",
+          "severity": "error",
+          "detail": "the governed Musket adapter still emits `musket -k <kmer_size>` even though Musket 1.1 requires `-k <kmer_size> <estimated_total_kmers>`, so the current corpus-01 benchmark path cannot yet produce valid Musket corrected outputs."
         }
       ]
     },

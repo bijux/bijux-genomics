@@ -16,6 +16,7 @@ from corpus_01_fastq_benchmark_support import (
     expected_cohort_counts,
     load_corpus_spec,
     resolve_benchmark_tool_roster,
+    resolve_stage_toolset,
 )
 
 
@@ -154,6 +155,11 @@ def audit_stage(
         contract.scenario_id,
         contract.tools,
     )
+    stage_toolset, stage_toolset_error = resolve_stage_toolset(
+        repo_root,
+        contract.stage_id,
+        contract.tools,
+    )
 
     if roster_resolution_error is not None:
         append_issue(
@@ -172,6 +178,27 @@ def audit_stage(
                 f"roster {sorted(expected_tools)!r}"
             ),
         )
+    if stage_toolset_error is not None:
+        append_issue(
+            issues,
+            contract.stage_id,
+            "stage-toolset-unresolved",
+            stage_toolset_error,
+        )
+    else:
+        uncovered_stage_tools = sorted(
+            tool for tool in stage_toolset if tool not in contract.tools
+        )
+        if uncovered_stage_tools:
+            append_issue(
+                issues,
+                contract.stage_id,
+                "publication-toolset-subset",
+                (
+                    f"{contract.stage_id} publication contract covers {sorted(contract.tools)!r} "
+                    f"but governed stage toolset also admits {uncovered_stage_tools!r}"
+                ),
+            )
 
     if not method_path.is_file():
         append_issue(
