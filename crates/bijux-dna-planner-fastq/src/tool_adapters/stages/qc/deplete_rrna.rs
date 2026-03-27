@@ -230,8 +230,6 @@ fn rrna_command(
                 "--fastx".to_string(),
                 "--aligned".to_string(),
                 aligned_prefix.display().to_string(),
-                "--other".to_string(),
-                other_prefix.display().to_string(),
                 "--zip-out".to_string(),
                 "yes".to_string(),
             ];
@@ -288,7 +286,7 @@ fn rrna_command(
                 shell_quote_str(&format!("{}/fwd_*.fq", readb_dir.display())),
             );
             let script = format!(
-                "set -euo pipefail\nshopt -s nullglob\nnormalize_fastq_output() {{ src=\"$1\"; dest=\"$2\"; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }}\ncollect_output_from_globs() {{ dest=\"$1\"; shift; local pattern candidate matches=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${{matches[@]}}\"; do if [ -f \"$candidate\" ]; then normalize_fastq_output \"$candidate\" \"$dest\"; return 0; fi; done; done; printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; }}\nrm -rf {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p {work_dir} {idx_dir} {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p \"$(dirname {filtered_reads_r1})\" \"$(dirname {report_tsv})\" \"$(dirname {report_json})\"\nrm -f {filtered_reads_r1} {filtered_reads_r2_cleanup} {report_tsv} {report_json}\n{sortmerna_command}\n",
+                "set -euo pipefail\nshopt -s nullglob\ncollect_output_from_globs() {{ dest=\"$1\"; shift; local pattern candidate matches=(); local -a inputs=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${{matches[@]}}\"; do if [ -f \"$candidate\" ]; then inputs+=( \"$candidate\" ); fi; done; done; if [ \"${{#inputs[@]}}\" -eq 0 ]; then printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; fi; {{ for candidate in \"${{inputs[@]}}\"; do case \"$candidate\" in *.gz) gzip -cd -- \"$candidate\" ;; *) cat -- \"$candidate\" ;; esac; done; }} | gzip -c > \"$dest\"; }}\nrm -rf {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p {work_dir} {idx_dir} {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p \"$(dirname {filtered_reads_r1})\" \"$(dirname {report_tsv})\" \"$(dirname {report_json})\"\nrm -f {filtered_reads_r1} {filtered_reads_r2_cleanup} {report_tsv} {report_json}\n{sortmerna_command}\n",
                 kvdb_dir = shell_quote_path(&kvdb_dir),
                 readb_dir = shell_quote_path(&readb_dir),
                 out_subdir = shell_quote_path(&out_subdir),

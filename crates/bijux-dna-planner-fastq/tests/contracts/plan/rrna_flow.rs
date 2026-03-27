@@ -104,8 +104,10 @@ fn rrna_stage_recovers_retained_reads_from_sortmerna_readb_fallbacks() -> Result
         .iter()
         .find(|part| part.contains("collect_output_from_globs"))
         .expect("paired sortmerna wrapper script");
+    assert!(!paired_script.contains("--other"));
     assert!(paired_script.contains("out/sortmerna_workdir/readb/fwd_*.fq.gz"));
     assert!(paired_script.contains("out/sortmerna_workdir/readb/rev_*.fq.gz"));
+    assert!(paired_script.contains("gzip -cd -- \"$candidate\""));
 
     let single_plan = plan_rrna(
         &domain_tool("fastq.deplete_rrna", "sortmerna"),
@@ -119,6 +121,7 @@ fn rrna_stage_recovers_retained_reads_from_sortmerna_readb_fallbacks() -> Result
         .iter()
         .find(|part| part.contains("collect_output_from_globs"))
         .expect("single-end sortmerna wrapper script");
+    assert!(!single_script.contains("--other"));
     assert!(single_script.contains("out/sortmerna_workdir/readb/fwd_*.fq.gz"));
     Ok(())
 }
