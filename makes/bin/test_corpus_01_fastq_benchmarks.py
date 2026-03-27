@@ -19,6 +19,7 @@ import audit_published_corpus_01_fastq_results as published_results_audit
 import run_fastq_deplete_host_corpus_01 as deplete_host_runner
 import run_fastq_deplete_reference_contaminants_corpus_01 as deplete_reference_contaminants_runner
 import run_fastq_deplete_rrna_corpus_01 as deplete_rrna_runner
+import run_fastq_screen_taxonomy_corpus_01 as screen_taxonomy_runner
 import run_fastq_filter_reads_corpus_01 as filter_reads_runner
 import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
 import run_fastq_normalize_primers_corpus_01 as normalize_primers_runner
@@ -34,6 +35,8 @@ import render_fastq_deplete_reference_contaminants_corpus_01_briefing as deplete
 import render_fastq_deplete_reference_contaminants_corpus_01_report as deplete_reference_contaminants_report
 import render_fastq_deplete_rrna_corpus_01_briefing as deplete_rrna_briefing
 import render_fastq_deplete_rrna_corpus_01_report as deplete_rrna_report
+import render_fastq_screen_taxonomy_corpus_01_briefing as screen_taxonomy_briefing
+import render_fastq_screen_taxonomy_corpus_01_report as screen_taxonomy_report
 import render_fastq_filter_reads_corpus_01_briefing as filter_reads_briefing
 import render_fastq_filter_reads_corpus_01_report as filter_reads_report
 import render_fastq_filter_low_complexity_corpus_01_briefing as filter_low_complexity_briefing
@@ -115,6 +118,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["reference_catalog_id"], "contaminant_reference")
         self.assertEqual(defaults["reference_index_backend"], "bowtie2_build")
         self.assertEqual(defaults["decoy_mode"], "phix_and_spikeins")
+
+    def test_screen_taxonomy_defaults_match_governed_suite(self) -> None:
+        defaults = support.screen_taxonomy_benchmark_defaults()
+        self.assertEqual(defaults["threads"], 8)
+        self.assertEqual(defaults["database_catalog_id"], "taxonomy_reference")
+        self.assertEqual(defaults["database_artifact_id"], "taxonomy_db")
+        self.assertEqual(defaults["database_namespace"], "read_screening")
+        self.assertEqual(defaults["database_scope"], "read_screening")
+        self.assertIsNone(defaults["minimum_confidence"])
+        self.assertTrue(defaults["emit_unclassified"])
 
     def test_validate_corpus_contract_accepts_balanced_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -665,6 +678,30 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.reference_index, "/refs/contaminants")
         self.assertEqual(args.decoy_mode, "phix_and_spikeins")
 
+    def test_screen_taxonomy_runner_parse_args_supports_database_overrides(
+        self,
+    ) -> None:
+        argv = [
+            "run_fastq_screen_taxonomy_corpus_01.py",
+            "--sample-jobs",
+            "2",
+            "--threads",
+            "6",
+            "--database-root",
+            "/refs/taxonomy",
+            "--database-catalog-id",
+            "taxonomy_reference_v2",
+            "--database-artifact-id",
+            "taxonomy_db_2026_03",
+        ]
+        with mock.patch.object(sys, "argv", argv):
+            args = screen_taxonomy_runner.parse_args()
+        self.assertEqual(args.sample_jobs, 2)
+        self.assertEqual(args.threads, 6)
+        self.assertEqual(args.database_root, "/refs/taxonomy")
+        self.assertEqual(args.database_catalog_id, "taxonomy_reference_v2")
+        self.assertEqual(args.database_artifact_id, "taxonomy_db_2026_03")
+
     def test_deplete_rrna_runner_shared_index_layout_is_stable(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             out_root = Path(tmpdir) / "results"
@@ -1183,6 +1220,37 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_screen_taxonomy_report_contract_rejects_database_lineage_drift(
+        self,
+    ) -> None:
+        run_manifest = {
+            "tools": ["kraken2"],
+            "database_catalog_id": "taxonomy_reference",
+            "database_artifact_id": "taxonomy_db",
+            "database_namespace": "read_screening",
+            "database_scope": "read_screening",
+        }
+        sample_rows = [
+            {
+                "sample_id": "sample_0001",
+                "tool": "kraken2",
+                "database_catalog_id": "taxonomy_reference",
+                "database_artifact_id": "taxonomy_db_legacy",
+                "database_namespace": "read_screening",
+                "database_scope": "read_screening",
+                "reads_in": 100,
+                "reads_out": 100,
+                "bases_in": 1000,
+                "bases_out": 1000,
+            }
+        ]
+        with self.assertRaises(SystemExit):
+            screen_taxonomy_report.validate_row_contract(
+                run_manifest=run_manifest,
+                sample_rows=sample_rows,
+                expected_sample_ids=["sample_0001"],
+            )
+
     def test_filter_reads_report_contract_rejects_parameter_drift(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "fastp", "prinseq", "seqkit"],
@@ -1404,6 +1472,32 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             summary_rows[0]["mean_contaminant_fraction_removed"], 0.045
         )
         self.assertAlmostEqual(summary_rows[0]["mean_reads_removed"], 9.0)
+
+    def test_screen_taxonomy_briefing_summarizes_contamination_and_classification(
+        self,
+    ) -> None:
+        rows = [
+            {
+                "tool": "kraken2",
+                "runtime_s": "2.0",
+                "contamination_rate": "0.03",
+                "classified_fraction": "0.97",
+                "unclassified_fraction": "0.03",
+                "exit_code": "0",
+            },
+            {
+                "tool": "kraken2",
+                "runtime_s": "4.0",
+                "contamination_rate": "0.05",
+                "classified_fraction": "0.95",
+                "unclassified_fraction": "0.05",
+                "exit_code": "0",
+            },
+        ]
+        summary_rows = screen_taxonomy_briefing.tool_runtime_summary(rows)
+        self.assertEqual(summary_rows[0]["tool"], "kraken2")
+        self.assertAlmostEqual(summary_rows[0]["mean_contamination_rate"], 0.04)
+        self.assertAlmostEqual(summary_rows[0]["mean_classified_fraction"], 0.96)
 
     def test_remove_duplicates_briefing_summarizes_duplicate_reads(self) -> None:
         rows = [
