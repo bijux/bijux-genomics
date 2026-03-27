@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
@@ -166,6 +167,30 @@ def report_path(out_root: Path, sample_id: str) -> Path:
     return out_root / "bench" / "filter" / sample_id / "report.json"
 
 
+def sample_root(out_root: Path, sample_id: str) -> Path:
+    return out_root / "bench" / "filter" / sample_id
+
+
+def sample_report_is_resume_ready(sample_report: Path) -> bool:
+    try:
+        payload = json.loads(sample_report.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if payload.get("failures"):
+        return False
+    gate = payload.get("gate")
+    if isinstance(gate, dict) and gate.get("passes") is False:
+        return False
+    records = payload.get("records")
+    return isinstance(records, list) and bool(records)
+
+
+def reset_sample_payload(out_root: Path, sample_id: str) -> None:
+    current_sample_root = sample_root(out_root, sample_id)
+    if current_sample_root.is_dir():
+        shutil.rmtree(current_sample_root)
+
+
 def run_sample_command(
     *,
     repo_root: Path,
@@ -227,19 +252,24 @@ def main() -> int:
     pending: list[tuple[int, dict, Path, list[str]]] = []
 
     for sample_index, sample in enumerate(samples):
+        current_sample_root = sample_root(out_root, sample["sample_id"])
         sample_report = report_path(out_root, sample["sample_id"])
+        if args.resume and current_sample_root.is_dir() and not sample_report.is_file():
+            reset_sample_payload(out_root, sample["sample_id"])
         if args.resume and sample_report.is_file():
-            runs[sample_index] = SampleRun(
-                sample_id=sample["sample_id"],
-                r1=str(sample["r1"]),
-                r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                layout=sample["layout"],
-                status="skipped_existing_report",
-                exit_code=0,
-                command=[],
-                report_json=str(sample_report),
-            )
-            continue
+            if sample_report_is_resume_ready(sample_report):
+                runs[sample_index] = SampleRun(
+                    sample_id=sample["sample_id"],
+                    r1=str(sample["r1"]),
+                    r2=str(sample["r2"]) if sample["r2"] is not None else None,
+                    layout=sample["layout"],
+                    status="skipped_existing_report",
+                    exit_code=0,
+                    command=[],
+                    report_json=str(sample_report),
+                )
+                continue
+            reset_sample_payload(out_root, sample["sample_id"])
 
         command = build_command(
             out_root=out_root,
