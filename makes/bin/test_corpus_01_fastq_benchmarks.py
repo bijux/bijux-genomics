@@ -474,6 +474,26 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 os.stat(shared_idx_dir / "reference.stats").st_nlink,
             )
 
+    def test_deplete_rrna_runner_prunes_sample_workdir_after_capture(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_root = Path(tmpdir) / "results"
+            sample_workdir = deplete_rrna_runner.sortmerna_sample_workdir(
+                out_root,
+                "sample_0003",
+            )
+            (sample_workdir / "idx").mkdir(parents=True)
+            (sample_workdir / "idx" / "reference.stats").write_text(
+                "seed",
+                encoding="utf-8",
+            )
+
+            deplete_rrna_runner.prune_sortmerna_sample_payload(
+                out_root,
+                "sample_0003",
+            )
+
+            self.assertFalse(sample_workdir.exists())
+
     def test_normalize_primers_report_contract_rejects_policy_drift(self) -> None:
         run_manifest = {
             "tools": ["cutadapt"],
