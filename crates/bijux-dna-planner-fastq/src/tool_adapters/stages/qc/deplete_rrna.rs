@@ -209,7 +209,6 @@ fn rrna_command(
             let kvdb_dir = work_dir.join("kvdb");
             let readb_dir = work_dir.join("readb");
             let out_subdir = work_dir.join("out");
-            let aligned_prefix = out_subdir.join("aligned");
             let other_prefix = out_subdir.join("other");
             let mut command = vec![
                 "sortmerna".to_string(),
@@ -228,8 +227,6 @@ fn rrna_command(
                 "--threads".to_string(),
                 threads.to_string(),
                 "--fastx".to_string(),
-                "--aligned".to_string(),
-                aligned_prefix.display().to_string(),
                 "--zip-out".to_string(),
                 "yes".to_string(),
             ];
