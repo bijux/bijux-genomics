@@ -52,6 +52,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     tar -xjf /tmp/fastx_toolkit-0.0.14.tar.bz2 -C /tmp
     cd /tmp/fastx_toolkit-0.0.14
     ./configure --prefix=/usr/local PKG_CONFIG_PATH=/usr/local/lib/pkgconfig CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib
+    find /tmp/fastx_toolkit-0.0.14 -name Makefile -exec perl -0pi -e 's/ -Werror//g' {} +
     make -j"$(nproc)"
     make install
     mv /usr/local/bin/fastx_clipper /usr/local/bin/fastx_clipper.bin
