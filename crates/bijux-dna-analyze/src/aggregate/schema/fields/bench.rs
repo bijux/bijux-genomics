@@ -120,6 +120,21 @@ pub const FASTQ_LOW_COMPLEXITY_METRICS: [MetricId; 8] = [
     MetricId::DeltaMetrics,
 ];
 
+pub const FASTQ_DEDUPLICATE_METRICS: [MetricId; 12] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::DuplicateReads,
+    MetricId::DedupRate,
+    MetricId::Tool,
+    MetricId::PairedMode,
+    MetricId::DedupMode,
+    MetricId::KeepOrder,
+    MetricId::PairCountMatch,
+    MetricId::DuplicateClassCount,
+    MetricId::DuplicateProvenanceJson,
+    MetricId::RawBackendReportFormat,
+];
+
 pub const FASTQ_MERGE_METRICS: [MetricId; 11] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
@@ -253,6 +268,13 @@ pub const FASTQ_LOW_COMPLEXITY_INVARIANTS: [&str; 4] = [
     "counts are non-negative",
 ];
 
+pub const FASTQ_DEDUPLICATE_INVARIANTS: [&str; 4] = [
+    "reads_out <= reads_in",
+    "dedup_rate in [0, 1]",
+    "pair_count_match should not be false for paired inputs",
+    "counts are non-negative",
+];
+
 pub const FASTQ_MERGE_INVARIANTS: [&str; 3] = [
     "reads_merged + reads_unmerged <= min(reads_r1, reads_r2)",
     "merge_rate in [0, 1]",
@@ -308,6 +330,7 @@ pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
         "fastq.detect_adapters" => Some(StageMetricKind::FastqDetectAdapters),
         "fastq.filter_reads" => Some(StageMetricKind::FastqFilter),
         "fastq.filter_low_complexity" => Some(StageMetricKind::FastqLowComplexity),
+        "fastq.remove_duplicates" => Some(StageMetricKind::FastqDeduplicate),
         "fastq.merge_pairs" => Some(StageMetricKind::FastqMerge),
         "fastq.correct_errors" => Some(StageMetricKind::FastqCorrect),
         "fastq.report_qc" => Some(StageMetricKind::FastqQcPost),

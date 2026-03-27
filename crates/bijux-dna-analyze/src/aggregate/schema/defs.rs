@@ -14,6 +14,7 @@ pub enum StageMetricKind {
     FastqDetectAdapters,
     FastqFilter,
     FastqLowComplexity,
+    FastqDeduplicate,
     FastqMerge,
     FastqCorrect,
     FastqQcPost,

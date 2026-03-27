@@ -1,8 +1,8 @@
 use bijux_dna_analyze::{
     metric_set, BenchmarkRecord, FastqCorrectMetrics, FastqDeltaMetrics, FastqFilterMetrics,
-    FastqLowComplexityMetrics, FastqMergeMetrics, FastqQcPostMetrics, FastqScreenMetrics,
-    FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics, FastqValidateMetrics,
-    LengthHistogramBin, MetricSet,
+    FastqDuplicateMetrics, FastqLowComplexityMetrics, FastqMergeMetrics, FastqQcPostMetrics,
+    FastqScreenMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
+    FastqValidateMetrics, LengthHistogramBin, MetricSet,
 };
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 
@@ -265,6 +265,22 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         },
     });
     assert_eq!(low_complexity.metrics_schema, "fastq_filter_low_complexity_v1");
+
+    let deduplicate = metric_set(FastqDuplicateMetrics {
+        reads_in: 100,
+        reads_out: 92,
+        duplicate_reads: 8,
+        dedup_rate: 0.08,
+        tool: Some("fastuniq".to_string()),
+        paired_mode: Some("paired_end".to_string()),
+        dedup_mode: Some("exact".to_string()),
+        keep_order: Some(true),
+        pair_count_match: Some(true),
+        duplicate_class_count: Some(1),
+        duplicate_provenance_json: Some("out/duplicate_provenance.json".to_string()),
+        raw_backend_report_format: Some("fastuniq_log".to_string()),
+    });
+    assert_eq!(deduplicate.metrics_schema, "fastq_remove_duplicates_v1");
 
     let merge = metric_set(FastqMergeMetrics {
         reads_in: 100,
