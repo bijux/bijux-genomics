@@ -249,11 +249,13 @@ def main() -> int:
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
     era_counts: dict[str, int] = defaultdict(int)
+    cohort_counts: dict[str, int] = defaultdict(int)
 
     for run in run_manifest["runs"]:
         sample_id = run["sample_id"]
         metadata = metadata_by_sample[sample_id]
         era_counts[metadata["era"]] += 1
+        cohort_counts[f"{metadata['era']}_{metadata['layout']}"] += 1
 
         report_path = localize_results_path(run["report_json"], local_results_root)
         if not report_path.is_file():
@@ -345,6 +347,7 @@ def main() -> int:
         "tools": run_manifest["tools"],
         "samples_total": len(expected_sample_ids),
         "samples_failed": int(run_manifest.get("samples_failed", 0)),
+        "cohort_counts": dict(sorted(cohort_counts.items())),
         "era_counts": dict(sorted(era_counts.items())),
         "umi_pattern": run_manifest["umi_pattern"],
         "allow_missing_umi_headers": run_manifest["allow_missing_umi_headers"],

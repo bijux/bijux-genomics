@@ -1,7 +1,7 @@
 {
   "corpus_id": "corpus-01",
-  "published_stage_count": 14,
-  "complete_stage_count": 14,
+  "published_stage_count": 15,
+  "complete_stage_count": 15,
   "incomplete_stage_count": 0,
   "issue_count": 0,
   "stages": [
@@ -73,6 +73,12 @@
     },
     {
       "stage_id": "fastq.remove_duplicates",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.extract_umis",
       "status": "complete",
       "issue_count": 0,
       "issues": []
