@@ -424,22 +424,66 @@ fn centrifuge_screen_script(
     normalized_report_path: &Path,
     threads: u32,
 ) -> String {
-    let reads_clause = if let Some(r2) = r2 {
-        format!("-1 {} -2 {}", shell_quote_path(r1), shell_quote_path(r2),)
+    let mut prelude = String::new();
+    let mut cleanup = Vec::new();
+    let r1_input = if is_gzip_input(r1) {
+        let inflated = native_assignments_path.with_file_name("centrifuge.reads_r1.fastq");
+        prelude.push_str(&format!(
+            "gzip -cd {} > {}\n",
+            shell_quote_path(r1),
+            shell_quote_path(&inflated),
+        ));
+        cleanup.push(shell_quote_path(&inflated));
+        inflated
     } else {
-        format!("-U {}", shell_quote_path(r1))
+        r1.to_path_buf()
+    };
+    let r2_input = if let Some(r2) = r2 {
+        if is_gzip_input(r2) {
+            let inflated = native_assignments_path.with_file_name("centrifuge.reads_r2.fastq");
+            prelude.push_str(&format!(
+                "gzip -cd {} > {}\n",
+                shell_quote_path(r2),
+                shell_quote_path(&inflated),
+            ));
+            cleanup.push(shell_quote_path(&inflated));
+            Some(inflated)
+        } else {
+            Some(r2.to_path_buf())
+        }
+    } else {
+        None
+    };
+    let reads_clause = if r2.is_some() {
+        let r2_input = r2_input.expect("paired centrifuge input must be present");
+        format!(
+            "-1 {} -2 {}",
+            shell_quote_path(&r1_input),
+            shell_quote_path(&r2_input),
+        )
+    } else {
+        format!("-U {}", shell_quote_path(&r1_input))
+    };
+    let cleanup_clause = if cleanup.is_empty() {
+        String::new()
+    } else {
+        format!("rm -f {}\n", cleanup.join(" "))
     };
     format!(
         "mkdir -p {db_root}\n\
+         {prelude}\
          centrifuge -x {db_prefix} -q {reads} -S {native_assignments} --report-file {native_report} -p {threads}\n\
-         awk -F '\\t' 'NF >= 7 {{ if ($1 == \"name\") next; pct=$7; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", $1, pct }}' {native_report} > {normalized_report}\n",
+         awk -F '\\t' 'NF >= 7 {{ if ($1 == \"name\") next; pct=$7; sub(/%$/, \"\", pct); printf \"%s\\t0\\t%s%%\\n\", $1, pct }}' {native_report} > {normalized_report}\n\
+         {cleanup_clause}",
         db_root = shell_quote_path(&database_root.join("centrifuge")),
+        prelude = prelude,
         db_prefix = shell_quote_path(&database_root.join("centrifuge").join("reference")),
         reads = reads_clause,
         native_assignments = shell_quote_path(native_assignments_path),
         native_report = shell_quote_path(native_report_path),
         threads = threads,
         normalized_report = shell_quote_path(normalized_report_path),
+        cleanup_clause = cleanup_clause,
     )
 }
 
@@ -569,6 +613,12 @@ fn shell_quote_path(path: &Path) -> String {
 
 fn shell_quote_str(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
+fn is_gzip_input(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name.ends_with(".gz"))
 }
 
 #[cfg(test)]
