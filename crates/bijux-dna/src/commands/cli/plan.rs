@@ -547,6 +547,7 @@ pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> Result<engine_args::Ben
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out: args.out.clone(),
+        database_root: args.database_root.clone(),
         tools: resolve_bench_tools("fastq.screen_taxonomy", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,

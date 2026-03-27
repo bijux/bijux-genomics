@@ -737,6 +737,25 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(args.database_catalog_id, "taxonomy_reference_v2")
         self.assertEqual(args.database_artifact_id, "taxonomy_db_2026_03")
 
+    def test_screen_taxonomy_runner_build_command_includes_database_root(self) -> None:
+        command = screen_taxonomy_runner.build_command(
+            out_root=Path("/tmp/out"),
+            platform="lunarc-apptainer",
+            tools="kraken2,kaiju",
+            database_root=Path("/refs/taxonomy"),
+            threads=8,
+            jobs=1,
+            sample={
+                "sample_id": "sample_0001",
+                "r1": Path("/corpus/sample_R1.fastq.gz"),
+                "r2": Path("/corpus/sample_R2.fastq.gz"),
+                "layout": "paired",
+            },
+        )
+
+        self.assertIn("--database-root", command)
+        self.assertIn("/refs/taxonomy", command)
+
     def test_correct_errors_runner_parse_args_supports_policy_overrides(self) -> None:
         argv = [
             "run_fastq_correct_errors_corpus_01.py",

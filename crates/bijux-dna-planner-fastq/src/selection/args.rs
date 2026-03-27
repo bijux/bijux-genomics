@@ -336,6 +336,7 @@ pub struct BenchFastqScreenArgs {
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
     pub out: PathBuf,
+    pub database_root: Option<PathBuf>,
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
