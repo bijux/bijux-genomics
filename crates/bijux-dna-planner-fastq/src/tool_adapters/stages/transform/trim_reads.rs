@@ -186,8 +186,10 @@ pub fn plan_with_options(
         return Err(anyhow!("seqpurge trim planning requires paired-end reads"));
     }
     ensure_trim_option_support(&tool.tool_id.0, options)?;
-    let effective_threads =
-        normalize_trim_threads(tool.tool_id.as_str(), options.resolved_threads(tool.resources.threads));
+    let effective_threads = normalize_trim_threads(
+        tool.tool_id.as_str(),
+        options.resolved_threads(tool.resources.threads),
+    );
     let output_r1 = if r2.is_some() {
         out_dir.join(format!("R1.{output_name}"))
     } else {
@@ -351,8 +353,10 @@ fn trim_command_template(
     let adapter_policy = options.resolved_adapter_policy();
     let adapter_sequences = enabled_adapter_sequences(adapter_bank);
     let polyx_policy = options.resolved_polyx_policy();
-    let effective_threads =
-        normalize_trim_threads(tool.tool_id.as_str(), options.resolved_threads(tool.resources.threads));
+    let effective_threads = normalize_trim_threads(
+        tool.tool_id.as_str(),
+        options.resolved_threads(tool.resources.threads),
+    );
     if tool.tool_id.as_str() == "fastp" {
         let raw_backend_report = raw_backend_report_path(report_json, "fastp", "json");
         let mut command = vec![
@@ -461,6 +465,18 @@ fn trim_command_template(
     }
     if tool.tool_id.as_str() == "adapterremoval" {
         return adapterremoval_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        );
+    }
+    if tool.tool_id.as_str() == "alientrimmer" {
+        return alientrimmer_command_template(
             r1,
             r2,
             output_r1,
@@ -621,7 +637,8 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
         Some("bank" | "ancient_strict")
     ) {
         match tool_id {
-            "fastp" | "cutadapt" | "atropos" | "adapterremoval" | "trim_galore" => {}
+            "fastp" | "cutadapt" | "atropos" | "adapterremoval" | "alientrimmer"
+            | "trim_galore" => {}
             _ => {
                 return Err(anyhow!(
                     "trim planning does not yet execute adapter bank policies for {tool_id}"
@@ -635,7 +652,7 @@ fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOptions) -> Resul
     }
     match tool_id {
         "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
-        | "trim_galore" => Ok(()),
+        | "alientrimmer" | "trim_galore" => Ok(()),
         "prinseq" => Ok(()),
         "seqkit" if options.quality_cutoff.is_none() => Ok(()),
         "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
@@ -1282,6 +1299,83 @@ fn adapterremoval_command_template(
     ))
 }
 
+fn alientrimmer_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    let output_dir = output_r1
+        .parent()
+        .ok_or_else(|| anyhow!("alientrimmer output path must have a parent directory"))?;
+    let adapter_file = output_dir.join("alientrimmer_adapters.txt");
+    let adapter_sequences = match options.resolved_adapter_policy().as_str() {
+        "bank" | "ancient_strict" => {
+            let sequences = enabled_adapter_sequences(adapter_bank);
+            if sequences.is_empty() {
+                vec!["X".to_string()]
+            } else {
+                sequences
+            }
+        }
+        _ => vec!["X".to_string()],
+    };
+    let adapter_payload = adapter_sequences.join("\n");
+    let mut script = format!(
+        "set -eu\nmkdir -p {}\ncat > {} <<'EOF'\n{}\nEOF\nalientrimmer",
+        shell_quote_path(output_dir),
+        shell_quote_path(&adapter_file),
+        adapter_payload,
+    );
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        script.push_str(&format!(
+            " -if {} -ir {} -c {} -of {} -or {}",
+            shell_quote_path(r1),
+            shell_quote_path(r2),
+            shell_quote_path(&adapter_file),
+            shell_quote_path(output_r1),
+            shell_quote_path(output_r2),
+        ));
+    } else {
+        script.push_str(&format!(
+            " -i {} -c {} -o {}",
+            shell_quote_path(r1),
+            shell_quote_path(&adapter_file),
+            shell_quote_path(output_r1),
+        ));
+    }
+    if let Some(min_length) = options.min_length {
+        script.push_str(&format!(" -l {min_length}"));
+    }
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        script.push_str(&format!(" -q {quality_cutoff}"));
+    }
+    if output_r1.extension().is_some_and(|ext| ext == "gz") {
+        script.push_str(" -z");
+    }
+    script.push('\n');
+    script.push_str(&write_trim_report_script(
+        "alientrimmer",
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+        threads,
+        adapter_bank,
+        None,
+        None,
+        options,
+        None,
+        None,
+    ));
+    Ok(vec!["sh".to_string(), "-lc".to_string(), script])
+}
+
 fn trimmomatic_command_template(
     r1: &Path,
     r2: Option<&Path>,
@@ -1529,8 +1623,8 @@ fn shell_quote_str(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        adapterremoval_command_template, atropos_command_template, trim_galore_command_template,
-        TrimPlanOptions,
+        adapterremoval_command_template, alientrimmer_command_template,
+        atropos_command_template, trim_galore_command_template, TrimPlanOptions,
     };
     use std::path::Path;
 
@@ -1601,5 +1695,35 @@ mod tests {
         assert!(script.contains(" --adapter X"));
         assert!(!script.contains(" --adapter2 "));
         assert!(!script.contains("AGATCGGAAGAGC"));
+    }
+
+    #[test]
+    fn alientrimmer_trim_materializes_adapter_file_and_explicit_outputs() {
+        let command = alientrimmer_command_template(
+            Path::new("reads_R1.fastq.gz"),
+            Some(Path::new("reads_R2.fastq.gz")),
+            Path::new("out/R1.alientrimmer.fastq.gz"),
+            Some(Path::new("out/R2.alientrimmer.fastq.gz")),
+            Path::new("out/trim_report.json"),
+            8,
+            None,
+            &TrimPlanOptions {
+                min_length: Some(30),
+                quality_cutoff: Some(13),
+                ..TrimPlanOptions::default()
+            },
+        )
+        .expect("alientrimmer command");
+
+        let script = command.get(2).expect("shell script");
+        assert!(script.contains("alientrimmer_adapters.txt"));
+        assert!(script.contains("\nX\nEOF\nalientrimmer"));
+        assert!(script.contains(" -if 'reads_R1.fastq.gz'"));
+        assert!(script.contains(" -ir 'reads_R2.fastq.gz'"));
+        assert!(script.contains(" -of 'out/R1.alientrimmer.fastq.gz'"));
+        assert!(script.contains(" -or 'out/R2.alientrimmer.fastq.gz'"));
+        assert!(script.contains(" -l 30"));
+        assert!(script.contains(" -q 13"));
+        assert!(script.contains(" -z"));
     }
 }
