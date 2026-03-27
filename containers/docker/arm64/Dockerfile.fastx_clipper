@@ -40,7 +40,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     make -j"$(nproc)" && \
     make install && \
     mv /usr/local/bin/fastx_clipper /usr/local/bin/fastx_clipper.bin && \
-    printf '%s\n' '#!/bin/sh' 'set -eu' 'case "${1:-}" in' '  --version)' '    echo "0.0.14"' '    exit 0' '    ;;' '  --help|-h|"")' '    exec /usr/local/bin/fastx_clipper.bin -h' '    ;;' 'esac' 'exec /usr/local/bin/fastx_clipper.bin "$@"' > /usr/local/bin/fastx_clipper && \
+    printf '%s\n' '#!/bin/sh' 'set -eu' 'run_help() {' '  set +e' '  /usr/local/bin/fastx_clipper.bin -h' '  status=$?' '  set -e' '  if [ "$status" -eq 1 ]; then' '    exit 0' '  fi' '  exit "$status"' '}' 'case "${1:-}" in' '  --version)' '    echo "0.0.14"' '    exit 0' '    ;;' '  --help|-h|"")' '    run_help' '    ;;' 'esac' 'exec /usr/local/bin/fastx_clipper.bin "$@"' > /usr/local/bin/fastx_clipper && \
     chmod +x /usr/local/bin/fastx_clipper
 ENTRYPOINT ["/usr/local/bin/fastx_clipper"]
 CMD ["-h"]
