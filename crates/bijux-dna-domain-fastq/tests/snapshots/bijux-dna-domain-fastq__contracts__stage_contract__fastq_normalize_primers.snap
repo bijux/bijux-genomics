@@ -54,7 +54,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "fastq.normalize_primers",
   "tool_ids": [
-    "cutadapt",
-    "seqkit"
+    "cutadapt"
   ]
 }

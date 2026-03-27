@@ -76,7 +76,6 @@ allowed_missingness:
   - "normalized_reads_r2"
 compatible_tools:
   - cutadapt
-  - seqkit
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "primer normalization applies only to amplicon libraries with explicit primer governance."

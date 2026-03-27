@@ -153,6 +153,16 @@ pub fn plan_with_options(
             "primer_set_id": options.primer_set_id,
             "marker_id": options.marker_id,
             "primer_fasta": options.primer_fasta,
+            "orientation_policy": options.orientation_policy,
+            "max_mismatch_rate": options.max_mismatch_rate,
+            "min_overlap_bp": options.min_overlap_bp,
+            "strict_5p_anchor": options.strict_5p_anchor,
+            "allow_iupac_codes": options.allow_iupac_codes,
+            "raw_backend_report": primer_stats,
+            "raw_backend_report_format": match tool.tool_id.0.as_str() {
+                "cutadapt" => Some("cutadapt_json"),
+                _ => None,
+            },
         }),
         effective_params: serde_json::to_value(PrimerNormalizationEffectiveParams {
             schema_version: EDNA_SCHEMA_VERSION.to_string(),
@@ -226,21 +236,6 @@ fn normalize_primers_command(
             ));
             Ok(vec!["bash".to_string(), "-lc".to_string(), script])
         }
-        "seqkit" => {
-            if r2.is_some() {
-                return Err(anyhow!(
-                    "seqkit primer normalization planning requires a single merged or single-end input"
-                ));
-            }
-            let script = format!(
-                "set -euo pipefail\nseqkit grep -r -p PRIMER -o {} {}\nprintf '%s\\n' {} > {}\n",
-                shell_quote_path(output_r1),
-                shell_quote_path(r1),
-                shell_quote_str(&governed_report),
-                shell_quote_path(report_json),
-            );
-            Ok(vec!["bash".to_string(), "-lc".to_string(), script])
-        }
         _ => Err(anyhow!(
             "unsupported primer normalization tool for stage planning: {tool_id}"
         )),
@@ -290,7 +285,6 @@ fn build_governed_normalize_primers_report(
         raw_backend_report: Some(primer_stats.display().to_string()),
         raw_backend_report_format: match tool_id {
             "cutadapt" => Some("cutadapt_json".to_string()),
-            "seqkit" => Some("seqkit_grep".to_string()),
             _ => None,
         },
         runtime_s: None,

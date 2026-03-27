@@ -183,7 +183,6 @@ stage_tool_compatibility:
   - seqkit
   fastq.normalize_primers:
   - cutadapt
-  - seqkit
   fastq.profile_overrepresented_sequences:
   - fastqc
   - fastq_scan
@@ -275,7 +274,6 @@ stage_tool_integration:
     seqkit: governed_contract
   fastq.normalize_primers:
     cutadapt: governed_contract
-    seqkit: governed_contract
   fastq.profile_overrepresented_sequences:
     fastq_scan: governed_contract
     fastqc: governed_contract
@@ -642,9 +640,6 @@ stage_default_settings:
     cutadapt:
       profile: adna_sane_default
       notes: primer normalization preset with explicit adapter semantics
-    seqkit:
-      profile: adna_sane_default
-      notes: deterministic sequence normalization helper preset
   fastq.profile_overrepresented_sequences:
     fastq_scan:
       profile: adna_sane_default
