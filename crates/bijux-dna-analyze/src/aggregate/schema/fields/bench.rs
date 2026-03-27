@@ -194,6 +194,34 @@ pub const FASTQ_UMI_METRICS: [MetricId; 7] = [
     MetricId::ReadsWithUmi,
 ];
 
+pub const FASTQ_INDEX_REFERENCE_METRICS: [MetricId; 3] = [
+    MetricId::ReferenceBytes,
+    MetricId::IndexBytes,
+    MetricId::IndexFileCount,
+];
+
+pub const FASTQ_DEPLETE_HOST_METRICS: [MetricId; 8] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
+    MetricId::HostFractionRemoved,
+    MetricId::DepletionSummary,
+];
+
+pub const FASTQ_DEPLETE_REFERENCE_CONTAMINANTS_METRICS: [MetricId; 8] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
+    MetricId::ContaminantFractionRemoved,
+    MetricId::DepletionSummary,
+];
+
 pub const FASTQ_DEPLETE_RRNA_METRICS: [MetricId; 8] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
@@ -318,6 +346,26 @@ pub const FASTQ_UMI_INVARIANTS: [&str; 3] = [
     "counts are non-negative",
 ];
 
+pub const FASTQ_INDEX_REFERENCE_INVARIANTS: [&str; 3] = [
+    "reference_bytes > 0",
+    "index_file_count > 0",
+    "index_bytes >= index_file_count",
+];
+
+pub const FASTQ_DEPLETE_HOST_INVARIANTS: [&str; 4] = [
+    "reads_out <= reads_in",
+    "bases_out <= bases_in",
+    "host_fraction_removed in [0, 1]",
+    "counts are non-negative",
+];
+
+pub const FASTQ_DEPLETE_REFERENCE_CONTAMINANTS_INVARIANTS: [&str; 4] = [
+    "reads_out <= reads_in",
+    "bases_out <= bases_in",
+    "contaminant_fraction_removed in [0, 1]",
+    "counts are non-negative",
+];
+
 pub const FASTQ_DEPLETE_RRNA_INVARIANTS: [&str; 4] = [
     "reads_out <= reads_in",
     "bases_out <= bases_in",
@@ -367,6 +415,11 @@ pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
         "fastq.correct_errors" => Some(StageMetricKind::FastqCorrect),
         "fastq.report_qc" => Some(StageMetricKind::FastqQcPost),
         "fastq.extract_umis" => Some(StageMetricKind::FastqUmi),
+        "fastq.index_reference" => Some(StageMetricKind::FastqIndexReference),
+        "fastq.deplete_host" => Some(StageMetricKind::FastqDepleteHost),
+        "fastq.deplete_reference_contaminants" => {
+            Some(StageMetricKind::FastqDepleteReferenceContaminants)
+        }
         "fastq.deplete_rrna" => Some(StageMetricKind::FastqDepleteRrna),
         "fastq.screen_taxonomy" => Some(StageMetricKind::FastqScreen),
         "fastq.normalize_primers" => Some(StageMetricKind::FastqNormalizePrimers),

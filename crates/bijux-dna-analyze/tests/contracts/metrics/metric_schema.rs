@@ -1,8 +1,9 @@
 use bijux_dna_analyze::{
-    metric_set, BenchmarkRecord, FastqCorrectMetrics, FastqDeltaMetrics, FastqFilterMetrics,
-    FastqDuplicateMetrics, FastqLowComplexityMetrics, FastqMergeMetrics, FastqQcPostMetrics,
-    FastqScreenMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
-    FastqValidateMetrics, LengthHistogramBin, MetricSet,
+    metric_set, BenchmarkRecord, FastqCorrectMetrics, FastqDeltaMetrics, FastqDepleteHostMetrics,
+    FastqDepleteReferenceContaminantsMetrics, FastqDuplicateMetrics, FastqFilterMetrics,
+    FastqIndexReferenceMetrics, FastqLowComplexityMetrics, FastqMergeMetrics, FastqQcPostMetrics,
+    FastqScreenMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics, FastqValidateMetrics,
+    LengthHistogramBin, MetricSet,
 };
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 
@@ -264,7 +265,10 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
             gc_delta: 0.01,
         },
     });
-    assert_eq!(low_complexity.metrics_schema, "fastq_filter_low_complexity_v1");
+    assert_eq!(
+        low_complexity.metrics_schema,
+        "fastq_filter_low_complexity_v1"
+    );
 
     let deduplicate = metric_set(FastqDuplicateMetrics {
         reads_in: 100,
@@ -381,4 +385,38 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         }],
     });
     assert_eq!(stats.metrics_schema, "fastq_profile_reads_v1");
+
+    let index_reference = metric_set(FastqIndexReferenceMetrics {
+        reference_bytes: 4096,
+        index_bytes: 3072,
+        index_file_count: 2,
+    });
+    assert_eq!(index_reference.metrics_schema, "fastq_index_reference_v1");
+
+    let deplete_host = metric_set(FastqDepleteHostMetrics {
+        reads_in: 100,
+        reads_out: 75,
+        bases_in: 1000,
+        bases_out: 760,
+        pairs_in: 50,
+        pairs_out: 38,
+        host_fraction_removed: 0.25,
+        depletion_summary: bijux_dna_analyze::model::JsonBlob::default(),
+    });
+    assert_eq!(deplete_host.metrics_schema, "fastq_deplete_host_v1");
+
+    let deplete_reference_contaminants = metric_set(FastqDepleteReferenceContaminantsMetrics {
+        reads_in: 100,
+        reads_out: 72,
+        bases_in: 1000,
+        bases_out: 710,
+        pairs_in: 50,
+        pairs_out: 36,
+        contaminant_fraction_removed: 0.28,
+        depletion_summary: bijux_dna_analyze::model::JsonBlob::default(),
+    });
+    assert_eq!(
+        deplete_reference_contaminants.metrics_schema,
+        "fastq_deplete_reference_contaminants_v1"
+    );
 }
