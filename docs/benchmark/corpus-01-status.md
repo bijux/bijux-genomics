@@ -6,17 +6,19 @@
 - Incomplete stage dossiers: `2`
 - Excluded stages: `3`
 - Publication issues: `26`
+- Audit warnings: `0`
 
 ## Stage status
 
-- `fastq.validate_reads`: `complete` (`0` issues, scope `full`)
-- `fastq.detect_adapters`: `complete` (`0` issues, scope `full`)
-- `fastq.profile_reads`: `complete` (`0` issues, scope `full`)
-- `fastq.profile_read_lengths`: `complete` (`0` issues, scope `full`)
-- `fastq.profile_overrepresented_sequences`: `complete` (`0` issues, scope `full`)
-- `fastq.normalize_primers`: `complete` (`0` issues, scope `full`)
-- `fastq.trim_polyg_tails`: `complete` (`0` issues, scope `full`)
-- `fastq.trim_reads`: `incomplete` (`25` issues, scope `full`)
+- `fastq.validate_reads`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.detect_adapters`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.profile_reads`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.profile_read_lengths`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.profile_overrepresented_sequences`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.normalize_primers`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.trim_polyg_tails`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.trim_reads`: `incomplete` (`25` publication issues, results `incomplete`, scope `full`)
+  - mirrored result issues: `3`
   - `summary-tool-roster-drift`: benchmark/fastq.trim_reads/corpus-01/summary.json tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
   - `summary-tool-summary-drift`: benchmark/fastq.trim_reads/corpus-01/summary.json tool_summary tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
   - `sample-results-tool-roster-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
@@ -42,19 +44,20 @@
   - `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0020 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
   - `sample-results-row-count-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv row_count=180 expected 260
   - `tool-runtime-summary-drift`: benchmark/fastq.trim_reads/corpus-01/tool_runtime_summary.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
-- `fastq.filter_reads`: `complete` (`0` issues, scope `full`)
-- `fastq.filter_low_complexity`: `complete` (`0` issues, scope `full`)
-- `fastq.deplete_rrna`: `complete` (`0` issues, scope `full`)
-- `fastq.merge_pairs`: `complete` (`0` issues, scope `paired`)
-- `fastq.remove_duplicates`: `complete` (`0` issues, scope `paired`)
-- `fastq.deplete_host`: `complete` (`0` issues, scope `full`)
-- `fastq.deplete_reference_contaminants`: `complete` (`0` issues, scope `full`)
-- `fastq.correct_errors`: `incomplete` (`1` issues, scope `paired`)
+- `fastq.filter_reads`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.filter_low_complexity`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.deplete_rrna`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.merge_pairs`: `complete` (`0` publication issues, results `complete`, scope `paired`)
+- `fastq.remove_duplicates`: `complete` (`0` publication issues, results `complete`, scope `paired`)
+- `fastq.deplete_host`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.deplete_reference_contaminants`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.correct_errors`: `incomplete` (`1` publication issues, results `incomplete`, scope `paired`)
+  - mirrored result issues: `1`
   - `missing-corpus-dir`: missing benchmark/fastq.correct_errors/corpus-01
-- `fastq.extract_umis`: `complete` (`0` issues, scope `paired`)
-- `fastq.screen_taxonomy`: `complete` (`0` issues, scope `full`)
-- `fastq.trim_terminal_damage`: `complete` (`0` issues, scope `full`)
-- `fastq.report_qc`: `complete` (`0` issues, scope `full`)
+- `fastq.extract_umis`: `complete` (`0` publication issues, results `complete`, scope `paired`)
+- `fastq.screen_taxonomy`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.trim_terminal_damage`: `complete` (`0` publication issues, results `complete`, scope `full`)
+- `fastq.report_qc`: `complete` (`0` publication issues, results `complete`, scope `full`)
 
 ## Excluded Stages
 

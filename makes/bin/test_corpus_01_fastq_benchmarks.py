@@ -5701,6 +5701,11 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                     "stage_id": "fastq.validate_reads",
                     "status": "complete",
                     "issue_count": 0,
+                    "results_status": "complete",
+                    "results_issue_count": 0,
+                    "results_selected_run_root": "/tmp/results/fastq.validate_reads/lunarc",
+                    "results_newest_available_run_root": "/tmp/results/fastq.validate_reads/lunarc",
+                    "results_selected_run_root_is_newest": True,
                     "issues": [],
                     "sample_scope": "full",
                 },
@@ -5708,6 +5713,11 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                     "stage_id": "fastq.trim_reads",
                     "status": "incomplete",
                     "issue_count": 3,
+                    "results_status": "incomplete",
+                    "results_issue_count": 2,
+                    "results_selected_run_root": "/tmp/results/fastq.trim_reads/lunarc",
+                    "results_newest_available_run_root": "/tmp/archive/fastq.trim_reads/lunarc",
+                    "results_selected_run_root_is_newest": False,
                     "sample_scope": "full",
                     "issues": [
                         {
@@ -5724,7 +5734,19 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
         self.assertIn("Benchmarkable governed stages: `3`", markdown)
         self.assertIn("Completed stage dossiers: `1`", markdown)
         self.assertIn("Publication issues: `3`", markdown)
-        self.assertIn("`fastq.trim_reads`: `incomplete` (`3` issues, scope `full`)", markdown)
+        self.assertIn(
+            "`fastq.trim_reads`: `incomplete` (`3` publication issues, results `incomplete`, scope `full`)",
+            markdown,
+        )
+        self.assertIn(
+            "selected mirrored run root: `/tmp/results/fastq.trim_reads/lunarc`",
+            markdown,
+        )
+        self.assertIn(
+            "newest mirrored run root: `/tmp/archive/fastq.trim_reads/lunarc` (selected newest=`False`)",
+            markdown,
+        )
+        self.assertIn("mirrored result issues: `2`", markdown)
         self.assertIn("`fastq.index_reference`: reference bundle benchmark", markdown)
 
     def test_audit_docs_appends_supplemental_findings(self) -> None:

@@ -70,6 +70,11 @@ def parse_args() -> argparse.Namespace:
         default="docs/benchmark/corpus-01-publication-findings.json",
         help="Supplemental stage findings to surface alongside automated publication audit issues.",
     )
+    parser.add_argument(
+        "--results-in",
+        default="docs/benchmark/corpus-01-results-status.json",
+        help="Local results mirror audit ledger to surface beside publication status.",
+    )
     return parser.parse_args()
 
 
@@ -165,11 +170,26 @@ def load_supplemental_findings(path: Path) -> tuple[dict[str, list[StageAuditIss
     return findings_by_stage, warnings, generated_at_utc
 
 
+def load_results_status(path: Path) -> tuple[dict[str, dict], list[str]]:
+    if not path.is_file():
+        return {}, [f"missing results status file: {path}"]
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    stages = payload.get("stages", [])
+    if not isinstance(stages, list):
+        raise SystemExit(f"invalid results status payload in {path}: missing stages list")
+    return {
+        str(stage.get("stage_id", "")).strip(): stage
+        for stage in stages
+        if str(stage.get("stage_id", "")).strip()
+    }, []
+
+
 def audit_stage(
     repo_root: Path,
     docs_root: Path,
     contract: CorpusBenchmarkContract,
     supplemental_issues: list[StageAuditIssue] | None = None,
+    results_stage: dict | None = None,
 ) -> dict:
     spec = load_corpus_spec(repo_root)
     expected_total, expected_cohort_counts_by_scope = expected_counts_for_scope(
@@ -531,6 +551,7 @@ def audit_stage(
     for supplemental_issue in supplemental_issues or []:
         issues.append(supplemental_issue)
 
+    results_stage = results_stage or {}
     return {
         "stage_id": contract.stage_id,
         "scenario_id": contract.scenario_id,
@@ -541,6 +562,15 @@ def audit_stage(
         "corpus_path": str(corpus_root.relative_to(docs_root.parent)),
         "status": "complete" if not issues else "incomplete",
         "issue_count": len(issues),
+        "results_status": str(results_stage.get("status", "missing")),
+        "results_issue_count": int(results_stage.get("issue_count", 0) or 0),
+        "results_selected_run_root": str(results_stage.get("selected_run_root", "") or ""),
+        "results_newest_available_run_root": str(
+            results_stage.get("newest_available_run_root", "") or ""
+        ),
+        "results_selected_run_root_is_newest": bool(
+            results_stage.get("selected_run_root_is_newest", False)
+        ),
         "issues": [asdict(issue) for issue in issues],
     }
 
@@ -552,6 +582,7 @@ def audit_docs(
     stage_contracts: list[CorpusBenchmarkContract] | None = None,
     exclusions: list[CorpusBenchmarkExclusion] | None = None,
     supplemental_findings: dict[str, list[StageAuditIssue]] | None = None,
+    results_by_stage: dict[str, dict] | None = None,
     audit_warnings: list[str] | None = None,
     supplemental_findings_generated_at_utc: str | None = None,
 ) -> dict:
@@ -559,6 +590,7 @@ def audit_docs(
     stage_contracts = stage_contracts or CORPUS_01_PUBLICATION_CONTRACTS
     exclusions = exclusions or CORPUS_01_PUBLICATION_EXCLUSIONS
     supplemental_findings = supplemental_findings or {}
+    results_by_stage = results_by_stage or {}
     audit_warnings = audit_warnings or []
     audit_warnings = audit_warnings + makefile_publication_warnings(
         repo_root,
@@ -570,6 +602,7 @@ def audit_docs(
             docs_root,
             contract,
             supplemental_issues=supplemental_findings.get(contract.stage_id, []),
+            results_stage=results_by_stage.get(contract.stage_id),
         )
         for contract in stage_contracts
     ]
@@ -614,8 +647,22 @@ def render_markdown(report: dict) -> str:
     for stage in report["stages"]:
         lines.append(
             f"- `{stage['stage_id']}`: `{stage['status']}`"
-            f" (`{stage['issue_count']}` issues, scope `{stage['sample_scope']}`)"
+            f" (`{stage['issue_count']}` publication issues, results `{stage['results_status']}`, scope `{stage['sample_scope']}`)"
         )
+        if stage.get("results_selected_run_root"):
+            lines.append(
+                f"  - selected mirrored run root: `{stage['results_selected_run_root']}`"
+            )
+        if stage.get("results_newest_available_run_root"):
+            lines.append(
+                "  - newest mirrored run root: "
+                f"`{stage['results_newest_available_run_root']}` "
+                f"(selected newest=`{stage['results_selected_run_root_is_newest']}`)"
+            )
+        if int(stage.get("results_issue_count", 0) or 0):
+            lines.append(
+                f"  - mirrored result issues: `{stage['results_issue_count']}`"
+            )
         if stage["issues"]:
             for issue in stage["issues"]:
                 lines.append(f"  - `{issue['issue_id']}`: {issue['detail']}")
@@ -649,14 +696,17 @@ def main() -> int:
     repo_root = Path(args.repo_root).resolve()
     docs_root = Path(args.docs_root).resolve()
     findings_path = Path(args.findings_in).resolve()
+    results_path = Path(args.results_in).resolve()
     supplemental_findings, audit_warnings, findings_generated_at_utc = load_supplemental_findings(
         findings_path
     )
+    results_by_stage, results_warnings = load_results_status(results_path)
     report = audit_docs(
         docs_root,
         repo_root=repo_root,
         supplemental_findings=supplemental_findings,
-        audit_warnings=audit_warnings,
+        results_by_stage=results_by_stage,
+        audit_warnings=audit_warnings + results_warnings,
         supplemental_findings_generated_at_utc=findings_generated_at_utc,
     )
 
