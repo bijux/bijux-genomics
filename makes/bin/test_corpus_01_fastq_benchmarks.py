@@ -3873,8 +3873,6 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
             self.assertEqual(summary["run_root"], str(run_root))
-            self.assertEqual(summary["stage_id"], "fastq.trim_polyg_tails")
-            self.assertEqual(summary["scenario_id"], "trim_polyg_fairness")
 
     def test_normalize_primers_briefing_summarizes_orientation_fraction(self) -> None:
         rows = [
@@ -6775,7 +6773,12 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
             docs_root.mkdir(parents=True)
             local_results_root = Path(tmpdir) / "mirror"
-            with mock.patch.object(support, "LOCAL_RESULTS_ROOT", local_results_root):
+            local_cache_mirror_root = local_results_root / "home" / "bijan" / "lu2024-12-24" / ".cache"
+            with mock.patch.object(support, "LOCAL_RESULTS_ROOT", local_results_root), mock.patch.object(
+                support,
+                "LOCAL_CACHE_MIRROR_ROOT",
+                local_cache_mirror_root,
+            ):
                 run_root = (
                     local_results_root
                     / "corpus_01"
@@ -7728,6 +7731,8 @@ class TrimPolygReportingTests(unittest.TestCase):
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
             self.assertEqual(summary["run_root"], str(run_root))
+            self.assertEqual(summary["stage_id"], "fastq.trim_polyg_tails")
+            self.assertEqual(summary["scenario_id"], "polyg_trim_fairness")
 
 
 class ReportQcReportingTests(unittest.TestCase):
