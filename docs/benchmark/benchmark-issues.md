@@ -3,7 +3,6 @@
 This file tracks benchmark hard-wiring, publication drift, storage layout ambiguity, and missing governance hooks discovered while auditing the FASTQ benchmark surface and the supporting Lunarc workflow.
 
 1. Hardcoded local benchmark mirror root in `makes/bin/corpus_01_fastq_benchmark_support.py` points to `/Users/bijan/bijux/bijux-dna-results`.
-3. `configs/runtime/platforms.toml` hardcodes a user-specific Lunarc Apptainer SIF directory.
 4. The benchmark tooling does not make the private frontend repo root under `/home/bijan/bijux/...` versus the shared benchmark cache root under `/home/bijan/lu2024-12-24/.cache` explicit enough.
 5. `hpc_lunarc_pull` defaults the local pull base to `~/bijux/bijux-dna-results` instead of the actual governed local results workspace.
 6. `hpc_lunarc_pull` encodes a timestamped destination convention rather than a stable benchmark mirror contract.
@@ -52,9 +51,7 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 66. `shared_cache_root()` in `env_registry_commands.rs` forces `.cache` under any HPC root instead of reading a workspace contract.
 67. `env_registry_commands.rs` hardcodes `bijux-dna-container`, `corpus_01`, and `results` subdirectory names.
 68. `env_registry_commands.rs` implicitly treats `.cache` as the only valid shared-root layout instead of a configurable benchmark environment.
-69. `resolved_container_dir()` in `crates/bijux-dna-environment` still falls back to derived Lunarc cache conventions instead of a platform config contract.
 70. Environment resolution tests still use `lunarc-apptainer` and `/scratch/cache-root` as named fixtures.
-71. `configs/runtime/platforms.toml` ships a runner profile whose default path belongs to one user account.
 72. The platform config does not separate a portable default from cluster-local overrides.
 73. `containers/apptainer/lunarc/` remains the only governed location for Apptainer definitions.
 74. The policy suite explicitly enforces `containers/apptainer/lunarc/`, which bakes a site name into repository structure.

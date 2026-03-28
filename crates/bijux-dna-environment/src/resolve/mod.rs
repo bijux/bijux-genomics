@@ -365,7 +365,7 @@ default = "lunarc-apptainer"
 
 [platforms.lunarc-apptainer]
 runner = "apptainer"
-container_dir = "/home/bijan/bijux/bijux-dna-container/apptainer/sif"
+container_dir = "containers/apptainer/sif"
 image_prefix = "bijuxdna"
 arch = "amd64"
 "#,
@@ -381,6 +381,35 @@ arch = "amd64"
                 .join("bijux-dna-container")
                 .join("apptainer")
                 .join("sif")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn load_platform_keeps_relative_apptainer_dir_without_cache_env() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-platform-relative-apptainer")?;
+        let platform_path = temp.path().join("platforms.toml");
+        std::fs::write(
+            &platform_path,
+            r#"
+default = "lunarc-apptainer"
+
+[platforms.lunarc-apptainer]
+runner = "apptainer"
+container_dir = "containers/apptainer/sif"
+image_prefix = "bijuxdna"
+arch = "amd64"
+"#,
+        )?;
+        std::env::remove_var("BIJUX_CACHE_ROOT");
+        std::env::remove_var("BIJUX_HPC_ROOT");
+        std::env::remove_var("BIJUX_APPTAINER_CONTAINER_DIR");
+        let platform = load_platform_from_file(&platform_path, Some("lunarc-apptainer"))?;
+
+        assert_eq!(platform.runner, RuntimeKind::Apptainer);
+        assert_eq!(
+            platform.container_dir,
+            std::path::Path::new("containers").join("apptainer").join("sif")
         );
         Ok(())
     }

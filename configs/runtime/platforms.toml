@@ -15,6 +15,6 @@ arch = "arm64"
 
 [platforms.lunarc-apptainer]
 runner = "apptainer"
-container_dir = "/home/bijan/bijux/bijux-dna-container/apptainer/sif"
+container_dir = "containers/apptainer/sif"
 image_prefix = "bijuxdna"
 arch = "amd64"
