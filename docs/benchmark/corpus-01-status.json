@@ -44,7 +44,12 @@
       "corpus_path": "benchmark/fastq.validate_reads/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.detect_adapters",
@@ -60,7 +65,12 @@
       "corpus_path": "benchmark/fastq.detect_adapters/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.profile_reads",
@@ -76,7 +86,12 @@
       "corpus_path": "benchmark/fastq.profile_reads/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.profile_read_lengths",
@@ -92,7 +107,12 @@
       "corpus_path": "benchmark/fastq.profile_read_lengths/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.profile_overrepresented_sequences",
@@ -112,7 +132,12 @@
       "corpus_path": "benchmark/fastq.profile_overrepresented_sequences/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.normalize_primers",
@@ -128,7 +153,12 @@
       "corpus_path": "benchmark/fastq.normalize_primers/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.trim_polyg_tails",
@@ -146,7 +176,12 @@
       "corpus_path": "benchmark/fastq.trim_polyg_tails/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.trim_reads",
@@ -337,7 +372,12 @@
           "severity": "error",
           "detail": "benchmark/fastq.trim_reads/corpus-01/tool_runtime_summary.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
         }
-      ]
+      ],
+      "results_status": "incomplete",
+      "results_issue_count": 3,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.filter_reads",
@@ -359,7 +399,12 @@
       "corpus_path": "benchmark/fastq.filter_reads/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.filter_low_complexity",
@@ -377,7 +422,12 @@
       "corpus_path": "benchmark/fastq.filter_low_complexity/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.deplete_rrna",
@@ -393,7 +443,12 @@
       "corpus_path": "benchmark/fastq.deplete_rrna/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.merge_pairs",
@@ -419,7 +474,12 @@
       "corpus_path": "benchmark/fastq.merge_pairs/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.remove_duplicates",
@@ -437,7 +497,12 @@
       "corpus_path": "benchmark/fastq.remove_duplicates/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.deplete_host",
@@ -453,7 +518,12 @@
       "corpus_path": "benchmark/fastq.deplete_host/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.deplete_reference_contaminants",
@@ -469,7 +539,12 @@
       "corpus_path": "benchmark/fastq.deplete_reference_contaminants/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.correct_errors",
@@ -498,7 +573,12 @@
           "severity": "error",
           "detail": "missing benchmark/fastq.correct_errors/corpus-01"
         }
-      ]
+      ],
+      "results_status": "incomplete",
+      "results_issue_count": 1,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.extract_umis",
@@ -514,7 +594,12 @@
       "corpus_path": "benchmark/fastq.extract_umis/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.screen_taxonomy",
@@ -536,7 +621,12 @@
       "corpus_path": "benchmark/fastq.screen_taxonomy/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.trim_terminal_damage",
@@ -556,7 +646,12 @@
       "corpus_path": "benchmark/fastq.trim_terminal_damage/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     },
     {
       "stage_id": "fastq.report_qc",
@@ -572,7 +667,12 @@
       "corpus_path": "benchmark/fastq.report_qc/corpus-01",
       "status": "complete",
       "issue_count": 0,
-      "issues": []
+      "issues": [],
+      "results_status": "complete",
+      "results_issue_count": 0,
+      "results_selected_run_root": "",
+      "results_newest_available_run_root": "",
+      "results_selected_run_root_is_newest": false
     }
   ]
 }
