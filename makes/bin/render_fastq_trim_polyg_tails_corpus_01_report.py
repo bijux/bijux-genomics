@@ -352,7 +352,7 @@ def main() -> int:
         "schema_version": "bijux.fastq.trim_polyg_tails.corpus_summary.v1",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "platform": run_manifest["platform"],
-        "corpus_root": run_manifest["corpus_root"],
+        "corpus_root": str(corpus_root),
         "run_root": str(run_root),
         "samples_total": run_manifest["samples_total"],
         "samples_failed": run_manifest["samples_failed"],

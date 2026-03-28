@@ -3946,6 +3946,123 @@ class TrimPolygReportingTests(unittest.TestCase):
                 sample_rows=sample_rows,
             )
 
+    def test_trim_polyg_summary_preserves_configured_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.trim_polyg_tails" / "lunarc"
+            )
+            docs_root = (
+                repo_root / "docs" / "benchmark" / "fastq.trim_polyg_tails" / "corpus-01"
+            )
+            sample_report = (
+                run_root / "bench" / "trim_polyg_tails" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "fastp",
+                                    "parameters": {
+                                        "polyx_preset": "illumina_twocolor",
+                                        "trim_polyg": True,
+                                        "min_polyg_run": 10,
+                                        "raw_backend_report_format": "fastp_json",
+                                    },
+                                },
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "reads_in": 100,
+                                    "reads_out": 95,
+                                    "bases_in": 1000,
+                                    "bases_out": 960,
+                                    "bases_trimmed_polyg": 40,
+                                    "raw_backend_report_format": "fastp_json",
+                                    "delta_metrics": {
+                                        "base_retention": 0.96,
+                                        "read_retention": 0.95,
+                                        "mean_q_delta": 0.0,
+                                        },
+                                        "polyx_preset": "illumina_twocolor",
+                                        "trim_polyg": True,
+                                        "min_polyg_run": 10,
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "samples_total": 1,
+                        "samples_failed": 0,
+                        "tools": ["fastp"],
+                        "polyx_preset": "illumina_twocolor",
+                        "trim_polyg": True,
+                        "min_polyg_run": 10,
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "se",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_trim_polyg_tails_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    trim_polyg_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    trim_polyg_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "modern",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(trim_polyg_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+
 
 class ReportQcReportingTests(unittest.TestCase):
     def test_report_qc_tool_summary_tracks_multiqc_and_governed_inputs(self) -> None:

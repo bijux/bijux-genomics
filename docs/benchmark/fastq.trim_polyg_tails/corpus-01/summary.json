@@ -5,12 +5,12 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "era_counts": {
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-27T00:47:32.251579+00:00",
+  "generated_at_utc": "2026-03-28T02:39:28.524365+00:00",
   "headline": {
     "best_base_retention": 0.9999606775856256,
     "best_base_retention_tool": "bbduk",
@@ -29,9 +29,7 @@
   "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
-  "scenario_id": "polyg_trim_fairness",
   "schema_version": "bijux.fastq.trim_polyg_tails.corpus_summary.v1",
-  "stage_id": "fastq.trim_polyg_tails",
   "tool_summary": [
     {
       "mean_bases_trimmed_polyg": 101119.8,
