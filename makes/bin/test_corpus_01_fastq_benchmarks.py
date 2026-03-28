@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 import json
 import os
 import sys
@@ -103,6 +104,40 @@ CANONICAL_APPTAINER_PATH_FILES = [
     / "apptainer"
     / "apptainer_def_location_policy.rs",
 ]
+
+BENCHMARK_TEST_ENV = {
+    "BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT": "/tmp/benchmark-archive",
+    "BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT": "/tmp/benchmark-archive/srv/cluster/.cache",
+    "BIJUX_BENCHMARK_LOCAL_EXTRA_DATA_ROOT": "/tmp/benchmark-archive/srv/cluster/.cache/extra-data",
+    "BIJUX_BENCHMARK_LOCAL_REFERENCE_ROOT": "/tmp/benchmark-archive/srv/cluster/.cache/reference",
+    "BIJUX_BENCHMARK_REMOTE_SSH_HOST": "cluster-bench",
+    "BIJUX_BENCHMARK_REMOTE_REPO_ROOT": "/srv/bijux/bijux-dna",
+    "BIJUX_BENCHMARK_REMOTE_CACHE_ROOT": "/srv/cluster/.cache",
+    "BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT": "/srv/cluster/.cache/corpus_01",
+    "BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT": "/srv/cluster/.cache/results",
+    "BIJUX_BENCHMARK_REMOTE_RESULTS_LEGACY_ROOT": "/srv/cluster/results",
+    "BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT": "/srv/cluster/.cache/extra-data",
+    "BIJUX_BENCHMARK_REMOTE_CONTAINERS_ROOT": "/srv/cluster/.cache/containers",
+    "BIJUX_BENCHMARK_REMOTE_REFERENCE_ROOT": "/srv/cluster/.cache/reference",
+    "BIJUX_BENCHMARK_PULL_BASE": "/tmp/benchmark-archive",
+}
+
+
+@contextmanager
+def benchmark_contract_env(overrides: dict[str, str] | None = None):
+    env = dict(BENCHMARK_TEST_ENV)
+    if overrides:
+        env.update(overrides)
+    with mock.patch.dict(os.environ, env, clear=False):
+        support.configure_workspace_config_path("")
+        support.load_benchmark_workspace_config.cache_clear()
+        support.load_benchmark_publication_config.cache_clear()
+        try:
+            yield env
+        finally:
+            support.configure_workspace_config_path("")
+            support.load_benchmark_workspace_config.cache_clear()
+            support.load_benchmark_publication_config.cache_clear()
 
 
 def benchmark_makefile_text() -> str:
@@ -759,90 +794,93 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["polyx_policy"], "trim")
 
     def test_benchmark_workspace_value_prints_configured_remote_corpus_root(self) -> None:
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("remote.corpus_root"),
-            "/home/bijan/lu2024-12-24/.cache/corpus_01",
-        )
+        with benchmark_contract_env() as env:
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("remote.corpus_root"),
+                env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
+            )
 
     def test_benchmark_workspace_value_prints_governed_remote_sync_contract(self) -> None:
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("remote.ssh_host"),
-            "lunarc",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("remote.frontend_root"),
-            "/home/bijan/bijux",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("remote.results_root"),
-            "/home/bijan/lu2024-12-24/.cache/results",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("remote.containers_root"),
-            "/home/bijan/lu2024-12-24/.cache/bijux-dna-container",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("remote.extra_data_root"),
-            "/home/bijan/lu2024-12-24/.cache/extra-data",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("remote.reference_root"),
-            "/home/bijan/lu2024-12-24/.cache/reference",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("local.extra_data_root"),
-            "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("local.reference_root"),
-            "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference",
-        )
+        with benchmark_contract_env() as env:
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("remote.ssh_host"),
+                env["BIJUX_BENCHMARK_REMOTE_SSH_HOST"],
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("remote.frontend_root"),
+                str(Path(env["BIJUX_BENCHMARK_REMOTE_REPO_ROOT"]).parent),
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("remote.results_root"),
+                env["BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT"],
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("remote.containers_root"),
+                env["BIJUX_BENCHMARK_REMOTE_CONTAINERS_ROOT"],
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("remote.extra_data_root"),
+                env["BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT"],
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("remote.reference_root"),
+                env["BIJUX_BENCHMARK_REMOTE_REFERENCE_ROOT"],
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("local.extra_data_root"),
+                env["BIJUX_BENCHMARK_LOCAL_EXTRA_DATA_ROOT"],
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("local.reference_root"),
+                env["BIJUX_BENCHMARK_LOCAL_REFERENCE_ROOT"],
+            )
 
     def test_benchmark_workspace_value_prints_governed_sync_defaults(self) -> None:
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("sync.defaults.pull_base"),
-            "/Users/bijan/bijux/bijux-dna-results",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value("sync.defaults.pull_mode"),
-            "results",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value(
-                "sync.defaults.include_profile"
-            ),
-            "pull-results-default",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value(
-                "sync.defaults.exclude_profile"
-            ),
-            "pull-full-default",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value(
-                "sync.defaults.clean_context"
-            ),
-            "1",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value(
-                "sync.defaults.allow_dirty"
-            ),
-            "0",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value(
-                "sync.defaults.include_containers_manifest"
-            ),
-            "0",
-        )
-        self.assertEqual(
-            benchmark_workspace_value.resolve_workspace_value(
-                "sync.defaults.data_manifest_glob"
-            ),
-            "",
-        )
+        with benchmark_contract_env() as env:
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("sync.defaults.pull_base"),
+                env["BIJUX_BENCHMARK_PULL_BASE"],
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value("sync.defaults.pull_mode"),
+                "results",
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value(
+                    "sync.defaults.include_profile"
+                ),
+                "pull-results-default",
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value(
+                    "sync.defaults.exclude_profile"
+                ),
+                "pull-full-default",
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value(
+                    "sync.defaults.clean_context"
+                ),
+                "1",
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value(
+                    "sync.defaults.allow_dirty"
+                ),
+                "0",
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value(
+                    "sync.defaults.include_containers_manifest"
+                ),
+                "0",
+            )
+            self.assertEqual(
+                benchmark_workspace_value.resolve_workspace_value(
+                    "sync.defaults.data_manifest_glob"
+                ),
+                "",
+            )
 
     def test_benchmark_publication_config_defines_governed_exclusions(self) -> None:
         support.load_benchmark_publication_config.cache_clear()
@@ -899,38 +937,31 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         )
 
     def test_benchmark_local_results_root_reads_committed_workspace_contract(self) -> None:
-        support.load_benchmark_workspace_config.cache_clear()
-        try:
+        with benchmark_contract_env() as env:
             self.assertEqual(
                 support.benchmark_local_results_root(),
-                Path("/Users/bijan/bijux/bijux-dna-results"),
+                Path(env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"]),
             )
             self.assertEqual(
                 support.benchmark_local_cache_mirror_root(),
-                Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache"),
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"]),
             )
             self.assertEqual(
                 support.benchmark_remote_repo_root(),
-                Path("/home/bijan/bijux/bijux-dna"),
+                Path(env["BIJUX_BENCHMARK_REMOTE_REPO_ROOT"]),
             )
             self.assertEqual(
                 support.benchmark_remote_results_root(),
-                Path("/home/bijan/lu2024-12-24/.cache/results"),
+                Path(env["BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT"]),
             )
             self.assertEqual(
                 support.benchmark_local_extra_data_root(),
-                Path(
-                    "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data"
-                ),
+                Path(env["BIJUX_BENCHMARK_LOCAL_EXTRA_DATA_ROOT"]),
             )
             self.assertEqual(
                 support.benchmark_local_reference_root(),
-                Path(
-                    "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference"
-                ),
+                Path(env["BIJUX_BENCHMARK_LOCAL_REFERENCE_ROOT"]),
             )
-        finally:
-            support.load_benchmark_workspace_config.cache_clear()
 
     def test_benchmark_publication_targets_match_governed_contract_order(self) -> None:
         self.assertEqual(
@@ -943,21 +974,29 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
 
     def test_stage_root_defaults_follow_workspace_contract(self) -> None:
         corpus_root = Path("/tmp/noncanonical/corpus_01")
-
-        self.assertEqual(
-            support.default_results_stage_root(corpus_root, "fastq.trim_reads"),
-            Path("/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc"),
-        )
-        self.assertEqual(
-            support.default_local_results_stage_root(corpus_root, "fastq.trim_reads"),
-            Path(
-                "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc"
-            ),
-        )
-        self.assertEqual(
-            support.legacy_local_results_stage_root(corpus_root, "fastq.trim_reads"),
-            Path("/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc"),
-        )
+        with benchmark_contract_env() as env:
+            self.assertEqual(
+                support.default_results_stage_root(corpus_root, "fastq.trim_reads"),
+                Path(env["BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT"])
+                / "corpus_01"
+                / "fastq.trim_reads"
+                / "lunarc",
+            )
+            self.assertEqual(
+                support.default_local_results_stage_root(corpus_root, "fastq.trim_reads"),
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"])
+                / "results"
+                / "corpus_01"
+                / "fastq.trim_reads"
+                / "lunarc",
+            )
+            self.assertEqual(
+                support.legacy_local_results_stage_root(corpus_root, "fastq.trim_reads"),
+                Path(env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"])
+                / "corpus_01"
+                / "fastq.trim_reads"
+                / "lunarc",
+            )
 
     def test_stage_run_templates_are_loaded_from_workspace_contract(self) -> None:
         support.load_benchmark_workspace_config.cache_clear()
@@ -1981,51 +2020,54 @@ class BenchmarkMakefileTests(unittest.TestCase):
             )
 
     def test_load_benchmark_workspace_config_reads_committed_contract(self) -> None:
-        support.load_benchmark_workspace_config.cache_clear()
-        try:
+        with benchmark_contract_env() as env:
             config = support.load_benchmark_workspace_config()
-        finally:
-            support.load_benchmark_workspace_config.cache_clear()
 
-        self.assertEqual(
-            config.get("remote", {}).get("corpus_root"),
-            "/home/bijan/lu2024-12-24/.cache/corpus_01",
-        )
-        self.assertEqual(
-            support.benchmark_remote_corpus_root(),
-            Path("/home/bijan/lu2024-12-24/.cache/corpus_01"),
-        )
+            self.assertEqual(
+                config.get("remote", {}).get("corpus_root"),
+                env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
+            )
+            self.assertEqual(
+                support.benchmark_remote_corpus_root(),
+                Path(env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"]),
+            )
 
     def test_fastq_report_parsers_default_corpus_root_from_workspace_contract(self) -> None:
         original_argv = sys.argv
         try:
-            sys.argv = ["render"]
-            expected = str(support.benchmark_remote_corpus_root())
-            for module in [
-                correct_errors_report,
-                filter_reads_report,
-                merge_report,
-                trim_reads_report,
-                validate_reads_report,
-            ]:
-                self.assertEqual(module.parse_args().corpus_root, expected)
+            with benchmark_contract_env() as env:
+                sys.argv = ["render"]
+                expected = env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"]
+                for module in [
+                    correct_errors_report,
+                    filter_reads_report,
+                    merge_report,
+                    trim_reads_report,
+                    validate_reads_report,
+                ]:
+                    self.assertEqual(module.parse_args().corpus_root, expected)
         finally:
             sys.argv = original_argv
 
     def test_default_host_reference_index_root_prefers_cache_extra_data(self) -> None:
-        out_root = Path(
-            "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc"
-        )
-        self.assertEqual(
-            support.default_host_reference_index_root(
-                out_root,
-                reference_catalog_id="host_reference",
-                reference_index_backend="bowtie2_build",
-            ).resolve(),
-            Path(
-                "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index"
-            ).resolve(),
-        )
+        with benchmark_contract_env() as env:
+            out_root = (
+                Path(env["BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT"])
+                / "corpus_01"
+                / "fastq.deplete_host"
+                / "lunarc"
+            )
+            self.assertEqual(
+                support.default_host_reference_index_root(
+                    out_root,
+                    reference_catalog_id="host_reference",
+                    reference_index_backend="bowtie2_build",
+                ).resolve(),
+                (
+                    Path(env["BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT"])
+                    / "benchmark/fastq.deplete_host/host_reference/bowtie2_build/index"
+                ).resolve(),
+            )
 
     def test_host_reference_index_template_is_loaded_from_workspace_contract(self) -> None:
         support.load_benchmark_workspace_config.cache_clear()
@@ -2040,50 +2082,57 @@ class BenchmarkMakefileTests(unittest.TestCase):
             support.load_benchmark_workspace_config.cache_clear()
 
     def test_benchmark_runtime_env_overrides_stale_cache_layout(self) -> None:
-        out_root = Path(
-            "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc"
-        )
-        stale_cache_root = os.environ.get("BIJUX_CACHE_ROOT")
-        stale_xdg_cache = os.environ.get("XDG_CACHE_HOME")
-        stale_hpc_root = os.environ.get("BIJUX_HPC_ROOT")
-        try:
-            os.environ["BIJUX_CACHE_ROOT"] = "/tmp/stale-cache-root"
-            os.environ["XDG_CACHE_HOME"] = "/tmp/stale-xdg-cache"
-            os.environ["BIJUX_HPC_ROOT"] = "/tmp/stale-hpc-root"
-
-            env = support.benchmark_runtime_env(out_root)
-            expected_cache_root = Path("/home/bijan/lu2024-12-24/.cache").resolve()
+        with benchmark_contract_env() as env:
+            out_root = (
+                Path(env["BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT"])
+                / "corpus_01"
+                / "fastq.trim_reads"
+                / "lunarc"
+            )
+            with mock.patch.dict(
+                os.environ,
+                {
+                    "BIJUX_CACHE_ROOT": "/tmp/stale-cache-root",
+                    "XDG_CACHE_HOME": "/tmp/stale-xdg-cache",
+                    "BIJUX_HPC_ROOT": "/tmp/stale-hpc-root",
+                },
+                clear=False,
+            ):
+                runtime_env = support.benchmark_runtime_env(out_root)
+            expected_cache_root = Path(env["BIJUX_BENCHMARK_REMOTE_CACHE_ROOT"]).resolve()
             expected_hpc_root = expected_cache_root.parent
 
-            self.assertEqual(Path(env["BIJUX_CACHE_ROOT"]).resolve(), expected_cache_root)
-            self.assertEqual(Path(env["XDG_CACHE_HOME"]).resolve(), expected_cache_root)
-            self.assertEqual(Path(env["BIJUX_HPC_ROOT"]).resolve(), expected_hpc_root)
-        finally:
-            if stale_cache_root is None:
-                os.environ.pop("BIJUX_CACHE_ROOT", None)
-            else:
-                os.environ["BIJUX_CACHE_ROOT"] = stale_cache_root
-            if stale_xdg_cache is None:
-                os.environ.pop("XDG_CACHE_HOME", None)
-            else:
-                os.environ["XDG_CACHE_HOME"] = stale_xdg_cache
-            if stale_hpc_root is None:
-                os.environ.pop("BIJUX_HPC_ROOT", None)
-            else:
-                os.environ["BIJUX_HPC_ROOT"] = stale_hpc_root
+            self.assertEqual(
+                Path(runtime_env["BIJUX_CACHE_ROOT"]).resolve(),
+                expected_cache_root,
+            )
+            self.assertEqual(
+                Path(runtime_env["XDG_CACHE_HOME"]).resolve(),
+                expected_cache_root,
+            )
+            self.assertEqual(
+                Path(runtime_env["BIJUX_HPC_ROOT"]).resolve(),
+                expected_hpc_root,
+            )
 
     def test_benchmark_runtime_env_uses_local_cache_mirror_for_local_archive(self) -> None:
-        out_root = Path("/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc")
-        env = support.benchmark_runtime_env(out_root)
+        with benchmark_contract_env() as env:
+            out_root = (
+                Path(env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"])
+                / "corpus_01"
+                / "fastq.trim_reads"
+                / "lunarc"
+            )
+            runtime_env = support.benchmark_runtime_env(out_root)
 
-        self.assertEqual(
-            Path(env["BIJUX_CACHE_ROOT"]).resolve(),
-            Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache").resolve(),
-        )
-        self.assertEqual(
-            Path(env["XDG_CACHE_HOME"]).resolve(),
-            Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache").resolve(),
-        )
+            self.assertEqual(
+                Path(runtime_env["BIJUX_CACHE_ROOT"]).resolve(),
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"]).resolve(),
+            )
+            self.assertEqual(
+                Path(runtime_env["XDG_CACHE_HOME"]).resolve(),
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"]).resolve(),
+            )
 
     def test_benchmark_runtime_env_falls_back_to_detected_cache_ancestor(self) -> None:
         out_root = Path("/tmp/bench-workspace/.cache/bijux-dna-results/bench/trim_reads")
@@ -2103,23 +2152,32 @@ class BenchmarkMakefileTests(unittest.TestCase):
         )
 
     def test_default_extra_data_root_follows_workspace_contract(self) -> None:
-        remote_out_root = Path("/tmp/random/corpus_01/fastq.deplete_host/lunarc")
-        local_out_root = Path("/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc")
+        with benchmark_contract_env() as env:
+            remote_out_root = Path("/tmp/random/corpus_01/fastq.deplete_host/lunarc")
+            local_out_root = (
+                Path(env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"])
+                / "corpus_01"
+                / "fastq.deplete_host"
+                / "lunarc"
+            )
 
-        self.assertEqual(
-            support.default_extra_data_root(
-                Path("/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc")
-            ).resolve(),
-            Path("/home/bijan/lu2024-12-24/.cache/extra-data").resolve(),
-        )
-        self.assertEqual(
-            support.default_extra_data_root(local_out_root).resolve(),
-            support.benchmark_local_extra_data_root().resolve(),
-        )
-        self.assertEqual(
-            support.default_extra_data_root(remote_out_root).resolve(),
-            (remote_out_root.parent.parent.parent / "extra-data").resolve(),
-        )
+            self.assertEqual(
+                support.default_extra_data_root(
+                    Path(env["BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT"])
+                    / "corpus_01"
+                    / "fastq.deplete_host"
+                    / "lunarc"
+                ).resolve(),
+                Path(env["BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT"]).resolve(),
+            )
+            self.assertEqual(
+                support.default_extra_data_root(local_out_root).resolve(),
+                Path(env["BIJUX_BENCHMARK_LOCAL_EXTRA_DATA_ROOT"]).resolve(),
+            )
+            self.assertEqual(
+                support.default_extra_data_root(remote_out_root).resolve(),
+                (remote_out_root.parent.parent.parent / "extra-data").resolve(),
+            )
 
     def test_localize_results_path_supports_cache_results_root(self) -> None:
         localized = support.localize_results_path(
@@ -2472,20 +2530,25 @@ class BenchmarkMakefileTests(unittest.TestCase):
     def test_default_screen_taxonomy_database_root_prefers_cache_extra_data(
         self,
     ) -> None:
-        out_root = Path(
-            "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.screen_taxonomy/lunarc"
-        )
-        self.assertEqual(
-            support.default_screen_taxonomy_database_root(
-                out_root,
-                database_namespace="read_screening",
-                database_scope="read_screening",
-                database_artifact_id="taxonomy_db",
-            ).resolve(),
-            Path(
-                "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
-            ).resolve(),
-        )
+        with benchmark_contract_env() as env:
+            out_root = (
+                Path(env["BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT"])
+                / "corpus_01"
+                / "fastq.screen_taxonomy"
+                / "lunarc"
+            )
+            self.assertEqual(
+                support.default_screen_taxonomy_database_root(
+                    out_root,
+                    database_namespace="read_screening",
+                    database_scope="read_screening",
+                    database_artifact_id="taxonomy_db",
+                ).resolve(),
+                (
+                    Path(env["BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT"])
+                    / "benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
+                ).resolve(),
+            )
 
     def test_screen_taxonomy_database_template_is_loaded_from_workspace_contract(
         self,

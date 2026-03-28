@@ -201,3 +201,15 @@ stage_id = "fastq.report_qc"
 scenario_id = "qc_aggregation_fairness"
 sample_scope = "full"
 tools = ["multiqc"]
+
+[[publication.corpus_01.exclusions]]
+stage_id = "fastq.index_reference"
+reason = "Reference-index benchmarking measures bundle build throughput rather than sample-cohort execution on corpus-01 FASTQ inputs."
+
+[[publication.corpus_01.exclusions]]
+stage_id = "fastq.cluster_otus"
+reason = "OTU clustering is amplicon-specific and does not fit the human whole-genome FASTQ cohort contract used by corpus-01."
+
+[[publication.corpus_01.exclusions]]
+stage_id = "fastq.normalize_abundance"
+reason = "Abundance normalization benchmarks require derived abundance tables rather than the raw FASTQ corpus-01 publication surface."

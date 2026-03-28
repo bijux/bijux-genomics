@@ -25,6 +25,24 @@ DEFAULT_PUBLICATION_CONFIG_PATH = REPO_ROOT / "configs" / "bench" / "publication
 _workspace_config_override: Path | None = None
 
 
+def expand_env_placeholders(raw: str) -> str:
+    expanded: list[str] = []
+    index = 0
+    while index < len(raw):
+        if raw[index : index + 2] == "${":
+            end = raw.find("}", index + 2)
+            if end == -1:
+                expanded.append(raw[index:])
+                break
+            name = raw[index + 2 : end]
+            expanded.append(os.environ.get(name, ""))
+            index = end + 1
+            continue
+        expanded.append(raw[index])
+        index += 1
+    return "".join(expanded)
+
+
 def _normalize_config_path(
     raw_path: str | os.PathLike[str] | None,
     *,
@@ -77,7 +95,7 @@ def load_benchmark_config() -> dict:
     if not path.is_file() or toml_loader is None:
         return {}
     raw = path.read_text(encoding="utf-8")
-    return toml_loader.loads(os.path.expandvars(raw))
+    return toml_loader.loads(expand_env_placeholders(raw))
 
 
 @lru_cache(maxsize=1)
@@ -92,7 +110,7 @@ def load_workspace_config() -> dict:
         if not legacy_path.is_file() or toml_loader is None:
             return {}
         raw = legacy_path.read_text(encoding="utf-8")
-        return toml_loader.loads(os.path.expandvars(raw))
+        return toml_loader.loads(expand_env_placeholders(raw))
     return payload
 
 
@@ -106,7 +124,7 @@ def load_publication_config() -> dict:
     if not path.is_file() or toml_loader is None:
         return {}
     raw = path.read_text(encoding="utf-8")
-    return toml_loader.loads(os.path.expandvars(raw))
+    return toml_loader.loads(expand_env_placeholders(raw))
 
 
 def add_workspace_config_argument(parser: argparse.ArgumentParser) -> None:
