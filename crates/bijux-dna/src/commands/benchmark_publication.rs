@@ -819,7 +819,6 @@ struct DossierStageEntry {
     summary_path: String,
     dossier_path: String,
     expected_remote_run_root: String,
-    expected_remote_legacy_run_root: String,
     expected_local_cache_mirror_run_root: String,
     expected_local_results_run_root: String,
     generated_at_utc: Option<String>,
@@ -1152,11 +1151,6 @@ fn build_dossier_stage_entry(
             remote_corpus_id,
             &contract.stage_id,
         ));
-    let expected_remote_legacy_run_root = workspace_remote_results_legacy_root(workspace)?
-        .join(remote_corpus_id)
-        .join(&contract.stage_id)
-        .join("lunarc");
-
     let mut entry = DossierStageEntry {
         stage_id: contract.stage_id.clone(),
         sample_scope: contract.sample_scope.clone(),
@@ -1164,7 +1158,6 @@ fn build_dossier_stage_entry(
         summary_path: summary_path.display().to_string(),
         dossier_path: dossier_path.display().to_string(),
         expected_remote_run_root: expected_remote_run_root.display().to_string(),
-        expected_remote_legacy_run_root: expected_remote_legacy_run_root.display().to_string(),
         expected_local_cache_mirror_run_root: expected_local_cache_mirror_run_root
             .display()
             .to_string(),
@@ -1209,7 +1202,6 @@ fn build_dossier_stage_entry(
         classify_run_root_source(
             path,
             &expected_remote_run_root,
-            &expected_remote_legacy_run_root,
             &expected_local_cache_mirror_run_root,
             &expected_local_results_run_root,
             &remote_corpus_root,
@@ -3170,7 +3162,6 @@ fn stage_value_optional_string(stage: Option<&&serde_json::Value>, key: &str) ->
 fn classify_run_root_source(
     run_root: &Path,
     expected_remote_run_root: &Path,
-    expected_remote_legacy_run_root: &Path,
     expected_local_cache_mirror_run_root: &Path,
     expected_local_results_run_root: &Path,
     remote_corpus_root: &Path,
@@ -3183,9 +3174,6 @@ fn classify_run_root_source(
     }
     if run_root == expected_remote_run_root {
         return "remote-results-root".to_string();
-    }
-    if run_root == expected_remote_legacy_run_root {
-        return "remote-results-legacy-root".to_string();
     }
     if remote_corpus_root
         .parent()
@@ -3241,15 +3229,6 @@ fn workspace_remote_results_root(workspace: &BenchmarkWorkspaceConfig) -> Result
         .and_then(|row| row.results_root.as_deref())
         .map(PathBuf::from)
         .ok_or_else(|| anyhow!("workspace config is missing remote.results_root"))
-}
-
-fn workspace_remote_results_legacy_root(workspace: &BenchmarkWorkspaceConfig) -> Result<PathBuf> {
-    workspace
-        .remote
-        .as_ref()
-        .and_then(|row| row.results_legacy_root.as_deref())
-        .map(PathBuf::from)
-        .ok_or_else(|| anyhow!("workspace config is missing remote.results_legacy_root"))
 }
 
 fn workspace_local_cache_mirror_root(workspace: &BenchmarkWorkspaceConfig) -> Result<PathBuf> {
@@ -3320,9 +3299,6 @@ mod tests {
                 crate::commands::benchmark_workspace::BenchmarkWorkspaceRemote {
                     corpus_root: Some(remote_corpus_root.display().to_string()),
                     results_root: Some(remote_root.join("results").display().to_string()),
-                    results_legacy_root: Some(
-                        remote_root.join("legacy-results").display().to_string(),
-                    ),
                     ..Default::default()
                 },
             ),
@@ -3421,7 +3397,6 @@ reference_root = "{}"
 [workspace.remote]
 corpus_root = "{}"
 results_root = "{}"
-results_legacy_root = "{}"
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
@@ -3435,7 +3410,6 @@ tools = ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"]
                 cache_root.join("reference").display(),
                 remote_corpus_root.display(),
                 remote_root.join("results").display(),
-                remote_root.join("legacy-results").display(),
             ),
         )
         .expect("write benchmark config");
