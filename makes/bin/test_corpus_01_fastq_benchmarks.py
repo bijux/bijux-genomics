@@ -1285,6 +1285,23 @@ class BenchmarkMakefileTests(unittest.TestCase):
             Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache").resolve(),
         )
 
+    def test_benchmark_runtime_env_falls_back_to_detected_cache_ancestor(self) -> None:
+        out_root = Path("/tmp/bench-workspace/.cache/bijux-dna-results/bench/trim_reads")
+        env = support.benchmark_runtime_env(out_root)
+
+        self.assertEqual(
+            Path(env["BIJUX_CACHE_ROOT"]).resolve(),
+            Path("/tmp/bench-workspace/.cache").resolve(),
+        )
+        self.assertEqual(
+            Path(env["XDG_CACHE_HOME"]).resolve(),
+            Path("/tmp/bench-workspace/.cache").resolve(),
+        )
+        self.assertEqual(
+            Path(env["BIJUX_HPC_ROOT"]).resolve(),
+            Path("/tmp/bench-workspace").resolve(),
+        )
+
     def test_default_extra_data_root_follows_workspace_contract(self) -> None:
         remote_out_root = Path("/tmp/random/corpus_01/fastq.deplete_host/lunarc")
         local_out_root = Path("/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc")
@@ -5176,7 +5193,7 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                         "status": "incomplete",
                         "issues": [
                             {
-                                "issue_id": "missing-lunarc-md",
+                                "issue_id": "missing-benchmark-md",
                                 "detail": "missing docs dossier",
                             }
                         ],
@@ -5505,7 +5522,10 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
             self.assertEqual(validate_report["status"], "incomplete")
             self.assertGreaterEqual(validate_report["issue_count"], 4)
             self.assertTrue(
-                any(issue["issue_id"] == "missing-lunarc-md" for issue in validate_report["issues"])
+                any(
+                    issue["issue_id"] == "missing-benchmark-md"
+                    for issue in validate_report["issues"]
+                )
             )
 
     def test_render_markdown_summarizes_completion_and_issue_count(self) -> None:
