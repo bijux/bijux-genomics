@@ -47,6 +47,15 @@ A complete published dossier for this stage contains:
 - `sample_runtime_outliers.csv`
 - `lunarc.md`
 
+## Workflow
+
+```bash
+make _benchmark-merge-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-merge-corpus-01-report
+```
+
+The runner resolves the governed paired corpus root through `configs/bench/workspace.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
+
 ## Interpretation guardrails
 
 - Merge-rate comparisons are valid only when every backend sees the same paired inputs and the same governed unmerged mate policy.
