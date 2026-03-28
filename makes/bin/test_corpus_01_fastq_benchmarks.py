@@ -5191,6 +5191,26 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             )
         )
 
+    def test_result_audit_tracks_missing_published_stage_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            report = published_results_audit.audit_published_results(repo_root)
+
+        self.assertEqual(
+            report["applicable_stage_count"],
+            len(support.CORPUS_01_PUBLICATION_CONTRACTS),
+        )
+        self.assertTrue(
+            any(
+                stage["issue_count"] > 0
+                and any(
+                    issue["issue_id"] == "missing-published-summary"
+                    for issue in stage["issues"]
+                )
+                for stage in report["stages"]
+            )
+        )
+
     def test_result_audit_flags_duplicate_local_run_roots(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
