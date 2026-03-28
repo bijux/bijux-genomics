@@ -132,6 +132,10 @@ def makefile_phony_targets() -> set[str]:
     return {entry.rstrip("\\") for entry in entries if entry}
 
 
+def publication_stage_ids() -> list[str]:
+    return [contract.stage_id for contract in support.CORPUS_01_PUBLICATION_CONTRACTS]
+
+
 class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_corpus_01_make_target_mapping_covers_merge_and_trim_stage_aliases(self) -> None:
         self.assertEqual(
@@ -252,6 +256,17 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("_benchmark-normalize-primers-corpus-01", phony)
         self.assertIn("_benchmark-deplete-host-corpus-01", phony)
         self.assertIn("_benchmark-deplete-reference-contaminants-corpus-01", phony)
+
+    def test_makefile_exposes_run_target_for_every_governed_publication_stage(self) -> None:
+        text = benchmark_makefile_text()
+
+        missing_targets = [
+            support.corpus_01_make_run_target(stage_id)
+            for stage_id in publication_stage_ids()
+            if f"{support.corpus_01_make_run_target(stage_id)}:" not in text
+        ]
+
+        self.assertEqual(missing_targets, [])
 
     def test_makefile_declares_fastq_dossier_targets_as_phony(self) -> None:
         phony = makefile_phony_targets()
