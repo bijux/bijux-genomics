@@ -5,6 +5,8 @@ import argparse
 import json
 from pathlib import Path
 
+from corpus_01_fastq_benchmark_support import benchmark_local_results_root
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -12,7 +14,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--results-root",
-        default="/Users/bijan/bijux/bijux-dna-results",
+        default=str(benchmark_local_results_root()),
         help="Local results mirror root.",
     )
     parser.add_argument(

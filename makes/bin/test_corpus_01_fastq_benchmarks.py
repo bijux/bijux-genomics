@@ -2196,6 +2196,21 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertFalse(raw_run_root.exists())
             self.assertEqual(report["actions"][0]["status"], "moved")
 
+    def test_normalize_results_mirror_parse_args_uses_workspace_results_root(self) -> None:
+        original_argv = sys.argv
+        try:
+            with mock.patch.object(
+                normalize_results_mirror,
+                "benchmark_local_results_root",
+                return_value=Path("/tmp/workspace-results"),
+            ):
+                sys.argv = ["normalize_lunarc_results_mirror.py"]
+                args = normalize_results_mirror.parse_args()
+        finally:
+            sys.argv = original_argv
+
+        self.assertEqual(args.results_root, "/tmp/workspace-results")
+
     def test_normalize_results_mirror_skips_existing_canonical_target(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             results_root = Path(tmpdir) / "results"
