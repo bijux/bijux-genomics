@@ -334,7 +334,7 @@ def main() -> int:
         "stage_id": DEPLETE_RRNA_BENCHMARK_CONTRACT.stage_id,
         "scenario_id": DEPLETE_RRNA_BENCHMARK_CONTRACT.scenario_id,
         "platform": run_manifest["platform"],
-        "corpus_root": run_manifest["corpus_root"],
+        "corpus_root": str(corpus_root),
         "run_root": str(run_root),
         "tools": run_manifest["tools"],
         "samples_total": len(expected_sample_ids),
