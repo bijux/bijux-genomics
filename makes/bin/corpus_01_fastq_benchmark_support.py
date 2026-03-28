@@ -1215,6 +1215,36 @@ def resolve_corpus_briefing_runtime(args: argparse.Namespace) -> CorpusBriefingR
     )
 
 
+def render_corpus_briefing_dossier(
+    args: argparse.Namespace,
+    *,
+    tool_runtime_summary_fn,
+    cohort_runtime_summary_fn,
+    sample_outlier_fn,
+    markdown_builder,
+    validate_summary_fn=None,
+    validate_rows_fn=None,
+) -> int:
+    runtime = resolve_corpus_briefing_runtime(args)
+    summary = runtime.summary
+    rows = runtime.sample_rows
+    if validate_summary_fn is not None:
+        validate_summary_fn(summary)
+    if validate_rows_fn is not None:
+        validate_rows_fn(summary, rows)
+    runtime_rows = tool_runtime_summary_fn(rows)
+    cohort_rows = cohort_runtime_summary_fn(rows)
+    outlier_rows = sample_outlier_fn(rows)
+    publish_corpus_briefing_artifacts(
+        runtime.docs_root,
+        markdown=markdown_builder(summary, rows, runtime_rows, cohort_rows, outlier_rows),
+        runtime_rows=runtime_rows,
+        cohort_rows=cohort_rows,
+        outlier_rows=outlier_rows,
+    )
+    return 0
+
+
 def resolve_corpus_report_runtime(
     args: argparse.Namespace,
     *,

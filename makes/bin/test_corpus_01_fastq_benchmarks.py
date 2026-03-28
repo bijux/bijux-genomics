@@ -414,6 +414,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 path.name,
             )
 
+    def test_briefing_renderers_use_shared_dossier_runner(self) -> None:
+        for path in tool_runtime_metric_briefing_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("render_corpus_briefing_dossier(", text, path.name)
+            self.assertNotIn(
+                "resolve_corpus_briefing_runtime(parse_args())",
+                text,
+                path.name,
+            )
+
     def test_briefing_renderers_use_shared_stats_io_and_publication_helpers(
         self,
     ) -> None:
@@ -1153,6 +1163,26 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
         self.assertNotIn(
             "20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.",
+            text,
+        )
+
+    def test_benchmark_issue_ledger_omits_resolved_briefing_runtime_summary_duplication(
+        self,
+    ) -> None:
+        text = benchmark_issues_text()
+
+        self.assertNotIn(
+            "46. Benchmark renderers duplicate runtime summary calculations across many nearly identical scripts.",
+            text,
+        )
+
+    def test_benchmark_issue_ledger_omits_resolved_briefing_cohort_duplication(
+        self,
+    ) -> None:
+        text = benchmark_issues_text()
+
+        self.assertNotIn(
+            "47. Benchmark renderers duplicate cohort and layout aggregation logic across many nearly identical scripts.",
             text,
         )
 

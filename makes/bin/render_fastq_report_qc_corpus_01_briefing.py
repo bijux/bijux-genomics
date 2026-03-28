@@ -32,6 +32,7 @@ from corpus_01_fastq_benchmark_support import (
     BriefingCopiedMetricSpec,
     BriefingOutlierSpec,
     summarize_sample_outlier_rows,
+    render_corpus_briefing_dossier,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -225,24 +226,14 @@ def render_markdown(
     return "\n".join(lines) + "\n"
 
 def main() -> int:
-    runtime = resolve_corpus_briefing_runtime(parse_args())
-    docs_root = runtime.docs_root
-    summary = runtime.summary
-    rows = runtime.sample_rows
-    validate_summary_contract(summary)
-    validate_rows_contract(summary, rows)
-
-    runtime_rows = tool_runtime_summary(rows)
-    cohort_rows = cohort_runtime_summary(rows)
-    outliers = sample_runtime_outliers(rows)
-    publish_corpus_briefing_artifacts(
-        docs_root,
-        markdown=render_markdown(summary, runtime_rows, cohort_rows, outliers),
-        runtime_rows=runtime_rows,
-        cohort_rows=cohort_rows,
-        outlier_rows=outliers,
+    return render_corpus_briefing_dossier(
+        parse_args(),
+        tool_runtime_summary_fn=tool_runtime_summary,
+        cohort_runtime_summary_fn=cohort_runtime_summary,
+        sample_outlier_fn=sample_runtime_outliers,
+        markdown_builder=lambda summary, rows, runtime_rows, cohort_rows, outlier_rows: render_markdown(summary, runtime_rows, cohort_rows, outlier_rows),
+        validate_summary_fn=validate_summary_contract,
+        validate_rows_fn=validate_rows_contract,
     )
-    return 0
-
 if __name__ == "__main__":
     raise SystemExit(main())
