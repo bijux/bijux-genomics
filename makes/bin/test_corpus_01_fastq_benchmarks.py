@@ -249,7 +249,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             source_manifest.write_text(
                 json.dumps(
                     {
-                        "entries": [
+                        "records": [
                             {
                                 "accession": "NC_000913.3",
                                 "taxid": 562,
@@ -275,7 +275,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             payload["schema_version"],
             "bijux.fastq.screen_taxonomy.database_lineage.v1",
         )
-        self.assertEqual(payload["source_entry_count"], 1)
+        self.assertEqual(payload["source_record_count"], 1)
         self.assertEqual(
             [row["backend"] for row in payload["backend_roots"]],
             ["kraken2", "krakenuniq", "centrifuge", "kaiju", "taxonomy"],
@@ -288,7 +288,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             (database_root / "source").mkdir(parents=True)
             source_manifest = database_root / "source" / "panel_manifest.json"
             source_manifest.write_text(
-                json.dumps({"entries": [{"accession": "NC_000913.3"}]}),
+                json.dumps({"records": [{"accession": "NC_000913.3"}]}),
                 encoding="utf-8",
             )
             with self.assertRaises(SystemExit):

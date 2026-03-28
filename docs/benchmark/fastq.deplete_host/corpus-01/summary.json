@@ -1,0 +1,57 @@
+{
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-28T00:34:40.947482+00:00",
+  "headline": {
+    "best_read_retention": 0.22385316068356204,
+    "best_read_retention_tool": "bowtie2",
+    "fastest_runtime_s": 19.255980359,
+    "fastest_tool": "bowtie2",
+    "strongest_depletion_fraction": 0.6462548632573918,
+    "strongest_depletion_tool": "bowtie2"
+  },
+  "host_identity_threshold": 0.95,
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "platform": "lunarc-apptainer",
+  "reference_catalog_id": "host_reference",
+  "reference_index": "/lunarc/nobackup/projects/snic2019-34-3/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/reference",
+  "reference_index_backend": "bowtie2_build",
+  "reference_index_digest": "639f1934a7933edae38d8bf42bf9f6cc43560e24686c53b0e94e27f9f6691831",
+  "reference_index_lineage_digest": "4680af76346224d129ceba82cb055f78b9936aa8bffd5e405b2b34acb04df872",
+  "reference_index_lineage_json": "/lunarc/nobackup/projects/snic2019-34-3/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/lineage.json",
+  "reference_index_size_bytes": 4185662197,
+  "retain_unmapped_only": true,
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "host_depletion_fairness",
+  "schema_version": "bijux.fastq.deplete_host.corpus_summary.v1",
+  "stage_id": "fastq.deplete_host",
+  "tool_summary": [
+    {
+      "mean_host_fraction_removed": 0.6462548632573918,
+      "mean_reads_removed": 2383476.2,
+      "median_base_retention": 0.24649496836551676,
+      "median_read_retention": 0.22385316068356204,
+      "median_runtime_s": 19.255980359,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "bowtie2"
+    }
+  ],
+  "tools": [
+    "bowtie2"
+  ]
+}

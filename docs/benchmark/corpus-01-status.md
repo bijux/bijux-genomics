@@ -2,10 +2,10 @@
 
 - Benchmarkable governed stages: `23`
 - Corpus-applicable publication stages: `20`
-- Completed stage dossiers: `16`
-- Incomplete stage dossiers: `4`
+- Completed stage dossiers: `17`
+- Incomplete stage dossiers: `3`
 - Excluded stages: `3`
-- Publication issues: `29`
+- Publication issues: `27`
 
 ## Stage status
 
@@ -47,15 +47,13 @@
 - `fastq.deplete_rrna`: `complete` (`0` issues, scope `full`)
 - `fastq.merge_pairs`: `complete` (`0` issues, scope `paired`)
 - `fastq.remove_duplicates`: `complete` (`0` issues, scope `paired`)
-- `fastq.deplete_host`: `incomplete` (`1` issues, scope `full`)
-  - `missing-corpus-dir`: missing benchmark/fastq.deplete_host/corpus-01
+- `fastq.deplete_host`: `complete` (`0` issues, scope `full`)
 - `fastq.deplete_reference_contaminants`: `complete` (`0` issues, scope `full`)
 - `fastq.correct_errors`: `incomplete` (`1` issues, scope `paired`)
   - `missing-corpus-dir`: missing benchmark/fastq.correct_errors/corpus-01
 - `fastq.extract_umis`: `complete` (`0` issues, scope `paired`)
-- `fastq.screen_taxonomy`: `incomplete` (`2` issues, scope `full`)
+- `fastq.screen_taxonomy`: `incomplete` (`1` issues, scope `full`)
   - `missing-corpus-dir`: missing benchmark/fastq.screen_taxonomy/corpus-01
-  - `minimal-taxonomy-database-lineage`: corpus-01 screen_taxonomy still lacks a materialized governed taxonomy bundle under /home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db with backend directories and lineage.json; the legacy minimal smoke-test database is not sufficient for honest publication.
 - `fastq.trim_terminal_damage`: `complete` (`0` issues, scope `full`)
 - `fastq.report_qc`: `complete` (`0` issues, scope `full`)
 
