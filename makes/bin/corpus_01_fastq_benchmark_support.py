@@ -737,6 +737,9 @@ def _workspace_cache_root_for_output(out_root: Path) -> Path | None:
         resolved, local_cache_mirror_root
     ):
         return local_cache_mirror_root
+    for candidate in (resolved, *resolved.parents):
+        if candidate.name == ".cache":
+            return candidate
     return None
 
 
@@ -1128,7 +1131,7 @@ def load_published_sample_metadata(
     target_total = (
         expected_total
         if expected_total is not None
-        else corpus_01_expected_sample_total(repo_root)
+        else sum(expected_cohort_counts(spec).values())
     )
     candidate_stage_ids = (
         [stage_id]
