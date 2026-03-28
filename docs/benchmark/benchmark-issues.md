@@ -18,9 +18,7 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 50. There is no single stage-agnostic renderer framework for corpus-01 FASTQ benchmark dossiers.
 51. Many dossier files are named `lunarc.md`, which encodes the execution site into the published artifact name.
 52. The published document naming scheme does not separate benchmark content from environment-specific provenance cleanly.
-73. `containers/apptainer/lunarc/` remains the only governed location for Apptainer definitions.
 74. The policy suite explicitly enforces `containers/apptainer/lunarc/`, which bakes a site name into repository structure.
 75. Container documentation repeatedly names Lunarc as the canonical Apptainer authority.
-76. The repository has no neutral `containers/apptainer/shared/` or equivalent location for non-site-specific definitions.
 88. `fastq.correct_errors` publication currently depends on the presence of a run manifest in one mirror layout and a bench tree in another.
 89. `fastq.trim_reads` publication currently depends on stale local mirrors unless the user manually re-syncs.
