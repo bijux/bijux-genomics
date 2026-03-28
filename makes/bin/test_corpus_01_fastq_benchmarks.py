@@ -167,9 +167,13 @@ def shared_report_publisher_paths() -> list[Path]:
 def shared_report_runner_paths() -> list[Path]:
     names = [
         "render_fastq_detect_adapters_corpus_01_report.py",
+        "render_fastq_deplete_rrna_corpus_01_report.py",
+        "render_fastq_filter_low_complexity_corpus_01_report.py",
+        "render_fastq_normalize_primers_corpus_01_report.py",
         "render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
         "render_fastq_profile_read_lengths_corpus_01_report.py",
         "render_fastq_profile_reads_corpus_01_report.py",
+        "render_fastq_trim_polyg_tails_corpus_01_report.py",
         "render_fastq_validate_reads_corpus_01_report.py",
     ]
     return [ROOT / "makes" / "bin" / name for name in names]
