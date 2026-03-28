@@ -436,6 +436,8 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "from benchmark_fastq_corpus.publication_targets import resolve_targets",
             text,
         )
+        self.assertIn('"bench",', text)
+        self.assertIn('"publication-targets",', text)
         self.assertNotIn("CORPUS_01_PUBLICATION_CONTRACTS", text)
 
     def test_report_renderers_use_shared_corpus_report_arg_parser(self) -> None:
@@ -986,7 +988,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = benchmark_makefile_text()
 
         self.assertIn(
-            "CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)",
+            'CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell $(BIJUX_BENCH_BIN) bench publication-targets --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" report)',
             text,
         )
 

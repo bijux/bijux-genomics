@@ -722,6 +722,12 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::PublicationTargets(args) => {
+                    crate::commands::benchmark_publication::print_benchmark_publication_targets(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
                 BenchCommand::CorpusFastq(args) => {
                     crate::commands::benchmark_corpus_fastq::run_benchmark_corpus_fastq(cli, args)?;
                 }

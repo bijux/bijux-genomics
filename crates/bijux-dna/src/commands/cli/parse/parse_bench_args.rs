@@ -4,6 +4,8 @@ pub enum BenchCommand {
     Status,
     #[command(name = "workspace-value")]
     WorkspaceValue(BenchWorkspaceValueArgs),
+    #[command(name = "publication-targets")]
+    PublicationTargets(BenchPublicationTargetsArgs),
     #[command(name = "corpus-fastq")]
     CorpusFastq(BenchCorpusFastqArgs),
     Fastq {
@@ -22,6 +24,13 @@ pub enum BenchCommand {
 #[derive(Debug, Args)]
 pub struct BenchWorkspaceValueArgs {
     pub key: String,
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchPublicationTargetsArgs {
+    pub kind: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
 }
