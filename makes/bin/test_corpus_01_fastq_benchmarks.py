@@ -80,6 +80,7 @@ import benchmark_tooling_repo_checks
 import audit_benchmark_workspace_layout as workspace_layout_audit
 import build_corpus_01_benchmark_dossier_index as dossier_index
 import build_corpus_01_benchmark_remediation_queue as remediation_queue
+from benchmark_fastq_corpus import runner_compat
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
@@ -146,8 +147,12 @@ def rust_compat_runner_paths() -> list[Path]:
         "run_fastq_profile_read_lengths_corpus_01.py",
         "run_fastq_profile_overrepresented_sequences_corpus_01.py",
         "run_fastq_filter_low_complexity_corpus_01.py",
+        "run_fastq_filter_reads_corpus_01.py",
         "run_fastq_merge_pairs_corpus_01.py",
+        "run_fastq_correct_errors_corpus_01.py",
+        "run_fastq_extract_umis_corpus_01.py",
         "run_fastq_trim_polyg_tails_corpus_01.py",
+        "run_fastq_trim_reads_corpus_01.py",
         "run_fastq_trim_terminal_damage_corpus_01.py",
     ]
     return [ROOT / "makes" / "bin" / name for name in names]
@@ -2937,190 +2942,90 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 filter_reads_runner.sample_report_is_resume_ready(report_path)
             )
 
-    def test_filter_reads_runner_reruns_stale_resume_report(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir) / "repo"
-            repo_root.mkdir()
-            corpus_root = Path(tmpdir) / "corpus_01"
-            normalized_root = corpus_root / "normalized"
-            normalized_root.mkdir(parents=True)
-            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
-            r1_path.write_text("reads", encoding="utf-8")
-            out_root = Path(tmpdir) / "results"
-            stale_sample_root = out_root / "bench" / "filter" / "sample_0001"
-            stale_sample_root.mkdir(parents=True)
-            stale_marker = stale_sample_root / "stale.marker"
-            stale_marker.write_text("old", encoding="utf-8")
-            stale_report = stale_sample_root / "report.json"
-            stale_report.write_text(
-                json.dumps(
-                    {
-                        "failures": [
-                            {
-                                "kind": "tool_exit",
-                                "reason": "tool `fastp` failed with status 143",
-                            }
-                        ],
-                        "gate": {"passes": False},
-                        "records": [],
-                    }
-                )
-                + "\n",
-                encoding="utf-8",
-            )
+    def test_filter_reads_runner_delegates_to_rust_runner(self) -> None:
+        argv = [
+            "run_fastq_filter_reads_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "fastp,fastplong",
+            "--threads",
+            "8",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "3",
+            "--sample-limit",
+            "4",
+            "--max-n",
+            "7",
+            "--max-n-fraction",
+            "0.25",
+            "--max-n-count",
+            "11",
+            "--low-complexity-threshold",
+            "0.85",
+            "--entropy-threshold",
+            "0.72",
+            "--kmer-ref",
+            "s3://kmers/reference.tsv",
+            "--polyx-policy",
+            "trim",
+            "--no-resume",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            filter_reads_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = filter_reads_runner.main()
 
-            def fake_run(command: list[str], cwd: Path, check: bool = False):
-                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
-                self.assertFalse(stale_marker.exists())
-                fresh_report = out_root / "bench" / "filter" / "sample_0001" / "report.json"
-                fresh_report.parent.mkdir(parents=True, exist_ok=True)
-                fresh_report.write_text(
-                    json.dumps(
-                        {
-                            "failures": [],
-                            "gate": {"passes": True},
-                            "records": [{"context": {"tool": "fastp"}}],
-                            "semantic_metrics": [],
-                        }
-                    )
-                    + "\n",
-                    encoding="utf-8",
-                )
-                return mock.Mock(returncode=0)
-
-            argv = [
-                "run_fastq_filter_reads_corpus_01.py",
-                "--repo-root",
-                str(repo_root),
-                "--corpus-root",
-                str(corpus_root),
-                "--out-root",
-                str(out_root),
-            ]
-            with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(filter_reads_runner, "load_corpus_spec",
-                    return_value={"preferred_root": str(corpus_root)},
-                ):
-                    with mock.patch.object(
-                        filter_reads_runner,
-                        "discover_normalized_samples",
-                        return_value=[
-                            {
-                                "sample_id": "sample_0001",
-                                "r1": r1_path,
-                                "r2": None,
-                                "layout": "se",
-                            }
-                        ],
-                    ):
-                        with mock.patch.object(
-                            filter_reads_runner,
-                            "validate_benchmark_layout",
-                        ):
-                            with mock.patch.object(
-                                filter_reads_runner,
-                                "validate_corpus_contract",
-                            ):
-                                with mock.patch.object(
-                                    filter_reads_runner,
-                                    "require_canonical_tool_roster",
-                                    return_value=["fastp"],
-                                ):
-                                    with mock.patch.object(
-                                        filter_reads_runner.subprocess,
-                                        "run",
-                                        side_effect=fake_run,
-                                    ) as run_mock:
-                                        exit_code = filter_reads_runner.main()
-
-            self.assertEqual(exit_code, 0)
-            self.assertEqual(run_mock.call_count, 1)
-            self.assertFalse(stale_marker.exists())
-
-    def test_filter_reads_runner_resets_orphaned_sample_payload_before_resume(
-        self,
-    ) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir) / "repo"
-            repo_root.mkdir()
-            corpus_root = Path(tmpdir) / "corpus_01"
-            normalized_root = corpus_root / "normalized"
-            normalized_root.mkdir(parents=True)
-            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
-            r1_path.write_text("reads", encoding="utf-8")
-            out_root = Path(tmpdir) / "results"
-            orphaned_sample_root = out_root / "bench" / "filter" / "sample_0001"
-            orphaned_sample_root.mkdir(parents=True)
-            stale_marker = orphaned_sample_root / "stale.marker"
-            stale_marker.write_text("old", encoding="utf-8")
-
-            def fake_run(command: list[str], cwd: Path, check: bool = False):
-                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
-                self.assertFalse(stale_marker.exists())
-                fresh_report = out_root / "bench" / "filter" / "sample_0001" / "report.json"
-                fresh_report.parent.mkdir(parents=True, exist_ok=True)
-                fresh_report.write_text(
-                    json.dumps(
-                        {
-                            "failures": [],
-                            "gate": {"passes": True},
-                            "records": [{"context": {"tool": "fastp"}}],
-                            "semantic_metrics": [],
-                        }
-                    )
-                    + "\n",
-                    encoding="utf-8",
-                )
-                return mock.Mock(returncode=0)
-
-            argv = [
-                "run_fastq_filter_reads_corpus_01.py",
-                "--repo-root",
-                str(repo_root),
-                "--corpus-root",
-                str(corpus_root),
-                "--out-root",
-                str(out_root),
-            ]
-            with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(filter_reads_runner, "load_corpus_spec",
-                    return_value={"preferred_root": str(corpus_root)},
-                ):
-                    with mock.patch.object(
-                        filter_reads_runner,
-                        "discover_normalized_samples",
-                        return_value=[
-                            {
-                                "sample_id": "sample_0001",
-                                "r1": r1_path,
-                                "r2": None,
-                                "layout": "se",
-                            }
-                        ],
-                    ):
-                        with mock.patch.object(
-                            filter_reads_runner,
-                            "validate_benchmark_layout",
-                        ):
-                            with mock.patch.object(
-                                filter_reads_runner,
-                                "validate_corpus_contract",
-                            ):
-                                with mock.patch.object(
-                                    filter_reads_runner,
-                                    "require_canonical_tool_roster",
-                                    return_value=["fastp"],
-                                ):
-                                    with mock.patch.object(
-                                        filter_reads_runner.subprocess,
-                                        "run",
-                                        side_effect=fake_run,
-                                    ) as run_mock:
-                                        exit_code = filter_reads_runner.main()
-
-            self.assertEqual(exit_code, 0)
-            self.assertEqual(run_mock.call_count, 1)
-            self.assertFalse(stale_marker.exists())
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.filter_reads",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            [
+                "--max-n",
+                "7",
+                "--max-n-fraction",
+                "0.25",
+                "--max-n-count",
+                "11",
+                "--low-complexity-threshold",
+                "0.85",
+                "--entropy-threshold",
+                "0.72",
+                "--kmer-ref",
+                "s3://kmers/reference.tsv",
+                "--polyx-policy",
+                "trim",
+            ],
+        )
+        args = compat_mock.call_args.kwargs["args"]
+        self.assertEqual(args.repo_root, "/tmp/repo")
+        self.assertEqual(args.corpus_root, "/tmp/corpus_01")
+        self.assertEqual(args.out_root, "/tmp/results")
+        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.tools, "fastp,fastplong")
+        self.assertEqual(args.threads, 8)
+        self.assertEqual(args.jobs, 2)
+        self.assertEqual(args.sample_jobs, 3)
+        self.assertEqual(args.sample_limit, 4)
+        self.assertFalse(args.resume)
+        self.assertTrue(args.dry_run)
 
     def test_remove_duplicates_runner_parse_args_supports_sample_jobs(self) -> None:
         argv = [
@@ -3373,96 +3278,182 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertEqual(run.exit_code, 0)
         self.assertEqual(run_mock.call_args.kwargs["env"]["BIJUX_ALLOW_NO_UMI"], "1")
 
-    def test_correct_errors_runner_dry_run_selects_paired_subset_only(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir) / "repo"
-            corpus_root = Path(tmpdir) / "corpus"
-            out_root = Path(tmpdir) / "results"
-            repo_root.mkdir()
-            corpus_root.mkdir()
+    def test_extract_umis_runner_delegates_to_rust_runner_with_allow_no_umi_env(
+        self,
+    ) -> None:
+        argv = [
+            "run_fastq_extract_umis_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "umi_tools,fastp",
+            "--threads",
+            "4",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "3",
+            "--sample-limit",
+            "5",
+            "--umi-pattern",
+            "NNNNCCCC",
+            "--allow-missing-umi-headers",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            extract_umis_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = extract_umis_runner.main()
 
-            args = mock.Mock(
-                repo_root=str(repo_root),
-                corpus_root=str(corpus_root),
-                out_root=str(out_root),
-                platform="lunarc-apptainer",
-                tools="",
-                threads=8,
-                jobs=1,
-                sample_jobs=1,
-                sample_limit=0,
-                quality_encoding="phred33",
-                kmer_size=None,
-                musket_kmer_budget=536_870_912,
-                genome_size=3_200_000_000,
-                max_memory_gb=None,
-                trusted_kmer_artifact="",
-                conservative_mode=False,
-                resume=True,
-                dry_run=True,
-            )
-            all_samples = [
-                {
-                    "sample_id": "sample_0001",
-                    "r1": corpus_root / "sample_0001_R1.fastq.gz",
-                    "r2": None,
-                    "layout": "se",
-                },
-                {
-                    "sample_id": "sample_0002",
-                    "r1": corpus_root / "sample_0002_R1.fastq.gz",
-                    "r2": corpus_root / "sample_0002_R2.fastq.gz",
-                    "layout": "pe",
-                },
-                {
-                    "sample_id": "sample_0003",
-                    "r1": corpus_root / "sample_0003_R1.fastq.gz",
-                    "r2": corpus_root / "sample_0003_R2.fastq.gz",
-                    "layout": "pe",
-                },
-            ]
-            metadata_by_sample = {
-                "sample_0001": {"layout": "se", "era": "ancient"},
-                "sample_0002": {"layout": "pe", "era": "ancient"},
-                "sample_0003": {"layout": "pe", "era": "modern"},
-            }
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.extract_umis",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            ["--umi-pattern", "NNNNCCCC"],
+        )
+        extra_env = compat_mock.call_args.kwargs["extra_env"]
+        self.assertEqual(extra_env["BIJUX_ALLOW_NO_UMI"], "1")
+        args = compat_mock.call_args.kwargs["args"]
+        self.assertEqual(args.repo_root, "/tmp/repo")
+        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.tools, "umi_tools,fastp")
+        self.assertTrue(args.dry_run)
 
-            with mock.patch.object(correct_errors_runner, "parse_args", return_value=args):
-                with mock.patch.object(correct_errors_runner, "load_corpus_spec",
-                    return_value={
-                        "preferred_root": str(corpus_root),
-                        "target_ancient_pe": 1,
-                        "target_modern_pe": 1,
-                    },
-                ):
-                    with mock.patch.object(
-                        correct_errors_runner,
-                        "validate_benchmark_layout",
-                    ):
-                        with mock.patch.object(
-                            correct_errors_runner,
-                            "discover_normalized_samples",
-                            return_value=all_samples,
-                        ):
-                            with mock.patch.object(
-                                correct_errors_runner,
-                                "validate_corpus_contract",
-                                return_value=metadata_by_sample,
-                            ):
-                                with mock.patch.object(
-                                    correct_errors_runner,
-                                    "require_canonical_tool_roster",
-                                    return_value=["lighter", "musket", "rcorrector"],
-                                ):
-                                    exit_code = correct_errors_runner.main()
+    def test_runner_compat_merges_extra_env_overrides(self) -> None:
+        args = SimpleNamespace(
+            repo_root=".",
+            platform="",
+            config="",
+            corpus_root="",
+            out_root="",
+            tools="",
+            threads=1,
+            jobs=1,
+            sample_jobs=1,
+            sample_limit=0,
+            resume=True,
+            dry_run=False,
+        )
+        with mock.patch.dict(os.environ, {"PATH": "/usr/bin", "BASE_ONLY": "1"}, clear=True):
+            with mock.patch.object(
+                runner_compat.subprocess,
+                "run",
+                return_value=mock.Mock(returncode=0),
+            ) as run_mock:
+                exit_code = runner_compat.run_corpus_stage_compat(
+                    stage_id="fastq.extract_umis",
+                    args=args,
+                    stage_args=["--umi-pattern", "NNNNCCCC"],
+                    extra_env={"BIJUX_ALLOW_NO_UMI": "1"},
+                )
 
-            self.assertEqual(exit_code, 0)
-            manifest = json.loads((out_root / "run_manifest.json").read_text(encoding="utf-8"))
-            self.assertEqual(manifest["samples_total"], 2)
-            self.assertEqual(
-                [run["sample_id"] for run in manifest["runs"]],
-                ["sample_0002", "sample_0003"],
-            )
+        self.assertEqual(exit_code, 0)
+        runtime_env = run_mock.call_args.kwargs["env"]
+        self.assertEqual(runtime_env["BIJUX_ALLOW_NO_UMI"], "1")
+        self.assertEqual(runtime_env["PATH"], "/usr/bin")
+        self.assertEqual(runtime_env["BASE_ONLY"], "1")
+
+    def test_correct_errors_runner_delegates_to_rust_runner(self) -> None:
+        argv = [
+            "run_fastq_correct_errors_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "lighter,musket",
+            "--threads",
+            "8",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "3",
+            "--sample-limit",
+            "4",
+            "--quality-encoding",
+            "phred64",
+            "--kmer-size",
+            "31",
+            "--musket-kmer-budget",
+            "123456",
+            "--genome-size",
+            "987654321",
+            "--max-memory-gb",
+            "42",
+            "--trusted-kmer-artifact",
+            "/tmp/trusted-kmers",
+            "--conservative-mode",
+            "true",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            correct_errors_runner,
+            "resolve_trusted_kmer_artifact",
+            return_value=Path("/tmp/trusted-kmers"),
+        ), mock.patch.object(
+            correct_errors_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = correct_errors_runner.main()
+
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.correct_errors",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            [
+                "--quality-encoding",
+                "phred64",
+                "--kmer-size",
+                "31",
+                "--musket-kmer-budget",
+                "123456",
+                "--genome-size",
+                "987654321",
+                "--max-memory-gb",
+                "42",
+                "--trusted-kmer-artifact",
+                "/tmp/trusted-kmers",
+                "--conservative-mode",
+                "true",
+            ],
+        )
+        args = compat_mock.call_args.kwargs["args"]
+        self.assertEqual(args.repo_root, "/tmp/repo")
+        self.assertEqual(args.corpus_root, "/tmp/corpus_01")
+        self.assertEqual(args.out_root, "/tmp/results")
+        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.tools, "lighter,musket")
+        self.assertEqual(args.threads, 8)
+        self.assertEqual(args.jobs, 2)
+        self.assertEqual(args.sample_jobs, 3)
+        self.assertEqual(args.sample_limit, 4)
+        self.assertTrue(args.resume)
+        self.assertTrue(args.dry_run)
 
     def test_deplete_rrna_runner_shared_index_layout_is_stable(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -8727,226 +8718,98 @@ class TrimReadsReportingTests(unittest.TestCase):
                 trim_reads_runner.sample_report_is_resume_ready(report_path)
             )
 
-    def test_trim_reads_runner_reruns_stale_resume_report(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir) / "repo"
-            repo_root.mkdir()
-            cache_root = Path(tmpdir) / ".cache"
-            corpus_root = cache_root / "corpus_01"
-            normalized_root = corpus_root / "normalized"
-            normalized_root.mkdir(parents=True)
-            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
-            r1_path.write_text("reads", encoding="utf-8")
-            out_root = cache_root / "bijux-dna-results"
-            stale_sample_root = out_root / "bench" / "trim_reads" / "sample_0001"
-            stale_sample_root.mkdir(parents=True)
-            stale_marker = stale_sample_root / "stale.marker"
-            stale_marker.write_text("old", encoding="utf-8")
-            stale_report = stale_sample_root / "report.json"
-            stale_report.write_text(
-                json.dumps(
-                    {
-                        "failures": [
-                            {
-                                "kind": "tool_exit",
-                                "reason": "tool `alientrimmer` failed with status 2",
-                            }
-                        ],
-                        "gate": {"passes": False},
-                        "records": [],
-                    }
-                )
-                + "\n",
-                encoding="utf-8",
-            )
+    def test_trim_reads_runner_delegates_to_rust_runner(self) -> None:
+        argv = [
+            "run_fastq_trim_reads_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "fastp,atropos",
+            "--threads",
+            "6",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "4",
+            "--sample-limit",
+            "5",
+            "--min-length",
+            "27",
+            "--quality-cutoff",
+            "19",
+            "--n-policy",
+            "drop",
+            "--adapter-policy",
+            "trim",
+            "--polyx-policy",
+            "trim",
+            "--contaminant-policy",
+            "trim",
+            "--adapter-bank-preset",
+            "illumina",
+            "--polyx-preset",
+            "default",
+            "--contaminant-preset",
+            "screened",
+            "--no-resume",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            trim_reads_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = trim_reads_runner.main()
 
-            def fake_run(
-                command: list[str],
-                cwd: Path,
-                check: bool = False,
-                env: dict[str, str] | None = None,
-            ):
-                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
-                self.assertFalse(stale_marker.exists())
-                self.assertIsNotNone(env)
-                self.assertEqual(Path(env["BIJUX_CACHE_ROOT"]).resolve(), cache_root.resolve())
-                self.assertEqual(
-                    Path(env["BIJUX_HPC_ROOT"]).resolve(),
-                    Path(tmpdir).resolve(),
-                )
-                fresh_report = (
-                    out_root / "bench" / "trim_reads" / "sample_0001" / "report.json"
-                )
-                fresh_report.parent.mkdir(parents=True, exist_ok=True)
-                fresh_report.write_text(
-                    json.dumps(
-                        {
-                            "failures": [],
-                            "gate": {"passes": True},
-                            "records": [{"context": {"tool": "fastp"}}],
-                            "semantic_metrics": [],
-                        }
-                    )
-                    + "\n",
-                    encoding="utf-8",
-                )
-                return mock.Mock(returncode=0)
-
-            argv = [
-                "run_fastq_trim_reads_corpus_01.py",
-                "--repo-root",
-                str(repo_root),
-                "--corpus-root",
-                str(corpus_root),
-                "--out-root",
-                str(out_root),
-            ]
-            with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(trim_reads_runner, "load_corpus_spec",
-                    return_value={
-                        "corpus_id": "corpus-01",
-                        "preferred_root": str(corpus_root),
-                    },
-                ):
-                    with mock.patch.object(
-                        trim_reads_runner,
-                        "discover_normalized_samples",
-                        return_value=[
-                            {
-                                "sample_id": "sample_0001",
-                                "r1": r1_path,
-                                "r2": None,
-                                "layout": "se",
-                            }
-                        ],
-                    ):
-                        with mock.patch.object(
-                            trim_reads_runner,
-                            "validate_corpus_contract",
-                        ):
-                            with mock.patch.object(
-                                trim_reads_runner,
-                                "require_canonical_tool_roster",
-                                return_value=["fastp"],
-                            ):
-                                with mock.patch.object(
-                                    trim_reads_runner.subprocess,
-                                    "run",
-                                    side_effect=fake_run,
-                                ) as run_mock:
-                                    exit_code = trim_reads_runner.main()
-
-            self.assertEqual(exit_code, 0)
-            self.assertEqual(run_mock.call_count, 1)
-            self.assertFalse(stale_marker.exists())
-            manifest = json.loads(
-                (out_root / "run_manifest.json").read_text(encoding="utf-8")
-            )
-            self.assertEqual(manifest["samples_failed"], 0)
-            self.assertEqual(manifest["runs"][0]["status"], "completed")
-
-    def test_trim_reads_runner_resets_orphaned_sample_payload_before_resume(
-        self,
-    ) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir) / "repo"
-            repo_root.mkdir()
-            cache_root = Path(tmpdir) / ".cache"
-            corpus_root = cache_root / "corpus_01"
-            normalized_root = corpus_root / "normalized"
-            normalized_root.mkdir(parents=True)
-            r1_path = normalized_root / "sample_0001_R1.fastq.gz"
-            r1_path.write_text("reads", encoding="utf-8")
-            out_root = cache_root / "bijux-dna-results"
-            orphaned_sample_root = out_root / "bench" / "trim_reads" / "sample_0001"
-            orphaned_sample_root.mkdir(parents=True)
-            stale_marker = orphaned_sample_root / "stale.marker"
-            stale_marker.write_text("old", encoding="utf-8")
-
-            def fake_run(
-                command: list[str],
-                cwd: Path,
-                check: bool = False,
-                env: dict[str, str] | None = None,
-            ):
-                self.assertEqual(Path(cwd).resolve(), repo_root.resolve())
-                self.assertFalse(stale_marker.exists())
-                self.assertIsNotNone(env)
-                self.assertEqual(Path(env["BIJUX_CACHE_ROOT"]).resolve(), cache_root.resolve())
-                self.assertEqual(
-                    Path(env["BIJUX_HPC_ROOT"]).resolve(),
-                    Path(tmpdir).resolve(),
-                )
-                fresh_report = (
-                    out_root / "bench" / "trim_reads" / "sample_0001" / "report.json"
-                )
-                fresh_report.parent.mkdir(parents=True, exist_ok=True)
-                fresh_report.write_text(
-                    json.dumps(
-                        {
-                            "failures": [],
-                            "gate": {"passes": True},
-                            "records": [{"context": {"tool": "fastp"}}],
-                            "semantic_metrics": [],
-                        }
-                    )
-                    + "\n",
-                    encoding="utf-8",
-                )
-                return mock.Mock(returncode=0)
-
-            argv = [
-                "run_fastq_trim_reads_corpus_01.py",
-                "--repo-root",
-                str(repo_root),
-                "--corpus-root",
-                str(corpus_root),
-                "--out-root",
-                str(out_root),
-            ]
-            with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(trim_reads_runner, "load_corpus_spec",
-                    return_value={
-                        "corpus_id": "corpus-01",
-                        "preferred_root": str(corpus_root),
-                    },
-                ):
-                    with mock.patch.object(
-                        trim_reads_runner,
-                        "discover_normalized_samples",
-                        return_value=[
-                            {
-                                "sample_id": "sample_0001",
-                                "r1": r1_path,
-                                "r2": None,
-                                "layout": "se",
-                            }
-                        ],
-                    ):
-                        with mock.patch.object(
-                            trim_reads_runner,
-                            "validate_corpus_contract",
-                        ):
-                            with mock.patch.object(
-                                trim_reads_runner,
-                                "require_canonical_tool_roster",
-                                return_value=["fastp"],
-                            ):
-                                with mock.patch.object(
-                                    trim_reads_runner.subprocess,
-                                    "run",
-                                    side_effect=fake_run,
-                                ) as run_mock:
-                                    exit_code = trim_reads_runner.main()
-
-            self.assertEqual(exit_code, 0)
-            self.assertEqual(run_mock.call_count, 1)
-            self.assertFalse(stale_marker.exists())
-            manifest = json.loads(
-                (out_root / "run_manifest.json").read_text(encoding="utf-8")
-            )
-            self.assertEqual(manifest["samples_failed"], 0)
-            self.assertEqual(manifest["runs"][0]["status"], "completed")
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.trim_reads",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            [
+                "--min-length",
+                "27",
+                "--quality-cutoff",
+                "19",
+                "--n-policy",
+                "drop",
+                "--adapter-policy",
+                "trim",
+                "--polyx-policy",
+                "trim",
+                "--contaminant-policy",
+                "trim",
+                "--adapter-bank-preset",
+                "illumina",
+                "--polyx-preset",
+                "default",
+                "--contaminant-preset",
+                "screened",
+            ],
+        )
+        args = compat_mock.call_args.kwargs["args"]
+        self.assertEqual(args.repo_root, "/tmp/repo")
+        self.assertEqual(args.corpus_root, "/tmp/corpus_01")
+        self.assertEqual(args.out_root, "/tmp/results")
+        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.tools, "fastp,atropos")
+        self.assertEqual(args.threads, 6)
+        self.assertEqual(args.jobs, 2)
+        self.assertEqual(args.sample_jobs, 4)
+        self.assertEqual(args.sample_limit, 5)
+        self.assertFalse(args.resume)
+        self.assertTrue(args.dry_run)
 
     def test_trim_reads_report_localizes_lunarc_report_paths(self) -> None:
         local_results_root = Path("/tmp/local-results")

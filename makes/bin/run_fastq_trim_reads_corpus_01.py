@@ -6,23 +6,15 @@ import json
 import os
 import shutil
 import subprocess
-import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import (
-    TRIM_READS_BENCHMARK_CONTRACT,
-    benchmark_runtime_env,
-    default_results_stage_root,
-    discover_normalized_samples,
-    load_corpus_spec,
-    normalize_tool_csv,
-    require_canonical_tool_roster,
-    trim_reads_benchmark_defaults,
-    validate_corpus_contract,
+from benchmark_fastq_corpus.config import add_workspace_config_argument
+from benchmark_fastq_corpus.runner_compat import (
+    append_stage_arg,
+    run_corpus_stage_compat,
 )
+from corpus_01_fastq_benchmark_support import trim_reads_benchmark_defaults
 
 
 @dataclass
@@ -55,7 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-root",
         default="",
-        help="Benchmark output root. Defaults to <corpus-root-parent>/results/<corpus-dir>/fastq.trim_reads/lunarc.",
+        help="Benchmark output root. Defaults to the configured stage benchmark root.",
     )
     parser.add_argument(
         "--platform",
@@ -86,21 +78,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-policy", default=defaults["n_policy"])
     parser.add_argument("--adapter-policy", default=defaults["adapter_policy"])
     parser.add_argument("--polyx-policy", default=defaults["polyx_policy"])
-    parser.add_argument(
-        "--contaminant-policy", default=defaults["contaminant_policy"]
-    )
-    parser.add_argument(
-        "--adapter-bank-preset",
-        default=defaults["adapter_bank_preset"] or "",
-    )
-    parser.add_argument(
-        "--polyx-preset",
-        default=defaults["polyx_preset"] or "",
-    )
+    parser.add_argument("--contaminant-policy", default=defaults["contaminant_policy"])
+    parser.add_argument("--adapter-bank-preset", default=defaults["adapter_bank_preset"] or "")
+    parser.add_argument("--polyx-preset", default=defaults["polyx_preset"] or "")
     parser.add_argument(
         "--contaminant-preset",
         default=defaults["contaminant_preset"] or "",
     )
+    add_workspace_config_argument(parser)
     parser.add_argument(
         "--resume",
         action=argparse.BooleanOptionalAction,
@@ -238,153 +223,25 @@ def run_sample_command(
 
 def main() -> int:
     args = parse_args()
-    repo_root = Path(args.repo_root).resolve()
-    spec = load_corpus_spec(repo_root)
-    corpus_root = (
-        Path(args.corpus_root).expanduser().resolve()
-        if args.corpus_root
-        else Path(spec["preferred_root"]).expanduser().resolve()
-    )
-    out_root = (
-        Path(args.out_root).expanduser().resolve()
-        if args.out_root
-        else default_results_stage_root(corpus_root, TRIM_READS_BENCHMARK_CONTRACT.stage_id)
-    )
-    out_root.mkdir(parents=True, exist_ok=True)
-
-    samples = discover_normalized_samples(corpus_root)
-    validate_corpus_contract(corpus_root, spec, samples)
-    if args.sample_limit > 0:
-        samples = samples[: args.sample_limit]
-    requested_tools = (
-        normalize_tool_csv(args.tools) if args.tools else TRIM_READS_BENCHMARK_CONTRACT.tools
-    )
-    tools = require_canonical_tool_roster(
-        repo_root,
-        TRIM_READS_BENCHMARK_CONTRACT.stage_id,
-        requested_tools,
-        scenario_id=TRIM_READS_BENCHMARK_CONTRACT.scenario_id,
-    )
     adapter_bank_preset = optional_str(args.adapter_bank_preset)
     polyx_preset = optional_str(args.polyx_preset)
     contaminant_preset = optional_str(args.contaminant_preset)
-    runs: list[SampleRun | None] = [None] * len(samples)
-    failures = 0
-    pending: list[tuple[int, dict, Path, list[str]]] = []
-    runtime_env = benchmark_runtime_env(out_root)
-
-    for sample_index, sample in enumerate(samples):
-        sample_report = report_path(out_root, sample["sample_id"])
-        if args.resume and sample_report.is_file():
-            if sample_report_is_resume_ready(sample_report):
-                runs[sample_index] = (
-                    SampleRun(
-                        sample_id=sample["sample_id"],
-                        r1=str(sample["r1"]),
-                        r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                        layout=sample["layout"],
-                        status="skipped_existing_report",
-                        exit_code=0,
-                        command=[],
-                        report_json=str(sample_report),
-                    )
-                )
-                continue
-            sample_report.unlink(missing_ok=True)
-            reset_sample_payload(out_root, sample["sample_id"])
-        elif args.resume:
-            reset_sample_payload(out_root, sample["sample_id"])
-
-        command = build_command(
-            out_root=out_root,
-            platform=args.platform,
-            tools=",".join(tools),
-            threads=args.threads,
-            jobs=args.jobs,
-            min_length=args.min_length,
-            quality_cutoff=args.quality_cutoff,
-            n_policy=args.n_policy,
-            adapter_policy=args.adapter_policy,
-            polyx_policy=args.polyx_policy,
-            contaminant_policy=args.contaminant_policy,
-            adapter_bank_preset=adapter_bank_preset,
-            polyx_preset=polyx_preset,
-            contaminant_preset=contaminant_preset,
-            sample=sample,
-        )
-        if args.dry_run:
-            runs[sample_index] = (
-                SampleRun(
-                    sample_id=sample["sample_id"],
-                    r1=str(sample["r1"]),
-                    r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                    layout=sample["layout"],
-                    status="dry_run",
-                    exit_code=0,
-                    command=command,
-                    report_json=str(sample_report),
-                )
-            )
-            continue
-        pending.append((sample_index, sample, sample_report, command))
-
-    if pending:
-        max_workers = max(1, args.sample_jobs)
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(
-                    run_sample_command,
-                    repo_root=repo_root,
-                    sample=sample,
-                    command=command,
-                    sample_report=sample_report,
-                    env=runtime_env,
-                ): sample_index
-                for sample_index, sample, sample_report, command in pending
-            }
-            for future in as_completed(futures):
-                sample_index = futures[future]
-                run = future.result()
-                runs[sample_index] = run
-                if run.exit_code != 0:
-                    failures += 1
-
-    payload = {
-        "schema_version": "bijux.fastq.trim_reads.corpus_run.v1",
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "corpus_id": spec["corpus_id"],
-        "stage_id": TRIM_READS_BENCHMARK_CONTRACT.stage_id,
-        "scenario_id": TRIM_READS_BENCHMARK_CONTRACT.scenario_id,
-        "tool_kind": "benchmark",
-        "platform": args.platform,
-        "tools": tools,
-        "threads": args.threads,
-        "jobs": args.jobs,
-        "sample_jobs": args.sample_jobs,
-        "sample_limit": args.sample_limit or None,
-        "dry_run": args.dry_run,
-        "min_length": args.min_length,
-        "quality_cutoff": args.quality_cutoff,
-        "n_policy": args.n_policy,
-        "adapter_policy": args.adapter_policy,
-        "polyx_policy": args.polyx_policy,
-        "contaminant_policy": args.contaminant_policy,
-        "adapter_bank_preset": adapter_bank_preset,
-        "polyx_preset": polyx_preset,
-        "contaminant_preset": contaminant_preset,
-        "repo_root": str(repo_root),
-        "corpus_root": str(corpus_root),
-        "out_root": str(out_root),
-        "samples_total": len(runs),
-        "samples_failed": failures,
-        "runs": [asdict(run) for run in runs if run is not None],
-    }
-    (out_root / "run_manifest.json").write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    stage_args: list[str] = []
+    append_stage_arg(stage_args, "--min-length", args.min_length)
+    append_stage_arg(stage_args, "--quality-cutoff", args.quality_cutoff)
+    append_stage_arg(stage_args, "--n-policy", args.n_policy)
+    append_stage_arg(stage_args, "--adapter-policy", args.adapter_policy)
+    append_stage_arg(stage_args, "--polyx-policy", args.polyx_policy)
+    append_stage_arg(stage_args, "--contaminant-policy", args.contaminant_policy)
+    append_stage_arg(stage_args, "--adapter-bank-preset", adapter_bank_preset)
+    append_stage_arg(stage_args, "--polyx-preset", polyx_preset)
+    append_stage_arg(stage_args, "--contaminant-preset", contaminant_preset)
+    return run_corpus_stage_compat(
+        stage_id="fastq.trim_reads",
+        args=args,
+        stage_args=stage_args,
     )
-    return 1 if failures else 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

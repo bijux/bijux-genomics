@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 from pathlib import Path
 
@@ -24,8 +25,12 @@ def run_corpus_stage_compat(
     stage_id: str,
     args: argparse.Namespace,
     stage_args: list[str] | None = None,
+    extra_env: dict[str, str] | None = None,
 ) -> int:
     repo_root = Path(args.repo_root).resolve()
+    runtime_env = os.environ.copy()
+    if extra_env:
+        runtime_env.update(extra_env)
     command = ["cargo", "run", "-q", "-p", "bijux-dna", "--"]
     platform = getattr(args, "platform", "")
     if platform:
@@ -60,5 +65,10 @@ def run_corpus_stage_compat(
     for stage_arg in stage_args or []:
         command.extend(["--stage-arg", stage_arg])
 
-    completed = subprocess.run(command, cwd=repo_root, check=False)
+    completed = subprocess.run(
+        command,
+        cwd=repo_root,
+        check=False,
+        env=runtime_env,
+    )
     return completed.returncode

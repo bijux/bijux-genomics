@@ -6,22 +6,15 @@ import json
 import os
 import shutil
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import (
-    FILTER_READS_BENCHMARK_CONTRACT,
-    default_results_stage_root,
-    discover_normalized_samples,
-    filter_reads_benchmark_defaults,
-    load_corpus_spec,
-    normalize_tool_csv,
-    require_canonical_tool_roster,
-    validate_benchmark_layout,
-    validate_corpus_contract,
+from benchmark_fastq_corpus.config import add_workspace_config_argument
+from benchmark_fastq_corpus.runner_compat import (
+    append_stage_arg,
+    run_corpus_stage_compat,
 )
+from corpus_01_fastq_benchmark_support import filter_reads_benchmark_defaults
 
 
 @dataclass
@@ -86,6 +79,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--kmer-ref", default=defaults["kmer_ref"])
     parser.add_argument("--polyx-policy", default=defaults["polyx_policy"])
+    add_workspace_config_argument(parser)
     parser.add_argument(
         "--resume",
         action=argparse.BooleanOptionalAction,
@@ -149,9 +143,7 @@ def build_command(
     if max_n_count is not None:
         command.extend(["--max-n-count", str(max_n_count)])
     if low_complexity_threshold is not None:
-        command.extend(
-            ["--low-complexity-threshold", str(low_complexity_threshold)]
-        )
+        command.extend(["--low-complexity-threshold", str(low_complexity_threshold)])
     if entropy_threshold is not None:
         command.extend(["--entropy-threshold", str(entropy_threshold)])
     if kmer_ref:
@@ -214,143 +206,19 @@ def run_sample_command(
 
 def main() -> int:
     args = parse_args()
-    repo_root = Path(args.repo_root).resolve()
-    spec = load_corpus_spec(repo_root)
-    corpus_root = (
-        Path(args.corpus_root).expanduser().resolve()
-        if args.corpus_root
-        else Path(spec["preferred_root"]).expanduser().resolve()
+    stage_args: list[str] = []
+    append_stage_arg(stage_args, "--max-n", args.max_n)
+    append_stage_arg(stage_args, "--max-n-fraction", args.max_n_fraction)
+    append_stage_arg(stage_args, "--max-n-count", args.max_n_count)
+    append_stage_arg(stage_args, "--low-complexity-threshold", args.low_complexity_threshold)
+    append_stage_arg(stage_args, "--entropy-threshold", args.entropy_threshold)
+    append_stage_arg(stage_args, "--kmer-ref", args.kmer_ref)
+    append_stage_arg(stage_args, "--polyx-policy", args.polyx_policy)
+    return run_corpus_stage_compat(
+        stage_id="fastq.filter_reads",
+        args=args,
+        stage_args=stage_args,
     )
-    out_root = (
-        Path(args.out_root).expanduser().resolve()
-        if args.out_root
-        else default_results_stage_root(
-            corpus_root, FILTER_READS_BENCHMARK_CONTRACT.stage_id
-        )
-    )
-    validate_benchmark_layout(corpus_root, out_root)
-    out_root.mkdir(parents=True, exist_ok=True)
-
-    samples = discover_normalized_samples(corpus_root)
-    validate_corpus_contract(corpus_root, spec, samples)
-    if args.sample_limit > 0:
-        samples = samples[: args.sample_limit]
-    requested_tools = (
-        normalize_tool_csv(args.tools)
-        if args.tools
-        else FILTER_READS_BENCHMARK_CONTRACT.tools
-    )
-    tools = require_canonical_tool_roster(
-        repo_root,
-        FILTER_READS_BENCHMARK_CONTRACT.stage_id,
-        requested_tools,
-        scenario_id=FILTER_READS_BENCHMARK_CONTRACT.scenario_id,
-    )
-
-    runs: list[SampleRun | None] = [None] * len(samples)
-    failures = 0
-    pending: list[tuple[int, dict, Path, list[str]]] = []
-
-    for sample_index, sample in enumerate(samples):
-        current_sample_root = sample_root(out_root, sample["sample_id"])
-        sample_report = report_path(out_root, sample["sample_id"])
-        if args.resume and current_sample_root.is_dir() and not sample_report.is_file():
-            reset_sample_payload(out_root, sample["sample_id"])
-        if args.resume and sample_report.is_file():
-            if sample_report_is_resume_ready(sample_report):
-                runs[sample_index] = SampleRun(
-                    sample_id=sample["sample_id"],
-                    r1=str(sample["r1"]),
-                    r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                    layout=sample["layout"],
-                    status="skipped_existing_report",
-                    exit_code=0,
-                    command=[],
-                    report_json=str(sample_report),
-                )
-                continue
-            reset_sample_payload(out_root, sample["sample_id"])
-
-        command = build_command(
-            out_root=out_root,
-            platform=args.platform,
-            tools=",".join(tools),
-            threads=args.threads,
-            jobs=args.jobs,
-            max_n=args.max_n,
-            max_n_fraction=args.max_n_fraction,
-            max_n_count=args.max_n_count,
-            low_complexity_threshold=args.low_complexity_threshold,
-            entropy_threshold=args.entropy_threshold,
-            kmer_ref=args.kmer_ref,
-            polyx_policy=args.polyx_policy,
-            sample=sample,
-        )
-        if args.dry_run:
-            runs[sample_index] = SampleRun(
-                sample_id=sample["sample_id"],
-                r1=str(sample["r1"]),
-                r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                layout=sample["layout"],
-                status="dry_run",
-                exit_code=0,
-                command=command,
-                report_json=str(sample_report),
-            )
-            continue
-        pending.append((sample_index, sample, sample_report, command))
-
-    if pending:
-        with ThreadPoolExecutor(max_workers=max(1, args.sample_jobs)) as executor:
-            futures = {
-                executor.submit(
-                    run_sample_command,
-                    repo_root=repo_root,
-                    sample=sample,
-                    command=command,
-                    sample_report=sample_report,
-                ): sample_index
-                for sample_index, sample, sample_report, command in pending
-            }
-            for future in as_completed(futures):
-                sample_index = futures[future]
-                run = future.result()
-                runs[sample_index] = run
-                if run.exit_code != 0:
-                    failures += 1
-
-    payload = {
-        "schema_version": "bijux.fastq.filter_reads.corpus_run.v1",
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "stage_id": FILTER_READS_BENCHMARK_CONTRACT.stage_id,
-        "scenario_id": FILTER_READS_BENCHMARK_CONTRACT.scenario_id,
-        "tool_kind": "benchmark",
-        "platform": args.platform,
-        "repo_root": str(repo_root),
-        "corpus_id": "corpus-01",
-        "corpus_root": str(corpus_root),
-        "out_root": str(out_root),
-        "tools": tools,
-        "threads": args.threads,
-        "jobs": args.jobs,
-        "sample_jobs": args.sample_jobs,
-        "sample_limit": None if args.sample_limit <= 0 else args.sample_limit,
-        "dry_run": args.dry_run,
-        "samples_total": len(samples),
-        "samples_failed": failures,
-        "max_n": args.max_n,
-        "max_n_fraction": args.max_n_fraction,
-        "max_n_count": args.max_n_count,
-        "low_complexity_threshold": args.low_complexity_threshold,
-        "entropy_threshold": args.entropy_threshold,
-        "kmer_ref": args.kmer_ref,
-        "polyx_policy": args.polyx_policy,
-        "runs": [asdict(run) for run in runs if run is not None],
-    }
-    (out_root / "run_manifest.json").write_text(
-        json.dumps(payload, indent=2) + "\n", encoding="utf-8"
-    )
-    return 0 if failures == 0 else 1
 
 
 if __name__ == "__main__":
