@@ -227,6 +227,12 @@
                         args,
                     )?;
                 }
+                BenchCommand::CorpusFastqReport(args) => {
+                    crate::commands::benchmark_publication::run_corpus_fastq_report(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
                 BenchCommand::CorpusFastqPublicationStatus(args) => {
                     crate::commands::benchmark_publication::run_corpus_fastq_publication_status(
                         &std::env::current_dir()?,
