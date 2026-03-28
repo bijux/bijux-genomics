@@ -178,7 +178,11 @@ fn render_corpus_fastq_dossier(
     let applicable_samples = match contract.sample_scope.as_str() {
         "full" => all_samples,
         "paired" => select_paired_samples(&corpus_spec, &all_samples, &metadata_by_sample)?,
-        other => return Err(anyhow!("unsupported corpus benchmark sample scope `{other}`")),
+        other => {
+            return Err(anyhow!(
+                "unsupported corpus benchmark sample scope `{other}`"
+            ))
+        }
     };
     let configured_corpus_id = corpus_root
         .file_name()
@@ -187,8 +191,11 @@ fn render_corpus_fastq_dossier(
     let run_root = if let Some(path) = explicit_run_root {
         absolutize(cwd, path)
     } else {
-        let configured_roots =
-            configured_stage_run_roots(&benchmark_config.workspace, configured_corpus_id, stage_id)?;
+        let configured_roots = configured_stage_run_roots(
+            &benchmark_config.workspace,
+            configured_corpus_id,
+            stage_id,
+        )?;
         select_stage_run_root(&configured_roots).selected_path
     };
     let run_manifest_path = run_root.join("run_manifest.json");
@@ -204,7 +211,8 @@ fn render_corpus_fastq_dossier(
         &metadata_by_sample,
     )?;
 
-    fs::create_dir_all(stage_docs_root).with_context(|| format!("create {}", stage_docs_root.display()))?;
+    fs::create_dir_all(stage_docs_root)
+        .with_context(|| format!("create {}", stage_docs_root.display()))?;
     write_json_pretty(
         &stage_docs_root.join("summary.json"),
         &serde_json::to_value(&artifacts.summary)?,
@@ -236,7 +244,9 @@ fn render_corpus_fastq_dossier(
                     row.size_band.clone(),
                     row.tool.clone(),
                     optional_f64(row.runtime_s),
-                    row.exit_code.map(|value| value.to_string()).unwrap_or_default(),
+                    row.exit_code
+                        .map(|value| value.to_string())
+                        .unwrap_or_default(),
                     row.report_json.clone(),
                 ]
             })
@@ -367,7 +377,10 @@ fn build_corpus_artifact_set(
                     .or_default()
                     .push(runtime);
                 cohort_runtime_values
-                    .entry((tool.clone(), format!("{}_{}", metadata.era, metadata.layout)))
+                    .entry((
+                        tool.clone(),
+                        format!("{}_{}", metadata.era, metadata.layout),
+                    ))
                     .or_default()
                     .push(runtime);
                 if !metadata.size_band.trim().is_empty() {
@@ -443,7 +456,10 @@ fn build_corpus_artifact_set(
         row.insert("records".to_string(), pass_flags.len().to_string());
         row.insert("pass_rate".to_string(), optional_f64(pass_rate));
         row.insert("mean_runtime_s".to_string(), optional_f64(mean_runtime_s));
-        row.insert("median_runtime_s".to_string(), optional_f64(median_runtime_s));
+        row.insert(
+            "median_runtime_s".to_string(),
+            optional_f64(median_runtime_s),
+        );
         row.insert("max_runtime_s".to_string(), optional_f64(max_runtime_s));
         tool_runtime_rows.push(row);
     }
@@ -451,9 +467,7 @@ fn build_corpus_artifact_set(
     let mut cohort_runtime_rows = Vec::new();
     for tool in &expected_tools {
         for cohort in ["ancient_pe", "ancient_se", "modern_pe", "modern_se"] {
-            if let Some(values) =
-                cohort_runtime_values.get(&(tool.clone(), cohort.to_string()))
-            {
+            if let Some(values) = cohort_runtime_values.get(&(tool.clone(), cohort.to_string())) {
                 let mut row = BTreeMap::new();
                 row.insert("tool".to_string(), tool.clone());
                 row.insert("dimension".to_string(), "era_layout".to_string());
@@ -491,9 +505,11 @@ fn build_corpus_artifact_set(
         .filter_map(|(sample_id, runtimes)| {
             let metadata = metadata_by_sample.get(sample_id)?;
             let total_runtime = runtimes.iter().map(|(_, value)| value).sum::<f64>();
-            let slowest = runtimes
-                .iter()
-                .max_by(|left, right| left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal))?;
+            let slowest = runtimes.iter().max_by(|left, right| {
+                left.1
+                    .partial_cmp(&right.1)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })?;
             let mut row = BTreeMap::new();
             row.insert("sample_id".to_string(), sample_id.clone());
             row.insert("accession".to_string(), metadata.accession.clone());
@@ -514,16 +530,31 @@ fn build_corpus_artifact_set(
     });
 
     let cohort_counts = count_by_cohort(applicable_samples, metadata_by_sample)?;
-    let era_counts = count_by_key(applicable_samples, metadata_by_sample, |metadata| metadata.era.clone())?;
-    let layout_counts = count_by_key(applicable_samples, metadata_by_sample, |metadata| metadata.layout.clone())?;
+    let era_counts = count_by_key(applicable_samples, metadata_by_sample, |metadata| {
+        metadata.era.clone()
+    })?;
+    let layout_counts = count_by_key(applicable_samples, metadata_by_sample, |metadata| {
+        metadata.layout.clone()
+    })?;
     let fastest = tool_summary
         .iter()
-        .filter_map(|row| row.median_runtime_s.map(|runtime| (row.tool.clone(), runtime)))
-        .min_by(|left, right| left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal));
+        .filter_map(|row| {
+            row.median_runtime_s
+                .map(|runtime| (row.tool.clone(), runtime))
+        })
+        .min_by(|left, right| {
+            left.1
+                .partial_cmp(&right.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
     let highest_pass_rate = tool_summary
         .iter()
         .filter_map(|row| row.pass_rate.map(|rate| (row.tool.clone(), rate)))
-        .max_by(|left, right| left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal));
+        .max_by(|left, right| {
+            left.1
+                .partial_cmp(&right.1)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
     let samples_failed = run_manifest
         .get("samples_failed")
         .and_then(|value| value.as_u64())
@@ -533,7 +564,9 @@ fn build_corpus_artifact_set(
         stage_id: contract.stage_id.clone(),
         scenario_id: contract.scenario_id.clone(),
         generated_at_utc: Utc::now().to_rfc3339(),
-        platform: value_string(run_manifest, "platform").unwrap_or("unknown").to_string(),
+        platform: value_string(run_manifest, "platform")
+            .unwrap_or("unknown")
+            .to_string(),
         corpus_root: corpus_root.display().to_string(),
         run_root: run_root.display().to_string(),
         sample_scope: contract.sample_scope.clone(),
@@ -551,7 +584,8 @@ fn build_corpus_artifact_set(
             highest_pass_rate: highest_pass_rate.map(|row| row.1),
         },
     };
-    let benchmark_markdown = render_corpus_benchmark_markdown(&summary, &tool_runtime_rows, &outlier_rows);
+    let benchmark_markdown =
+        render_corpus_benchmark_markdown(&summary, &tool_runtime_rows, &outlier_rows);
 
     Ok(CorpusArtifactSet {
         summary,
@@ -583,7 +617,8 @@ fn render_corpus_benchmark_markdown(
         String::new(),
         "## Tool Summary".to_string(),
         String::new(),
-        "| Tool | Samples | Pass rate | Mean runtime (s) | Median runtime (s) | Max runtime (s) |".to_string(),
+        "| Tool | Samples | Pass rate | Mean runtime (s) | Median runtime (s) | Max runtime (s) |"
+            .to_string(),
         "| --- | ---: | ---: | ---: | ---: | ---: |".to_string(),
     ];
     for row in tool_runtime_rows {
@@ -630,12 +665,15 @@ fn report_record_tool(record: &serde_json::Value) -> Option<String> {
     record
         .get("context")
         .and_then(|value| {
-            value.get("tool").and_then(|entry| entry.as_str()).or_else(|| {
-                value
-                    .get("parameters")
-                    .and_then(|entry| entry.get("tool"))
-                    .and_then(|entry| entry.as_str())
-            })
+            value
+                .get("tool")
+                .and_then(|entry| entry.as_str())
+                .or_else(|| {
+                    value
+                        .get("parameters")
+                        .and_then(|entry| entry.get("tool"))
+                        .and_then(|entry| entry.as_str())
+                })
         })
         .map(ToOwned::to_owned)
 }
@@ -674,7 +712,10 @@ fn write_json_pretty(path: &Path, value: &serde_json::Value) -> Result<()> {
 
 fn write_csv_maps(path: &Path, rows: &[BTreeMap<String, String>]) -> Result<()> {
     if rows.is_empty() {
-        return Err(anyhow!("cannot write empty csv artifact: {}", path.display()));
+        return Err(anyhow!(
+            "cannot write empty csv artifact: {}",
+            path.display()
+        ));
     }
     let headers = rows[0].keys().cloned().collect::<Vec<_>>();
     let records = rows
@@ -686,12 +727,19 @@ fn write_csv_maps(path: &Path, rows: &[BTreeMap<String, String>]) -> Result<()> 
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
-    write_csv_rows(path, &headers.iter().map(String::as_str).collect::<Vec<_>>(), records)
+    write_csv_rows(
+        path,
+        &headers.iter().map(String::as_str).collect::<Vec<_>>(),
+        records,
+    )
 }
 
 fn write_csv_rows(path: &Path, headers: &[&str], rows: Vec<Vec<String>>) -> Result<()> {
     if rows.is_empty() {
-        return Err(anyhow!("cannot write empty csv artifact: {}", path.display()));
+        return Err(anyhow!(
+            "cannot write empty csv artifact: {}",
+            path.display()
+        ));
     }
     let mut rendered = String::new();
     rendered.push_str(&headers.join(","));
@@ -3485,7 +3533,9 @@ reason = "Compact validation fixture."
         assert!(benchmark_md.contains("generated directly by `bijux-dna`"));
         assert!(stage_docs_root.join("tool_runtime_summary.csv").is_file());
         assert!(stage_docs_root.join("cohort_runtime_summary.csv").is_file());
-        assert!(stage_docs_root.join("sample_runtime_outliers.csv").is_file());
+        assert!(stage_docs_root
+            .join("sample_runtime_outliers.csv")
+            .is_file());
     }
 
     #[test]
@@ -3975,8 +4025,8 @@ reason = "Compact validation fixture."
                         issue_count: 0,
                         results_status: "complete".to_string(),
                         results_issue_count: 0,
-                        results_selected_run_root:
-                            "/tmp/results/fastq.validate_reads/lunarc".to_string(),
+                        results_selected_run_root: "/tmp/results/fastq.validate_reads/lunarc"
+                            .to_string(),
                         results_newest_available_run_root:
                             "/tmp/results/fastq.validate_reads/lunarc".to_string(),
                         results_selected_run_root_is_newest: true,
@@ -3994,17 +4044,16 @@ reason = "Compact validation fixture."
                         issue_count: 3,
                         results_status: "incomplete".to_string(),
                         results_issue_count: 2,
-                        results_selected_run_root:
-                            "/tmp/results/fastq.trim_reads/lunarc".to_string(),
-                        results_newest_available_run_root:
-                            "/tmp/archive/fastq.trim_reads/lunarc".to_string(),
+                        results_selected_run_root: "/tmp/results/fastq.trim_reads/lunarc"
+                            .to_string(),
+                        results_newest_available_run_root: "/tmp/archive/fastq.trim_reads/lunarc"
+                            .to_string(),
                         results_selected_run_root_is_newest: false,
                         issues: vec![super::StageAuditIssue {
                             stage_id: "fastq.trim_reads".to_string(),
                             issue_id: "missing-corpus-dir".to_string(),
                             severity: "error".to_string(),
-                            detail: "missing docs/benchmark/fastq.trim_reads/corpus-01"
-                                .to_string(),
+                            detail: "missing docs/benchmark/fastq.trim_reads/corpus-01".to_string(),
                         }],
                     },
                 ],
@@ -4015,8 +4064,9 @@ reason = "Compact validation fixture."
         assert!(markdown.contains(
             "`fastq.trim_reads`: `incomplete` (`3` publication issues, results `incomplete`, scope `full`)"
         ));
-        assert!(markdown
-            .contains("selected mirrored run root: `/tmp/results/fastq.trim_reads/lunarc`"));
+        assert!(
+            markdown.contains("selected mirrored run root: `/tmp/results/fastq.trim_reads/lunarc`")
+        );
         assert!(markdown.contains(
             "newest mirrored run root: `/tmp/archive/fastq.trim_reads/lunarc` (selected newest=`false`)"
         ));
@@ -4051,18 +4101,19 @@ reason = "Compact validation fixture."
                 stage_id: "fastq.validate_reads".to_string(),
                 issue_id: "fixture-integrity-gap".to_string(),
                 severity: "error".to_string(),
-                detail:
-                    "synthetic fixture does not represent a publishable benchmark lineage"
-                        .to_string(),
+                detail: "synthetic fixture does not represent a publishable benchmark lineage"
+                    .to_string(),
             }],
         );
         let report = super::audit_publication_docs(
             repo_root,
             &docs_root,
-            &[crate::commands::benchmark_workspace::CorpusBenchmarkContract {
-                sample_scope: "paired".to_string(),
-                ..validate_reads_contract()
-            }],
+            &[
+                crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                    sample_scope: "paired".to_string(),
+                    ..validate_reads_contract()
+                },
+            ],
             &[],
             &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
             &supplemental,
@@ -4148,7 +4199,9 @@ reason = "Compact validation fixture."
             super::load_supplemental_findings(&findings_path).expect("findings");
         assert!(findings.contains_key("fastq.validate_reads"));
         assert_eq!(generated_at_utc, None);
-        assert!(warnings.iter().any(|warning| warning.contains("generated_at_utc")));
+        assert!(warnings
+            .iter()
+            .any(|warning| warning.contains("generated_at_utc")));
     }
 
     #[test]
@@ -4222,12 +4275,14 @@ reason = "Compact validation fixture."
         let report = super::audit_publication_docs(
             repo_root,
             &docs_root,
-            &[crate::commands::benchmark_workspace::CorpusBenchmarkContract {
-                stage_id: "fastq.validate_reads".to_string(),
-                scenario_id: "validation_fairness".to_string(),
-                sample_scope: "full".to_string(),
-                tools: vec!["fastqvalidator".to_string(), "seqtk".to_string()],
-            }],
+            &[
+                crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    scenario_id: "validation_fairness".to_string(),
+                    sample_scope: "full".to_string(),
+                    tools: vec!["fastqvalidator".to_string(), "seqtk".to_string()],
+                },
+            ],
             &[],
             &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
             &BTreeMap::new(),

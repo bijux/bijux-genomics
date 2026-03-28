@@ -278,7 +278,10 @@ mod tests {
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
-        assert_eq!(report.violations[0].issue_id, "hardcoded-local-operator-path");
+        assert_eq!(
+            report.violations[0].issue_id,
+            "hardcoded-local-operator-path"
+        );
     }
 
     #[test]
@@ -286,7 +289,8 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let repo_root = temp.path();
         let fixture_path = repo_root.join("makes/bin/test_corpus_01_fastq_benchmarks.py");
-        fs::create_dir_all(fixture_path.parent().expect("fixture dir")).expect("create fixture dir");
+        fs::create_dir_all(fixture_path.parent().expect("fixture dir"))
+            .expect("create fixture dir");
         fs::write(
             &fixture_path,
             "LOCAL_RESULTS = \"/Users/bijan/bijux/bijux-dna-results\"\n",
@@ -303,8 +307,11 @@ mod tests {
         let repo_root = temp.path();
         let makefile_path = repo_root.join("makes/sync.mk");
         fs::create_dir_all(makefile_path.parent().expect("make dir")).expect("create make dir");
-        fs::write(&makefile_path, "SYNC_TARGET := \"lunarc:results-mirror/\"\n")
-            .expect("write makefile");
+        fs::write(
+            &makefile_path,
+            "SYNC_TARGET := \"lunarc:results-mirror/\"\n",
+        )
+        .expect("write makefile");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);

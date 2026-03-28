@@ -9,14 +9,14 @@ use serde::Serialize;
 use sha2::Digest as _;
 
 use crate::commands::benchmark_corpus_metadata::{
-    corpus_expected_sample_total, discover_normalized_samples, load_corpus_spec, select_paired_samples,
-    validate_corpus_contract, CorpusNormalizedSample,
-};
-use crate::commands::benchmark_workspace::{
-    benchmark_workspace_value, corpus_01_publication_contract,
-    load_benchmark_config, load_benchmark_workspace_config, BenchmarkConfig,
+    corpus_expected_sample_total, discover_normalized_samples, load_corpus_spec,
+    select_paired_samples, validate_corpus_contract, CorpusNormalizedSample,
 };
 use crate::commands::benchmark_stage_catalog::corpus_fastq_stage_catalog_entry;
+use crate::commands::benchmark_workspace::{
+    benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_config,
+    load_benchmark_workspace_config, BenchmarkConfig,
+};
 use crate::commands::cli::{BenchCorpusFastqArgs, BenchWorkspaceValueArgs, Cli};
 
 #[derive(Debug, Clone)]

@@ -166,7 +166,10 @@ pub(crate) fn corpus_fastq_make_target(stage_id: &str, kind: &str) -> Result<Str
     let entry = corpus_fastq_stage_catalog_entry(stage_id)?;
     match kind {
         "run" => Ok(format!("_benchmark-{}-corpus-01", entry.make_target_stem)),
-        "report" => Ok(format!("_benchmark-{}-corpus-01-report", entry.make_target_stem)),
+        "report" => Ok(format!(
+            "_benchmark-{}-corpus-01-report",
+            entry.make_target_stem
+        )),
         other => Err(anyhow!(
             "unsupported benchmark publication target kind: {other}"
         )),

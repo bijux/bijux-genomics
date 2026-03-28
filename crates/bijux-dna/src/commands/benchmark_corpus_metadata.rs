@@ -78,7 +78,9 @@ pub(crate) fn expected_counts_for_scope(
             ("ancient_pe".to_string(), spec.target_ancient_pe),
             ("modern_pe".to_string(), spec.target_modern_pe),
         ])),
-        other => Err(anyhow!("unsupported corpus benchmark sample scope `{other}`")),
+        other => Err(anyhow!(
+            "unsupported corpus benchmark sample scope `{other}`"
+        )),
     }
 }
 
@@ -95,7 +97,8 @@ pub(crate) fn discover_normalized_samples(
     }
 
     let mut sample_ids = BTreeSet::new();
-    for entry in fs::read_dir(&normalized).with_context(|| format!("read {}", normalized.display()))?
+    for entry in
+        fs::read_dir(&normalized).with_context(|| format!("read {}", normalized.display()))?
     {
         let path = entry?.path();
         let Some(name) = path.file_name().and_then(|row| row.to_str()) else {

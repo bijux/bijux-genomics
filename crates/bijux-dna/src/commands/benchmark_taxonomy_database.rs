@@ -10,7 +10,8 @@ use crate::commands::benchmark_corpus_fastq::{
 use crate::commands::benchmark_workspace::{load_benchmark_config, BenchmarkConfig};
 use crate::commands::cli::BenchWriteScreenTaxonomyDatabaseLineageArgs;
 
-const REQUIRED_BACKEND_DIRS: &[&str] = &["kraken2", "krakenuniq", "centrifuge", "kaiju", "taxonomy"];
+const REQUIRED_BACKEND_DIRS: &[&str] =
+    &["kraken2", "krakenuniq", "centrifuge", "kaiju", "taxonomy"];
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 struct BackendRootDigest {
@@ -46,7 +47,8 @@ pub(crate) fn run_write_screen_taxonomy_database_lineage(
 ) -> Result<()> {
     let config = load_benchmark_config(cwd, args.config.as_deref())?;
     let database_root = resolve_database_root(cwd, &config, args)?;
-    let source_manifest = resolve_source_manifest(cwd, &database_root, args.source_manifest.as_deref());
+    let source_manifest =
+        resolve_source_manifest(cwd, &database_root, args.source_manifest.as_deref());
     let bootstrap_report = args
         .bootstrap_report
         .as_deref()
@@ -157,7 +159,9 @@ fn default_screen_taxonomy_database_root(
 }
 
 fn default_extra_data_root(config: &BenchmarkConfig, out_root: &Path) -> Result<PathBuf> {
-    let resolved = out_root.canonicalize().unwrap_or_else(|_| out_root.to_path_buf());
+    let resolved = out_root
+        .canonicalize()
+        .unwrap_or_else(|_| out_root.to_path_buf());
     let local = config.workspace.local.as_ref();
     let remote = config.workspace.remote.as_ref();
 
@@ -194,7 +198,11 @@ fn default_extra_data_root(config: &BenchmarkConfig, out_root: &Path) -> Result<
             .is_some_and(|root| path_is_under(&resolved, root))
     {
         return remote_extra_data_root
-            .or_else(|| remote_cache_root.as_ref().map(|root| root.join("extra-data")))
+            .or_else(|| {
+                remote_cache_root
+                    .as_ref()
+                    .map(|root| root.join("extra-data"))
+            })
             .ok_or_else(|| anyhow!("benchmark config is missing remote extra-data root"));
     }
 
@@ -331,7 +339,9 @@ fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::{build_lineage_payload, default_screen_taxonomy_database_root, resolve_database_root};
+    use super::{
+        build_lineage_payload, default_screen_taxonomy_database_root, resolve_database_root,
+    };
     use crate::commands::benchmark_workspace::{
         BenchmarkConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
         BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLocal,
