@@ -2,7 +2,6 @@
 
 BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --
 BENCHMARK_CONFIG ?= configs/bench/benchmark.toml
-BENCHMARK_FASTQ_CORPUS_CONFIG ?= $(BENCHMARK_CONFIG)
 BENCHMARK_WORKSPACE_VALUE = BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)"
 
 LUNARC_HOST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.ssh_host)
