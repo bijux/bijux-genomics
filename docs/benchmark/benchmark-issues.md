@@ -8,8 +8,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 13. Remote storage still contains non-cache roots such as `results`, `corpus_01`, and `extra-data` beside the governed `.cache` layout.
 14. Duplicate remote roots make it ambiguous which tree is authoritative for publication.
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
-46. Benchmark renderers duplicate runtime summary calculations across many nearly identical scripts.
-47. Benchmark renderers duplicate cohort and layout aggregation logic across many nearly identical scripts.
 48. Benchmark renderers duplicate markdown rendering patterns across many nearly identical scripts.
 49. Benchmark renderers mix path normalization, contract validation, and narrative rendering in the same files.
 50. There is no single stage-agnostic renderer framework for corpus-01 FASTQ benchmark dossiers.

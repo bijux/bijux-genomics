@@ -28,6 +28,7 @@ from corpus_01_fastq_benchmark_support import (
     BriefingCopiedMetricSpec,
     BriefingOutlierSpec,
     summarize_sample_outlier_rows,
+    render_corpus_briefing_dossier,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -211,52 +212,12 @@ def render_markdown(
     return "\n".join(lines) + "\n"
 
 def main() -> int:
-    runtime = resolve_corpus_briefing_runtime(parse_args())
-    docs_root = runtime.docs_root
-    summary = runtime.summary
-    rows = runtime.sample_rows
-
-    runtime_rows = tool_runtime_summary(rows)
-    cohort_rows = cohort_runtime_summary(rows)
-    outliers = sample_runtime_outliers(rows)
-
-    publish_corpus_briefing_artifacts(
-        docs_root,
-        markdown=render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
-        runtime_rows=runtime_rows,
-        cohort_rows=cohort_rows,
-        outlier_rows=outliers,
-        runtime_fieldnames=[
-            "tool",
-            "samples",
-            "pass_rate",
-            "mean_runtime_s",
-            "median_runtime_s",
-            "p90_runtime_s",
-            "max_runtime_s",
-            "slowdown_vs_fastest_median",
-        ],
-        cohort_fieldnames=[
-            "tool",
-            "dimension",
-            "cohort",
-            "samples",
-            "mean_runtime_s",
-            "median_runtime_s",
-        ],
-        outlier_fieldnames=[
-            "sample_id",
-            "accession",
-            "era",
-            "layout",
-            "size_band",
-            "study_accession",
-            "total_runtime_s",
-            "slowest_tool",
-            "slowest_runtime_s",
-        ],
+    return render_corpus_briefing_dossier(
+        parse_args(),
+        tool_runtime_summary_fn=tool_runtime_summary,
+        cohort_runtime_summary_fn=cohort_runtime_summary,
+        sample_outlier_fn=sample_runtime_outliers,
+        markdown_builder=lambda summary, rows, runtime_rows, cohort_rows, outlier_rows: render_markdown(summary, rows, runtime_rows, cohort_rows, outlier_rows),
     )
-    return 0
-
 if __name__ == "__main__":
     raise SystemExit(main())
