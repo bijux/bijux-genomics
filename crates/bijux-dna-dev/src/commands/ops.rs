@@ -9267,10 +9267,6 @@ fn env_or_default_alias(primary: &str, legacy: &str, fallback: &str) -> String {
         .unwrap_or_else(|_| fallback.to_string())
 }
 
-fn env_or_empty(key: &str) -> String {
-    std::env::var(key).unwrap_or_default()
-}
-
 fn env_or_empty_alias(primary: &str, legacy: &str) -> String {
     std::env::var(primary)
         .or_else(|_| std::env::var(legacy))
