@@ -1085,14 +1085,13 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
 
 
 class BenchmarkMakefileTests(unittest.TestCase):
-    def test_benchmark_makefile_defers_report_corpus_root_to_workspace_contract(self) -> None:
+    def test_benchmark_makefile_routes_report_targets_through_rust_contract(self) -> None:
         text = benchmark_makefile_text()
 
-        self.assertIn(
-            'BENCHMARK_CORPUS_ROOT ?= $(shell BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)" remote.corpus_root)',
-            text,
-        )
-        self.assertNotIn("BENCHMARK_CORPUS_ROOT ?= /home/bijan/bijux/corpus_01", text)
+        self.assertIn("define run_corpus_fastq_benchmark_report", text)
+        self.assertIn("bench corpus-fastq-report", text)
+        self.assertNotIn("BENCHMARK_CORPUS_ROOT ?=", text)
+        self.assertNotIn("python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py", text)
 
     def test_benchmark_makefile_lets_rust_resolve_execution_corpus_root(self) -> None:
         text = benchmark_makefile_text()
@@ -1107,6 +1106,12 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("define run_corpus_fastq_benchmark", text)
         self.assertIn("bench corpus-fastq", text)
         self.assertNotIn("python3 makes/bin/run_fastq_validate_reads_corpus_01.py", text)
+
+    def test_benchmark_makefile_lets_rust_resolve_report_corpus_root(self) -> None:
+        text = benchmark_makefile_text()
+
+        self.assertNotIn('--corpus-root "$(BENCHMARK_CORPUS_ROOT)"', text)
+        self.assertIn("bench corpus-fastq-report", text)
 
     def test_benchmark_makefile_defers_published_dossier_roster_to_generated_contract(
         self,

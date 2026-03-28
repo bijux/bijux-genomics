@@ -20,7 +20,6 @@ RESUME ?= 1
 DRY_RUN ?= 0
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
-BENCHMARK_CORPUS_ROOT ?= $(shell BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)" remote.corpus_root)
 BENCHMARK_OUT_DIR := $(strip $(OUT_DIR))
 BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)
 BENCHMARK_REPORT_RUN_ROOT_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--run-root "$(BENCHMARK_OUT_DIR)",)
@@ -48,6 +47,13 @@ define run_corpus_fastq_benchmark
 		$(BENCHMARK_RESUME_ARGS) \
 		$(BENCHMARK_DRY_RUN_ARGS) \
 		$(2)
+endef
+
+define run_corpus_fastq_benchmark_report
+	@$(BIJUX_BENCH_BIN) bench corpus-fastq-report \
+		--config "$(BENCHMARK_CONFIG)" \
+		--stage $(1) \
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 endef
 
 _benchmark-fastq-stage: ## Benchmark FASTQ stage via CLI (requires STAGE=<stage> SAMPLE_ID R1, optional R2)
@@ -150,164 +156,64 @@ _benchmark-extract-umis-corpus-01: ## Benchmark fastq.extract_umis across the pa
 	$(call run_corpus_fastq_benchmark,fastq.extract_umis,)
 
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_validate_reads_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.validate_reads/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.validate_reads)
 
 _benchmark-trim-polyg-corpus-01-report: ## Render the corpus-01 trim-polyg benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.trim_polyg_tails/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.trim_polyg_tails)
 
 _benchmark-trim-reads-corpus-01-report: ## Render the corpus-01 trim-reads benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_trim_reads_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_trim_reads_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.trim_reads/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.trim_reads)
 
 _benchmark-trim-terminal-damage-corpus-01-report: ## Render the corpus-01 terminal-damage benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.trim_terminal_damage/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.trim_terminal_damage)
 
 _benchmark-detect-adapters-corpus-01-report: ## Render the corpus-01 detect-adapters benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_detect_adapters_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_detect_adapters_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.detect_adapters/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.detect_adapters)
 
 _benchmark-profile-reads-corpus-01-report: ## Render the corpus-01 profile-reads benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_profile_reads_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_profile_reads_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.profile_reads/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.profile_reads)
 
 _benchmark-profile-read-lengths-corpus-01-report: ## Render the corpus-01 read-length benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_profile_read_lengths_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_profile_read_lengths_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.profile_read_lengths/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.profile_read_lengths)
 
 _benchmark-profile-overrepresented-corpus-01-report: ## Render the corpus-01 overrepresented benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.profile_overrepresented_sequences/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.profile_overrepresented_sequences)
 
 _benchmark-filter-low-complexity-corpus-01-report: ## Render the corpus-01 filter-low-complexity benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_filter_low_complexity_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_filter_low_complexity_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.filter_low_complexity/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.filter_low_complexity)
 
 _benchmark-filter-reads-corpus-01-report: ## Render the corpus-01 filter-reads benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_filter_reads_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_filter_reads_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.filter_reads/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.filter_reads)
 
 _benchmark-remove-duplicates-corpus-01-report: ## Render the corpus-01 remove-duplicates benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_remove_duplicates_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_remove_duplicates_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.remove_duplicates/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.remove_duplicates)
 
 _benchmark-merge-corpus-01-report: ## Render the corpus-01 merge benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_merge_pairs_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_merge_pairs_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.merge_pairs/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.merge_pairs)
 
 _benchmark-report-qc-corpus-01-report: ## Render the corpus-01 report-qc benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_report_qc_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_report_qc_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.report_qc/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.report_qc)
 
 _benchmark-normalize-primers-corpus-01-report: ## Render the corpus-01 normalize-primers benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_normalize_primers_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_normalize_primers_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.normalize_primers/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.normalize_primers)
 
 _benchmark-deplete-rrna-corpus-01-report: ## Render the corpus-01 deplete-rrna benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_deplete_rrna_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_deplete_rrna_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.deplete_rrna/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.deplete_rrna)
 
 _benchmark-deplete-host-corpus-01-report: ## Render the corpus-01 deplete-host benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_deplete_host_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_deplete_host_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.deplete_host/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.deplete_host)
 
 _benchmark-deplete-reference-contaminants-corpus-01-report: ## Render the corpus-01 deplete-reference-contaminants benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_deplete_reference_contaminants_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_deplete_reference_contaminants_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.deplete_reference_contaminants/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.deplete_reference_contaminants)
 
 _benchmark-screen-taxonomy-corpus-01-report: ## Render the corpus-01 screen-taxonomy benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_screen_taxonomy_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_screen_taxonomy_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.screen_taxonomy/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.screen_taxonomy)
 
 _benchmark-correct-errors-corpus-01-report: ## Render the corpus-01 correct-errors benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_correct_errors_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_correct_errors_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.correct_errors/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.correct_errors)
 
 _benchmark-extract-umis-corpus-01-report: ## Render the corpus-01 extract-umis benchmark dossier into docs/
-	@python3 makes/bin/render_fastq_extract_umis_corpus_01_report.py \
-		--repo-root . \
-		--corpus-root "$(BENCHMARK_CORPUS_ROOT)" \
-		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
-	@python3 makes/bin/render_fastq_extract_umis_corpus_01_briefing.py \
-		--docs-root docs/benchmark/fastq.extract_umis/corpus-01
+	$(call run_corpus_fastq_benchmark_report,fastq.extract_umis)
 
 _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publication coverage
 	@$(BIJUX_BENCH_BIN) bench corpus-fastq-publication-status \

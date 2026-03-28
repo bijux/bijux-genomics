@@ -8,7 +8,7 @@ use crate::commands::benchmark_workspace::{
 };
 use crate::commands::cli::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
-    BenchPublicationTargetsArgs,
+    BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
 };
 
 pub(crate) fn print_benchmark_publication_targets(
@@ -45,31 +45,44 @@ pub(crate) fn run_corpus_fastq_published_dossiers(
     cwd: &Path,
     args: &BenchCorpusFastqPublishedDossiersArgs,
 ) -> Result<()> {
-    let config_path = benchmark_config_path(cwd, args.config.as_deref());
-    let docs_root = absolutize(cwd, &args.docs_root);
     let publication = load_benchmark_publication_config(cwd, args.config.as_deref())?;
     if let Some(corpus_01) = publication.corpus_01 {
         for contract in corpus_01.contracts {
-            let stage_docs_root = docs_root.join(&contract.stage_id).join("corpus-01");
-            let report_spec = corpus_fastq_stage_render_step(
+            run_corpus_fastq_report(
                 cwd,
-                &contract.stage_id,
-                &stage_docs_root,
-                args.run_root.as_deref(),
+                &BenchCorpusFastqReportArgs {
+                    stage: contract.stage_id,
+                    config: args.config.clone(),
+                    docs_root: args.docs_root.clone(),
+                    run_root: args.run_root.clone(),
+                },
             )?;
-            run_subprocess(cwd, &config_path, &report_spec)?;
-            let briefing_spec =
-                corpus_fastq_stage_briefing_step(cwd, &contract.stage_id, &stage_docs_root)?;
-            run_subprocess(cwd, &config_path, &briefing_spec)?;
         }
     }
     run_corpus_fastq_publication_status(
         cwd,
         &BenchCorpusFastqPublicationStatusArgs {
             config: args.config.clone(),
-            docs_root,
+            docs_root: args.docs_root.clone(),
         },
     )?;
+    Ok(())
+}
+
+pub(crate) fn run_corpus_fastq_report(cwd: &Path, args: &BenchCorpusFastqReportArgs) -> Result<()> {
+    let config_path = benchmark_config_path(cwd, args.config.as_deref());
+    let stage_docs_root = absolutize(cwd, &args.docs_root)
+        .join(&args.stage)
+        .join("corpus-01");
+    let report_spec = corpus_fastq_stage_render_step(
+        cwd,
+        &args.stage,
+        &stage_docs_root,
+        args.run_root.as_deref(),
+    )?;
+    run_subprocess(cwd, &config_path, &report_spec)?;
+    let briefing_spec = corpus_fastq_stage_briefing_step(cwd, &args.stage, &stage_docs_root)?;
+    run_subprocess(cwd, &config_path, &briefing_spec)?;
     Ok(())
 }
 
@@ -382,6 +395,17 @@ mod tests {
             Path::new(
                 "/repo/makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
             )
+        );
+    }
+
+    #[test]
+    fn corpus_fastq_report_docs_root_tracks_stage_contract() {
+        let docs_root = super::absolutize(Path::new("/repo"), Path::new("docs/benchmark"))
+            .join("fastq.validate_reads")
+            .join("corpus-01");
+        assert_eq!(
+            docs_root,
+            Path::new("/repo/docs/benchmark/fastq.validate_reads/corpus-01")
         );
     }
 
