@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -56,6 +56,7 @@ struct PendingSampleRun {
     command_args: Vec<String>,
     command: Vec<String>,
     env_overrides: BTreeMap<String, String>,
+    extra_fields: BTreeMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -68,6 +69,8 @@ struct SampleRunRecord {
     exit_code: i32,
     command: Vec<String>,
     report_json: String,
+    #[serde(flatten)]
+    extra_fields: BTreeMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Serialize)]
@@ -105,6 +108,102 @@ struct StageCommandSpec {
     report_dir: &'static str,
     strict_resume_report: bool,
 }
+
+#[derive(Debug, Default)]
+struct StageSamplePreparation {
+    extra_stage_args: Vec<String>,
+    run_extra_fields: BTreeMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ReportQcContributorContract {
+    stage_id: &'static str,
+    tool_id: &'static str,
+    artifact_id: &'static str,
+    artifact_role: &'static str,
+    relative_path: &'static str,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ReportQcUpstreamStage {
+    stage_id: &'static str,
+    tool_id: &'static str,
+    extra_args: &'static [&'static str],
+}
+
+#[derive(Debug, Clone)]
+struct ReportQcContributorArtifact {
+    contract: ReportQcContributorContract,
+    path: PathBuf,
+}
+
+const REPORT_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
+const REPORT_QC_CONTRIBUTORS: [ReportQcContributorContract; 6] = [
+    ReportQcContributorContract {
+        stage_id: "fastq.validate_reads",
+        tool_id: "fastqvalidator",
+        artifact_id: "validation_report",
+        artifact_role: "report_json",
+        relative_path: "validation.json",
+    },
+    ReportQcContributorContract {
+        stage_id: "fastq.validate_reads",
+        tool_id: "fastqvalidator",
+        artifact_id: "validated_reads_manifest",
+        artifact_role: "summary_json",
+        relative_path: "validated_reads_manifest.json",
+    },
+    ReportQcContributorContract {
+        stage_id: "fastq.detect_adapters",
+        tool_id: "fastqc",
+        artifact_id: "report_json",
+        artifact_role: "report_json",
+        relative_path: "adapter_report.json",
+    },
+    ReportQcContributorContract {
+        stage_id: "fastq.detect_adapters",
+        tool_id: "fastqc",
+        artifact_id: "adapter_evidence_dir",
+        artifact_role: "stage_report",
+        relative_path: "fastqc",
+    },
+    ReportQcContributorContract {
+        stage_id: "fastq.profile_reads",
+        tool_id: "seqkit_stats",
+        artifact_id: "qc_json",
+        artifact_role: "metrics_json",
+        relative_path: "qc.json",
+    },
+    ReportQcContributorContract {
+        stage_id: "fastq.profile_read_lengths",
+        tool_id: "seqkit_stats",
+        artifact_id: "length_distribution_json",
+        artifact_role: "metrics_json",
+        relative_path: "length_distribution.json",
+    },
+];
+const REPORT_QC_UPSTREAM_STAGES: [ReportQcUpstreamStage; 4] = [
+    ReportQcUpstreamStage {
+        stage_id: "fastq.validate_reads",
+        tool_id: "fastqvalidator",
+        extra_args: &[],
+    },
+    ReportQcUpstreamStage {
+        stage_id: "fastq.detect_adapters",
+        tool_id: "fastqc",
+        extra_args: &["--threads", "1"],
+    },
+    ReportQcUpstreamStage {
+        stage_id: "fastq.profile_reads",
+        tool_id: "seqkit_stats",
+        extra_args: &["--threads", "1"],
+    },
+    ReportQcUpstreamStage {
+        stage_id: "fastq.profile_read_lengths",
+        tool_id: "seqkit_stats",
+        extra_args: &["--threads", "1", "--histogram-bins", "100"],
+    },
+];
 
 pub(crate) fn print_benchmark_workspace_value(
     cwd: &Path,
@@ -195,12 +294,24 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
         collect_stage_manifest_fields(&args.stage, &args.stage_args, &args.manifest_args)?;
 
     for sample in selected_samples {
-        let sample_root = benchmark_sample_root(&out_root, stage_spec.report_dir, &sample.sample_id);
+        let sample_root =
+            benchmark_sample_root(&out_root, stage_spec.report_dir, &sample.sample_id);
         let report_json = out_root
             .join("bench")
             .join(stage_spec.report_dir)
             .join(&sample.sample_id)
             .join("report.json");
+        let prepared = prepare_stage_sample(
+            &args.stage,
+            &program,
+            &repo_root,
+            &workspace_config,
+            &corpus_spec.corpus_id,
+            &platform,
+            &out_root,
+            &sample,
+            args.dry_run,
+        )?;
         if args.resume {
             if stage_spec.strict_resume_report {
                 if sample_root.is_dir() && !report_json.is_file() {
@@ -217,6 +328,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
                             exit_code: 0,
                             command: Vec::new(),
                             report_json: report_json.display().to_string(),
+                            extra_fields: prepared.run_extra_fields.clone(),
                         });
                         continue;
                     }
@@ -232,6 +344,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
                     exit_code: 0,
                     command: Vec::new(),
                     report_json: report_json.display().to_string(),
+                    extra_fields: prepared.run_extra_fields.clone(),
                 });
                 continue;
             }
@@ -246,6 +359,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             args.threads,
             args.jobs,
             &args.stage_args,
+            &prepared.extra_stage_args,
         );
         let command = std::iter::once(program.display().to_string())
             .chain(command_args.iter().cloned())
@@ -260,6 +374,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
                 exit_code: 0,
                 command,
                 report_json: report_json.display().to_string(),
+                extra_fields: prepared.run_extra_fields,
             });
             continue;
         }
@@ -269,6 +384,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             command_args,
             command,
             env_overrides: runtime_env.clone(),
+            extra_fields: prepared.run_extra_fields,
         });
     }
 
@@ -469,6 +585,7 @@ fn build_stage_command_args(
     threads: u32,
     jobs: u32,
     stage_args: &[String],
+    extra_stage_args: &[String],
 ) -> Vec<String> {
     let mut command = vec![
         "--platform".to_string(),
@@ -496,6 +613,7 @@ fn build_stage_command_args(
         command.push(jobs.to_string());
     }
     command.extend(stage_args.iter().cloned());
+    command.extend(extra_stage_args.iter().cloned());
     command
 }
 
@@ -584,6 +702,7 @@ fn execute_sample(
         exit_code,
         command: row.command,
         report_json: row.report_json.display().to_string(),
+        extra_fields: row.extra_fields,
     })
 }
 
@@ -825,6 +944,278 @@ fn validate_benchmark_layout(corpus_root: &Path, out_root: &Path) -> Result<()> 
     Ok(())
 }
 
+fn prepare_stage_sample(
+    stage_id: &str,
+    program: &Path,
+    repo_root: &Path,
+    workspace_config: &crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig,
+    corpus_id: &str,
+    platform: &str,
+    out_root: &Path,
+    sample: &CorpusNormalizedSample,
+    dry_run: bool,
+) -> Result<StageSamplePreparation> {
+    match stage_id {
+        "fastq.report_qc" => prepare_report_qc_sample(
+            program,
+            repo_root,
+            workspace_config,
+            corpus_id,
+            platform,
+            out_root,
+            sample,
+            dry_run,
+        ),
+        _ => Ok(StageSamplePreparation::default()),
+    }
+}
+
+fn prepare_report_qc_sample(
+    program: &Path,
+    repo_root: &Path,
+    workspace_config: &crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig,
+    corpus_id: &str,
+    platform: &str,
+    out_root: &Path,
+    sample: &CorpusNormalizedSample,
+    dry_run: bool,
+) -> Result<StageSamplePreparation> {
+    let artifacts =
+        report_qc_required_contributor_artifacts(workspace_config, corpus_id, &sample.sample_id)?;
+    let missing_stage_ids = artifacts
+        .iter()
+        .filter(|row| !row.path.exists())
+        .map(|row| row.contract.stage_id)
+        .collect::<BTreeSet<_>>();
+    for stage_id in missing_stage_ids {
+        ensure_report_qc_upstream_stage_outputs(
+            program,
+            repo_root,
+            workspace_config,
+            corpus_id,
+            platform,
+            sample,
+            stage_id,
+            dry_run,
+        )?;
+    }
+
+    if !dry_run {
+        let unresolved = artifacts
+            .iter()
+            .filter(|row| !row.path.exists())
+            .map(|row| row.path.display().to_string())
+            .collect::<Vec<_>>();
+        if !unresolved.is_empty() {
+            return Err(anyhow!(
+                "report-qc governed input resolution failed for {}: missing {}",
+                sample.sample_id,
+                unresolved.join(", ")
+            ));
+        }
+    }
+
+    let raw_fastqc_dir = report_qc_contributor_artifact_path(
+        workspace_config,
+        corpus_id,
+        &sample.sample_id,
+        "fastq.detect_adapters",
+        "fastqc",
+        "fastqc",
+    )?;
+    let governed_manifest = report_qc_manifest_path(out_root, &sample.sample_id);
+    if let Some(parent) = governed_manifest.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    let payload = serde_json::json!({
+        "schema_version": REPORT_QC_INPUTS_SCHEMA_VERSION,
+        "qc_inputs": artifacts
+            .iter()
+            .map(|row| serde_json::json!({
+                "name": report_qc_artifact_name(row.contract),
+                "path": row.path.display().to_string(),
+                "role": row.contract.artifact_role,
+                "optional": false,
+            }))
+            .collect::<Vec<_>>(),
+        "contributors": artifacts
+            .iter()
+            .map(|row| serde_json::json!({
+                "contributor_id": report_qc_contributor_id(row.contract),
+                "stage_id": row.contract.stage_id,
+                "tool_id": row.contract.tool_id,
+                "artifact_id": row.contract.artifact_id,
+                "artifact_role": row.contract.artifact_role,
+                "path": row.path.display().to_string(),
+            }))
+            .collect::<Vec<_>>(),
+        "raw_fastqc_dir": raw_fastqc_dir.display().to_string(),
+    });
+    fs::write(
+        &governed_manifest,
+        format!("{}\n", serde_json::to_string_pretty(&payload)?),
+    )
+    .with_context(|| format!("write {}", governed_manifest.display()))?;
+
+    let mut extra_stage_args = Vec::new();
+    extra_stage_args.push("--aggregation-engine".to_string());
+    extra_stage_args.push("multiqc".to_string());
+    extra_stage_args.push("--aggregation-scope".to_string());
+    extra_stage_args.push("governed_qc_artifacts".to_string());
+    extra_stage_args.push("--governed-qc-manifest".to_string());
+    extra_stage_args.push(governed_manifest.display().to_string());
+
+    let mut run_extra_fields = BTreeMap::new();
+    run_extra_fields.insert(
+        "governed_qc_manifest".to_string(),
+        serde_json::Value::String(governed_manifest.display().to_string()),
+    );
+    run_extra_fields.insert(
+        "governed_qc_input_count".to_string(),
+        serde_json::Value::Number(serde_json::Number::from(artifacts.len() as u64)),
+    );
+
+    Ok(StageSamplePreparation {
+        extra_stage_args,
+        run_extra_fields,
+    })
+}
+
+fn report_qc_manifest_path(out_root: &Path, sample_id: &str) -> PathBuf {
+    out_root
+        .join("bench")
+        .join("report_qc")
+        .join(sample_id)
+        .join("governed_qc_inputs_manifest.json")
+}
+
+fn report_qc_required_contributor_artifacts(
+    workspace_config: &crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig,
+    corpus_id: &str,
+    sample_id: &str,
+) -> Result<Vec<ReportQcContributorArtifact>> {
+    REPORT_QC_CONTRIBUTORS
+        .iter()
+        .copied()
+        .map(|contract| {
+            Ok(ReportQcContributorArtifact {
+                path: report_qc_contributor_artifact_path(
+                    workspace_config,
+                    corpus_id,
+                    sample_id,
+                    contract.stage_id,
+                    contract.tool_id,
+                    contract.relative_path,
+                )?,
+                contract,
+            })
+        })
+        .collect()
+}
+
+fn report_qc_contributor_artifact_path(
+    workspace_config: &crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig,
+    corpus_id: &str,
+    sample_id: &str,
+    stage_id: &str,
+    tool_id: &str,
+    relative_path: &str,
+) -> Result<PathBuf> {
+    let stage_root = default_stage_out_root(workspace_config, corpus_id, stage_id)?;
+    let stage_spec = stage_command_spec(stage_id)?;
+    Ok(
+        benchmark_sample_root(&stage_root, stage_spec.report_dir, sample_id)
+            .join("tools")
+            .join(tool_id)
+            .join(relative_path),
+    )
+}
+
+fn ensure_report_qc_upstream_stage_outputs(
+    program: &Path,
+    repo_root: &Path,
+    workspace_config: &crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig,
+    corpus_id: &str,
+    platform: &str,
+    sample: &CorpusNormalizedSample,
+    stage_id: &str,
+    dry_run: bool,
+) -> Result<()> {
+    let upstream = report_qc_upstream_stage(stage_id)?;
+    let stage_spec = stage_command_spec(upstream.stage_id)?;
+    let out_root = default_stage_out_root(workspace_config, corpus_id, upstream.stage_id)?;
+    fs::create_dir_all(&out_root).with_context(|| format!("create {}", out_root.display()))?;
+
+    let mut command_args = vec![
+        "--platform".to_string(),
+        platform.to_string(),
+        "bench".to_string(),
+        "fastq".to_string(),
+        stage_spec.bench_subcommand.to_string(),
+        "--sample-id".to_string(),
+        sample.sample_id.clone(),
+        "--r1".to_string(),
+        sample.r1.clone(),
+        "--out".to_string(),
+        out_root.display().to_string(),
+        "--tools".to_string(),
+        upstream.tool_id.to_string(),
+    ];
+    if let Some(r2) = sample.r2.as_ref() {
+        command_args.push("--r2".to_string());
+        command_args.push(r2.clone());
+    }
+    command_args.extend(upstream.extra_args.iter().map(|row| row.to_string()));
+
+    if dry_run {
+        return Ok(());
+    }
+
+    let status = Command::new(program)
+        .args(&command_args)
+        .current_dir(repo_root)
+        .envs(benchmark_runtime_env(&out_root))
+        .status()
+        .with_context(|| format!("run {}", command_args.join(" ")))?;
+    if !status.success() {
+        return Err(anyhow!(
+            "{} governed QC bootstrap failed for {} with exit code {}",
+            upstream.stage_id,
+            sample.sample_id,
+            status.code().unwrap_or(1)
+        ));
+    }
+    Ok(())
+}
+
+fn report_qc_upstream_stage(stage_id: &str) -> Result<ReportQcUpstreamStage> {
+    REPORT_QC_UPSTREAM_STAGES
+        .iter()
+        .copied()
+        .find(|row| row.stage_id == stage_id)
+        .ok_or_else(|| anyhow!("unsupported report-qc upstream stage `{stage_id}`"))
+}
+
+fn report_qc_contributor_id(contract: ReportQcContributorContract) -> String {
+    format!("{}.{}", contract.stage_id, contract.tool_id)
+}
+
+fn report_qc_artifact_name(contract: ReportQcContributorContract) -> String {
+    format!(
+        "{}.tool.{}.{}",
+        contract.stage_id, contract.tool_id, contract.artifact_id
+    )
+}
+
+fn report_qc_contributor_tool_ids() -> Vec<String> {
+    REPORT_QC_CONTRIBUTORS
+        .iter()
+        .map(|row| row.tool_id.to_string())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
+}
+
 fn collect_stage_manifest_fields(
     stage_id: &str,
     stage_args: &[String],
@@ -884,6 +1275,40 @@ fn collect_stage_manifest_fields(
             insert_string_field_from(&mut fields, &manifest_values, "database_artifact_id");
             insert_string_field_from(&mut fields, &manifest_values, "database_namespace");
             insert_string_field_from(&mut fields, &manifest_values, "database_scope");
+        }
+        "fastq.report_qc" => {
+            fields.insert(
+                "aggregation_engine".to_string(),
+                serde_json::Value::String("multiqc".to_string()),
+            );
+            fields.insert(
+                "aggregation_scope".to_string(),
+                serde_json::Value::String("governed_qc_artifacts".to_string()),
+            );
+            fields.insert("report_only".to_string(), serde_json::Value::Bool(true));
+            fields.insert("mutates_fastq".to_string(), serde_json::Value::Bool(false));
+            fields.insert(
+                "may_change_read_count".to_string(),
+                serde_json::Value::Bool(false),
+            );
+            fields.insert(
+                "governed_contributor_stage_ids".to_string(),
+                serde_json::Value::Array(
+                    REPORT_QC_UPSTREAM_STAGES
+                        .iter()
+                        .map(|row| serde_json::Value::String(row.stage_id.to_string()))
+                        .collect(),
+                ),
+            );
+            fields.insert(
+                "governed_contributor_tool_ids".to_string(),
+                serde_json::Value::Array(
+                    report_qc_contributor_tool_ids()
+                        .into_iter()
+                        .map(serde_json::Value::String)
+                        .collect(),
+                ),
+            );
         }
         _ => {}
     }
@@ -1089,9 +1514,9 @@ fn sha256_artifact_bundle(path: &Path) -> Result<String> {
             if path == member {
                 continue;
             }
-            let relative = path
-                .strip_prefix(parent)
-                .with_context(|| format!("strip prefix {} from {}", parent.display(), path.display()))?;
+            let relative = path.strip_prefix(parent).with_context(|| {
+                format!("strip prefix {} from {}", parent.display(), path.display())
+            })?;
             digest.update(path_display(relative).as_bytes());
             if path.is_dir() {
                 digest.update(b"\0dir\0");
@@ -1206,7 +1631,10 @@ fn benchmark_runtime_env(out_root: &Path) -> BTreeMap<String, String> {
         "BIJUX_CACHE_ROOT".to_string(),
         cache_root.display().to_string(),
     );
-    env.insert("XDG_CACHE_HOME".to_string(), cache_root.display().to_string());
+    env.insert(
+        "XDG_CACHE_HOME".to_string(),
+        cache_root.display().to_string(),
+    );
     if cache_root.file_name().and_then(|row| row.to_str()) == Some(".cache") {
         if let Some(parent) = cache_root.parent() {
             env.insert("BIJUX_HPC_ROOT".to_string(), parent.display().to_string());
@@ -1245,15 +1673,16 @@ fn current_timestamp_utc() -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::{
-        benchmark_runtime_env, default_stage_out_root, resolve_tools, sample_report_is_resume_ready,
-        stage_command_spec, workspace_cache_root_for_output,
+        benchmark_runtime_env, default_stage_out_root, prepare_report_qc_sample, resolve_tools,
+        sample_report_is_resume_ready, stage_command_spec, workspace_cache_root_for_output,
+        CorpusNormalizedSample,
     };
     use crate::commands::benchmark_workspace::{
         BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceRemote,
         BenchmarkWorkspaceStageRuns,
     };
     use std::fs;
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
 
     #[test]
     fn stage_mapping_preserves_filter_report_dir() {
@@ -1345,6 +1774,114 @@ mod tests {
         assert_eq!(
             workspace_cache_root_for_output(&out_root),
             Some(PathBuf::from("/tmp/workspace/.cache"))
+        );
+    }
+
+    #[test]
+    fn report_qc_preparation_writes_governed_manifest_during_dry_run() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let repo_root = temp.path().join("repo");
+        let out_root = temp
+            .path()
+            .join("results")
+            .join("corpus-01")
+            .join("fastq.report_qc");
+        fs::create_dir_all(&repo_root).expect("repo root");
+        fs::create_dir_all(&out_root).expect("out root");
+        let workspace = BenchmarkWorkspaceConfig {
+            remote: Some(BenchmarkWorkspaceRemote {
+                results_root: Some(temp.path().join("remote-results").display().to_string()),
+                ..BenchmarkWorkspaceRemote::default()
+            }),
+            layout: Some(BenchmarkWorkspaceLayout {
+                stage_runs: Some(BenchmarkWorkspaceStageRuns {
+                    remote_results_template: Some("{corpus_id}/{stage_id}/lunarc".to_string()),
+                    ..BenchmarkWorkspaceStageRuns::default()
+                }),
+            }),
+            ..BenchmarkWorkspaceConfig::default()
+        };
+        let sample = CorpusNormalizedSample {
+            sample_id: "sample_0001".to_string(),
+            r1: "/tmp/corpus/sample_0001_R1.fastq.gz".to_string(),
+            r2: Some("/tmp/corpus/sample_0001_R2.fastq.gz".to_string()),
+            layout: "pe".to_string(),
+        };
+
+        let prepared = prepare_report_qc_sample(
+            Path::new("/bin/true"),
+            &repo_root,
+            &workspace,
+            "corpus-01",
+            "apptainer-amd64",
+            &out_root,
+            &sample,
+            true,
+        )
+        .expect("prepare report qc sample");
+
+        assert_eq!(
+            prepared.extra_stage_args,
+            vec![
+                "--aggregation-engine".to_string(),
+                "multiqc".to_string(),
+                "--aggregation-scope".to_string(),
+                "governed_qc_artifacts".to_string(),
+                "--governed-qc-manifest".to_string(),
+                out_root
+                    .join("bench")
+                    .join("report_qc")
+                    .join("sample_0001")
+                    .join("governed_qc_inputs_manifest.json")
+                    .display()
+                    .to_string(),
+            ]
+        );
+        assert_eq!(
+            prepared.run_extra_fields.get("governed_qc_input_count"),
+            Some(&serde_json::Value::Number(serde_json::Number::from(6_u64)))
+        );
+        let governed_manifest = out_root
+            .join("bench")
+            .join("report_qc")
+            .join("sample_0001")
+            .join("governed_qc_inputs_manifest.json");
+        let expected_raw_fastqc_dir = temp
+            .path()
+            .join("remote-results")
+            .join("corpus-01")
+            .join("fastq.detect_adapters")
+            .join("lunarc")
+            .join("bench")
+            .join("detect_adapters")
+            .join("sample_0001")
+            .join("tools")
+            .join("fastqc")
+            .join("fastqc")
+            .display()
+            .to_string();
+        let payload: serde_json::Value = serde_json::from_str(
+            &fs::read_to_string(&governed_manifest).expect("read governed manifest"),
+        )
+        .expect("parse governed manifest");
+        assert_eq!(
+            payload
+                .get("schema_version")
+                .and_then(serde_json::Value::as_str),
+            Some("bijux.fastq.report_qc.inputs.v1")
+        );
+        assert_eq!(
+            payload
+                .get("qc_inputs")
+                .and_then(serde_json::Value::as_array)
+                .map(|row| row.len()),
+            Some(6)
+        );
+        assert_eq!(
+            payload
+                .get("raw_fastqc_dir")
+                .and_then(serde_json::Value::as_str),
+            Some(expected_raw_fastqc_dir.as_str())
         );
     }
 }
