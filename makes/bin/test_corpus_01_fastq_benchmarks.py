@@ -77,6 +77,7 @@ import benchmark_publication_targets
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
+LUNARC_MAKEFILE_PATH = ROOT / "makes" / "lunarc.mk"
 VALIDATE_READS_METHOD_PATH = (
     ROOT / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01-method.md"
 )
@@ -85,6 +86,10 @@ BENCHMARK_ISSUES_PATH = ROOT / "docs" / "benchmark" / "benchmark-issues.md"
 
 def benchmark_makefile_text() -> str:
     return MAKEFILE_PATH.read_text(encoding="utf-8")
+
+
+def lunarc_makefile_text() -> str:
+    return LUNARC_MAKEFILE_PATH.read_text(encoding="utf-8")
 
 
 def validate_reads_method_text() -> str:
@@ -230,6 +235,24 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "/home/bijan/lu2024-12-24/.cache/corpus_01",
         )
 
+    def test_benchmark_workspace_value_prints_governed_remote_sync_contract(self) -> None:
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("remote.ssh_host"),
+            "lunarc",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("remote.frontend_root"),
+            "/home/bijan/bijux",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("remote.results_root"),
+            "/home/bijan/lu2024-12-24/.cache/results",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("remote.containers_root"),
+            "/home/bijan/lu2024-12-24/.cache/bijux-dna-container",
+        )
+
     def test_benchmark_local_results_root_reads_committed_workspace_contract(self) -> None:
         support.load_benchmark_workspace_config.cache_clear()
         try:
@@ -299,6 +322,53 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)",
             text,
         )
+
+    def test_lunarc_makefile_defers_workspace_values_to_config_contract(self) -> None:
+        text = lunarc_makefile_text()
+
+        self.assertIn(
+            "LUNARC_HOST ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.ssh_host)",
+            text,
+        )
+        self.assertIn(
+            "LUNARC_REPO_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.repo_root)",
+            text,
+        )
+        self.assertIn(
+            "LUNARC_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.results_root)",
+            text,
+        )
+        self.assertIn(
+            "LUNARC_CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)",
+            text,
+        )
+        self.assertIn(
+            "LUNARC_CONTAINERS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.containers_root)",
+            text,
+        )
+        self.assertIn(
+            "LUNARC_LOCAL_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py local.results_root)",
+            text,
+        )
+        self.assertNotIn("LUNARC_HOST ?= lunarc", text)
+        self.assertNotIn("LUNARC_ROOT ?= /home/bijan/bijux", text)
+        self.assertNotIn("LUNARC_LOCAL_RESULTS_DIR ?= $(HOME)/bijux/bijux-dna-results", text)
+
+    def test_lunarc_footprint_checks_configured_roots_instead_of_fixed_dir_names(self) -> None:
+        recipe = ""
+        capture = False
+        for line in lunarc_makefile_text().splitlines():
+            if line.startswith("lunarc-footprint:"):
+                capture = True
+                continue
+            if capture and line.startswith("\t"):
+                recipe += line + "\n"
+                continue
+            if capture:
+                break
+
+        self.assertIn('"$(LUNARC_REPO_DIR)" "$(LUNARC_CONTAINERS_ROOT)" "$(LUNARC_CORPUS_ROOT)" "$(LUNARC_RESULTS_DIR)"', recipe)
+        self.assertNotIn("for dir in bijux-dna bijux-dna-container corpus_01 results;", recipe)
 
     def test_published_dossiers_refresh_includes_remove_duplicates(self) -> None:
         self.assertIn(

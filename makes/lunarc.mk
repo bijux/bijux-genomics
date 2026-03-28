@@ -1,23 +1,23 @@
 ##@ Lunarc Sync
 
-LUNARC_HOST ?= lunarc
-LUNARC_ROOT ?= /home/bijan/bijux
-LUNARC_REPO_DIR ?= $(LUNARC_ROOT)/bijux-dna
-LUNARC_RESULTS_DIR ?= $(LUNARC_ROOT)/results
-LUNARC_CORPUS_ROOT ?= $(LUNARC_ROOT)/corpus_01
-LUNARC_LOCAL_RESULTS_DIR ?= $(HOME)/bijux/bijux-dna-results
+LUNARC_HOST ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.ssh_host)
+LUNARC_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.frontend_root)
+LUNARC_REPO_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.repo_root)
+LUNARC_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.results_root)
+LUNARC_CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
+LUNARC_LOCAL_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py local.results_root)
 LUNARC_PULL_BASE ?= $(LUNARC_LOCAL_RESULTS_DIR)
 CLEAN_CONTEXT ?= 1
 ALLOW_DIRTY ?= 0
 INCLUDE_CONTAINERS_MANIFEST ?= 0
 DATA_MANIFEST_GLOB ?=
-LUNARC_CONTAINERS_ROOT ?= $(LUNARC_ROOT)/bijux-dna-container
+LUNARC_CONTAINERS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.containers_root)
 LUNARC_APPTAINER_DIR ?= $(LUNARC_CONTAINERS_ROOT)/apptainer
 LUNARC_APPTAINER_ARTIFACT_DIR ?= $(LUNARC_REPO_DIR)/artifacts/containers/hpc/frontend-smoke
 LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-container/apptainer
 LUNARC_APPTAINER_JOBS ?= 10
 LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
-LUNARC_FRONTEND_SENTINEL ?= $(LUNARC_ROOT)/bijux-dna
+LUNARC_FRONTEND_SENTINEL ?= $(LUNARC_REPO_DIR)
 LUNARC_APPTAINER_BASE_SEED_DIR ?= $(LUNARC_CONTAINERS_ROOT)/base
 
 _push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
@@ -76,13 +76,12 @@ pull-lunarc-results-prune: _pull-lunarc-results ## Pull results locally, then cl
 
 lunarc-footprint: ## Report Lunarc frontend footprint and fail above 20 GB
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
-		cd "$(LUNARC_ROOT)"; \
 		total_kb=0; \
-		for dir in bijux-dna bijux-dna-container corpus_01 results; do \
+		for dir in "$(LUNARC_REPO_DIR)" "$(LUNARC_CONTAINERS_ROOT)" "$(LUNARC_CORPUS_ROOT)" "$(LUNARC_RESULTS_DIR)"; do \
 			size_kb=$$(du -sk "$$dir" 2>/dev/null | awk "{print \$$1}" || true); \
 			size_kb=$${size_kb:-0}; \
 			total_kb=$$((total_kb + size_kb)); \
-			printf "%s\t%s\n" "$$dir" "$$size_kb"; \
+			printf "%s\t%s\n" "$$(basename "$$dir")" "$$size_kb"; \
 		done; \
 		printf "total\t%s\n" "$$total_kb"; \
 		limit_kb=$$((20 * 1024 * 1024)); \

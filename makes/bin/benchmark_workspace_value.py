@@ -19,10 +19,18 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_workspace_value(key_path: str) -> str:
+    if key_path == "remote.ssh_host":
+        return support.benchmark_remote_ssh_host()
+    if key_path == "remote.frontend_root":
+        return str(support.benchmark_remote_frontend_root())
     if key_path == "remote.corpus_root":
         return str(support.benchmark_remote_corpus_root())
     if key_path == "remote.repo_root":
         return str(support.benchmark_remote_repo_root())
+    if key_path == "remote.results_root":
+        return str(support.benchmark_remote_results_root())
+    if key_path == "remote.containers_root":
+        return str(support.benchmark_remote_containers_root())
     if key_path == "local.results_root":
         return str(support.benchmark_local_results_root())
     if key_path == "local.cache_mirror_root":
