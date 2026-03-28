@@ -638,6 +638,14 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 path.name,
             )
 
+    def test_validate_reads_report_uses_governed_contract_from_shared_support(self) -> None:
+        text = (BIN_DIR / "render_fastq_validate_reads_corpus_01_report.py").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("VALIDATE_READS_BENCHMARK_CONTRACT", text)
+        self.assertNotIn("CorpusBenchmarkContract(", text)
+
     def test_report_renderers_use_shared_artifact_publisher(self) -> None:
         support_text = benchmark_support_text()
         self.assertIn("class ReportCsvArtifactSpec:", support_text)
