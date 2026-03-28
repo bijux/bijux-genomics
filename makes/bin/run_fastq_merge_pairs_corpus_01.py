@@ -277,6 +277,7 @@ def main() -> int:
         "tool_kind": "benchmark",
         "platform": args.platform,
         "tools": tools,
+        "sample_scope": MERGE_PAIRS_BENCHMARK_CONTRACT.sample_scope,
         "threads": args.threads,
         "jobs": args.jobs,
         "sample_jobs": args.sample_jobs,
