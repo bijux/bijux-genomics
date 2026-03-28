@@ -359,7 +359,7 @@ def main() -> int:
         "platform": run_manifest["platform"],
         "stage_id": run_manifest["stage_id"],
         "scenario_id": run_manifest["scenario_id"],
-        "corpus_root": run_manifest["corpus_root"],
+        "corpus_root": str(corpus_root),
         "run_root": str(run_root),
         "samples_total": len(expected_sample_ids),
         "samples_failed": benchmark_manifest_failure_count(applicable_runs),
