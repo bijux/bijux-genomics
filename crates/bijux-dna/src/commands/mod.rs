@@ -4,6 +4,7 @@ pub(crate) mod bam;
 pub(crate) mod bench;
 pub(crate) mod bench_suite;
 pub(crate) mod benchmark_config;
+pub(crate) mod benchmark_corpus_metadata;
 pub(crate) mod benchmark_corpus_fastq;
 pub(crate) mod benchmark_publication;
 pub(crate) mod benchmark_repo_checks;
