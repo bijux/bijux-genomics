@@ -246,7 +246,7 @@ def load_sample_metadata(repo_root: Path, corpus_root: Path, spec: dict) -> dict
 def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
-    corpus_root = Path(args.corpus_root).resolve()
+    corpus_root = Path(args.corpus_root).expanduser()
     run_root = (
         Path(args.run_root).resolve()
         if args.run_root
@@ -406,7 +406,7 @@ def main() -> int:
         "stage_id": TRIM_READS_BENCHMARK_CONTRACT.stage_id,
         "scenario_id": run_manifest["scenario_id"],
         "platform": run_manifest["platform"],
-        "corpus_root": run_manifest.get("corpus_root", str(corpus_root)),
+        "corpus_root": str(corpus_root),
         "run_root": str(run_root),
         "tools": run_manifest["tools"],
         "samples_total": run_manifest["samples_total"],
