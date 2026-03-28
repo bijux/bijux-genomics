@@ -524,12 +524,12 @@ mod env_registry_command_tests {
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create benchmark config dir");
         std::fs::write(
-            config_dir.join("workspace.toml"),
-            r#"[local]
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
 results_root = "/local/results"
 cache_mirror_root = "/local/results/home/user/.cache"
 
-[remote]
+[workspace.remote]
 cache_root = "/remote/.cache"
 corpus_root = "/remote/.cache/corpus_01"
 results_root = "/remote/.cache/results"

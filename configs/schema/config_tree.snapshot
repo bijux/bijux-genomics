@@ -3,9 +3,9 @@
 # schema_version = 1
 # owner = bijux-dna-infra
 configs/OWNERS.toml
+configs/bench/benchmark.toml
 configs/bench/index.md
 configs/bench/knobs.toml
-configs/bench/workspace.toml
 configs/ci/index.md
 configs/ci/lints/clippy_allowlist.toml
 configs/ci/lints/clippy_allowlist_baseline.toml

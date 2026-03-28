@@ -9,8 +9,6 @@ use serde::{Deserialize, Serialize};
 pub(crate) const BENCHMARK_CONFIG_ENV: &str = "BIJUX_BENCHMARK_CONFIG";
 pub(crate) const BENCHMARK_CONFIG_JSON_ENV: &str = "BIJUX_BENCHMARK_CONFIG_JSON";
 pub(crate) const DEFAULT_BENCHMARK_CONFIG: &str = "configs/bench/benchmark.toml";
-pub(crate) const DEFAULT_BENCHMARK_WORKSPACE_CONFIG: &str = "configs/bench/workspace.toml";
-pub(crate) const DEFAULT_BENCHMARK_PUBLICATION_CONFIG: &str = "configs/bench/publication.toml";
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -198,10 +196,7 @@ pub(crate) fn benchmark_workspace_config_path(cwd: &Path, explicit_path: Option<
     benchmark_config_path(cwd, explicit_path)
 }
 
-pub(crate) fn benchmark_publication_config_path(
-    cwd: &Path,
-    explicit_path: Option<&Path>,
-) -> PathBuf {
+pub(crate) fn benchmark_publication_config_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
     benchmark_config_path(cwd, explicit_path)
 }
 
@@ -330,65 +325,25 @@ pub(crate) fn expand_env_placeholders(raw: &str) -> String {
     expanded
 }
 
-fn synthesize_legacy_benchmark_config(
-    cwd: &Path,
-    explicit_path: Option<&Path>,
-) -> Result<BenchmarkConfig> {
-    let workspace_path =
-        resolve_config_path(cwd, explicit_path, DEFAULT_BENCHMARK_WORKSPACE_CONFIG);
-    let publication_path =
-        resolve_config_path(cwd, explicit_path, DEFAULT_BENCHMARK_PUBLICATION_CONFIG);
-    let workspace = if workspace_path.is_file() {
-        load_toml::<BenchmarkWorkspaceConfig>(&workspace_path)?
-    } else {
-        BenchmarkWorkspaceConfig::default()
-    };
-    let publication = if publication_path.is_file() {
-        load_toml::<BenchmarkPublicationConfig>(&publication_path)?
-    } else {
-        BenchmarkPublicationConfig::default()
-    };
-    Ok(normalize_benchmark_config(BenchmarkConfig {
-        workspace,
-        publication,
-        corpora: BTreeMap::new(),
-        stage_inputs: BenchmarkStageInputConfig::default(),
-    }))
-}
-
 pub(crate) fn load_benchmark_config(
     cwd: &Path,
     explicit_path: Option<&Path>,
 ) -> Result<BenchmarkConfig> {
     let path = benchmark_config_path(cwd, explicit_path);
-    if path.is_file() {
-        if let Ok(config) = load_toml::<BenchmarkConfig>(&path) {
-            return Ok(normalize_benchmark_config(config));
-        }
-        if let Ok(workspace) = load_toml::<BenchmarkWorkspaceConfig>(&path) {
-            return Ok(normalize_benchmark_config(BenchmarkConfig {
-                workspace,
-                publication: synthesize_legacy_benchmark_config(cwd, explicit_path)?.publication,
-                corpora: BTreeMap::new(),
-                stage_inputs: BenchmarkStageInputConfig::default(),
-            }));
-        }
-        if let Ok(publication) = load_toml::<BenchmarkPublicationConfig>(&path) {
-            return Ok(normalize_benchmark_config(BenchmarkConfig {
-                workspace: synthesize_legacy_benchmark_config(cwd, explicit_path)?.workspace,
-                publication,
-                corpora: BTreeMap::new(),
-                stage_inputs: BenchmarkStageInputConfig::default(),
-            }));
-        }
+    if !path.is_file() {
+        return Err(anyhow!("missing benchmark config: {}", path.display()));
     }
-    synthesize_legacy_benchmark_config(cwd, explicit_path)
+    Ok(normalize_benchmark_config(load_toml::<BenchmarkConfig>(&path)?))
 }
 
 pub(crate) fn load_optional_benchmark_workspace_config(
     cwd: &Path,
     explicit_path: Option<&Path>,
 ) -> Result<Option<BenchmarkWorkspaceConfig>> {
+    let path = benchmark_config_path(cwd, explicit_path);
+    if !path.is_file() {
+        return Ok(None);
+    }
     let config = load_benchmark_config(cwd, explicit_path)?;
     if config.workspace == BenchmarkWorkspaceConfig::default() {
         return Ok(None);
@@ -1366,12 +1321,12 @@ mod tests {
         let config_dir = root.join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create bench config dir");
         std::fs::write(
-            config_dir.join("workspace.toml"),
-            r#"[local]
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
 results_root = "/tmp/local-results"
 cache_mirror_root = "/tmp/local-results/cache"
 
-[remote]
+[workspace.remote]
 ssh_host = "cluster"
 repo_root = "/srv/repo"
 cache_root = "/srv/cache"
@@ -1379,7 +1334,7 @@ corpus_root = "/srv/cache/corpus_01"
 results_root = "/srv/cache/results"
 containers_root = "/srv/cache/containers"
 
-[sync.defaults]
+[workspace.sync.defaults]
 pull_mode = "results"
 "#,
         )
@@ -1390,8 +1345,8 @@ pull_mode = "results"
         let config_dir = root.join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create bench config dir");
         std::fs::write(
-            config_dir.join("publication.toml"),
-            r#"[[corpus_01.contracts]]
+            config_dir.join("benchmark.toml"),
+            r#"[[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
 scenario_id = "validation_fairness"
 sample_scope = "full"
@@ -1620,10 +1575,8 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
     }
 
     #[test]
-    fn unified_benchmark_config_is_preferred_when_present() {
+    fn benchmark_config_loads_workspace_and_publication_sections() {
         let temp = tempfile::tempdir().expect("tempdir");
-        write_workspace(temp.path());
-        write_publication(temp.path());
         write_unified_config(temp.path());
 
         let config = load_benchmark_config(temp.path(), None).expect("benchmark config");
@@ -1716,35 +1669,30 @@ corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
     }
 
     #[test]
-    fn workspace_and_publication_shims_expand_environment_placeholders() {
+    fn benchmark_config_expands_workspace_and_publication_placeholders() {
         let _env_lock = ENV_LOCK.lock().expect("env lock");
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create config dir");
         std::fs::write(
-            config_dir.join("workspace.toml"),
-            r#"[local]
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
 results_root = "${BIJUX_TEST_RESULTS_ROOT}"
 
-[remote]
+[workspace.remote]
 corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
-"#,
-        )
-        .expect("write workspace shim");
-        std::fs::write(
-            config_dir.join("publication.toml"),
-            r#"[[corpus_01.contracts]]
+
+[[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
 scenario_id = "validation_fairness"
 tools = ["fastqc"]
 "#,
         )
-        .expect("write publication shim");
+        .expect("write benchmark config");
 
         std::env::set_var("BIJUX_TEST_RESULTS_ROOT", "/tmp/legacy-results");
         std::env::set_var("BIJUX_TEST_CORPUS_ROOT", "/tmp/legacy-corpus");
-        let config =
-            load_benchmark_config(temp.path(), None).expect("load synthesized benchmark config");
+        let config = load_benchmark_config(temp.path(), None).expect("load benchmark config");
         std::env::remove_var("BIJUX_TEST_RESULTS_ROOT");
         std::env::remove_var("BIJUX_TEST_CORPUS_ROOT");
 
