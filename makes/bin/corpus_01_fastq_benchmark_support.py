@@ -197,6 +197,13 @@ def parse_corpus_briefing_args(
     return parser.parse_args()
 
 
+@dataclass(frozen=True)
+class CorpusBriefingRuntime:
+    docs_root: Path
+    summary: dict
+    sample_rows: list[dict]
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -971,6 +978,15 @@ def default_screen_taxonomy_database_root(
 
 def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:
     return select_stage_run_root(corpus_root, stage_id).selected.path
+
+
+def resolve_corpus_briefing_runtime(args: argparse.Namespace) -> CorpusBriefingRuntime:
+    docs_root = Path(args.docs_root).resolve()
+    return CorpusBriefingRuntime(
+        docs_root=docs_root,
+        summary=load_json(docs_root / "summary.json"),
+        sample_rows=load_csv_rows(docs_root / "sample_results.csv"),
+    )
 
 
 def resolve_corpus_report_runtime(
