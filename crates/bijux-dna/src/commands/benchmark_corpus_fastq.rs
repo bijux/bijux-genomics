@@ -10,7 +10,7 @@ use sha2::Digest as _;
 
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_workspace_value, corpus_01_publication_contract,
-    load_benchmark_workspace_config,
+    load_benchmark_config, load_benchmark_workspace_config, BenchmarkConfig,
 };
 use crate::commands::cli::{BenchCorpusFastqArgs, BenchWorkspaceValueArgs, Cli};
 
@@ -238,6 +238,7 @@ pub(crate) fn print_benchmark_workspace_value(
 
 pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current working directory")?;
+    let benchmark_config = load_benchmark_config(&repo_root, args.config.as_deref())?;
     let workspace_config = load_benchmark_workspace_config(&repo_root, args.config.as_deref())?;
     let workspace_config_path =
         crate::commands::benchmark_workspace::benchmark_workspace_config_path(
@@ -317,10 +318,16 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
     let mut runs = Vec::new();
     let mut pending = Vec::new();
     let runtime_env = benchmark_runtime_env(&out_root);
+    let (resolved_stage_args, resolved_manifest_args) = merge_stage_args_from_config(
+        &benchmark_config,
+        &args.stage,
+        &args.stage_args,
+        &args.manifest_args,
+    )?;
     let mut extra_manifest_fields =
-        collect_stage_manifest_fields(&args.stage, &args.stage_args, &args.manifest_args)?;
+        collect_stage_manifest_fields(&args.stage, &resolved_stage_args, &resolved_manifest_args)?;
     let deplete_rrna_options = if args.stage == "fastq.deplete_rrna" {
-        Some(resolve_deplete_rrna_stage_options(&args.stage_args)?)
+        Some(resolve_deplete_rrna_stage_options(&resolved_stage_args)?)
     } else {
         None
     };
@@ -406,7 +413,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             &tools,
             args.threads,
             args.jobs,
-            &args.stage_args,
+            &resolved_stage_args,
             &prepared.extra_stage_args,
         );
         let command = std::iter::once(program.display().to_string())
@@ -517,7 +524,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
         repo_root: repo_root.display().to_string(),
         corpus_root: corpus_root.display().to_string(),
         out_root: out_root.display().to_string(),
-        stage_args: args.stage_args.clone(),
+        stage_args: resolved_stage_args.clone(),
         samples_total: runs.len(),
         samples_failed: failures,
         runs,
@@ -826,6 +833,138 @@ fn load_corpus_spec(
     let path = benchmark_corpus_spec_path(repo_root, config_path, corpus_id)?;
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
+fn merge_stage_args_from_config(
+    benchmark_config: &BenchmarkConfig,
+    stage_id: &str,
+    stage_args: &[String],
+    manifest_args: &[String],
+) -> Result<(Vec<String>, Vec<String>)> {
+    let stage_values = parse_cli_arg_pairs("stage-arg", stage_args)?;
+    let manifest_values = parse_cli_arg_pairs("manifest-arg", manifest_args)?;
+    let mut merged_stage_args = stage_args.to_vec();
+    let mut merged_manifest_args = manifest_args.to_vec();
+
+    match stage_id {
+        "fastq.deplete_rrna" => {
+            let config = &benchmark_config.stage_inputs.fastq_deplete_rrna;
+            append_missing_arg(
+                &mut merged_stage_args,
+                &stage_values,
+                "rrna_db",
+                config.rrna_db.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_stage_args,
+                &stage_values,
+                "rrna_bundle_id",
+                config.rrna_bundle_id.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_stage_args,
+                &stage_values,
+                "min_identity",
+                config.min_identity.as_deref(),
+            );
+        }
+        "fastq.deplete_host" => {
+            let config = &benchmark_config.stage_inputs.fastq_deplete_host;
+            append_missing_arg(
+                &mut merged_stage_args,
+                &stage_values,
+                "reference_index",
+                config.reference_index.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_manifest_args,
+                &manifest_values,
+                "reference_catalog_id",
+                config.reference_catalog_id.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_manifest_args,
+                &manifest_values,
+                "reference_index_backend",
+                config.reference_index_backend.as_deref(),
+            );
+        }
+        "fastq.deplete_reference_contaminants" => {
+            let config = &benchmark_config
+                .stage_inputs
+                .fastq_deplete_reference_contaminants;
+            append_missing_arg(
+                &mut merged_stage_args,
+                &stage_values,
+                "reference_index",
+                config.reference_index.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_manifest_args,
+                &manifest_values,
+                "reference_catalog_id",
+                config.reference_catalog_id.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_manifest_args,
+                &manifest_values,
+                "reference_index_backend",
+                config.reference_index_backend.as_deref(),
+            );
+        }
+        "fastq.screen_taxonomy" => {
+            let config = &benchmark_config.stage_inputs.fastq_screen_taxonomy;
+            append_missing_arg(
+                &mut merged_stage_args,
+                &stage_values,
+                "database_root",
+                config.database_root.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_manifest_args,
+                &manifest_values,
+                "database_catalog_id",
+                config.database_catalog_id.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_manifest_args,
+                &manifest_values,
+                "database_artifact_id",
+                config.database_artifact_id.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_manifest_args,
+                &manifest_values,
+                "database_namespace",
+                config.database_namespace.as_deref(),
+            );
+            append_missing_arg(
+                &mut merged_manifest_args,
+                &manifest_values,
+                "database_scope",
+                config.database_scope.as_deref(),
+            );
+        }
+        _ => {}
+    }
+
+    Ok((merged_stage_args, merged_manifest_args))
+}
+
+fn append_missing_arg(
+    target: &mut Vec<String>,
+    existing: &BTreeMap<String, String>,
+    key: &str,
+    value: Option<&str>,
+) {
+    if existing.contains_key(key) {
+        return;
+    }
+    let Some(value) = value.map(str::trim).filter(|value| !value.is_empty()) else {
+        return;
+    };
+    target.push(format!("--{}", key.replace('_', "-")));
+    target.push(value.to_string());
 }
 
 fn corpus_expected_sample_total(spec: &CorpusSpec) -> usize {

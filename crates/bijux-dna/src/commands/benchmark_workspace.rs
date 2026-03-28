@@ -19,6 +19,8 @@ pub(crate) struct BenchmarkConfig {
     pub(crate) publication: BenchmarkPublicationConfig,
     #[serde(default)]
     pub(crate) corpora: BTreeMap<String, BenchmarkCorpusConfig>,
+    #[serde(default)]
+    pub(crate) stage_inputs: BenchmarkStageInputConfig,
 }
 
 #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
@@ -95,6 +97,41 @@ pub(crate) struct BenchmarkPublicationConfig {
 #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkCorpusConfig {
     pub(crate) spec_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+pub(crate) struct BenchmarkStageInputConfig {
+    #[serde(default)]
+    pub(crate) fastq_deplete_rrna: BenchmarkDepleteRrnaInputConfig,
+    #[serde(default)]
+    pub(crate) fastq_deplete_host: BenchmarkReferenceInputConfig,
+    #[serde(default)]
+    pub(crate) fastq_deplete_reference_contaminants: BenchmarkReferenceInputConfig,
+    #[serde(default)]
+    pub(crate) fastq_screen_taxonomy: BenchmarkScreenTaxonomyInputConfig,
+}
+
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+pub(crate) struct BenchmarkDepleteRrnaInputConfig {
+    pub(crate) rrna_db: Option<String>,
+    pub(crate) rrna_bundle_id: Option<String>,
+    pub(crate) min_identity: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+pub(crate) struct BenchmarkReferenceInputConfig {
+    pub(crate) reference_index: Option<String>,
+    pub(crate) reference_catalog_id: Option<String>,
+    pub(crate) reference_index_backend: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+pub(crate) struct BenchmarkScreenTaxonomyInputConfig {
+    pub(crate) database_root: Option<String>,
+    pub(crate) database_catalog_id: Option<String>,
+    pub(crate) database_artifact_id: Option<String>,
+    pub(crate) database_namespace: Option<String>,
+    pub(crate) database_scope: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
@@ -199,6 +236,7 @@ fn synthesize_legacy_benchmark_config(
         workspace,
         publication,
         corpora: BTreeMap::new(),
+        stage_inputs: BenchmarkStageInputConfig::default(),
     })
 }
 
@@ -216,6 +254,7 @@ pub(crate) fn load_benchmark_config(
                 workspace,
                 publication: synthesize_legacy_benchmark_config(cwd, explicit_path)?.publication,
                 corpora: BTreeMap::new(),
+                stage_inputs: BenchmarkStageInputConfig::default(),
             });
         }
         if let Ok(publication) = load_toml::<BenchmarkPublicationConfig>(&path) {
@@ -223,6 +262,7 @@ pub(crate) fn load_benchmark_config(
                 workspace: synthesize_legacy_benchmark_config(cwd, explicit_path)?.workspace,
                 publication,
                 corpora: BTreeMap::new(),
+                stage_inputs: BenchmarkStageInputConfig::default(),
             });
         }
     }

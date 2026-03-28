@@ -46,6 +46,28 @@ data_manifest_glob = ""
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
 
+[stage_inputs.fastq_deplete_rrna]
+rrna_db = "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_rrna/sortmerna_v4_3_default_db.fasta"
+rrna_bundle_id = "sortmerna_v4_3_default_db"
+min_identity = "0.95"
+
+[stage_inputs.fastq_deplete_host]
+reference_index = "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index"
+reference_catalog_id = "host_reference"
+reference_index_backend = "bowtie2_build"
+
+[stage_inputs.fastq_deplete_reference_contaminants]
+reference_index = "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_reference_contaminants/contaminant_reference/bowtie2_build/index"
+reference_catalog_id = "contaminant_reference"
+reference_index_backend = "bowtie2_build"
+
+[stage_inputs.fastq_screen_taxonomy]
+database_root = "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
+database_catalog_id = "taxonomy_reference"
+database_artifact_id = "taxonomy_db"
+database_namespace = "read_screening"
+database_scope = "read_screening"
+
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
 scenario_id = "validation_fairness"

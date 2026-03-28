@@ -37,3 +37,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 ## Publication Contract
 - `[publication]` in `configs/bench/benchmark.toml` keeps governed corpus publication exclusions outside Python support code.
 - `[[publication.corpus_01.contracts]]` rows declare the governed published stage roster, scenario ids, sample scopes, and tool rosters.
+
+## Corpus Contract
+- `[corpora.<corpus_id>]` binds each governed benchmark corpus id to the corpus spec consumed by `bijux-dna bench corpus-fastq`.
+- `[stage_inputs]` holds benchmark-stage resource bindings such as reference indexes, taxonomy databases, and rRNA bundles so Make wrappers do not become a second source of truth.
