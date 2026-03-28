@@ -267,7 +267,7 @@ fn corpus_fastq_stage_render_step(
     stage_docs_root: &Path,
     run_root: Option<&Path>,
 ) -> Result<SubprocessSpec> {
-    let script_path = corpus_fastq_script_path(repo_root, stage_id, "report");
+    let script_path = corpus_fastq_script_path(repo_root, "report");
     if !script_path.is_file() {
         return Err(anyhow!(
             "missing corpus benchmark render script for {stage_id}: {}",
@@ -276,6 +276,8 @@ fn corpus_fastq_stage_render_step(
     }
     let mut args = vec![
         script_path.display().to_string(),
+        "--stage".to_string(),
+        stage_id.to_string(),
         "--repo-root".to_string(),
         repo_root.display().to_string(),
         "--docs-root".to_string(),
@@ -296,7 +298,7 @@ fn corpus_fastq_stage_briefing_step(
     stage_id: &str,
     stage_docs_root: &Path,
 ) -> Result<SubprocessSpec> {
-    let script_path = corpus_fastq_script_path(repo_root, stage_id, "briefing");
+    let script_path = corpus_fastq_script_path(repo_root, "briefing");
     if !script_path.is_file() {
         return Err(anyhow!(
             "missing corpus benchmark briefing script for {stage_id}: {}",
@@ -307,15 +309,16 @@ fn corpus_fastq_stage_briefing_step(
         program: "python3",
         args: vec![
             script_path.display().to_string(),
+            "--stage".to_string(),
+            stage_id.to_string(),
             "--docs-root".to_string(),
             stage_docs_root.display().to_string(),
         ],
     })
 }
 
-fn corpus_fastq_script_path(repo_root: &Path, stage_id: &str, kind: &str) -> PathBuf {
-    let stage_name = stage_id.replace('.', "_");
-    repo_root.join(format!("makes/bin/render_{stage_name}_corpus_01_{kind}.py"))
+fn corpus_fastq_script_path(repo_root: &Path, kind: &str) -> PathBuf {
+    repo_root.join(format!("makes/bin/render_corpus_01_fastq_{kind}.py"))
 }
 
 fn run_subprocess(repo_root: &Path, config_path: &Path, spec: &SubprocessSpec) -> Result<()> {
@@ -387,14 +390,8 @@ mod tests {
     #[test]
     fn corpus_fastq_report_script_path_matches_stage_contract() {
         assert_eq!(
-            super::corpus_fastq_script_path(
-                Path::new("/repo"),
-                "fastq.profile_overrepresented_sequences",
-                "report",
-            ),
-            Path::new(
-                "/repo/makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
-            )
+            super::corpus_fastq_script_path(Path::new("/repo"), "report"),
+            Path::new("/repo/makes/bin/render_corpus_01_fastq_report.py")
         );
     }
 
@@ -407,6 +404,18 @@ mod tests {
             docs_root,
             Path::new("/repo/docs/benchmark/fastq.validate_reads/corpus-01")
         );
+    }
+
+    #[test]
+    fn corpus_fastq_render_step_passes_stage_to_dispatcher() {
+        let step = super::corpus_fastq_stage_render_step(
+            Path::new("/repo"),
+            "fastq.validate_reads",
+            Path::new("/repo/docs/benchmark/fastq.validate_reads/corpus-01"),
+            None,
+        );
+        let err = step.expect_err("dispatcher should not exist in unit test cwd");
+        assert!(err.to_string().contains("render_corpus_01_fastq_report.py"));
     }
 
     #[test]
