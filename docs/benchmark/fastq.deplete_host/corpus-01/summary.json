@@ -5,12 +5,12 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "era_counts": {
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-28T00:34:40.947482+00:00",
+  "generated_at_utc": "2026-03-28T02:41:03.183632+00:00",
   "headline": {
     "best_read_retention": 0.22385316068356204,
     "best_read_retention_tool": "bowtie2",
