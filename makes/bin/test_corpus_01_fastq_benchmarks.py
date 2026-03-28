@@ -70,6 +70,7 @@ import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 import render_fastq_validate_reads_corpus_01_report as validate_reads_report
 import normalize_lunarc_results_mirror as normalize_results_mirror
+import converge_benchmark_workspace_roots as converge_workspace_roots
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 import benchmark_workspace_value
@@ -1310,6 +1311,44 @@ class BenchmarkMakefileTests(unittest.TestCase):
             sorted(issue["issue_id"] for issue in report["issues"]),
             ["duplicate-remote-reference-root", "duplicate-remote-results-root"],
         )
+
+    def test_converge_workspace_roots_moves_unique_entries_and_drops_stale_duplicates(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            canonical_root = tmp_root / "results"
+            legacy_root = tmp_root / "bijux-dna-results"
+            (canonical_root / "fastq.trim_reads").mkdir(parents=True)
+            (canonical_root / "fastq.trim_reads" / "new.txt").write_text(
+                "fresh", encoding="utf-8"
+            )
+            (legacy_root / "fastq.trim_reads").mkdir(parents=True)
+            (legacy_root / "fastq.trim_reads" / "old.txt").write_text(
+                "old", encoding="utf-8"
+            )
+            os.utime(legacy_root / "fastq.trim_reads" / "old.txt", (1, 1))
+            (legacy_root / "fastq.filter_reads").mkdir(parents=True)
+            (legacy_root / "fastq.filter_reads" / "report.json").write_text(
+                "{}", encoding="utf-8"
+            )
+
+            plan = converge_workspace_roots.plan_convergence(canonical_root, legacy_root)
+            actions = {action["entry_name"]: action["action"] for action in plan["actions"]}
+            self.assertEqual(actions["fastq.trim_reads"], "remove-legacy-duplicate")
+            self.assertEqual(actions["fastq.filter_reads"], "move-legacy-entry")
+
+            report = converge_workspace_roots.apply_convergence(plan)
+            self.assertEqual(
+                {action["status"] for action in report["actions"]},
+                {"applied"},
+            )
+            self.assertTrue(
+                (canonical_root / "fastq.filter_reads" / "report.json").is_file()
+            )
+            self.assertFalse((legacy_root / "fastq.filter_reads").exists())
+            self.assertFalse((legacy_root / "fastq.trim_reads").exists())
+            self.assertTrue(report["legacy_root_removed"])
 
     def test_dev_ops_pull_records_workspace_path_mappings_and_dependencies(self) -> None:
         text = dev_ops_text()
