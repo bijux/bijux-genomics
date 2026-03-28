@@ -183,6 +183,8 @@ def shared_report_runner_paths() -> list[Path]:
         "render_fastq_remove_duplicates_corpus_01_report.py",
         "render_fastq_screen_taxonomy_corpus_01_report.py",
         "render_fastq_trim_polyg_tails_corpus_01_report.py",
+        "render_fastq_trim_reads_corpus_01_report.py",
+        "render_fastq_trim_terminal_damage_corpus_01_report.py",
         "render_fastq_validate_reads_corpus_01_report.py",
     ]
     return [ROOT / "makes" / "bin" / name for name in names]
@@ -397,7 +399,11 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_report_renderers_use_shared_runtime_context_loader(self) -> None:
         for path in report_renderer_paths():
             text = path.read_text(encoding="utf-8")
-            self.assertIn("resolve_corpus_report_runtime(", text, path.name)
+            self.assertTrue(
+                "resolve_corpus_report_runtime(" in text
+                or "run_corpus_report(" in text,
+                path.name,
+            )
             self.assertNotIn("Path(args.repo_root).resolve()", text, path.name)
             self.assertNotIn("Path(args.corpus_root).expanduser()", text, path.name)
             self.assertNotIn(
@@ -414,7 +420,11 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertIn("publish_corpus_report_artifacts(", support_text)
         for path in shared_report_publisher_paths():
             text = path.read_text(encoding="utf-8")
-            self.assertIn("publish_corpus_report_artifacts(", text, path.name)
+            self.assertTrue(
+                "publish_corpus_report_artifacts(" in text
+                or "run_corpus_report(" in text,
+                path.name,
+            )
             self.assertNotIn(
                 '(docs_root / "benchmark.md").write_text(',
                 text,
@@ -454,6 +464,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertIn("class CorpusReportArtifacts:", support_text)
         self.assertIn("def load_corpus_report_context(", support_text)
         self.assertIn("def run_corpus_report(", support_text)
+        self.assertIn("metadata_loader", support_text)
         for path in shared_report_runner_paths():
             text = path.read_text(encoding="utf-8")
             self.assertIn("run_corpus_report(", text, path.name)
@@ -2832,9 +2843,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 str(out_root),
             ]
             with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(
-                    filter_reads_runner,
-                    "load_corpus_spec",
+                with mock.patch.object(filter_reads_runner, "load_corpus_spec",
                     return_value={"preferred_root": str(corpus_root)},
                 ):
                     with mock.patch.object(
@@ -2919,9 +2928,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 str(out_root),
             ]
             with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(
-                    filter_reads_runner,
-                    "load_corpus_spec",
+                with mock.patch.object(filter_reads_runner, "load_corpus_spec",
                     return_value={"preferred_root": str(corpus_root)},
                 ):
                     with mock.patch.object(
@@ -3266,9 +3273,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             }
 
             with mock.patch.object(correct_errors_runner, "parse_args", return_value=args):
-                with mock.patch.object(
-                    correct_errors_runner,
-                    "load_corpus_spec",
+                with mock.patch.object(correct_errors_runner, "load_corpus_spec",
                     return_value={
                         "preferred_root": str(corpus_root),
                         "target_ancient_pe": 1,
@@ -3527,9 +3532,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 str(rrna_db),
             ]
             with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(
-                    deplete_rrna_runner,
-                    "load_corpus_spec",
+                with mock.patch.object(deplete_rrna_runner, "load_corpus_spec",
                     return_value={"preferred_root": str(corpus_root)},
                 ):
                     with mock.patch.object(
@@ -3630,9 +3633,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 str(rrna_db),
             ]
             with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(
-                    deplete_rrna_runner,
-                    "load_corpus_spec",
+                with mock.patch.object(deplete_rrna_runner, "load_corpus_spec",
                     return_value={"preferred_root": str(corpus_root)},
                 ):
                     with mock.patch.object(
@@ -3806,13 +3807,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    normalize_primers_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    normalize_primers_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -3967,13 +3964,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    deplete_rrna_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    deplete_rrna_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -4131,13 +4124,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    deplete_host_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    deplete_host_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -4289,13 +4278,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    deplete_reference_contaminants_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    deplete_reference_contaminants_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -4452,13 +4437,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    screen_taxonomy_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    screen_taxonomy_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -4615,13 +4596,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    correct_errors_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    correct_errors_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -4785,13 +4762,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    extract_umis_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    extract_umis_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -4948,13 +4921,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    filter_reads_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    filter_reads_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -5122,13 +5091,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    filter_low_complexity_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    filter_low_complexity_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -5266,13 +5231,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    remove_duplicates_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    remove_duplicates_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -7400,13 +7361,9 @@ class ValidateReadsReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    validate_reads_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    validate_reads_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -7703,13 +7660,9 @@ class TrimPolygReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    trim_polyg_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    trim_polyg_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -8008,13 +7961,9 @@ class ReportQcReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    report_qc_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    report_qc_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -8544,9 +8493,7 @@ class TrimReadsReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    trim_reads_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
                 ), mock.patch.object(
                     trim_reads_report,
@@ -8693,9 +8640,7 @@ class TrimReadsReportingTests(unittest.TestCase):
                 str(out_root),
             ]
             with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(
-                    trim_reads_runner,
-                    "load_corpus_spec",
+                with mock.patch.object(trim_reads_runner, "load_corpus_spec",
                     return_value={
                         "corpus_id": "corpus-01",
                         "preferred_root": str(corpus_root),
@@ -8798,9 +8743,7 @@ class TrimReadsReportingTests(unittest.TestCase):
                 str(out_root),
             ]
             with mock.patch.object(sys, "argv", argv):
-                with mock.patch.object(
-                    trim_reads_runner,
-                    "load_corpus_spec",
+                with mock.patch.object(trim_reads_runner, "load_corpus_spec",
                     return_value={
                         "corpus_id": "corpus-01",
                         "preferred_root": str(corpus_root),
@@ -9229,13 +9172,9 @@ class MergeReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    merge_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    merge_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -9520,13 +9459,9 @@ class DetectAdaptersReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    detect_adapters_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    detect_adapters_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -9822,13 +9757,9 @@ class OverrepresentedReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    overrepresented_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    overrepresented_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -10149,13 +10080,9 @@ class ProfileReadsReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    profile_reads_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    profile_reads_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -10480,13 +10407,9 @@ class ProfileReadLengthsReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    profile_read_lengths_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
-                ), mock.patch.object(
-                    profile_read_lengths_report,
-                    "resolve_corpus_metadata",
+                ), mock.patch.object(support, "resolve_corpus_metadata",
                     return_value={
                         "sample_0001": {
                             "accession": "ACC1",
@@ -10943,9 +10866,7 @@ class TerminalDamageReportingTests(unittest.TestCase):
                     "--docs-root",
                     str(docs_root.relative_to(repo_root)),
                 ]
-                with mock.patch.object(
-                    terminal_damage_report,
-                    "load_corpus_spec",
+                with mock.patch.object(support, "load_corpus_spec",
                     return_value={"corpus_id": "corpus-01"},
                 ), mock.patch.object(
                     terminal_damage_report,

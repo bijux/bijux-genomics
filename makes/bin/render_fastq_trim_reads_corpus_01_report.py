@@ -10,15 +10,15 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     parse_corpus_report_args,
+    CorpusReportArtifacts,
+    CorpusReportContext,
+    CorpusReportRuntime,
     TRIM_READS_BENCHMARK_CONTRACT,
     discover_normalized_samples,
-    load_corpus_spec,
     load_json,
     load_published_sample_metadata,
     localize_results_path,
-    publish_corpus_report_artifacts,
-    preferred_report_run_root,
-    resolve_corpus_report_runtime,
+    run_corpus_report,
     trim_reads_benchmark_defaults,
     validate_corpus_contract,
 )
@@ -388,27 +388,19 @@ def load_sample_metadata(repo_root: Path, corpus_root: Path, spec: dict) -> dict
     return load_published_sample_metadata(repo_root, spec)
 
 
-def main() -> int:
-    args = parse_args()
-    runtime = resolve_corpus_report_runtime(
-        args,
-        stage_id=TRIM_READS_BENCHMARK_CONTRACT.stage_id,
-    )
-    repo_root = runtime.repo_root
-    corpus_root = runtime.corpus_root
-    run_root = runtime.run_root
-    docs_root = runtime.docs_root
-    local_results_root = runtime.local_results_root
+def build_artifacts(context: CorpusReportContext) -> CorpusReportArtifacts:
+    corpus_root = context.runtime.corpus_root
+    run_root = context.runtime.run_root
+    local_results_root = context.runtime.local_results_root
 
-    spec = load_corpus_spec(repo_root)
+    spec = context.spec
     defaults = trim_reads_benchmark_defaults()
-    run_manifest = runtime.run_manifest
-    validate_trim_run_manifest_contract(run_manifest)
+    run_manifest = context.run_manifest
     run_manifest.setdefault("quality_cutoff", defaults["quality_cutoff"])
     run_manifest.setdefault("adapter_bank_preset", defaults["adapter_bank_preset"])
     run_manifest.setdefault("polyx_preset", defaults["polyx_preset"])
     run_manifest.setdefault("contaminant_preset", defaults["contaminant_preset"])
-    metadata_by_sample = load_sample_metadata(repo_root, corpus_root, spec)
+    metadata_by_sample = context.metadata_by_sample
 
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
@@ -416,7 +408,7 @@ def main() -> int:
     era_counts: dict[str, int] = defaultdict(int)
     layout_counts: dict[str, int] = defaultdict(int)
 
-    for run in run_manifest["runs"]:
+    for run in context.applicable_runs:
         sample_id = run["sample_id"]
         metadata = metadata_by_sample.get(sample_id, {})
         cohort_key = f"{metadata.get('era', 'unknown')}_{metadata.get('layout', run['layout'])}"
@@ -547,8 +539,7 @@ def main() -> int:
         "tool_summary": tool_summary,
     }
 
-    publish_corpus_report_artifacts(
-        docs_root,
+    return CorpusReportArtifacts(
         summary=summary,
         markdown=render_markdown(summary),
         sample_rows=sample_rows,
@@ -582,7 +573,20 @@ def main() -> int:
         ],
         summary_sort_keys=True,
     )
-    return 0
+
+
+def load_trim_reads_metadata(runtime: CorpusReportRuntime, spec: dict) -> dict[str, dict]:
+    return load_sample_metadata(runtime.repo_root, runtime.corpus_root, spec)
+
+
+def main() -> int:
+    return run_corpus_report(
+        parse_args(),
+        contract=TRIM_READS_BENCHMARK_CONTRACT,
+        validate_run_manifest=validate_trim_run_manifest_contract,
+        metadata_loader=load_trim_reads_metadata,
+        build_artifacts=build_artifacts,
+    )
 
 
 if __name__ == "__main__":
