@@ -464,6 +464,25 @@ class BenchmarkMakefileTests(unittest.TestCase):
         )
         self.assertIn("make _benchmark-trim-terminal-damage-corpus-01-report", text)
 
+    def test_every_governed_publication_stage_method_doc_has_workflow_targets(
+        self,
+    ) -> None:
+        missing_requirements: list[str] = []
+
+        for stage_id in publication_stage_ids():
+            text = method_doc_text(stage_id)
+            run_target = support.corpus_01_make_run_target(stage_id)
+            report_target = support.corpus_01_make_report_target(stage_id)
+
+            if "## Workflow" not in text:
+                missing_requirements.append(f"{stage_id}:missing-workflow")
+            if f"make {run_target} PLATFORM=lunarc-apptainer" not in text:
+                missing_requirements.append(f"{stage_id}:missing-run-target")
+            if f"make {report_target}" not in text:
+                missing_requirements.append(f"{stage_id}:missing-report-target")
+
+        self.assertEqual(missing_requirements, [])
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
