@@ -32,42 +32,47 @@ def parse_args() -> argparse.Namespace:
 
 
 def normalize_results_root(results_root: Path, corpus_id: str, *, dry_run: bool) -> dict:
-    raw_root = results_root / "home" / "bijan" / "bijux" / "results" / corpus_id
     actions: list[dict] = []
-    if not raw_root.is_dir():
-        return {
-            "results_root": str(results_root),
-            "corpus_id": corpus_id,
-            "actions": actions,
-        }
-
-    for stage_root in sorted(path for path in raw_root.iterdir() if path.is_dir()):
-        for run_root in sorted(path for path in stage_root.iterdir() if path.is_dir()):
-            canonical_root = results_root / corpus_id / stage_root.name / run_root.name
-            if canonical_root.exists():
+    raw_roots = [
+        results_root / "home" / "bijan" / "bijux" / "results" / corpus_id,
+        results_root
+        / "home"
+        / "bijan"
+        / "lu2024-12-24"
+        / ".cache"
+        / "bijux-dna-results"
+        / corpus_id,
+    ]
+    for raw_root in raw_roots:
+        if not raw_root.is_dir():
+            continue
+        for stage_root in sorted(path for path in raw_root.iterdir() if path.is_dir()):
+            for run_root in sorted(path for path in stage_root.iterdir() if path.is_dir()):
+                canonical_root = results_root / corpus_id / stage_root.name / run_root.name
+                if canonical_root.exists():
+                    actions.append(
+                        {
+                            "stage_id": stage_root.name,
+                            "run_id": run_root.name,
+                            "status": "skipped_existing_target",
+                            "source": str(run_root),
+                            "target": str(canonical_root),
+                        }
+                    )
+                    continue
                 actions.append(
                     {
                         "stage_id": stage_root.name,
                         "run_id": run_root.name,
-                        "status": "skipped_existing_target",
+                        "status": "planned_move" if dry_run else "moved",
                         "source": str(run_root),
                         "target": str(canonical_root),
                     }
                 )
-                continue
-            actions.append(
-                {
-                    "stage_id": stage_root.name,
-                    "run_id": run_root.name,
-                    "status": "planned_move" if dry_run else "moved",
-                    "source": str(run_root),
-                    "target": str(canonical_root),
-                }
-            )
-            if dry_run:
-                continue
-            canonical_root.parent.mkdir(parents=True, exist_ok=True)
-            run_root.rename(canonical_root)
+                if dry_run:
+                    continue
+                canonical_root.parent.mkdir(parents=True, exist_ok=True)
+                run_root.rename(canonical_root)
 
     return {
         "results_root": str(results_root),

@@ -2237,6 +2237,36 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertTrue(raw_run_root.exists())
             self.assertEqual(report["actions"][0]["status"], "skipped_existing_target")
 
+    def test_normalize_results_mirror_moves_legacy_cache_results_tree(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            results_root = Path(tmpdir) / "results"
+            raw_run_root = (
+                results_root
+                / "home"
+                / "bijan"
+                / "lu2024-12-24"
+                / ".cache"
+                / "bijux-dna-results"
+                / "corpus_01"
+                / "fastq.correct_errors"
+                / "lunarc"
+            )
+            raw_run_root.mkdir(parents=True)
+            (raw_run_root / "run_manifest.json").write_text("{}", encoding="utf-8")
+
+            report = normalize_results_mirror.normalize_results_root(
+                results_root,
+                "corpus_01",
+                dry_run=False,
+            )
+
+            canonical_run_root = (
+                results_root / "corpus_01" / "fastq.correct_errors" / "lunarc"
+            )
+            self.assertTrue((canonical_run_root / "run_manifest.json").is_file())
+            self.assertFalse(raw_run_root.exists())
+            self.assertEqual(report["actions"][0]["target"], str(canonical_run_root))
+
     def test_repair_results_manifests_parse_args_uses_workspace_results_root(self) -> None:
         original_argv = sys.argv
         try:
