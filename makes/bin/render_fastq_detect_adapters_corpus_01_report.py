@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import json
 import statistics
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -15,6 +13,7 @@ from corpus_01_fastq_benchmark_support import (
     load_corpus_spec,
     load_json,
     localize_results_path,
+    publish_corpus_report_artifacts,
     preferred_report_run_root,
     resolve_corpus_report_runtime,
     resolve_corpus_metadata,
@@ -383,42 +382,30 @@ def main() -> int:
         "tool_summary": tool_summary,
     }
 
-    summary_path = docs_root / "summary.json"
-    summary_path.write_text(
-        json.dumps(summary, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-
-    sample_results_path = docs_root / "sample_results.csv"
-    with sample_results_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "sample_id",
-                "accession",
-                "era",
-                "layout",
-                "study_accession",
-                "size_band",
-                "tool",
-                "runtime_s",
-                "exit_code",
-                "reads_in",
-                "reads_out",
-                "bases_in",
-                "bases_out",
-                "mean_q",
-                "candidate_adapter_count",
-                "adapter_trimmed_fraction",
-            ],
-        )
-        writer.writeheader()
-        for row in sample_rows:
-            writer.writerow(row)
-
-    (docs_root / "benchmark.md").write_text(
-        render_markdown(summary),
-        encoding="utf-8",
+    publish_corpus_report_artifacts(
+        docs_root,
+        summary=summary,
+        markdown=render_markdown(summary),
+        sample_rows=sample_rows,
+        sample_fieldnames=[
+            "sample_id",
+            "accession",
+            "era",
+            "layout",
+            "study_accession",
+            "size_band",
+            "tool",
+            "runtime_s",
+            "exit_code",
+            "reads_in",
+            "reads_out",
+            "bases_in",
+            "bases_out",
+            "mean_q",
+            "candidate_adapter_count",
+            "adapter_trimmed_fraction",
+        ],
+        summary_sort_keys=True,
     )
     return 0
 
