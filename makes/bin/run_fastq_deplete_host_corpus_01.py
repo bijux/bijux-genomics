@@ -6,29 +6,21 @@ import json
 import os
 import shutil
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from pathlib import Path
 
+from benchmark_fastq_corpus.config import add_workspace_config_argument
+from benchmark_fastq_corpus.runner_compat import (
+    append_stage_arg,
+    run_corpus_stage_compat,
+)
 from corpus_01_fastq_benchmark_support import (
-    DEPLETE_HOST_BENCHMARK_CONTRACT,
     artifact_bundle_exists,
-    artifact_bundle_size_bytes,
-    benchmark_runtime_env,
     default_host_reference_index_root,
     default_results_stage_root,
     deplete_host_benchmark_defaults,
-    discover_normalized_samples,
     load_corpus_spec,
-    normalize_tool_csv,
-    require_canonical_tool_roster,
     resolve_bowtie2_index_prefix,
-    resolve_artifact_lineage_json,
-    sha256_artifact_bundle,
-    sha256_file,
-    validate_benchmark_layout,
-    validate_corpus_contract,
 )
 
 
@@ -93,6 +85,7 @@ def parse_args() -> argparse.Namespace:
         type=parse_bool_literal,
         default=defaults["retain_unmapped_only"],
     )
+    add_workspace_config_argument(parser)
     parser.add_argument(
         "--resume",
         action=argparse.BooleanOptionalAction,
@@ -239,144 +232,29 @@ def main() -> int:
     out_root = (
         Path(args.out_root).expanduser().resolve()
         if args.out_root
-        else default_results_stage_root(
-            corpus_root, DEPLETE_HOST_BENCHMARK_CONTRACT.stage_id
-        )
+        else default_results_stage_root(corpus_root, "fastq.deplete_host")
     )
-    validate_benchmark_layout(corpus_root, out_root)
-    out_root.mkdir(parents=True, exist_ok=True)
+    args.corpus_root = str(corpus_root)
+    args.out_root = str(out_root)
+
     reference_index = resolve_reference_index(args, out_root)
-    reference_index_digest = sha256_artifact_bundle(reference_index)
-    reference_index_lineage_json = resolve_artifact_lineage_json(reference_index)
-    runtime_env = benchmark_runtime_env(out_root)
-
-    samples = discover_normalized_samples(corpus_root)
-    validate_corpus_contract(corpus_root, spec, samples)
-    if args.sample_limit > 0:
-        samples = samples[: args.sample_limit]
-    requested_tools = (
-        normalize_tool_csv(args.tools)
-        if args.tools
-        else DEPLETE_HOST_BENCHMARK_CONTRACT.tools
+    stage_args: list[str] = []
+    append_stage_arg(stage_args, "--reference-index", reference_index)
+    append_stage_arg(stage_args, "--host-identity-threshold", args.host_identity_threshold)
+    append_stage_arg(stage_args, "--retain-unmapped-only", args.retain_unmapped_only)
+    manifest_args: list[str] = []
+    append_stage_arg(
+        manifest_args, "--reference-catalog-id", args.reference_catalog_id
     )
-    tools = require_canonical_tool_roster(
-        repo_root,
-        DEPLETE_HOST_BENCHMARK_CONTRACT.stage_id,
-        requested_tools,
-        scenario_id=DEPLETE_HOST_BENCHMARK_CONTRACT.scenario_id,
+    append_stage_arg(
+        manifest_args, "--reference-index-backend", args.reference_index_backend
     )
-
-    runs: list[SampleRun | None] = [None] * len(samples)
-    failures = 0
-    pending: list[tuple[int, dict, Path, list[str]]] = []
-
-    for sample_index, sample in enumerate(samples):
-        current_sample_root = sample_root(out_root, sample["sample_id"])
-        sample_report = report_path(out_root, sample["sample_id"])
-        if args.resume and current_sample_root.is_dir() and not sample_report.is_file():
-            reset_sample_payload(out_root, sample["sample_id"])
-        if args.resume and sample_report.is_file():
-            if sample_report_is_resume_ready(sample_report):
-                runs[sample_index] = SampleRun(
-                    sample_id=sample["sample_id"],
-                    r1=str(sample["r1"]),
-                    r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                    layout=sample["layout"],
-                    status="skipped_existing_report",
-                    exit_code=0,
-                    command=[],
-                    report_json=str(sample_report),
-                )
-                continue
-            reset_sample_payload(out_root, sample["sample_id"])
-        command = build_command(
-            out_root=out_root,
-            platform=args.platform,
-            tools=",".join(tools),
-            threads=args.threads,
-            jobs=args.jobs,
-            reference_index=reference_index,
-            host_identity_threshold=args.host_identity_threshold,
-            retain_unmapped_only=args.retain_unmapped_only,
-            sample=sample,
-        )
-        if args.dry_run:
-            runs[sample_index] = SampleRun(
-                sample_id=sample["sample_id"],
-                r1=str(sample["r1"]),
-                r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                layout=sample["layout"],
-                status="dry_run",
-                exit_code=0,
-                command=command,
-                report_json=str(sample_report),
-            )
-            continue
-        pending.append((sample_index, sample, sample_report, command))
-
-    if pending:
-        with ThreadPoolExecutor(max_workers=max(1, args.sample_jobs)) as executor:
-            futures = {
-                executor.submit(
-                    run_sample_command,
-                    repo_root=repo_root,
-                    runtime_env=runtime_env,
-                    sample=sample,
-                    command=command,
-                    sample_report=sample_report,
-                ): sample_index
-                for sample_index, sample, sample_report, command in pending
-            }
-            for future in as_completed(futures):
-                sample_index = futures[future]
-                run = future.result()
-                runs[sample_index] = run
-                if run.exit_code != 0:
-                    failures += 1
-
-    manifest = {
-        "schema_version": "bijux.fastq.deplete_host.corpus_run.v1",
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "stage_id": DEPLETE_HOST_BENCHMARK_CONTRACT.stage_id,
-        "scenario_id": DEPLETE_HOST_BENCHMARK_CONTRACT.scenario_id,
-        "tool_kind": "benchmark",
-        "platform": args.platform,
-        "repo_root": str(repo_root),
-        "corpus_id": "corpus-01",
-        "corpus_root": str(corpus_root),
-        "out_root": str(out_root),
-        "tools": tools,
-        "threads": args.threads,
-        "jobs": args.jobs,
-        "sample_jobs": args.sample_jobs,
-        "sample_limit": args.sample_limit or None,
-        "dry_run": args.dry_run,
-        "reference_index": str(reference_index),
-        "reference_index_digest": reference_index_digest,
-        "reference_index_size_bytes": artifact_bundle_size_bytes(reference_index),
-        "reference_index_lineage_json": (
-            str(reference_index_lineage_json)
-            if reference_index_lineage_json is not None
-            else None
-        ),
-        "reference_index_lineage_digest": (
-            sha256_file(reference_index_lineage_json)
-            if reference_index_lineage_json is not None
-            else None
-        ),
-        "reference_catalog_id": args.reference_catalog_id,
-        "reference_index_backend": args.reference_index_backend,
-        "host_identity_threshold": args.host_identity_threshold,
-        "retain_unmapped_only": args.retain_unmapped_only,
-        "samples_total": len(runs),
-        "samples_failed": failures,
-        "runs": [asdict(run) for run in runs if run is not None],
-    }
-    (out_root / "run_manifest.json").write_text(
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    return run_corpus_stage_compat(
+        stage_id="fastq.deplete_host",
+        args=args,
+        stage_args=stage_args,
+        manifest_args=manifest_args,
     )
-    return 1 if failures else 0
 
 
 if __name__ == "__main__":

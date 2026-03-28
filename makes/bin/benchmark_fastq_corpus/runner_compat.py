@@ -25,6 +25,7 @@ def run_corpus_stage_compat(
     stage_id: str,
     args: argparse.Namespace,
     stage_args: list[str] | None = None,
+    manifest_args: list[str] | None = None,
     extra_env: dict[str, str] | None = None,
 ) -> int:
     repo_root = Path(args.repo_root).resolve()
@@ -64,6 +65,8 @@ def run_corpus_stage_compat(
         command.append("--dry-run")
     for stage_arg in stage_args or []:
         command.extend(["--stage-arg", stage_arg])
+    for manifest_arg in manifest_args or []:
+        command.extend(["--manifest-arg", manifest_arg])
 
     completed = subprocess.run(
         command,
