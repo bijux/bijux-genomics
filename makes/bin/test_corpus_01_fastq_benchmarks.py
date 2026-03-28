@@ -68,6 +68,7 @@ import render_fastq_trim_terminal_damage_corpus_01_briefing as terminal_damage_b
 import render_fastq_trim_terminal_damage_corpus_01_report as terminal_damage_report
 import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
+import render_fastq_validate_reads_corpus_01_report as validate_reads_report
 import normalize_lunarc_results_mirror as normalize_results_mirror
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
@@ -151,6 +152,33 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["reference_index_backend"], "bowtie2_build")
         self.assertAlmostEqual(defaults["host_identity_threshold"], 0.95)
         self.assertTrue(defaults["retain_unmapped_only"])
+
+    def test_benchmark_remote_corpus_root_prefers_workspace_config(self) -> None:
+        with mock.patch.object(
+            support,
+            "load_benchmark_workspace_config",
+            return_value={"remote": {"corpus_root": "/srv/bench/corpus_01"}},
+        ):
+            self.assertEqual(
+                support.benchmark_remote_corpus_root(),
+                Path("/srv/bench/corpus_01"),
+            )
+
+    def test_fastq_report_parsers_default_corpus_root_from_workspace_contract(self) -> None:
+        original_argv = sys.argv
+        try:
+            sys.argv = ["render"]
+            expected = str(support.benchmark_remote_corpus_root())
+            for module in [
+                correct_errors_report,
+                filter_reads_report,
+                merge_report,
+                trim_reads_report,
+                validate_reads_report,
+            ]:
+                self.assertEqual(module.parse_args().corpus_root, expected)
+        finally:
+            sys.argv = original_argv
 
     def test_default_host_reference_index_root_prefers_cache_extra_data(self) -> None:
         out_root = Path(
