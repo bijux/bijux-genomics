@@ -11,7 +11,7 @@ cache_mirror_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-2
 
 [remote]
 ssh_host = "lunarc"
-project_root = "/home/bijan/lu2024-12-24"
+repo_root = "/home/bijan/bijux/bijux-dna"
 cache_root = "/home/bijan/lu2024-12-24/.cache"
 corpus_root = "/home/bijan/lu2024-12-24/.cache/corpus_01"
 results_root = "/home/bijan/lu2024-12-24/.cache/results"

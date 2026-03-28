@@ -5,7 +5,7 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 1. Hardcoded local benchmark mirror root in `makes/bin/corpus_01_fastq_benchmark_support.py` points to `/Users/bijan/bijux/bijux-dna-results`.
 2. Multiple benchmark renderers still default `--corpus-root` to `/home/bijan/bijux/corpus_01`.
 3. `configs/runtime/platforms.toml` hardcodes a user-specific Lunarc Apptainer SIF directory.
-4. `hpc_lunarc_pull` defaults the remote root to `~/bijux` instead of the governed project root under `/home/bijan/lu2024-12-24`.
+4. The benchmark tooling does not make the private frontend repo root under `/home/bijan/bijux/...` versus the shared benchmark cache root under `/home/bijan/lu2024-12-24/.cache` explicit enough.
 5. `hpc_lunarc_pull` defaults the local pull base to `~/bijux/bijux-dna-results` instead of the actual governed local results workspace.
 6. `hpc_lunarc_pull` encodes a timestamped destination convention rather than a stable benchmark mirror contract.
 7. `hpc_lunarc_push` and `hpc_lunarc_pull` are cluster-specific command names instead of generic benchmark environment sync commands.
@@ -63,10 +63,10 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 59. The dev commands still refer to `LUNARC_ROOT`, `LUNARC_RESULTS_DIR`, and related variables rather than a neutral benchmark environment model.
 60. The current sync helpers do not record extra-data dependencies alongside results pulls.
 61. The current sync helpers do not record which local destination path corresponds to which remote `.cache` subtree.
-62. The current sync helpers do not validate that the chosen remote roots stay inside the governed `.cache` boundary.
+62. The current sync helpers do not validate the private-repo root and shared-cache roots as separate contracts.
 63. The current sync helpers do not reject stale duplicate roots when both `.cache/results` and `.cache/bijux-dna-results` are present.
 64. The current push helper syncs repo content, but not a structured benchmark environment contract.
-65. The current push helper defaults still assume a historical `~/bijux` layout.
+65. The current push helper does not document clearly that repo sync belongs on the private frontend home while benchmark artifacts belong on shared storage.
 66. `shared_cache_root()` in `env_registry_commands.rs` forces `.cache` under any HPC root instead of reading a workspace contract.
 67. `env_registry_commands.rs` hardcodes `bijux-dna-container`, `corpus_01`, and `results` subdirectory names.
 68. `env_registry_commands.rs` implicitly treats `.cache` as the only valid shared-root layout instead of a configurable benchmark environment.
