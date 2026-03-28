@@ -228,7 +228,7 @@ def main() -> int:
     repo_root = Path(args.repo_root).resolve()
     corpus_root = Path(args.corpus_root).expanduser()
     run_root = (
-        Path(args.run_root).expanduser().resolve()
+        Path(args.run_root).expanduser()
         if args.run_root
         else preferred_report_run_root(corpus_root, SCREEN_TAXONOMY_BENCHMARK_CONTRACT.stage_id)
     )
