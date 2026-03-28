@@ -1,0 +1,86 @@
+# `corpus-01` FASTQ dossier index
+
+- Governed publication stages: `20`
+- Published summaries: `19`
+- Missing summaries: `1`
+
+## Stage index
+
+- `fastq.validate_reads`: `2026-03-28T02:24:32.014754+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.validate_reads/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc`
+- `fastq.detect_adapters`: `2026-03-28T02:26:10.835428+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.detect_adapters/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.detect_adapters/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.detect_adapters/lunarc`
+- `fastq.profile_reads`: `2026-03-28T02:26:36.651353+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_reads/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_reads/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_reads/lunarc`
+- `fastq.profile_read_lengths`: `2026-03-28T02:26:51.299933+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_read_lengths/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_read_lengths/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_read_lengths/lunarc`
+- `fastq.profile_overrepresented_sequences`: `2026-03-28T02:27:05.660482+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_overrepresented_sequences/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_overrepresented_sequences/lunarc`
+- `fastq.normalize_primers`: `2026-03-28T02:32:33.900712+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.normalize_primers/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.normalize_primers/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.normalize_primers/lunarc`
+- `fastq.trim_polyg_tails`: `2026-03-28T02:39:28.524365+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_polyg_tails/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_polyg_tails/lunarc`
+- `fastq.trim_reads`: `2026-03-28T02:46:45.334156+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`
+- `fastq.filter_reads`: `2026-03-28T02:27:21.590382+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_reads/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_reads/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_reads/lunarc`
+- `fastq.filter_low_complexity`: `2026-03-28T02:43:15.299292+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_low_complexity/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc`
+- `fastq.deplete_rrna`: `2026-03-28T02:33:37.303465+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_rrna/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_rrna/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_rrna/lunarc`
+- `fastq.merge_pairs`: `2026-03-28T02:56:04.491543+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.merge_pairs/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.merge_pairs/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.merge_pairs/lunarc`
+- `fastq.remove_duplicates`: `2026-03-28T02:56:29.327510+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.remove_duplicates/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.remove_duplicates/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.remove_duplicates/lunarc`
+- `fastq.deplete_host`: `2026-03-28T02:41:03.183632+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc`
+- `fastq.deplete_reference_contaminants`: `2026-03-28T02:42:07.063262+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_reference_contaminants/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_reference_contaminants/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_reference_contaminants/lunarc`
+- `fastq.correct_errors`: `missing`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.correct_errors/lunarc`
+- `fastq.extract_umis`: `2026-03-28T02:56:48.313237+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.extract_umis/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.extract_umis/lunarc`
+- `fastq.screen_taxonomy`: `2026-03-28T02:36:58.623724+00:00` from `local-cache-mirror`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc`
+- `fastq.trim_terminal_damage`: `2026-03-28T02:45:48.078399+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_terminal_damage/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_terminal_damage/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_terminal_damage/lunarc`
+- `fastq.report_qc`: `2026-03-28T02:54:02.733622+00:00` from `local-results-root`
+  - published run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.report_qc/lunarc`
+  - expected remote run root: `/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.report_qc/lunarc`
+  - expected local cache mirror run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.report_qc/lunarc`

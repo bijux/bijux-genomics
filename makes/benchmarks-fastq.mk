@@ -386,6 +386,10 @@ _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publ
 		--docs-root docs/benchmark \
 		--json-out docs/benchmark/corpus-01-status.json \
 		--markdown-out docs/benchmark/corpus-01-status.md
+	@python3 makes/bin/build_corpus_01_benchmark_dossier_index.py \
+		--docs-root docs/benchmark \
+		--json-out docs/benchmark/corpus-01-dossier-index.json \
+		--markdown-out docs/benchmark/corpus-01-dossier-index.md
 
 _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ dossiers and refresh publication status
 	@for target in $(CORPUS_01_PUBLISHED_DOSSIER_TARGETS); do \
