@@ -122,8 +122,18 @@ pub fn hpc_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::HpcLunarcPull,
         ),
         native(
+            "benchmark-sync-pull",
+            "Pull governed benchmark-environment outputs into the local mirror.",
+            NativeOpsCommandKey::HpcLunarcPull,
+        ),
+        native(
             "lunarc-push",
             "Push the governed repository context to Lunarc.",
+            NativeOpsCommandKey::HpcLunarcPush,
+        ),
+        native(
+            "benchmark-sync-push",
+            "Push the governed repository context for the benchmark environment.",
             NativeOpsCommandKey::HpcLunarcPush,
         ),
     ]
