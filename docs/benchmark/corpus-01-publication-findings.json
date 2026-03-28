@@ -1,10 +1,3 @@
 {
-  "findings": [
-    {
-      "stage_id": "fastq.screen_taxonomy",
-      "issue_id": "minimal-taxonomy-database-lineage",
-      "severity": "error",
-      "detail": "corpus-01 screen_taxonomy still lacks a materialized governed taxonomy bundle under /home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db with backend directories and lineage.json; the legacy minimal smoke-test database is not sufficient for honest publication."
-    }
-  ]
+  "findings": []
 }

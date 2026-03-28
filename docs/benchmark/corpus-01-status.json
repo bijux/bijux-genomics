@@ -3,10 +3,10 @@
   "docs_root": "/Users/bijan/bijux/bijux-dna/docs/benchmark",
   "benchmarkable_stage_count": 23,
   "applicable_stage_count": 20,
-  "completed_stage_count": 16,
-  "incomplete_stage_count": 4,
+  "completed_stage_count": 17,
+  "incomplete_stage_count": 3,
   "excluded_stage_count": 3,
-  "issue_count": 29,
+  "issue_count": 27,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -451,16 +451,9 @@
       ],
       "method_path": "benchmark/fastq.deplete_host/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.deplete_host/corpus-01",
-      "status": "incomplete",
-      "issue_count": 1,
-      "issues": [
-        {
-          "stage_id": "fastq.deplete_host",
-          "issue_id": "missing-corpus-dir",
-          "severity": "error",
-          "detail": "missing benchmark/fastq.deplete_host/corpus-01"
-        }
-      ]
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
     },
     {
       "stage_id": "fastq.deplete_reference_contaminants",
@@ -542,19 +535,13 @@
       "method_path": "benchmark/fastq.screen_taxonomy/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.screen_taxonomy/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
         {
           "stage_id": "fastq.screen_taxonomy",
           "issue_id": "missing-corpus-dir",
           "severity": "error",
           "detail": "missing benchmark/fastq.screen_taxonomy/corpus-01"
-        },
-        {
-          "stage_id": "fastq.screen_taxonomy",
-          "issue_id": "minimal-taxonomy-database-lineage",
-          "severity": "error",
-          "detail": "corpus-01 screen_taxonomy still lacks a materialized governed taxonomy bundle under /home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db with backend directories and lineage.json; the legacy minimal smoke-test database is not sufficient for honest publication."
         }
       ]
     },

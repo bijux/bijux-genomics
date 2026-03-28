@@ -96,6 +96,22 @@ def require_existing_file(path: Path, label: str) -> None:
         raise SystemExit(f"missing {label} file: {path}")
 
 
+def resolve_panel_records(source_manifest: Path) -> list[dict]:
+    panel_manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
+    records = panel_manifest.get("records")
+    if isinstance(records, list) and records:
+        return records
+
+    entries = panel_manifest.get("entries")
+    if isinstance(entries, list) and entries:
+        return entries
+
+    raise SystemExit(
+        "source manifest must contain a non-empty records list "
+        f"(legacy entries accepted): {source_manifest}"
+    )
+
+
 def build_lineage_payload(
     *,
     database_root: Path,
@@ -109,12 +125,7 @@ def build_lineage_payload(
     require_existing_dir(database_root, "database-root")
     require_existing_file(source_manifest, "source manifest")
 
-    panel_manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
-    panel_entries = panel_manifest.get("entries", [])
-    if not isinstance(panel_entries, list) or not panel_entries:
-        raise SystemExit(
-            f"source manifest must contain a non-empty entries list: {source_manifest}"
-        )
+    panel_records = resolve_panel_records(source_manifest)
 
     backend_roots: list[dict] = []
     for backend in REQUIRED_BACKEND_DIRS:
@@ -141,8 +152,8 @@ def build_lineage_payload(
         "database_size_bytes": artifact_bundle_size_bytes(database_root),
         "source_manifest": str(source_manifest),
         "source_manifest_digest": sha256_file(source_manifest),
-        "source_entry_count": len(panel_entries),
-        "source_entries": panel_entries,
+        "source_record_count": len(panel_records),
+        "source_records": panel_records,
         "backend_roots": backend_roots,
     }
     if bootstrap_report is not None:
