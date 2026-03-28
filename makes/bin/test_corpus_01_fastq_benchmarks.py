@@ -76,10 +76,17 @@ import benchmark_workspace_value
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
+VALIDATE_READS_METHOD_PATH = (
+    ROOT / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01-method.md"
+)
 
 
 def benchmark_makefile_text() -> str:
     return MAKEFILE_PATH.read_text(encoding="utf-8")
+
+
+def validate_reads_method_text() -> str:
+    return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
 
 def makefile_target_recipe(target: str) -> str:
@@ -231,6 +238,14 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn(
             "_benchmark-deplete-reference-contaminants-corpus-01-report", phony
         )
+
+    def test_validate_reads_method_references_existing_make_targets(self) -> None:
+        text = validate_reads_method_text()
+
+        self.assertIn("make _benchmark-validate-corpus-01 PLATFORM=lunarc-apptainer", text)
+        self.assertIn("make _benchmark-validate-corpus-01-report", text)
+        self.assertNotIn("_benchmark-validate-reads-corpus-01", text)
+        self.assertNotIn("_benchmark-validate-reads-corpus-01-report", text)
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()

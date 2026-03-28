@@ -35,8 +35,8 @@
 
 ## Workflow
 ```bash
-make _benchmark-validate-reads-corpus-01 PLATFORM=lunarc-apptainer
-make _benchmark-validate-reads-corpus-01-report
+make _benchmark-validate-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-validate-corpus-01-report
 ```
 
 The default corpus root is loaded from `configs/bench/workspace.toml`. Pass `CORPUS_ROOT=...` only when rerendering against a different governed corpus checkout.
