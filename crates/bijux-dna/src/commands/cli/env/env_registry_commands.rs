@@ -1,17 +1,4 @@
-use serde::Deserialize;
-
-#[derive(Debug, Deserialize, Default)]
-struct BenchmarkWorkspaceContract {
-    remote: Option<BenchmarkWorkspaceRemote>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct BenchmarkWorkspaceRemote {
-    cache_root: Option<String>,
-    corpus_root: Option<String>,
-    results_root: Option<String>,
-    containers_root: Option<String>,
-}
+use crate::commands::benchmark_workspace::load_optional_benchmark_workspace_config;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct BenchmarkEnvRoots {
@@ -19,17 +6,6 @@ struct BenchmarkEnvRoots {
     containers_root: PathBuf,
     corpus_root: PathBuf,
     results_root: PathBuf,
-}
-
-fn load_benchmark_workspace_contract(cwd: &Path) -> Result<Option<BenchmarkWorkspaceContract>> {
-    let path = cwd.join("configs/bench/workspace.toml");
-    if !path.is_file() {
-        return Ok(None);
-    }
-    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let parsed = toml::from_str::<BenchmarkWorkspaceContract>(&raw)
-        .with_context(|| format!("parse {}", path.display()))?;
-    Ok(Some(parsed))
 }
 
 fn shared_cache_root(root: &Path) -> PathBuf {
@@ -44,7 +20,7 @@ fn shared_cache_root(root: &Path) -> PathBuf {
 }
 
 fn benchmark_env_roots(cwd: &Path, hpc_root: &Path) -> Result<BenchmarkEnvRoots> {
-    if let Some(contract) = load_benchmark_workspace_contract(cwd)? {
+    if let Some(contract) = load_optional_benchmark_workspace_config(cwd, None)? {
         if let Some(remote) = contract.remote {
             if let (
                 Some(cache_root),
@@ -607,7 +583,10 @@ containers_root = "/remote/.cache/bijux-dna-container"
         let roots = benchmark_env_roots(temp.path(), Path::new("/home/bijan/lu2024-12-24"))
             .expect("benchmark env roots");
 
-        assert_eq!(roots.cache_root, PathBuf::from("/home/bijan/lu2024-12-24/.cache"));
+        assert_eq!(
+            roots.cache_root,
+            PathBuf::from("/home/bijan/lu2024-12-24/.cache")
+        );
         assert_eq!(
             roots.containers_root,
             PathBuf::from("/home/bijan/lu2024-12-24/.cache/bijux-dna-container")
@@ -642,10 +621,15 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
             if path.extension().and_then(|v| v.to_str()) != Some("def") {
                 continue;
             }
-            let raw =
-                std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+            let raw = std::fs::read_to_string(&path)
+                .with_context(|| format!("read {}", path.display()))?;
             let lowered = raw.to_ascii_lowercase();
-            for banned in ["apt-get purge", "apt purge", "apt-get autoremove", "apt autoremove"] {
+            for banned in [
+                "apt-get purge",
+                "apt purge",
+                "apt-get autoremove",
+                "apt autoremove",
+            ] {
                 if lowered.contains(banned) {
                     offenders.push(format!("{}: contains banned `{banned}`", path.display()));
                 }
@@ -727,11 +711,10 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
         }
     }
 
-    let env_src =
-        std::fs::read_to_string(
-            cwd.join("crates/bijux-dna/src/commands/cli/env/env_runtime_support.rs"),
-        )
-        .context("read env_runtime_support.rs for apptainer runtime policy")?;
+    let env_src = std::fs::read_to_string(
+        cwd.join("crates/bijux-dna/src/commands/cli/env/env_runtime_support.rs"),
+    )
+    .context("read env_runtime_support.rs for apptainer runtime policy")?;
     for required in ["--containall", "--cleanenv", "--bind", "--network", "none"] {
         if !env_src.contains(required) {
             offenders.push(format!(
@@ -991,7 +974,9 @@ pub fn registry_export_containers_value(registry_path: &Path) -> Result<serde_js
     let mut tools = parse_tools_registry_rows(&raw)?
         .into_iter()
         .filter(|row| {
-            row.runtimes.iter().any(|v| v == "docker" || v == "apptainer")
+            row.runtimes
+                .iter()
+                .any(|v| v == "docker" || v == "apptainer")
                 && (row.dockerfile.is_some() || row.apptainer_def.is_some())
         })
         .map(|row| {

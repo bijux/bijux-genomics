@@ -3,6 +3,8 @@
 pub(crate) mod bam;
 pub(crate) mod bench;
 pub(crate) mod bench_suite;
+pub(crate) mod benchmark_corpus_fastq;
+pub(crate) mod benchmark_workspace;
 pub mod cli;
 mod command_dispatch;
 pub(crate) mod command_prelude;

@@ -207,6 +207,17 @@
                     let status = crate::commands::bench_suite::bench_status(&cwd);
                     crate::commands::cli::render::json::print_pretty(&status)?;
                 }
+                BenchCommand::WorkspaceValue(args) => {
+                    crate::commands::benchmark_corpus_fastq::print_benchmark_workspace_value(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
+                BenchCommand::CorpusFastq(args) => {
+                    crate::commands::benchmark_corpus_fastq::run_benchmark_corpus_fastq(
+                        cli, args,
+                    )?;
+                }
                 BenchCommand::Fastq { command } => match command {
                     BenchFastqCommand::Trim(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);

@@ -2,6 +2,10 @@
 pub enum BenchCommand {
     Run(BenchRunArgs),
     Status,
+    #[command(name = "workspace-value")]
+    WorkspaceValue(BenchWorkspaceValueArgs),
+    #[command(name = "corpus-fastq")]
+    CorpusFastq(BenchCorpusFastqArgs),
     Fastq {
         #[command(subcommand)]
         command: BenchFastqCommand,
@@ -13,6 +17,43 @@ pub enum BenchCommand {
     Schema {
         stage: String,
     },
+}
+
+#[derive(Debug, Args)]
+pub struct BenchWorkspaceValueArgs {
+    pub key: String,
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCorpusFastqArgs {
+    #[arg(long)]
+    pub stage: String,
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub publication_config: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub corpus_root: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub out_root: Option<PathBuf>,
+    #[arg(long, value_delimiter = ',')]
+    pub tools: Vec<String>,
+    #[arg(long, default_value_t = 1)]
+    pub threads: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long, default_value_t = 1)]
+    pub sample_jobs: usize,
+    #[arg(long, default_value_t = 0)]
+    pub sample_limit: usize,
+    #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
+    pub resume: bool,
+    #[arg(long, default_value_t = false)]
+    pub dry_run: bool,
+    #[arg(long = "stage-arg")]
+    pub stage_args: Vec<String>,
 }
 
 #[derive(Debug, Args)]
@@ -535,7 +576,10 @@ pub struct BenchFastqNormalizePrimersArgs {
         help = "Primer orientation policy (for example: normalize_to_forward_primer)"
     )]
     pub orientation_policy: Option<String>,
-    #[arg(long, help = "Maximum primer mismatch rate admitted by the governed runtime")]
+    #[arg(
+        long,
+        help = "Maximum primer mismatch rate admitted by the governed runtime"
+    )]
     pub max_mismatch_rate: Option<f64>,
     #[arg(long, help = "Minimum primer overlap in base pairs")]
     pub min_overlap_bp: Option<u32>,
