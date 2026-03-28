@@ -387,6 +387,24 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "_benchmark-trim-polyg-corpus-01-report",
         )
 
+    def test_benchmark_makefile_skips_default_out_dir_for_stage_runs(self) -> None:
+        text = benchmark_makefile_text()
+
+        self.assertIn(
+            'BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)',
+            text,
+        )
+        self.assertNotIn('$(if $(OUT_DIR),--out-root "$(OUT_DIR)",)', text)
+
+    def test_benchmark_makefile_skips_default_out_dir_for_report_runs(self) -> None:
+        text = benchmark_makefile_text()
+
+        self.assertIn(
+            'BENCHMARK_REPORT_RUN_ROOT_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--run-root "$(BENCHMARK_OUT_DIR)",)',
+            text,
+        )
+        self.assertNotIn('$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)', text)
+
     def test_report_renderers_use_shared_corpus_report_arg_parser(self) -> None:
         for path in report_renderer_paths():
             text = path.read_text(encoding="utf-8")

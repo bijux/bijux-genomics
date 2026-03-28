@@ -10,6 +10,9 @@ ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
 CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
 CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)
+BENCHMARK_OUT_DIR := $(strip $(OUT_DIR))
+BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)
+BENCHMARK_REPORT_RUN_ROOT_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--run-root "$(BENCHMARK_OUT_DIR)",)
 
 BENCH_TOOLS_ARGS = $(if $(TOOLS),--tools $(TOOLS),)
 BENCH_EXPERIMENTAL_ARGS = $(if $(filter 1 true yes,$(ALLOW_EXPERIMENTAL)),--allow-experimental,)
@@ -57,7 +60,7 @@ _benchmark-validate-corpus-01: ## Benchmark fastq.validate_reads across corpus-0
 	@python3 makes/bin/run_fastq_validate_reads_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -65,7 +68,7 @@ _benchmark-trim-polyg-corpus-01: ## Benchmark fastq.trim_polyg_tails across corp
 	@python3 makes/bin/run_fastq_trim_polyg_tails_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -73,7 +76,7 @@ _benchmark-trim-reads-corpus-01: ## Benchmark fastq.trim_reads across corpus-01
 	@python3 makes/bin/run_fastq_trim_reads_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -81,7 +84,7 @@ _benchmark-trim-terminal-damage-corpus-01: ## Benchmark fastq.trim_terminal_dama
 	@python3 makes/bin/run_fastq_trim_terminal_damage_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -89,7 +92,7 @@ _benchmark-detect-adapters-corpus-01: ## Benchmark fastq.detect_adapters across 
 	@python3 makes/bin/run_fastq_detect_adapters_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -97,7 +100,7 @@ _benchmark-profile-reads-corpus-01: ## Benchmark fastq.profile_reads across corp
 	@python3 makes/bin/run_fastq_profile_reads_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -105,7 +108,7 @@ _benchmark-profile-read-lengths-corpus-01: ## Benchmark fastq.profile_read_lengt
 	@python3 makes/bin/run_fastq_profile_read_lengths_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -113,7 +116,7 @@ _benchmark-profile-overrepresented-corpus-01: ## Benchmark fastq.profile_overrep
 	@python3 makes/bin/run_fastq_profile_overrepresented_sequences_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -121,7 +124,7 @@ _benchmark-filter-low-complexity-corpus-01: ## Benchmark fastq.filter_low_comple
 	@python3 makes/bin/run_fastq_filter_low_complexity_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -129,7 +132,7 @@ _benchmark-filter-reads-corpus-01: ## Benchmark fastq.filter_reads across corpus
 	@python3 makes/bin/run_fastq_filter_reads_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -137,7 +140,7 @@ _benchmark-remove-duplicates-corpus-01: ## Benchmark fastq.remove_duplicates acr
 	@python3 makes/bin/run_fastq_remove_duplicates_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -145,7 +148,7 @@ _benchmark-merge-corpus-01: ## Benchmark fastq.merge_pairs across the paired cor
 	@python3 makes/bin/run_fastq_merge_pairs_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -153,7 +156,7 @@ _benchmark-report-qc-corpus-01: ## Benchmark fastq.report_qc across corpus-01
 	@python3 makes/bin/run_fastq_report_qc_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -161,7 +164,7 @@ _benchmark-normalize-primers-corpus-01: ## Benchmark fastq.normalize_primers acr
 	@python3 makes/bin/run_fastq_normalize_primers_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -169,7 +172,7 @@ _benchmark-deplete-rrna-corpus-01: ## Benchmark fastq.deplete_rrna across corpus
 	@python3 makes/bin/run_fastq_deplete_rrna_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",) \
 		$(if $(RRNA_DB),--rrna-db "$(RRNA_DB)",) \
@@ -179,7 +182,7 @@ _benchmark-deplete-host-corpus-01: ## Benchmark fastq.deplete_host across corpus
 	@python3 makes/bin/run_fastq_deplete_host_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",) \
 		$(if $(REFERENCE_INDEX),--reference-index "$(REFERENCE_INDEX)",)
@@ -188,7 +191,7 @@ _benchmark-deplete-reference-contaminants-corpus-01: ## Benchmark fastq.deplete_
 	@python3 makes/bin/run_fastq_deplete_reference_contaminants_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",) \
 		$(if $(REFERENCE_INDEX),--reference-index "$(REFERENCE_INDEX)",)
@@ -197,7 +200,7 @@ _benchmark-screen-taxonomy-corpus-01: ## Benchmark fastq.screen_taxonomy across 
 	@python3 makes/bin/run_fastq_screen_taxonomy_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",) \
 		$(if $(DATABASE_ROOT),--database-root "$(DATABASE_ROOT)",)
@@ -206,7 +209,7 @@ _benchmark-correct-errors-corpus-01: ## Benchmark fastq.correct_errors across co
 	@python3 makes/bin/run_fastq_correct_errors_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -214,7 +217,7 @@ _benchmark-extract-umis-corpus-01: ## Benchmark fastq.extract_umis across the pa
 	@python3 makes/bin/run_fastq_extract_umis_corpus_01.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--out-root "$(OUT_DIR)",) \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
 		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
 		$(if $(TOOLS),--tools "$(TOOLS)",)
 
@@ -222,7 +225,7 @@ _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.validate_reads/corpus-01
 
@@ -230,7 +233,7 @@ _benchmark-trim-polyg-corpus-01-report: ## Render the corpus-01 trim-polyg bench
 	@python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.trim_polyg_tails/corpus-01
 
@@ -238,7 +241,7 @@ _benchmark-trim-reads-corpus-01-report: ## Render the corpus-01 trim-reads bench
 	@python3 makes/bin/render_fastq_trim_reads_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_trim_reads_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.trim_reads/corpus-01
 
@@ -246,7 +249,7 @@ _benchmark-trim-terminal-damage-corpus-01-report: ## Render the corpus-01 termin
 	@python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.trim_terminal_damage/corpus-01
 
@@ -254,7 +257,7 @@ _benchmark-detect-adapters-corpus-01-report: ## Render the corpus-01 detect-adap
 	@python3 makes/bin/render_fastq_detect_adapters_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_detect_adapters_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.detect_adapters/corpus-01
 
@@ -262,7 +265,7 @@ _benchmark-profile-reads-corpus-01-report: ## Render the corpus-01 profile-reads
 	@python3 makes/bin/render_fastq_profile_reads_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_profile_reads_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.profile_reads/corpus-01
 
@@ -270,7 +273,7 @@ _benchmark-profile-read-lengths-corpus-01-report: ## Render the corpus-01 read-l
 	@python3 makes/bin/render_fastq_profile_read_lengths_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_profile_read_lengths_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.profile_read_lengths/corpus-01
 
@@ -278,7 +281,7 @@ _benchmark-profile-overrepresented-corpus-01-report: ## Render the corpus-01 ove
 	@python3 makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.profile_overrepresented_sequences/corpus-01
 
@@ -286,7 +289,7 @@ _benchmark-filter-low-complexity-corpus-01-report: ## Render the corpus-01 filte
 	@python3 makes/bin/render_fastq_filter_low_complexity_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_filter_low_complexity_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.filter_low_complexity/corpus-01
 
@@ -294,7 +297,7 @@ _benchmark-filter-reads-corpus-01-report: ## Render the corpus-01 filter-reads b
 	@python3 makes/bin/render_fastq_filter_reads_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_filter_reads_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.filter_reads/corpus-01
 
@@ -302,7 +305,7 @@ _benchmark-remove-duplicates-corpus-01-report: ## Render the corpus-01 remove-du
 	@python3 makes/bin/render_fastq_remove_duplicates_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_remove_duplicates_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.remove_duplicates/corpus-01
 
@@ -310,7 +313,7 @@ _benchmark-merge-corpus-01-report: ## Render the corpus-01 merge benchmark dossi
 	@python3 makes/bin/render_fastq_merge_pairs_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_merge_pairs_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.merge_pairs/corpus-01
 
@@ -318,7 +321,7 @@ _benchmark-report-qc-corpus-01-report: ## Render the corpus-01 report-qc benchma
 	@python3 makes/bin/render_fastq_report_qc_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_report_qc_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.report_qc/corpus-01
 
@@ -326,7 +329,7 @@ _benchmark-normalize-primers-corpus-01-report: ## Render the corpus-01 normalize
 	@python3 makes/bin/render_fastq_normalize_primers_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_normalize_primers_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.normalize_primers/corpus-01
 
@@ -334,7 +337,7 @@ _benchmark-deplete-rrna-corpus-01-report: ## Render the corpus-01 deplete-rrna b
 	@python3 makes/bin/render_fastq_deplete_rrna_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_deplete_rrna_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.deplete_rrna/corpus-01
 
@@ -342,7 +345,7 @@ _benchmark-deplete-host-corpus-01-report: ## Render the corpus-01 deplete-host b
 	@python3 makes/bin/render_fastq_deplete_host_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_deplete_host_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.deplete_host/corpus-01
 
@@ -350,7 +353,7 @@ _benchmark-deplete-reference-contaminants-corpus-01-report: ## Render the corpus
 	@python3 makes/bin/render_fastq_deplete_reference_contaminants_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_deplete_reference_contaminants_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.deplete_reference_contaminants/corpus-01
 
@@ -358,7 +361,7 @@ _benchmark-screen-taxonomy-corpus-01-report: ## Render the corpus-01 screen-taxo
 	@python3 makes/bin/render_fastq_screen_taxonomy_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_screen_taxonomy_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.screen_taxonomy/corpus-01
 
@@ -366,7 +369,7 @@ _benchmark-correct-errors-corpus-01-report: ## Render the corpus-01 correct-erro
 	@python3 makes/bin/render_fastq_correct_errors_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_correct_errors_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.correct_errors/corpus-01
 
@@ -374,7 +377,7 @@ _benchmark-extract-umis-corpus-01-report: ## Render the corpus-01 extract-umis b
 	@python3 makes/bin/render_fastq_extract_umis_corpus_01_report.py \
 		--repo-root . \
 		--corpus-root "$(CORPUS_ROOT)" \
-		$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 	@python3 makes/bin/render_fastq_extract_umis_corpus_01_briefing.py \
 		--docs-root docs/benchmark/fastq.extract_umis/corpus-01
 
