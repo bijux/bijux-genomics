@@ -2945,6 +2945,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                         "platform": "lunarc-apptainer",
                         "stage_id": "fastq.remove_duplicates",
                         "scenario_id": "dedup_fairness",
+                        "sample_scope": "paired",
                         "corpus_root": "/home/bijan/bijux/corpus_01",
                         "tools": ["clumpify"],
                         "dedup_mode": "exact",
@@ -3002,6 +3003,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 summary["corpus_root"],
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
+            self.assertEqual(summary["sample_scope"], "paired")
 
     def test_filter_low_complexity_briefing_summarizes_removed_reads(self) -> None:
         rows = [
