@@ -37,7 +37,7 @@ The report renderers publish the doc set under [corpus-01](/Users/bijan/bijux/bi
 - `tool_runtime_summary.csv`
 - `cohort_runtime_summary.csv`
 - `sample_runtime_outliers.csv`
-- `lunarc.md`
+- `benchmark.md`
 
 ## Guardrails
 

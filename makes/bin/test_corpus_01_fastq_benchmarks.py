@@ -1085,6 +1085,19 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("resolve_existing_dossier_path", audit_text)
         self.assertIn("resolve_existing_dossier_path", index_text)
 
+    def test_published_benchmark_docs_no_longer_use_site_named_dossier_files(self) -> None:
+        legacy_paths = sorted(
+            path.relative_to(ROOT).as_posix()
+            for path in (ROOT / "docs" / "benchmark").rglob("lunarc.md")
+        )
+        canonical_paths = sorted(
+            path.relative_to(ROOT).as_posix()
+            for path in (ROOT / "docs" / "benchmark").rglob("benchmark.md")
+        )
+
+        self.assertEqual(legacy_paths, [])
+        self.assertGreater(len(canonical_paths), 0)
+
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,
     ) -> None:

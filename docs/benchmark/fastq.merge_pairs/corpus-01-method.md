@@ -45,7 +45,7 @@ A complete published dossier for this stage contains:
 - `tool_runtime_summary.csv`
 - `cohort_runtime_summary.csv`
 - `sample_runtime_outliers.csv`
-- `lunarc.md`
+- `benchmark.md`
 
 ## Workflow
 
