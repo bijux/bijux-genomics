@@ -21,7 +21,6 @@ DRY_RUN ?= 0
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
 BENCHMARK_CORPUS_ROOT ?= $(shell BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)" remote.corpus_root)
-CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell $(BIJUX_BENCH_BIN) bench publication-targets --config "$(BENCHMARK_CONFIG)" report)
 BENCHMARK_OUT_DIR := $(strip $(OUT_DIR))
 BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)
 BENCHMARK_REPORT_RUN_ROOT_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--run-root "$(BENCHMARK_OUT_DIR)",)
@@ -311,40 +310,16 @@ _benchmark-extract-umis-corpus-01-report: ## Render the corpus-01 extract-umis b
 		--docs-root docs/benchmark/fastq.extract_umis/corpus-01
 
 _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publication coverage
-	@python3 makes/bin/benchmark_tooling_repo_checks.py \
-		--repo-root .
-	@python3 makes/bin/audit_corpus_01_fastq_benchmark_docs.py \
-		--repo-root . \
-		--docs-root docs/benchmark \
-		--json-out docs/benchmark/corpus-01-status.json \
-		--markdown-out docs/benchmark/corpus-01-status.md
-	@python3 makes/bin/build_corpus_01_benchmark_dossier_index.py \
-		--docs-root docs/benchmark \
-		--json-out docs/benchmark/corpus-01-dossier-index.json \
-		--markdown-out docs/benchmark/corpus-01-dossier-index.md
-	@python3 makes/bin/audit_benchmark_workspace_layout.py \
-		--json-out docs/benchmark/workspace-layout-status.json \
-		--markdown-out docs/benchmark/workspace-layout-status.md
-	@python3 makes/bin/audit_published_corpus_01_fastq_results.py \
-		--repo-root . \
-		--json-out docs/benchmark/corpus-01-results-status.json \
-		--markdown-out docs/benchmark/corpus-01-results-status.md
-	@python3 makes/bin/build_corpus_01_benchmark_remediation_queue.py \
-		--status-json docs/benchmark/corpus-01-status.json \
-		--results-json docs/benchmark/corpus-01-results-status.json \
-		--findings-json docs/benchmark/corpus-01-publication-findings.json \
-		--dossier-index-json docs/benchmark/corpus-01-dossier-index.json \
-		--json-out docs/benchmark/corpus-01-remediation-queue.json \
-		--markdown-out docs/benchmark/corpus-01-remediation-queue.md
+	@$(BIJUX_BENCH_BIN) bench corpus-fastq-publication-status \
+		--config "$(BENCHMARK_CONFIG)"
 
 _benchmark-normalize-local-results-layout: ## Normalize duplicate local benchmark stage roots into the cache mirror layout
 	@python3 makes/bin/normalize_benchmark_workspace_stage_roots.py --confirm
 
 _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ dossiers and refresh publication status
-	@for target in $(CORPUS_01_PUBLISHED_DOSSIER_TARGETS); do \
-		$(MAKE) $$target BENCHMARK_CORPUS_ROOT="$(BENCHMARK_CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"; \
-	done
-	@$(MAKE) _benchmark-corpus-01-publication-status
+	@$(BIJUX_BENCH_BIN) bench corpus-fastq-published-dossiers \
+		--config "$(BENCHMARK_CONFIG)" \
+		$(BENCHMARK_REPORT_RUN_ROOT_ARGS)
 
 .PHONY: _benchmark-fastq-stage _benchmark-all _benchmark-trim _benchmark-validate _benchmark-filter \
 	_benchmark-merge _benchmark-correct _benchmark-qc-post _benchmark-umi \
