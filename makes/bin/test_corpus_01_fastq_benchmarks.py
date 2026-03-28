@@ -333,7 +333,9 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertIn("parse_corpus_briefing_args(", text, path.name)
             self.assertNotIn("parser.add_argument(\"--docs-root\"", text, path.name)
 
-    def test_briefing_renderers_use_shared_generic_stats_and_io_helpers(self) -> None:
+    def test_briefing_renderers_use_shared_stats_io_and_publication_helpers(
+        self,
+    ) -> None:
         shared_calls = [
             "load_csv_rows(",
             "load_json(",
@@ -341,7 +343,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "safe_mean(",
             "percentile(",
             "fmt_runtime(",
-            "fmt_csv_value(",
+            "publish_corpus_briefing_artifacts(",
         ]
         duplicated_defs = [
             "def load_json(",
@@ -351,11 +353,17 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "def percentile(",
             "def fmt_runtime(",
             "def fmt_csv_value(",
+            "def write_csv(",
         ]
         for path in briefing_renderer_paths():
             text = path.read_text(encoding="utf-8")
             for call in shared_calls:
                 self.assertIn(call, text, f"{path.name} missing {call}")
+            self.assertNotIn(
+                '(docs_root / "benchmark.md").write_text(',
+                text,
+                f"{path.name} still writes markdown directly",
+            )
             for duplicated_def in duplicated_defs:
                 self.assertNotIn(
                     duplicated_def,
