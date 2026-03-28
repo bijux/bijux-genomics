@@ -220,7 +220,9 @@ _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publ
 		--config "$(BENCHMARK_CONFIG)"
 
 _benchmark-normalize-local-results-layout: ## Normalize duplicate local benchmark stage roots into the cache mirror layout
-	@python3 makes/bin/normalize_benchmark_workspace_stage_roots.py --confirm
+	@$(BIJUX_BENCH_BIN) bench normalize-workspace-layout \
+		--config "$(BENCHMARK_CONFIG)" \
+		--confirm
 
 _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ dossiers and refresh publication status
 	@$(BIJUX_BENCH_BIN) bench corpus-fastq-published-dossiers \
