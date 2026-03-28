@@ -82,6 +82,24 @@ def benchmark_makefile_text() -> str:
     return MAKEFILE_PATH.read_text(encoding="utf-8")
 
 
+def makefile_target_recipe(target: str) -> str:
+    lines = benchmark_makefile_text().splitlines()
+    capture = False
+    recipe_lines: list[str] = []
+    for line in lines:
+        if line.startswith(f"{target}:"):
+            capture = True
+            continue
+        if capture and line.startswith("\t"):
+            recipe_lines.append(line)
+            continue
+        if capture:
+            break
+    if not recipe_lines:
+        raise AssertionError(f"missing make target recipe for {target}")
+    return "\n".join(recipe_lines)
+
+
 class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_trim_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.trim_reads_benchmark_defaults()
@@ -142,6 +160,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
         self.assertNotIn("CORPUS_ROOT ?= /home/bijan/bijux/corpus_01", text)
+
+    def test_published_dossiers_refresh_includes_remove_duplicates(self) -> None:
+        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
+
+        self.assertIn("_benchmark-remove-duplicates-corpus-01-report", recipe)
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
