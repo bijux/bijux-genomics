@@ -929,8 +929,7 @@ mod tests {
 
     #[test]
     fn bayeshammer_reconstruction_preserves_paired_record_count() {
-        let tempdir =
-            tempdir_for("bayeshammer_reconstruction_preserves_paired_record_count");
+        let tempdir = tempdir_for("bayeshammer_reconstruction_preserves_paired_record_count");
         let input_r1 = tempdir.path().join("reads_R1.fastq");
         let input_r2 = tempdir.path().join("reads_R2.fastq");
         let out_dir = tempdir.path().join("out");
@@ -1006,8 +1005,7 @@ mod tests {
             .expect("fake bayeshammer metadata")
             .permissions();
         permissions.set_mode(0o755);
-        fs::set_permissions(&fake_bayeshammer, permissions)
-            .expect("chmod fake bayeshammer");
+        fs::set_permissions(&fake_bayeshammer, permissions).expect("chmod fake bayeshammer");
 
         let plan = plan_correct_with_options(
             &tool("bayeshammer"),
@@ -1080,9 +1078,8 @@ mod tests {
     fn read_gzip_text(path: &Path) -> String {
         let mut decoded = String::new();
         let mut reader = GzDecoder::new(
-            fs::File::open(path).unwrap_or_else(|err| {
-                panic!("open gzip {}: {err}", path.display())
-            }),
+            fs::File::open(path)
+                .unwrap_or_else(|err| panic!("open gzip {}: {err}", path.display())),
         );
         reader
             .read_to_string(&mut decoded)
