@@ -1,8 +1,8 @@
 tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,mean_candidate_adapter_count,mean_adapter_trimmed_fraction
-fastqc,era_layout,ancient_pe,5,12.624132,7.641331,1.000000,
+fastqc,era_layout,ancient_pe,5,12.624133,7.641331,1.000000,
 fastqc,era_layout,ancient_se,5,13.831143,6.620080,1.000000,
 fastqc,era_layout,modern_pe,5,22.152304,31.756954,1.000000,
 fastqc,era_layout,modern_se,5,17.005505,7.589890,1.000000,
 fastqc,size_band,under_1000mb,1,43.623838,43.623838,1.000000,
-fastqc,size_band,under_100mb,12,6.282313,6.111926,1.000000,
+fastqc,size_band,under_100mb,12,6.282313,6.111927,1.000000,
 fastqc,size_band,under_500mb,7,29.864833,31.756954,1.000000,

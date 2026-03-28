@@ -1,2 +1,2 @@
-tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,median_read_retention,median_base_retention,mean_contaminant_fraction_removed,mean_reads_removed,slowdown_vs_fastest_median
-bowtie2,20,1.000000,37.254210,18.534327,77.911292,162.160162,1.000000,1.000000,0.000000,0.200000,1.000000
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,slowdown_vs_fastest_median,median_read_retention,median_base_retention,mean_contaminant_fraction_removed,mean_reads_removed
+bowtie2,20,1.000000,37.254210,18.534327,77.911292,162.160162,1.000000,1.000000,1.000000,0.000000,0.200000

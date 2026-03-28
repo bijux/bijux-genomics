@@ -11,7 +11,7 @@
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-28T02:27:05.660482+00:00",
+  "generated_at_utc": "2026-03-28T16:40:41.465479+00:00",
   "headline": {
     "fastest_runtime_s": 1.2589688065,
     "fastest_tool": "fastq_scan",
@@ -28,7 +28,7 @@
   "mutates_fastq": false,
   "platform": "lunarc-apptainer",
   "report_only": true,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_overrepresented_sequences/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "overrepresented_sequence_fairness",

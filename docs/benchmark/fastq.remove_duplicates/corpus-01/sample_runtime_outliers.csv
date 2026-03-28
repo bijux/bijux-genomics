@@ -1,8 +1,8 @@
 sample_id,accession,era,layout,size_band,study_accession,total_runtime_s,slowest_tool,slowest_runtime_s,strongest_tool,strongest_duplicate_reads
 sample_0013,ERR15886310,ancient,pe,under_500mb,PRJEB101287,297.712820,clumpify,190.810034,clumpify,52438.000000
 sample_0003,DRR000550,modern,pe,under_500mb,PRJDA50447,227.107028,fastuniq,142.621358,clumpify,974012.000000
-sample_0012,ERR15886307,ancient,pe,under_500mb,PRJEB101287,224.504882,clumpify,140.543777,clumpify,14922.000000
-sample_0001,DRR000093,modern,pe,under_500mb,PRJDA41121,80.758915,fastuniq,49.145137,clumpify,5352342.000000
+sample_0012,ERR15886307,ancient,pe,under_500mb,PRJEB101287,224.504881,clumpify,140.543777,clumpify,14922.000000
+sample_0001,DRR000093,modern,pe,under_500mb,PRJDA41121,80.758914,fastuniq,49.145137,clumpify,5352342.000000
 sample_0002,DRR000095,modern,pe,under_500mb,PRJDA41121,79.111874,fastuniq,47.679825,clumpify,5365872.000000
 sample_0011,ERR15108349,ancient,pe,under_100mb,PRJEB80740,28.197320,fastuniq,17.045398,clumpify,6407.000000
 sample_0014,ERR4210492,ancient,pe,under_100mb,PRJEB38152,18.637675,fastuniq,11.260593,clumpify,146421.000000

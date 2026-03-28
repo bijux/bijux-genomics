@@ -10,7 +10,7 @@
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-28T02:24:32.014754+00:00",
+  "generated_at_utc": "2026-03-28T16:40:39.840438+00:00",
   "headline": {
     "fastest_runtime_s": 2.9696421305,
     "fastest_tool": "fastq_scan",
@@ -24,7 +24,7 @@
     "se": 10
   },
   "platform": "lunarc-apptainer",
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.validate_reads/lunarc",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "validation_fairness",

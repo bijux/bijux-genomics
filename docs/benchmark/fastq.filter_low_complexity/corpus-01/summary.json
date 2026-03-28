@@ -11,7 +11,7 @@
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-28T02:43:15.299292+00:00",
+  "generated_at_utc": "2026-03-28T16:40:43.827388+00:00",
   "headline": {
     "best_base_retention": 0.9993151076925884,
     "best_base_retention_tool": "bbduk",
@@ -26,7 +26,7 @@
   },
   "platform": "lunarc-apptainer",
   "polyx_threshold": null,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_low_complexity/lunarc",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "low_complexity_fairness",

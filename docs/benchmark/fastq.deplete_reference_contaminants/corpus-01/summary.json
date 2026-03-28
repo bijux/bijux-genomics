@@ -11,7 +11,7 @@
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-28T02:42:07.063262+00:00",
+  "generated_at_utc": "2026-03-28T16:40:45.434314+00:00",
   "headline": {
     "best_read_retention": 1.0,
     "best_read_retention_tool": "bowtie2",
@@ -30,7 +30,7 @@
   "reference_index_backend": "bowtie2_build",
   "reference_index_digest": "8f0f646e6e37ed01b2a33291e96c2a38eeedeb3ca6f8175b685bd6f98719fc8f",
   "reference_index_size_bytes": 8389212,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_reference_contaminants/lunarc",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_reference_contaminants/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "contaminant_depletion_fairness",
