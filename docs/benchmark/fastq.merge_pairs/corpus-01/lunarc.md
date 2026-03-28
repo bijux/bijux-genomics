@@ -75,4 +75,4 @@ This benchmark compares the governed `fastq.merge_pairs` stage across the paired
 ## Reproducibility
 
 - Machine-readable outputs beside this briefing: `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, and `sample_runtime_outliers.csv`.
-- Results are generated from the Lunarc benchmark tree and mirrored locally under `/Users/bijan/bijux/bijux-dna-results` for later inspection.
+- Results are generated from the Lunarc benchmark tree and mirrored into the configured local benchmark archive for later inspection.
