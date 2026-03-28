@@ -72,6 +72,14 @@ import render_fastq_validate_reads_corpus_01_report as validate_reads_report
 import normalize_lunarc_results_mirror as normalize_results_mirror
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
+import benchmark_workspace_value
+
+
+MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
+
+
+def benchmark_makefile_text() -> str:
+    return MAKEFILE_PATH.read_text(encoding="utf-8")
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
@@ -117,6 +125,23 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["entropy_threshold"], 18.0)
         self.assertIsNone(defaults["kmer_ref"])
         self.assertEqual(defaults["polyx_policy"], "trim")
+
+    def test_benchmark_workspace_value_prints_configured_remote_corpus_root(self) -> None:
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("remote.corpus_root"),
+            "/home/bijan/lu2024-12-24/.cache/corpus_01",
+        )
+
+
+class BenchmarkMakefileTests(unittest.TestCase):
+    def test_benchmark_makefile_defers_corpus_root_to_workspace_contract(self) -> None:
+        text = benchmark_makefile_text()
+
+        self.assertIn(
+            "CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)",
+            text,
+        )
+        self.assertNotIn("CORPUS_ROOT ?= /home/bijan/bijux/corpus_01", text)
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
