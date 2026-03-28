@@ -4,7 +4,7 @@
 - Published stages audited: `19`
 - Complete mirrored stages: `18`
 - Incomplete mirrored stages: `2`
-- Mirror issues: `5`
+- Mirror issues: `3`
 
 ## Stage status
 
@@ -36,14 +36,12 @@
   - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc`
   - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc` (selected newest=`True`)
   - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc`
-- `fastq.trim_reads`: `incomplete` (`4` issues)
-  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc`
-  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc` (selected newest=`False`)
-  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc`, `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`
+- `fastq.trim_reads`: `incomplete` (`2` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`, `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc`
   - `duplicate-result-root-ambiguity`: both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist
-  - `newer-run-root-available`: published dossier selected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc but newer mirrored run exists at /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc
-  - `run-manifest-tool-roster-drift`: run_manifest tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
-  - `report-tool-roster-drift`: sample_0001 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0002 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0003 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] (+17 more)
+  - `run-manifest-sample-failures`: run_manifest samples_failed=20
 - `fastq.filter_reads`: `complete` (`0` issues)
   - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_reads/lunarc`
   - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_reads/lunarc` (selected newest=`True`)
