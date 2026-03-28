@@ -248,7 +248,7 @@ mod env_registry_query_tests {
 
     fn registry_path() -> std::path::PathBuf {
         std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../ci/registry/tool_registry.toml")
+            .join("../../configs/ci/registry/tool_registry.toml")
             .canonicalize()
             .expect("canonical registry path")
     }
@@ -261,13 +261,16 @@ mod env_registry_query_tests {
             tools,
             vec![
                 "adapterremoval",
+                "alientrimmer",
                 "atropos",
                 "bbduk",
                 "cutadapt",
                 "fastp",
+                "fastx_clipper",
+                "leehom",
                 "prinseq",
                 "seqkit",
-                "seqpurge",
+                "skewer",
                 "trim_galore",
                 "trimmomatic",
             ]
