@@ -22,6 +22,8 @@ DEFAULT_LOCAL_RESULTS_ROOT = Path("/Users/bijan/bijux/bijux-dna-results")
 DEFAULT_LOCAL_CACHE_MIRROR_ROOT = (
     DEFAULT_LOCAL_RESULTS_ROOT / "home" / "bijan" / "lu2024-12-24" / ".cache"
 )
+LOCAL_RESULTS_ROOT = DEFAULT_LOCAL_RESULTS_ROOT
+LOCAL_CACHE_MIRROR_ROOT = DEFAULT_LOCAL_CACHE_MIRROR_ROOT
 
 
 @lru_cache(maxsize=1)
@@ -34,19 +36,23 @@ def load_benchmark_workspace_config() -> dict:
 
 
 def benchmark_local_results_root() -> Path:
+    if LOCAL_RESULTS_ROOT != DEFAULT_LOCAL_RESULTS_ROOT:
+        return LOCAL_RESULTS_ROOT
     local = load_benchmark_workspace_config().get("local", {})
     value = local.get("results_root")
     if isinstance(value, str) and value.strip():
         return Path(value).expanduser()
-    return DEFAULT_LOCAL_RESULTS_ROOT
+    return LOCAL_RESULTS_ROOT
 
 
 def benchmark_local_cache_mirror_root() -> Path:
+    if LOCAL_CACHE_MIRROR_ROOT != DEFAULT_LOCAL_CACHE_MIRROR_ROOT:
+        return LOCAL_CACHE_MIRROR_ROOT
     local = load_benchmark_workspace_config().get("local", {})
     value = local.get("cache_mirror_root")
     if isinstance(value, str) and value.strip():
         return Path(value).expanduser()
-    return DEFAULT_LOCAL_CACHE_MIRROR_ROOT
+    return LOCAL_CACHE_MIRROR_ROOT
 
 
 def load_json(path: Path) -> dict:
@@ -572,6 +578,11 @@ def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
 
 
 def default_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
+    if (
+        LOCAL_RESULTS_ROOT != DEFAULT_LOCAL_RESULTS_ROOT
+        and LOCAL_CACHE_MIRROR_ROOT == DEFAULT_LOCAL_CACHE_MIRROR_ROOT
+    ):
+        return LOCAL_RESULTS_ROOT / corpus_root.name / stage_id / "lunarc"
     return (
         benchmark_local_cache_mirror_root()
         / "results"
