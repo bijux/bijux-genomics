@@ -82,6 +82,7 @@ import build_corpus_01_benchmark_remediation_queue as remediation_queue
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
 LUNARC_MAKEFILE_PATH = ROOT / "makes" / "lunarc.mk"
+PLATFORMS_TOML_PATH = ROOT / "configs" / "runtime" / "platforms.toml"
 VALIDATE_READS_METHOD_PATH = (
     ROOT / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01-method.md"
 )
@@ -98,6 +99,10 @@ def benchmark_makefile_text() -> str:
 
 def lunarc_makefile_text() -> str:
     return LUNARC_MAKEFILE_PATH.read_text(encoding="utf-8")
+
+
+def runtime_platforms_text() -> str:
+    return PLATFORMS_TOML_PATH.read_text(encoding="utf-8")
 
 
 def validate_reads_method_text() -> str:
@@ -970,6 +975,15 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn('[platforms.apptainer-amd64]', text)
         self.assertIn('"/var/tmp/bijux-cache-root"', text)
         self.assertNotIn('"/scratch/cache-root"', text)
+
+    def test_runtime_platform_config_separates_portable_and_cluster_apptainer_names(
+        self,
+    ) -> None:
+        text = runtime_platforms_text()
+
+        self.assertIn("[platforms.apptainer-amd64]", text)
+        self.assertIn("[platforms.lunarc-apptainer]", text)
+        self.assertIn("portable platform name above as the canonical", text)
 
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,
