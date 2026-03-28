@@ -74,6 +74,7 @@ import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 import benchmark_workspace_value
 import benchmark_publication_targets
+import benchmark_tooling_repo_checks
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
@@ -322,6 +323,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)",
             text,
         )
+
+    def test_publication_status_runs_benchmark_repo_checks(self) -> None:
+        recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
+
+        self.assertIn("python3 makes/bin/benchmark_tooling_repo_checks.py", recipe)
 
     def test_lunarc_makefile_defers_workspace_values_to_config_contract(self) -> None:
         text = lunarc_makefile_text()
@@ -4496,6 +4502,38 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
 
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
+    def test_benchmark_repo_checks_flag_hardcoded_local_operator_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            script_path = repo_root / "makes" / "bin" / "example.py"
+            script_path.parent.mkdir(parents=True)
+            script_path.write_text(
+                'RESULTS_ROOT = "/Users/bijan/bijux/bijux-dna-results"\n',
+                encoding="utf-8",
+            )
+
+            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+
+        self.assertEqual(report["violation_count"], 1)
+        self.assertEqual(
+            report["violations"][0]["issue_id"],
+            "hardcoded-local-operator-path",
+        )
+
+    def test_benchmark_repo_checks_ignore_test_fixture_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            fixture_path = repo_root / "makes" / "bin" / "test_corpus_01_fastq_benchmarks.py"
+            fixture_path.parent.mkdir(parents=True)
+            fixture_path.write_text(
+                'LOCAL_RESULTS = "/Users/bijan/bijux/bijux-dna-results"\n',
+                encoding="utf-8",
+            )
+
+            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+
+        self.assertEqual(report["violation_count"], 0)
+
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

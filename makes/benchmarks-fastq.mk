@@ -379,6 +379,8 @@ _benchmark-extract-umis-corpus-01-report: ## Render the corpus-01 extract-umis b
 		--docs-root docs/benchmark/fastq.extract_umis/corpus-01
 
 _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publication coverage
+	@python3 makes/bin/benchmark_tooling_repo_checks.py \
+		--repo-root .
 	@python3 makes/bin/audit_corpus_01_fastq_benchmark_docs.py \
 		--repo-root . \
 		--docs-root docs/benchmark \
