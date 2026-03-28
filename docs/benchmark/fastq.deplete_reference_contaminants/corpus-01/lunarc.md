@@ -1,55 +1,36 @@
-# `fastq.deplete_reference_contaminants` benchmark on `corpus-01`
-
-## What was run
-
-This benchmark compares the governed `fastq.deplete_reference_contaminants` stage across the full `corpus-01` human DNA cohort on the Lunarc Apptainer platform.
-
-## Executive Summary
-
-- `1` governed contaminant-depletion backends were benchmarked across `20` samples (`20/20` zero-exit tool-sample observations).
-- Fastest median runtime: `bowtie2` at `18.534` seconds.
-- Highest mean contaminant fraction removed: `bowtie2` at `0.000`.
+# `fastq.deplete_reference_contaminants` on `corpus-01`
 
 ## Run Contract
 
+- Generated: 2026-03-28T02:42:07.063262+00:00
 - Platform: `lunarc-apptainer`
-- Stage: `fastq.deplete_reference_contaminants`
+- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
+- Run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_reference_contaminants/lunarc`
 - Scenario: `contaminant_depletion_fairness`
+- Samples benchmarked: `20`
+- Layout balance: `10` single-end, `10` paired-end
+- Era balance: `10` ancient, `10` modern
 - Tools: `bowtie2`
+- reference_index: `/lunarc/nobackup/projects/snic2019-34-3/.cache/bijux-reference/contaminants/phix_and_spikeins/bowtie2/reference`
 - reference_index_digest: `8f0f646e6e37ed01b2a33291e96c2a38eeedeb3ca6f8175b685bd6f98719fc8f`
 - reference_catalog_id: `contaminant_reference`
 - reference_index_backend: `bowtie2_build`
 - decoy_mode: `phix_and_spikeins`
 
-## Tool Ranking
+## Executive Summary
 
-| Tool | Median runtime (s) | p90 runtime (s) | Median read retention | Median base retention | Mean contaminant fraction removed | Mean reads removed | Slowdown vs fastest |
+- Fastest median runtime: `bowtie2` at `18.534` seconds.
+- Highest mean contaminant fraction removed: `bowtie2` at `0.000`.
+- Highest median read retention: `bowtie2` at `1.000`.
+- Sample failures: `0` sample invocations ended non-zero.
+
+## Tool Summary
+
+| Tool | Samples | Pass rate | Median runtime (s) | Median read retention | Median base retention | Mean contaminant fraction removed | Mean reads removed |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `bowtie2` | 18.534 | 77.911 | 1.000 | 1.000 | 0.000 | 0.200 | x1.00 |
+| `bowtie2` | 20 | 100.0% | 18.534 | 1.000 | 1.000 | 0.000 | 0.2 |
 
-## Cohort Behavior
+## Notes
 
-| Tool | Cohort | Mean runtime (s) | Median runtime (s) | Median read retention | Median base retention | Mean contaminant fraction removed | Samples |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `bowtie2` | `ancient_pe` | 20.168 | 7.427 | 1.000 | 1.000 | 0.000 | 5 |
-| `bowtie2` | `ancient_se` | 33.682 | 15.615 | 1.000 | 1.000 | 0.000 | 5 |
-| `bowtie2` | `modern_pe` | 38.023 | 58.581 | 1.000 | 1.000 | 0.000 | 5 |
-| `bowtie2` | `modern_se` | 57.144 | 21.454 | 1.000 | 1.000 | 0.000 | 5 |
-| `bowtie2` | `under_1000mb` | 162.160 | 162.160 | 1.000 | 1.000 | 0.000 | 1 |
-| `bowtie2` | `under_100mb` | 9.968 | 7.853 | 1.000 | 1.000 | 0.000 | 12 |
-| `bowtie2` | `under_500mb` | 66.186 | 61.720 | 1.000 | 1.000 | 0.000 | 7 |
-
-## Highest-Cost Samples
-
-| Sample | Accession | Era | Layout | Size band | Total stage runtime (s) | Slowest tool | Slowest tool runtime (s) | Strongest depletion tool | Contaminant fraction removed |
-| --- | --- | --- | --- | --- | ---: | --- | ---: | --- | ---: |
-| `sample_0006` | `DRR001073` | `modern` | `se` | `under_1000mb` | 162.160 | `bowtie2` | 162.160 | `bowtie2` | 0.000 |
-| `sample_0018` | `ERR769591` | `ancient` | `se` | `under_500mb` | 115.750 | `bowtie2` | 115.750 | `bowtie2` | 0.000 |
-| `sample_0008` | `DRR001083` | `modern` | `se` | `under_500mb` | 77.911 | `bowtie2` | 77.911 | `bowtie2` | 0.000 |
-| `sample_0003` | `DRR000550` | `modern` | `pe` | `under_500mb` | 65.814 | `bowtie2` | 65.814 | `bowtie2` | 0.000 |
-| `sample_0001` | `DRR000093` | `modern` | `pe` | `under_500mb` | 61.720 | `bowtie2` | 61.720 | `bowtie2` | 0.000 |
-
-## Interpretation
-
-- Because this cohort is human DNA, substantial contaminant depletion usually signals aggressive technical over-removal unless independently justified by the reference set.
-- The published CSV artifacts keep reference lineage and governed decoy policy explicit so later reruns can audit reference drift instead of relying on narrative summaries.
+- `corpus-01` is a human DNA cohort, so contaminant depletion here functions as a false-positive control and reference-lineage throughput benchmark rather than a high-yield cleanup stage.
+- The dossier records index lineage and governed decoy policy directly so later reruns can separate reference drift from real backend differences.
