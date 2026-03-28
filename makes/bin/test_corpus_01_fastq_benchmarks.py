@@ -151,6 +151,7 @@ def standard_briefing_publisher_paths() -> list[Path]:
 
 def ordered_briefing_publisher_paths() -> list[Path]:
     names = [
+        "render_fastq_merge_pairs_corpus_01_briefing.py",
         "render_fastq_validate_reads_corpus_01_briefing.py",
         "render_fastq_filter_low_complexity_corpus_01_briefing.py",
         "render_fastq_trim_polyg_tails_corpus_01_briefing.py",
