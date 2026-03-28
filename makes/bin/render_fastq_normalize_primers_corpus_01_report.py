@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
-    benchmark_remote_corpus_root,
+    parse_corpus_report_args,
     NORMALIZE_PRIMERS_BENCHMARK_CONTRACT,
     load_corpus_spec,
     load_json,
@@ -22,17 +22,10 @@ from corpus_01_fastq_benchmark_support import (
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Render corpus-01 fastq.normalize_primers benchmark summary."
+    return parse_corpus_report_args(
+        description="Render corpus-01 fastq.normalize_primers benchmark summary.",
+        docs_root="docs/benchmark/fastq.normalize_primers/corpus-01",
     )
-    parser.add_argument("--repo-root", default=".")
-    parser.add_argument("--corpus-root", default=str(benchmark_remote_corpus_root()))
-    parser.add_argument("--run-root", default="")
-    parser.add_argument(
-        "--docs-root",
-        default="docs/benchmark/fastq.normalize_primers/corpus-01",
-    )
-    return parser.parse_args()
 
 
 def safe_median(values: list[float]) -> float | None:

@@ -128,6 +128,14 @@ def runner_script_text(name: str) -> str:
     return (ROOT / "makes" / "bin" / name).read_text(encoding="utf-8")
 
 
+def report_renderer_paths() -> list[Path]:
+    return sorted((ROOT / "makes" / "bin").glob("render_fastq_*_corpus_01_report.py"))
+
+
+def briefing_renderer_paths() -> list[Path]:
+    return sorted((ROOT / "makes" / "bin").glob("render_fastq_*_corpus_01_briefing.py"))
+
+
 def validate_reads_method_text() -> str:
     return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
@@ -259,6 +267,15 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             support.corpus_01_make_report_target("fastq.trim_polyg_tails"),
             "_benchmark-trim-polyg-corpus-01-report",
         )
+
+    def test_report_renderers_use_shared_corpus_report_arg_parser(self) -> None:
+        for path in report_renderer_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("parse_corpus_report_args(", text, path.name)
+            self.assertNotIn("parser.add_argument(\"--repo-root\"", text, path.name)
+            self.assertNotIn("parser.add_argument(\"--corpus-root\"", text, path.name)
+            self.assertNotIn("parser.add_argument(\"--run-root\"", text, path.name)
+            self.assertNotIn("parser.add_argument(\"--docs-root\"", text, path.name)
 
     def test_trim_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.trim_reads_benchmark_defaults()
