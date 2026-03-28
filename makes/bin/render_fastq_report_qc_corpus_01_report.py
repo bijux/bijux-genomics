@@ -545,7 +545,7 @@ def main() -> int:
         writer.writeheader()
         writer.writerows(sample_rows)
 
-    (docs_root / "lunarc.md").write_text(render_markdown(summary), encoding="utf-8")
+    (docs_root / "benchmark.md").write_text(render_markdown(summary), encoding="utf-8")
     return 0
 
 

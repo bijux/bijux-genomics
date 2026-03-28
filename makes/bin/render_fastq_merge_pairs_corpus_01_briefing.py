@@ -461,7 +461,7 @@ def main() -> int:
         cohort_rows=cohort_rows,
         outliers=outlier_rows,
     )
-    (docs_root / "lunarc.md").write_text(markdown, encoding="utf-8")
+    (docs_root / "benchmark.md").write_text(markdown, encoding="utf-8")
     return 0
 
 

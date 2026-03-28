@@ -313,7 +313,7 @@ def main() -> int:
             [{key: fmt_csv_value(value) for key, value in row.items()} for row in outliers]
         )
 
-    (docs_root / "lunarc.md").write_text(
+    (docs_root / "benchmark.md").write_text(
         render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
         encoding="utf-8",
     )

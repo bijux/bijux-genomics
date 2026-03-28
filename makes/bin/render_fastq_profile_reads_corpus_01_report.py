@@ -454,7 +454,7 @@ def main() -> int:
         for row in sample_rows:
             writer.writerow(row)
 
-    (docs_root / "lunarc.md").write_text(
+    (docs_root / "benchmark.md").write_text(
         render_markdown(summary),
         encoding="utf-8",
     )

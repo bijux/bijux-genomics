@@ -24,6 +24,8 @@ except ModuleNotFoundError:
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LOCAL_RESULTS_ROOT: Path | None = None
 LOCAL_CACHE_MIRROR_ROOT: Path | None = None
+PUBLISHED_DOSSIER_NAME = "benchmark.md"
+LEGACY_PUBLISHED_DOSSIER_NAME = "lunarc.md"
 
 
 @lru_cache(maxsize=1)
@@ -146,6 +148,20 @@ def benchmark_remote_containers_root() -> Path:
 
 def benchmark_remote_reference_root() -> Path:
     return _workspace_path("remote", "reference_root")
+
+
+def published_dossier_path(stage_docs_root: Path) -> Path:
+    return stage_docs_root / PUBLISHED_DOSSIER_NAME
+
+
+def resolve_existing_dossier_path(stage_docs_root: Path) -> Path:
+    preferred = published_dossier_path(stage_docs_root)
+    if preferred.is_file():
+        return preferred
+    legacy = stage_docs_root / LEGACY_PUBLISHED_DOSSIER_NAME
+    if legacy.is_file():
+        return legacy
+    return preferred
 
 
 def load_json(path: Path) -> dict:

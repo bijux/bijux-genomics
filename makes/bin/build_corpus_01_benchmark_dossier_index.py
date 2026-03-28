@@ -12,6 +12,7 @@ from corpus_01_fastq_benchmark_support import (
     default_local_results_stage_root,
     default_results_stage_root,
     legacy_local_results_stage_root,
+    resolve_existing_dossier_path,
 )
 
 
@@ -64,7 +65,7 @@ def classify_run_root_source(run_root: Path, stage_id: str) -> str:
 def build_stage_entry(docs_root: Path, stage_id: str, sample_scope: str) -> dict:
     stage_docs_root = docs_root / stage_id / "corpus-01"
     summary_path = stage_docs_root / "summary.json"
-    dossier_path = stage_docs_root / "lunarc.md"
+    dossier_path = resolve_existing_dossier_path(stage_docs_root)
     remote_corpus_root = benchmark_remote_corpus_root()
     expected_remote_run_root = default_results_stage_root(remote_corpus_root, stage_id)
     expected_local_cache_mirror_run_root = default_local_results_stage_root(
