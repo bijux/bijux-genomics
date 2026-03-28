@@ -394,7 +394,7 @@ fn display_runners(runners: &[RuntimeKind]) -> String {
 }
 
 #[cfg(test)]
-mod tests {
+mod env_runtime_support_tests {
     use super::*;
 
     struct HomeGuard {
