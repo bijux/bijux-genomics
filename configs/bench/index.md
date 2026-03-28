@@ -13,3 +13,4 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 
 ## Files
 - `configs/bench/knobs.toml`
+- `configs/bench/workspace.toml`
