@@ -21,14 +21,8 @@ except ModuleNotFoundError:
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_LOCAL_RESULTS_ROOT = Path("/Users/bijan/bijux/bijux-dna-results")
-DEFAULT_LOCAL_CACHE_MIRROR_ROOT = (
-    DEFAULT_LOCAL_RESULTS_ROOT / "home" / "bijan" / "lu2024-12-24" / ".cache"
-)
-DEFAULT_REMOTE_REPO_ROOT = Path("/home/bijan/bijux/bijux-dna")
-DEFAULT_REMOTE_CORPUS_ROOT = DEFAULT_REMOTE_REPO_ROOT.parent / "corpus_01"
-LOCAL_RESULTS_ROOT = DEFAULT_LOCAL_RESULTS_ROOT
-LOCAL_CACHE_MIRROR_ROOT = DEFAULT_LOCAL_CACHE_MIRROR_ROOT
+LOCAL_RESULTS_ROOT: Path | None = None
+LOCAL_CACHE_MIRROR_ROOT: Path | None = None
 
 
 @lru_cache(maxsize=1)
@@ -40,40 +34,34 @@ def load_benchmark_workspace_config() -> dict:
         return toml_loader.load(handle)
 
 
-def benchmark_local_results_root() -> Path:
-    if LOCAL_RESULTS_ROOT != DEFAULT_LOCAL_RESULTS_ROOT:
-        return LOCAL_RESULTS_ROOT
-    local = load_benchmark_workspace_config().get("local", {})
-    value = local.get("results_root")
+def _workspace_path(section: str, key: str) -> Path:
+    value = load_benchmark_workspace_config().get(section, {}).get(key)
     if isinstance(value, str) and value.strip():
         return Path(value).expanduser()
-    return LOCAL_RESULTS_ROOT
+    raise SystemExit(
+        "missing benchmark workspace path contract: "
+        f"[{section}].{key} in configs/bench/workspace.toml"
+    )
+
+
+def benchmark_local_results_root() -> Path:
+    if LOCAL_RESULTS_ROOT is not None:
+        return LOCAL_RESULTS_ROOT
+    return _workspace_path("local", "results_root")
 
 
 def benchmark_local_cache_mirror_root() -> Path:
-    if LOCAL_CACHE_MIRROR_ROOT != DEFAULT_LOCAL_CACHE_MIRROR_ROOT:
+    if LOCAL_CACHE_MIRROR_ROOT is not None:
         return LOCAL_CACHE_MIRROR_ROOT
-    local = load_benchmark_workspace_config().get("local", {})
-    value = local.get("cache_mirror_root")
-    if isinstance(value, str) and value.strip():
-        return Path(value).expanduser()
-    return LOCAL_CACHE_MIRROR_ROOT
+    return _workspace_path("local", "cache_mirror_root")
 
 
 def benchmark_remote_repo_root() -> Path:
-    remote = load_benchmark_workspace_config().get("remote", {})
-    value = remote.get("repo_root")
-    if isinstance(value, str) and value.strip():
-        return Path(value).expanduser()
-    return DEFAULT_REMOTE_REPO_ROOT
+    return _workspace_path("remote", "repo_root")
 
 
 def benchmark_remote_corpus_root() -> Path:
-    remote = load_benchmark_workspace_config().get("remote", {})
-    value = remote.get("corpus_root")
-    if isinstance(value, str) and value.strip():
-        return Path(value).expanduser()
-    return DEFAULT_REMOTE_CORPUS_ROOT
+    return _workspace_path("remote", "corpus_root")
 
 
 def load_json(path: Path) -> dict:
