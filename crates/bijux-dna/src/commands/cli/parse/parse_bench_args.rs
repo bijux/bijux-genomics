@@ -63,6 +63,8 @@ pub struct BenchCorpusFastqArgs {
     pub dry_run: bool,
     #[arg(long = "stage-arg")]
     pub stage_args: Vec<String>,
+    #[arg(long = "manifest-arg")]
+    pub manifest_args: Vec<String>,
 }
 
 #[derive(Debug, Args)]
