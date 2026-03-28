@@ -138,6 +138,17 @@ def briefing_renderer_paths() -> list[Path]:
     return sorted((ROOT / "makes" / "bin").glob("render_fastq_*_corpus_01_briefing.py"))
 
 
+def shared_report_publisher_paths() -> list[Path]:
+    names = [
+        "render_fastq_detect_adapters_corpus_01_report.py",
+        "render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
+        "render_fastq_profile_read_lengths_corpus_01_report.py",
+        "render_fastq_profile_reads_corpus_01_report.py",
+        "render_fastq_validate_reads_corpus_01_report.py",
+    ]
+    return [ROOT / "makes" / "bin" / name for name in names]
+
+
 def standard_briefing_publisher_paths() -> list[Path]:
     names = [
         "render_fastq_detect_adapters_corpus_01_briefing.py",
@@ -352,6 +363,31 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertNotIn("Path(args.corpus_root).expanduser()", text, path.name)
             self.assertNotIn(
                 'load_json(run_root / "run_manifest.json")',
+                text,
+                path.name,
+            )
+
+    def test_report_renderers_use_shared_artifact_publisher(self) -> None:
+        support_text = (
+            ROOT / "makes" / "bin" / "corpus_01_fastq_benchmark_support.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("class ReportCsvArtifactSpec:", support_text)
+        self.assertIn("publish_corpus_report_artifacts(", support_text)
+        for path in shared_report_publisher_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("publish_corpus_report_artifacts(", text, path.name)
+            self.assertNotIn(
+                '(docs_root / "benchmark.md").write_text(',
+                text,
+                path.name,
+            )
+            self.assertNotIn(
+                '(docs_root / "summary.json").write_text(',
+                text,
+                path.name,
+            )
+            self.assertNotIn(
+                'with (docs_root / "sample_results.csv").open(',
                 text,
                 path.name,
             )

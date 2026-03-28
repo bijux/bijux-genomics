@@ -321,6 +321,14 @@ class BriefingOutlierSpec:
     copied_metrics: tuple[BriefingCopiedMetricSpec, ...] = ()
 
 
+@dataclass(frozen=True)
+class ReportCsvArtifactSpec:
+    filename: str
+    rows: list[dict]
+    fieldnames: list[str] | None = None
+    empty_error: str = "cannot write empty csv artifact: {path}"
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -662,6 +670,37 @@ def publish_corpus_briefing_artifacts(
         fieldnames=outlier_fieldnames,
         empty_error=empty_error,
     )
+    (docs_root / PUBLISHED_DOSSIER_NAME).write_text(markdown, encoding="utf-8")
+
+
+def publish_corpus_report_artifacts(
+    docs_root: Path,
+    *,
+    summary: dict,
+    markdown: str,
+    sample_rows: list[dict],
+    sample_fieldnames: list[str] | None = None,
+    summary_sort_keys: bool = False,
+    extra_csv_artifacts: list[ReportCsvArtifactSpec] | None = None,
+    empty_error: str = "cannot write empty csv artifact: {path}",
+) -> None:
+    (docs_root / "summary.json").write_text(
+        json.dumps(summary, indent=2, sort_keys=summary_sort_keys) + "\n",
+        encoding="utf-8",
+    )
+    write_csv_artifact(
+        docs_root / "sample_results.csv",
+        sample_rows,
+        fieldnames=sample_fieldnames,
+        empty_error=empty_error,
+    )
+    for artifact in extra_csv_artifacts or []:
+        write_csv_artifact(
+            docs_root / artifact.filename,
+            artifact.rows,
+            fieldnames=artifact.fieldnames,
+            empty_error=artifact.empty_error,
+        )
     (docs_root / PUBLISHED_DOSSIER_NAME).write_text(markdown, encoding="utf-8")
 
 
