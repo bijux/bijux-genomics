@@ -299,7 +299,7 @@ def render_markdown(summary: dict) -> str:
 def main() -> int:
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
-    corpus_root = Path(args.corpus_root).resolve()
+    corpus_root = Path(args.corpus_root).expanduser()
     run_root = (
         Path(args.run_root).resolve()
         if args.run_root
