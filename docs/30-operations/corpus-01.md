@@ -30,14 +30,11 @@ Declared size bands:
 The corpus is materialized from ENA metadata and FASTQ URLs through the Bijux CLI:
 
 ```bash
-cargo run -q -p bijux-dna -- corpus materialize
+cargo run -q -p bijux-dna -- corpus materialize --spec configs/runtime/corpora/corpus-01.toml
 ```
 
-By default the corpus lands at:
-
-```text
-<CORPUS_ROOT>
-```
+The materialization root comes from `--root` or from `preferred_root` in `configs/runtime/corpora/corpus-01.toml`.
+The committed spec keeps that path machine-neutral through `${BIJUX_CORPUS_01_ROOT}`, so a new machine only needs to set that environment variable or pass `--root` explicitly.
 
 Materialization writes:
 
