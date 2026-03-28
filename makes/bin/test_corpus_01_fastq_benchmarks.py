@@ -5108,6 +5108,104 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             )
         )
 
+    def test_result_audit_flags_duplicate_local_run_roots(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+            docs_root.mkdir(parents=True)
+            canonical_run_root = (
+                repo_root
+                / "home"
+                / "bijan"
+                / "lu2024-12-24"
+                / ".cache"
+                / "results"
+                / "corpus_01"
+                / "fastq.validate_reads"
+                / "lunarc"
+            )
+            legacy_run_root = (
+                repo_root
+                / "archive"
+                / "corpus_01"
+                / "fastq.validate_reads"
+                / "lunarc"
+            )
+            sample_report = canonical_run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
+            sample_report.parent.mkdir(parents=True)
+            legacy_run_root.mkdir(parents=True)
+            (docs_root / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "corpus_root": str(
+                            repo_root / "home" / "bijan" / "lu2024-12-24" / ".cache" / "corpus_01"
+                        ),
+                        "run_root": str(canonical_run_root),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {"context": {"tool": "fastqvalidator"}},
+                            {"context": {"tool": "fastqc"}},
+                            {"context": {"tool": "fastq_scan"}},
+                            {"context": {"tool": "fqtools"}},
+                            {"context": {"tool": "seqtk"}},
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            for run_root in [canonical_run_root, legacy_run_root]:
+                (run_root / "run_manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "stage_id": "fastq.validate_reads",
+                            "scenario_id": "validation_fairness",
+                            "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                            "dry_run": False,
+                            "sample_limit": None,
+                            "samples_failed": 0,
+                            "runs": [
+                                {
+                                    "sample_id": "sample_0001",
+                                    "report_json": str(sample_report),
+                                }
+                            ],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+
+            with mock.patch.object(
+                support,
+                "benchmark_local_results_root",
+                return_value=repo_root / "archive",
+            ), mock.patch.object(
+                support,
+                "benchmark_local_cache_mirror_root",
+                return_value=repo_root / "home" / "bijan" / "lu2024-12-24" / ".cache",
+            ):
+                report = published_results_audit.audit_stage(
+                    repo_root,
+                    "fastq.validate_reads",
+                    "validation_fairness",
+                    ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                )
+
+        self.assertTrue(
+            any(
+                issue["issue_id"] == "duplicate-result-root-ambiguity"
+                for issue in report["issues"]
+            )
+        )
+
 
 class ValidateReadsReportingTests(unittest.TestCase):
     def test_validate_reads_summary_preserves_contract_identity_and_corpus_root(self) -> None:
