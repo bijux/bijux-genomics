@@ -11,10 +11,13 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     fmt_csv_value,
     fmt_fraction,
+    fmt_metric,
     fmt_runtime,
+    fmt_value,
     load_csv_rows,
     load_json,
     parse_corpus_briefing_args,
+    publish_corpus_briefing_artifacts,
     percentile,
     safe_mean,
     safe_median,
@@ -25,6 +28,39 @@ def parse_args() -> argparse.Namespace:
         description="Render an enriched benchmark briefing from corpus-01 profile-reads artifacts.",
         docs_root="docs/benchmark/fastq.profile_reads/corpus-01",
     )
+
+
+def validate_summary_contract(summary: dict) -> None:
+    expected_values = {
+        "stage_id": "fastq.profile_reads",
+        "scenario_id": "profile_reads_fairness",
+        "report_only": True,
+        "mutates_fastq": False,
+        "may_change_read_count": False,
+        "raw_backend_report_format": "seqkit_stats_tsv",
+        "length_histogram_source": "seqkit_fx2tab",
+    }
+    for key, expected in expected_values.items():
+        if summary.get(key) != expected:
+            raise SystemExit(
+                f"profile-reads briefing drift: summary {key}={summary.get(key)!r} expected {expected!r}"
+            )
+
+
+def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
+    expected_tools = sorted(summary.get("tools") or [])
+    observed_tools = sorted({row.get("tool", "") for row in rows if row.get("tool")})
+    if observed_tools != expected_tools:
+        raise SystemExit(
+            f"profile-reads briefing drift: observed tools {observed_tools!r} expected {expected_tools!r}"
+        )
+    for row in rows:
+        histogram_bins = int(row.get("histogram_bin_count", "0") or 0)
+        if histogram_bins <= 0:
+            raise SystemExit(
+                "profile-reads briefing drift: histogram_bin_count must stay positive"
+            )
+
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
     by_tool: dict[str, list[dict]] = defaultdict(list)
@@ -284,15 +320,6 @@ def render_markdown(
     )
     return "\n".join(lines) + "\n"
 
-def write_csv(path: Path, rows: list[dict]) -> None:
-    if not rows:
-        raise SystemExit(f"cannot write empty csv artifact: {path}")
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({key: fmt_csv_value(value) for key, value in row.items()})
-
 def main() -> int:
     args = parse_args()
     docs_root = Path(args.docs_root).resolve()
@@ -305,12 +332,12 @@ def main() -> int:
     cohort_rows = cohort_runtime_summary(rows)
     outliers = sample_runtime_outliers(rows)
 
-    write_csv(docs_root / "tool_runtime_summary.csv", runtime_rows)
-    write_csv(docs_root / "cohort_runtime_summary.csv", cohort_rows)
-    write_csv(docs_root / "sample_runtime_outliers.csv", outliers)
-    (docs_root / "benchmark.md").write_text(
-        render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
-        encoding="utf-8",
+    publish_corpus_briefing_artifacts(
+        docs_root,
+        markdown=render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
+        runtime_rows=runtime_rows,
+        cohort_rows=cohort_rows,
+        outlier_rows=outliers,
     )
     return 0
 
