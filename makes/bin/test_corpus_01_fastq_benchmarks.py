@@ -424,6 +424,19 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
 
         self.assertIn('--config', text)
         self.assertIn("configure_workspace_config_path(args.config)", text)
+        self.assertIn(
+            "from benchmark_fastq_corpus.workspace_values import resolve_workspace_value",
+            text,
+        )
+
+    def test_benchmark_publication_targets_uses_package_module(self) -> None:
+        text = runner_script_text("benchmark_publication_targets.py")
+
+        self.assertIn(
+            "from benchmark_fastq_corpus.publication_targets import resolve_targets",
+            text,
+        )
+        self.assertNotIn("CORPUS_01_PUBLICATION_CONTRACTS", text)
 
     def test_report_renderers_use_shared_corpus_report_arg_parser(self) -> None:
         for path in report_renderer_paths():
