@@ -30,6 +30,14 @@ The stable local mirror contract is:
 
 Do not scatter benchmark pulls across ad hoc local directories. Keep mirrored artifacts under `local.results_root` so renderers, audits, and repair tools can resolve the same path contract.
 
+The governed one-shot command for corpus-01 FASTQ publication is:
+
+```text
+make benchmark-lunarc-publication-refresh
+```
+
+That command pulls the governed results mirror, pulls the taxonomy lineage file required by `fastq.screen_taxonomy`, refreshes the published dossiers, and rebuilds the publication audits.
+
 ## Move To Another Cluster With Config
 
 1. Copy `configs/bench/workspace.toml` and update the `[remote]` paths for the new frontend checkout, shared cache root, results root, extra-data root, container root, and reference root.
@@ -55,8 +63,9 @@ The `pull-benchmark-publication` profile is the governed profile for corpus-01 F
 
 - Confirm `configs/bench/workspace.toml` names the correct `local` and `remote` roots.
 - Confirm the local mirror under `local.cache_mirror_root` contains the required `results`, `extra-data`, and `reference` trees.
-- Refresh corpus dossiers from the governed report targets.
-- Re-run the publication audit after the refresh.
+- Run `make benchmark-lunarc-publication-refresh` when the source run lives on Lunarc and publication inputs need a fresh sync.
+- Refresh corpus dossiers from the governed report targets when a local rerender is sufficient.
+- Re-run the publication audit after the refresh if you did not use the governed one-shot command.
 - Review `docs/benchmark/corpus-01-dossier-index.json` and `docs/benchmark/corpus-01-dossier-index.md` to confirm each dossier freshness stamp and published run-root source.
 - Review `docs/benchmark/corpus-01-results-status.json` and `docs/benchmark/corpus-01-results-status.md` to confirm the local mirror still matches the published summaries.
 - Review `docs/benchmark/corpus-01-remediation-queue.json` and `docs/benchmark/corpus-01-remediation-queue.md` to confirm the remaining open stages, recommended action, and queue owner.

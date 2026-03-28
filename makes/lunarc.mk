@@ -7,6 +7,8 @@ LUNARC_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py rem
 LUNARC_CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
 LUNARC_LOCAL_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py local.results_root)
 LUNARC_PULL_BASE ?= $(LUNARC_LOCAL_RESULTS_DIR)
+LUNARC_INCLUDE_PROFILE ?= pull-results-default
+LUNARC_EXCLUDE_PROFILE ?= pull-full-default
 CLEAN_CONTEXT ?= 1
 ALLOW_DIRTY ?= 0
 INCLUDE_CONTAINERS_MANIFEST ?= 0
@@ -49,7 +51,9 @@ _pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: resu
 	INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	PULL_MODE="results" \
-	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull
+	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
+		--include-profile "$(LUNARC_INCLUDE_PROFILE)" \
+		--exclude-profile "$(LUNARC_EXCLUDE_PROFILE)"
 
 pull-lunarc: _pull-lunarc ## Public alias for pull from Lunarc
 
@@ -65,7 +69,9 @@ _pull-lunarc-results: ## Recommended: pull results + optional manifests only
 	INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	PULL_MODE="results" \
-	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull
+	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
+		--include-profile "$(LUNARC_INCLUDE_PROFILE)" \
+		--exclude-profile "$(LUNARC_EXCLUDE_PROFILE)"
 
 pull-lunarc-results: _pull-lunarc-results ## Public alias for pull results from Lunarc
 
@@ -73,6 +79,13 @@ pull-lunarc-results-prune: _pull-lunarc-results ## Pull results locally, then cl
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
 		mkdir -p "$(LUNARC_RESULTS_DIR)"; \
 		find "$(LUNARC_RESULTS_DIR)" -mindepth 1 -maxdepth 1 ! -name site_lock.json -exec rm -rf {} +'
+
+benchmark-lunarc-publication-refresh: ## Pull governed publication inputs, render dossiers, and refresh audits
+	@$(MAKE) pull-lunarc-results \
+		LUNARC_INCLUDE_PROFILE="pull-benchmark-publication" \
+		INCLUDE_CONTAINERS_MANIFEST=1 \
+		DATA_MANIFEST_GLOB="benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"
+	@$(MAKE) _benchmark-corpus-01-published-dossiers
 
 lunarc-footprint: ## Report Lunarc frontend footprint and fail above 20 GB
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
@@ -243,4 +256,4 @@ apptainer-hpc-clean: ## Remove frontend apptainer output dir
 		rm -rf "$(LUNARC_APPTAINER_DIR)"; \
 		echo "removed $(LUNARC_APPTAINER_DIR)"
 
-.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results pull-lunarc-results-prune lunarc-footprint lunarc-prune-code apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean
+.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results pull-lunarc-results-prune benchmark-lunarc-publication-refresh lunarc-footprint lunarc-prune-code apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean
