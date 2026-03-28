@@ -2,7 +2,7 @@
 
 ## Run Contract
 
-- Generated: 2026-03-28T02:44:13.422867+00:00
+- Generated: 2026-03-28T02:56:48.313237+00:00
 - Platform: `lunarc-apptainer`
 - Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
 - Run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc`
