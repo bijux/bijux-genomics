@@ -1502,6 +1502,45 @@ class BenchmarkMakefileTests(unittest.TestCase):
             self.assertEqual(metadata["sample_0002"]["layout"], "pe")
             self.assertEqual(metadata["sample_0004"]["era"], "modern")
 
+    def test_resolve_corpus_metadata_uses_first_available_full_scope_stage(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.profile_reads" / "corpus-01"
+            docs_root.mkdir(parents=True)
+            (docs_root / "sample_results.csv").write_text(
+                "\n".join(
+                    [
+                        "sample_id,accession,era,layout,study_accession,size_band,tool",
+                        "sample_0001,ACC_ANCIENT_SE,ancient,se,PRJ1,under_100mb,seqkit_stats",
+                        "sample_0002,ACC_ANCIENT_PE,ancient,pe,PRJ2,under_100mb,seqkit_stats",
+                        "sample_0003,ACC_MODERN_SE,modern,se,PRJ3,under_500mb,seqkit_stats",
+                        "sample_0004,ACC_MODERN_PE,modern,pe,PRJ4,under_500mb,seqkit_stats",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            metadata = support.resolve_corpus_metadata(
+                repo_root,
+                repo_root / "missing-corpus",
+                {
+                    "target_ancient_se": 1,
+                    "target_ancient_pe": 1,
+                    "target_modern_se": 1,
+                    "target_modern_pe": 1,
+                },
+                expected_sample_ids=[
+                    "sample_0001",
+                    "sample_0002",
+                    "sample_0003",
+                    "sample_0004",
+                ],
+            )
+
+            self.assertEqual(metadata["sample_0001"]["accession"], "ACC_ANCIENT_SE")
+            self.assertEqual(metadata["sample_0004"]["study_accession"], "PRJ4")
+
     def test_filter_low_complexity_runner_parse_args_supports_sample_jobs(self) -> None:
         argv = [
             "run_fastq_filter_low_complexity_corpus_01.py",

@@ -28,7 +28,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 40. `default_local_results_stage_root()` assumes the local mirror is always rooted at one fixed macOS path.
 41. `infer_cache_root()` only works when the path contains a literal `.cache` segment.
 42. `benchmark_runtime_env()` derives `BIJUX_HPC_ROOT` from `.cache` heuristics instead of explicit config.
-43. `load_published_sample_metadata()` is anchored to `fastq.validate_reads` as the fallback metadata source.
 44. `load_published_sample_metadata()` hardcodes an expected total of 20 samples rather than loading the count from a contract file.
 45. Benchmark renderers duplicate argument parsing instead of using a shared workspace/path resolver.
 46. Benchmark renderers duplicate runtime summary calculations across many nearly identical scripts.
