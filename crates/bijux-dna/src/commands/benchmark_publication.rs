@@ -9,6 +9,7 @@ use regex::Regex;
 use serde::Serialize;
 
 use crate::commands::benchmark_repo_checks::{audit_repo_checks, fail_on_repo_check_violations};
+use crate::commands::benchmark_stage_catalog::corpus_fastq_make_target;
 use crate::commands::benchmark_workspace::{
     benchmark_config_path, benchmark_corpus_spec_path, load_benchmark_config,
     load_benchmark_publication_config, write_workspace_layout_status, BenchmarkWorkspaceConfig,
@@ -32,8 +33,8 @@ pub(crate) fn print_benchmark_publication_targets(
     let targets = corpus_01
         .contracts
         .into_iter()
-        .map(|contract| benchmark_make_target(&contract.stage_id, &args.kind))
-        .collect::<Vec<_>>();
+        .map(|contract| corpus_fastq_make_target(&contract.stage_id, &args.kind))
+        .collect::<Result<Vec<_>>>()?;
     println!("{}", targets.join(" "));
     Ok(())
 }
@@ -95,37 +96,6 @@ pub(crate) fn run_corpus_fastq_report(cwd: &Path, args: &BenchCorpusFastqReportA
     let briefing_spec = corpus_fastq_stage_briefing_step(cwd, &args.stage, &stage_docs_root)?;
     run_subprocess(cwd, &config_path, &briefing_spec)?;
     Ok(())
-}
-
-fn benchmark_make_target(stage_id: &str, kind: &str) -> String {
-    let stage_suffix = match stage_id {
-        "fastq.validate_reads" => "validate",
-        "fastq.detect_adapters" => "detect-adapters",
-        "fastq.profile_reads" => "profile-reads",
-        "fastq.profile_read_lengths" => "profile-read-lengths",
-        "fastq.profile_overrepresented_sequences" => "profile-overrepresented",
-        "fastq.normalize_primers" => "normalize-primers",
-        "fastq.trim_polyg_tails" => "trim-polyg",
-        "fastq.trim_reads" => "trim-reads",
-        "fastq.filter_reads" => "filter-reads",
-        "fastq.filter_low_complexity" => "filter-low-complexity",
-        "fastq.deplete_rrna" => "deplete-rrna",
-        "fastq.merge_pairs" => "merge",
-        "fastq.remove_duplicates" => "remove-duplicates",
-        "fastq.deplete_host" => "deplete-host",
-        "fastq.deplete_reference_contaminants" => "deplete-reference-contaminants",
-        "fastq.correct_errors" => "correct-errors",
-        "fastq.extract_umis" => "extract-umis",
-        "fastq.screen_taxonomy" => "screen-taxonomy",
-        "fastq.trim_terminal_damage" => "trim-terminal-damage",
-        "fastq.report_qc" => "report-qc",
-        other => panic!("unsupported corpus benchmark publication stage: {other}"),
-    };
-    match kind {
-        "run" => format!("_benchmark-{stage_suffix}-corpus-01"),
-        "report" => format!("_benchmark-{stage_suffix}-corpus-01-report"),
-        other => panic!("unsupported benchmark publication target kind: {other}"),
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1856,7 +1826,9 @@ fn makefile_publication_warnings(
         .with_context(|| format!("read {}", makefile_path.display()))?;
     let missing_targets = contracts
         .iter()
-        .map(|contract| benchmark_make_target(&contract.stage_id, "report"))
+        .map(|contract| corpus_fastq_make_target(&contract.stage_id, "report"))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
         .filter(|target| !makefile_text.contains(&format!("{target}:")))
         .collect::<Vec<_>>();
     if missing_targets.is_empty() {
@@ -2768,7 +2740,11 @@ mod tests {
     #[test]
     fn publication_target_maps_profile_overrepresented_stage() {
         assert_eq!(
-            super::benchmark_make_target("fastq.profile_overrepresented_sequences", "report"),
+            crate::commands::benchmark_stage_catalog::corpus_fastq_make_target(
+                "fastq.profile_overrepresented_sequences",
+                "report",
+            )
+            .expect("report target"),
             "_benchmark-profile-overrepresented-corpus-01-report"
         );
     }
@@ -2776,7 +2752,11 @@ mod tests {
     #[test]
     fn publication_target_maps_merge_pairs_stage() {
         assert_eq!(
-            super::benchmark_make_target("fastq.merge_pairs", "run"),
+            crate::commands::benchmark_stage_catalog::corpus_fastq_make_target(
+                "fastq.merge_pairs",
+                "run",
+            )
+            .expect("run target"),
             "_benchmark-merge-corpus-01"
         );
     }
@@ -2784,7 +2764,11 @@ mod tests {
     #[test]
     fn publication_target_maps_filter_reads_stage() {
         assert_eq!(
-            super::benchmark_make_target("fastq.filter_reads", "report"),
+            crate::commands::benchmark_stage_catalog::corpus_fastq_make_target(
+                "fastq.filter_reads",
+                "report",
+            )
+            .expect("report target"),
             "_benchmark-filter-reads-corpus-01-report"
         );
     }
