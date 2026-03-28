@@ -6,7 +6,7 @@ This document defines the governed benchmark workspace layout for corpus publica
 
 `configs/bench/workspace.toml` is the authority. Benchmark runners, renderers, sync helpers, and audit scripts must read workspace paths from that config instead of hardcoding user paths in code.
 
-The shared Python home for that contract is `makes/bin/benchmark_fastq_corpus/`. Top-level scripts in `makes/bin/` are compatibility wrappers and should delegate into the package.
+`bijux-dna` should own benchmark orchestration against this contract. Python under `makes/bin/benchmark_fastq_corpus/` is now a compatibility and helper layer, not the intended primary execution surface.
 
 Read this together with `docs/benchmark/workspace-model.md` for the durable role names used across the benchmark surface.
 
@@ -53,7 +53,7 @@ Make targets, Python tooling, and Rust sync commands should all load these defau
 The governed override surface is:
 
 - `BIJUX_FASTQ_CORPUS_CONFIG` for make-driven and environment-driven Python calls
-- shared `--config` CLI options for package-backed Python entrypoints
+- shared `--config` CLI options for `bijux-dna bench corpus-fastq` and compatibility Python entrypoints
 
 ## Publication Rules
 
@@ -65,7 +65,7 @@ The governed override surface is:
 ## Review Checklist
 
 - If a benchmark helper needs a path, add it to `configs/bench/workspace.toml` before embedding a formula in code.
-- If a Python helper needs reusable benchmark logic, add it under `makes/bin/benchmark_fastq_corpus/` before creating another top-level script.
+- If a benchmark workflow needs new orchestration, add it to `bijux-dna` before creating another Python runner.
 - If a benchmark artifact is mirrored locally, keep it under `local.results_root` with the governed tree shape above.
 - If a path appears in generated docs, prefer the configured workspace contract over historical private-path aliases.
 - If a publication refresh is complete, the checked-in ledger set should agree across `corpus-01-status.*`, `corpus-01-results-status.*`, `corpus-01-dossier-index.*`, and `corpus-01-remediation-queue.*`.

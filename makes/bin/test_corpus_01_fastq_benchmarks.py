@@ -967,10 +967,18 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = benchmark_makefile_text()
 
         self.assertIn(
-            'CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)',
+            'CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" remote.corpus_root)',
             text,
         )
         self.assertNotIn("CORPUS_ROOT ?= /home/bijan/bijux/corpus_01", text)
+
+    def test_benchmark_makefile_uses_rust_corpus_runner(self) -> None:
+        text = benchmark_makefile_text()
+
+        self.assertIn("BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --", text)
+        self.assertIn("define run_corpus_fastq_benchmark", text)
+        self.assertIn("bench corpus-fastq", text)
+        self.assertNotIn("python3 makes/bin/run_fastq_validate_reads_corpus_01.py", text)
 
     def test_benchmark_makefile_defers_published_dossier_roster_to_generated_contract(
         self,
@@ -1014,7 +1022,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
         self.assertIn(
-            'BENCHMARK_WORKSPACE_VALUE = BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" python3 makes/bin/benchmark_workspace_value.py',
+            'BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --',
+            text,
+        )
+        self.assertIn(
+            'BENCHMARK_WORKSPACE_VALUE = BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)"',
             text,
         )
         self.assertIn(
@@ -1076,6 +1088,25 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertNotIn("LUNARC_HOST ?= lunarc", text)
         self.assertNotIn("LUNARC_ROOT ?= /home/bijan/bijux", text)
         self.assertNotIn("LUNARC_LOCAL_RESULTS_DIR ?= $(HOME)/bijux/bijux-dna-results", text)
+
+    def test_deplete_rrna_corpus_target_forwards_stage_args_through_rust_runner(
+        self,
+    ) -> None:
+        text = benchmark_makefile_text()
+        recipe = makefile_target_recipe("_benchmark-deplete-rrna-corpus-01")
+
+        self.assertIn("$(call run_corpus_fastq_benchmark,fastq.deplete_rrna", recipe)
+        self.assertIn('--stage-arg "--rrna-db"', text)
+        self.assertIn('--stage-arg "--rrna-bundle-id"', text)
+
+    def test_screen_taxonomy_corpus_target_forwards_database_root_through_rust_runner(
+        self,
+    ) -> None:
+        text = benchmark_makefile_text()
+        recipe = makefile_target_recipe("_benchmark-screen-taxonomy-corpus-01")
+
+        self.assertIn("$(call run_corpus_fastq_benchmark,fastq.screen_taxonomy", recipe)
+        self.assertIn('--stage-arg "--database-root"', text)
 
     def test_lunarc_makefile_exports_neutral_benchmark_sync_env_vars(self) -> None:
         text = lunarc_makefile_text()

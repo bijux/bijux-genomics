@@ -1,7 +1,8 @@
 ##@ Lunarc Sync
 
+BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --
 BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml
-BENCHMARK_WORKSPACE_VALUE = BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" python3 makes/bin/benchmark_workspace_value.py
+BENCHMARK_WORKSPACE_VALUE = BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)"
 
 LUNARC_HOST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.ssh_host)
 LUNARC_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.frontend_root)
