@@ -15,7 +15,7 @@
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-28T02:46:45.334156+00:00",
+  "generated_at_utc": "2026-03-28T13:13:27.746619+00:00",
   "headline": {
     "best_base_retention": 1.0,
     "best_base_retention_tool": "atropos",
@@ -23,21 +23,21 @@
     "best_q_gain_tool": "adapterremoval",
     "best_read_retention": 1.0,
     "best_read_retention_tool": "atropos",
-    "fastest_runtime_s": 1.216278664,
+    "fastest_runtime_s": 1.248972368,
     "fastest_tool": "seqkit"
   },
   "layout_counts": {
     "pe": 10,
     "se": 10
   },
-  "min_length": 30,
+  "min_length": null,
   "n_policy": "retain",
   "platform": "lunarc-apptainer",
   "polyx_policy": "none",
   "polyx_preset": null,
   "quality_cutoff": null,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc",
-  "samples_failed": 0,
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
+  "samples_failed": 20,
   "samples_total": 20,
   "scenario_id": "trim_fairness",
   "schema_version": "bijux.fastq.trim_reads.corpus_summary.v1",
@@ -45,18 +45,27 @@
   "tool_summary": [
     {
       "mean_q_delta": 0.0,
-      "median_base_retention": 0.9796596790297951,
-      "median_read_retention": 0.9982975244926409,
-      "median_runtime_s": 3.1976336434999997,
+      "median_base_retention": 0.9894182223084752,
+      "median_read_retention": 0.9999908107452911,
+      "median_runtime_s": 3.331970792,
       "pass_rate": 1.0,
       "records": 20,
       "tool": "adapterremoval"
     },
     {
       "mean_q_delta": 0.0,
+      "median_base_retention": 0.1352238769299927,
+      "median_read_retention": 0.08326978481289242,
+      "median_runtime_s": 9.257075377,
+      "pass_rate": 0.65,
+      "records": 20,
+      "tool": "alientrimmer"
+    },
+    {
+      "mean_q_delta": 0.0,
       "median_base_retention": 1.0,
       "median_read_retention": 1.0,
-      "median_runtime_s": 24.1701376065,
+      "median_runtime_s": 30.713486731499998,
       "pass_rate": 1.0,
       "records": 20,
       "tool": "atropos"
@@ -65,7 +74,7 @@
       "mean_q_delta": 0.0,
       "median_base_retention": 1.0,
       "median_read_retention": 1.0,
-      "median_runtime_s": 3.198806736,
+      "median_runtime_s": 3.4221605635000003,
       "pass_rate": 1.0,
       "records": 20,
       "tool": "bbduk"
@@ -74,25 +83,43 @@
       "mean_q_delta": 0.0,
       "median_base_retention": 1.0,
       "median_read_retention": 1.0,
-      "median_runtime_s": 5.793699607,
+      "median_runtime_s": 6.0719821315,
       "pass_rate": 1.0,
       "records": 20,
       "tool": "cutadapt"
     },
     {
       "mean_q_delta": 0.0,
-      "median_base_retention": 0.9176445574577161,
-      "median_read_retention": 0.9484609768670196,
-      "median_runtime_s": 5.522647689999999,
+      "median_base_retention": 0.9202160462691116,
+      "median_read_retention": 0.9558210253801258,
+      "median_runtime_s": 5.5470290675000005,
       "pass_rate": 1.0,
       "records": 20,
       "tool": "fastp"
     },
     {
       "mean_q_delta": 0.0,
+      "median_base_retention": 0.9975881639541404,
+      "median_read_retention": 0.9980275711413591,
+      "median_runtime_s": 46.244806611,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "fastx_clipper"
+    },
+    {
+      "mean_q_delta": 0.0,
+      "median_base_retention": 0.9807849384534217,
+      "median_read_retention": 0.9807849384534217,
+      "median_runtime_s": 53.8575425795,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "leehom"
+    },
+    {
+      "mean_q_delta": 0.0,
       "median_base_retention": 1.0,
       "median_read_retention": 1.0,
-      "median_runtime_s": 2.0132564134999997,
+      "median_runtime_s": 2.0423878254999996,
       "pass_rate": 1.0,
       "records": 20,
       "tool": "prinseq"
@@ -101,38 +128,51 @@
       "mean_q_delta": 0.0,
       "median_base_retention": 1.0,
       "median_read_retention": 1.0,
-      "median_runtime_s": 1.216278664,
+      "median_runtime_s": 1.248972368,
       "pass_rate": 1.0,
       "records": 20,
       "tool": "seqkit"
     },
     {
       "mean_q_delta": 0.0,
+      "median_base_retention": 0.9998626120723278,
+      "median_read_retention": 1.0,
+      "median_runtime_s": 18.485816221,
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "skewer"
+    },
+    {
+      "mean_q_delta": 0.0,
       "median_base_retention": 1.0,
       "median_read_retention": 1.0,
-      "median_runtime_s": 20.1041372345,
+      "median_runtime_s": 20.7682224315,
       "pass_rate": 1.0,
       "records": 20,
       "tool": "trim_galore"
     },
     {
       "mean_q_delta": 0.0,
-      "median_base_retention": 1.0,
-      "median_read_retention": 1.0,
-      "median_runtime_s": 16.2249017605,
-      "pass_rate": 1.0,
+      "median_base_retention": 0.0,
+      "median_read_retention": 0.0,
+      "median_runtime_s": null,
+      "pass_rate": 0.0,
       "records": 20,
       "tool": "trimmomatic"
     }
   ],
   "tools": [
     "adapterremoval",
+    "alientrimmer",
     "atropos",
     "bbduk",
     "cutadapt",
     "fastp",
+    "fastx_clipper",
+    "leehom",
     "prinseq",
     "seqkit",
+    "skewer",
     "trim_galore",
     "trimmomatic"
   ]
