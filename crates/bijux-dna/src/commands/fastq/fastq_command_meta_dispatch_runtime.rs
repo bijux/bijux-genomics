@@ -194,6 +194,14 @@
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             match &args.command {
+                BenchCommand::Config { command } => match command {
+                    BenchConfigCommand::Validate(args) => {
+                        crate::commands::benchmark_config::validate_benchmark_config(
+                            &std::env::current_dir()?,
+                            args,
+                        )?;
+                    }
+                },
                 BenchCommand::Run(args) => {
                     let run_dir = crate::commands::bench_suite::run_suite(
                         &std::env::current_dir()?,
