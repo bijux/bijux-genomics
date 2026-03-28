@@ -398,6 +398,7 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	@$(MAKE) _benchmark-trim-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-trim-terminal-damage-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-merge-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@$(MAKE) _benchmark-remove-duplicates-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-report-qc-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
 	@$(MAKE) _benchmark-corpus-01-publication-status
 
