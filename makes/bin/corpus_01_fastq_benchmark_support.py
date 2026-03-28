@@ -665,9 +665,15 @@ def localize_results_path(path_str: str, local_results_root: Path) -> Path:
     if path.exists():
         return path
     cache_mirror_root = benchmark_local_cache_mirror_root()
+    bijux_dna_results_root = (
+        cache_mirror_root / "bijux-dna-results"
+        if local_results_root.name == "results"
+        and local_results_root.parent == cache_mirror_root
+        else local_results_root
+    )
     root_mappings = [
         ("/results/", local_results_root),
-        ("/bijux-dna-results/", cache_mirror_root / "bijux-dna-results"),
+        ("/bijux-dna-results/", bijux_dna_results_root),
         ("/extra-data/", cache_mirror_root / "extra-data"),
         ("/reference/", cache_mirror_root / "reference"),
     ]
