@@ -15,18 +15,14 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 ## Files
 - `configs/bench/benchmark.toml`
 - `configs/bench/knobs.toml`
-- `configs/bench/publication.toml`
-- `configs/bench/workspace.toml`
 
 ## Control Plane Contract
 - `bijux-dna` is the primary benchmark control plane for workspace lookups, dossier refresh, publication audits, and corpus benchmark execution.
 - `bijux-dna bench workspace-value`, `bijux-dna bench corpus-fastq`, `bijux-dna bench corpus-fastq-report`, `bijux-dna bench corpus-fastq-publication-status`, and `bijux-dna bench corpus-fastq-published-dossiers` consume the governed benchmark config directly.
 - `bijux-dna bench publication-targets` remains a contract inspection helper, not the primary publication orchestration path.
-- `makes/bin/benchmark_fastq_corpus/` remains a compatibility and helper package for Python report rendering, audits, and narrow bootstrap utilities.
-- Top-level scripts under `makes/bin/` are compatibility entrypoints and should keep shrinking rather than gaining new orchestration logic.
-- `configs/bench/benchmark.toml` is the canonical benchmark contract for both Rust and Python benchmark surfaces.
+- Top-level scripts under `makes/bin/` should remain thin wrappers or narrow bootstrap utilities, not benchmark orchestration peers to `bijux-dna`.
+- `configs/bench/benchmark.toml` is the canonical benchmark contract.
 - `BIJUX_BENCHMARK_CONFIG` and shared `--config` CLI options select a different benchmark config when a local or migration workflow needs one.
-- `configs/bench/workspace.toml` and `configs/bench/publication.toml` are compatibility shims for legacy consumers and should not gain new fields that are absent from `configs/bench/benchmark.toml`.
 - Machine-specific roots inside `configs/bench/benchmark.toml` should be supplied through environment placeholders rather than committed absolute paths.
 
 ## Workspace Contract
@@ -37,7 +33,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `[remote].cache_root`, `results_root`, `extra_data_root`, `containers_root`, and `reference_root` point at governed shared artifacts under the HPC workspace.
 
 ## Publication Contract
-- `[publication]` in `configs/bench/benchmark.toml` keeps governed corpus publication exclusions outside Python support code.
+- `[publication]` in `configs/bench/benchmark.toml` keeps governed corpus publication exclusions outside runner and dossier implementation code.
 - `[[publication.corpus_01.contracts]]` rows declare the governed published stage roster, scenario ids, sample scopes, and tool rosters.
 
 ## Corpus Contract
