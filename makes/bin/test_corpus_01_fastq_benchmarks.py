@@ -57,8 +57,6 @@ import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 import render_fastq_validate_reads_corpus_01_report as validate_reads_report
 import normalize_lunarc_results_mirror as normalize_results_mirror
-import converge_benchmark_workspace_roots as converge_workspace_roots
-import normalize_benchmark_workspace_stage_roots as normalize_workspace_stage_roots
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 import benchmark_tooling_repo_checks
@@ -564,6 +562,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_publication_docs_audit_builder_is_deleted(self) -> None:
         self.assertFalse(
             (ROOT / "makes" / "bin" / "audit_corpus_01_fastq_benchmark_docs.py").exists()
+        )
+
+    def test_workspace_convergence_builder_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "converge_benchmark_workspace_roots.py").exists()
+        )
+
+    def test_workspace_stage_normalization_builder_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "normalize_benchmark_workspace_stage_roots.py").exists()
         )
 
     def test_workspace_layout_audit_builder_is_deleted(self) -> None:
@@ -1781,108 +1789,6 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("benchmark-sync-pull", text)
         self.assertIn("benchmark-sync-push", text)
         self.assertIn("BENCHMARK_SYNC_*", text)
-
-    def test_converge_workspace_roots_moves_unique_entries_and_drops_stale_duplicates(
-        self,
-    ) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_root = Path(tmpdir)
-            canonical_root = tmp_root / "results"
-            legacy_root = tmp_root / "bijux-dna-results"
-            (canonical_root / "fastq.trim_reads").mkdir(parents=True)
-            (canonical_root / "fastq.trim_reads" / "new.txt").write_text(
-                "fresh", encoding="utf-8"
-            )
-            (legacy_root / "fastq.trim_reads").mkdir(parents=True)
-            (legacy_root / "fastq.trim_reads" / "old.txt").write_text(
-                "old", encoding="utf-8"
-            )
-            os.utime(legacy_root / "fastq.trim_reads" / "old.txt", (1, 1))
-            (legacy_root / "fastq.filter_reads").mkdir(parents=True)
-            (legacy_root / "fastq.filter_reads" / "report.json").write_text(
-                "{}", encoding="utf-8"
-            )
-
-            plan = converge_workspace_roots.plan_convergence(canonical_root, legacy_root)
-            actions = {action["entry_name"]: action["action"] for action in plan["actions"]}
-            self.assertEqual(actions["fastq.trim_reads"], "remove-legacy-duplicate")
-            self.assertEqual(actions["fastq.filter_reads"], "move-legacy-entry")
-
-            report = converge_workspace_roots.apply_convergence(plan)
-            self.assertEqual(
-                {action["status"] for action in report["actions"]},
-                {"applied"},
-            )
-            self.assertTrue(
-                (canonical_root / "fastq.filter_reads" / "report.json").is_file()
-            )
-            self.assertFalse((legacy_root / "fastq.filter_reads").exists())
-            self.assertFalse((legacy_root / "fastq.trim_reads").exists())
-            self.assertTrue(report["legacy_root_removed"])
-
-    def test_normalize_workspace_stage_roots_converges_shared_and_archive_only_stage_ids(
-        self,
-    ) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_root = Path(tmpdir)
-            local_results_root = tmp_root / "archive"
-            local_cache_mirror_root = tmp_root / "mirror"
-            legacy_stage_root = local_results_root / "corpus_01" / "fastq.trim_reads"
-            canonical_stage_root = (
-                local_cache_mirror_root / "results" / "corpus_01" / "fastq.trim_reads"
-            )
-            archive_only_stage_root = (
-                local_results_root / "corpus_01" / "fastq.validate_reads"
-            )
-            (legacy_stage_root / "lunarc").mkdir(parents=True)
-            (canonical_stage_root / "lunarc").mkdir(parents=True)
-            (archive_only_stage_root / "lunarc").mkdir(parents=True)
-            (legacy_stage_root / "lunarc" / "run_manifest.json").write_text(
-                "{}",
-                encoding="utf-8",
-            )
-            (canonical_stage_root / "lunarc" / "run_manifest.json").write_text(
-                '{"completed_at_utc": "2026-03-28T00:00:00Z"}',
-                encoding="utf-8",
-            )
-            (archive_only_stage_root / "lunarc" / "run_manifest.json").write_text(
-                '{"completed_at_utc": "2026-03-27T00:00:00Z"}',
-                encoding="utf-8",
-            )
-
-            with mock.patch.object(
-                normalize_workspace_stage_roots.support,
-                "benchmark_local_results_root",
-                return_value=local_results_root,
-            ), mock.patch.object(
-                normalize_workspace_stage_roots.support,
-                "benchmark_local_cache_mirror_root",
-                return_value=local_cache_mirror_root,
-            ):
-                report = normalize_workspace_stage_roots.normalize_stage_roots(
-                    corpus_id="corpus_01",
-                    confirm=True,
-                )
-
-            self.assertFalse(legacy_stage_root.exists())
-            self.assertTrue(canonical_stage_root.exists())
-            self.assertFalse(archive_only_stage_root.exists())
-            self.assertTrue(
-                (
-                    local_cache_mirror_root
-                    / "results"
-                    / "corpus_01"
-                    / "fastq.validate_reads"
-                    / "lunarc"
-                    / "run_manifest.json"
-                ).is_file()
-            )
-
-        self.assertEqual(report["status"], "clear")
-        self.assertEqual(report["shared_stage_ids"], ["fastq.trim_reads"])
-        self.assertEqual(report["archive_only_stage_ids"], ["fastq.validate_reads"])
-        self.assertEqual(report["moved_stage_ids"], ["fastq.validate_reads"])
-        self.assertEqual(report["removed_duplicate_stage_ids"], ["fastq.trim_reads"])
 
     def test_dev_ops_pull_records_workspace_path_mappings_and_dependencies(self) -> None:
         text = dev_ops_text()
