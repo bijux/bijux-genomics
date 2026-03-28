@@ -429,6 +429,7 @@ def main() -> int:
         "platform": run_manifest["platform"],
         "corpus_root": str(corpus_root),
         "run_root": str(run_root),
+        "sample_scope": run_manifest["sample_scope"],
         "samples_total": len(expected_sample_ids),
         "samples_failed": benchmark_manifest_failure_count(applicable_runs),
         "tools": run_manifest["tools"],

@@ -5845,6 +5845,114 @@ class MergeReportingTests(unittest.TestCase):
 
             self.assertEqual(resolved, canonical)
 
+    def test_merge_summary_publishes_paired_sample_scope(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = repo_root / "results" / "corpus_01" / "fastq.merge_pairs" / "lunarc"
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.merge_pairs" / "corpus-01"
+            sample_report = (
+                run_root / "bench" / "merge_pairs" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "bbmerge",
+                                    "parameters": {
+                                        "merge_overlap": 20,
+                                        "min_length": 30,
+                                        "unmerged_read_policy": "emit_unmerged_pairs",
+                                    },
+                                },
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "reads_in": 100,
+                                        "reads_out": 90,
+                                        "bases_in": 1000,
+                                        "bases_out": 920,
+                                        "pairs_in": 50,
+                                        "pairs_out": 45,
+                                        "reads_r1": 50,
+                                        "reads_r2": 50,
+                                        "reads_merged": 10,
+                                        "reads_unmerged": 40,
+                                        "merge_rate": 0.2,
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "stage_id": "fastq.merge_pairs",
+                        "scenario_id": "merge_fairness",
+                        "tool_kind": "benchmark",
+                        "sample_scope": "paired",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "tools": ["bbmerge"],
+                        "merge_overlap": 20,
+                        "min_length": 30,
+                        "unmerged_read_policy": "emit_unmerged_pairs",
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "pe",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_merge_pairs_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    merge_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    merge_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "modern",
+                            "layout": "pe",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(merge_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(summary["sample_scope"], "paired")
+
 class DetectAdaptersReportingTests(unittest.TestCase):
     def test_detect_adapters_summary_tracks_runtime_and_signal(self) -> None:
         rows = [
