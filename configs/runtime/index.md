@@ -12,6 +12,7 @@ Keep runtime configuration scoped to this directory so ownership is explicit and
 - Invariant: every platform key is unique and stable over time.
 - Invariant: each platform entry must define deterministic runtime selection (no floating aliases).
 - Invariant: values are policy inputs only; they must not contain host-local absolute paths.
+- Invariant: shared-cache runners must resolve site-local container roots from environment or workspace contracts, not from user-home literals committed to the file.
 
 Fields:
 - `platforms.<id>.runtime`: runtime selector (for example `docker-arm64`, `docker-amd64`, `apptainer`).
