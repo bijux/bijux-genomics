@@ -11,6 +11,13 @@ BENCHMARK_TOOLING_GLOBS = (
     "makes/bin/*.py",
     "makes/*.mk",
 )
+BENCHMARK_CONTRACT_GLOBS = (
+    "configs/bench/*.toml",
+    "configs/bench/*.md",
+    "docs/benchmark/**/*.md",
+    "docs/benchmark/**/*.json",
+    "docs/benchmark/**/*.csv",
+)
 
 EXCLUDED_TOOLING_PATHS = {
     Path("makes/bin/test_corpus_01_fastq_benchmarks.py"),
@@ -52,14 +59,22 @@ def benchmark_tooling_paths(repo_root: Path) -> list[Path]:
     )
 
 
+def benchmark_contract_paths(repo_root: Path) -> list[Path]:
+    paths: set[Path] = set()
+    for pattern in BENCHMARK_CONTRACT_GLOBS:
+        paths.update(path for path in repo_root.glob(pattern) if path.is_file())
+    return sorted(paths)
+
+
 def literal_matches(
+    paths: list[Path],
     repo_root: Path,
     *,
     literal: str,
     issue_id: str,
 ) -> list[dict[str, str | int]]:
     matches: list[dict[str, str | int]] = []
-    for path in benchmark_tooling_paths(repo_root):
+    for path in paths:
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
             if literal not in line:
                 continue
@@ -76,13 +91,14 @@ def literal_matches(
 
 
 def regex_matches(
+    paths: list[Path],
     repo_root: Path,
     *,
     issue_id: str,
     patterns: tuple[re.Pattern[str], ...],
 ) -> list[dict[str, str | int]]:
     matches: list[dict[str, str | int]] = []
-    for path in benchmark_tooling_paths(repo_root):
+    for path in paths:
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
             if not any(pattern.search(line) for pattern in patterns):
                 continue
@@ -99,13 +115,19 @@ def regex_matches(
 
 
 def audit_repo_checks(repo_root: Path) -> dict:
+    tooling_paths = benchmark_tooling_paths(repo_root)
+    contract_paths = benchmark_contract_paths(repo_root)
+    path_scan_paths = sorted({*tooling_paths, *contract_paths})
+
     violations = literal_matches(
+        path_scan_paths,
         repo_root,
         literal=LOCAL_OPERATOR_PATH_PREFIX,
         issue_id="hardcoded-local-operator-path",
     )
     violations.extend(
         literal_matches(
+            path_scan_paths,
             repo_root,
             literal=REMOTE_OPERATOR_PATH_PREFIX,
             issue_id="hardcoded-remote-operator-path",
@@ -113,6 +135,7 @@ def audit_repo_checks(repo_root: Path) -> dict:
     )
     violations.extend(
         regex_matches(
+            tooling_paths,
             repo_root,
             issue_id="hardcoded-ssh-host-alias",
             patterns=HARDCODED_LUNARC_HOST_PATTERNS,
