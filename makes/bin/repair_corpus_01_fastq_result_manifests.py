@@ -18,10 +18,6 @@ from corpus_01_fastq_benchmark_support import (
     localize_results_path,
     stage_run_dir_name,
 )
-import run_fastq_detect_adapters_corpus_01 as detect_runner
-import run_fastq_profile_read_lengths_corpus_01 as profile_read_lengths_runner
-import run_fastq_profile_reads_corpus_01 as profile_reads_runner
-import run_fastq_validate_reads_corpus_01 as validate_runner
 
 EXPECTED_STAGE_TOOLS = {
     "fastq.validate_reads": ["fastqvalidator", "fastqc", "fastq_scan", "seqtk", "fqtools"],
@@ -29,6 +25,77 @@ EXPECTED_STAGE_TOOLS = {
     "fastq.profile_reads": PROFILE_READS_BENCHMARK_CONTRACT.tools,
     "fastq.profile_read_lengths": PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT.tools,
 }
+
+
+def build_fastq_stage_command(
+    *,
+    bench_subcommand: str,
+    out_root: Path,
+    platform: str,
+    tools: str,
+    threads: int,
+    jobs: int,
+    sample: dict,
+    extra_args: list[str] | None = None,
+) -> list[str]:
+    command = [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "--platform",
+        platform,
+        "bench",
+        "fastq",
+        bench_subcommand,
+        "--sample-id",
+        sample["sample_id"],
+        "--r1",
+        str(sample["r1"]),
+        "--out",
+        str(out_root),
+        "--tools",
+        tools,
+        "--threads",
+        str(threads),
+    ]
+    if jobs > 1:
+        command.extend(["--jobs", str(jobs)])
+    if sample["r2"] is not None:
+        command.extend(["--r2", str(sample["r2"])])
+    if extra_args:
+        command.extend(extra_args)
+    return command
+
+
+def build_validate_reads_command(
+    *,
+    out_root: Path,
+    platform: str,
+    tools: str,
+    threads: int,
+    jobs: int,
+    validation_mode: str,
+    pair_sync_policy: str,
+    sample: dict,
+) -> list[str]:
+    extra_args: list[str] = []
+    if validation_mode:
+        extra_args.extend(["--validation-mode", validation_mode])
+    if pair_sync_policy:
+        extra_args.extend(["--pair-sync-policy", pair_sync_policy])
+    return build_fastq_stage_command(
+        bench_subcommand="validate-reads",
+        out_root=out_root,
+        platform=platform,
+        tools=tools,
+        threads=threads,
+        jobs=jobs,
+        sample=sample,
+        extra_args=extra_args,
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -186,8 +253,7 @@ def build_validate_manifest(run_root: Path) -> dict:
                 "layout": sample["layout"],
                 "status": "completed",
                 "exit_code": 0,
-                "command": validate_runner.build_command(
-                    repo_root=benchmark_remote_repo_root(),
+                "command": build_validate_reads_command(
                     out_root=remote_out_root,
                     platform=str(first_record.get("context", {}).get("platform", "lunarc-apptainer")),
                     tools=",".join(EXPECTED_STAGE_TOOLS["fastq.validate_reads"]),
@@ -331,7 +397,10 @@ def repair_stage(run_root: Path, stage_id: str) -> dict:
             run_root=run_root,
             contract=DETECT_ADAPTERS_BENCHMARK_CONTRACT,
             schema_version="bijux.fastq.detect_adapters.corpus_run.v1",
-            runner_build_command=detect_runner.build_command,
+            runner_build_command=lambda **kwargs: build_fastq_stage_command(
+                bench_subcommand="detect-adapters",
+                **kwargs,
+            ),
             extra_fields={
                 "inspection_mode": "evidence_only",
                 "report_only": True,
@@ -360,7 +429,10 @@ def repair_stage(run_root: Path, stage_id: str) -> dict:
             run_root=run_root,
             contract=PROFILE_READS_BENCHMARK_CONTRACT,
             schema_version="bijux.fastq.profile_reads.corpus_run.v1",
-            runner_build_command=profile_reads_runner.build_command,
+            runner_build_command=lambda **kwargs: build_fastq_stage_command(
+                bench_subcommand="profile-reads",
+                **kwargs,
+            ),
             extra_fields={
                 "report_only": True,
                 "mutates_fastq": False,
@@ -390,7 +462,11 @@ def repair_stage(run_root: Path, stage_id: str) -> dict:
             run_root=run_root,
             contract=PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT,
             schema_version="bijux.fastq.profile_read_lengths.corpus_run.v1",
-            runner_build_command=profile_read_lengths_runner.build_command,
+            runner_build_command=lambda histogram_bins, **kwargs: build_fastq_stage_command(
+                bench_subcommand="profile-read-lengths",
+                extra_args=["--histogram-bins", str(histogram_bins)],
+                **kwargs,
+            ),
             extra_fields={
                 "histogram_bins": 100,
                 "report_only": True,
