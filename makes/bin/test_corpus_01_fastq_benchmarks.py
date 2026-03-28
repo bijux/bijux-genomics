@@ -432,6 +432,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "export BIJUX_FASTQ_CORPUS_CONFIG := $(BENCHMARK_FASTQ_CORPUS_CONFIG)",
             text,
         )
+        self.assertIn("BENCHMARK_CORPUS_ID ?= corpus-01", text)
         self.assertIn(
             'BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)',
             text,
@@ -1000,14 +1001,20 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
 
 
 class BenchmarkMakefileTests(unittest.TestCase):
-    def test_benchmark_makefile_defers_corpus_root_to_workspace_contract(self) -> None:
+    def test_benchmark_makefile_defers_report_corpus_root_to_workspace_contract(self) -> None:
         text = benchmark_makefile_text()
 
         self.assertIn(
-            'CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" remote.corpus_root)',
+            'BENCHMARK_CORPUS_ROOT ?= $(shell BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)" remote.corpus_root)',
             text,
         )
-        self.assertNotIn("CORPUS_ROOT ?= /home/bijan/bijux/corpus_01", text)
+        self.assertNotIn("BENCHMARK_CORPUS_ROOT ?= /home/bijan/bijux/corpus_01", text)
+
+    def test_benchmark_makefile_lets_rust_resolve_execution_corpus_root(self) -> None:
+        text = benchmark_makefile_text()
+
+        self.assertIn('--corpus-id "$(BENCHMARK_CORPUS_ID)"', text)
+        self.assertNotIn('--corpus-root "$(BENCHMARK_CORPUS_ROOT)"', text.split("define run_corpus_fastq_benchmark", 1)[1].split("endef", 1)[0])
 
     def test_benchmark_makefile_uses_rust_corpus_runner(self) -> None:
         text = benchmark_makefile_text()
@@ -1023,7 +1030,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = benchmark_makefile_text()
 
         self.assertIn(
-            'CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell $(BIJUX_BENCH_BIN) bench publication-targets --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" report)',
+            'CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell $(BIJUX_BENCH_BIN) bench publication-targets --config "$(BENCHMARK_CONFIG)" report)',
             text,
         )
 
@@ -1055,7 +1062,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = lunarc_makefile_text()
 
         self.assertIn(
-            'BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml',
+            'BENCHMARK_FASTQ_CORPUS_CONFIG ?= $(BENCHMARK_CONFIG)',
             text,
         )
         self.assertIn(
@@ -1063,7 +1070,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
         self.assertIn(
-            'BENCHMARK_WORKSPACE_VALUE = BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)"',
+            'BENCHMARK_WORKSPACE_VALUE = BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)"',
             text,
         )
         self.assertIn(
