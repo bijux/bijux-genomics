@@ -19,6 +19,7 @@ from corpus_01_fastq_benchmark_support import (
     parse_corpus_briefing_args,
     publish_corpus_briefing_artifacts,
     percentile,
+    resolve_corpus_briefing_runtime,
     safe_mean,
     safe_median,
 )
@@ -243,10 +244,10 @@ def render_markdown(
     return "\n".join(lines) + "\n"
 
 def main() -> int:
-    args = parse_args()
-    docs_root = Path(args.docs_root).resolve()
-    summary = load_json(docs_root / "summary.json")
-    rows = load_csv_rows(docs_root / "sample_results.csv")
+    runtime = resolve_corpus_briefing_runtime(parse_args())
+    docs_root = runtime.docs_root
+    summary = runtime.summary
+    rows = runtime.sample_rows
 
     runtime_rows = tool_runtime_summary(rows)
     cohort_rows = cohort_runtime_summary(rows)

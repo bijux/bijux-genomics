@@ -333,6 +333,22 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertIn("parse_corpus_briefing_args(", text, path.name)
             self.assertNotIn("parser.add_argument(\"--docs-root\"", text, path.name)
 
+    def test_briefing_renderers_use_shared_runtime_context_loader(self) -> None:
+        for path in briefing_renderer_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("resolve_corpus_briefing_runtime(", text, path.name)
+            self.assertNotIn("Path(args.docs_root).resolve()", text, path.name)
+            self.assertNotIn(
+                'load_json(docs_root / "summary.json")',
+                text,
+                path.name,
+            )
+            self.assertNotIn(
+                'load_csv_rows(docs_root / "sample_results.csv")',
+                text,
+                path.name,
+            )
+
     def test_briefing_renderers_use_shared_stats_io_and_publication_helpers(
         self,
     ) -> None:
