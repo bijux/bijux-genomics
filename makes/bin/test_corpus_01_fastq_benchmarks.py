@@ -145,6 +145,24 @@ def makefile_target_recipe(target: str) -> str:
     return "\n".join(recipe_lines)
 
 
+def lunarc_makefile_target_recipe(target: str) -> str:
+    lines = lunarc_makefile_text().splitlines()
+    capture = False
+    recipe_lines: list[str] = []
+    for line in lines:
+        if line.startswith(f"{target}:"):
+            capture = True
+            continue
+        if capture and line.startswith("\t"):
+            recipe_lines.append(line)
+            continue
+        if capture:
+            break
+    if not recipe_lines:
+        raise AssertionError(f"missing lunarc make target recipe for {target}")
+    return "\n".join(recipe_lines)
+
+
 def makefile_phony_targets() -> set[str]:
     lines = benchmark_makefile_text().splitlines()
     capture = False
@@ -397,6 +415,25 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
         self.assertIn('"$(LUNARC_REPO_DIR)" "$(LUNARC_CONTAINERS_ROOT)" "$(LUNARC_CORPUS_ROOT)" "$(LUNARC_RESULTS_DIR)"', recipe)
         self.assertNotIn("for dir in bijux-dna bijux-dna-container corpus_01 results;", recipe)
+
+    def test_pull_lunarc_results_passes_configured_sync_profiles(self) -> None:
+        recipe = lunarc_makefile_target_recipe("_pull-lunarc-results")
+
+        self.assertIn('--include-profile "$(LUNARC_INCLUDE_PROFILE)"', recipe)
+        self.assertIn('--exclude-profile "$(LUNARC_EXCLUDE_PROFILE)"', recipe)
+
+    def test_benchmark_lunarc_publication_refresh_syncs_taxonomy_inputs_and_refreshes_dossiers(
+        self,
+    ) -> None:
+        recipe = lunarc_makefile_target_recipe("benchmark-lunarc-publication-refresh")
+
+        self.assertIn('LUNARC_INCLUDE_PROFILE="pull-benchmark-publication"', recipe)
+        self.assertIn("INCLUDE_CONTAINERS_MANIFEST=1", recipe)
+        self.assertIn(
+            'DATA_MANIFEST_GLOB="benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"',
+            recipe,
+        )
+        self.assertIn("$(MAKE) _benchmark-corpus-01-published-dossiers", recipe)
 
     def test_published_dossiers_refresh_includes_remove_duplicates(self) -> None:
         self.assertIn(
