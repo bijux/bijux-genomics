@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
@@ -556,6 +557,47 @@ pub(crate) fn benchmark_workspace_value(
         other => return Err(anyhow!("unsupported benchmark workspace key `{other}`")),
     }
     .ok_or_else(|| anyhow!("missing benchmark workspace value for `{key}`"))
+}
+
+pub(crate) fn run_normalize_workspace_layout(
+    cwd: &Path,
+    args: &crate::commands::cli::BenchNormalizeWorkspaceLayoutArgs,
+) -> Result<()> {
+    let config_path = benchmark_config_path(cwd, args.config.as_deref());
+    let script_path = cwd.join("makes/bin/normalize_benchmark_workspace_stage_roots.py");
+    if !script_path.is_file() {
+        return Err(anyhow!(
+            "missing benchmark workspace normalization helper: {}",
+            script_path.display()
+        ));
+    }
+    let mut command = Command::new("python3");
+    command
+        .arg(&script_path)
+        .arg("--corpus-id")
+        .arg(&args.corpus_id)
+        .current_dir(cwd)
+        .env(BENCHMARK_CONFIG_ENV, &config_path)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+    if args.confirm {
+        command.arg("--confirm");
+    }
+    let status = command
+        .status()
+        .with_context(|| format!("run python3 {}", script_path.display()))?;
+    if status.success() {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "python3 {} exited with {}",
+        script_path.display(),
+        status
+            .code()
+            .map(|code| code.to_string())
+            .unwrap_or_else(|| "signal".to_string())
+    ))
 }
 
 pub(crate) fn corpus_01_publication_contract(

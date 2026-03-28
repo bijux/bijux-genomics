@@ -12,6 +12,8 @@ pub enum BenchCommand {
     PublicationTargets(BenchPublicationTargetsArgs),
     #[command(name = "corpus-fastq")]
     CorpusFastq(BenchCorpusFastqArgs),
+    #[command(name = "normalize-workspace-layout")]
+    NormalizeWorkspaceLayout(BenchNormalizeWorkspaceLayoutArgs),
     #[command(name = "corpus-fastq-report")]
     CorpusFastqReport(BenchCorpusFastqReportArgs),
     #[command(name = "corpus-fastq-publication-status")]
@@ -90,6 +92,16 @@ pub struct BenchCorpusFastqArgs {
     pub stage_args: Vec<String>,
     #[arg(long = "manifest-arg")]
     pub manifest_args: Vec<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchNormalizeWorkspaceLayoutArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, default_value = "corpus_01")]
+    pub corpus_id: String,
+    #[arg(long, default_value_t = false)]
+    pub confirm: bool,
 }
 
 #[derive(Debug, Args)]

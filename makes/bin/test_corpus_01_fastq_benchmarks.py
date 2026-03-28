@@ -1330,6 +1330,10 @@ class BenchmarkMakefileTests(unittest.TestCase):
         recipe = makefile_target_recipe("_benchmark-normalize-local-results-layout")
 
         self.assertIn(
+            "bench normalize-workspace-layout",
+            recipe,
+        )
+        self.assertNotIn(
             "python3 makes/bin/normalize_benchmark_workspace_stage_roots.py --confirm",
             recipe,
         )

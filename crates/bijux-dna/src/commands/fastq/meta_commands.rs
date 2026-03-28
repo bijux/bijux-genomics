@@ -731,6 +731,12 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::NormalizeWorkspaceLayout(args) => {
+                    crate::commands::benchmark_workspace::run_normalize_workspace_layout(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
                 BenchCommand::PublicationTargets(args) => {
                     crate::commands::benchmark_publication::print_benchmark_publication_targets(
                         &std::env::current_dir()?,
