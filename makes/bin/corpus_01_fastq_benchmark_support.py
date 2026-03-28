@@ -613,6 +613,10 @@ def default_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
     )
 
 
+def legacy_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
+    return benchmark_local_results_root() / corpus_root.name / stage_id / "lunarc"
+
+
 def infer_cache_root(path: Path) -> Path | None:
     resolved = path.expanduser().resolve()
     if ".cache" not in resolved.parts:
@@ -686,8 +690,13 @@ def default_screen_taxonomy_database_root(
 
 def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:
     local_root = default_local_results_stage_root(corpus_root, stage_id)
+    legacy_local_root = legacy_local_results_stage_root(corpus_root, stage_id)
     remote_root = default_results_stage_root(corpus_root, stage_id)
-    if local_root.exists() or not remote_root.exists():
+    if local_root.exists():
+        return local_root
+    if legacy_local_root.exists():
+        return legacy_local_root
+    if not remote_root.exists():
         return local_root
     return remote_root
 
