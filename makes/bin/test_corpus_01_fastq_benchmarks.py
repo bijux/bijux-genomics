@@ -4685,6 +4685,38 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
             "hardcoded-remote-operator-path",
         )
 
+    def test_benchmark_repo_checks_flag_hardcoded_lunarc_host_alias(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            makefile_path = repo_root / "makes" / "sync.mk"
+            makefile_path.parent.mkdir(parents=True)
+            makefile_path.write_text(
+                'SYNC_TARGET := "lunarc:results-mirror/"\n',
+                encoding="utf-8",
+            )
+
+            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+
+        self.assertEqual(report["violation_count"], 1)
+        self.assertEqual(
+            report["violations"][0]["issue_id"],
+            "hardcoded-ssh-host-alias",
+        )
+
+    def test_benchmark_repo_checks_allow_non_host_lunarc_tokens(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            script_path = repo_root / "makes" / "bin" / "render.py"
+            script_path.parent.mkdir(parents=True)
+            script_path.write_text(
+                'DOSSIER_NAME = "lunarc.md"\nPROFILE_NAME = "lunarc-apptainer"\n',
+                encoding="utf-8",
+            )
+
+            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+
+        self.assertEqual(report["violation_count"], 0)
+
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

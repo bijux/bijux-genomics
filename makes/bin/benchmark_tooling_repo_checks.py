@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 
@@ -16,6 +17,11 @@ EXCLUDED_TOOLING_PATHS = {
 }
 LOCAL_OPERATOR_PATH_PREFIX = "/".join(("", "Users", "bijan", ""))
 REMOTE_OPERATOR_PATH_PREFIX = "/".join(("", "home", "bijan", ""))
+HARDCODED_LUNARC_HOST_PATTERNS = (
+    re.compile(r'["\']lunarc:[^"\']*["\']'),
+    re.compile(r"ssh\s+['\"]?lunarc([\"'\s]|$)"),
+    re.compile(r'hostname[^\\n]*["\']lunarc["\']'),
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -69,6 +75,29 @@ def literal_matches(
     return matches
 
 
+def regex_matches(
+    repo_root: Path,
+    *,
+    issue_id: str,
+    patterns: tuple[re.Pattern[str], ...],
+) -> list[dict[str, str | int]]:
+    matches: list[dict[str, str | int]] = []
+    for path in benchmark_tooling_paths(repo_root):
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if not any(pattern.search(line) for pattern in patterns):
+                continue
+            matches.append(
+                {
+                    "issue_id": issue_id,
+                    "path": str(path.relative_to(repo_root)),
+                    "line": line_number,
+                    "literal": "lunarc host literal",
+                    "content": line.strip(),
+                }
+            )
+    return matches
+
+
 def audit_repo_checks(repo_root: Path) -> dict:
     violations = literal_matches(
         repo_root,
@@ -82,8 +111,15 @@ def audit_repo_checks(repo_root: Path) -> dict:
             issue_id="hardcoded-remote-operator-path",
         )
     )
+    violations.extend(
+        regex_matches(
+            repo_root,
+            issue_id="hardcoded-ssh-host-alias",
+            patterns=HARDCODED_LUNARC_HOST_PATTERNS,
+        )
+    )
     return {
-        "check_count": 2,
+        "check_count": 3,
         "violation_count": len(violations),
         "violations": violations,
     }
