@@ -6,7 +6,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_db_ena::client::EnaClient;
 use bijux_dna_db_ena::download::{build_download_tasks, download_tasks, DownloadConfig};
-use bijux_dna_db_ena::model::{EnaFileSource, EnaQuery, EnaRecord, EnaResultKind, EnaSourcePreference};
+use bijux_dna_db_ena::model::{
+    EnaFileSource, EnaQuery, EnaRecord, EnaResultKind, EnaSourcePreference,
+};
 use flate2::read::MultiGzDecoder;
 use serde::{Deserialize, Serialize};
 
@@ -187,7 +189,10 @@ fn default_manifest_schema() -> String {
 /// Returns an error if the curated corpus spec is invalid, ENA metadata does
 /// not satisfy the declared selection contract, or downloads/normalization
 /// fail.
-pub fn materialize_corpus(cwd: &Path, args: &crate::commands::cli::CorpusMaterializeArgs) -> Result<()> {
+pub fn materialize_corpus(
+    cwd: &Path,
+    args: &crate::commands::cli::CorpusMaterializeArgs,
+) -> Result<()> {
     let spec_path = resolve_path(cwd, &args.spec);
     let spec = load_curated_spec(&spec_path)?;
     validate_curated_spec(&spec)?;
@@ -248,7 +253,10 @@ pub fn materialize_corpus(cwd: &Path, args: &crate::commands::cli::CorpusMateria
     println!("corpus_id={}", spec.corpus_id);
     println!("root={}", root.display());
     println!("downloaded={}", report.downloaded);
-    println!("snapshot={}", root.join("ENA_METADATA.snapshot.json").display());
+    println!(
+        "snapshot={}",
+        root.join("ENA_METADATA.snapshot.json").display()
+    );
     println!("manifest={}", root.join("MANIFEST.json").display());
     Ok(())
 }
@@ -630,7 +638,10 @@ fn validate_curated_record(
         ));
     }
     if record.fastq_ftp.is_empty() {
-        return Err(anyhow!("accession `{}` missing fastq_ftp", sample.accession));
+        return Err(anyhow!(
+            "accession `{}` missing fastq_ftp",
+            sample.accession
+        ));
     }
     if record.base_count.unwrap_or(0) == 0 || record.read_count.unwrap_or(0) == 0 {
         return Err(anyhow!(
@@ -638,7 +649,13 @@ fn validate_curated_record(
             sample.accession
         ));
     }
-    if record.instrument_model.as_deref().unwrap_or("").trim().is_empty() {
+    if record
+        .instrument_model
+        .as_deref()
+        .unwrap_or("")
+        .trim()
+        .is_empty()
+    {
         return Err(anyhow!(
             "accession `{}` missing instrument_model",
             sample.accession

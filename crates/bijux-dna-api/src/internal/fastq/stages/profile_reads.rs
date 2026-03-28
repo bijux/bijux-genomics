@@ -352,10 +352,14 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
-    let execution = execute_plans_with_jobs(vec![step.clone()], bench_inputs.runner, bench_jobs(args.jobs))?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+    let execution = execute_plans_with_jobs(
+        vec![step.clone()],
+        bench_inputs.runner,
+        bench_jobs(args.jobs),
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
 
     let length_histogram = combine_length_histograms(
         &bench_inputs.length_hist,

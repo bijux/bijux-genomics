@@ -1,6 +1,3 @@
-use std::collections::{HashMap, HashSet};
-use std::fs;
-use std::path::Path;
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{filter_tools_by_role, load_workspace_registry};
@@ -28,6 +25,9 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::path::Path;
 
 use super::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, derive_trim_delta, observe_fastq_stats,
@@ -653,8 +653,10 @@ mod tests {
             paired_mode: bijux_dna_domain_fastq::PairedMode::PairedEnd,
             threads: 2,
             damage_mode: "ancient".to_string(),
-            execution_policy: parse_terminal_damage_execution_policy(Some("explicit_terminal_trim"))
-                .unwrap_or_else(|err| panic!("execution policy: {err}")),
+            execution_policy: parse_terminal_damage_execution_policy(Some(
+                "explicit_terminal_trim",
+            ))
+            .unwrap_or_else(|err| panic!("execution policy: {err}")),
             trim_5p_bases: 2,
             trim_3p_bases: 2,
             requested_trim_5p_bases: 2,
