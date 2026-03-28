@@ -56,7 +56,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 75. Container documentation repeatedly names Lunarc as the canonical Apptainer authority.
 76. The repository has no neutral `containers/apptainer/shared/` or equivalent location for non-site-specific definitions.
 77. Some examples still publish `/scratch/$USER/...` as the output convention.
-83. The benchmark audit script reports missing corpus directories but does not explain where the completed remote run actually lives.
 84. The benchmark remediation queue does not yet collapse repeated sample-level drift rows into stage-level fix summaries for easier triage.
 86. The benchmark audit script does not confirm that the published dossier source run is the newest available matching run.
 88. `fastq.correct_errors` publication currently depends on the presence of a run manifest in one mirror layout and a bench tree in another.
