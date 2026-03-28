@@ -9,7 +9,7 @@
     "ancient": 5,
     "modern": 5
   },
-  "generated_at_utc": "2026-03-28T02:44:13.422867+00:00",
+  "generated_at_utc": "2026-03-28T02:56:48.313237+00:00",
   "headline": {
     "best_retention": 1.0,
     "best_retention_tool": "umi_tools",
@@ -20,6 +20,7 @@
   },
   "platform": "lunarc-apptainer",
   "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc",
+  "sample_scope": "paired",
   "samples_failed": 0,
   "samples_total": 10,
   "scenario_id": "umi_extraction_fairness",
