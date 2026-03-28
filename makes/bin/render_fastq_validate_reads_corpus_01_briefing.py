@@ -24,6 +24,7 @@ from corpus_01_fastq_benchmark_support import (
     safe_median,
     BriefingMetricSpec,
     summarize_tool_runtime_rows,
+    summarize_cohort_metric_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -39,38 +40,11 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
         ],
     )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
-    grouped: dict[tuple[str, str, str], list[float]] = defaultdict(list)
-    grouped_with_size: dict[tuple[str, str, str], list[float]] = defaultdict(list)
-    for row in rows:
-        runtime = float(row["runtime_s"])
-        grouped[(row["tool"], row["era"], row["layout"])].append(runtime)
-        grouped_with_size[(row["tool"], "size_band", row["size_band"])].append(runtime)
-
-    output: list[dict] = []
-    for (tool, era, layout), runtimes in sorted(grouped.items()):
-        output.append(
-            {
-                "tool": tool,
-                "dimension": "era_layout",
-                "cohort": f"{era}_{layout}",
-                "samples": len(runtimes),
-                "mean_runtime_s": safe_mean(runtimes),
-                "median_runtime_s": safe_median(runtimes),
-            }
-        )
-    for (tool, dimension, cohort), runtimes in sorted(grouped_with_size.items()):
-        output.append(
-            {
-                "tool": tool,
-                "dimension": dimension,
-                "cohort": cohort,
-                "samples": len(runtimes),
-                "mean_runtime_s": safe_mean(runtimes),
-                "median_runtime_s": safe_median(runtimes),
-            }
-        )
-    return output
-
+    return summarize_cohort_metric_rows(
+        rows,
+        metric_specs=[
+        ],
+    )
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in rows:

@@ -301,6 +301,34 @@ def summarize_tool_runtime_rows(
     return summary_rows
 
 
+def summarize_cohort_metric_rows(
+    rows: list[dict],
+    *,
+    metric_specs: list[BriefingMetricSpec],
+) -> list[dict]:
+    output: list[dict] = []
+    for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):
+        summary_row = {
+            "tool": tool,
+            "dimension": dimension,
+            "cohort": cohort,
+            "samples": len(cohort_rows),
+            "mean_runtime_s": safe_mean(
+                [float(row["runtime_s"]) for row in cohort_rows]
+            ),
+            "median_runtime_s": safe_median(
+                [float(row["runtime_s"]) for row in cohort_rows]
+            ),
+        }
+        for spec in metric_specs:
+            summary_row[spec.output_key] = _aggregate_metric(
+                _metric_values(cohort_rows, spec),
+                spec.aggregator,
+            )
+        output.append(summary_row)
+    return output
+
+
 def find_cohort_entry(
     rows: list[dict],
     *,

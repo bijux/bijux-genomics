@@ -25,6 +25,7 @@ from corpus_01_fastq_benchmark_support import (
     safe_median,
     BriefingMetricSpec,
     summarize_tool_runtime_rows,
+    summarize_cohort_metric_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -44,41 +45,14 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
         ],
     )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
-    output: list[dict] = []
-    for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):
-        output.append(
-            summarize_cohort_rows(
-                tool=tool,
-                dimension=dimension,
-                cohort=cohort,
-                cohort_rows=cohort_rows,
-            )
-        )
-    return output
-
-def summarize_cohort_rows(
-    *,
-    tool: str,
-    dimension: str,
-    cohort: str,
-    cohort_rows: list[dict],
-) -> dict:
-    runtimes = [float(row["runtime_s"]) for row in cohort_rows]
-    read_retentions = [float(row["read_retention"]) for row in cohort_rows]
-    base_retentions = [float(row["base_retention"]) for row in cohort_rows]
-    host_removed = [float(row["host_fraction_removed"]) for row in cohort_rows]
-    return {
-        "tool": tool,
-        "dimension": dimension,
-        "cohort": cohort,
-        "samples": len(cohort_rows),
-        "mean_runtime_s": safe_mean(runtimes),
-        "median_runtime_s": safe_median(runtimes),
-        "median_read_retention": safe_median(read_retentions),
-        "median_base_retention": safe_median(base_retentions),
-        "mean_host_fraction_removed": safe_mean(host_removed),
-    }
-
+    return summarize_cohort_metric_rows(
+        rows,
+        metric_specs=[
+            BriefingMetricSpec('read_retention', 'median_read_retention', 'median'),
+            BriefingMetricSpec('base_retention', 'median_base_retention', 'median'),
+            BriefingMetricSpec('host_fraction_removed', 'mean_host_fraction_removed', 'mean'),
+        ],
+    )
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in rows:

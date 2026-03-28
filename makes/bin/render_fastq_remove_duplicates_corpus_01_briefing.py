@@ -23,6 +23,7 @@ from corpus_01_fastq_benchmark_support import (
     safe_median,
     BriefingMetricSpec,
     summarize_tool_runtime_rows,
+    summarize_cohort_metric_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -40,39 +41,13 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
         ],
     )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
-    output: list[dict] = []
-    for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):
-        output.append(
-            summarize_cohort_rows(
-                tool=tool,
-                dimension=dimension,
-                cohort=cohort,
-                cohort_rows=cohort_rows,
-            )
-        )
-    return output
-
-def summarize_cohort_rows(
-    *,
-    tool: str,
-    dimension: str,
-    cohort: str,
-    cohort_rows: list[dict],
-) -> dict:
-    runtimes = [float(row["runtime_s"]) for row in cohort_rows]
-    dedup_rates = [float(row["dedup_rate"]) for row in cohort_rows]
-    duplicate_reads = [float(row["duplicate_reads"]) for row in cohort_rows]
-    return {
-        "tool": tool,
-        "dimension": dimension,
-        "cohort": cohort,
-        "samples": len(cohort_rows),
-        "mean_runtime_s": safe_mean(runtimes),
-        "median_runtime_s": safe_median(runtimes),
-        "median_dedup_rate": safe_median(dedup_rates),
-        "mean_duplicate_reads": safe_mean(duplicate_reads),
-    }
-
+    return summarize_cohort_metric_rows(
+        rows,
+        metric_specs=[
+            BriefingMetricSpec('dedup_rate', 'median_dedup_rate', 'median'),
+            BriefingMetricSpec('duplicate_reads', 'mean_duplicate_reads', 'mean'),
+        ],
+    )
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in rows:
