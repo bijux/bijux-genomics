@@ -2,35 +2,14 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
-import subprocess
-import sys
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import (
-    default_results_stage_root,
-    discover_normalized_samples,
-    load_corpus_spec,
-    normalize_tool_csv,
-    require_exact_tool_roster,
-    validate_benchmark_layout,
-    validate_corpus_contract,
+from benchmark_fastq_corpus.config import add_workspace_config_argument
+from benchmark_fastq_corpus.runner_compat import (
+    append_stage_arg,
+    run_corpus_stage_compat,
 )
-
-
-@dataclass
-class SampleRun:
-    sample_id: str
-    r1: str
-    r2: str | None
-    layout: str
-    status: str
-    exit_code: int
-    command: list[str]
-    report_json: str
 
 
 def parse_args() -> argparse.Namespace:
@@ -45,12 +24,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--corpus-root",
         default="",
-        help="Materialized corpus root. Defaults to the preferred_root from the corpus spec.",
+        help="Materialized corpus root. Defaults to the configured corpus benchmark root.",
     )
     parser.add_argument(
         "--out-root",
         default="",
-        help="Benchmark output root. Defaults to <corpus-root-parent>/results/<corpus-dir>/fastq.validate_reads/lunarc.",
+        help="Benchmark output root. Defaults to the configured stage benchmark root.",
     )
     parser.add_argument(
         "--platform",
@@ -66,6 +45,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--validation-mode", default="")
     parser.add_argument("--pair-sync-policy", default="")
+    add_workspace_config_argument(parser)
     parser.add_argument(
         "--resume",
         action=argparse.BooleanOptionalAction,
@@ -74,7 +54,9 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
+
 def build_command(
+    *,
     repo_root: Path,
     out_root: Path,
     platform: str,
@@ -85,6 +67,7 @@ def build_command(
     pair_sync_policy: str,
     sample: dict,
 ) -> list[str]:
+    del repo_root
     command = [
         "cargo",
         "run",
@@ -119,110 +102,17 @@ def build_command(
     return command
 
 
-def report_path(out_root: Path, sample_id: str) -> Path:
-    return out_root / "bench" / "validate_reads" / sample_id / "report.json"
-
-
 def main() -> int:
     args = parse_args()
-    repo_root = Path(args.repo_root).resolve()
-    spec = load_corpus_spec(repo_root)
-    corpus_root = (
-        Path(args.corpus_root).expanduser().resolve()
-        if args.corpus_root
-        else Path(spec["preferred_root"]).expanduser().resolve()
+    stage_args: list[str] = []
+    append_stage_arg(stage_args, "--validation-mode", args.validation_mode)
+    append_stage_arg(stage_args, "--pair-sync-policy", args.pair_sync_policy)
+    return run_corpus_stage_compat(
+        stage_id="fastq.validate_reads",
+        args=args,
+        stage_args=stage_args,
     )
-    out_root = (
-        Path(args.out_root).expanduser().resolve()
-        if args.out_root
-        else default_results_stage_root(corpus_root, "fastq.validate_reads")
-    )
-    validate_benchmark_layout(corpus_root, out_root)
-    out_root.mkdir(parents=True, exist_ok=True)
-
-    samples = discover_normalized_samples(corpus_root)
-    validate_corpus_contract(corpus_root, spec, samples)
-    tools = require_exact_tool_roster(
-        "fastq.validate_reads",
-        normalize_tool_csv(args.tools),
-        ["fastqvalidator", "fastqc", "fastq_scan", "seqtk", "fqtools"],
-    )
-    runs: list[SampleRun] = []
-    failures = 0
-
-    for sample in samples:
-        sample_report = report_path(out_root, sample["sample_id"])
-        if args.resume and sample_report.is_file():
-            runs.append(
-                SampleRun(
-                    sample_id=sample["sample_id"],
-                    r1=str(sample["r1"]),
-                    r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                    layout=sample["layout"],
-                    status="skipped_existing_report",
-                    exit_code=0,
-                    command=[],
-                    report_json=str(sample_report),
-                )
-            )
-            continue
-
-        command = build_command(
-            repo_root=repo_root,
-            out_root=out_root,
-            platform=args.platform,
-            tools=",".join(tools),
-            threads=args.threads,
-            jobs=args.jobs,
-            validation_mode=args.validation_mode,
-            pair_sync_policy=args.pair_sync_policy,
-            sample=sample,
-        )
-        completed = subprocess.run(command, cwd=repo_root, check=False)
-        status = "completed" if completed.returncode == 0 else "failed"
-        if completed.returncode != 0:
-            failures += 1
-        runs.append(
-            SampleRun(
-                sample_id=sample["sample_id"],
-                r1=str(sample["r1"]),
-                r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                layout=sample["layout"],
-                status=status,
-                exit_code=completed.returncode,
-                command=command,
-                report_json=str(sample_report),
-            )
-        )
-
-    payload = {
-        "schema_version": "bijux.fastq.validate_reads.corpus_run.v1",
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "corpus_id": spec["corpus_id"],
-        "stage_id": "fastq.validate_reads",
-        "scenario_id": "validation_fairness",
-        "tool_kind": "benchmark",
-        "platform": args.platform,
-        "tools": tools,
-        "threads": args.threads,
-        "jobs": args.jobs,
-        "validation_mode": args.validation_mode or None,
-        "pair_sync_policy": args.pair_sync_policy or None,
-        "sample_limit": None,
-        "dry_run": False,
-        "repo_root": str(repo_root),
-        "corpus_root": str(corpus_root),
-        "out_root": str(out_root),
-        "samples_total": len(runs),
-        "samples_failed": failures,
-        "runs": [asdict(run) for run in runs],
-    }
-    (out_root / "run_manifest.json").write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    return 1 if failures else 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
