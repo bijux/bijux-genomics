@@ -9,6 +9,7 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     CORPUS_01_PUBLICATION_CONTRACTS,
     default_local_results_stage_root,
+    legacy_local_results_stage_root,
     load_json,
     localize_results_path,
     resolve_benchmark_tool_roster,
@@ -76,8 +77,33 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
 
     corpus_root = Path(str(summary.get("corpus_root", "")))
     canonical_run_root = default_local_results_stage_root(corpus_root, stage_id)
+    legacy_run_root = legacy_local_results_stage_root(corpus_root, stage_id)
     reported_run_root = Path(str(summary.get("run_root", "")))
-    resolved_run_root = reported_run_root if reported_run_root.is_dir() else canonical_run_root
+    existing_roots = [
+        root
+        for root in [reported_run_root, canonical_run_root, legacy_run_root]
+        if root.is_dir()
+    ]
+    unique_existing_roots: list[Path] = []
+    for root in existing_roots:
+        if root not in unique_existing_roots:
+            unique_existing_roots.append(root)
+    if canonical_run_root.is_dir() and legacy_run_root.is_dir():
+        append_issue(
+            issues,
+            stage_id,
+            "duplicate-result-root-ambiguity",
+            f"both {canonical_run_root} and {legacy_run_root} exist",
+        )
+    resolved_run_root = (
+        reported_run_root
+        if reported_run_root.is_dir()
+        else canonical_run_root
+        if canonical_run_root.is_dir()
+        else legacy_run_root
+        if legacy_run_root.is_dir()
+        else canonical_run_root
+    )
     if reported_run_root != canonical_run_root and not reported_run_root.is_dir():
         append_issue(
             issues,
