@@ -541,19 +541,19 @@ containers_root = "/remote/.cache/bijux-dna-container"
 
     #[test]
     fn shared_cache_root_appends_cache_for_hpc_root() {
-        let root = Path::new("/home/bijan/lu2024-12-24");
+        let root = Path::new("/srv/cluster");
         assert_eq!(
             shared_cache_root(root),
-            Path::new("/home/bijan/lu2024-12-24/.cache")
+            Path::new("/srv/cluster/.cache")
         );
     }
 
     #[test]
     fn shared_cache_root_keeps_cache_root_stable() {
-        let root = Path::new("/home/bijan/lu2024-12-24/.cache");
+        let root = Path::new("/srv/cluster/.cache");
         assert_eq!(
             shared_cache_root(root),
-            Path::new("/home/bijan/lu2024-12-24/.cache")
+            Path::new("/srv/cluster/.cache")
         );
     }
 
@@ -562,7 +562,7 @@ containers_root = "/remote/.cache/bijux-dna-container"
         let temp = TempDir::new().expect("tempdir");
         write_workspace_contract(&temp);
 
-        let roots = benchmark_env_roots(temp.path(), Path::new("/home/bijan/bijux"))
+        let roots = benchmark_env_roots(temp.path(), Path::new("/srv/workspaces/bijux-dna"))
             .expect("benchmark env roots");
 
         assert_eq!(
@@ -580,24 +580,24 @@ containers_root = "/remote/.cache/bijux-dna-container"
     fn benchmark_env_roots_fall_back_to_cache_layout_without_contract() {
         let temp = TempDir::new().expect("tempdir");
 
-        let roots = benchmark_env_roots(temp.path(), Path::new("/home/bijan/lu2024-12-24"))
+        let roots = benchmark_env_roots(temp.path(), Path::new("/srv/cluster"))
             .expect("benchmark env roots");
 
         assert_eq!(
             roots.cache_root,
-            PathBuf::from("/home/bijan/lu2024-12-24/.cache")
+            PathBuf::from("/srv/cluster/.cache")
         );
         assert_eq!(
             roots.containers_root,
-            PathBuf::from("/home/bijan/lu2024-12-24/.cache/bijux-dna-container")
+            PathBuf::from("/srv/cluster/.cache/bijux-dna-container")
         );
         assert_eq!(
             roots.corpus_root,
-            PathBuf::from("/home/bijan/lu2024-12-24/.cache/corpus_01")
+            PathBuf::from("/srv/cluster/.cache/corpus_01")
         );
         assert_eq!(
             roots.results_root,
-            PathBuf::from("/home/bijan/lu2024-12-24/.cache/results")
+            PathBuf::from("/srv/cluster/.cache/results")
         );
     }
 }
