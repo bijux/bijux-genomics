@@ -64,6 +64,22 @@ def benchmark_remote_corpus_root() -> Path:
     return _workspace_path("remote", "corpus_root")
 
 
+def benchmark_remote_cache_root() -> Path:
+    return _workspace_path("remote", "cache_root")
+
+
+def benchmark_remote_results_root() -> Path:
+    return _workspace_path("remote", "results_root")
+
+
+def benchmark_remote_results_legacy_root() -> Path:
+    return _workspace_path("remote", "results_legacy_root")
+
+
+def benchmark_remote_extra_data_root() -> Path:
+    return _workspace_path("remote", "extra_data_root")
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -622,22 +638,11 @@ def merge_pairs_benchmark_defaults() -> dict:
 
 
 def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
-    return corpus_root.parent / "results" / corpus_root.name / stage_id / "lunarc"
+    return benchmark_remote_results_root() / corpus_root.name / stage_id / "lunarc"
 
 
 def default_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
-    if (
-        LOCAL_RESULTS_ROOT != DEFAULT_LOCAL_RESULTS_ROOT
-        and LOCAL_CACHE_MIRROR_ROOT == DEFAULT_LOCAL_CACHE_MIRROR_ROOT
-    ):
-        return LOCAL_RESULTS_ROOT / corpus_root.name / stage_id / "lunarc"
-    return (
-        benchmark_local_cache_mirror_root()
-        / "results"
-        / corpus_root.name
-        / stage_id
-        / "lunarc"
-    )
+    return benchmark_local_cache_mirror_root() / "results" / corpus_root.name / stage_id / "lunarc"
 
 
 def legacy_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:

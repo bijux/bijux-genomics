@@ -232,8 +232,30 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 support.benchmark_remote_repo_root(),
                 Path("/home/bijan/bijux/bijux-dna"),
             )
+            self.assertEqual(
+                support.benchmark_remote_results_root(),
+                Path("/home/bijan/lu2024-12-24/.cache/results"),
+            )
         finally:
             support.load_benchmark_workspace_config.cache_clear()
+
+    def test_stage_root_defaults_follow_workspace_contract(self) -> None:
+        corpus_root = Path("/tmp/noncanonical/corpus_01")
+
+        self.assertEqual(
+            support.default_results_stage_root(corpus_root, "fastq.trim_reads"),
+            Path("/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc"),
+        )
+        self.assertEqual(
+            support.default_local_results_stage_root(corpus_root, "fastq.trim_reads"),
+            Path(
+                "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc"
+            ),
+        )
+        self.assertEqual(
+            support.legacy_local_results_stage_root(corpus_root, "fastq.trim_reads"),
+            Path("/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc"),
+        )
 
 
 class BenchmarkMakefileTests(unittest.TestCase):
