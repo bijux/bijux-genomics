@@ -10,18 +10,14 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     parse_corpus_report_args,
     EXTRACT_UMIS_BENCHMARK_CONTRACT,
-    benchmark_applicable_runs,
-    benchmark_applicable_sample_ids,
+    CorpusReportArtifacts,
+    CorpusReportContext,
     benchmark_manifest_failure_count,
     benchmark_manifest_sample_ids,
     extract_umis_benchmark_defaults,
-    load_corpus_spec,
     load_json,
     localize_results_path,
-    publish_corpus_report_artifacts,
-    preferred_report_run_root,
-    resolve_corpus_report_runtime,
-    resolve_corpus_metadata,
+    run_corpus_report,
 )
 
 
@@ -220,38 +216,15 @@ def render_markdown(summary: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def main() -> int:
-    args = parse_args()
-    runtime = resolve_corpus_report_runtime(
-        args,
-        stage_id=EXTRACT_UMIS_BENCHMARK_CONTRACT.stage_id,
-    )
-    repo_root = runtime.repo_root
-    corpus_root = runtime.corpus_root
-    run_root = runtime.run_root
-    docs_root = runtime.docs_root
-    local_results_root = runtime.local_results_root
+def build_artifacts(context: CorpusReportContext) -> CorpusReportArtifacts:
+    corpus_root = context.runtime.corpus_root
+    run_root = context.runtime.run_root
+    local_results_root = context.runtime.local_results_root
 
-    spec = load_corpus_spec(repo_root)
-    run_manifest = runtime.run_manifest
-    validate_run_manifest_contract(run_manifest)
-    manifest_sample_ids = benchmark_manifest_sample_ids(run_manifest)
-    metadata_by_sample = resolve_corpus_metadata(
-        repo_root,
-        corpus_root,
-        spec,
-        expected_sample_ids=manifest_sample_ids,
-    )
-    expected_sample_ids = benchmark_applicable_sample_ids(
-        EXTRACT_UMIS_BENCHMARK_CONTRACT,
-        run_manifest,
-        metadata_by_sample,
-    )
-    applicable_runs = benchmark_applicable_runs(
-        EXTRACT_UMIS_BENCHMARK_CONTRACT,
-        run_manifest,
-        metadata_by_sample,
-    )
+    run_manifest = context.run_manifest
+    expected_sample_ids = context.expected_sample_ids
+    applicable_runs = context.applicable_runs
+    metadata_by_sample = context.metadata_by_sample
 
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
@@ -370,15 +343,22 @@ def main() -> int:
         "tool_summary": tool_summary,
     }
 
-    publish_corpus_report_artifacts(
-        docs_root,
+    return CorpusReportArtifacts(
         summary=summary,
         markdown=render_markdown(summary),
         sample_rows=sample_rows,
         sample_fieldnames=list(sample_rows[0].keys()),
         summary_sort_keys=True,
     )
-    return 0
+
+
+def main() -> int:
+    return run_corpus_report(
+        parse_args(),
+        contract=EXTRACT_UMIS_BENCHMARK_CONTRACT,
+        validate_run_manifest=validate_run_manifest_contract,
+        build_artifacts=build_artifacts,
+    )
 
 
 if __name__ == "__main__":
