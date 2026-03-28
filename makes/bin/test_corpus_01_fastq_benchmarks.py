@@ -138,6 +138,17 @@ def runner_script_text(name: str) -> str:
     return (ROOT / "makes" / "bin" / name).read_text(encoding="utf-8")
 
 
+def rust_compat_runner_paths() -> list[Path]:
+    names = [
+        "run_fastq_validate_reads_corpus_01.py",
+        "run_fastq_detect_adapters_corpus_01.py",
+        "run_fastq_profile_reads_corpus_01.py",
+        "run_fastq_profile_read_lengths_corpus_01.py",
+        "run_fastq_profile_overrepresented_sequences_corpus_01.py",
+    ]
+    return [ROOT / "makes" / "bin" / name for name in names]
+
+
 def report_renderer_paths() -> list[Path]:
     return sorted((ROOT / "makes" / "bin").glob("render_fastq_*_corpus_01_report.py"))
 
@@ -439,6 +450,14 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertIn('"bench",', text)
         self.assertIn('"publication-targets",', text)
         self.assertNotIn("CORPUS_01_PUBLICATION_CONTRACTS", text)
+
+    def test_selected_runner_scripts_delegate_to_rust_corpus_benchmark(self) -> None:
+        for path in rust_compat_runner_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("run_corpus_stage_compat(", text, path.name)
+            self.assertIn("add_workspace_config_argument(parser)", text, path.name)
+            self.assertNotIn("discover_normalized_samples(", text, path.name)
+            self.assertNotIn("load_corpus_spec(", text, path.name)
 
     def test_report_renderers_use_shared_corpus_report_arg_parser(self) -> None:
         for path in report_renderer_paths():
