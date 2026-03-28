@@ -443,6 +443,15 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("make _benchmark-merge-corpus-01 PLATFORM=lunarc-apptainer", text)
         self.assertIn("make _benchmark-merge-corpus-01-report", text)
 
+    def test_trim_polyg_method_uses_structured_workflow_contract(self) -> None:
+        text = method_doc_text("fastq.trim_polyg_tails")
+
+        self.assertIn("## Workflow", text)
+        self.assertIn("make _benchmark-trim-polyg-corpus-01 PLATFORM=lunarc-apptainer", text)
+        self.assertIn("make _benchmark-trim-polyg-corpus-01-report", text)
+        self.assertIn("configs/bench/workspace.toml", text)
+        self.assertNotIn("[workspace.toml](/Users/bijan/", text)
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
