@@ -17,6 +17,7 @@ from corpus_01_fastq_benchmark_support import (
     load_csv_rows,
     load_json,
     parse_corpus_briefing_args,
+    publish_corpus_briefing_artifacts,
     percentile,
     safe_mean,
     safe_median,
@@ -255,39 +256,12 @@ def main() -> int:
     cohort_rows = cohort_runtime_summary(rows)
     outliers = sample_runtime_outliers(rows)
 
-    with (docs_root / "tool_runtime_summary.csv").open(
-        "w", encoding="utf-8", newline=""
-    ) as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(runtime_rows[0].keys()))
-        writer.writeheader()
-        writer.writerows(
-            {key: fmt_csv_value(value) for key, value in row.items()}
-            for row in runtime_rows
-        )
-
-    with (docs_root / "cohort_runtime_summary.csv").open(
-        "w", encoding="utf-8", newline=""
-    ) as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(cohort_rows[0].keys()))
-        writer.writeheader()
-        writer.writerows(
-            {key: fmt_csv_value(value) for key, value in row.items()}
-            for row in cohort_rows
-        )
-
-    with (docs_root / "sample_runtime_outliers.csv").open(
-        "w", encoding="utf-8", newline=""
-    ) as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(outliers[0].keys()))
-        writer.writeheader()
-        writer.writerows(
-            {key: fmt_csv_value(value) for key, value in row.items()}
-            for row in outliers
-        )
-
-    (docs_root / "benchmark.md").write_text(
-        render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
-        encoding="utf-8",
+    publish_corpus_briefing_artifacts(
+        docs_root,
+        markdown=render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
+        runtime_rows=runtime_rows,
+        cohort_rows=cohort_rows,
+        outlier_rows=outliers,
     )
     return 0
 
