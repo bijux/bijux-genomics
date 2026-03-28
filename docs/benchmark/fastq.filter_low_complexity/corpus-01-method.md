@@ -33,9 +33,13 @@
 - `sample_runtime_outliers.csv`: slowest or most aggressive samples.
 - `lunarc.md`: narrative benchmark dossier for the Lunarc run.
 
-## Publication gate
-- This stage does not yet have a committed `corpus-01` runner and report renderer under `makes/bin/`.
-- A publishable dossier begins once those entrypoints materialize `docs/benchmark/fastq.filter_low_complexity/corpus-01/` under the audit contract described above.
+## Workflow
+```bash
+make _benchmark-filter-low-complexity-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-filter-low-complexity-corpus-01-report
+```
+
+The runner and report renderer resolve the governed corpus root through `configs/bench/workspace.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

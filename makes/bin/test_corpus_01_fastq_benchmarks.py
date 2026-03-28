@@ -89,6 +89,12 @@ def validate_reads_method_text() -> str:
     return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
 
+def method_doc_text(stage_id: str) -> str:
+    return (
+        ROOT / "docs" / "benchmark" / stage_id / "corpus-01-method.md"
+    ).read_text(encoding="utf-8")
+
+
 def makefile_target_recipe(target: str) -> str:
     lines = benchmark_makefile_text().splitlines()
     capture = False
@@ -246,6 +252,19 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("make _benchmark-validate-corpus-01-report", text)
         self.assertNotIn("_benchmark-validate-reads-corpus-01", text)
         self.assertNotIn("_benchmark-validate-reads-corpus-01-report", text)
+
+    def test_filter_low_complexity_method_references_existing_make_targets(self) -> None:
+        text = method_doc_text("fastq.filter_low_complexity")
+
+        self.assertIn(
+            "make _benchmark-filter-low-complexity-corpus-01 PLATFORM=lunarc-apptainer",
+            text,
+        )
+        self.assertIn("make _benchmark-filter-low-complexity-corpus-01-report", text)
+        self.assertNotIn(
+            "does not yet have a committed `corpus-01` runner and report renderer",
+            text,
+        )
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
