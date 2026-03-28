@@ -164,6 +164,22 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 Path("/srv/bench/corpus_01"),
             )
 
+    def test_load_benchmark_workspace_config_reads_committed_contract(self) -> None:
+        support.load_benchmark_workspace_config.cache_clear()
+        try:
+            config = support.load_benchmark_workspace_config()
+        finally:
+            support.load_benchmark_workspace_config.cache_clear()
+
+        self.assertEqual(
+            config.get("remote", {}).get("corpus_root"),
+            "/home/bijan/lu2024-12-24/.cache/corpus_01",
+        )
+        self.assertEqual(
+            support.benchmark_remote_corpus_root(),
+            Path("/home/bijan/lu2024-12-24/.cache/corpus_01"),
+        )
+
     def test_fastq_report_parsers_default_corpus_root_from_workspace_contract(self) -> None:
         original_argv = sys.argv
         try:
