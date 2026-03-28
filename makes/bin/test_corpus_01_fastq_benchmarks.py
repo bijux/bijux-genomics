@@ -1075,6 +1075,14 @@ class BenchmarkMakefileTests(unittest.TestCase):
         ]:
             self.assertNotIn(resolved_claim, text)
 
+    def test_benchmark_issue_ledger_omits_resolved_publication_refresh_issue(self) -> None:
+        text = benchmark_issues_text()
+
+        self.assertNotIn(
+            "30. Publication refresh depends on manually curated make targets rather than the governed contract list.",
+            text,
+        )
+
     def test_benchmark_workspace_contract_doc_records_local_and_remote_roots(self) -> None:
         text = benchmark_workspace_contract_text()
 
