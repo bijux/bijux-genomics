@@ -21,4 +21,5 @@ toml = { workspace = true }
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+flate2 = "1"
 insta = { version = "1", features = ["json", "filters"] }

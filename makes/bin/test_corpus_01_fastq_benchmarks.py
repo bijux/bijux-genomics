@@ -70,6 +70,7 @@ import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 import normalize_lunarc_results_mirror as normalize_results_mirror
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
+import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
@@ -229,6 +230,77 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(defaults["database_scope"], "read_screening")
         self.assertIsNone(defaults["minimum_confidence"])
         self.assertTrue(defaults["emit_unclassified"])
+
+    def test_screen_taxonomy_bootstrap_builds_lineage_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            database_root = Path(tmpdir) / "taxonomy_db"
+            (database_root / "source").mkdir(parents=True)
+            (database_root / "kraken2").mkdir()
+            (database_root / "krakenuniq").mkdir()
+            (database_root / "centrifuge").mkdir()
+            (database_root / "kaiju").mkdir()
+            (database_root / "taxonomy").mkdir()
+            (database_root / "kraken2" / "hash.k2d").write_text("a", encoding="utf-8")
+            (database_root / "krakenuniq" / "database.kdb").write_text("b", encoding="utf-8")
+            (database_root / "centrifuge" / "reference.1.cf").write_text("c", encoding="utf-8")
+            (database_root / "kaiju" / "nodes.dmp").write_text("d", encoding="utf-8")
+            (database_root / "taxonomy" / "names.dmp").write_text("e", encoding="utf-8")
+            source_manifest = database_root / "source" / "panel_manifest.json"
+            source_manifest.write_text(
+                json.dumps(
+                    {
+                        "entries": [
+                            {
+                                "accession": "NC_000913.3",
+                                "taxid": 562,
+                                "display_name": "Escherichia coli K-12 MG1655",
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            payload = taxonomy_db_bootstrap.build_lineage_payload(
+                database_root=database_root,
+                source_manifest=source_manifest,
+                bootstrap_report=None,
+                database_catalog_id="taxonomy_reference",
+                database_artifact_id="taxonomy_db",
+                database_namespace="read_screening",
+                database_scope="read_screening",
+            )
+
+        self.assertEqual(
+            payload["schema_version"],
+            "bijux.fastq.screen_taxonomy.database_lineage.v1",
+        )
+        self.assertEqual(payload["source_entry_count"], 1)
+        self.assertEqual(
+            [row["backend"] for row in payload["backend_roots"]],
+            ["kraken2", "krakenuniq", "centrifuge", "kaiju", "taxonomy"],
+        )
+        self.assertIsNotNone(payload["database_digest"])
+
+    def test_screen_taxonomy_bootstrap_requires_all_backend_dirs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            database_root = Path(tmpdir) / "taxonomy_db"
+            (database_root / "source").mkdir(parents=True)
+            source_manifest = database_root / "source" / "panel_manifest.json"
+            source_manifest.write_text(
+                json.dumps({"entries": [{"accession": "NC_000913.3"}]}),
+                encoding="utf-8",
+            )
+            with self.assertRaises(SystemExit):
+                taxonomy_db_bootstrap.build_lineage_payload(
+                    database_root=database_root,
+                    source_manifest=source_manifest,
+                    bootstrap_report=None,
+                    database_catalog_id="taxonomy_reference",
+                    database_artifact_id="taxonomy_db",
+                    database_namespace="read_screening",
+                    database_scope="read_screening",
+                )
 
     def test_default_screen_taxonomy_database_root_prefers_cache_extra_data(
         self,
