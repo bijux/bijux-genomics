@@ -75,6 +75,7 @@ import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 import benchmark_workspace_value
 import benchmark_publication_targets
 import benchmark_tooling_repo_checks
+import audit_benchmark_workspace_layout as workspace_layout_audit
 import build_corpus_01_benchmark_dossier_index as dossier_index
 import build_corpus_01_benchmark_remediation_queue as remediation_queue
 
@@ -5055,6 +5056,67 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
             report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
 
         self.assertEqual(report["violation_count"], 0)
+
+    def test_workspace_layout_audit_flags_duplicate_mirrored_roots(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            local_results_root = Path(tmpdir) / "results-archive"
+            cache_root = (
+                local_results_root / "home" / "bijan" / "lu2024-12-24" / ".cache"
+            )
+            (cache_root / "results").mkdir(parents=True)
+            (cache_root / "bijux-dna-results").mkdir(parents=True)
+            (cache_root / "reference").mkdir(parents=True)
+            (cache_root / "bijux-reference").mkdir(parents=True)
+
+            with mock.patch.object(
+                support,
+                "benchmark_local_results_root",
+                return_value=local_results_root,
+            ), mock.patch.object(
+                support,
+                "benchmark_local_cache_mirror_root",
+                return_value=cache_root,
+            ):
+                report = workspace_layout_audit.workspace_layout_report()
+
+        self.assertEqual(report["status"], "incomplete")
+        self.assertTrue(
+            any(
+                issue["issue_id"] == "duplicate-remote-results-root"
+                for issue in report["issues"]
+            )
+        )
+        self.assertTrue(
+            any(
+                issue["issue_id"] == "duplicate-remote-reference-root"
+                for issue in report["issues"]
+            )
+        )
+
+    def test_workspace_layout_audit_flags_non_cache_siblings(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            local_results_root = Path(tmpdir) / "results-archive"
+            remote_workspace_root = local_results_root / "home" / "bijan" / "lu2024-12-24"
+            cache_root = remote_workspace_root / ".cache"
+            cache_root.mkdir(parents=True)
+            (remote_workspace_root / "results").mkdir()
+            (remote_workspace_root / "corpus_01").mkdir()
+
+            with mock.patch.object(
+                support,
+                "benchmark_local_results_root",
+                return_value=local_results_root,
+            ), mock.patch.object(
+                support,
+                "benchmark_local_cache_mirror_root",
+                return_value=cache_root,
+            ):
+                report = workspace_layout_audit.workspace_layout_report()
+
+        sibling_details = [issue["detail"] for issue in report["issues"]]
+        self.assertTrue(
+            any("unexpected sibling beside .cache" in detail for detail in sibling_details)
+        )
 
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
