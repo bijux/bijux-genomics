@@ -7265,6 +7265,136 @@ class ProfileReadLengthsReportingTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_profile_read_lengths_summary_preserves_configured_run_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            actual_run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.profile_read_lengths" / "lunarc"
+            )
+            run_root = repo_root / "mirror" / "fastq.profile_read_lengths"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
+            docs_root = (
+                repo_root / "docs" / "benchmark" / "fastq.profile_read_lengths" / "corpus-01"
+            )
+            sample_report = (
+                actual_run_root
+                / "bench"
+                / "profile_read_lengths"
+                / "sample_0001"
+                / "report.json"
+            )
+            tool_dir = sample_report.parent / "tools" / "seqkit_stats"
+            tool_dir.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {"tool": "seqkit_stats"},
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "read_count": 100,
+                                        "mean_read_length": 75.0,
+                                        "max_read_length": 151,
+                                        "distinct_lengths": 48,
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (tool_dir / "profile_read_lengths_report.json").write_text(
+                json.dumps({"status": "ok"}) + "\n",
+                encoding="utf-8",
+            )
+            (tool_dir / "length_distribution.tsv").write_text(
+                "length\tcount\n50\t10\n151\t2\n",
+                encoding="utf-8",
+            )
+            (tool_dir / "length_distribution.json").write_text(
+                json.dumps({"histogram": [{"length": 50, "count": 10}]}) + "\n",
+                encoding="utf-8",
+            )
+            (actual_run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.profile_read_lengths",
+                        "scenario_id": "read_length_fairness",
+                        "tool_kind": "benchmark",
+                        "samples_total": 1,
+                        "samples_failed": 0,
+                        "tools": ["seqkit_stats"],
+                        "report_only": True,
+                        "mutates_fastq": False,
+                        "may_change_read_count": False,
+                        "raw_backend_report_format": "seqkit_stats_length_histogram",
+                        "histogram_bins": 100,
+                        "length_histogram_artifacts": [
+                            "report_json",
+                            "length_distribution_tsv",
+                            "length_distribution_json",
+                        ],
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "se",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_profile_read_lengths_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    profile_read_lengths_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    profile_read_lengths_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "modern",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(profile_read_lengths_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+            self.assertEqual(summary["run_root"], str(run_root))
+
     def test_read_length_artifact_check_rejects_empty_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             report_path = Path(tmpdir) / "bench" / "profile_read_lengths" / "sample_0001" / "report.json"
