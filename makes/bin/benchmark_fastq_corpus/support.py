@@ -897,7 +897,7 @@ def corpus_01_publication_contract(stage_id: str) -> CorpusBenchmarkContract:
         )
     raise SystemExit(
         "missing benchmark publication contract: "
-        f"stage_id={stage_id} in configs/bench/publication.toml"
+        f"stage_id={stage_id} in configs/bench/benchmark.toml"
     )
 
 

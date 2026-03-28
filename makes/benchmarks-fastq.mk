@@ -2,7 +2,9 @@
 
 BIJUX_BIN ?= cargo run -q -p bijux-dna-dev -- tooling run bijux --
 BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --
-BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml
+BENCHMARK_CONFIG ?= configs/bench/benchmark.toml
+BENCHMARK_FASTQ_CORPUS_CONFIG ?= $(BENCHMARK_CONFIG)
+export BIJUX_BENCHMARK_CONFIG := $(BENCHMARK_CONFIG)
 export BIJUX_FASTQ_CORPUS_CONFIG := $(BENCHMARK_FASTQ_CORPUS_CONFIG)
 OUT_DIR ?= .
 TOOLS ?=
@@ -17,8 +19,8 @@ RESUME ?= 1
 DRY_RUN ?= 0
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
-CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" remote.corpus_root)
-CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell $(BIJUX_BENCH_BIN) bench publication-targets --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" report)
+CORPUS_ROOT ?= $(shell BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)" remote.corpus_root)
+CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell $(BIJUX_BENCH_BIN) bench publication-targets --config "$(BENCHMARK_CONFIG)" report)
 BENCHMARK_OUT_DIR := $(strip $(OUT_DIR))
 BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)
 BENCHMARK_REPORT_RUN_ROOT_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--run-root "$(BENCHMARK_OUT_DIR)",)
@@ -34,7 +36,7 @@ BENCHMARK_DRY_RUN_ARGS = $(if $(filter 1 true yes,$(DRY_RUN)),--dry-run,)
 
 define run_corpus_fastq_benchmark
 	@$(BIJUX_BENCH_BIN) $(if $(PLATFORM),--platform "$(PLATFORM)",) bench corpus-fastq \
-		--config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" \
+		--config "$(BENCHMARK_CONFIG)" \
 		--stage $(1) \
 		--corpus-root "$(CORPUS_ROOT)" \
 		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
