@@ -100,6 +100,25 @@ def makefile_target_recipe(target: str) -> str:
     return "\n".join(recipe_lines)
 
 
+def makefile_phony_targets() -> set[str]:
+    lines = benchmark_makefile_text().splitlines()
+    capture = False
+    entries: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if line.startswith(".PHONY:"):
+            capture = True
+            entries.extend(stripped.removeprefix(".PHONY:").split())
+            if not stripped.endswith("\\"):
+                break
+            continue
+        if capture:
+            entries.extend(stripped.split())
+            if not stripped.endswith("\\"):
+                break
+    return {entry.rstrip("\\") for entry in entries if entry}
+
+
 class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_trim_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.trim_reads_benchmark_defaults()
@@ -194,6 +213,14 @@ class BenchmarkMakefileTests(unittest.TestCase):
         recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
 
         self.assertIn("_benchmark-extract-umis-corpus-01-report", recipe)
+
+    def test_makefile_declares_fastq_stage_run_targets_as_phony(self) -> None:
+        phony = makefile_phony_targets()
+
+        self.assertIn("_benchmark-remove-duplicates-corpus-01", phony)
+        self.assertIn("_benchmark-normalize-primers-corpus-01", phony)
+        self.assertIn("_benchmark-deplete-host-corpus-01", phony)
+        self.assertIn("_benchmark-deplete-reference-contaminants-corpus-01", phony)
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()

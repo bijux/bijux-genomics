@@ -415,6 +415,8 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	_benchmark-detect-adapters-corpus-01 _benchmark-profile-reads-corpus-01 \
 	_benchmark-profile-read-lengths-corpus-01 _benchmark-profile-overrepresented-corpus-01 \
 	_benchmark-filter-low-complexity-corpus-01 _benchmark-filter-reads-corpus-01 \
+	_benchmark-remove-duplicates-corpus-01 _benchmark-normalize-primers-corpus-01 \
+	_benchmark-deplete-host-corpus-01 _benchmark-deplete-reference-contaminants-corpus-01 \
 	_benchmark-deplete-rrna-corpus-01 _benchmark-screen-taxonomy-corpus-01 \
 	_benchmark-correct-errors-corpus-01 _benchmark-extract-umis-corpus-01 \
 	_benchmark-merge-corpus-01 _benchmark-report-qc-corpus-01 \
