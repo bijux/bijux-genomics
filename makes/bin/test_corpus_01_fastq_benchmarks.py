@@ -4126,6 +4126,67 @@ class MergeReportingTests(unittest.TestCase):
         self.assertEqual(outliers[0]["best_merge_rate_tool"], "pear")
         self.assertAlmostEqual(outliers[0]["best_merge_rate"], 0.83)
 
+    def test_merge_briefing_reproducibility_uses_configured_archive_language(self) -> None:
+        summary = {
+            "stage_id": "fastq.merge_pairs",
+            "scenario_id": "merge_fairness",
+            "platform": "lunarc-apptainer",
+            "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.merge_pairs/lunarc",
+            "samples_total": 2,
+            "samples_failed": 0,
+            "layout_counts": {"pe": 2, "se": 0},
+            "era_counts": {"ancient": 1, "modern": 1},
+            "tools": ["pear", "bbmerge"],
+            "merge_overlap": None,
+            "min_length": None,
+            "unmerged_read_policy": "emit_unmerged_pairs",
+        }
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "ancient",
+                "layout": "pe",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "pear",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "merge_rate": "0.80",
+                "base_retention": "0.70",
+                "reads_merged": "800",
+            },
+            {
+                "sample_id": "sample_0002",
+                "accession": "ACC2",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_500mb",
+                "study_accession": "PRJ2",
+                "tool": "bbmerge",
+                "runtime_s": "1.5",
+                "exit_code": "0",
+                "merge_rate": "0.82",
+                "base_retention": "0.72",
+                "reads_merged": "820",
+            },
+        ]
+
+        markdown = merge_briefing.render_markdown(
+            summary=summary,
+            rows=rows,
+            runtime_rows=merge_briefing.tool_runtime_summary(rows),
+            cohort_rows=merge_briefing.cohort_runtime_summary(rows),
+            outliers=merge_briefing.sample_runtime_outliers(rows),
+        )
+
+        self.assertIn("configured local benchmark archive", markdown)
+        self.assertNotIn(
+            "mirrored locally under `/Users/bijan/bijux/bijux-dna-results`",
+            markdown,
+        )
+
     def test_merge_markdown_mentions_paired_only_contract(self) -> None:
         summary = {
             "generated_at_utc": "2026-03-26T00:00:00+00:00",
