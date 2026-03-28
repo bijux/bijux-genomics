@@ -5,7 +5,7 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+  "corpus_root": "<REMOTE_CORPUS_ROOT>",
   "entropy_threshold": 0.55,
   "era_counts": {
     "ancient": 10,
@@ -26,7 +26,7 @@
   },
   "platform": "lunarc-apptainer",
   "polyx_threshold": null,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc",
+  "run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_low_complexity/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "low_complexity_fairness",

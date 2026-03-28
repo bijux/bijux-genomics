@@ -10,7 +10,7 @@
   "contaminant_policy": "none",
   "contaminant_preset": null,
   "corpus_id": "corpus-01",
-  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+  "corpus_root": "<REMOTE_CORPUS_ROOT>",
   "era_counts": {
     "ancient": 10,
     "modern": 10
@@ -36,7 +36,7 @@
   "polyx_policy": "none",
   "polyx_preset": null,
   "quality_cutoff": null,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
+  "run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_reads/lunarc",
   "samples_failed": 20,
   "samples_total": 20,
   "scenario_id": "trim_fairness",

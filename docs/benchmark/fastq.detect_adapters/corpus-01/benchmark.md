@@ -5,8 +5,8 @@
 This benchmark measures the governed `fastq.detect_adapters` stage across the curated `corpus-01` human DNA cohort on the Lunarc Apptainer platform.
 
 - Platform: `lunarc-apptainer` on Lunarc
-- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
-- Benchmark root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.detect_adapters/lunarc`
+- Corpus root: `<REMOTE_CORPUS_ROOT>`
+- Benchmark root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.detect_adapters/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `fastqc`
 - Evidence contract: `evidence_only`, `full_input`, `fastqc_summary`, report_only=`True`

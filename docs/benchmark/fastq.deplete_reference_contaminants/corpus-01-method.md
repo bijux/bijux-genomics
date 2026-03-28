@@ -39,7 +39,7 @@ make _benchmark-deplete-reference-contaminants-corpus-01 PLATFORM=apptainer-amd6
 make _benchmark-deplete-reference-contaminants-corpus-01-report
 ```
 
-The runner resolves the governed contaminant reference lineage through `configs/bench/workspace.toml` unless you intentionally override `REFERENCE_INDEX` or `--reference-index` for a non-governed audit.
+The runner resolves the governed contaminant reference lineage through `configs/bench/benchmark.toml` unless you intentionally override `REFERENCE_INDEX` or `--reference-index` for a non-governed audit.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

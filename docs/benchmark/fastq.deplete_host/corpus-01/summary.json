@@ -5,7 +5,7 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+  "corpus_root": "<REMOTE_CORPUS_ROOT>",
   "era_counts": {
     "ancient": 10,
     "modern": 10
@@ -26,14 +26,14 @@
   },
   "platform": "lunarc-apptainer",
   "reference_catalog_id": "host_reference",
-  "reference_index": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/reference",
+  "reference_index": "<LOCAL_CACHE_EXTRA_DATA_ROOT>/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/reference",
   "reference_index_backend": "bowtie2_build",
   "reference_index_digest": "639f1934a7933edae38d8bf42bf9f6cc43560e24686c53b0e94e27f9f6691831",
   "reference_index_lineage_digest": "4680af76346224d129ceba82cb055f78b9936aa8bffd5e405b2b34acb04df872",
-  "reference_index_lineage_json": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/lineage.json",
+  "reference_index_lineage_json": "<LOCAL_CACHE_EXTRA_DATA_ROOT>/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/lineage.json",
   "reference_index_size_bytes": 4185662197,
   "retain_unmapped_only": true,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc",
+  "run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_host/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "host_depletion_fairness",

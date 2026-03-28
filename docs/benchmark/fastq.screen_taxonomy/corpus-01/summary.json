@@ -5,14 +5,14 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+  "corpus_root": "<REMOTE_CORPUS_ROOT>",
   "database_artifact_id": "taxonomy_db",
   "database_catalog_id": "taxonomy_reference",
   "database_digest": "5bb5be0ced539ee0d1cd88d41f4f63781d8941d1964ef7410c1b16995795f7de",
   "database_lineage_digest": "6c26e735250bd7438dfe1c2404e4dca6507c98aa0520a2bfd9024b4bebfd92a8",
-  "database_lineage_json": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.json",
+  "database_lineage_json": "<LOCAL_CACHE_EXTRA_DATA_ROOT>/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.json",
   "database_namespace": "read_screening",
-  "database_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db",
+  "database_root": "<LOCAL_CACHE_EXTRA_DATA_ROOT>/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db",
   "database_scope": "read_screening",
   "database_size_bytes": 8652216269,
   "era_counts": {
@@ -33,7 +33,7 @@
     "se": 10
   },
   "platform": "lunarc-apptainer",
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc",
+  "run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.screen_taxonomy/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "screen_fairness",

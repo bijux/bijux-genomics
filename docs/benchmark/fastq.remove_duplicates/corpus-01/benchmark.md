@@ -5,8 +5,8 @@
 This benchmark compares the governed `fastq.remove_duplicates` stage across the paired subset of the corpus-01 human DNA cohort on the Lunarc Apptainer platform.
 
 - Platform: `lunarc-apptainer` on Lunarc
-- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
-- Benchmark root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.remove_duplicates/lunarc`
+- Corpus root: `<REMOTE_CORPUS_ROOT>`
+- Benchmark root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.remove_duplicates/lunarc`
 - Input balance: `5` ancient, `5` modern, paired-end only
 - Tool set: `clumpify, fastuniq`
 - dedup_mode: `exact`

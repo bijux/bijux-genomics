@@ -43,7 +43,7 @@ make _benchmark-deplete-host-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-deplete-host-corpus-01-report
 ```
 
-The runner resolves the governed reference index from `configs/bench/workspace.toml` when `REFERENCE_INDEX` and `--reference-index` are left unset. Override the reference path only when you intentionally audit a non-governed host bundle.
+The runner resolves the governed reference index from `configs/bench/benchmark.toml` when `REFERENCE_INDEX` and `--reference-index` are left unset. Override the reference path only when you intentionally audit a non-governed host bundle.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

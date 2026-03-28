@@ -36,7 +36,7 @@ cargo run -q -p bijux-dna -- corpus materialize
 By default the corpus lands at:
 
 ```text
-/home/bijan/bijux/corpus_01
+<CORPUS_ROOT>
 ```
 
 Materialization writes:

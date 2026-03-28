@@ -7,7 +7,7 @@ This document covers two operational contracts:
 - how to mirror the governed shared `.cache` tree into the local benchmark archive workspace
 - how to move the benchmark workflow to another cluster by updating configuration rather than rewriting benchmark code
 
-Read this together with `docs/benchmark/workspace-model.md`, `docs/benchmark/workspace-contract.md`, and `configs/bench/workspace.toml`.
+Read this together with `docs/benchmark/workspace-model.md`, `docs/benchmark/workspace-contract.md`, and `configs/bench/benchmark.toml`.
 
 Repo sync belongs on the private frontend home. Benchmark artifacts belong on the shared cache contract. Keep those responsibilities separate in code, automation, and operator docs.
 
@@ -15,24 +15,24 @@ Repo sync belongs on the private frontend home. Benchmark artifacts belong on th
 
 ## Mirror The Shared Cache Tree
 
-1. Sync the private benchmark repo checkout to `remote.repo_root`.
-2. Sync the governed shared cache tree rooted at `remote.cache_root`.
-3. Mirror the pulled cache tree under `local.results_root` so the shared path appears at `local.cache_mirror_root`.
-4. Keep canonical local stage archives under `local.results_root/corpus_01/<stage_id>/lunarc/`.
-5. Use the `home/.../.cache` mirror when publication or artifact localization needs the original shared-tree layout.
+1. Sync the private benchmark repo checkout to `workspace.remote.repo_root`.
+2. Sync the governed shared cache tree rooted at `workspace.remote.cache_root`.
+3. Mirror the pulled cache tree under `workspace.local.results_root` so the shared path appears at `workspace.local.cache_mirror_root`.
+4. Keep canonical local stage archives under `workspace.local.results_root/corpus_01/<stage_id>/lunarc/`.
+5. Use the mirrored remote-cache subtree when publication or artifact localization needs the original shared-tree layout.
 
 The stable local mirror contract is:
 
 ```text
-<local.results_root>/
+<workspace.local.results_root>/
   corpus_01/<stage_id>/lunarc/...
-  home/bijan/lu2024-12-24/.cache/
+  <mirrored-remote-cache>/
     results/corpus_01/<stage_id>/lunarc/...
     extra-data/...
     reference/...
 ```
 
-Do not scatter benchmark pulls across ad hoc local directories. Keep mirrored artifacts under `local.results_root` so renderers, audits, and repair tools can resolve the same path contract.
+Do not scatter benchmark pulls across ad hoc local directories. Keep mirrored artifacts under `workspace.local.results_root` so renderers, audits, and repair tools can resolve the same path contract.
 
 The governed one-shot command for corpus-01 FASTQ publication is:
 
@@ -42,21 +42,21 @@ make benchmark-lunarc-publication-refresh
 
 That command pulls the governed results mirror, pulls the taxonomy lineage file required by `fastq.screen_taxonomy`, refreshes the published dossiers, and rebuilds the publication audits.
 
-The default pull base, pull mode, sync profiles, repo cleanliness checks, and supplemental manifest settings now belong to `[sync.defaults]` in `configs/bench/workspace.toml`. Use environment overrides only when the current operation genuinely needs to diverge from the governed defaults.
+The default pull base, pull mode, sync profiles, repo cleanliness checks, and supplemental manifest settings now belong to `[sync.defaults]` in `configs/bench/benchmark.toml`. Use environment overrides only when the current operation genuinely needs to diverge from the governed defaults.
 
-When a caller needs a non-default benchmark workspace contract, set `BIJUX_FASTQ_CORPUS_CONFIG` or pass `--config <path>` to `bijux-dna bench corpus-fastq`. Do not fork path formulas into new scripts.
+When a caller needs a non-default benchmark workspace contract, set `BIJUX_BENCHMARK_CONFIG` or pass `--config <path>` to `bijux-dna bench corpus-fastq`. Do not fork path formulas into new scripts.
 
 When driving the sync surface directly through `cargo run -p bijux-dna-dev -- hpc run ...`, prefer the neutral aliases `benchmark-sync-pull` and `benchmark-sync-push`. The legacy `lunarc-pull` and `lunarc-push` aliases remain available for compatibility with existing automation.
 
 ## Move To Another Cluster With Config
 
-1. Copy `configs/bench/workspace.toml` and update the `[remote]` paths for the new frontend checkout, shared cache root, results root, extra-data root, container root, and reference root.
-2. Update `[local]` paths only if the local archive workspace changes.
+1. Copy `configs/bench/benchmark.toml` and update the `[workspace.remote]` roots for the new frontend checkout, shared cache root, results root, extra-data root, container root, and reference root.
+2. Update `[workspace.local]` roots only if the local archive workspace changes.
 3. Update any cluster-specific sync profile under `configs/hpc/` so repo sync and cache sync target the new remote roots.
 4. Keep benchmark runners and report renderers unchanged unless the new cluster requires a genuinely different execution contract.
 5. Re-run the benchmark contract tests before publishing refreshed dossiers.
 
-The benchmark control plane should consume `configs/bench/workspace.toml` through `bijux-dna` rather than embedding cluster-specific paths in code. A cluster migration is complete only when the config changes are sufficient and the benchmark suite still passes without path edits in `makes/bin`, `makes/bin/benchmark_fastq_corpus/`, or Rust benchmark orchestration code.
+The benchmark control plane should consume `configs/bench/benchmark.toml` through `bijux-dna` rather than embedding cluster-specific paths in code. A cluster migration is complete only when the config changes are sufficient and the benchmark suite still passes without path edits in `makes/bin`, `makes/bin/benchmark_fastq_corpus/`, or Rust benchmark orchestration code.
 
 ## Sync Profile Contract
 
@@ -69,14 +69,14 @@ The benchmark control plane should consume `configs/bench/workspace.toml` throug
 
 The `pull-benchmark-publication` profile is the governed profile for corpus-01 FASTQ dossier publication. It mirrors the shared results trees plus the taxonomy lineage file needed by `fastq.screen_taxonomy`.
 
-If you need environment overrides, prefer the neutral `BENCHMARK_SYNC_*` variables over the legacy `LUNARC_*` names. The workspace contract in `configs/bench/workspace.toml`, including `[sync.defaults]`, should still remain the primary source of truth.
+If you need environment overrides, prefer the neutral `BENCHMARK_SYNC_*` variables over the legacy `LUNARC_*` names. The workspace contract in `configs/bench/benchmark.toml`, including `[sync.defaults]`, should still remain the primary source of truth.
 
 The repo push marker `LUNARC_SYNC_SOURCE.json` should carry the benchmark workspace roots alongside the synced commit so the remote checkout records which benchmark environment contract the push was prepared against.
 
 ## Publication Checklist
 
-- Confirm `configs/bench/workspace.toml` names the correct `local` and `remote` roots.
-- Confirm the local mirror under `local.cache_mirror_root` contains the required `results`, `extra-data`, and `reference` trees.
+- Confirm `configs/bench/benchmark.toml` names the correct `workspace.local` and `workspace.remote` roots.
+- Confirm the local mirror under `workspace.local.cache_mirror_root` contains the required `results`, `extra-data`, and `reference` trees.
 - Run `make benchmark-lunarc-publication-refresh` when the source run lives on Lunarc and publication inputs need a fresh sync.
 - Refresh corpus dossiers from the governed report targets when a local rerender is sufficient.
 - Re-run the publication audit after the refresh if you did not use the governed one-shot command.

@@ -1,17 +1,17 @@
 {
-  "local_results_root": "/Users/bijan/bijux/bijux-dna-results",
-  "local_cache_mirror_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache",
-  "remote_workspace_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24",
+  "local_results_root": "<LOCAL_RESULTS_ROOT>",
+  "local_cache_mirror_root": "<LOCAL_CACHE_ROOT>",
+  "remote_workspace_root": "<LOCAL_MIRRORED_REMOTE_WORKSPACE_ROOT>",
   "authoritative_roots": {
-    "remote_results_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results",
-    "remote_reference_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference",
-    "local_stage_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01"
+    "remote_results_root": "<LOCAL_CACHE_RESULTS_ROOT>",
+    "remote_reference_root": "<LOCAL_CACHE_REFERENCE_ROOT>",
+    "local_stage_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01"
   },
   "root_pairs": [
     {
       "scope": "remote-results",
-      "canonical_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results",
-      "legacy_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-dna-results",
+      "canonical_root": "<LOCAL_CACHE_RESULTS_ROOT>",
+      "legacy_root": "<LOCAL_CACHE_ROOT>/bijux-dna-results",
       "canonical_exists": true,
       "legacy_exists": false,
       "canonical_entries": [
@@ -27,8 +27,8 @@
     },
     {
       "scope": "remote-reference",
-      "canonical_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference",
-      "legacy_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-reference",
+      "canonical_root": "<LOCAL_CACHE_REFERENCE_ROOT>",
+      "legacy_root": "<LOCAL_CACHE_ROOT>/bijux-reference",
       "canonical_exists": true,
       "legacy_exists": false,
       "canonical_entries": [
@@ -49,8 +49,8 @@
   ],
   "unexpected_remote_siblings": [],
   "local_stage_layout": {
-    "archive_corpus_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01",
-    "cache_corpus_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01",
+    "archive_corpus_root": "<LOCAL_RESULTS_ROOT>/corpus_01",
+    "cache_corpus_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01",
     "archive_stage_ids": [],
     "cache_stage_ids": [
       "fastq.correct_errors",
@@ -100,7 +100,7 @@
       "fastq.trim_terminal_damage",
       "fastq.validate_reads"
     ],
-    "authoritative_stage_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01"
+    "authoritative_stage_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01"
   },
   "status": "clear",
   "issue_count": 0,

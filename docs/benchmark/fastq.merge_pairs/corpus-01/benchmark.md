@@ -5,8 +5,8 @@
 This benchmark compares the governed `fastq.merge_pairs` stage across the paired-end human DNA subset of corpus-01 on the Lunarc Apptainer platform.
 
 - Platform: `lunarc-apptainer` on Lunarc
-- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
-- Benchmark root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.merge_pairs/lunarc`
+- Corpus root: `<REMOTE_CORPUS_ROOT>`
+- Benchmark root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.merge_pairs/lunarc`
 - Input balance: `5` ancient paired-end and `5` modern paired-end samples
 - Tool set: `adapterremoval, bbmerge, flash2, leehom, pear, vsearch`
 - Fixed merge contract: overlap `auto`, min merged length `auto`, unmerged policy `emit_unmerged_pairs`

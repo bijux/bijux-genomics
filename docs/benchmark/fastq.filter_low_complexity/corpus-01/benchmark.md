@@ -5,8 +5,8 @@
 This benchmark compares the governed `fastq.filter_low_complexity` stage across the full corpus-01 human DNA cohort on the Lunarc Apptainer platform.
 
 - Platform: `lunarc-apptainer` on Lunarc
-- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
-- Benchmark root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc`
+- Corpus root: `<REMOTE_CORPUS_ROOT>`
+- Benchmark root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_low_complexity/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `bbduk, prinseq`
 - entropy_threshold: `0.55`
