@@ -17,7 +17,36 @@ except ModuleNotFoundError:
     tomllib = None
 
 
-LOCAL_RESULTS_ROOT = Path("/Users/bijan/bijux/bijux-dna-results")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_LOCAL_RESULTS_ROOT = Path("/Users/bijan/bijux/bijux-dna-results")
+DEFAULT_LOCAL_CACHE_MIRROR_ROOT = (
+    DEFAULT_LOCAL_RESULTS_ROOT / "home" / "bijan" / "lu2024-12-24" / ".cache"
+)
+
+
+@lru_cache(maxsize=1)
+def load_benchmark_workspace_config() -> dict:
+    path = REPO_ROOT / "configs" / "bench" / "workspace.toml"
+    if not path.is_file() or tomllib is None:
+        return {}
+    with path.open("rb") as handle:
+        return tomllib.load(handle)
+
+
+def benchmark_local_results_root() -> Path:
+    local = load_benchmark_workspace_config().get("local", {})
+    value = local.get("results_root")
+    if isinstance(value, str) and value.strip():
+        return Path(value).expanduser()
+    return DEFAULT_LOCAL_RESULTS_ROOT
+
+
+def benchmark_local_cache_mirror_root() -> Path:
+    local = load_benchmark_workspace_config().get("local", {})
+    value = local.get("cache_mirror_root")
+    if isinstance(value, str) and value.strip():
+        return Path(value).expanduser()
+    return DEFAULT_LOCAL_CACHE_MIRROR_ROOT
 
 
 def load_json(path: Path) -> dict:
@@ -543,7 +572,13 @@ def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
 
 
 def default_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
-    return LOCAL_RESULTS_ROOT / corpus_root.name / stage_id / "lunarc"
+    return (
+        benchmark_local_cache_mirror_root()
+        / "results"
+        / corpus_root.name
+        / stage_id
+        / "lunarc"
+    )
 
 
 def infer_cache_root(path: Path) -> Path | None:
@@ -570,7 +605,7 @@ def default_extra_data_root(out_root: Path) -> Path:
     cache_root = infer_cache_root(out_root)
     if cache_root is not None:
         return cache_root / "extra-data"
-    return LOCAL_RESULTS_ROOT / "extra-data"
+    return benchmark_local_cache_mirror_root() / "extra-data"
 
 
 def default_host_reference_index_root(
@@ -618,9 +653,16 @@ def localize_results_path(path_str: str, local_results_root: Path) -> Path:
     path = Path(path_str)
     if path.exists():
         return path
-    for marker in ("/results/", "/bijux-dna-results/"):
+    cache_mirror_root = benchmark_local_cache_mirror_root()
+    root_mappings = [
+        ("/results/", local_results_root),
+        ("/bijux-dna-results/", cache_mirror_root / "bijux-dna-results"),
+        ("/extra-data/", cache_mirror_root / "extra-data"),
+        ("/reference/", cache_mirror_root / "reference"),
+    ]
+    for marker, mapped_root in root_mappings:
         if marker in path_str:
-            return local_results_root / path_str.split(marker, 1)[1]
+            return mapped_root / path_str.split(marker, 1)[1]
     return path
 
 
