@@ -4,7 +4,7 @@
   "published_stage_count": 19,
   "complete_stage_count": 18,
   "incomplete_stage_count": 2,
-  "issue_count": 3,
+  "issue_count": 2,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
@@ -100,21 +100,15 @@
     {
       "stage_id": "fastq.trim_reads",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
       "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
       "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
-        "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc"
+        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc"
       ],
       "issues": [
-        {
-          "stage_id": "fastq.trim_reads",
-          "issue_id": "duplicate-result-root-ambiguity",
-          "detail": "both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist"
-        },
         {
           "stage_id": "fastq.trim_reads",
           "issue_id": "run-manifest-sample-failures",

@@ -4,7 +4,7 @@
 - Published stages audited: `19`
 - Complete mirrored stages: `18`
 - Incomplete mirrored stages: `2`
-- Mirror issues: `3`
+- Mirror issues: `2`
 
 ## Stage status
 
@@ -36,11 +36,10 @@
   - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc`
   - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc` (selected newest=`True`)
   - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc`
-- `fastq.trim_reads`: `incomplete` (`2` issues)
+- `fastq.trim_reads`: `incomplete` (`1` issues)
   - selected run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`
   - newest available run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc` (selected newest=`True`)
-  - available run roots: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`, `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc`
-  - `duplicate-result-root-ambiguity`: both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`
   - `run-manifest-sample-failures`: run_manifest samples_failed=20
 - `fastq.filter_reads`: `complete` (`0` issues)
   - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_reads/lunarc`
