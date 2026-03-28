@@ -361,23 +361,23 @@ mod tests {
         std::fs::write(
             &platform_path,
             r#"
-default = "lunarc-apptainer"
+default = "apptainer-amd64"
 
-[platforms.lunarc-apptainer]
+[platforms.apptainer-amd64]
 runner = "apptainer"
 container_dir = "containers/apptainer/sif"
 image_prefix = "bijuxdna"
 arch = "amd64"
 "#,
         )?;
-        std::env::set_var("BIJUX_CACHE_ROOT", "/scratch/cache-root");
-        let platform = load_platform_from_file(&platform_path, Some("lunarc-apptainer"))?;
+        std::env::set_var("BIJUX_CACHE_ROOT", "/var/tmp/bijux-cache-root");
+        let platform = load_platform_from_file(&platform_path, Some("apptainer-amd64"))?;
         std::env::remove_var("BIJUX_CACHE_ROOT");
 
         assert_eq!(platform.runner, RuntimeKind::Apptainer);
         assert_eq!(
             platform.container_dir,
-            std::path::Path::new("/scratch/cache-root")
+            std::path::Path::new("/var/tmp/bijux-cache-root")
                 .join("bijux-dna-container")
                 .join("apptainer")
                 .join("sif")
@@ -392,9 +392,9 @@ arch = "amd64"
         std::fs::write(
             &platform_path,
             r#"
-default = "lunarc-apptainer"
+default = "apptainer-amd64"
 
-[platforms.lunarc-apptainer]
+[platforms.apptainer-amd64]
 runner = "apptainer"
 container_dir = "containers/apptainer/sif"
 image_prefix = "bijuxdna"
@@ -404,7 +404,7 @@ arch = "amd64"
         std::env::remove_var("BIJUX_CACHE_ROOT");
         std::env::remove_var("BIJUX_HPC_ROOT");
         std::env::remove_var("BIJUX_APPTAINER_CONTAINER_DIR");
-        let platform = load_platform_from_file(&platform_path, Some("lunarc-apptainer"))?;
+        let platform = load_platform_from_file(&platform_path, Some("apptainer-amd64"))?;
 
         assert_eq!(platform.runner, RuntimeKind::Apptainer);
         assert_eq!(
