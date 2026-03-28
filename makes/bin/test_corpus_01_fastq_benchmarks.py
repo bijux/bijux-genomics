@@ -94,7 +94,7 @@ BENCHMARK_ISSUES_PATH = ROOT / "docs" / "benchmark" / "benchmark-issues.md"
 BENCHMARK_FASTQ_CORPUS_SUPPORT_PATH = (
     BIN_DIR / "benchmark_fastq_corpus" / "support.py"
 )
-BENCHMARK_FASTQ_CORPUS_CONFIG_PATH = ROOT / "configs" / "bench" / "workspace.toml"
+BENCHMARK_FASTQ_CORPUS_CONFIG_PATH = ROOT / "configs" / "bench" / "benchmark.toml"
 OPS_RS_PATH = ROOT / "crates" / "bijux-dna-dev" / "src" / "commands" / "ops.rs"
 ENV_RESOLVE_RS_PATH = (
     ROOT / "crates" / "bijux-dna-environment" / "src" / "resolve" / "mod.rs"
@@ -425,7 +425,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         text = benchmark_makefile_text()
 
         self.assertIn(
-            "BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml",
+            "BENCHMARK_FASTQ_CORPUS_CONFIG ?= $(BENCHMARK_CONFIG)",
             text,
         )
         self.assertIn(
@@ -1377,7 +1377,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
         self.assertIn("make _benchmark-deplete-host-corpus-01-report", text)
-        self.assertIn("configs/bench/workspace.toml", text)
+        self.assertIn("configs/bench/benchmark.toml", text)
         self.assertNotIn(
             "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.deplete_host/",
             text,
@@ -1405,7 +1405,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
         self.assertIn("make _benchmark-screen-taxonomy-corpus-01-report", text)
-        self.assertIn("configs/bench/workspace.toml", text)
+        self.assertIn("configs/bench/benchmark.toml", text)
         self.assertNotIn(
             "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/",
             text,
@@ -1469,8 +1469,8 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("## Workflow", text)
         self.assertIn("make _benchmark-trim-polyg-corpus-01 PLATFORM=apptainer-amd64", text)
         self.assertIn("make _benchmark-trim-polyg-corpus-01-report", text)
-        self.assertIn("configs/bench/workspace.toml", text)
-        self.assertNotIn("[workspace.toml](/Users/bijan/", text)
+        self.assertIn("configs/bench/benchmark.toml", text)
+        self.assertNotIn("[benchmark.toml](/Users/bijan/", text)
 
     def test_trim_terminal_damage_method_uses_structured_workflow_contract(
         self,
@@ -1615,7 +1615,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("local.cache_mirror_root", text)
         self.assertIn("remote.repo_root", text)
         self.assertIn("remote.cache_root", text)
-        self.assertIn("configs/bench/workspace.toml", text)
+        self.assertIn("configs/bench/benchmark.toml", text)
 
     def test_benchmark_workspace_model_doc_names_durable_root_roles(self) -> None:
         text = benchmark_workspace_model_text()
@@ -1624,7 +1624,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("shared benchmark cache", text)
         self.assertIn("local benchmark archive", text)
         self.assertIn("local cache mirror", text)
-        self.assertIn("configs/bench/workspace.toml", text)
+        self.assertIn("configs/bench/benchmark.toml", text)
 
     def test_benchmark_workflow_operations_doc_covers_mirror_and_cluster_migration(
         self,
@@ -1635,7 +1635,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("Move To Another Cluster With Config", text)
         self.assertIn("workspace-model.md", text)
         self.assertIn("local.cache_mirror_root", text)
-        self.assertIn("configs/bench/workspace.toml", text)
+        self.assertIn("configs/bench/benchmark.toml", text)
         self.assertIn("corpus-01-dossier-index.json", text)
         self.assertIn("workspace-layout-status.json", text)
         self.assertIn("corpus-01-results-status.json", text)
@@ -2972,7 +2972,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3038,7 +3038,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertEqual(args.repo_root, "/tmp/repo")
         self.assertEqual(args.corpus_root, "/tmp/corpus_01")
         self.assertEqual(args.out_root, "/tmp/results")
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
         self.assertEqual(args.tools, "fastp,fastplong")
         self.assertEqual(args.threads, 8)
         self.assertEqual(args.jobs, 2)
@@ -3234,7 +3234,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3271,7 +3271,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             ["--dedup-mode", "exact", "--keep-order", "false"],
         )
         args = compat_mock.call_args.kwargs["args"]
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
         self.assertEqual(args.tools, "clumpify,fastuniq")
         self.assertEqual(args.threads, 6)
         self.assertEqual(args.sample_jobs, 4)
@@ -3287,7 +3287,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3343,7 +3343,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             ],
         )
         args = compat_mock.call_args.kwargs["args"]
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
         self.assertEqual(args.tools, "cutadapt,fastp")
         self.assertEqual(args.jobs, 2)
         self.assertEqual(args.sample_jobs, 4)
@@ -3359,7 +3359,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3409,7 +3409,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             ],
         )
         args = compat_mock.call_args.kwargs["args"]
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
         self.assertEqual(args.tools, "sortmerna")
         self.assertEqual(args.threads, 6)
         self.assertEqual(args.jobs, 2)
@@ -3426,7 +3426,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3495,7 +3495,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         args = compat_mock.call_args.kwargs["args"]
         self.assertEqual(Path(args.out_root).resolve(), Path("/tmp/results").resolve())
         self.assertEqual(Path(args.corpus_root).resolve(), Path("/tmp/corpus_01").resolve())
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
 
     def test_deplete_reference_contaminants_runner_delegates_to_rust_runner(
         self,
@@ -3509,7 +3509,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3578,7 +3578,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3652,7 +3652,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3679,7 +3679,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "fastq.report_qc",
         )
         args = compat_mock.call_args.kwargs["args"]
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
         self.assertEqual(args.tools, "multiqc")
         self.assertEqual(args.jobs, 2)
         self.assertEqual(args.sample_jobs, 4)
@@ -3771,7 +3771,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3810,7 +3810,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertEqual(extra_env["BIJUX_ALLOW_NO_UMI"], "1")
         args = compat_mock.call_args.kwargs["args"]
         self.assertEqual(args.repo_root, "/tmp/repo")
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
         self.assertEqual(args.tools, "umi_tools,fastp")
         self.assertTrue(args.dry_run)
 
@@ -3870,7 +3870,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -3939,7 +3939,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertEqual(args.repo_root, "/tmp/repo")
         self.assertEqual(args.corpus_root, "/tmp/corpus_01")
         self.assertEqual(args.out_root, "/tmp/results")
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
         self.assertEqual(args.tools, "lighter,musket")
         self.assertEqual(args.threads, 8)
         self.assertEqual(args.jobs, 2)
@@ -6461,6 +6461,24 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
         self.assertEqual(
             report["violations"][0]["issue_id"],
             "hardcoded-remote-operator-path",
+        )
+
+    def test_benchmark_repo_checks_flag_hardcoded_contract_doc_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            doc_path = repo_root / "docs" / "benchmark" / "example.md"
+            doc_path.parent.mkdir(parents=True)
+            doc_path.write_text(
+                'Run root: "/Users/bijan/bijux/bijux-dna-results/corpus_01"\n',
+                encoding="utf-8",
+            )
+
+            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+
+        self.assertEqual(report["violation_count"], 1)
+        self.assertEqual(
+            report["violations"][0]["issue_id"],
+            "hardcoded-local-operator-path",
         )
 
     def test_benchmark_repo_checks_flag_hardcoded_lunarc_host_alias(self) -> None:
@@ -9021,7 +9039,7 @@ class TrimReadsReportingTests(unittest.TestCase):
             "--out-root",
             "/tmp/results",
             "--config",
-            "configs/bench/workspace.toml",
+            "configs/bench/benchmark.toml",
             "--platform",
             "apptainer-amd64",
             "--tools",
@@ -9095,7 +9113,7 @@ class TrimReadsReportingTests(unittest.TestCase):
         self.assertEqual(args.repo_root, "/tmp/repo")
         self.assertEqual(args.corpus_root, "/tmp/corpus_01")
         self.assertEqual(args.out_root, "/tmp/results")
-        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.config, "configs/bench/benchmark.toml")
         self.assertEqual(args.tools, "fastp,atropos")
         self.assertEqual(args.threads, 6)
         self.assertEqual(args.jobs, 2)
