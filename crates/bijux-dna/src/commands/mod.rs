@@ -7,6 +7,7 @@ pub(crate) mod benchmark_config;
 pub(crate) mod benchmark_corpus_fastq;
 pub(crate) mod benchmark_publication;
 pub(crate) mod benchmark_repo_checks;
+pub(crate) mod benchmark_stage_catalog;
 pub(crate) mod benchmark_taxonomy_database;
 pub(crate) mod benchmark_workspace;
 pub mod cli;

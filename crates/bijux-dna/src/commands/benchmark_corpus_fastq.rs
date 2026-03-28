@@ -12,6 +12,7 @@ use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_workspace_value, corpus_01_publication_contract,
     load_benchmark_config, load_benchmark_workspace_config, BenchmarkConfig,
 };
+use crate::commands::benchmark_stage_catalog::corpus_fastq_stage_catalog_entry;
 use crate::commands::cli::{BenchCorpusFastqArgs, BenchWorkspaceValueArgs, Cli};
 
 #[derive(Debug, Clone, Deserialize)]
@@ -575,110 +576,12 @@ fn default_stage_out_root(
 }
 
 fn stage_command_spec(stage_id: &str) -> Result<StageCommandSpec> {
-    let spec = match stage_id {
-        "fastq.validate_reads" => StageCommandSpec {
-            bench_subcommand: "validate-reads",
-            report_dir: "validate_reads",
-            strict_resume_report: false,
-        },
-        "fastq.trim_polyg_tails" => StageCommandSpec {
-            bench_subcommand: "trim-polyg-tails",
-            report_dir: "trim_polyg_tails",
-            strict_resume_report: false,
-        },
-        "fastq.trim_reads" => StageCommandSpec {
-            bench_subcommand: "trim-reads",
-            report_dir: "trim_reads",
-            strict_resume_report: true,
-        },
-        "fastq.trim_terminal_damage" => StageCommandSpec {
-            bench_subcommand: "trim-terminal-damage",
-            report_dir: "trim_terminal_damage",
-            strict_resume_report: false,
-        },
-        "fastq.detect_adapters" => StageCommandSpec {
-            bench_subcommand: "detect-adapters",
-            report_dir: "detect_adapters",
-            strict_resume_report: false,
-        },
-        "fastq.profile_reads" => StageCommandSpec {
-            bench_subcommand: "profile-reads",
-            report_dir: "profile_reads",
-            strict_resume_report: false,
-        },
-        "fastq.profile_read_lengths" => StageCommandSpec {
-            bench_subcommand: "profile-read-lengths",
-            report_dir: "profile_read_lengths",
-            strict_resume_report: false,
-        },
-        "fastq.profile_overrepresented_sequences" => StageCommandSpec {
-            bench_subcommand: "profile-overrepresented-sequences",
-            report_dir: "profile_overrepresented_sequences",
-            strict_resume_report: false,
-        },
-        "fastq.filter_low_complexity" => StageCommandSpec {
-            bench_subcommand: "filter-low-complexity",
-            report_dir: "filter_low_complexity",
-            strict_resume_report: false,
-        },
-        "fastq.filter_reads" => StageCommandSpec {
-            bench_subcommand: "filter",
-            report_dir: "filter",
-            strict_resume_report: true,
-        },
-        "fastq.merge_pairs" => StageCommandSpec {
-            bench_subcommand: "merge",
-            report_dir: "merge_pairs",
-            strict_resume_report: false,
-        },
-        "fastq.report_qc" => StageCommandSpec {
-            bench_subcommand: "report-qc",
-            report_dir: "report_qc",
-            strict_resume_report: false,
-        },
-        "fastq.remove_duplicates" => StageCommandSpec {
-            bench_subcommand: "remove-duplicates",
-            report_dir: "remove_duplicates",
-            strict_resume_report: false,
-        },
-        "fastq.normalize_primers" => StageCommandSpec {
-            bench_subcommand: "normalize-primers",
-            report_dir: "normalize_primers",
-            strict_resume_report: false,
-        },
-        "fastq.deplete_rrna" => StageCommandSpec {
-            bench_subcommand: "deplete-rrna",
-            report_dir: "deplete_rrna",
-            strict_resume_report: true,
-        },
-        "fastq.deplete_host" => StageCommandSpec {
-            bench_subcommand: "deplete-host",
-            report_dir: "deplete_host",
-            strict_resume_report: true,
-        },
-        "fastq.deplete_reference_contaminants" => StageCommandSpec {
-            bench_subcommand: "deplete-reference-contaminants",
-            report_dir: "deplete_reference_contaminants",
-            strict_resume_report: true,
-        },
-        "fastq.screen_taxonomy" => StageCommandSpec {
-            bench_subcommand: "screen-taxonomy",
-            report_dir: "screen_taxonomy",
-            strict_resume_report: true,
-        },
-        "fastq.correct_errors" => StageCommandSpec {
-            bench_subcommand: "correct",
-            report_dir: "correct_errors",
-            strict_resume_report: true,
-        },
-        "fastq.extract_umis" => StageCommandSpec {
-            bench_subcommand: "umi",
-            report_dir: "extract_umis",
-            strict_resume_report: true,
-        },
-        other => return Err(anyhow!("unsupported corpus benchmark stage `{other}`")),
-    };
-    Ok(spec)
+    let entry = corpus_fastq_stage_catalog_entry(stage_id)?;
+    Ok(StageCommandSpec {
+        bench_subcommand: entry.bench_subcommand,
+        report_dir: entry.report_dir,
+        strict_resume_report: entry.strict_resume_report,
+    })
 }
 
 fn build_stage_command_args(
