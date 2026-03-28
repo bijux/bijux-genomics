@@ -303,6 +303,20 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
 
+    def test_screen_taxonomy_method_references_existing_make_targets(self) -> None:
+        text = method_doc_text("fastq.screen_taxonomy")
+
+        self.assertIn(
+            "make _benchmark-screen-taxonomy-corpus-01 PLATFORM=lunarc-apptainer",
+            text,
+        )
+        self.assertIn("make _benchmark-screen-taxonomy-corpus-01-report", text)
+        self.assertIn("configs/bench/workspace.toml", text)
+        self.assertNotIn(
+            "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/",
+            text,
+        )
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
