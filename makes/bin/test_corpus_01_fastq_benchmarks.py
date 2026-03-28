@@ -6017,10 +6017,15 @@ class MergeReportingTests(unittest.TestCase):
     def test_merge_summary_publishes_paired_sample_scope(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            run_root = repo_root / "results" / "corpus_01" / "fastq.merge_pairs" / "lunarc"
+            actual_run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.merge_pairs" / "lunarc"
+            )
+            run_root = repo_root / "mirror" / "fastq.merge_pairs"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
             docs_root = repo_root / "docs" / "benchmark" / "fastq.merge_pairs" / "corpus-01"
             sample_report = (
-                run_root / "bench" / "merge_pairs" / "sample_0001" / "report.json"
+                actual_run_root / "bench" / "merge_pairs" / "sample_0001" / "report.json"
             )
             sample_report.parent.mkdir(parents=True)
             sample_report.write_text(
@@ -6059,7 +6064,7 @@ class MergeReportingTests(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
-            (run_root / "run_manifest.json").write_text(
+            (actual_run_root / "run_manifest.json").write_text(
                 json.dumps(
                     {
                         "platform": "lunarc-apptainer",
@@ -6120,6 +6125,7 @@ class MergeReportingTests(unittest.TestCase):
                 sys.argv = original_argv
 
             summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(summary["run_root"], str(run_root))
             self.assertEqual(summary["sample_scope"], "paired")
 
 class DetectAdaptersReportingTests(unittest.TestCase):
