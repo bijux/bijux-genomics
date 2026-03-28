@@ -8,9 +8,9 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     DETECT_ADAPTERS_BENCHMARK_CONTRACT,
-    LOCAL_RESULTS_ROOT,
     PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT,
     PROFILE_READS_BENCHMARK_CONTRACT,
+    benchmark_local_results_root,
     benchmark_sample_root,
     default_results_stage_root,
     load_json,
@@ -38,7 +38,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--results-root",
-        default=str(LOCAL_RESULTS_ROOT),
+        default=str(benchmark_local_results_root()),
         help="Canonical local result mirror root.",
     )
     parser.add_argument(
