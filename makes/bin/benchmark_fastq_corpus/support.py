@@ -264,14 +264,17 @@ def parse_corpus_report_args(
     parser = argparse.ArgumentParser(description=description)
     add_workspace_config_argument(parser)
     parser.add_argument("--repo-root", default=".")
-    parser.add_argument("--corpus-root", default=str(benchmark_remote_corpus_root()))
+    parser.add_argument("--corpus-root", default="")
     parser.add_argument("--run-root", default="")
     parser.add_argument(
         "--docs-root",
         default=docs_root,
         help="Directory where summary artifacts should be written.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.corpus_root:
+        args.corpus_root = str(benchmark_remote_corpus_root())
+    return args
 
 
 def parse_corpus_briefing_args(
@@ -1289,27 +1292,42 @@ def _path_is_under(path: Path, root: Path) -> bool:
     return True
 
 
+def _optional_workspace_path(section: str, key: str) -> Path | None:
+    try:
+        return _workspace_path(section, key).resolve()
+    except SystemExit:
+        return None
+
+
 def _workspace_cache_root_for_output(out_root: Path) -> Path | None:
     resolved = out_root.expanduser().resolve()
-    remote_cache_root = benchmark_remote_cache_root().resolve()
-    remote_results_roots = [
-        benchmark_remote_results_root().resolve(),
-        benchmark_remote_results_legacy_root().resolve(),
-    ]
-    local_results_root = benchmark_local_results_root().resolve()
-    local_cache_mirror_root = benchmark_local_cache_mirror_root().resolve()
-
-    if _path_is_under(resolved, remote_cache_root) or any(
-        _path_is_under(resolved, root) for root in remote_results_roots
-    ):
-        return remote_cache_root
-    if _path_is_under(resolved, local_results_root) or _path_is_under(
-        resolved, local_cache_mirror_root
-    ):
-        return local_cache_mirror_root
     for candidate in (resolved, *resolved.parents):
         if candidate.name == ".cache":
             return candidate
+
+    remote_cache_root = _optional_workspace_path("remote", "cache_root")
+    remote_results_roots = [
+        root
+        for root in (
+            _optional_workspace_path("remote", "results_root"),
+            _optional_workspace_path("remote", "results_legacy_root"),
+        )
+        if root is not None
+    ]
+    local_results_root = _optional_workspace_path("local", "results_root")
+    local_cache_mirror_root = _optional_workspace_path("local", "cache_mirror_root")
+
+    if (remote_cache_root is not None and _path_is_under(resolved, remote_cache_root)) or any(
+        _path_is_under(resolved, root) for root in remote_results_roots
+    ):
+        return remote_cache_root
+    if (
+        local_results_root is not None and _path_is_under(resolved, local_results_root)
+    ) or (
+        local_cache_mirror_root is not None
+        and _path_is_under(resolved, local_cache_mirror_root)
+    ):
+        return local_cache_mirror_root
     return None
 
 
@@ -1579,19 +1597,31 @@ def localize_results_path(path_str: str, local_results_root: Path) -> Path:
     path = Path(path_str)
     if path.exists():
         return path
-    cache_mirror_root = benchmark_local_cache_mirror_root()
-    bijux_dna_results_root = (
-        cache_mirror_root / "bijux-dna-results"
-        if local_results_root.name == "results"
+    cache_mirror_root = _optional_workspace_path("local", "cache_mirror_root")
+    bijux_dna_results_root = None
+    if (
+        cache_mirror_root is not None
+        and local_results_root.name == "results"
         and local_results_root.parent == cache_mirror_root
-        else local_results_root
-    )
-    root_mappings = [
-        ("/results/", [local_results_root]),
-        ("/bijux-dna-results/", [bijux_dna_results_root, local_results_root]),
-        ("/extra-data/", [benchmark_local_extra_data_root()]),
-        ("/reference/", [benchmark_local_reference_root()]),
-    ]
+    ):
+        bijux_dna_results_root = cache_mirror_root / "bijux-dna-results"
+
+    root_mappings: list[tuple[str, list[Path]]] = [("/results/", [local_results_root])]
+    if bijux_dna_results_root is not None:
+        root_mappings.append(
+            ("/bijux-dna-results/", [bijux_dna_results_root, local_results_root])
+        )
+    else:
+        root_mappings.append(("/bijux-dna-results/", [local_results_root]))
+
+    local_extra_data_root = _optional_workspace_path("local", "extra_data_root")
+    if local_extra_data_root is not None:
+        root_mappings.append(("/extra-data/", [local_extra_data_root]))
+
+    local_reference_root = _optional_workspace_path("local", "reference_root")
+    if local_reference_root is not None:
+        root_mappings.append(("/reference/", [local_reference_root]))
+
     fallback_path: Path | None = None
     for marker, mapped_roots in root_mappings:
         if marker in path_str:
@@ -1612,13 +1642,18 @@ def localize_workspace_path(path_str: str, local_results_root: Path) -> Path:
     if path.exists():
         return path
 
-    cache_mirror_root = benchmark_local_cache_mirror_root()
-    remote_root_mappings = [
-        (benchmark_remote_results_root(), cache_mirror_root / "results"),
-        (benchmark_remote_results_legacy_root(), cache_mirror_root / "bijux-dna-results"),
-        (benchmark_remote_extra_data_root(), cache_mirror_root / "extra-data"),
-        (benchmark_remote_reference_root(), cache_mirror_root / "reference"),
-    ]
+    cache_mirror_root = _optional_workspace_path("local", "cache_mirror_root")
+    remote_root_mappings: list[tuple[Path, Path]] = []
+    if cache_mirror_root is not None:
+        for remote_key, local_suffix in (
+            (("remote", "results_root"), "results"),
+            (("remote", "results_legacy_root"), "bijux-dna-results"),
+            (("remote", "extra_data_root"), "extra-data"),
+            (("remote", "reference_root"), "reference"),
+        ):
+            remote_root = _optional_workspace_path(*remote_key)
+            if remote_root is not None:
+                remote_root_mappings.append((remote_root, cache_mirror_root / local_suffix))
     for remote_root, mapped_root in remote_root_mappings:
         if not str(remote_root):
             continue
