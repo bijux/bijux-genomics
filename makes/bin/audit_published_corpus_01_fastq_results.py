@@ -7,7 +7,7 @@ import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import (
+from benchmark_fastq_corpus.support import (
     CORPUS_01_PUBLICATION_CONTRACTS,
     configured_stage_run_roots,
     load_json,

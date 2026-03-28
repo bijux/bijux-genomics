@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import (
+from benchmark_fastq_corpus.support import (
     CORPUS_01_PUBLICATION_CONTRACTS,
     benchmark_remote_corpus_root,
     benchmark_remote_results_legacy_root,

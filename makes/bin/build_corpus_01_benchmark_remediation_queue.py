@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import CORPUS_01_PUBLICATION_CONTRACTS
+from benchmark_fastq_corpus.support import CORPUS_01_PUBLICATION_CONTRACTS
 
 
 def parse_args() -> argparse.Namespace:

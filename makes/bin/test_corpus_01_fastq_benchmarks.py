@@ -16,7 +16,7 @@ BIN_DIR = ROOT / "makes" / "bin"
 if str(BIN_DIR) not in sys.path:
     sys.path.insert(0, str(BIN_DIR))
 
-import corpus_01_fastq_benchmark_support as support
+from benchmark_fastq_corpus import support
 import audit_corpus_01_fastq_benchmark_docs as benchmark_docs_audit
 import audit_published_corpus_01_fastq_results as published_results_audit
 import render_fastq_detect_adapters_corpus_01_briefing as detect_adapters_briefing
