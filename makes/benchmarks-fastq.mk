@@ -390,6 +390,9 @@ _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publ
 		--docs-root docs/benchmark \
 		--json-out docs/benchmark/corpus-01-dossier-index.json \
 		--markdown-out docs/benchmark/corpus-01-dossier-index.md
+	@python3 makes/bin/audit_benchmark_workspace_layout.py \
+		--json-out docs/benchmark/workspace-layout-status.json \
+		--markdown-out docs/benchmark/workspace-layout-status.md
 	@python3 makes/bin/audit_published_corpus_01_fastq_results.py \
 		--repo-root . \
 		--json-out docs/benchmark/corpus-01-results-status.json \

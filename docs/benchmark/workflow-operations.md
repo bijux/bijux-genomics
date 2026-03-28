@@ -67,5 +67,6 @@ The `pull-benchmark-publication` profile is the governed profile for corpus-01 F
 - Refresh corpus dossiers from the governed report targets when a local rerender is sufficient.
 - Re-run the publication audit after the refresh if you did not use the governed one-shot command.
 - Review `docs/benchmark/corpus-01-dossier-index.json` and `docs/benchmark/corpus-01-dossier-index.md` to confirm each dossier freshness stamp and published run-root source.
+- Review `docs/benchmark/workspace-layout-status.json` and `docs/benchmark/workspace-layout-status.md` to confirm the mirrored benchmark archive still uses the governed root layout.
 - Review `docs/benchmark/corpus-01-results-status.json` and `docs/benchmark/corpus-01-results-status.md` to confirm the local mirror still matches the published summaries.
 - Review `docs/benchmark/corpus-01-remediation-queue.json` and `docs/benchmark/corpus-01-remediation-queue.md` to confirm the remaining open stages, recommended action, and queue owner.
