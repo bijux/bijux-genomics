@@ -4,31 +4,89 @@
 - Published stages audited: `19`
 - Complete mirrored stages: `18`
 - Incomplete mirrored stages: `2`
-- Mirror issues: `4`
+- Mirror issues: `5`
 
 ## Stage status
 
 - `fastq.validate_reads`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.validate_reads/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.validate_reads/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.validate_reads/lunarc`
 - `fastq.detect_adapters`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.detect_adapters/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.detect_adapters/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.detect_adapters/lunarc`
 - `fastq.profile_reads`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_reads/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_reads/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_reads/lunarc`
 - `fastq.profile_read_lengths`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_read_lengths/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_read_lengths/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_read_lengths/lunarc`
 - `fastq.profile_overrepresented_sequences`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc`
 - `fastq.normalize_primers`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.normalize_primers/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.normalize_primers/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.normalize_primers/lunarc`
 - `fastq.trim_polyg_tails`: `complete` (`0` issues)
-- `fastq.trim_reads`: `incomplete` (`3` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_polyg_tails/lunarc`
+- `fastq.trim_reads`: `incomplete` (`4` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc` (selected newest=`False`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc`, `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc`
   - `duplicate-result-root-ambiguity`: both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist
+  - `newer-run-root-available`: published dossier selected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc but newer mirrored run exists at /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc
   - `run-manifest-tool-roster-drift`: run_manifest tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
   - `report-tool-roster-drift`: sample_0001 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0002 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0003 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] (+17 more)
 - `fastq.filter_reads`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_reads/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_reads/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_reads/lunarc`
 - `fastq.filter_low_complexity`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_low_complexity/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_low_complexity/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.filter_low_complexity/lunarc`
 - `fastq.deplete_rrna`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_rrna/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_rrna/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_rrna/lunarc`
 - `fastq.merge_pairs`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.merge_pairs/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.merge_pairs/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.merge_pairs/lunarc`
 - `fastq.remove_duplicates`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.remove_duplicates/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.remove_duplicates/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.remove_duplicates/lunarc`
 - `fastq.deplete_host`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc`
 - `fastq.deplete_reference_contaminants`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_reference_contaminants/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_reference_contaminants/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_reference_contaminants/lunarc`
 - `fastq.correct_errors`: `incomplete` (`1` issues)
   - `missing-published-summary`: missing /Users/bijan/bijux/bijux-dna/docs/benchmark/fastq.correct_errors/corpus-01/summary.json
 - `fastq.extract_umis`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc`
 - `fastq.screen_taxonomy`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc`
 - `fastq.trim_terminal_damage`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_terminal_damage/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_terminal_damage/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_terminal_damage/lunarc`
 - `fastq.report_qc`: `complete` (`0` issues)
+  - selected run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.report_qc/lunarc`
+  - newest available run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.report_qc/lunarc` (selected newest=`True`)
+  - available run roots: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.report_qc/lunarc`

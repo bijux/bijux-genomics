@@ -1118,6 +1118,14 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
 
+    def test_benchmark_issue_ledger_omits_resolved_status_blind_spot(self) -> None:
+        text = benchmark_issues_text()
+
+        self.assertNotIn(
+            "20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.",
+            text,
+        )
+
     def test_benchmark_workspace_contract_doc_records_local_and_remote_roots(self) -> None:
         text = benchmark_workspace_contract_text()
 
