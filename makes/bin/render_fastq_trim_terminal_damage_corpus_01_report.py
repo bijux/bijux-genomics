@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import json
 import statistics
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -17,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     load_json,
     localize_results_path,
     load_published_sample_metadata,
+    publish_corpus_report_artifacts,
     preferred_report_run_root,
     resolve_corpus_report_runtime,
     validate_corpus_contract,
@@ -397,51 +396,41 @@ def main() -> int:
         "tool_summary": tool_summary,
     }
 
-    (docs_root / "summary.json").write_text(
-        json.dumps(summary, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-
-    with (docs_root / "sample_results.csv").open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "sample_id",
-                "accession",
-                "era",
-                "layout",
-                "study_accession",
-                "size_band",
-                "tool",
-                "runtime_s",
-                "exit_code",
-                "reads_in",
-                "reads_out",
-                "bases_in",
-                "bases_out",
-                "base_retention",
-                "read_retention",
-                "mean_q_delta",
-                "damage_mode",
-                "execution_policy",
-                "trim_5p_bases",
-                "trim_3p_bases",
-                "requested_trim_5p_bases",
-                "requested_trim_3p_bases",
-                "udg_classification",
-                "ct_ga_asymmetry_pre",
-                "ct_ga_asymmetry_post",
-                "asymmetry_reduction",
-                "raw_backend_report_format",
-            ],
-        )
-        writer.writeheader()
-        for row in sample_rows:
-            writer.writerow(row)
-
-    (docs_root / "benchmark.md").write_text(
-        render_markdown(summary),
-        encoding="utf-8",
+    publish_corpus_report_artifacts(
+        docs_root,
+        summary=summary,
+        markdown=render_markdown(summary),
+        sample_rows=sample_rows,
+        sample_fieldnames=[
+            "sample_id",
+            "accession",
+            "era",
+            "layout",
+            "study_accession",
+            "size_band",
+            "tool",
+            "runtime_s",
+            "exit_code",
+            "reads_in",
+            "reads_out",
+            "bases_in",
+            "bases_out",
+            "base_retention",
+            "read_retention",
+            "mean_q_delta",
+            "damage_mode",
+            "execution_policy",
+            "trim_5p_bases",
+            "trim_3p_bases",
+            "requested_trim_5p_bases",
+            "requested_trim_3p_bases",
+            "udg_classification",
+            "ct_ga_asymmetry_pre",
+            "ct_ga_asymmetry_post",
+            "asymmetry_reduction",
+            "raw_backend_report_format",
+        ],
+        summary_sort_keys=True,
     )
     return 0
 
