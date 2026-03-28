@@ -32,12 +32,13 @@
 - `sample_runtime_outliers.csv`: slowest or most aggressive samples.
 - `lunarc.md`: narrative benchmark dossier for the Lunarc run.
 
-## Publication gate
-- Run with `python3 makes/bin/run_fastq_deplete_rrna_corpus_01.py --rrna-db <path>`.
-- Render with:
-  - `python3 makes/bin/render_fastq_deplete_rrna_corpus_01_report.py`
-  - `python3 makes/bin/render_fastq_deplete_rrna_corpus_01_briefing.py`
-- A publishable dossier exists only once those entrypoints materialize `docs/benchmark/fastq.deplete_rrna/corpus-01/` under the audit contract described above.
+## Workflow
+```bash
+make _benchmark-deplete-rrna-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-deplete-rrna-corpus-01-report
+```
+
+Use `RRNA_DB=...` or `RRNA_BUNDLE_ID=...` only when you intentionally audit a non-governed rRNA reference input. The default corpus root remains governed by `configs/bench/workspace.toml`.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

@@ -266,6 +266,15 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
 
+    def test_deplete_rrna_method_references_existing_make_targets(self) -> None:
+        text = method_doc_text("fastq.deplete_rrna")
+
+        self.assertIn(
+            "make _benchmark-deplete-rrna-corpus-01 PLATFORM=lunarc-apptainer",
+            text,
+        )
+        self.assertIn("make _benchmark-deplete-rrna-corpus-01-report", text)
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
