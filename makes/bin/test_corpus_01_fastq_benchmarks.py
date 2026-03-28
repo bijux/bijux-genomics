@@ -4534,6 +4534,24 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
 
         self.assertEqual(report["violation_count"], 0)
 
+    def test_benchmark_repo_checks_flag_hardcoded_remote_operator_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            makefile_path = repo_root / "makes" / "lunarc.mk"
+            makefile_path.parent.mkdir(parents=True)
+            makefile_path.write_text(
+                'LUNARC_REPO_DIR ?= /home/bijan/bijux/bijux-dna\n',
+                encoding="utf-8",
+            )
+
+            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+
+        self.assertEqual(report["violation_count"], 1)
+        self.assertEqual(
+            report["violations"][0]["issue_id"],
+            "hardcoded-remote-operator-path",
+        )
+
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

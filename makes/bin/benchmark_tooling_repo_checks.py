@@ -73,8 +73,15 @@ def audit_repo_checks(repo_root: Path) -> dict:
         literal="/Users/bijan/",
         issue_id="hardcoded-local-operator-path",
     )
+    violations.extend(
+        literal_matches(
+            repo_root,
+            literal="/home/bijan/",
+            issue_id="hardcoded-remote-operator-path",
+        )
+    )
     return {
-        "check_count": 1,
+        "check_count": 2,
         "violation_count": len(violations),
         "violations": violations,
     }
