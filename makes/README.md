@@ -16,6 +16,11 @@ Public targets (stable contract):
 
 All other make targets are internal and must be prefixed with `_`.
 
+Benchmark note:
+- benchmark orchestration and dossier rendering belong to `bijux-dna`
+- benchmark make targets are thin wrappers around `bijux-dna bench ...`
+- benchmark path authority belongs to `configs/bench/benchmark.toml`
+
 Internal targets can be listed with:
 - `SHOW_INTERNAL=1 make help`
 
