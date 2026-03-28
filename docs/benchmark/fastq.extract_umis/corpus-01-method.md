@@ -30,7 +30,7 @@
 - `tool_runtime_summary.csv`: per-tool runtime and UMI extraction summary.
 - `cohort_runtime_summary.csv`: paired-era breakdowns and size-band rollups.
 - `sample_runtime_outliers.csv`: slowest or most disruptive samples.
-- `lunarc.md`: narrative benchmark dossier for the Lunarc run.
+- `benchmark.md`: narrative benchmark dossier for the published corpus run.
 
 ## Workflow
 ```bash

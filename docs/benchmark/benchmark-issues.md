@@ -16,7 +16,5 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 48. Benchmark renderers duplicate markdown rendering patterns across many nearly identical scripts.
 49. Benchmark renderers mix path normalization, contract validation, and narrative rendering in the same files.
 50. There is no single stage-agnostic renderer framework for corpus-01 FASTQ benchmark dossiers.
-51. Many dossier files are named `lunarc.md`, which encodes the execution site into the published artifact name.
-52. The published document naming scheme does not separate benchmark content from environment-specific provenance cleanly.
 88. `fastq.correct_errors` publication currently depends on the presence of a run manifest in one mirror layout and a bench tree in another.
 89. `fastq.trim_reads` publication currently depends on stale local mirrors unless the user manually re-syncs.
