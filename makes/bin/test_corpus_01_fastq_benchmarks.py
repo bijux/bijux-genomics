@@ -2518,6 +2518,117 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "umi_tools_log",
         )
 
+    def test_extract_umis_summary_preserves_configured_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = repo_root / "results" / "corpus_01" / "fastq.extract_umis" / "lunarc"
+            docs_root = (
+                repo_root / "docs" / "benchmark" / "fastq.extract_umis" / "corpus-01"
+            )
+            sample_report = (
+                run_root / "bench" / "extract_umis" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "umi_tools",
+                                    "parameters": {
+                                        "paired_mode": "paired_end",
+                                        "umi_pattern": "NNNNNNNN",
+                                        "raw_backend_report_format": "umi_tools_log",
+                                    },
+                                },
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "reads_in": 100,
+                                        "reads_out": 100,
+                                        "bases_in": 1000,
+                                        "bases_out": 1000,
+                                        "pairs_in": 50,
+                                        "pairs_out": 50,
+                                        "reads_with_umi": 100,
+                                        "mean_q_before": 32.0,
+                                        "mean_q_after": 32.0,
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.extract_umis",
+                        "scenario_id": "umi_extraction_fairness",
+                        "tool_kind": "benchmark",
+                        "sample_scope": "paired",
+                        "tools": ["umi_tools"],
+                        "samples_failed": 0,
+                        "umi_pattern": "NNNNNNNN",
+                        "allow_missing_umi_headers": False,
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "pe",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_extract_umis_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    extract_umis_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    extract_umis_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "ancient",
+                            "layout": "pe",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(extract_umis_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+
     def test_filter_reads_report_contract_rejects_parameter_drift(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "fastp", "prinseq", "seqkit"],
