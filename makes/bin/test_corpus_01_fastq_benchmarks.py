@@ -663,9 +663,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             os.environ["BIJUX_HPC_ROOT"] = "/tmp/stale-hpc-root"
 
             env = support.benchmark_runtime_env(out_root)
-            expected_cache_root = support.infer_cache_root(out_root)
-            self.assertIsNotNone(expected_cache_root)
-            expected_cache_root = expected_cache_root.resolve()
+            expected_cache_root = Path("/home/bijan/lu2024-12-24/.cache").resolve()
             expected_hpc_root = expected_cache_root.parent
 
             self.assertEqual(Path(env["BIJUX_CACHE_ROOT"]).resolve(), expected_cache_root)
@@ -684,6 +682,38 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 os.environ.pop("BIJUX_HPC_ROOT", None)
             else:
                 os.environ["BIJUX_HPC_ROOT"] = stale_hpc_root
+
+    def test_benchmark_runtime_env_uses_local_cache_mirror_for_local_archive(self) -> None:
+        out_root = Path("/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc")
+        env = support.benchmark_runtime_env(out_root)
+
+        self.assertEqual(
+            Path(env["BIJUX_CACHE_ROOT"]).resolve(),
+            Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache").resolve(),
+        )
+        self.assertEqual(
+            Path(env["XDG_CACHE_HOME"]).resolve(),
+            Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache").resolve(),
+        )
+
+    def test_default_extra_data_root_follows_workspace_contract(self) -> None:
+        remote_out_root = Path("/tmp/random/corpus_01/fastq.deplete_host/lunarc")
+        local_out_root = Path("/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc")
+
+        self.assertEqual(
+            support.default_extra_data_root(
+                Path("/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc")
+            ).resolve(),
+            Path("/home/bijan/lu2024-12-24/.cache/extra-data").resolve(),
+        )
+        self.assertEqual(
+            support.default_extra_data_root(local_out_root).resolve(),
+            Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data").resolve(),
+        )
+        self.assertEqual(
+            support.default_extra_data_root(remote_out_root).resolve(),
+            (remote_out_root.parent.parent.parent / "extra-data").resolve(),
+        )
 
     def test_localize_results_path_supports_cache_results_root(self) -> None:
         localized = support.localize_results_path(

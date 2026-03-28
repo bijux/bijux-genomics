@@ -665,9 +665,38 @@ def infer_results_archive_root(path: Path) -> Path | None:
     return None
 
 
+def _path_is_under(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return False
+    return True
+
+
+def _workspace_cache_root_for_output(out_root: Path) -> Path | None:
+    resolved = out_root.expanduser().resolve()
+    remote_cache_root = benchmark_remote_cache_root().resolve()
+    remote_results_roots = [
+        benchmark_remote_results_root().resolve(),
+        benchmark_remote_results_legacy_root().resolve(),
+    ]
+    local_results_root = benchmark_local_results_root().resolve()
+    local_cache_mirror_root = benchmark_local_cache_mirror_root().resolve()
+
+    if _path_is_under(resolved, remote_cache_root) or any(
+        _path_is_under(resolved, root) for root in remote_results_roots
+    ):
+        return remote_cache_root
+    if _path_is_under(resolved, local_results_root) or _path_is_under(
+        resolved, local_cache_mirror_root
+    ):
+        return local_cache_mirror_root
+    return infer_cache_root(resolved)
+
+
 def benchmark_runtime_env(out_root: Path) -> dict[str, str]:
     env = os.environ.copy()
-    cache_root = infer_cache_root(out_root)
+    cache_root = _workspace_cache_root_for_output(out_root)
     if cache_root is None:
         return env
     env["BIJUX_CACHE_ROOT"] = str(cache_root)
@@ -678,8 +707,10 @@ def benchmark_runtime_env(out_root: Path) -> dict[str, str]:
 
 
 def default_extra_data_root(out_root: Path) -> Path:
-    cache_root = infer_cache_root(out_root)
+    cache_root = _workspace_cache_root_for_output(out_root)
     if cache_root is not None:
+        if cache_root.resolve() == benchmark_remote_cache_root().resolve():
+            return benchmark_remote_extra_data_root()
         return cache_root / "extra-data"
     results_archive_root = infer_results_archive_root(out_root)
     if results_archive_root is not None:
