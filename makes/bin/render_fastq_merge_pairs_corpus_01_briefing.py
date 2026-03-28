@@ -8,104 +8,23 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import parse_corpus_briefing_args
-
+from corpus_01_fastq_benchmark_support import (
+    fmt_csv_value,
+    fmt_fraction,
+    fmt_runtime,
+    load_csv_rows,
+    load_json,
+    parse_corpus_briefing_args,
+    percentile,
+    safe_mean,
+    safe_median,
+)
 
 def parse_args() -> argparse.Namespace:
     return parse_corpus_briefing_args(
         description="Render an enriched benchmark briefing from corpus-01 merge-pairs artifacts.",
         docs_root="docs/benchmark/fastq.merge_pairs/corpus-01",
     )
-
-
-def load_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def load_rows(path: Path) -> list[dict]:
-    with path.open(encoding="utf-8", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def safe_median(values: list[float]) -> float | None:
-    if not values:
-        return None
-    return float(statistics.median(values))
-
-
-def safe_mean(values: list[float]) -> float | None:
-    if not values:
-        return None
-    return float(statistics.mean(values))
-
-
-def percentile(values: list[float], fraction: float) -> float | None:
-    if not values:
-        return None
-    ordered = sorted(values)
-    index = round((len(ordered) - 1) * fraction)
-    return float(ordered[index])
-
-
-def fmt_runtime(value: float | None) -> str:
-    if value is None:
-        return "n/a"
-    return f"{value:.3f}"
-
-
-def fmt_fraction(value: float | None) -> str:
-    if value is None:
-        return "n/a"
-    return f"{value:.1%}"
-
-
-def fmt_decimal(value: float | None) -> str:
-    if value is None:
-        return "n/a"
-    return f"{value:.3f}"
-
-
-def format_merge_setting(value) -> str:
-    if value is None:
-        return "governed tool default"
-    return str(value)
-
-
-def fmt_csv_value(value: object) -> object:
-    if isinstance(value, float):
-        return f"{value:.6f}"
-    return value
-
-
-def validate_inputs(summary: dict, rows: list[dict]) -> None:
-    if summary.get("stage_id") != "fastq.merge_pairs":
-        raise SystemExit(
-            "merge briefing drift: "
-            f"expected summary stage_id fastq.merge_pairs, found {summary.get('stage_id')!r}"
-        )
-    if summary.get("scenario_id") != "merge_fairness":
-        raise SystemExit(
-            "merge briefing drift: "
-            f"expected summary scenario_id merge_fairness, found {summary.get('scenario_id')!r}"
-        )
-    if summary.get("layout_counts", {}).get("pe") != summary.get("samples_total"):
-        raise SystemExit(
-            "merge briefing drift: layout_counts.pe must equal samples_total for paired-only benchmark"
-        )
-    if summary.get("layout_counts", {}).get("se", 0) != 0:
-        raise SystemExit("merge briefing drift: paired-only benchmark must not report se rows")
-    tools = summary.get("tools", [])
-    if not tools:
-        raise SystemExit("merge briefing drift: summary tools must not be empty")
-    if not rows:
-        raise SystemExit("merge briefing drift: sample_results.csv must not be empty")
-    observed_tools = sorted({row["tool"] for row in rows})
-    if observed_tools != sorted(tools):
-        raise SystemExit(
-            "merge briefing drift: "
-            f"summary tools {tools} do not match sample_results tools {observed_tools}"
-        )
-
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
     by_tool: dict[str, list[dict]] = defaultdict(list)
@@ -145,7 +64,6 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
         )
     return summary_rows
 
-
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
     grouped: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
     grouped_with_size: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
@@ -174,7 +92,6 @@ def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
         )
     return output
 
-
 def summarize_cohort_rows(
     *,
     tool: str,
@@ -197,7 +114,6 @@ def summarize_cohort_rows(
         "median_base_retention": safe_median(base_retentions),
         "mean_reads_merged": safe_mean(merged_reads),
     }
-
 
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     by_sample: dict[str, list[dict]] = defaultdict(list)
@@ -226,7 +142,6 @@ def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     output.sort(key=lambda row: row["total_runtime_s"], reverse=True)
     return output
 
-
 def cohort_entry(
     rows: list[dict],
     *,
@@ -238,7 +153,6 @@ def cohort_entry(
         if row["tool"] == tool and row["dimension"] == dimension and row["cohort"] == cohort:
             return row
     return None
-
 
 def render_markdown(
     summary: dict,
@@ -376,12 +290,11 @@ def render_markdown(
     )
     return "\n".join(lines) + "\n"
 
-
 def main() -> int:
     args = parse_args()
     docs_root = Path(args.docs_root).resolve()
     summary = load_json(docs_root / "summary.json")
-    rows = load_rows(docs_root / "sample_results.csv")
+    rows = load_csv_rows(docs_root / "sample_results.csv")
     validate_inputs(summary, rows)
 
     runtime_rows = tool_runtime_summary(rows)
@@ -460,7 +373,6 @@ def main() -> int:
     )
     (docs_root / "benchmark.md").write_text(markdown, encoding="utf-8")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -283,6 +283,36 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertIn("parse_corpus_briefing_args(", text, path.name)
             self.assertNotIn("parser.add_argument(\"--docs-root\"", text, path.name)
 
+    def test_briefing_renderers_use_shared_generic_stats_and_io_helpers(self) -> None:
+        shared_calls = [
+            "load_csv_rows(",
+            "load_json(",
+            "safe_median(",
+            "safe_mean(",
+            "percentile(",
+            "fmt_runtime(",
+            "fmt_csv_value(",
+        ]
+        duplicated_defs = [
+            "def load_json(",
+            "def load_rows(",
+            "def safe_median(",
+            "def safe_mean(",
+            "def percentile(",
+            "def fmt_runtime(",
+            "def fmt_csv_value(",
+        ]
+        for path in briefing_renderer_paths():
+            text = path.read_text(encoding="utf-8")
+            for call in shared_calls:
+                self.assertIn(call, text, f"{path.name} missing {call}")
+            for duplicated_def in duplicated_defs:
+                self.assertNotIn(
+                    duplicated_def,
+                    text,
+                    f"{path.name} still defines {duplicated_def}",
+                )
+
     def test_trim_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.trim_reads_benchmark_defaults()
         self.assertIsNone(defaults["min_length"])

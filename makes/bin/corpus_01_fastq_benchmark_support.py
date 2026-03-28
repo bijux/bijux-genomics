@@ -6,6 +6,7 @@ import csv
 import hashlib
 import json
 import os
+import statistics
 import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
@@ -198,6 +199,49 @@ def parse_corpus_briefing_args(
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_csv_rows(path: Path) -> list[dict]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def safe_median(values: list[float]) -> float | None:
+    if not values:
+        return None
+    return float(statistics.median(values))
+
+
+def safe_mean(values: list[float]) -> float | None:
+    if not values:
+        return None
+    return float(statistics.mean(values))
+
+
+def percentile(values: list[float], fraction: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    index = round((len(ordered) - 1) * fraction)
+    return float(ordered[index])
+
+
+def fmt_runtime(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.3f}"
+
+
+def fmt_fraction(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.1%}"
+
+
+def fmt_csv_value(value: object) -> object:
+    if isinstance(value, float):
+        return f"{value:.6f}"
+    return value
 
 
 def sha256_file(path: Path) -> str:

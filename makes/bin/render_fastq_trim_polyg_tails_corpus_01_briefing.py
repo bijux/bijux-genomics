@@ -8,62 +8,23 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import parse_corpus_briefing_args
-
+from corpus_01_fastq_benchmark_support import (
+    fmt_csv_value,
+    fmt_fraction,
+    fmt_runtime,
+    load_csv_rows,
+    load_json,
+    parse_corpus_briefing_args,
+    percentile,
+    safe_mean,
+    safe_median,
+)
 
 def parse_args() -> argparse.Namespace:
     return parse_corpus_briefing_args(
         description="Render an enriched benchmark briefing from corpus-01 trim-polyg artifacts.",
         docs_root="docs/benchmark/fastq.trim_polyg_tails/corpus-01",
     )
-
-
-def load_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def load_rows(path: Path) -> list[dict]:
-    with path.open(encoding="utf-8", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def safe_median(values: list[float]) -> float | None:
-    if not values:
-        return None
-    return float(statistics.median(values))
-
-
-def safe_mean(values: list[float]) -> float | None:
-    if not values:
-        return None
-    return float(statistics.mean(values))
-
-
-def percentile(values: list[float], fraction: float) -> float | None:
-    if not values:
-        return None
-    ordered = sorted(values)
-    index = round((len(ordered) - 1) * fraction)
-    return float(ordered[index])
-
-
-def fmt_runtime(value: float | None) -> str:
-    if value is None:
-        return "n/a"
-    return f"{value:.3f}"
-
-
-def fmt_fraction(value: float | None) -> str:
-    if value is None:
-        return "n/a"
-    return f"{value:.1%}"
-
-
-def fmt_csv_value(value: object) -> object:
-    if isinstance(value, float):
-        return f"{value:.6f}"
-    return value
-
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
     by_tool: dict[str, list[dict]] = defaultdict(list)
@@ -103,7 +64,6 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
         )
     return summary_rows
 
-
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
     grouped: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
     grouped_with_size: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
@@ -132,7 +92,6 @@ def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
         )
     return output
 
-
 def summarize_cohort_rows(
     *,
     tool: str,
@@ -155,7 +114,6 @@ def summarize_cohort_rows(
         "median_base_retention": safe_median(base_retentions),
         "mean_q_delta": safe_mean(mean_q_deltas),
     }
-
 
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     by_sample: dict[str, list[dict]] = defaultdict(list)
@@ -183,7 +141,6 @@ def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
         )
     output.sort(key=lambda row: row["total_runtime_s"], reverse=True)
     return output
-
 
 def render_markdown(
     summary: dict,
@@ -330,7 +287,6 @@ def render_markdown(
     )
     return "\n".join(lines) + "\n"
 
-
 def cohort_entry(
     cohort_rows: list[dict], *, tool: str, dimension: str, cohort: str
 ) -> dict | None:
@@ -342,7 +298,6 @@ def cohort_entry(
         ):
             return row
     return None
-
 
 def write_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -356,12 +311,11 @@ def write_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
             for row in rows
         )
 
-
 def main() -> int:
     args = parse_args()
     docs_root = Path(args.docs_root).resolve()
     summary = load_json(docs_root / "summary.json")
-    rows = load_rows(docs_root / "sample_results.csv")
+    rows = load_csv_rows(docs_root / "sample_results.csv")
 
     runtime_rows = tool_runtime_summary(rows)
     cohort_rows = cohort_runtime_summary(rows)
@@ -421,7 +375,6 @@ def main() -> int:
         encoding="utf-8",
     )
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
