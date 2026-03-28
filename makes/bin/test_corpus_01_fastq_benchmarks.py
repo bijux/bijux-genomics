@@ -2865,13 +2865,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_filter_low_complexity_summary_preserves_configured_corpus_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            run_root = (
+            actual_run_root = (
                 repo_root
                 / "results"
                 / "corpus_01"
                 / "fastq.filter_low_complexity"
                 / "lunarc"
             )
+            run_root = repo_root / "mirror" / "fastq.filter_low_complexity"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
             docs_root = (
                 repo_root
                 / "docs"
@@ -2880,7 +2883,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 / "corpus-01"
             )
             sample_report = (
-                run_root
+                actual_run_root
                 / "bench"
                 / "filter_low_complexity"
                 / "sample_0001"
@@ -2946,7 +2949,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
-            (run_root / "run_manifest.json").write_text(
+            (actual_run_root / "run_manifest.json").write_text(
                 json.dumps(
                     {
                         "platform": "lunarc-apptainer",
@@ -3010,6 +3013,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 summary["corpus_root"],
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
+            self.assertEqual(summary["run_root"], str(run_root))
 
     def test_remove_duplicates_report_contract_rejects_single_end_row(self) -> None:
         run_manifest = {
