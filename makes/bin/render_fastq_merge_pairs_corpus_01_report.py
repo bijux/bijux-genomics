@@ -274,11 +274,11 @@ def main() -> int:
     repo_root = Path(args.repo_root).resolve()
     corpus_root = Path(args.corpus_root).expanduser()
     run_root = (
-        Path(args.run_root).expanduser().resolve()
+        Path(args.run_root).expanduser()
         if args.run_root
         else preferred_report_run_root(
             corpus_root, MERGE_PAIRS_BENCHMARK_CONTRACT.stage_id
-        ).resolve()
+        )
     )
     docs_root = (repo_root / args.docs_root).resolve()
     docs_root.mkdir(parents=True, exist_ok=True)
