@@ -13,30 +13,36 @@
       "canonical_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results",
       "legacy_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-dna-results",
       "canonical_exists": true,
-      "legacy_exists": true,
+      "legacy_exists": false,
       "canonical_entries": [
         "corpus_01"
       ],
-      "legacy_entries": [
+      "legacy_entries": [],
+      "shared_entries": [],
+      "canonical_only_entries": [
         "corpus_01"
       ],
-      "shared_entries": [
-        "corpus_01"
-      ],
-      "canonical_only_entries": [],
       "legacy_only_entries": [],
-      "status": "duplicate"
+      "status": "clear"
     },
     {
       "scope": "remote-reference",
       "canonical_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference",
       "legacy_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-reference",
-      "canonical_exists": false,
+      "canonical_exists": true,
       "legacy_exists": false,
-      "canonical_entries": [],
+      "canonical_entries": [
+        "contaminants",
+        "rrna",
+        "taxonomy"
+      ],
       "legacy_entries": [],
       "shared_entries": [],
-      "canonical_only_entries": [],
+      "canonical_only_entries": [
+        "contaminants",
+        "rrna",
+        "taxonomy"
+      ],
       "legacy_only_entries": [],
       "status": "clear"
     }
@@ -100,12 +106,7 @@
     ],
     "authoritative_stage_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01"
   },
-  "status": "incomplete",
-  "issue_count": 1,
-  "issues": [
-    {
-      "issue_id": "duplicate-remote-results-root",
-      "detail": "both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results and /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-dna-results exist"
-    }
-  ]
+  "status": "clear",
+  "issue_count": 0,
+  "issues": []
 }

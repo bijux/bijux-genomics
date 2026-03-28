@@ -1215,6 +1215,24 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
 
+    def test_benchmark_issue_ledger_omits_resolved_duplicate_remote_root_claims(
+        self,
+    ) -> None:
+        text = benchmark_issues_text()
+
+        self.assertNotIn(
+            "11. Remote storage currently contains both `.cache/results` and `.cache/bijux-dna-results` benchmark trees.",
+            text,
+        )
+        self.assertNotIn(
+            "12. Remote storage currently contains both `.cache/reference` and `.cache/bijux-reference` trees.",
+            text,
+        )
+        self.assertNotIn(
+            "14. Duplicate remote roots make it ambiguous which tree is authoritative for publication.",
+            text,
+        )
+
     def test_benchmark_workspace_contract_doc_records_local_and_remote_roots(self) -> None:
         text = benchmark_workspace_contract_text()
 

@@ -6,16 +6,15 @@
 - Authoritative remote results root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results`
 - Authoritative remote reference root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference`
 - Authoritative local publication root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01`
-- Status: `incomplete`
-- Issues: `1`
+- Status: `clear`
+- Issues: `0`
 
 ## Root Pairs
 
-- `remote-results`: `duplicate` (canonical `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results`, legacy `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-dna-results`)
+- `remote-results`: `clear` (canonical `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results`, legacy `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-dna-results`)
   - canonical entries: `corpus_01`
-  - legacy entries: `corpus_01`
-  - shared entries: `corpus_01`
 - `remote-reference`: `clear` (canonical `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference`, legacy `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-reference`)
+  - canonical entries: `contaminants`, `rrna`, `taxonomy`
 
 ## Local Stage Layout
 
@@ -27,4 +26,3 @@
 
 ## Issues
 
-- `duplicate-remote-results-root`: both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results and /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/bijux-dna-results exist
