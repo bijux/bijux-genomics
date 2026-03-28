@@ -132,16 +132,16 @@ _benchmark-normalize-primers-corpus-01: ## Benchmark fastq.normalize_primers acr
 	$(call run_corpus_fastq_benchmark,fastq.normalize_primers,)
 
 _benchmark-deplete-rrna-corpus-01: ## Benchmark fastq.deplete_rrna across corpus-01
-	$(call run_corpus_fastq_benchmark,fastq.deplete_rrna,$(if $(RRNA_DB),--stage-arg "--rrna-db" --stage-arg "$(RRNA_DB)",) $(if $(RRNA_BUNDLE_ID),--stage-arg "--rrna-bundle-id" --stage-arg "$(RRNA_BUNDLE_ID)",))
+	$(call run_corpus_fastq_benchmark,fastq.deplete_rrna,)
 
 _benchmark-deplete-host-corpus-01: ## Benchmark fastq.deplete_host across corpus-01
-	$(call run_corpus_fastq_benchmark,fastq.deplete_host,$(if $(REFERENCE_INDEX),--stage-arg "--reference-index" --stage-arg "$(REFERENCE_INDEX)",))
+	$(call run_corpus_fastq_benchmark,fastq.deplete_host,)
 
 _benchmark-deplete-reference-contaminants-corpus-01: ## Benchmark fastq.deplete_reference_contaminants across corpus-01
-	$(call run_corpus_fastq_benchmark,fastq.deplete_reference_contaminants,$(if $(REFERENCE_INDEX),--stage-arg "--reference-index" --stage-arg "$(REFERENCE_INDEX)",))
+	$(call run_corpus_fastq_benchmark,fastq.deplete_reference_contaminants,)
 
 _benchmark-screen-taxonomy-corpus-01: ## Benchmark fastq.screen_taxonomy across corpus-01
-	$(call run_corpus_fastq_benchmark,fastq.screen_taxonomy,$(if $(DATABASE_ROOT),--stage-arg "--database-root" --stage-arg "$(DATABASE_ROOT)",))
+	$(call run_corpus_fastq_benchmark,fastq.screen_taxonomy,)
 
 _benchmark-correct-errors-corpus-01: ## Benchmark fastq.correct_errors across corpus-01
 	$(call run_corpus_fastq_benchmark,fastq.correct_errors,)
