@@ -3,7 +3,7 @@
 ## Scope
 - Stage: `fastq.filter_reads`
 - Corpus: `corpus-01`
-- Platform target: `lunarc-apptainer`
+- Platform target: `apptainer-amd64`
 - Benchmark scenario: `filter_fairness`
 
 ## Governed tool cohort
@@ -37,7 +37,7 @@
 
 ## Workflow
 ```bash
-make _benchmark-filter-reads-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-filter-reads-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-filter-reads-corpus-01-report
 ```
 

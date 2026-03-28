@@ -15,7 +15,7 @@ The benchmark contract is:
 ## Workflow
 
 ```bash
-make _benchmark-trim-polyg-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-trim-polyg-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-trim-polyg-corpus-01-report
 ```
 

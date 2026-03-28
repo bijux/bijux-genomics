@@ -3,7 +3,7 @@
 ## Scope
 - Stage: `fastq.filter_low_complexity`
 - Corpus: `corpus-01`
-- Platform target: `lunarc-apptainer`
+- Platform target: `apptainer-amd64`
 - Benchmark scenario: `low_complexity_fairness`
 
 ## Governed tool cohort
@@ -35,7 +35,7 @@
 
 ## Workflow
 ```bash
-make _benchmark-filter-low-complexity-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-filter-low-complexity-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-filter-low-complexity-corpus-01-report
 ```
 

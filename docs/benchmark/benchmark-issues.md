@@ -22,6 +22,5 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 74. The policy suite explicitly enforces `containers/apptainer/lunarc/`, which bakes a site name into repository structure.
 75. Container documentation repeatedly names Lunarc as the canonical Apptainer authority.
 76. The repository has no neutral `containers/apptainer/shared/` or equivalent location for non-site-specific definitions.
-77. Some examples still publish `/scratch/$USER/...` as the output convention.
 88. `fastq.correct_errors` publication currently depends on the presence of a run manifest in one mirror layout and a bench tree in another.
 89. `fastq.trim_reads` publication currently depends on stale local mirrors unless the user manually re-syncs.
