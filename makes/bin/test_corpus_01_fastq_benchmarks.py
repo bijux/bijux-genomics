@@ -75,6 +75,7 @@ import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 import benchmark_workspace_value
 import benchmark_publication_targets
 import benchmark_tooling_repo_checks
+import build_corpus_01_benchmark_dossier_index as dossier_index
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
@@ -328,6 +329,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
         recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
 
         self.assertIn("python3 makes/bin/benchmark_tooling_repo_checks.py", recipe)
+
+    def test_publication_status_refreshes_dossier_index(self) -> None:
+        recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
+
+        self.assertIn("python3 makes/bin/build_corpus_01_benchmark_dossier_index.py", recipe)
 
     def test_lunarc_makefile_defers_workspace_values_to_config_contract(self) -> None:
         text = lunarc_makefile_text()
@@ -4502,6 +4508,38 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
 
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
+    def test_dossier_index_classifies_cache_mirror_run_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            docs_root = Path(tmpdir) / "docs" / "benchmark"
+            stage_root = docs_root / "fastq.validate_reads" / "corpus-01"
+            stage_root.mkdir(parents=True)
+            stage_root.joinpath("summary.json").write_text(
+                json.dumps(
+                    {
+                        "generated_at_utc": "2026-03-28T00:00:00Z",
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                        "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            index = dossier_index.build_index(docs_root)
+
+        stage = next(entry for entry in index["stages"] if entry["stage_id"] == "fastq.validate_reads")
+        self.assertEqual(stage["status"], "published")
+        self.assertEqual(stage["run_root_source"], "local-cache-mirror")
+
+    def test_dossier_index_tracks_missing_stage_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            index = dossier_index.build_index(Path(tmpdir) / "docs" / "benchmark")
+
+        self.assertEqual(index["stage_count"], len(support.CORPUS_01_PUBLICATION_CONTRACTS))
+        self.assertEqual(index["missing_stage_count"], len(support.CORPUS_01_PUBLICATION_CONTRACTS))
+        self.assertTrue(all(stage["status"] == "missing" for stage in index["stages"]))
+
     def test_benchmark_repo_checks_flag_hardcoded_local_operator_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
