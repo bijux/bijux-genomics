@@ -9,6 +9,7 @@ R2 ?=
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
 CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
+CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)
 
 BENCH_TOOLS_ARGS = $(if $(TOOLS),--tools $(TOOLS),)
 BENCH_EXPERIMENTAL_ARGS = $(if $(filter 1 true yes,$(ALLOW_EXPERIMENTAL)),--allow-experimental,)
@@ -385,26 +386,9 @@ _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publ
 		--markdown-out docs/benchmark/corpus-01-status.md
 
 _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ dossiers and refresh publication status
-	@$(MAKE) _benchmark-validate-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-detect-adapters-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-profile-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-profile-read-lengths-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-profile-overrepresented-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-normalize-primers-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-filter-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-filter-low-complexity-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-deplete-rrna-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-deplete-host-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-deplete-reference-contaminants-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-screen-taxonomy-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-correct-errors-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-trim-polyg-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-trim-reads-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-trim-terminal-damage-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-merge-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-remove-duplicates-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-extract-umis-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
-	@$(MAKE) _benchmark-report-qc-corpus-01-report CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"
+	@for target in $(CORPUS_01_PUBLISHED_DOSSIER_TARGETS); do \
+		$(MAKE) $$target CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"; \
+	done
 	@$(MAKE) _benchmark-corpus-01-publication-status
 
 .PHONY: _benchmark-fastq-stage _benchmark-all _benchmark-trim _benchmark-validate _benchmark-filter \

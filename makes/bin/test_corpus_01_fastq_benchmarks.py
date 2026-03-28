@@ -278,39 +278,53 @@ class BenchmarkMakefileTests(unittest.TestCase):
         )
         self.assertNotIn("CORPUS_ROOT ?= /home/bijan/bijux/corpus_01", text)
 
-    def test_published_dossiers_refresh_includes_remove_duplicates(self) -> None:
-        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
+    def test_benchmark_makefile_defers_published_dossier_roster_to_generated_contract(
+        self,
+    ) -> None:
+        text = benchmark_makefile_text()
 
-        self.assertIn("_benchmark-remove-duplicates-corpus-01-report", recipe)
+        self.assertIn(
+            "CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)",
+            text,
+        )
+
+    def test_published_dossiers_refresh_includes_remove_duplicates(self) -> None:
+        self.assertIn(
+            "_benchmark-remove-duplicates-corpus-01-report",
+            benchmark_publication_targets.resolve_targets("report"),
+        )
 
     def test_published_dossiers_refresh_includes_deplete_host(self) -> None:
-        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
-
-        self.assertIn("_benchmark-deplete-host-corpus-01-report", recipe)
+        self.assertIn(
+            "_benchmark-deplete-host-corpus-01-report",
+            benchmark_publication_targets.resolve_targets("report"),
+        )
 
     def test_published_dossiers_refresh_includes_deplete_reference_contaminants(
         self,
     ) -> None:
-        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
-
         self.assertIn(
-            "_benchmark-deplete-reference-contaminants-corpus-01-report", recipe
+            "_benchmark-deplete-reference-contaminants-corpus-01-report",
+            benchmark_publication_targets.resolve_targets("report"),
         )
 
     def test_published_dossiers_refresh_includes_screen_taxonomy(self) -> None:
-        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
-
-        self.assertIn("_benchmark-screen-taxonomy-corpus-01-report", recipe)
+        self.assertIn(
+            "_benchmark-screen-taxonomy-corpus-01-report",
+            benchmark_publication_targets.resolve_targets("report"),
+        )
 
     def test_published_dossiers_refresh_includes_correct_errors(self) -> None:
-        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
-
-        self.assertIn("_benchmark-correct-errors-corpus-01-report", recipe)
+        self.assertIn(
+            "_benchmark-correct-errors-corpus-01-report",
+            benchmark_publication_targets.resolve_targets("report"),
+        )
 
     def test_published_dossiers_refresh_includes_extract_umis(self) -> None:
-        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
-
-        self.assertIn("_benchmark-extract-umis-corpus-01-report", recipe)
+        self.assertIn(
+            "_benchmark-extract-umis-corpus-01-report",
+            benchmark_publication_targets.resolve_targets("report"),
+        )
 
     def test_makefile_declares_fastq_stage_run_targets_as_phony(self) -> None:
         phony = makefile_phony_targets()
@@ -373,11 +387,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
     def test_published_dossiers_refresh_covers_every_governed_publication_stage(
         self,
     ) -> None:
-        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
         missing_targets = [
             support.corpus_01_make_report_target(stage_id)
             for stage_id in publication_stage_ids()
-            if support.corpus_01_make_report_target(stage_id) not in recipe
+            if support.corpus_01_make_report_target(stage_id)
+            not in benchmark_publication_targets.resolve_targets("report")
         ]
 
         self.assertEqual(missing_targets, [])
