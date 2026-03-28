@@ -182,6 +182,20 @@ def parse_corpus_report_args(
     return parser.parse_args()
 
 
+def parse_corpus_briefing_args(
+    *,
+    description: str,
+    docs_root: str,
+) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        "--docs-root",
+        default=docs_root,
+        help="Directory that contains summary.json and sample_results.csv.",
+    )
+    return parser.parse_args()
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 

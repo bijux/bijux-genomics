@@ -8,16 +8,14 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+from corpus_01_fastq_benchmark_support import parse_corpus_briefing_args
+
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Render an enriched benchmark briefing from corpus-01 remove-duplicates artifacts."
+    return parse_corpus_briefing_args(
+        description="Render an enriched benchmark briefing from corpus-01 remove-duplicates artifacts.",
+        docs_root="docs/benchmark/fastq.remove_duplicates/corpus-01",
     )
-    parser.add_argument(
-        "--docs-root",
-        default="docs/benchmark/fastq.remove_duplicates/corpus-01",
-    )
-    return parser.parse_args()
 
 
 def load_json(path: Path) -> dict:
