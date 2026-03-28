@@ -15,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     benchmark_applicable_sample_ids,
     benchmark_manifest_failure_count,
     benchmark_manifest_sample_ids,
+    localize_results_path,
     load_corpus_spec,
     load_json,
     merge_pairs_benchmark_defaults,
@@ -58,16 +59,6 @@ def safe_fraction(numerator: float, denominator: float) -> float | None:
     if denominator == 0:
         return None
     return numerator / denominator
-
-
-def localize_results_path(path_str: str, local_results_root: Path) -> Path:
-    path = Path(path_str)
-    if path.exists():
-        return path
-    marker = "/results/"
-    if marker not in path_str:
-        return path
-    return local_results_root / path_str.split(marker, 1)[1]
 
 
 def resolve_merge_report_path(
