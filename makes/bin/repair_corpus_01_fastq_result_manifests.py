@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import (
+from benchmark_fastq_corpus.support import (
     DETECT_ADAPTERS_BENCHMARK_CONTRACT,
     PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT,
     PROFILE_READS_BENCHMARK_CONTRACT,

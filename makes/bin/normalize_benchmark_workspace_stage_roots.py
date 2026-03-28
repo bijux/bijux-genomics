@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import converge_benchmark_workspace_roots as converge_workspace_roots
-import corpus_01_fastq_benchmark_support as support
+from benchmark_fastq_corpus import support
 
 
 def parse_args() -> argparse.Namespace:

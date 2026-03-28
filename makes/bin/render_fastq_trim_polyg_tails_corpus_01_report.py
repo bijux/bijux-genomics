@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import (
+from benchmark_fastq_corpus.support import (
     parse_corpus_report_args,
     CorpusReportArtifacts,
     CorpusReportContext,

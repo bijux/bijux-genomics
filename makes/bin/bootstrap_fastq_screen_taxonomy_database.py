@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import (
+from benchmark_fastq_corpus.support import (
     artifact_bundle_size_bytes,
     benchmark_local_results_root,
     default_screen_taxonomy_database_root,
