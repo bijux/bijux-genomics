@@ -89,6 +89,10 @@ VALIDATE_READS_METHOD_PATH = (
     ROOT / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01-method.md"
 )
 BENCHMARK_ISSUES_PATH = ROOT / "docs" / "benchmark" / "benchmark-issues.md"
+BENCHMARK_FASTQ_CORPUS_SUPPORT_PATH = (
+    BIN_DIR / "benchmark_fastq_corpus" / "support.py"
+)
+BENCHMARK_FASTQ_CORPUS_CONFIG_PATH = ROOT / "configs" / "bench" / "workspace.toml"
 OPS_RS_PATH = ROOT / "crates" / "bijux-dna-dev" / "src" / "commands" / "ops.rs"
 ENV_RESOLVE_RS_PATH = (
     ROOT / "crates" / "bijux-dna-environment" / "src" / "resolve" / "mod.rs"
@@ -116,6 +120,10 @@ CANONICAL_APPTAINER_PATH_FILES = [
 
 def benchmark_makefile_text() -> str:
     return MAKEFILE_PATH.read_text(encoding="utf-8")
+
+
+def benchmark_support_text() -> str:
+    return BENCHMARK_FASTQ_CORPUS_SUPPORT_PATH.read_text(encoding="utf-8")
 
 
 def lunarc_makefile_text() -> str:
@@ -362,9 +370,7 @@ def publication_stage_ids() -> list[str]:
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_benchmark_support_does_not_embed_workspace_path_literals(self) -> None:
-        text = (ROOT / "makes" / "bin" / "corpus_01_fastq_benchmark_support.py").read_text(
-            encoding="utf-8"
-        )
+        text = benchmark_support_text()
 
         self.assertNotIn('/Users/bijan/bijux/bijux-dna-results', text)
         self.assertNotIn('/home/bijan/bijux/bijux-dna', text)
@@ -391,6 +397,14 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         text = benchmark_makefile_text()
 
         self.assertIn(
+            "BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml",
+            text,
+        )
+        self.assertIn(
+            "export BIJUX_FASTQ_CORPUS_CONFIG := $(BENCHMARK_FASTQ_CORPUS_CONFIG)",
+            text,
+        )
+        self.assertIn(
             'BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)',
             text,
         )
@@ -404,6 +418,12 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             text,
         )
         self.assertNotIn('$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)', text)
+
+    def test_benchmark_workspace_value_supports_explicit_config(self) -> None:
+        text = runner_script_text("benchmark_workspace_value.py")
+
+        self.assertIn('--config', text)
+        self.assertIn("configure_workspace_config_path(args.config)", text)
 
     def test_report_renderers_use_shared_corpus_report_arg_parser(self) -> None:
         for path in report_renderer_paths():
@@ -431,9 +451,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             )
 
     def test_report_renderers_use_shared_artifact_publisher(self) -> None:
-        support_text = (
-            ROOT / "makes" / "bin" / "corpus_01_fastq_benchmark_support.py"
-        ).read_text(encoding="utf-8")
+        support_text = benchmark_support_text()
         self.assertIn("class ReportCsvArtifactSpec:", support_text)
         self.assertIn("publish_corpus_report_artifacts(", support_text)
         for path in shared_report_publisher_paths():
@@ -475,9 +493,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             )
 
     def test_report_renderers_use_shared_stage_runner(self) -> None:
-        support_text = (
-            ROOT / "makes" / "bin" / "corpus_01_fastq_benchmark_support.py"
-        ).read_text(encoding="utf-8")
+        support_text = benchmark_support_text()
         self.assertIn("class CorpusReportContext:", support_text)
         self.assertIn("class CorpusReportArtifacts:", support_text)
         self.assertIn("def load_corpus_report_context(", support_text)
@@ -574,9 +590,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "def fmt_csv_value(",
             "def write_csv(",
         ]
-        support_text = (
-            ROOT / "makes" / "bin" / "corpus_01_fastq_benchmark_support.py"
-        ).read_text(encoding="utf-8")
+        support_text = benchmark_support_text()
         for call in [
             "load_csv_rows(",
             "load_json(",
@@ -589,7 +603,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertIn(
                 call,
                 support_text,
-                f"corpus_01_fastq_benchmark_support.py missing {call}",
+                f"benchmark_fastq_corpus.support missing {call}",
             )
         for path in briefing_renderer_paths():
             text = path.read_text(encoding="utf-8")
@@ -940,7 +954,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = benchmark_makefile_text()
 
         self.assertIn(
-            "CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)",
+            'CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)',
             text,
         )
         self.assertNotIn("CORPUS_ROOT ?= /home/bijan/bijux/corpus_01", text)
@@ -983,59 +997,67 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = lunarc_makefile_text()
 
         self.assertIn(
-            "LUNARC_HOST ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.ssh_host)",
+            'BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml',
             text,
         )
         self.assertIn(
-            "LUNARC_REPO_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.repo_root)",
+            'BENCHMARK_WORKSPACE_VALUE = BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" python3 makes/bin/benchmark_workspace_value.py',
             text,
         )
         self.assertIn(
-            "LUNARC_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.results_root)",
+            "LUNARC_HOST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.ssh_host)",
             text,
         )
         self.assertIn(
-            "LUNARC_CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)",
+            "LUNARC_REPO_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.repo_root)",
             text,
         )
         self.assertIn(
-            "LUNARC_CONTAINERS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.containers_root)",
+            "LUNARC_RESULTS_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.results_root)",
             text,
         )
         self.assertIn(
-            "LUNARC_LOCAL_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py local.results_root)",
+            "LUNARC_CORPUS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.corpus_root)",
             text,
         )
         self.assertIn(
-            "LUNARC_PULL_BASE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.pull_base)",
+            "LUNARC_CONTAINERS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.containers_root)",
             text,
         )
         self.assertIn(
-            "LUNARC_PULL_MODE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.pull_mode)",
+            "LUNARC_LOCAL_RESULTS_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) local.results_root)",
             text,
         )
         self.assertIn(
-            "LUNARC_INCLUDE_PROFILE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.include_profile)",
+            "LUNARC_PULL_BASE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.pull_base)",
             text,
         )
         self.assertIn(
-            "LUNARC_EXCLUDE_PROFILE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.exclude_profile)",
+            "LUNARC_PULL_MODE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.pull_mode)",
             text,
         )
         self.assertIn(
-            "CLEAN_CONTEXT ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.clean_context)",
+            "LUNARC_INCLUDE_PROFILE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.include_profile)",
             text,
         )
         self.assertIn(
-            "ALLOW_DIRTY ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.allow_dirty)",
+            "LUNARC_EXCLUDE_PROFILE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.exclude_profile)",
             text,
         )
         self.assertIn(
-            "INCLUDE_CONTAINERS_MANIFEST ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.include_containers_manifest)",
+            "CLEAN_CONTEXT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.clean_context)",
             text,
         )
         self.assertIn(
-            "DATA_MANIFEST_GLOB ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.data_manifest_glob)",
+            "ALLOW_DIRTY ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.allow_dirty)",
+            text,
+        )
+        self.assertIn(
+            "INCLUDE_CONTAINERS_MANIFEST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.include_containers_manifest)",
+            text,
+        )
+        self.assertIn(
+            "DATA_MANIFEST_GLOB ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.data_manifest_glob)",
             text,
         )
         self.assertNotIn("LUNARC_HOST ?= lunarc", text)
@@ -1812,9 +1834,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             self.assertNotIn("containers/apptainer/lunarc", text)
 
     def test_benchmark_tooling_uses_neutral_dossier_filename(self) -> None:
-        support_text = (BIN_DIR / "corpus_01_fastq_benchmark_support.py").read_text(
-            encoding="utf-8"
-        )
+        support_text = benchmark_support_text()
         audit_text = (BIN_DIR / "audit_corpus_01_fastq_benchmark_docs.py").read_text(
             encoding="utf-8"
         )
