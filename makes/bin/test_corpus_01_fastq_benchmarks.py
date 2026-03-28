@@ -133,6 +133,24 @@ def makefile_phony_targets() -> set[str]:
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
+    def test_corpus_01_make_target_mapping_covers_merge_and_trim_stage_aliases(self) -> None:
+        self.assertEqual(
+            support.corpus_01_make_run_target("fastq.merge_pairs"),
+            "_benchmark-merge-corpus-01",
+        )
+        self.assertEqual(
+            support.corpus_01_make_report_target("fastq.merge_pairs"),
+            "_benchmark-merge-corpus-01-report",
+        )
+        self.assertEqual(
+            support.corpus_01_make_run_target("fastq.trim_polyg_tails"),
+            "_benchmark-trim-polyg-corpus-01",
+        )
+        self.assertEqual(
+            support.corpus_01_make_report_target("fastq.trim_polyg_tails"),
+            "_benchmark-trim-polyg-corpus-01-report",
+        )
+
     def test_trim_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.trim_reads_benchmark_defaults()
         self.assertIsNone(defaults["min_length"])
