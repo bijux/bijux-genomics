@@ -151,27 +151,15 @@
       "stage_id": "fastq.trim_reads",
       "owner": "benchmark-governance",
       "status": "open",
-      "issue_count": 3,
-      "issue_group_count": 3,
-      "recommended_action": "sync-or-normalize-results",
+      "issue_count": 2,
+      "issue_group_count": 2,
+      "recommended_action": "rerun-benchmark-stage",
       "publication_status": "incomplete",
       "results_status": "incomplete",
       "sample_scope": "full",
       "published_generated_at_utc": "2026-03-28T13:13:27.746619+00:00",
       "run_root_source": "local-cache-mirror",
       "issue_groups": [
-        {
-          "issue_id": "duplicate-result-root-ambiguity",
-          "count": 1,
-          "sources": [
-            "results"
-          ],
-          "severity": "error",
-          "example_details": [
-            "both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist"
-          ],
-          "additional_detail_count": 0
-        },
         {
           "issue_id": "run-manifest-sample-failures",
           "count": 1,
@@ -203,12 +191,6 @@
           "detail": "benchmark/fastq.trim_reads/corpus-01/summary.json samples_failed=20",
           "severity": "error",
           "source": "publication"
-        },
-        {
-          "issue_id": "duplicate-result-root-ambiguity",
-          "detail": "both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist",
-          "severity": "error",
-          "source": "results"
         },
         {
           "issue_id": "run-manifest-sample-failures",

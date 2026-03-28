@@ -68,7 +68,6 @@
       "fastq.remove_duplicates",
       "fastq.report_qc",
       "fastq.trim_polyg_tails",
-      "fastq.trim_reads",
       "fastq.trim_terminal_damage",
       "fastq.validate_reads"
     ],
@@ -77,9 +76,7 @@
       "fastq.screen_taxonomy",
       "fastq.trim_reads"
     ],
-    "shared_stage_ids": [
-      "fastq.trim_reads"
-    ],
+    "shared_stage_ids": [],
     "archive_only_stage_ids": [
       "fastq.deplete_host",
       "fastq.deplete_host.publish",
@@ -102,7 +99,8 @@
     ],
     "cache_only_stage_ids": [
       "fastq.correct_errors",
-      "fastq.screen_taxonomy"
+      "fastq.screen_taxonomy",
+      "fastq.trim_reads"
     ],
     "authoritative_stage_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01"
   },

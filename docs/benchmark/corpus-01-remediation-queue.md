@@ -31,11 +31,9 @@
     - benchmark/fastq.trim_polyg_tails/corpus-01/summary.json scenario_id=None
   - issue group `summary-stage-id-drift` x1 from publication
     - benchmark/fastq.trim_polyg_tails/corpus-01/summary.json stage_id=None
-- `fastq.trim_reads`: `open` via `sync-or-normalize-results`
+- `fastq.trim_reads`: `open` via `rerun-benchmark-stage`
   - publication `incomplete`, results `incomplete`, owner `benchmark-governance`
   - dossier `2026-03-28T13:13:27.746619+00:00` from `local-cache-mirror`
-  - issue group `duplicate-result-root-ambiguity` x1 from results
-    - both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist
   - issue group `run-manifest-sample-failures` x1 from results
     - run_manifest samples_failed=20
   - issue group `summary-sample-failures` x1 from publication
