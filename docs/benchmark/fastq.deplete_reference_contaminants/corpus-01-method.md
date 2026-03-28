@@ -33,12 +33,13 @@
 - `sample_runtime_outliers.csv`: slowest or most aggressive samples.
 - `lunarc.md`: narrative benchmark dossier for the Lunarc run.
 
-## Publication gate
-- Governed publication uses:
-  - `makes/bin/run_fastq_deplete_reference_contaminants_corpus_01.py`
-  - `makes/bin/render_fastq_deplete_reference_contaminants_corpus_01_report.py`
-  - `makes/bin/render_fastq_deplete_reference_contaminants_corpus_01_briefing.py`
-- A publishable dossier begins once an executed Lunarc run is rendered into `docs/benchmark/fastq.deplete_reference_contaminants/corpus-01/` under the audit contract described above.
+## Workflow
+```bash
+make _benchmark-deplete-reference-contaminants-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-deplete-reference-contaminants-corpus-01-report
+```
+
+The runner resolves the governed contaminant reference lineage through `configs/bench/workspace.toml` unless you intentionally override `REFERENCE_INDEX` or `--reference-index` for a non-governed audit.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
