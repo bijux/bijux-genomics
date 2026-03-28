@@ -1058,6 +1058,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertTrue(APPTAINER_SHARED_DIR.is_dir())
         self.assertTrue((APPTAINER_SHARED_DIR / "adapterremoval.def").is_file())
         self.assertTrue((APPTAINER_SHARED_DIR / "TEMPLATE.def.inc").is_file())
+        self.assertTrue((APPTAINER_SHARED_DIR / "NON_BIJUX_SOURCES.md").is_file())
 
     def test_lunarc_apptainer_dir_is_compatibility_alias(self) -> None:
         self.assertTrue(APPTAINER_LUNARC_ALIAS.is_symlink())

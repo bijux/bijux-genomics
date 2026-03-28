@@ -1,6 +1,6 @@
 # Non-Bijux Apptainer Sources
 
-Purpose: Track upstream provenance for every definition under `containers/apptainer/shared/`.
+Purpose: Track upstream provenance for every non-bijux definition under `containers/apptainer/shared/`.
 
 Classification contract:
 - `non-bijux` = upstream-derived recipe ownership/provenance (minimal packaging adaptation only).
