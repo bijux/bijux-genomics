@@ -4586,6 +4586,62 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 )
             )
 
+    def test_audit_docs_warns_when_makefile_omits_governed_publication_target(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark"
+            corpus_spec = repo_root / "configs" / "runtime" / "corpora"
+            corpus_spec.mkdir(parents=True)
+            (corpus_spec / "corpus-01.toml").write_text(
+                "\n".join(
+                    [
+                        'corpus_id = "corpus-01"',
+                        "target_ancient_se = 1",
+                        "target_ancient_pe = 0",
+                        "target_modern_se = 1",
+                        "target_modern_pe = 0",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            makefile_path = repo_root / "makes" / "benchmarks-fastq.mk"
+            makefile_path.parent.mkdir(parents=True)
+            makefile_path.write_text(
+                "_benchmark-validate-corpus-01-report:\n\t@true\n",
+                encoding="utf-8",
+            )
+            stage_root = docs_root / "fastq.validate_reads"
+            stage_root.mkdir(parents=True)
+            (stage_root / "corpus-01-method.md").write_text("# method\n", encoding="utf-8")
+            (stage_root / "corpus-01").mkdir()
+
+            report = benchmark_docs_audit.audit_docs(
+                docs_root,
+                repo_root=repo_root,
+                stage_contracts=[
+                    support.CorpusBenchmarkContract(
+                        stage_id="fastq.validate_reads",
+                        scenario_id="validation_fairness",
+                        tools=["fastqvalidator"],
+                    ),
+                    support.CorpusBenchmarkContract(
+                        stage_id="fastq.trim_reads",
+                        scenario_id="trim_fairness",
+                        tools=["fastp"],
+                    ),
+                ],
+                exclusions=[],
+            )
+
+        self.assertTrue(
+            any(
+                "_benchmark-trim-reads-corpus-01-report" in warning
+                for warning in report["audit_warnings"]
+            )
+        )
+
     def test_load_supplemental_findings_warns_when_freshness_is_missing(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             findings_path = Path(tmpdir) / "findings.json"

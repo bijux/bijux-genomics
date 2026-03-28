@@ -13,6 +13,7 @@ from corpus_01_fastq_benchmark_support import (
     CORPUS_01_PUBLICATION_EXCLUSIONS,
     CorpusBenchmarkContract,
     CorpusBenchmarkExclusion,
+    corpus_01_make_report_target,
     expected_cohort_counts,
     load_corpus_spec,
     resolve_benchmark_tool_roster,
@@ -108,6 +109,27 @@ def append_issue(
             detail=detail,
         )
     )
+
+
+def makefile_publication_warnings(
+    repo_root: Path,
+    stage_contracts: list[CorpusBenchmarkContract],
+) -> list[str]:
+    makefile_path = repo_root / "makes" / "benchmarks-fastq.mk"
+    if not makefile_path.is_file():
+        return [f"missing benchmark makefile: {makefile_path}"]
+    makefile_text = makefile_path.read_text(encoding="utf-8")
+    missing_targets = [
+        corpus_01_make_report_target(contract.stage_id)
+        for contract in stage_contracts
+        if f"{corpus_01_make_report_target(contract.stage_id)}:" not in makefile_text
+    ]
+    if not missing_targets:
+        return []
+    return [
+        "benchmark makefile omits governed publication targets: "
+        + ", ".join(missing_targets)
+    ]
 
 
 def load_supplemental_findings(path: Path) -> tuple[dict[str, list[StageAuditIssue]], list[str], str | None]:
@@ -536,6 +558,10 @@ def audit_docs(
     exclusions = exclusions or CORPUS_01_PUBLICATION_EXCLUSIONS
     supplemental_findings = supplemental_findings or {}
     audit_warnings = audit_warnings or []
+    audit_warnings = audit_warnings + makefile_publication_warnings(
+        repo_root,
+        stage_contracts,
+    )
     stage_reports = [
         audit_stage(
             repo_root,
