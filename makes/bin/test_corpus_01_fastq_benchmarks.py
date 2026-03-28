@@ -197,6 +197,10 @@ def grouped_metric_briefing_paths() -> list[Path]:
     ]
 
 
+def tool_runtime_metric_briefing_paths() -> list[Path]:
+    return briefing_renderer_paths()
+
+
 def validate_reads_method_text() -> str:
     return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
@@ -383,6 +387,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             self.assertIn("iter_cohort_row_groups(", text, path.name)
             self.assertNotIn("grouped_with_size", text, path.name)
+
+    def test_briefings_use_shared_tool_runtime_summary_helper(self) -> None:
+        for path in tool_runtime_metric_briefing_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("summarize_tool_runtime_rows(", text, path.name)
+            self.assertNotIn(
+                "def tool_runtime_summary(rows: list[dict]) -> list[dict]:\n    by_tool:",
+                text,
+                path.name,
+            )
 
     def test_briefing_renderers_use_shared_stats_io_and_publication_helpers(
         self,

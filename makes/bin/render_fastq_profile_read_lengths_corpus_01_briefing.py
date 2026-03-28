@@ -24,6 +24,8 @@ from corpus_01_fastq_benchmark_support import (
     find_cohort_entry,
     safe_mean,
     safe_median,
+    BriefingMetricSpec,
+    summarize_tool_runtime_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -82,45 +84,15 @@ def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
 
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
-    by_tool: dict[str, list[dict]] = defaultdict(list)
-    for row in rows:
-        by_tool[row["tool"]].append(row)
-
-    medians = {
-        tool: safe_median([float(row["runtime_s"]) for row in tool_rows])
-        for tool, tool_rows in by_tool.items()
-    }
-    fastest_median = min(value for value in medians.values() if value is not None)
-    summary_rows = []
-    for tool in sorted(by_tool):
-        tool_rows = by_tool[tool]
-        runtimes = [float(row["runtime_s"]) for row in tool_rows]
-        read_counts = [float(row["read_count"]) for row in tool_rows]
-        mean_lengths = [float(row["mean_read_length"]) for row in tool_rows]
-        max_lengths = [float(row["max_read_length"]) for row in tool_rows]
-        distinct_lengths = [float(row["distinct_lengths"]) for row in tool_rows]
-        median = safe_median(runtimes)
-        summary_rows.append(
-            {
-                "tool": tool,
-                "samples": len(tool_rows),
-                "pass_rate": sum(1 for row in tool_rows if row["exit_code"] == "0")
-                / len(tool_rows),
-                "mean_runtime_s": safe_mean(runtimes),
-                "median_runtime_s": median,
-                "p90_runtime_s": percentile(runtimes, 0.9),
-                "max_runtime_s": max(runtimes),
-                "median_read_count": safe_median(read_counts),
-                "median_mean_read_length": safe_median(mean_lengths),
-                "median_max_read_length": safe_median(max_lengths),
-                "median_distinct_lengths": safe_median(distinct_lengths),
-                "slowdown_vs_fastest_median": median / fastest_median
-                if median is not None
-                else None,
-            }
-        )
-    return summary_rows
-
+    return summarize_tool_runtime_rows(
+        rows,
+        metric_specs=[
+            BriefingMetricSpec('read_count', 'median_read_count', 'median'),
+            BriefingMetricSpec('mean_read_length', 'median_mean_read_length', 'median'),
+            BriefingMetricSpec('max_read_length', 'median_max_read_length', 'median'),
+            BriefingMetricSpec('distinct_lengths', 'median_distinct_lengths', 'median'),
+        ],
+    )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
     output: list[dict] = []
     for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):

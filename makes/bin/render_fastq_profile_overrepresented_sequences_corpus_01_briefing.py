@@ -24,6 +24,8 @@ from corpus_01_fastq_benchmark_support import (
     find_cohort_entry,
     safe_mean,
     safe_median,
+    BriefingMetricSpec,
+    summarize_tool_runtime_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -84,43 +86,14 @@ def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
 
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
-    by_tool: dict[str, list[dict]] = defaultdict(list)
-    for row in rows:
-        by_tool[row["tool"]].append(row)
-
-    medians = {
-        tool: safe_median([float(row["runtime_s"]) for row in tool_rows])
-        for tool, tool_rows in by_tool.items()
-    }
-    fastest_median = min(value for value in medians.values() if value is not None)
-    summary_rows = []
-    for tool in sorted(by_tool):
-        tool_rows = by_tool[tool]
-        runtimes = [float(row["runtime_s"]) for row in tool_rows]
-        sequence_count = [float(row["sequence_count"]) for row in tool_rows]
-        flagged_sequences = [float(row["flagged_sequences"]) for row in tool_rows]
-        top_fraction = [float(row["top_fraction"]) for row in tool_rows]
-        median = safe_median(runtimes)
-        summary_rows.append(
-            {
-                "tool": tool,
-                "samples": len(tool_rows),
-                "pass_rate": sum(1 for row in tool_rows if row["exit_code"] == "0")
-                / len(tool_rows),
-                "mean_runtime_s": safe_mean(runtimes),
-                "median_runtime_s": median,
-                "p90_runtime_s": percentile(runtimes, 0.9),
-                "max_runtime_s": max(runtimes),
-                "median_sequence_count": safe_median(sequence_count),
-                "median_flagged_sequences": safe_median(flagged_sequences),
-                "median_top_fraction": safe_median(top_fraction),
-                "slowdown_vs_fastest_median": median / fastest_median
-                if median is not None
-                else None,
-            }
-        )
-    return summary_rows
-
+    return summarize_tool_runtime_rows(
+        rows,
+        metric_specs=[
+            BriefingMetricSpec('sequence_count', 'median_sequence_count', 'median'),
+            BriefingMetricSpec('flagged_sequences', 'median_flagged_sequences', 'median'),
+            BriefingMetricSpec('top_fraction', 'median_top_fraction', 'median'),
+        ],
+    )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
     output: list[dict] = []
     for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):

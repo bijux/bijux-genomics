@@ -204,6 +204,14 @@ class CorpusBriefingRuntime:
     sample_rows: list[dict]
 
 
+@dataclass(frozen=True)
+class BriefingMetricSpec:
+    source_key: str
+    output_key: str
+    aggregator: str
+    skip_blank: bool = False
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -223,6 +231,74 @@ def safe_mean(values: list[float]) -> float | None:
     if not values:
         return None
     return float(statistics.mean(values))
+
+
+def _aggregate_metric(values: list[float], aggregator: str) -> float | None:
+    if aggregator == "mean":
+        return safe_mean(values)
+    if aggregator == "median":
+        return safe_median(values)
+    raise ValueError(f"unsupported briefing metric aggregator: {aggregator}")
+
+
+def _metric_values(
+    rows: list[dict],
+    spec: BriefingMetricSpec,
+) -> list[float]:
+    values: list[float] = []
+    for row in rows:
+        raw_value = row.get(spec.source_key)
+        if raw_value in {"", None}:
+            if spec.skip_blank:
+                continue
+            raise ValueError(
+                f"missing required metric {spec.source_key!r} in briefing row"
+            )
+        values.append(float(raw_value))
+    return values
+
+
+def summarize_tool_runtime_rows(
+    rows: list[dict],
+    *,
+    metric_specs: list[BriefingMetricSpec],
+) -> list[dict]:
+    by_tool: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        by_tool[row["tool"]].append(row)
+
+    medians = {
+        tool: safe_median([float(row["runtime_s"]) for row in tool_rows])
+        for tool, tool_rows in by_tool.items()
+    }
+    fastest_median = min(value for value in medians.values() if value is not None)
+    summary_rows: list[dict] = []
+    for tool in sorted(by_tool):
+        tool_rows = by_tool[tool]
+        runtimes = [float(row["runtime_s"]) for row in tool_rows]
+        median = safe_median(runtimes)
+        summary_row = {
+            "tool": tool,
+            "samples": len(tool_rows),
+            "pass_rate": sum(
+                1 for row in tool_rows if str(row.get("exit_code")) == "0"
+            )
+            / len(tool_rows),
+            "mean_runtime_s": safe_mean(runtimes),
+            "median_runtime_s": median,
+            "p90_runtime_s": percentile(runtimes, 0.9),
+            "max_runtime_s": max(runtimes),
+            "slowdown_vs_fastest_median": (
+                median / fastest_median if median is not None else None
+            ),
+        }
+        for spec in metric_specs:
+            summary_row[spec.output_key] = _aggregate_metric(
+                _metric_values(tool_rows, spec),
+                spec.aggregator,
+            )
+        summary_rows.append(summary_row)
+    return summary_rows
 
 
 def find_cohort_entry(

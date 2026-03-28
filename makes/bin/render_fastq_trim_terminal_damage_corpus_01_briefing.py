@@ -23,6 +23,8 @@ from corpus_01_fastq_benchmark_support import (
     iter_cohort_row_groups,
     safe_mean,
     safe_median,
+    BriefingMetricSpec,
+    summarize_tool_runtime_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -32,47 +34,14 @@ def parse_args() -> argparse.Namespace:
     )
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
-    by_tool: dict[str, list[dict]] = defaultdict(list)
-    for row in rows:
-        by_tool[row["tool"]].append(row)
-
-    medians = {
-        tool: safe_median([float(row["runtime_s"]) for row in tool_rows])
-        for tool, tool_rows in by_tool.items()
-    }
-    fastest_median = min(value for value in medians.values() if value is not None)
-    summary_rows = []
-    for tool in sorted(by_tool):
-        tool_rows = by_tool[tool]
-        runtimes = [float(row["runtime_s"]) for row in tool_rows]
-        base_retentions = [float(row["base_retention"]) for row in tool_rows]
-        asymmetry_reductions = [
-            float(row["asymmetry_reduction"])
-            for row in tool_rows
-            if row["asymmetry_reduction"] not in {"", None}
-        ]
-        mean_q_deltas = [float(row["mean_q_delta"]) for row in tool_rows]
-        median = safe_median(runtimes)
-        summary_rows.append(
-            {
-                "tool": tool,
-                "samples": len(tool_rows),
-                "pass_rate": sum(1 for row in tool_rows if row["exit_code"] == "0")
-                / len(tool_rows),
-                "mean_runtime_s": safe_mean(runtimes),
-                "median_runtime_s": median,
-                "p90_runtime_s": percentile(runtimes, 0.9),
-                "max_runtime_s": max(runtimes),
-                "median_base_retention": safe_median(base_retentions),
-                "mean_asymmetry_reduction": safe_mean(asymmetry_reductions),
-                "mean_q_delta": safe_mean(mean_q_deltas),
-                "slowdown_vs_fastest_median": median / fastest_median
-                if median is not None
-                else None,
-            }
-        )
-    return summary_rows
-
+    return summarize_tool_runtime_rows(
+        rows,
+        metric_specs=[
+            BriefingMetricSpec('base_retention', 'median_base_retention', 'median'),
+            BriefingMetricSpec('asymmetry_reduction', 'mean_asymmetry_reduction', 'mean', skip_blank=True),
+            BriefingMetricSpec('mean_q_delta', 'mean_q_delta', 'mean'),
+        ],
+    )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
     output: list[dict] = []
     for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):

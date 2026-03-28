@@ -26,6 +26,8 @@ from corpus_01_fastq_benchmark_support import (
     find_cohort_entry,
     safe_mean,
     safe_median,
+    BriefingMetricSpec,
+    summarize_tool_runtime_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -77,55 +79,16 @@ def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
 
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
-    by_tool: dict[str, list[dict]] = defaultdict(list)
-    for row in rows:
-        by_tool[row["tool"]].append(row)
-
-    medians = {
-        tool: safe_median([float(row["runtime_s"]) for row in tool_rows])
-        for tool, tool_rows in by_tool.items()
-    }
-    fastest_median = min(value for value in medians.values() if value is not None)
-    summary_rows = []
-    for tool in sorted(by_tool):
-        tool_rows = by_tool[tool]
-        runtimes = [float(row["runtime_s"]) for row in tool_rows]
-        modules = [
-            float(row["multiqc_module_count"])
-            for row in tool_rows
-            if row["multiqc_module_count"] != ""
-        ]
-        sample_counts = [
-            float(row["multiqc_sample_count"])
-            for row in tool_rows
-            if row["multiqc_sample_count"] != ""
-        ]
-        governed_inputs = [float(row["governed_qc_input_count"]) for row in tool_rows]
-        contamination = [float(row["contamination_rate"]) for row in tool_rows]
-        mean_q_values = [float(row["mean_q"]) for row in tool_rows]
-        median = safe_median(runtimes)
-        summary_rows.append(
-            {
-                "tool": tool,
-                "samples": len(tool_rows),
-                "pass_rate": sum(1 for row in tool_rows if row["exit_code"] == "0")
-                / len(tool_rows),
-                "mean_runtime_s": safe_mean(runtimes),
-                "median_runtime_s": median,
-                "p90_runtime_s": percentile(runtimes, 0.9),
-                "max_runtime_s": max(runtimes),
-                "median_multiqc_module_count": safe_median(modules),
-                "median_multiqc_sample_count": safe_median(sample_counts),
-                "median_governed_qc_input_count": safe_median(governed_inputs),
-                "median_contamination_rate": safe_median(contamination),
-                "median_mean_q": safe_median(mean_q_values),
-                "slowdown_vs_fastest_median": median / fastest_median
-                if median is not None
-                else None,
-            }
-        )
-    return summary_rows
-
+    return summarize_tool_runtime_rows(
+        rows,
+        metric_specs=[
+            BriefingMetricSpec('multiqc_module_count', 'median_multiqc_module_count', 'median', skip_blank=True),
+            BriefingMetricSpec('multiqc_sample_count', 'median_multiqc_sample_count', 'median', skip_blank=True),
+            BriefingMetricSpec('governed_qc_input_count', 'median_governed_qc_input_count', 'median'),
+            BriefingMetricSpec('contamination_rate', 'median_contamination_rate', 'median'),
+            BriefingMetricSpec('mean_q', 'median_mean_q', 'median'),
+        ],
+    )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
     output: list[dict] = []
     for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):
