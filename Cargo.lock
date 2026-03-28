@@ -267,6 +267,7 @@ dependencies = [
  "bijux-dna-policies",
  "bijux-dna-runtime",
  "bijux-dna-stages-vcf",
+ "chrono",
  "clap",
  "flate2",
  "gag",
