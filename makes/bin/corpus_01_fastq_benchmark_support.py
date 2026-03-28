@@ -921,10 +921,11 @@ def resolve_corpus_metadata(
     fallback_stage_id: str = "fastq.validate_reads",
 ) -> dict[str, dict]:
     if (corpus_root / "normalized").is_dir() and (corpus_root / "MANIFEST.json").is_file():
+        full_corpus_total = sum(expected_cohort_counts(spec).values())
         return validate_corpus_contract(
             corpus_root,
             spec,
-            discover_normalized_samples(corpus_root, expected_total=len(expected_sample_ids)),
+            discover_normalized_samples(corpus_root, expected_total=full_corpus_total),
         )
 
     metadata_by_sample = load_published_sample_metadata(
@@ -940,6 +941,63 @@ def resolve_corpus_metadata(
             f"missing rows for samples {missing_samples}"
         )
     return metadata_by_sample
+
+
+def benchmark_manifest_sample_ids(run_manifest: dict) -> list[str]:
+    sample_ids: list[str] = []
+    seen: set[str] = set()
+    for run in run_manifest.get("runs", []):
+        sample_id = str(run.get("sample_id", "")).strip()
+        if not sample_id:
+            raise SystemExit("benchmark run manifest drift: missing sample_id in runs[]")
+        if sample_id in seen:
+            continue
+        seen.add(sample_id)
+        sample_ids.append(sample_id)
+    return sample_ids
+
+
+def benchmark_applicable_sample_ids(
+    contract: CorpusBenchmarkContract,
+    run_manifest: dict,
+    metadata_by_sample: dict[str, dict],
+) -> list[str]:
+    sample_ids = benchmark_manifest_sample_ids(run_manifest)
+    if contract.sample_scope == "full":
+        return sample_ids
+    if contract.sample_scope == "paired":
+        return [
+            sample_id
+            for sample_id in sample_ids
+            if metadata_by_sample[sample_id]["layout"] == "pe"
+        ]
+    raise SystemExit(
+        f"unsupported corpus benchmark sample_scope for {contract.stage_id}: "
+        f"{contract.sample_scope}"
+    )
+
+
+def benchmark_applicable_runs(
+    contract: CorpusBenchmarkContract,
+    run_manifest: dict,
+    metadata_by_sample: dict[str, dict],
+) -> list[dict]:
+    applicable_sample_ids = set(
+        benchmark_applicable_sample_ids(contract, run_manifest, metadata_by_sample)
+    )
+    return [
+        run
+        for run in run_manifest.get("runs", [])
+        if str(run.get("sample_id", "")).strip() in applicable_sample_ids
+    ]
+
+
+def benchmark_manifest_failure_count(runs: list[dict]) -> int:
+    failures = 0
+    for run in runs:
+        if int(run.get("exit_code") or 0) != 0:
+            failures += 1
+    return failures
 
 
 def select_paired_samples(

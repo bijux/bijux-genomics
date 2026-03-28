@@ -11,6 +11,10 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     REMOVE_DUPLICATES_BENCHMARK_CONTRACT,
+    benchmark_applicable_runs,
+    benchmark_applicable_sample_ids,
+    benchmark_manifest_failure_count,
+    benchmark_manifest_sample_ids,
     load_corpus_spec,
     load_json,
     localize_results_path,
@@ -98,6 +102,15 @@ def validate_run_manifest_contract(run_manifest: dict) -> None:
         raise SystemExit(
             "remove-duplicates benchmark report drift: "
             f"expected tool_kind benchmark, found {run_manifest.get('tool_kind')}"
+        )
+    run_manifest.setdefault(
+        "sample_scope", REMOVE_DUPLICATES_BENCHMARK_CONTRACT.sample_scope
+    )
+    if run_manifest.get("sample_scope") != REMOVE_DUPLICATES_BENCHMARK_CONTRACT.sample_scope:
+        raise SystemExit(
+            "remove-duplicates benchmark report drift: "
+            f"expected sample_scope {REMOVE_DUPLICATES_BENCHMARK_CONTRACT.sample_scope}, "
+            f"found {run_manifest.get('sample_scope')}"
         )
     run_manifest.setdefault("dedup_mode", defaults["dedup_mode"])
     run_manifest.setdefault("keep_order", defaults["keep_order"])
@@ -246,12 +259,22 @@ def main() -> int:
     spec = load_corpus_spec(repo_root)
     run_manifest = load_json(run_root / "run_manifest.json")
     validate_run_manifest_contract(run_manifest)
-    expected_sample_ids = [run["sample_id"] for run in run_manifest["runs"]]
+    manifest_sample_ids = benchmark_manifest_sample_ids(run_manifest)
     metadata_by_sample = resolve_corpus_metadata(
         repo_root,
         corpus_root,
         spec,
-        expected_sample_ids=expected_sample_ids,
+        expected_sample_ids=manifest_sample_ids,
+    )
+    expected_sample_ids = benchmark_applicable_sample_ids(
+        REMOVE_DUPLICATES_BENCHMARK_CONTRACT,
+        run_manifest,
+        metadata_by_sample,
+    )
+    applicable_runs = benchmark_applicable_runs(
+        REMOVE_DUPLICATES_BENCHMARK_CONTRACT,
+        run_manifest,
+        metadata_by_sample,
     )
 
     sample_rows: list[dict] = []
@@ -259,7 +282,7 @@ def main() -> int:
     era_counts: dict[str, int] = defaultdict(int)
     cohort_counts: dict[str, int] = defaultdict(int)
 
-    for run in run_manifest["runs"]:
+    for run in applicable_runs:
         sample_id = run["sample_id"]
         metadata = metadata_by_sample[sample_id]
         era_counts[metadata["era"]] += 1
@@ -337,8 +360,8 @@ def main() -> int:
         "scenario_id": run_manifest["scenario_id"],
         "corpus_root": run_manifest["corpus_root"],
         "run_root": str(run_root),
-        "samples_total": run_manifest["samples_total"],
-        "samples_failed": run_manifest["samples_failed"],
+        "samples_total": len(expected_sample_ids),
+        "samples_failed": benchmark_manifest_failure_count(applicable_runs),
         "tools": run_manifest["tools"],
         "dedup_mode": run_manifest["dedup_mode"],
         "keep_order": run_manifest["keep_order"],

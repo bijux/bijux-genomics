@@ -11,6 +11,10 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     MERGE_PAIRS_BENCHMARK_CONTRACT,
+    benchmark_applicable_runs,
+    benchmark_applicable_sample_ids,
+    benchmark_manifest_failure_count,
+    benchmark_manifest_sample_ids,
     load_corpus_spec,
     load_json,
     merge_pairs_benchmark_defaults,
@@ -122,6 +126,13 @@ def validate_merge_run_manifest_contract(run_manifest: dict) -> None:
     if tool_kind != "benchmark":
         raise SystemExit(
             f"merge benchmark report drift: expected tool_kind benchmark, found {tool_kind}"
+        )
+    run_manifest.setdefault("sample_scope", MERGE_PAIRS_BENCHMARK_CONTRACT.sample_scope)
+    if run_manifest.get("sample_scope") != MERGE_PAIRS_BENCHMARK_CONTRACT.sample_scope:
+        raise SystemExit(
+            "merge benchmark report drift: "
+            f"expected sample_scope {MERGE_PAIRS_BENCHMARK_CONTRACT.sample_scope}, "
+            f"found {run_manifest.get('sample_scope')}"
         )
 
 
@@ -285,15 +296,24 @@ def main() -> int:
     defaults = merge_pairs_benchmark_defaults()
     run_manifest = load_json(run_root / "run_manifest.json")
     validate_merge_run_manifest_contract(run_manifest)
-    expected_sample_ids = [run["sample_id"] for run in run_manifest["runs"]]
+    manifest_sample_ids = benchmark_manifest_sample_ids(run_manifest)
 
     metadata_by_sample = resolve_corpus_metadata(
         repo_root,
         corpus_root,
         spec,
-        expected_sample_ids=expected_sample_ids,
+        expected_sample_ids=manifest_sample_ids,
     )
-    paired_sample_ids = set(expected_sample_ids)
+    expected_sample_ids = benchmark_applicable_sample_ids(
+        MERGE_PAIRS_BENCHMARK_CONTRACT,
+        run_manifest,
+        metadata_by_sample,
+    )
+    applicable_runs = benchmark_applicable_runs(
+        MERGE_PAIRS_BENCHMARK_CONTRACT,
+        run_manifest,
+        metadata_by_sample,
+    )
 
     sample_rows: list[dict] = []
     tool_rows: dict[str, list[dict]] = defaultdict(list)
@@ -301,13 +321,8 @@ def main() -> int:
     era_counts: dict[str, int] = defaultdict(int)
     layout_counts: dict[str, int] = defaultdict(int)
 
-    for run in run_manifest["runs"]:
+    for run in applicable_runs:
         sample_id = run["sample_id"]
-        if sample_id not in paired_sample_ids:
-            raise SystemExit(
-                "merge benchmark report drift: "
-                f"run manifest included non-paired sample {sample_id}"
-            )
         metadata = metadata_by_sample.get(sample_id, {})
         cohort_key = f"{metadata.get('era', 'unknown')}_{metadata.get('layout', run['layout'])}"
         cohort_counts[cohort_key] += 1
@@ -422,8 +437,8 @@ def main() -> int:
         "platform": run_manifest["platform"],
         "corpus_root": str(corpus_root),
         "run_root": str(run_root),
-        "samples_total": len(run_manifest["runs"]),
-        "samples_failed": int(run_manifest["samples_failed"]),
+        "samples_total": len(expected_sample_ids),
+        "samples_failed": benchmark_manifest_failure_count(applicable_runs),
         "tools": run_manifest["tools"],
         "merge_overlap": run_manifest["merge_overlap"],
         "min_length": run_manifest["min_length"],
