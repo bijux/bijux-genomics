@@ -27,7 +27,7 @@ fi
 [[ $# -eq 1 ]] || { usage >&2; exit 2; }
 example_id="$1"
 
-cargo run -q -p bijux-dev-dna -- examples run run "${example_id}"
+cargo run -q -p bijux-dna-dev -- examples run run "${example_id}"
 
 example_dir="$(find "$ROOT_DIR/examples" -type f -name example.toml -print | while read -r f; do
   if rg -q \"^id\\s*=\\s*\\\"${example_id}\\\"\\s*$\" \"$f\"; then

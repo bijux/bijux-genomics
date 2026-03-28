@@ -1,5 +1,5 @@
 # GENERATED FILE - DO NOT EDIT
-# Regenerate with: cargo run -p bijux-dev-dna -- examples run generate-index
+# Regenerate with: cargo run -p bijux-dna-dev -- examples run generate-index
 examples:
   - id: fastq_cluster_otus_bench
     domain: fastq

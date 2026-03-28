@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic FASTQ pre-QC benchmark flow and validate expected contracts.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_qc_pre_bench`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_qc_pre_bench`
 
 ## Step 1 Containers
 - Ensure image plan is resolved by the runner.

@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic terminal-damage-aware FASTQ trimming benchmark flow for ancient DNA and damage-profile-sensitive datasets.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_trim_terminal_damage_bench`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_trim_terminal_damage_bench`
 
 ## Step 1 Containers
 - Ensure image resolution is complete before execution.

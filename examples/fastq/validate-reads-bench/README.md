@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic single-stage FASTQ validation benchmark and preserve the resulting evidence for backend comparison.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_validate_reads_bench`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_validate_reads_bench`
 
 ## Stage
 - Stage ID: `fastq.validate_reads`
@@ -26,8 +26,8 @@ Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_v
 - Report output includes `validation_report` evidence and benchmark metrics for each backend
 
 ## HPC Run
-1. `cargo run -q -p bijux-dev-dna -- hpc run validate-frontend-constraints --confirm`
-2. `cargo run -q -p bijux-dev-dna -- examples run run fastq_validate_reads_bench`
+1. `cargo run -q -p bijux-dna-dev -- hpc run validate-frontend-constraints --confirm`
+2. `cargo run -q -p bijux-dna-dev -- examples run run fastq_validate_reads_bench`
 3. Collect outputs under artifacts/examples/fastq_validate_reads_bench/
 
 Preferred direct benchmark command:

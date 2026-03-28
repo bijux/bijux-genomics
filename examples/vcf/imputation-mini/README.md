@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic mini VCF imputation workflow contract using the corpus-01-mini data surface.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run vcf_imputation_mini`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run vcf_imputation_mini`
 
 ## Step 1 Containers
 - Ensure image plan is resolved by the runner (`ensure-images --plan`).
