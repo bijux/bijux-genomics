@@ -19,3 +19,9 @@ results_legacy_root = "/home/bijan/lu2024-12-24/.cache/bijux-dna-results"
 extra_data_root = "/home/bijan/lu2024-12-24/.cache/extra-data"
 containers_root = "/home/bijan/lu2024-12-24/.cache/bijux-dna-container"
 reference_root = "/home/bijan/lu2024-12-24/.cache/reference"
+
+[artifacts.fastq_deplete_host]
+reference_index_template = "benchmark/fastq.deplete_host/{reference_catalog_id}/{reference_index_backend}/index"
+
+[artifacts.fastq_screen_taxonomy]
+database_root_template = "benchmark/fastq.screen_taxonomy/{database_namespace}/{database_scope}/{database_artifact_id}"

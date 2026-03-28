@@ -650,6 +650,18 @@ class BenchmarkMakefileTests(unittest.TestCase):
             ).resolve(),
         )
 
+    def test_host_reference_index_template_is_loaded_from_workspace_contract(self) -> None:
+        support.load_benchmark_workspace_config.cache_clear()
+        try:
+            self.assertEqual(
+                support._workspace_template(
+                    "fastq_deplete_host", "reference_index_template"
+                ),
+                "benchmark/fastq.deplete_host/{reference_catalog_id}/{reference_index_backend}/index",
+            )
+        finally:
+            support.load_benchmark_workspace_config.cache_clear()
+
     def test_benchmark_runtime_env_overrides_stale_cache_layout(self) -> None:
         out_root = Path(
             "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc"
