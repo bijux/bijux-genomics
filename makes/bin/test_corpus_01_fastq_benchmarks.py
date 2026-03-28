@@ -5578,6 +5578,85 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             )
         )
 
+    def test_result_audit_missing_local_run_root_reports_remote_source_and_expected_mirror(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+            docs_root.mkdir(parents=True)
+            reported_run_root = Path(
+                "/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc"
+            )
+            (docs_root / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                        "run_root": str(reported_run_root),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                support,
+                "benchmark_local_results_root",
+                return_value=repo_root / "archive",
+            ), mock.patch.object(
+                support,
+                "benchmark_local_cache_mirror_root",
+                return_value=repo_root / "home" / "bijan" / "lu2024-12-24" / ".cache",
+            ):
+                report = published_results_audit.audit_stage(
+                    repo_root,
+                    "fastq.validate_reads",
+                    "validation_fairness",
+                    ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                )
+
+        missing_issue = next(
+            issue
+            for issue in report["issues"]
+            if issue["issue_id"] == "missing-local-run-root"
+        )
+        self.assertIn(str(reported_run_root), missing_issue["detail"])
+        self.assertIn("expected_local_mirror=", missing_issue["detail"])
+        self.assertEqual(report["reported_run_root"], str(reported_run_root))
+        self.assertEqual(report["available_run_roots"], [])
+
+    def test_result_audit_markdown_lists_selected_and_available_run_roots(self) -> None:
+        rendered = published_results_audit.render_markdown(
+            {
+                "applicable_stage_count": 1,
+                "published_stage_count": 1,
+                "complete_stage_count": 0,
+                "incomplete_stage_count": 1,
+                "issue_count": 1,
+                "stages": [
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "status": "incomplete",
+                        "issue_count": 1,
+                        "selected_run_root": "/mirror/results/corpus_01/fastq.validate_reads/lunarc",
+                        "available_run_roots": [
+                            "/mirror/results/corpus_01/fastq.validate_reads/lunarc",
+                            "/archive/corpus_01/fastq.validate_reads/lunarc",
+                        ],
+                        "issues": [
+                            {
+                                "issue_id": "missing-local-run-root",
+                                "detail": "missing local mirror",
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
+
+        self.assertIn("selected run root", rendered)
+        self.assertIn("/mirror/results/corpus_01/fastq.validate_reads/lunarc", rendered)
+        self.assertIn("/archive/corpus_01/fastq.validate_reads/lunarc", rendered)
+
     def test_result_audit_flags_duplicate_local_run_roots(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

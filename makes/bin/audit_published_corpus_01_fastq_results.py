@@ -117,7 +117,10 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
             issues,
             stage_id,
             "missing-local-run-root",
-            f"missing {resolved_run_root}",
+            "local mirror missing: "
+            f"selected={resolved_run_root}; "
+            f"summary_run_root={reported_run_root}; "
+            f"expected_local_mirror={canonical_run_root}",
         )
     stage_run_manifest = resolved_run_root / "run_manifest.json"
     if not stage_run_manifest.is_file():
@@ -212,6 +215,9 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
         "stage_id": stage_id,
         "status": "complete" if not issues else "incomplete",
         "issue_count": len(issues),
+        "reported_run_root": str(reported_run_root),
+        "selected_run_root": str(resolved_run_root),
+        "available_run_roots": [str(root) for root in unique_existing_roots],
         "issues": [asdict(issue) for issue in issues],
     }
 
@@ -256,6 +262,11 @@ def render_markdown(report: dict) -> str:
         lines.append(
             f"- `{stage['stage_id']}`: `{stage['status']}` (`{stage['issue_count']}` issues)"
         )
+        if stage.get("selected_run_root"):
+            lines.append(f"  - selected run root: `{stage['selected_run_root']}`")
+        if stage.get("available_run_roots"):
+            roots = ", ".join(f"`{root}`" for root in stage["available_run_roots"])
+            lines.append(f"  - available run roots: {roots}")
         for issue in stage["issues"]:
             lines.append(f"  - `{issue['issue_id']}`: {issue['detail']}")
     return "\n".join(lines) + "\n"
