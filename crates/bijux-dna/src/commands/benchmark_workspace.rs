@@ -138,6 +138,8 @@ pub(crate) struct BenchmarkScreenTaxonomyInputConfig {
 pub(crate) struct Corpus01PublicationConfig {
     #[serde(default)]
     pub(crate) contracts: Vec<CorpusBenchmarkContract>,
+    #[serde(default)]
+    pub(crate) exclusions: Vec<CorpusBenchmarkExclusion>,
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
@@ -152,6 +154,12 @@ pub(crate) struct CorpusBenchmarkContract {
 
 fn default_sample_scope() -> String {
     "full".to_string()
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+pub(crate) struct CorpusBenchmarkExclusion {
+    pub(crate) stage_id: String,
+    pub(crate) reason: String,
 }
 
 fn benchmark_config_path_env_override() -> Option<PathBuf> {
@@ -215,6 +223,97 @@ fn load_toml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
         .with_context(|| format!("parse {}", path.display()))
 }
 
+fn normalize_optional_string(value: &mut Option<String>) {
+    let Some(raw) = value.take() else {
+        return;
+    };
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return;
+    }
+    *value = Some(trimmed.to_string());
+}
+
+fn normalize_benchmark_config(mut config: BenchmarkConfig) -> BenchmarkConfig {
+    if let Some(local) = config.workspace.local.as_mut() {
+        normalize_optional_string(&mut local.results_root);
+        normalize_optional_string(&mut local.cache_mirror_root);
+        normalize_optional_string(&mut local.extra_data_root);
+        normalize_optional_string(&mut local.reference_root);
+    }
+    if let Some(remote) = config.workspace.remote.as_mut() {
+        normalize_optional_string(&mut remote.ssh_host);
+        normalize_optional_string(&mut remote.repo_root);
+        normalize_optional_string(&mut remote.cache_root);
+        normalize_optional_string(&mut remote.corpus_root);
+        normalize_optional_string(&mut remote.results_root);
+        normalize_optional_string(&mut remote.results_legacy_root);
+        normalize_optional_string(&mut remote.extra_data_root);
+        normalize_optional_string(&mut remote.containers_root);
+        normalize_optional_string(&mut remote.reference_root);
+    }
+    if let Some(layout) = config.workspace.layout.as_mut() {
+        if let Some(stage_runs) = layout.stage_runs.as_mut() {
+            normalize_optional_string(&mut stage_runs.remote_results_template);
+            normalize_optional_string(&mut stage_runs.local_cache_results_template);
+            normalize_optional_string(&mut stage_runs.local_archive_results_template);
+        }
+    }
+    for artifact in config.workspace.artifacts.values_mut() {
+        normalize_optional_string(&mut artifact.reference_index_template);
+        normalize_optional_string(&mut artifact.database_root_template);
+    }
+    if let Some(sync) = config.workspace.sync.as_mut() {
+        if let Some(defaults) = sync.defaults.as_mut() {
+            normalize_optional_string(&mut defaults.pull_base);
+            normalize_optional_string(&mut defaults.pull_mode);
+            normalize_optional_string(&mut defaults.include_profile);
+            normalize_optional_string(&mut defaults.exclude_profile);
+        }
+    }
+    for corpus in config.corpora.values_mut() {
+        normalize_optional_string(&mut corpus.spec_path);
+    }
+    normalize_optional_string(&mut config.stage_inputs.fastq_deplete_rrna.rrna_db);
+    normalize_optional_string(&mut config.stage_inputs.fastq_deplete_rrna.rrna_bundle_id);
+    normalize_optional_string(&mut config.stage_inputs.fastq_deplete_rrna.min_identity);
+    normalize_optional_string(&mut config.stage_inputs.fastq_deplete_host.reference_index);
+    normalize_optional_string(&mut config.stage_inputs.fastq_deplete_host.reference_catalog_id);
+    normalize_optional_string(
+        &mut config.stage_inputs.fastq_deplete_host.reference_index_backend,
+    );
+    normalize_optional_string(
+        &mut config
+            .stage_inputs
+            .fastq_deplete_reference_contaminants
+            .reference_index,
+    );
+    normalize_optional_string(
+        &mut config
+            .stage_inputs
+            .fastq_deplete_reference_contaminants
+            .reference_catalog_id,
+    );
+    normalize_optional_string(
+        &mut config
+            .stage_inputs
+            .fastq_deplete_reference_contaminants
+            .reference_index_backend,
+    );
+    normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_root);
+    normalize_optional_string(
+        &mut config.stage_inputs.fastq_screen_taxonomy.database_catalog_id,
+    );
+    normalize_optional_string(
+        &mut config.stage_inputs.fastq_screen_taxonomy.database_artifact_id,
+    );
+    normalize_optional_string(
+        &mut config.stage_inputs.fastq_screen_taxonomy.database_namespace,
+    );
+    normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_scope);
+    config
+}
+
 pub(crate) fn expand_env_placeholders(raw: &str) -> String {
     let mut expanded = String::with_capacity(raw.len());
     let mut chars = raw.chars().peekable();
@@ -254,12 +353,12 @@ fn synthesize_legacy_benchmark_config(
     } else {
         BenchmarkPublicationConfig::default()
     };
-    Ok(BenchmarkConfig {
+    Ok(normalize_benchmark_config(BenchmarkConfig {
         workspace,
         publication,
         corpora: BTreeMap::new(),
         stage_inputs: BenchmarkStageInputConfig::default(),
-    })
+    }))
 }
 
 pub(crate) fn load_benchmark_config(
@@ -269,23 +368,23 @@ pub(crate) fn load_benchmark_config(
     let path = benchmark_config_path(cwd, explicit_path);
     if path.is_file() {
         if let Ok(config) = load_toml::<BenchmarkConfig>(&path) {
-            return Ok(config);
+            return Ok(normalize_benchmark_config(config));
         }
         if let Ok(workspace) = load_toml::<BenchmarkWorkspaceConfig>(&path) {
-            return Ok(BenchmarkConfig {
+            return Ok(normalize_benchmark_config(BenchmarkConfig {
                 workspace,
                 publication: synthesize_legacy_benchmark_config(cwd, explicit_path)?.publication,
                 corpora: BTreeMap::new(),
                 stage_inputs: BenchmarkStageInputConfig::default(),
-            });
+            }));
         }
         if let Ok(publication) = load_toml::<BenchmarkPublicationConfig>(&path) {
-            return Ok(BenchmarkConfig {
+            return Ok(normalize_benchmark_config(BenchmarkConfig {
                 workspace: synthesize_legacy_benchmark_config(cwd, explicit_path)?.workspace,
                 publication,
                 corpora: BTreeMap::new(),
                 stage_inputs: BenchmarkStageInputConfig::default(),
-            });
+            }));
         }
     }
     synthesize_legacy_benchmark_config(cwd, explicit_path)
@@ -479,7 +578,7 @@ mod tests {
     use super::{
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
         benchmark_workspace_config_path, benchmark_workspace_value, corpus_01_publication_contract,
-        load_benchmark_config, load_benchmark_workspace_config,
+        load_benchmark_config, load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config,
     };
     use std::path::Path;
@@ -542,6 +641,10 @@ stage_id = "fastq.validate_reads"
 scenario_id = "validation_fairness"
 sample_scope = "full"
 tools = ["fastqvalidator"]
+
+[[publication.corpus_01.exclusions]]
+stage_id = "fastq.index_reference"
+reason = "reference indexing does not benchmark corpus execution"
 
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
@@ -626,6 +729,15 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             1
         );
         assert_eq!(
+            load_benchmark_publication_config(temp.path(), None)
+                .expect("publication config")
+                .corpus_01
+                .expect("corpus publication")
+                .exclusions
+                .len(),
+            1
+        );
+        assert_eq!(
             benchmark_config_path(temp.path(), None),
             temp.path().join("configs/bench/benchmark.toml")
         );
@@ -661,6 +773,30 @@ results_root = "${BIJUX_TEST_RESULTS_ROOT}"
         assert_eq!(
             config.workspace.local.and_then(|row| row.results_root),
             Some("/tmp/env-results".to_string())
+        );
+    }
+
+    #[test]
+    fn benchmark_config_treats_unset_placeholder_values_as_missing() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("create config dir");
+        std::fs::write(
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.remote]
+corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
+"#,
+        )
+        .expect("write config");
+
+        let config = load_benchmark_config(temp.path(), None).expect("load benchmark config");
+        assert_eq!(config.workspace.remote.and_then(|row| row.corpus_root), None);
+        let error = benchmark_workspace_value(temp.path(), None, "remote.corpus_root")
+            .expect_err("missing value");
+        assert!(
+            error
+                .to_string()
+                .contains("missing benchmark workspace value for `remote.corpus_root`")
         );
     }
 
