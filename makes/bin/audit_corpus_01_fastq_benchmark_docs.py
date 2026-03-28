@@ -110,10 +110,17 @@ def append_issue(
     )
 
 
-def load_supplemental_findings(path: Path) -> dict[str, list[StageAuditIssue]]:
+def load_supplemental_findings(path: Path) -> tuple[dict[str, list[StageAuditIssue]], list[str], str | None]:
     if not path.is_file():
-        return {}
+        return {}, [f"missing supplemental findings file: {path}"], None
     payload = json.loads(path.read_text(encoding="utf-8"))
+    warnings: list[str] = []
+    generated_at_utc = payload.get("generated_at_utc")
+    if not isinstance(generated_at_utc, str) or not generated_at_utc.strip():
+        warnings.append(
+            f"supplemental findings freshness is untracked in {path}; add generated_at_utc"
+        )
+        generated_at_utc = None
     findings_by_stage: dict[str, list[StageAuditIssue]] = defaultdict(list)
     for finding in payload.get("findings", []):
         stage_id = str(finding.get("stage_id", "")).strip()
@@ -131,7 +138,7 @@ def load_supplemental_findings(path: Path) -> dict[str, list[StageAuditIssue]]:
                 detail=detail,
             )
         )
-    return findings_by_stage
+    return findings_by_stage, warnings, generated_at_utc
 
 
 def audit_stage(
@@ -521,11 +528,14 @@ def audit_docs(
     stage_contracts: list[CorpusBenchmarkContract] | None = None,
     exclusions: list[CorpusBenchmarkExclusion] | None = None,
     supplemental_findings: dict[str, list[StageAuditIssue]] | None = None,
+    audit_warnings: list[str] | None = None,
+    supplemental_findings_generated_at_utc: str | None = None,
 ) -> dict:
     repo_root = repo_root or docs_root.parent.parent
     stage_contracts = stage_contracts or CORPUS_01_PUBLICATION_CONTRACTS
     exclusions = exclusions or CORPUS_01_PUBLICATION_EXCLUSIONS
     supplemental_findings = supplemental_findings or {}
+    audit_warnings = audit_warnings or []
     stage_reports = [
         audit_stage(
             repo_root,
@@ -548,12 +558,17 @@ def audit_docs(
         ),
         "excluded_stage_count": len(exclusions),
         "issue_count": sum(report["issue_count"] for report in stage_reports),
+        "audit_warning_count": len(audit_warnings),
+        "audit_warnings": audit_warnings,
+        "supplemental_findings_generated_at_utc": supplemental_findings_generated_at_utc,
         "excluded_stages": [asdict(exclusion) for exclusion in exclusions],
         "stages": stage_reports,
     }
 
 
 def render_markdown(report: dict) -> str:
+    audit_warning_count = int(report.get("audit_warning_count", 0) or 0)
+    audit_warnings = list(report.get("audit_warnings", []) or [])
     lines = [
         "# `corpus-01` FASTQ benchmark publication status",
         "",
@@ -563,6 +578,7 @@ def render_markdown(report: dict) -> str:
         f"- Incomplete stage dossiers: `{report['incomplete_stage_count']}`",
         f"- Excluded stages: `{report['excluded_stage_count']}`",
         f"- Publication issues: `{report['issue_count']}`",
+        f"- Audit warnings: `{audit_warning_count}`",
         "",
         "## Stage status",
         "",
@@ -575,6 +591,10 @@ def render_markdown(report: dict) -> str:
         if stage["issues"]:
             for issue in stage["issues"]:
                 lines.append(f"  - `{issue['issue_id']}`: {issue['detail']}")
+    if audit_warnings:
+        lines.extend(["", "## Audit Warnings", ""])
+        for warning in audit_warnings:
+            lines.append(f"- {warning}")
     lines.extend(
         [
             "",
@@ -601,10 +621,15 @@ def main() -> int:
     repo_root = Path(args.repo_root).resolve()
     docs_root = Path(args.docs_root).resolve()
     findings_path = Path(args.findings_in).resolve()
+    supplemental_findings, audit_warnings, findings_generated_at_utc = load_supplemental_findings(
+        findings_path
+    )
     report = audit_docs(
         docs_root,
         repo_root=repo_root,
-        supplemental_findings=load_supplemental_findings(findings_path),
+        supplemental_findings=supplemental_findings,
+        audit_warnings=audit_warnings,
+        supplemental_findings_generated_at_utc=findings_generated_at_utc,
     )
 
     json_out = Path(args.json_out).resolve()

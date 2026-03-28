@@ -4586,6 +4586,33 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 )
             )
 
+    def test_load_supplemental_findings_warns_when_freshness_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            findings_path = Path(tmpdir) / "findings.json"
+            findings_path.write_text(
+                json.dumps(
+                    {
+                        "findings": [
+                            {
+                                "stage_id": "fastq.validate_reads",
+                                "issue_id": "fixture-gap",
+                                "detail": "fixture gap",
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            findings, warnings, generated_at_utc = benchmark_docs_audit.load_supplemental_findings(
+                findings_path
+            )
+
+        self.assertIn("fastq.validate_reads", findings)
+        self.assertEqual(generated_at_utc, None)
+        self.assertTrue(any("generated_at_utc" in warning for warning in warnings))
+
     def test_merge_stage_is_tracked_in_publication_audit(self) -> None:
         stage_ids = [
             contract.stage_id for contract in benchmark_docs_audit.CORPUS_01_PUBLICATION_CONTRACTS
