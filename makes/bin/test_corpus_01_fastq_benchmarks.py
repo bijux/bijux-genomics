@@ -1154,6 +1154,38 @@ class BenchmarkMakefileTests(unittest.TestCase):
             self.assertEqual(metadata["sample_0001"]["accession"], "ACC_ANCIENT_SE")
             self.assertEqual(metadata["sample_0004"]["layout"], "pe")
 
+    def test_load_published_sample_metadata_uses_first_full_scope_published_stage(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.profile_reads" / "corpus-01"
+            docs_root.mkdir(parents=True)
+            (docs_root / "sample_results.csv").write_text(
+                "\n".join(
+                    [
+                        "sample_id,accession,era,layout,study_accession,size_band,tool",
+                        "sample_0001,ACC_ANCIENT_SE,ancient,se,PRJ1,under_100mb,seqkit_stats",
+                        "sample_0002,ACC_ANCIENT_PE,ancient,pe,PRJ2,under_100mb,seqkit_stats",
+                        "sample_0003,ACC_MODERN_SE,modern,se,PRJ3,under_500mb,seqkit_stats",
+                        "sample_0004,ACC_MODERN_PE,modern,pe,PRJ4,under_500mb,seqkit_stats",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            spec = {
+                "target_ancient_se": 1,
+                "target_ancient_pe": 1,
+                "target_modern_se": 1,
+                "target_modern_pe": 1,
+            }
+
+            metadata = support.load_published_sample_metadata(repo_root, spec)
+
+            self.assertEqual(metadata["sample_0001"]["accession"], "ACC_ANCIENT_SE")
+            self.assertEqual(metadata["sample_0004"]["layout"], "pe")
+
     def test_resolve_corpus_metadata_accepts_paired_subset_from_full_docs(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
