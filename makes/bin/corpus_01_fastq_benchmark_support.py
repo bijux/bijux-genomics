@@ -44,6 +44,16 @@ def _workspace_path(section: str, key: str) -> Path:
     )
 
 
+def _workspace_string(section: str, key: str) -> str:
+    value = load_benchmark_workspace_config().get(section, {}).get(key)
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    raise SystemExit(
+        "missing benchmark workspace string contract: "
+        f"[{section}].{key} in configs/bench/workspace.toml"
+    )
+
+
 def _workspace_template(section: str, key: str) -> str:
     value = load_benchmark_workspace_config().get("artifacts", {}).get(section, {}).get(key)
     if isinstance(value, str) and value.strip():
@@ -74,6 +84,14 @@ def benchmark_remote_repo_root() -> Path:
     return _workspace_path("remote", "repo_root")
 
 
+def benchmark_remote_frontend_root() -> Path:
+    return benchmark_remote_repo_root().parent
+
+
+def benchmark_remote_ssh_host() -> str:
+    return _workspace_string("remote", "ssh_host")
+
+
 def benchmark_remote_corpus_root() -> Path:
     return _workspace_path("remote", "corpus_root")
 
@@ -92,6 +110,10 @@ def benchmark_remote_results_legacy_root() -> Path:
 
 def benchmark_remote_extra_data_root() -> Path:
     return _workspace_path("remote", "extra_data_root")
+
+
+def benchmark_remote_containers_root() -> Path:
+    return _workspace_path("remote", "containers_root")
 
 
 def load_json(path: Path) -> dict:
