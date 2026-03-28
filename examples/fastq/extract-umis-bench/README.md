@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic FASTQ UMI extraction benchmark flow and validate expected contracts.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_extract_umis_bench`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_extract_umis_bench`
 
 ## Step 1 Containers
 - Ensure benchmark images are resolved before execution.

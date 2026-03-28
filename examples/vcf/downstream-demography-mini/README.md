@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic mini downstream VCF demography flow using `examples/data/corpus-01-mini`.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run vcf_downstream_demography_mini`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run vcf_downstream_demography_mini`
 
 ## Step 1 Containers
 - Ensure image plan is resolved by the runner (`ensure-images --plan`).

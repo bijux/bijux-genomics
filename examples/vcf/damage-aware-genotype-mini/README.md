@@ -3,7 +3,7 @@
 ## Purpose
 Demonstrate deterministic coverage-regime selection and visible before/after damage-filter effects for aDNA-style genotype workflows.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run vcf_damage_aware_genotype_mini`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run vcf_damage_aware_genotype_mini`
 
 ## Step 1 Containers
 - Resolve container plan with `ensure-images --plan`.

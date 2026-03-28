@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic FASTQ filtering benchmark flow and validate expected contracts.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_filter_reads_bench`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_filter_reads_bench`
 
 ## Step 1 Containers
 - Ensure benchmark images are resolved before execution.

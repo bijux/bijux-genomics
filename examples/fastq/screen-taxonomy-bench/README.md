@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic FASTQ taxonomic screening benchmark and preserve benchmark evidence for local and HPC comparison.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_screen_taxonomy_bench`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_screen_taxonomy_bench`
 
 ## Stage
 - Stage ID: `fastq.screen_taxonomy`

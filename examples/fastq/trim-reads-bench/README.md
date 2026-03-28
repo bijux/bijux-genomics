@@ -3,7 +3,7 @@
 ## Purpose
 Run a deterministic FASTQ trimming benchmark flow for adapter, polyX, and contaminant-aware read trimming.
 
-Canonical invocation: `cargo run -q -p bijux-dev-dna -- examples run run fastq_trim_reads_bench`
+Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_trim_reads_bench`
 
 ## Step 1 Containers
 - Ensure image resolution is complete before execution.
