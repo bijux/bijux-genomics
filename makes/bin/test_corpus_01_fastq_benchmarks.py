@@ -4696,6 +4696,80 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
         self.assertEqual(stage["status"], "clear")
         self.assertEqual(stage["recommended_action"], "none")
 
+    def test_remediation_queue_collapses_repeated_issue_ids_into_stage_groups(self) -> None:
+        queue = remediation_queue.build_queue(
+            publication_status={
+                "stages": [
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "status": "incomplete",
+                        "issues": [
+                            {
+                                "issue_id": "missing-localized-report-json",
+                                "detail": "sample_0001 missing report.json",
+                            },
+                            {
+                                "issue_id": "missing-localized-report-json",
+                                "detail": "sample_0002 missing report.json",
+                            },
+                        ],
+                    }
+                ]
+            },
+            results_status={"stages": []},
+            findings_payload={"findings": []},
+            dossier_index={"stages": []},
+        )
+
+        stage = next(entry for entry in queue["stages"] if entry["stage_id"] == "fastq.validate_reads")
+        self.assertEqual(stage["issue_count"], 2)
+        self.assertEqual(stage["issue_group_count"], 1)
+        self.assertEqual(stage["issue_groups"][0]["issue_id"], "missing-localized-report-json")
+        self.assertEqual(stage["issue_groups"][0]["count"], 2)
+        self.assertEqual(
+            stage["issue_groups"][0]["example_details"],
+            [
+                "sample_0001 missing report.json",
+                "sample_0002 missing report.json",
+            ],
+        )
+
+    def test_remediation_queue_markdown_uses_issue_groups(self) -> None:
+        rendered = remediation_queue.render_markdown(
+            {
+                "stage_count": 1,
+                "open_stage_count": 1,
+                "clear_stage_count": 0,
+                "stages": [
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "status": "open",
+                        "recommended_action": "sync-or-normalize-results",
+                        "publication_status": "incomplete",
+                        "results_status": "incomplete",
+                        "owner": "benchmark-governance",
+                        "published_generated_at_utc": "2026-03-28T00:00:00Z",
+                        "run_root_source": "local-cache-mirror",
+                        "issue_groups": [
+                            {
+                                "issue_id": "missing-localized-report-json",
+                                "count": 2,
+                                "sources": ["results"],
+                                "example_details": [
+                                    "sample_0001 missing report.json",
+                                    "sample_0002 missing report.json",
+                                ],
+                                "additional_detail_count": 0,
+                            }
+                        ],
+                    }
+                ],
+            }
+        )
+
+        self.assertIn("issue group `missing-localized-report-json` x2", rendered)
+        self.assertIn("sample_0001 missing report.json", rendered)
+
     def test_benchmark_repo_checks_flag_hardcoded_local_operator_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)

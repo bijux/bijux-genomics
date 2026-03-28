@@ -56,7 +56,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 75. Container documentation repeatedly names Lunarc as the canonical Apptainer authority.
 76. The repository has no neutral `containers/apptainer/shared/` or equivalent location for non-site-specific definitions.
 77. Some examples still publish `/scratch/$USER/...` as the output convention.
-84. The benchmark remediation queue does not yet collapse repeated sample-level drift rows into stage-level fix summaries for easier triage.
 88. `fastq.correct_errors` publication currently depends on the presence of a run manifest in one mirror layout and a bench tree in another.
 89. `fastq.trim_reads` publication currently depends on stale local mirrors unless the user manually re-syncs.
 91. Benchmark support uses Python-only contracts, so Rust tooling cannot validate the same workspace path assumptions directly.

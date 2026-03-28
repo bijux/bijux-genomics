@@ -80,6 +80,42 @@ def classify_recommended_action(issue_ids: list[str]) -> str:
     return "repair-benchmark-contract"
 
 
+def summarize_issue_groups(issues: list[dict]) -> list[dict]:
+    grouped: dict[str, dict] = {}
+    for issue in issues:
+        issue_id = str(issue["issue_id"])
+        group = grouped.setdefault(
+            issue_id,
+            {
+                "issue_id": issue_id,
+                "count": 0,
+                "sources": set(),
+                "details": [],
+                "severity": issue.get("severity", "error"),
+            },
+        )
+        group["count"] += 1
+        group["sources"].add(str(issue.get("source", "unknown")))
+        detail = str(issue.get("detail", "")).strip()
+        if detail and detail not in group["details"]:
+            group["details"].append(detail)
+
+    summaries: list[dict] = []
+    for issue_id in sorted(grouped):
+        group = grouped[issue_id]
+        summaries.append(
+            {
+                "issue_id": issue_id,
+                "count": group["count"],
+                "sources": sorted(group["sources"]),
+                "severity": group["severity"],
+                "example_details": group["details"][:3],
+                "additional_detail_count": max(len(group["details"]) - 3, 0),
+            }
+        )
+    return summaries
+
+
 def build_queue(
     publication_status: dict,
     results_status: dict,
@@ -128,18 +164,21 @@ def build_queue(
         )
         issues.extend(findings_by_stage.get(stage_id, []))
         issue_ids = [issue["issue_id"] for issue in issues]
+        issue_groups = summarize_issue_groups(issues)
         stages.append(
             {
                 "stage_id": stage_id,
                 "owner": "benchmark-governance",
                 "status": "open" if issues else "clear",
                 "issue_count": len(issues),
+                "issue_group_count": len(issue_groups),
                 "recommended_action": classify_recommended_action(issue_ids) if issues else "none",
                 "publication_status": publication_stage.get("status", "missing"),
                 "results_status": results_stage.get("status", "missing"),
                 "sample_scope": contract.sample_scope,
                 "published_generated_at_utc": dossier_stage.get("generated_at_utc"),
                 "run_root_source": dossier_stage.get("run_root_source"),
+                "issue_groups": issue_groups,
                 "issues": issues,
             }
         )
@@ -175,10 +214,16 @@ def render_markdown(queue: dict) -> str:
             lines.append(
                 f"  - dossier `{stage['published_generated_at_utc']}` from `{stage['run_root_source']}`"
             )
-        for issue in stage["issues"]:
+        for group in stage.get("issue_groups", []):
             lines.append(
-                f"  - [{issue['source']}] `{issue['issue_id']}`: {issue['detail']}"
+                f"  - issue group `{group['issue_id']}` x{group['count']} from {', '.join(group['sources'])}"
             )
+            for detail in group["example_details"]:
+                lines.append(f"    - {detail}")
+            if group["additional_detail_count"]:
+                lines.append(
+                    f"    - (+{group['additional_detail_count']} more detail rows)"
+                )
     return "\n".join(lines) + "\n"
 
 
