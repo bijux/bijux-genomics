@@ -17,12 +17,11 @@ The benchmark contract is:
 
 ## Execution
 
-Run the corpus benchmark from the Lunarc frontend against the materialized corpus root:
+Run the corpus benchmark from the Lunarc frontend against the workspace-configured corpus root:
 
 ```bash
 python3 makes/bin/run_fastq_trim_terminal_damage_corpus_01.py \
   --repo-root . \
-  --corpus-root /home/bijan/bijux/corpus_01 \
   --platform lunarc-apptainer \
   --damage-mode ancient \
   --execution-policy explicit_terminal_trim \
@@ -34,8 +33,7 @@ Render the published report set after the run completes:
 
 ```bash
 python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_report.py \
-  --repo-root . \
-  --corpus-root /home/bijan/bijux/corpus_01
+  --repo-root .
 
 python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_briefing.py \
   --docs-root docs/benchmark/fastq.trim_terminal_damage/corpus-01
@@ -44,11 +42,11 @@ python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_briefing.py \
 The make aliases mirror the same flow:
 
 ```bash
-make _benchmark-trim-terminal-damage-corpus-01 PLATFORM=lunarc-apptainer CORPUS_ROOT=/home/bijan/bijux/corpus_01
-make _benchmark-trim-terminal-damage-corpus-01-report CORPUS_ROOT=/home/bijan/bijux/corpus_01
+make _benchmark-trim-terminal-damage-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-trim-terminal-damage-corpus-01-report
 ```
 
-By default, the runner and report renderer resolve the Lunarc run root to `/home/bijan/bijux/results/corpus_01/fastq.trim_terminal_damage/lunarc`.
+The runner and report renderer resolve the governed Lunarc corpus root and run root from [workspace.toml](/Users/bijan/bijux/bijux-dna/configs/bench/workspace.toml). Override `--corpus-root` only when you intentionally audit a non-governed mirror.
 
 ## Artifact Contract
 
