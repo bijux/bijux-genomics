@@ -6,6 +6,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
+use sha2::Digest as _;
 
 use crate::commands::benchmark_workspace::{
     benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_workspace_config,
@@ -94,6 +95,8 @@ struct CorpusRunManifest {
     samples_total: usize,
     samples_failed: usize,
     runs: Vec<SampleRunRecord>,
+    #[serde(flatten)]
+    extra_fields: BTreeMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -188,6 +191,8 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
     let mut runs = Vec::new();
     let mut pending = Vec::new();
     let runtime_env = benchmark_runtime_env(&out_root);
+    let extra_manifest_fields =
+        collect_stage_manifest_fields(&args.stage, &args.stage_args, &args.manifest_args)?;
 
     for sample in selected_samples {
         let sample_root = benchmark_sample_root(&out_root, stage_spec.report_dir, &sample.sample_id);
@@ -302,6 +307,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
         samples_total: runs.len(),
         samples_failed: failures,
         runs,
+        extra_fields: extra_manifest_fields,
     };
     let manifest_path = out_root.join("run_manifest.json");
     fs::write(
@@ -817,6 +823,338 @@ fn validate_benchmark_layout(corpus_root: &Path, out_root: &Path) -> Result<()> 
         ));
     }
     Ok(())
+}
+
+fn collect_stage_manifest_fields(
+    stage_id: &str,
+    stage_args: &[String],
+    manifest_args: &[String],
+) -> Result<BTreeMap<String, serde_json::Value>> {
+    let stage_values = parse_cli_arg_pairs("stage-arg", stage_args)?;
+    let manifest_values = parse_cli_arg_pairs("manifest-arg", manifest_args)?;
+    let mut fields = BTreeMap::new();
+
+    match stage_id {
+        "fastq.normalize_primers" => {
+            insert_string_field_from(&mut fields, &stage_values, "primer_set_id");
+            insert_string_field_from(&mut fields, &stage_values, "orientation_policy");
+            insert_f64_field_from(&mut fields, &stage_values, "max_mismatch_rate")?;
+            insert_u64_field_from(&mut fields, &stage_values, "min_overlap_bp")?;
+            insert_bool_field_from(&mut fields, &stage_values, "strict_5p_anchor")?;
+            insert_bool_field_from(&mut fields, &stage_values, "allow_iupac_codes")?;
+        }
+        "fastq.remove_duplicates" => {
+            insert_string_field_from(&mut fields, &stage_values, "dedup_mode");
+            insert_bool_field_from(&mut fields, &stage_values, "keep_order")?;
+        }
+        "fastq.deplete_host" => {
+            if let Some(reference_index) = stage_values.get("reference_index") {
+                fields.extend(artifact_bundle_manifest_fields(
+                    "reference_index",
+                    "reference_index",
+                    Path::new(reference_index),
+                )?);
+            }
+            insert_string_field_from(&mut fields, &manifest_values, "reference_catalog_id");
+            insert_string_field_from(&mut fields, &manifest_values, "reference_index_backend");
+            insert_f64_field_from(&mut fields, &stage_values, "host_identity_threshold")?;
+            insert_bool_field_from(&mut fields, &stage_values, "retain_unmapped_only")?;
+        }
+        "fastq.deplete_reference_contaminants" => {
+            if let Some(reference_index) = stage_values.get("reference_index") {
+                fields.extend(artifact_bundle_manifest_fields(
+                    "reference_index",
+                    "reference_index",
+                    Path::new(reference_index),
+                )?);
+            }
+            insert_string_field_from(&mut fields, &manifest_values, "reference_catalog_id");
+            insert_string_field_from(&mut fields, &manifest_values, "reference_index_backend");
+            insert_string_field_from(&mut fields, &stage_values, "decoy_mode");
+        }
+        "fastq.screen_taxonomy" => {
+            if let Some(database_root) = stage_values.get("database_root") {
+                fields.extend(artifact_bundle_manifest_fields(
+                    "database_root",
+                    "database",
+                    Path::new(database_root),
+                )?);
+            }
+            insert_string_field_from(&mut fields, &manifest_values, "database_catalog_id");
+            insert_string_field_from(&mut fields, &manifest_values, "database_artifact_id");
+            insert_string_field_from(&mut fields, &manifest_values, "database_namespace");
+            insert_string_field_from(&mut fields, &manifest_values, "database_scope");
+        }
+        _ => {}
+    }
+
+    Ok(fields)
+}
+
+fn parse_cli_arg_pairs(label: &str, args: &[String]) -> Result<BTreeMap<String, String>> {
+    if args.len() % 2 != 0 {
+        return Err(anyhow!(
+            "{label} expects flag/value pairs, found odd-length input: {:?}",
+            args
+        ));
+    }
+    let mut values = BTreeMap::new();
+    for chunk in args.chunks(2) {
+        let flag = chunk[0]
+            .strip_prefix("--")
+            .ok_or_else(|| anyhow!("{label} entry must start with `--`: {}", chunk[0]))?;
+        values.insert(flag.replace('-', "_"), chunk[1].clone());
+    }
+    Ok(values)
+}
+
+fn insert_string_field_from(
+    fields: &mut BTreeMap<String, serde_json::Value>,
+    values: &BTreeMap<String, String>,
+    key: &str,
+) {
+    if let Some(value) = values.get(key) {
+        fields.insert(key.to_string(), serde_json::Value::String(value.clone()));
+    }
+}
+
+fn insert_bool_field_from(
+    fields: &mut BTreeMap<String, serde_json::Value>,
+    values: &BTreeMap<String, String>,
+    key: &str,
+) -> Result<()> {
+    let Some(value) = values.get(key) else {
+        return Ok(());
+    };
+    fields.insert(
+        key.to_string(),
+        serde_json::Value::Bool(parse_bool_literal(value)?),
+    );
+    Ok(())
+}
+
+fn insert_f64_field_from(
+    fields: &mut BTreeMap<String, serde_json::Value>,
+    values: &BTreeMap<String, String>,
+    key: &str,
+) -> Result<()> {
+    let Some(value) = values.get(key) else {
+        return Ok(());
+    };
+    let parsed = value
+        .parse::<f64>()
+        .with_context(|| format!("parse {key} from {value:?}"))?;
+    fields.insert(key.to_string(), serde_json::json!(parsed));
+    Ok(())
+}
+
+fn insert_u64_field_from(
+    fields: &mut BTreeMap<String, serde_json::Value>,
+    values: &BTreeMap<String, String>,
+    key: &str,
+) -> Result<()> {
+    let Some(value) = values.get(key) else {
+        return Ok(());
+    };
+    let parsed = value
+        .parse::<u64>()
+        .with_context(|| format!("parse {key} from {value:?}"))?;
+    fields.insert(
+        key.to_string(),
+        serde_json::Value::Number(serde_json::Number::from(parsed)),
+    );
+    Ok(())
+}
+
+fn parse_bool_literal(value: &str) -> Result<bool> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "true" | "1" | "yes" | "y" => Ok(true),
+        "false" | "0" | "no" | "n" => Ok(false),
+        _ => Err(anyhow!("invalid boolean literal: {value}")),
+    }
+}
+
+fn artifact_bundle_manifest_fields(
+    path_key: &str,
+    digest_prefix: &str,
+    path: &Path,
+) -> Result<BTreeMap<String, serde_json::Value>> {
+    let mut fields = BTreeMap::new();
+    fields.insert(
+        path_key.to_string(),
+        serde_json::Value::String(path.display().to_string()),
+    );
+    fields.insert(
+        format!("{digest_prefix}_digest"),
+        serde_json::Value::String(sha256_artifact_bundle(path)?),
+    );
+    fields.insert(
+        format!("{digest_prefix}_size_bytes"),
+        serde_json::Value::Number(serde_json::Number::from(artifact_bundle_size_bytes(path)?)),
+    );
+    if let Some(lineage_json) = resolve_artifact_lineage_json(path) {
+        fields.insert(
+            format!("{digest_prefix}_lineage_json"),
+            serde_json::Value::String(lineage_json.display().to_string()),
+        );
+        fields.insert(
+            format!("{digest_prefix}_lineage_digest"),
+            serde_json::Value::String(sha256_file_hex(&lineage_json)?),
+        );
+    }
+    Ok(fields)
+}
+
+fn artifact_bundle_members(path: &Path) -> Result<Vec<PathBuf>> {
+    if path.exists() {
+        return Ok(vec![path.to_path_buf()]);
+    }
+    let Some(parent) = path.parent() else {
+        return Ok(Vec::new());
+    };
+    if !parent.is_dir() {
+        return Ok(Vec::new());
+    }
+    let Some(prefix) = path.file_name().and_then(|row| row.to_str()) else {
+        return Ok(Vec::new());
+    };
+    let mut members = fs::read_dir(parent)
+        .with_context(|| format!("read {}", parent.display()))?
+        .filter_map(|entry| {
+            let path = entry.ok()?.path();
+            let name = path.file_name()?.to_str()?;
+            (name.starts_with(prefix) && (path.is_file() || path.is_dir())).then_some(path)
+        })
+        .collect::<Vec<_>>();
+    members.sort();
+    Ok(members)
+}
+
+fn artifact_bundle_size_bytes(path: &Path) -> Result<u64> {
+    let mut total = 0_u64;
+    for member in artifact_bundle_members(path)? {
+        if member.is_file() {
+            total += member
+                .metadata()
+                .with_context(|| format!("stat {}", member.display()))?
+                .len();
+            continue;
+        }
+        let mut nested = member
+            .read_dir()
+            .with_context(|| format!("read {}", member.display()))?
+            .filter_map(|entry| entry.ok().map(|row| row.path()))
+            .collect::<Vec<_>>();
+        while let Some(candidate) = nested.pop() {
+            if candidate.is_dir() {
+                let children = candidate
+                    .read_dir()
+                    .with_context(|| format!("read {}", candidate.display()))?
+                    .filter_map(|entry| entry.ok().map(|row| row.path()))
+                    .collect::<Vec<_>>();
+                nested.extend(children);
+                continue;
+            }
+            total += candidate
+                .metadata()
+                .with_context(|| format!("stat {}", candidate.display()))?
+                .len();
+        }
+    }
+    Ok(total)
+}
+
+fn sha256_artifact_bundle(path: &Path) -> Result<String> {
+    let members = artifact_bundle_members(path)?;
+    if members.is_empty() {
+        return Err(anyhow!("missing artifact bundle: {}", path.display()));
+    }
+    let mut digest = sha2::Sha256::new();
+    for member in members {
+        if member.is_file() {
+            let name = member
+                .file_name()
+                .and_then(|row| row.to_str())
+                .ok_or_else(|| anyhow!("invalid artifact bundle member {}", member.display()))?;
+            digest.update(name.as_bytes());
+            digest.update(b"\0file\0");
+            digest.update(sha256_file_hex(&member)?.as_bytes());
+            continue;
+        }
+        let parent = member
+            .parent()
+            .ok_or_else(|| anyhow!("artifact bundle member missing parent {}", member.display()))?;
+        let mut nested = collect_sorted_paths(&member)?;
+        for path in nested.drain(..) {
+            if path == member {
+                continue;
+            }
+            let relative = path
+                .strip_prefix(parent)
+                .with_context(|| format!("strip prefix {} from {}", parent.display(), path.display()))?;
+            digest.update(path_display(relative).as_bytes());
+            if path.is_dir() {
+                digest.update(b"\0dir\0");
+                continue;
+            }
+            digest.update(b"\0file\0");
+            digest.update(sha256_file_hex(&path)?.as_bytes());
+        }
+    }
+    Ok(format!("{:x}", digest.finalize()))
+}
+
+fn collect_sorted_paths(root: &Path) -> Result<Vec<PathBuf>> {
+    let mut all = vec![root.to_path_buf()];
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(path) = stack.pop() {
+        if !path.is_dir() {
+            continue;
+        }
+        let mut children = fs::read_dir(&path)
+            .with_context(|| format!("read {}", path.display()))?
+            .filter_map(|entry| entry.ok().map(|row| row.path()))
+            .collect::<Vec<_>>();
+        children.sort();
+        for child in &children {
+            all.push(child.to_path_buf());
+        }
+        children.reverse();
+        stack.extend(children);
+    }
+    all.sort();
+    Ok(all)
+}
+
+fn resolve_artifact_lineage_json(path: &Path) -> Option<PathBuf> {
+    let resolved = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+    let candidate = if resolved.is_dir() {
+        resolved.join("lineage.json")
+    } else {
+        resolved.parent()?.join("lineage.json")
+    };
+    candidate.is_file().then_some(candidate)
+}
+
+fn sha256_file_hex(path: &Path) -> Result<String> {
+    let mut handle = fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
+    let mut digest = sha2::Sha256::new();
+    let mut buffer = [0_u8; 1024 * 1024];
+    loop {
+        use std::io::Read as _;
+        let read = handle
+            .read(&mut buffer)
+            .with_context(|| format!("read {}", path.display()))?;
+        if read == 0 {
+            break;
+        }
+        digest.update(&buffer[..read]);
+    }
+    Ok(format!("{:x}", digest.finalize()))
+}
+
+fn path_display(path: &Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
 }
 
 fn benchmark_sample_root(out_root: &Path, report_dir: &str, sample_id: &str) -> PathBuf {
