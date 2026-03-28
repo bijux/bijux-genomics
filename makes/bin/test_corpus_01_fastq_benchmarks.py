@@ -258,6 +258,35 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             / "corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json",
         )
 
+    def test_preferred_report_run_root_falls_back_to_legacy_local_archive(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            corpus_root = Path("/home/bijan/lu2024-12-24/.cache/corpus_01")
+            legacy_root = tmp_root / "legacy-results"
+            cache_mirror_root = tmp_root / "cache-mirror"
+            remote_root = tmp_root / "remote-results"
+            stage_id = "fastq.report_qc"
+            (legacy_root / "corpus_01" / stage_id / "lunarc").mkdir(parents=True)
+            (remote_root / "corpus_01" / stage_id / "lunarc").mkdir(parents=True)
+
+            with mock.patch.object(
+                support,
+                "benchmark_local_results_root",
+                return_value=legacy_root,
+            ), mock.patch.object(
+                support,
+                "benchmark_local_cache_mirror_root",
+                return_value=cache_mirror_root,
+            ), mock.patch.object(
+                support,
+                "default_results_stage_root",
+                return_value=remote_root / "corpus_01" / stage_id / "lunarc",
+            ):
+                self.assertEqual(
+                    support.preferred_report_run_root(corpus_root, stage_id),
+                    legacy_root / "corpus_01" / stage_id / "lunarc",
+                )
+
     def test_deplete_reference_contaminants_defaults_match_governed_suite(self) -> None:
         defaults = support.deplete_reference_contaminants_benchmark_defaults()
         self.assertEqual(defaults["threads"], 8)
