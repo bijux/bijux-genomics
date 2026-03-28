@@ -5828,20 +5828,16 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         .unwrap_or("lunarc");
     let lunarc_host =
         env_or_default_alias("BENCHMARK_SYNC_HOST", "LUNARC_HOST", default_lunarc_host);
-    let lunarc_root = env_or_default_alias(
-        "BENCHMARK_SYNC_FRONTEND_ROOT",
-        "LUNARC_ROOT",
-        "${HOME}/bijux",
-    );
     let default_lunarc_repo_dir = benchmark_workspace
         .remote_repo_root
         .clone()
-        .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna"));
+        .unwrap_or_else(|| "${HOME}/bijux/bijux-dna".to_string());
     let lunarc_repo_dir = env_or_default_alias(
         "BENCHMARK_SYNC_REPO_ROOT",
         "LUNARC_REPO_DIR",
         &default_lunarc_repo_dir,
     );
+    let lunarc_workspace_root = parent_path_or_fallback(&lunarc_repo_dir, "${HOME}/bijux");
     let default_lunarc_pull_base = benchmark_workspace
         .sync_default_pull_base
         .clone()
@@ -5861,7 +5857,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     let default_lunarc_results_dir = benchmark_workspace
         .remote_results_root
         .clone()
-        .unwrap_or_else(|| format!("{lunarc_root}/results"));
+        .unwrap_or_else(|| format!("{lunarc_workspace_root}/results"));
     let lunarc_results_dir = env_or_default_alias(
         "BENCHMARK_SYNC_RESULTS_ROOT",
         "LUNARC_RESULTS_DIR",
@@ -5879,7 +5875,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     let default_lunarc_containers_root = benchmark_workspace
         .remote_containers_root
         .clone()
-        .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna-container"));
+        .unwrap_or_else(|| format!("{lunarc_workspace_root}/bijux-dna-container"));
     let lunarc_containers_root = env_or_default_alias(
         "BENCHMARK_SYNC_CONTAINERS_ROOT",
         "LUNARC_CONTAINERS_ROOT",
@@ -5888,7 +5884,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     let default_lunarc_corpus_root = benchmark_workspace
         .remote_corpus_root
         .clone()
-        .unwrap_or_else(|| format!("{lunarc_root}/corpus_01"));
+        .unwrap_or_else(|| format!("{lunarc_workspace_root}/corpus_01"));
     let lunarc_corpus_root = env_or_default_alias(
         "BENCHMARK_SYNC_CORPUS_ROOT",
         "LUNARC_CORPUS_ROOT",
@@ -5977,16 +5973,16 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             &[
                 "-az".to_string(),
                 format!("--exclude-from={}", pull_full_exclude.display()),
-                format!("{lunarc_host}:{lunarc_root}/"),
+                format!("{lunarc_host}:{lunarc_workspace_root}/"),
                 format!("{}/", dest.display()),
             ],
         )?;
         if !outcome.is_success() {
             return Ok(outcome);
         }
-        pulled_paths.push(format!("{lunarc_root}/"));
+        pulled_paths.push(format!("{lunarc_workspace_root}/"));
         pulled_path_mappings.push(json!({
-            "remote_path": format!("{lunarc_root}/"),
+            "remote_path": format!("{lunarc_workspace_root}/"),
             "local_path": format!("{}/", dest.display()),
         }));
     } else if benchmark_workspace.remote_results_root.is_some() {
@@ -6041,7 +6037,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             &[
                 "-az".to_string(),
                 format!("--include-from={}", pull_results_include.display()),
-                format!("{lunarc_host}:{lunarc_root}/"),
+                format!("{lunarc_host}:{lunarc_workspace_root}/"),
                 format!("{}/", dest.display()),
             ],
         )?;
@@ -6118,7 +6114,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             "schema_version": "bijux.lunarc.pull.v1",
             "remote_host": lunarc_host,
             "remote_hostname": remote_hostname,
-            "remote_root": lunarc_root,
+            "remote_root": lunarc_workspace_root,
             "remote_repo": lunarc_repo_dir,
             "remote_cache_root": benchmark_workspace.remote_cache_root,
             "local_destination": dest.display().to_string(),
@@ -6193,15 +6189,10 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         .unwrap_or("lunarc");
     let lunarc_host =
         env_or_default_alias("BENCHMARK_SYNC_HOST", "LUNARC_HOST", default_lunarc_host);
-    let lunarc_root = env_or_default_alias(
-        "BENCHMARK_SYNC_FRONTEND_ROOT",
-        "LUNARC_ROOT",
-        "${HOME}/bijux",
-    );
     let default_lunarc_repo_dir = benchmark_workspace
         .remote_repo_root
         .clone()
-        .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna"));
+        .unwrap_or_else(|| "${HOME}/bijux/bijux-dna".to_string());
     let lunarc_repo_dir = env_or_default_alias(
         "BENCHMARK_SYNC_REPO_ROOT",
         "LUNARC_REPO_DIR",
@@ -9267,6 +9258,14 @@ fn env_or_empty_alias(primary: &str, legacy: &str) -> String {
     std::env::var(primary)
         .or_else(|_| std::env::var(legacy))
         .unwrap_or_default()
+}
+
+fn parent_path_or_fallback(path: &str, fallback: &str) -> String {
+    Path::new(path)
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .map(|parent| parent.display().to_string())
+        .unwrap_or_else(|| fallback.to_string())
 }
 
 fn sha256_hex(path: &Path) -> Result<String> {
