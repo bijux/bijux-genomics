@@ -7,12 +7,13 @@ use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 pub(crate) const BENCHMARK_CONFIG_ENV: &str = "BIJUX_BENCHMARK_CONFIG";
+pub(crate) const BENCHMARK_CONFIG_JSON_ENV: &str = "BIJUX_BENCHMARK_CONFIG_JSON";
 pub(crate) const LEGACY_BENCHMARK_WORKSPACE_CONFIG_ENV: &str = "BIJUX_FASTQ_CORPUS_CONFIG";
 pub(crate) const DEFAULT_BENCHMARK_CONFIG: &str = "configs/bench/benchmark.toml";
 pub(crate) const DEFAULT_BENCHMARK_WORKSPACE_CONFIG: &str = "configs/bench/workspace.toml";
 pub(crate) const DEFAULT_BENCHMARK_PUBLICATION_CONFIG: &str = "configs/bench/publication.toml";
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct BenchmarkConfig {
     #[serde(default)]
@@ -25,7 +26,7 @@ pub(crate) struct BenchmarkConfig {
     pub(crate) stage_inputs: BenchmarkStageInputConfig,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceConfig {
     pub(crate) local: Option<BenchmarkWorkspaceLocal>,
     pub(crate) remote: Option<BenchmarkWorkspaceRemote>,
@@ -35,7 +36,7 @@ pub(crate) struct BenchmarkWorkspaceConfig {
     pub(crate) sync: Option<BenchmarkWorkspaceSync>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceLocal {
     pub(crate) results_root: Option<String>,
     pub(crate) cache_mirror_root: Option<String>,
@@ -43,7 +44,7 @@ pub(crate) struct BenchmarkWorkspaceLocal {
     pub(crate) reference_root: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceRemote {
     pub(crate) ssh_host: Option<String>,
     pub(crate) repo_root: Option<String>,
@@ -56,30 +57,30 @@ pub(crate) struct BenchmarkWorkspaceRemote {
     pub(crate) reference_root: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceLayout {
     pub(crate) stage_runs: Option<BenchmarkWorkspaceStageRuns>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceStageRuns {
     pub(crate) remote_results_template: Option<String>,
     pub(crate) local_cache_results_template: Option<String>,
     pub(crate) local_archive_results_template: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceArtifact {
     pub(crate) reference_index_template: Option<String>,
     pub(crate) database_root_template: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceSync {
     pub(crate) defaults: Option<BenchmarkWorkspaceSyncDefaults>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceSyncDefaults {
     pub(crate) pull_base: Option<String>,
     pub(crate) pull_mode: Option<String>,
@@ -91,17 +92,17 @@ pub(crate) struct BenchmarkWorkspaceSyncDefaults {
     pub(crate) data_manifest_glob: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkPublicationConfig {
     pub(crate) corpus_01: Option<Corpus01PublicationConfig>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkCorpusConfig {
     pub(crate) spec_path: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkStageInputConfig {
     #[serde(default)]
     pub(crate) fastq_deplete_rrna: BenchmarkDepleteRrnaInputConfig,
@@ -113,21 +114,21 @@ pub(crate) struct BenchmarkStageInputConfig {
     pub(crate) fastq_screen_taxonomy: BenchmarkScreenTaxonomyInputConfig,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkDepleteRrnaInputConfig {
     pub(crate) rrna_db: Option<String>,
     pub(crate) rrna_bundle_id: Option<String>,
     pub(crate) min_identity: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkReferenceInputConfig {
     pub(crate) reference_index: Option<String>,
     pub(crate) reference_catalog_id: Option<String>,
     pub(crate) reference_index_backend: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkScreenTaxonomyInputConfig {
     pub(crate) database_root: Option<String>,
     pub(crate) database_catalog_id: Option<String>,
@@ -136,7 +137,7 @@ pub(crate) struct BenchmarkScreenTaxonomyInputConfig {
     pub(crate) database_scope: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct Corpus01PublicationConfig {
     #[serde(default)]
     pub(crate) contracts: Vec<CorpusBenchmarkContract>,
@@ -144,7 +145,7 @@ pub(crate) struct Corpus01PublicationConfig {
     pub(crate) exclusions: Vec<CorpusBenchmarkExclusion>,
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub(crate) struct CorpusBenchmarkContract {
     pub(crate) stage_id: String,
     pub(crate) scenario_id: String,
@@ -158,7 +159,7 @@ fn default_sample_scope() -> String {
     "full".to_string()
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub(crate) struct CorpusBenchmarkExclusion {
     pub(crate) stage_id: String,
     pub(crate) reason: String,
@@ -558,6 +559,26 @@ pub(crate) fn benchmark_workspace_value(
         other => return Err(anyhow!("unsupported benchmark workspace key `{other}`")),
     }
     .ok_or_else(|| anyhow!("missing benchmark workspace value for `{key}`"))
+}
+
+pub(crate) fn print_benchmark_config_json(
+    cwd: &Path,
+    args: &crate::commands::cli::BenchConfigJsonArgs,
+) -> Result<()> {
+    let config = load_benchmark_config(cwd, args.config.as_deref())?;
+    match args.section.as_str() {
+        "full" => println!("{}", serde_json::to_string_pretty(&config)?),
+        "workspace" => println!("{}", serde_json::to_string_pretty(&config.workspace)?),
+        "publication" => println!("{}", serde_json::to_string_pretty(&config.publication)?),
+        "corpora" => println!("{}", serde_json::to_string_pretty(&config.corpora)?),
+        "stage_inputs" => println!("{}", serde_json::to_string_pretty(&config.stage_inputs)?),
+        other => {
+            return Err(anyhow!(
+                "unsupported benchmark config section `{other}`; expected one of: full, workspace, publication, corpora, stage_inputs"
+            ))
+        }
+    }
+    Ok(())
 }
 
 pub(crate) fn run_normalize_workspace_layout(

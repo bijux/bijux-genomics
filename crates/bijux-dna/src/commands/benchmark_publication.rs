@@ -13,6 +13,7 @@ use crate::commands::benchmark_workspace::{
     benchmark_config_path, benchmark_corpus_spec_path, load_benchmark_config,
     load_benchmark_publication_config, write_workspace_layout_status, BenchmarkWorkspaceConfig,
     CorpusBenchmarkContract, CorpusBenchmarkExclusion, BENCHMARK_CONFIG_ENV,
+    BENCHMARK_CONFIG_JSON_ENV,
 };
 use crate::commands::cli::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
@@ -2657,10 +2658,15 @@ fn corpus_fastq_stage_script_path(repo_root: &Path, stage_id: &str, kind: &str) 
 }
 
 fn run_subprocess(repo_root: &Path, config_path: &Path, spec: &SubprocessSpec) -> Result<()> {
+    let benchmark_config = load_benchmark_config(repo_root, Some(config_path))?;
     let status = Command::new(spec.program)
         .args(&spec.args)
         .current_dir(repo_root)
         .env(BENCHMARK_CONFIG_ENV, config_path)
+        .env(
+            BENCHMARK_CONFIG_JSON_ENV,
+            serde_json::to_string(&benchmark_config)?,
+        )
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())

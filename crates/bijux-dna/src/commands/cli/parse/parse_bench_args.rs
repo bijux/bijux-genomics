@@ -8,6 +8,8 @@ pub enum BenchCommand {
     Status,
     #[command(name = "workspace-value")]
     WorkspaceValue(BenchWorkspaceValueArgs),
+    #[command(name = "config-json")]
+    ConfigJson(BenchConfigJsonArgs),
     #[command(name = "repo-checks")]
     RepoChecks(BenchRepoChecksArgs),
     #[command(name = "write-screen-taxonomy-database-lineage")]
@@ -55,6 +57,14 @@ pub struct BenchWorkspaceValueArgs {
     pub key: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchConfigJsonArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, default_value = "full")]
+    pub section: String,
 }
 
 #[derive(Debug, Args)]

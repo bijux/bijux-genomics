@@ -221,6 +221,12 @@
                         args,
                     )?;
                 }
+                BenchCommand::ConfigJson(args) => {
+                    crate::commands::benchmark_workspace::print_benchmark_config_json(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
                 BenchCommand::RepoChecks(args) => {
                     crate::commands::benchmark_repo_checks::run_benchmark_repo_checks_command(
                         &std::env::current_dir()?,

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import subprocess
 from functools import lru_cache
 from pathlib import Path
 
@@ -16,6 +18,7 @@ except ModuleNotFoundError:
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BENCHMARK_CONFIG_ENV = "BIJUX_BENCHMARK_CONFIG"
+BENCHMARK_CONFIG_JSON_ENV = "BIJUX_BENCHMARK_CONFIG_JSON"
 LEGACY_BENCHMARK_FASTQ_CORPUS_CONFIG_ENV = "BIJUX_FASTQ_CORPUS_CONFIG"
 BENCHMARK_FASTQ_CORPUS_CONFIG_ENV = LEGACY_BENCHMARK_FASTQ_CORPUS_CONFIG_ENV
 DEFAULT_BENCHMARK_CONFIG_PATH = REPO_ROOT / "configs" / "bench" / "benchmark.toml"
@@ -23,24 +26,6 @@ DEFAULT_WORKSPACE_CONFIG_PATH = REPO_ROOT / "configs" / "bench" / "workspace.tom
 DEFAULT_PUBLICATION_CONFIG_PATH = REPO_ROOT / "configs" / "bench" / "publication.toml"
 
 _workspace_config_override: Path | None = None
-
-
-def expand_env_placeholders(raw: str) -> str:
-    expanded: list[str] = []
-    index = 0
-    while index < len(raw):
-        if raw[index : index + 2] == "${":
-            end = raw.find("}", index + 2)
-            if end == -1:
-                expanded.append(raw[index:])
-                break
-            name = raw[index + 2 : end]
-            expanded.append(os.environ.get(name, ""))
-            index = end + 1
-            continue
-        expanded.append(raw[index])
-        index += 1
-    return "".join(expanded)
 
 
 def _normalize_config_path(
@@ -91,40 +76,45 @@ def current_workspace_config_path(*, repo_root: Path | None = None) -> Path:
 
 @lru_cache(maxsize=1)
 def load_benchmark_config() -> dict:
-    path = current_workspace_config_path()
-    if not path.is_file() or toml_loader is None:
-        return {}
-    raw = path.read_text(encoding="utf-8")
-    return toml_loader.loads(expand_env_placeholders(raw))
+    inline_json = os.environ.get(BENCHMARK_CONFIG_JSON_ENV, "").strip()
+    if inline_json:
+        return json.loads(inline_json)
+    command = [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "bench",
+        "config-json",
+        "--config",
+        str(current_workspace_config_path()),
+        "--section",
+        "full",
+    ]
+    completed = subprocess.run(
+        command,
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(completed.stdout)
 
 
 @lru_cache(maxsize=1)
 def load_workspace_config() -> dict:
-    path = current_workspace_config_path()
     payload = load_benchmark_config()
-    if "workspace" in payload:
-        workspace = payload.get("workspace", {})
-        return workspace if isinstance(workspace, dict) else {}
-    if path == DEFAULT_BENCHMARK_CONFIG_PATH:
-        legacy_path = DEFAULT_WORKSPACE_CONFIG_PATH
-        if not legacy_path.is_file() or toml_loader is None:
-            return {}
-        raw = legacy_path.read_text(encoding="utf-8")
-        return toml_loader.loads(expand_env_placeholders(raw))
-    return payload
+    workspace = payload.get("workspace", {})
+    return workspace if isinstance(workspace, dict) else {}
 
 
 @lru_cache(maxsize=1)
 def load_publication_config() -> dict:
     payload = load_benchmark_config()
-    if "publication" in payload:
-        publication = payload.get("publication", {})
-        return publication if isinstance(publication, dict) else {}
-    path = DEFAULT_PUBLICATION_CONFIG_PATH
-    if not path.is_file() or toml_loader is None:
-        return {}
-    raw = path.read_text(encoding="utf-8")
-    return toml_loader.loads(expand_env_placeholders(raw))
+    publication = payload.get("publication", {})
+    return publication if isinstance(publication, dict) else {}
 
 
 def add_workspace_config_argument(parser: argparse.ArgumentParser) -> None:
