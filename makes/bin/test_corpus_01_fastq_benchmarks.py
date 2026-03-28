@@ -56,7 +56,6 @@ import render_fastq_trim_terminal_damage_corpus_01_report as terminal_damage_rep
 import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 import render_fastq_validate_reads_corpus_01_report as validate_reads_report
-import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
@@ -233,6 +232,49 @@ def run_benchmark_repo_checks(repo_root: Path) -> dict:
     if stdout:
         return json.loads(stdout)
     raise RuntimeError(completed.stderr.strip() or "missing repo check report")
+
+
+def write_screen_taxonomy_database_lineage(
+    *,
+    database_root: Path | None = None,
+    results_root: Path | None = None,
+    cache_root: Path | None = None,
+    source_manifest: Path | None = None,
+    bootstrap_report: Path | None = None,
+    lineage_json: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> dict:
+    command = [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "bench",
+        "write-screen-taxonomy-database-lineage",
+    ]
+    if database_root is not None:
+        command.extend(["--database-root", str(database_root)])
+    if results_root is not None:
+        command.extend(["--results-root", str(results_root)])
+    if cache_root is not None:
+        command.extend(["--cache-root", str(cache_root)])
+    if source_manifest is not None:
+        command.extend(["--source-manifest", str(source_manifest)])
+    if bootstrap_report is not None:
+        command.extend(["--bootstrap-report", str(bootstrap_report)])
+    if lineage_json is not None:
+        command.extend(["--lineage-json", str(lineage_json)])
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+        env=(os.environ | env) if env else None,
+    )
+    return json.loads(completed.stdout)
 
 
 def retired_execution_python_paths() -> list[Path]:
@@ -609,6 +651,11 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_results_manifest_repair_helper_is_deleted(self) -> None:
         self.assertFalse(
             (ROOT / "makes" / "bin" / "repair_corpus_01_fastq_result_manifests.py").exists()
+        )
+
+    def test_screen_taxonomy_database_lineage_builder_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "bootstrap_fastq_screen_taxonomy_database.py").exists()
         )
 
     def test_corpus_report_dispatcher_builder_is_deleted(self) -> None:
@@ -2494,14 +2541,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            payload = taxonomy_db_bootstrap.build_lineage_payload(
+            payload = write_screen_taxonomy_database_lineage(
                 database_root=database_root,
                 source_manifest=source_manifest,
-                bootstrap_report=None,
-                database_catalog_id="taxonomy_reference",
-                database_artifact_id="taxonomy_db",
-                database_namespace="read_screening",
-                database_scope="read_screening",
             )
 
         self.assertEqual(
@@ -2516,45 +2558,83 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIsNotNone(payload["database_digest"])
 
     def test_screen_taxonomy_bootstrap_resolves_database_root_from_results_root(self) -> None:
-        args = SimpleNamespace(
-            database_root="",
-            results_root="/tmp/local-results",
-            cache_root="",
-            database_namespace="read_screening",
-            database_scope="read_screening",
-            database_artifact_id="taxonomy_db",
-        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            database_root = (
+                Path(tmpdir)
+                / "local-results"
+                / "extra-data"
+                / "benchmark"
+                / "fastq.screen_taxonomy"
+                / "read_screening"
+                / "read_screening"
+                / "taxonomy_db"
+            )
+            (database_root / "source").mkdir(parents=True)
+            for backend, filename in [
+                ("kraken2", "hash.k2d"),
+                ("krakenuniq", "database.kdb"),
+                ("centrifuge", "reference.1.cf"),
+                ("kaiju", "nodes.dmp"),
+                ("taxonomy", "names.dmp"),
+            ]:
+                (database_root / backend).mkdir()
+                (database_root / backend / filename).write_text("x", encoding="utf-8")
+            source_manifest = database_root / "source" / "panel_manifest.json"
+            source_manifest.write_text(
+                json.dumps({"records": [{"accession": "NC_000913.3"}]}),
+                encoding="utf-8",
+            )
+
+            payload = write_screen_taxonomy_database_lineage(
+                results_root=Path(tmpdir) / "local-results",
+                source_manifest=source_manifest,
+            )
 
         self.assertEqual(
-            taxonomy_db_bootstrap.resolve_database_root(args),
-            Path(
-                "/tmp/local-results/extra-data/benchmark/fastq.screen_taxonomy/"
-                "read_screening/read_screening/taxonomy_db"
-            ).resolve(),
+            Path(payload["database_root"]).resolve(),
+            database_root.resolve(),
         )
 
     def test_screen_taxonomy_bootstrap_defaults_to_workspace_results_root(self) -> None:
-        args = SimpleNamespace(
-            database_root="",
-            results_root="",
-            cache_root="",
-            database_namespace="read_screening",
-            database_scope="read_screening",
-            database_artifact_id="taxonomy_db",
-        )
-
-        with mock.patch.object(
-            taxonomy_db_bootstrap,
-            "benchmark_local_results_root",
-            return_value=Path("/srv/benchmark-results"),
-        ):
-            self.assertEqual(
-                taxonomy_db_bootstrap.resolve_database_root(args),
-                Path(
-                    "/srv/benchmark-results/extra-data/benchmark/fastq.screen_taxonomy/"
-                    "read_screening/read_screening/taxonomy_db"
-                ).resolve(),
+        with tempfile.TemporaryDirectory() as tmpdir:
+            env = dict(BENCHMARK_TEST_ENV)
+            env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"] = str(Path(tmpdir) / "srv" / "benchmark-results")
+            env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"] = str(
+                Path(tmpdir) / "srv" / "benchmark-results" / ".cache"
             )
+            env["BIJUX_BENCHMARK_LOCAL_EXTRA_DATA_ROOT"] = str(
+                Path(tmpdir) / "srv" / "benchmark-results" / "extra-data"
+            )
+            database_root = (
+                Path(env["BIJUX_BENCHMARK_LOCAL_EXTRA_DATA_ROOT"])
+                / "benchmark"
+                / "fastq.screen_taxonomy"
+                / "read_screening"
+                / "read_screening"
+                / "taxonomy_db"
+            )
+            (database_root / "source").mkdir(parents=True)
+            for backend, filename in [
+                ("kraken2", "hash.k2d"),
+                ("krakenuniq", "database.kdb"),
+                ("centrifuge", "reference.1.cf"),
+                ("kaiju", "nodes.dmp"),
+                ("taxonomy", "names.dmp"),
+            ]:
+                (database_root / backend).mkdir()
+                (database_root / backend / filename).write_text("x", encoding="utf-8")
+            source_manifest = database_root / "source" / "panel_manifest.json"
+            source_manifest.write_text(
+                json.dumps({"records": [{"accession": "NC_000913.3"}]}),
+                encoding="utf-8",
+            )
+
+            payload = write_screen_taxonomy_database_lineage(
+                source_manifest=source_manifest,
+                env=env,
+            )
+
+        self.assertEqual(Path(payload["database_root"]).resolve(), database_root.resolve())
 
     def test_screen_taxonomy_bootstrap_requires_all_backend_dirs(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2565,16 +2645,28 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 json.dumps({"records": [{"accession": "NC_000913.3"}]}),
                 encoding="utf-8",
             )
-            with self.assertRaises(SystemExit):
-                taxonomy_db_bootstrap.build_lineage_payload(
-                    database_root=database_root,
-                    source_manifest=source_manifest,
-                    bootstrap_report=None,
-                    database_catalog_id="taxonomy_reference",
-                    database_artifact_id="taxonomy_db",
-                    database_namespace="read_screening",
-                    database_scope="read_screening",
-                )
+            completed = subprocess.run(
+                [
+                    "cargo",
+                    "run",
+                    "-q",
+                    "-p",
+                    "bijux-dna",
+                    "--",
+                    "bench",
+                    "write-screen-taxonomy-database-lineage",
+                    "--database-root",
+                    str(database_root),
+                    "--source-manifest",
+                    str(source_manifest),
+                ],
+                cwd=ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("missing kraken2 directory", completed.stderr)
 
     def test_default_screen_taxonomy_database_root_prefers_cache_extra_data(
         self,

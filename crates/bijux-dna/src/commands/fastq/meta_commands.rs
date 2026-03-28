@@ -737,6 +737,12 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::WriteScreenTaxonomyDatabaseLineage(args) => {
+                    crate::commands::benchmark_taxonomy_database::run_write_screen_taxonomy_database_lineage(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
                 BenchCommand::NormalizeWorkspaceLayout(args) => {
                     crate::commands::benchmark_workspace::run_normalize_workspace_layout(
                         &std::env::current_dir()?,
