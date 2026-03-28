@@ -404,6 +404,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertIn("summarize_cohort_metric_rows(", text, path.name)
             self.assertNotIn("def summarize_cohort_rows(", text, path.name)
 
+    def test_briefings_use_shared_sample_outlier_helper(self) -> None:
+        for path in tool_runtime_metric_briefing_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("summarize_sample_outlier_rows(", text, path.name)
+            self.assertNotIn(
+                "def sample_runtime_outliers(rows: list[dict]) -> list[dict]:\n    by_sample:",
+                text,
+                path.name,
+            )
+
     def test_briefing_renderers_use_shared_stats_io_and_publication_helpers(
         self,
     ) -> None:

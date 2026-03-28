@@ -212,6 +212,25 @@ class BriefingMetricSpec:
     skip_blank: bool = False
 
 
+@dataclass(frozen=True)
+class BriefingCopiedMetricSpec:
+    source_key: str
+    output_key: str
+    parser: str = "float"
+    skip_blank: bool = False
+
+
+@dataclass(frozen=True)
+class BriefingOutlierSpec:
+    selector_key: str
+    selector_mode: str
+    tool_output_key: str | None
+    value_output_key: str | None
+    parser: str = "float"
+    skip_blank: bool = False
+    copied_metrics: tuple[BriefingCopiedMetricSpec, ...] = ()
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -326,6 +345,79 @@ def summarize_cohort_metric_rows(
                 spec.aggregator,
             )
         output.append(summary_row)
+    return output
+
+
+def _parse_outlier_value(raw_value: object, parser: str) -> float | int | None:
+    if raw_value in {"", None}:
+        return None
+    if parser == "int":
+        return int(raw_value)
+    if parser == "float":
+        return float(raw_value)
+    raise ValueError(f"unsupported outlier parser: {parser}")
+
+
+def summarize_sample_outlier_rows(
+    rows: list[dict],
+    *,
+    selectors: list[BriefingOutlierSpec],
+    total_runtime_output_key: str = "total_runtime_s",
+) -> list[dict]:
+    by_sample: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        by_sample[row["sample_id"]].append(row)
+
+    output: list[dict] = []
+    for sample_id, sample_rows in by_sample.items():
+        summary_row = {
+            "sample_id": sample_id,
+            "accession": sample_rows[0]["accession"],
+            "era": sample_rows[0]["era"],
+            "layout": sample_rows[0]["layout"],
+            "size_band": sample_rows[0]["size_band"],
+            "study_accession": sample_rows[0]["study_accession"],
+            total_runtime_output_key: sum(
+                float(row["runtime_s"]) for row in sample_rows
+            ),
+        }
+        for spec in selectors:
+            candidate_rows = [
+                row
+                for row in sample_rows
+                if not (spec.skip_blank and row.get(spec.selector_key) in {"", None})
+            ]
+            if not candidate_rows:
+                if spec.tool_output_key is not None:
+                    summary_row[spec.tool_output_key] = None
+                if spec.value_output_key is not None:
+                    summary_row[spec.value_output_key] = None
+                for copied_metric in spec.copied_metrics:
+                    summary_row[copied_metric.output_key] = None
+                continue
+            selector = max if spec.selector_mode == "max" else min
+            selected_row = selector(
+                candidate_rows,
+                key=lambda row: float(row[spec.selector_key]),
+            )
+            if spec.tool_output_key is not None:
+                summary_row[spec.tool_output_key] = selected_row["tool"]
+            if spec.value_output_key is not None:
+                summary_row[spec.value_output_key] = _parse_outlier_value(
+                    selected_row.get(spec.selector_key),
+                    spec.parser,
+                )
+            for copied_metric in spec.copied_metrics:
+                raw_value = selected_row.get(copied_metric.source_key)
+                if raw_value in {"", None} and copied_metric.skip_blank:
+                    summary_row[copied_metric.output_key] = None
+                else:
+                    summary_row[copied_metric.output_key] = _parse_outlier_value(
+                        raw_value,
+                        copied_metric.parser,
+                    )
+        output.append(summary_row)
+    output.sort(key=lambda row: row[total_runtime_output_key], reverse=True)
     return output
 
 

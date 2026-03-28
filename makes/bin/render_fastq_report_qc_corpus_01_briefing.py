@@ -29,6 +29,9 @@ from corpus_01_fastq_benchmark_support import (
     BriefingMetricSpec,
     summarize_tool_runtime_rows,
     summarize_cohort_metric_rows,
+    BriefingCopiedMetricSpec,
+    BriefingOutlierSpec,
+    summarize_sample_outlier_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -100,32 +103,14 @@ def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
         ],
     )
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
-    by_sample: dict[str, list[dict]] = defaultdict(list)
-    for row in rows:
-        by_sample[row["sample_id"]].append(row)
-
-    output: list[dict] = []
-    for sample_id, sample_rows in by_sample.items():
-        slowest = max(sample_rows, key=lambda row: float(row["runtime_s"]))
-        richest = max(sample_rows, key=lambda row: int(row["governed_qc_input_count"]))
-        output.append(
-            {
-                "sample_id": sample_id,
-                "accession": sample_rows[0]["accession"],
-                "era": sample_rows[0]["era"],
-                "layout": sample_rows[0]["layout"],
-                "size_band": sample_rows[0]["size_band"],
-                "study_accession": sample_rows[0]["study_accession"],
-                "total_runtime_s": sum(float(row["runtime_s"]) for row in sample_rows),
-                "slowest_tool": slowest["tool"],
-                "slowest_runtime_s": float(slowest["runtime_s"]),
-                "multiqc_module_count": optional_int(slowest["multiqc_module_count"]),
-                "governed_qc_input_count": int(richest["governed_qc_input_count"]),
-            }
-        )
-    output.sort(key=lambda row: row["total_runtime_s"], reverse=True)
-    return output
-
+    return summarize_sample_outlier_rows(
+        rows,
+        selectors=[
+            BriefingOutlierSpec('runtime_s', 'max', 'slowest_tool', 'slowest_runtime_s', parser='float', copied_metrics=(BriefingCopiedMetricSpec('multiqc_module_count', 'multiqc_module_count', parser='int', skip_blank=True),)),
+            BriefingOutlierSpec('governed_qc_input_count', 'max', None, 'governed_qc_input_count', parser='int'),
+        ],
+        total_runtime_output_key='total_runtime_s',
+    )
 def render_markdown(
     summary: dict,
     runtime_rows: list[dict],
