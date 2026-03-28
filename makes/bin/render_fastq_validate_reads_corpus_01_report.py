@@ -9,19 +9,12 @@ from pathlib import Path
 
 from benchmark_fastq_corpus.support import (
     parse_corpus_report_args,
-    CorpusBenchmarkContract,
     CorpusReportArtifacts,
     CorpusReportContext,
+    VALIDATE_READS_BENCHMARK_CONTRACT,
     load_json,
     localize_results_path,
     run_corpus_report,
-)
-
-
-VALIDATE_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.validate_reads",
-    scenario_id="validation_fairness",
-    tools=["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"],
 )
 
 

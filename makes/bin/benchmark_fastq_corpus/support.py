@@ -982,6 +982,10 @@ SCREEN_TAXONOMY_BENCHMARK_CONTRACT = corpus_01_publication_contract(
     "fastq.screen_taxonomy"
 )
 
+VALIDATE_READS_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.validate_reads"
+)
+
 
 CORPUS_01_PUBLICATION_CONTRACTS = [
     CorpusBenchmarkContract(
