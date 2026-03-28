@@ -125,6 +125,10 @@ def benchmark_remote_containers_root() -> Path:
     return _workspace_path("remote", "containers_root")
 
 
+def benchmark_remote_reference_root() -> Path:
+    return _workspace_path("remote", "reference_root")
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -764,6 +768,29 @@ def localize_results_path(path_str: str, local_results_root: Path) -> Path:
         if marker in path_str:
             return mapped_root / path_str.split(marker, 1)[1]
     return path
+
+
+def localize_workspace_path(path_str: str, local_results_root: Path) -> Path:
+    path = Path(path_str)
+    if path.exists():
+        return path
+
+    cache_mirror_root = benchmark_local_cache_mirror_root()
+    remote_root_mappings = [
+        (benchmark_remote_results_root(), cache_mirror_root / "results"),
+        (benchmark_remote_results_legacy_root(), cache_mirror_root / "bijux-dna-results"),
+        (benchmark_remote_extra_data_root(), cache_mirror_root / "extra-data"),
+        (benchmark_remote_reference_root(), cache_mirror_root / "reference"),
+    ]
+    for remote_root, mapped_root in remote_root_mappings:
+        if not str(remote_root):
+            continue
+        try:
+            rel = path.relative_to(remote_root)
+        except ValueError:
+            continue
+        return mapped_root / rel
+    return localize_results_path(path_str, local_results_root)
 
 
 def validate_benchmark_layout(corpus_root: Path, out_root: Path) -> None:
