@@ -6954,6 +6954,116 @@ class ProfileReadsReportingTests(unittest.TestCase):
                 }
             )
 
+    def test_profile_reads_summary_preserves_configured_run_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            actual_run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.profile_reads" / "lunarc"
+            )
+            run_root = repo_root / "mirror" / "fastq.profile_reads"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.profile_reads" / "corpus-01"
+            sample_report = (
+                actual_run_root / "bench" / "profile_reads" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {"tool": "seqkit_stats"},
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "reads_total": 4,
+                                        "bases_total": 275,
+                                        "mean_q": 31.0,
+                                        "gc_percent": 45.0,
+                                        "length_histogram": [
+                                            {"length": 50, "count": 1},
+                                            {"length": 75, "count": 3},
+                                        ],
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (actual_run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.profile_reads",
+                        "scenario_id": "profile_reads_fairness",
+                        "tool_kind": "benchmark",
+                        "samples_total": 1,
+                        "samples_failed": 0,
+                        "tools": ["seqkit_stats"],
+                        "report_only": True,
+                        "mutates_fastq": False,
+                        "may_change_read_count": False,
+                        "raw_backend_report_format": "seqkit_stats_tsv",
+                        "length_histogram_source": "seqkit_fx2tab",
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "se",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_profile_reads_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    profile_reads_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    profile_reads_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "modern",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(profile_reads_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+            self.assertEqual(summary["run_root"], str(run_root))
+
     def test_profile_reads_briefing_avoids_hardcoded_tool_name(self) -> None:
         summary = {
             "stage_id": "fastq.profile_reads",
