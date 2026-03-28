@@ -11,7 +11,7 @@ Read this together with `docs/benchmark/workspace-model.md`, `docs/benchmark/wor
 
 Repo sync belongs on the private frontend home. Benchmark artifacts belong on the shared cache contract. Keep those responsibilities separate in code, automation, and operator docs.
 
-`bijux-dna` is the primary benchmark execution surface. New benchmark orchestration should land under the Rust CLI, especially `bijux-dna bench corpus-fastq`, rather than in new Python runners under `makes/bin/`. The Python entrypoints remain compatibility wrappers for report rendering, audits, and narrow helper/bootstrap workflows while the control plane migrates into Rust.
+`bijux-dna` is the benchmark execution surface. New benchmark orchestration and corpus dossier generation should land under the Rust CLI, especially `bijux-dna bench corpus-fastq` and `bijux-dna bench corpus-fastq-report`, rather than in new helper layers under `makes/bin/`.
 
 ## Mirror The Shared Cache Tree
 
@@ -44,7 +44,7 @@ That command pulls the governed results mirror, pulls the taxonomy lineage file 
 
 The default pull base, pull mode, sync profiles, repo cleanliness checks, and supplemental manifest settings now belong to `[sync.defaults]` in `configs/bench/benchmark.toml`. Use environment overrides only when the current operation genuinely needs to diverge from the governed defaults.
 
-When a caller needs a non-default benchmark workspace contract, set `BIJUX_BENCHMARK_CONFIG` or pass `--config <path>` to `bijux-dna bench corpus-fastq`. Do not fork path formulas into new scripts.
+When a caller needs a non-default benchmark workspace contract, set `BIJUX_BENCHMARK_CONFIG` or pass `--config <path>` to `bijux-dna bench ...`. Do not fork path formulas into new scripts.
 
 When driving the sync surface directly through `cargo run -p bijux-dna-dev -- hpc run ...`, prefer the neutral aliases `benchmark-sync-pull` and `benchmark-sync-push`. The legacy `lunarc-pull` and `lunarc-push` aliases remain available for compatibility with existing automation.
 
@@ -53,10 +53,10 @@ When driving the sync surface directly through `cargo run -p bijux-dna-dev -- hp
 1. Copy `configs/bench/benchmark.toml` and update the `[workspace.remote]` roots for the new frontend checkout, shared cache root, results root, extra-data root, container root, and reference root.
 2. Update `[workspace.local]` roots only if the local archive workspace changes.
 3. Update any cluster-specific sync profile under `configs/hpc/` so repo sync and cache sync target the new remote roots.
-4. Keep benchmark runners and report renderers unchanged unless the new cluster requires a genuinely different execution contract.
+4. Keep benchmark runners and dossier generators unchanged unless the new cluster requires a genuinely different execution contract.
 5. Re-run the benchmark contract tests before publishing refreshed dossiers.
 
-The benchmark control plane should consume `configs/bench/benchmark.toml` through `bijux-dna` rather than embedding cluster-specific paths in code. A cluster migration is complete only when the config changes are sufficient and the benchmark suite still passes without path edits in `makes/bin`, `makes/bin/benchmark_fastq_corpus/`, or Rust benchmark orchestration code.
+The benchmark control plane should consume `configs/bench/benchmark.toml` through `bijux-dna` rather than embedding cluster-specific paths in code. A cluster migration is complete only when the config changes are sufficient and the benchmark suite still passes without path edits in Make wrappers, docs, or Rust benchmark orchestration code.
 
 ## Sync Profile Contract
 

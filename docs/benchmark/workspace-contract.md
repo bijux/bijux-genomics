@@ -4,9 +4,9 @@
 
 This document defines the governed benchmark workspace layout for corpus publication, mirror synchronization, and local report rendering.
 
-`configs/bench/benchmark.toml` is the authority. Benchmark runners, renderers, sync helpers, and audit scripts must read workspace paths from that config instead of hardcoding user paths in code.
+`configs/bench/benchmark.toml` is the authority. Benchmark runners, dossier renderers, sync helpers, and audit scripts must read workspace paths from that config instead of hardcoding user paths in code.
 
-`bijux-dna` should own benchmark orchestration against this contract. Python under `makes/bin/benchmark_fastq_corpus/` is now a compatibility and helper layer, not the intended primary execution surface.
+`bijux-dna` owns benchmark orchestration and dossier generation against this contract. Make may wrap those Rust commands, but it must not introduce an independent path model or a second execution surface.
 
 Read this together with `docs/benchmark/workspace-model.md` for the durable role names used across the benchmark surface.
 
@@ -48,12 +48,12 @@ The code checkout and the shared cache tree are separate contracts. Repo sync be
 - `workspace.sync.defaults.clean_context` and `workspace.sync.defaults.allow_dirty` define the repo-sync safety posture for benchmark pushes.
 - `workspace.sync.defaults.include_containers_manifest` and `workspace.sync.defaults.data_manifest_glob` define supplemental artifacts mirrored alongside results.
 
-Make targets, Python tooling, and Rust sync commands should all load these defaults from `configs/bench/benchmark.toml` before consulting environment overrides.
+Make targets and Rust sync commands should all load these defaults from `configs/bench/benchmark.toml` before consulting environment overrides.
 
 The governed override surface is:
 
-- `BIJUX_BENCHMARK_CONFIG` for make-driven and environment-driven Python calls
-- shared `--config` CLI options for `bijux-dna bench corpus-fastq` and compatibility Python entrypoints
+- `BIJUX_BENCHMARK_CONFIG` for environment-driven benchmark commands
+- shared `--config` CLI options for `bijux-dna bench ...`
 
 ## Publication Rules
 
@@ -65,7 +65,7 @@ The governed override surface is:
 ## Review Checklist
 
 - If a benchmark helper needs a path, add it to `configs/bench/benchmark.toml` before embedding a formula in code.
-- If a benchmark workflow needs new orchestration, add it to `bijux-dna` before creating another Python runner.
+- If a benchmark workflow needs new orchestration, add it to `bijux-dna` before adding another wrapper layer.
 - If a benchmark artifact is mirrored locally, keep it under `local.results_root` with the governed tree shape above.
 - If a path appears in generated docs, prefer the configured workspace contract over historical private-path aliases.
 - If a publication refresh is complete, the checked-in ledger set should agree across `corpus-01-status.*`, `corpus-01-results-status.*`, `corpus-01-dossier-index.*`, and `corpus-01-remediation-queue.*`.
