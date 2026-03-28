@@ -11,7 +11,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
 20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.
 30. Publication refresh depends on manually curated make targets rather than the governed contract list.
-44. `load_published_sample_metadata()` hardcodes an expected total of 20 samples rather than loading the count from a contract file.
 45. Benchmark renderers duplicate argument parsing instead of using a shared workspace/path resolver.
 46. Benchmark renderers duplicate runtime summary calculations across many nearly identical scripts.
 47. Benchmark renderers duplicate cohort and layout aggregation logic across many nearly identical scripts.
