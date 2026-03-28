@@ -5,6 +5,7 @@ import argparse
 import json
 import re
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
@@ -56,6 +57,39 @@ def observed_tools_from_report(path: Path) -> list[str]:
     return sorted({match.group(1) for match in TOOL_LITERAL_PATTERN.finditer(text)})
 
 
+def _parse_utc_timestamp(raw: str | None) -> datetime | None:
+    if not raw:
+        return None
+    normalized = raw.strip().replace("Z", "+00:00")
+    if not normalized:
+        return None
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def run_root_freshness_timestamp(run_root: Path) -> datetime | None:
+    manifest_path = run_root / "run_manifest.json"
+    if manifest_path.is_file():
+        manifest = load_json(manifest_path)
+        for key in (
+            "completed_at_utc",
+            "generated_at_utc",
+            "finished_at_utc",
+            "started_at_utc",
+        ):
+            parsed = _parse_utc_timestamp(str(manifest.get(key, "") or ""))
+            if parsed is not None:
+                return parsed
+    if run_root.exists():
+        return datetime.fromtimestamp(run_root.stat().st_mtime, tz=timezone.utc)
+    return None
+
+
 def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[str]) -> dict:
     docs_root = repo_root / "docs" / "benchmark" / stage_id / "corpus-01"
     summary_path = docs_root / "summary.json"
@@ -105,12 +139,32 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
         if legacy_run_root.is_dir()
         else canonical_run_root
     )
+    newest_available_run_root = resolved_run_root
+    newest_available_timestamp = run_root_freshness_timestamp(resolved_run_root)
+    for candidate_root in unique_existing_roots:
+        candidate_timestamp = run_root_freshness_timestamp(candidate_root)
+        if candidate_timestamp is None:
+            continue
+        if newest_available_timestamp is None or candidate_timestamp > newest_available_timestamp:
+            newest_available_run_root = candidate_root
+            newest_available_timestamp = candidate_timestamp
     if reported_run_root != canonical_run_root and not reported_run_root.is_dir():
         append_issue(
             issues,
             stage_id,
             "summary-run-root-drift",
             f"summary run_root={reported_run_root} expected {canonical_run_root}",
+        )
+    if (
+        newest_available_timestamp is not None
+        and newest_available_run_root != resolved_run_root
+    ):
+        append_issue(
+            issues,
+            stage_id,
+            "newer-run-root-available",
+            "published dossier selected "
+            f"{resolved_run_root} but newer mirrored run exists at {newest_available_run_root}",
         )
     if not resolved_run_root.is_dir():
         append_issue(
@@ -217,6 +271,8 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
         "issue_count": len(issues),
         "reported_run_root": str(reported_run_root),
         "selected_run_root": str(resolved_run_root),
+        "newest_available_run_root": str(newest_available_run_root),
+        "selected_run_root_is_newest": newest_available_run_root == resolved_run_root,
         "available_run_roots": [str(root) for root in unique_existing_roots],
         "issues": [asdict(issue) for issue in issues],
     }
@@ -264,6 +320,12 @@ def render_markdown(report: dict) -> str:
         )
         if stage.get("selected_run_root"):
             lines.append(f"  - selected run root: `{stage['selected_run_root']}`")
+        if stage.get("newest_available_run_root"):
+            lines.append(
+                "  - newest available run root: "
+                f"`{stage['newest_available_run_root']}` "
+                f"(selected newest=`{stage['selected_run_root_is_newest']}`)"
+            )
         if stage.get("available_run_roots"):
             roots = ", ".join(f"`{root}`" for root in stage["available_run_roots"])
             lines.append(f"  - available run roots: {roots}")
