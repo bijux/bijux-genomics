@@ -21,6 +21,7 @@ from benchmark_fastq_corpus.config import (
     current_workspace_config_path,
     load_publication_config,
     load_workspace_config,
+    toml_loader,
 )
 
 
@@ -37,6 +38,10 @@ def load_benchmark_workspace_config() -> dict:
 
 def load_benchmark_publication_config() -> dict:
     return load_publication_config()
+
+
+load_benchmark_workspace_config.cache_clear = load_workspace_config.cache_clear  # type: ignore[attr-defined]
+load_benchmark_publication_config.cache_clear = load_publication_config.cache_clear  # type: ignore[attr-defined]
 
 
 def _workspace_path(section: str, key: str) -> Path:
@@ -252,10 +257,14 @@ def parse_corpus_report_args(
     description: str,
     docs_root: str,
 ) -> argparse.Namespace:
+    config_parser = argparse.ArgumentParser(add_help=False)
+    add_workspace_config_argument(config_parser)
+    known_args, _ = config_parser.parse_known_args()
+    configure_workspace_config_path(getattr(known_args, "config", ""))
     parser = argparse.ArgumentParser(description=description)
     add_workspace_config_argument(parser)
     parser.add_argument("--repo-root", default=".")
-    parser.add_argument("--corpus-root", default="")
+    parser.add_argument("--corpus-root", default=str(benchmark_remote_corpus_root()))
     parser.add_argument("--run-root", default="")
     parser.add_argument(
         "--docs-root",
@@ -1412,11 +1421,7 @@ def resolve_corpus_report_runtime(
 ) -> CorpusReportRuntime:
     repo_root = Path(args.repo_root).resolve()
     configure_workspace_config_path(getattr(args, "config", ""), repo_root=repo_root)
-    corpus_root = (
-        Path(args.corpus_root).expanduser()
-        if getattr(args, "corpus_root", "")
-        else benchmark_remote_corpus_root()
-    )
+    corpus_root = Path(args.corpus_root).expanduser()
     run_root = (
         Path(args.run_root).expanduser()
         if args.run_root
