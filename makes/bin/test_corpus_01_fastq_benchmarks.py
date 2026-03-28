@@ -452,6 +452,18 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("configs/bench/workspace.toml", text)
         self.assertNotIn("[workspace.toml](/Users/bijan/", text)
 
+    def test_trim_terminal_damage_method_uses_structured_workflow_contract(
+        self,
+    ) -> None:
+        text = method_doc_text("fastq.trim_terminal_damage")
+
+        self.assertIn("## Workflow", text)
+        self.assertIn(
+            "make _benchmark-trim-terminal-damage-corpus-01 PLATFORM=lunarc-apptainer",
+            text,
+        )
+        self.assertIn("make _benchmark-trim-terminal-damage-corpus-01-report", text)
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)

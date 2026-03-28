@@ -15,38 +15,14 @@ The benchmark contract is:
   - `trim_5p_bases=2`
   - `trim_3p_bases=2`
 
-## Execution
-
-Run the corpus benchmark from the Lunarc frontend against the workspace-configured corpus root:
-
-```bash
-python3 makes/bin/run_fastq_trim_terminal_damage_corpus_01.py \
-  --repo-root . \
-  --platform lunarc-apptainer \
-  --damage-mode ancient \
-  --execution-policy explicit_terminal_trim \
-  --trim-5p-bases 2 \
-  --trim-3p-bases 2
-```
-
-Render the published report set after the run completes:
-
-```bash
-python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_report.py \
-  --repo-root .
-
-python3 makes/bin/render_fastq_trim_terminal_damage_corpus_01_briefing.py \
-  --docs-root docs/benchmark/fastq.trim_terminal_damage/corpus-01
-```
-
-The make aliases mirror the same flow:
+## Workflow
 
 ```bash
 make _benchmark-trim-terminal-damage-corpus-01 PLATFORM=lunarc-apptainer
 make _benchmark-trim-terminal-damage-corpus-01-report
 ```
 
-The runner and report renderer resolve the governed Lunarc corpus root and run root from [workspace.toml](/Users/bijan/bijux/bijux-dna/configs/bench/workspace.toml). Override `--corpus-root` only when you intentionally audit a non-governed mirror.
+The make targets drive the governed runner and report renderers under `makes/bin/`. They resolve the governed corpus root and run root from `configs/bench/workspace.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
 
 ## Artifact Contract
 
