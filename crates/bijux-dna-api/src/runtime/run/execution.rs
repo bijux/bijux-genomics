@@ -223,8 +223,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
             }
         })
         .collect::<Vec<_>>();
-    let input_root = common_input_root(&input_root)
-        .unwrap_or_else(|| request.plan.out_dir.clone());
+    let input_root = common_input_root(&input_root).unwrap_or_else(|| request.plan.out_dir.clone());
     let network_policy = if request
         .plan
         .reason

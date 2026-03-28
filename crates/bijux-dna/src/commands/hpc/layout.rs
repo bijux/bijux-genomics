@@ -490,7 +490,9 @@ mod tests {
 
     #[test]
     fn hpc_layout_accepts_canonical_shape() {
-        let path = Path::new("/hpc/root/results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123");
+        let path = Path::new(
+            "/hpc/root/results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123",
+        );
         assert!(enforce_hpc_results_layout(path).is_ok());
     }
 
