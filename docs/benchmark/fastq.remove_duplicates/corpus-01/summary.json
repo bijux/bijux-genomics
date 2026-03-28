@@ -1,11 +1,12 @@
 {
   "schema_version": "bijux.fastq.remove_duplicates.corpus_summary.v1",
-  "generated_at_utc": "2026-03-28T02:29:13.766283+00:00",
+  "generated_at_utc": "2026-03-28T02:56:29.327510+00:00",
   "platform": "lunarc-apptainer",
   "stage_id": "fastq.remove_duplicates",
   "scenario_id": "dedup_fairness",
   "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.remove_duplicates/lunarc",
+  "sample_scope": "paired",
   "samples_total": 10,
   "samples_failed": 0,
   "tools": [
