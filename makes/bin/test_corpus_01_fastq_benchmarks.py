@@ -1687,6 +1687,120 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_normalize_primers_summary_preserves_configured_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.normalize_primers" / "lunarc"
+            )
+            docs_root = (
+                repo_root
+                / "docs"
+                / "benchmark"
+                / "fastq.normalize_primers"
+                / "corpus-01"
+            )
+            sample_report = (
+                run_root / "bench" / "normalize_primers" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "cutadapt",
+                                    "parameters": {
+                                        "primer_set_id": "16S_universal_v1",
+                                        "orientation_policy": "normalize_to_forward_primer",
+                                        "max_mismatch_rate": 0.10,
+                                        "min_overlap_bp": 10,
+                                        "strict_5p_anchor": True,
+                                        "allow_iupac_codes": True,
+                                        "raw_backend_report_format": "cutadapt_json",
+                                    },
+                                },
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "reads_in": 100,
+                                    "reads_out": 100,
+                                    "primer_trimmed_fraction": 0.05,
+                                    "orientation_forward_fraction": 1.0,
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.normalize_primers",
+                        "scenario_id": "primer_normalization_fairness",
+                        "tools": ["cutadapt"],
+                        "primer_set_id": "16S_universal_v1",
+                        "orientation_policy": "normalize_to_forward_primer",
+                        "max_mismatch_rate": 0.10,
+                        "min_overlap_bp": 10,
+                        "strict_5p_anchor": True,
+                        "allow_iupac_codes": True,
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_normalize_primers_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    normalize_primers_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    normalize_primers_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "ancient",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(normalize_primers_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+
     def test_normalize_primers_briefing_summarizes_orientation_fraction(self) -> None:
         rows = [
             {
