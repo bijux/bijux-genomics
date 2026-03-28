@@ -14,6 +14,7 @@ from corpus_01_fastq_benchmark_support import (
     SCREEN_TAXONOMY_BENCHMARK_CONTRACT,
     load_corpus_spec,
     load_json,
+    localize_manifest_paths,
     localize_results_path,
     preferred_report_run_root,
     resolve_corpus_metadata,
@@ -352,6 +353,11 @@ def main() -> int:
     highest_classified = max(
         tool_summary, key=lambda row: row["mean_classified_fraction"]
     )
+    localized_manifest_paths = localize_manifest_paths(
+        run_manifest,
+        local_results_root,
+        keys=["database_root", "database_lineage_json"],
+    )
     summary = {
         "schema_version": "bijux.fastq.screen_taxonomy.corpus_summary.v1",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -366,10 +372,14 @@ def main() -> int:
         "cohort_counts": dict(sorted(cohort_counts.items())),
         "era_counts": dict(sorted(era_counts.items())),
         "layout_counts": dict(sorted(layout_counts.items())),
-        "database_root": run_manifest["database_root"],
+        "database_root": localized_manifest_paths.get(
+            "database_root", run_manifest["database_root"]
+        ),
         "database_digest": run_manifest["database_digest"],
         "database_size_bytes": run_manifest["database_size_bytes"],
-        "database_lineage_json": run_manifest["database_lineage_json"],
+        "database_lineage_json": localized_manifest_paths.get(
+            "database_lineage_json", run_manifest["database_lineage_json"]
+        ),
         "database_lineage_digest": run_manifest["database_lineage_digest"],
         "database_catalog_id": run_manifest["database_catalog_id"],
         "database_artifact_id": run_manifest["database_artifact_id"],

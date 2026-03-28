@@ -16,8 +16,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
 20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.
 30. Publication refresh depends on manually curated make targets rather than the governed contract list.
-33. `fastq.screen_taxonomy` run manifests record remote taxonomy database paths that local publication does not normalize.
-34. `fastq.deplete_host` and `fastq.deplete_reference_contaminants` depend on extra-data indexes but do not share a common path resolver contract.
 35. `default_extra_data_root()` in the Python support module assumes benchmark assets always live under `extra-data/benchmark`.
 36. `default_screen_taxonomy_database_root()` hardcodes the taxonomy database directory formula in Python.
 37. `default_host_reference_index_root()` hardcodes the host depletion index directory formula in Python.

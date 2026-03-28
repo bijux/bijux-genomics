@@ -793,6 +793,21 @@ def localize_workspace_path(path_str: str, local_results_root: Path) -> Path:
     return localize_results_path(path_str, local_results_root)
 
 
+def localize_manifest_paths(
+    run_manifest: dict,
+    local_results_root: Path,
+    *,
+    keys: list[str],
+) -> dict[str, str]:
+    localized: dict[str, str] = {}
+    for key in keys:
+        value = str(run_manifest.get(key, "") or "").strip()
+        if not value:
+            continue
+        localized[key] = str(localize_workspace_path(value, local_results_root))
+    return localized
+
+
 def validate_benchmark_layout(corpus_root: Path, out_root: Path) -> None:
     try:
         out_root.relative_to(corpus_root)

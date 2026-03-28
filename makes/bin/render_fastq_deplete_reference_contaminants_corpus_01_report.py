@@ -15,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     deplete_reference_contaminants_benchmark_defaults,
     load_corpus_spec,
     load_json,
+    localize_manifest_paths,
     localize_results_path,
     preferred_report_run_root,
     resolve_corpus_metadata,
@@ -363,6 +364,11 @@ def main() -> int:
         key=lambda row: row["mean_contaminant_fraction_removed"],
     )
     best_retention = max(tool_summary, key=lambda row: row["median_read_retention"])
+    localized_manifest_paths = localize_manifest_paths(
+        run_manifest,
+        local_results_root,
+        keys=["reference_index"],
+    )
     summary = {
         "schema_version": "bijux.fastq.deplete_reference_contaminants.corpus_summary.v1",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -377,7 +383,9 @@ def main() -> int:
         "cohort_counts": dict(sorted(cohort_counts.items())),
         "era_counts": dict(sorted(era_counts.items())),
         "layout_counts": dict(sorted(layout_counts.items())),
-        "reference_index": run_manifest["reference_index"],
+        "reference_index": localized_manifest_paths.get(
+            "reference_index", run_manifest["reference_index"]
+        ),
         "reference_index_digest": run_manifest["reference_index_digest"],
         "reference_index_size_bytes": run_manifest["reference_index_size_bytes"],
         "reference_catalog_id": run_manifest["reference_catalog_id"],
