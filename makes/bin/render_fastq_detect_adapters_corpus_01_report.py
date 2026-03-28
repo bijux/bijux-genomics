@@ -361,6 +361,8 @@ def build_artifacts(context: CorpusReportContext) -> CorpusReportArtifacts:
         "layout_counts": dict(sorted(layout_counts.items())),
         "inspection_mode": run_manifest["inspection_mode"],
         "report_only": run_manifest["report_only"],
+        "mutates_fastq": run_manifest.get("mutates_fastq", False),
+        "may_change_read_count": run_manifest.get("may_change_read_count", False),
         "evidence_scope": run_manifest["evidence_scope"],
         "evidence_format": run_manifest["evidence_format"],
         "headline": headline,

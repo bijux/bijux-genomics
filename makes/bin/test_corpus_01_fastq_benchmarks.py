@@ -2074,6 +2074,35 @@ class BenchmarkMakefileTests(unittest.TestCase):
             / "corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json",
         )
 
+    def test_localize_results_path_falls_back_to_canonical_results_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_root = Path(tmpdir) / "home" / "bijan" / "lu2024-12-24" / ".cache"
+            local_results_root = cache_root / "results"
+            canonical_report = (
+                local_results_root
+                / "corpus_01"
+                / "fastq.extract_umis"
+                / "lunarc"
+                / "bench"
+                / "extract_umis"
+                / "sample_0001"
+                / "report.json"
+            )
+            canonical_report.parent.mkdir(parents=True)
+            canonical_report.write_text("{}", encoding="utf-8")
+
+            with mock.patch.object(
+                support,
+                "benchmark_local_cache_mirror_root",
+                return_value=cache_root,
+            ):
+                localized = support.localize_results_path(
+                    "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json",
+                    local_results_root,
+                )
+
+        self.assertEqual(localized, canonical_report)
+
     def test_localize_workspace_path_maps_remote_extra_data_root(self) -> None:
         with mock.patch.object(
             support,
@@ -9532,6 +9561,8 @@ class DetectAdaptersReportingTests(unittest.TestCase):
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
             self.assertEqual(summary["run_root"], str(run_root))
+            self.assertFalse(summary["mutates_fastq"])
+            self.assertFalse(summary["may_change_read_count"])
 
 
 class OverrepresentedReportingTests(unittest.TestCase):
