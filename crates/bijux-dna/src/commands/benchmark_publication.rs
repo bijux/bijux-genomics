@@ -7,7 +7,8 @@ use serde::Serialize;
 
 use crate::commands::benchmark_workspace::{
     benchmark_config_path, load_benchmark_config, load_benchmark_publication_config,
-    BenchmarkWorkspaceConfig, CorpusBenchmarkContract, BENCHMARK_CONFIG_ENV,
+    write_workspace_layout_status, BenchmarkWorkspaceConfig, CorpusBenchmarkContract,
+    BENCHMARK_CONFIG_ENV,
 };
 use crate::commands::cli::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
@@ -39,6 +40,7 @@ pub(crate) fn run_corpus_fastq_publication_status(
     let config_path = benchmark_config_path(cwd, args.config.as_deref());
     let docs_root = absolutize(cwd, &args.docs_root);
     write_corpus_fastq_dossier_index(cwd, args.config.as_deref(), &docs_root)?;
+    write_workspace_layout_status(cwd, args.config.as_deref(), &docs_root)?;
     for spec in publication_status_steps(cwd, &docs_root) {
         run_subprocess(cwd, &config_path, &spec)?;
     }
@@ -187,25 +189,6 @@ fn publication_status_steps(repo_root: &Path, docs_root: &Path) -> Vec<Subproces
                     .to_string(),
                 "--markdown-out".to_string(),
                 docs_root.join("corpus-01-status.md").display().to_string(),
-            ],
-        },
-        SubprocessSpec {
-            program: "python3",
-            args: vec![
-                repo_root
-                    .join("makes/bin/audit_benchmark_workspace_layout.py")
-                    .display()
-                    .to_string(),
-                "--json-out".to_string(),
-                docs_root
-                    .join("workspace-layout-status.json")
-                    .display()
-                    .to_string(),
-                "--markdown-out".to_string(),
-                docs_root
-                    .join("workspace-layout-status.md")
-                    .display()
-                    .to_string(),
             ],
         },
         SubprocessSpec {
