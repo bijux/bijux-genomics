@@ -6335,9 +6335,9 @@ fn lab_run_bench(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOut
     ensure_help_only("run-bench", args)?;
     ensure_artifact_root_inside_artifacts(workspace)?;
     let config = lab_config(workspace)?;
-    let corpus_root = env_or_override("CORPUS_ROOT", &config, "corpus_root")?;
-    let runner_kind = env_or_override("RUNNER_KIND", &config, "runner_kind")?;
-    let output_dir = env_or_override("OUTPUT_DIR", &config, "output_dir")?;
+    let corpus_root = required_config_string(&config, "corpus_root", "lab config")?;
+    let runner_kind = required_config_string(&config, "runner_kind", "lab config")?;
+    let output_dir = required_config_string(&config, "output_dir", "lab config")?;
     let fastq = run_program(
         workspace,
         "cargo",
@@ -6387,10 +6387,10 @@ fn lab_run_pipelines(workspace: &Workspace, args: &[String]) -> Result<OpsComman
     ensure_help_only("run-pipelines", args)?;
     ensure_artifact_root_inside_artifacts(workspace)?;
     let config = lab_config(workspace)?;
-    let corpus_root = env_or_override("CORPUS_ROOT", &config, "corpus_root")?;
-    let runner_kind = env_or_override("RUNNER_KIND", &config, "runner_kind")?;
-    let output_dir = env_or_override("OUTPUT_DIR", &config, "output_dir")?;
-    let pipeline_ids = env_or_override("PIPELINE_IDS", &config, "pipeline_ids")?;
+    let corpus_root = required_config_string(&config, "corpus_root", "lab config")?;
+    let runner_kind = required_config_string(&config, "runner_kind", "lab config")?;
+    let output_dir = required_config_string(&config, "output_dir", "lab config")?;
+    let pipeline_ids = required_config_string(&config, "pipeline_ids", "lab config")?;
     let mut aggregate = OpsCommandOutcome::success(String::new());
     for pipeline in pipeline_ids
         .split(',')
@@ -8578,13 +8578,9 @@ fn lab_config(workspace: &Workspace) -> Result<TomlValue> {
     Ok(value)
 }
 
-fn env_or_override(key: &str, config: &TomlValue, field: &str) -> Result<String> {
-    if let Ok(value) = std::env::var(key) {
-        if !value.trim().is_empty() {
-            return Ok(value);
-        }
-    }
-    config_string(config, field).ok_or_else(|| anyhow!("{key} is required"))
+fn required_config_string(config: &TomlValue, field: &str, config_name: &str) -> Result<String> {
+    config_string(config, field)
+        .ok_or_else(|| anyhow!("{config_name} is missing required key `{field}`"))
 }
 
 fn config_string(config: &TomlValue, field: &str) -> Option<String> {
