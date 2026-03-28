@@ -40,7 +40,7 @@ expected_artifacts = ["damage_profile", "damage_clusters"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.addeam"
-apptainer_def = "containers/apptainer/lunarc/addeam.def"
+apptainer_def = "containers/apptainer/shared/addeam.def"
 require_labels = true
 
 [[tools]]
@@ -74,7 +74,7 @@ expected_artifacts = ["damage_profile", "damage_plot"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.damageprofiler"
-apptainer_def = "containers/apptainer/lunarc/damageprofiler.def"
+apptainer_def = "containers/apptainer/shared/damageprofiler.def"
 require_labels = true
 
 [[tools]]
@@ -108,6 +108,6 @@ expected_artifacts = ["haplogroup_report"]
 metrics_schema = "bijux.bam.sex.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
-apptainer_def = "containers/apptainer/lunarc/yleaf.def"
+apptainer_def = "containers/apptainer/shared/yleaf.def"
 require_labels = true
 

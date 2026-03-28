@@ -28,7 +28,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).
 - Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.
 - Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.
-- Non-bijux provenance: `containers/apptainer/lunarc/NON_BIJUX_SOURCES.md`.
+- Non-bijux provenance: `containers/apptainer/shared/NON_BIJUX_SOURCES.md`.
 - Ownership map: `containers/OWNERS.toml`.
 
 ## Tool Container Coverage

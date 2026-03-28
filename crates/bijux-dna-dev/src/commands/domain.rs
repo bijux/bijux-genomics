@@ -2646,11 +2646,11 @@ fn check_tool_container_parity(workspace: &Workspace) -> Result<DomainCommandOut
             name.strip_prefix("Dockerfile.").map(ToString::to_string)
         })
         .collect::<BTreeSet<_>>();
-    let apptainer_tools = fs::read_dir(workspace.path("containers/apptainer/lunarc"))
+    let apptainer_tools = fs::read_dir(workspace.path("containers/apptainer/shared"))
         .with_context(|| {
             format!(
                 "read {}",
-                workspace.path("containers/apptainer/lunarc").display()
+                workspace.path("containers/apptainer/shared").display()
             )
         })?
         .filter_map(std::result::Result::ok)
