@@ -11,6 +11,7 @@ from corpus_01_fastq_benchmark_support import (
     PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT,
     PROFILE_READS_BENCHMARK_CONTRACT,
     benchmark_local_results_root,
+    benchmark_remote_repo_root,
     benchmark_sample_root,
     default_results_stage_root,
     load_json,
@@ -22,8 +23,6 @@ import run_fastq_profile_read_lengths_corpus_01 as profile_read_lengths_runner
 import run_fastq_profile_reads_corpus_01 as profile_reads_runner
 import run_fastq_validate_reads_corpus_01 as validate_runner
 
-
-REMOTE_REPO_ROOT = Path("/home/bijan/bijux/bijux-dna")
 EXPECTED_STAGE_TOOLS = {
     "fastq.validate_reads": ["fastqvalidator", "fastqc", "fastq_scan", "seqtk", "fqtools"],
     "fastq.detect_adapters": DETECT_ADAPTERS_BENCHMARK_CONTRACT.tools,
@@ -188,7 +187,7 @@ def build_validate_manifest(run_root: Path) -> dict:
                 "status": "completed",
                 "exit_code": 0,
                 "command": validate_runner.build_command(
-                    repo_root=REMOTE_REPO_ROOT,
+                    repo_root=benchmark_remote_repo_root(),
                     out_root=remote_out_root,
                     platform=str(first_record.get("context", {}).get("platform", "lunarc-apptainer")),
                     tools=",".join(EXPECTED_STAGE_TOOLS["fastq.validate_reads"]),
@@ -218,7 +217,7 @@ def build_validate_manifest(run_root: Path) -> dict:
         "pair_sync_policy": str(first_parameters.get("pair_sync_policy", "require_header_sync")),
         "sample_limit": None,
         "dry_run": False,
-        "repo_root": str(REMOTE_REPO_ROOT),
+        "repo_root": str(benchmark_remote_repo_root()),
         "corpus_root": str(corpus_root),
         "out_root": str(remote_out_root),
         "samples_total": len(runs),
@@ -284,7 +283,7 @@ def build_single_tool_manifest(
         "jobs": 1,
         "sample_limit": None,
         "dry_run": False,
-        "repo_root": str(REMOTE_REPO_ROOT),
+        "repo_root": str(benchmark_remote_repo_root()),
         "corpus_root": str(corpus_root),
         "out_root": str(remote_out_root),
         "samples_total": len(runs),

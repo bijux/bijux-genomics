@@ -22,6 +22,7 @@ DEFAULT_LOCAL_RESULTS_ROOT = Path("/Users/bijan/bijux/bijux-dna-results")
 DEFAULT_LOCAL_CACHE_MIRROR_ROOT = (
     DEFAULT_LOCAL_RESULTS_ROOT / "home" / "bijan" / "lu2024-12-24" / ".cache"
 )
+DEFAULT_REMOTE_REPO_ROOT = Path("/home/bijan/bijux/bijux-dna")
 LOCAL_RESULTS_ROOT = DEFAULT_LOCAL_RESULTS_ROOT
 LOCAL_CACHE_MIRROR_ROOT = DEFAULT_LOCAL_CACHE_MIRROR_ROOT
 
@@ -53,6 +54,14 @@ def benchmark_local_cache_mirror_root() -> Path:
     if isinstance(value, str) and value.strip():
         return Path(value).expanduser()
     return LOCAL_CACHE_MIRROR_ROOT
+
+
+def benchmark_remote_repo_root() -> Path:
+    remote = load_benchmark_workspace_config().get("remote", {})
+    value = remote.get("repo_root")
+    if isinstance(value, str) and value.strip():
+        return Path(value).expanduser()
+    return DEFAULT_REMOTE_REPO_ROOT
 
 
 def load_json(path: Path) -> dict:
