@@ -5,7 +5,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 8. Push and pull behavior is spread across environment variables rather than a single benchmark workspace contract.
 11. Remote storage currently contains both `.cache/results` and `.cache/bijux-dna-results` benchmark trees.
 12. Remote storage currently contains both `.cache/reference` and `.cache/bijux-reference` trees.
-13. Remote storage still contains non-cache roots such as `results`, `corpus_01`, and `extra-data` beside the governed `.cache` layout.
 14. Duplicate remote roots make it ambiguous which tree is authoritative for publication.
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
 48. Benchmark renderers duplicate markdown rendering patterns across many nearly identical scripts.

@@ -1204,6 +1204,16 @@ class BenchmarkMakefileTests(unittest.TestCase):
             text,
         )
 
+    def test_benchmark_issue_ledger_omits_resolved_non_cache_remote_layout_claim(
+        self,
+    ) -> None:
+        text = benchmark_issues_text()
+
+        self.assertNotIn(
+            "13. Remote storage still contains non-cache roots such as `results`, `corpus_01`, and `extra-data` beside the governed `.cache` layout.",
+            text,
+        )
+
     def test_benchmark_workspace_contract_doc_records_local_and_remote_roots(self) -> None:
         text = benchmark_workspace_contract_text()
 
@@ -1243,6 +1253,63 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("benchmark-sync-pull", text)
         self.assertIn("benchmark-sync-push", text)
         self.assertIn("BENCHMARK_SYNC_*", text)
+
+    def test_workspace_layout_audit_reports_authoritative_roots_and_local_stage_split(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            local_results_root = tmp_root / "bijux-dna-results"
+            local_cache_mirror_root = (
+                local_results_root / "home" / "bijan" / "lu2024-12-24" / ".cache"
+            )
+
+            (local_cache_mirror_root / "results" / "corpus_01" / "fastq.trim_reads").mkdir(
+                parents=True
+            )
+            (
+                local_cache_mirror_root
+                / "bijux-dna-results"
+                / "corpus_01"
+                / "fastq.filter_reads"
+            ).mkdir(parents=True)
+            (local_cache_mirror_root / "reference" / "rrna").mkdir(parents=True)
+            (local_cache_mirror_root / "bijux-reference" / "taxonomy").mkdir(parents=True)
+            (local_results_root / "corpus_01" / "fastq.trim_reads").mkdir(parents=True)
+            (local_results_root / "corpus_01" / "fastq.validate_reads").mkdir(parents=True)
+
+            with mock.patch.object(
+                workspace_layout_audit.support,
+                "benchmark_local_results_root",
+                return_value=local_results_root,
+            ), mock.patch.object(
+                workspace_layout_audit.support,
+                "benchmark_local_cache_mirror_root",
+                return_value=local_cache_mirror_root,
+            ):
+                report = workspace_layout_audit.workspace_layout_report()
+
+        self.assertEqual(
+            report["authoritative_roots"]["remote_results_root"],
+            str(local_cache_mirror_root / "results"),
+        )
+        self.assertEqual(
+            report["authoritative_roots"]["remote_reference_root"],
+            str(local_cache_mirror_root / "reference"),
+        )
+        self.assertEqual(
+            report["authoritative_roots"]["local_stage_root"],
+            str(local_cache_mirror_root / "results" / "corpus_01"),
+        )
+        self.assertEqual(report["local_stage_layout"]["shared_stage_ids"], ["fastq.trim_reads"])
+        self.assertEqual(
+            report["local_stage_layout"]["archive_only_stage_ids"],
+            ["fastq.validate_reads"],
+        )
+        self.assertEqual(
+            sorted(issue["issue_id"] for issue in report["issues"]),
+            ["duplicate-remote-reference-root", "duplicate-remote-results-root"],
+        )
 
     def test_dev_ops_pull_records_workspace_path_mappings_and_dependencies(self) -> None:
         text = dev_ops_text()
