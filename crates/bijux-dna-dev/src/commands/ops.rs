@@ -5814,16 +5814,49 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             other => return Err(anyhow!("unknown arg: {other}")),
         }
     }
-    let lunarc_host = env_or_default("LUNARC_HOST", "lunarc");
+    let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
+    let default_lunarc_host = benchmark_workspace
+        .remote_ssh_host
+        .as_deref()
+        .unwrap_or("lunarc");
+    let lunarc_host = env_or_default("LUNARC_HOST", default_lunarc_host);
     let lunarc_root = env_or_default("LUNARC_ROOT", "${HOME}/bijux");
-    let lunarc_repo_dir = env_or_default("LUNARC_REPO_DIR", &format!("{lunarc_root}/bijux-dna"));
-    let lunarc_pull_base = env_or_default("LUNARC_PULL_BASE", "${HOME}/bijux/bijux-dna-results");
+    let default_lunarc_repo_dir = benchmark_workspace
+        .remote_repo_root
+        .clone()
+        .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna"));
+    let lunarc_repo_dir = env_or_default("LUNARC_REPO_DIR", &default_lunarc_repo_dir);
+    let default_lunarc_pull_base = benchmark_workspace
+        .local_results_root
+        .clone()
+        .unwrap_or_else(|| "${HOME}/bijux/bijux-dna-results".to_string());
+    let lunarc_pull_base = env_or_default("LUNARC_PULL_BASE", &default_lunarc_pull_base);
     let lunarc_pull_dest = env_or_empty("LUNARC_PULL_DEST");
     let pull_mode = env_or_default("PULL_MODE", "results");
-    let lunarc_results_dir = env_or_default("LUNARC_RESULTS_DIR", &format!("{lunarc_root}/results"));
+    let default_lunarc_results_dir = benchmark_workspace
+        .remote_results_root
+        .clone()
+        .unwrap_or_else(|| format!("{lunarc_root}/results"));
+    let lunarc_results_dir = env_or_default("LUNARC_RESULTS_DIR", &default_lunarc_results_dir);
+    let default_lunarc_results_legacy_dir = benchmark_workspace
+        .remote_results_legacy_root
+        .clone()
+        .unwrap_or_default();
+    let lunarc_results_legacy_dir = env_or_default(
+        "LUNARC_RESULTS_LEGACY_DIR",
+        &default_lunarc_results_legacy_dir,
+    );
+    let default_lunarc_containers_root = benchmark_workspace
+        .remote_containers_root
+        .clone()
+        .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna-container"));
     let lunarc_containers_root =
-        env_or_default("LUNARC_CONTAINERS_ROOT", &format!("{lunarc_root}/bijux-dna-container"));
-    let lunarc_corpus_root = env_or_default("LUNARC_CORPUS_ROOT", &format!("{lunarc_root}/corpus_01"));
+        env_or_default("LUNARC_CONTAINERS_ROOT", &default_lunarc_containers_root);
+    let default_lunarc_corpus_root = benchmark_workspace
+        .remote_corpus_root
+        .clone()
+        .unwrap_or_else(|| format!("{lunarc_root}/corpus_01"));
+    let lunarc_corpus_root = env_or_default("LUNARC_CORPUS_ROOT", &default_lunarc_corpus_root);
     let include_containers_manifest = env_or_default("INCLUDE_CONTAINERS_MANIFEST", "0") == "1";
     let data_manifest_glob = env_or_empty("DATA_MANIFEST_GLOB");
     let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
@@ -5838,19 +5871,27 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         }
     }
     let home = env_or_default("HOME", "");
+    let use_governed_results_root = pull_mode == "results"
+        && lunarc_pull_dest.is_empty()
+        && benchmark_workspace.local_results_root.is_some();
     let dest = if lunarc_pull_dest.is_empty() {
-        let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
-        PathBuf::from(lunarc_pull_base.replace("${HOME}", &home)).join(format!("lunarc-{timestamp}"))
+        if use_governed_results_root {
+            PathBuf::from(expand_home_placeholder(&lunarc_pull_base, &home))
+        } else {
+            let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
+            PathBuf::from(expand_home_placeholder(&lunarc_pull_base, &home))
+                .join(format!("lunarc-{timestamp}"))
+        }
     } else {
-        PathBuf::from(lunarc_pull_dest.replace("${HOME}", &home))
+        PathBuf::from(expand_home_placeholder(&lunarc_pull_dest, &home))
     };
     if dry_run {
         return success_line(format!(
-            "[dry-run] would pull mode={pull_mode} from {lunarc_host}:{lunarc_root} to {}",
+            "[dry-run] would pull mode={pull_mode} from {lunarc_host} to {}",
             dest.display()
         ));
     }
-    if lunarc_pull_dest.is_empty() && dest.exists() {
+    if !use_governed_results_root && lunarc_pull_dest.is_empty() && dest.exists() {
         return Ok(OpsCommandOutcome::failure(format!(
             "refusing pull: destination already exists: {}\n",
             dest.display()
@@ -5873,6 +5914,34 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             return Ok(outcome);
         }
         pulled_paths.push(format!("{lunarc_root}/"));
+    } else if benchmark_workspace.remote_results_root.is_some() {
+        pull_lunarc_tree(workspace, &lunarc_host, &lunarc_results_dir, &dest)?;
+        pulled_paths.push(format!("{lunarc_results_dir}/"));
+        if !lunarc_results_legacy_dir.is_empty()
+            && remote_path_exists(workspace, &lunarc_host, &lunarc_results_legacy_dir)?
+        {
+            pull_lunarc_tree(workspace, &lunarc_host, &lunarc_results_legacy_dir, &dest)?;
+            pulled_paths.push(format!("{lunarc_results_legacy_dir}/"));
+        }
+        if include_containers_manifest {
+            let manifest_root = format!("{lunarc_containers_root}/manifest");
+            if remote_path_exists(workspace, &lunarc_host, &manifest_root)? {
+                pull_lunarc_tree(workspace, &lunarc_host, &manifest_root, &dest)?;
+                pulled_paths.push(format!("{manifest_root}/"));
+            }
+        }
+        if !data_manifest_glob.is_empty() {
+            for rel in data_manifest_glob
+                .split(',')
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+            {
+                let clean_rel = rel.trim_start_matches('/');
+                let remote_path = format!("{lunarc_corpus_root}/{clean_rel}");
+                pull_lunarc_path(workspace, &lunarc_host, &remote_path, &dest)?;
+                pulled_paths.push(remote_path);
+            }
+        }
     } else {
         let outcome = run_program(
             workspace,
@@ -5947,6 +6016,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             "remote_hostname": remote_hostname,
             "remote_root": lunarc_root,
             "remote_repo": lunarc_repo_dir,
+            "remote_cache_root": benchmark_workspace.remote_cache_root,
             "remote_commit": remote_commit,
             "pulled_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
             "pull_mode": pull_mode,
@@ -5992,6 +6062,7 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             other => return Err(anyhow!("unknown arg: {other}")),
         }
     }
+    let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
     let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
     let mut exclude_file = workspace.path("configs/hpc/rsync/push-excludes.txt");
     if profiles_cfg.is_file() {
@@ -5999,9 +6070,17 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             exclude_file = workspace.path(&rel);
         }
     }
-    let lunarc_host = env_or_default("LUNARC_HOST", "lunarc");
+    let default_lunarc_host = benchmark_workspace
+        .remote_ssh_host
+        .as_deref()
+        .unwrap_or("lunarc");
+    let lunarc_host = env_or_default("LUNARC_HOST", default_lunarc_host);
     let lunarc_root = env_or_default("LUNARC_ROOT", "${HOME}/bijux");
-    let lunarc_repo_dir = env_or_default("LUNARC_REPO_DIR", &format!("{lunarc_root}/bijux-dna"));
+    let default_lunarc_repo_dir = benchmark_workspace
+        .remote_repo_root
+        .clone()
+        .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna"));
+    let lunarc_repo_dir = env_or_default("LUNARC_REPO_DIR", &default_lunarc_repo_dir);
     let clean_context = env_or_default("CLEAN_CONTEXT", "1") == "1";
     let allow_dirty = env_or_default("ALLOW_DIRTY", "0") == "1";
     if !allow_dirty {
@@ -8437,13 +8516,22 @@ fn trim_newline(raw: &str) -> String {
 
 fn lunarc_sync_source_payload(workspace: &Workspace) -> Result<Value> {
     let source_commit = trim_newline(
-        &run_program(workspace, "git", &["rev-parse".to_string(), "HEAD".to_string()])?.stdout,
+        &run_program(
+            workspace,
+            "git",
+            &["rev-parse".to_string(), "HEAD".to_string()],
+        )?
+        .stdout,
     );
     let source_branch = trim_newline(
         &run_program(
             workspace,
             "git",
-            &["rev-parse".to_string(), "--abbrev-ref".to_string(), "HEAD".to_string()],
+            &[
+                "rev-parse".to_string(),
+                "--abbrev-ref".to_string(),
+                "HEAD".to_string(),
+            ],
         )?
         .stdout,
     );
@@ -8515,6 +8603,141 @@ fn lunarc_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option
             })
             .flatten()
     }))
+}
+
+#[derive(Default)]
+struct BenchmarkWorkspacePaths {
+    local_results_root: Option<String>,
+    remote_ssh_host: Option<String>,
+    remote_repo_root: Option<String>,
+    remote_cache_root: Option<String>,
+    remote_corpus_root: Option<String>,
+    remote_results_root: Option<String>,
+    remote_results_legacy_root: Option<String>,
+    remote_containers_root: Option<String>,
+}
+
+fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWorkspacePaths> {
+    let path = workspace.path("configs/bench/workspace.toml");
+    if !path.is_file() {
+        return Ok(BenchmarkWorkspacePaths::default());
+    }
+    let value: TomlValue =
+        toml::from_str(&read_utf8(&path)?).with_context(|| format!("parse {}", path.display()))?;
+    let local = value.get("local").and_then(TomlValue::as_table);
+    let remote = value.get("remote").and_then(TomlValue::as_table);
+    Ok(BenchmarkWorkspacePaths {
+        local_results_root: local
+            .and_then(|table| table.get("results_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        remote_ssh_host: remote
+            .and_then(|table| table.get("ssh_host"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        remote_repo_root: remote
+            .and_then(|table| table.get("repo_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        remote_cache_root: remote
+            .and_then(|table| table.get("cache_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        remote_corpus_root: remote
+            .and_then(|table| table.get("corpus_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        remote_results_root: remote
+            .and_then(|table| table.get("results_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        remote_results_legacy_root: remote
+            .and_then(|table| table.get("results_legacy_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        remote_containers_root: remote
+            .and_then(|table| table.get("containers_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+    })
+}
+
+fn expand_home_placeholder(raw: &str, home: &str) -> String {
+    raw.replace("${HOME}", home)
+}
+
+fn shell_single_quote(raw: &str) -> String {
+    raw.replace('\'', "'\"'\"'")
+}
+
+fn remote_path_exists(workspace: &Workspace, host: &str, remote_path: &str) -> Result<bool> {
+    let outcome = run_program(
+        workspace,
+        "ssh",
+        &[
+            host.to_string(),
+            format!("test -e '{}'", shell_single_quote(remote_path)),
+        ],
+    )?;
+    Ok(outcome.is_success())
+}
+
+fn mirror_remote_path(base: &Path, remote_path: &str) -> PathBuf {
+    base.join(remote_path.trim_start_matches('/'))
+}
+
+fn pull_lunarc_tree(
+    workspace: &Workspace,
+    host: &str,
+    remote_dir: &str,
+    dest_root: &Path,
+) -> Result<()> {
+    let local_dir = mirror_remote_path(dest_root, remote_dir);
+    bijux_dna_infra::ensure_dir(&local_dir)?;
+    let outcome = run_program(
+        workspace,
+        "rsync",
+        &[
+            "-az".to_string(),
+            format!("{host}:{remote_dir}/"),
+            format!("{}/", local_dir.display()),
+        ],
+    )?;
+    if !outcome.is_success() {
+        return Err(anyhow!(
+            "rsync failed while pulling {host}:{remote_dir}/ to {}/",
+            local_dir.display()
+        ));
+    }
+    Ok(())
+}
+
+fn pull_lunarc_path(
+    workspace: &Workspace,
+    host: &str,
+    remote_path: &str,
+    dest_root: &Path,
+) -> Result<()> {
+    let local_path = mirror_remote_path(dest_root, remote_path);
+    if let Some(parent) = local_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    let outcome = run_program(
+        workspace,
+        "rsync",
+        &[
+            "-az".to_string(),
+            format!("{host}:{remote_path}"),
+            local_path.display().to_string(),
+        ],
+    )?;
+    if !outcome.is_success() {
+        return Err(anyhow!(
+            "rsync failed while pulling {host}:{remote_path} to {}",
+            local_path.display()
+        ));
+    }
+    Ok(())
 }
 
 fn env_or_default(key: &str, fallback: &str) -> String {
