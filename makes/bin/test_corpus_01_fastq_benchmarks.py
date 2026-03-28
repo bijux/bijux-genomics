@@ -791,21 +791,32 @@ class BenchmarkMakefileTests(unittest.TestCase):
     def test_lunarc_makefile_exports_neutral_benchmark_sync_env_vars(self) -> None:
         text = lunarc_makefile_text()
 
-        self.assertIn('BENCHMARK_SYNC_HOST="$(LUNARC_HOST)"', text)
+        self.assertIn('BENCHMARK_SYNC_CLEAN_CONTEXT="$(CLEAN_CONTEXT)"', text)
+        self.assertIn('BENCHMARK_SYNC_ALLOW_DIRTY="$(ALLOW_DIRTY)"', text)
+        self.assertIn('BENCHMARK_SYNC_PULL_BASE="$(LUNARC_PULL_BASE)"', text)
         self.assertIn(
+            'BENCHMARK_SYNC_PULL_DEST="$(LUNARC_LOCAL_RESULTS_DIR)"',
+            text,
+        )
+        self.assertNotIn('BENCHMARK_SYNC_HOST="$(LUNARC_HOST)"', text)
+        self.assertNotIn(
             'BENCHMARK_SYNC_FRONTEND_ROOT="$(LUNARC_ROOT)"',
             text,
         )
-        self.assertIn(
+        self.assertNotIn(
             'BENCHMARK_SYNC_REPO_ROOT="$(LUNARC_REPO_DIR)"',
             text,
         )
-        self.assertIn(
+        self.assertNotIn(
             'BENCHMARK_SYNC_RESULTS_ROOT="$(LUNARC_RESULTS_DIR)"',
             text,
         )
-        self.assertIn(
-            'BENCHMARK_SYNC_PULL_DEST="$(LUNARC_LOCAL_RESULTS_DIR)"',
+        self.assertNotIn(
+            'BENCHMARK_SYNC_CONTAINERS_ROOT="$(LUNARC_CONTAINERS_ROOT)"',
+            text,
+        )
+        self.assertNotIn(
+            'BENCHMARK_SYNC_CORPUS_ROOT="$(LUNARC_CORPUS_ROOT)"',
             text,
         )
 
