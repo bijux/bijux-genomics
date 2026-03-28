@@ -6463,6 +6463,114 @@ class DetectAdaptersReportingTests(unittest.TestCase):
                 }
             )
 
+    def test_detect_adapters_summary_preserves_configured_run_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            actual_run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.detect_adapters" / "lunarc"
+            )
+            run_root = repo_root / "mirror" / "fastq.detect_adapters"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.detect_adapters" / "corpus-01"
+            sample_report = (
+                actual_run_root / "bench" / "detect_adapters" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {"tool": "fastqc"},
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "reads_in": 100,
+                                        "reads_out": 100,
+                                        "bases_in": 1000,
+                                        "bases_out": 1000,
+                                        "mean_q": 32.0,
+                                        "candidate_adapter_count": 2,
+                                        "adapter_trimmed_fraction": None,
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (actual_run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.detect_adapters",
+                        "scenario_id": "detect_adapters_fairness",
+                        "tool_kind": "benchmark",
+                        "samples_total": 1,
+                        "samples_failed": 0,
+                        "tools": ["fastqc"],
+                        "inspection_mode": "evidence_only",
+                        "report_only": True,
+                        "evidence_scope": "full_input",
+                        "evidence_format": "fastqc_summary",
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "se",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_detect_adapters_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    detect_adapters_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    detect_adapters_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "modern",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(detect_adapters_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+            self.assertEqual(summary["run_root"], str(run_root))
+
 
 class OverrepresentedReportingTests(unittest.TestCase):
     def test_overrepresented_markdown_mentions_top_k_contract(self) -> None:
