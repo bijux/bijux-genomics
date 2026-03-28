@@ -115,6 +115,12 @@ def benchmark_workspace_contract_text() -> str:
     )
 
 
+def benchmark_workspace_model_text() -> str:
+    return (ROOT / "docs" / "benchmark" / "workspace-model.md").read_text(
+        encoding="utf-8"
+    )
+
+
 def benchmark_workflow_operations_text() -> str:
     return (ROOT / "docs" / "benchmark" / "workflow-operations.md").read_text(
         encoding="utf-8"
@@ -752,6 +758,15 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("remote.cache_root", text)
         self.assertIn("configs/bench/workspace.toml", text)
 
+    def test_benchmark_workspace_model_doc_names_durable_root_roles(self) -> None:
+        text = benchmark_workspace_model_text()
+
+        self.assertIn("private frontend repo", text)
+        self.assertIn("shared benchmark cache", text)
+        self.assertIn("local benchmark archive", text)
+        self.assertIn("local cache mirror", text)
+        self.assertIn("configs/bench/workspace.toml", text)
+
     def test_benchmark_workflow_operations_doc_covers_mirror_and_cluster_migration(
         self,
     ) -> None:
@@ -759,6 +774,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
         self.assertIn("Mirror The Shared Cache Tree", text)
         self.assertIn("Move To Another Cluster With Config", text)
+        self.assertIn("workspace-model.md", text)
         self.assertIn("local.cache_mirror_root", text)
         self.assertIn("configs/bench/workspace.toml", text)
         self.assertIn("corpus-01-dossier-index.json", text)

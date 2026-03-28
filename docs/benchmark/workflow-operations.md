@@ -7,7 +7,7 @@ This document covers two operational contracts:
 - how to mirror the governed shared `.cache` tree into the local benchmark archive workspace
 - how to move the benchmark workflow to another cluster by updating configuration rather than rewriting benchmark code
 
-Read this together with `docs/benchmark/workspace-contract.md` and `configs/bench/workspace.toml`.
+Read this together with `docs/benchmark/workspace-model.md`, `docs/benchmark/workspace-contract.md`, and `configs/bench/workspace.toml`.
 
 ## Mirror The Shared Cache Tree
 
