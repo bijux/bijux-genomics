@@ -124,6 +124,17 @@ def workspace_layout_report() -> dict:
                 ),
             }
         )
+    for stage_id in local_stage_layout["archive_only_stage_ids"]:
+        issues.append(
+            {
+                "issue_id": "archive-only-local-stage-root",
+                "detail": (
+                    f"{local_stage_layout['archive_corpus_root']}/{stage_id} exists "
+                    f"outside the governed cache mirror root "
+                    f"{local_stage_layout['cache_corpus_root']}"
+                ),
+            }
+        )
 
     return {
         "local_results_root": str(local_results_root),

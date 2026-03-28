@@ -52,21 +52,20 @@ def normalize_stage_roots(*, corpus_id: str, confirm: bool) -> dict:
     local_cache_mirror_root = support.benchmark_local_cache_mirror_root()
     legacy_corpus_root = local_results_root / corpus_id
     canonical_corpus_root = local_cache_mirror_root / "results" / corpus_id
+    archive_stage_ids = _stage_names(legacy_corpus_root)
+    cache_stage_ids = _stage_names(canonical_corpus_root)
+    shared_stage_ids = sorted(set(archive_stage_ids) & set(cache_stage_ids))
+    archive_only_stage_ids = sorted(set(archive_stage_ids) - set(cache_stage_ids))
+    cache_only_stage_ids = sorted(set(cache_stage_ids) - set(archive_stage_ids))
 
-    shared_stage_ids = sorted(
-        set(_stage_names(legacy_corpus_root)) & set(_stage_names(canonical_corpus_root))
+    plan = converge_workspace_roots.plan_convergence(
+        canonical_corpus_root,
+        legacy_corpus_root,
     )
+    convergence_report = apply_stage_plan(plan) if confirm else plan
     stage_reports: list[dict] = []
-    for stage_id in shared_stage_ids:
-        legacy_stage_root = legacy_corpus_root / stage_id
-        canonical_stage_root = canonical_corpus_root / stage_id
-        plan = converge_workspace_roots.plan_convergence(
-            canonical_stage_root,
-            legacy_stage_root,
-        )
-        stage_report = apply_stage_plan(plan) if confirm else plan
-        stage_report["stage_id"] = stage_id
-        stage_reports.append(stage_report)
+    for action in convergence_report["actions"]:
+        stage_reports.append({**action, "stage_id": action["entry_name"]})
 
     if confirm and legacy_corpus_root.exists():
         _remove_empty_parents(legacy_corpus_root, local_results_root)
@@ -74,16 +73,32 @@ def normalize_stage_roots(*, corpus_id: str, confirm: bool) -> dict:
     manual_review_stage_ids = [
         report["stage_id"]
         for report in stage_reports
-        if any(action["action"] == "manual-review-required" for action in report["actions"])
+        if report["action"] == "manual-review-required"
+    ]
+    moved_stage_ids = [
+        report["stage_id"]
+        for report in stage_reports
+        if report["action"] == "move-legacy-entry"
+    ]
+    removed_duplicate_stage_ids = [
+        report["stage_id"]
+        for report in stage_reports
+        if report["action"] == "remove-legacy-duplicate"
     ]
     return {
         "corpus_id": corpus_id,
         "canonical_corpus_root": str(canonical_corpus_root),
         "legacy_corpus_root": str(legacy_corpus_root),
+        "archive_stage_ids": archive_stage_ids,
+        "cache_stage_ids": cache_stage_ids,
         "shared_stage_ids": shared_stage_ids,
+        "archive_only_stage_ids": archive_only_stage_ids,
+        "cache_only_stage_ids": cache_only_stage_ids,
         "mode": "confirm" if confirm else "dry-run",
         "status": "needs-review" if manual_review_stage_ids else "clear",
         "stage_reports": stage_reports,
+        "moved_stage_ids": moved_stage_ids,
+        "removed_duplicate_stage_ids": removed_duplicate_stage_ids,
         "manual_review_stage_ids": manual_review_stage_ids,
     }
 
