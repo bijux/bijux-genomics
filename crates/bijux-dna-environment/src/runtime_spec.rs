@@ -27,9 +27,9 @@ mod tests {
 
     use crate::resolve::{
         apptainer_sif_path, available_runners_with, cache_dir, docker_image_exists_with,
-        hydrate_catalog_digests_from_registry, load_image_catalog_from_file, resolve_image,
-        select_best_runner, validate_images_for_stage, EnvError, ImageRef, PlatformSpec,
-        ResolvedImage, RuntimeKind, ToolImageSpec,
+        hydrate_catalog_digests_from_registry, load_image_catalog_from_file, reference_cache_dir,
+        resolve_image, select_best_runner, validate_images_for_stage, EnvError, ImageRef,
+        PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
     };
     use bijux_dna_infra::atomic_write_bytes;
 
@@ -197,7 +197,9 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
         hydrate_catalog_digests_from_registry(&mut catalog, &registry_path)?;
 
         assert_eq!(
-            catalog.get("fastqc").and_then(|spec| spec.digest.as_deref()),
+            catalog
+                .get("fastqc")
+                .and_then(|spec| spec.digest.as_deref()),
             Some("sha256:abc123")
         );
         Ok(())
@@ -226,7 +228,9 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
         hydrate_catalog_digests_from_registry(&mut catalog, &registry_path)?;
 
         assert_eq!(
-            catalog.get("fastqc").and_then(|spec| spec.digest.as_deref()),
+            catalog
+                .get("fastqc")
+                .and_then(|spec| spec.digest.as_deref()),
             Some("sha256:kept")
         );
         Ok(())
@@ -279,9 +283,19 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
         let home = std::env::temp_dir().join("bijux_home");
         bijux_dna_infra::ensure_dir(&home)?;
         let original = std::env::var_os("HOME");
+        let original_cache_root = std::env::var_os("BIJUX_CACHE_ROOT");
+        let original_xdg_cache_home = std::env::var_os("XDG_CACHE_HOME");
+        std::env::remove_var("BIJUX_CACHE_ROOT");
+        std::env::remove_var("XDG_CACHE_HOME");
         std::env::set_var("HOME", &home);
         let docker = cache_dir(RuntimeKind::Docker);
         let apptainer = cache_dir(RuntimeKind::Apptainer);
+        if let Some(value) = original_cache_root {
+            std::env::set_var("BIJUX_CACHE_ROOT", value);
+        }
+        if let Some(value) = original_xdg_cache_home {
+            std::env::set_var("XDG_CACHE_HOME", value);
+        }
         if let Some(value) = original {
             std::env::set_var("HOME", value);
         }
@@ -292,6 +306,30 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
             .to_string_lossy()
             .contains(".cache/bijux/apptainer/sif"));
         Ok(())
+    }
+
+    #[test]
+    fn cache_dir_prefers_configured_cache_root() {
+        let configured = std::env::temp_dir().join("bijux_configured_cache");
+        let original_cache_root = std::env::var_os("BIJUX_CACHE_ROOT");
+        let original_xdg_cache_home = std::env::var_os("XDG_CACHE_HOME");
+        std::env::set_var("BIJUX_CACHE_ROOT", &configured);
+        std::env::remove_var("XDG_CACHE_HOME");
+        let docker = cache_dir(RuntimeKind::Docker);
+        let reference = reference_cache_dir();
+        if let Some(value) = original_cache_root {
+            std::env::set_var("BIJUX_CACHE_ROOT", value);
+        } else {
+            std::env::remove_var("BIJUX_CACHE_ROOT");
+        }
+        if let Some(value) = original_xdg_cache_home {
+            std::env::set_var("XDG_CACHE_HOME", value);
+        }
+        assert_eq!(
+            docker,
+            configured.join("bijux").join("docker").join("images")
+        );
+        assert_eq!(reference, configured.join("bijux").join("references"));
     }
 
     #[test]

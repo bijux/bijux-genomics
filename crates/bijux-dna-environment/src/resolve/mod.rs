@@ -250,7 +250,10 @@ pub(crate) fn load_platform_from_file(
 }
 
 fn resolved_container_dir(raw: &PlatformSpecRaw) -> PathBuf {
-    if !matches!(raw.runner, RuntimeKind::Apptainer | RuntimeKind::Singularity) {
+    if !matches!(
+        raw.runner,
+        RuntimeKind::Apptainer | RuntimeKind::Singularity
+    ) {
         return raw.container_dir.clone();
     }
     if let Ok(path) = std::env::var("BIJUX_APPTAINER_CONTAINER_DIR") {
@@ -390,7 +393,8 @@ arch = "amd64"
 pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
     let path = bijux_dna_infra::configs_file(Path::new("."), "ci/tools/images.toml");
     let mut catalog = load_image_catalog_from_file(&path)?;
-    let registry_path = bijux_dna_infra::configs_file(Path::new("."), "ci/registry/tool_registry.toml");
+    let registry_path =
+        bijux_dna_infra::configs_file(Path::new("."), "ci/registry/tool_registry.toml");
     hydrate_catalog_digests_from_registry(&mut catalog, &registry_path)?;
     Ok(catalog)
 }
@@ -433,8 +437,8 @@ pub(crate) fn hydrate_catalog_digests_from_registry(
         return Ok(());
     }
     let contents = std::fs::read_to_string(registry_path)?;
-    let registry: RegistryImagePinFile =
-        bijux_dna_infra::formats::parse_toml(&contents).map_err(|err| EnvError::Parse(err.message))?;
+    let registry: RegistryImagePinFile = bijux_dna_infra::formats::parse_toml(&contents)
+        .map_err(|err| EnvError::Parse(err.message))?;
     for tool in registry.tools {
         if tool.id.trim().is_empty() {
             continue;
@@ -587,19 +591,29 @@ fn merge_command_output(stdout: &[u8], stderr: &[u8]) -> String {
 
 #[must_use]
 pub fn cache_dir(runner: RuntimeKind) -> PathBuf {
-    let home = std::env::var_os("HOME").map_or_else(|| PathBuf::from("."), PathBuf::from);
+    let cache_root = base_cache_root();
     match runner {
-        RuntimeKind::Docker => home
-            .join(".cache")
-            .join("bijux")
-            .join("docker")
-            .join("images"),
-        RuntimeKind::Apptainer | RuntimeKind::Singularity => home
-            .join(".cache")
-            .join("bijux")
-            .join("apptainer")
-            .join("sif"),
+        RuntimeKind::Docker => cache_root.join("bijux").join("docker").join("images"),
+        RuntimeKind::Apptainer | RuntimeKind::Singularity => {
+            cache_root.join("bijux").join("apptainer").join("sif")
+        }
     }
+}
+
+fn base_cache_root() -> PathBuf {
+    std::env::var_os("BIJUX_CACHE_ROOT")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .or_else(|| {
+            std::env::var_os("XDG_CACHE_HOME")
+                .filter(|value| !value.is_empty())
+                .map(PathBuf::from)
+        })
+        .unwrap_or_else(|| {
+            std::env::var_os("HOME")
+                .map_or_else(|| PathBuf::from("."), PathBuf::from)
+                .join(".cache")
+        })
 }
 
 pub(crate) fn docker_image_exists_with<F>(image: &ResolvedImage, runner: F) -> bool
@@ -648,8 +662,7 @@ pub mod api {
 
 #[must_use]
 pub fn reference_cache_dir() -> PathBuf {
-    let home = std::env::var_os("HOME").map_or_else(|| PathBuf::from("."), PathBuf::from);
-    home.join(".cache").join("bijux").join("references")
+    base_cache_root().join("bijux").join("references")
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
