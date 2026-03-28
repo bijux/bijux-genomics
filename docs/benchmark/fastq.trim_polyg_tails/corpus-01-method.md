@@ -12,37 +12,14 @@ The benchmark contract is:
 - explicit chemistry contract: `polyx_preset=illumina_twocolor`
 - explicit trim threshold: `min_polyg_run=10`
 
-## Execution
-
-Run the corpus benchmark from the Lunarc frontend against the workspace-configured corpus root:
-
-```bash
-python3 makes/bin/run_fastq_trim_polyg_tails_corpus_01.py \
-  --repo-root . \
-  --platform lunarc-apptainer \
-  --tools fastp,bbduk \
-  --polyx-preset illumina_twocolor \
-  --min-polyg-run 10
-```
-
-Render the published report set after the run completes:
-
-```bash
-python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_report.py \
-  --repo-root .
-
-python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_briefing.py \
-  --docs-root docs/benchmark/fastq.trim_polyg_tails/corpus-01
-```
-
-The make aliases mirror the same flow:
+## Workflow
 
 ```bash
 make _benchmark-trim-polyg-corpus-01 PLATFORM=lunarc-apptainer
 make _benchmark-trim-polyg-corpus-01-report
-
-Both entrypoints resolve the governed Lunarc corpus root and run root from [workspace.toml](/Users/bijan/bijux/bijux-dna/configs/bench/workspace.toml). Override `--corpus-root` only when auditing a non-governed mirror on purpose.
 ```
+
+The make targets drive the governed runner and report renderers under `makes/bin/`. They resolve the governed corpus root and run root from `configs/bench/workspace.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
 
 ## Artifact Contract
 
