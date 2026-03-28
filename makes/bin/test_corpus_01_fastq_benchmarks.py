@@ -2000,6 +2000,120 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 }
             )
 
+    def test_deplete_host_summary_preserves_configured_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = repo_root / "results" / "corpus_01" / "fastq.deplete_host" / "lunarc"
+            docs_root = (
+                repo_root / "docs" / "benchmark" / "fastq.deplete_host" / "corpus-01"
+            )
+            sample_report = (
+                run_root / "bench" / "deplete_host" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "bowtie2",
+                                    "parameters": {
+                                        "reference_catalog_id": "host_reference",
+                                        "reference_index_backend": "bowtie2_build",
+                                        "host_identity_threshold": 0.95,
+                                        "retain_unmapped_only": True,
+                                        "raw_backend_report_format": "bowtie2_met_file",
+                                    },
+                                },
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "reads_in": 100,
+                                    "reads_out": 98,
+                                    "bases_in": 1000,
+                                    "bases_out": 980,
+                                    "host_fraction_removed": 0.02,
+                                    "pairs_in": 50,
+                                    "pairs_out": 49,
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.deplete_host",
+                        "scenario_id": "host_depletion_fairness",
+                        "tool_kind": "benchmark",
+                        "tools": ["bowtie2"],
+                        "samples_failed": 0,
+                        "reference_index": "/refs/host/reference",
+                        "reference_index_digest": "sha256:index",
+                        "reference_index_size_bytes": 1234,
+                        "reference_index_lineage_json": "/refs/host/lineage.json",
+                        "reference_index_lineage_digest": "sha256:lineage",
+                        "reference_catalog_id": "host_reference",
+                        "reference_index_backend": "bowtie2_build",
+                        "host_identity_threshold": 0.95,
+                        "retain_unmapped_only": True,
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_deplete_host_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    deplete_host_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    deplete_host_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "ancient",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(deplete_host_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+
     def test_deplete_reference_contaminants_report_contract_rejects_policy_drift(
         self,
     ) -> None:
