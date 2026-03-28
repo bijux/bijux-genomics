@@ -1,0 +1,21 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for configs/bench/workspace.toml
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-03-28
+
+[local]
+results_root = "/Users/bijan/bijux/bijux-dna-results"
+cache_mirror_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache"
+
+[remote]
+ssh_host = "lunarc"
+project_root = "/home/bijan/lu2024-12-24"
+cache_root = "/home/bijan/lu2024-12-24/.cache"
+corpus_root = "/home/bijan/lu2024-12-24/.cache/corpus_01"
+results_root = "/home/bijan/lu2024-12-24/.cache/results"
+results_legacy_root = "/home/bijan/lu2024-12-24/.cache/bijux-dna-results"
+extra_data_root = "/home/bijan/lu2024-12-24/.cache/extra-data"
+containers_root = "/home/bijan/lu2024-12-24/.cache/bijux-dna-container"
+reference_root = "/home/bijan/lu2024-12-24/.cache/reference"
