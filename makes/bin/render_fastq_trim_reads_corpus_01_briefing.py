@@ -18,6 +18,8 @@ from corpus_01_fastq_benchmark_support import (
     publish_corpus_briefing_artifacts,
     percentile,
     resolve_corpus_briefing_runtime,
+    find_cohort_entry,
+    find_cohort_entry,
     safe_mean,
     safe_median,
 )
@@ -147,18 +149,6 @@ def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     output.sort(key=lambda row: row["total_runtime_s"], reverse=True)
     return output
 
-def cohort_entry(
-    rows: list[dict],
-    *,
-    tool: str,
-    dimension: str,
-    cohort: str,
-) -> dict | None:
-    for row in rows:
-        if row["tool"] == tool and row["dimension"] == dimension and row["cohort"] == cohort:
-            return row
-    return None
-
 def render_markdown(
     summary: dict,
     rows: list[dict],
@@ -174,13 +164,13 @@ def render_markdown(
     slowest = max(runtime_rows, key=lambda row: row["median_runtime_s"])
     best_retention = max(runtime_rows, key=lambda row: row["median_base_retention"])
     lowest_retention = min(runtime_rows, key=lambda row: row["median_base_retention"])
-    modern_pe_fastp = cohort_entry(
+    modern_pe_fastp = find_cohort_entry(
         cohort_rows,
         tool="fastp",
         dimension="era_layout",
         cohort="modern_pe",
     )
-    ancient_se_fastp = cohort_entry(
+    ancient_se_fastp = find_cohort_entry(
         cohort_rows,
         tool="fastp",
         dimension="era_layout",

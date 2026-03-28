@@ -20,6 +20,7 @@ from corpus_01_fastq_benchmark_support import (
     publish_corpus_briefing_artifacts,
     percentile,
     resolve_corpus_briefing_runtime,
+    find_cohort_entry,
     safe_mean,
     safe_median,
 )
@@ -198,18 +199,6 @@ def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     output.sort(key=lambda row: row["total_runtime_s"], reverse=True)
     return output
 
-def cohort_entry(
-    rows: list[dict],
-    *,
-    tool: str,
-    dimension: str,
-    cohort: str,
-) -> dict | None:
-    for row in rows:
-        if row["tool"] == tool and row["dimension"] == dimension and row["cohort"] == cohort:
-            return row
-    return None
-
 def render_markdown(
     summary: dict,
     rows: list[dict],
@@ -220,25 +209,25 @@ def render_markdown(
     reference_tool = summary["tools"][0]
     tool_lookup = {row["tool"]: row for row in runtime_rows}
     fastest = min(runtime_rows, key=lambda row: row["median_runtime_s"])
-    modern_pe = cohort_entry(
+    modern_pe = find_cohort_entry(
         cohort_rows,
         tool=reference_tool,
         dimension="era_layout",
         cohort="modern_pe",
     )
-    ancient_se = cohort_entry(
+    ancient_se = find_cohort_entry(
         cohort_rows,
         tool=reference_tool,
         dimension="era_layout",
         cohort="ancient_se",
     )
-    under_500 = cohort_entry(
+    under_500 = find_cohort_entry(
         cohort_rows,
         tool=reference_tool,
         dimension="size_band",
         cohort="under_500mb",
     )
-    under_100 = cohort_entry(
+    under_100 = find_cohort_entry(
         cohort_rows,
         tool=reference_tool,
         dimension="size_band",

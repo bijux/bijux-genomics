@@ -174,6 +174,21 @@ def default_briefing_publisher_paths() -> list[Path]:
     return [ROOT / "makes" / "bin" / name for name in names]
 
 
+def cohort_lookup_briefing_paths() -> list[Path]:
+    names = [
+        "render_fastq_detect_adapters_corpus_01_briefing.py",
+        "render_fastq_merge_pairs_corpus_01_briefing.py",
+        "render_fastq_profile_overrepresented_sequences_corpus_01_briefing.py",
+        "render_fastq_profile_read_lengths_corpus_01_briefing.py",
+        "render_fastq_profile_reads_corpus_01_briefing.py",
+        "render_fastq_report_qc_corpus_01_briefing.py",
+        "render_fastq_trim_polyg_tails_corpus_01_briefing.py",
+        "render_fastq_trim_reads_corpus_01_briefing.py",
+        "render_fastq_validate_reads_corpus_01_briefing.py",
+    ]
+    return [ROOT / "makes" / "bin" / name for name in names]
+
+
 def validate_reads_method_text() -> str:
     return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
@@ -348,6 +363,12 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 text,
                 path.name,
             )
+
+    def test_briefings_use_shared_cohort_lookup_helper(self) -> None:
+        for path in cohort_lookup_briefing_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("find_cohort_entry(", text, path.name)
+            self.assertNotIn("def cohort_entry(", text, path.name)
 
     def test_briefing_renderers_use_shared_stats_io_and_publication_helpers(
         self,
