@@ -1,26 +1,28 @@
 # schema_version = 1
 # owner = bijux-dna-bench
-# purpose = Contract config for configs/bench/workspace.toml
-# authority = bijux-dna-bench
-# stability = evolving
+# purpose = Compatibility shim for legacy workspace-only benchmark consumers
+# authority = bijux-dna
+# stability = compatibility
 # last_updated = 2026-03-28
+# compatibility = Mirrors [workspace] from configs/bench/benchmark.toml
+# migration = Prefer configs/bench/benchmark.toml for new automation and docs
 
 [local]
-results_root = "/Users/bijan/bijux/bijux-dna-results"
-cache_mirror_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache"
-extra_data_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data"
-reference_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference"
+results_root = "${BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT}"
+cache_mirror_root = "${BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT}"
+extra_data_root = "${BIJUX_BENCHMARK_LOCAL_EXTRA_DATA_ROOT}"
+reference_root = "${BIJUX_BENCHMARK_LOCAL_REFERENCE_ROOT}"
 
 [remote]
-ssh_host = "lunarc"
-repo_root = "/home/bijan/bijux/bijux-dna"
-cache_root = "/home/bijan/lu2024-12-24/.cache"
-corpus_root = "/home/bijan/lu2024-12-24/.cache/corpus_01"
-results_root = "/home/bijan/lu2024-12-24/.cache/results"
-results_legacy_root = "/home/bijan/lu2024-12-24/.cache/bijux-dna-results"
-extra_data_root = "/home/bijan/lu2024-12-24/.cache/extra-data"
-containers_root = "/home/bijan/lu2024-12-24/.cache/bijux-dna-container"
-reference_root = "/home/bijan/lu2024-12-24/.cache/reference"
+ssh_host = "${BIJUX_BENCHMARK_REMOTE_SSH_HOST}"
+repo_root = "${BIJUX_BENCHMARK_REMOTE_REPO_ROOT}"
+cache_root = "${BIJUX_BENCHMARK_REMOTE_CACHE_ROOT}"
+corpus_root = "${BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT}"
+results_root = "${BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT}"
+results_legacy_root = "${BIJUX_BENCHMARK_REMOTE_RESULTS_LEGACY_ROOT}"
+extra_data_root = "${BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT}"
+containers_root = "${BIJUX_BENCHMARK_REMOTE_CONTAINERS_ROOT}"
+reference_root = "${BIJUX_BENCHMARK_REMOTE_REFERENCE_ROOT}"
 
 [artifacts.fastq_deplete_host]
 reference_index_template = "benchmark/fastq.deplete_host/{reference_catalog_id}/{reference_index_backend}/index"
@@ -34,7 +36,7 @@ local_cache_results_template = "results/{corpus_id}/{stage_id}/lunarc"
 local_archive_results_template = "{corpus_id}/{stage_id}/lunarc"
 
 [sync.defaults]
-pull_base = "/Users/bijan/bijux/bijux-dna-results"
+pull_base = "${BIJUX_BENCHMARK_PULL_BASE}"
 pull_mode = "results"
 include_profile = "pull-results-default"
 exclude_profile = "pull-full-default"
