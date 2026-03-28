@@ -1,8 +1,8 @@
 # `corpus-01` FASTQ remediation queue
 
 - Governed publication stages: `20`
-- Open stages: `3`
-- Clear stages: `17`
+- Open stages: `2`
+- Clear stages: `18`
 
 ## Stage queue
 
@@ -24,13 +24,9 @@
 - `fastq.normalize_primers`: `clear` via `none`
   - publication `complete`, results `complete`, owner `benchmark-governance`
   - dossier `2026-03-28T02:32:33.900712+00:00` from `local-results-root`
-- `fastq.trim_polyg_tails`: `open` via `repair-benchmark-contract`
-  - publication `incomplete`, results `complete`, owner `benchmark-governance`
+- `fastq.trim_polyg_tails`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
   - dossier `2026-03-28T02:39:28.524365+00:00` from `local-results-root`
-  - issue group `summary-scenario-id-drift` x1 from publication
-    - benchmark/fastq.trim_polyg_tails/corpus-01/summary.json scenario_id=None
-  - issue group `summary-stage-id-drift` x1 from publication
-    - benchmark/fastq.trim_polyg_tails/corpus-01/summary.json stage_id=None
 - `fastq.trim_reads`: `open` via `rerun-benchmark-stage`
   - publication `incomplete`, results `incomplete`, owner `benchmark-governance`
   - dossier `2026-03-28T13:13:27.746619+00:00` from `local-cache-mirror`

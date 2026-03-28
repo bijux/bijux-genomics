@@ -1,8 +1,8 @@
 {
   "corpus_id": "corpus-01",
   "stage_count": 20,
-  "open_stage_count": 3,
-  "clear_stage_count": 17,
+  "open_stage_count": 2,
+  "clear_stage_count": 18,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
@@ -97,55 +97,17 @@
     {
       "stage_id": "fastq.trim_polyg_tails",
       "owner": "benchmark-governance",
-      "status": "open",
-      "issue_count": 2,
-      "issue_group_count": 2,
-      "recommended_action": "repair-benchmark-contract",
-      "publication_status": "incomplete",
+      "status": "clear",
+      "issue_count": 0,
+      "issue_group_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
       "results_status": "complete",
       "sample_scope": "full",
       "published_generated_at_utc": "2026-03-28T02:39:28.524365+00:00",
       "run_root_source": "local-results-root",
-      "issue_groups": [
-        {
-          "issue_id": "summary-scenario-id-drift",
-          "count": 1,
-          "sources": [
-            "publication"
-          ],
-          "severity": "error",
-          "example_details": [
-            "benchmark/fastq.trim_polyg_tails/corpus-01/summary.json scenario_id=None"
-          ],
-          "additional_detail_count": 0
-        },
-        {
-          "issue_id": "summary-stage-id-drift",
-          "count": 1,
-          "sources": [
-            "publication"
-          ],
-          "severity": "error",
-          "example_details": [
-            "benchmark/fastq.trim_polyg_tails/corpus-01/summary.json stage_id=None"
-          ],
-          "additional_detail_count": 0
-        }
-      ],
-      "issues": [
-        {
-          "issue_id": "summary-stage-id-drift",
-          "detail": "benchmark/fastq.trim_polyg_tails/corpus-01/summary.json stage_id=None",
-          "severity": "error",
-          "source": "publication"
-        },
-        {
-          "issue_id": "summary-scenario-id-drift",
-          "detail": "benchmark/fastq.trim_polyg_tails/corpus-01/summary.json scenario_id=None",
-          "severity": "error",
-          "source": "publication"
-        }
-      ]
+      "issue_groups": [],
+      "issues": []
     },
     {
       "stage_id": "fastq.trim_reads",
