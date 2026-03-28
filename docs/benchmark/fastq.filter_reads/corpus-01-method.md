@@ -35,12 +35,13 @@
 - `sample_runtime_outliers.csv`: slowest or lowest-retention samples.
 - `lunarc.md`: narrative benchmark dossier for the Lunarc run.
 
-## Publication gate
-- The committed corpus benchmark entrypoints must stay aligned:
-  - `makes/bin/run_fastq_filter_reads_corpus_01.py`
-  - `makes/bin/render_fastq_filter_reads_corpus_01_report.py`
-  - `makes/bin/render_fastq_filter_reads_corpus_01_briefing.py`
-- A publishable dossier begins once a full Lunarc run materializes `docs/benchmark/fastq.filter_reads/corpus-01/` under the audit contract described above.
+## Workflow
+```bash
+make _benchmark-filter-reads-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-filter-reads-corpus-01-report
+```
+
+The runner resolves the governed corpus root through `configs/bench/workspace.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
