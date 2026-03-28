@@ -1,6 +1,7 @@
 ##@ Performance Benchmarks
 
 BIJUX_BIN ?= cargo run -q -p bijux-dna-dev -- tooling run bijux --
+BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --
 BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml
 export BIJUX_FASTQ_CORPUS_CONFIG := $(BENCHMARK_FASTQ_CORPUS_CONFIG)
 OUT_DIR ?= .
@@ -8,16 +9,44 @@ TOOLS ?=
 SAMPLE_ID ?=
 R1 ?=
 R2 ?=
+THREADS ?= 1
+JOBS ?= 1
+SAMPLE_JOBS ?= 1
+SAMPLE_LIMIT ?= 0
+RESUME ?= 1
+DRY_RUN ?= 0
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
-CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
+CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" remote.corpus_root)
 CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)
 BENCHMARK_OUT_DIR := $(strip $(OUT_DIR))
 BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)
 BENCHMARK_REPORT_RUN_ROOT_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--run-root "$(BENCHMARK_OUT_DIR)",)
 
-BENCH_TOOLS_ARGS = $(if $(TOOLS),--tools $(TOOLS),)
+BENCH_TOOLS_ARGS = $(if $(TOOLS),--tools "$(TOOLS)",)
 BENCH_EXPERIMENTAL_ARGS = $(if $(filter 1 true yes,$(ALLOW_EXPERIMENTAL)),--allow-experimental,)
+BENCHMARK_THREADS_ARGS = --threads $(THREADS)
+BENCHMARK_JOBS_ARGS = --jobs $(JOBS)
+BENCHMARK_SAMPLE_JOBS_ARGS = --sample-jobs $(SAMPLE_JOBS)
+BENCHMARK_SAMPLE_LIMIT_ARGS = $(if $(filter-out 0,$(SAMPLE_LIMIT)),--sample-limit $(SAMPLE_LIMIT),)
+BENCHMARK_RESUME_ARGS = $(if $(filter 0 false no,$(RESUME)),--resume false,)
+BENCHMARK_DRY_RUN_ARGS = $(if $(filter 1 true yes,$(DRY_RUN)),--dry-run,)
+
+define run_corpus_fastq_benchmark
+	@$(BIJUX_BENCH_BIN) $(if $(PLATFORM),--platform "$(PLATFORM)",) bench corpus-fastq \
+		--config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" \
+		--stage $(1) \
+		--corpus-root "$(CORPUS_ROOT)" \
+		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
+		$(BENCH_TOOLS_ARGS) \
+		$(BENCHMARK_THREADS_ARGS) \
+		$(BENCHMARK_JOBS_ARGS) \
+		$(BENCHMARK_SAMPLE_JOBS_ARGS) \
+		$(BENCHMARK_SAMPLE_LIMIT_ARGS) \
+		$(BENCHMARK_RESUME_ARGS) \
+		$(BENCHMARK_DRY_RUN_ARGS) \
+		$(2)
+endef
 
 _benchmark-fastq-stage: ## Benchmark FASTQ stage via CLI (requires STAGE=<stage> SAMPLE_ID R1, optional R2)
 	@BIJUX_BIN="$(BIJUX_BIN)" BIJUX_PLATFORM="$(PLATFORM)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" STAGE="$(STAGE)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks fastq-stage
@@ -59,169 +88,64 @@ _benchmark-status: ## Show canonical benchmark suite/config directories and dete
 	@BIJUX_BIN="$(BIJUX_BIN)" BIJUX_PLATFORM="$(PLATFORM)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks fastq-status
 
 _benchmark-validate-corpus-01: ## Benchmark fastq.validate_reads across corpus-01
-	@python3 makes/bin/run_fastq_validate_reads_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.validate_reads,)
 
 _benchmark-trim-polyg-corpus-01: ## Benchmark fastq.trim_polyg_tails across corpus-01
-	@python3 makes/bin/run_fastq_trim_polyg_tails_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.trim_polyg_tails,)
 
 _benchmark-trim-reads-corpus-01: ## Benchmark fastq.trim_reads across corpus-01
-	@python3 makes/bin/run_fastq_trim_reads_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.trim_reads,)
 
 _benchmark-trim-terminal-damage-corpus-01: ## Benchmark fastq.trim_terminal_damage across corpus-01
-	@python3 makes/bin/run_fastq_trim_terminal_damage_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.trim_terminal_damage,)
 
 _benchmark-detect-adapters-corpus-01: ## Benchmark fastq.detect_adapters across corpus-01
-	@python3 makes/bin/run_fastq_detect_adapters_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.detect_adapters,)
 
 _benchmark-profile-reads-corpus-01: ## Benchmark fastq.profile_reads across corpus-01
-	@python3 makes/bin/run_fastq_profile_reads_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.profile_reads,)
 
 _benchmark-profile-read-lengths-corpus-01: ## Benchmark fastq.profile_read_lengths across corpus-01
-	@python3 makes/bin/run_fastq_profile_read_lengths_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.profile_read_lengths,)
 
 _benchmark-profile-overrepresented-corpus-01: ## Benchmark fastq.profile_overrepresented_sequences across corpus-01
-	@python3 makes/bin/run_fastq_profile_overrepresented_sequences_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.profile_overrepresented_sequences,)
 
 _benchmark-filter-low-complexity-corpus-01: ## Benchmark fastq.filter_low_complexity across corpus-01
-	@python3 makes/bin/run_fastq_filter_low_complexity_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.filter_low_complexity,)
 
 _benchmark-filter-reads-corpus-01: ## Benchmark fastq.filter_reads across corpus-01
-	@python3 makes/bin/run_fastq_filter_reads_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.filter_reads,)
 
 _benchmark-remove-duplicates-corpus-01: ## Benchmark fastq.remove_duplicates across the paired corpus-01 cohort
-	@python3 makes/bin/run_fastq_remove_duplicates_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.remove_duplicates,)
 
 _benchmark-merge-corpus-01: ## Benchmark fastq.merge_pairs across the paired corpus-01 cohort
-	@python3 makes/bin/run_fastq_merge_pairs_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.merge_pairs,)
 
 _benchmark-report-qc-corpus-01: ## Benchmark fastq.report_qc across corpus-01
-	@python3 makes/bin/run_fastq_report_qc_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.report_qc,)
 
 _benchmark-normalize-primers-corpus-01: ## Benchmark fastq.normalize_primers across corpus-01
-	@python3 makes/bin/run_fastq_normalize_primers_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.normalize_primers,)
 
 _benchmark-deplete-rrna-corpus-01: ## Benchmark fastq.deplete_rrna across corpus-01
-	@python3 makes/bin/run_fastq_deplete_rrna_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",) \
-		$(if $(RRNA_DB),--rrna-db "$(RRNA_DB)",) \
-		$(if $(RRNA_BUNDLE_ID),--rrna-bundle-id "$(RRNA_BUNDLE_ID)",)
+	$(call run_corpus_fastq_benchmark,fastq.deplete_rrna,$(if $(RRNA_DB),--stage-arg "--rrna-db" --stage-arg "$(RRNA_DB)",) $(if $(RRNA_BUNDLE_ID),--stage-arg "--rrna-bundle-id" --stage-arg "$(RRNA_BUNDLE_ID)",))
 
 _benchmark-deplete-host-corpus-01: ## Benchmark fastq.deplete_host across corpus-01
-	@python3 makes/bin/run_fastq_deplete_host_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",) \
-		$(if $(REFERENCE_INDEX),--reference-index "$(REFERENCE_INDEX)",)
+	$(call run_corpus_fastq_benchmark,fastq.deplete_host,$(if $(REFERENCE_INDEX),--stage-arg "--reference-index" --stage-arg "$(REFERENCE_INDEX)",))
 
 _benchmark-deplete-reference-contaminants-corpus-01: ## Benchmark fastq.deplete_reference_contaminants across corpus-01
-	@python3 makes/bin/run_fastq_deplete_reference_contaminants_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",) \
-		$(if $(REFERENCE_INDEX),--reference-index "$(REFERENCE_INDEX)",)
+	$(call run_corpus_fastq_benchmark,fastq.deplete_reference_contaminants,$(if $(REFERENCE_INDEX),--stage-arg "--reference-index" --stage-arg "$(REFERENCE_INDEX)",))
 
 _benchmark-screen-taxonomy-corpus-01: ## Benchmark fastq.screen_taxonomy across corpus-01
-	@python3 makes/bin/run_fastq_screen_taxonomy_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",) \
-		$(if $(DATABASE_ROOT),--database-root "$(DATABASE_ROOT)",)
+	$(call run_corpus_fastq_benchmark,fastq.screen_taxonomy,$(if $(DATABASE_ROOT),--stage-arg "--database-root" --stage-arg "$(DATABASE_ROOT)",))
 
 _benchmark-correct-errors-corpus-01: ## Benchmark fastq.correct_errors across corpus-01
-	@python3 makes/bin/run_fastq_correct_errors_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.correct_errors,)
 
 _benchmark-extract-umis-corpus-01: ## Benchmark fastq.extract_umis across the paired corpus-01 cohort
-	@python3 makes/bin/run_fastq_extract_umis_corpus_01.py \
-		--repo-root . \
-		--corpus-root "$(CORPUS_ROOT)" \
-		$(BENCHMARK_STAGE_OUT_DIR_ARGS) \
-		$(if $(PLATFORM),--platform "$(PLATFORM)",) \
-		$(if $(TOOLS),--tools "$(TOOLS)",)
+	$(call run_corpus_fastq_benchmark,fastq.extract_umis,)
 
 _benchmark-validate-corpus-01-report: ## Render the corpus-01 validate benchmark dossier into docs/
 	@python3 makes/bin/render_fastq_validate_reads_corpus_01_report.py \
