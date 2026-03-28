@@ -14,12 +14,11 @@ The benchmark contract is:
 
 ## Execution
 
-Run the corpus benchmark from the Lunarc frontend against the materialized corpus root:
+Run the corpus benchmark from the Lunarc frontend against the workspace-configured corpus root:
 
 ```bash
 python3 makes/bin/run_fastq_trim_polyg_tails_corpus_01.py \
   --repo-root . \
-  --corpus-root /home/bijan/bijux/corpus_01 \
   --platform lunarc-apptainer \
   --tools fastp,bbduk \
   --polyx-preset illumina_twocolor \
@@ -30,8 +29,7 @@ Render the published report set after the run completes:
 
 ```bash
 python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_report.py \
-  --repo-root . \
-  --corpus-root /home/bijan/bijux/corpus_01
+  --repo-root .
 
 python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_briefing.py \
   --docs-root docs/benchmark/fastq.trim_polyg_tails/corpus-01
@@ -40,8 +38,10 @@ python3 makes/bin/render_fastq_trim_polyg_tails_corpus_01_briefing.py \
 The make aliases mirror the same flow:
 
 ```bash
-make _benchmark-trim-polyg-corpus-01 PLATFORM=lunarc-apptainer CORPUS_ROOT=/home/bijan/bijux/corpus_01
-make _benchmark-trim-polyg-corpus-01-report CORPUS_ROOT=/home/bijan/bijux/corpus_01
+make _benchmark-trim-polyg-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-trim-polyg-corpus-01-report
+
+Both entrypoints resolve the governed Lunarc corpus root and run root from [workspace.toml](/Users/bijan/bijux/bijux-dna/configs/bench/workspace.toml). Override `--corpus-root` only when auditing a non-governed mirror on purpose.
 ```
 
 ## Artifact Contract
