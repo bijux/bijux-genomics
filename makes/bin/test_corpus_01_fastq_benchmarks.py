@@ -278,6 +278,19 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "_benchmark-deplete-reference-contaminants-corpus-01-report", phony
         )
 
+    def test_makefile_exposes_report_target_for_every_governed_publication_stage(
+        self,
+    ) -> None:
+        text = benchmark_makefile_text()
+
+        missing_targets = [
+            support.corpus_01_make_report_target(stage_id)
+            for stage_id in publication_stage_ids()
+            if f"{support.corpus_01_make_report_target(stage_id)}:" not in text
+        ]
+
+        self.assertEqual(missing_targets, [])
+
     def test_validate_reads_method_references_existing_make_targets(self) -> None:
         text = validate_reads_method_text()
 
