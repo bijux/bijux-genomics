@@ -20,8 +20,7 @@
 
 - Archive corpus root: `/Users/bijan/bijux/bijux-dna-results/corpus_01`
 - Cache corpus root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01`
-- Archive-only stage ids: `fastq.deplete_host`, `fastq.deplete_host.publish`, `fastq.deplete_reference_contaminants`, `fastq.deplete_rrna`, `fastq.detect_adapters`, `fastq.extract_umis`, `fastq.filter_low_complexity`, `fastq.filter_reads`, `fastq.merge_pairs`, `fastq.normalize_primers`, `fastq.profile_overrepresented_sequences`, `fastq.profile_read_lengths`, `fastq.profile_reads`, `fastq.remove_duplicates`, `fastq.report_qc`, `fastq.trim_polyg_tails`, `fastq.trim_terminal_damage`, `fastq.validate_reads`
-- Cache-only stage ids: `fastq.correct_errors`, `fastq.screen_taxonomy`, `fastq.trim_reads`
+- Cache-only stage ids: `fastq.correct_errors`, `fastq.deplete_host`, `fastq.deplete_host.publish`, `fastq.deplete_reference_contaminants`, `fastq.deplete_rrna`, `fastq.detect_adapters`, `fastq.extract_umis`, `fastq.filter_low_complexity`, `fastq.filter_reads`, `fastq.merge_pairs`, `fastq.normalize_primers`, `fastq.profile_overrepresented_sequences`, `fastq.profile_read_lengths`, `fastq.profile_reads`, `fastq.remove_duplicates`, `fastq.report_qc`, `fastq.screen_taxonomy`, `fastq.trim_polyg_tails`, `fastq.trim_reads`, `fastq.trim_terminal_damage`, `fastq.validate_reads`
 
 ## Issues
 
