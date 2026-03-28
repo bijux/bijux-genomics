@@ -391,6 +391,16 @@ class StageRunRootSelection:
     newest_available: StageRunRootCandidate | None
 
 
+@dataclass(frozen=True)
+class CorpusReportRuntime:
+    repo_root: Path
+    corpus_root: Path
+    run_root: Path
+    docs_root: Path
+    local_results_root: Path
+    run_manifest: dict
+
+
 def corpus_01_publication_contract(stage_id: str) -> CorpusBenchmarkContract:
     for row in load_benchmark_publication_config().get("corpus_01", {}).get("contracts", []):
         if str(row.get("stage_id")) != stage_id:
@@ -879,6 +889,30 @@ def default_screen_taxonomy_database_root(
 
 def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:
     return select_stage_run_root(corpus_root, stage_id).selected.path
+
+
+def resolve_corpus_report_runtime(
+    args: argparse.Namespace,
+    *,
+    stage_id: str,
+) -> CorpusReportRuntime:
+    repo_root = Path(args.repo_root).resolve()
+    corpus_root = Path(args.corpus_root).expanduser()
+    run_root = (
+        Path(args.run_root).expanduser()
+        if args.run_root
+        else preferred_report_run_root(corpus_root, stage_id)
+    )
+    docs_root = (repo_root / args.docs_root).resolve()
+    docs_root.mkdir(parents=True, exist_ok=True)
+    return CorpusReportRuntime(
+        repo_root=repo_root,
+        corpus_root=corpus_root,
+        run_root=run_root,
+        docs_root=docs_root,
+        local_results_root=run_root.parents[2],
+        run_manifest=load_json(run_root / "run_manifest.json"),
+    )
 
 
 def _parse_utc_timestamp(raw: str | None) -> datetime | None:
