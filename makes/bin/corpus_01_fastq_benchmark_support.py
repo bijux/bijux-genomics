@@ -12,9 +12,12 @@ from functools import lru_cache
 from pathlib import Path
 
 try:
-    import tomllib  # type: ignore[attr-defined]
+    import tomllib as toml_loader  # type: ignore[attr-defined]
 except ModuleNotFoundError:
-    tomllib = None
+    try:
+        import tomli as toml_loader  # type: ignore[no-redef]
+    except ModuleNotFoundError:
+        toml_loader = None
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -31,10 +34,10 @@ LOCAL_CACHE_MIRROR_ROOT = DEFAULT_LOCAL_CACHE_MIRROR_ROOT
 @lru_cache(maxsize=1)
 def load_benchmark_workspace_config() -> dict:
     path = REPO_ROOT / "configs" / "bench" / "workspace.toml"
-    if not path.is_file() or tomllib is None:
+    if not path.is_file() or toml_loader is None:
         return {}
     with path.open("rb") as handle:
-        return tomllib.load(handle)
+        return toml_loader.load(handle)
 
 
 def benchmark_local_results_root() -> Path:
@@ -779,9 +782,9 @@ def parse_simple_toml(path: Path) -> dict:
 
 def load_corpus_spec(repo_root: Path) -> dict:
     path = repo_root / "configs" / "runtime" / "corpora" / "corpus-01.toml"
-    if tomllib is not None:
+    if toml_loader is not None:
         with path.open("rb") as handle:
-            return tomllib.load(handle)
+            return toml_loader.load(handle)
     return parse_simple_toml(path)
 
 
