@@ -87,6 +87,9 @@ VALIDATE_READS_METHOD_PATH = (
 )
 BENCHMARK_ISSUES_PATH = ROOT / "docs" / "benchmark" / "benchmark-issues.md"
 OPS_RS_PATH = ROOT / "crates" / "bijux-dna-dev" / "src" / "commands" / "ops.rs"
+ENV_RESOLVE_RS_PATH = (
+    ROOT / "crates" / "bijux-dna-environment" / "src" / "resolve" / "mod.rs"
+)
 
 
 def benchmark_makefile_text() -> str:
@@ -113,6 +116,10 @@ def benchmark_issues_text() -> str:
 
 def dev_ops_text() -> str:
     return OPS_RS_PATH.read_text(encoding="utf-8")
+
+
+def env_resolve_text() -> str:
+    return ENV_RESOLVE_RS_PATH.read_text(encoding="utf-8")
 
 
 def benchmark_workspace_contract_text() -> str:
@@ -955,6 +962,14 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn('"remote_extra_data_root": benchmark_workspace.remote_extra_data_root', text)
         self.assertIn('"remote_reference_root": benchmark_workspace.remote_reference_root', text)
         self.assertIn('"remote_containers_root": benchmark_workspace.remote_containers_root', text)
+
+    def test_environment_resolve_tests_use_portable_apptainer_fixtures(self) -> None:
+        text = env_resolve_text()
+
+        self.assertIn('default = "apptainer-amd64"', text)
+        self.assertIn('[platforms.apptainer-amd64]', text)
+        self.assertIn('"/var/tmp/bijux-cache-root"', text)
+        self.assertNotIn('"/scratch/cache-root"', text)
 
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,
