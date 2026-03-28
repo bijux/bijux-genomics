@@ -286,6 +286,29 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "/home/bijan/lu2024-12-24/.cache/bijux-dna-container",
         )
 
+    def test_benchmark_publication_config_defines_governed_exclusions(self) -> None:
+        support.load_benchmark_publication_config.cache_clear()
+        config = support.load_benchmark_publication_config()
+
+        self.assertEqual(
+            [row["stage_id"] for row in config["corpus_01"]["exclusions"]],
+            [
+                "fastq.index_reference",
+                "fastq.cluster_otus",
+                "fastq.normalize_abundance",
+            ],
+        )
+
+    def test_publication_exclusions_load_from_benchmark_config(self) -> None:
+        self.assertEqual(
+            [exclusion.stage_id for exclusion in support.CORPUS_01_PUBLICATION_EXCLUSIONS],
+            [
+                "fastq.index_reference",
+                "fastq.cluster_otus",
+                "fastq.normalize_abundance",
+            ],
+        )
+
     def test_benchmark_local_results_root_reads_committed_workspace_contract(self) -> None:
         support.load_benchmark_workspace_config.cache_clear()
         try:

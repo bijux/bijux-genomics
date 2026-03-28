@@ -34,6 +34,15 @@ def load_benchmark_workspace_config() -> dict:
         return toml_loader.load(handle)
 
 
+@lru_cache(maxsize=1)
+def load_benchmark_publication_config() -> dict:
+    path = REPO_ROOT / "configs" / "bench" / "publication.toml"
+    if not path.is_file() or toml_loader is None:
+        return {}
+    with path.open("rb") as handle:
+        return toml_loader.load(handle)
+
+
 def _workspace_path(section: str, key: str) -> Path:
     value = load_benchmark_workspace_config().get(section, {}).get(key)
     if isinstance(value, str) and value.strip():
@@ -442,26 +451,12 @@ CORPUS_01_PUBLICATION_CONTRACTS = [
 
 CORPUS_01_PUBLICATION_EXCLUSIONS = [
     CorpusBenchmarkExclusion(
-        stage_id="fastq.index_reference",
-        reason=(
-            "Reference-index benchmarking measures bundle build throughput rather than "
-            "sample-cohort execution on corpus-01 FASTQ inputs."
-        ),
-    ),
-    CorpusBenchmarkExclusion(
-        stage_id="fastq.cluster_otus",
-        reason=(
-            "OTU clustering is amplicon-specific and does not fit the human whole-genome "
-            "FASTQ cohort contract used by corpus-01."
-        ),
-    ),
-    CorpusBenchmarkExclusion(
-        stage_id="fastq.normalize_abundance",
-        reason=(
-            "Abundance normalization benchmarks require derived abundance tables rather than "
-            "the raw FASTQ corpus-01 publication surface."
-        ),
-    ),
+        stage_id=str(row["stage_id"]),
+        reason=str(row["reason"]),
+    )
+    for row in load_benchmark_publication_config()
+    .get("corpus_01", {})
+    .get("exclusions", [])
 ]
 
 
