@@ -1830,6 +1830,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
             self.assertEqual(summary["sample_scope"], "paired")
+            self.assertEqual(summary["sample_scope"], "paired")
 
     def test_normalize_primers_briefing_summarizes_orientation_fraction(self) -> None:
         rows = [
