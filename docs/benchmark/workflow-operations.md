@@ -46,3 +46,6 @@ The benchmark Python support layer should consume `configs/bench/workspace.toml`
 - Confirm the local mirror under `local.cache_mirror_root` contains the required `results`, `extra-data`, and `reference` trees.
 - Refresh corpus dossiers from the governed report targets.
 - Re-run the publication audit after the refresh.
+- Review `docs/benchmark/corpus-01-dossier-index.json` and `docs/benchmark/corpus-01-dossier-index.md` to confirm each dossier freshness stamp and published run-root source.
+- Review `docs/benchmark/corpus-01-results-status.json` and `docs/benchmark/corpus-01-results-status.md` to confirm the local mirror still matches the published summaries.
+- Review `docs/benchmark/corpus-01-remediation-queue.json` and `docs/benchmark/corpus-01-remediation-queue.md` to confirm the remaining open stages, recommended action, and queue owner.

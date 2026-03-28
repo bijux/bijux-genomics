@@ -17,8 +17,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
 17. The local results workspace contains `.DS_Store` files, which pollute benchmark mirrors.
 20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.
-22. `docs/benchmark/corpus-01-results-status.md` audits only 17 published stages and does not help close the remaining publication gap.
-23. The publication audit and the mirror audit are separate ledgers and can diverge.
 30. Publication refresh depends on manually curated make targets rather than the governed contract list.
 31. Benchmark stage exclusions are embedded in Python support code instead of shared configuration.
 32. The benchmark support module localizes `/results/` and `/bijux-dna-results/` paths but not remote `extra-data` paths.
@@ -42,10 +40,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 50. There is no single stage-agnostic renderer framework for corpus-01 FASTQ benchmark dossiers.
 51. Many dossier files are named `lunarc.md`, which encodes the execution site into the published artifact name.
 52. The published document naming scheme does not separate benchmark content from environment-specific provenance cleanly.
-53. The benchmark docs tree does not contain a single index of dossier freshness and remote source roots.
-54. The docs tree does not record which local mirror root was used for each dossier refresh.
-55. The docs tree does not record whether a dossier was rendered from a remote path or a local mirror.
-56. The mirror sync process does not emit a per-stage freshness manifest under version control.
 57. `configs/hpc/lunarc_sync_profiles.toml` controls rsync include and exclude files but not benchmark workspace semantics.
 58. There is no benchmark-specific sync profile that explicitly targets the governed `.cache` tree.
 59. The dev commands still refer to `LUNARC_ROOT`, `LUNARC_RESULTS_DIR`, and related variables rather than a neutral benchmark environment model.
@@ -68,20 +62,13 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 76. The repository has no neutral `containers/apptainer/shared/` or equivalent location for non-site-specific definitions.
 77. Some examples still publish `/scratch/$USER/...` as the output convention.
 78. The benchmark publication workflow has no shared command for “sync remote results, render dossiers, refresh audits”.
-79. There is no machine-readable remediation queue for publication issues.
-80. There is no per-stage ownership/status field for unresolved benchmark documentation gaps.
 83. The benchmark audit script reports missing corpus directories but does not explain where the completed remote run actually lives.
-84. The benchmark audit script does not surface duplicate-result-root ambiguity as a first-class issue type.
-85. The benchmark audit script does not cross-check `corpus-01-publication-findings.json` freshness.
+84. The benchmark remediation queue does not yet collapse repeated sample-level drift rows into stage-level fix summaries for easier triage.
 86. The benchmark audit script does not confirm that the published dossier source run is the newest available matching run.
-87. The benchmark audit script does not warn when make targets omit governed publication stages.
 88. `fastq.correct_errors` publication currently depends on the presence of a run manifest in one mirror layout and a bench tree in another.
 89. `fastq.trim_reads` publication currently depends on stale local mirrors unless the user manually re-syncs.
 90. `fastq.screen_taxonomy` publication depends on a local mirror of the taxonomy database lineage file, but there is no governed sync command for that extra-data dependency.
 91. Benchmark support uses Python-only contracts, so Rust tooling cannot validate the same workspace path assumptions directly.
-92. There is no repo check that fails on hardcoded `/Users/bijan/` paths in benchmark tooling.
-93. There is no repo check that fails on hardcoded `/home/bijan/` paths in benchmark tooling.
 94. There is no repo check that fails on hardcoded `lunarc` host names in benchmark tooling.
-96. There is no repo check that ensures all governed corpus-01 benchmark stages have publication audit coverage.
 97. The benchmark support layer still treats the local mirror as a special case rather than a first-class configured environment.
 100. The benchmark documentation surface still reflects historical storage decisions instead of one clear, durable benchmark workspace model.

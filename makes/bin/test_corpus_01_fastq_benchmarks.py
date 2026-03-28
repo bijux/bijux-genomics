@@ -683,6 +683,20 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "`docs/benchmark/fastq.correct_errors/corpus-01-method.md` exists without the corresponding published `corpus-01` dossier directory.",
             "`docs/benchmark/fastq.screen_taxonomy/corpus-01-method.md` exists without the corresponding published `corpus-01` dossier directory.",
             "There is no repo check that ensures all governed corpus-01 benchmark stages have render targets.",
+            "`docs/benchmark/corpus-01-results-status.md` audits only 17 published stages and does not help close the remaining publication gap.",
+            "The publication audit and the mirror audit are separate ledgers and can diverge.",
+            "The benchmark docs tree does not contain a single index of dossier freshness and remote source roots.",
+            "The docs tree does not record which local mirror root was used for each dossier refresh.",
+            "The docs tree does not record whether a dossier was rendered from a remote path or a local mirror.",
+            "The mirror sync process does not emit a per-stage freshness manifest under version control.",
+            "There is no machine-readable remediation queue for publication issues.",
+            "There is no per-stage ownership/status field for unresolved benchmark documentation gaps.",
+            "The benchmark audit script does not surface duplicate-result-root ambiguity as a first-class issue type.",
+            "The benchmark audit script does not cross-check `corpus-01-publication-findings.json` freshness.",
+            "The benchmark audit script does not warn when make targets omit governed publication stages.",
+            "There is no repo check that fails on hardcoded `/Users/bijan/` paths in benchmark tooling.",
+            "There is no repo check that fails on hardcoded `/home/bijan/` paths in benchmark tooling.",
+            "There is no repo check that ensures all governed corpus-01 benchmark stages have publication audit coverage.",
         ]:
             self.assertNotIn(resolved_claim, text)
 
@@ -704,6 +718,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("Move To Another Cluster With Config", text)
         self.assertIn("local.cache_mirror_root", text)
         self.assertIn("configs/bench/workspace.toml", text)
+        self.assertIn("corpus-01-dossier-index.json", text)
+        self.assertIn("corpus-01-results-status.json", text)
+        self.assertIn("corpus-01-remediation-queue.json", text)
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()

@@ -45,3 +45,4 @@ The code checkout and the shared cache tree are separate contracts. Repo sync be
 - If a benchmark helper needs a path, add it to `configs/bench/workspace.toml` before embedding a formula in code.
 - If a benchmark artifact is mirrored locally, keep it under `local.results_root` with the governed tree shape above.
 - If a path appears in generated docs, prefer the configured workspace contract over historical private-path aliases.
+- If a publication refresh is complete, the checked-in ledger set should agree across `corpus-01-status.*`, `corpus-01-results-status.*`, `corpus-01-dossier-index.*`, and `corpus-01-remediation-queue.*`.
