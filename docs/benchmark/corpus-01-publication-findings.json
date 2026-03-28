@@ -1,3 +1,10 @@
 {
-  "findings": []
+  "findings": [
+    {
+      "stage_id": "fastq.correct_errors",
+      "issue_id": "missing-run-report-json",
+      "severity": "error",
+      "detail": "The mirrored Lunarc run_manifest.json resolves paired samples correctly now, but the artifact tree still lacks bench/correct_errors/<sample>/report.json outputs needed to render benchmark/fastq.correct_errors/corpus-01 honestly."
+    }
+  ]
 }
