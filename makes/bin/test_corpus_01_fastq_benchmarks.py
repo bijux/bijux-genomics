@@ -149,8 +149,13 @@ def rust_compat_runner_paths() -> list[Path]:
         "run_fastq_filter_low_complexity_corpus_01.py",
         "run_fastq_filter_reads_corpus_01.py",
         "run_fastq_merge_pairs_corpus_01.py",
+        "run_fastq_normalize_primers_corpus_01.py",
         "run_fastq_correct_errors_corpus_01.py",
+        "run_fastq_deplete_host_corpus_01.py",
+        "run_fastq_deplete_reference_contaminants_corpus_01.py",
         "run_fastq_extract_umis_corpus_01.py",
+        "run_fastq_remove_duplicates_corpus_01.py",
+        "run_fastq_screen_taxonomy_corpus_01.py",
         "run_fastq_trim_polyg_tails_corpus_01.py",
         "run_fastq_trim_reads_corpus_01.py",
         "run_fastq_trim_terminal_damage_corpus_01.py",
@@ -455,12 +460,17 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertIn("def resolve_targets(", text)
 
     def test_selected_runner_scripts_delegate_to_rust_corpus_benchmark(self) -> None:
+        transitional_default_root_helpers = {
+            "run_fastq_deplete_host_corpus_01.py",
+            "run_fastq_screen_taxonomy_corpus_01.py",
+        }
         for path in rust_compat_runner_paths():
             text = path.read_text(encoding="utf-8")
             self.assertIn("run_corpus_stage_compat(", text, path.name)
             self.assertIn("add_workspace_config_argument(parser)", text, path.name)
             self.assertNotIn("discover_normalized_samples(", text, path.name)
-            self.assertNotIn("load_corpus_spec(", text, path.name)
+            if path.name not in transitional_default_root_helpers:
+                self.assertNotIn("load_corpus_spec(", text, path.name)
 
     def test_report_renderers_use_shared_corpus_report_arg_parser(self) -> None:
         for path in report_renderer_paths():
@@ -3204,6 +3214,357 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("--database-root", command)
         self.assertIn("/refs/taxonomy", command)
 
+    def test_remove_duplicates_runner_delegates_to_rust_runner(self) -> None:
+        argv = [
+            "run_fastq_remove_duplicates_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "clumpify,fastuniq",
+            "--threads",
+            "6",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "4",
+            "--sample-limit",
+            "5",
+            "--dedup-mode",
+            "exact",
+            "--keep-order",
+            "false",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            remove_duplicates_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = remove_duplicates_runner.main()
+
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.remove_duplicates",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            ["--dedup-mode", "exact", "--keep-order", "false"],
+        )
+        args = compat_mock.call_args.kwargs["args"]
+        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.tools, "clumpify,fastuniq")
+        self.assertEqual(args.threads, 6)
+        self.assertEqual(args.sample_jobs, 4)
+        self.assertTrue(args.dry_run)
+
+    def test_normalize_primers_runner_delegates_to_rust_runner(self) -> None:
+        argv = [
+            "run_fastq_normalize_primers_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "cutadapt,fastp",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "4",
+            "--sample-limit",
+            "5",
+            "--primer-set-id",
+            "16S_universal_v1",
+            "--orientation-policy",
+            "normalize_to_forward_primer",
+            "--max-mismatch-rate",
+            "0.07",
+            "--min-overlap-bp",
+            "17",
+            "--strict-5p-anchor",
+            "false",
+            "--allow-iupac-codes",
+            "true",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            normalize_primers_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = normalize_primers_runner.main()
+
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.normalize_primers",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            [
+                "--primer-set-id",
+                "16S_universal_v1",
+                "--orientation-policy",
+                "normalize_to_forward_primer",
+                "--max-mismatch-rate",
+                "0.07",
+                "--min-overlap-bp",
+                "17",
+                "--strict-5p-anchor",
+                "false",
+                "--allow-iupac-codes",
+                "true",
+            ],
+        )
+        args = compat_mock.call_args.kwargs["args"]
+        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.tools, "cutadapt,fastp")
+        self.assertEqual(args.jobs, 2)
+        self.assertEqual(args.sample_jobs, 4)
+        self.assertTrue(args.dry_run)
+
+    def test_deplete_host_runner_delegates_to_rust_runner(self) -> None:
+        argv = [
+            "run_fastq_deplete_host_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "bowtie2,hisat2",
+            "--threads",
+            "6",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "4",
+            "--sample-limit",
+            "5",
+            "--reference-index",
+            "/refs/host/reference",
+            "--reference-catalog-id",
+            "host_reference_v2",
+            "--reference-index-backend",
+            "bowtie2_build",
+            "--host-identity-threshold",
+            "0.99",
+            "--retain-unmapped-only",
+            "false",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            deplete_host_runner,
+            "load_corpus_spec",
+            return_value={"preferred_root": "/tmp/corpus_01"},
+        ), mock.patch.object(
+            deplete_host_runner,
+            "resolve_reference_index",
+            return_value=Path("/refs/host/reference"),
+        ), mock.patch.object(
+            deplete_host_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = deplete_host_runner.main()
+
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.deplete_host",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            [
+                "--reference-index",
+                "/refs/host/reference",
+                "--host-identity-threshold",
+                "0.99",
+                "--retain-unmapped-only",
+                "false",
+            ],
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["manifest_args"],
+            [
+                "--reference-catalog-id",
+                "host_reference_v2",
+                "--reference-index-backend",
+                "bowtie2_build",
+            ],
+        )
+        args = compat_mock.call_args.kwargs["args"]
+        self.assertEqual(Path(args.out_root).resolve(), Path("/tmp/results").resolve())
+        self.assertEqual(Path(args.corpus_root).resolve(), Path("/tmp/corpus_01").resolve())
+        self.assertEqual(args.config, "configs/bench/workspace.toml")
+
+    def test_deplete_reference_contaminants_runner_delegates_to_rust_runner(
+        self,
+    ) -> None:
+        argv = [
+            "run_fastq_deplete_reference_contaminants_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "bowtie2,bwa_mem2",
+            "--threads",
+            "6",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "4",
+            "--sample-limit",
+            "5",
+            "--reference-index",
+            "/refs/contaminants/reference",
+            "--reference-catalog-id",
+            "contaminant_reference_v2",
+            "--reference-index-backend",
+            "bowtie2_build",
+            "--decoy-mode",
+            "phix_and_spikeins",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            deplete_reference_contaminants_runner,
+            "resolve_reference_index",
+            return_value=Path("/refs/contaminants/reference"),
+        ), mock.patch.object(
+            deplete_reference_contaminants_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = deplete_reference_contaminants_runner.main()
+
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.deplete_reference_contaminants",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            [
+                "--reference-index",
+                "/refs/contaminants/reference",
+                "--decoy-mode",
+                "phix_and_spikeins",
+            ],
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["manifest_args"],
+            [
+                "--reference-catalog-id",
+                "contaminant_reference_v2",
+                "--reference-index-backend",
+                "bowtie2_build",
+            ],
+        )
+
+    def test_screen_taxonomy_runner_delegates_to_rust_runner(self) -> None:
+        argv = [
+            "run_fastq_screen_taxonomy_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "kraken2,kaiju",
+            "--threads",
+            "6",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "4",
+            "--sample-limit",
+            "5",
+            "--database-root",
+            "/refs/taxonomy",
+            "--database-catalog-id",
+            "taxonomy_reference_v2",
+            "--database-artifact-id",
+            "taxonomy_db_2026_03",
+            "--database-namespace",
+            "read_screening",
+            "--database-scope",
+            "read_screening",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            screen_taxonomy_runner,
+            "load_corpus_spec",
+            return_value={"preferred_root": "/tmp/corpus_01"},
+        ), mock.patch.object(
+            screen_taxonomy_runner,
+            "resolve_database_root",
+            return_value=Path("/refs/taxonomy"),
+        ), mock.patch.object(
+            screen_taxonomy_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = screen_taxonomy_runner.main()
+
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.screen_taxonomy",
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_args"],
+            ["--database-root", "/refs/taxonomy"],
+        )
+        self.assertEqual(
+            compat_mock.call_args.kwargs["manifest_args"],
+            [
+                "--database-catalog-id",
+                "taxonomy_reference_v2",
+                "--database-artifact-id",
+                "taxonomy_db_2026_03",
+                "--database-namespace",
+                "read_screening",
+                "--database-scope",
+                "read_screening",
+            ],
+        )
+
     def test_correct_errors_runner_parse_args_supports_policy_overrides(self) -> None:
         argv = [
             "run_fastq_correct_errors_corpus_01.py",
@@ -3358,11 +3719,23 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     stage_id="fastq.extract_umis",
                     args=args,
                     stage_args=["--umi-pattern", "NNNNCCCC"],
+                    manifest_args=["--database-scope", "read_screening"],
                     extra_env={"BIJUX_ALLOW_NO_UMI": "1"},
                 )
 
         self.assertEqual(exit_code, 0)
         runtime_env = run_mock.call_args.kwargs["env"]
+        command = run_mock.call_args.args[0]
+        self.assertIn("--manifest-arg", command)
+        self.assertEqual(
+            command[-4:],
+            [
+                "--manifest-arg",
+                "--database-scope",
+                "--manifest-arg",
+                "read_screening",
+            ],
+        )
         self.assertEqual(runtime_env["BIJUX_ALLOW_NO_UMI"], "1")
         self.assertEqual(runtime_env["PATH"], "/usr/bin")
         self.assertEqual(runtime_env["BASE_ONLY"], "1")
