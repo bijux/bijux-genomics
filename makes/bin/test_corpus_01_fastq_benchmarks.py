@@ -1175,6 +1175,44 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     legacy_root / "corpus_01" / stage_id / "lunarc",
                 )
 
+    def test_preferred_report_run_root_prefers_fresher_existing_candidate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            corpus_root = Path("/home/bijan/lu2024-12-24/.cache/corpus_01")
+            stage_id = "fastq.report_qc"
+            archive_root = tmp_root / "archive"
+            cache_root = tmp_root / "cache"
+            older_run_root = cache_root / "results" / "corpus_01" / stage_id / "lunarc"
+            fresher_run_root = archive_root / "corpus_01" / stage_id / "lunarc"
+            older_run_root.mkdir(parents=True)
+            fresher_run_root.mkdir(parents=True)
+            (older_run_root / "run_manifest.json").write_text(
+                json.dumps({"completed_at_utc": "2026-03-01T00:00:00Z"}),
+                encoding="utf-8",
+            )
+            (fresher_run_root / "run_manifest.json").write_text(
+                json.dumps({"completed_at_utc": "2026-03-02T00:00:00Z"}),
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(
+                support,
+                "benchmark_local_results_root",
+                return_value=archive_root,
+            ), mock.patch.object(
+                support,
+                "benchmark_local_cache_mirror_root",
+                return_value=cache_root,
+            ), mock.patch.object(
+                support,
+                "default_results_stage_root",
+                return_value=tmp_root / "remote" / "corpus_01" / stage_id / "lunarc",
+            ):
+                self.assertEqual(
+                    support.preferred_report_run_root(corpus_root, stage_id),
+                    fresher_run_root,
+                )
+
     def test_configured_stage_run_roots_follow_governed_workspace_order(self) -> None:
         corpus_root = Path("/home/bijan/lu2024-12-24/.cache/corpus_01")
         stage_id = "fastq.report_qc"
