@@ -19,7 +19,7 @@ make _benchmark-trim-polyg-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-trim-polyg-corpus-01-report
 ```
 
-The make targets drive the governed runner and report renderers under `makes/bin/`. They resolve the governed corpus root and run root from `configs/bench/benchmark.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
+The make targets are thin wrappers over `bijux-dna bench ...` commands. They resolve the governed corpus root and run root from `configs/bench/benchmark.toml`; change that config or pass `--config` only when you intentionally target a different governed workspace.
 
 ## Artifact Contract
 
@@ -30,7 +30,7 @@ The runner writes the execution manifest under the Lunarc run root:
 - `bench/trim_polyg_tails/<sample_id>/bench.jsonl`
 - `bench/trim_polyg_tails/<sample_id>/bench.sqlite`
 
-The report renderers publish the doc set under [corpus-01](<REPO_ROOT>/docs/benchmark/fastq.trim_polyg_tails/corpus-01):
+The Rust dossier command publishes the doc set under [corpus-01](<REPO_ROOT>/docs/benchmark/fastq.trim_polyg_tails/corpus-01):
 
 - `summary.json`
 - `sample_results.csv`
@@ -41,7 +41,7 @@ The report renderers publish the doc set under [corpus-01](<REPO_ROOT>/docs/benc
 
 ## Guardrails
 
-The corpus scripts intentionally fail when the run is incomplete or incoherent.
+The corpus commands intentionally fail when the run is incomplete or incoherent.
 
 They reject:
 

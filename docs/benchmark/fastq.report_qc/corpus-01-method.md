@@ -57,7 +57,7 @@ make _benchmark-report-qc-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-report-qc-corpus-01-report
 ```
 
-The default corpus root is loaded from `configs/bench/benchmark.toml`. Pass `CORPUS_ROOT=...` only when rerendering against a different governed corpus checkout.
+The default corpus root is loaded from `configs/bench/benchmark.toml`. Update that config or pass `--config` when rerendering against a different governed workspace.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

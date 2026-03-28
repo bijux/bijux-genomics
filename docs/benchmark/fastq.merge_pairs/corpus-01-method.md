@@ -54,7 +54,7 @@ make _benchmark-merge-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-merge-corpus-01-report
 ```
 
-The runner resolves the governed paired corpus root through `configs/bench/benchmark.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
+The runner resolves the governed paired corpus root through `configs/bench/benchmark.toml`. Change that config or pass `--config` only when you intentionally target a different governed workspace.
 
 ## Interpretation guardrails
 
