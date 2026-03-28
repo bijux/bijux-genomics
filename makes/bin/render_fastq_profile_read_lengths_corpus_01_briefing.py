@@ -20,6 +20,7 @@ from corpus_01_fastq_benchmark_support import (
     publish_corpus_briefing_artifacts,
     percentile,
     resolve_corpus_briefing_runtime,
+    iter_cohort_row_groups,
     find_cohort_entry,
     safe_mean,
     safe_median,
@@ -121,23 +122,8 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
     return summary_rows
 
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
-    grouped: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
-    grouped_with_size: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
-    for row in rows:
-        grouped[(row["tool"], row["era"], row["layout"])].append(row)
-        grouped_with_size[(row["tool"], "size_band", row["size_band"])].append(row)
-
     output: list[dict] = []
-    for (tool, era, layout), cohort_rows in sorted(grouped.items()):
-        output.append(
-            summarize_cohort_rows(
-                tool=tool,
-                dimension="era_layout",
-                cohort=f"{era}_{layout}",
-                cohort_rows=cohort_rows,
-            )
-        )
-    for (tool, dimension, cohort), cohort_rows in sorted(grouped_with_size.items()):
+    for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):
         output.append(
             summarize_cohort_rows(
                 tool=tool,

@@ -189,6 +189,14 @@ def cohort_lookup_briefing_paths() -> list[Path]:
     return [ROOT / "makes" / "bin" / name for name in names]
 
 
+def grouped_metric_briefing_paths() -> list[Path]:
+    return [
+        path
+        for path in briefing_renderer_paths()
+        if path.name != "render_fastq_validate_reads_corpus_01_briefing.py"
+    ]
+
+
 def validate_reads_method_text() -> str:
     return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
@@ -369,6 +377,12 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             self.assertIn("find_cohort_entry(", text, path.name)
             self.assertNotIn("def cohort_entry(", text, path.name)
+
+    def test_metric_briefings_use_shared_cohort_grouping_iterator(self) -> None:
+        for path in grouped_metric_briefing_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("iter_cohort_row_groups(", text, path.name)
+            self.assertNotIn("grouped_with_size", text, path.name)
 
     def test_briefing_renderers_use_shared_stats_io_and_publication_helpers(
         self,
