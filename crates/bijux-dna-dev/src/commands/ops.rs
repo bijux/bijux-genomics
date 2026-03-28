@@ -5859,7 +5859,6 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         .unwrap_or("results");
     let pull_mode = env_or_default_alias("BENCHMARK_SYNC_MODE", "PULL_MODE", default_pull_mode);
     let default_lunarc_results_dir = benchmark_workspace
-        .local_results_root
         .remote_results_root
         .clone()
         .unwrap_or_else(|| format!("{lunarc_root}/results"));
@@ -8805,16 +8804,21 @@ struct BenchmarkSyncProfile {
 }
 
 fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWorkspacePaths> {
-    let path = workspace.path("configs/bench/workspace.toml");
+    let path = workspace.path("configs/bench/benchmark.toml");
     if !path.is_file() {
         return Ok(BenchmarkWorkspacePaths::default());
     }
     let value: TomlValue =
         toml::from_str(&read_utf8(&path)?).with_context(|| format!("parse {}", path.display()))?;
-    let local = value.get("local").and_then(TomlValue::as_table);
-    let remote = value.get("remote").and_then(TomlValue::as_table);
-    let sync_defaults = value
-        .get("sync")
+    let workspace_table = value.get("workspace").and_then(TomlValue::as_table);
+    let local = workspace_table
+        .and_then(|table| table.get("local"))
+        .and_then(TomlValue::as_table);
+    let remote = workspace_table
+        .and_then(|table| table.get("remote"))
+        .and_then(TomlValue::as_table);
+    let sync_defaults = workspace_table
+        .and_then(|table| table.get("sync"))
         .and_then(TomlValue::as_table)
         .and_then(|table| table.get("defaults"))
         .and_then(TomlValue::as_table);
@@ -9220,9 +9224,10 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        benchmark_workspace_lookup, load_lunarc_sync_profiles, lunarc_sync_profile,
-        BenchmarkWorkspacePaths,
+        benchmark_workspace_lookup, load_benchmark_workspace_paths, load_lunarc_sync_profiles,
+        lunarc_sync_profile, BenchmarkWorkspacePaths,
     };
+    use crate::runtime::workspace::Workspace;
 
     #[test]
     fn load_lunarc_sync_profiles_reads_workspace_profile_fields() -> anyhow::Result<()> {
@@ -9263,6 +9268,55 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
                 "benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"
             ]
         );
+        Ok(())
+    }
+
+    #[test]
+    fn load_benchmark_workspace_paths_reads_unified_benchmark_contract() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-benchmark-workspace-paths")?;
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir)?;
+        std::fs::write(
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
+results_root = "/tmp/results"
+cache_mirror_root = "/tmp/results/.cache"
+
+[workspace.remote]
+ssh_host = "lunarc"
+repo_root = "/srv/repo"
+cache_root = "/srv/.cache"
+corpus_root = "/srv/.cache/corpus_01"
+results_root = "/srv/.cache/results"
+results_legacy_root = "/srv/.cache/bijux-dna-results"
+extra_data_root = "/srv/.cache/extra-data"
+reference_root = "/srv/.cache/reference"
+containers_root = "/srv/.cache/containers"
+
+[workspace.sync.defaults]
+pull_base = "/tmp/pulls"
+pull_mode = "results"
+include_profile = "pull-results-default"
+exclude_profile = "pull-full-default"
+clean_context = true
+allow_dirty = false
+include_containers_manifest = false
+data_manifest_glob = ""
+"#,
+        )?;
+
+        let workspace = Workspace {
+            root: temp.path().to_path_buf(),
+        };
+        let paths = load_benchmark_workspace_paths(&workspace)?;
+
+        assert_eq!(paths.local_results_root.as_deref(), Some("/tmp/results"));
+        assert_eq!(paths.remote_repo_root.as_deref(), Some("/srv/repo"));
+        assert_eq!(
+            paths.remote_results_legacy_root.as_deref(),
+            Some("/srv/.cache/bijux-dna-results")
+        );
+        assert_eq!(paths.sync_default_pull_base.as_deref(), Some("/tmp/pulls"));
         Ok(())
     }
 
