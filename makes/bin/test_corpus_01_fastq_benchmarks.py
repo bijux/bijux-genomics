@@ -3855,6 +3855,8 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
             self.assertEqual(summary["run_root"], str(run_root))
+            self.assertEqual(summary["stage_id"], "fastq.trim_polyg_tails")
+            self.assertEqual(summary["scenario_id"], "trim_polyg_fairness")
 
     def test_normalize_primers_briefing_summarizes_orientation_fraction(self) -> None:
         rows = [
