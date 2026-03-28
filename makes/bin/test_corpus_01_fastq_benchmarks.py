@@ -91,6 +91,8 @@ OPS_RS_PATH = ROOT / "crates" / "bijux-dna-dev" / "src" / "commands" / "ops.rs"
 ENV_RESOLVE_RS_PATH = (
     ROOT / "crates" / "bijux-dna-environment" / "src" / "resolve" / "mod.rs"
 )
+APPTAINER_SHARED_DIR = ROOT / "containers" / "apptainer" / "shared"
+APPTAINER_LUNARC_ALIAS = ROOT / "containers" / "apptainer" / "lunarc"
 
 
 def benchmark_makefile_text() -> str:
@@ -1034,6 +1036,15 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 missing_requirements.append(f"{stage_id}:site-specific-scratch-example")
 
         self.assertEqual(missing_requirements, [])
+
+    def test_apptainer_definitions_live_under_shared_root(self) -> None:
+        self.assertTrue(APPTAINER_SHARED_DIR.is_dir())
+        self.assertTrue((APPTAINER_SHARED_DIR / "adapterremoval.def").is_file())
+        self.assertTrue((APPTAINER_SHARED_DIR / "TEMPLATE.def.inc").is_file())
+
+    def test_lunarc_apptainer_dir_is_compatibility_alias(self) -> None:
+        self.assertTrue(APPTAINER_LUNARC_ALIAS.is_symlink())
+        self.assertEqual(os.readlink(APPTAINER_LUNARC_ALIAS), "shared")
 
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,
