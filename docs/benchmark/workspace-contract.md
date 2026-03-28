@@ -6,6 +6,8 @@ This document defines the governed benchmark workspace layout for corpus publica
 
 `configs/bench/workspace.toml` is the authority. Benchmark runners, renderers, sync helpers, and audit scripts must read workspace paths from that config instead of hardcoding user paths in code.
 
+The shared Python home for that contract is `makes/bin/benchmark_fastq_corpus/`. Top-level scripts in `makes/bin/` are compatibility wrappers and should delegate into the package.
+
 Read this together with `docs/benchmark/workspace-model.md` for the durable role names used across the benchmark surface.
 
 ## Local Workspace
@@ -48,6 +50,11 @@ The code checkout and the shared cache tree are separate contracts. Repo sync be
 
 Make targets, Python tooling, and Rust sync commands should all load these defaults from `configs/bench/workspace.toml` before consulting environment overrides.
 
+The governed override surface is:
+
+- `BIJUX_FASTQ_CORPUS_CONFIG` for make-driven and environment-driven Python calls
+- shared `--config` CLI options for package-backed Python entrypoints
+
 ## Publication Rules
 
 - Published FASTQ dossiers should resolve default run roots from `remote.results_root` and local mirror roots from `local.cache_mirror_root`.
@@ -58,6 +65,7 @@ Make targets, Python tooling, and Rust sync commands should all load these defau
 ## Review Checklist
 
 - If a benchmark helper needs a path, add it to `configs/bench/workspace.toml` before embedding a formula in code.
+- If a Python helper needs reusable benchmark logic, add it under `makes/bin/benchmark_fastq_corpus/` before creating another top-level script.
 - If a benchmark artifact is mirrored locally, keep it under `local.results_root` with the governed tree shape above.
 - If a path appears in generated docs, prefer the configured workspace contract over historical private-path aliases.
 - If a publication refresh is complete, the checked-in ledger set should agree across `corpus-01-status.*`, `corpus-01-results-status.*`, `corpus-01-dossier-index.*`, and `corpus-01-remediation-queue.*`.

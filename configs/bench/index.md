@@ -17,6 +17,12 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `configs/bench/publication.toml`
 - `configs/bench/workspace.toml`
 
+## Python Tooling Contract
+- `makes/bin/benchmark_fastq_corpus/` is the reusable Python package for FASTQ corpus benchmark support, workspace resolution, and publication utilities.
+- Top-level scripts under `makes/bin/` are compatibility entrypoints; shared logic should move into `benchmark_fastq_corpus` instead of growing new standalone modules.
+- `configs/bench/workspace.toml` is the single path contract for that package.
+- `BIJUX_FASTQ_CORPUS_CONFIG` and shared `--config` CLI options select a different workspace config when a local or migration workflow needs one.
+
 ## Workspace Contract
 - `configs/bench/workspace.toml` keeps benchmark path policy outside the runners and reporting code.
 - `[local].results_root` is the local archive root where mirrored Lunarc artifacts land.
