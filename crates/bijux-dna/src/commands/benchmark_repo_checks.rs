@@ -7,7 +7,7 @@ use serde::Serialize;
 
 use crate::commands::cli::BenchRepoChecksArgs;
 
-const EXCLUDED_TOOLING_PATHS: &[&str] = &["makes/bin/test_corpus_01_fastq_benchmarks.py"];
+const EXCLUDED_TOOLING_PATHS: &[&str] = &[];
 const LOCAL_OPERATOR_PATH_PREFIX: &str = "/Users/bijan/";
 const REMOTE_OPERATOR_PATH_PREFIX: &str = "/home/bijan/";
 
