@@ -5,13 +5,13 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "entropy_threshold": 0.55,
   "era_counts": {
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-27T01:59:56.233507+00:00",
+  "generated_at_utc": "2026-03-28T02:43:15.299292+00:00",
   "headline": {
     "best_base_retention": 0.9993151076925884,
     "best_base_retention_tool": "bbduk",
