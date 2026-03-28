@@ -242,6 +242,19 @@ def find_cohort_entry(
     return None
 
 
+def iter_cohort_row_groups(
+    rows: list[dict],
+) -> list[tuple[str, str, str, list[dict]]]:
+    grouped: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
+    for row in rows:
+        grouped[(row["tool"], "era_layout", f"{row['era']}_{row['layout']}")].append(row)
+        grouped[(row["tool"], "size_band", row["size_band"])].append(row)
+    return [
+        (tool, dimension, cohort, cohort_rows)
+        for (tool, dimension, cohort), cohort_rows in sorted(grouped.items())
+    ]
+
+
 def percentile(values: list[float], fraction: float) -> float | None:
     if not values:
         return None
