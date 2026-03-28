@@ -5,7 +5,6 @@ import argparse
 import json
 import re
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
@@ -13,6 +12,8 @@ from corpus_01_fastq_benchmark_support import (
     configured_stage_run_roots,
     load_json,
     localize_results_path,
+    run_root_observed_timestamp,
+    select_stage_run_root,
 )
 
 
@@ -56,39 +57,6 @@ def observed_tools_from_report(path: Path) -> list[str]:
     return sorted({match.group(1) for match in TOOL_LITERAL_PATTERN.finditer(text)})
 
 
-def _parse_utc_timestamp(raw: str | None) -> datetime | None:
-    if not raw:
-        return None
-    normalized = raw.strip().replace("Z", "+00:00")
-    if not normalized:
-        return None
-    try:
-        parsed = datetime.fromisoformat(normalized)
-    except ValueError:
-        return None
-    if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
-
-
-def run_root_freshness_timestamp(run_root: Path) -> datetime | None:
-    manifest_path = run_root / "run_manifest.json"
-    if manifest_path.is_file():
-        manifest = load_json(manifest_path)
-        for key in (
-            "completed_at_utc",
-            "generated_at_utc",
-            "finished_at_utc",
-            "started_at_utc",
-        ):
-            parsed = _parse_utc_timestamp(str(manifest.get(key, "") or ""))
-            if parsed is not None:
-                return parsed
-    if run_root.exists():
-        return datetime.fromtimestamp(run_root.stat().st_mtime, tz=timezone.utc)
-    return None
-
-
 def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[str]) -> dict:
     docs_root = repo_root / "docs" / "benchmark" / stage_id / "corpus-01"
     summary_path = docs_root / "summary.json"
@@ -114,6 +82,7 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
     canonical_run_root = configured_roots[0].path
     legacy_run_root = configured_roots[1].path
     reported_run_root = Path(str(summary.get("run_root", "")))
+    selected_run_root = select_stage_run_root(corpus_root, stage_id).selected.path
     existing_roots = [root for root in [reported_run_root, *(candidate.path for candidate in configured_roots)] if root.is_dir()]
     unique_existing_roots: list[Path] = []
     for root in existing_roots:
@@ -127,18 +96,12 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
             f"both {canonical_run_root} and {legacy_run_root} exist",
         )
     resolved_run_root = (
-        reported_run_root
-        if reported_run_root.is_dir()
-        else canonical_run_root
-        if canonical_run_root.is_dir()
-        else legacy_run_root
-        if legacy_run_root.is_dir()
-        else canonical_run_root
+        reported_run_root if reported_run_root.is_dir() else selected_run_root
     )
     newest_available_run_root = resolved_run_root
-    newest_available_timestamp = run_root_freshness_timestamp(resolved_run_root)
+    newest_available_timestamp = run_root_observed_timestamp(resolved_run_root)
     for candidate_root in unique_existing_roots:
-        candidate_timestamp = run_root_freshness_timestamp(candidate_root)
+        candidate_timestamp = run_root_observed_timestamp(candidate_root)
         if candidate_timestamp is None:
             continue
         if newest_available_timestamp is None or candidate_timestamp > newest_available_timestamp:

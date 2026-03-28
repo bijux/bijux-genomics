@@ -8,6 +8,7 @@ import os
 import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
@@ -290,6 +291,12 @@ class ReportQcContributorContract:
 class StageRunRootCandidate:
     source: str
     path: Path
+
+
+@dataclass(frozen=True)
+class StageRunRootSelection:
+    selected: StageRunRootCandidate
+    newest_available: StageRunRootCandidate | None
 
 
 def corpus_01_publication_contract(stage_id: str) -> CorpusBenchmarkContract:
@@ -776,11 +783,68 @@ def default_screen_taxonomy_database_root(
 
 
 def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:
+    return select_stage_run_root(corpus_root, stage_id).selected.path
+
+
+def _parse_utc_timestamp(raw: str | None) -> datetime | None:
+    if not raw:
+        return None
+    normalized = raw.strip().replace("Z", "+00:00")
+    if not normalized:
+        return None
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def run_root_freshness_timestamp(run_root: Path) -> datetime | None:
+    manifest_path = run_root / "run_manifest.json"
+    if manifest_path.is_file():
+        manifest = load_json(manifest_path)
+        for key in (
+            "completed_at_utc",
+            "generated_at_utc",
+            "finished_at_utc",
+            "started_at_utc",
+        ):
+            parsed = _parse_utc_timestamp(str(manifest.get(key, "") or ""))
+            if parsed is not None:
+                return parsed
+    return None
+
+
+def run_root_observed_timestamp(run_root: Path) -> datetime | None:
+    manifest_timestamp = run_root_freshness_timestamp(run_root)
+    if manifest_timestamp is not None:
+        return manifest_timestamp
+    if run_root.exists():
+        return datetime.fromtimestamp(run_root.stat().st_mtime, tz=timezone.utc)
+    return None
+
+
+def select_stage_run_root(corpus_root: Path, stage_id: str) -> StageRunRootSelection:
     candidates = configured_stage_run_roots(corpus_root, stage_id)
-    for candidate in candidates:
-        if candidate.path.exists():
-            return candidate.path
-    return candidates[0].path
+    existing_candidates = [candidate for candidate in candidates if candidate.path.is_dir()]
+    if not existing_candidates:
+        return StageRunRootSelection(selected=candidates[0], newest_available=None)
+
+    freshest_candidate = existing_candidates[0]
+    freshest_timestamp = run_root_freshness_timestamp(freshest_candidate.path)
+    for candidate in existing_candidates[1:]:
+        candidate_timestamp = run_root_freshness_timestamp(candidate.path)
+        if candidate_timestamp is None:
+            continue
+        if freshest_timestamp is None or candidate_timestamp > freshest_timestamp:
+            freshest_candidate = candidate
+            freshest_timestamp = candidate_timestamp
+    return StageRunRootSelection(
+        selected=freshest_candidate,
+        newest_available=freshest_candidate,
+    )
 
 
 def localize_results_path(path_str: str, local_results_root: Path) -> Path:
