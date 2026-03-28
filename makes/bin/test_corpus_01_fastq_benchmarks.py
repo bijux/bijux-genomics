@@ -27,6 +27,7 @@ import run_fastq_filter_reads_corpus_01 as filter_reads_runner
 import run_fastq_filter_low_complexity_corpus_01 as filter_low_complexity_runner
 import run_fastq_normalize_primers_corpus_01 as normalize_primers_runner
 import run_fastq_remove_duplicates_corpus_01 as remove_duplicates_runner
+import run_fastq_report_qc_corpus_01 as report_qc_runner
 import run_fastq_merge_pairs_corpus_01 as merge_runner
 import run_fastq_trim_reads_corpus_01 as trim_reads_runner
 import run_fastq_trim_terminal_damage_corpus_01 as terminal_damage_runner
@@ -155,6 +156,7 @@ def rust_compat_runner_paths() -> list[Path]:
         "run_fastq_deplete_reference_contaminants_corpus_01.py",
         "run_fastq_extract_umis_corpus_01.py",
         "run_fastq_remove_duplicates_corpus_01.py",
+        "run_fastq_report_qc_corpus_01.py",
         "run_fastq_screen_taxonomy_corpus_01.py",
         "run_fastq_trim_polyg_tails_corpus_01.py",
         "run_fastq_trim_reads_corpus_01.py",
@@ -3564,6 +3566,49 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 "read_screening",
             ],
         )
+
+    def test_report_qc_runner_delegates_to_rust_runner(self) -> None:
+        argv = [
+            "run_fastq_report_qc_corpus_01.py",
+            "--repo-root",
+            "/tmp/repo",
+            "--corpus-root",
+            "/tmp/corpus_01",
+            "--out-root",
+            "/tmp/results",
+            "--config",
+            "configs/bench/workspace.toml",
+            "--platform",
+            "apptainer-amd64",
+            "--tools",
+            "multiqc",
+            "--jobs",
+            "2",
+            "--sample-jobs",
+            "4",
+            "--sample-limit",
+            "5",
+            "--dry-run",
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            report_qc_runner,
+            "run_corpus_stage_compat",
+            return_value=0,
+        ) as compat_mock:
+            exit_code = report_qc_runner.main()
+
+        self.assertEqual(exit_code, 0)
+        compat_mock.assert_called_once()
+        self.assertEqual(
+            compat_mock.call_args.kwargs["stage_id"],
+            "fastq.report_qc",
+        )
+        args = compat_mock.call_args.kwargs["args"]
+        self.assertEqual(args.config, "configs/bench/workspace.toml")
+        self.assertEqual(args.tools, "multiqc")
+        self.assertEqual(args.jobs, 2)
+        self.assertEqual(args.sample_jobs, 4)
+        self.assertTrue(args.dry_run)
 
     def test_correct_errors_runner_parse_args_supports_policy_overrides(self) -> None:
         argv = [
