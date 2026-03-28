@@ -243,7 +243,7 @@ fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
 }
 
 #[cfg(test)]
-mod tests {
+mod env_registry_query_tests {
     use super::registry_tools_for_stage;
 
     fn registry_path() -> std::path::PathBuf {
