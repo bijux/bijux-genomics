@@ -6618,6 +6618,150 @@ class TerminalDamageReportingTests(unittest.TestCase):
                 }
             )
 
+    def test_terminal_damage_summary_preserves_configured_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = (
+                repo_root
+                / "results"
+                / "corpus_01"
+                / "fastq.trim_terminal_damage"
+                / "lunarc"
+            )
+            docs_root = (
+                repo_root
+                / "docs"
+                / "benchmark"
+                / "fastq.trim_terminal_damage"
+                / "corpus-01"
+            )
+            sample_report = (
+                run_root
+                / "bench"
+                / "trim_terminal_damage"
+                / "sample_0001"
+                / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            record_metrics = {
+                "reads_in": 100,
+                "reads_out": 98,
+                "bases_in": 1000,
+                "bases_out": 980,
+                "delta_metrics": {
+                    "base_retention": 0.98,
+                    "read_retention": 0.98,
+                    "mean_q_delta": 0.1,
+                },
+                "damage_mode": "ancient",
+                "execution_policy": "explicit_terminal_trim",
+                "trim_5p_bases": 2,
+                "trim_3p_bases": 2,
+                "requested_trim_5p_bases": 2,
+                "requested_trim_3p_bases": 2,
+                "ct_ga_asymmetry_pre": 0.30,
+                "ct_ga_asymmetry_post": 0.10,
+            }
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {"tool": "adapterremoval"},
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {"metrics": record_metrics},
+                            },
+                            {
+                                "context": {"tool": "cutadapt"},
+                                "execution": {"runtime_s": 1.4, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        **record_metrics,
+                                        "raw_backend_report_format": "cutadapt_json",
+                                    }
+                                },
+                            },
+                            {
+                                "context": {"tool": "seqkit"},
+                                "execution": {"runtime_s": 1.3, "exit_code": 0},
+                                "metrics": {"metrics": record_metrics},
+                            },
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.trim_terminal_damage",
+                        "scenario_id": "terminal_damage_fairness",
+                        "tool_kind": "benchmark",
+                        "samples_total": 1,
+                        "samples_failed": 0,
+                        "tools": ["adapterremoval", "cutadapt", "seqkit"],
+                        "damage_mode": "ancient",
+                        "execution_policy": "explicit_terminal_trim",
+                        "trim_5p_bases": 2,
+                        "trim_3p_bases": 2,
+                        "requested_trim_5p_bases": 2,
+                        "requested_trim_3p_bases": 2,
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "pe",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_trim_terminal_damage_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    terminal_damage_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    terminal_damage_report,
+                    "load_sample_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "ancient",
+                            "layout": "pe",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(terminal_damage_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+
     def test_terminal_damage_runner_parse_args_supports_sample_jobs(self) -> None:
         original_argv = sys.argv
         try:
