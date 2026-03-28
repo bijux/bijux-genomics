@@ -8,12 +8,12 @@
     "modern_se": 5
   },
   "corpus_id": "corpus-01",
-  "corpus_root": "/System/Volumes/Data/home/bijan/bijux/corpus_01",
+  "corpus_root": "/System/Volumes/Data/home/bijan/lu2024-12-24/.cache/corpus_01",
   "era_counts": {
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-26T17:36:08.454547+00:00",
+  "generated_at_utc": "2026-03-28T02:27:47.680379+00:00",
   "governed_contributor_stage_ids": [
     "fastq.detect_adapters",
     "fastq.profile_read_lengths",

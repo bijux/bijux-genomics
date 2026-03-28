@@ -53,9 +53,11 @@
 
 ## Workflow
 ```bash
-make _benchmark-report-qc-corpus-01 PLATFORM=lunarc-apptainer CORPUS_ROOT=/home/bijan/bijux/corpus_01
-make _benchmark-report-qc-corpus-01-report CORPUS_ROOT=/home/bijan/bijux/corpus_01
+make _benchmark-report-qc-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-report-qc-corpus-01-report
 ```
+
+The default corpus root is loaded from `configs/bench/workspace.toml`. Pass `CORPUS_ROOT=...` only when rerendering against a different governed corpus checkout.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
