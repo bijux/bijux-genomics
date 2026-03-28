@@ -9,6 +9,8 @@ This document covers two operational contracts:
 
 Read this together with `docs/benchmark/workspace-model.md`, `docs/benchmark/workspace-contract.md`, and `configs/bench/workspace.toml`.
 
+Repo sync belongs on the private frontend home. Benchmark artifacts belong on the shared cache contract. Keep those responsibilities separate in code, automation, and operator docs.
+
 ## Mirror The Shared Cache Tree
 
 1. Sync the private benchmark repo checkout to `remote.repo_root`.
