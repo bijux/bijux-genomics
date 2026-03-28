@@ -141,12 +141,18 @@ def briefing_renderer_paths() -> list[Path]:
 def shared_report_publisher_paths() -> list[Path]:
     names = [
         "render_fastq_detect_adapters_corpus_01_report.py",
+        "render_fastq_correct_errors_corpus_01_report.py",
+        "render_fastq_deplete_host_corpus_01_report.py",
+        "render_fastq_deplete_reference_contaminants_corpus_01_report.py",
         "render_fastq_deplete_rrna_corpus_01_report.py",
+        "render_fastq_extract_umis_corpus_01_report.py",
         "render_fastq_filter_low_complexity_corpus_01_report.py",
         "render_fastq_normalize_primers_corpus_01_report.py",
         "render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
         "render_fastq_profile_read_lengths_corpus_01_report.py",
         "render_fastq_profile_reads_corpus_01_report.py",
+        "render_fastq_remove_duplicates_corpus_01_report.py",
+        "render_fastq_screen_taxonomy_corpus_01_report.py",
         "render_fastq_trim_polyg_tails_corpus_01_report.py",
         "render_fastq_trim_terminal_damage_corpus_01_report.py",
         "render_fastq_validate_reads_corpus_01_report.py",
