@@ -1,10 +1,10 @@
 {
   "schema_version": "bijux.fastq.normalize_primers.corpus_summary.v1",
-  "generated_at_utc": "2026-03-27T04:14:07.841387+00:00",
+  "generated_at_utc": "2026-03-28T02:32:33.900712+00:00",
   "stage_id": "fastq.normalize_primers",
   "scenario_id": "primer_normalization_fairness",
   "platform": "lunarc-apptainer",
-  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.normalize_primers/lunarc",
   "tools": [
     "cutadapt"
