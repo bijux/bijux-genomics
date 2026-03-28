@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 import statistics
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -62,6 +63,162 @@ def expected_raw_backend_report_format(tool: str) -> str | None:
         "cutadapt": "cutadapt_json",
         "bbduk": "bbduk_stats",
     }.get(tool)
+
+
+TOOL_EXIT_STATUS_PATTERN = re.compile(r"status\s+(\d+)")
+
+
+def parse_tool_exit_status(reason: str | None) -> int | None:
+    if not reason:
+        return None
+    match = TOOL_EXIT_STATUS_PATTERN.search(reason)
+    if match is None:
+        return None
+    return int(match.group(1))
+
+
+def sample_input_metrics(records: list[dict]) -> dict[str, int]:
+    for record in records:
+        metrics = record.get("metrics", {})
+        metrics_payload = metrics.get("metrics", metrics)
+        reads_in = metrics_payload.get("reads_in")
+        bases_in = metrics_payload.get("bases_in")
+        if reads_in is None or bases_in is None:
+            continue
+        return {
+            "reads_in": int(reads_in),
+            "bases_in": int(bases_in),
+        }
+    raise SystemExit("trim benchmark report drift: unable to infer sample input metrics")
+
+
+def build_trim_row(
+    *,
+    sample_id: str,
+    metadata: dict,
+    layout: str,
+    tool: str,
+    runtime_s,
+    exit_code,
+    reads_in,
+    reads_out,
+    bases_in,
+    bases_out,
+    base_retention,
+    read_retention,
+    mean_q_delta,
+    run_manifest: dict,
+    raw_backend_report_format,
+) -> dict:
+    return {
+        "sample_id": sample_id,
+        "accession": metadata.get("accession"),
+        "era": metadata.get("era"),
+        "layout": metadata.get("layout", layout),
+        "study_accession": metadata.get("study_accession"),
+        "size_band": metadata.get("size_band"),
+        "tool": tool,
+        "runtime_s": runtime_s,
+        "exit_code": exit_code,
+        "reads_in": reads_in,
+        "reads_out": reads_out,
+        "bases_in": bases_in,
+        "bases_out": bases_out,
+        "base_retention": base_retention,
+        "read_retention": read_retention,
+        "mean_q_delta": mean_q_delta,
+        "min_length": run_manifest["min_length"],
+        "quality_cutoff": run_manifest["quality_cutoff"],
+        "n_policy": run_manifest["n_policy"],
+        "adapter_policy": run_manifest["adapter_policy"],
+        "polyx_policy": run_manifest["polyx_policy"],
+        "contaminant_policy": run_manifest["contaminant_policy"],
+        "adapter_bank_preset": run_manifest.get("adapter_bank_preset"),
+        "polyx_preset": run_manifest.get("polyx_preset"),
+        "contaminant_preset": run_manifest.get("contaminant_preset"),
+        "raw_backend_report_format": raw_backend_report_format,
+    }
+
+
+def build_trim_row_from_record(
+    *,
+    sample_id: str,
+    metadata: dict,
+    layout: str,
+    record: dict,
+    run_manifest: dict,
+) -> dict:
+    tool = record.get("context", {}).get("tool", "unknown")
+    delta_metrics = normalize_metric(record, "delta_metrics")
+    return build_trim_row(
+        sample_id=sample_id,
+        metadata=metadata,
+        layout=layout,
+        tool=tool,
+        runtime_s=record.get("execution", {}).get("runtime_s"),
+        exit_code=record.get("execution", {}).get("exit_code"),
+        reads_in=normalize_metric(record, "reads_in") or 0,
+        reads_out=normalize_metric(record, "reads_out") or 0,
+        bases_in=normalize_metric(record, "bases_in") or 0,
+        bases_out=normalize_metric(record, "bases_out") or 0,
+        base_retention=delta_metrics.get("base_retention", 0.0)
+        if isinstance(delta_metrics, dict)
+        else 0.0,
+        read_retention=delta_metrics.get("read_retention", 0.0)
+        if isinstance(delta_metrics, dict)
+        else 0.0,
+        mean_q_delta=delta_metrics.get("mean_q_delta", 0.0)
+        if isinstance(delta_metrics, dict)
+        else 0.0,
+        run_manifest=run_manifest,
+        raw_backend_report_format=(
+            normalize_metric(record, "raw_backend_report_format")
+            or expected_raw_backend_report_format(tool)
+        ),
+    )
+
+
+def synthesize_failed_trim_row(
+    *,
+    sample_id: str,
+    metadata: dict,
+    layout: str,
+    tool: str,
+    report: dict,
+    records: list[dict],
+    run_manifest: dict,
+) -> dict | None:
+    failures = list(report.get("failures") or [])
+    failures.extend(report.get("gate", {}).get("rationale") or [])
+    failure = next(
+        (
+            item
+            for item in failures
+            if str(item.get("tool") or "") == tool
+        ),
+        None,
+    )
+    if failure is None:
+        return None
+    exit_code = parse_tool_exit_status(str(failure.get("reason") or ""))
+    input_metrics = sample_input_metrics(records)
+    return build_trim_row(
+        sample_id=sample_id,
+        metadata=metadata,
+        layout=layout,
+        tool=tool,
+        runtime_s=None,
+        exit_code=exit_code if exit_code is not None else 1,
+        reads_in=input_metrics["reads_in"],
+        reads_out=0,
+        bases_in=input_metrics["bases_in"],
+        bases_out=0,
+        base_retention=0.0,
+        read_retention=0.0,
+        mean_q_delta=0.0,
+        run_manifest=run_manifest,
+        raw_backend_report_format=expected_raw_backend_report_format(tool),
+    )
 
 
 def validate_trim_row_contract(*, run_manifest: dict, sample_rows: list[dict]) -> None:
@@ -275,72 +432,48 @@ def main() -> int:
         records = report.get("records", [])
         if not records:
             raise SystemExit(f"report.json for {sample_id} contains no records")
+        observed_tools: set[str] = set()
         for record in records:
-            tool = record.get("context", {}).get("tool", "unknown")
-            delta_metrics = normalize_metric(record, "delta_metrics")
-            row = {
-                "sample_id": sample_id,
-                "accession": metadata.get("accession"),
-                "era": metadata.get("era"),
-                "layout": metadata.get("layout", run["layout"]),
-                "study_accession": metadata.get("study_accession"),
-                "size_band": metadata.get("size_band"),
-                "tool": tool,
-                "runtime_s": record.get("execution", {}).get("runtime_s"),
-                "exit_code": record.get("execution", {}).get("exit_code"),
-                "reads_in": normalize_metric(record, "reads_in") or 0,
-                "reads_out": normalize_metric(record, "reads_out") or 0,
-                "bases_in": normalize_metric(record, "bases_in") or 0,
-                "bases_out": normalize_metric(record, "bases_out") or 0,
-                "base_retention": delta_metrics.get("base_retention", 0.0)
-                if isinstance(delta_metrics, dict)
-                else 0.0,
-                "read_retention": delta_metrics.get("read_retention", 0.0)
-                if isinstance(delta_metrics, dict)
-                else 0.0,
-                "mean_q_delta": delta_metrics.get("mean_q_delta", 0.0)
-                if isinstance(delta_metrics, dict)
-                else 0.0,
-                "min_length": metric_or_run_default(record, "min_length", run_manifest),
-                "quality_cutoff": metric_or_run_default(
-                    record, "quality_cutoff", run_manifest
-                ),
-                "n_policy": metric_or_run_default(record, "n_policy", run_manifest),
-                "adapter_policy": metric_or_run_default(
-                    record, "adapter_policy", run_manifest
-                ),
-                "polyx_policy": metric_or_run_default(
-                    record, "polyx_policy", run_manifest
-                ),
-                "contaminant_policy": metric_or_run_default(
-                    record, "contaminant_policy", run_manifest
-                ),
-                "adapter_bank_preset": (
-                    normalize_metric(record, "adapter_preset")
-                    or run_manifest.get("adapter_bank_preset")
-                ),
-                "polyx_preset": (
-                    normalize_metric(record, "polyx_preset")
-                    or run_manifest.get("polyx_preset")
-                ),
-                "contaminant_preset": (
-                    normalize_metric(record, "contaminant_preset")
-                    or run_manifest.get("contaminant_preset")
-                ),
-                "raw_backend_report_format": (
-                    normalize_metric(record, "raw_backend_report_format")
-                    or expected_raw_backend_report_format(tool)
-                ),
-            }
+            row = build_trim_row_from_record(
+                sample_id=sample_id,
+                metadata=metadata,
+                layout=run["layout"],
+                record=record,
+                run_manifest=run_manifest,
+            )
             sample_rows.append(row)
-            tool_rows[tool].append(row)
+            tool_rows[row["tool"]].append(row)
+            observed_tools.add(row["tool"])
+        for tool in run_manifest["tools"]:
+            if tool in observed_tools:
+                continue
+            synthesized_row = synthesize_failed_trim_row(
+                sample_id=sample_id,
+                metadata=metadata,
+                layout=run["layout"],
+                tool=tool,
+                report=report,
+                records=records,
+                run_manifest=run_manifest,
+            )
+            if synthesized_row is None:
+                raise SystemExit(
+                    "trim benchmark report drift: "
+                    f"sample {sample_id} missing row for tool {tool}"
+                )
+            sample_rows.append(synthesized_row)
+            tool_rows[tool].append(synthesized_row)
 
     validate_trim_row_contract(run_manifest=run_manifest, sample_rows=sample_rows)
 
     tool_summary = []
     for tool in sorted(tool_rows):
         rows = tool_rows[tool]
-        runtimes = [float(row["runtime_s"]) for row in rows]
+        runtimes = [
+            float(row["runtime_s"])
+            for row in rows
+            if row["runtime_s"] not in {"", None}
+        ]
         base_retentions = [float(row["base_retention"]) for row in rows]
         read_retentions = [float(row["read_retention"]) for row in rows]
         mean_q_deltas = [float(row["mean_q_delta"]) for row in rows]

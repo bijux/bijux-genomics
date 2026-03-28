@@ -7983,6 +7983,87 @@ class TrimReadsReportingTests(unittest.TestCase):
                 }
             )
 
+    def test_trim_reads_report_parses_failed_tool_exit_status(self) -> None:
+        self.assertEqual(
+            trim_reads_report.parse_tool_exit_status(
+                "tool `trimmomatic` failed with status 1"
+            ),
+            1,
+        )
+        self.assertIsNone(trim_reads_report.parse_tool_exit_status("missing status"))
+
+    def test_trim_reads_report_synthesizes_missing_failed_tool_row(self) -> None:
+        run_manifest = {
+            "tools": ["fastp", "trimmomatic"],
+            "min_length": 30,
+            "quality_cutoff": None,
+            "n_policy": "retain",
+            "adapter_policy": "none",
+            "polyx_policy": "none",
+            "contaminant_policy": "none",
+            "adapter_bank_preset": None,
+            "polyx_preset": None,
+            "contaminant_preset": None,
+        }
+        records = [
+            {
+                "context": {"tool": "fastp"},
+                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                "metrics": {
+                    "metrics": {
+                        "reads_in": 100,
+                        "reads_out": 95,
+                        "bases_in": 1000,
+                        "bases_out": 940,
+                        "delta_metrics": {
+                            "base_retention": 0.94,
+                            "read_retention": 0.95,
+                            "mean_q_delta": 0.1,
+                        },
+                    }
+                },
+            }
+        ]
+        report = {
+            "records": records,
+            "failures": [
+                {
+                    "kind": "tool_exit",
+                    "tool": "trimmomatic",
+                    "reason": "tool `trimmomatic` failed with status 1",
+                }
+            ],
+            "gate": {"passes": False},
+        }
+
+        row = trim_reads_report.synthesize_failed_trim_row(
+            sample_id="sample_0001",
+            metadata={
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "study_accession": "PRJ1",
+                "size_band": "under_100mb",
+            },
+            layout="pe",
+            tool="trimmomatic",
+            report=report,
+            records=records,
+            run_manifest=run_manifest,
+        )
+
+        self.assertIsNotNone(row)
+        assert row is not None
+        self.assertEqual(row["tool"], "trimmomatic")
+        self.assertIsNone(row["runtime_s"])
+        self.assertEqual(row["exit_code"], 1)
+        self.assertEqual(row["reads_in"], 100)
+        self.assertEqual(row["reads_out"], 0)
+        self.assertEqual(row["bases_in"], 1000)
+        self.assertEqual(row["bases_out"], 0)
+        self.assertEqual(row["base_retention"], 0.0)
+        self.assertEqual(row["read_retention"], 0.0)
+
     def test_trim_reads_summary_preserves_configured_corpus_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
