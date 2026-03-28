@@ -5815,6 +5815,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         }
     }
     let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
+    validate_benchmark_sync_roots(&benchmark_workspace)?;
     let default_lunarc_host = benchmark_workspace
         .remote_ssh_host
         .as_deref()
@@ -5903,6 +5904,13 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     } else {
         PathBuf::from(expand_home_placeholder(&lunarc_pull_dest, &home))
     };
+    let layout_conflicts = remote_layout_conflicts(workspace, &lunarc_host, &benchmark_workspace)?;
+    if !layout_conflicts.is_empty() {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "refusing pull: remote benchmark layout is ambiguous\n{}\n",
+            layout_conflicts.join("\n")
+        )));
+    }
     if dry_run {
         return success_line(format!(
             "[dry-run] would pull mode={pull_mode} from {lunarc_host} to {}",
@@ -5917,6 +5925,7 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     }
     bijux_dna_infra::ensure_dir(&dest)?;
     let mut pulled_paths = Vec::new();
+    let mut pulled_path_mappings = Vec::new();
     if pull_mode == "full" {
         let outcome = run_program(
             workspace,
@@ -5932,20 +5941,37 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             return Ok(outcome);
         }
         pulled_paths.push(format!("{lunarc_root}/"));
+        pulled_path_mappings.push(json!({
+            "remote_path": format!("{lunarc_root}/"),
+            "local_path": format!("{}/", dest.display()),
+        }));
     } else if benchmark_workspace.remote_results_root.is_some() {
-        pull_lunarc_tree(workspace, &lunarc_host, &lunarc_results_dir, &dest)?;
+        let local_path = pull_lunarc_tree(workspace, &lunarc_host, &lunarc_results_dir, &dest)?;
         pulled_paths.push(format!("{lunarc_results_dir}/"));
+        pulled_path_mappings.push(json!({
+            "remote_path": format!("{lunarc_results_dir}/"),
+            "local_path": format!("{}/", local_path.display()),
+        }));
         if !lunarc_results_legacy_dir.is_empty()
             && remote_path_exists(workspace, &lunarc_host, &lunarc_results_legacy_dir)?
         {
-            pull_lunarc_tree(workspace, &lunarc_host, &lunarc_results_legacy_dir, &dest)?;
+            let local_path =
+                pull_lunarc_tree(workspace, &lunarc_host, &lunarc_results_legacy_dir, &dest)?;
             pulled_paths.push(format!("{lunarc_results_legacy_dir}/"));
+            pulled_path_mappings.push(json!({
+                "remote_path": format!("{lunarc_results_legacy_dir}/"),
+                "local_path": format!("{}/", local_path.display()),
+            }));
         }
         if include_containers_manifest {
             let manifest_root = format!("{lunarc_containers_root}/manifest");
             if remote_path_exists(workspace, &lunarc_host, &manifest_root)? {
-                pull_lunarc_tree(workspace, &lunarc_host, &manifest_root, &dest)?;
+                let local_path = pull_lunarc_tree(workspace, &lunarc_host, &manifest_root, &dest)?;
                 pulled_paths.push(format!("{manifest_root}/"));
+                pulled_path_mappings.push(json!({
+                    "remote_path": format!("{manifest_root}/"),
+                    "local_path": format!("{}/", local_path.display()),
+                }));
             }
         }
         if !effective_data_manifest_glob.is_empty() {
@@ -5956,8 +5982,12 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             {
                 let clean_rel = rel.trim_start_matches('/');
                 let remote_path = format!("{lunarc_corpus_root}/{clean_rel}");
-                pull_lunarc_path(workspace, &lunarc_host, &remote_path, &dest)?;
+                let local_path = pull_lunarc_path(workspace, &lunarc_host, &remote_path, &dest)?;
                 pulled_paths.push(remote_path);
+                pulled_path_mappings.push(json!({
+                    "remote_path": format!("{lunarc_corpus_root}/{clean_rel}"),
+                    "local_path": local_path.display().to_string(),
+                }));
             }
         }
     } else {
@@ -5975,6 +6005,10 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             return Ok(outcome);
         }
         pulled_paths.push(format!("{lunarc_results_dir}/"));
+        pulled_path_mappings.push(json!({
+            "remote_path": format!("{lunarc_results_dir}/"),
+            "local_path": format!("{}/", dest.display()),
+        }));
         if include_containers_manifest {
             bijux_dna_infra::ensure_dir(dest.join("bijux-dna-container"))?;
             let _ = run_program(
@@ -5989,6 +6023,10 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                 ],
             )?;
             pulled_paths.push(format!("{lunarc_containers_root}/manifest/"));
+            pulled_path_mappings.push(json!({
+                "remote_path": format!("{lunarc_containers_root}/manifest/"),
+                "local_path": dest.join("bijux-dna-container/manifest").display().to_string(),
+            }));
         }
         if !effective_data_manifest_glob.is_empty() {
             for rel in effective_data_manifest_glob
@@ -6011,6 +6049,10 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                     ],
                 )?;
                 pulled_paths.push(format!("{lunarc_corpus_root}/{clean_rel}"));
+                pulled_path_mappings.push(json!({
+                    "remote_path": format!("{lunarc_corpus_root}/{clean_rel}"),
+                    "local_path": target.display().to_string(),
+                }));
             }
         }
     }
@@ -6035,10 +6077,22 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             "remote_root": lunarc_root,
             "remote_repo": lunarc_repo_dir,
             "remote_cache_root": benchmark_workspace.remote_cache_root,
+            "local_destination": dest.display().to_string(),
+            "local_cache_mirror_root": benchmark_workspace.local_cache_mirror_root,
+            "include_profile": include_profile,
+            "exclude_profile": exclude_profile,
+            "workspace_scope": include_sync_profile.and_then(|profile| profile.workspace_scope.clone()),
+            "data_manifest_globs": effective_data_manifest_glob
+                .split(',')
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(ToOwned::to_owned)
+                .collect::<Vec<_>>(),
             "remote_commit": remote_commit,
             "pulled_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
             "pull_mode": pull_mode,
             "paths": pulled_paths,
+            "path_mappings": pulled_path_mappings,
         }),
     )?;
     success_line(format!("pulled_to={}", dest.display()))
@@ -6081,6 +6135,7 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         }
     }
     let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
+    validate_benchmark_sync_roots(&benchmark_workspace)?;
     let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
     let mut exclude_file = workspace.path("configs/hpc/rsync/push-excludes.txt");
     if profiles_cfg.is_file() {
@@ -8782,6 +8837,121 @@ fn benchmark_workspace_lookup<'a>(
     }
 }
 
+fn validate_benchmark_sync_roots(benchmark_workspace: &BenchmarkWorkspacePaths) -> Result<()> {
+    let remote_repo_root = benchmark_workspace
+        .remote_repo_root
+        .as_deref()
+        .map(PathBuf::from);
+    let remote_cache_root = benchmark_workspace
+        .remote_cache_root
+        .as_deref()
+        .map(PathBuf::from);
+    let local_results_root = benchmark_workspace
+        .local_results_root
+        .as_deref()
+        .map(PathBuf::from);
+    let local_cache_mirror_root = benchmark_workspace
+        .local_cache_mirror_root
+        .as_deref()
+        .map(PathBuf::from);
+
+    if let (Some(repo_root), Some(cache_root)) = (&remote_repo_root, &remote_cache_root) {
+        if repo_root == cache_root
+            || repo_root.starts_with(cache_root)
+            || cache_root.starts_with(repo_root)
+        {
+            return Err(anyhow!(
+                "invalid benchmark sync contract: private frontend repo root {} and shared cache root {} must be separate trees",
+                repo_root.display(),
+                cache_root.display()
+            ));
+        }
+    }
+
+    if let (Some(results_root), Some(cache_mirror_root)) = (&local_results_root, &local_cache_mirror_root)
+    {
+        if !cache_mirror_root.starts_with(results_root) {
+            return Err(anyhow!(
+                "invalid benchmark sync contract: local cache mirror {} must live under local results root {}",
+                cache_mirror_root.display(),
+                results_root.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn benchmark_remote_layout_candidates(benchmark_workspace: &BenchmarkWorkspacePaths) -> Vec<(String, String)> {
+    let mut candidates = Vec::new();
+    if let Some(results_root) = benchmark_workspace.remote_results_root.as_deref() {
+        candidates.push((
+            "canonical-results-root".to_string(),
+            results_root.to_string(),
+        ));
+    }
+    if let Some(results_legacy_root) = benchmark_workspace.remote_results_legacy_root.as_deref() {
+        candidates.push((
+            "legacy-results-root".to_string(),
+            results_legacy_root.to_string(),
+        ));
+    }
+    if let Some(reference_root) = benchmark_workspace.remote_reference_root.as_deref() {
+        candidates.push((
+            "canonical-reference-root".to_string(),
+            reference_root.to_string(),
+        ));
+    }
+    if let Some(cache_root) = benchmark_workspace.remote_cache_root.as_deref() {
+        let cache_path = Path::new(cache_root);
+        if let Some(parent) = cache_path.parent() {
+            for sibling in ["results", "corpus_01", "extra-data"] {
+                candidates.push((
+                    format!("non-cache-sibling:{sibling}"),
+                    parent.join(sibling).display().to_string(),
+                ));
+            }
+            candidates.push((
+                "legacy-reference-root".to_string(),
+                parent.join("bijux-reference").display().to_string(),
+            ));
+        }
+    }
+    candidates
+}
+
+fn remote_layout_conflicts(
+    workspace: &Workspace,
+    host: &str,
+    benchmark_workspace: &BenchmarkWorkspacePaths,
+) -> Result<Vec<String>> {
+    let mut conflicts = Vec::new();
+    let candidates = benchmark_remote_layout_candidates(benchmark_workspace);
+    let canonical_results_root = benchmark_workspace.remote_results_root.as_deref();
+    let legacy_results_root = benchmark_workspace.remote_results_legacy_root.as_deref();
+    if let (Some(results_root), Some(results_legacy_root)) = (canonical_results_root, legacy_results_root)
+    {
+        if remote_path_exists(workspace, host, results_root)?
+            && remote_path_exists(workspace, host, results_legacy_root)?
+        {
+            conflicts.push(format!(
+                "duplicate results roots exist: {results_root} and {results_legacy_root}"
+            ));
+        }
+    }
+    for (label, path) in candidates {
+        if label == "canonical-results-root"
+            || label == "legacy-results-root"
+            || label == "canonical-reference-root"
+        {
+            continue;
+        }
+        if remote_path_exists(workspace, host, &path)? {
+            conflicts.push(format!("unexpected remote root {label} at {path}"));
+        }
+    }
+    Ok(conflicts)
+}
+
 fn expand_home_placeholder(raw: &str, home: &str) -> String {
     raw.replace("${HOME}", home)
 }
@@ -8811,7 +8981,7 @@ fn pull_lunarc_tree(
     host: &str,
     remote_dir: &str,
     dest_root: &Path,
-) -> Result<()> {
+) -> Result<PathBuf> {
     let local_dir = mirror_remote_path(dest_root, remote_dir);
     bijux_dna_infra::ensure_dir(&local_dir)?;
     let outcome = run_program(
@@ -8829,7 +8999,7 @@ fn pull_lunarc_tree(
             local_dir.display()
         ));
     }
-    Ok(())
+    Ok(local_dir)
 }
 
 fn pull_lunarc_path(
@@ -8837,7 +9007,7 @@ fn pull_lunarc_path(
     host: &str,
     remote_path: &str,
     dest_root: &Path,
-) -> Result<()> {
+) -> Result<PathBuf> {
     let local_path = mirror_remote_path(dest_root, remote_path);
     if let Some(parent) = local_path.parent() {
         bijux_dna_infra::ensure_dir(parent)?;
@@ -8857,7 +9027,7 @@ fn pull_lunarc_path(
             local_path.display()
         ));
     }
-    Ok(())
+    Ok(local_path)
 }
 
 fn env_or_default(key: &str, fallback: &str) -> String {
@@ -8947,5 +9117,86 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
             benchmark_workspace_lookup(&workspace, "remote.reference_root"),
             Some("/remote/.cache/reference")
         );
+    }
+
+    #[test]
+    fn validate_benchmark_sync_roots_rejects_overlapping_remote_roots() {
+        let workspace = BenchmarkWorkspacePaths {
+            local_results_root: Some("/tmp/results".to_string()),
+            local_cache_mirror_root: Some("/tmp/results/home/user/.cache".to_string()),
+            remote_ssh_host: None,
+            remote_repo_root: Some("/remote/.cache/bijux-dna".to_string()),
+            remote_cache_root: Some("/remote/.cache".to_string()),
+            remote_corpus_root: None,
+            remote_results_root: None,
+            remote_results_legacy_root: None,
+            remote_extra_data_root: None,
+            remote_reference_root: None,
+            remote_containers_root: None,
+        };
+
+        let error = super::validate_benchmark_sync_roots(&workspace)
+            .expect_err("expected overlapping remote roots to fail");
+        assert!(
+            error
+                .to_string()
+                .contains("private frontend repo root"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn validate_benchmark_sync_roots_requires_local_cache_mirror_under_results_root() {
+        let workspace = BenchmarkWorkspacePaths {
+            local_results_root: Some("/tmp/results".to_string()),
+            local_cache_mirror_root: Some("/tmp/cache".to_string()),
+            remote_ssh_host: None,
+            remote_repo_root: Some("/remote/repo".to_string()),
+            remote_cache_root: Some("/remote/.cache".to_string()),
+            remote_corpus_root: None,
+            remote_results_root: None,
+            remote_results_legacy_root: None,
+            remote_extra_data_root: None,
+            remote_reference_root: None,
+            remote_containers_root: None,
+        };
+
+        let error = super::validate_benchmark_sync_roots(&workspace)
+            .expect_err("expected invalid local cache mirror to fail");
+        assert!(
+            error
+                .to_string()
+                .contains("local cache mirror"),
+            "unexpected error: {error}"
+        );
+    }
+
+    #[test]
+    fn benchmark_remote_layout_candidates_include_legacy_and_non_cache_roots() {
+        let workspace = BenchmarkWorkspacePaths {
+            local_results_root: None,
+            local_cache_mirror_root: None,
+            remote_ssh_host: None,
+            remote_repo_root: Some("/remote/repo".to_string()),
+            remote_cache_root: Some("/remote/.cache".to_string()),
+            remote_corpus_root: Some("/remote/.cache/corpus_01".to_string()),
+            remote_results_root: Some("/remote/.cache/results".to_string()),
+            remote_results_legacy_root: Some("/remote/.cache/bijux-dna-results".to_string()),
+            remote_extra_data_root: Some("/remote/.cache/extra-data".to_string()),
+            remote_reference_root: Some("/remote/.cache/reference".to_string()),
+            remote_containers_root: Some("/remote/.cache/bijux-dna-container".to_string()),
+        };
+
+        let candidates = super::benchmark_remote_layout_candidates(&workspace);
+
+        assert!(candidates.iter().any(|(label, path)| {
+            label == "legacy-results-root" && path == "/remote/.cache/bijux-dna-results"
+        }));
+        assert!(candidates.iter().any(|(label, path)| {
+            label == "legacy-reference-root" && path == "/remote/bijux-reference"
+        }));
+        assert!(candidates.iter().any(|(label, path)| {
+            label == "non-cache-sibling:results" && path == "/remote/results"
+        }));
     }
 }
