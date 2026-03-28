@@ -11,9 +11,10 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     REPORT_QC_BENCHMARK_CONTRACT,
-    default_results_stage_root,
     load_corpus_spec,
     load_json,
+    localize_results_path,
+    preferred_report_run_root,
     resolve_corpus_metadata,
 )
 
@@ -47,16 +48,6 @@ def safe_mean(values: list[float]) -> float | None:
     if not values:
         return None
     return float(statistics.mean(values))
-
-
-def localize_results_path(path_str: str, local_results_root: Path) -> Path:
-    path = Path(path_str)
-    if path.exists():
-        return path
-    marker = "/results/"
-    if marker not in path_str:
-        return path
-    return local_results_root / path_str.split(marker, 1)[1]
 
 
 def enrich_multiqc_artifacts(row: dict) -> dict:
@@ -311,7 +302,7 @@ def main() -> int:
     run_root = (
         Path(args.run_root).resolve()
         if args.run_root
-        else default_results_stage_root(
+        else preferred_report_run_root(
             corpus_root, REPORT_QC_BENCHMARK_CONTRACT.stage_id
         ).resolve()
     )

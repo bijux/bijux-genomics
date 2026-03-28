@@ -11,11 +11,12 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT,
-    default_results_stage_root,
     discover_normalized_samples,
     load_corpus_spec,
     load_json,
+    localize_results_path,
     load_published_sample_metadata,
+    preferred_report_run_root,
     validate_corpus_contract,
 )
 
@@ -49,16 +50,6 @@ def safe_mean(values: list[float]) -> float | None:
     if not values:
         return None
     return float(statistics.mean(values))
-
-
-def localize_results_path(path_str: str, local_results_root: Path) -> Path:
-    path = Path(path_str)
-    if path.exists():
-        return path
-    marker = "/results/"
-    if marker not in path_str:
-        return path
-    return local_results_root / path_str.split(marker, 1)[1]
 
 
 def normalize_metric(record: dict, key: str):
@@ -244,7 +235,7 @@ def main() -> int:
     run_root = (
         Path(args.run_root).resolve()
         if args.run_root
-        else default_results_stage_root(
+        else preferred_report_run_root(
             corpus_root, TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT.stage_id
         )
     )
