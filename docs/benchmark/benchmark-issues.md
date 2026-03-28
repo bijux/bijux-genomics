@@ -58,4 +58,3 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 88. `fastq.correct_errors` publication currently depends on the presence of a run manifest in one mirror layout and a bench tree in another.
 89. `fastq.trim_reads` publication currently depends on stale local mirrors unless the user manually re-syncs.
 91. Benchmark support uses Python-only contracts, so Rust tooling cannot validate the same workspace path assumptions directly.
-100. The benchmark documentation surface still reflects historical storage decisions instead of one clear, durable benchmark workspace model.

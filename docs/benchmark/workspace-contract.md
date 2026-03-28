@@ -6,6 +6,8 @@ This document defines the governed benchmark workspace layout for corpus publica
 
 `configs/bench/workspace.toml` is the authority. Benchmark runners, renderers, sync helpers, and audit scripts must read workspace paths from that config instead of hardcoding user paths in code.
 
+Read this together with `docs/benchmark/workspace-model.md` for the durable role names used across the benchmark surface.
+
 ## Local Workspace
 
 - `local.results_root` is the stable local archive root where mirrored benchmark artifacts land.
