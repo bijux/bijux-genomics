@@ -79,6 +79,7 @@ MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
 VALIDATE_READS_METHOD_PATH = (
     ROOT / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01-method.md"
 )
+BENCHMARK_ISSUES_PATH = ROOT / "docs" / "benchmark" / "benchmark-issues.md"
 
 
 def benchmark_makefile_text() -> str:
@@ -93,6 +94,10 @@ def method_doc_text(stage_id: str) -> str:
     return (
         ROOT / "docs" / "benchmark" / stage_id / "corpus-01-method.md"
     ).read_text(encoding="utf-8")
+
+
+def benchmark_issues_text() -> str:
+    return BENCHMARK_ISSUES_PATH.read_text(encoding="utf-8")
 
 
 def makefile_target_recipe(target: str) -> str:
@@ -482,6 +487,27 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 missing_requirements.append(f"{stage_id}:missing-report-target")
 
         self.assertEqual(missing_requirements, [])
+
+    def test_benchmark_issue_ledger_does_not_list_resolved_fastq_contract_gaps(
+        self,
+    ) -> None:
+        text = benchmark_issues_text()
+
+        for resolved_claim in [
+            "Multiple benchmark renderers still default `--corpus-root` to `/home/bijan/bijux/corpus_01`.",
+            "There is no checked-in schema-bound benchmark workspace configuration file covering local and remote roots.",
+            "`docs/benchmark/corpus-01-publication-findings.json` is empty even while `corpus-01-status.md` reports 27 issues.",
+            "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.correct_errors`.",
+            "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.screen_taxonomy`.",
+            "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.extract_umis`.",
+            "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.remove_duplicates`.",
+            "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.deplete_host`.",
+            "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.deplete_reference_contaminants`.",
+            "`docs/benchmark/fastq.correct_errors/corpus-01-method.md` exists without the corresponding published `corpus-01` dossier directory.",
+            "`docs/benchmark/fastq.screen_taxonomy/corpus-01-method.md` exists without the corresponding published `corpus-01` dossier directory.",
+            "There is no repo check that ensures all governed corpus-01 benchmark stages have render targets.",
+        ]:
+            self.assertNotIn(resolved_claim, text)
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()

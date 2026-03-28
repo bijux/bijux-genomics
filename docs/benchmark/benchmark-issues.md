@@ -3,14 +3,12 @@
 This file tracks benchmark hard-wiring, publication drift, storage layout ambiguity, and missing governance hooks discovered while auditing the FASTQ benchmark surface and the supporting Lunarc workflow.
 
 1. Hardcoded local benchmark mirror root in `makes/bin/corpus_01_fastq_benchmark_support.py` points to `/Users/bijan/bijux/bijux-dna-results`.
-2. Multiple benchmark renderers still default `--corpus-root` to `/home/bijan/bijux/corpus_01`.
 3. `configs/runtime/platforms.toml` hardcodes a user-specific Lunarc Apptainer SIF directory.
 4. The benchmark tooling does not make the private frontend repo root under `/home/bijan/bijux/...` versus the shared benchmark cache root under `/home/bijan/lu2024-12-24/.cache` explicit enough.
 5. `hpc_lunarc_pull` defaults the local pull base to `~/bijux/bijux-dna-results` instead of the actual governed local results workspace.
 6. `hpc_lunarc_pull` encodes a timestamped destination convention rather than a stable benchmark mirror contract.
 7. `hpc_lunarc_push` and `hpc_lunarc_pull` are cluster-specific command names instead of generic benchmark environment sync commands.
 8. Push and pull behavior is spread across environment variables rather than a single benchmark workspace contract.
-9. There is no checked-in schema-bound benchmark workspace configuration file covering local and remote roots.
 10. Benchmark publication support derives local roots from code constants instead of configuration.
 11. Remote storage currently contains both `.cache/results` and `.cache/bijux-dna-results` benchmark trees.
 12. Remote storage currently contains both `.cache/reference` and `.cache/bijux-reference` trees.
@@ -19,18 +17,9 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
 16. The local mirror contract is not documented anywhere under `docs/benchmark`.
 17. The local results workspace contains `.DS_Store` files, which pollute benchmark mirrors.
-18. `docs/benchmark/corpus-01-status.md` reports `fastq.correct_errors` as missing even though Lunarc has a completed benchmark tree.
-19. `docs/benchmark/corpus-01-status.md` reports `fastq.screen_taxonomy` as missing even though Lunarc has a completed benchmark tree.
 20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.
-21. `docs/benchmark/corpus-01-publication-findings.json` is empty even while `corpus-01-status.md` reports 27 issues.
 22. `docs/benchmark/corpus-01-results-status.md` audits only 17 published stages and does not help close the remaining publication gap.
 23. The publication audit and the mirror audit are separate ledgers and can diverge.
-24. The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.correct_errors`.
-25. The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.screen_taxonomy`.
-26. The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.extract_umis`.
-27. The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.remove_duplicates`.
-28. The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.deplete_host`.
-29. The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.deplete_reference_contaminants`.
 30. Publication refresh depends on manually curated make targets rather than the governed contract list.
 31. Benchmark stage exclusions are embedded in Python support code instead of shared configuration.
 32. The benchmark support module localizes `/results/` and `/bijux-dna-results/` paths but not remote `extra-data` paths.
@@ -82,8 +71,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 78. The benchmark publication workflow has no shared command for “sync remote results, render dossiers, refresh audits”.
 79. There is no machine-readable remediation queue for publication issues.
 80. There is no per-stage ownership/status field for unresolved benchmark documentation gaps.
-81. `docs/benchmark/fastq.correct_errors/corpus-01-method.md` exists without the corresponding published `corpus-01` dossier directory.
-82. `docs/benchmark/fastq.screen_taxonomy/corpus-01-method.md` exists without the corresponding published `corpus-01` dossier directory.
 83. The benchmark audit script reports missing corpus directories but does not explain where the completed remote run actually lives.
 84. The benchmark audit script does not surface duplicate-result-root ambiguity as a first-class issue type.
 85. The benchmark audit script does not cross-check `corpus-01-publication-findings.json` freshness.
@@ -96,7 +83,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 92. There is no repo check that fails on hardcoded `/Users/bijan/` paths in benchmark tooling.
 93. There is no repo check that fails on hardcoded `/home/bijan/` paths in benchmark tooling.
 94. There is no repo check that fails on hardcoded `lunarc` host names in benchmark tooling.
-95. There is no repo check that ensures all governed corpus-01 benchmark stages have render targets.
 96. There is no repo check that ensures all governed corpus-01 benchmark stages have publication audit coverage.
 97. The benchmark support layer still treats the local mirror as a special case rather than a first-class configured environment.
 98. The repository lacks a single documented procedure for moving the benchmark workflow from Lunarc to another cluster using config only.
