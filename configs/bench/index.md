@@ -17,11 +17,13 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `configs/bench/publication.toml`
 - `configs/bench/workspace.toml`
 
-## Python Tooling Contract
-- `makes/bin/benchmark_fastq_corpus/` is the reusable Python package for FASTQ corpus benchmark support, workspace resolution, and publication utilities.
-- Top-level scripts under `makes/bin/` are compatibility entrypoints; shared logic should move into `benchmark_fastq_corpus` instead of growing new standalone modules.
-- `configs/bench/workspace.toml` is the single path contract for that package.
-- `BIJUX_FASTQ_CORPUS_CONFIG` and shared `--config` CLI options select a different workspace config when a local or migration workflow needs one.
+## Control Plane Contract
+- `bijux-dna` is the primary benchmark control plane for workspace lookups, publication target expansion, and corpus benchmark execution.
+- `bijux-dna bench workspace-value`, `bijux-dna bench publication-targets`, and `bijux-dna bench corpus-fastq` consume the governed benchmark config directly.
+- `makes/bin/benchmark_fastq_corpus/` remains a compatibility and helper package for Python report rendering, audits, and narrow bootstrap utilities.
+- Top-level scripts under `makes/bin/` are compatibility entrypoints and should keep shrinking rather than gaining new orchestration logic.
+- `configs/bench/workspace.toml` is the single path contract for both Rust and Python benchmark surfaces.
+- `BIJUX_FASTQ_CORPUS_CONFIG` and shared `--config` CLI options select a different benchmark config when a local or migration workflow needs one.
 
 ## Workspace Contract
 - `configs/bench/workspace.toml` keeps benchmark path policy outside the runners and reporting code.

@@ -18,7 +18,7 @@ DRY_RUN ?= 0
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
 CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" remote.corpus_root)
-CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)
+CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell $(BIJUX_BENCH_BIN) bench publication-targets --config "$(BENCHMARK_FASTQ_CORPUS_CONFIG)" report)
 BENCHMARK_OUT_DIR := $(strip $(OUT_DIR))
 BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)
 BENCHMARK_REPORT_RUN_ROOT_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--run-root "$(BENCHMARK_OUT_DIR)",)
