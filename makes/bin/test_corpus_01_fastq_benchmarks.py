@@ -363,7 +363,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_briefing_renderers_use_shared_runtime_context_loader(self) -> None:
         for path in briefing_renderer_paths():
             text = path.read_text(encoding="utf-8")
-            self.assertIn("resolve_corpus_briefing_runtime(", text, path.name)
+            self.assertIn("render_corpus_briefing_dossier(", text, path.name)
             self.assertNotIn("Path(args.docs_root).resolve()", text, path.name)
             self.assertNotIn(
                 'load_json(docs_root / "summary.json")',
@@ -385,7 +385,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_metric_briefings_use_shared_cohort_grouping_iterator(self) -> None:
         for path in grouped_metric_briefing_paths():
             text = path.read_text(encoding="utf-8")
-            self.assertIn("iter_cohort_row_groups(", text, path.name)
+            self.assertIn("summarize_cohort_metric_rows(", text, path.name)
             self.assertNotIn("grouped_with_size", text, path.name)
 
     def test_briefings_use_shared_tool_runtime_summary_helper(self) -> None:
@@ -427,15 +427,6 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_briefing_renderers_use_shared_stats_io_and_publication_helpers(
         self,
     ) -> None:
-        shared_calls = [
-            "load_csv_rows(",
-            "load_json(",
-            "safe_median(",
-            "safe_mean(",
-            "percentile(",
-            "fmt_runtime(",
-            "publish_corpus_briefing_artifacts(",
-        ]
         duplicated_defs = [
             "def load_json(",
             "def load_rows(",
@@ -446,10 +437,26 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "def fmt_csv_value(",
             "def write_csv(",
         ]
+        support_text = (
+            ROOT / "makes" / "bin" / "corpus_01_fastq_benchmark_support.py"
+        ).read_text(encoding="utf-8")
+        for call in [
+            "load_csv_rows(",
+            "load_json(",
+            "safe_median(",
+            "safe_mean(",
+            "percentile(",
+            "fmt_runtime(",
+            "publish_corpus_briefing_artifacts(",
+        ]:
+            self.assertIn(
+                call,
+                support_text,
+                f"corpus_01_fastq_benchmark_support.py missing {call}",
+            )
         for path in briefing_renderer_paths():
             text = path.read_text(encoding="utf-8")
-            for call in shared_calls:
-                self.assertIn(call, text, f"{path.name} missing {call}")
+            self.assertIn("render_corpus_briefing_dossier(", text, path.name)
             self.assertNotIn(
                 '(docs_root / "benchmark.md").write_text(',
                 text,
@@ -465,7 +472,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_standard_briefings_use_shared_artifact_publisher(self) -> None:
         for path in standard_briefing_publisher_paths():
             text = path.read_text(encoding="utf-8")
-            self.assertIn("publish_corpus_briefing_artifacts(", text, path.name)
+            self.assertIn("render_corpus_briefing_dossier(", text, path.name)
             self.assertNotIn("def write_csv(", text, path.name)
             self.assertNotIn(
                 '(docs_root / "benchmark.md").write_text(',
@@ -476,13 +483,13 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_ordered_briefings_use_shared_artifact_publisher(self) -> None:
         for path in ordered_briefing_publisher_paths():
             text = path.read_text(encoding="utf-8")
-            self.assertIn("publish_corpus_briefing_artifacts(", text, path.name)
+            self.assertIn("render_corpus_briefing_dossier(", text, path.name)
             self.assertNotIn("def write_csv(", text, path.name)
 
     def test_default_briefings_use_shared_artifact_publisher(self) -> None:
         for path in default_briefing_publisher_paths():
             text = path.read_text(encoding="utf-8")
-            self.assertIn("publish_corpus_briefing_artifacts(", text, path.name)
+            self.assertIn("render_corpus_briefing_dossier(", text, path.name)
             self.assertNotIn(
                 '(docs_root / "benchmark.md").write_text(',
                 text,
