@@ -5,7 +5,7 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "database_artifact_id": "taxonomy_db",
   "database_catalog_id": "taxonomy_reference",
   "database_digest": "5bb5be0ced539ee0d1cd88d41f4f63781d8941d1964ef7410c1b16995795f7de",
@@ -19,7 +19,7 @@
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-28T01:33:04.762779+00:00",
+  "generated_at_utc": "2026-03-28T02:36:58.623724+00:00",
   "headline": {
     "fastest_runtime_s": 1.3916613675,
     "fastest_tool": "kraken2",

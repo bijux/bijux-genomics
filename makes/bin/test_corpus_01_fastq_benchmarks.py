@@ -2075,6 +2075,120 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 }
             )
 
+    def test_screen_taxonomy_summary_preserves_configured_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.screen_taxonomy" / "lunarc"
+            )
+            docs_root = (
+                repo_root / "docs" / "benchmark" / "fastq.screen_taxonomy" / "corpus-01"
+            )
+            sample_report = (
+                run_root / "bench" / "screen_taxonomy" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "kraken2",
+                                    "database_artifact_id": "taxonomy_db",
+                                    "database_namespace": "read_screening",
+                                    "database_scope": "read_screening",
+                                    "database_catalog_id": "taxonomy_reference",
+                                    "database_root": "/refs/taxonomy",
+                                    "database_digest": "sha256:test",
+                                    "database_size_bytes": 1234,
+                                    "database_lineage_json": "/refs/taxonomy/lineage.json",
+                                    "database_lineage_digest": "sha256:lineage",
+                                },
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "contamination_rate": 0.0,
+                                    "classified_fraction": 1.0,
+                                    "unclassified_fraction": 0.0,
+                                    "top_taxon": "Homo sapiens",
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.screen_taxonomy",
+                        "scenario_id": "screen_fairness",
+                        "tools": ["kraken2"],
+                        "samples_failed": 0,
+                        "database_root": "/refs/taxonomy",
+                        "database_digest": "sha256:test",
+                        "database_size_bytes": 1234,
+                        "database_lineage_json": "/refs/taxonomy/lineage.json",
+                        "database_lineage_digest": "sha256:lineage",
+                        "database_artifact_id": "taxonomy_db",
+                        "database_namespace": "read_screening",
+                        "database_scope": "read_screening",
+                        "database_catalog_id": "taxonomy_reference",
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_screen_taxonomy_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    screen_taxonomy_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    screen_taxonomy_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "ancient",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(screen_taxonomy_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+
     def test_correct_errors_report_contract_rejects_policy_drift(self) -> None:
         run_manifest = {
             "tools": ["lighter"],
