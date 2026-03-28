@@ -63,8 +63,6 @@ import normalize_benchmark_workspace_stage_roots as normalize_workspace_stage_ro
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 import benchmark_tooling_repo_checks
-import audit_benchmark_workspace_layout as workspace_layout_audit
-import build_corpus_01_benchmark_dossier_index as dossier_index
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
@@ -562,6 +560,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_published_results_audit_builder_is_deleted(self) -> None:
         self.assertFalse(
             (ROOT / "makes" / "bin" / "audit_published_corpus_01_fastq_results.py").exists()
+        )
+
+    def test_workspace_layout_audit_builder_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "audit_benchmark_workspace_layout.py").exists()
+        )
+
+    def test_dossier_index_builder_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "build_corpus_01_benchmark_dossier_index.py").exists()
         )
 
     def test_report_renderers_use_shared_corpus_report_arg_parser(self) -> None:
@@ -1770,68 +1778,6 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("benchmark-sync-push", text)
         self.assertIn("BENCHMARK_SYNC_*", text)
 
-    def test_workspace_layout_audit_reports_authoritative_roots_and_local_stage_split(
-        self,
-    ) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_root = Path(tmpdir)
-            local_results_root = tmp_root / "bijux-dna-results"
-            local_cache_mirror_root = (
-                local_results_root / "home" / "bijan" / "lu2024-12-24" / ".cache"
-            )
-
-            (local_cache_mirror_root / "results" / "corpus_01" / "fastq.trim_reads").mkdir(
-                parents=True
-            )
-            (
-                local_cache_mirror_root
-                / "bijux-dna-results"
-                / "corpus_01"
-                / "fastq.filter_reads"
-            ).mkdir(parents=True)
-            (local_cache_mirror_root / "reference" / "rrna").mkdir(parents=True)
-            (local_cache_mirror_root / "bijux-reference" / "taxonomy").mkdir(parents=True)
-            (local_results_root / "corpus_01" / "fastq.trim_reads").mkdir(parents=True)
-            (local_results_root / "corpus_01" / "fastq.validate_reads").mkdir(parents=True)
-
-            with mock.patch.object(
-                workspace_layout_audit.support,
-                "benchmark_local_results_root",
-                return_value=local_results_root,
-            ), mock.patch.object(
-                workspace_layout_audit.support,
-                "benchmark_local_cache_mirror_root",
-                return_value=local_cache_mirror_root,
-            ):
-                report = workspace_layout_audit.workspace_layout_report()
-
-        self.assertEqual(
-            report["authoritative_roots"]["remote_results_root"],
-            str(local_cache_mirror_root / "results"),
-        )
-        self.assertEqual(
-            report["authoritative_roots"]["remote_reference_root"],
-            str(local_cache_mirror_root / "reference"),
-        )
-        self.assertEqual(
-            report["authoritative_roots"]["local_stage_root"],
-            str(local_cache_mirror_root / "results" / "corpus_01"),
-        )
-        self.assertEqual(report["local_stage_layout"]["shared_stage_ids"], ["fastq.trim_reads"])
-        self.assertEqual(
-            report["local_stage_layout"]["archive_only_stage_ids"],
-            ["fastq.validate_reads"],
-        )
-        self.assertEqual(
-            sorted(issue["issue_id"] for issue in report["issues"]),
-            [
-                "archive-only-local-stage-root",
-                "duplicate-local-stage-root",
-                "duplicate-remote-reference-root",
-                "duplicate-remote-results-root",
-            ],
-        )
-
     def test_converge_workspace_roots_moves_unique_entries_and_drops_stale_duplicates(
         self,
     ) -> None:
@@ -2021,13 +1967,10 @@ class BenchmarkMakefileTests(unittest.TestCase):
         audit_text = (BIN_DIR / "audit_corpus_01_fastq_benchmark_docs.py").read_text(
             encoding="utf-8"
         )
-        index_text = (BIN_DIR / "build_corpus_01_benchmark_dossier_index.py").read_text(
-            encoding="utf-8"
-        )
 
         self.assertIn('PUBLISHED_DOSSIER_NAME = "benchmark.md"', support_text)
         self.assertIn("resolve_existing_dossier_path", audit_text)
-        self.assertIn("resolve_existing_dossier_path", index_text)
+        self.assertFalse((BIN_DIR / "build_corpus_01_benchmark_dossier_index.py").exists())
 
     def test_published_benchmark_docs_no_longer_use_site_named_dossier_files(self) -> None:
         legacy_paths = sorted(
@@ -5178,46 +5121,6 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
 
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
-    def test_dossier_index_classifies_cache_mirror_run_root(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with benchmark_contract_env() as env:
-                docs_root = Path(tmpdir) / "docs" / "benchmark"
-                stage_root = docs_root / "fastq.validate_reads" / "corpus-01"
-                stage_root.mkdir(parents=True)
-                stage_root.joinpath("summary.json").write_text(
-                    json.dumps(
-                        {
-                            "generated_at_utc": "2026-03-28T00:00:00Z",
-                            "platform": "lunarc-apptainer",
-                            "corpus_root": env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
-                            "run_root": str(
-                                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"])
-                                / "results"
-                                / "corpus_01"
-                                / "fastq.validate_reads"
-                                / "lunarc"
-                            ),
-                        }
-                    )
-                    + "\n",
-                    encoding="utf-8",
-                )
-
-                index = dossier_index.build_index(docs_root)
-
-        stage = next(entry for entry in index["stages"] if entry["stage_id"] == "fastq.validate_reads")
-        self.assertEqual(stage["status"], "published")
-        self.assertEqual(stage["run_root_source"], "local-cache-mirror")
-
-    def test_dossier_index_tracks_missing_stage_summary(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with benchmark_contract_env():
-                index = dossier_index.build_index(Path(tmpdir) / "docs" / "benchmark")
-
-        self.assertEqual(index["stage_count"], len(support.CORPUS_01_PUBLICATION_CONTRACTS))
-        self.assertEqual(index["missing_stage_count"], len(support.CORPUS_01_PUBLICATION_CONTRACTS))
-        self.assertTrue(all(stage["status"] == "missing" for stage in index["stages"]))
-
     def test_benchmark_repo_checks_flag_hardcoded_local_operator_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -5317,67 +5220,6 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
             report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
 
         self.assertEqual(report["violation_count"], 0)
-
-    def test_workspace_layout_audit_flags_duplicate_mirrored_roots(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            local_results_root = Path(tmpdir) / "results-archive"
-            cache_root = (
-                local_results_root / "home" / "bijan" / "lu2024-12-24" / ".cache"
-            )
-            (cache_root / "results").mkdir(parents=True)
-            (cache_root / "bijux-dna-results").mkdir(parents=True)
-            (cache_root / "reference").mkdir(parents=True)
-            (cache_root / "bijux-reference").mkdir(parents=True)
-
-            with mock.patch.object(
-                support,
-                "benchmark_local_results_root",
-                return_value=local_results_root,
-            ), mock.patch.object(
-                support,
-                "benchmark_local_cache_mirror_root",
-                return_value=cache_root,
-            ):
-                report = workspace_layout_audit.workspace_layout_report()
-
-        self.assertEqual(report["status"], "incomplete")
-        self.assertTrue(
-            any(
-                issue["issue_id"] == "duplicate-remote-results-root"
-                for issue in report["issues"]
-            )
-        )
-        self.assertTrue(
-            any(
-                issue["issue_id"] == "duplicate-remote-reference-root"
-                for issue in report["issues"]
-            )
-        )
-
-    def test_workspace_layout_audit_flags_non_cache_siblings(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            local_results_root = Path(tmpdir) / "results-archive"
-            remote_workspace_root = local_results_root / "home" / "bijan" / "lu2024-12-24"
-            cache_root = remote_workspace_root / ".cache"
-            cache_root.mkdir(parents=True)
-            (remote_workspace_root / "results").mkdir()
-            (remote_workspace_root / "corpus_01").mkdir()
-
-            with mock.patch.object(
-                support,
-                "benchmark_local_results_root",
-                return_value=local_results_root,
-            ), mock.patch.object(
-                support,
-                "benchmark_local_cache_mirror_root",
-                return_value=cache_root,
-            ):
-                report = workspace_layout_audit.workspace_layout_report()
-
-        sibling_details = [issue["detail"] for issue in report["issues"]]
-        self.assertTrue(
-            any("unexpected sibling beside .cache" in detail for detail in sibling_details)
-        )
 
     def test_audit_docs_reports_missing_stage_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
