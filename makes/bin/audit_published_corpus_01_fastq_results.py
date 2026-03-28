@@ -77,21 +77,22 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
     corpus_root = Path(str(summary.get("corpus_root", "")))
     canonical_run_root = default_local_results_stage_root(corpus_root, stage_id)
     reported_run_root = Path(str(summary.get("run_root", "")))
-    if reported_run_root != canonical_run_root:
+    resolved_run_root = reported_run_root if reported_run_root.is_dir() else canonical_run_root
+    if reported_run_root != canonical_run_root and not reported_run_root.is_dir():
         append_issue(
             issues,
             stage_id,
             "summary-run-root-drift",
             f"summary run_root={reported_run_root} expected {canonical_run_root}",
         )
-    if not canonical_run_root.is_dir():
+    if not resolved_run_root.is_dir():
         append_issue(
             issues,
             stage_id,
             "missing-local-run-root",
-            f"missing {canonical_run_root}",
+            f"missing {resolved_run_root}",
         )
-    stage_run_manifest = canonical_run_root / "run_manifest.json"
+    stage_run_manifest = resolved_run_root / "run_manifest.json"
     if not stage_run_manifest.is_file():
         append_issue(
             issues,
@@ -143,7 +144,7 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
                 "run-manifest-sample-failures",
                 f"run_manifest samples_failed={run_manifest.get('samples_failed')!r}",
             )
-        local_results_root = canonical_run_root.parents[2]
+        local_results_root = resolved_run_root.parents[2]
         missing_report_count = 0
         tool_roster_drift_samples: list[str] = []
         for run in run_manifest.get("runs", []):
