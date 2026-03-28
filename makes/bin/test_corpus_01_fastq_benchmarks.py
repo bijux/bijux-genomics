@@ -7210,13 +7210,16 @@ class TerminalDamageReportingTests(unittest.TestCase):
     def test_terminal_damage_summary_preserves_configured_corpus_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            run_root = (
+            actual_run_root = (
                 repo_root
                 / "results"
                 / "corpus_01"
                 / "fastq.trim_terminal_damage"
                 / "lunarc"
             )
+            run_root = repo_root / "mirror" / "fastq.trim_terminal_damage"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
             docs_root = (
                 repo_root
                 / "docs"
@@ -7225,7 +7228,7 @@ class TerminalDamageReportingTests(unittest.TestCase):
                 / "corpus-01"
             )
             sample_report = (
-                run_root
+                actual_run_root
                 / "bench"
                 / "trim_terminal_damage"
                 / "sample_0001"
@@ -7281,7 +7284,7 @@ class TerminalDamageReportingTests(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
-            (run_root / "run_manifest.json").write_text(
+            (actual_run_root / "run_manifest.json").write_text(
                 json.dumps(
                     {
                         "platform": "lunarc-apptainer",
@@ -7350,6 +7353,7 @@ class TerminalDamageReportingTests(unittest.TestCase):
                 summary["corpus_root"],
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
+            self.assertEqual(summary["run_root"], str(run_root))
 
     def test_terminal_damage_runner_parse_args_supports_sample_jobs(self) -> None:
         original_argv = sys.argv
