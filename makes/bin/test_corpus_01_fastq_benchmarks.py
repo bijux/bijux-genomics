@@ -164,6 +164,17 @@ def shared_report_publisher_paths() -> list[Path]:
     return [ROOT / "makes" / "bin" / name for name in names]
 
 
+def shared_report_runner_paths() -> list[Path]:
+    names = [
+        "render_fastq_detect_adapters_corpus_01_report.py",
+        "render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
+        "render_fastq_profile_read_lengths_corpus_01_report.py",
+        "render_fastq_profile_reads_corpus_01_report.py",
+        "render_fastq_validate_reads_corpus_01_report.py",
+    ]
+    return [ROOT / "makes" / "bin" / name for name in names]
+
+
 def standard_briefing_publisher_paths() -> list[Path]:
     names = [
         "render_fastq_detect_adapters_corpus_01_briefing.py",
@@ -421,6 +432,22 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 text,
                 path.name,
             )
+
+    def test_report_renderers_use_shared_stage_runner(self) -> None:
+        support_text = (
+            ROOT / "makes" / "bin" / "corpus_01_fastq_benchmark_support.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("class CorpusReportContext:", support_text)
+        self.assertIn("class CorpusReportArtifacts:", support_text)
+        self.assertIn("def load_corpus_report_context(", support_text)
+        self.assertIn("def run_corpus_report(", support_text)
+        for path in shared_report_runner_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("run_corpus_report(", text, path.name)
+            self.assertIn("def build_artifacts(context: CorpusReportContext)", text, path.name)
+            self.assertNotIn("resolve_corpus_report_runtime(", text, path.name)
+            self.assertNotIn("load_corpus_spec(", text, path.name)
+            self.assertNotIn("resolve_corpus_metadata(", text, path.name)
 
     def test_briefing_renderers_use_shared_corpus_briefing_arg_parser(self) -> None:
         for path in briefing_renderer_paths():
