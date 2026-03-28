@@ -18,6 +18,7 @@ from corpus_01_fastq_benchmark_support import (
     localize_results_path,
     load_published_sample_metadata,
     preferred_report_run_root,
+    resolve_corpus_report_runtime,
     trim_reads_benchmark_defaults,
     validate_corpus_contract,
 )
@@ -233,20 +234,19 @@ def load_sample_metadata(repo_root: Path, corpus_root: Path, spec: dict) -> dict
 
 def main() -> int:
     args = parse_args()
-    repo_root = Path(args.repo_root).resolve()
-    corpus_root = Path(args.corpus_root).expanduser()
-    run_root = (
-        Path(args.run_root).expanduser()
-        if args.run_root
-        else preferred_report_run_root(corpus_root, TRIM_READS_BENCHMARK_CONTRACT.stage_id)
+    runtime = resolve_corpus_report_runtime(
+        args,
+        stage_id=TRIM_READS_BENCHMARK_CONTRACT.stage_id,
     )
-    docs_root = (repo_root / args.docs_root).resolve()
-    docs_root.mkdir(parents=True, exist_ok=True)
-    local_results_root = run_root.parents[2]
+    repo_root = runtime.repo_root
+    corpus_root = runtime.corpus_root
+    run_root = runtime.run_root
+    docs_root = runtime.docs_root
+    local_results_root = runtime.local_results_root
 
     spec = load_corpus_spec(repo_root)
     defaults = trim_reads_benchmark_defaults()
-    run_manifest = load_json(run_root / "run_manifest.json")
+    run_manifest = runtime.run_manifest
     validate_trim_run_manifest_contract(run_manifest)
     run_manifest.setdefault("quality_cutoff", defaults["quality_cutoff"])
     run_manifest.setdefault("adapter_bank_preset", defaults["adapter_bank_preset"])

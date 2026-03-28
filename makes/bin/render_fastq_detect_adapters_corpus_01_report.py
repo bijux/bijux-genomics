@@ -16,6 +16,7 @@ from corpus_01_fastq_benchmark_support import (
     load_json,
     localize_results_path,
     preferred_report_run_root,
+    resolve_corpus_report_runtime,
     resolve_corpus_metadata,
 )
 
@@ -215,22 +216,18 @@ def render_markdown(summary: dict) -> str:
 
 def main() -> int:
     args = parse_args()
-    repo_root = Path(args.repo_root).resolve()
-    corpus_root = Path(args.corpus_root).expanduser()
-    run_root = (
-        Path(args.run_root).expanduser()
-        if args.run_root
-        else preferred_report_run_root(
-            corpus_root,
-            DETECT_ADAPTERS_BENCHMARK_CONTRACT.stage_id,
-        )
+    runtime = resolve_corpus_report_runtime(
+        args,
+        stage_id=DETECT_ADAPTERS_BENCHMARK_CONTRACT.stage_id,
     )
-    local_results_root = run_root.parents[2]
-    docs_root = (repo_root / args.docs_root).resolve()
-    docs_root.mkdir(parents=True, exist_ok=True)
+    repo_root = runtime.repo_root
+    corpus_root = runtime.corpus_root
+    run_root = runtime.run_root
+    docs_root = runtime.docs_root
+    local_results_root = runtime.local_results_root
 
     spec = load_corpus_spec(repo_root)
-    run_manifest = load_json(run_root / "run_manifest.json")
+    run_manifest = runtime.run_manifest
     validate_detect_run_manifest_contract(run_manifest)
     expected_sample_ids = [run["sample_id"] for run in run_manifest["runs"]]
     metadata_by_sample = resolve_corpus_metadata(

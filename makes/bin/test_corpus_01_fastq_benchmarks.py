@@ -277,6 +277,18 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertNotIn("parser.add_argument(\"--run-root\"", text, path.name)
             self.assertNotIn("parser.add_argument(\"--docs-root\"", text, path.name)
 
+    def test_report_renderers_use_shared_runtime_context_loader(self) -> None:
+        for path in report_renderer_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("resolve_corpus_report_runtime(", text, path.name)
+            self.assertNotIn("Path(args.repo_root).resolve()", text, path.name)
+            self.assertNotIn("Path(args.corpus_root).expanduser()", text, path.name)
+            self.assertNotIn(
+                'load_json(run_root / "run_manifest.json")',
+                text,
+                path.name,
+            )
+
     def test_briefing_renderers_use_shared_corpus_briefing_arg_parser(self) -> None:
         for path in briefing_renderer_paths():
             text = path.read_text(encoding="utf-8")
