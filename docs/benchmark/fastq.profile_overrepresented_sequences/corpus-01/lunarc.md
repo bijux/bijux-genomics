@@ -2,9 +2,9 @@
 
 ## Run Contract
 
-- Generated: 2026-03-27T00:37:51.337992+00:00
+- Generated: 2026-03-28T02:27:05.660482+00:00
 - Platform: `lunarc-apptainer`
-- Corpus root: `/home/bijan/bijux/corpus_01`
+- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
 - Run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.profile_overrepresented_sequences/lunarc`
 - Scenario: `overrepresented_sequence_fairness`
 - Samples benchmarked: `20`
