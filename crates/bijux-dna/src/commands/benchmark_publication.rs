@@ -1,10 +1,18 @@
-use anyhow::Result;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 
-use crate::commands::benchmark_workspace::load_benchmark_publication_config;
-use crate::commands::cli::BenchPublicationTargetsArgs;
+use anyhow::{anyhow, Context, Result};
+
+use crate::commands::benchmark_workspace::{
+    benchmark_config_path, load_benchmark_publication_config, BENCHMARK_CONFIG_ENV,
+};
+use crate::commands::cli::{
+    BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
+    BenchPublicationTargetsArgs,
+};
 
 pub(crate) fn print_benchmark_publication_targets(
-    cwd: &std::path::Path,
+    cwd: &Path,
     args: &BenchPublicationTargetsArgs,
 ) -> Result<()> {
     let publication = load_benchmark_publication_config(cwd, args.config.as_deref())?;
@@ -18,6 +26,50 @@ pub(crate) fn print_benchmark_publication_targets(
         .map(|contract| benchmark_make_target(&contract.stage_id, &args.kind))
         .collect::<Vec<_>>();
     println!("{}", targets.join(" "));
+    Ok(())
+}
+
+pub(crate) fn run_corpus_fastq_publication_status(
+    cwd: &Path,
+    args: &BenchCorpusFastqPublicationStatusArgs,
+) -> Result<()> {
+    let config_path = benchmark_config_path(cwd, args.config.as_deref());
+    let docs_root = absolutize(cwd, &args.docs_root);
+    for spec in publication_status_steps(cwd, &docs_root) {
+        run_subprocess(cwd, &config_path, &spec)?;
+    }
+    Ok(())
+}
+
+pub(crate) fn run_corpus_fastq_published_dossiers(
+    cwd: &Path,
+    args: &BenchCorpusFastqPublishedDossiersArgs,
+) -> Result<()> {
+    let config_path = benchmark_config_path(cwd, args.config.as_deref());
+    let docs_root = absolutize(cwd, &args.docs_root);
+    let publication = load_benchmark_publication_config(cwd, args.config.as_deref())?;
+    if let Some(corpus_01) = publication.corpus_01 {
+        for contract in corpus_01.contracts {
+            let stage_docs_root = docs_root.join(&contract.stage_id).join("corpus-01");
+            let report_spec = corpus_fastq_stage_render_step(
+                cwd,
+                &contract.stage_id,
+                &stage_docs_root,
+                args.run_root.as_deref(),
+            )?;
+            run_subprocess(cwd, &config_path, &report_spec)?;
+            let briefing_spec =
+                corpus_fastq_stage_briefing_step(cwd, &contract.stage_id, &stage_docs_root)?;
+            run_subprocess(cwd, &config_path, &briefing_spec)?;
+        }
+    }
+    run_corpus_fastq_publication_status(
+        cwd,
+        &BenchCorpusFastqPublicationStatusArgs {
+            config: args.config.clone(),
+            docs_root,
+        },
+    )?;
     Ok(())
 }
 
@@ -52,8 +104,249 @@ fn benchmark_make_target(stage_id: &str, kind: &str) -> String {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct SubprocessSpec {
+    program: &'static str,
+    args: Vec<String>,
+}
+
+fn publication_status_steps(repo_root: &Path, docs_root: &Path) -> Vec<SubprocessSpec> {
+    let repo_root_string = repo_root.display().to_string();
+    let docs_root_string = docs_root.display().to_string();
+    vec![
+        SubprocessSpec {
+            program: "python3",
+            args: vec![
+                repo_root
+                    .join("makes/bin/benchmark_tooling_repo_checks.py")
+                    .display()
+                    .to_string(),
+                "--repo-root".to_string(),
+                repo_root_string.clone(),
+            ],
+        },
+        SubprocessSpec {
+            program: "python3",
+            args: vec![
+                repo_root
+                    .join("makes/bin/audit_corpus_01_fastq_benchmark_docs.py")
+                    .display()
+                    .to_string(),
+                "--repo-root".to_string(),
+                repo_root_string.clone(),
+                "--docs-root".to_string(),
+                docs_root_string.clone(),
+                "--json-out".to_string(),
+                docs_root
+                    .join("corpus-01-status.json")
+                    .display()
+                    .to_string(),
+                "--markdown-out".to_string(),
+                docs_root.join("corpus-01-status.md").display().to_string(),
+            ],
+        },
+        SubprocessSpec {
+            program: "python3",
+            args: vec![
+                repo_root
+                    .join("makes/bin/build_corpus_01_benchmark_dossier_index.py")
+                    .display()
+                    .to_string(),
+                "--docs-root".to_string(),
+                docs_root_string.clone(),
+                "--json-out".to_string(),
+                docs_root
+                    .join("corpus-01-dossier-index.json")
+                    .display()
+                    .to_string(),
+                "--markdown-out".to_string(),
+                docs_root
+                    .join("corpus-01-dossier-index.md")
+                    .display()
+                    .to_string(),
+            ],
+        },
+        SubprocessSpec {
+            program: "python3",
+            args: vec![
+                repo_root
+                    .join("makes/bin/audit_benchmark_workspace_layout.py")
+                    .display()
+                    .to_string(),
+                "--json-out".to_string(),
+                docs_root
+                    .join("workspace-layout-status.json")
+                    .display()
+                    .to_string(),
+                "--markdown-out".to_string(),
+                docs_root
+                    .join("workspace-layout-status.md")
+                    .display()
+                    .to_string(),
+            ],
+        },
+        SubprocessSpec {
+            program: "python3",
+            args: vec![
+                repo_root
+                    .join("makes/bin/audit_published_corpus_01_fastq_results.py")
+                    .display()
+                    .to_string(),
+                "--repo-root".to_string(),
+                repo_root_string,
+                "--json-out".to_string(),
+                docs_root
+                    .join("corpus-01-results-status.json")
+                    .display()
+                    .to_string(),
+                "--markdown-out".to_string(),
+                docs_root
+                    .join("corpus-01-results-status.md")
+                    .display()
+                    .to_string(),
+            ],
+        },
+        SubprocessSpec {
+            program: "python3",
+            args: vec![
+                repo_root
+                    .join("makes/bin/build_corpus_01_benchmark_remediation_queue.py")
+                    .display()
+                    .to_string(),
+                "--status-json".to_string(),
+                docs_root
+                    .join("corpus-01-status.json")
+                    .display()
+                    .to_string(),
+                "--results-json".to_string(),
+                docs_root
+                    .join("corpus-01-results-status.json")
+                    .display()
+                    .to_string(),
+                "--findings-json".to_string(),
+                docs_root
+                    .join("corpus-01-publication-findings.json")
+                    .display()
+                    .to_string(),
+                "--dossier-index-json".to_string(),
+                docs_root
+                    .join("corpus-01-dossier-index.json")
+                    .display()
+                    .to_string(),
+                "--json-out".to_string(),
+                docs_root
+                    .join("corpus-01-remediation-queue.json")
+                    .display()
+                    .to_string(),
+                "--markdown-out".to_string(),
+                docs_root
+                    .join("corpus-01-remediation-queue.md")
+                    .display()
+                    .to_string(),
+            ],
+        },
+    ]
+}
+
+fn corpus_fastq_stage_render_step(
+    repo_root: &Path,
+    stage_id: &str,
+    stage_docs_root: &Path,
+    run_root: Option<&Path>,
+) -> Result<SubprocessSpec> {
+    let script_path = corpus_fastq_script_path(repo_root, stage_id, "report");
+    if !script_path.is_file() {
+        return Err(anyhow!(
+            "missing corpus benchmark render script for {stage_id}: {}",
+            script_path.display()
+        ));
+    }
+    let mut args = vec![
+        script_path.display().to_string(),
+        "--repo-root".to_string(),
+        repo_root.display().to_string(),
+        "--docs-root".to_string(),
+        stage_docs_root.display().to_string(),
+    ];
+    if let Some(run_root) = run_root {
+        args.push("--run-root".to_string());
+        args.push(absolutize(repo_root, run_root).display().to_string());
+    }
+    Ok(SubprocessSpec {
+        program: "python3",
+        args,
+    })
+}
+
+fn corpus_fastq_stage_briefing_step(
+    repo_root: &Path,
+    stage_id: &str,
+    stage_docs_root: &Path,
+) -> Result<SubprocessSpec> {
+    let script_path = corpus_fastq_script_path(repo_root, stage_id, "briefing");
+    if !script_path.is_file() {
+        return Err(anyhow!(
+            "missing corpus benchmark briefing script for {stage_id}: {}",
+            script_path.display()
+        ));
+    }
+    Ok(SubprocessSpec {
+        program: "python3",
+        args: vec![
+            script_path.display().to_string(),
+            "--docs-root".to_string(),
+            stage_docs_root.display().to_string(),
+        ],
+    })
+}
+
+fn corpus_fastq_script_path(repo_root: &Path, stage_id: &str, kind: &str) -> PathBuf {
+    let stage_name = stage_id.replace('.', "_");
+    repo_root.join(format!("makes/bin/render_{stage_name}_corpus_01_{kind}.py"))
+}
+
+fn run_subprocess(repo_root: &Path, config_path: &Path, spec: &SubprocessSpec) -> Result<()> {
+    let status = Command::new(spec.program)
+        .args(&spec.args)
+        .current_dir(repo_root)
+        .env(BENCHMARK_CONFIG_ENV, config_path)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()
+        .with_context(|| format!("run {}", format_command(spec)))?;
+    if status.success() {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "{} exited with {}",
+        format_command(spec),
+        status
+            .code()
+            .map(|code| code.to_string())
+            .unwrap_or_else(|| "signal".to_string())
+    ))
+}
+
+fn format_command(spec: &SubprocessSpec) -> String {
+    std::iter::once(spec.program.to_string())
+        .chain(spec.args.iter().cloned())
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        cwd.join(path)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     #[test]
     fn publication_target_maps_profile_overrepresented_stage() {
         assert_eq!(
@@ -76,5 +369,33 @@ mod tests {
             super::benchmark_make_target("fastq.filter_reads", "report"),
             "_benchmark-filter-reads-corpus-01-report"
         );
+    }
+
+    #[test]
+    fn corpus_fastq_report_script_path_matches_stage_contract() {
+        assert_eq!(
+            super::corpus_fastq_script_path(
+                Path::new("/repo"),
+                "fastq.profile_overrepresented_sequences",
+                "report",
+            ),
+            Path::new(
+                "/repo/makes/bin/render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
+            )
+        );
+    }
+
+    #[test]
+    fn publication_status_steps_write_to_docs_root_outputs() {
+        let steps =
+            super::publication_status_steps(Path::new("/repo"), Path::new("/repo/docs/benchmark"));
+        let last = steps.last().expect("status steps");
+        assert_eq!(last.program, "python3");
+        assert!(last
+            .args
+            .contains(&"/repo/docs/benchmark/corpus-01-remediation-queue.json".to_string()));
+        assert!(last
+            .args
+            .contains(&"/repo/docs/benchmark/corpus-01-results-status.json".to_string()));
     }
 }

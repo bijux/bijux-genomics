@@ -737,6 +737,18 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::CorpusFastqPublicationStatus(args) => {
+                    crate::commands::benchmark_publication::run_corpus_fastq_publication_status(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
+                BenchCommand::CorpusFastqPublishedDossiers(args) => {
+                    crate::commands::benchmark_publication::run_corpus_fastq_published_dossiers(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
                 BenchCommand::CorpusFastq(args) => {
                     crate::commands::benchmark_corpus_fastq::run_benchmark_corpus_fastq(cli, args)?;
                 }

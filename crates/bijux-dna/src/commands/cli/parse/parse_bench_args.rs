@@ -12,6 +12,10 @@ pub enum BenchCommand {
     PublicationTargets(BenchPublicationTargetsArgs),
     #[command(name = "corpus-fastq")]
     CorpusFastq(BenchCorpusFastqArgs),
+    #[command(name = "corpus-fastq-publication-status")]
+    CorpusFastqPublicationStatus(BenchCorpusFastqPublicationStatusArgs),
+    #[command(name = "corpus-fastq-published-dossiers")]
+    CorpusFastqPublishedDossiers(BenchCorpusFastqPublishedDossiersArgs),
     Fastq {
         #[command(subcommand)]
         command: BenchFastqCommand,
@@ -84,6 +88,24 @@ pub struct BenchCorpusFastqArgs {
     pub stage_args: Vec<String>,
     #[arg(long = "manifest-arg")]
     pub manifest_args: Vec<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCorpusFastqPublicationStatusArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", default_value = "docs/benchmark")]
+    pub docs_root: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCorpusFastqPublishedDossiersArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", default_value = "docs/benchmark")]
+    pub docs_root: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub run_root: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]

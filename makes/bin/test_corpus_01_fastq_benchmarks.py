@@ -1114,30 +1114,35 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = benchmark_makefile_text()
 
         self.assertIn(
-            'CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell $(BIJUX_BENCH_BIN) bench publication-targets --config "$(BENCHMARK_CONFIG)" report)',
+            "bench corpus-fastq-published-dossiers",
             text,
         )
+        self.assertNotIn("CORPUS_01_PUBLISHED_DOSSIER_TARGETS :=", text)
 
     def test_publication_status_runs_benchmark_repo_checks(self) -> None:
         recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
 
-        self.assertIn("python3 makes/bin/benchmark_tooling_repo_checks.py", recipe)
+        self.assertIn("bench corpus-fastq-publication-status", recipe)
+        self.assertNotIn("python3 makes/bin/benchmark_tooling_repo_checks.py", recipe)
 
     def test_publication_status_refreshes_dossier_index(self) -> None:
         recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
 
-        self.assertIn("python3 makes/bin/build_corpus_01_benchmark_dossier_index.py", recipe)
+        self.assertIn("bench corpus-fastq-publication-status", recipe)
+        self.assertNotIn("python3 makes/bin/build_corpus_01_benchmark_dossier_index.py", recipe)
 
     def test_publication_status_refreshes_workspace_layout_audit(self) -> None:
         recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
 
-        self.assertIn("python3 makes/bin/audit_benchmark_workspace_layout.py", recipe)
+        self.assertIn("bench corpus-fastq-publication-status", recipe)
+        self.assertNotIn("python3 makes/bin/audit_benchmark_workspace_layout.py", recipe)
 
     def test_publication_status_refreshes_results_audit_and_remediation_queue(self) -> None:
         recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
 
-        self.assertIn("python3 makes/bin/audit_published_corpus_01_fastq_results.py", recipe)
-        self.assertIn(
+        self.assertIn("bench corpus-fastq-publication-status", recipe)
+        self.assertNotIn("python3 makes/bin/audit_published_corpus_01_fastq_results.py", recipe)
+        self.assertNotIn(
             "python3 makes/bin/build_corpus_01_benchmark_remediation_queue.py",
             recipe,
         )
@@ -1323,6 +1328,13 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "python3 makes/bin/normalize_benchmark_workspace_stage_roots.py --confirm",
             recipe,
         )
+
+    def test_published_dossiers_makefile_uses_rust_publication_orchestration(self) -> None:
+        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
+
+        self.assertIn("bench corpus-fastq-published-dossiers", recipe)
+        self.assertNotIn("for target in $(CORPUS_01_PUBLISHED_DOSSIER_TARGETS)", recipe)
+        self.assertNotIn("$(MAKE) _benchmark-corpus-01-publication-status", recipe)
 
     def test_published_dossiers_refresh_includes_remove_duplicates(self) -> None:
         self.assertIn(
