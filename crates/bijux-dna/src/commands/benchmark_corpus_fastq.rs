@@ -54,6 +54,7 @@ struct PendingSampleRun {
     report_json: PathBuf,
     command_args: Vec<String>,
     command: Vec<String>,
+    env_overrides: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -99,6 +100,7 @@ struct CorpusRunManifest {
 struct StageCommandSpec {
     bench_subcommand: &'static str,
     report_dir: &'static str,
+    strict_resume_report: bool,
 }
 
 pub(crate) fn print_benchmark_workspace_value(
@@ -185,25 +187,49 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
     let program = std::env::current_exe().context("resolve bijux-dna executable")?;
     let mut runs = Vec::new();
     let mut pending = Vec::new();
+    let runtime_env = benchmark_runtime_env(&out_root);
 
     for sample in selected_samples {
+        let sample_root = benchmark_sample_root(&out_root, stage_spec.report_dir, &sample.sample_id);
         let report_json = out_root
             .join("bench")
             .join(stage_spec.report_dir)
             .join(&sample.sample_id)
             .join("report.json");
-        if args.resume && report_json.is_file() {
-            runs.push(SampleRunRecord {
-                sample_id: sample.sample_id.clone(),
-                r1: sample.r1.clone(),
-                r2: sample.r2.clone(),
-                layout: sample.layout.clone(),
-                status: "skipped_existing_report".to_string(),
-                exit_code: 0,
-                command: Vec::new(),
-                report_json: report_json.display().to_string(),
-            });
-            continue;
+        if args.resume {
+            if stage_spec.strict_resume_report {
+                if sample_root.is_dir() && !report_json.is_file() {
+                    reset_sample_payload(&sample_root)?;
+                }
+                if report_json.is_file() {
+                    if sample_report_is_resume_ready(&report_json) {
+                        runs.push(SampleRunRecord {
+                            sample_id: sample.sample_id.clone(),
+                            r1: sample.r1.clone(),
+                            r2: sample.r2.clone(),
+                            layout: sample.layout.clone(),
+                            status: "skipped_existing_report".to_string(),
+                            exit_code: 0,
+                            command: Vec::new(),
+                            report_json: report_json.display().to_string(),
+                        });
+                        continue;
+                    }
+                    reset_sample_payload(&sample_root)?;
+                }
+            } else if report_json.is_file() {
+                runs.push(SampleRunRecord {
+                    sample_id: sample.sample_id.clone(),
+                    r1: sample.r1.clone(),
+                    r2: sample.r2.clone(),
+                    layout: sample.layout.clone(),
+                    status: "skipped_existing_report".to_string(),
+                    exit_code: 0,
+                    command: Vec::new(),
+                    report_json: report_json.display().to_string(),
+                });
+                continue;
+            }
         }
 
         let command_args = build_stage_command_args(
@@ -237,6 +263,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             report_json,
             command_args,
             command,
+            env_overrides: runtime_env.clone(),
         });
     }
 
@@ -325,82 +352,102 @@ fn stage_command_spec(stage_id: &str) -> Result<StageCommandSpec> {
         "fastq.validate_reads" => StageCommandSpec {
             bench_subcommand: "validate-reads",
             report_dir: "validate_reads",
+            strict_resume_report: false,
         },
         "fastq.trim_polyg_tails" => StageCommandSpec {
             bench_subcommand: "trim-polyg-tails",
             report_dir: "trim_polyg_tails",
+            strict_resume_report: false,
         },
         "fastq.trim_reads" => StageCommandSpec {
             bench_subcommand: "trim-reads",
             report_dir: "trim_reads",
+            strict_resume_report: true,
         },
         "fastq.trim_terminal_damage" => StageCommandSpec {
             bench_subcommand: "trim-terminal-damage",
             report_dir: "trim_terminal_damage",
+            strict_resume_report: false,
         },
         "fastq.detect_adapters" => StageCommandSpec {
             bench_subcommand: "detect-adapters",
             report_dir: "detect_adapters",
+            strict_resume_report: false,
         },
         "fastq.profile_reads" => StageCommandSpec {
             bench_subcommand: "profile-reads",
             report_dir: "profile_reads",
+            strict_resume_report: false,
         },
         "fastq.profile_read_lengths" => StageCommandSpec {
             bench_subcommand: "profile-read-lengths",
             report_dir: "profile_read_lengths",
+            strict_resume_report: false,
         },
         "fastq.profile_overrepresented_sequences" => StageCommandSpec {
             bench_subcommand: "profile-overrepresented-sequences",
             report_dir: "profile_overrepresented_sequences",
+            strict_resume_report: false,
         },
         "fastq.filter_low_complexity" => StageCommandSpec {
             bench_subcommand: "filter-low-complexity",
             report_dir: "filter_low_complexity",
+            strict_resume_report: false,
         },
         "fastq.filter_reads" => StageCommandSpec {
             bench_subcommand: "filter",
             report_dir: "filter",
+            strict_resume_report: true,
         },
         "fastq.merge_pairs" => StageCommandSpec {
             bench_subcommand: "merge",
             report_dir: "merge_pairs",
+            strict_resume_report: false,
         },
         "fastq.report_qc" => StageCommandSpec {
             bench_subcommand: "report-qc",
             report_dir: "report_qc",
+            strict_resume_report: false,
         },
         "fastq.remove_duplicates" => StageCommandSpec {
             bench_subcommand: "remove-duplicates",
             report_dir: "remove_duplicates",
+            strict_resume_report: false,
         },
         "fastq.normalize_primers" => StageCommandSpec {
             bench_subcommand: "normalize-primers",
             report_dir: "normalize_primers",
+            strict_resume_report: false,
         },
         "fastq.deplete_rrna" => StageCommandSpec {
             bench_subcommand: "deplete-rrna",
             report_dir: "deplete_rrna",
+            strict_resume_report: true,
         },
         "fastq.deplete_host" => StageCommandSpec {
             bench_subcommand: "deplete-host",
             report_dir: "deplete_host",
+            strict_resume_report: true,
         },
         "fastq.deplete_reference_contaminants" => StageCommandSpec {
             bench_subcommand: "deplete-reference-contaminants",
             report_dir: "deplete_reference_contaminants",
+            strict_resume_report: true,
         },
         "fastq.screen_taxonomy" => StageCommandSpec {
             bench_subcommand: "screen-taxonomy",
             report_dir: "screen_taxonomy",
+            strict_resume_report: true,
         },
         "fastq.correct_errors" => StageCommandSpec {
             bench_subcommand: "correct",
             report_dir: "correct_errors",
+            strict_resume_report: true,
         },
         "fastq.extract_umis" => StageCommandSpec {
             bench_subcommand: "umi",
             report_dir: "extract_umis",
+            strict_resume_report: true,
         },
         other => return Err(anyhow!("unsupported corpus benchmark stage `{other}`")),
     };
@@ -509,9 +556,12 @@ fn execute_sample(
     repo_root: &Path,
     row: PendingSampleRun,
 ) -> Result<SampleRunRecord> {
-    let status = Command::new(program)
+    let mut command = Command::new(program);
+    command
         .args(&row.command_args)
         .current_dir(repo_root)
+        .envs(&row.env_overrides);
+    let status = command
         .status()
         .with_context(|| format!("run {}", row.command.join(" ")))?;
     let exit_code = status.code().unwrap_or(1);
@@ -769,6 +819,76 @@ fn validate_benchmark_layout(corpus_root: &Path, out_root: &Path) -> Result<()> 
     Ok(())
 }
 
+fn benchmark_sample_root(out_root: &Path, report_dir: &str, sample_id: &str) -> PathBuf {
+    out_root.join("bench").join(report_dir).join(sample_id)
+}
+
+fn reset_sample_payload(sample_root: &Path) -> Result<()> {
+    if sample_root.is_dir() {
+        fs::remove_dir_all(sample_root)
+            .with_context(|| format!("remove stale sample payload {}", sample_root.display()))?;
+    }
+    Ok(())
+}
+
+fn sample_report_is_resume_ready(sample_report: &Path) -> bool {
+    let Ok(raw) = fs::read_to_string(sample_report) else {
+        return false;
+    };
+    let Ok(payload) = serde_json::from_str::<serde_json::Value>(&raw) else {
+        return false;
+    };
+    if payload
+        .get("failures")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|row| !row.is_empty())
+    {
+        return false;
+    }
+    if payload
+        .get("gate")
+        .and_then(|row| row.get("passes"))
+        .and_then(serde_json::Value::as_bool)
+        == Some(false)
+    {
+        return false;
+    }
+    payload
+        .get("records")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|row| !row.is_empty())
+}
+
+fn benchmark_runtime_env(out_root: &Path) -> BTreeMap<String, String> {
+    let mut env = BTreeMap::new();
+    let Some(cache_root) = workspace_cache_root_for_output(out_root) else {
+        return env;
+    };
+    env.insert(
+        "BIJUX_CACHE_ROOT".to_string(),
+        cache_root.display().to_string(),
+    );
+    env.insert("XDG_CACHE_HOME".to_string(), cache_root.display().to_string());
+    if cache_root.file_name().and_then(|row| row.to_str()) == Some(".cache") {
+        if let Some(parent) = cache_root.parent() {
+            env.insert("BIJUX_HPC_ROOT".to_string(), parent.display().to_string());
+        }
+    }
+    env
+}
+
+fn workspace_cache_root_for_output(out_root: &Path) -> Option<PathBuf> {
+    let resolved = out_root
+        .canonicalize()
+        .unwrap_or_else(|_| out_root.to_path_buf());
+    for candidate in resolved.ancestors() {
+        if candidate.file_name().and_then(|row| row.to_str()) == Some(".cache") {
+            return Some(candidate.to_path_buf());
+        }
+    }
+    None
+}
+
 fn absolutize(root: &Path, path: &Path) -> PathBuf {
     if path.is_absolute() {
         path.to_path_buf()
@@ -786,11 +906,15 @@ fn current_timestamp_utc() -> Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{default_stage_out_root, resolve_tools, stage_command_spec};
+    use super::{
+        benchmark_runtime_env, default_stage_out_root, resolve_tools, sample_report_is_resume_ready,
+        stage_command_spec, workspace_cache_root_for_output,
+    };
     use crate::commands::benchmark_workspace::{
         BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceRemote,
         BenchmarkWorkspaceStageRuns,
     };
+    use std::fs;
     use std::path::PathBuf;
 
     #[test]
@@ -798,6 +922,7 @@ mod tests {
         let spec = stage_command_spec("fastq.filter_reads").expect("stage spec");
         assert_eq!(spec.bench_subcommand, "filter");
         assert_eq!(spec.report_dir, "filter");
+        assert!(spec.strict_resume_report);
     }
 
     #[test]
@@ -830,6 +955,58 @@ mod tests {
         assert_eq!(
             out_root,
             PathBuf::from("/srv/cache/results/corpus-01/fastq.validate_reads/cluster")
+        );
+    }
+
+    #[test]
+    fn resume_ready_requires_successful_gate_and_records() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let report = temp.path().join("report.json");
+        fs::write(
+            &report,
+            serde_json::json!({
+                "failures": [],
+                "gate": {"passes": true},
+                "records": [{"tool": "fastp"}],
+            })
+            .to_string(),
+        )
+        .expect("write report");
+        assert!(sample_report_is_resume_ready(&report));
+
+        fs::write(
+            &report,
+            serde_json::json!({
+                "failures": [{"kind": "tool_exit"}],
+                "gate": {"passes": false},
+                "records": [],
+            })
+            .to_string(),
+        )
+        .expect("write failed report");
+        assert!(!sample_report_is_resume_ready(&report));
+    }
+
+    #[test]
+    fn benchmark_runtime_env_follows_cache_root_ancestor() {
+        let out_root =
+            PathBuf::from("/tmp/workspace/.cache/results/corpus_01/fastq.trim_reads/lunarc");
+        let env = benchmark_runtime_env(&out_root);
+        assert_eq!(
+            env.get("BIJUX_CACHE_ROOT"),
+            Some(&"/tmp/workspace/.cache".to_string())
+        );
+        assert_eq!(
+            env.get("XDG_CACHE_HOME"),
+            Some(&"/tmp/workspace/.cache".to_string())
+        );
+        assert_eq!(
+            env.get("BIJUX_HPC_ROOT"),
+            Some(&"/tmp/workspace".to_string())
+        );
+        assert_eq!(
+            workspace_cache_root_for_output(&out_root),
+            Some(PathBuf::from("/tmp/workspace/.cache"))
         );
     }
 }
