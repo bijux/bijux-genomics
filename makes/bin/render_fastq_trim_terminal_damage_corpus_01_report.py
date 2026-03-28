@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
+    benchmark_remote_corpus_root,
     TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT,
     discover_normalized_samples,
     load_corpus_spec,
@@ -26,7 +27,7 @@ def parse_args() -> argparse.Namespace:
         description="Render corpus-01 fastq.trim_terminal_damage benchmark summary."
     )
     parser.add_argument("--repo-root", default=".")
-    parser.add_argument("--corpus-root", default="/home/bijan/bijux/corpus_01")
+    parser.add_argument("--corpus-root", default=str(benchmark_remote_corpus_root()))
     parser.add_argument(
         "--run-root",
         default="",
