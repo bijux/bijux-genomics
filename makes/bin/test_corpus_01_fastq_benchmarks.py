@@ -59,7 +59,6 @@ import render_fastq_validate_reads_corpus_01_report as validate_reads_report
 import normalize_lunarc_results_mirror as normalize_results_mirror
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
-import benchmark_tooling_repo_checks
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
@@ -211,6 +210,31 @@ def resolve_benchmark_publication_targets(
         text=True,
     )
     return completed.stdout.split()
+
+
+def run_benchmark_repo_checks(repo_root: Path) -> dict:
+    completed = subprocess.run(
+        [
+            "cargo",
+            "run",
+            "-q",
+            "-p",
+            "bijux-dna",
+            "--",
+            "bench",
+            "repo-checks",
+            "--repo-root",
+            str(repo_root),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    stdout = completed.stdout.strip()
+    if stdout:
+        return json.loads(stdout)
+    raise RuntimeError(completed.stderr.strip() or "missing repo check report")
 
 
 def retired_execution_python_paths() -> list[Path]:
@@ -572,6 +596,11 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_workspace_stage_normalization_builder_is_deleted(self) -> None:
         self.assertFalse(
             (ROOT / "makes" / "bin" / "normalize_benchmark_workspace_stage_roots.py").exists()
+        )
+
+    def test_benchmark_repo_checks_builder_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "benchmark_tooling_repo_checks.py").exists()
         )
 
     def test_workspace_layout_audit_builder_is_deleted(self) -> None:
@@ -5038,7 +5067,7 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+            report = run_benchmark_repo_checks(repo_root)
 
         self.assertEqual(report["violation_count"], 1)
         self.assertEqual(
@@ -5056,7 +5085,7 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+            report = run_benchmark_repo_checks(repo_root)
 
         self.assertEqual(report["violation_count"], 0)
 
@@ -5070,7 +5099,7 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+            report = run_benchmark_repo_checks(repo_root)
 
         self.assertEqual(report["violation_count"], 1)
         self.assertEqual(
@@ -5088,7 +5117,7 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+            report = run_benchmark_repo_checks(repo_root)
 
         self.assertEqual(report["violation_count"], 1)
         self.assertEqual(
@@ -5106,7 +5135,7 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+            report = run_benchmark_repo_checks(repo_root)
 
         self.assertEqual(report["violation_count"], 1)
         self.assertEqual(
@@ -5124,7 +5153,7 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            report = benchmark_tooling_repo_checks.audit_repo_checks(repo_root)
+            report = run_benchmark_repo_checks(repo_root)
 
         self.assertEqual(report["violation_count"], 0)
 
