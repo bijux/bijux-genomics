@@ -619,6 +619,52 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference",
         )
 
+    def test_benchmark_workspace_value_prints_governed_sync_defaults(self) -> None:
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("sync.defaults.pull_base"),
+            "/Users/bijan/bijux/bijux-dna-results",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("sync.defaults.pull_mode"),
+            "results",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value(
+                "sync.defaults.include_profile"
+            ),
+            "pull-results-default",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value(
+                "sync.defaults.exclude_profile"
+            ),
+            "pull-full-default",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value(
+                "sync.defaults.clean_context"
+            ),
+            "1",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value(
+                "sync.defaults.allow_dirty"
+            ),
+            "0",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value(
+                "sync.defaults.include_containers_manifest"
+            ),
+            "0",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value(
+                "sync.defaults.data_manifest_glob"
+            ),
+            "",
+        )
+
     def test_benchmark_publication_config_defines_governed_exclusions(self) -> None:
         support.load_benchmark_publication_config.cache_clear()
         config = support.load_benchmark_publication_config()
@@ -824,6 +870,38 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "LUNARC_LOCAL_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py local.results_root)",
             text,
         )
+        self.assertIn(
+            "LUNARC_PULL_BASE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.pull_base)",
+            text,
+        )
+        self.assertIn(
+            "LUNARC_PULL_MODE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.pull_mode)",
+            text,
+        )
+        self.assertIn(
+            "LUNARC_INCLUDE_PROFILE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.include_profile)",
+            text,
+        )
+        self.assertIn(
+            "LUNARC_EXCLUDE_PROFILE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.exclude_profile)",
+            text,
+        )
+        self.assertIn(
+            "CLEAN_CONTEXT ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.clean_context)",
+            text,
+        )
+        self.assertIn(
+            "ALLOW_DIRTY ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.allow_dirty)",
+            text,
+        )
+        self.assertIn(
+            "INCLUDE_CONTAINERS_MANIFEST ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.include_containers_manifest)",
+            text,
+        )
+        self.assertIn(
+            "DATA_MANIFEST_GLOB ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.data_manifest_glob)",
+            text,
+        )
         self.assertNotIn("LUNARC_HOST ?= lunarc", text)
         self.assertNotIn("LUNARC_ROOT ?= /home/bijan/bijux", text)
         self.assertNotIn("LUNARC_LOCAL_RESULTS_DIR ?= $(HOME)/bijux/bijux-dna-results", text)
@@ -834,6 +912,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn('BENCHMARK_SYNC_CLEAN_CONTEXT="$(CLEAN_CONTEXT)"', text)
         self.assertIn('BENCHMARK_SYNC_ALLOW_DIRTY="$(ALLOW_DIRTY)"', text)
         self.assertIn('BENCHMARK_SYNC_PULL_BASE="$(LUNARC_PULL_BASE)"', text)
+        self.assertIn('BENCHMARK_SYNC_MODE="$(LUNARC_PULL_MODE)"', text)
         self.assertIn(
             'BENCHMARK_SYNC_PULL_DEST="$(LUNARC_LOCAL_RESULTS_DIR)"',
             text,

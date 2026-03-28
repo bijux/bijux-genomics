@@ -32,3 +32,13 @@ database_root_template = "benchmark/fastq.screen_taxonomy/{database_namespace}/{
 remote_results_template = "{corpus_id}/{stage_id}/lunarc"
 local_cache_results_template = "results/{corpus_id}/{stage_id}/lunarc"
 local_archive_results_template = "{corpus_id}/{stage_id}/lunarc"
+
+[sync.defaults]
+pull_base = "/Users/bijan/bijux/bijux-dna-results"
+pull_mode = "results"
+include_profile = "pull-results-default"
+exclude_profile = "pull-full-default"
+clean_context = true
+allow_dirty = false
+include_containers_manifest = false
+data_manifest_glob = ""

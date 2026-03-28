@@ -6,13 +6,14 @@ LUNARC_REPO_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote
 LUNARC_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.results_root)
 LUNARC_CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
 LUNARC_LOCAL_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py local.results_root)
-LUNARC_PULL_BASE ?= $(LUNARC_LOCAL_RESULTS_DIR)
-LUNARC_INCLUDE_PROFILE ?= pull-results-default
-LUNARC_EXCLUDE_PROFILE ?= pull-full-default
-CLEAN_CONTEXT ?= 1
-ALLOW_DIRTY ?= 0
-INCLUDE_CONTAINERS_MANIFEST ?= 0
-DATA_MANIFEST_GLOB ?=
+LUNARC_PULL_BASE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.pull_base)
+LUNARC_PULL_MODE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.pull_mode)
+LUNARC_INCLUDE_PROFILE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.include_profile)
+LUNARC_EXCLUDE_PROFILE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.exclude_profile)
+CLEAN_CONTEXT ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.clean_context)
+ALLOW_DIRTY ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.allow_dirty)
+INCLUDE_CONTAINERS_MANIFEST ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.include_containers_manifest)
+DATA_MANIFEST_GLOB ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.data_manifest_glob)
 LUNARC_CONTAINERS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.containers_root)
 LUNARC_APPTAINER_DIR ?= $(LUNARC_CONTAINERS_ROOT)/apptainer
 LUNARC_APPTAINER_ARTIFACT_DIR ?= $(LUNARC_REPO_DIR)/artifacts/containers/hpc/frontend-smoke
@@ -38,7 +39,7 @@ _pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: resu
 	@BENCHMARK_SYNC_PULL_BASE="$(LUNARC_PULL_BASE)" \
 	BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	BENCHMARK_SYNC_DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
-	BENCHMARK_SYNC_MODE="results" \
+	BENCHMARK_SYNC_MODE="$(LUNARC_PULL_MODE)" \
 	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
 		--include-profile "$(LUNARC_INCLUDE_PROFILE)" \
 		--exclude-profile "$(LUNARC_EXCLUDE_PROFILE)"
