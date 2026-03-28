@@ -418,6 +418,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
         self.assertIn("python3 makes/bin/build_corpus_01_benchmark_dossier_index.py", recipe)
 
+    def test_publication_status_refreshes_workspace_layout_audit(self) -> None:
+        recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
+
+        self.assertIn("python3 makes/bin/audit_benchmark_workspace_layout.py", recipe)
+
     def test_publication_status_refreshes_results_audit_and_remediation_queue(self) -> None:
         recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
 
@@ -830,6 +835,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("local.cache_mirror_root", text)
         self.assertIn("configs/bench/workspace.toml", text)
         self.assertIn("corpus-01-dossier-index.json", text)
+        self.assertIn("workspace-layout-status.json", text)
         self.assertIn("corpus-01-results-status.json", text)
         self.assertIn("corpus-01-remediation-queue.json", text)
 
