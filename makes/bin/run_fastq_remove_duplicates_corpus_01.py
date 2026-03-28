@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-root", default="")
     parser.add_argument(
         "--platform",
-        default=os.environ.get("BIJUX_PLATFORM", "lunarc-apptainer"),
+        default=os.environ.get("BIJUX_PLATFORM", "apptainer-amd64"),
     )
     parser.add_argument("--tools", default="")
     parser.add_argument("--threads", type=int, default=None)

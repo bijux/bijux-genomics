@@ -55,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-root", default="")
     parser.add_argument(
         "--platform",
-        default=os.environ.get("BIJUX_PLATFORM", "lunarc-apptainer"),
+        default=os.environ.get("BIJUX_PLATFORM", "apptainer-amd64"),
     )
     parser.add_argument("--tools", default="")
     parser.add_argument("--threads", type=int, default=defaults["threads"])
@@ -263,7 +263,7 @@ def warm_sortmerna_shared_index_cache(
     shared_idx_dir: Path,
     threads: int,
 ) -> None:
-    if platform != "lunarc-apptainer":
+    if platform not in {"apptainer-amd64", "lunarc-apptainer"}:
         return
     shared_idx_dir.mkdir(parents=True, exist_ok=True)
     if sortmerna_shared_index_seeded(shared_idx_dir):

@@ -105,6 +105,10 @@ def runtime_platforms_text() -> str:
     return PLATFORMS_TOML_PATH.read_text(encoding="utf-8")
 
 
+def runner_script_text(name: str) -> str:
+    return (ROOT / "makes" / "bin" / name).read_text(encoding="utf-8")
+
+
 def validate_reads_method_text() -> str:
     return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
@@ -984,6 +988,39 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("[platforms.apptainer-amd64]", text)
         self.assertIn("[platforms.lunarc-apptainer]", text)
         self.assertIn("portable platform name above as the canonical", text)
+
+    def test_fastq_benchmark_runners_default_to_portable_apptainer_platform(self) -> None:
+        runner_names = [
+            "run_fastq_correct_errors_corpus_01.py",
+            "run_fastq_deplete_host_corpus_01.py",
+            "run_fastq_deplete_reference_contaminants_corpus_01.py",
+            "run_fastq_deplete_rrna_corpus_01.py",
+            "run_fastq_detect_adapters_corpus_01.py",
+            "run_fastq_extract_umis_corpus_01.py",
+            "run_fastq_filter_low_complexity_corpus_01.py",
+            "run_fastq_filter_reads_corpus_01.py",
+            "run_fastq_merge_pairs_corpus_01.py",
+            "run_fastq_normalize_primers_corpus_01.py",
+            "run_fastq_profile_overrepresented_sequences_corpus_01.py",
+            "run_fastq_profile_read_lengths_corpus_01.py",
+            "run_fastq_profile_reads_corpus_01.py",
+            "run_fastq_remove_duplicates_corpus_01.py",
+            "run_fastq_report_qc_corpus_01.py",
+            "run_fastq_screen_taxonomy_corpus_01.py",
+            "run_fastq_trim_polyg_tails_corpus_01.py",
+            "run_fastq_trim_reads_corpus_01.py",
+            "run_fastq_trim_terminal_damage_corpus_01.py",
+            "run_fastq_validate_reads_corpus_01.py",
+        ]
+
+        for runner_name in runner_names:
+            text = runner_script_text(runner_name)
+            self.assertIn('os.environ.get("BIJUX_PLATFORM", "apptainer-amd64")', text)
+
+    def test_deplete_rrna_warmup_keeps_legacy_platform_alias_compatibility(self) -> None:
+        text = runner_script_text("run_fastq_deplete_rrna_corpus_01.py")
+
+        self.assertIn('platform not in {"apptainer-amd64", "lunarc-apptainer"}', text)
 
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,

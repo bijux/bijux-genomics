@@ -50,7 +50,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--platform",
-        default=os.environ.get("BIJUX_PLATFORM", "lunarc-apptainer"),
+        default=os.environ.get("BIJUX_PLATFORM", "apptainer-amd64"),
         help="bijux-dna platform name.",
     )
     parser.add_argument(
