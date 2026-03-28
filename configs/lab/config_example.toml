@@ -3,9 +3,9 @@
 # purpose = Contract config for configs/lab/config_example.toml
 # authority = bijux-dna-infra
 # stability = stable
-# last_updated = 2026-02-13
+# last_updated = 2026-03-29
 
-corpus_root = "/path/to/corpus"
+corpus_root = "${BIJUX_LAB_CORPUS_ROOT}"
 runner_kind = "docker"
 pipeline_ids = ["fastq-to-fastq__default__v1", "bam-to-bam__default__v1"]
-output_dir = "/path/to/artifacts/output"
+output_dir = "${BIJUX_LAB_OUTPUT_DIR}"

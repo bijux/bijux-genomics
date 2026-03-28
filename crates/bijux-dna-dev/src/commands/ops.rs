@@ -8573,7 +8573,9 @@ fn lab_config(workspace: &Workspace) -> Result<TomlValue> {
             resolved.display()
         ));
     }
-    toml::from_str(&read_utf8(&resolved)?).context("parse lab config")
+    let mut value: TomlValue = toml::from_str(&read_utf8(&resolved)?).context("parse lab config")?;
+    expand_toml_env_placeholders(&mut value);
+    Ok(value)
 }
 
 fn env_or_override(key: &str, config: &TomlValue, field: &str) -> Result<String> {
@@ -8582,12 +8584,75 @@ fn env_or_override(key: &str, config: &TomlValue, field: &str) -> Result<String>
             return Ok(value);
         }
     }
-    config
-        .get(field)
-        .and_then(TomlValue::as_str)
-        .map(ToOwned::to_owned)
-        .filter(|value| !value.is_empty())
-        .ok_or_else(|| anyhow!("{key} is required"))
+    config_string(config, field).ok_or_else(|| anyhow!("{key} is required"))
+}
+
+fn config_string(config: &TomlValue, field: &str) -> Option<String> {
+    let value = config.get(field)?;
+    match value {
+        TomlValue::String(text) => {
+            let trimmed = text.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        TomlValue::Array(items) => {
+            let values = items
+                .iter()
+                .map(TomlValue::as_str)
+                .collect::<Option<Vec<_>>>()?
+                .into_iter()
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .collect::<Vec<_>>();
+            if values.is_empty() {
+                None
+            } else {
+                Some(values.join(","))
+            }
+        }
+        _ => None,
+    }
+}
+
+fn expand_toml_env_placeholders(value: &mut TomlValue) {
+    match value {
+        TomlValue::String(text) => *text = expand_env_placeholders_string(text),
+        TomlValue::Array(items) => {
+            for item in items {
+                expand_toml_env_placeholders(item);
+            }
+        }
+        TomlValue::Table(table) => {
+            for (_, item) in table.iter_mut() {
+                expand_toml_env_placeholders(item);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn expand_env_placeholders_string(raw: &str) -> String {
+    let mut expanded = String::with_capacity(raw.len());
+    let mut chars = raw.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '$' && chars.peek() == Some(&'{') {
+            chars.next();
+            let mut name = String::new();
+            for next in chars.by_ref() {
+                if next == '}' {
+                    break;
+                }
+                name.push(next);
+            }
+            expanded.push_str(&std::env::var(&name).unwrap_or_default());
+            continue;
+        }
+        expanded.push(ch);
+    }
+    expanded
 }
 
 fn resolve_optional_output_arg(
@@ -9224,8 +9289,9 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        benchmark_workspace_lookup, load_benchmark_workspace_paths, load_lunarc_sync_profiles,
-        lunarc_sync_profile, BenchmarkWorkspacePaths,
+        benchmark_workspace_lookup, config_string, expand_toml_env_placeholders,
+        load_benchmark_workspace_paths, load_lunarc_sync_profiles, lunarc_sync_profile,
+        BenchmarkWorkspacePaths,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -9318,6 +9384,32 @@ data_manifest_glob = ""
         );
         assert_eq!(paths.sync_default_pull_base.as_deref(), Some("/tmp/pulls"));
         Ok(())
+    }
+
+    #[test]
+    fn config_string_reads_string_arrays_as_csv() {
+        let value: TomlValue =
+            toml::from_str("pipeline_ids = [\"one\", \"two\"]").expect("parse config");
+        assert_eq!(config_string(&value, "pipeline_ids"), Some("one,two".to_string()));
+    }
+
+    #[test]
+    fn expand_toml_env_placeholders_expands_nested_strings() {
+        let mut value: TomlValue = toml::from_str(
+            r#"
+corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
+pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
+"#,
+        )
+        .expect("parse config");
+        std::env::set_var("BIJUX_TEST_CORPUS_ROOT", "/tmp/corpus");
+        std::env::set_var("BIJUX_TEST_PIPELINE_A", "pipe-a");
+        expand_toml_env_placeholders(&mut value);
+        std::env::remove_var("BIJUX_TEST_CORPUS_ROOT");
+        std::env::remove_var("BIJUX_TEST_PIPELINE_A");
+
+        assert_eq!(config_string(&value, "corpus_root"), Some("/tmp/corpus".to_string()));
+        assert_eq!(config_string(&value, "pipeline_ids"), Some("pipe-a,fixed".to_string()));
     }
 
     #[test]
