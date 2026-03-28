@@ -953,6 +953,14 @@ def expected_cohort_counts(spec: dict) -> dict[str, int]:
     }
 
 
+def full_scope_publication_stage_ids() -> list[str]:
+    return [
+        contract.stage_id
+        for contract in CORPUS_01_PUBLICATION_CONTRACTS
+        if contract.sample_scope == "full"
+    ]
+
+
 def validate_corpus_contract(
     corpus_root: Path,
     spec: dict,
@@ -983,69 +991,90 @@ def load_published_sample_metadata(
     repo_root: Path,
     spec: dict,
     *,
-    stage_id: str = "fastq.validate_reads",
-    expected_total: int = 20,
+    stage_id: str | None = None,
+    expected_total: int | None = None,
 ) -> dict[str, dict]:
-    sample_results = (
-        repo_root / "docs" / "benchmark" / stage_id / "corpus-01" / "sample_results.csv"
+    target_total = (
+        expected_total
+        if expected_total is not None
+        else sum(expected_cohort_counts(spec).values())
     )
-    if not sample_results.is_file():
-        raise SystemExit(
-            "missing local corpus metadata and published fallback: "
-            f"{sample_results}"
+    candidate_stage_ids = (
+        [stage_id]
+        if stage_id is not None
+        else full_scope_publication_stage_ids()
+    )
+    errors: list[str] = []
+    for candidate_stage_id in candidate_stage_ids:
+        sample_results = (
+            repo_root
+            / "docs"
+            / "benchmark"
+            / candidate_stage_id
+            / "corpus-01"
+            / "sample_results.csv"
         )
+        if not sample_results.is_file():
+            errors.append(f"missing {sample_results}")
+            continue
 
-    metadata_by_sample: dict[str, dict] = {}
-    with sample_results.open("r", encoding="utf-8", newline="") as handle:
-        reader = csv.DictReader(handle)
-        for row in reader:
-            sample_id = row.get("sample_id", "").strip()
-            if not sample_id:
-                continue
-            metadata = {
-                "accession": row.get("accession", "").strip(),
-                "era": row.get("era", "").strip(),
-                "layout": row.get("layout", "").strip(),
-                "study_accession": row.get("study_accession", "").strip(),
-                "size_band": row.get("size_band", "").strip(),
-            }
-            if sample_id in metadata_by_sample:
-                if metadata_by_sample[sample_id] != metadata:
-                    raise SystemExit(
-                        "published sample metadata drift: "
-                        f"inconsistent rows for {sample_id} in {sample_results}"
-                    )
-                continue
-            metadata_by_sample[sample_id] = metadata
+        metadata_by_sample: dict[str, dict] = {}
+        with sample_results.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            for row in reader:
+                sample_id = row.get("sample_id", "").strip()
+                if not sample_id:
+                    continue
+                metadata = {
+                    "accession": row.get("accession", "").strip(),
+                    "era": row.get("era", "").strip(),
+                    "layout": row.get("layout", "").strip(),
+                    "study_accession": row.get("study_accession", "").strip(),
+                    "size_band": row.get("size_band", "").strip(),
+                }
+                if sample_id in metadata_by_sample:
+                    if metadata_by_sample[sample_id] != metadata:
+                        raise SystemExit(
+                            "published sample metadata drift: "
+                            f"inconsistent rows for {sample_id} in {sample_results}"
+                        )
+                    continue
+                metadata_by_sample[sample_id] = metadata
 
-    if len(metadata_by_sample) != expected_total:
-        raise SystemExit(
-            "published sample metadata drift: "
-            f"expected {expected_total} unique samples in {sample_results}, "
-            f"found {len(metadata_by_sample)}"
-        )
-
-    expected_counts = expected_cohort_counts(spec)
-    actual_counts: dict[str, int] = defaultdict(int)
-    for sample_id, metadata in sorted(metadata_by_sample.items()):
-        accession = metadata.get("accession")
-        era = metadata.get("era")
-        layout = metadata.get("layout")
-        if not accession or not era or not layout:
-            raise SystemExit(
+        if len(metadata_by_sample) != target_total:
+            errors.append(
                 "published sample metadata drift: "
-                f"missing accession/era/layout for {sample_id} in {sample_results}"
+                f"expected {target_total} unique samples in {sample_results}, "
+                f"found {len(metadata_by_sample)}"
             )
-        actual_counts[f"{era}_{layout}"] += 1
+            continue
 
-    if dict(sorted(actual_counts.items())) != dict(sorted(expected_counts.items())):
-        raise SystemExit(
-            "published corpus metadata drift: "
-            f"expected {dict(sorted(expected_counts.items()))}, "
-            f"found {dict(sorted(actual_counts.items()))}"
-        )
+        expected_counts = expected_cohort_counts(spec)
+        actual_counts: dict[str, int] = defaultdict(int)
+        for sample_id, metadata in sorted(metadata_by_sample.items()):
+            accession = metadata.get("accession")
+            era = metadata.get("era")
+            layout = metadata.get("layout")
+            if not accession or not era or not layout:
+                raise SystemExit(
+                    "published sample metadata drift: "
+                    f"missing accession/era/layout for {sample_id} in {sample_results}"
+                )
+            actual_counts[f"{era}_{layout}"] += 1
 
-    return metadata_by_sample
+        if dict(sorted(actual_counts.items())) != dict(sorted(expected_counts.items())):
+            errors.append(
+                "published corpus metadata drift: "
+                f"expected {dict(sorted(expected_counts.items()))}, "
+                f"found {dict(sorted(actual_counts.items()))} in {sample_results}"
+            )
+            continue
+        return metadata_by_sample
+
+    raise SystemExit(
+        "missing local corpus metadata and published fallback: "
+        + "; ".join(errors)
+    )
 
 
 def resolve_corpus_metadata(
