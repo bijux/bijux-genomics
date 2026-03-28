@@ -13,6 +13,15 @@ container_dir = "containers/docker/arm64"
 image_prefix = "bijuxdna"
 arch = "arm64"
 
+[platforms.apptainer-amd64]
+runner = "apptainer"
+container_dir = "containers/apptainer/sif"
+image_prefix = "bijuxdna"
+arch = "amd64"
+
+# Preserve the historical cluster alias for existing manifests and operator
+# muscle memory, but keep the portable platform name above as the canonical
+# contract for new code and docs.
 [platforms.lunarc-apptainer]
 runner = "apptainer"
 container_dir = "containers/apptainer/sif"

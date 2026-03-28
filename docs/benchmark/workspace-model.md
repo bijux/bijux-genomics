@@ -78,4 +78,5 @@ local.results_root/
 
 - Prefer role names such as `shared benchmark cache` and `local benchmark archive` over site-specific shorthand.
 - Treat site identifiers such as `lunarc` as execution provenance, not as the workspace model itself.
+- Prefer portable platform ids such as `apptainer-amd64` in new docs and scripts; keep site aliases such as `lunarc-apptainer` only for backward compatibility with existing manifests and operator workflows.
 - When a path contract changes, update `configs/bench/workspace.toml` and the benchmark docs together.
