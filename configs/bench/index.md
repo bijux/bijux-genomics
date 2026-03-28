@@ -14,6 +14,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 
 ## Files
 - `configs/bench/knobs.toml`
+- `configs/bench/publication.toml`
 - `configs/bench/workspace.toml`
 
 ## Workspace Contract
@@ -22,3 +23,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - `[local].cache_mirror_root` is the local path that mirrors the remote shared `.cache` tree under the archive root.
 - `[remote].repo_root` is the private frontend checkout used for code sync, not shared benchmark storage.
 - `[remote].cache_root`, `results_root`, `extra_data_root`, `containers_root`, and `reference_root` point at governed shared artifacts under the HPC workspace.
+
+## Publication Contract
+- `configs/bench/publication.toml` keeps governed corpus publication exclusions outside Python support code.
+- `[[corpus_01.exclusions]]` rows declare stage ids and durable reasons for publication exclusions.

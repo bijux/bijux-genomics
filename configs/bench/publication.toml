@@ -1,0 +1,18 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for configs/bench/publication.toml
+# authority = bijux-dna-bench
+# stability = evolving
+# last_updated = 2026-03-28
+
+[[corpus_01.exclusions]]
+stage_id = "fastq.index_reference"
+reason = "Reference-index benchmarking measures bundle build throughput rather than sample-cohort execution on corpus-01 FASTQ inputs."
+
+[[corpus_01.exclusions]]
+stage_id = "fastq.cluster_otus"
+reason = "OTU clustering is amplicon-specific and does not fit the human whole-genome FASTQ cohort contract used by corpus-01."
+
+[[corpus_01.exclusions]]
+stage_id = "fastq.normalize_abundance"
+reason = "Abundance normalization benchmarks require derived abundance tables rather than the raw FASTQ corpus-01 publication surface."

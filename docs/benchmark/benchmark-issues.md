@@ -16,7 +16,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
 20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.
 30. Publication refresh depends on manually curated make targets rather than the governed contract list.
-31. Benchmark stage exclusions are embedded in Python support code instead of shared configuration.
 32. The benchmark support module localizes `/results/` and `/bijux-dna-results/` paths but not remote `extra-data` paths.
 33. `fastq.screen_taxonomy` run manifests record remote taxonomy database paths that local publication does not normalize.
 34. `fastq.deplete_host` and `fastq.deplete_reference_contaminants` depend on extra-data indexes but do not share a common path resolver contract.
