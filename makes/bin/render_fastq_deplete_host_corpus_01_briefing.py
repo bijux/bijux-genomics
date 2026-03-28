@@ -11,7 +11,9 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     fmt_csv_value,
     fmt_fraction,
+    fmt_metric,
     fmt_runtime,
+    fmt_value,
     load_csv_rows,
     load_json,
     parse_corpus_briefing_args,
