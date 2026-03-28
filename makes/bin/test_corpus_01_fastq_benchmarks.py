@@ -86,6 +86,7 @@ VALIDATE_READS_METHOD_PATH = (
     ROOT / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01-method.md"
 )
 BENCHMARK_ISSUES_PATH = ROOT / "docs" / "benchmark" / "benchmark-issues.md"
+OPS_RS_PATH = ROOT / "crates" / "bijux-dna-dev" / "src" / "commands" / "ops.rs"
 
 
 def benchmark_makefile_text() -> str:
@@ -108,6 +109,10 @@ def method_doc_text(stage_id: str) -> str:
 
 def benchmark_issues_text() -> str:
     return BENCHMARK_ISSUES_PATH.read_text(encoding="utf-8")
+
+
+def dev_ops_text() -> str:
+    return OPS_RS_PATH.read_text(encoding="utf-8")
 
 
 def benchmark_workspace_contract_text() -> str:
@@ -873,6 +878,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "There is no repo check that fails on hardcoded `/Users/bijan/` paths in benchmark tooling.",
             "There is no repo check that fails on hardcoded `/home/bijan/` paths in benchmark tooling.",
             "There is no repo check that ensures all governed corpus-01 benchmark stages have publication audit coverage.",
+            "The current sync helpers do not record extra-data dependencies alongside results pulls.",
+            "The current sync helpers do not record which local destination path corresponds to which remote `.cache` subtree.",
+            "The current sync helpers do not validate the private-repo root and shared-cache roots as separate contracts.",
+            "The current sync helpers do not reject stale duplicate roots when both `.cache/results` and `.cache/bijux-dna-results` are present.",
+            "The current push helper does not document clearly that repo sync belongs on the private frontend home while benchmark artifacts belong on shared storage.",
         ]:
             self.assertNotIn(resolved_claim, text)
 
@@ -915,6 +925,43 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("benchmark-sync-pull", text)
         self.assertIn("benchmark-sync-push", text)
         self.assertIn("BENCHMARK_SYNC_*", text)
+
+    def test_dev_ops_pull_records_workspace_path_mappings_and_dependencies(self) -> None:
+        text = dev_ops_text()
+
+        self.assertIn('"path_mappings": pulled_path_mappings', text)
+        self.assertIn('"local_destination": dest.display().to_string()', text)
+        self.assertIn('"workspace_scope": include_sync_profile', text)
+        self.assertIn('"data_manifest_globs": effective_data_manifest_glob', text)
+        self.assertIn('"remote_cache_root": benchmark_workspace.remote_cache_root', text)
+
+    def test_dev_ops_sync_validates_remote_and_local_workspace_roots(self) -> None:
+        text = dev_ops_text()
+
+        self.assertIn("validate_benchmark_sync_roots(&benchmark_workspace)?;", text)
+        self.assertIn(
+            "remote_layout_conflicts(workspace, &lunarc_host, &benchmark_workspace)?",
+            text,
+        )
+        self.assertIn("duplicate results roots exist", text)
+
+    def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
+        self,
+    ) -> None:
+        text = benchmark_workflow_operations_text()
+
+        self.assertIn(
+            "Sync the private benchmark repo checkout to `remote.repo_root`.",
+            text,
+        )
+        self.assertIn(
+            "Sync the governed shared cache tree rooted at `remote.cache_root`.",
+            text,
+        )
+        self.assertIn(
+            "Repo sync belongs on the private frontend home",
+            text,
+        )
 
     def test_lunarc_sync_profiles_define_governed_publication_profile(self) -> None:
         text = lunarc_sync_profiles_text()

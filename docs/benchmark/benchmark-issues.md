@@ -18,12 +18,7 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 50. There is no single stage-agnostic renderer framework for corpus-01 FASTQ benchmark dossiers.
 51. Many dossier files are named `lunarc.md`, which encodes the execution site into the published artifact name.
 52. The published document naming scheme does not separate benchmark content from environment-specific provenance cleanly.
-60. The current sync helpers do not record extra-data dependencies alongside results pulls.
-61. The current sync helpers do not record which local destination path corresponds to which remote `.cache` subtree.
-62. The current sync helpers do not validate the private-repo root and shared-cache roots as separate contracts.
-63. The current sync helpers do not reject stale duplicate roots when both `.cache/results` and `.cache/bijux-dna-results` are present.
 64. The current push helper syncs repo content, but not a structured benchmark environment contract.
-65. The current push helper does not document clearly that repo sync belongs on the private frontend home while benchmark artifacts belong on shared storage.
 70. Environment resolution tests still use `lunarc-apptainer` and `/scratch/cache-root` as named fixtures.
 72. The platform config does not separate a portable default from cluster-local overrides.
 73. `containers/apptainer/lunarc/` remains the only governed location for Apptainer definitions.
