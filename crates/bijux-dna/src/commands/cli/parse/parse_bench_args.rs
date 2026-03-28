@@ -39,6 +39,8 @@ pub struct BenchPublicationTargetsArgs {
 pub struct BenchCorpusFastqArgs {
     #[arg(long)]
     pub stage: String,
+    #[arg(long, default_value = "corpus-01")]
+    pub corpus_id: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]

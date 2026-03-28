@@ -17,6 +17,8 @@ pub(crate) struct BenchmarkConfig {
     pub(crate) workspace: BenchmarkWorkspaceConfig,
     #[serde(default)]
     pub(crate) publication: BenchmarkPublicationConfig,
+    #[serde(default)]
+    pub(crate) corpora: BTreeMap<String, BenchmarkCorpusConfig>,
 }
 
 #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
@@ -88,6 +90,11 @@ pub(crate) struct BenchmarkWorkspaceSyncDefaults {
 #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkPublicationConfig {
     pub(crate) corpus_01: Option<Corpus01PublicationConfig>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+pub(crate) struct BenchmarkCorpusConfig {
+    pub(crate) spec_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
@@ -191,6 +198,7 @@ fn synthesize_legacy_benchmark_config(
     Ok(BenchmarkConfig {
         workspace,
         publication,
+        corpora: BTreeMap::new(),
     })
 }
 
@@ -207,12 +215,14 @@ pub(crate) fn load_benchmark_config(
             return Ok(BenchmarkConfig {
                 workspace,
                 publication: synthesize_legacy_benchmark_config(cwd, explicit_path)?.publication,
+                corpora: BTreeMap::new(),
             });
         }
         if let Ok(publication) = load_toml::<BenchmarkPublicationConfig>(&path) {
             return Ok(BenchmarkConfig {
                 workspace: synthesize_legacy_benchmark_config(cwd, explicit_path)?.workspace,
                 publication,
+                corpora: BTreeMap::new(),
             });
         }
     }
@@ -252,6 +262,26 @@ pub(crate) fn load_benchmark_publication_config(
         ));
     }
     Ok(config.publication)
+}
+
+pub(crate) fn benchmark_corpus_spec_path(
+    cwd: &Path,
+    explicit_path: Option<&Path>,
+    corpus_id: &str,
+) -> Result<PathBuf> {
+    let config = load_benchmark_config(cwd, explicit_path)?;
+    if let Some(path) = config
+        .corpora
+        .get(corpus_id)
+        .and_then(|row| row.spec_path.as_deref())
+    {
+        return Ok(absolutize(cwd, Path::new(path)));
+    }
+    Ok(cwd
+        .join("configs")
+        .join("runtime")
+        .join("corpora")
+        .join(format!("{corpus_id}.toml")))
 }
 
 pub(crate) fn benchmark_workspace_value(
@@ -385,9 +415,10 @@ pub(crate) fn corpus_01_publication_contract(
 #[cfg(test)]
 mod tests {
     use super::{
-        benchmark_config_path, benchmark_publication_config_path, benchmark_workspace_config_path,
-        benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_config,
-        load_benchmark_workspace_config, load_optional_benchmark_workspace_config,
+        benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
+        benchmark_workspace_config_path, benchmark_workspace_value, corpus_01_publication_contract,
+        load_benchmark_config, load_benchmark_workspace_config,
+        load_optional_benchmark_workspace_config,
     };
     use std::path::Path;
 
@@ -449,6 +480,9 @@ stage_id = "fastq.validate_reads"
 scenario_id = "validation_fairness"
 sample_scope = "full"
 tools = ["fastqvalidator"]
+
+[corpora.corpus-01]
+spec_path = "configs/runtime/corpora/corpus-01.toml"
 "#,
         )
         .expect("write unified config");
@@ -532,6 +566,18 @@ tools = ["fastqvalidator"]
         assert_eq!(
             benchmark_config_path(temp.path(), None),
             temp.path().join("configs/bench/benchmark.toml")
+        );
+    }
+
+    #[test]
+    fn corpus_spec_path_comes_from_benchmark_config() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        write_unified_config(temp.path());
+        let path = benchmark_corpus_spec_path(temp.path(), None, "corpus-01")
+            .expect("configured corpus spec path");
+        assert_eq!(
+            path,
+            temp.path().join("configs/runtime/corpora/corpus-01.toml")
         );
     }
 }
