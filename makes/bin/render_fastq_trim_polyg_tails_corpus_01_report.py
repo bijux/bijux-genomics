@@ -316,6 +316,8 @@ def build_artifacts(context: CorpusReportContext) -> CorpusReportArtifacts:
 
     summary = {
         "schema_version": "bijux.fastq.trim_polyg_tails.corpus_summary.v1",
+        "stage_id": TRIM_POLYG_BENCHMARK_CONTRACT.stage_id,
+        "scenario_id": TRIM_POLYG_BENCHMARK_CONTRACT.scenario_id,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "platform": run_manifest["platform"],
         "corpus_root": str(corpus_root),
