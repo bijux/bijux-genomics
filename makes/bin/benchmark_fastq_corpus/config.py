@@ -76,8 +76,8 @@ def load_benchmark_config() -> dict:
     path = current_workspace_config_path()
     if not path.is_file() or toml_loader is None:
         return {}
-    with path.open("rb") as handle:
-        return toml_loader.load(handle)
+    raw = path.read_text(encoding="utf-8")
+    return toml_loader.loads(os.path.expandvars(raw))
 
 
 @lru_cache(maxsize=1)
@@ -91,8 +91,8 @@ def load_workspace_config() -> dict:
         legacy_path = DEFAULT_WORKSPACE_CONFIG_PATH
         if not legacy_path.is_file() or toml_loader is None:
             return {}
-        with legacy_path.open("rb") as handle:
-            return toml_loader.load(handle)
+        raw = legacy_path.read_text(encoding="utf-8")
+        return toml_loader.loads(os.path.expandvars(raw))
     return payload
 
 
@@ -105,8 +105,8 @@ def load_publication_config() -> dict:
     path = DEFAULT_PUBLICATION_CONFIG_PATH
     if not path.is_file() or toml_loader is None:
         return {}
-    with path.open("rb") as handle:
-        return toml_loader.load(handle)
+    raw = path.read_text(encoding="utf-8")
+    return toml_loader.loads(os.path.expandvars(raw))
 
 
 def add_workspace_config_argument(parser: argparse.ArgumentParser) -> None:
