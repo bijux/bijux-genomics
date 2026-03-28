@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import json
 import statistics
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -12,6 +10,7 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     parse_corpus_report_args,
     MERGE_PAIRS_BENCHMARK_CONTRACT,
+    ReportCsvArtifactSpec,
     benchmark_applicable_runs,
     benchmark_applicable_sample_ids,
     benchmark_manifest_failure_count,
@@ -20,6 +19,7 @@ from corpus_01_fastq_benchmark_support import (
     load_corpus_spec,
     load_json,
     merge_pairs_benchmark_defaults,
+    publish_corpus_report_artifacts,
     preferred_report_run_root,
     resolve_corpus_report_runtime,
     resolve_corpus_metadata,
@@ -436,57 +436,6 @@ def main() -> int:
         "tool_summary": tool_summary,
     }
 
-    sample_results_path = docs_root / "sample_results.csv"
-    with sample_results_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "sample_id",
-                "accession",
-                "study_accession",
-                "era",
-                "layout",
-                "size_band",
-                "tool",
-                "runtime_s",
-                "exit_code",
-                "reads_in",
-                "reads_out",
-                "bases_in",
-                "bases_out",
-                "pairs_in",
-                "pairs_out",
-                "reads_r1",
-                "reads_r2",
-                "reads_merged",
-                "reads_unmerged",
-                "merge_rate",
-                "base_retention",
-                "merge_overlap",
-                "min_length",
-                "unmerged_read_policy",
-            ],
-        )
-        writer.writeheader()
-        writer.writerows(sample_rows)
-
-    tool_summary_path = docs_root / "tool_runtime_summary.csv"
-    with tool_summary_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "tool",
-                "records",
-                "pass_rate",
-                "median_runtime_s",
-                "median_merge_rate",
-                "median_base_retention",
-                "mean_reads_merged",
-            ],
-        )
-        writer.writeheader()
-        writer.writerows(tool_summary)
-
     cohort_summary_rows = []
     grouped_rows: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
     for row in sample_rows:
@@ -507,24 +456,6 @@ def main() -> int:
                 ),
             }
         )
-    cohort_summary_path = docs_root / "cohort_runtime_summary.csv"
-    with cohort_summary_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "tool",
-                "dimension",
-                "cohort",
-                "samples",
-                "mean_runtime_s",
-                "median_runtime_s",
-                "mean_merge_rate",
-                "median_base_retention",
-            ],
-        )
-        writer.writeheader()
-        writer.writerows(cohort_summary_rows)
-
     outlier_rows = []
     by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in sample_rows:
@@ -548,32 +479,85 @@ def main() -> int:
             }
         )
     outlier_rows.sort(key=lambda row: row["total_runtime_s"], reverse=True)
-    outlier_path = docs_root / "sample_runtime_outliers.csv"
-    with outlier_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "sample_id",
-                "accession",
-                "study_accession",
-                "era",
-                "layout",
-                "size_band",
-                "total_runtime_s",
-                "slowest_tool",
-                "slowest_runtime_s",
-                "best_merge_rate_tool",
-                "best_merge_rate",
-            ],
-        )
-        writer.writeheader()
-        writer.writerows(outlier_rows)
 
-    summary_path = docs_root / "summary.json"
-    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-
-    markdown_path = docs_root / "benchmark.md"
-    markdown_path.write_text(render_markdown(summary), encoding="utf-8")
+    publish_corpus_report_artifacts(
+        docs_root,
+        summary=summary,
+        markdown=render_markdown(summary),
+        sample_rows=sample_rows,
+        sample_fieldnames=[
+            "sample_id",
+            "accession",
+            "study_accession",
+            "era",
+            "layout",
+            "size_band",
+            "tool",
+            "runtime_s",
+            "exit_code",
+            "reads_in",
+            "reads_out",
+            "bases_in",
+            "bases_out",
+            "pairs_in",
+            "pairs_out",
+            "reads_r1",
+            "reads_r2",
+            "reads_merged",
+            "reads_unmerged",
+            "merge_rate",
+            "base_retention",
+            "merge_overlap",
+            "min_length",
+            "unmerged_read_policy",
+        ],
+        extra_csv_artifacts=[
+            ReportCsvArtifactSpec(
+                filename="tool_runtime_summary.csv",
+                rows=tool_summary,
+                fieldnames=[
+                    "tool",
+                    "records",
+                    "pass_rate",
+                    "median_runtime_s",
+                    "median_merge_rate",
+                    "median_base_retention",
+                    "mean_reads_merged",
+                ],
+            ),
+            ReportCsvArtifactSpec(
+                filename="cohort_runtime_summary.csv",
+                rows=cohort_summary_rows,
+                fieldnames=[
+                    "tool",
+                    "dimension",
+                    "cohort",
+                    "samples",
+                    "mean_runtime_s",
+                    "median_runtime_s",
+                    "mean_merge_rate",
+                    "median_base_retention",
+                ],
+            ),
+            ReportCsvArtifactSpec(
+                filename="sample_runtime_outliers.csv",
+                rows=outlier_rows,
+                fieldnames=[
+                    "sample_id",
+                    "accession",
+                    "study_accession",
+                    "era",
+                    "layout",
+                    "size_band",
+                    "total_runtime_s",
+                    "slowest_tool",
+                    "slowest_runtime_s",
+                    "best_merge_rate_tool",
+                    "best_merge_rate",
+                ],
+            ),
+        ],
+    )
     return 0
 
 

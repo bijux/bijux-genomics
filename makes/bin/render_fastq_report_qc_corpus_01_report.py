@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import json
 import statistics
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -15,6 +13,7 @@ from corpus_01_fastq_benchmark_support import (
     load_corpus_spec,
     load_json,
     localize_results_path,
+    publish_corpus_report_artifacts,
     preferred_report_run_root,
     resolve_corpus_report_runtime,
     resolve_corpus_metadata,
@@ -490,48 +489,42 @@ def main() -> int:
         "headline": headline,
         "tool_summary": tool_summary,
     }
-    (docs_root / "summary.json").write_text(
-        json.dumps(summary, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    publish_corpus_report_artifacts(
+        docs_root,
+        summary=summary,
+        markdown=render_markdown(summary),
+        sample_rows=sample_rows,
+        sample_fieldnames=[
+            "sample_id",
+            "accession",
+            "era",
+            "layout",
+            "study_accession",
+            "size_band",
+            "tool",
+            "runtime_s",
+            "exit_code",
+            "reads_in",
+            "reads_out",
+            "bases_in",
+            "bases_out",
+            "pairs_in",
+            "pairs_out",
+            "mean_q",
+            "contamination_rate",
+            "multiqc_sample_count",
+            "multiqc_module_count",
+            "governed_qc_input_count",
+            "expected_governed_qc_input_count",
+            "governed_qc_lineage_hash",
+            "raw_fastqc_dir",
+            "multiqc_report",
+            "multiqc_data",
+            "report_json_artifact",
+            "governed_qc_manifest_artifact",
+        ],
+        summary_sort_keys=True,
     )
-
-    with (docs_root / "sample_results.csv").open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "sample_id",
-                "accession",
-                "era",
-                "layout",
-                "study_accession",
-                "size_band",
-                "tool",
-                "runtime_s",
-                "exit_code",
-                "reads_in",
-                "reads_out",
-                "bases_in",
-                "bases_out",
-                "pairs_in",
-                "pairs_out",
-                "mean_q",
-                "contamination_rate",
-                "multiqc_sample_count",
-                "multiqc_module_count",
-                "governed_qc_input_count",
-                "expected_governed_qc_input_count",
-                "governed_qc_lineage_hash",
-                "raw_fastqc_dir",
-                "multiqc_report",
-                "multiqc_data",
-                "report_json_artifact",
-                "governed_qc_manifest_artifact",
-            ],
-        )
-        writer.writeheader()
-        writer.writerows(sample_rows)
-
-    (docs_root / "benchmark.md").write_text(render_markdown(summary), encoding="utf-8")
     return 0
 
 

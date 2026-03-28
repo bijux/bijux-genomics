@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import json
 import statistics
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -16,6 +14,7 @@ from corpus_01_fastq_benchmark_support import (
     load_corpus_spec,
     load_json,
     localize_results_path,
+    publish_corpus_report_artifacts,
     preferred_report_run_root,
     resolve_corpus_report_runtime,
     resolve_corpus_metadata,
@@ -402,18 +401,13 @@ def main() -> int:
         "tool_summary": tool_summary,
     }
 
-    with (docs_root / "summary.json").open("w", encoding="utf-8") as handle:
-        json.dump(summary, handle, indent=2)
-        handle.write("\n")
-
-    with (docs_root / "sample_results.csv").open(
-        "w", encoding="utf-8", newline=""
-    ) as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(sample_rows[0].keys()))
-        writer.writeheader()
-        writer.writerows(sample_rows)
-
-    (docs_root / "benchmark.md").write_text(render_markdown(summary), encoding="utf-8")
+    publish_corpus_report_artifacts(
+        docs_root,
+        summary=summary,
+        markdown=render_markdown(summary),
+        sample_rows=sample_rows,
+        sample_fieldnames=list(sample_rows[0].keys()),
+    )
     return 0
 
 

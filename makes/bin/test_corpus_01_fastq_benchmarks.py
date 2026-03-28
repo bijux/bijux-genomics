@@ -146,14 +146,18 @@ def shared_report_publisher_paths() -> list[Path]:
         "render_fastq_deplete_reference_contaminants_corpus_01_report.py",
         "render_fastq_deplete_rrna_corpus_01_report.py",
         "render_fastq_extract_umis_corpus_01_report.py",
+        "render_fastq_filter_reads_corpus_01_report.py",
         "render_fastq_filter_low_complexity_corpus_01_report.py",
+        "render_fastq_merge_pairs_corpus_01_report.py",
         "render_fastq_normalize_primers_corpus_01_report.py",
         "render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
         "render_fastq_profile_read_lengths_corpus_01_report.py",
         "render_fastq_profile_reads_corpus_01_report.py",
+        "render_fastq_report_qc_corpus_01_report.py",
         "render_fastq_remove_duplicates_corpus_01_report.py",
         "render_fastq_screen_taxonomy_corpus_01_report.py",
         "render_fastq_trim_polyg_tails_corpus_01_report.py",
+        "render_fastq_trim_reads_corpus_01_report.py",
         "render_fastq_trim_terminal_damage_corpus_01_report.py",
         "render_fastq_validate_reads_corpus_01_report.py",
     ]
@@ -399,6 +403,21 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             )
             self.assertNotIn(
                 'with (docs_root / "sample_results.csv").open(',
+                text,
+                path.name,
+            )
+            self.assertNotIn(
+                'with (docs_root / "tool_runtime_summary.csv").open(',
+                text,
+                path.name,
+            )
+            self.assertNotIn(
+                'with (docs_root / "cohort_runtime_summary.csv").open(',
+                text,
+                path.name,
+            )
+            self.assertNotIn(
+                'with (docs_root / "sample_runtime_outliers.csv").open(',
                 text,
                 path.name,
             )
