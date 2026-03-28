@@ -287,14 +287,25 @@ def summarize_tool_runtime_rows(
         by_tool[row["tool"]].append(row)
 
     medians = {
-        tool: safe_median([float(row["runtime_s"]) for row in tool_rows])
+        tool: safe_median(
+            [
+                float(runtime)
+                for row in tool_rows
+                if (runtime := optional_float(row.get("runtime_s"))) is not None
+            ]
+        )
         for tool, tool_rows in by_tool.items()
     }
-    fastest_median = min(value for value in medians.values() if value is not None)
+    available_medians = [value for value in medians.values() if value is not None]
+    fastest_median = min(available_medians) if available_medians else None
     summary_rows: list[dict] = []
     for tool in sorted(by_tool):
         tool_rows = by_tool[tool]
-        runtimes = [float(row["runtime_s"]) for row in tool_rows]
+        runtimes = [
+            float(runtime)
+            for row in tool_rows
+            if (runtime := optional_float(row.get("runtime_s"))) is not None
+        ]
         median = safe_median(runtimes)
         summary_row = {
             "tool": tool,
@@ -306,9 +317,11 @@ def summarize_tool_runtime_rows(
             "mean_runtime_s": safe_mean(runtimes),
             "median_runtime_s": median,
             "p90_runtime_s": percentile(runtimes, 0.9),
-            "max_runtime_s": max(runtimes),
+            "max_runtime_s": max(runtimes) if runtimes else None,
             "slowdown_vs_fastest_median": (
-                median / fastest_median if median is not None else None
+                median / fastest_median
+                if median is not None and fastest_median is not None
+                else None
             ),
         }
         for spec in metric_specs:
@@ -327,17 +340,18 @@ def summarize_cohort_metric_rows(
 ) -> list[dict]:
     output: list[dict] = []
     for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):
+        runtimes = [
+            float(runtime)
+            for row in cohort_rows
+            if (runtime := optional_float(row.get("runtime_s"))) is not None
+        ]
         summary_row = {
             "tool": tool,
             "dimension": dimension,
             "cohort": cohort,
             "samples": len(cohort_rows),
-            "mean_runtime_s": safe_mean(
-                [float(row["runtime_s"]) for row in cohort_rows]
-            ),
-            "median_runtime_s": safe_median(
-                [float(row["runtime_s"]) for row in cohort_rows]
-            ),
+            "mean_runtime_s": safe_mean(runtimes),
+            "median_runtime_s": safe_median(runtimes),
         }
         for spec in metric_specs:
             summary_row[spec.output_key] = _aggregate_metric(
@@ -378,14 +392,16 @@ def summarize_sample_outlier_rows(
             "size_band": sample_rows[0]["size_band"],
             "study_accession": sample_rows[0]["study_accession"],
             total_runtime_output_key: sum(
-                float(row["runtime_s"]) for row in sample_rows
+                float(runtime)
+                for row in sample_rows
+                if (runtime := optional_float(row.get("runtime_s"))) is not None
             ),
         }
         for spec in selectors:
             candidate_rows = [
                 row
                 for row in sample_rows
-                if not (spec.skip_blank and row.get(spec.selector_key) in {"", None})
+                if row.get(spec.selector_key) not in {"", None}
             ]
             if not candidate_rows:
                 if spec.tool_output_key is not None:
