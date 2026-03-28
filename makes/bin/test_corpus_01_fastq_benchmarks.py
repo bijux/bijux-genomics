@@ -2288,6 +2288,59 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertEqual(manifest["scenario_id"], "detect_adapters_fairness")
             self.assertEqual(manifest["runs"][0]["report_json"], str(sample_report.resolve()))
 
+    def test_repair_results_manifests_uses_workspace_remote_repo_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_root = (
+                Path(tmpdir)
+                / "results"
+                / "corpus_01"
+                / "fastq.detect_adapters"
+                / "lunarc"
+            )
+            sample_report = (
+                run_root
+                / "bench"
+                / "detect_adapters"
+                / "sample_0001"
+                / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "platform": "lunarc-apptainer",
+                                    "parameters": {
+                                        "input_r1": "/home/bijan/bijux/corpus_01/normalized/sample_0001_R1.fastq.gz",
+                                        "out_dir": "/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc",
+                                        "report_json": "/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc/adapter_report.json",
+                                        "threads": 1,
+                                        "tool": "fastqc",
+                                    },
+                                }
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(
+                repair_results_manifests,
+                "benchmark_remote_repo_root",
+                return_value=Path("/remote/worktree/bijux-dna"),
+            ):
+                repair_results_manifests.repair_stage(
+                    run_root,
+                    "fastq.detect_adapters",
+                )
+            manifest = json.loads((run_root / "run_manifest.json").read_text(encoding="utf-8"))
+
+            self.assertEqual(manifest["repo_root"], "/remote/worktree/bijux-dna")
+
     def test_repair_results_manifests_refuses_partial_validate_tool_roster(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             run_root = (
