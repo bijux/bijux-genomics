@@ -1950,8 +1950,10 @@ def resolve_benchmark_tool_roster(
     stage_id: str,
     scenario_id: str | None,
     fallback: list[str],
+    *,
+    consult_registry: bool = False,
 ) -> tuple[list[str], str | None]:
-    if not registry_contract_is_available(repo_root):
+    if not consult_registry or not registry_contract_is_available(repo_root):
         return list(fallback), None
     try:
         tools = list(
@@ -1977,8 +1979,10 @@ def resolve_stage_toolset(
     repo_root: Path,
     stage_id: str,
     fallback: list[str],
+    *,
+    consult_registry: bool = False,
 ) -> tuple[list[str], str | None]:
-    if not registry_contract_is_available(repo_root):
+    if not consult_registry or not registry_contract_is_available(repo_root):
         return list(fallback), None
     try:
         tools = list(_cached_stage_toolset(str(repo_root.resolve()), stage_id))
