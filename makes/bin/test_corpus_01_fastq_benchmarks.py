@@ -603,6 +603,14 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             (ROOT / "makes" / "bin" / "benchmark_tooling_repo_checks.py").exists()
         )
 
+    def test_corpus_report_dispatcher_builder_is_deleted(self) -> None:
+        self.assertFalse((ROOT / "makes" / "bin" / "render_corpus_01_fastq_report.py").exists())
+
+    def test_corpus_briefing_dispatcher_builder_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "render_corpus_01_fastq_briefing.py").exists()
+        )
+
     def test_workspace_layout_audit_builder_is_deleted(self) -> None:
         self.assertFalse(
             (ROOT / "makes" / "bin" / "audit_benchmark_workspace_layout.py").exists()
