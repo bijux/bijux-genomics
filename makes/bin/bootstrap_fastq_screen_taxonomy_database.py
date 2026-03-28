@@ -8,6 +8,7 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     artifact_bundle_size_bytes,
+    benchmark_local_results_root,
     default_screen_taxonomy_database_root,
     sha256_artifact_bundle,
     sha256_file,
@@ -25,6 +26,11 @@ def parse_args() -> argparse.Namespace:
         )
     )
     parser.add_argument("--database-root", default="")
+    parser.add_argument(
+        "--results-root",
+        default="",
+        help="Optional local benchmark archive root. Defaults to the configured workspace local results root.",
+    )
     parser.add_argument("--cache-root", default="")
     parser.add_argument("--database-catalog-id", default="taxonomy_reference")
     parser.add_argument("--database-artifact-id", default="taxonomy_db")
@@ -51,6 +57,19 @@ def parse_args() -> argparse.Namespace:
 def resolve_database_root(args: argparse.Namespace) -> Path:
     if args.database_root.strip():
         return Path(args.database_root).expanduser().resolve()
+    if args.results_root.strip():
+        out_root = (
+            Path(args.results_root).expanduser().resolve()
+            / "corpus_01"
+            / "fastq.screen_taxonomy"
+            / "lunarc"
+        )
+        return default_screen_taxonomy_database_root(
+            out_root,
+            database_namespace=args.database_namespace,
+            database_scope=args.database_scope,
+            database_artifact_id=args.database_artifact_id,
+        ).resolve()
     if args.cache_root.strip():
         out_root = (
             Path(args.cache_root).expanduser().resolve()
@@ -65,7 +84,18 @@ def resolve_database_root(args: argparse.Namespace) -> Path:
             database_scope=args.database_scope,
             database_artifact_id=args.database_artifact_id,
         ).resolve()
-    raise SystemExit("provide --database-root or --cache-root")
+    out_root = (
+        benchmark_local_results_root()
+        / "corpus_01"
+        / "fastq.screen_taxonomy"
+        / "lunarc"
+    )
+    return default_screen_taxonomy_database_root(
+        out_root,
+        database_namespace=args.database_namespace,
+        database_scope=args.database_scope,
+        database_artifact_id=args.database_artifact_id,
+    ).resolve()
 
 
 def resolve_source_manifest(database_root: Path, raw_value: str) -> Path:

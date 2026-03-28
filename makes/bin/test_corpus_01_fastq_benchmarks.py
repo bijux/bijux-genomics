@@ -310,6 +310,47 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         )
         self.assertIsNotNone(payload["database_digest"])
 
+    def test_screen_taxonomy_bootstrap_resolves_database_root_from_results_root(self) -> None:
+        args = SimpleNamespace(
+            database_root="",
+            results_root="/tmp/local-results",
+            cache_root="",
+            database_namespace="read_screening",
+            database_scope="read_screening",
+            database_artifact_id="taxonomy_db",
+        )
+
+        self.assertEqual(
+            taxonomy_db_bootstrap.resolve_database_root(args),
+            Path(
+                "/tmp/local-results/extra-data/benchmark/fastq.screen_taxonomy/"
+                "read_screening/read_screening/taxonomy_db"
+            ).resolve(),
+        )
+
+    def test_screen_taxonomy_bootstrap_defaults_to_workspace_results_root(self) -> None:
+        args = SimpleNamespace(
+            database_root="",
+            results_root="",
+            cache_root="",
+            database_namespace="read_screening",
+            database_scope="read_screening",
+            database_artifact_id="taxonomy_db",
+        )
+
+        with mock.patch.object(
+            taxonomy_db_bootstrap,
+            "benchmark_local_results_root",
+            return_value=Path("/srv/benchmark-results"),
+        ):
+            self.assertEqual(
+                taxonomy_db_bootstrap.resolve_database_root(args),
+                Path(
+                    "/srv/benchmark-results/extra-data/benchmark/fastq.screen_taxonomy/"
+                    "read_screening/read_screening/taxonomy_db"
+                ).resolve(),
+            )
+
     def test_screen_taxonomy_bootstrap_requires_all_backend_dirs(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             database_root = Path(tmpdir) / "taxonomy_db"
@@ -345,6 +386,20 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             ).resolve(),
             Path(
                 "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
+            ).resolve(),
+        )
+
+    def test_default_screen_taxonomy_database_root_uses_local_archive_extra_data(self) -> None:
+        out_root = Path("/tmp/local-results/corpus_01/fastq.screen_taxonomy/lunarc")
+        self.assertEqual(
+            support.default_screen_taxonomy_database_root(
+                out_root,
+                database_namespace="read_screening",
+                database_scope="read_screening",
+                database_artifact_id="taxonomy_db",
+            ).resolve(),
+            Path(
+                "/tmp/local-results/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
             ).resolve(),
         )
 

@@ -618,6 +618,14 @@ def infer_cache_root(path: Path) -> Path | None:
     return Path(*resolved.parts[: cache_index + 1])
 
 
+def infer_results_archive_root(path: Path) -> Path | None:
+    resolved = path.expanduser().resolve()
+    for index, part in enumerate(resolved.parts):
+        if part.startswith("corpus_") and index > 0:
+            return Path(*resolved.parts[:index])
+    return None
+
+
 def benchmark_runtime_env(out_root: Path) -> dict[str, str]:
     env = os.environ.copy()
     cache_root = infer_cache_root(out_root)
@@ -634,6 +642,9 @@ def default_extra_data_root(out_root: Path) -> Path:
     cache_root = infer_cache_root(out_root)
     if cache_root is not None:
         return cache_root / "extra-data"
+    results_archive_root = infer_results_archive_root(out_root)
+    if results_archive_root is not None:
+        return results_archive_root / "extra-data"
     return benchmark_local_cache_mirror_root() / "extra-data"
 
 
