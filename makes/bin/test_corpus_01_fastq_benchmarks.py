@@ -76,6 +76,7 @@ import benchmark_workspace_value
 import benchmark_publication_targets
 import benchmark_tooling_repo_checks
 import build_corpus_01_benchmark_dossier_index as dossier_index
+import build_corpus_01_benchmark_remediation_queue as remediation_queue
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
@@ -334,6 +335,15 @@ class BenchmarkMakefileTests(unittest.TestCase):
         recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
 
         self.assertIn("python3 makes/bin/build_corpus_01_benchmark_dossier_index.py", recipe)
+
+    def test_publication_status_refreshes_results_audit_and_remediation_queue(self) -> None:
+        recipe = makefile_target_recipe("_benchmark-corpus-01-publication-status")
+
+        self.assertIn("python3 makes/bin/audit_published_corpus_01_fastq_results.py", recipe)
+        self.assertIn(
+            "python3 makes/bin/build_corpus_01_benchmark_remediation_queue.py",
+            recipe,
+        )
 
     def test_lunarc_makefile_defers_workspace_values_to_config_contract(self) -> None:
         text = lunarc_makefile_text()
@@ -4540,6 +4550,74 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
         self.assertEqual(index["missing_stage_count"], len(support.CORPUS_01_PUBLICATION_CONTRACTS))
         self.assertTrue(all(stage["status"] == "missing" for stage in index["stages"]))
 
+    def test_remediation_queue_merges_publication_results_and_findings(self) -> None:
+        queue = remediation_queue.build_queue(
+            publication_status={
+                "stages": [
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "status": "incomplete",
+                        "issues": [
+                            {
+                                "issue_id": "missing-lunarc-md",
+                                "detail": "missing docs dossier",
+                            }
+                        ],
+                    }
+                ]
+            },
+            results_status={
+                "stages": [
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "status": "incomplete",
+                        "issues": [
+                            {
+                                "issue_id": "missing-local-run-root",
+                                "detail": "missing local mirror root",
+                            }
+                        ],
+                    }
+                ]
+            },
+            findings_payload={
+                "findings": [
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "issue_id": "publication-gap",
+                        "detail": "supplemental finding",
+                        "severity": "error",
+                    }
+                ]
+            },
+            dossier_index={
+                "stages": [
+                    {
+                        "stage_id": "fastq.validate_reads",
+                        "generated_at_utc": "2026-03-28T00:00:00Z",
+                        "run_root_source": "local-results-root",
+                    }
+                ]
+            },
+        )
+
+        stage = next(entry for entry in queue["stages"] if entry["stage_id"] == "fastq.validate_reads")
+        self.assertEqual(stage["status"], "open")
+        self.assertEqual(stage["issue_count"], 3)
+        self.assertEqual(stage["recommended_action"], "sync-or-normalize-results")
+
+    def test_remediation_queue_marks_clean_stage_as_clear(self) -> None:
+        queue = remediation_queue.build_queue(
+            publication_status={"stages": []},
+            results_status={"stages": []},
+            findings_payload={"findings": []},
+            dossier_index={"stages": []},
+        )
+
+        stage = next(entry for entry in queue["stages"] if entry["stage_id"] == "fastq.validate_reads")
+        self.assertEqual(stage["status"], "clear")
+        self.assertEqual(stage["recommended_action"], "none")
+
     def test_benchmark_repo_checks_flag_hardcoded_local_operator_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
@@ -5151,7 +5229,28 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
 
 
 class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
-    def test_result_audit_flags_contract_roster_drift_against_registry(self) -> None:
+    def test_observed_tools_from_report_collects_nested_tool_literals(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_path = Path(tmpdir) / "report.json"
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {"context": {"tool": "fastqvalidator"}},
+                            {"context": {"parameters": {"tool": "seqtk"}}},
+                            {"context": {"tool": "fastqvalidator"}},
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            observed_tools = published_results_audit.observed_tools_from_report(report_path)
+
+        self.assertEqual(observed_tools, ["fastqvalidator", "seqtk"])
+
+    def test_result_audit_validates_against_published_contract_roster(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
             docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
@@ -5190,21 +5289,15 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
                     + "\n",
                     encoding="utf-8",
                 )
+                report = published_results_audit.audit_stage(
+                    repo_root,
+                    "fastq.validate_reads",
+                    "validation_fairness",
+                    ["fastqvalidator"],
+                )
 
-                with mock.patch.object(
-                    published_results_audit,
-                    "resolve_benchmark_tool_roster",
-                    return_value=(["fastqvalidator", "seqtk"], None),
-                ):
-                    report = published_results_audit.audit_stage(
-                        repo_root,
-                        "fastq.validate_reads",
-                        "validation_fairness",
-                        ["fastqvalidator"],
-                    )
-
-        self.assertEqual(report["status"], "incomplete")
-        self.assertTrue(
+        self.assertEqual(report["status"], "complete")
+        self.assertFalse(
             any(
                 issue["issue_id"] == "contract-tool-roster-drift"
                 for issue in report["issues"]

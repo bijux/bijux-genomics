@@ -1,0 +1,99 @@
+# `corpus-01` FASTQ remediation queue
+
+- Governed publication stages: `20`
+- Open stages: `2`
+- Clear stages: `18`
+
+## Stage queue
+
+- `fastq.validate_reads`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:24:32.014754+00:00` from `local-results-root`
+- `fastq.detect_adapters`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:26:10.835428+00:00` from `local-results-root`
+- `fastq.profile_reads`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:26:36.651353+00:00` from `local-results-root`
+- `fastq.profile_read_lengths`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:26:51.299933+00:00` from `local-results-root`
+- `fastq.profile_overrepresented_sequences`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:27:05.660482+00:00` from `local-results-root`
+- `fastq.normalize_primers`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:32:33.900712+00:00` from `local-results-root`
+- `fastq.trim_polyg_tails`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:39:28.524365+00:00` from `local-results-root`
+- `fastq.trim_reads`: `open` via `sync-or-normalize-results`
+  - publication `incomplete`, results `incomplete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:46:45.334156+00:00` from `local-results-root`
+  - [publication] `summary-tool-roster-drift`: benchmark/fastq.trim_reads/corpus-01/summary.json tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `summary-tool-summary-drift`: benchmark/fastq.trim_reads/corpus-01/summary.json tool_summary tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-roster-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0001 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0002 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0003 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0004 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0005 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0006 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0007 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0008 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0009 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0010 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0011 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0012 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0013 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0014 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0015 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0016 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0017 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0018 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0019 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-tool-coverage-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0020 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [publication] `sample-results-row-count-drift`: benchmark/fastq.trim_reads/corpus-01/sample_results.csv row_count=180 expected 260
+  - [publication] `tool-runtime-summary-drift`: benchmark/fastq.trim_reads/corpus-01/tool_runtime_summary.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [results] `duplicate-result-root-ambiguity`: both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist
+  - [results] `run-manifest-tool-roster-drift`: run_manifest tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']
+  - [results] `report-tool-roster-drift`: sample_0001 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0002 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0003 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] (+17 more)
+  - [findings] `split-run-artifact-roots`: The shared results mirror has partial bench/trim_reads/<sample>/report.json outputs but no run_manifest.json, while the legacy bijux-dna-results root still carries the manifest with zero rendered reports. That split state prevents an honest refresh of benchmark/fastq.trim_reads/corpus-01.
+- `fastq.filter_reads`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:27:21.590382+00:00` from `local-results-root`
+- `fastq.filter_low_complexity`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:43:15.299292+00:00` from `local-results-root`
+- `fastq.deplete_rrna`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:33:37.303465+00:00` from `local-results-root`
+- `fastq.merge_pairs`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:56:04.491543+00:00` from `local-results-root`
+- `fastq.remove_duplicates`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:56:29.327510+00:00` from `local-results-root`
+- `fastq.deplete_host`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:41:03.183632+00:00` from `local-results-root`
+- `fastq.deplete_reference_contaminants`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:42:07.063262+00:00` from `local-results-root`
+- `fastq.correct_errors`: `open` via `render-or-publish-dossier`
+  - publication `incomplete`, results `incomplete`, owner `benchmark-governance`
+  - [publication] `missing-corpus-dir`: missing benchmark/fastq.correct_errors/corpus-01
+  - [results] `missing-published-summary`: missing /Users/bijan/bijux/bijux-dna/docs/benchmark/fastq.correct_errors/corpus-01/summary.json
+  - [findings] `missing-run-report-json`: The mirrored Lunarc run_manifest.json resolves paired samples correctly now, but the artifact tree still lacks bench/correct_errors/<sample>/report.json outputs needed to render benchmark/fastq.correct_errors/corpus-01 honestly.
+- `fastq.extract_umis`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:56:48.313237+00:00` from `local-results-root`
+- `fastq.screen_taxonomy`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:36:58.623724+00:00` from `local-cache-mirror`
+- `fastq.trim_terminal_damage`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:45:48.078399+00:00` from `local-results-root`
+- `fastq.report_qc`: `clear` via `none`
+  - publication `complete`, results `complete`, owner `benchmark-governance`
+  - dossier `2026-03-28T02:54:02.733622+00:00` from `local-results-root`

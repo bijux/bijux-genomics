@@ -1,0 +1,462 @@
+{
+  "corpus_id": "corpus-01",
+  "stage_count": 20,
+  "open_stage_count": 2,
+  "clear_stage_count": 18,
+  "stages": [
+    {
+      "stage_id": "fastq.validate_reads",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:24:32.014754+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.detect_adapters",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:26:10.835428+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.profile_reads",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:26:36.651353+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.profile_read_lengths",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:26:51.299933+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:27:05.660482+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.normalize_primers",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:32:33.900712+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.trim_polyg_tails",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:39:28.524365+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.trim_reads",
+      "owner": "benchmark-governance",
+      "status": "open",
+      "issue_count": 29,
+      "recommended_action": "sync-or-normalize-results",
+      "publication_status": "incomplete",
+      "results_status": "incomplete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:46:45.334156+00:00",
+      "run_root_source": "local-results-root",
+      "issues": [
+        {
+          "issue_id": "summary-tool-roster-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/summary.json tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "summary-tool-summary-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/summary.json tool_summary tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-roster-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0001 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0002 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0003 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0004 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0005 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0006 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0007 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0008 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0009 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0010 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0011 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0012 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0013 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0014 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0015 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0016 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0017 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0018 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0019 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-tool-coverage-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv sample sample_0020 tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "sample-results-row-count-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/sample_results.csv row_count=180 expected 260",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "tool-runtime-summary-drift",
+          "detail": "benchmark/fastq.trim_reads/corpus-01/tool_runtime_summary.csv tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "duplicate-result-root-ambiguity",
+          "detail": "both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist",
+          "severity": "error",
+          "source": "results"
+        },
+        {
+          "issue_id": "run-manifest-tool-roster-drift",
+          "detail": "run_manifest tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']",
+          "severity": "error",
+          "source": "results"
+        },
+        {
+          "issue_id": "report-tool-roster-drift",
+          "detail": "sample_0001 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0002 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0003 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] (+17 more)",
+          "severity": "error",
+          "source": "results"
+        },
+        {
+          "issue_id": "split-run-artifact-roots",
+          "detail": "The shared results mirror has partial bench/trim_reads/<sample>/report.json outputs but no run_manifest.json, while the legacy bijux-dna-results root still carries the manifest with zero rendered reports. That split state prevents an honest refresh of benchmark/fastq.trim_reads/corpus-01.",
+          "severity": "error",
+          "source": "findings"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.filter_reads",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:27:21.590382+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.filter_low_complexity",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:43:15.299292+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.deplete_rrna",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:33:37.303465+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.merge_pairs",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "paired",
+      "published_generated_at_utc": "2026-03-28T02:56:04.491543+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.remove_duplicates",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "paired",
+      "published_generated_at_utc": "2026-03-28T02:56:29.327510+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.deplete_host",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:41:03.183632+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:42:07.063262+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.correct_errors",
+      "owner": "benchmark-governance",
+      "status": "open",
+      "issue_count": 3,
+      "recommended_action": "render-or-publish-dossier",
+      "publication_status": "incomplete",
+      "results_status": "incomplete",
+      "sample_scope": "paired",
+      "published_generated_at_utc": null,
+      "run_root_source": null,
+      "issues": [
+        {
+          "issue_id": "missing-corpus-dir",
+          "detail": "missing benchmark/fastq.correct_errors/corpus-01",
+          "severity": "error",
+          "source": "publication"
+        },
+        {
+          "issue_id": "missing-published-summary",
+          "detail": "missing /Users/bijan/bijux/bijux-dna/docs/benchmark/fastq.correct_errors/corpus-01/summary.json",
+          "severity": "error",
+          "source": "results"
+        },
+        {
+          "issue_id": "missing-run-report-json",
+          "detail": "The mirrored Lunarc run_manifest.json resolves paired samples correctly now, but the artifact tree still lacks bench/correct_errors/<sample>/report.json outputs needed to render benchmark/fastq.correct_errors/corpus-01 honestly.",
+          "severity": "error",
+          "source": "findings"
+        }
+      ]
+    },
+    {
+      "stage_id": "fastq.extract_umis",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "paired",
+      "published_generated_at_utc": "2026-03-28T02:56:48.313237+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:36:58.623724+00:00",
+      "run_root_source": "local-cache-mirror",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.trim_terminal_damage",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:45:48.078399+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.report_qc",
+      "owner": "benchmark-governance",
+      "status": "clear",
+      "issue_count": 0,
+      "recommended_action": "none",
+      "publication_status": "complete",
+      "results_status": "complete",
+      "sample_scope": "full",
+      "published_generated_at_utc": "2026-03-28T02:54:02.733622+00:00",
+      "run_root_source": "local-results-root",
+      "issues": []
+    }
+  ]
+}

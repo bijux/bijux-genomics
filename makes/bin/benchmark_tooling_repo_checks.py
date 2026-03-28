@@ -14,6 +14,8 @@ BENCHMARK_TOOLING_GLOBS = (
 EXCLUDED_TOOLING_PATHS = {
     Path("makes/bin/test_corpus_01_fastq_benchmarks.py"),
 }
+LOCAL_OPERATOR_PATH_PREFIX = "/".join(("", "Users", "bijan", ""))
+REMOTE_OPERATOR_PATH_PREFIX = "/".join(("", "home", "bijan", ""))
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,13 +72,13 @@ def literal_matches(
 def audit_repo_checks(repo_root: Path) -> dict:
     violations = literal_matches(
         repo_root,
-        literal="/Users/bijan/",
+        literal=LOCAL_OPERATOR_PATH_PREFIX,
         issue_id="hardcoded-local-operator-path",
     )
     violations.extend(
         literal_matches(
             repo_root,
-            literal="/home/bijan/",
+            literal=REMOTE_OPERATOR_PATH_PREFIX,
             issue_id="hardcoded-remote-operator-path",
         )
     )
