@@ -6,14 +6,14 @@
     "modern_se": 5
   },
   "corpus_id": "corpus-01",
-  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "damage_mode": "ancient",
   "era_counts": {
     "ancient": 10,
     "modern": 10
   },
   "execution_policy": "explicit_terminal_trim",
-  "generated_at_utc": "2026-03-26T22:09:55.998538+00:00",
+  "generated_at_utc": "2026-03-28T02:45:48.078399+00:00",
   "headline": {
     "best_base_retention": 0.9522198975727316,
     "best_base_retention_tool": "cutadapt",
