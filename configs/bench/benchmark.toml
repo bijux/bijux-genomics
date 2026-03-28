@@ -43,6 +43,9 @@ allow_dirty = false
 include_containers_manifest = false
 data_manifest_glob = ""
 
+[corpora.corpus-01]
+spec_path = "configs/runtime/corpora/corpus-01.toml"
+
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
 scenario_id = "validation_fairness"

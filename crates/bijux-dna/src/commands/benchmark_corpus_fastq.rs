@@ -9,7 +9,8 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest as _;
 
 use crate::commands::benchmark_workspace::{
-    benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_workspace_config,
+    benchmark_corpus_spec_path, benchmark_workspace_value, corpus_01_publication_contract,
+    load_benchmark_workspace_config,
 };
 use crate::commands::cli::{BenchCorpusFastqArgs, BenchWorkspaceValueArgs, Cli};
 
@@ -248,16 +249,23 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             &repo_root,
             args.publication_config.as_deref(),
         );
+    if args.corpus_id != "corpus-01" {
+        return Err(anyhow!(
+            "unsupported corpus benchmark `{}`; publication contracts are currently governed only for corpus-01",
+            args.corpus_id
+        ));
+    }
     let contract = corpus_01_publication_contract(
         &repo_root,
         args.publication_config.as_deref(),
         &args.stage,
     )?;
     let stage_spec = stage_command_spec(&args.stage)?;
-    let corpus_spec = load_corpus_spec(&repo_root)?;
-    if corpus_spec.corpus_id != "corpus-01" {
+    let corpus_spec = load_corpus_spec(&repo_root, args.config.as_deref(), &args.corpus_id)?;
+    if corpus_spec.corpus_id != args.corpus_id {
         return Err(anyhow!(
-            "unsupported corpus benchmark spec `{}`; expected corpus-01",
+            "configured corpus spec drift: expected `{}`, found `{}`",
+            args.corpus_id,
             corpus_spec.corpus_id
         ));
     }
@@ -810,8 +818,12 @@ fn execute_sample(
     })
 }
 
-fn load_corpus_spec(repo_root: &Path) -> Result<CorpusSpec> {
-    let path = repo_root.join("configs/runtime/corpora/corpus-01.toml");
+fn load_corpus_spec(
+    repo_root: &Path,
+    config_path: Option<&Path>,
+    corpus_id: &str,
+) -> Result<CorpusSpec> {
+    let path = benchmark_corpus_spec_path(repo_root, config_path, corpus_id)?;
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
