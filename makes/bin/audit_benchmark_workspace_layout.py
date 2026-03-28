@@ -114,6 +114,16 @@ def workspace_layout_report() -> dict:
         local_results_root=local_results_root,
         local_cache_mirror_root=local_cache_mirror_root,
     )
+    for stage_id in local_stage_layout["shared_stage_ids"]:
+        issues.append(
+            {
+                "issue_id": "duplicate-local-stage-root",
+                "detail": (
+                    f"both {local_stage_layout['cache_corpus_root']}/{stage_id} and "
+                    f"{local_stage_layout['archive_corpus_root']}/{stage_id} exist"
+                ),
+            }
+        )
 
     return {
         "local_results_root": str(local_results_root),

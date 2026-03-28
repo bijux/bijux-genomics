@@ -68,6 +68,7 @@ benchmark-lunarc-publication-refresh: ## Pull governed publication inputs, rende
 		LUNARC_INCLUDE_PROFILE="pull-benchmark-publication" \
 		INCLUDE_CONTAINERS_MANIFEST=1 \
 		DATA_MANIFEST_GLOB="benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"
+	@$(MAKE) _benchmark-normalize-local-results-layout
 	@$(MAKE) _benchmark-corpus-01-published-dossiers
 
 lunarc-footprint: ## Report Lunarc frontend footprint and fail above 20 GB
