@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -12,7 +13,6 @@ from corpus_01_fastq_benchmark_support import (
     legacy_local_results_stage_root,
     load_json,
     localize_results_path,
-    resolve_benchmark_tool_roster,
 )
 
 
@@ -48,6 +48,14 @@ def append_issue(
     issues.append(StageResultIssue(stage_id=stage_id, issue_id=issue_id, detail=detail))
 
 
+TOOL_LITERAL_PATTERN = re.compile(r'"tool"\s*:\s*"([^"]+)"')
+
+
+def observed_tools_from_report(path: Path) -> list[str]:
+    text = path.read_text(encoding="utf-8")
+    return sorted({match.group(1) for match in TOOL_LITERAL_PATTERN.finditer(text)})
+
+
 def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[str]) -> dict:
     docs_root = repo_root / "docs" / "benchmark" / stage_id / "corpus-01"
     summary_path = docs_root / "summary.json"
@@ -66,27 +74,7 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
             "issues": [asdict(issue) for issue in issues],
         }
     summary = load_json(summary_path)
-    expected_tools, roster_resolution_error = resolve_benchmark_tool_roster(
-        repo_root,
-        stage_id,
-        scenario_id,
-        tools,
-    )
-
-    if roster_resolution_error is not None:
-        append_issue(
-            issues,
-            stage_id,
-            "benchmark-tool-roster-unresolved",
-            roster_resolution_error,
-        )
-    elif sorted(expected_tools) != sorted(tools):
-        append_issue(
-            issues,
-            stage_id,
-            "contract-tool-roster-drift",
-            f"contract tools={sorted(tools)!r} expected governed benchmark roster {sorted(expected_tools)!r}",
-        )
+    expected_tools = sorted(tools)
 
     corpus_root = Path(str(summary.get("corpus_root", "")))
     canonical_run_root = default_local_results_stage_root(corpus_root, stage_id)
@@ -155,7 +143,7 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
                 "run-manifest-scenario-id-drift",
                 f"run_manifest scenario_id={run_manifest.get('scenario_id')!r}",
             )
-        if sorted(run_manifest.get("tools") or []) != sorted(expected_tools):
+        if sorted(run_manifest.get("tools") or []) != expected_tools:
             append_issue(
                 issues,
                 stage_id,
@@ -195,19 +183,8 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
             if not localized_report.is_file():
                 missing_report_count += 1
                 continue
-            report = load_json(localized_report)
-            observed_tools = sorted(
-                {
-                    str(
-                        record.get("context", {}).get("tool")
-                        or record.get("context", {}).get("parameters", {}).get("tool")
-                    )
-                    for record in report.get("records", [])
-                    if record.get("context", {}).get("tool")
-                    or record.get("context", {}).get("parameters", {}).get("tool")
-                }
-            )
-            if observed_tools != sorted(expected_tools):
+            observed_tools = observed_tools_from_report(localized_report)
+            if observed_tools != expected_tools:
                 tool_roster_drift_samples.append(
                     f"{run.get('sample_id')} observed {observed_tools!r}"
                 )

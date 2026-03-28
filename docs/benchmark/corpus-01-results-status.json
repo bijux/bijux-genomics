@@ -1,9 +1,10 @@
 {
   "corpus_id": "corpus-01",
-  "published_stage_count": 17,
-  "complete_stage_count": 17,
-  "incomplete_stage_count": 0,
-  "issue_count": 0,
+  "applicable_stage_count": 20,
+  "published_stage_count": 19,
+  "complete_stage_count": 18,
+  "incomplete_stage_count": 2,
+  "issue_count": 4,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
@@ -49,9 +50,25 @@
     },
     {
       "stage_id": "fastq.trim_reads",
-      "status": "complete",
-      "issue_count": 0,
-      "issues": []
+      "status": "incomplete",
+      "issue_count": 3,
+      "issues": [
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "duplicate-result-root-ambiguity",
+          "detail": "both /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc and /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc exist"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "run-manifest-tool-roster-drift",
+          "detail": "run_manifest tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
+        },
+        {
+          "stage_id": "fastq.trim_reads",
+          "issue_id": "report-tool-roster-drift",
+          "detail": "sample_0001 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0002 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0003 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] (+17 more)"
+        }
+      ]
     },
     {
       "stage_id": "fastq.filter_reads",
@@ -84,13 +101,37 @@
       "issues": []
     },
     {
+      "stage_id": "fastq.deplete_host",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
       "stage_id": "fastq.deplete_reference_contaminants",
       "status": "complete",
       "issue_count": 0,
       "issues": []
     },
     {
+      "stage_id": "fastq.correct_errors",
+      "status": "incomplete",
+      "issue_count": 1,
+      "issues": [
+        {
+          "stage_id": "fastq.correct_errors",
+          "issue_id": "missing-published-summary",
+          "detail": "missing /Users/bijan/bijux/bijux-dna/docs/benchmark/fastq.correct_errors/corpus-01/summary.json"
+        }
+      ]
+    },
+    {
       "stage_id": "fastq.extract_umis",
+      "status": "complete",
+      "issue_count": 0,
+      "issues": []
+    },
+    {
+      "stage_id": "fastq.screen_taxonomy",
       "status": "complete",
       "issue_count": 0,
       "issues": []
