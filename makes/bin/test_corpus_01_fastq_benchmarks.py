@@ -291,6 +291,22 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
         self.assertEqual(missing_targets, [])
 
+    def test_makefile_declares_phony_targets_for_every_governed_publication_stage(
+        self,
+    ) -> None:
+        phony = makefile_phony_targets()
+        missing_targets = [
+            target
+            for stage_id in publication_stage_ids()
+            for target in (
+                support.corpus_01_make_run_target(stage_id),
+                support.corpus_01_make_report_target(stage_id),
+            )
+            if target not in phony
+        ]
+
+        self.assertEqual(missing_targets, [])
+
     def test_validate_reads_method_references_existing_make_targets(self) -> None:
         text = validate_reads_method_text()
 
