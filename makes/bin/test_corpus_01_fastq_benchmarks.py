@@ -145,6 +145,10 @@ def rust_compat_runner_paths() -> list[Path]:
         "run_fastq_profile_reads_corpus_01.py",
         "run_fastq_profile_read_lengths_corpus_01.py",
         "run_fastq_profile_overrepresented_sequences_corpus_01.py",
+        "run_fastq_filter_low_complexity_corpus_01.py",
+        "run_fastq_merge_pairs_corpus_01.py",
+        "run_fastq_trim_polyg_tails_corpus_01.py",
+        "run_fastq_trim_terminal_damage_corpus_01.py",
     ]
     return [ROOT / "makes" / "bin" / name for name in names]
 
