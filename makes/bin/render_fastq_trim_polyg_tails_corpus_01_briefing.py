@@ -8,17 +8,14 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+from corpus_01_fastq_benchmark_support import parse_corpus_briefing_args
+
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Render an enriched benchmark briefing from corpus-01 trim-polyg artifacts."
+    return parse_corpus_briefing_args(
+        description="Render an enriched benchmark briefing from corpus-01 trim-polyg artifacts.",
+        docs_root="docs/benchmark/fastq.trim_polyg_tails/corpus-01",
     )
-    parser.add_argument(
-        "--docs-root",
-        default="docs/benchmark/fastq.trim_polyg_tails/corpus-01",
-        help="Directory that contains summary.json and sample_results.csv.",
-    )
-    return parser.parse_args()
 
 
 def load_json(path: Path) -> dict:

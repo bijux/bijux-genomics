@@ -277,6 +277,12 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertNotIn("parser.add_argument(\"--run-root\"", text, path.name)
             self.assertNotIn("parser.add_argument(\"--docs-root\"", text, path.name)
 
+    def test_briefing_renderers_use_shared_corpus_briefing_arg_parser(self) -> None:
+        for path in briefing_renderer_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("parse_corpus_briefing_args(", text, path.name)
+            self.assertNotIn("parser.add_argument(\"--docs-root\"", text, path.name)
+
     def test_trim_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.trim_reads_benchmark_defaults()
         self.assertIsNone(defaults["min_length"])
