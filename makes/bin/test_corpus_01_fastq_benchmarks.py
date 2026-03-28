@@ -307,6 +307,18 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
         self.assertEqual(missing_targets, [])
 
+    def test_published_dossiers_refresh_covers_every_governed_publication_stage(
+        self,
+    ) -> None:
+        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
+        missing_targets = [
+            support.corpus_01_make_report_target(stage_id)
+            for stage_id in publication_stage_ids()
+            if support.corpus_01_make_report_target(stage_id) not in recipe
+        ]
+
+        self.assertEqual(missing_targets, [])
+
     def test_validate_reads_method_references_existing_make_targets(self) -> None:
         text = validate_reads_method_text()
 
