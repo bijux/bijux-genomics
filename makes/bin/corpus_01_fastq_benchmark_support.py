@@ -1449,14 +1449,23 @@ def load_corpus_report_context(
     run_manifest = runtime.run_manifest
     if validate_run_manifest is not None:
         validate_run_manifest(run_manifest)
-    applicable_runs = benchmark_applicable_runs(run_manifest, contract)
-    expected_sample_ids = benchmark_applicable_sample_ids(run_manifest, contract)
+    manifest_sample_ids = benchmark_manifest_sample_ids(run_manifest)
     metadata_by_sample = resolve_corpus_metadata(
         runtime.repo_root,
         runtime.corpus_root,
         spec,
-        expected_sample_ids=expected_sample_ids,
+        expected_sample_ids=manifest_sample_ids,
         fallback_stage_id=metadata_fallback_stage_id,
+    )
+    expected_sample_ids = benchmark_applicable_sample_ids(
+        contract,
+        run_manifest,
+        metadata_by_sample,
+    )
+    applicable_runs = benchmark_applicable_runs(
+        contract,
+        run_manifest,
+        metadata_by_sample,
     )
     return CorpusReportContext(
         runtime=runtime,
