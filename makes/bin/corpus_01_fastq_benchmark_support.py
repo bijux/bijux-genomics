@@ -755,14 +755,15 @@ def default_screen_taxonomy_database_root(
     database_scope: str,
     database_artifact_id: str,
 ) -> Path:
-    return (
-        default_extra_data_root(out_root)
-        / "benchmark"
-        / "fastq.screen_taxonomy"
-        / database_namespace
-        / database_scope
-        / database_artifact_id
+    relative_root = _expand_workspace_template(
+        _workspace_template("fastq_screen_taxonomy", "database_root_template"),
+        {
+            "database_namespace": database_namespace,
+            "database_scope": database_scope,
+            "database_artifact_id": database_artifact_id,
+        },
     )
+    return default_extra_data_root(out_root) / relative_root
 
 
 def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:
