@@ -663,4 +663,54 @@ results_root = "${BIJUX_TEST_RESULTS_ROOT}"
             Some("/tmp/env-results".to_string())
         );
     }
+
+    #[test]
+    fn legacy_workspace_and_publication_shims_expand_environment_placeholders() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("create config dir");
+        std::fs::write(
+            config_dir.join("workspace.toml"),
+            r#"[local]
+results_root = "${BIJUX_TEST_RESULTS_ROOT}"
+
+[remote]
+corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
+"#,
+        )
+        .expect("write workspace shim");
+        std::fs::write(
+            config_dir.join("publication.toml"),
+            r#"[[corpus_01.contracts]]
+stage_id = "fastq.validate_reads"
+scenario_id = "validation_fairness"
+tools = ["fastqc"]
+"#,
+        )
+        .expect("write publication shim");
+
+        std::env::set_var("BIJUX_TEST_RESULTS_ROOT", "/tmp/legacy-results");
+        std::env::set_var("BIJUX_TEST_CORPUS_ROOT", "/tmp/legacy-corpus");
+        let config = load_benchmark_config(temp.path(), None).expect("load legacy benchmark config");
+        std::env::remove_var("BIJUX_TEST_RESULTS_ROOT");
+        std::env::remove_var("BIJUX_TEST_CORPUS_ROOT");
+
+        assert_eq!(
+            config.workspace.local.and_then(|row| row.results_root),
+            Some("/tmp/legacy-results".to_string())
+        );
+        assert_eq!(
+            config.workspace.remote.and_then(|row| row.corpus_root),
+            Some("/tmp/legacy-corpus".to_string())
+        );
+        assert_eq!(
+            config
+                .publication
+                .corpus_01
+                .expect("corpus publication")
+                .contracts
+                .len(),
+            1
+        );
+    }
 }

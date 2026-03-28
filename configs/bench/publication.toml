@@ -1,9 +1,11 @@
 # schema_version = 1
 # owner = bijux-dna-bench
-# purpose = Contract config for configs/bench/publication.toml
-# authority = bijux-dna-bench
-# stability = evolving
+# purpose = Compatibility shim for legacy publication-only benchmark consumers
+# authority = bijux-dna
+# stability = compatibility
 # last_updated = 2026-03-28
+# compatibility = Mirrors [publication] from configs/bench/benchmark.toml
+# migration = Prefer configs/bench/benchmark.toml for new automation and docs
 
 [[corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
