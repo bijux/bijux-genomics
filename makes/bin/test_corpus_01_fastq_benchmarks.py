@@ -56,7 +56,6 @@ import render_fastq_trim_terminal_damage_corpus_01_report as terminal_damage_rep
 import render_fastq_trim_polyg_tails_corpus_01_briefing as trim_polyg_briefing
 import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 import render_fastq_validate_reads_corpus_01_report as validate_reads_report
-import normalize_lunarc_results_mirror as normalize_results_mirror
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 
@@ -601,6 +600,11 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_benchmark_repo_checks_builder_is_deleted(self) -> None:
         self.assertFalse(
             (ROOT / "makes" / "bin" / "benchmark_tooling_repo_checks.py").exists()
+        )
+
+    def test_legacy_results_mirror_normalizer_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "normalize_lunarc_results_mirror.py").exists()
         )
 
     def test_corpus_report_dispatcher_builder_is_deleted(self) -> None:
@@ -4770,88 +4774,6 @@ class BenchmarkMakefileTests(unittest.TestCase):
             )
             raw_run_root.mkdir(parents=True)
             (raw_run_root / "run_manifest.json").write_text("{}", encoding="utf-8")
-
-            report = normalize_results_mirror.normalize_results_root(
-                results_root,
-                "corpus_01",
-                dry_run=False,
-            )
-
-            canonical_run_root = results_root / "corpus_01" / "fastq.merge_pairs" / "lunarc"
-            self.assertTrue((canonical_run_root / "run_manifest.json").is_file())
-            self.assertFalse(raw_run_root.exists())
-            self.assertEqual(report["actions"][0]["status"], "moved")
-
-    def test_normalize_results_mirror_parse_args_uses_workspace_results_root(self) -> None:
-        original_argv = sys.argv
-        try:
-            with mock.patch.object(
-                normalize_results_mirror,
-                "benchmark_local_results_root",
-                return_value=Path("/tmp/workspace-results"),
-            ):
-                sys.argv = ["normalize_lunarc_results_mirror.py"]
-                args = normalize_results_mirror.parse_args()
-        finally:
-            sys.argv = original_argv
-
-        self.assertEqual(args.results_root, "/tmp/workspace-results")
-
-    def test_normalize_results_mirror_skips_existing_canonical_target(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            results_root = Path(tmpdir) / "results"
-            raw_run_root = (
-                results_root
-                / "home"
-                / "bijan"
-                / "bijux"
-                / "results"
-                / "corpus_01"
-                / "fastq.merge_pairs"
-                / "lunarc"
-            )
-            canonical_run_root = results_root / "corpus_01" / "fastq.merge_pairs" / "lunarc"
-            raw_run_root.mkdir(parents=True)
-            canonical_run_root.mkdir(parents=True)
-
-            report = normalize_results_mirror.normalize_results_root(
-                results_root,
-                "corpus_01",
-                dry_run=False,
-            )
-
-            self.assertTrue(raw_run_root.exists())
-            self.assertEqual(report["actions"][0]["status"], "skipped_existing_target")
-
-    def test_normalize_results_mirror_moves_legacy_cache_results_tree(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            results_root = Path(tmpdir) / "results"
-            raw_run_root = (
-                results_root
-                / "home"
-                / "bijan"
-                / "lu2024-12-24"
-                / ".cache"
-                / "bijux-dna-results"
-                / "corpus_01"
-                / "fastq.correct_errors"
-                / "lunarc"
-            )
-            raw_run_root.mkdir(parents=True)
-            (raw_run_root / "run_manifest.json").write_text("{}", encoding="utf-8")
-
-            report = normalize_results_mirror.normalize_results_root(
-                results_root,
-                "corpus_01",
-                dry_run=False,
-            )
-
-            canonical_run_root = (
-                results_root / "corpus_01" / "fastq.correct_errors" / "lunarc"
-            )
-            self.assertTrue((canonical_run_root / "run_manifest.json").is_file())
-            self.assertFalse(raw_run_root.exists())
-            self.assertEqual(report["actions"][0]["target"], str(canonical_run_root))
 
     def test_repair_results_manifests_parse_args_uses_workspace_results_root(self) -> None:
         original_argv = sys.argv
