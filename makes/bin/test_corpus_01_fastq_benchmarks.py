@@ -709,6 +709,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertIn("VALIDATE_READS_BENCHMARK_CONTRACT", text)
         self.assertNotIn("CorpusBenchmarkContract(", text)
 
+    def test_python_benchmark_config_uses_rust_export_contract(self) -> None:
+        text = (
+            ROOT / "makes" / "bin" / "benchmark_fastq_corpus" / "config.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"bench"', text)
+        self.assertIn('"config-json"', text)
+        self.assertIn("BIJUX_BENCHMARK_CONFIG_JSON", text)
+        self.assertNotIn("toml_loader.loads(", text)
+
     def test_report_renderers_use_shared_artifact_publisher(self) -> None:
         support_text = benchmark_support_text()
         self.assertIn("class ReportCsvArtifactSpec:", support_text)
