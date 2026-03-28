@@ -436,6 +436,13 @@ class BenchmarkMakefileTests(unittest.TestCase):
         )
         self.assertIn("make _benchmark-remove-duplicates-corpus-01-report", text)
 
+    def test_merge_pairs_method_references_existing_make_targets(self) -> None:
+        text = method_doc_text("fastq.merge_pairs")
+
+        self.assertIn("## Workflow", text)
+        self.assertIn("make _benchmark-merge-corpus-01 PLATFORM=lunarc-apptainer", text)
+        self.assertIn("make _benchmark-merge-corpus-01-report", text)
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
