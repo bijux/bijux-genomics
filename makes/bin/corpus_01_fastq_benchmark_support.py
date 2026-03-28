@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
+from typing import Callable
 
 try:
     import tomllib as toml_loader  # type: ignore[attr-defined]
@@ -861,6 +862,28 @@ class CorpusReportRuntime:
     run_manifest: dict
 
 
+@dataclass(frozen=True)
+class CorpusReportContext:
+    runtime: CorpusReportRuntime
+    contract: CorpusBenchmarkContract
+    spec: dict
+    run_manifest: dict
+    applicable_runs: list[dict]
+    expected_sample_ids: list[str]
+    metadata_by_sample: dict[str, dict]
+
+
+@dataclass(frozen=True)
+class CorpusReportArtifacts:
+    summary: dict
+    markdown: str
+    sample_rows: list[dict]
+    sample_fieldnames: list[str] | None = None
+    summary_sort_keys: bool = False
+    extra_csv_artifacts: list[ReportCsvArtifactSpec] | None = None
+    empty_error: str = "cannot write empty csv artifact: {path}"
+
+
 def corpus_01_publication_contract(stage_id: str) -> CorpusBenchmarkContract:
     for row in load_benchmark_publication_config().get("corpus_01", {}).get("contracts", []):
         if str(row.get("stage_id")) != stage_id:
@@ -1412,6 +1435,66 @@ def resolve_corpus_report_runtime(
         local_results_root=run_root.parents[2],
         run_manifest=load_json(run_root / "run_manifest.json"),
     )
+
+
+def load_corpus_report_context(
+    args: argparse.Namespace,
+    *,
+    contract: CorpusBenchmarkContract,
+    validate_run_manifest: Callable[[dict], None] | None = None,
+    metadata_fallback_stage_id: str | None = None,
+) -> CorpusReportContext:
+    runtime = resolve_corpus_report_runtime(args, stage_id=contract.stage_id)
+    spec = load_corpus_spec(runtime.repo_root)
+    run_manifest = runtime.run_manifest
+    if validate_run_manifest is not None:
+        validate_run_manifest(run_manifest)
+    applicable_runs = benchmark_applicable_runs(run_manifest, contract)
+    expected_sample_ids = benchmark_applicable_sample_ids(run_manifest, contract)
+    metadata_by_sample = resolve_corpus_metadata(
+        runtime.repo_root,
+        runtime.corpus_root,
+        spec,
+        expected_sample_ids=expected_sample_ids,
+        fallback_stage_id=metadata_fallback_stage_id,
+    )
+    return CorpusReportContext(
+        runtime=runtime,
+        contract=contract,
+        spec=spec,
+        run_manifest=run_manifest,
+        applicable_runs=applicable_runs,
+        expected_sample_ids=expected_sample_ids,
+        metadata_by_sample=metadata_by_sample,
+    )
+
+
+def run_corpus_report(
+    args: argparse.Namespace,
+    *,
+    contract: CorpusBenchmarkContract,
+    build_artifacts: Callable[[CorpusReportContext], CorpusReportArtifacts],
+    validate_run_manifest: Callable[[dict], None] | None = None,
+    metadata_fallback_stage_id: str | None = None,
+) -> int:
+    context = load_corpus_report_context(
+        args,
+        contract=contract,
+        validate_run_manifest=validate_run_manifest,
+        metadata_fallback_stage_id=metadata_fallback_stage_id,
+    )
+    artifacts = build_artifacts(context)
+    publish_corpus_report_artifacts(
+        context.runtime.docs_root,
+        summary=artifacts.summary,
+        markdown=artifacts.markdown,
+        sample_rows=artifacts.sample_rows,
+        sample_fieldnames=artifacts.sample_fieldnames,
+        summary_sort_keys=artifacts.summary_sort_keys,
+        extra_csv_artifacts=artifacts.extra_csv_artifacts,
+        empty_error=artifacts.empty_error,
+    )
+    return 0
 
 
 def _parse_utc_timestamp(raw: str | None) -> datetime | None:
