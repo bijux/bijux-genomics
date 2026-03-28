@@ -16,7 +16,7 @@ This page does not replace legal review for downstream redistribution obligation
   - `containers/licenses/*.license.toml`
   - `containers/versions/versions.toml` (`upstream_license`)
 - Non-bijux packaged tools must declare provenance and license in:
-  - `containers/apptainer/lunarc/NON_BIJUX_SOURCES.md`
+  - `containers/apptainer/shared/NON_BIJUX_SOURCES.md`
 
 ## Examples
 - A workspace crate can be Apache-2.0 while packaged upstream tool is GPL-3.0.

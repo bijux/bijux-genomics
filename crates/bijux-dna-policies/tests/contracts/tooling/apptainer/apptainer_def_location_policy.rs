@@ -22,16 +22,14 @@ fn policy__contracts__apptainer_def_location_policy__defs_only_exist_in_bijux_or
         }
         let rel = path.strip_prefix(&root).unwrap_or(path);
         let rel_s = rel.to_string_lossy();
-        if !rel_s.starts_with("containers/apptainer/lunarc/")
-            && !rel_s.starts_with("containers/apptainer/lunarc/")
-        {
+        if !rel_s.starts_with("containers/apptainer/shared/") {
             offenders.push(rel_s.to_string());
         }
     }
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        ".def files are only allowed in containers/apptainer/lunarc/ or containers/apptainer/lunarc/:\n{}",
+        ".def files are only allowed in containers/apptainer/shared/:\n{}",
         offenders.join("\n")
     );
 }

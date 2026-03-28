@@ -34,7 +34,7 @@ fn build_tool_registries_toml(
     let mut production_tool_ids = BTreeSet::new();
     for tool in tools.values() {
         let dockerfile_rel = format!("containers/docker/arm64/Dockerfile.{}", tool.id);
-        let apptainer_def_rel = format!("containers/apptainer/lunarc/{}.def", tool.id);
+        let apptainer_def_rel = format!("containers/apptainer/shared/{}.def", tool.id);
         let dockerfile_path = Path::new(&dockerfile_rel);
         let apptainer_def_path = Path::new(&apptainer_def_rel);
         let docker_exists = dockerfile_path.exists();

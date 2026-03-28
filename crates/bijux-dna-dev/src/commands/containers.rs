@@ -641,11 +641,11 @@ fn governed_container_file_ids(workspace: &Workspace) -> Result<BTreeSet<String>
             ids.insert(tool_id.to_string());
         }
     }
-    for entry in fs::read_dir(workspace.path("containers/apptainer/lunarc"))
+    for entry in fs::read_dir(workspace.path("containers/apptainer/shared"))
         .with_context(|| {
             format!(
                 "read {}",
-                workspace.path("containers/apptainer/lunarc").display()
+                workspace.path("containers/apptainer/shared").display()
             )
         })?
         .filter_map(std::result::Result::ok)
@@ -688,7 +688,7 @@ fn governed_container_statuses(workspace: &Workspace) -> Result<BTreeMap<String,
 }
 
 fn is_non_bijux_apptainer_source(workspace: &Workspace, tool_id: &str) -> bool {
-    let apptainer = workspace.path(&format!("containers/apptainer/lunarc/{tool_id}.def"));
+    let apptainer = workspace.path(&format!("containers/apptainer/shared/{tool_id}.def"));
     apptainer.exists()
         && (read_utf8(&apptainer)
             .unwrap_or_default()
@@ -1251,7 +1251,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         let Some((tool_id, status)) = line.split_once('\t') else {
             return Err(anyhow!("invalid TOOL_IDS row: {line}"));
         };
-        let apptainer = workspace.path(&format!("containers/apptainer/lunarc/{tool_id}.def"));
+        let apptainer = workspace.path(&format!("containers/apptainer/shared/{tool_id}.def"));
         let docker_arm64 = workspace.path(&format!("containers/docker/arm64/Dockerfile.{tool_id}"));
         let docker_amd64 = workspace.path(&format!("containers/docker/amd64/Dockerfile.{tool_id}"));
         let apptainer_source = if apptainer.exists() {
@@ -1321,7 +1321,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "- Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).".to_string(),
         "- Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.".to_string(),
         "- Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.".to_string(),
-        "- Non-bijux provenance: `containers/apptainer/lunarc/NON_BIJUX_SOURCES.md`.".to_string(),
+        "- Non-bijux provenance: `containers/apptainer/shared/NON_BIJUX_SOURCES.md`.".to_string(),
         "- Ownership map: `containers/OWNERS.toml`.".to_string(),
         String::new(),
         "## Tool Container Coverage".to_string(),
@@ -1957,11 +1957,11 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
                 .map(ToString::to_string)
         })
         .collect::<BTreeSet<_>>();
-    let apptainer_ids = fs::read_dir(workspace.path("containers/apptainer/lunarc"))
+    let apptainer_ids = fs::read_dir(workspace.path("containers/apptainer/shared"))
         .with_context(|| {
             format!(
                 "read {}",
-                workspace.path("containers/apptainer/lunarc").display()
+                workspace.path("containers/apptainer/shared").display()
             )
         })?
         .filter_map(std::result::Result::ok)
@@ -4357,7 +4357,7 @@ fn check_bijux_apptainer_built(workspace: &Workspace) -> Result<ContainerCommand
         .collect::<BTreeMap<_, _>>();
     let bijux_defs = apptainer_def_paths(workspace)
         .into_iter()
-        .filter(|path| path.starts_with(workspace.path("containers/apptainer/lunarc")))
+        .filter(|path| path.starts_with(workspace.path("containers/apptainer/shared")))
         .filter_map(|path| {
             path.file_stem()
                 .and_then(|name| name.to_str())
@@ -4597,7 +4597,7 @@ fn check_missing_images(workspace: &Workspace) -> Result<ContainerCommandOutcome
 }
 
 fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let sources_doc = workspace.path("containers/apptainer/lunarc/NON_BIJUX_SOURCES.md");
+    let sources_doc = workspace.path("containers/apptainer/shared/NON_BIJUX_SOURCES.md");
     if !sources_doc.exists() {
         return Ok(ContainerCommandOutcome::failure(format!(
             "missing required provenance index: {}\n",
@@ -4657,7 +4657,7 @@ fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutc
             errors.push(format!("{tool_id}: missing row in NON_BIJUX_SOURCES.md"));
             continue;
         };
-        let expected_path = format!("containers/apptainer/lunarc/{tool_id}.def");
+        let expected_path = format!("containers/apptainer/shared/{tool_id}.def");
         if def_path != &expected_path {
             errors.push(format!(
                 "{tool_id}: def path mismatch, expected {expected_path}, got {def_path}"
@@ -5369,17 +5369,17 @@ fn check_planned_actionability(workspace: &Workspace) -> Result<ContainerCommand
 }
 
 fn check_bijux_template_markers(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let template = workspace.path("containers/apptainer/lunarc/TEMPLATE.def.inc");
+    let template = workspace.path("containers/apptainer/shared/TEMPLATE.def.inc");
     let mut errors = Vec::new();
     if !template.exists() {
         errors
-            .push("missing template file containers/apptainer/lunarc/TEMPLATE.def.inc".to_string());
+            .push("missing template file containers/apptainer/shared/TEMPLATE.def.inc".to_string());
     }
-    for path in fs::read_dir(workspace.path("containers/apptainer/lunarc"))
+    for path in fs::read_dir(workspace.path("containers/apptainer/shared"))
         .with_context(|| {
             format!(
                 "read {}",
-                workspace.path("containers/apptainer/lunarc").display()
+                workspace.path("containers/apptainer/shared").display()
             )
         })?
         .filter_map(std::result::Result::ok)
@@ -8269,7 +8269,7 @@ fn check_apptainer_rebuild_repro(
             })
         }
     };
-    let definition = workspace.path(&format!("containers/apptainer/lunarc/{tool}.def"));
+    let definition = workspace.path(&format!("containers/apptainer/shared/{tool}.def"));
     if !definition.is_file() {
         return success_line(format!("apptainer rebuild repro: skip (no def for {tool})"));
     }

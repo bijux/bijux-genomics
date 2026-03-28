@@ -234,7 +234,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
             );
             let _ = writeln!(
                 tools_vcf_toml,
-                "apptainer_def = \"containers/apptainer/lunarc/bcftools.def\""
+                "apptainer_def = \"containers/apptainer/shared/bcftools.def\""
             );
             let _ = writeln!(tools_vcf_toml, "require_labels = true\n");
         }

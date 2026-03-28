@@ -93,6 +93,23 @@ ENV_RESOLVE_RS_PATH = (
 )
 APPTAINER_SHARED_DIR = ROOT / "containers" / "apptainer" / "shared"
 APPTAINER_LUNARC_ALIAS = ROOT / "containers" / "apptainer" / "lunarc"
+CANONICAL_APPTAINER_PATH_FILES = [
+    ROOT / "containers" / "docs" / "PROMOTION_POLICY.md",
+    ROOT / "containers" / "docs" / "STYLE.md",
+    ROOT / "containers" / "docs" / "index.md",
+    ROOT / "docs" / "30-operations" / "APPTAINER_QA_MATRIX.md",
+    ROOT / "docs" / "50-reference" / "LICENSING.md",
+    ROOT / "crates" / "bijux-dna-dev" / "src" / "commands" / "containers.rs",
+    ROOT / "crates" / "bijux-dna-dev" / "src" / "commands" / "domain.rs",
+    ROOT
+    / "crates"
+    / "bijux-dna-policies"
+    / "tests"
+    / "contracts"
+    / "tooling"
+    / "apptainer"
+    / "apptainer_def_location_policy.rs",
+]
 
 
 def benchmark_makefile_text() -> str:
@@ -1045,6 +1062,12 @@ class BenchmarkMakefileTests(unittest.TestCase):
     def test_lunarc_apptainer_dir_is_compatibility_alias(self) -> None:
         self.assertTrue(APPTAINER_LUNARC_ALIAS.is_symlink())
         self.assertEqual(os.readlink(APPTAINER_LUNARC_ALIAS), "shared")
+
+    def test_repo_uses_shared_apptainer_path_as_canonical_reference(self) -> None:
+        for path in CANONICAL_APPTAINER_PATH_FILES:
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("containers/apptainer/shared", text)
+            self.assertNotIn("containers/apptainer/lunarc", text)
 
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,

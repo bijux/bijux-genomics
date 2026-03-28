@@ -52,7 +52,7 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
             expected.insert(id.to_string());
         }
     }
-    for entry in WalkDir::new(root.join("containers/apptainer/lunarc"))
+    for entry in WalkDir::new(root.join("containers/apptainer/shared"))
         .into_iter()
         .filter_map(Result::ok)
     {
@@ -151,7 +151,7 @@ fn policy__contracts__container_versions_policy__no_latest_floating_or_unpinned_
         }
     }
 
-    for entry in WalkDir::new(root.join("containers/apptainer/lunarc"))
+    for entry in WalkDir::new(root.join("containers/apptainer/shared"))
         .into_iter()
         .filter_map(Result::ok)
     {

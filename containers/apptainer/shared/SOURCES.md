@@ -1,6 +1,6 @@
 # Non-Bijux Apptainer Sources
 
-Purpose: Track upstream provenance for every definition under `containers/apptainer/lunarc/`.
+Purpose: Track upstream provenance for every definition under `containers/apptainer/shared/`.
 
 Classification contract:
 - `non-bijux` = upstream-derived recipe ownership/provenance (minimal packaging adaptation only).
@@ -9,14 +9,14 @@ Classification contract:
 
 | tool_id | apptainer_def | why_non_bijux | upstream_source | upstream_license | upstream_checksum | patching_rules |
 |---|---|---|---|---|---|---|
-| `beagle` | `containers/apptainer/lunarc/beagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/beagle/beagle.html | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `bcftools` | `containers/apptainer/lunarc/bcftools.def` | upstream recipe retained to minimize divergence from vendor build process | https://github.com/samtools/bcftools | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `eigensoft` | `containers/apptainer/lunarc/eigensoft.def` | upstream recipe retained to minimize divergence from vendor build process | https://github.com/DReichLab/EIG | `GPL-2.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `germline` | `containers/apptainer/lunarc/germline.def` | upstream recipe retained to minimize divergence from vendor build process | https://www.cs.columbia.edu/~gusev/germline/ | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `glimpse` | `containers/apptainer/lunarc/glimpse.def` | upstream recipe retained to minimize divergence from vendor build process | https://odelaneau.github.io/GLIMPSE/ | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `impute5` | `containers/apptainer/lunarc/impute5.def` | upstream recipe retained to minimize divergence from vendor build process | https://jmarchini.org/software/#impute-5 | `research-only` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `shapeit5` | `containers/apptainer/lunarc/shapeit5.def` | upstream recipe retained to minimize divergence from vendor build process | https://odelaneau.github.io/shapeit5/ | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `eagle` | `containers/apptainer/lunarc/eagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://alkesgroup.broadinstitute.org/Eagle/ | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `minimac4` | `containers/apptainer/lunarc/minimac4.def` | upstream recipe retained to minimize divergence from vendor build process | https://genome.sph.umich.edu/wiki/Minimac4 | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `ibdhap` | `containers/apptainer/lunarc/ibdhap.def` | upstream recipe retained to minimize divergence from vendor build process | https://example.invalid/ibdhap | `unknown` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
-| `ibdne` | `containers/apptainer/lunarc/ibdne.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/ibdne.shtml | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `beagle` | `containers/apptainer/shared/beagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/beagle/beagle.html | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `bcftools` | `containers/apptainer/shared/bcftools.def` | upstream recipe retained to minimize divergence from vendor build process | https://github.com/samtools/bcftools | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `eigensoft` | `containers/apptainer/shared/eigensoft.def` | upstream recipe retained to minimize divergence from vendor build process | https://github.com/DReichLab/EIG | `GPL-2.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `germline` | `containers/apptainer/shared/germline.def` | upstream recipe retained to minimize divergence from vendor build process | https://www.cs.columbia.edu/~gusev/germline/ | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `glimpse` | `containers/apptainer/shared/glimpse.def` | upstream recipe retained to minimize divergence from vendor build process | https://odelaneau.github.io/GLIMPSE/ | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `impute5` | `containers/apptainer/shared/impute5.def` | upstream recipe retained to minimize divergence from vendor build process | https://jmarchini.org/software/#impute-5 | `research-only` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `shapeit5` | `containers/apptainer/shared/shapeit5.def` | upstream recipe retained to minimize divergence from vendor build process | https://odelaneau.github.io/shapeit5/ | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `eagle` | `containers/apptainer/shared/eagle.def` | upstream recipe retained to minimize divergence from vendor build process | https://alkesgroup.broadinstitute.org/Eagle/ | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `minimac4` | `containers/apptainer/shared/minimac4.def` | upstream recipe retained to minimize divergence from vendor build process | https://genome.sph.umich.edu/wiki/Minimac4 | `MIT` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `ibdhap` | `containers/apptainer/shared/ibdhap.def` | upstream recipe retained to minimize divergence from vendor build process | https://example.invalid/ibdhap | `unknown` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
+| `ibdne` | `containers/apptainer/shared/ibdne.def` | upstream recipe retained to minimize divergence from vendor build process | https://faculty.washington.edu/browning/ibdne.shtml | `GPL-3.0` | `sha256:pending` | only compatibility/packaging patches; no algorithmic behavior changes |
