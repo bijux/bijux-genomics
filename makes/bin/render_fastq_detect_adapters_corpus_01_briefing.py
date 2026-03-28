@@ -27,6 +27,7 @@ from corpus_01_fastq_benchmark_support import (
     safe_median,
     BriefingMetricSpec,
     summarize_tool_runtime_rows,
+    summarize_cohort_metric_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -88,43 +89,13 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
         ],
     )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
-    output: list[dict] = []
-    for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):
-        output.append(
-            summarize_cohort_rows(
-                tool=tool,
-                dimension=dimension,
-                cohort=cohort,
-                cohort_rows=cohort_rows,
-            )
-        )
-    return output
-
-def summarize_cohort_rows(
-    *,
-    tool: str,
-    dimension: str,
-    cohort: str,
-    cohort_rows: list[dict],
-) -> dict:
-    runtimes = [float(row["runtime_s"]) for row in cohort_rows]
-    candidate_counts = [float(row["candidate_adapter_count"]) for row in cohort_rows]
-    trimmed_fractions = [
-        optional_float(row["adapter_trimmed_fraction"])
-        for row in cohort_rows
-        if row["adapter_trimmed_fraction"] != ""
-    ]
-    return {
-        "tool": tool,
-        "dimension": dimension,
-        "cohort": cohort,
-        "samples": len(cohort_rows),
-        "mean_runtime_s": safe_mean(runtimes),
-        "median_runtime_s": safe_median(runtimes),
-        "mean_candidate_adapter_count": safe_mean(candidate_counts),
-        "mean_adapter_trimmed_fraction": safe_mean(trimmed_fractions),
-    }
-
+    return summarize_cohort_metric_rows(
+        rows,
+        metric_specs=[
+            BriefingMetricSpec('candidate_adapter_count', 'mean_candidate_adapter_count', 'mean'),
+            BriefingMetricSpec('adapter_trimmed_fraction', 'mean_adapter_trimmed_fraction', 'mean', skip_blank=True),
+        ],
+    )
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in rows:

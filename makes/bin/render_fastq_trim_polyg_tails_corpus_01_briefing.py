@@ -25,6 +25,7 @@ from corpus_01_fastq_benchmark_support import (
     safe_median,
     BriefingMetricSpec,
     summarize_tool_runtime_rows,
+    summarize_cohort_metric_rows,
 )
 
 def parse_args() -> argparse.Namespace:
@@ -43,41 +44,14 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
         ],
     )
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
-    output: list[dict] = []
-    for tool, dimension, cohort, cohort_rows in iter_cohort_row_groups(rows):
-        output.append(
-            summarize_cohort_rows(
-                tool=tool,
-                dimension=dimension,
-                cohort=cohort,
-                cohort_rows=cohort_rows,
-            )
-        )
-    return output
-
-def summarize_cohort_rows(
-    *,
-    tool: str,
-    dimension: str,
-    cohort: str,
-    cohort_rows: list[dict],
-) -> dict:
-    runtimes = [float(row["runtime_s"]) for row in cohort_rows]
-    bases_trimmed = [float(row["bases_trimmed_polyg"]) for row in cohort_rows]
-    base_retentions = [float(row["base_retention"]) for row in cohort_rows]
-    mean_q_deltas = [float(row["mean_q_delta"]) for row in cohort_rows]
-    return {
-        "tool": tool,
-        "dimension": dimension,
-        "cohort": cohort,
-        "samples": len(cohort_rows),
-        "mean_runtime_s": safe_mean(runtimes),
-        "median_runtime_s": safe_median(runtimes),
-        "mean_bases_trimmed_polyg": safe_mean(bases_trimmed),
-        "median_base_retention": safe_median(base_retentions),
-        "mean_q_delta": safe_mean(mean_q_deltas),
-    }
-
+    return summarize_cohort_metric_rows(
+        rows,
+        metric_specs=[
+            BriefingMetricSpec('bases_trimmed_polyg', 'mean_bases_trimmed_polyg', 'mean'),
+            BriefingMetricSpec('base_retention', 'median_base_retention', 'median'),
+            BriefingMetricSpec('mean_q_delta', 'mean_q_delta', 'mean'),
+        ],
+    )
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     by_sample: dict[str, list[dict]] = defaultdict(list)
     for row in rows:
