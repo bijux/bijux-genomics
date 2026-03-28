@@ -945,6 +945,17 @@ class BenchmarkMakefileTests(unittest.TestCase):
         )
         self.assertIn("duplicate results roots exist", text)
 
+    def test_dev_ops_push_records_structured_benchmark_workspace_contract(self) -> None:
+        text = dev_ops_text()
+
+        self.assertIn('"benchmark_workspace": {', text)
+        self.assertIn('"remote_repo_root": benchmark_workspace.remote_repo_root', text)
+        self.assertIn('"remote_cache_root": benchmark_workspace.remote_cache_root', text)
+        self.assertIn('"remote_results_root": benchmark_workspace.remote_results_root', text)
+        self.assertIn('"remote_extra_data_root": benchmark_workspace.remote_extra_data_root', text)
+        self.assertIn('"remote_reference_root": benchmark_workspace.remote_reference_root', text)
+        self.assertIn('"remote_containers_root": benchmark_workspace.remote_containers_root', text)
+
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,
     ) -> None:

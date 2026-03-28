@@ -65,6 +65,8 @@ The `pull-benchmark-publication` profile is the governed profile for corpus-01 F
 
 If you need environment overrides, prefer the neutral `BENCHMARK_SYNC_*` variables over the legacy `LUNARC_*` names. The workspace contract in `configs/bench/workspace.toml` should still remain the primary source of truth.
 
+The repo push marker `LUNARC_SYNC_SOURCE.json` should carry the benchmark workspace roots alongside the synced commit so the remote checkout records which benchmark environment contract the push was prepared against.
+
 ## Publication Checklist
 
 - Confirm `configs/bench/workspace.toml` names the correct `local` and `remote` roots.

@@ -8598,6 +8598,7 @@ fn trim_newline(raw: &str) -> String {
 }
 
 fn lunarc_sync_source_payload(workspace: &Workspace) -> Result<Value> {
+    let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
     let source_commit = trim_newline(
         &run_program(
             workspace,
@@ -8622,6 +8623,19 @@ fn lunarc_sync_source_payload(workspace: &Workspace) -> Result<Value> {
         "schema_version": "bijux.lunarc.sync_source.v1",
         "source_commit": source_commit,
         "source_branch": source_branch,
+        "benchmark_workspace": {
+            "local_results_root": benchmark_workspace.local_results_root,
+            "local_cache_mirror_root": benchmark_workspace.local_cache_mirror_root,
+            "remote_ssh_host": benchmark_workspace.remote_ssh_host,
+            "remote_repo_root": benchmark_workspace.remote_repo_root,
+            "remote_cache_root": benchmark_workspace.remote_cache_root,
+            "remote_corpus_root": benchmark_workspace.remote_corpus_root,
+            "remote_results_root": benchmark_workspace.remote_results_root,
+            "remote_results_legacy_root": benchmark_workspace.remote_results_legacy_root,
+            "remote_extra_data_root": benchmark_workspace.remote_extra_data_root,
+            "remote_reference_root": benchmark_workspace.remote_reference_root,
+            "remote_containers_root": benchmark_workspace.remote_containers_root,
+        },
         "synced_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
     }))
 }
