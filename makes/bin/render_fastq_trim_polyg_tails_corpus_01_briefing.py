@@ -18,6 +18,8 @@ from corpus_01_fastq_benchmark_support import (
     publish_corpus_briefing_artifacts,
     percentile,
     resolve_corpus_briefing_runtime,
+    find_cohort_entry,
+    find_cohort_entry,
     safe_mean,
     safe_median,
 )
@@ -154,13 +156,13 @@ def render_markdown(
     tool_lookup = {row["tool"]: row for row in runtime_rows}
     fastest = min(runtime_rows, key=lambda row: row["median_runtime_s"])
     slowest = max(runtime_rows, key=lambda row: row["median_runtime_s"])
-    heaviest_modern_pe = cohort_entry(
+    heaviest_modern_pe = find_cohort_entry(
         cohort_rows,
         tool="fastp",
         dimension="era_layout",
         cohort="modern_pe",
     )
-    lightest_modern_se = cohort_entry(
+    lightest_modern_se = find_cohort_entry(
         cohort_rows,
         tool="fastp",
         dimension="era_layout",
@@ -288,18 +290,6 @@ def render_markdown(
         "- Input cohort metadata is joined through the committed `corpus-01` spec and the materialized corpus manifest, so accession-to-sample identity remains stable across rerenders."
     )
     return "\n".join(lines) + "\n"
-
-def cohort_entry(
-    cohort_rows: list[dict], *, tool: str, dimension: str, cohort: str
-) -> dict | None:
-    for row in cohort_rows:
-        if (
-            row["tool"] == tool
-            and row["dimension"] == dimension
-            and row["cohort"] == cohort
-        ):
-            return row
-    return None
 
 def main() -> int:
     runtime = resolve_corpus_briefing_runtime(parse_args())

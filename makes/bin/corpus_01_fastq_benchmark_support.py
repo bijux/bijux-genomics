@@ -225,6 +225,23 @@ def safe_mean(values: list[float]) -> float | None:
     return float(statistics.mean(values))
 
 
+def find_cohort_entry(
+    rows: list[dict],
+    *,
+    tool: str,
+    dimension: str,
+    cohort: str,
+) -> dict | None:
+    for row in rows:
+        if (
+            row.get("tool") == tool
+            and row.get("dimension") == dimension
+            and row.get("cohort") == cohort
+        ):
+            return row
+    return None
+
+
 def percentile(values: list[float], fraction: float) -> float | None:
     if not values:
         return None
