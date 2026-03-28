@@ -8,7 +8,7 @@ R1 ?=
 R2 ?=
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
-CORPUS_ROOT ?= /home/bijan/bijux/corpus_01
+CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
 
 BENCH_TOOLS_ARGS = $(if $(TOOLS),--tools $(TOOLS),)
 BENCH_EXPERIMENTAL_ARGS = $(if $(filter 1 true yes,$(ALLOW_EXPERIMENTAL)),--allow-experimental,)
