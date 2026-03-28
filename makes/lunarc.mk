@@ -5,7 +5,6 @@ BENCHMARK_CONFIG ?= configs/bench/benchmark.toml
 BENCHMARK_WORKSPACE_VALUE = BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)"
 
 LUNARC_HOST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.ssh_host)
-LUNARC_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.frontend_root)
 LUNARC_REPO_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.repo_root)
 LUNARC_RESULTS_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.results_root)
 LUNARC_CORPUS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.corpus_root)
@@ -207,7 +206,7 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 		fi; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
-		env ARTIFACT_ROOT="$(LUNARC_ROOT)/bijux-dna/artifacts" \
+		env ARTIFACT_ROOT="$(LUNARC_REPO_DIR)/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=build \
@@ -227,7 +226,7 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs"; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
-		env ARTIFACT_ROOT="$(LUNARC_ROOT)/bijux-dna/artifacts" \
+		env ARTIFACT_ROOT="$(LUNARC_REPO_DIR)/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=contract \
