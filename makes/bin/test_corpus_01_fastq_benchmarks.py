@@ -1575,6 +1575,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertEqual(
             sorted(issue["issue_id"] for issue in report["issues"]),
             [
+                "archive-only-local-stage-root",
                 "duplicate-local-stage-root",
                 "duplicate-remote-reference-root",
                 "duplicate-remote-results-root",
@@ -1619,7 +1620,9 @@ class BenchmarkMakefileTests(unittest.TestCase):
             self.assertFalse((legacy_root / "fastq.trim_reads").exists())
             self.assertTrue(report["legacy_root_removed"])
 
-    def test_normalize_workspace_stage_roots_converges_shared_stage_ids(self) -> None:
+    def test_normalize_workspace_stage_roots_converges_shared_and_archive_only_stage_ids(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
             local_results_root = tmp_root / "archive"
@@ -1628,14 +1631,22 @@ class BenchmarkMakefileTests(unittest.TestCase):
             canonical_stage_root = (
                 local_cache_mirror_root / "results" / "corpus_01" / "fastq.trim_reads"
             )
+            archive_only_stage_root = (
+                local_results_root / "corpus_01" / "fastq.validate_reads"
+            )
             (legacy_stage_root / "lunarc").mkdir(parents=True)
             (canonical_stage_root / "lunarc").mkdir(parents=True)
+            (archive_only_stage_root / "lunarc").mkdir(parents=True)
             (legacy_stage_root / "lunarc" / "run_manifest.json").write_text(
                 "{}",
                 encoding="utf-8",
             )
             (canonical_stage_root / "lunarc" / "run_manifest.json").write_text(
                 '{"completed_at_utc": "2026-03-28T00:00:00Z"}',
+                encoding="utf-8",
+            )
+            (archive_only_stage_root / "lunarc" / "run_manifest.json").write_text(
+                '{"completed_at_utc": "2026-03-27T00:00:00Z"}',
                 encoding="utf-8",
             )
 
@@ -1655,9 +1666,23 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
             self.assertFalse(legacy_stage_root.exists())
             self.assertTrue(canonical_stage_root.exists())
+            self.assertFalse(archive_only_stage_root.exists())
+            self.assertTrue(
+                (
+                    local_cache_mirror_root
+                    / "results"
+                    / "corpus_01"
+                    / "fastq.validate_reads"
+                    / "lunarc"
+                    / "run_manifest.json"
+                ).is_file()
+            )
 
         self.assertEqual(report["status"], "clear")
         self.assertEqual(report["shared_stage_ids"], ["fastq.trim_reads"])
+        self.assertEqual(report["archive_only_stage_ids"], ["fastq.validate_reads"])
+        self.assertEqual(report["moved_stage_ids"], ["fastq.validate_reads"])
+        self.assertEqual(report["removed_duplicate_stage_ids"], ["fastq.trim_reads"])
 
     def test_dev_ops_pull_records_workspace_path_mappings_and_dependencies(self) -> None:
         text = dev_ops_text()
