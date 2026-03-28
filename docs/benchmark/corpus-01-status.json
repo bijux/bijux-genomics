@@ -6,7 +6,7 @@
   "completed_stage_count": 16,
   "incomplete_stage_count": 4,
   "excluded_stage_count": 3,
-  "issue_count": 30,
+  "issue_count": 29,
   "excluded_stages": [
     {
       "stage_id": "fastq.index_reference",
@@ -497,19 +497,13 @@
       "method_path": "benchmark/fastq.correct_errors/corpus-01-method.md",
       "corpus_path": "benchmark/fastq.correct_errors/corpus-01",
       "status": "incomplete",
-      "issue_count": 2,
+      "issue_count": 1,
       "issues": [
         {
           "stage_id": "fastq.correct_errors",
           "issue_id": "missing-corpus-dir",
           "severity": "error",
           "detail": "missing benchmark/fastq.correct_errors/corpus-01"
-        },
-        {
-          "stage_id": "fastq.correct_errors",
-          "issue_id": "bayeshammer-retention-contract-drift",
-          "severity": "error",
-          "detail": "the governed BayesHammer path on Lunarc drops reads on paired corpus-01 inputs, which violates the fastq.correct_errors retention contract (`may_change_read_count = false`), so BayesHammer cannot be counted as a corpus-complete governed benchmark backend yet."
         }
       ]
     },
@@ -560,7 +554,7 @@
           "stage_id": "fastq.screen_taxonomy",
           "issue_id": "minimal-taxonomy-database-lineage",
           "severity": "error",
-          "detail": "the available Lunarc cache lineage bijux-reference/taxonomy/minimal_screen_v1 is a PhiX174/UniVec smoke-test database, so corpus-01 screen_taxonomy cannot publish against it as a full taxonomy benchmark."
+          "detail": "corpus-01 screen_taxonomy still lacks a materialized governed taxonomy bundle under /home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db with backend directories and lineage.json; the legacy minimal smoke-test database is not sufficient for honest publication."
         }
       ]
     },
