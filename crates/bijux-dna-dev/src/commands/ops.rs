@@ -5862,21 +5862,39 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
     let mut pull_full_exclude = workspace.path("configs/hpc/rsync/pull-full-excludes.txt");
     let mut pull_results_include = workspace.path("configs/hpc/rsync/pull-results-includes.txt");
-    if profiles_cfg.is_file() {
-        if let Some(rel) = lunarc_profile_path(&profiles_cfg, &exclude_profile, "exclude_file")? {
-            pull_full_exclude = workspace.path(&rel);
-        }
-        if let Some(rel) = lunarc_profile_path(&profiles_cfg, &include_profile, "include_file")? {
-            pull_results_include = workspace.path(&rel);
-        }
+    let sync_profiles = load_lunarc_sync_profiles(&profiles_cfg)?;
+    let include_sync_profile = lunarc_sync_profile(&sync_profiles, &include_profile);
+    let exclude_sync_profile = lunarc_sync_profile(&sync_profiles, &exclude_profile);
+    if let Some(rel) = exclude_sync_profile
+        .and_then(|profile| profile.exclude_file.as_deref())
+    {
+        pull_full_exclude = workspace.path(rel);
     }
+    if let Some(rel) = include_sync_profile
+        .and_then(|profile| profile.include_file.as_deref())
+    {
+        pull_results_include = workspace.path(rel);
+    }
+    let effective_data_manifest_glob = if data_manifest_glob.trim().is_empty() {
+        include_sync_profile
+            .map(|profile| profile.data_manifest_globs.join(","))
+            .unwrap_or_default()
+    } else {
+        data_manifest_glob.clone()
+    };
     let home = env_or_default("HOME", "");
     let use_governed_results_root = pull_mode == "results"
         && lunarc_pull_dest.is_empty()
         && benchmark_workspace.local_results_root.is_some();
+    let configured_pull_destination = include_sync_profile
+        .and_then(|profile| profile.pull_destination.as_deref())
+        .and_then(|key| benchmark_workspace_lookup(&benchmark_workspace, key));
     let dest = if lunarc_pull_dest.is_empty() {
         if use_governed_results_root {
-            PathBuf::from(expand_home_placeholder(&lunarc_pull_base, &home))
+            PathBuf::from(expand_home_placeholder(
+                configured_pull_destination.unwrap_or(&lunarc_pull_base),
+                &home,
+            ))
         } else {
             let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
             PathBuf::from(expand_home_placeholder(&lunarc_pull_base, &home))
@@ -5930,8 +5948,8 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
                 pulled_paths.push(format!("{manifest_root}/"));
             }
         }
-        if !data_manifest_glob.is_empty() {
-            for rel in data_manifest_glob
+        if !effective_data_manifest_glob.is_empty() {
+            for rel in effective_data_manifest_glob
                 .split(',')
                 .map(str::trim)
                 .filter(|value| !value.is_empty())
@@ -5972,8 +5990,8 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             )?;
             pulled_paths.push(format!("{lunarc_containers_root}/manifest/"));
         }
-        if !data_manifest_glob.is_empty() {
-            for rel in data_manifest_glob
+        if !effective_data_manifest_glob.is_empty() {
+            for rel in effective_data_manifest_glob
                 .split(',')
                 .map(str::trim)
                 .filter(|value| !value.is_empty())
@@ -8608,13 +8626,27 @@ fn lunarc_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option
 #[derive(Default)]
 struct BenchmarkWorkspacePaths {
     local_results_root: Option<String>,
+    local_cache_mirror_root: Option<String>,
     remote_ssh_host: Option<String>,
     remote_repo_root: Option<String>,
     remote_cache_root: Option<String>,
     remote_corpus_root: Option<String>,
     remote_results_root: Option<String>,
     remote_results_legacy_root: Option<String>,
+    remote_extra_data_root: Option<String>,
+    remote_reference_root: Option<String>,
     remote_containers_root: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+struct BenchmarkSyncProfile {
+    name: String,
+    include_file: Option<String>,
+    exclude_file: Option<String>,
+    workspace_scope: Option<String>,
+    pull_destination: Option<String>,
+    remote_roots: Vec<String>,
+    data_manifest_globs: Vec<String>,
 }
 
 fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWorkspacePaths> {
@@ -8629,6 +8661,10 @@ fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWork
     Ok(BenchmarkWorkspacePaths {
         local_results_root: local
             .and_then(|table| table.get("results_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        local_cache_mirror_root: local
+            .and_then(|table| table.get("cache_mirror_root"))
             .and_then(TomlValue::as_str)
             .map(ToOwned::to_owned),
         remote_ssh_host: remote
@@ -8655,11 +8691,95 @@ fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWork
             .and_then(|table| table.get("results_legacy_root"))
             .and_then(TomlValue::as_str)
             .map(ToOwned::to_owned),
+        remote_extra_data_root: remote
+            .and_then(|table| table.get("extra_data_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        remote_reference_root: remote
+            .and_then(|table| table.get("reference_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
         remote_containers_root: remote
             .and_then(|table| table.get("containers_root"))
             .and_then(TomlValue::as_str)
             .map(ToOwned::to_owned),
     })
+}
+
+fn load_lunarc_sync_profiles(path: &Path) -> Result<Vec<BenchmarkSyncProfile>> {
+    if !path.is_file() {
+        return Ok(Vec::new());
+    }
+    let value: TomlValue = toml::from_str(&read_utf8(path)?)?;
+    let profiles = value
+        .get("profiles")
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default();
+    Ok(profiles
+        .into_iter()
+        .filter_map(|row| {
+            Some(BenchmarkSyncProfile {
+                name: row.get("name")?.as_str()?.to_string(),
+                include_file: row
+                    .get("include_file")
+                    .and_then(TomlValue::as_str)
+                    .map(ToOwned::to_owned),
+                exclude_file: row
+                    .get("exclude_file")
+                    .and_then(TomlValue::as_str)
+                    .map(ToOwned::to_owned),
+                workspace_scope: row
+                    .get("workspace_scope")
+                    .and_then(TomlValue::as_str)
+                    .map(ToOwned::to_owned),
+                pull_destination: row
+                    .get("pull_destination")
+                    .and_then(TomlValue::as_str)
+                    .map(ToOwned::to_owned),
+                remote_roots: row
+                    .get("remote_roots")
+                    .and_then(TomlValue::as_array)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                    .collect(),
+                data_manifest_globs: row
+                    .get("data_manifest_globs")
+                    .and_then(TomlValue::as_array)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+                    .collect(),
+            })
+        })
+        .collect())
+}
+
+fn lunarc_sync_profile<'a>(
+    profiles: &'a [BenchmarkSyncProfile],
+    name: &str,
+) -> Option<&'a BenchmarkSyncProfile> {
+    profiles.iter().find(|profile| profile.name == name)
+}
+
+fn benchmark_workspace_lookup<'a>(
+    benchmark_workspace: &'a BenchmarkWorkspacePaths,
+    key: &str,
+) -> Option<&'a str> {
+    match key {
+        "local.results_root" => benchmark_workspace.local_results_root.as_deref(),
+        "local.cache_mirror_root" => benchmark_workspace.local_cache_mirror_root.as_deref(),
+        "remote.repo_root" => benchmark_workspace.remote_repo_root.as_deref(),
+        "remote.cache_root" => benchmark_workspace.remote_cache_root.as_deref(),
+        "remote.corpus_root" => benchmark_workspace.remote_corpus_root.as_deref(),
+        "remote.results_root" => benchmark_workspace.remote_results_root.as_deref(),
+        "remote.results_legacy_root" => benchmark_workspace.remote_results_legacy_root.as_deref(),
+        "remote.extra_data_root" => benchmark_workspace.remote_extra_data_root.as_deref(),
+        "remote.reference_root" => benchmark_workspace.remote_reference_root.as_deref(),
+        "remote.containers_root" => benchmark_workspace.remote_containers_root.as_deref(),
+        _ => None,
+    }
 }
 
 fn expand_home_placeholder(raw: &str, home: &str) -> String {
@@ -8752,4 +8872,80 @@ fn sha256_hex(path: &Path) -> Result<String> {
     use sha2::{Digest, Sha256};
     let bytes = fs::read(path).with_context(|| format!("read {}", path.display()))?;
     Ok(format!("{:x}", Sha256::digest(bytes)))
+}
+
+#[cfg(test)]
+mod tests {
+    use anyhow::Context;
+
+    use super::{
+        benchmark_workspace_lookup, load_lunarc_sync_profiles, lunarc_sync_profile,
+        BenchmarkWorkspacePaths,
+    };
+
+    #[test]
+    fn load_lunarc_sync_profiles_reads_workspace_profile_fields() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-lunarc-sync-profiles")?;
+        let path = temp.path().join("lunarc_sync_profiles.toml");
+        std::fs::write(
+            &path,
+            r#"
+[[profiles]]
+name = "pull-benchmark-publication"
+include_file = "configs/hpc/rsync/pull-results-includes.txt"
+workspace_scope = "corpus-01-fastq-publication"
+pull_destination = "local.results_root"
+remote_roots = ["remote.results_root", "remote.extra_data_root"]
+data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"]
+"#,
+        )?;
+
+        let profiles = load_lunarc_sync_profiles(&path)?;
+        let profile = lunarc_sync_profile(&profiles, "pull-benchmark-publication")
+            .context("missing sync profile")?;
+
+        assert_eq!(profile.workspace_scope.as_deref(), Some("corpus-01-fastq-publication"));
+        assert_eq!(profile.pull_destination.as_deref(), Some("local.results_root"));
+        assert_eq!(
+            profile.remote_roots,
+            vec!["remote.results_root", "remote.extra_data_root"]
+        );
+        assert_eq!(
+            profile.data_manifest_globs,
+            vec![
+                "benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn benchmark_workspace_lookup_reads_governed_sync_roots() {
+        let workspace = BenchmarkWorkspacePaths {
+            local_results_root: Some("/tmp/results".to_string()),
+            local_cache_mirror_root: Some("/tmp/cache".to_string()),
+            remote_ssh_host: None,
+            remote_repo_root: Some("/remote/repo".to_string()),
+            remote_cache_root: Some("/remote/.cache".to_string()),
+            remote_corpus_root: Some("/remote/.cache/corpus_01".to_string()),
+            remote_results_root: Some("/remote/.cache/results".to_string()),
+            remote_results_legacy_root: Some("/remote/.cache/bijux-dna-results".to_string()),
+            remote_extra_data_root: Some("/remote/.cache/extra-data".to_string()),
+            remote_reference_root: Some("/remote/.cache/reference".to_string()),
+            remote_containers_root: Some("/remote/.cache/bijux-dna-container".to_string()),
+        };
+
+        assert_eq!(
+            benchmark_workspace_lookup(&workspace, "local.results_root"),
+            Some("/tmp/results")
+        );
+        assert_eq!(
+            benchmark_workspace_lookup(&workspace, "remote.extra_data_root"),
+            Some("/remote/.cache/extra-data")
+        );
+        assert_eq!(
+            benchmark_workspace_lookup(&workspace, "remote.reference_root"),
+            Some("/remote/.cache/reference")
+        );
+    }
 }
