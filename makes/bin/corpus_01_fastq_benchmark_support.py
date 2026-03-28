@@ -984,11 +984,16 @@ def load_corpus_spec(repo_root: Path) -> dict:
 def discover_normalized_samples(
     corpus_root: Path,
     *,
-    expected_total: int = 20,
+    expected_total: int | None = None,
 ) -> list[dict]:
     normalized = corpus_root / "normalized"
     if not normalized.is_dir():
         raise SystemExit(f"missing normalized corpus directory: {normalized}")
+    target_total = (
+        corpus_01_expected_sample_total()
+        if expected_total is None
+        else expected_total
+    )
 
     sample_ids: set[str] = set()
     for path in normalized.glob("sample_*_R1.fastq.gz"):
@@ -1010,9 +1015,9 @@ def discover_normalized_samples(
                 "layout": "pe" if r2.is_file() else "se",
             }
         )
-    if len(samples) != expected_total:
+    if len(samples) != target_total:
         raise SystemExit(
-            f"expected {expected_total} normalized samples for corpus-01, found {len(samples)}"
+            f"expected {target_total} normalized samples for corpus-01, found {len(samples)}"
         )
     return samples
 
@@ -1059,6 +1064,10 @@ def expected_cohort_counts(spec: dict) -> dict[str, int]:
     }
 
 
+def corpus_01_expected_sample_total(repo_root: Path = REPO_ROOT) -> int:
+    return sum(expected_cohort_counts(load_corpus_spec(repo_root)).values())
+
+
 def full_scope_publication_stage_ids() -> list[str]:
     return [
         contract.stage_id
@@ -1103,7 +1112,7 @@ def load_published_sample_metadata(
     target_total = (
         expected_total
         if expected_total is not None
-        else sum(expected_cohort_counts(spec).values())
+        else corpus_01_expected_sample_total(repo_root)
     )
     candidate_stage_ids = (
         [stage_id]

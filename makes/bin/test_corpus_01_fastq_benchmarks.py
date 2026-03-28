@@ -330,6 +330,9 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         )
         self.assertEqual(config["corpus_01"]["contracts"][11]["sample_scope"], "paired")
 
+    def test_corpus_expected_sample_total_loads_runtime_contract(self) -> None:
+        self.assertEqual(support.corpus_01_expected_sample_total(), 20)
+
     def test_publication_contracts_load_from_benchmark_config(self) -> None:
         self.assertEqual(
             support.CORPUS_01_PUBLICATION_CONTRACTS[0].stage_id,
@@ -1266,6 +1269,19 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertEqual(defaults["database_scope"], "read_screening")
         self.assertIsNone(defaults["minimum_confidence"])
         self.assertTrue(defaults["emit_unclassified"])
+
+    def test_discover_normalized_samples_defaults_to_runtime_contract_total(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            corpus_root = Path(tmpdir)
+            normalized = corpus_root / "normalized"
+            normalized.mkdir()
+            for index in range(20):
+                sample_id = f"sample_{index:04d}"
+                (normalized / f"{sample_id}_R1.fastq.gz").write_text("", encoding="utf-8")
+
+            samples = support.discover_normalized_samples(corpus_root)
+
+        self.assertEqual(len(samples), 20)
 
     def test_screen_taxonomy_bootstrap_builds_lineage_payload(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
