@@ -426,12 +426,6 @@ pub(crate) fn benchmark_workspace_value(
             .remote
             .as_ref()
             .and_then(|row| row.repo_root.clone()),
-        "remote.frontend_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.repo_root.as_ref())
-            .and_then(|row| Path::new(row).parent())
-            .map(|row| row.display().to_string()),
         "remote.cache_root" => workspace
             .remote
             .as_ref()
