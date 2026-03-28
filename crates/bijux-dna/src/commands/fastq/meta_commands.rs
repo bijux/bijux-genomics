@@ -2,6 +2,7 @@ use super::api_bridge::{
     bench_bam_pipeline_args_to_api, bench_bam_stage_args_to_api, resolve_profile_alias,
 };
 use super::debug_commands::handle_debug_command;
+use crate::cli::BenchConfigCommand;
 #[allow(unused_imports)]
 use crate::commands::command_prelude::{
     anyhow, atomic_write_bytes, bench_args_cluster_otus, bench_args_correct,
@@ -703,6 +704,14 @@ pub(crate) fn handle_meta_commands(
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             match &args.command {
+                BenchCommand::Config { command } => match command {
+                    BenchConfigCommand::Validate(args) => {
+                        crate::commands::benchmark_config::validate_benchmark_config(
+                            &std::env::current_dir()?,
+                            args,
+                        )?;
+                    }
+                },
                 BenchCommand::Run(args) => {
                     let run_dir = crate::commands::bench_suite::run_suite(
                         &std::env::current_dir()?,

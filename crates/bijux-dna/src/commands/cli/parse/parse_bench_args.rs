@@ -1,5 +1,9 @@
 #[derive(Debug, Subcommand)]
 pub enum BenchCommand {
+    Config {
+        #[command(subcommand)]
+        command: BenchConfigCommand,
+    },
     Run(BenchRunArgs),
     Status,
     #[command(name = "workspace-value")]
@@ -19,6 +23,19 @@ pub enum BenchCommand {
     Schema {
         stage: String,
     },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum BenchConfigCommand {
+    Validate(BenchConfigValidateArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct BenchConfigValidateArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub check_paths: bool,
 }
 
 #[derive(Debug, Args)]
