@@ -38,6 +38,16 @@ Use the `home/.../.cache` mirror when publication needs the shared-tree layout e
 
 The code checkout and the shared cache tree are separate contracts. Repo sync belongs under `remote.repo_root`. Benchmark artifacts belong under the shared cache layout rooted at `remote.cache_root`.
 
+## Sync Defaults
+
+- `sync.defaults.pull_base` is the governed local base path used when a benchmark pull does not receive an explicit destination.
+- `sync.defaults.pull_mode` is the default sync mode for the benchmark pull surface.
+- `sync.defaults.include_profile` and `sync.defaults.exclude_profile` are the governed default sync profiles for benchmark pulls.
+- `sync.defaults.clean_context` and `sync.defaults.allow_dirty` define the default repo-sync safety posture for benchmark pushes.
+- `sync.defaults.include_containers_manifest` and `sync.defaults.data_manifest_glob` define the default supplemental artifacts mirrored alongside results.
+
+Make targets, Python tooling, and Rust sync commands should all load these defaults from `configs/bench/workspace.toml` before consulting environment overrides.
+
 ## Publication Rules
 
 - Published FASTQ dossiers should resolve default run roots from `remote.results_root` and local mirror roots from `local.cache_mirror_root`.
