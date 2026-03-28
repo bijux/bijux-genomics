@@ -5890,20 +5890,13 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     let configured_pull_destination = include_sync_profile
         .and_then(|profile| profile.pull_destination.as_deref())
         .and_then(|key| benchmark_workspace_lookup(&benchmark_workspace, key));
-    let dest = if lunarc_pull_dest.is_empty() {
-        if use_governed_results_root {
-            PathBuf::from(expand_home_placeholder(
-                configured_pull_destination.unwrap_or(&lunarc_pull_base),
-                &home,
-            ))
-        } else {
-            let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
-            PathBuf::from(expand_home_placeholder(&lunarc_pull_base, &home))
-                .join(format!("lunarc-{timestamp}"))
-        }
-    } else {
-        PathBuf::from(expand_home_placeholder(&lunarc_pull_dest, &home))
-    };
+    let dest = default_pull_destination(
+        &lunarc_pull_dest,
+        configured_pull_destination,
+        &lunarc_pull_base,
+        &home,
+        use_governed_results_root,
+    );
     let layout_conflicts = remote_layout_conflicts(workspace, &lunarc_host, &benchmark_workspace)?;
     if !layout_conflicts.is_empty() {
         return Ok(OpsCommandOutcome::failure(format!(
@@ -8881,6 +8874,26 @@ fn validate_benchmark_sync_roots(benchmark_workspace: &BenchmarkWorkspacePaths) 
     Ok(())
 }
 
+fn default_pull_destination(
+    explicit_destination: &str,
+    configured_destination: Option<&str>,
+    pull_base: &str,
+    home: &str,
+    use_governed_results_root: bool,
+) -> PathBuf {
+    if !explicit_destination.is_empty() {
+        return PathBuf::from(expand_home_placeholder(explicit_destination, home));
+    }
+    if use_governed_results_root || configured_destination.is_some() {
+        return PathBuf::from(expand_home_placeholder(
+            configured_destination.unwrap_or(pull_base),
+            home,
+        ));
+    }
+    let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
+    PathBuf::from(expand_home_placeholder(pull_base, home)).join(format!("lunarc-{timestamp}"))
+}
+
 fn benchmark_remote_layout_candidates(benchmark_workspace: &BenchmarkWorkspacePaths) -> Vec<(String, String)> {
     let mut candidates = Vec::new();
     if let Some(results_root) = benchmark_workspace.remote_results_root.as_deref() {
@@ -9047,6 +9060,7 @@ fn sha256_hex(path: &Path) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use anyhow::Context;
+    use std::path::PathBuf;
 
     use super::{
         benchmark_workspace_lookup, load_lunarc_sync_profiles, lunarc_sync_profile,
@@ -9198,5 +9212,31 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         assert!(candidates.iter().any(|(label, path)| {
             label == "non-cache-sibling:results" && path == "/remote/results"
         }));
+    }
+
+    #[test]
+    fn default_pull_destination_prefers_governed_profile_destination() {
+        let destination = super::default_pull_destination(
+            "",
+            Some("/tmp/results-archive"),
+            "/tmp/fallback",
+            "/Users/bijan",
+            false,
+        );
+
+        assert_eq!(destination, PathBuf::from("/tmp/results-archive"));
+    }
+
+    #[test]
+    fn default_pull_destination_uses_explicit_destination_when_present() {
+        let destination = super::default_pull_destination(
+            "${HOME}/custom-pull",
+            Some("/tmp/results-archive"),
+            "/tmp/fallback",
+            "/Users/bijan",
+            true,
+        );
+
+        assert_eq!(destination, PathBuf::from("/Users/bijan/custom-pull"));
     }
 }
