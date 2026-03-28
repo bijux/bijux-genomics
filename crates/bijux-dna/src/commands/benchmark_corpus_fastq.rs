@@ -5,51 +5,19 @@ use std::process::Command;
 use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::Digest as _;
 
+use crate::commands::benchmark_corpus_metadata::{
+    corpus_expected_sample_total, discover_normalized_samples, load_corpus_spec, select_paired_samples,
+    validate_corpus_contract, CorpusNormalizedSample,
+};
 use crate::commands::benchmark_workspace::{
-    benchmark_corpus_spec_path, benchmark_workspace_value, corpus_01_publication_contract,
+    benchmark_workspace_value, corpus_01_publication_contract,
     load_benchmark_config, load_benchmark_workspace_config, BenchmarkConfig,
 };
 use crate::commands::benchmark_stage_catalog::corpus_fastq_stage_catalog_entry;
 use crate::commands::cli::{BenchCorpusFastqArgs, BenchWorkspaceValueArgs, Cli};
-
-#[derive(Debug, Clone, Deserialize)]
-struct CorpusSpec {
-    corpus_id: String,
-    #[serde(default)]
-    target_ancient_se: usize,
-    #[serde(default)]
-    target_ancient_pe: usize,
-    #[serde(default)]
-    target_modern_se: usize,
-    #[serde(default)]
-    target_modern_pe: usize,
-    #[serde(default)]
-    samples: Vec<CorpusSpecSample>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct CorpusSpecSample {
-    accession: String,
-    era: String,
-    layout: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CorpusManifest {
-    #[serde(default)]
-    files: BTreeMap<String, String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct CorpusNormalizedSample {
-    sample_id: String,
-    r1: String,
-    r2: Option<String>,
-    layout: String,
-}
 
 #[derive(Debug, Clone)]
 struct PendingSampleRun {
@@ -377,8 +345,8 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
                         }
                         runs.push(SampleRunRecord {
                             sample_id: sample.sample_id.clone(),
-                            r1: sample.r1.clone(),
-                            r2: sample.r2.clone(),
+                            r1: sample.r1.display().to_string(),
+                            r2: sample.r2.as_ref().map(|path| path.display().to_string()),
                             layout: sample.layout.clone(),
                             status: "skipped_existing_report".to_string(),
                             exit_code: 0,
@@ -393,8 +361,8 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             } else if report_json.is_file() {
                 runs.push(SampleRunRecord {
                     sample_id: sample.sample_id.clone(),
-                    r1: sample.r1.clone(),
-                    r2: sample.r2.clone(),
+                    r1: sample.r1.display().to_string(),
+                    r2: sample.r2.as_ref().map(|path| path.display().to_string()),
                     layout: sample.layout.clone(),
                     status: "skipped_existing_report".to_string(),
                     exit_code: 0,
@@ -423,8 +391,8 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
         if args.dry_run {
             runs.push(SampleRunRecord {
                 sample_id: sample.sample_id.clone(),
-                r1: sample.r1.clone(),
-                r2: sample.r2.clone(),
+                r1: sample.r1.display().to_string(),
+                r2: sample.r2.as_ref().map(|path| path.display().to_string()),
                 layout: sample.layout.clone(),
                 status: "dry_run".to_string(),
                 exit_code: 0,
@@ -604,7 +572,7 @@ fn build_stage_command_args(
         "--sample-id".to_string(),
         sample.sample_id.clone(),
         "--r1".to_string(),
-        sample.r1.clone(),
+        sample.r1.display().to_string(),
         "--out".to_string(),
         out_root.display().to_string(),
         "--tools".to_string(),
@@ -614,7 +582,7 @@ fn build_stage_command_args(
     ];
     if let Some(r2) = sample.r2.as_ref() {
         command.push("--r2".to_string());
-        command.push(r2.clone());
+        command.push(r2.display().to_string());
     }
     if jobs > 1 {
         command.push("--jobs".to_string());
@@ -713,8 +681,8 @@ fn execute_sample(
     }
     Ok(SampleRunRecord {
         sample_id: row.sample.sample_id,
-        r1: row.sample.r1,
-        r2: row.sample.r2,
+        r1: row.sample.r1.display().to_string(),
+        r2: row.sample.r2.map(|path| path.display().to_string()),
         layout: row.sample.layout,
         status: if exit_code == 0 {
             "completed".to_string()
@@ -726,16 +694,6 @@ fn execute_sample(
         report_json: row.report_json.display().to_string(),
         extra_fields: row.extra_fields,
     })
-}
-
-fn load_corpus_spec(
-    repo_root: &Path,
-    config_path: Option<&Path>,
-    corpus_id: &str,
-) -> Result<CorpusSpec> {
-    let path = benchmark_corpus_spec_path(repo_root, config_path, corpus_id)?;
-    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
 fn merge_stage_args_from_config(
@@ -868,195 +826,6 @@ fn append_missing_arg(
     };
     target.push(format!("--{}", key.replace('_', "-")));
     target.push(value.to_string());
-}
-
-fn corpus_expected_sample_total(spec: &CorpusSpec) -> usize {
-    spec.target_ancient_se + spec.target_ancient_pe + spec.target_modern_se + spec.target_modern_pe
-}
-
-fn discover_normalized_samples(
-    corpus_root: &Path,
-    expected_total: usize,
-) -> Result<Vec<CorpusNormalizedSample>> {
-    let normalized = corpus_root.join("normalized");
-    if !normalized.is_dir() {
-        return Err(anyhow!(
-            "missing normalized corpus directory: {}",
-            normalized.display()
-        ));
-    }
-
-    let mut sample_ids = std::collections::BTreeSet::new();
-    for entry in
-        fs::read_dir(&normalized).with_context(|| format!("read {}", normalized.display()))?
-    {
-        let path = entry?.path();
-        let Some(name) = path.file_name().and_then(|row| row.to_str()) else {
-            continue;
-        };
-        if let Some(sample_id) = name.strip_suffix("_R1.fastq.gz") {
-            sample_ids.insert(sample_id.to_string());
-        }
-        if let Some(sample_id) = name.strip_suffix("_R2.fastq.gz") {
-            sample_ids.insert(sample_id.to_string());
-        }
-    }
-
-    let mut samples = Vec::new();
-    for sample_id in sample_ids {
-        let r1 = normalized.join(format!("{sample_id}_R1.fastq.gz"));
-        let r2 = normalized.join(format!("{sample_id}_R2.fastq.gz"));
-        if !r1.is_file() {
-            return Err(anyhow!(
-                "missing R1 for sample {sample_id}: {}",
-                r1.display()
-            ));
-        }
-        let r2_value = r2.is_file().then(|| r2.display().to_string());
-        samples.push(CorpusNormalizedSample {
-            sample_id,
-            r1: r1.display().to_string(),
-            r2: r2_value.clone(),
-            layout: if r2_value.is_some() {
-                "pe".to_string()
-            } else {
-                "se".to_string()
-            },
-        });
-    }
-
-    if samples.len() != expected_total {
-        return Err(anyhow!(
-            "expected {expected_total} normalized samples for corpus-01, found {}",
-            samples.len()
-        ));
-    }
-    Ok(samples)
-}
-
-fn validate_corpus_contract(
-    corpus_root: &Path,
-    spec: &CorpusSpec,
-    samples: &[CorpusNormalizedSample],
-) -> Result<BTreeMap<String, CorpusSpecSample>> {
-    let manifest_path = corpus_root.join("MANIFEST.json");
-    let raw = fs::read_to_string(&manifest_path)
-        .with_context(|| format!("read {}", manifest_path.display()))?;
-    let manifest: CorpusManifest =
-        serde_json::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
-
-    let mut hash_to_accessions = BTreeMap::<String, Vec<String>>::new();
-    for (relative_path, digest) in &manifest.files {
-        let path = Path::new(relative_path);
-        let parts = path.iter().collect::<Vec<_>>();
-        if parts.len() >= 2 && parts[0].to_str() == Some("raw") {
-            let accession = parts[1].to_string_lossy().to_string();
-            hash_to_accessions
-                .entry(digest.clone())
-                .or_default()
-                .push(accession);
-        }
-    }
-    let spec_by_accession = spec
-        .samples
-        .iter()
-        .cloned()
-        .map(|row| (row.accession.clone(), row))
-        .collect::<BTreeMap<_, _>>();
-    let mut metadata_by_sample = BTreeMap::<String, CorpusSpecSample>::new();
-    for (relative_path, digest) in &manifest.files {
-        let path = Path::new(relative_path);
-        let parts = path.iter().collect::<Vec<_>>();
-        if parts.len() != 2 || parts[0].to_str() != Some("normalized") {
-            continue;
-        }
-        let file_name = parts[1].to_string_lossy();
-        let sample_id = if let Some(sample_id) = file_name.strip_suffix("_R1.fastq.gz") {
-            sample_id.to_string()
-        } else if let Some(sample_id) = file_name.strip_suffix("_R2.fastq.gz") {
-            sample_id.to_string()
-        } else {
-            continue;
-        };
-        let accessions = hash_to_accessions
-            .get(digest)
-            .ok_or_else(|| anyhow!("missing accession for {}", relative_path))?;
-        if accessions.len() != 1 {
-            return Err(anyhow!(
-                "expected one accession for {}, found {}",
-                relative_path,
-                accessions.join(",")
-            ));
-        }
-        let accession = &accessions[0];
-        let metadata = spec_by_accession
-            .get(accession)
-            .cloned()
-            .ok_or_else(|| anyhow!("missing curated metadata for accession {accession}"))?;
-        metadata_by_sample.insert(sample_id, metadata);
-    }
-
-    let mut actual_counts = BTreeMap::<String, usize>::new();
-    for sample in samples {
-        let metadata = metadata_by_sample
-            .get(&sample.sample_id)
-            .ok_or_else(|| anyhow!("missing accession metadata for {}", sample.sample_id))?;
-        *actual_counts
-            .entry(format!("{}_{}", metadata.era, metadata.layout))
-            .or_default() += 1;
-    }
-
-    let expected_counts = BTreeMap::from([
-        ("ancient_pe".to_string(), spec.target_ancient_pe),
-        ("ancient_se".to_string(), spec.target_ancient_se),
-        ("modern_pe".to_string(), spec.target_modern_pe),
-        ("modern_se".to_string(), spec.target_modern_se),
-    ]);
-    if actual_counts != expected_counts {
-        return Err(anyhow!(
-            "corpus-01 cohort contract drift: expected {:?}, found {:?}",
-            expected_counts,
-            actual_counts
-        ));
-    }
-    Ok(metadata_by_sample)
-}
-
-fn select_paired_samples(
-    spec: &CorpusSpec,
-    samples: &[CorpusNormalizedSample],
-    metadata_by_sample: &BTreeMap<String, CorpusSpecSample>,
-) -> Result<Vec<CorpusNormalizedSample>> {
-    let paired = samples
-        .iter()
-        .filter(|row| {
-            metadata_by_sample
-                .get(&row.sample_id)
-                .is_some_and(|meta| meta.layout == "pe")
-        })
-        .cloned()
-        .collect::<Vec<_>>();
-    let mut actual_counts = BTreeMap::<String, usize>::new();
-    for sample in &paired {
-        let metadata = metadata_by_sample
-            .get(&sample.sample_id)
-            .ok_or_else(|| anyhow!("missing paired metadata for {}", sample.sample_id))?;
-        *actual_counts
-            .entry(format!("{}_{}", metadata.era, metadata.layout))
-            .or_default() += 1;
-    }
-    let expected_counts = BTreeMap::from([
-        ("ancient_pe".to_string(), spec.target_ancient_pe),
-        ("modern_pe".to_string(), spec.target_modern_pe),
-    ]);
-    if actual_counts != expected_counts {
-        return Err(anyhow!(
-            "paired corpus contract drift: expected {:?}, found {:?}",
-            expected_counts,
-            actual_counts
-        ));
-    }
-    Ok(paired)
 }
 
 fn resolve_tools(default_tools: &[String], requested_tools: &[String]) -> Result<Vec<String>> {
@@ -1313,7 +1082,7 @@ fn ensure_report_qc_upstream_stage_outputs(
         "--sample-id".to_string(),
         sample.sample_id.clone(),
         "--r1".to_string(),
-        sample.r1.clone(),
+        sample.r1.display().to_string(),
         "--out".to_string(),
         out_root.display().to_string(),
         "--tools".to_string(),
@@ -1321,7 +1090,7 @@ fn ensure_report_qc_upstream_stage_outputs(
     ];
     if let Some(r2) = sample.r2.as_ref() {
         command_args.push("--r2".to_string());
-        command_args.push(r2.clone());
+        command_args.push(r2.display().to_string());
     }
     command_args.extend(upstream.extra_args.iter().map(|row| row.to_string()));
 
@@ -2261,8 +2030,8 @@ mod tests {
         };
         let sample = CorpusNormalizedSample {
             sample_id: "sample_0001".to_string(),
-            r1: "/tmp/corpus/sample_0001_R1.fastq.gz".to_string(),
-            r2: Some("/tmp/corpus/sample_0001_R2.fastq.gz".to_string()),
+            r1: PathBuf::from("/tmp/corpus/sample_0001_R1.fastq.gz"),
+            r2: Some(PathBuf::from("/tmp/corpus/sample_0001_R2.fastq.gz")),
             layout: "pe".to_string(),
         };
 
