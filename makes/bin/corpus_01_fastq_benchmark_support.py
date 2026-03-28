@@ -1123,7 +1123,7 @@ def resolve_corpus_metadata(
     spec: dict,
     *,
     expected_sample_ids: list[str],
-    fallback_stage_id: str = "fastq.validate_reads",
+    fallback_stage_id: str | None = None,
 ) -> dict[str, dict]:
     if (corpus_root / "normalized").is_dir() and (corpus_root / "MANIFEST.json").is_file():
         full_corpus_total = sum(expected_cohort_counts(spec).values())
