@@ -57,6 +57,7 @@ struct PendingSampleRun {
     command: Vec<String>,
     env_overrides: BTreeMap<String, String>,
     extra_fields: BTreeMap<String, serde_json::Value>,
+    post_success_action: Option<PostSuccessAction>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -137,7 +138,25 @@ struct ReportQcContributorArtifact {
     path: PathBuf,
 }
 
+#[derive(Debug, Clone)]
+struct DepleteRrnaStageOptions {
+    rrna_db: PathBuf,
+    rrna_bundle_id: String,
+    min_identity: f64,
+}
+
+#[derive(Debug, Clone)]
+enum PostSuccessAction {
+    PromoteAndPruneSortmernaCache {
+        out_root: PathBuf,
+        sample_id: String,
+        rrna_bundle_id: String,
+    },
+}
+
 const REPORT_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
+const DEPLETE_RRNA_DEFAULT_BUNDLE_ID: &str = "sortmerna_v4_3_default_db";
+const DEPLETE_RRNA_DEFAULT_MIN_IDENTITY: f64 = 0.95;
 const REPORT_QC_CONTRIBUTORS: [ReportQcContributorContract; 6] = [
     ReportQcContributorContract {
         stage_id: "fastq.validate_reads",
@@ -290,8 +309,13 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
     let mut runs = Vec::new();
     let mut pending = Vec::new();
     let runtime_env = benchmark_runtime_env(&out_root);
-    let extra_manifest_fields =
+    let mut extra_manifest_fields =
         collect_stage_manifest_fields(&args.stage, &args.stage_args, &args.manifest_args)?;
+    let deplete_rrna_options = if args.stage == "fastq.deplete_rrna" {
+        Some(resolve_deplete_rrna_stage_options(&args.stage_args)?)
+    } else {
+        None
+    };
 
     for sample in selected_samples {
         let sample_root =
@@ -319,6 +343,22 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
                 }
                 if report_json.is_file() {
                     if sample_report_is_resume_ready(&report_json) {
+                        if let Some(options) = deplete_rrna_options.as_ref() {
+                            if tools == ["sortmerna"] && !args.dry_run {
+                                prune_sortmerna_sample_payload(&out_root, &sample.sample_id)?;
+                                extra_manifest_fields.insert(
+                                    "rrna_index_dir".to_string(),
+                                    serde_json::Value::String(
+                                        sortmerna_shared_index_dir(
+                                            &out_root,
+                                            &options.rrna_bundle_id,
+                                        )
+                                        .display()
+                                        .to_string(),
+                                    ),
+                                );
+                            }
+                        }
                         runs.push(SampleRunRecord {
                             sample_id: sample.sample_id.clone(),
                             r1: sample.r1.clone(),
@@ -385,10 +425,60 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             command,
             env_overrides: runtime_env.clone(),
             extra_fields: prepared.run_extra_fields,
+            post_success_action: None,
         });
     }
 
     if !pending.is_empty() {
+        if let Some(options) = deplete_rrna_options.as_ref() {
+            if tools == ["sortmerna"] && !args.dry_run {
+                let shared_idx_dir = sortmerna_shared_index_dir(&out_root, &options.rrna_bundle_id);
+                warm_sortmerna_shared_index_cache(
+                    &workspace_config,
+                    &platform,
+                    &options.rrna_db,
+                    Path::new(&pending[0].sample.r1),
+                    &shared_idx_dir,
+                    args.threads,
+                )?;
+                if !sortmerna_shared_index_seeded(&shared_idx_dir) {
+                    let mut first = pending.remove(0);
+                    prepare_sortmerna_sample_workdir(
+                        &out_root,
+                        &first.sample.sample_id,
+                        &options.rrna_bundle_id,
+                    )?;
+                    first.post_success_action =
+                        Some(PostSuccessAction::PromoteAndPruneSortmernaCache {
+                            out_root: out_root.clone(),
+                            sample_id: first.sample.sample_id.clone(),
+                            rrna_bundle_id: options.rrna_bundle_id.clone(),
+                        });
+                    runs.push(execute_sample(&program, &repo_root, first)?);
+                }
+                for row in &mut pending {
+                    prepare_sortmerna_sample_workdir(
+                        &out_root,
+                        &row.sample.sample_id,
+                        &options.rrna_bundle_id,
+                    )?;
+                    row.post_success_action =
+                        Some(PostSuccessAction::PromoteAndPruneSortmernaCache {
+                            out_root: out_root.clone(),
+                            sample_id: row.sample.sample_id.clone(),
+                            rrna_bundle_id: options.rrna_bundle_id.clone(),
+                        });
+                }
+                extra_manifest_fields.insert(
+                    "rrna_index_dir".to_string(),
+                    serde_json::Value::String(shared_idx_dir.display().to_string()),
+                );
+                extra_manifest_fields.insert(
+                    "rrna_index_seeded".to_string(),
+                    serde_json::Value::Bool(sortmerna_shared_index_seeded(&shared_idx_dir)),
+                );
+            }
+        }
         runs.extend(execute_pending_samples(
             &program,
             &repo_root,
@@ -689,6 +779,20 @@ fn execute_sample(
         .status()
         .with_context(|| format!("run {}", row.command.join(" ")))?;
     let exit_code = status.code().unwrap_or(1);
+    if exit_code == 0 {
+        if let Some(action) = row.post_success_action.as_ref() {
+            match action {
+                PostSuccessAction::PromoteAndPruneSortmernaCache {
+                    out_root,
+                    sample_id,
+                    rrna_bundle_id,
+                } => {
+                    promote_sortmerna_sample_index_cache(out_root, sample_id, rrna_bundle_id)?;
+                    prune_sortmerna_sample_payload(out_root, sample_id)?;
+                }
+            }
+        }
+    }
     Ok(SampleRunRecord {
         sample_id: row.sample.sample_id,
         r1: row.sample.r1,
@@ -1276,6 +1380,31 @@ fn collect_stage_manifest_fields(
             insert_string_field_from(&mut fields, &manifest_values, "database_namespace");
             insert_string_field_from(&mut fields, &manifest_values, "database_scope");
         }
+        "fastq.deplete_rrna" => {
+            let options = resolve_deplete_rrna_stage_options(stage_args)?;
+            fields.insert(
+                "rrna_db".to_string(),
+                serde_json::Value::String(options.rrna_db.display().to_string()),
+            );
+            fields.insert(
+                "rrna_bundle_id".to_string(),
+                serde_json::Value::String(options.rrna_bundle_id),
+            );
+            fields.insert(
+                "rrna_bundle_digest".to_string(),
+                serde_json::Value::String(sha256_artifact_bundle(&options.rrna_db)?),
+            );
+            fields.insert(
+                "rrna_bundle_size_bytes".to_string(),
+                serde_json::Value::Number(serde_json::Number::from(artifact_bundle_size_bytes(
+                    &options.rrna_db,
+                )?)),
+            );
+            fields.insert(
+                "min_identity".to_string(),
+                serde_json::json!(options.min_identity),
+            );
+        }
         "fastq.report_qc" => {
             fields.insert(
                 "aggregation_engine".to_string(),
@@ -1670,12 +1799,287 @@ fn current_timestamp_utc() -> Result<String> {
     Ok(format!("unix:{}", elapsed.as_secs()))
 }
 
+fn resolve_deplete_rrna_stage_options(stage_args: &[String]) -> Result<DepleteRrnaStageOptions> {
+    let stage_values = parse_cli_arg_pairs("stage-arg", stage_args)?;
+    let rrna_db = stage_values
+        .get("rrna_db")
+        .ok_or_else(|| anyhow!("fastq.deplete_rrna requires --rrna-db in stage arguments"))?;
+    let rrna_db = PathBuf::from(rrna_db);
+    if !rrna_db.is_file() {
+        return Err(anyhow!("missing rRNA bundle FASTA: {}", rrna_db.display()));
+    }
+    Ok(DepleteRrnaStageOptions {
+        rrna_db,
+        rrna_bundle_id: stage_values
+            .get("rrna_bundle_id")
+            .cloned()
+            .unwrap_or_else(|| DEPLETE_RRNA_DEFAULT_BUNDLE_ID.to_string()),
+        min_identity: stage_values
+            .get("min_identity")
+            .map(|row| row.parse::<f64>())
+            .transpose()
+            .with_context(|| "parse min_identity from stage arguments")?
+            .unwrap_or(DEPLETE_RRNA_DEFAULT_MIN_IDENTITY),
+    })
+}
+
+fn sortmerna_sample_workdir(out_root: &Path, sample_id: &str) -> PathBuf {
+    benchmark_sample_root(out_root, "deplete_rrna", sample_id)
+        .join("tools")
+        .join("sortmerna")
+        .join("sortmerna_workdir")
+}
+
+fn sortmerna_shared_index_dir(out_root: &Path, rrna_bundle_id: &str) -> PathBuf {
+    out_root
+        .join("_reference_cache")
+        .join("fastq.deplete_rrna")
+        .join(rrna_bundle_id)
+        .join("sortmerna_workdir")
+        .join("idx")
+}
+
+fn sortmerna_shared_index_seeded(shared_idx_dir: &Path) -> bool {
+    shared_idx_dir.is_dir()
+        && shared_idx_dir
+            .read_dir()
+            .ok()
+            .is_some_and(|mut row| row.next().is_some())
+}
+
+fn clone_index_cache(source_idx_dir: &Path, dest_idx_dir: &Path) -> Result<()> {
+    fs::create_dir_all(dest_idx_dir)
+        .with_context(|| format!("create {}", dest_idx_dir.display()))?;
+    for entry in fs::read_dir(source_idx_dir)
+        .with_context(|| format!("read {}", source_idx_dir.display()))?
+    {
+        let source_path = entry?.path();
+        let dest_path = dest_idx_dir.join(
+            source_path
+                .file_name()
+                .ok_or_else(|| anyhow!("missing file name for {}", source_path.display()))?,
+        );
+        if dest_path.exists() {
+            if dest_path.is_dir() {
+                fs::remove_dir_all(&dest_path)
+                    .with_context(|| format!("remove {}", dest_path.display()))?;
+            } else {
+                fs::remove_file(&dest_path)
+                    .with_context(|| format!("remove {}", dest_path.display()))?;
+            }
+        }
+        if source_path.is_dir() {
+            copy_dir_hardlink_fallback(&source_path, &dest_path)?;
+        } else {
+            match fs::hard_link(&source_path, &dest_path) {
+                Ok(()) => {}
+                Err(_) => {
+                    fs::copy(&source_path, &dest_path).with_context(|| {
+                        format!("copy {} -> {}", source_path.display(), dest_path.display())
+                    })?;
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn copy_dir_hardlink_fallback(source_dir: &Path, dest_dir: &Path) -> Result<()> {
+    fs::create_dir_all(dest_dir).with_context(|| format!("create {}", dest_dir.display()))?;
+    for entry in
+        fs::read_dir(source_dir).with_context(|| format!("read {}", source_dir.display()))?
+    {
+        let source_path = entry?.path();
+        let dest_path = dest_dir.join(
+            source_path
+                .file_name()
+                .ok_or_else(|| anyhow!("missing file name for {}", source_path.display()))?,
+        );
+        if source_path.is_dir() {
+            copy_dir_hardlink_fallback(&source_path, &dest_path)?;
+        } else {
+            match fs::hard_link(&source_path, &dest_path) {
+                Ok(()) => {}
+                Err(_) => {
+                    fs::copy(&source_path, &dest_path).with_context(|| {
+                        format!("copy {} -> {}", source_path.display(), dest_path.display())
+                    })?;
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn prepare_sortmerna_sample_workdir(
+    out_root: &Path,
+    sample_id: &str,
+    rrna_bundle_id: &str,
+) -> Result<PathBuf> {
+    let shared_idx_dir = sortmerna_shared_index_dir(out_root, rrna_bundle_id);
+    fs::create_dir_all(&shared_idx_dir)
+        .with_context(|| format!("create {}", shared_idx_dir.display()))?;
+    let sample_workdir = sortmerna_sample_workdir(out_root, sample_id);
+    fs::create_dir_all(&sample_workdir)
+        .with_context(|| format!("create {}", sample_workdir.display()))?;
+    let sample_idx_dir = sample_workdir.join("idx");
+    if sample_idx_dir.is_symlink() || sample_idx_dir.is_file() {
+        fs::remove_file(&sample_idx_dir)
+            .with_context(|| format!("remove {}", sample_idx_dir.display()))?;
+    } else if sample_idx_dir.is_dir() {
+        fs::remove_dir_all(&sample_idx_dir)
+            .with_context(|| format!("remove {}", sample_idx_dir.display()))?;
+    }
+    if sortmerna_shared_index_seeded(&shared_idx_dir) {
+        clone_index_cache(&shared_idx_dir, &sample_idx_dir)?;
+    } else {
+        fs::create_dir_all(&sample_idx_dir)
+            .with_context(|| format!("create {}", sample_idx_dir.display()))?;
+    }
+    Ok(shared_idx_dir)
+}
+
+fn promote_sortmerna_sample_index_cache(
+    out_root: &Path,
+    sample_id: &str,
+    rrna_bundle_id: &str,
+) -> Result<PathBuf> {
+    let shared_idx_dir = sortmerna_shared_index_dir(out_root, rrna_bundle_id);
+    let sample_idx_dir = sortmerna_sample_workdir(out_root, sample_id).join("idx");
+    if !sample_idx_dir.is_dir() {
+        return Err(anyhow!(
+            "missing SortMeRNA sample idx dir: {}",
+            sample_idx_dir.display()
+        ));
+    }
+    if !sortmerna_shared_index_seeded(&shared_idx_dir) {
+        clone_index_cache(&sample_idx_dir, &shared_idx_dir)?;
+    }
+    Ok(shared_idx_dir)
+}
+
+fn prune_sortmerna_sample_payload(out_root: &Path, sample_id: &str) -> Result<()> {
+    let sample_workdir = sortmerna_sample_workdir(out_root, sample_id);
+    if sample_workdir.is_dir() {
+        fs::remove_dir_all(&sample_workdir)
+            .with_context(|| format!("remove {}", sample_workdir.display()))?;
+    }
+    Ok(())
+}
+
+fn deplete_rrna_bind_root(
+    workspace_config: &crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig,
+) -> Option<PathBuf> {
+    workspace_config
+        .remote
+        .as_ref()
+        .and_then(|row| row.repo_root.as_ref())
+        .and_then(|row| Path::new(row).parent())
+        .map(Path::to_path_buf)
+}
+
+fn lunarc_container_input_path(bind_root: &Path, host_path: &Path) -> Result<String> {
+    let resolved = host_path
+        .canonicalize()
+        .unwrap_or_else(|_| host_path.to_path_buf());
+    let relative = resolved.strip_prefix(bind_root).with_context(|| {
+        format!(
+            "{} must live under {} for Lunarc warmup",
+            resolved.display(),
+            bind_root.display()
+        )
+    })?;
+    Ok(format!("/data/input/{}", path_display(relative)))
+}
+
+fn warm_sortmerna_shared_index_cache(
+    workspace_config: &crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig,
+    platform: &str,
+    rrna_db: &Path,
+    seed_r1: &Path,
+    shared_idx_dir: &Path,
+    threads: u32,
+) -> Result<()> {
+    if !matches!(platform, "apptainer-amd64" | "lunarc-apptainer") {
+        return Ok(());
+    }
+    fs::create_dir_all(shared_idx_dir)
+        .with_context(|| format!("create {}", shared_idx_dir.display()))?;
+    if sortmerna_shared_index_seeded(shared_idx_dir) {
+        return Ok(());
+    }
+    let cache_workdir = shared_idx_dir
+        .parent()
+        .ok_or_else(|| anyhow!("missing SortMeRNA shared workdir parent"))?;
+    fs::create_dir_all(cache_workdir)
+        .with_context(|| format!("create {}", cache_workdir.display()))?;
+    let bind_root = deplete_rrna_bind_root(workspace_config).ok_or_else(|| {
+        anyhow!("workspace config is missing remote.repo_root for SortMeRNA warmup")
+    })?;
+    let sif_path = bind_root
+        .join("bijux-dna-container")
+        .join("apptainer")
+        .join("sif")
+        .join("sortmerna.sif");
+    if !sif_path.is_file() {
+        return Err(anyhow!(
+            "missing SortMeRNA Apptainer image: {}",
+            sif_path.display()
+        ));
+    }
+    let rrna_input = lunarc_container_input_path(&bind_root, rrna_db)?;
+    let seed_input = lunarc_container_input_path(&bind_root, seed_r1)?;
+    let warm_threads = threads.clamp(1, 4);
+    let status = Command::new("apptainer")
+        .args([
+            "exec",
+            "--cleanenv",
+            "--no-home",
+            "--containall",
+            "--bind",
+            &format!("{}:/data/input:ro", bind_root.display()),
+            "--bind",
+            &format!("{}:/data/output", cache_workdir.display()),
+            "--pwd",
+            "/data/output",
+            &sif_path.display().to_string(),
+            "/usr/local/bin/sortmerna-bin",
+            "--ref",
+            &rrna_input,
+            "--reads",
+            &seed_input,
+            "--workdir",
+            "/data/output/",
+            "--index",
+            "1",
+            "--threads",
+            &warm_threads.to_string(),
+        ])
+        .status()
+        .context("run SortMeRNA shared-index warmup")?;
+    if !status.success() {
+        return Err(anyhow!(
+            "SortMeRNA shared-index warmup failed with exit code {} for {}",
+            status.code().unwrap_or(1),
+            shared_idx_dir.display()
+        ));
+    }
+    if !sortmerna_shared_index_seeded(shared_idx_dir) {
+        return Err(anyhow!(
+            "SortMeRNA warmup did not materialize idx files at {}",
+            shared_idx_dir.display()
+        ));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        benchmark_runtime_env, default_stage_out_root, prepare_report_qc_sample, resolve_tools,
-        sample_report_is_resume_ready, stage_command_spec, workspace_cache_root_for_output,
-        CorpusNormalizedSample,
+        benchmark_runtime_env, default_stage_out_root, prepare_report_qc_sample,
+        prepare_sortmerna_sample_workdir, promote_sortmerna_sample_index_cache,
+        resolve_deplete_rrna_stage_options, resolve_tools, sample_report_is_resume_ready,
+        stage_command_spec, workspace_cache_root_for_output, CorpusNormalizedSample,
     };
     use crate::commands::benchmark_workspace::{
         BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceRemote,
@@ -1883,5 +2287,67 @@ mod tests {
                 .and_then(serde_json::Value::as_str),
             Some(expected_raw_fastqc_dir.as_str())
         );
+    }
+
+    #[test]
+    fn deplete_rrna_stage_options_require_existing_rrna_bundle() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let rrna_db = temp.path().join("sortmerna_v4_3_default_db.fasta");
+        fs::write(&rrna_db, ">rrna\nACGT\n").expect("write rrna fasta");
+
+        let options = resolve_deplete_rrna_stage_options(&[
+            "--rrna-db".to_string(),
+            rrna_db.display().to_string(),
+            "--rrna-bundle-id".to_string(),
+            "sortmerna_v4_3_default_db".to_string(),
+            "--min-identity".to_string(),
+            "0.95".to_string(),
+        ])
+        .expect("resolve rrna stage options");
+        assert_eq!(options.rrna_db, rrna_db);
+        assert_eq!(options.rrna_bundle_id, "sortmerna_v4_3_default_db");
+        assert!((options.min_identity - 0.95).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn sortmerna_workdir_preparation_clones_and_promotes_shared_cache() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let out_root = temp.path().join("results");
+
+        let shared_idx_dir =
+            prepare_sortmerna_sample_workdir(&out_root, "sample_0001", "sortmerna_v4_3_default_db")
+                .expect("prepare empty workdir");
+        assert!(shared_idx_dir.is_dir());
+
+        let sample_one_idx = out_root
+            .join("bench")
+            .join("deplete_rrna")
+            .join("sample_0001")
+            .join("tools")
+            .join("sortmerna")
+            .join("sortmerna_workdir")
+            .join("idx")
+            .join("reference.stats");
+        fs::write(&sample_one_idx, "seed").expect("write sample idx seed");
+        let promoted = promote_sortmerna_sample_index_cache(
+            &out_root,
+            "sample_0001",
+            "sortmerna_v4_3_default_db",
+        )
+        .expect("promote shared idx");
+        assert!(promoted.join("reference.stats").is_file());
+
+        prepare_sortmerna_sample_workdir(&out_root, "sample_0002", "sortmerna_v4_3_default_db")
+            .expect("prepare seeded workdir");
+        let sample_two_idx = out_root
+            .join("bench")
+            .join("deplete_rrna")
+            .join("sample_0002")
+            .join("tools")
+            .join("sortmerna")
+            .join("sortmerna_workdir")
+            .join("idx")
+            .join("reference.stats");
+        assert!(sample_two_idx.is_file());
     }
 }
