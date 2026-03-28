@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import argparse
 
-from corpus_01_fastq_benchmark_support import (
+from benchmark_fastq_corpus.support import (
     CORPUS_01_PUBLICATION_CONTRACTS,
     corpus_01_make_report_target,
     corpus_01_make_run_target,

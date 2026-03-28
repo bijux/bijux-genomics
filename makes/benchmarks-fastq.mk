@@ -1,6 +1,8 @@
 ##@ Performance Benchmarks
 
 BIJUX_BIN ?= cargo run -q -p bijux-dna-dev -- tooling run bijux --
+BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml
+export BIJUX_FASTQ_CORPUS_CONFIG := $(BENCHMARK_FASTQ_CORPUS_CONFIG)
 OUT_DIR ?= .
 TOOLS ?=
 SAMPLE_ID ?=
@@ -8,7 +10,7 @@ R1 ?=
 R2 ?=
 ALLOW_EXPERIMENTAL ?= 0
 PLATFORM ?=
-CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
+CORPUS_ROOT ?= $(shell BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
 CORPUS_01_PUBLISHED_DOSSIER_TARGETS := $(shell python3 makes/bin/benchmark_publication_targets.py report)
 BENCHMARK_OUT_DIR := $(strip $(OUT_DIR))
 BENCHMARK_STAGE_OUT_DIR_ARGS = $(if $(filter-out .,$(BENCHMARK_OUT_DIR)),--out-root "$(BENCHMARK_OUT_DIR)",)

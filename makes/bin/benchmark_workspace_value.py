@@ -4,12 +4,18 @@ from __future__ import annotations
 import argparse
 import sys
 
-import corpus_01_fastq_benchmark_support as support
+from benchmark_fastq_corpus import configure_workspace_config_path
+from benchmark_fastq_corpus import support
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Print a configured benchmark workspace value."
+    )
+    parser.add_argument(
+        "--config",
+        default="",
+        help="Benchmark workspace config path.",
     )
     parser.add_argument(
         "key_path",
@@ -70,6 +76,7 @@ def resolve_workspace_value(key_path: str) -> str:
 
 def main() -> int:
     args = parse_args()
+    configure_workspace_config_path(args.config)
     sys.stdout.write(resolve_workspace_value(args.key_path))
     return 0
 

@@ -1,20 +1,23 @@
 ##@ Lunarc Sync
 
-LUNARC_HOST ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.ssh_host)
-LUNARC_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.frontend_root)
-LUNARC_REPO_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.repo_root)
-LUNARC_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.results_root)
-LUNARC_CORPUS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.corpus_root)
-LUNARC_LOCAL_RESULTS_DIR ?= $(shell python3 makes/bin/benchmark_workspace_value.py local.results_root)
-LUNARC_PULL_BASE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.pull_base)
-LUNARC_PULL_MODE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.pull_mode)
-LUNARC_INCLUDE_PROFILE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.include_profile)
-LUNARC_EXCLUDE_PROFILE ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.exclude_profile)
-CLEAN_CONTEXT ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.clean_context)
-ALLOW_DIRTY ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.allow_dirty)
-INCLUDE_CONTAINERS_MANIFEST ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.include_containers_manifest)
-DATA_MANIFEST_GLOB ?= $(shell python3 makes/bin/benchmark_workspace_value.py sync.defaults.data_manifest_glob)
-LUNARC_CONTAINERS_ROOT ?= $(shell python3 makes/bin/benchmark_workspace_value.py remote.containers_root)
+BENCHMARK_FASTQ_CORPUS_CONFIG ?= configs/bench/workspace.toml
+BENCHMARK_WORKSPACE_VALUE = BIJUX_FASTQ_CORPUS_CONFIG="$(BENCHMARK_FASTQ_CORPUS_CONFIG)" python3 makes/bin/benchmark_workspace_value.py
+
+LUNARC_HOST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.ssh_host)
+LUNARC_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.frontend_root)
+LUNARC_REPO_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.repo_root)
+LUNARC_RESULTS_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.results_root)
+LUNARC_CORPUS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.corpus_root)
+LUNARC_LOCAL_RESULTS_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) local.results_root)
+LUNARC_PULL_BASE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.pull_base)
+LUNARC_PULL_MODE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.pull_mode)
+LUNARC_INCLUDE_PROFILE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.include_profile)
+LUNARC_EXCLUDE_PROFILE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.exclude_profile)
+CLEAN_CONTEXT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.clean_context)
+ALLOW_DIRTY ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.allow_dirty)
+INCLUDE_CONTAINERS_MANIFEST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.include_containers_manifest)
+DATA_MANIFEST_GLOB ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.data_manifest_glob)
+LUNARC_CONTAINERS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.containers_root)
 LUNARC_APPTAINER_DIR ?= $(LUNARC_CONTAINERS_ROOT)/apptainer
 LUNARC_APPTAINER_ARTIFACT_DIR ?= $(LUNARC_REPO_DIR)/artifacts/containers/hpc/frontend-smoke
 LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-container/apptainer
