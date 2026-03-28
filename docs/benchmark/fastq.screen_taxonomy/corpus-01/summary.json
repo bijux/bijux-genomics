@@ -1,0 +1,90 @@
+{
+  "cohort_counts": {
+    "ancient_pe": 5,
+    "ancient_se": 5,
+    "modern_pe": 5,
+    "modern_se": 5
+  },
+  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "database_artifact_id": "taxonomy_db",
+  "database_catalog_id": "taxonomy_reference",
+  "database_digest": "5bb5be0ced539ee0d1cd88d41f4f63781d8941d1964ef7410c1b16995795f7de",
+  "database_lineage_digest": "6c26e735250bd7438dfe1c2404e4dca6507c98aa0520a2bfd9024b4bebfd92a8",
+  "database_lineage_json": "/lunarc/nobackup/projects/snic2019-34-3/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.json",
+  "database_namespace": "read_screening",
+  "database_root": "/lunarc/nobackup/projects/snic2019-34-3/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db",
+  "database_scope": "read_screening",
+  "database_size_bytes": 8652216269,
+  "era_counts": {
+    "ancient": 10,
+    "modern": 10
+  },
+  "generated_at_utc": "2026-03-28T01:33:04.762779+00:00",
+  "headline": {
+    "fastest_runtime_s": 1.3916613675,
+    "fastest_tool": "kraken2",
+    "highest_classified_fraction": 0.0,
+    "highest_classified_tool": "centrifuge",
+    "lowest_contamination_rate": 0.0,
+    "lowest_contamination_tool": "centrifuge"
+  },
+  "layout_counts": {
+    "pe": 10,
+    "se": 10
+  },
+  "platform": "lunarc-apptainer",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc",
+  "samples_failed": 0,
+  "samples_total": 20,
+  "scenario_id": "screen_fairness",
+  "schema_version": "bijux.fastq.screen_taxonomy.corpus_summary.v1",
+  "stage_id": "fastq.screen_taxonomy",
+  "tool_summary": [
+    {
+      "mean_classified_fraction": 0.0,
+      "mean_contamination_rate": 0.0,
+      "mean_unclassified_fraction": 0.0,
+      "median_runtime_s": 4.015753771,
+      "most_common_top_taxon": "UniVec",
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "centrifuge"
+    },
+    {
+      "mean_classified_fraction": 0.0,
+      "mean_contamination_rate": 0.0,
+      "mean_unclassified_fraction": 0.0,
+      "median_runtime_s": 2.8742290425,
+      "most_common_top_taxon": "unclassified",
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "kaiju"
+    },
+    {
+      "mean_classified_fraction": 0.0,
+      "mean_contamination_rate": 0.0,
+      "mean_unclassified_fraction": 1.0,
+      "median_runtime_s": 1.3916613675,
+      "most_common_top_taxon": "unclassified",
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "kraken2"
+    },
+    {
+      "mean_classified_fraction": 0.0,
+      "mean_contamination_rate": 0.0,
+      "mean_unclassified_fraction": 1.0,
+      "median_runtime_s": 2.6224915859999998,
+      "most_common_top_taxon": "unclassified",
+      "pass_rate": 1.0,
+      "records": 20,
+      "tool": "krakenuniq"
+    }
+  ],
+  "tools": [
+    "centrifuge",
+    "kaiju",
+    "kraken2",
+    "krakenuniq"
+  ]
+}
