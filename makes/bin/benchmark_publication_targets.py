@@ -3,10 +3,36 @@ from __future__ import annotations
 
 import argparse
 import subprocess
-import sys
 from pathlib import Path
 
-from benchmark_fastq_corpus.publication_targets import resolve_targets
+
+def resolve_targets(
+    kind: str,
+    *,
+    config: str = "",
+) -> list[str]:
+    repo_root = Path(__file__).resolve().parents[2]
+    command = [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "bench",
+        "publication-targets",
+    ]
+    if config:
+        command.extend(["--config", config])
+    command.append(kind)
+    completed = subprocess.run(
+        command,
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout.split()
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,27 +51,11 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
+
 def main() -> int:
     args = parse_args()
-    repo_root = Path(__file__).resolve().parents[2]
-    command = [
-        "cargo",
-        "run",
-        "-q",
-        "-p",
-        "bijux-dna",
-        "--",
-        "bench",
-        "publication-targets",
-    ]
-    if args.config:
-        command.extend(["--config", args.config])
-    command.append(args.kind)
-    completed = subprocess.run(command, cwd=repo_root, check=False)
-    if completed.returncode == 0:
-        return 0
-    print(" ".join(resolve_targets(args.kind)))
-    return completed.returncode
+    print(" ".join(resolve_targets(args.kind, config=args.config)))
+    return 0
 
 
 if __name__ == "__main__":
