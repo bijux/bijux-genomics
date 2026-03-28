@@ -255,6 +255,12 @@ class ReportQcContributorContract:
         return f"{self.stage_id}.tool.{self.tool_id}.{self.artifact_id}"
 
 
+@dataclass(frozen=True)
+class StageRunRootCandidate:
+    source: str
+    path: Path
+
+
 DETECT_ADAPTERS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
     stage_id="fastq.detect_adapters",
     scenario_id="detect_adapters_fairness",
@@ -685,6 +691,23 @@ def legacy_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
     return benchmark_local_results_root() / corpus_root.name / stage_id / "lunarc"
 
 
+def configured_stage_run_roots(corpus_root: Path, stage_id: str) -> list[StageRunRootCandidate]:
+    return [
+        StageRunRootCandidate(
+            source="local-cache-mirror",
+            path=default_local_results_stage_root(corpus_root, stage_id),
+        ),
+        StageRunRootCandidate(
+            source="local-results-root",
+            path=legacy_local_results_stage_root(corpus_root, stage_id),
+        ),
+        StageRunRootCandidate(
+            source="remote-results-root",
+            path=default_results_stage_root(corpus_root, stage_id),
+        ),
+    ]
+
+
 def infer_cache_root(path: Path) -> Path | None:
     resolved = path.expanduser().resolve()
     if ".cache" not in resolved.parts:
@@ -789,16 +812,11 @@ def default_screen_taxonomy_database_root(
 
 
 def preferred_report_run_root(corpus_root: Path, stage_id: str) -> Path:
-    local_root = default_local_results_stage_root(corpus_root, stage_id)
-    legacy_local_root = legacy_local_results_stage_root(corpus_root, stage_id)
-    remote_root = default_results_stage_root(corpus_root, stage_id)
-    if local_root.exists():
-        return local_root
-    if legacy_local_root.exists():
-        return legacy_local_root
-    if not remote_root.exists():
-        return local_root
-    return remote_root
+    candidates = configured_stage_run_roots(corpus_root, stage_id)
+    for candidate in candidates:
+        if candidate.path.exists():
+            return candidate.path
+    return candidates[0].path
 
 
 def localize_results_path(path_str: str, local_results_root: Path) -> Path:

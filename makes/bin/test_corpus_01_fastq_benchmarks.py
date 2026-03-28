@@ -994,6 +994,43 @@ class BenchmarkMakefileTests(unittest.TestCase):
                     legacy_root / "corpus_01" / stage_id / "lunarc",
                 )
 
+    def test_configured_stage_run_roots_follow_governed_workspace_order(self) -> None:
+        corpus_root = Path("/home/bijan/lu2024-12-24/.cache/corpus_01")
+        stage_id = "fastq.report_qc"
+
+        with mock.patch.object(
+            support,
+            "benchmark_local_results_root",
+            return_value=Path("/tmp/archive"),
+        ), mock.patch.object(
+            support,
+            "benchmark_local_cache_mirror_root",
+            return_value=Path("/tmp/cache-mirror"),
+        ), mock.patch.object(
+            support,
+            "default_results_stage_root",
+            return_value=Path("/tmp/remote-results/corpus_01/fastq.report_qc/lunarc"),
+        ):
+            candidates = support.configured_stage_run_roots(corpus_root, stage_id)
+
+        self.assertEqual(
+            [(candidate.source, candidate.path) for candidate in candidates],
+            [
+                (
+                    "local-cache-mirror",
+                    Path("/tmp/cache-mirror/results/corpus_01/fastq.report_qc/lunarc"),
+                ),
+                (
+                    "local-results-root",
+                    Path("/tmp/archive/corpus_01/fastq.report_qc/lunarc"),
+                ),
+                (
+                    "remote-results-root",
+                    Path("/tmp/remote-results/corpus_01/fastq.report_qc/lunarc"),
+                ),
+            ],
+        )
+
     def test_deplete_reference_contaminants_defaults_match_governed_suite(self) -> None:
         defaults = support.deplete_reference_contaminants_benchmark_defaults()
         self.assertEqual(defaults["threads"], 8)

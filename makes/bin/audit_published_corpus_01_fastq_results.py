@@ -10,8 +10,7 @@ from pathlib import Path
 
 from corpus_01_fastq_benchmark_support import (
     CORPUS_01_PUBLICATION_CONTRACTS,
-    default_local_results_stage_root,
-    legacy_local_results_stage_root,
+    configured_stage_run_roots,
     load_json,
     localize_results_path,
 )
@@ -111,14 +110,11 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
     expected_tools = sorted(tools)
 
     corpus_root = Path(str(summary.get("corpus_root", "")))
-    canonical_run_root = default_local_results_stage_root(corpus_root, stage_id)
-    legacy_run_root = legacy_local_results_stage_root(corpus_root, stage_id)
+    configured_roots = configured_stage_run_roots(corpus_root, stage_id)
+    canonical_run_root = configured_roots[0].path
+    legacy_run_root = configured_roots[1].path
     reported_run_root = Path(str(summary.get("run_root", "")))
-    existing_roots = [
-        root
-        for root in [reported_run_root, canonical_run_root, legacy_run_root]
-        if root.is_dir()
-    ]
+    existing_roots = [root for root in [reported_run_root, *(candidate.path for candidate in configured_roots)] if root.is_dir()]
     unique_existing_roots: list[Path] = []
     for root in existing_roots:
         if root not in unique_existing_roots:
