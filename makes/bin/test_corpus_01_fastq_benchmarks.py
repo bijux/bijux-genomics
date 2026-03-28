@@ -149,6 +149,15 @@ def standard_briefing_publisher_paths() -> list[Path]:
     return [ROOT / "makes" / "bin" / name for name in names]
 
 
+def ordered_briefing_publisher_paths() -> list[Path]:
+    names = [
+        "render_fastq_validate_reads_corpus_01_briefing.py",
+        "render_fastq_filter_low_complexity_corpus_01_briefing.py",
+        "render_fastq_trim_polyg_tails_corpus_01_briefing.py",
+    ]
+    return [ROOT / "makes" / "bin" / name for name in names]
+
+
 def validate_reads_method_text() -> str:
     return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
@@ -348,6 +357,12 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 text,
                 path.name,
             )
+
+    def test_ordered_briefings_use_shared_artifact_publisher(self) -> None:
+        for path in ordered_briefing_publisher_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("publish_corpus_briefing_artifacts(", text, path.name)
+            self.assertNotIn("def write_csv(", text, path.name)
 
     def test_trim_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.trim_reads_benchmark_defaults()

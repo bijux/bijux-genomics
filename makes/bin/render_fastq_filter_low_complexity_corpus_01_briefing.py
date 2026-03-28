@@ -15,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     load_csv_rows,
     load_json,
     parse_corpus_briefing_args,
+    publish_corpus_briefing_artifacts,
     percentile,
     safe_mean,
     safe_median,
@@ -256,15 +257,6 @@ def render_markdown(
     )
     return "\n".join(lines) + "\n"
 
-def write_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(
-            {fieldname: fmt_csv_value(row[fieldname]) for fieldname in fieldnames}
-            for row in rows
-        )
-
 def main() -> int:
     args = parse_args()
     docs_root = Path(args.docs_root).resolve()
@@ -275,10 +267,13 @@ def main() -> int:
     cohort_rows = cohort_runtime_summary(rows)
     outliers = sample_runtime_outliers(rows)
 
-    write_csv(
-        docs_root / "tool_runtime_summary.csv",
-        runtime_rows,
-        [
+    publish_corpus_briefing_artifacts(
+        docs_root,
+        markdown=render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
+        runtime_rows=runtime_rows,
+        cohort_rows=cohort_rows,
+        outlier_rows=outliers,
+        runtime_fieldnames=[
             "tool",
             "samples",
             "pass_rate",
@@ -292,11 +287,7 @@ def main() -> int:
             "mean_q_delta",
             "slowdown_vs_fastest_median",
         ],
-    )
-    write_csv(
-        docs_root / "cohort_runtime_summary.csv",
-        cohort_rows,
-        [
+        cohort_fieldnames=[
             "tool",
             "dimension",
             "cohort",
@@ -308,11 +299,7 @@ def main() -> int:
             "median_read_retention",
             "mean_q_delta",
         ],
-    )
-    write_csv(
-        docs_root / "sample_runtime_outliers.csv",
-        outliers,
-        [
+        outlier_fieldnames=[
             "sample_id",
             "accession",
             "era",
@@ -325,10 +312,6 @@ def main() -> int:
             "strongest_filter_tool",
             "strongest_filter_reads",
         ],
-    )
-    (docs_root / "benchmark.md").write_text(
-        render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
-        encoding="utf-8",
     )
     return 0
 
