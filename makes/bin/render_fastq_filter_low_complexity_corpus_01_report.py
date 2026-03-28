@@ -323,7 +323,7 @@ def main() -> int:
         "platform": run_manifest["platform"],
         "stage_id": run_manifest["stage_id"],
         "scenario_id": run_manifest["scenario_id"],
-        "corpus_root": run_manifest["corpus_root"],
+        "corpus_root": str(corpus_root),
         "run_root": str(run_root),
         "samples_total": run_manifest["samples_total"],
         "samples_failed": run_manifest["samples_failed"],
