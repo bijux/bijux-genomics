@@ -8,6 +8,8 @@ pub enum BenchCommand {
     Status,
     #[command(name = "workspace-value")]
     WorkspaceValue(BenchWorkspaceValueArgs),
+    #[command(name = "repo-checks")]
+    RepoChecks(BenchRepoChecksArgs),
     #[command(name = "publication-targets")]
     PublicationTargets(BenchPublicationTargetsArgs),
     #[command(name = "corpus-fastq")]
@@ -51,6 +53,14 @@ pub struct BenchWorkspaceValueArgs {
     pub key: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchRepoChecksArgs {
+    #[arg(long, value_name = "PATH", default_value = ".")]
+    pub repo_root: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub json_out: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]

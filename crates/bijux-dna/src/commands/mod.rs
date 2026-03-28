@@ -6,6 +6,7 @@ pub(crate) mod bench_suite;
 pub(crate) mod benchmark_config;
 pub(crate) mod benchmark_corpus_fastq;
 pub(crate) mod benchmark_publication;
+pub(crate) mod benchmark_repo_checks;
 pub(crate) mod benchmark_workspace;
 pub mod cli;
 mod command_dispatch;

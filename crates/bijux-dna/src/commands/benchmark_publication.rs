@@ -8,6 +8,7 @@ use chrono::{DateTime, Utc};
 use regex::Regex;
 use serde::Serialize;
 
+use crate::commands::benchmark_repo_checks::{audit_repo_checks, fail_on_repo_check_violations};
 use crate::commands::benchmark_workspace::{
     benchmark_config_path, benchmark_corpus_spec_path, load_benchmark_config,
     load_benchmark_publication_config, write_workspace_layout_status, BenchmarkWorkspaceConfig,
@@ -40,14 +41,11 @@ pub(crate) fn run_corpus_fastq_publication_status(
     cwd: &Path,
     args: &BenchCorpusFastqPublicationStatusArgs,
 ) -> Result<()> {
-    let config_path = benchmark_config_path(cwd, args.config.as_deref());
     let docs_root = absolutize(cwd, &args.docs_root);
     write_corpus_fastq_dossier_index(cwd, args.config.as_deref(), &docs_root)?;
     write_workspace_layout_status(cwd, args.config.as_deref(), &docs_root)?;
     write_corpus_fastq_results_status(cwd, args.config.as_deref(), &docs_root)?;
-    for spec in publication_status_steps(cwd, &docs_root) {
-        run_subprocess(cwd, &config_path, &spec)?;
-    }
+    fail_on_repo_check_violations(&audit_repo_checks(cwd)?)?;
     write_corpus_fastq_docs_status(cwd, args.config.as_deref(), &docs_root)?;
     write_corpus_fastq_remediation_queue(cwd, args.config.as_deref(), &docs_root)?;
     Ok(())
@@ -298,22 +296,6 @@ struct RemediationIssueGroup {
     severity: String,
     example_details: Vec<String>,
     additional_detail_count: usize,
-}
-
-fn publication_status_steps(repo_root: &Path, docs_root: &Path) -> Vec<SubprocessSpec> {
-    let repo_root_string = repo_root.display().to_string();
-    let _docs_root_string = docs_root.display().to_string();
-    vec![SubprocessSpec {
-        program: "python3",
-        args: vec![
-            repo_root
-                .join("makes/bin/benchmark_tooling_repo_checks.py")
-                .display()
-                .to_string(),
-            "--repo-root".to_string(),
-            repo_root_string.clone(),
-        ],
-    }]
 }
 
 fn write_corpus_fastq_dossier_index(
@@ -2866,32 +2848,6 @@ mod tests {
             ),
             Path::new("results/corpus_01/fastq.validate_reads/lunarc")
         );
-    }
-
-    #[test]
-    fn publication_status_steps_stop_before_rust_owned_outputs() {
-        let steps =
-            super::publication_status_steps(Path::new("/repo"), Path::new("/repo/docs/benchmark"));
-        assert_eq!(steps.len(), 1);
-        let only = steps.first().expect("status steps");
-        assert_eq!(only.program, "python3");
-        assert!(only
-            .args
-            .iter()
-            .any(|arg| arg == "/repo/makes/bin/benchmark_tooling_repo_checks.py"));
-        assert!(!steps.iter().flat_map(|step| step.args.iter()).any(|arg| {
-            arg.contains("audit_corpus_01_fastq_benchmark_docs.py")
-                || arg.contains("corpus-01-status.json")
-                || arg.contains("corpus-01-status.md")
-                || arg.contains("audit_published_corpus_01_fastq_results.py")
-                || arg.contains("corpus-01-results-status.json")
-                || arg.contains("corpus-01-results-status.md")
-                || arg.contains("build_corpus_01_benchmark_dossier_index.py")
-                || arg.contains("audit_benchmark_workspace_layout.py")
-                || arg.contains("build_corpus_01_benchmark_remediation_queue.py")
-                || arg.contains("corpus-01-remediation-queue.json")
-                || arg.contains("corpus-01-remediation-queue.md")
-        }));
     }
 
     #[test]

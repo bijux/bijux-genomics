@@ -221,6 +221,12 @@
                         args,
                     )?;
                 }
+                BenchCommand::RepoChecks(args) => {
+                    crate::commands::benchmark_repo_checks::run_benchmark_repo_checks_command(
+                        &std::env::current_dir()?,
+                        args,
+                    )?;
+                }
                 BenchCommand::NormalizeWorkspaceLayout(args) => {
                     crate::commands::benchmark_workspace::run_normalize_workspace_layout(
                         &std::env::current_dir()?,
