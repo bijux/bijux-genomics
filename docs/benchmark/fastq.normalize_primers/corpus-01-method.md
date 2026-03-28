@@ -3,7 +3,7 @@
 ## Scope
 - Stage: `fastq.normalize_primers`
 - Corpus: `corpus-01`
-- Platform target: `lunarc-apptainer`
+- Platform target: `apptainer-amd64`
 - Benchmark scenario: `primer_normalization_fairness`
 
 ## Governed tool cohort
@@ -39,7 +39,7 @@
 
 ## Workflow
 ```bash
-make _benchmark-normalize-primers-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-normalize-primers-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-normalize-primers-corpus-01-report
 ```
 

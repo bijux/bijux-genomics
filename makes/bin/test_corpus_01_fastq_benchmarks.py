@@ -700,7 +700,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
     def test_validate_reads_method_references_existing_make_targets(self) -> None:
         text = validate_reads_method_text()
 
-        self.assertIn("make _benchmark-validate-corpus-01 PLATFORM=lunarc-apptainer", text)
+        self.assertIn("make _benchmark-validate-corpus-01 PLATFORM=apptainer-amd64", text)
         self.assertIn("make _benchmark-validate-corpus-01-report", text)
         self.assertNotIn("_benchmark-validate-reads-corpus-01", text)
         self.assertNotIn("_benchmark-validate-reads-corpus-01-report", text)
@@ -709,7 +709,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.filter_low_complexity")
 
         self.assertIn(
-            "make _benchmark-filter-low-complexity-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-filter-low-complexity-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-filter-low-complexity-corpus-01-report", text)
@@ -722,7 +722,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.deplete_rrna")
 
         self.assertIn(
-            "make _benchmark-deplete-rrna-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-deplete-rrna-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-deplete-rrna-corpus-01-report", text)
@@ -731,7 +731,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.deplete_host")
 
         self.assertIn(
-            "make _benchmark-deplete-host-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-deplete-host-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-deplete-host-corpus-01-report", text)
@@ -747,7 +747,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.deplete_reference_contaminants")
 
         self.assertIn(
-            "make _benchmark-deplete-reference-contaminants-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-deplete-reference-contaminants-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn(
@@ -759,7 +759,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.screen_taxonomy")
 
         self.assertIn(
-            "make _benchmark-screen-taxonomy-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-screen-taxonomy-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-screen-taxonomy-corpus-01-report", text)
@@ -773,7 +773,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.correct_errors")
 
         self.assertIn(
-            "make _benchmark-correct-errors-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-correct-errors-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-correct-errors-corpus-01-report", text)
@@ -782,7 +782,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.extract_umis")
 
         self.assertIn(
-            "make _benchmark-extract-umis-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-extract-umis-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-extract-umis-corpus-01-report", text)
@@ -791,7 +791,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.normalize_primers")
 
         self.assertIn(
-            "make _benchmark-normalize-primers-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-normalize-primers-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-normalize-primers-corpus-01-report", text)
@@ -800,7 +800,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.filter_reads")
 
         self.assertIn(
-            "make _benchmark-filter-reads-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-filter-reads-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-filter-reads-corpus-01-report", text)
@@ -809,7 +809,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.remove_duplicates")
 
         self.assertIn(
-            "make _benchmark-remove-duplicates-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-remove-duplicates-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-remove-duplicates-corpus-01-report", text)
@@ -818,14 +818,14 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = method_doc_text("fastq.merge_pairs")
 
         self.assertIn("## Workflow", text)
-        self.assertIn("make _benchmark-merge-corpus-01 PLATFORM=lunarc-apptainer", text)
+        self.assertIn("make _benchmark-merge-corpus-01 PLATFORM=apptainer-amd64", text)
         self.assertIn("make _benchmark-merge-corpus-01-report", text)
 
     def test_trim_polyg_method_uses_structured_workflow_contract(self) -> None:
         text = method_doc_text("fastq.trim_polyg_tails")
 
         self.assertIn("## Workflow", text)
-        self.assertIn("make _benchmark-trim-polyg-corpus-01 PLATFORM=lunarc-apptainer", text)
+        self.assertIn("make _benchmark-trim-polyg-corpus-01 PLATFORM=apptainer-amd64", text)
         self.assertIn("make _benchmark-trim-polyg-corpus-01-report", text)
         self.assertIn("configs/bench/workspace.toml", text)
         self.assertNotIn("[workspace.toml](/Users/bijan/", text)
@@ -837,7 +837,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
         self.assertIn("## Workflow", text)
         self.assertIn(
-            "make _benchmark-trim-terminal-damage-corpus-01 PLATFORM=lunarc-apptainer",
+            "make _benchmark-trim-terminal-damage-corpus-01 PLATFORM=apptainer-amd64",
             text,
         )
         self.assertIn("make _benchmark-trim-terminal-damage-corpus-01-report", text)
@@ -854,7 +854,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
             if "## Workflow" not in text:
                 missing_requirements.append(f"{stage_id}:missing-workflow")
-            if f"make {run_target} PLATFORM=lunarc-apptainer" not in text:
+            if f"make {run_target} PLATFORM=apptainer-amd64" not in text:
                 missing_requirements.append(f"{stage_id}:missing-run-target")
             if f"make {report_target}" not in text:
                 missing_requirements.append(f"{stage_id}:missing-report-target")
@@ -1021,6 +1021,19 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = runner_script_text("run_fastq_deplete_rrna_corpus_01.py")
 
         self.assertIn('platform not in {"apptainer-amd64", "lunarc-apptainer"}', text)
+
+    def test_governed_method_docs_use_portable_platform_examples(self) -> None:
+        missing_requirements: list[str] = []
+
+        for stage_id in publication_stage_ids():
+            text = method_doc_text(stage_id)
+
+            if "PLATFORM=apptainer-amd64" not in text:
+                missing_requirements.append(f"{stage_id}:missing-portable-platform-example")
+            if "/scratch/$USER/" in text or "/scratch/" in text:
+                missing_requirements.append(f"{stage_id}:site-specific-scratch-example")
+
+        self.assertEqual(missing_requirements, [])
 
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,

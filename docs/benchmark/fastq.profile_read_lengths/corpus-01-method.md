@@ -3,7 +3,7 @@
 ## Scope
 - Stage: `fastq.profile_read_lengths`
 - Corpus: `corpus-01`
-- Platform target: `lunarc-apptainer`
+- Platform target: `apptainer-amd64`
 - Benchmark scenario: `read_length_fairness`
 
 ## Governed tool cohort
@@ -44,7 +44,7 @@
 
 ## Workflow
 ```bash
-make _benchmark-profile-read-lengths-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-profile-read-lengths-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-profile-read-lengths-corpus-01-report
 ```
 

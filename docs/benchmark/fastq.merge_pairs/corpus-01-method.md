@@ -50,7 +50,7 @@ A complete published dossier for this stage contains:
 ## Workflow
 
 ```bash
-make _benchmark-merge-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-merge-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-merge-corpus-01-report
 ```
 
