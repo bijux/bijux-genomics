@@ -1217,24 +1217,33 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertNotIn("LUNARC_ROOT ?= /home/bijan/bijux", text)
         self.assertNotIn("LUNARC_LOCAL_RESULTS_DIR ?= $(HOME)/bijux/bijux-dna-results", text)
 
-    def test_deplete_rrna_corpus_target_forwards_stage_args_through_rust_runner(
+    def test_deplete_rrna_corpus_target_uses_config_managed_stage_inputs(
         self,
     ) -> None:
-        text = benchmark_makefile_text()
         recipe = makefile_target_recipe("_benchmark-deplete-rrna-corpus-01")
+        config_text = (ROOT / "configs" / "bench" / "benchmark.toml").read_text(
+            encoding="utf-8"
+        )
 
         self.assertIn("$(call run_corpus_fastq_benchmark,fastq.deplete_rrna", recipe)
-        self.assertIn('--stage-arg "--rrna-db"', text)
-        self.assertIn('--stage-arg "--rrna-bundle-id"', text)
+        self.assertIn("[stage_inputs.fastq_deplete_rrna]", config_text)
+        self.assertIn('rrna_db = "${BIJUX_BENCHMARK_FASTQ_DEPLETE_RRNA_DB}"', config_text)
+        self.assertIn('rrna_bundle_id = "sortmerna_v4_3_default_db"', config_text)
 
-    def test_screen_taxonomy_corpus_target_forwards_database_root_through_rust_runner(
+    def test_screen_taxonomy_corpus_target_uses_config_managed_stage_inputs(
         self,
     ) -> None:
-        text = benchmark_makefile_text()
         recipe = makefile_target_recipe("_benchmark-screen-taxonomy-corpus-01")
+        config_text = (ROOT / "configs" / "bench" / "benchmark.toml").read_text(
+            encoding="utf-8"
+        )
 
         self.assertIn("$(call run_corpus_fastq_benchmark,fastq.screen_taxonomy", recipe)
-        self.assertIn('--stage-arg "--database-root"', text)
+        self.assertIn("[stage_inputs.fastq_screen_taxonomy]", config_text)
+        self.assertIn(
+            'database_root = "${BIJUX_BENCHMARK_FASTQ_SCREEN_TAXONOMY_DB}"',
+            config_text,
+        )
 
     def test_lunarc_makefile_exports_neutral_benchmark_sync_env_vars(self) -> None:
         text = lunarc_makefile_text()
@@ -2010,11 +2019,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
         text = benchmark_workflow_operations_text()
 
         self.assertIn(
-            "Sync the private benchmark repo checkout to `remote.repo_root`.",
+            "Sync the private benchmark repo checkout to `workspace.remote.repo_root`.",
             text,
         )
         self.assertIn(
-            "Sync the governed shared cache tree rooted at `remote.cache_root`.",
+            "Sync the governed shared cache tree rooted at `workspace.remote.cache_root`.",
             text,
         )
         self.assertIn(
