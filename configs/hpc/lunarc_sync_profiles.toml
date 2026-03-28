@@ -16,3 +16,18 @@ exclude_file = "configs/hpc/rsync/pull-full-excludes.txt"
 [[profiles]]
 name = "pull-results-default"
 include_file = "configs/hpc/rsync/pull-results-includes.txt"
+
+[[profiles]]
+name = "pull-benchmark-publication"
+mode = "results"
+include_file = "configs/hpc/rsync/pull-results-includes.txt"
+workspace_scope = "corpus-01-fastq-publication"
+pull_destination = "local.results_root"
+remote_roots = [
+  "remote.results_root",
+  "remote.results_legacy_root",
+  "remote.extra_data_root",
+]
+data_manifest_globs = [
+  "benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv",
+]

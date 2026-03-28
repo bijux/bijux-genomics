@@ -40,6 +40,17 @@ Do not scatter benchmark pulls across ad hoc local directories. Keep mirrored ar
 
 The benchmark Python support layer should consume `configs/bench/workspace.toml` rather than embedding cluster-specific paths in code. A cluster migration is complete only when the config changes are sufficient and the benchmark suite still passes without path edits in `makes/bin`.
 
+## Sync Profile Contract
+
+`configs/hpc/lunarc_sync_profiles.toml` is the benchmark sync profile registry. Profiles must describe more than rsync include and exclude files:
+
+- `workspace_scope` declares the governed benchmark workflow that owns the profile.
+- `pull_destination` names the workspace destination contract instead of relying on an operator-specific shell default.
+- `remote_roots` lists the governed remote roots the profile is allowed to mirror.
+- `data_manifest_globs` records extra-data dependencies needed to render or audit dossiers after the pull.
+
+The `pull-benchmark-publication` profile is the governed profile for corpus-01 FASTQ dossier publication. It mirrors the shared results trees plus the taxonomy lineage file needed by `fastq.screen_taxonomy`.
+
 ## Publication Checklist
 
 - Confirm `configs/bench/workspace.toml` names the correct `local` and `remote` roots.

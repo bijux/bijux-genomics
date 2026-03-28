@@ -121,6 +121,12 @@ def benchmark_workflow_operations_text() -> str:
     )
 
 
+def lunarc_sync_profiles_text() -> str:
+    return (ROOT / "configs" / "hpc" / "lunarc_sync_profiles.toml").read_text(
+        encoding="utf-8"
+    )
+
+
 def makefile_target_recipe(target: str) -> str:
     lines = benchmark_makefile_text().splitlines()
     capture = False
@@ -721,6 +727,24 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("corpus-01-dossier-index.json", text)
         self.assertIn("corpus-01-results-status.json", text)
         self.assertIn("corpus-01-remediation-queue.json", text)
+
+    def test_lunarc_sync_profiles_define_governed_publication_profile(self) -> None:
+        text = lunarc_sync_profiles_text()
+
+        self.assertIn('name = "pull-benchmark-publication"', text)
+        self.assertIn('workspace_scope = "corpus-01-fastq-publication"', text)
+        self.assertIn('pull_destination = "local.results_root"', text)
+        self.assertIn('"remote.results_root"', text)
+        self.assertIn('"remote.results_legacy_root"', text)
+        self.assertIn('"remote.extra_data_root"', text)
+
+    def test_lunarc_sync_profiles_capture_taxonomy_lineage_dependency(self) -> None:
+        text = lunarc_sync_profiles_text()
+
+        self.assertIn(
+            'benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv',
+            text,
+        )
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
