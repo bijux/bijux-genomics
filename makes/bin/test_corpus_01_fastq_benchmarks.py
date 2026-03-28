@@ -4740,6 +4740,155 @@ class ReportQcReportingTests(unittest.TestCase):
             self.assertEqual(row["multiqc_module_count"], 3)
             self.assertEqual(row["multiqc_report"], str(data_dir / "multiqc_report.html"))
 
+    def test_report_qc_summary_preserves_configured_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = repo_root / "results" / "corpus_01" / "fastq.report_qc" / "lunarc"
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.report_qc" / "corpus-01"
+            sample_root = run_root / "bench" / "report_qc" / "sample_0001"
+            tool_root = sample_root / "tools" / "multiqc"
+            raw_fastqc_dir = sample_root / "tools" / "fastqc" / "fastqc"
+            raw_fastqc_dir.mkdir(parents=True)
+            multiqc_data = tool_root / "multiqc_data"
+            report_data_dir = multiqc_data / "multiqc_report_data"
+            report_data_dir.mkdir(parents=True)
+            (multiqc_data / "multiqc_report.html").write_text("<html></html>\n", encoding="utf-8")
+            (report_data_dir / "multiqc_data.json").write_text(
+                json.dumps(
+                    {
+                        "report_general_stats_data": [{"sample_0001": {"total_sequences": 100}}],
+                        "report_plot_data": {
+                            "general_stats_table": {},
+                            "fastqc_sequence_counts_plot": {},
+                            "fastqc_adapter_content_plot": {},
+                        },
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            governed_manifest = sample_root / "governed_qc_inputs_manifest.json"
+            governed_manifest.write_text(json.dumps({"inputs": []}) + "\n", encoding="utf-8")
+            sample_report = sample_root / "report.json"
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {"tool": "multiqc"},
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "reads_in": 100,
+                                        "reads_out": 100,
+                                        "bases_in": 1000,
+                                        "bases_out": 1000,
+                                        "pairs_in": 50,
+                                        "pairs_out": 50,
+                                        "mean_q": 34.0,
+                                        "contamination_rate": 0.01,
+                                        "multiqc_sample_count": 1,
+                                        "multiqc_module_count": 3,
+                                        "governed_qc_input_count": 6,
+                                        "governed_qc_lineage_hash": "sha256:lineage",
+                                        "raw_fastqc_dir": str(raw_fastqc_dir),
+                                        "multiqc_report": str(multiqc_data / "multiqc_report.html"),
+                                        "multiqc_data": str(multiqc_data),
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (tool_root / "report_qc_report.json").write_text(
+                json.dumps({"status": "ok"}) + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.report_qc",
+                        "scenario_id": "qc_aggregation_fairness",
+                        "tool_kind": "benchmark",
+                        "tools": ["multiqc"],
+                        "aggregation_engine": "multiqc",
+                        "aggregation_scope": "governed_qc_artifacts",
+                        "report_only": True,
+                        "mutates_fastq": False,
+                        "may_change_read_count": False,
+                        "samples_total": 1,
+                        "samples_failed": 0,
+                        "governed_contributor_stage_ids": [
+                            "fastq.validate_reads",
+                            "fastq.detect_adapters",
+                            "fastq.profile_reads",
+                            "fastq.profile_read_lengths",
+                        ],
+                        "governed_contributor_tool_ids": [
+                            "fastqvalidator",
+                            "fastqc",
+                            "seqkit_stats",
+                        ],
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "pe",
+                                "report_json": str(sample_report),
+                                "governed_qc_input_count": 6,
+                                "governed_qc_manifest": str(governed_manifest),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_report_qc_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    report_qc_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    report_qc_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "modern",
+                            "layout": "pe",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(report_qc_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+
 
 class TrimReadsReportingTests(unittest.TestCase):
     def test_trim_reads_summary_tracks_runtime_and_retention(self) -> None:

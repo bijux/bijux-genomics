@@ -2,9 +2,9 @@
 
 ## Run Contract
 
-- Generated: 2026-03-28T02:27:47.680379+00:00
+- Generated: 2026-03-28T02:54:02.733622+00:00
 - Platform: `lunarc-apptainer`
-- Corpus root: `/System/Volumes/Data/home/bijan/lu2024-12-24/.cache/corpus_01`
+- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
 - Run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.report_qc/lunarc`
 - Scenario: `qc_aggregation_fairness`
 - Samples benchmarked: `20`
