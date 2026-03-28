@@ -171,6 +171,15 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
         self.assertIn("_benchmark-deplete-host-corpus-01-report", recipe)
 
+    def test_published_dossiers_refresh_includes_deplete_reference_contaminants(
+        self,
+    ) -> None:
+        recipe = makefile_target_recipe("_benchmark-corpus-01-published-dossiers")
+
+        self.assertIn(
+            "_benchmark-deplete-reference-contaminants-corpus-01-report", recipe
+        )
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
