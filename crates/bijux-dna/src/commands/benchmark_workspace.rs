@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 
 pub(crate) const BENCHMARK_CONFIG_ENV: &str = "BIJUX_BENCHMARK_CONFIG";
 pub(crate) const BENCHMARK_CONFIG_JSON_ENV: &str = "BIJUX_BENCHMARK_CONFIG_JSON";
-pub(crate) const LEGACY_BENCHMARK_WORKSPACE_CONFIG_ENV: &str = "BIJUX_FASTQ_CORPUS_CONFIG";
 pub(crate) const DEFAULT_BENCHMARK_CONFIG: &str = "configs/bench/benchmark.toml";
 pub(crate) const DEFAULT_BENCHMARK_WORKSPACE_CONFIG: &str = "configs/bench/workspace.toml";
 pub(crate) const DEFAULT_BENCHMARK_PUBLICATION_CONFIG: &str = "configs/bench/publication.toml";
@@ -171,12 +170,6 @@ fn benchmark_config_path_env_override() -> Option<PathBuf> {
         .map(PathBuf::from)
 }
 
-fn legacy_workspace_config_path_env_override() -> Option<PathBuf> {
-    std::env::var_os(LEGACY_BENCHMARK_WORKSPACE_CONFIG_ENV)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-}
-
 fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
     if path.is_absolute() {
         path.to_path_buf()
@@ -191,14 +184,6 @@ fn resolve_config_path(cwd: &Path, explicit_path: Option<&Path>, default_rel: &s
     }
     if default_rel == DEFAULT_BENCHMARK_CONFIG {
         if let Some(path) = benchmark_config_path_env_override() {
-            return absolutize(cwd, &path);
-        }
-        if let Some(path) = legacy_workspace_config_path_env_override() {
-            return absolutize(cwd, &path);
-        }
-    }
-    if default_rel == DEFAULT_BENCHMARK_WORKSPACE_CONFIG {
-        if let Some(path) = legacy_workspace_config_path_env_override() {
             return absolutize(cwd, &path);
         }
     }
@@ -283,7 +268,10 @@ fn normalize_benchmark_config(mut config: BenchmarkConfig) -> BenchmarkConfig {
     normalize_optional_string(&mut config.stage_inputs.fastq_deplete_host.reference_index);
     normalize_optional_string(&mut config.stage_inputs.fastq_deplete_host.reference_catalog_id);
     normalize_optional_string(
-        &mut config.stage_inputs.fastq_deplete_host.reference_index_backend,
+        &mut config
+            .stage_inputs
+            .fastq_deplete_host
+            .reference_index_backend,
     );
     normalize_optional_string(
         &mut config
@@ -305,14 +293,18 @@ fn normalize_benchmark_config(mut config: BenchmarkConfig) -> BenchmarkConfig {
     );
     normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_root);
     normalize_optional_string(
-        &mut config.stage_inputs.fastq_screen_taxonomy.database_catalog_id,
+        &mut config
+            .stage_inputs
+            .fastq_screen_taxonomy
+            .database_catalog_id,
     );
     normalize_optional_string(
-        &mut config.stage_inputs.fastq_screen_taxonomy.database_artifact_id,
+        &mut config
+            .stage_inputs
+            .fastq_screen_taxonomy
+            .database_artifact_id,
     );
-    normalize_optional_string(
-        &mut config.stage_inputs.fastq_screen_taxonomy.database_namespace,
-    );
+    normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_namespace);
     normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_scope);
     config
 }
@@ -666,9 +658,18 @@ fn normalize_workspace_layout_report(
     let cache_stage_ids = stage_directory_names(&canonical_corpus_root);
     let archive_set = archive_stage_ids.iter().cloned().collect::<BTreeSet<_>>();
     let cache_set = cache_stage_ids.iter().cloned().collect::<BTreeSet<_>>();
-    let shared_stage_ids = archive_set.intersection(&cache_set).cloned().collect::<Vec<_>>();
-    let archive_only_stage_ids = archive_set.difference(&cache_set).cloned().collect::<Vec<_>>();
-    let cache_only_stage_ids = cache_set.difference(&archive_set).cloned().collect::<Vec<_>>();
+    let shared_stage_ids = archive_set
+        .intersection(&cache_set)
+        .cloned()
+        .collect::<Vec<_>>();
+    let archive_only_stage_ids = archive_set
+        .difference(&cache_set)
+        .cloned()
+        .collect::<Vec<_>>();
+    let cache_only_stage_ids = cache_set
+        .difference(&archive_set)
+        .cloned()
+        .collect::<Vec<_>>();
 
     let plan = plan_root_convergence(&canonical_corpus_root, &legacy_corpus_root)?;
     let convergence_report = if confirm {
@@ -773,10 +774,12 @@ fn remove_empty_parents(root: &Path, stop_at: &Path) -> Result<()> {
     let mut current = root.to_path_buf();
     while current != stop_at && current.exists() {
         match fs::remove_dir(&current) {
-            Ok(()) => current = current
-                .parent()
-                .ok_or_else(|| anyhow!("missing parent for {}", root.display()))?
-                .to_path_buf(),
+            Ok(()) => {
+                current = current
+                    .parent()
+                    .ok_or_else(|| anyhow!("missing parent for {}", root.display()))?
+                    .to_path_buf()
+            }
             Err(err) if err.kind() == std::io::ErrorKind::DirectoryNotEmpty => break,
             Err(err) if err.kind() == std::io::ErrorKind::NotFound => break,
             Err(err) => {
@@ -1454,6 +1457,24 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
     }
 
     #[test]
+    fn benchmark_config_path_honors_benchmark_config_env_override() {
+        let _env_lock = ENV_LOCK.lock().expect("env lock");
+        let temp = tempfile::tempdir().expect("tempdir");
+        let override_path = temp.path().join("custom-benchmark.toml");
+        std::fs::write(&override_path, "").expect("write override");
+
+        std::env::set_var(BENCHMARK_CONFIG_ENV, &override_path);
+        let benchmark_path = benchmark_config_path(temp.path(), None);
+        let workspace_path = benchmark_workspace_config_path(temp.path(), None);
+        let publication_path = benchmark_publication_config_path(temp.path(), None);
+        std::env::remove_var(BENCHMARK_CONFIG_ENV);
+
+        assert_eq!(benchmark_path, override_path);
+        assert_eq!(workspace_path, override_path);
+        assert_eq!(publication_path, override_path);
+    }
+
+    #[test]
     fn optional_workspace_load_returns_none_when_missing() {
         let temp = tempfile::tempdir().expect("tempdir");
         let config = load_optional_benchmark_workspace_config(temp.path(), None)
@@ -1586,20 +1607,15 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         assert!(!legacy_stage_root.exists());
         assert!(canonical_stage_root.exists());
         assert!(!archive_only_stage_root.exists());
-        assert!(
-            cache_mirror_root
-                .join("results")
-                .join("corpus_01")
-                .join("fastq.validate_reads")
-                .join("lunarc")
-                .exists()
-        );
+        assert!(cache_mirror_root
+            .join("results")
+            .join("corpus_01")
+            .join("fastq.validate_reads")
+            .join("lunarc")
+            .exists());
         assert_eq!(report.status, "clear");
         assert_eq!(report.moved_stage_ids, vec!["fastq.validate_reads"]);
-        assert_eq!(
-            report.removed_duplicate_stage_ids,
-            vec!["fastq.trim_reads"]
-        );
+        assert_eq!(report.removed_duplicate_stage_ids, vec!["fastq.trim_reads"]);
         assert!(report.manual_review_stage_ids.is_empty());
     }
 
@@ -1688,18 +1704,19 @@ corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
         .expect("write config");
 
         let config = load_benchmark_config(temp.path(), None).expect("load benchmark config");
-        assert_eq!(config.workspace.remote.and_then(|row| row.corpus_root), None);
+        assert_eq!(
+            config.workspace.remote.and_then(|row| row.corpus_root),
+            None
+        );
         let error = benchmark_workspace_value(temp.path(), None, "remote.corpus_root")
             .expect_err("missing value");
-        assert!(
-            error
-                .to_string()
-                .contains("missing benchmark workspace value for `remote.corpus_root`")
-        );
+        assert!(error
+            .to_string()
+            .contains("missing benchmark workspace value for `remote.corpus_root`"));
     }
 
     #[test]
-    fn legacy_workspace_and_publication_shims_expand_environment_placeholders() {
+    fn workspace_and_publication_shims_expand_environment_placeholders() {
         let _env_lock = ENV_LOCK.lock().expect("env lock");
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
@@ -1726,7 +1743,8 @@ tools = ["fastqc"]
 
         std::env::set_var("BIJUX_TEST_RESULTS_ROOT", "/tmp/legacy-results");
         std::env::set_var("BIJUX_TEST_CORPUS_ROOT", "/tmp/legacy-corpus");
-        let config = load_benchmark_config(temp.path(), None).expect("load legacy benchmark config");
+        let config =
+            load_benchmark_config(temp.path(), None).expect("load synthesized benchmark config");
         std::env::remove_var("BIJUX_TEST_RESULTS_ROOT");
         std::env::remove_var("BIJUX_TEST_CORPUS_ROOT");
 
