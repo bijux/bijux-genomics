@@ -1,3 +1,37 @@
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize, Default)]
+struct BenchmarkWorkspaceContract {
+    remote: Option<BenchmarkWorkspaceRemote>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct BenchmarkWorkspaceRemote {
+    cache_root: Option<String>,
+    corpus_root: Option<String>,
+    results_root: Option<String>,
+    containers_root: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct BenchmarkEnvRoots {
+    cache_root: PathBuf,
+    containers_root: PathBuf,
+    corpus_root: PathBuf,
+    results_root: PathBuf,
+}
+
+fn load_benchmark_workspace_contract(cwd: &Path) -> Result<Option<BenchmarkWorkspaceContract>> {
+    let path = cwd.join("configs/bench/workspace.toml");
+    if !path.is_file() {
+        return Ok(None);
+    }
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let parsed = toml::from_str::<BenchmarkWorkspaceContract>(&raw)
+        .with_context(|| format!("parse {}", path.display()))?;
+    Ok(Some(parsed))
+}
+
 fn shared_cache_root(root: &Path) -> PathBuf {
     if root
         .file_name()
@@ -7,6 +41,38 @@ fn shared_cache_root(root: &Path) -> PathBuf {
         return root.to_path_buf();
     }
     root.join(".cache")
+}
+
+fn benchmark_env_roots(cwd: &Path, hpc_root: &Path) -> Result<BenchmarkEnvRoots> {
+    if let Some(contract) = load_benchmark_workspace_contract(cwd)? {
+        if let Some(remote) = contract.remote {
+            if let (
+                Some(cache_root),
+                Some(containers_root),
+                Some(corpus_root),
+                Some(results_root),
+            ) = (
+                remote.cache_root,
+                remote.containers_root,
+                remote.corpus_root,
+                remote.results_root,
+            ) {
+                return Ok(BenchmarkEnvRoots {
+                    cache_root: PathBuf::from(cache_root),
+                    containers_root: PathBuf::from(containers_root),
+                    corpus_root: PathBuf::from(corpus_root),
+                    results_root: PathBuf::from(results_root),
+                });
+            }
+        }
+    }
+    let cache_root = shared_cache_root(hpc_root);
+    Ok(BenchmarkEnvRoots {
+        containers_root: cache_root.join("bijux-dna-container"),
+        corpus_root: cache_root.join("corpus_01"),
+        results_root: cache_root.join("results"),
+        cache_root,
+    })
 }
 
 /// # Errors
@@ -19,6 +85,7 @@ pub fn ensure_apptainer_images(
     force_smoke: bool,
     repair_mismatch: bool,
 ) -> Result<EnsureImagesReport> {
+    let cwd = std::env::current_dir().context("resolve current working directory")?;
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
     let tools = parse_tools_registry_rows(&raw)?
@@ -31,10 +98,10 @@ pub fn ensure_apptainer_images(
         .collect::<std::collections::BTreeMap<_, _>>();
     let stage_ids = normalize_stage_ids(domain, stages_csv);
 
-    let cache_root = shared_cache_root(hpc_root);
-    let containers_root = cache_root.join("bijux-dna-container");
-    let data_root = cache_root.join("corpus_01");
-    let results_root = cache_root.join("results");
+    let roots = benchmark_env_roots(&cwd, hpc_root)?;
+    let containers_root = roots.containers_root;
+    let data_root = roots.corpus_root;
+    let results_root = roots.results_root;
     bijux_dna_api::v1::api::run::ensure_dir(&containers_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&data_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&results_root)?;
@@ -190,6 +257,7 @@ pub fn ensure_apptainer_tools(
     force_smoke: bool,
     repair_mismatch: bool,
 ) -> Result<()> {
+    let cwd = std::env::current_dir().context("resolve current working directory")?;
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
     let tools = parse_tools_registry_rows(&raw)?
@@ -205,10 +273,10 @@ pub fn ensure_apptainer_tools(
         return Err(anyhow!("no tool ids provided for apptainer ensure"));
     }
 
-    let cache_root = shared_cache_root(hpc_root);
-    let containers_root = cache_root.join("bijux-dna-container");
-    let data_root = cache_root.join("corpus_01");
-    let results_root = cache_root.join("results");
+    let roots = benchmark_env_roots(&cwd, hpc_root)?;
+    let containers_root = roots.containers_root;
+    let data_root = roots.corpus_root;
+    let results_root = roots.results_root;
     bijux_dna_api::v1::api::run::ensure_dir(&containers_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&data_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&results_root)?;
@@ -379,7 +447,8 @@ pub fn parse_stage_domain(stage: &str) -> Result<String> {
 /// # Errors
 /// Returns an error if the containers inventory cannot be read.
 pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
-    let containers_dir = shared_cache_root(root).join("bijux-dna-container");
+    let cwd = std::env::current_dir().context("resolve current working directory")?;
+    let containers_dir = benchmark_env_roots(&cwd, root)?.containers_root;
     let mut entries = Vec::new();
     let mut stack = vec![containers_dir.clone()];
     while let Some(dir) = stack.pop() {
@@ -471,8 +540,28 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
 
 #[cfg(test)]
 mod env_registry_command_tests {
-    use super::shared_cache_root;
-    use std::path::Path;
+    use super::{benchmark_env_roots, shared_cache_root, BenchmarkEnvRoots};
+    use std::path::{Path, PathBuf};
+    use tempfile::TempDir;
+
+    fn write_workspace_contract(temp: &TempDir) {
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("create benchmark config dir");
+        std::fs::write(
+            config_dir.join("workspace.toml"),
+            r#"[local]
+results_root = "/local/results"
+cache_mirror_root = "/local/results/home/user/.cache"
+
+[remote]
+cache_root = "/remote/.cache"
+corpus_root = "/remote/.cache/corpus_01"
+results_root = "/remote/.cache/results"
+containers_root = "/remote/.cache/bijux-dna-container"
+"#,
+        )
+        .expect("write workspace contract");
+    }
 
     #[test]
     fn shared_cache_root_appends_cache_for_hpc_root() {
@@ -489,6 +578,47 @@ mod env_registry_command_tests {
         assert_eq!(
             shared_cache_root(root),
             Path::new("/home/bijan/lu2024-12-24/.cache")
+        );
+    }
+
+    #[test]
+    fn benchmark_env_roots_prefer_workspace_contract_when_present() {
+        let temp = TempDir::new().expect("tempdir");
+        write_workspace_contract(&temp);
+
+        let roots = benchmark_env_roots(temp.path(), Path::new("/home/bijan/bijux"))
+            .expect("benchmark env roots");
+
+        assert_eq!(
+            roots,
+            BenchmarkEnvRoots {
+                cache_root: PathBuf::from("/remote/.cache"),
+                containers_root: PathBuf::from("/remote/.cache/bijux-dna-container"),
+                corpus_root: PathBuf::from("/remote/.cache/corpus_01"),
+                results_root: PathBuf::from("/remote/.cache/results"),
+            }
+        );
+    }
+
+    #[test]
+    fn benchmark_env_roots_fall_back_to_cache_layout_without_contract() {
+        let temp = TempDir::new().expect("tempdir");
+
+        let roots = benchmark_env_roots(temp.path(), Path::new("/home/bijan/lu2024-12-24"))
+            .expect("benchmark env roots");
+
+        assert_eq!(roots.cache_root, PathBuf::from("/home/bijan/lu2024-12-24/.cache"));
+        assert_eq!(
+            roots.containers_root,
+            PathBuf::from("/home/bijan/lu2024-12-24/.cache/bijux-dna-container")
+        );
+        assert_eq!(
+            roots.corpus_root,
+            PathBuf::from("/home/bijan/lu2024-12-24/.cache/corpus_01")
+        );
+        assert_eq!(
+            roots.results_root,
+            PathBuf::from("/home/bijan/lu2024-12-24/.cache/results")
         );
     }
 }

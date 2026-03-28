@@ -512,6 +512,27 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertNotIn("LUNARC_ROOT ?= /home/bijan/bijux", text)
         self.assertNotIn("LUNARC_LOCAL_RESULTS_DIR ?= $(HOME)/bijux/bijux-dna-results", text)
 
+    def test_lunarc_makefile_exports_neutral_benchmark_sync_env_vars(self) -> None:
+        text = lunarc_makefile_text()
+
+        self.assertIn('BENCHMARK_SYNC_HOST="$(LUNARC_HOST)"', text)
+        self.assertIn(
+            'BENCHMARK_SYNC_FRONTEND_ROOT="$(LUNARC_ROOT)"',
+            text,
+        )
+        self.assertIn(
+            'BENCHMARK_SYNC_REPO_ROOT="$(LUNARC_REPO_DIR)"',
+            text,
+        )
+        self.assertIn(
+            'BENCHMARK_SYNC_RESULTS_ROOT="$(LUNARC_RESULTS_DIR)"',
+            text,
+        )
+        self.assertIn(
+            'BENCHMARK_SYNC_PULL_DEST="$(LUNARC_LOCAL_RESULTS_DIR)"',
+            text,
+        )
+
     def test_lunarc_footprint_checks_configured_roots_instead_of_fixed_dir_names(self) -> None:
         recipe = ""
         capture = False
@@ -887,6 +908,13 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("workspace-layout-status.json", text)
         self.assertIn("corpus-01-results-status.json", text)
         self.assertIn("corpus-01-remediation-queue.json", text)
+
+    def test_benchmark_workflow_operations_doc_mentions_neutral_sync_aliases(self) -> None:
+        text = benchmark_workflow_operations_text()
+
+        self.assertIn("benchmark-sync-pull", text)
+        self.assertIn("benchmark-sync-push", text)
+        self.assertIn("BENCHMARK_SYNC_*", text)
 
     def test_lunarc_sync_profiles_define_governed_publication_profile(self) -> None:
         text = lunarc_sync_profiles_text()

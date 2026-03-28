@@ -38,6 +38,8 @@ make benchmark-lunarc-publication-refresh
 
 That command pulls the governed results mirror, pulls the taxonomy lineage file required by `fastq.screen_taxonomy`, refreshes the published dossiers, and rebuilds the publication audits.
 
+When driving the sync surface directly through `cargo run -p bijux-dna-dev -- hpc run ...`, prefer the neutral aliases `benchmark-sync-pull` and `benchmark-sync-push`. The legacy `lunarc-pull` and `lunarc-push` aliases remain available for compatibility with existing automation.
+
 ## Move To Another Cluster With Config
 
 1. Copy `configs/bench/workspace.toml` and update the `[remote]` paths for the new frontend checkout, shared cache root, results root, extra-data root, container root, and reference root.
@@ -58,6 +60,8 @@ The benchmark Python support layer should consume `configs/bench/workspace.toml`
 - `data_manifest_globs` records extra-data dependencies needed to render or audit dossiers after the pull.
 
 The `pull-benchmark-publication` profile is the governed profile for corpus-01 FASTQ dossier publication. It mirrors the shared results trees plus the taxonomy lineage file needed by `fastq.screen_taxonomy`.
+
+If you need environment overrides, prefer the neutral `BENCHMARK_SYNC_*` variables over the legacy `LUNARC_*` names. The workspace contract in `configs/bench/workspace.toml` should still remain the primary source of truth.
 
 ## Publication Checklist
 
