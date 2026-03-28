@@ -465,6 +465,45 @@ REPORT_QC_CONTRIBUTOR_CONTRACTS = [
 ]
 
 
+CORPUS_01_STAGE_TARGET_STEMS = {
+    "fastq.validate_reads": "validate",
+    "fastq.trim_polyg_tails": "trim-polyg",
+    "fastq.trim_reads": "trim-reads",
+    "fastq.trim_terminal_damage": "trim-terminal-damage",
+    "fastq.detect_adapters": "detect-adapters",
+    "fastq.profile_reads": "profile-reads",
+    "fastq.profile_read_lengths": "profile-read-lengths",
+    "fastq.profile_overrepresented_sequences": "profile-overrepresented",
+    "fastq.filter_low_complexity": "filter-low-complexity",
+    "fastq.filter_reads": "filter-reads",
+    "fastq.remove_duplicates": "remove-duplicates",
+    "fastq.merge_pairs": "merge",
+    "fastq.report_qc": "report-qc",
+    "fastq.normalize_primers": "normalize-primers",
+    "fastq.deplete_rrna": "deplete-rrna",
+    "fastq.deplete_host": "deplete-host",
+    "fastq.deplete_reference_contaminants": "deplete-reference-contaminants",
+    "fastq.screen_taxonomy": "screen-taxonomy",
+    "fastq.correct_errors": "correct-errors",
+    "fastq.extract_umis": "extract-umis",
+}
+
+
+def corpus_01_make_target_stem(stage_id: str) -> str:
+    try:
+        return CORPUS_01_STAGE_TARGET_STEMS[stage_id]
+    except KeyError as err:
+        raise KeyError(f"missing corpus-01 make target stem for stage {stage_id}") from err
+
+
+def corpus_01_make_run_target(stage_id: str) -> str:
+    return f"_benchmark-{corpus_01_make_target_stem(stage_id)}-corpus-01"
+
+
+def corpus_01_make_report_target(stage_id: str) -> str:
+    return f"{corpus_01_make_run_target(stage_id)}-report"
+
+
 def trim_reads_benchmark_defaults() -> dict:
     return {
         "min_length": None,
