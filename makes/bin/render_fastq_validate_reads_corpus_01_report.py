@@ -240,9 +240,11 @@ def main() -> int:
 
     summary = {
         "schema_version": "bijux.fastq.validate_reads.corpus_summary.v1",
+        "stage_id": VALIDATE_READS_BENCHMARK_CONTRACT.stage_id,
+        "scenario_id": VALIDATE_READS_BENCHMARK_CONTRACT.scenario_id,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "platform": run_manifest["platform"],
-        "corpus_root": run_manifest["corpus_root"],
+        "corpus_root": str(corpus_root),
         "run_root": str(run_root),
         "samples_total": run_manifest["samples_total"],
         "samples_failed": run_manifest["samples_failed"],

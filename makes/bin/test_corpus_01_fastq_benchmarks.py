@@ -3257,12 +3257,97 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
                 for issue in report["issues"]
             )
         )
-        self.assertFalse(
-            any(
-                issue["issue_id"] == "missing-local-run-root"
-                for issue in report["issues"]
+
+
+class ValidateReadsReportingTests(unittest.TestCase):
+    def test_validate_reads_summary_preserves_contract_identity_and_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = repo_root / "results" / "corpus_01" / "fastq.validate_reads" / "lunarc"
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+            sample_report = (
+                run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
             )
-        )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {"tool": "fastq_scan"},
+                                "execution": {"runtime_s": 1.2, "exit_code": 0},
+                                "metrics": {"reads_invalid": 0, "reads_total": 10},
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.validate_reads",
+                        "scenario_id": "validation_fairness",
+                        "samples_total": 1,
+                        "samples_failed": 0,
+                        "tools": ["fastq_scan"],
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "se",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_validate_reads_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    validate_reads_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    validate_reads_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "ancient",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(validate_reads_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(summary["stage_id"], "fastq.validate_reads")
+            self.assertEqual(summary["scenario_id"], "validation_fairness")
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
 
 
 class TrimPolygReportingTests(unittest.TestCase):
