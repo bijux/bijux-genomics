@@ -8,148 +8,23 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-from corpus_01_fastq_benchmark_support import parse_corpus_briefing_args
-
+from corpus_01_fastq_benchmark_support import (
+    fmt_csv_value,
+    fmt_fraction,
+    fmt_runtime,
+    load_csv_rows,
+    load_json,
+    parse_corpus_briefing_args,
+    percentile,
+    safe_mean,
+    safe_median,
+)
 
 def parse_args() -> argparse.Namespace:
     return parse_corpus_briefing_args(
         description="Render an enriched benchmark briefing from corpus-01 report-qc artifacts.",
         docs_root="docs/benchmark/fastq.report_qc/corpus-01",
     )
-
-
-def load_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def load_rows(path: Path) -> list[dict]:
-    with path.open(encoding="utf-8", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def safe_median(values: list[float]) -> float | None:
-    if not values:
-        return None
-    return float(statistics.median(values))
-
-
-def safe_mean(values: list[float]) -> float | None:
-    if not values:
-        return None
-    return float(statistics.mean(values))
-
-
-def percentile(values: list[float], fraction: float) -> float | None:
-    if not values:
-        return None
-    ordered = sorted(values)
-    index = round((len(ordered) - 1) * fraction)
-    return float(ordered[index])
-
-
-def fmt_runtime(value: float | None) -> str:
-    if value is None:
-        return "n/a"
-    return f"{value:.3f}"
-
-
-def fmt_value(value: float | None) -> str:
-    if value is None:
-        return "n/a"
-    return f"{value:.3f}"
-
-
-def fmt_fraction(value: float | None) -> str:
-    if value is None:
-        return "n/a"
-    return f"{value:.1%}"
-
-
-def fmt_csv_value(value: object) -> object:
-    if isinstance(value, float):
-        return f"{value:.6f}"
-    return value
-
-
-def optional_float(raw: str) -> float | None:
-    if raw == "":
-        return None
-    return float(raw)
-
-
-def optional_int(raw: str) -> int | None:
-    if raw == "":
-        return None
-    return int(raw)
-
-
-def validate_summary_contract(summary: dict) -> None:
-    if summary.get("stage_id") != "fastq.report_qc":
-        raise SystemExit(
-            "report-qc briefing drift: "
-            f"expected stage_id fastq.report_qc, found {summary.get('stage_id')}"
-        )
-    if summary.get("scenario_id") != "qc_aggregation_fairness":
-        raise SystemExit(
-            "report-qc briefing drift: "
-            f"expected scenario_id qc_aggregation_fairness, found {summary.get('scenario_id')}"
-        )
-    expected_contract = {
-        "aggregation_engine": "multiqc",
-        "aggregation_scope": "governed_qc_artifacts",
-        "report_only": True,
-        "mutates_fastq": False,
-        "may_change_read_count": False,
-    }
-    for key, expected in expected_contract.items():
-        if summary.get(key) != expected:
-            raise SystemExit(
-                "report-qc briefing drift: "
-                f"expected {key}={expected!r}, found {summary.get(key)!r}"
-            )
-    if not summary.get("governed_contributor_stage_ids"):
-        raise SystemExit(
-            "report-qc briefing drift: governed contributor stages must not be empty"
-        )
-
-
-def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
-    if not rows:
-        raise SystemExit("report-qc briefing drift: sample_results.csv must not be empty")
-    expected_tools = sorted(summary["tools"])
-    observed_tools = sorted({row["tool"] for row in rows})
-    if observed_tools != expected_tools:
-        raise SystemExit(
-            "report-qc briefing drift: "
-            f"expected tools {expected_tools}, found {observed_tools}"
-        )
-    for row in rows:
-        if int(row["governed_qc_input_count"]) <= 0:
-            raise SystemExit(
-                "report-qc briefing drift: "
-                f"governed_qc_input_count must be positive for {row['sample_id']}/{row['tool']}"
-            )
-        if int(row["expected_governed_qc_input_count"]) != int(
-            row["governed_qc_input_count"]
-        ):
-            raise SystemExit(
-                "report-qc briefing drift: "
-                f"governed input count mismatch for {row['sample_id']}/{row['tool']}"
-            )
-        for key in [
-            "governed_qc_manifest_artifact",
-            "report_json_artifact",
-            "raw_fastqc_dir",
-            "multiqc_report",
-            "multiqc_data",
-        ]:
-            value = row.get(key, "")
-            if not value:
-                raise SystemExit(
-                    "report-qc briefing drift: "
-                    f"{key} must not be empty for {row['sample_id']}/{row['tool']}"
-                )
-
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
     by_tool: dict[str, list[dict]] = defaultdict(list)
@@ -201,7 +76,6 @@ def tool_runtime_summary(rows: list[dict]) -> list[dict]:
         )
     return summary_rows
 
-
 def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
     grouped: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
     grouped_with_size: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
@@ -230,7 +104,6 @@ def cohort_runtime_summary(rows: list[dict]) -> list[dict]:
         )
     return output
 
-
 def summarize_cohort_rows(
     *,
     tool: str,
@@ -257,7 +130,6 @@ def summarize_cohort_rows(
         "median_governed_qc_input_count": safe_median(inputs),
         "median_contamination_rate": safe_median(contamination),
     }
-
 
 def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     by_sample: dict[str, list[dict]] = defaultdict(list)
@@ -286,7 +158,6 @@ def sample_runtime_outliers(rows: list[dict]) -> list[dict]:
     output.sort(key=lambda row: row["total_runtime_s"], reverse=True)
     return output
 
-
 def cohort_entry(
     rows: list[dict],
     *,
@@ -298,7 +169,6 @@ def cohort_entry(
         if row["tool"] == tool and row["dimension"] == dimension and row["cohort"] == cohort:
             return row
     return None
-
 
 def render_markdown(
     summary: dict,
@@ -413,7 +283,6 @@ def render_markdown(
     )
     return "\n".join(lines) + "\n"
 
-
 def write_csv(path: Path, rows: list[dict]) -> None:
     if not rows:
         raise SystemExit(f"report-qc briefing drift: refusing to write empty CSV {path}")
@@ -423,12 +292,11 @@ def write_csv(path: Path, rows: list[dict]) -> None:
         for row in rows:
             writer.writerow({key: fmt_csv_value(value) for key, value in row.items()})
 
-
 def main() -> int:
     args = parse_args()
     docs_root = Path(args.docs_root).resolve()
     summary = load_json(docs_root / "summary.json")
-    rows = load_rows(docs_root / "sample_results.csv")
+    rows = load_csv_rows(docs_root / "sample_results.csv")
     validate_summary_contract(summary)
     validate_rows_contract(summary, rows)
 
@@ -443,7 +311,6 @@ def main() -> int:
         encoding="utf-8",
     )
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
