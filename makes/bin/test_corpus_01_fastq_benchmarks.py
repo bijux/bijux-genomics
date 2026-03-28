@@ -529,6 +529,45 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         self.assertEqual(tools, ["fastp"])
         self.assertIsNone(error)
 
+    def test_resolve_benchmark_tool_roster_skips_registry_by_default(self) -> None:
+        with mock.patch.object(
+            support,
+            "registry_contract_is_available",
+            return_value=True,
+        ), mock.patch.object(
+            support,
+            "_cached_registry_tools_for_stage",
+            side_effect=AssertionError("registry should not be consulted"),
+        ):
+            tools, error = support.resolve_benchmark_tool_roster(
+                ROOT,
+                "fastq.trim_reads",
+                "trim_fairness",
+                ["fastp"],
+            )
+
+        self.assertEqual(tools, ["fastp"])
+        self.assertIsNone(error)
+
+    def test_resolve_stage_toolset_skips_registry_by_default(self) -> None:
+        with mock.patch.object(
+            support,
+            "registry_contract_is_available",
+            return_value=True,
+        ), mock.patch.object(
+            support,
+            "_cached_stage_toolset",
+            side_effect=AssertionError("registry should not be consulted"),
+        ):
+            tools, error = support.resolve_stage_toolset(
+                ROOT,
+                "fastq.trim_reads",
+                ["fastp"],
+            )
+
+        self.assertEqual(tools, ["fastp"])
+        self.assertIsNone(error)
+
     def test_filter_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_reads_benchmark_defaults()
         self.assertEqual(defaults["threads"], 8)
