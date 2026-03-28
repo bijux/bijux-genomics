@@ -45,6 +45,26 @@ def resolve_workspace_value(key_path: str) -> str:
         return str(support.benchmark_local_extra_data_root())
     if key_path == "local.reference_root":
         return str(support.benchmark_local_reference_root())
+    if key_path == "sync.defaults.pull_base":
+        return str(support.benchmark_sync_default_pull_base())
+    if key_path == "sync.defaults.pull_mode":
+        return support.benchmark_sync_default_pull_mode()
+    if key_path == "sync.defaults.include_profile":
+        return support.benchmark_sync_default_include_profile()
+    if key_path == "sync.defaults.exclude_profile":
+        return support.benchmark_sync_default_exclude_profile()
+    if key_path == "sync.defaults.clean_context":
+        return "1" if support.benchmark_sync_default_clean_context() else "0"
+    if key_path == "sync.defaults.allow_dirty":
+        return "1" if support.benchmark_sync_default_allow_dirty() else "0"
+    if key_path == "sync.defaults.include_containers_manifest":
+        return (
+            "1"
+            if support.benchmark_sync_default_include_containers_manifest()
+            else "0"
+        )
+    if key_path == "sync.defaults.data_manifest_glob":
+        return support.benchmark_sync_default_data_manifest_glob()
     raise SystemExit(f"unsupported benchmark workspace key path: {key_path}")
 
 

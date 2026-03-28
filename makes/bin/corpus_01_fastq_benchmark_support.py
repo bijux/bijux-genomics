@@ -88,6 +88,16 @@ def _workspace_layout_template(section: str, key: str) -> str:
     )
 
 
+def _workspace_sync_value(key: str):
+    defaults = load_benchmark_workspace_config().get("sync", {}).get("defaults", {})
+    if key in defaults:
+        return defaults[key]
+    raise SystemExit(
+        "missing benchmark sync default contract: "
+        f"[sync.defaults].{key} in configs/bench/workspace.toml"
+    )
+
+
 def _expand_workspace_template(template: str, values: dict[str, str]) -> Path:
     return Path(template.format(**values))
 
@@ -150,6 +160,86 @@ def benchmark_remote_containers_root() -> Path:
 
 def benchmark_remote_reference_root() -> Path:
     return _workspace_path("remote", "reference_root")
+
+
+def benchmark_sync_default_pull_base() -> Path:
+    value = _workspace_sync_value("pull_base")
+    if isinstance(value, str) and value.strip():
+        return Path(value).expanduser()
+    raise SystemExit(
+        "invalid benchmark sync pull_base contract: "
+        "[sync.defaults].pull_base in configs/bench/workspace.toml"
+    )
+
+
+def benchmark_sync_default_pull_mode() -> str:
+    value = _workspace_sync_value("pull_mode")
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    raise SystemExit(
+        "invalid benchmark sync pull_mode contract: "
+        "[sync.defaults].pull_mode in configs/bench/workspace.toml"
+    )
+
+
+def benchmark_sync_default_include_profile() -> str:
+    value = _workspace_sync_value("include_profile")
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    raise SystemExit(
+        "invalid benchmark sync include_profile contract: "
+        "[sync.defaults].include_profile in configs/bench/workspace.toml"
+    )
+
+
+def benchmark_sync_default_exclude_profile() -> str:
+    value = _workspace_sync_value("exclude_profile")
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    raise SystemExit(
+        "invalid benchmark sync exclude_profile contract: "
+        "[sync.defaults].exclude_profile in configs/bench/workspace.toml"
+    )
+
+
+def benchmark_sync_default_clean_context() -> bool:
+    value = _workspace_sync_value("clean_context")
+    if isinstance(value, bool):
+        return value
+    raise SystemExit(
+        "invalid benchmark sync clean_context contract: "
+        "[sync.defaults].clean_context in configs/bench/workspace.toml"
+    )
+
+
+def benchmark_sync_default_allow_dirty() -> bool:
+    value = _workspace_sync_value("allow_dirty")
+    if isinstance(value, bool):
+        return value
+    raise SystemExit(
+        "invalid benchmark sync allow_dirty contract: "
+        "[sync.defaults].allow_dirty in configs/bench/workspace.toml"
+    )
+
+
+def benchmark_sync_default_include_containers_manifest() -> bool:
+    value = _workspace_sync_value("include_containers_manifest")
+    if isinstance(value, bool):
+        return value
+    raise SystemExit(
+        "invalid benchmark sync include_containers_manifest contract: "
+        "[sync.defaults].include_containers_manifest in configs/bench/workspace.toml"
+    )
+
+
+def benchmark_sync_default_data_manifest_glob() -> str:
+    value = _workspace_sync_value("data_manifest_glob")
+    if isinstance(value, str):
+        return value
+    raise SystemExit(
+        "invalid benchmark sync data_manifest_glob contract: "
+        "[sync.defaults].data_manifest_glob in configs/bench/workspace.toml"
+    )
 
 
 def published_dossier_path(stage_docs_root: Path) -> Path:

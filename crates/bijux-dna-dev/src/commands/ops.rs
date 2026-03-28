@@ -5775,9 +5775,17 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             "Usage: cargo run -p bijux-dna-dev -- hpc run benchmark-sync-pull -- [--dry-run|--confirm] [--include-profile <name>] [--exclude-profile <name>] (legacy alias: lunarc-pull)",
         );
     }
+    let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
+    validate_benchmark_sync_roots(&benchmark_workspace)?;
     let mut dry_run = true;
-    let mut include_profile = "pull-results-default".to_string();
-    let mut exclude_profile = "pull-full-default".to_string();
+    let mut include_profile = benchmark_workspace
+        .sync_default_include_profile
+        .clone()
+        .unwrap_or_else(|| "pull-results-default".to_string());
+    let mut exclude_profile = benchmark_workspace
+        .sync_default_exclude_profile
+        .clone()
+        .unwrap_or_else(|| "pull-full-default".to_string());
     let mut index = 0;
     while index < args.len() {
         match args[index].as_str() {
@@ -5814,8 +5822,6 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             other => return Err(anyhow!("unknown arg: {other}")),
         }
     }
-    let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
-    validate_benchmark_sync_roots(&benchmark_workspace)?;
     let default_lunarc_host = benchmark_workspace
         .remote_ssh_host
         .as_deref()
@@ -5829,14 +5835,20 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     let lunarc_repo_dir =
         env_or_default_alias("BENCHMARK_SYNC_REPO_ROOT", "LUNARC_REPO_DIR", &default_lunarc_repo_dir);
     let default_lunarc_pull_base = benchmark_workspace
-        .local_results_root
+        .sync_default_pull_base
         .clone()
+        .or_else(|| benchmark_workspace.local_results_root.clone())
         .unwrap_or_else(|| "${HOME}/bijux/bijux-dna-results".to_string());
     let lunarc_pull_base =
         env_or_default_alias("BENCHMARK_SYNC_PULL_BASE", "LUNARC_PULL_BASE", &default_lunarc_pull_base);
     let lunarc_pull_dest = env_or_empty_alias("BENCHMARK_SYNC_PULL_DEST", "LUNARC_PULL_DEST");
-    let pull_mode = env_or_default_alias("BENCHMARK_SYNC_MODE", "PULL_MODE", "results");
+    let default_pull_mode = benchmark_workspace
+        .sync_default_pull_mode
+        .as_deref()
+        .unwrap_or("results");
+    let pull_mode = env_or_default_alias("BENCHMARK_SYNC_MODE", "PULL_MODE", default_pull_mode);
     let default_lunarc_results_dir = benchmark_workspace
+        .local_results_root
         .remote_results_root
         .clone()
         .unwrap_or_else(|| format!("{lunarc_root}/results"));
@@ -5872,10 +5884,27 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         "LUNARC_CORPUS_ROOT",
         &default_lunarc_corpus_root,
     );
-    let include_containers_manifest =
-        env_or_default_alias("BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST", "INCLUDE_CONTAINERS_MANIFEST", "0") == "1";
-    let data_manifest_glob =
-        env_or_empty_alias("BENCHMARK_SYNC_DATA_MANIFEST_GLOB", "DATA_MANIFEST_GLOB");
+    let include_containers_manifest_default = if benchmark_workspace
+        .sync_default_include_containers_manifest
+        .unwrap_or(false)
+    {
+        "1"
+    } else {
+        "0"
+    };
+    let include_containers_manifest = env_or_default_alias(
+        "BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST",
+        "INCLUDE_CONTAINERS_MANIFEST",
+        include_containers_manifest_default,
+    ) == "1";
+    let data_manifest_glob = env_or_default_alias(
+        "BENCHMARK_SYNC_DATA_MANIFEST_GLOB",
+        "DATA_MANIFEST_GLOB",
+        benchmark_workspace
+            .sync_default_data_manifest_glob
+            .as_deref()
+            .unwrap_or(""),
+    );
     let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
     let mut pull_full_exclude = workspace.path("configs/hpc/rsync/pull-full-excludes.txt");
     let mut pull_results_include = workspace.path("configs/hpc/rsync/pull-results-includes.txt");
@@ -6164,8 +6193,22 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna"));
     let lunarc_repo_dir =
         env_or_default_alias("BENCHMARK_SYNC_REPO_ROOT", "LUNARC_REPO_DIR", &default_lunarc_repo_dir);
-    let clean_context = env_or_default_alias("BENCHMARK_SYNC_CLEAN_CONTEXT", "CLEAN_CONTEXT", "1") == "1";
-    let allow_dirty = env_or_default_alias("BENCHMARK_SYNC_ALLOW_DIRTY", "ALLOW_DIRTY", "0") == "1";
+    let clean_context_default = if benchmark_workspace.sync_default_clean_context.unwrap_or(true) {
+        "1"
+    } else {
+        "0"
+    };
+    let allow_dirty_default = if benchmark_workspace.sync_default_allow_dirty.unwrap_or(false) {
+        "1"
+    } else {
+        "0"
+    };
+    let clean_context =
+        env_or_default_alias("BENCHMARK_SYNC_CLEAN_CONTEXT", "CLEAN_CONTEXT", clean_context_default)
+            == "1";
+    let allow_dirty =
+        env_or_default_alias("BENCHMARK_SYNC_ALLOW_DIRTY", "ALLOW_DIRTY", allow_dirty_default)
+            == "1";
     if !allow_dirty {
         let dirty = run_program(
             workspace,
@@ -8706,6 +8749,14 @@ fn lunarc_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option
 struct BenchmarkWorkspacePaths {
     local_results_root: Option<String>,
     local_cache_mirror_root: Option<String>,
+    sync_default_pull_base: Option<String>,
+    sync_default_pull_mode: Option<String>,
+    sync_default_include_profile: Option<String>,
+    sync_default_exclude_profile: Option<String>,
+    sync_default_clean_context: Option<bool>,
+    sync_default_allow_dirty: Option<bool>,
+    sync_default_include_containers_manifest: Option<bool>,
+    sync_default_data_manifest_glob: Option<String>,
     remote_ssh_host: Option<String>,
     remote_repo_root: Option<String>,
     remote_cache_root: Option<String>,
@@ -8737,6 +8788,11 @@ fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWork
         toml::from_str(&read_utf8(&path)?).with_context(|| format!("parse {}", path.display()))?;
     let local = value.get("local").and_then(TomlValue::as_table);
     let remote = value.get("remote").and_then(TomlValue::as_table);
+    let sync_defaults = value
+        .get("sync")
+        .and_then(TomlValue::as_table)
+        .and_then(|table| table.get("defaults"))
+        .and_then(TomlValue::as_table);
     Ok(BenchmarkWorkspacePaths {
         local_results_root: local
             .and_then(|table| table.get("results_root"))
@@ -8744,6 +8800,35 @@ fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWork
             .map(ToOwned::to_owned),
         local_cache_mirror_root: local
             .and_then(|table| table.get("cache_mirror_root"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        sync_default_pull_base: sync_defaults
+            .and_then(|table| table.get("pull_base"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        sync_default_pull_mode: sync_defaults
+            .and_then(|table| table.get("pull_mode"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        sync_default_include_profile: sync_defaults
+            .and_then(|table| table.get("include_profile"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        sync_default_exclude_profile: sync_defaults
+            .and_then(|table| table.get("exclude_profile"))
+            .and_then(TomlValue::as_str)
+            .map(ToOwned::to_owned),
+        sync_default_clean_context: sync_defaults
+            .and_then(|table| table.get("clean_context"))
+            .and_then(TomlValue::as_bool),
+        sync_default_allow_dirty: sync_defaults
+            .and_then(|table| table.get("allow_dirty"))
+            .and_then(TomlValue::as_bool),
+        sync_default_include_containers_manifest: sync_defaults
+            .and_then(|table| table.get("include_containers_manifest"))
+            .and_then(TomlValue::as_bool),
+        sync_default_data_manifest_glob: sync_defaults
+            .and_then(|table| table.get("data_manifest_glob"))
             .and_then(TomlValue::as_str)
             .map(ToOwned::to_owned),
         remote_ssh_host: remote
@@ -9151,6 +9236,14 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let workspace = BenchmarkWorkspacePaths {
             local_results_root: Some("/tmp/results".to_string()),
             local_cache_mirror_root: Some("/tmp/cache".to_string()),
+            sync_default_pull_base: None,
+            sync_default_pull_mode: None,
+            sync_default_include_profile: None,
+            sync_default_exclude_profile: None,
+            sync_default_clean_context: None,
+            sync_default_allow_dirty: None,
+            sync_default_include_containers_manifest: None,
+            sync_default_data_manifest_glob: None,
             remote_ssh_host: None,
             remote_repo_root: Some("/remote/repo".to_string()),
             remote_cache_root: Some("/remote/.cache".to_string()),
@@ -9181,6 +9274,14 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let workspace = BenchmarkWorkspacePaths {
             local_results_root: Some("/tmp/results".to_string()),
             local_cache_mirror_root: Some("/tmp/results/home/user/.cache".to_string()),
+            sync_default_pull_base: None,
+            sync_default_pull_mode: None,
+            sync_default_include_profile: None,
+            sync_default_exclude_profile: None,
+            sync_default_clean_context: None,
+            sync_default_allow_dirty: None,
+            sync_default_include_containers_manifest: None,
+            sync_default_data_manifest_glob: None,
             remote_ssh_host: None,
             remote_repo_root: Some("/remote/.cache/bijux-dna".to_string()),
             remote_cache_root: Some("/remote/.cache".to_string()),
@@ -9207,6 +9308,14 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let workspace = BenchmarkWorkspacePaths {
             local_results_root: Some("/tmp/results".to_string()),
             local_cache_mirror_root: Some("/tmp/cache".to_string()),
+            sync_default_pull_base: None,
+            sync_default_pull_mode: None,
+            sync_default_include_profile: None,
+            sync_default_exclude_profile: None,
+            sync_default_clean_context: None,
+            sync_default_allow_dirty: None,
+            sync_default_include_containers_manifest: None,
+            sync_default_data_manifest_glob: None,
             remote_ssh_host: None,
             remote_repo_root: Some("/remote/repo".to_string()),
             remote_cache_root: Some("/remote/.cache".to_string()),
@@ -9233,6 +9342,14 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let workspace = BenchmarkWorkspacePaths {
             local_results_root: None,
             local_cache_mirror_root: None,
+            sync_default_pull_base: None,
+            sync_default_pull_mode: None,
+            sync_default_include_profile: None,
+            sync_default_exclude_profile: None,
+            sync_default_clean_context: None,
+            sync_default_allow_dirty: None,
+            sync_default_include_containers_manifest: None,
+            sync_default_data_manifest_glob: None,
             remote_ssh_host: None,
             remote_repo_root: Some("/remote/repo".to_string()),
             remote_cache_root: Some("/remote/.cache".to_string()),
