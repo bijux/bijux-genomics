@@ -405,6 +405,9 @@ _benchmark-corpus-01-publication-status: ## Audit corpus-01 FASTQ benchmark publ
 		--json-out docs/benchmark/corpus-01-remediation-queue.json \
 		--markdown-out docs/benchmark/corpus-01-remediation-queue.md
 
+_benchmark-normalize-local-results-layout: ## Normalize duplicate local benchmark stage roots into the cache mirror layout
+	@python3 makes/bin/normalize_benchmark_workspace_stage_roots.py --confirm
+
 _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ dossiers and refresh publication status
 	@for target in $(CORPUS_01_PUBLISHED_DOSSIER_TARGETS); do \
 		$(MAKE) $$target CORPUS_ROOT="$(CORPUS_ROOT)" OUT_DIR="$(OUT_DIR)"; \
@@ -436,4 +439,5 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	_benchmark-screen-taxonomy-corpus-01-report \
 	_benchmark-correct-errors-corpus-01-report _benchmark-extract-umis-corpus-01-report _benchmark-merge-corpus-01-report \
 	_benchmark-report-qc-corpus-01-report _benchmark-corpus-01-publication-status \
+	_benchmark-normalize-local-results-layout \
 	_benchmark-corpus-01-published-dossiers

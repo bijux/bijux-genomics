@@ -71,6 +71,7 @@ import render_fastq_trim_polyg_tails_corpus_01_report as trim_polyg_report
 import render_fastq_validate_reads_corpus_01_report as validate_reads_report
 import normalize_lunarc_results_mirror as normalize_results_mirror
 import converge_benchmark_workspace_roots as converge_workspace_roots
+import normalize_benchmark_workspace_stage_roots as normalize_workspace_stage_roots
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 import benchmark_workspace_value
@@ -972,7 +973,18 @@ class BenchmarkMakefileTests(unittest.TestCase):
             'DATA_MANIFEST_GLOB="benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"',
             recipe,
         )
+        self.assertIn("$(MAKE) _benchmark-normalize-local-results-layout", recipe)
         self.assertIn("$(MAKE) _benchmark-corpus-01-published-dossiers", recipe)
+
+    def test_published_dossiers_makefile_declares_local_results_normalization_target(
+        self,
+    ) -> None:
+        recipe = makefile_target_recipe("_benchmark-normalize-local-results-layout")
+
+        self.assertIn(
+            "python3 makes/bin/normalize_benchmark_workspace_stage_roots.py --confirm",
+            recipe,
+        )
 
     def test_published_dossiers_refresh_includes_remove_duplicates(self) -> None:
         self.assertIn(
@@ -1445,7 +1457,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
         )
         self.assertEqual(
             sorted(issue["issue_id"] for issue in report["issues"]),
-            ["duplicate-remote-reference-root", "duplicate-remote-results-root"],
+            [
+                "duplicate-local-stage-root",
+                "duplicate-remote-reference-root",
+                "duplicate-remote-results-root",
+            ],
         )
 
     def test_converge_workspace_roots_moves_unique_entries_and_drops_stale_duplicates(
@@ -1485,6 +1501,46 @@ class BenchmarkMakefileTests(unittest.TestCase):
             self.assertFalse((legacy_root / "fastq.filter_reads").exists())
             self.assertFalse((legacy_root / "fastq.trim_reads").exists())
             self.assertTrue(report["legacy_root_removed"])
+
+    def test_normalize_workspace_stage_roots_converges_shared_stage_ids(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_root = Path(tmpdir)
+            local_results_root = tmp_root / "archive"
+            local_cache_mirror_root = tmp_root / "mirror"
+            legacy_stage_root = local_results_root / "corpus_01" / "fastq.trim_reads"
+            canonical_stage_root = (
+                local_cache_mirror_root / "results" / "corpus_01" / "fastq.trim_reads"
+            )
+            (legacy_stage_root / "lunarc").mkdir(parents=True)
+            (canonical_stage_root / "lunarc").mkdir(parents=True)
+            (legacy_stage_root / "lunarc" / "run_manifest.json").write_text(
+                "{}",
+                encoding="utf-8",
+            )
+            (canonical_stage_root / "lunarc" / "run_manifest.json").write_text(
+                '{"completed_at_utc": "2026-03-28T00:00:00Z"}',
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(
+                normalize_workspace_stage_roots.support,
+                "benchmark_local_results_root",
+                return_value=local_results_root,
+            ), mock.patch.object(
+                normalize_workspace_stage_roots.support,
+                "benchmark_local_cache_mirror_root",
+                return_value=local_cache_mirror_root,
+            ):
+                report = normalize_workspace_stage_roots.normalize_stage_roots(
+                    corpus_id="corpus_01",
+                    confirm=True,
+                )
+
+            self.assertFalse(legacy_stage_root.exists())
+            self.assertTrue(canonical_stage_root.exists())
+
+        self.assertEqual(report["status"], "clear")
+        self.assertEqual(report["shared_stage_ids"], ["fastq.trim_reads"])
 
     def test_dev_ops_pull_records_workspace_path_mappings_and_dependencies(self) -> None:
         text = dev_ops_text()
