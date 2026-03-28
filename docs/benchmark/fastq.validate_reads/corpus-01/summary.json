@@ -5,7 +5,7 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+  "corpus_root": "<REMOTE_CORPUS_ROOT>",
   "era_counts": {
     "ancient": 10,
     "modern": 10
@@ -24,7 +24,7 @@
     "se": 10
   },
   "platform": "lunarc-apptainer",
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc",
+  "run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.validate_reads/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "validation_fairness",

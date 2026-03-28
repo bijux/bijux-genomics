@@ -25,7 +25,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 - Top-level scripts under `makes/bin/` are compatibility entrypoints and should keep shrinking rather than gaining new orchestration logic.
 - `configs/bench/benchmark.toml` is the canonical benchmark contract for both Rust and Python benchmark surfaces.
 - `BIJUX_BENCHMARK_CONFIG` and shared `--config` CLI options select a different benchmark config when a local or migration workflow needs one.
-- `BIJUX_FASTQ_CORPUS_CONFIG`, `configs/bench/workspace.toml`, and `configs/bench/publication.toml` remain legacy compatibility paths while downstream helpers are migrated.
+- `configs/bench/workspace.toml` and `configs/bench/publication.toml` are compatibility shims for legacy consumers and should not gain new fields that are absent from `configs/bench/benchmark.toml`.
 - Machine-specific roots inside `configs/bench/benchmark.toml` should be supplied through environment placeholders rather than committed absolute paths.
 
 ## Workspace Contract

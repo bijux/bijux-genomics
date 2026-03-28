@@ -4,8 +4,8 @@
   "stage_id": "fastq.normalize_primers",
   "scenario_id": "primer_normalization_fairness",
   "platform": "lunarc-apptainer",
-  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.normalize_primers/lunarc",
+  "corpus_root": "<REMOTE_CORPUS_ROOT>",
+  "run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.normalize_primers/lunarc",
   "tools": [
     "cutadapt"
   ],

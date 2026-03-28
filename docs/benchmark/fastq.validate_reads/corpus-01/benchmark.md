@@ -5,8 +5,8 @@
 This benchmark compares the governed `fastq.validate_reads` stage across all supported backends on the curated `corpus-01` human DNA benchmark set.
 
 - Platform: `lunarc-apptainer` on Lunarc
-- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
-- Benchmark root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc`
+- Corpus root: `<REMOTE_CORPUS_ROOT>`
+- Benchmark root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.validate_reads/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `fastqvalidator, fastqc, fastq_scan, seqtk, fqtools`
 - Execution profile: one benchmark sample at a time, one worker, one thread per tool invocation

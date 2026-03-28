@@ -38,7 +38,7 @@ make _benchmark-deplete-rrna-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-deplete-rrna-corpus-01-report
 ```
 
-Use `RRNA_DB=...` or `RRNA_BUNDLE_ID=...` only when you intentionally audit a non-governed rRNA reference input. The default corpus root remains governed by `configs/bench/workspace.toml`.
+Use `RRNA_DB=...` or `RRNA_BUNDLE_ID=...` only when you intentionally audit a non-governed rRNA reference input. The default corpus root remains governed by `configs/bench/benchmark.toml`.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

@@ -5,8 +5,8 @@
 This benchmark measures the governed `fastq.report_qc` stage across the curated `corpus-01` human DNA cohort on the Lunarc Apptainer platform.
 
 - Platform: `lunarc-apptainer` on Lunarc
-- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
-- Benchmark root: `/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.report_qc/lunarc`
+- Corpus root: `<REMOTE_CORPUS_ROOT>`
+- Benchmark root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.report_qc/lunarc`
 - Input balance: `10` ancient, `10` modern, `10` single-end, `10` paired-end
 - Tool set: `multiqc`
 - Aggregation contract: `multiqc`, `governed_qc_artifacts`, report_only=`True`

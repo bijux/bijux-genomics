@@ -10,12 +10,12 @@
       "stage_id": "fastq.validate_reads",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.validate_reads/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.validate_reads/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.validate_reads/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.validate_reads/lunarc"
       ],
       "issues": []
     },
@@ -23,12 +23,12 @@
       "stage_id": "fastq.detect_adapters",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.detect_adapters/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.detect_adapters/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.detect_adapters/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.detect_adapters/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.detect_adapters/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.detect_adapters/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.detect_adapters/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.detect_adapters/lunarc"
       ],
       "issues": []
     },
@@ -36,12 +36,12 @@
       "stage_id": "fastq.profile_reads",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_reads/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_reads/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_reads/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_reads/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_reads/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_reads/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_reads/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_reads/lunarc"
       ],
       "issues": []
     },
@@ -49,12 +49,12 @@
       "stage_id": "fastq.profile_read_lengths",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_read_lengths/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_read_lengths/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_read_lengths/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_read_lengths/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_read_lengths/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_read_lengths/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_read_lengths/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_read_lengths/lunarc"
       ],
       "issues": []
     },
@@ -62,12 +62,12 @@
       "stage_id": "fastq.profile_overrepresented_sequences",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_overrepresented_sequences/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_overrepresented_sequences/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_overrepresented_sequences/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_overrepresented_sequences/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_overrepresented_sequences/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_overrepresented_sequences/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.profile_overrepresented_sequences/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.profile_overrepresented_sequences/lunarc"
       ],
       "issues": []
     },
@@ -75,12 +75,12 @@
       "stage_id": "fastq.normalize_primers",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.normalize_primers/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.normalize_primers/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.normalize_primers/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.normalize_primers/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.normalize_primers/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.normalize_primers/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.normalize_primers/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.normalize_primers/lunarc"
       ],
       "issues": []
     },
@@ -88,12 +88,12 @@
       "stage_id": "fastq.trim_polyg_tails",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_polyg_tails/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_polyg_tails/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_polyg_tails/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_polyg_tails/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_polyg_tails/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_polyg_tails/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_polyg_tails/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_polyg_tails/lunarc"
       ],
       "issues": []
     },
@@ -101,12 +101,12 @@
       "stage_id": "fastq.trim_reads",
       "status": "incomplete",
       "issue_count": 1,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_reads/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_reads/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_reads/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_reads/lunarc"
       ],
       "issues": [
         {
@@ -120,12 +120,12 @@
       "stage_id": "fastq.filter_reads",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_reads/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_reads/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_reads/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_reads/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_reads/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_reads/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_reads/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_reads/lunarc"
       ],
       "issues": []
     },
@@ -133,12 +133,12 @@
       "stage_id": "fastq.filter_low_complexity",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_low_complexity/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_low_complexity/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_low_complexity/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.filter_low_complexity/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.filter_low_complexity/lunarc"
       ],
       "issues": []
     },
@@ -146,12 +146,12 @@
       "stage_id": "fastq.deplete_rrna",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_rrna/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_rrna/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_rrna/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_rrna/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_rrna/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_rrna/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_rrna/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_rrna/lunarc"
       ],
       "issues": []
     },
@@ -159,12 +159,12 @@
       "stage_id": "fastq.merge_pairs",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.merge_pairs/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.merge_pairs/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.merge_pairs/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.merge_pairs/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.merge_pairs/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.merge_pairs/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.merge_pairs/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.merge_pairs/lunarc"
       ],
       "issues": []
     },
@@ -172,12 +172,12 @@
       "stage_id": "fastq.remove_duplicates",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.remove_duplicates/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.remove_duplicates/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.remove_duplicates/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.remove_duplicates/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.remove_duplicates/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.remove_duplicates/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.remove_duplicates/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.remove_duplicates/lunarc"
       ],
       "issues": []
     },
@@ -185,12 +185,12 @@
       "stage_id": "fastq.deplete_host",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_host/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_host/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_host/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_host/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_host/lunarc"
       ],
       "issues": []
     },
@@ -198,12 +198,12 @@
       "stage_id": "fastq.deplete_reference_contaminants",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_reference_contaminants/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_reference_contaminants/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_reference_contaminants/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_reference_contaminants/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_reference_contaminants/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_reference_contaminants/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_reference_contaminants/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_reference_contaminants/lunarc"
       ],
       "issues": []
     },
@@ -215,7 +215,7 @@
         {
           "stage_id": "fastq.correct_errors",
           "issue_id": "missing-published-summary",
-          "detail": "missing /Users/bijan/bijux/bijux-dna/docs/benchmark/fastq.correct_errors/corpus-01/summary.json"
+          "detail": "missing <REPO_ROOT>/docs/benchmark/fastq.correct_errors/corpus-01/summary.json"
         }
       ]
     },
@@ -223,12 +223,12 @@
       "stage_id": "fastq.extract_umis",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.extract_umis/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.extract_umis/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.extract_umis/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.extract_umis/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.extract_umis/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.extract_umis/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.extract_umis/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.extract_umis/lunarc"
       ],
       "issues": []
     },
@@ -236,12 +236,12 @@
       "stage_id": "fastq.screen_taxonomy",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.screen_taxonomy/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.screen_taxonomy/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.screen_taxonomy/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.screen_taxonomy/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.screen_taxonomy/lunarc"
       ],
       "issues": []
     },
@@ -249,12 +249,12 @@
       "stage_id": "fastq.trim_terminal_damage",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_terminal_damage/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_terminal_damage/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_terminal_damage/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_terminal_damage/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_terminal_damage/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_terminal_damage/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_terminal_damage/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.trim_terminal_damage/lunarc"
       ],
       "issues": []
     },
@@ -262,12 +262,12 @@
       "stage_id": "fastq.report_qc",
       "status": "complete",
       "issue_count": 0,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.report_qc/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.report_qc/lunarc",
-      "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.report_qc/lunarc",
+      "reported_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.report_qc/lunarc",
+      "selected_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.report_qc/lunarc",
+      "newest_available_run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.report_qc/lunarc",
       "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.report_qc/lunarc"
+        "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.report_qc/lunarc"
       ],
       "issues": []
     }

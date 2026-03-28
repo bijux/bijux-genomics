@@ -41,7 +41,7 @@ make _benchmark-filter-reads-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-filter-reads-corpus-01-report
 ```
 
-The runner resolves the governed corpus root through `configs/bench/workspace.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
+The runner resolves the governed corpus root through `configs/bench/benchmark.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

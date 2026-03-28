@@ -5,7 +5,7 @@
     "modern_pe": 5,
     "modern_se": 5
   },
-  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
+  "corpus_root": "<REMOTE_CORPUS_ROOT>",
   "decoy_mode": "phix_and_spikeins",
   "era_counts": {
     "ancient": 10,
@@ -30,7 +30,7 @@
   "reference_index_backend": "bowtie2_build",
   "reference_index_digest": "8f0f646e6e37ed01b2a33291e96c2a38eeedeb3ca6f8175b685bd6f98719fc8f",
   "reference_index_size_bytes": 8389212,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_reference_contaminants/lunarc",
+  "run_root": "<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_reference_contaminants/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "contaminant_depletion_fairness",
