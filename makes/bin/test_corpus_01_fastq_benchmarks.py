@@ -73,6 +73,7 @@ import normalize_lunarc_results_mirror as normalize_results_mirror
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
 import benchmark_workspace_value
+import benchmark_publication_targets
 
 
 MAKEFILE_PATH = ROOT / "makes" / "benchmarks-fastq.mk"
@@ -238,6 +239,15 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             )
         finally:
             support.load_benchmark_workspace_config.cache_clear()
+
+    def test_benchmark_publication_targets_match_governed_contract_order(self) -> None:
+        self.assertEqual(
+            benchmark_publication_targets.resolve_targets("report"),
+            [
+                support.corpus_01_make_report_target(contract.stage_id)
+                for contract in support.CORPUS_01_PUBLICATION_CONTRACTS
+            ],
+        )
 
     def test_stage_root_defaults_follow_workspace_contract(self) -> None:
         corpus_root = Path("/tmp/noncanonical/corpus_01")
