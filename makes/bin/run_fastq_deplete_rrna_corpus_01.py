@@ -7,21 +7,16 @@ import json
 import os
 import shutil
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from pathlib import Path
 
+from benchmark_fastq_corpus.config import add_workspace_config_argument
+from benchmark_fastq_corpus.runner_compat import (
+    append_stage_arg,
+    run_corpus_stage_compat,
+)
 from corpus_01_fastq_benchmark_support import (
-    DEPLETE_RRNA_BENCHMARK_CONTRACT,
-    default_results_stage_root,
     deplete_rrna_benchmark_defaults,
-    discover_normalized_samples,
-    load_corpus_spec,
-    normalize_tool_csv,
-    require_canonical_tool_roster,
-    validate_benchmark_layout,
-    validate_corpus_contract,
 )
 
 
@@ -77,6 +72,7 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=defaults["min_identity"],
     )
+    add_workspace_config_argument(parser)
     parser.add_argument(
         "--resume",
         action=argparse.BooleanOptionalAction,
@@ -175,7 +171,7 @@ def sortmerna_shared_index_dir(out_root: Path, rrna_bundle_id: str) -> Path:
     return (
         out_root
         / "_reference_cache"
-        / DEPLETE_RRNA_BENCHMARK_CONTRACT.stage_id
+        / "fastq.deplete_rrna"
         / rrna_bundle_id
         / "sortmerna_workdir"
         / "idx"
@@ -354,181 +350,16 @@ def resolve_rrna_db(args: argparse.Namespace) -> Path:
 
 def main() -> int:
     args = parse_args()
-    repo_root = Path(args.repo_root).resolve()
-    spec = load_corpus_spec(repo_root)
-    corpus_root = (
-        Path(args.corpus_root).expanduser().resolve()
-        if args.corpus_root
-        else Path(spec["preferred_root"]).expanduser().resolve()
-    )
-    out_root = (
-        Path(args.out_root).expanduser().resolve()
-        if args.out_root
-        else default_results_stage_root(
-            corpus_root, DEPLETE_RRNA_BENCHMARK_CONTRACT.stage_id
-        )
-    )
     rrna_db = resolve_rrna_db(args)
-    rrna_bundle_digest = sha256_path(rrna_db)
-
-    validate_benchmark_layout(corpus_root, out_root)
-    out_root.mkdir(parents=True, exist_ok=True)
-
-    samples = discover_normalized_samples(corpus_root)
-    validate_corpus_contract(corpus_root, spec, samples)
-    if args.sample_limit > 0:
-        samples = samples[: args.sample_limit]
-    requested_tools = (
-        normalize_tool_csv(args.tools)
-        if args.tools
-        else DEPLETE_RRNA_BENCHMARK_CONTRACT.tools
+    stage_args: list[str] = []
+    append_stage_arg(stage_args, "--rrna-db", rrna_db)
+    append_stage_arg(stage_args, "--rrna-bundle-id", args.rrna_bundle_id)
+    append_stage_arg(stage_args, "--min-identity", args.min_identity)
+    return run_corpus_stage_compat(
+        stage_id="fastq.deplete_rrna",
+        args=args,
+        stage_args=stage_args,
     )
-    tools = require_canonical_tool_roster(
-        repo_root,
-        DEPLETE_RRNA_BENCHMARK_CONTRACT.stage_id,
-        requested_tools,
-        scenario_id=DEPLETE_RRNA_BENCHMARK_CONTRACT.scenario_id,
-    )
-
-    runs: list[SampleRun | None] = [None] * len(samples)
-    failures = 0
-    pending: list[tuple[int, dict, Path, list[str]]] = []
-    for sample_index, sample in enumerate(samples):
-        current_sample_root = sample_root(out_root, sample["sample_id"])
-        sample_report = report_path(out_root, sample["sample_id"])
-        if args.resume and current_sample_root.is_dir() and not sample_report.is_file():
-            reset_sample_payload(out_root, sample["sample_id"])
-        if args.resume and sample_report.is_file():
-            if sample_report_is_resume_ready(sample_report):
-                if tools == ["sortmerna"] and not args.dry_run:
-                    prune_sortmerna_sample_payload(out_root, sample["sample_id"])
-                runs[sample_index] = SampleRun(
-                    sample_id=sample["sample_id"],
-                    r1=str(sample["r1"]),
-                    r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                    layout=sample["layout"],
-                    status="skipped_existing_report",
-                    exit_code=0,
-                    command=[],
-                    report_json=str(sample_report),
-                )
-                continue
-            reset_sample_payload(out_root, sample["sample_id"])
-        command = build_command(
-            out_root=out_root,
-            platform=args.platform,
-            tools=",".join(tools),
-            threads=args.threads,
-            jobs=args.jobs,
-            rrna_db=rrna_db,
-            min_identity=args.min_identity,
-            sample=sample,
-        )
-        if args.dry_run:
-            runs[sample_index] = SampleRun(
-                sample_id=sample["sample_id"],
-                r1=str(sample["r1"]),
-                r2=str(sample["r2"]) if sample["r2"] is not None else None,
-                layout=sample["layout"],
-                status="dry_run",
-                exit_code=0,
-                command=command,
-                report_json=str(sample_report),
-            )
-            continue
-        pending.append((sample_index, sample, sample_report, command))
-
-    shared_idx_dir: Path | None = None
-    if pending:
-        if tools == ["sortmerna"] and not args.dry_run:
-            shared_idx_dir = sortmerna_shared_index_dir(out_root, args.rrna_bundle_id)
-            warm_sortmerna_shared_index_cache(
-                platform=args.platform,
-                rrna_db=rrna_db,
-                seed_r1=Path(samples[0]["r1"]),
-                shared_idx_dir=shared_idx_dir,
-                threads=args.threads,
-            )
-            if not sortmerna_shared_index_seeded(shared_idx_dir):
-                sample_index, sample, sample_report, command = pending.pop(0)
-                prepare_sortmerna_sample_workdir(
-                    out_root, sample["sample_id"], args.rrna_bundle_id
-                )
-                run = run_sample_command(
-                    repo_root=repo_root,
-                    sample=sample,
-                    command=command,
-                    sample_report=sample_report,
-                )
-                runs[sample_index] = run
-                if run.exit_code != 0:
-                    failures += 1
-                else:
-                    promote_sortmerna_sample_index_cache(
-                        out_root, sample["sample_id"], args.rrna_bundle_id
-                    )
-                    prune_sortmerna_sample_payload(out_root, sample["sample_id"])
-            for _, sample, _, _ in pending:
-                prepare_sortmerna_sample_workdir(
-                    out_root, sample["sample_id"], args.rrna_bundle_id
-                )
-        with ThreadPoolExecutor(max_workers=max(1, args.sample_jobs)) as executor:
-            futures = {
-                executor.submit(
-                    run_sample_command,
-                    repo_root=repo_root,
-                    sample=sample,
-                    command=command,
-                    sample_report=sample_report,
-                ): sample_index
-                for sample_index, sample, sample_report, command in pending
-            }
-            for future in as_completed(futures):
-                sample_index = futures[future]
-                run = future.result()
-                runs[sample_index] = run
-                if run.exit_code != 0:
-                    failures += 1
-                elif tools == ["sortmerna"]:
-                    prune_sortmerna_sample_payload(out_root, run.sample_id)
-
-    manifest = {
-        "schema_version": "bijux.fastq.deplete_rrna.corpus_run.v1",
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "stage_id": DEPLETE_RRNA_BENCHMARK_CONTRACT.stage_id,
-        "scenario_id": DEPLETE_RRNA_BENCHMARK_CONTRACT.scenario_id,
-        "tool_kind": "benchmark",
-        "platform": args.platform,
-        "repo_root": str(repo_root),
-        "corpus_id": "corpus-01",
-        "corpus_root": str(corpus_root),
-        "out_root": str(out_root),
-        "tools": tools,
-        "threads": args.threads,
-        "jobs": args.jobs,
-        "sample_jobs": args.sample_jobs,
-        "sample_limit": args.sample_limit or None,
-        "dry_run": args.dry_run,
-        "rrna_db": str(rrna_db),
-        "rrna_bundle_id": args.rrna_bundle_id,
-        "rrna_bundle_digest": rrna_bundle_digest,
-        "rrna_bundle_size_bytes": rrna_db.stat().st_size,
-        "rrna_index_dir": str(shared_idx_dir) if shared_idx_dir is not None else None,
-        "rrna_index_seeded": (
-            sortmerna_shared_index_seeded(shared_idx_dir)
-            if shared_idx_dir is not None
-            else None
-        ),
-        "min_identity": args.min_identity,
-        "samples_total": len(runs),
-        "samples_failed": failures,
-        "runs": [asdict(run) for run in runs if run is not None],
-    }
-    (out_root / "run_manifest.json").write_text(
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    return 1 if failures else 0
 
 
 if __name__ == "__main__":
