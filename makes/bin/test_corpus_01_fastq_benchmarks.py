@@ -101,6 +101,12 @@ def benchmark_issues_text() -> str:
     return BENCHMARK_ISSUES_PATH.read_text(encoding="utf-8")
 
 
+def benchmark_workspace_contract_text() -> str:
+    return (ROOT / "docs" / "benchmark" / "workspace-contract.md").read_text(
+        encoding="utf-8"
+    )
+
+
 def makefile_target_recipe(target: str) -> str:
     lines = benchmark_makefile_text().splitlines()
     capture = False
@@ -575,11 +581,21 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.remove_duplicates`.",
             "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.deplete_host`.",
             "The published dossier refresh target in `makes/benchmarks-fastq.mk` omits `fastq.deplete_reference_contaminants`.",
+            "The local mirror contract is not documented anywhere under `docs/benchmark`.",
             "`docs/benchmark/fastq.correct_errors/corpus-01-method.md` exists without the corresponding published `corpus-01` dossier directory.",
             "`docs/benchmark/fastq.screen_taxonomy/corpus-01-method.md` exists without the corresponding published `corpus-01` dossier directory.",
             "There is no repo check that ensures all governed corpus-01 benchmark stages have render targets.",
         ]:
             self.assertNotIn(resolved_claim, text)
+
+    def test_benchmark_workspace_contract_doc_records_local_and_remote_roots(self) -> None:
+        text = benchmark_workspace_contract_text()
+
+        self.assertIn("local.results_root", text)
+        self.assertIn("local.cache_mirror_root", text)
+        self.assertIn("remote.repo_root", text)
+        self.assertIn("remote.cache_root", text)
+        self.assertIn("configs/bench/workspace.toml", text)
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()

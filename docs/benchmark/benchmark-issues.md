@@ -15,7 +15,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 13. Remote storage still contains non-cache roots such as `results`, `corpus_01`, and `extra-data` beside the governed `.cache` layout.
 14. Duplicate remote roots make it ambiguous which tree is authoritative for publication.
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
-16. The local mirror contract is not documented anywhere under `docs/benchmark`.
 17. The local results workspace contains `.DS_Store` files, which pollute benchmark mirrors.
 20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.
 22. `docs/benchmark/corpus-01-results-status.md` audits only 17 published stages and does not help close the remaining publication gap.
