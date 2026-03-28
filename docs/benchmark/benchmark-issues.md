@@ -39,8 +39,6 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 50. There is no single stage-agnostic renderer framework for corpus-01 FASTQ benchmark dossiers.
 51. Many dossier files are named `lunarc.md`, which encodes the execution site into the published artifact name.
 52. The published document naming scheme does not separate benchmark content from environment-specific provenance cleanly.
-57. `configs/hpc/lunarc_sync_profiles.toml` controls rsync include and exclude files but not benchmark workspace semantics.
-58. There is no benchmark-specific sync profile that explicitly targets the governed `.cache` tree.
 59. The dev commands still refer to `LUNARC_ROOT`, `LUNARC_RESULTS_DIR`, and related variables rather than a neutral benchmark environment model.
 60. The current sync helpers do not record extra-data dependencies alongside results pulls.
 61. The current sync helpers do not record which local destination path corresponds to which remote `.cache` subtree.
