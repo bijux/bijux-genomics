@@ -238,10 +238,92 @@ def fmt_fraction(value: float | None) -> str:
     return f"{value:.1%}"
 
 
+def fmt_value(value: float | int | None) -> str:
+    if value is None:
+        return "n/a"
+    numeric = float(value)
+    if numeric.is_integer():
+        return str(int(numeric))
+    return f"{numeric:.3f}"
+
+
+def fmt_metric(value: float | int | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{float(value):.3f}"
+
+
 def fmt_csv_value(value: object) -> object:
     if isinstance(value, float):
         return f"{value:.6f}"
     return value
+
+
+def optional_float(value: object) -> float | None:
+    if value in {"", None}:
+        return None
+    return float(value)
+
+
+def optional_int(value: object) -> int | None:
+    if value in {"", None}:
+        return None
+    return int(value)
+
+
+def write_csv_artifact(
+    path: Path,
+    rows: list[dict],
+    *,
+    fieldnames: list[str] | None = None,
+    empty_error: str = "cannot write empty csv artifact: {path}",
+) -> None:
+    if not rows:
+        raise SystemExit(empty_error.format(path=path))
+    selected_fieldnames = fieldnames or list(rows[0].keys())
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=selected_fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(
+                {
+                    key: fmt_csv_value(row.get(key))
+                    for key in selected_fieldnames
+                }
+            )
+
+
+def publish_corpus_briefing_artifacts(
+    docs_root: Path,
+    *,
+    markdown: str,
+    runtime_rows: list[dict],
+    cohort_rows: list[dict],
+    outlier_rows: list[dict],
+    runtime_fieldnames: list[str] | None = None,
+    cohort_fieldnames: list[str] | None = None,
+    outlier_fieldnames: list[str] | None = None,
+    empty_error: str = "cannot write empty csv artifact: {path}",
+) -> None:
+    write_csv_artifact(
+        docs_root / "tool_runtime_summary.csv",
+        runtime_rows,
+        fieldnames=runtime_fieldnames,
+        empty_error=empty_error,
+    )
+    write_csv_artifact(
+        docs_root / "cohort_runtime_summary.csv",
+        cohort_rows,
+        fieldnames=cohort_fieldnames,
+        empty_error=empty_error,
+    )
+    write_csv_artifact(
+        docs_root / "sample_runtime_outliers.csv",
+        outlier_rows,
+        fieldnames=outlier_fieldnames,
+        empty_error=empty_error,
+    )
+    (docs_root / PUBLISHED_DOSSIER_NAME).write_text(markdown, encoding="utf-8")
 
 
 def sha256_file(path: Path) -> str:

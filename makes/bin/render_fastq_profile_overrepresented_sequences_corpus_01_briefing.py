@@ -11,10 +11,13 @@ from pathlib import Path
 from corpus_01_fastq_benchmark_support import (
     fmt_csv_value,
     fmt_fraction,
+    fmt_metric,
     fmt_runtime,
+    fmt_value,
     load_csv_rows,
     load_json,
     parse_corpus_briefing_args,
+    publish_corpus_briefing_artifacts,
     percentile,
     safe_mean,
     safe_median,
@@ -25,6 +28,57 @@ def parse_args() -> argparse.Namespace:
         description="Render an enriched benchmark briefing from corpus-01 overrepresented-sequence artifacts.",
         docs_root="docs/benchmark/fastq.profile_overrepresented_sequences/corpus-01",
     )
+
+
+def validate_summary_contract(summary: dict) -> None:
+    expected_values = {
+        "stage_id": "fastq.profile_overrepresented_sequences",
+        "scenario_id": "overrepresented_sequence_fairness",
+        "report_only": True,
+        "mutates_fastq": False,
+        "may_change_read_count": False,
+    }
+    for key, expected in expected_values.items():
+        if summary.get(key) != expected:
+            raise SystemExit(
+                f"overrepresented briefing drift: summary {key}={summary.get(key)!r} expected {expected!r}"
+            )
+    if int(summary.get("top_k", 0) or 0) <= 0:
+        raise SystemExit("overrepresented briefing drift: top_k must stay positive")
+
+
+def validate_rows_contract(summary: dict, rows: list[dict]) -> None:
+    expected_tools = sorted(summary.get("tools") or [])
+    observed_tools = sorted({row.get("tool", "") for row in rows if row.get("tool")})
+    if observed_tools != expected_tools:
+        raise SystemExit(
+            f"overrepresented briefing drift: observed tools {observed_tools!r} expected {expected_tools!r}"
+        )
+    top_k = int(summary.get("top_k", 0) or 0)
+    for row in rows:
+        if int(row.get("sequence_count", "0") or 0) > top_k:
+            raise SystemExit(
+                "overrepresented briefing drift: sequence_count must not exceed top_k"
+            )
+        if not str(row.get("overrepresented_sequences_tsv_artifact", "")).endswith(
+            "overrepresented_sequences.tsv"
+        ):
+            raise SystemExit(
+                "overrepresented briefing drift: TSV artifact must end with overrepresented_sequences.tsv"
+            )
+        if not str(row.get("overrepresented_sequences_json_artifact", "")).endswith(
+            "overrepresented_sequences.json"
+        ):
+            raise SystemExit(
+                "overrepresented briefing drift: JSON artifact must end with overrepresented_sequences.json"
+            )
+        if not str(row.get("report_json_artifact", "")).endswith(
+            "overrepresented_report.json"
+        ):
+            raise SystemExit(
+                "overrepresented briefing drift: report artifact must end with overrepresented_report.json"
+            )
+
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
     by_tool: dict[str, list[dict]] = defaultdict(list)
@@ -279,15 +333,6 @@ def render_markdown(
     )
     return "\n".join(lines) + "\n"
 
-def write_csv(path: Path, rows: list[dict]) -> None:
-    if not rows:
-        raise SystemExit(f"cannot write empty csv artifact: {path}")
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
-        writer.writeheader()
-        for row in rows:
-            writer.writerow({key: fmt_csv_value(value) for key, value in row.items()})
-
 def main() -> int:
     args = parse_args()
     docs_root = Path(args.docs_root).resolve()
@@ -300,12 +345,12 @@ def main() -> int:
     cohort_rows = cohort_runtime_summary(rows)
     outliers = sample_runtime_outliers(rows)
 
-    write_csv(docs_root / "tool_runtime_summary.csv", runtime_rows)
-    write_csv(docs_root / "cohort_runtime_summary.csv", cohort_rows)
-    write_csv(docs_root / "sample_runtime_outliers.csv", outliers)
-    (docs_root / "benchmark.md").write_text(
-        render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
-        encoding="utf-8",
+    publish_corpus_briefing_artifacts(
+        docs_root,
+        markdown=render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
+        runtime_rows=runtime_rows,
+        cohort_rows=cohort_rows,
+        outlier_rows=outliers,
     )
     return 0
 

@@ -136,6 +136,19 @@ def briefing_renderer_paths() -> list[Path]:
     return sorted((ROOT / "makes" / "bin").glob("render_fastq_*_corpus_01_briefing.py"))
 
 
+def standard_briefing_publisher_paths() -> list[Path]:
+    names = [
+        "render_fastq_detect_adapters_corpus_01_briefing.py",
+        "render_fastq_profile_reads_corpus_01_briefing.py",
+        "render_fastq_profile_read_lengths_corpus_01_briefing.py",
+        "render_fastq_profile_overrepresented_sequences_corpus_01_briefing.py",
+        "render_fastq_report_qc_corpus_01_briefing.py",
+        "render_fastq_trim_reads_corpus_01_briefing.py",
+        "render_fastq_trim_terminal_damage_corpus_01_briefing.py",
+    ]
+    return [ROOT / "makes" / "bin" / name for name in names]
+
+
 def validate_reads_method_text() -> str:
     return VALIDATE_READS_METHOD_PATH.read_text(encoding="utf-8")
 
@@ -324,6 +337,17 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                     text,
                     f"{path.name} still defines {duplicated_def}",
                 )
+
+    def test_standard_briefings_use_shared_artifact_publisher(self) -> None:
+        for path in standard_briefing_publisher_paths():
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("publish_corpus_briefing_artifacts(", text, path.name)
+            self.assertNotIn("def write_csv(", text, path.name)
+            self.assertNotIn(
+                '(docs_root / "benchmark.md").write_text(',
+                text,
+                path.name,
+            )
 
     def test_trim_reads_defaults_match_governed_suite(self) -> None:
         defaults = support.trim_reads_benchmark_defaults()
