@@ -335,6 +335,15 @@ class BenchmarkMakefileTests(unittest.TestCase):
         )
         self.assertIn("make _benchmark-extract-umis-corpus-01-report", text)
 
+    def test_normalize_primers_method_references_existing_make_targets(self) -> None:
+        text = method_doc_text("fastq.normalize_primers")
+
+        self.assertIn(
+            "make _benchmark-normalize-primers-corpus-01 PLATFORM=lunarc-apptainer",
+            text,
+        )
+        self.assertIn("make _benchmark-normalize-primers-corpus-01-report", text)
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)

@@ -37,9 +37,13 @@
 - `sample_runtime_outliers.csv`: slowest or most aggressive samples.
 - `lunarc.md`: narrative benchmark dossier for the Lunarc run.
 
-## Publication gate
-- The committed corpus entrypoints are `makes/bin/run_fastq_normalize_primers_corpus_01.py`, `makes/bin/render_fastq_normalize_primers_corpus_01_report.py`, and `makes/bin/render_fastq_normalize_primers_corpus_01_briefing.py`.
-- A publishable dossier begins once those entrypoints materialize `docs/benchmark/fastq.normalize_primers/corpus-01/` from a full Lunarc corpus run under the audit contract described above.
+## Workflow
+```bash
+make _benchmark-normalize-primers-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-normalize-primers-corpus-01-report
+```
+
+The runner resolves the governed corpus root through `configs/bench/workspace.toml`. Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
