@@ -1585,14 +1585,23 @@ def localize_results_path(path_str: str, local_results_root: Path) -> Path:
         else local_results_root
     )
     root_mappings = [
-        ("/results/", local_results_root),
-        ("/bijux-dna-results/", bijux_dna_results_root),
-        ("/extra-data/", benchmark_local_extra_data_root()),
-        ("/reference/", benchmark_local_reference_root()),
+        ("/results/", [local_results_root]),
+        ("/bijux-dna-results/", [bijux_dna_results_root, local_results_root]),
+        ("/extra-data/", [benchmark_local_extra_data_root()]),
+        ("/reference/", [benchmark_local_reference_root()]),
     ]
-    for marker, mapped_root in root_mappings:
+    fallback_path: Path | None = None
+    for marker, mapped_roots in root_mappings:
         if marker in path_str:
-            return mapped_root / path_str.split(marker, 1)[1]
+            suffix = path_str.split(marker, 1)[1]
+            for mapped_root in mapped_roots:
+                localized = mapped_root / suffix
+                if localized.exists():
+                    return localized
+                if fallback_path is None:
+                    fallback_path = localized
+    if fallback_path is not None:
+        return fallback_path
     return path
 
 
