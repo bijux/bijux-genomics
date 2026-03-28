@@ -51,8 +51,21 @@ def append_issue(
 def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[str]) -> dict:
     docs_root = repo_root / "docs" / "benchmark" / stage_id / "corpus-01"
     summary_path = docs_root / "summary.json"
-    summary = load_json(summary_path)
     issues: list[StageResultIssue] = []
+    if not summary_path.is_file():
+        append_issue(
+            issues,
+            stage_id,
+            "missing-published-summary",
+            f"missing {summary_path}",
+        )
+        return {
+            "stage_id": stage_id,
+            "status": "incomplete",
+            "issue_count": len(issues),
+            "issues": [asdict(issue) for issue in issues],
+        }
+    summary = load_json(summary_path)
     expected_tools, roster_resolution_error = resolve_benchmark_tool_roster(
         repo_root,
         stage_id,
@@ -229,15 +242,17 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
 def audit_published_results(repo_root: Path) -> dict:
     stage_reports = []
     for contract in CORPUS_01_PUBLICATION_CONTRACTS:
-        summary_path = repo_root / "docs" / "benchmark" / contract.stage_id / "corpus-01" / "summary.json"
-        if not summary_path.is_file():
-            continue
         stage_reports.append(
             audit_stage(repo_root, contract.stage_id, contract.scenario_id, contract.tools)
         )
     return {
         "corpus_id": "corpus-01",
-        "published_stage_count": len(stage_reports),
+        "applicable_stage_count": len(CORPUS_01_PUBLICATION_CONTRACTS),
+        "published_stage_count": sum(
+            1
+            for contract in CORPUS_01_PUBLICATION_CONTRACTS
+            if (repo_root / "docs" / "benchmark" / contract.stage_id / "corpus-01" / "summary.json").is_file()
+        ),
         "complete_stage_count": sum(1 for report in stage_reports if report["status"] == "complete"),
         "incomplete_stage_count": sum(
             1 for report in stage_reports if report["status"] != "complete"
@@ -251,6 +266,7 @@ def render_markdown(report: dict) -> str:
     lines = [
         "# `corpus-01` published result mirror status",
         "",
+        f"- Governed publication stages: `{report['applicable_stage_count']}`",
         f"- Published stages audited: `{report['published_stage_count']}`",
         f"- Complete mirrored stages: `{report['complete_stage_count']}`",
         f"- Incomplete mirrored stages: `{report['incomplete_stage_count']}`",
