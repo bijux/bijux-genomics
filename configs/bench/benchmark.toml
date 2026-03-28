@@ -1,0 +1,178 @@
+# schema_version = 1
+# owner = bijux-dna-bench
+# purpose = Contract config for benchmark orchestration, publication, and workspace roots.
+# authority = bijux-dna
+# stability = evolving
+# last_updated = 2026-03-28
+
+[workspace.local]
+results_root = "/Users/bijan/bijux/bijux-dna-results"
+cache_mirror_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache"
+extra_data_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data"
+reference_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference"
+
+[workspace.remote]
+ssh_host = "lunarc"
+repo_root = "/home/bijan/bijux/bijux-dna"
+cache_root = "/home/bijan/lu2024-12-24/.cache"
+corpus_root = "/home/bijan/lu2024-12-24/.cache/corpus_01"
+results_root = "/home/bijan/lu2024-12-24/.cache/results"
+results_legacy_root = "/home/bijan/lu2024-12-24/.cache/bijux-dna-results"
+extra_data_root = "/home/bijan/lu2024-12-24/.cache/extra-data"
+containers_root = "/home/bijan/lu2024-12-24/.cache/bijux-dna-container"
+reference_root = "/home/bijan/lu2024-12-24/.cache/reference"
+
+[workspace.artifacts.fastq_deplete_host]
+reference_index_template = "benchmark/fastq.deplete_host/{reference_catalog_id}/{reference_index_backend}/index"
+
+[workspace.artifacts.fastq_screen_taxonomy]
+database_root_template = "benchmark/fastq.screen_taxonomy/{database_namespace}/{database_scope}/{database_artifact_id}"
+
+[workspace.layout.stage_runs]
+remote_results_template = "{corpus_id}/{stage_id}/lunarc"
+local_cache_results_template = "results/{corpus_id}/{stage_id}/lunarc"
+local_archive_results_template = "{corpus_id}/{stage_id}/lunarc"
+
+[workspace.sync.defaults]
+pull_base = "/Users/bijan/bijux/bijux-dna-results"
+pull_mode = "results"
+include_profile = "pull-results-default"
+exclude_profile = "pull-full-default"
+clean_context = true
+allow_dirty = false
+include_containers_manifest = false
+data_manifest_glob = ""
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.validate_reads"
+scenario_id = "validation_fairness"
+sample_scope = "full"
+tools = ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.detect_adapters"
+scenario_id = "detect_adapters_fairness"
+sample_scope = "full"
+tools = ["fastqc"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.profile_reads"
+scenario_id = "profile_reads_fairness"
+sample_scope = "full"
+tools = ["seqkit_stats"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.profile_read_lengths"
+scenario_id = "read_length_fairness"
+sample_scope = "full"
+tools = ["seqkit_stats"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.profile_overrepresented_sequences"
+scenario_id = "overrepresented_sequence_fairness"
+sample_scope = "full"
+tools = ["fastqc", "fastq_scan", "seqkit"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.normalize_primers"
+scenario_id = "primer_normalization_fairness"
+sample_scope = "full"
+tools = ["cutadapt"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.trim_polyg_tails"
+scenario_id = "polyg_trim_fairness"
+sample_scope = "full"
+tools = ["bbduk", "fastp"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.trim_reads"
+scenario_id = "trim_fairness"
+sample_scope = "full"
+tools = [
+  "adapterremoval",
+  "alientrimmer",
+  "atropos",
+  "bbduk",
+  "cutadapt",
+  "fastp",
+  "fastx_clipper",
+  "leehom",
+  "prinseq",
+  "seqkit",
+  "skewer",
+  "trim_galore",
+  "trimmomatic",
+]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.filter_reads"
+scenario_id = "filter_fairness"
+sample_scope = "full"
+tools = ["bbduk", "fastp", "prinseq", "seqkit"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.filter_low_complexity"
+scenario_id = "low_complexity_fairness"
+sample_scope = "full"
+tools = ["bbduk", "prinseq"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.deplete_rrna"
+scenario_id = "rrna_depletion_fairness"
+sample_scope = "full"
+tools = ["sortmerna"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.merge_pairs"
+scenario_id = "merge_fairness"
+sample_scope = "paired"
+tools = ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.remove_duplicates"
+scenario_id = "dedup_fairness"
+sample_scope = "paired"
+tools = ["clumpify", "fastuniq"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.deplete_host"
+scenario_id = "host_depletion_fairness"
+sample_scope = "full"
+tools = ["bowtie2"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.deplete_reference_contaminants"
+scenario_id = "contaminant_depletion_fairness"
+sample_scope = "full"
+tools = ["bowtie2"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.correct_errors"
+scenario_id = "correction_fairness"
+sample_scope = "paired"
+tools = ["bayeshammer", "lighter", "musket", "rcorrector"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.extract_umis"
+scenario_id = "umi_extraction_fairness"
+sample_scope = "paired"
+tools = ["umi_tools"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.screen_taxonomy"
+scenario_id = "screen_fairness"
+sample_scope = "full"
+tools = ["centrifuge", "kaiju", "kraken2", "krakenuniq"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.trim_terminal_damage"
+scenario_id = "terminal_damage_fairness"
+sample_scope = "full"
+tools = ["adapterremoval", "cutadapt", "seqkit"]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.report_qc"
+scenario_id = "qc_aggregation_fairness"
+sample_scope = "full"
+tools = ["multiqc"]

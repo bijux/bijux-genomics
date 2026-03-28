@@ -4,11 +4,22 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 
-pub(crate) const BENCHMARK_WORKSPACE_CONFIG_ENV: &str = "BIJUX_FASTQ_CORPUS_CONFIG";
+pub(crate) const BENCHMARK_CONFIG_ENV: &str = "BIJUX_BENCHMARK_CONFIG";
+pub(crate) const LEGACY_BENCHMARK_WORKSPACE_CONFIG_ENV: &str = "BIJUX_FASTQ_CORPUS_CONFIG";
+pub(crate) const DEFAULT_BENCHMARK_CONFIG: &str = "configs/bench/benchmark.toml";
 pub(crate) const DEFAULT_BENCHMARK_WORKSPACE_CONFIG: &str = "configs/bench/workspace.toml";
 pub(crate) const DEFAULT_BENCHMARK_PUBLICATION_CONFIG: &str = "configs/bench/publication.toml";
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct BenchmarkConfig {
+    #[serde(default)]
+    pub(crate) workspace: BenchmarkWorkspaceConfig,
+    #[serde(default)]
+    pub(crate) publication: BenchmarkPublicationConfig,
+}
+
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceConfig {
     pub(crate) local: Option<BenchmarkWorkspaceLocal>,
     pub(crate) remote: Option<BenchmarkWorkspaceRemote>,
@@ -18,7 +29,7 @@ pub(crate) struct BenchmarkWorkspaceConfig {
     pub(crate) sync: Option<BenchmarkWorkspaceSync>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceLocal {
     pub(crate) results_root: Option<String>,
     pub(crate) cache_mirror_root: Option<String>,
@@ -26,7 +37,7 @@ pub(crate) struct BenchmarkWorkspaceLocal {
     pub(crate) reference_root: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceRemote {
     pub(crate) ssh_host: Option<String>,
     pub(crate) repo_root: Option<String>,
@@ -39,30 +50,30 @@ pub(crate) struct BenchmarkWorkspaceRemote {
     pub(crate) reference_root: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceLayout {
     pub(crate) stage_runs: Option<BenchmarkWorkspaceStageRuns>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceStageRuns {
     pub(crate) remote_results_template: Option<String>,
     pub(crate) local_cache_results_template: Option<String>,
     pub(crate) local_archive_results_template: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceArtifact {
     pub(crate) reference_index_template: Option<String>,
     pub(crate) database_root_template: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceSync {
     pub(crate) defaults: Option<BenchmarkWorkspaceSyncDefaults>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkWorkspaceSyncDefaults {
     pub(crate) pull_base: Option<String>,
     pub(crate) pull_mode: Option<String>,
@@ -74,12 +85,12 @@ pub(crate) struct BenchmarkWorkspaceSyncDefaults {
     pub(crate) data_manifest_glob: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkPublicationConfig {
     pub(crate) corpus_01: Option<Corpus01PublicationConfig>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Default, PartialEq, Eq)]
 pub(crate) struct Corpus01PublicationConfig {
     #[serde(default)]
     pub(crate) contracts: Vec<CorpusBenchmarkContract>,
@@ -99,55 +110,124 @@ fn default_sample_scope() -> String {
     "full".to_string()
 }
 
-fn config_path_env_override() -> Option<PathBuf> {
-    std::env::var_os(BENCHMARK_WORKSPACE_CONFIG_ENV)
+fn benchmark_config_path_env_override() -> Option<PathBuf> {
+    std::env::var_os(BENCHMARK_CONFIG_ENV)
         .filter(|value| !value.is_empty())
         .map(PathBuf::from)
 }
 
+fn legacy_workspace_config_path_env_override() -> Option<PathBuf> {
+    std::env::var_os(LEGACY_BENCHMARK_WORKSPACE_CONFIG_ENV)
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+}
+
+fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        cwd.join(path)
+    }
+}
+
 fn resolve_config_path(cwd: &Path, explicit_path: Option<&Path>, default_rel: &str) -> PathBuf {
     if let Some(path) = explicit_path {
-        return if path.is_absolute() {
-            path.to_path_buf()
-        } else {
-            cwd.join(path)
-        };
+        return absolutize(cwd, path);
+    }
+    if default_rel == DEFAULT_BENCHMARK_CONFIG {
+        if let Some(path) = benchmark_config_path_env_override() {
+            return absolutize(cwd, &path);
+        }
+        if let Some(path) = legacy_workspace_config_path_env_override() {
+            return absolutize(cwd, &path);
+        }
     }
     if default_rel == DEFAULT_BENCHMARK_WORKSPACE_CONFIG {
-        if let Some(path) = config_path_env_override() {
-            return if path.is_absolute() {
-                path
-            } else {
-                cwd.join(path)
-            };
+        if let Some(path) = legacy_workspace_config_path_env_override() {
+            return absolutize(cwd, &path);
         }
     }
     cwd.join(default_rel)
 }
 
+pub(crate) fn benchmark_config_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
+    resolve_config_path(cwd, explicit_path, DEFAULT_BENCHMARK_CONFIG)
+}
+
 pub(crate) fn benchmark_workspace_config_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
-    resolve_config_path(cwd, explicit_path, DEFAULT_BENCHMARK_WORKSPACE_CONFIG)
+    benchmark_config_path(cwd, explicit_path)
 }
 
 pub(crate) fn benchmark_publication_config_path(
     cwd: &Path,
     explicit_path: Option<&Path>,
 ) -> PathBuf {
-    resolve_config_path(cwd, explicit_path, DEFAULT_BENCHMARK_PUBLICATION_CONFIG)
+    benchmark_config_path(cwd, explicit_path)
+}
+
+fn load_toml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    toml::from_str::<T>(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
+fn synthesize_legacy_benchmark_config(
+    cwd: &Path,
+    explicit_path: Option<&Path>,
+) -> Result<BenchmarkConfig> {
+    let workspace_path =
+        resolve_config_path(cwd, explicit_path, DEFAULT_BENCHMARK_WORKSPACE_CONFIG);
+    let publication_path =
+        resolve_config_path(cwd, explicit_path, DEFAULT_BENCHMARK_PUBLICATION_CONFIG);
+    let workspace = if workspace_path.is_file() {
+        load_toml::<BenchmarkWorkspaceConfig>(&workspace_path)?
+    } else {
+        BenchmarkWorkspaceConfig::default()
+    };
+    let publication = if publication_path.is_file() {
+        load_toml::<BenchmarkPublicationConfig>(&publication_path)?
+    } else {
+        BenchmarkPublicationConfig::default()
+    };
+    Ok(BenchmarkConfig {
+        workspace,
+        publication,
+    })
+}
+
+pub(crate) fn load_benchmark_config(
+    cwd: &Path,
+    explicit_path: Option<&Path>,
+) -> Result<BenchmarkConfig> {
+    let path = benchmark_config_path(cwd, explicit_path);
+    if path.is_file() {
+        if let Ok(config) = load_toml::<BenchmarkConfig>(&path) {
+            return Ok(config);
+        }
+        if let Ok(workspace) = load_toml::<BenchmarkWorkspaceConfig>(&path) {
+            return Ok(BenchmarkConfig {
+                workspace,
+                publication: synthesize_legacy_benchmark_config(cwd, explicit_path)?.publication,
+            });
+        }
+        if let Ok(publication) = load_toml::<BenchmarkPublicationConfig>(&path) {
+            return Ok(BenchmarkConfig {
+                workspace: synthesize_legacy_benchmark_config(cwd, explicit_path)?.workspace,
+                publication,
+            });
+        }
+    }
+    synthesize_legacy_benchmark_config(cwd, explicit_path)
 }
 
 pub(crate) fn load_optional_benchmark_workspace_config(
     cwd: &Path,
     explicit_path: Option<&Path>,
 ) -> Result<Option<BenchmarkWorkspaceConfig>> {
-    let path = benchmark_workspace_config_path(cwd, explicit_path);
-    if !path.is_file() {
+    let config = load_benchmark_config(cwd, explicit_path)?;
+    if config.workspace == BenchmarkWorkspaceConfig::default() {
         return Ok(None);
     }
-    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let parsed = toml::from_str::<BenchmarkWorkspaceConfig>(&raw)
-        .with_context(|| format!("parse {}", path.display()))?;
-    Ok(Some(parsed))
+    Ok(Some(config.workspace))
 }
 
 pub(crate) fn load_benchmark_workspace_config(
@@ -164,9 +244,14 @@ pub(crate) fn load_benchmark_publication_config(
     explicit_path: Option<&Path>,
 ) -> Result<BenchmarkPublicationConfig> {
     let path = benchmark_publication_config_path(cwd, explicit_path);
-    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str::<BenchmarkPublicationConfig>(&raw)
-        .with_context(|| format!("parse {}", path.display()))
+    let config = load_benchmark_config(cwd, explicit_path)?;
+    if config.publication == BenchmarkPublicationConfig::default() {
+        return Err(anyhow!(
+            "missing benchmark publication config: {}",
+            path.display()
+        ));
+    }
+    Ok(config.publication)
 }
 
 pub(crate) fn benchmark_workspace_value(
@@ -300,9 +385,9 @@ pub(crate) fn corpus_01_publication_contract(
 #[cfg(test)]
 mod tests {
     use super::{
-        benchmark_publication_config_path, benchmark_workspace_config_path,
-        benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_workspace_config,
-        load_optional_benchmark_workspace_config,
+        benchmark_config_path, benchmark_publication_config_path, benchmark_workspace_config_path,
+        benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_config,
+        load_benchmark_workspace_config, load_optional_benchmark_workspace_config,
     };
     use std::path::Path;
 
@@ -343,6 +428,30 @@ tools = ["fastqc"]
 "#,
         )
         .expect("write publication");
+    }
+
+    fn write_unified_config(root: &Path) {
+        let config_dir = root.join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("create bench config dir");
+        std::fs::write(
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
+results_root = "/tmp/local-results"
+
+[workspace.remote]
+ssh_host = "cluster"
+repo_root = "/srv/repo"
+corpus_root = "/srv/cache/corpus_01"
+results_root = "/srv/cache/results"
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.validate_reads"
+scenario_id = "validation_fairness"
+sample_scope = "full"
+tools = ["fastqvalidator"]
+"#,
+        )
+        .expect("write unified config");
     }
 
     #[test]
@@ -396,6 +505,33 @@ tools = ["fastqc"]
     fn publication_path_defaults_under_configs_bench() {
         let temp = tempfile::tempdir().expect("tempdir");
         let path = benchmark_publication_config_path(temp.path(), None);
-        assert_eq!(path, temp.path().join("configs/bench/publication.toml"));
+        assert_eq!(path, temp.path().join("configs/bench/benchmark.toml"));
+    }
+
+    #[test]
+    fn unified_benchmark_config_is_preferred_when_present() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        write_workspace(temp.path());
+        write_publication(temp.path());
+        write_unified_config(temp.path());
+
+        let config = load_benchmark_config(temp.path(), None).expect("benchmark config");
+        assert_eq!(
+            config.workspace.remote.and_then(|row| row.corpus_root),
+            Some("/srv/cache/corpus_01".to_string())
+        );
+        assert_eq!(
+            config
+                .publication
+                .corpus_01
+                .expect("corpus publication")
+                .contracts
+                .len(),
+            1
+        );
+        assert_eq!(
+            benchmark_config_path(temp.path(), None),
+            temp.path().join("configs/bench/benchmark.toml")
+        );
     }
 }
