@@ -47,7 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--config",
         default="",
-        help="Benchmark publication config. Defaults to configs/bench/publication.toml.",
+        help="Benchmark config path. Defaults to configs/bench/benchmark.toml.",
     )
     return parser.parse_args()
 

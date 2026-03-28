@@ -1,4 +1,5 @@
 from .config import (
+    BENCHMARK_CONFIG_ENV,
     BENCHMARK_FASTQ_CORPUS_CONFIG_ENV,
     add_workspace_config_argument,
     configure_workspace_config_path,
@@ -8,6 +9,7 @@ from .config import (
 )
 
 __all__ = [
+    "BENCHMARK_CONFIG_ENV",
     "BENCHMARK_FASTQ_CORPUS_CONFIG_ENV",
     "add_workspace_config_argument",
     "configure_workspace_config_path",
