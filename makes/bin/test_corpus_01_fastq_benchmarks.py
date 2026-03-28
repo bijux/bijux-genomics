@@ -2269,106 +2269,140 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
     def test_localize_results_path_falls_back_to_canonical_results_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            cache_root = Path(tmpdir) / "home" / "bijan" / "lu2024-12-24" / ".cache"
-            local_results_root = cache_root / "results"
-            canonical_report = (
-                local_results_root
-                / "corpus_01"
-                / "fastq.extract_umis"
-                / "lunarc"
-                / "bench"
-                / "extract_umis"
-                / "sample_0001"
-                / "report.json"
-            )
-            canonical_report.parent.mkdir(parents=True)
-            canonical_report.write_text("{}", encoding="utf-8")
+            cache_root = Path(tmpdir) / "cluster-cache"
+            with benchmark_contract_env(
+                {
+                    "BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT": str(cache_root),
+                    "BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT": str(cache_root / "results"),
+                }
+            ) as env:
+                local_results_root = Path(env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"])
+                canonical_report = (
+                    local_results_root
+                    / "corpus_01"
+                    / "fastq.extract_umis"
+                    / "lunarc"
+                    / "bench"
+                    / "extract_umis"
+                    / "sample_0001"
+                    / "report.json"
+                )
+                canonical_report.parent.mkdir(parents=True)
+                canonical_report.write_text("{}", encoding="utf-8")
 
-            with mock.patch.object(
-                support,
-                "benchmark_local_cache_mirror_root",
-                return_value=cache_root,
-            ):
                 localized = support.localize_results_path(
-                    "/home/bijan/lu2024-12-24/.cache/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json",
+                    f'{env["BIJUX_BENCHMARK_REMOTE_CACHE_ROOT"]}/bijux-dna-results/corpus_01/fastq.extract_umis/lunarc/bench/extract_umis/sample_0001/report.json',
                     local_results_root,
                 )
 
         self.assertEqual(localized, canonical_report)
 
     def test_localize_workspace_path_maps_remote_extra_data_root(self) -> None:
-        with mock.patch.object(
-            support,
-            "benchmark_local_cache_mirror_root",
-            return_value=Path("/tmp/local-cache"),
-        ):
+        with benchmark_contract_env() as env:
             localized = support.localize_workspace_path(
-                "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv",
-                Path("/tmp/local-results"),
+                f'{env["BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT"]}/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv',
+                Path(env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"]),
             )
 
         self.assertEqual(
-            localized,
-            Path("/tmp/local-cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"),
+            localized.resolve(),
+            (
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"])
+                / "extra-data"
+                / "benchmark"
+                / "fastq.screen_taxonomy"
+                / "read_screening"
+                / "read_screening"
+                / "taxonomy_db"
+                / "lineage.tsv"
+            ).resolve(),
         )
 
     def test_localize_workspace_path_maps_remote_reference_root(self) -> None:
-        with mock.patch.object(
-            support,
-            "benchmark_local_cache_mirror_root",
-            return_value=Path("/tmp/local-cache"),
-        ):
+        with benchmark_contract_env() as env:
             localized = support.localize_workspace_path(
-                "/home/bijan/lu2024-12-24/.cache/reference/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/hg38.1.bt2",
-                Path("/tmp/local-results"),
+                f'{env["BIJUX_BENCHMARK_REMOTE_REFERENCE_ROOT"]}/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/hg38.1.bt2',
+                Path(env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"]),
             )
 
         self.assertEqual(
-            localized,
-            Path("/tmp/local-cache/reference/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/hg38.1.bt2"),
+            localized.resolve(),
+            (
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"])
+                / "reference"
+                / "benchmark"
+                / "fastq.deplete_host"
+                / "host_reference"
+                / "bowtie2_build"
+                / "index"
+                / "hg38.1.bt2"
+            ).resolve(),
         )
 
     def test_localize_manifest_paths_maps_taxonomy_and_reference_artifacts(self) -> None:
-        with mock.patch.object(
-            support,
-            "benchmark_local_cache_mirror_root",
-            return_value=Path("/tmp/local-cache"),
-        ):
+        with benchmark_contract_env() as env:
             localized = support.localize_manifest_paths(
                 {
-                    "database_root": "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db",
-                    "database_lineage_json": "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.json",
-                    "reference_index": "/home/bijan/lu2024-12-24/.cache/reference/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index",
+                    "database_root": f'{env["BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT"]}/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db',
+                    "database_lineage_json": f'{env["BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT"]}/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.json',
+                    "reference_index": f'{env["BIJUX_BENCHMARK_REMOTE_REFERENCE_ROOT"]}/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index',
                 },
-                Path("/tmp/local-results"),
+                Path(env["BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT"]),
                 keys=["database_root", "database_lineage_json", "reference_index"],
             )
 
         self.assertEqual(
-            localized["database_root"],
-            "/tmp/local-cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db",
+            Path(localized["database_root"]).resolve(),
+            (
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"])
+                / "extra-data"
+                / "benchmark"
+                / "fastq.screen_taxonomy"
+                / "read_screening"
+                / "read_screening"
+                / "taxonomy_db"
+            ).resolve(),
         )
         self.assertEqual(
-            localized["database_lineage_json"],
-            "/tmp/local-cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.json",
+            Path(localized["database_lineage_json"]).resolve(),
+            (
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"])
+                / "extra-data"
+                / "benchmark"
+                / "fastq.screen_taxonomy"
+                / "read_screening"
+                / "read_screening"
+                / "taxonomy_db"
+                / "lineage.json"
+            ).resolve(),
         )
         self.assertEqual(
-            localized["reference_index"],
-            "/tmp/local-cache/reference/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index",
+            Path(localized["reference_index"]).resolve(),
+            (
+                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"])
+                / "reference"
+                / "benchmark"
+                / "fastq.deplete_host"
+                / "host_reference"
+                / "bowtie2_build"
+                / "index"
+            ).resolve(),
         )
 
     def test_preferred_report_run_root_falls_back_to_legacy_local_archive(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
-            corpus_root = Path("/home/bijan/lu2024-12-24/.cache/corpus_01")
             legacy_root = tmp_root / "legacy-results"
             cache_mirror_root = tmp_root / "cache-mirror"
             remote_root = tmp_root / "remote-results"
             stage_id = "fastq.report_qc"
             (legacy_root / "corpus_01" / stage_id / "lunarc").mkdir(parents=True)
             (remote_root / "corpus_01" / stage_id / "lunarc").mkdir(parents=True)
-
-            with mock.patch.object(
+            with benchmark_contract_env(
+                {
+                    "BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT": str(tmp_root / "remote-cache" / "corpus_01"),
+                }
+            ) as env, mock.patch.object(
                 support,
                 "benchmark_local_results_root",
                 return_value=legacy_root,
@@ -2381,6 +2415,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 "default_results_stage_root",
                 return_value=remote_root / "corpus_01" / stage_id / "lunarc",
             ):
+                corpus_root = Path(env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"])
                 self.assertEqual(
                     support.preferred_report_run_root(corpus_root, stage_id),
                     legacy_root / "corpus_01" / stage_id / "lunarc",
@@ -2389,7 +2424,6 @@ class BenchmarkMakefileTests(unittest.TestCase):
     def test_preferred_report_run_root_prefers_fresher_existing_candidate(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
-            corpus_root = Path("/home/bijan/lu2024-12-24/.cache/corpus_01")
             stage_id = "fastq.report_qc"
             archive_root = tmp_root / "archive"
             cache_root = tmp_root / "cache"
@@ -2405,8 +2439,11 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 json.dumps({"completed_at_utc": "2026-03-02T00:00:00Z"}),
                 encoding="utf-8",
             )
-
-            with mock.patch.object(
+            with benchmark_contract_env(
+                {
+                    "BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT": str(tmp_root / "remote-cache" / "corpus_01"),
+                }
+            ) as env, mock.patch.object(
                 support,
                 "benchmark_local_results_root",
                 return_value=archive_root,
@@ -2419,16 +2456,19 @@ class BenchmarkMakefileTests(unittest.TestCase):
                 "default_results_stage_root",
                 return_value=tmp_root / "remote" / "corpus_01" / stage_id / "lunarc",
             ):
+                corpus_root = Path(env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"])
                 self.assertEqual(
                     support.preferred_report_run_root(corpus_root, stage_id),
                     fresher_run_root,
                 )
 
     def test_configured_stage_run_roots_follow_governed_workspace_order(self) -> None:
-        corpus_root = Path("/home/bijan/lu2024-12-24/.cache/corpus_01")
         stage_id = "fastq.report_qc"
-
-        with mock.patch.object(
+        with benchmark_contract_env(
+            {
+                "BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT": "/srv/cluster/.cache/corpus_01",
+            }
+        ) as env, mock.patch.object(
             support,
             "benchmark_local_results_root",
             return_value=Path("/tmp/archive"),
@@ -2441,6 +2481,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             "default_results_stage_root",
             return_value=Path("/tmp/remote-results/corpus_01/fastq.report_qc/lunarc"),
         ):
+            corpus_root = Path(env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"])
             candidates = support.configured_stage_run_roots(corpus_root, stage_id)
 
         self.assertEqual(
@@ -4905,49 +4946,52 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
     def test_repair_results_manifests_reconstructs_detect_adapters_run_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            run_root = (
-                Path(tmpdir)
-                / "results"
-                / "corpus_01"
-                / "fastq.detect_adapters"
-                / "lunarc"
-            )
-            sample_report = (
-                run_root
-                / "bench"
-                / "detect_adapters"
-                / "sample_0001"
-                / "report.json"
-            )
-            sample_report.parent.mkdir(parents=True)
-            sample_report.write_text(
-                json.dumps(
-                    {
-                        "records": [
-                            {
-                                "context": {
-                                    "platform": "lunarc-apptainer",
-                                    "parameters": {
-                                        "input_r1": "/home/bijan/bijux/corpus_01/normalized/sample_0001_R1.fastq.gz",
-                                        "out_dir": "/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc",
-                                        "report_json": "/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc/adapter_report.json",
-                                        "threads": 1,
-                                        "tool": "fastqc",
-                                    },
-                                }
-                            }
-                        ]
-                    }
+            with benchmark_contract_env() as env:
+                run_root = (
+                    Path(tmpdir)
+                    / "results"
+                    / "corpus_01"
+                    / "fastq.detect_adapters"
+                    / "lunarc"
                 )
-                + "\n",
-                encoding="utf-8",
-            )
+                sample_report = (
+                    run_root
+                    / "bench"
+                    / "detect_adapters"
+                    / "sample_0001"
+                    / "report.json"
+                )
+                sample_report.parent.mkdir(parents=True)
+                sample_report.write_text(
+                    json.dumps(
+                        {
+                            "records": [
+                                {
+                                    "context": {
+                                        "platform": "lunarc-apptainer",
+                                        "parameters": {
+                                            "input_r1": f'{env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"]}/normalized/sample_0001_R1.fastq.gz',
+                                            "out_dir": f'{env["BIJUX_BENCHMARK_REMOTE_RESULTS_LEGACY_ROOT"]}/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc',
+                                            "report_json": f'{env["BIJUX_BENCHMARK_REMOTE_RESULTS_LEGACY_ROOT"]}/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc/adapter_report.json',
+                                            "threads": 1,
+                                            "tool": "fastqc",
+                                        },
+                                    }
+                                }
+                            ]
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
 
-            result = repair_results_manifests.repair_stage(
-                run_root,
-                "fastq.detect_adapters",
-            )
-            manifest = json.loads((run_root / "run_manifest.json").read_text(encoding="utf-8"))
+                result = repair_results_manifests.repair_stage(
+                    run_root,
+                    "fastq.detect_adapters",
+                )
+                manifest = json.loads(
+                    (run_root / "run_manifest.json").read_text(encoding="utf-8")
+                )
 
             self.assertEqual(result["status"], "reconstructed-stage-run-manifest")
             self.assertEqual(manifest["stage_id"], "fastq.detect_adapters")
@@ -4956,142 +5000,149 @@ class BenchmarkMakefileTests(unittest.TestCase):
 
     def test_repair_results_manifests_uses_workspace_remote_repo_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            run_root = (
-                Path(tmpdir)
-                / "results"
-                / "corpus_01"
-                / "fastq.detect_adapters"
-                / "lunarc"
-            )
-            sample_report = (
-                run_root
-                / "bench"
-                / "detect_adapters"
-                / "sample_0001"
-                / "report.json"
-            )
-            sample_report.parent.mkdir(parents=True)
-            sample_report.write_text(
-                json.dumps(
-                    {
-                        "records": [
-                            {
-                                "context": {
-                                    "platform": "lunarc-apptainer",
-                                    "parameters": {
-                                        "input_r1": "/home/bijan/bijux/corpus_01/normalized/sample_0001_R1.fastq.gz",
-                                        "out_dir": "/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc",
-                                        "report_json": "/home/bijan/bijux/results/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc/adapter_report.json",
-                                        "threads": 1,
-                                        "tool": "fastqc",
-                                    },
+            with benchmark_contract_env() as env:
+                run_root = (
+                    Path(tmpdir)
+                    / "results"
+                    / "corpus_01"
+                    / "fastq.detect_adapters"
+                    / "lunarc"
+                )
+                sample_report = (
+                    run_root
+                    / "bench"
+                    / "detect_adapters"
+                    / "sample_0001"
+                    / "report.json"
+                )
+                sample_report.parent.mkdir(parents=True)
+                sample_report.write_text(
+                    json.dumps(
+                        {
+                            "records": [
+                                {
+                                    "context": {
+                                        "platform": "lunarc-apptainer",
+                                        "parameters": {
+                                            "input_r1": f'{env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"]}/normalized/sample_0001_R1.fastq.gz',
+                                            "out_dir": f'{env["BIJUX_BENCHMARK_REMOTE_RESULTS_LEGACY_ROOT"]}/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc',
+                                            "report_json": f'{env["BIJUX_BENCHMARK_REMOTE_RESULTS_LEGACY_ROOT"]}/corpus_01/fastq.detect_adapters/lunarc/bench/detect_adapters/sample_0001/tools/fastqc/adapter_report.json',
+                                            "threads": 1,
+                                            "tool": "fastqc",
+                                        },
+                                    }
                                 }
-                            }
-                        ]
-                    }
+                            ]
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
 
-            with mock.patch.object(
-                repair_results_manifests,
-                "benchmark_remote_repo_root",
-                return_value=Path("/remote/worktree/bijux-dna"),
-            ):
-                repair_results_manifests.repair_stage(
-                    run_root,
-                    "fastq.detect_adapters",
+                with mock.patch.object(
+                    repair_results_manifests,
+                    "benchmark_remote_repo_root",
+                    return_value=Path("/remote/worktree/bijux-dna"),
+                ):
+                    repair_results_manifests.repair_stage(
+                        run_root,
+                        "fastq.detect_adapters",
+                    )
+                manifest = json.loads(
+                    (run_root / "run_manifest.json").read_text(encoding="utf-8")
                 )
-            manifest = json.loads((run_root / "run_manifest.json").read_text(encoding="utf-8"))
 
             self.assertEqual(manifest["repo_root"], "/remote/worktree/bijux-dna")
 
     def test_repair_results_manifests_refuses_partial_validate_tool_roster(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            run_root = (
-                Path(tmpdir)
-                / "results"
-                / "corpus_01"
-                / "fastq.validate_reads"
-                / "lunarc"
-            )
-            sample_report = (
-                run_root
-                / "bench"
-                / "validate_reads"
-                / "sample_0001"
-                / "report.json"
-            )
-            sample_report.parent.mkdir(parents=True)
-            sample_report.write_text(
-                json.dumps(
-                    {
-                        "records": [
-                            {
-                                "context": {
-                                    "tool": "fastqvalidator",
-                                    "platform": "lunarc-apptainer",
-                                    "parameters": {
-                                        "input_r1": "/home/bijan/bijux/corpus_01/normalized/sample_0001_R1.fastq.gz",
-                                        "threads": 4,
-                                    },
-                                }
-                            }
-                        ]
-                    }
+            with benchmark_contract_env() as env:
+                run_root = (
+                    Path(tmpdir)
+                    / "results"
+                    / "corpus_01"
+                    / "fastq.validate_reads"
+                    / "lunarc"
                 )
-                + "\n",
-                encoding="utf-8",
-            )
+                sample_report = (
+                    run_root
+                    / "bench"
+                    / "validate_reads"
+                    / "sample_0001"
+                    / "report.json"
+                )
+                sample_report.parent.mkdir(parents=True)
+                sample_report.write_text(
+                    json.dumps(
+                        {
+                            "records": [
+                                {
+                                    "context": {
+                                        "tool": "fastqvalidator",
+                                        "platform": "lunarc-apptainer",
+                                        "parameters": {
+                                            "input_r1": f'{env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"]}/normalized/sample_0001_R1.fastq.gz',
+                                            "threads": 4,
+                                        },
+                                    }
+                                }
+                            ]
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
 
-            result = repair_results_manifests.repair_stage(
-                run_root,
-                "fastq.validate_reads",
-            )
+                result = repair_results_manifests.repair_stage(
+                    run_root,
+                    "fastq.validate_reads",
+                )
 
             self.assertEqual(result["status"], "tool-roster-incomplete")
             self.assertFalse((run_root / "run_manifest.json").exists())
 
     def test_repair_results_manifests_normalizes_merge_report_paths(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            run_root = (
-                Path(tmpdir)
-                / "results"
-                / "corpus_01"
-                / "fastq.merge_pairs"
-                / "lunarc"
-            )
-            sample_report = (
-                run_root
-                / "bench"
-                / "merge_pairs"
-                / "sample_0001"
-                / "report.json"
-            )
-            sample_report.parent.mkdir(parents=True)
-            sample_report.write_text('{"records":[{}]}\n', encoding="utf-8")
-            (run_root / "run_manifest.json").write_text(
-                json.dumps(
-                    {
-                        "stage_id": "fastq.merge_pairs",
-                        "runs": [
-                            {
-                                "sample_id": "sample_0001",
-                                "report_json": "/home/bijan/bijux/results/corpus_01/fastq.merge_pairs/lunarc/bench/merge/sample_0001/report.json",
-                            }
-                        ],
-                    }
+            with benchmark_contract_env() as env:
+                run_root = (
+                    Path(tmpdir)
+                    / "results"
+                    / "corpus_01"
+                    / "fastq.merge_pairs"
+                    / "lunarc"
                 )
-                + "\n",
-                encoding="utf-8",
-            )
+                sample_report = (
+                    run_root
+                    / "bench"
+                    / "merge_pairs"
+                    / "sample_0001"
+                    / "report.json"
+                )
+                sample_report.parent.mkdir(parents=True)
+                sample_report.write_text('{"records":[{}]}\n', encoding="utf-8")
+                (run_root / "run_manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "stage_id": "fastq.merge_pairs",
+                            "runs": [
+                                {
+                                    "sample_id": "sample_0001",
+                                    "report_json": f'{env["BIJUX_BENCHMARK_REMOTE_RESULTS_LEGACY_ROOT"]}/corpus_01/fastq.merge_pairs/lunarc/bench/merge/sample_0001/report.json',
+                                }
+                            ],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
 
-            result = repair_results_manifests.repair_stage(
-                run_root,
-                "fastq.merge_pairs",
-            )
-            manifest = json.loads((run_root / "run_manifest.json").read_text(encoding="utf-8"))
+                result = repair_results_manifests.repair_stage(
+                    run_root,
+                    "fastq.merge_pairs",
+                )
+                manifest = json.loads(
+                    (run_root / "run_manifest.json").read_text(encoding="utf-8")
+                )
 
             self.assertEqual(result["status"], "updated-existing-manifest")
             self.assertEqual(manifest["runs"][0]["report_json"], str(sample_report.resolve()))
@@ -5100,23 +5151,30 @@ class BenchmarkMakefileTests(unittest.TestCase):
 class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
     def test_dossier_index_classifies_cache_mirror_run_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            docs_root = Path(tmpdir) / "docs" / "benchmark"
-            stage_root = docs_root / "fastq.validate_reads" / "corpus-01"
-            stage_root.mkdir(parents=True)
-            stage_root.joinpath("summary.json").write_text(
-                json.dumps(
-                    {
-                        "generated_at_utc": "2026-03-28T00:00:00Z",
-                        "platform": "lunarc-apptainer",
-                        "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
-                        "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc",
-                    }
+            with benchmark_contract_env() as env:
+                docs_root = Path(tmpdir) / "docs" / "benchmark"
+                stage_root = docs_root / "fastq.validate_reads" / "corpus-01"
+                stage_root.mkdir(parents=True)
+                stage_root.joinpath("summary.json").write_text(
+                    json.dumps(
+                        {
+                            "generated_at_utc": "2026-03-28T00:00:00Z",
+                            "platform": "lunarc-apptainer",
+                            "corpus_root": env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
+                            "run_root": str(
+                                Path(env["BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT"])
+                                / "results"
+                                / "corpus_01"
+                                / "fastq.validate_reads"
+                                / "lunarc"
+                            ),
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
 
-            index = dossier_index.build_index(docs_root)
+                index = dossier_index.build_index(docs_root)
 
         stage = next(entry for entry in index["stages"] if entry["stage_id"] == "fastq.validate_reads")
         self.assertEqual(stage["status"], "published")
@@ -5124,7 +5182,8 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
 
     def test_dossier_index_tracks_missing_stage_summary(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            index = dossier_index.build_index(Path(tmpdir) / "docs" / "benchmark")
+            with benchmark_contract_env():
+                index = dossier_index.build_index(Path(tmpdir) / "docs" / "benchmark")
 
         self.assertEqual(index["stage_count"], len(support.CORPUS_01_PUBLICATION_CONTRACTS))
         self.assertEqual(index["missing_stage_count"], len(support.CORPUS_01_PUBLICATION_CONTRACTS))
@@ -6046,8 +6105,13 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
             docs_root.mkdir(parents=True)
             local_results_root = Path(tmpdir) / "mirror"
-            local_cache_mirror_root = local_results_root / "home" / "bijan" / "lu2024-12-24" / ".cache"
-            with mock.patch.object(support, "LOCAL_RESULTS_ROOT", local_results_root), mock.patch.object(
+            local_cache_mirror_root = Path(tmpdir) / "cache-mirror"
+            with benchmark_contract_env(
+                {
+                    "BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT": str(local_results_root),
+                    "BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT": str(local_cache_mirror_root),
+                }
+            ) as env, mock.patch.object(support, "LOCAL_RESULTS_ROOT", local_results_root), mock.patch.object(
                 support,
                 "LOCAL_CACHE_MIRROR_ROOT",
                 local_cache_mirror_root,
@@ -6062,7 +6126,7 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
                 (docs_root / "summary.json").write_text(
                     json.dumps(
                         {
-                            "corpus_root": "/home/bijan/bijux/corpus_01",
+                            "corpus_root": env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
                             "run_root": str(run_root),
                         }
                     )
@@ -6105,7 +6169,14 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
             docs_root.mkdir(parents=True)
             local_results_root = Path(tmpdir) / "mirror"
-            with mock.patch.object(support, "LOCAL_RESULTS_ROOT", local_results_root):
+            with benchmark_contract_env(
+                {
+                    "BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT": str(local_results_root),
+                    "BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT": str(
+                        Path(tmpdir) / "cache-mirror"
+                    ),
+                }
+            ) as env, mock.patch.object(support, "LOCAL_RESULTS_ROOT", local_results_root):
                 run_root = (
                     local_results_root
                     / "corpus_01"
@@ -6115,7 +6186,7 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
                 (docs_root / "summary.json").write_text(
                     json.dumps(
                         {
-                            "corpus_root": "/home/bijan/bijux/corpus_01",
+                            "corpus_root": env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
                             "run_root": str(run_root),
                         }
                     )
@@ -6177,64 +6248,65 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
 
     def test_result_audit_accepts_existing_reported_run_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir)
-            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
-            docs_root.mkdir(parents=True)
-            run_root = repo_root / "mirror" / "corpus_01" / "fastq.validate_reads" / "lunarc"
-            sample_report = run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
-            sample_report.parent.mkdir(parents=True)
-            (docs_root / "summary.json").write_text(
-                json.dumps(
-                    {
-                        "corpus_root": "/home/bijan/bijux/corpus_01",
-                        "run_root": str(run_root),
-                    }
+            with benchmark_contract_env() as env:
+                repo_root = Path(tmpdir)
+                docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+                docs_root.mkdir(parents=True)
+                run_root = repo_root / "mirror" / "corpus_01" / "fastq.validate_reads" / "lunarc"
+                sample_report = run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
+                sample_report.parent.mkdir(parents=True)
+                (docs_root / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "corpus_root": env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
+                            "run_root": str(run_root),
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
-            sample_report.write_text(
-                json.dumps(
-                    {
-                        "records": [
-                            {"context": {"tool": "fastqvalidator"}},
-                            {"context": {"tool": "fastqc"}},
-                            {"context": {"tool": "fastq_scan"}},
-                            {"context": {"tool": "fqtools"}},
-                            {"context": {"tool": "seqtk"}},
-                        ]
-                    }
+                sample_report.write_text(
+                    json.dumps(
+                        {
+                            "records": [
+                                {"context": {"tool": "fastqvalidator"}},
+                                {"context": {"tool": "fastqc"}},
+                                {"context": {"tool": "fastq_scan"}},
+                                {"context": {"tool": "fqtools"}},
+                                {"context": {"tool": "seqtk"}},
+                            ]
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
-            (run_root / "run_manifest.json").write_text(
-                json.dumps(
-                    {
-                        "stage_id": "fastq.validate_reads",
-                        "scenario_id": "validation_fairness",
-                        "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-                        "dry_run": False,
-                        "sample_limit": None,
-                        "samples_failed": 0,
-                        "runs": [
-                            {
-                                "sample_id": "sample_0001",
-                                "report_json": str(sample_report),
-                            }
-                        ],
-                    }
+                (run_root / "run_manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "stage_id": "fastq.validate_reads",
+                            "scenario_id": "validation_fairness",
+                            "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                            "dry_run": False,
+                            "sample_limit": None,
+                            "samples_failed": 0,
+                            "runs": [
+                                {
+                                    "sample_id": "sample_0001",
+                                    "report_json": str(sample_report),
+                                }
+                            ],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
 
-            report = published_results_audit.audit_stage(
-                repo_root,
-                "fastq.validate_reads",
-                "validation_fairness",
-                ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-            )
+                report = published_results_audit.audit_stage(
+                    repo_root,
+                    "fastq.validate_reads",
+                    "validation_fairness",
+                    ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                )
 
         self.assertFalse(
             any(
@@ -6246,7 +6318,8 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
     def test_result_audit_tracks_missing_published_stage_summary(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            report = published_results_audit.audit_published_results(repo_root)
+            with benchmark_contract_env():
+                report = published_results_audit.audit_published_results(repo_root)
 
         self.assertEqual(
             report["applicable_stage_count"],
@@ -6270,28 +6343,26 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
             docs_root.mkdir(parents=True)
-            reported_run_root = Path(
-                "/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.validate_reads/lunarc"
-            )
-            (docs_root / "summary.json").write_text(
-                json.dumps(
-                    {
-                        "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
-                        "run_root": str(reported_run_root),
-                    }
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            with mock.patch.object(
-                support,
-                "benchmark_local_results_root",
-                return_value=repo_root / "archive",
-            ), mock.patch.object(
-                support,
-                "benchmark_local_cache_mirror_root",
-                return_value=repo_root / "home" / "bijan" / "lu2024-12-24" / ".cache",
+            cache_root = repo_root / "cache-mirror"
+            archive_root = repo_root / "archive"
+            reported_run_root = cache_root / "results" / "corpus_01" / "fastq.validate_reads" / "lunarc"
+            with benchmark_contract_env(
+                {
+                    "BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT": str(cache_root / "corpus_01"),
+                    "BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT": str(archive_root),
+                    "BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT": str(cache_root),
+                }
             ):
+                (docs_root / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "corpus_root": str(cache_root / "corpus_01"),
+                            "run_root": str(reported_run_root),
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
                 report = published_results_audit.audit_stage(
                     repo_root,
                     "fastq.validate_reads",
@@ -6347,85 +6418,68 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
             docs_root.mkdir(parents=True)
-            canonical_run_root = (
-                repo_root
-                / "home"
-                / "bijan"
-                / "lu2024-12-24"
-                / ".cache"
-                / "results"
-                / "corpus_01"
-                / "fastq.validate_reads"
-                / "lunarc"
-            )
-            legacy_run_root = (
-                repo_root
-                / "archive"
-                / "corpus_01"
-                / "fastq.validate_reads"
-                / "lunarc"
-            )
-            sample_report = canonical_run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
-            sample_report.parent.mkdir(parents=True)
-            legacy_run_root.mkdir(parents=True)
-            (docs_root / "summary.json").write_text(
-                json.dumps(
-                    {
-                        "corpus_root": str(
-                            repo_root / "home" / "bijan" / "lu2024-12-24" / ".cache" / "corpus_01"
-                        ),
-                        "run_root": str(canonical_run_root),
-                    }
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            sample_report.write_text(
-                json.dumps(
-                    {
-                        "records": [
-                            {"context": {"tool": "fastqvalidator"}},
-                            {"context": {"tool": "fastqc"}},
-                            {"context": {"tool": "fastq_scan"}},
-                            {"context": {"tool": "fqtools"}},
-                            {"context": {"tool": "seqtk"}},
-                        ]
-                    }
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            for run_root in [canonical_run_root, legacy_run_root]:
-                (run_root / "run_manifest.json").write_text(
+            cache_root = repo_root / "cache-mirror"
+            archive_root = repo_root / "archive"
+            canonical_run_root = cache_root / "results" / "corpus_01" / "fastq.validate_reads" / "lunarc"
+            legacy_run_root = archive_root / "corpus_01" / "fastq.validate_reads" / "lunarc"
+            with benchmark_contract_env(
+                {
+                    "BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT": str(cache_root / "corpus_01"),
+                    "BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT": str(archive_root),
+                    "BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT": str(cache_root),
+                    "BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT": str(cache_root / "results"),
+                }
+            ):
+                sample_report = canonical_run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
+                sample_report.parent.mkdir(parents=True)
+                legacy_run_root.mkdir(parents=True)
+                (docs_root / "summary.json").write_text(
                     json.dumps(
                         {
-                            "stage_id": "fastq.validate_reads",
-                            "scenario_id": "validation_fairness",
-                            "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-                            "dry_run": False,
-                            "sample_limit": None,
-                            "samples_failed": 0,
-                            "runs": [
-                                {
-                                    "sample_id": "sample_0001",
-                                    "report_json": str(sample_report),
-                                }
-                            ],
+                            "corpus_root": str(cache_root / "corpus_01"),
+                            "run_root": str(canonical_run_root),
                         }
                     )
                     + "\n",
                     encoding="utf-8",
                 )
+                sample_report.write_text(
+                    json.dumps(
+                        {
+                            "records": [
+                                {"context": {"tool": "fastqvalidator"}},
+                                {"context": {"tool": "fastqc"}},
+                                {"context": {"tool": "fastq_scan"}},
+                                {"context": {"tool": "fqtools"}},
+                                {"context": {"tool": "seqtk"}},
+                            ]
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                for run_root in [canonical_run_root, legacy_run_root]:
+                    (run_root / "run_manifest.json").write_text(
+                        json.dumps(
+                            {
+                                "stage_id": "fastq.validate_reads",
+                                "scenario_id": "validation_fairness",
+                                "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                                "dry_run": False,
+                                "sample_limit": None,
+                                "samples_failed": 0,
+                                "runs": [
+                                    {
+                                        "sample_id": "sample_0001",
+                                        "report_json": str(sample_report),
+                                    }
+                                ],
+                            }
+                        )
+                        + "\n",
+                        encoding="utf-8",
+                    )
 
-            with mock.patch.object(
-                support,
-                "benchmark_local_results_root",
-                return_value=repo_root / "archive",
-            ), mock.patch.object(
-                support,
-                "benchmark_local_cache_mirror_root",
-                return_value=repo_root / "home" / "bijan" / "lu2024-12-24" / ".cache",
-            ):
                 report = published_results_audit.audit_stage(
                     repo_root,
                     "fastq.validate_reads",
@@ -6445,90 +6499,73 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
             repo_root = Path(tmpdir)
             docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
             docs_root.mkdir(parents=True)
-            canonical_run_root = (
-                repo_root
-                / "home"
-                / "bijan"
-                / "lu2024-12-24"
-                / ".cache"
-                / "results"
-                / "corpus_01"
-                / "fastq.validate_reads"
-                / "lunarc"
-            )
-            legacy_run_root = (
-                repo_root
-                / "archive"
-                / "corpus_01"
-                / "fastq.validate_reads"
-                / "lunarc"
-            )
-            sample_report = canonical_run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
-            sample_report.parent.mkdir(parents=True)
-            legacy_run_root.mkdir(parents=True)
-            (docs_root / "summary.json").write_text(
-                json.dumps(
-                    {
-                        "corpus_root": str(
-                            repo_root / "home" / "bijan" / "lu2024-12-24" / ".cache" / "corpus_01"
-                        ),
-                        "run_root": str(canonical_run_root),
-                    }
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            sample_report.write_text(
-                json.dumps(
-                    {
-                        "records": [
-                            {"context": {"tool": "fastqvalidator"}},
-                            {"context": {"tool": "fastqc"}},
-                            {"context": {"tool": "fastq_scan"}},
-                            {"context": {"tool": "fqtools"}},
-                            {"context": {"tool": "seqtk"}},
-                        ]
-                    }
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            manifests = [
-                (canonical_run_root, "2026-03-28T00:00:00Z"),
-                (legacy_run_root, "2026-03-29T00:00:00Z"),
-            ]
-            for run_root, generated_at_utc in manifests:
-                (run_root / "run_manifest.json").write_text(
+            cache_root = repo_root / "cache-mirror"
+            archive_root = repo_root / "archive"
+            canonical_run_root = cache_root / "results" / "corpus_01" / "fastq.validate_reads" / "lunarc"
+            legacy_run_root = archive_root / "corpus_01" / "fastq.validate_reads" / "lunarc"
+            with benchmark_contract_env(
+                {
+                    "BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT": str(cache_root / "corpus_01"),
+                    "BIJUX_BENCHMARK_LOCAL_RESULTS_ROOT": str(archive_root),
+                    "BIJUX_BENCHMARK_LOCAL_CACHE_MIRROR_ROOT": str(cache_root),
+                    "BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT": str(cache_root / "results"),
+                }
+            ):
+                sample_report = canonical_run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
+                sample_report.parent.mkdir(parents=True)
+                legacy_run_root.mkdir(parents=True)
+                (docs_root / "summary.json").write_text(
                     json.dumps(
                         {
-                            "stage_id": "fastq.validate_reads",
-                            "scenario_id": "validation_fairness",
-                            "generated_at_utc": generated_at_utc,
-                            "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-                            "dry_run": False,
-                            "sample_limit": None,
-                            "samples_failed": 0,
-                            "runs": [
-                                {
-                                    "sample_id": "sample_0001",
-                                    "report_json": str(sample_report),
-                                }
-                            ],
+                            "corpus_root": str(cache_root / "corpus_01"),
+                            "run_root": str(canonical_run_root),
                         }
                     )
                     + "\n",
                     encoding="utf-8",
                 )
+                sample_report.write_text(
+                    json.dumps(
+                        {
+                            "records": [
+                                {"context": {"tool": "fastqvalidator"}},
+                                {"context": {"tool": "fastqc"}},
+                                {"context": {"tool": "fastq_scan"}},
+                                {"context": {"tool": "fqtools"}},
+                                {"context": {"tool": "seqtk"}},
+                            ]
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                manifests = [
+                    (canonical_run_root, "2026-03-28T00:00:00Z"),
+                    (legacy_run_root, "2026-03-29T00:00:00Z"),
+                ]
+                for run_root, generated_at_utc in manifests:
+                    (run_root / "run_manifest.json").write_text(
+                        json.dumps(
+                            {
+                                "stage_id": "fastq.validate_reads",
+                                "scenario_id": "validation_fairness",
+                                "generated_at_utc": generated_at_utc,
+                                "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                                "dry_run": False,
+                                "sample_limit": None,
+                                "samples_failed": 0,
+                                "runs": [
+                                    {
+                                        "sample_id": "sample_0001",
+                                        "report_json": str(sample_report),
+                                    }
+                                ],
+                            }
+                        )
+                        + "\n",
+                        encoding="utf-8",
+                    )
 
-            with mock.patch.object(
-                support,
-                "benchmark_local_results_root",
-                return_value=repo_root / "archive",
-            ), mock.patch.object(
-                support,
-                "benchmark_local_cache_mirror_root",
-                return_value=repo_root / "home" / "bijan" / "lu2024-12-24" / ".cache",
-            ):
                 report = published_results_audit.audit_stage(
                     repo_root,
                     "fastq.validate_reads",
@@ -6548,65 +6585,66 @@ class CorpusBenchmarkResultsAuditTests(unittest.TestCase):
 
     def test_result_audit_flags_polluting_mirror_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            repo_root = Path(tmpdir)
-            docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
-            docs_root.mkdir(parents=True)
-            run_root = repo_root / "mirror" / "corpus_01" / "fastq.validate_reads" / "lunarc"
-            sample_report = run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
-            sample_report.parent.mkdir(parents=True)
-            (run_root / "bench" / ".DS_Store").write_text("", encoding="utf-8")
-            (docs_root / "summary.json").write_text(
-                json.dumps(
-                    {
-                        "corpus_root": "/home/bijan/bijux/corpus_01",
-                        "run_root": str(run_root),
-                    }
+            with benchmark_contract_env() as env:
+                repo_root = Path(tmpdir)
+                docs_root = repo_root / "docs" / "benchmark" / "fastq.validate_reads" / "corpus-01"
+                docs_root.mkdir(parents=True)
+                run_root = repo_root / "mirror" / "corpus_01" / "fastq.validate_reads" / "lunarc"
+                sample_report = run_root / "bench" / "validate_reads" / "sample_0001" / "report.json"
+                sample_report.parent.mkdir(parents=True)
+                (run_root / "bench" / ".DS_Store").write_text("", encoding="utf-8")
+                (docs_root / "summary.json").write_text(
+                    json.dumps(
+                        {
+                            "corpus_root": env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
+                            "run_root": str(run_root),
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
-            sample_report.write_text(
-                json.dumps(
-                    {
-                        "records": [
-                            {"context": {"tool": "fastqvalidator"}},
-                            {"context": {"tool": "fastqc"}},
-                            {"context": {"tool": "fastq_scan"}},
-                            {"context": {"tool": "fqtools"}},
-                            {"context": {"tool": "seqtk"}},
-                        ]
-                    }
+                sample_report.write_text(
+                    json.dumps(
+                        {
+                            "records": [
+                                {"context": {"tool": "fastqvalidator"}},
+                                {"context": {"tool": "fastqc"}},
+                                {"context": {"tool": "fastq_scan"}},
+                                {"context": {"tool": "fqtools"}},
+                                {"context": {"tool": "seqtk"}},
+                            ]
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
-            (run_root / "run_manifest.json").write_text(
-                json.dumps(
-                    {
-                        "stage_id": "fastq.validate_reads",
-                        "scenario_id": "validation_fairness",
-                        "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-                        "dry_run": False,
-                        "sample_limit": None,
-                        "samples_failed": 0,
-                        "runs": [
-                            {
-                                "sample_id": "sample_0001",
-                                "report_json": str(sample_report),
-                            }
-                        ],
-                    }
+                (run_root / "run_manifest.json").write_text(
+                    json.dumps(
+                        {
+                            "stage_id": "fastq.validate_reads",
+                            "scenario_id": "validation_fairness",
+                            "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                            "dry_run": False,
+                            "sample_limit": None,
+                            "samples_failed": 0,
+                            "runs": [
+                                {
+                                    "sample_id": "sample_0001",
+                                    "report_json": str(sample_report),
+                                }
+                            ],
+                        }
+                    )
+                    + "\n",
+                    encoding="utf-8",
                 )
-                + "\n",
-                encoding="utf-8",
-            )
 
-            report = published_results_audit.audit_stage(
-                repo_root,
-                "fastq.validate_reads",
-                "validation_fairness",
-                ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-            )
+                report = published_results_audit.audit_stage(
+                    repo_root,
+                    "fastq.validate_reads",
+                    "validation_fairness",
+                    ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
+                )
 
         self.assertTrue(
             any(
