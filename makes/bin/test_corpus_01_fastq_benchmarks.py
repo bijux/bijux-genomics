@@ -4922,9 +4922,14 @@ class ReportQcReportingTests(unittest.TestCase):
     def test_report_qc_summary_preserves_configured_corpus_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            run_root = repo_root / "results" / "corpus_01" / "fastq.report_qc" / "lunarc"
+            actual_run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.report_qc" / "lunarc"
+            )
+            run_root = repo_root / "mirror" / "fastq.report_qc"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
             docs_root = repo_root / "docs" / "benchmark" / "fastq.report_qc" / "corpus-01"
-            sample_root = run_root / "bench" / "report_qc" / "sample_0001"
+            sample_root = actual_run_root / "bench" / "report_qc" / "sample_0001"
             tool_root = sample_root / "tools" / "multiqc"
             raw_fastqc_dir = sample_root / "tools" / "fastqc" / "fastqc"
             raw_fastqc_dir.mkdir(parents=True)
@@ -4986,7 +4991,7 @@ class ReportQcReportingTests(unittest.TestCase):
                 json.dumps({"status": "ok"}) + "\n",
                 encoding="utf-8",
             )
-            (run_root / "run_manifest.json").write_text(
+            (actual_run_root / "run_manifest.json").write_text(
                 json.dumps(
                     {
                         "platform": "lunarc-apptainer",
@@ -5067,6 +5072,7 @@ class ReportQcReportingTests(unittest.TestCase):
                 summary["corpus_root"],
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
+            self.assertEqual(summary["run_root"], str(run_root))
 
 
 class TrimReadsReportingTests(unittest.TestCase):
