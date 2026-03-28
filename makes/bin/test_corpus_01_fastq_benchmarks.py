@@ -438,22 +438,16 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         text = runner_script_text("benchmark_workspace_value.py")
 
         self.assertIn('--config', text)
-        self.assertIn("configure_workspace_config_path(args.config)", text)
-        self.assertIn(
-            "from benchmark_fastq_corpus.workspace_values import resolve_workspace_value",
-            text,
-        )
+        self.assertIn('"workspace-value",', text)
+        self.assertNotIn("configure_workspace_config_path(args.config)", text)
+        self.assertIn("def resolve_workspace_value(", text)
 
-    def test_benchmark_publication_targets_uses_package_module(self) -> None:
+    def test_benchmark_publication_targets_uses_rust_shim(self) -> None:
         text = runner_script_text("benchmark_publication_targets.py")
 
-        self.assertIn(
-            "from benchmark_fastq_corpus.publication_targets import resolve_targets",
-            text,
-        )
         self.assertIn('"bench",', text)
         self.assertIn('"publication-targets",', text)
-        self.assertNotIn("CORPUS_01_PUBLICATION_CONTRACTS", text)
+        self.assertIn("def resolve_targets(", text)
 
     def test_selected_runner_scripts_delegate_to_rust_corpus_benchmark(self) -> None:
         for path in rust_compat_runner_paths():

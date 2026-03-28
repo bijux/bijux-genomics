@@ -2,10 +2,42 @@
 from __future__ import annotations
 
 import argparse
-import sys
+import subprocess
+from pathlib import Path
 
-from benchmark_fastq_corpus import configure_workspace_config_path
-from benchmark_fastq_corpus.workspace_values import resolve_workspace_value
+
+def resolve_workspace_value(
+    key_path: str,
+    *,
+    config: str = "",
+) -> str:
+    repo_root = Path(__file__).resolve().parents[2]
+    command = [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "bench",
+        "workspace-value",
+    ]
+    if config:
+        command.extend(["--config", config])
+    command.append(key_path)
+    completed = subprocess.run(
+        command,
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    value = completed.stdout.strip()
+    if value == "true":
+        return "1"
+    if value == "false":
+        return "0"
+    return value
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,8 +58,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    configure_workspace_config_path(args.config)
-    sys.stdout.write(resolve_workspace_value(args.key_path))
+    print(resolve_workspace_value(args.key_path, config=args.config))
     return 0
 
 
