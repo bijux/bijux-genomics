@@ -259,6 +259,7 @@ def build_artifacts(context: CorpusReportContext) -> CorpusReportArtifacts:
     run_root = context.runtime.run_root
     local_results_root = context.runtime.local_results_root
 
+    spec = context.spec
     defaults = merge_pairs_benchmark_defaults()
     run_manifest = context.run_manifest
     expected_sample_ids = context.expected_sample_ids

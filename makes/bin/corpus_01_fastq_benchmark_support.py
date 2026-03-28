@@ -1443,20 +1443,24 @@ def load_corpus_report_context(
     contract: CorpusBenchmarkContract,
     validate_run_manifest: Callable[[dict], None] | None = None,
     metadata_fallback_stage_id: str | None = None,
+    metadata_loader: Callable[[CorpusReportRuntime, dict], dict[str, dict]] | None = None,
 ) -> CorpusReportContext:
     runtime = resolve_corpus_report_runtime(args, stage_id=contract.stage_id)
     spec = load_corpus_spec(runtime.repo_root)
     run_manifest = runtime.run_manifest
     if validate_run_manifest is not None:
         validate_run_manifest(run_manifest)
-    manifest_sample_ids = benchmark_manifest_sample_ids(run_manifest)
-    metadata_by_sample = resolve_corpus_metadata(
-        runtime.repo_root,
-        runtime.corpus_root,
-        spec,
-        expected_sample_ids=manifest_sample_ids,
-        fallback_stage_id=metadata_fallback_stage_id,
-    )
+    if metadata_loader is None:
+        manifest_sample_ids = benchmark_manifest_sample_ids(run_manifest)
+        metadata_by_sample = resolve_corpus_metadata(
+            runtime.repo_root,
+            runtime.corpus_root,
+            spec,
+            expected_sample_ids=manifest_sample_ids,
+            fallback_stage_id=metadata_fallback_stage_id,
+        )
+    else:
+        metadata_by_sample = metadata_loader(runtime, spec)
     expected_sample_ids = benchmark_applicable_sample_ids(
         contract,
         run_manifest,
@@ -1485,12 +1489,14 @@ def run_corpus_report(
     build_artifacts: Callable[[CorpusReportContext], CorpusReportArtifacts],
     validate_run_manifest: Callable[[dict], None] | None = None,
     metadata_fallback_stage_id: str | None = None,
+    metadata_loader: Callable[[CorpusReportRuntime, dict], dict[str, dict]] | None = None,
 ) -> int:
     context = load_corpus_report_context(
         args,
         contract=contract,
         validate_run_manifest=validate_run_manifest,
         metadata_fallback_stage_id=metadata_fallback_stage_id,
+        metadata_loader=metadata_loader,
     )
     artifacts = build_artifacts(context)
     publish_corpus_report_artifacts(
