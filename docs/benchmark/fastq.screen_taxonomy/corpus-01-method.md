@@ -42,7 +42,7 @@ make _benchmark-screen-taxonomy-corpus-01 PLATFORM=apptainer-amd64
 make _benchmark-screen-taxonomy-corpus-01-report
 ```
 
-The runner resolves the governed taxonomy bundle from `configs/bench/benchmark.toml` unless you intentionally override `DATABASE_ROOT` or `--database-root`. Use `makes/bin/bootstrap_fastq_screen_taxonomy_database.py` to validate a chosen bundle and write `lineage.json` before benchmarking it.
+The runner resolves the governed taxonomy bundle from `configs/bench/benchmark.toml` unless you intentionally override `DATABASE_ROOT` or `--database-root`. Use `bijux-dna bench write-screen-taxonomy-database-lineage` to validate a chosen bundle and write `lineage.json` before benchmarking it.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.

@@ -10,6 +10,8 @@ pub enum BenchCommand {
     WorkspaceValue(BenchWorkspaceValueArgs),
     #[command(name = "repo-checks")]
     RepoChecks(BenchRepoChecksArgs),
+    #[command(name = "write-screen-taxonomy-database-lineage")]
+    WriteScreenTaxonomyDatabaseLineage(BenchWriteScreenTaxonomyDatabaseLineageArgs),
     #[command(name = "publication-targets")]
     PublicationTargets(BenchPublicationTargetsArgs),
     #[command(name = "corpus-fastq")]
@@ -61,6 +63,32 @@ pub struct BenchRepoChecksArgs {
     pub repo_root: PathBuf,
     #[arg(long, value_name = "PATH")]
     pub json_out: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchWriteScreenTaxonomyDatabaseLineageArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub database_root: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub results_root: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub cache_root: Option<PathBuf>,
+    #[arg(long, default_value = "taxonomy_reference")]
+    pub database_catalog_id: String,
+    #[arg(long, default_value = "taxonomy_db")]
+    pub database_artifact_id: String,
+    #[arg(long, default_value = "read_screening")]
+    pub database_namespace: String,
+    #[arg(long, default_value = "read_screening")]
+    pub database_scope: String,
+    #[arg(long, value_name = "PATH")]
+    pub source_manifest: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub bootstrap_report: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub lineage_json: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
