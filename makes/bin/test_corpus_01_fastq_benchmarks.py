@@ -142,6 +142,14 @@ def publication_stage_ids() -> list[str]:
 
 
 class CorpusBenchmarkSupportTests(unittest.TestCase):
+    def test_benchmark_support_does_not_embed_workspace_path_literals(self) -> None:
+        text = (ROOT / "makes" / "bin" / "corpus_01_fastq_benchmark_support.py").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertNotIn('/Users/bijan/bijux/bijux-dna-results', text)
+        self.assertNotIn('/home/bijan/bijux/bijux-dna', text)
+
     def test_corpus_01_make_target_mapping_covers_merge_and_trim_stage_aliases(self) -> None:
         self.assertEqual(
             support.corpus_01_make_run_target("fastq.merge_pairs"),
@@ -208,6 +216,24 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             benchmark_workspace_value.resolve_workspace_value("remote.corpus_root"),
             "/home/bijan/lu2024-12-24/.cache/corpus_01",
         )
+
+    def test_benchmark_local_results_root_reads_committed_workspace_contract(self) -> None:
+        support.load_benchmark_workspace_config.cache_clear()
+        try:
+            self.assertEqual(
+                support.benchmark_local_results_root(),
+                Path("/Users/bijan/bijux/bijux-dna-results"),
+            )
+            self.assertEqual(
+                support.benchmark_local_cache_mirror_root(),
+                Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache"),
+            )
+            self.assertEqual(
+                support.benchmark_remote_repo_root(),
+                Path("/home/bijan/bijux/bijux-dna"),
+            )
+        finally:
+            support.load_benchmark_workspace_config.cache_clear()
 
 
 class BenchmarkMakefileTests(unittest.TestCase):
