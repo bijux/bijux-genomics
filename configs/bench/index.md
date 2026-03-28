@@ -26,4 +26,5 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 
 ## Publication Contract
 - `configs/bench/publication.toml` keeps governed corpus publication exclusions outside Python support code.
+- `[[corpus_01.contracts]]` rows declare the governed published stage roster, scenario ids, sample scopes, and tool rosters.
 - `[[corpus_01.exclusions]]` rows declare stage ids and durable reasons for publication exclusions.

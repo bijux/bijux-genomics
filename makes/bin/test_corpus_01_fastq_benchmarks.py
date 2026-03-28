@@ -299,6 +299,34 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             ],
         )
 
+    def test_benchmark_publication_config_defines_governed_contracts(self) -> None:
+        support.load_benchmark_publication_config.cache_clear()
+        config = support.load_benchmark_publication_config()
+
+        self.assertEqual(
+            [row["stage_id"] for row in config["corpus_01"]["contracts"][:3]],
+            [
+                "fastq.validate_reads",
+                "fastq.detect_adapters",
+                "fastq.profile_reads",
+            ],
+        )
+        self.assertEqual(config["corpus_01"]["contracts"][11]["sample_scope"], "paired")
+
+    def test_publication_contracts_load_from_benchmark_config(self) -> None:
+        self.assertEqual(
+            support.CORPUS_01_PUBLICATION_CONTRACTS[0].stage_id,
+            "fastq.validate_reads",
+        )
+        self.assertEqual(
+            support.CORPUS_01_PUBLICATION_CONTRACTS[11].stage_id,
+            "fastq.merge_pairs",
+        )
+        self.assertEqual(
+            support.CORPUS_01_PUBLICATION_CONTRACTS[11].sample_scope,
+            "paired",
+        )
+
     def test_publication_exclusions_load_from_benchmark_config(self) -> None:
         self.assertEqual(
             [exclusion.stage_id for exclusion in support.CORPUS_01_PUBLICATION_EXCLUSIONS],

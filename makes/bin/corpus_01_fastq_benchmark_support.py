@@ -270,182 +270,111 @@ class StageRunRootCandidate:
     path: Path
 
 
-DETECT_ADAPTERS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.detect_adapters",
-    scenario_id="detect_adapters_fairness",
-    tools=["fastqc"],
+def corpus_01_publication_contract(stage_id: str) -> CorpusBenchmarkContract:
+    for row in load_benchmark_publication_config().get("corpus_01", {}).get("contracts", []):
+        if str(row.get("stage_id")) != stage_id:
+            continue
+        return CorpusBenchmarkContract(
+            stage_id=str(row["stage_id"]),
+            scenario_id=str(row["scenario_id"]),
+            tools=[str(tool) for tool in row["tools"]],
+            sample_scope=str(row.get("sample_scope", "full")),
+        )
+    raise SystemExit(
+        "missing benchmark publication contract: "
+        f"stage_id={stage_id} in configs/bench/publication.toml"
+    )
+
+
+DETECT_ADAPTERS_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.detect_adapters"
 )
 
 
-PROFILE_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.profile_reads",
-    scenario_id="profile_reads_fairness",
-    tools=["seqkit_stats"],
+PROFILE_READS_BENCHMARK_CONTRACT = corpus_01_publication_contract("fastq.profile_reads")
+
+
+PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.profile_read_lengths"
 )
 
 
-PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.profile_read_lengths",
-    scenario_id="read_length_fairness",
-    tools=["seqkit_stats"],
+PROFILE_OVERREPRESENTED_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.profile_overrepresented_sequences"
 )
 
 
-PROFILE_OVERREPRESENTED_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.profile_overrepresented_sequences",
-    scenario_id="overrepresented_sequence_fairness",
-    tools=["fastqc", "fastq_scan", "seqkit"],
+MERGE_PAIRS_BENCHMARK_CONTRACT = corpus_01_publication_contract("fastq.merge_pairs")
+
+
+REPORT_QC_BENCHMARK_CONTRACT = corpus_01_publication_contract("fastq.report_qc")
+
+
+TRIM_POLYG_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.trim_polyg_tails"
 )
 
 
-MERGE_PAIRS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.merge_pairs",
-    scenario_id="merge_fairness",
-    tools=["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"],
-    sample_scope="paired",
+TRIM_READS_BENCHMARK_CONTRACT = corpus_01_publication_contract("fastq.trim_reads")
+
+
+TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.trim_terminal_damage"
 )
 
 
-REPORT_QC_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.report_qc",
-    scenario_id="qc_aggregation_fairness",
-    tools=["multiqc"],
+NORMALIZE_PRIMERS_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.normalize_primers"
 )
 
 
-TRIM_POLYG_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.trim_polyg_tails",
-    scenario_id="polyg_trim_fairness",
-    tools=["bbduk", "fastp"],
+FILTER_READS_BENCHMARK_CONTRACT = corpus_01_publication_contract("fastq.filter_reads")
+
+
+DEPLETE_RRNA_BENCHMARK_CONTRACT = corpus_01_publication_contract("fastq.deplete_rrna")
+
+
+REMOVE_DUPLICATES_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.remove_duplicates"
 )
 
 
-TRIM_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.trim_reads",
-    scenario_id="trim_fairness",
-    tools=[
-        "adapterremoval",
-        "alientrimmer",
-        "atropos",
-        "bbduk",
-        "cutadapt",
-        "fastp",
-        "fastx_clipper",
-        "leehom",
-        "prinseq",
-        "seqkit",
-        "skewer",
-        "trim_galore",
-        "trimmomatic",
-    ],
+FILTER_LOW_COMPLEXITY_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.filter_low_complexity"
 )
 
 
-TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.trim_terminal_damage",
-    scenario_id="terminal_damage_fairness",
-    tools=["adapterremoval", "cutadapt", "seqkit"],
+DEPLETE_HOST_BENCHMARK_CONTRACT = corpus_01_publication_contract("fastq.deplete_host")
+
+
+DEPLETE_REFERENCE_CONTAMINANTS_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.deplete_reference_contaminants"
 )
 
 
-NORMALIZE_PRIMERS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.normalize_primers",
-    scenario_id="primer_normalization_fairness",
-    tools=["cutadapt"],
+CORRECT_ERRORS_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.correct_errors"
 )
 
 
-FILTER_READS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.filter_reads",
-    scenario_id="filter_fairness",
-    tools=["bbduk", "fastp", "prinseq", "seqkit"],
-)
+EXTRACT_UMIS_BENCHMARK_CONTRACT = corpus_01_publication_contract("fastq.extract_umis")
 
 
-DEPLETE_RRNA_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.deplete_rrna",
-    scenario_id="rrna_depletion_fairness",
-    tools=["sortmerna"],
-)
-
-
-REMOVE_DUPLICATES_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.remove_duplicates",
-    scenario_id="dedup_fairness",
-    tools=["clumpify", "fastuniq"],
-    sample_scope="paired",
-)
-
-
-FILTER_LOW_COMPLEXITY_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.filter_low_complexity",
-    scenario_id="low_complexity_fairness",
-    tools=["bbduk", "prinseq"],
-)
-
-
-DEPLETE_HOST_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.deplete_host",
-    scenario_id="host_depletion_fairness",
-    tools=["bowtie2"],
-)
-
-
-DEPLETE_REFERENCE_CONTAMINANTS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.deplete_reference_contaminants",
-    scenario_id="contaminant_depletion_fairness",
-    tools=["bowtie2"],
-)
-
-
-CORRECT_ERRORS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.correct_errors",
-    scenario_id="correction_fairness",
-    tools=["bayeshammer", "lighter", "musket", "rcorrector"],
-    sample_scope="paired",
-)
-
-
-EXTRACT_UMIS_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.extract_umis",
-    scenario_id="umi_extraction_fairness",
-    tools=["umi_tools"],
-    sample_scope="paired",
-)
-
-
-SCREEN_TAXONOMY_BENCHMARK_CONTRACT = CorpusBenchmarkContract(
-    stage_id="fastq.screen_taxonomy",
-    scenario_id="screen_fairness",
-    tools=["centrifuge", "kaiju", "kraken2", "krakenuniq"],
+SCREEN_TAXONOMY_BENCHMARK_CONTRACT = corpus_01_publication_contract(
+    "fastq.screen_taxonomy"
 )
 
 
 CORPUS_01_PUBLICATION_CONTRACTS = [
     CorpusBenchmarkContract(
-        stage_id="fastq.validate_reads",
-        scenario_id="validation_fairness",
-        tools=["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"],
-    ),
-    DETECT_ADAPTERS_BENCHMARK_CONTRACT,
-    PROFILE_READS_BENCHMARK_CONTRACT,
-    PROFILE_READ_LENGTHS_BENCHMARK_CONTRACT,
-    PROFILE_OVERREPRESENTED_BENCHMARK_CONTRACT,
-    NORMALIZE_PRIMERS_BENCHMARK_CONTRACT,
-    TRIM_POLYG_BENCHMARK_CONTRACT,
-    TRIM_READS_BENCHMARK_CONTRACT,
-    FILTER_READS_BENCHMARK_CONTRACT,
-    FILTER_LOW_COMPLEXITY_BENCHMARK_CONTRACT,
-    DEPLETE_RRNA_BENCHMARK_CONTRACT,
-    MERGE_PAIRS_BENCHMARK_CONTRACT,
-    REMOVE_DUPLICATES_BENCHMARK_CONTRACT,
-    DEPLETE_HOST_BENCHMARK_CONTRACT,
-    DEPLETE_REFERENCE_CONTAMINANTS_BENCHMARK_CONTRACT,
-    CORRECT_ERRORS_BENCHMARK_CONTRACT,
-    EXTRACT_UMIS_BENCHMARK_CONTRACT,
-    SCREEN_TAXONOMY_BENCHMARK_CONTRACT,
-    TRIM_TERMINAL_DAMAGE_BENCHMARK_CONTRACT,
-    REPORT_QC_BENCHMARK_CONTRACT,
+        stage_id=str(row["stage_id"]),
+        scenario_id=str(row["scenario_id"]),
+        tools=[str(tool) for tool in row["tools"]],
+        sample_scope=str(row.get("sample_scope", "full")),
+    )
+    for row in load_benchmark_publication_config()
+    .get("corpus_01", {})
+    .get("contracts", [])
 ]
 
 
