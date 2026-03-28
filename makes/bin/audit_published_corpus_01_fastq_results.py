@@ -176,6 +176,17 @@ def audit_stage(repo_root: Path, stage_id: str, scenario_id: str, tools: list[st
             f"summary_run_root={reported_run_root}; "
             f"expected_local_mirror={canonical_run_root}",
         )
+    else:
+        polluting_files = sorted(
+            path for path in resolved_run_root.rglob(".DS_Store") if path.is_file()
+        )
+        if polluting_files:
+            append_issue(
+                issues,
+                stage_id,
+                "polluting-mirror-artifact",
+                f"mirror contains {len(polluting_files)} .DS_Store files under {resolved_run_root}",
+            )
     stage_run_manifest = resolved_run_root / "run_manifest.json"
     if not stage_run_manifest.is_file():
         append_issue(
