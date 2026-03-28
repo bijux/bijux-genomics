@@ -9,9 +9,9 @@ use regex::Regex;
 use serde::Serialize;
 
 use crate::commands::benchmark_workspace::{
-    benchmark_config_path, load_benchmark_config, load_benchmark_publication_config,
-    write_workspace_layout_status, BenchmarkWorkspaceConfig, CorpusBenchmarkContract,
-    BENCHMARK_CONFIG_ENV,
+    benchmark_config_path, benchmark_corpus_spec_path, load_benchmark_config,
+    load_benchmark_publication_config, write_workspace_layout_status, BenchmarkWorkspaceConfig,
+    CorpusBenchmarkContract, CorpusBenchmarkExclusion, BENCHMARK_CONFIG_ENV,
 };
 use crate::commands::cli::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
@@ -48,6 +48,7 @@ pub(crate) fn run_corpus_fastq_publication_status(
     for spec in publication_status_steps(cwd, &docs_root) {
         run_subprocess(cwd, &config_path, &spec)?;
     }
+    write_corpus_fastq_docs_status(cwd, args.config.as_deref(), &docs_root)?;
     write_corpus_fastq_remediation_queue(cwd, args.config.as_deref(), &docs_root)?;
     Ok(())
 }
@@ -192,6 +193,69 @@ struct StageResultIssue {
     detail: String,
 }
 
+#[derive(Debug, Clone, serde::Deserialize)]
+struct PublicationCorpusSpec {
+    corpus_id: String,
+    #[serde(default)]
+    target_ancient_se: usize,
+    #[serde(default)]
+    target_ancient_pe: usize,
+    #[serde(default)]
+    target_modern_se: usize,
+    #[serde(default)]
+    target_modern_pe: usize,
+}
+
+#[derive(Debug, Serialize)]
+struct BenchmarkPublicationStatusReport {
+    corpus_id: String,
+    docs_root: String,
+    benchmarkable_stage_count: usize,
+    applicable_stage_count: usize,
+    completed_stage_count: usize,
+    incomplete_stage_count: usize,
+    excluded_stage_count: usize,
+    issue_count: usize,
+    audit_warning_count: usize,
+    audit_warnings: Vec<String>,
+    supplemental_findings_generated_at_utc: Option<String>,
+    excluded_stages: Vec<ExcludedStageEntry>,
+    stages: Vec<PublicationStageReport>,
+}
+
+#[derive(Debug, Serialize)]
+struct ExcludedStageEntry {
+    stage_id: String,
+    reason: String,
+}
+
+#[derive(Debug, Serialize)]
+struct PublicationStageReport {
+    stage_id: String,
+    scenario_id: String,
+    sample_scope: String,
+    contract_tool_roster: Vec<String>,
+    expected_tool_roster: Vec<String>,
+    method_path: String,
+    corpus_path: String,
+    status: String,
+    issue_count: usize,
+    results_status: String,
+    results_issue_count: usize,
+    results_selected_run_root: String,
+    results_newest_available_run_root: String,
+    results_selected_run_root_is_newest: bool,
+    issues: Vec<StageAuditIssue>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct StageAuditIssue {
+    stage_id: String,
+    issue_id: String,
+    severity: String,
+    detail: String,
+}
+
 #[derive(Debug, Serialize)]
 struct RemediationQueue {
     corpus_id: String,
@@ -238,40 +302,18 @@ struct RemediationIssueGroup {
 
 fn publication_status_steps(repo_root: &Path, docs_root: &Path) -> Vec<SubprocessSpec> {
     let repo_root_string = repo_root.display().to_string();
-    let docs_root_string = docs_root.display().to_string();
-    vec![
-        SubprocessSpec {
-            program: "python3",
-            args: vec![
-                repo_root
-                    .join("makes/bin/benchmark_tooling_repo_checks.py")
-                    .display()
-                    .to_string(),
-                "--repo-root".to_string(),
-                repo_root_string.clone(),
-            ],
-        },
-        SubprocessSpec {
-            program: "python3",
-            args: vec![
-                repo_root
-                    .join("makes/bin/audit_corpus_01_fastq_benchmark_docs.py")
-                    .display()
-                    .to_string(),
-                "--repo-root".to_string(),
-                repo_root_string.clone(),
-                "--docs-root".to_string(),
-                docs_root_string.clone(),
-                "--json-out".to_string(),
-                docs_root
-                    .join("corpus-01-status.json")
-                    .display()
-                    .to_string(),
-                "--markdown-out".to_string(),
-                docs_root.join("corpus-01-status.md").display().to_string(),
-            ],
-        },
-    ]
+    let _docs_root_string = docs_root.display().to_string();
+    vec![SubprocessSpec {
+        program: "python3",
+        args: vec![
+            repo_root
+                .join("makes/bin/benchmark_tooling_repo_checks.py")
+                .display()
+                .to_string(),
+            "--repo-root".to_string(),
+            repo_root_string.clone(),
+        ],
+    }]
 }
 
 fn write_corpus_fastq_dossier_index(
@@ -352,6 +394,45 @@ fn write_corpus_fastq_results_status(
     .with_context(|| format!("write {}", json_path.display()))?;
     let markdown_path = docs_root.join("corpus-01-results-status.md");
     fs::write(&markdown_path, render_published_results_markdown(&report))
+        .with_context(|| format!("write {}", markdown_path.display()))?;
+    Ok(())
+}
+
+fn write_corpus_fastq_docs_status(
+    cwd: &Path,
+    explicit_config: Option<&Path>,
+    docs_root: &Path,
+) -> Result<()> {
+    let config = load_benchmark_config(cwd, explicit_config)?;
+    let publication = config.publication;
+    let Some(corpus_01) = publication.corpus_01 else {
+        return Ok(());
+    };
+    let corpus_spec = load_publication_corpus_spec(cwd, explicit_config)?;
+    let (supplemental_findings, mut audit_warnings, findings_generated_at_utc) =
+        load_supplemental_findings(&docs_root.join("corpus-01-publication-findings.json"))?;
+    let (results_by_stage, results_warnings) =
+        load_results_status(&docs_root.join("corpus-01-results-status.json"))?;
+    audit_warnings.extend(results_warnings);
+    let report = audit_publication_docs(
+        cwd,
+        docs_root,
+        &corpus_01.contracts,
+        &corpus_01.exclusions,
+        &corpus_spec,
+        &supplemental_findings,
+        &results_by_stage,
+        &audit_warnings,
+        findings_generated_at_utc,
+    )?;
+    let json_path = docs_root.join("corpus-01-status.json");
+    fs::write(
+        &json_path,
+        format!("{}\n", serde_json::to_string_pretty(&report)?),
+    )
+    .with_context(|| format!("write {}", json_path.display()))?;
+    let markdown_path = docs_root.join("corpus-01-status.md");
+    fs::write(&markdown_path, render_publication_docs_markdown(&report))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
 }
@@ -939,6 +1020,871 @@ fn render_published_results_markdown(report: &PublishedResultsStatusReport) -> S
     lines.join("\n") + "\n"
 }
 
+fn load_publication_corpus_spec(
+    cwd: &Path,
+    explicit_config: Option<&Path>,
+) -> Result<PublicationCorpusSpec> {
+    let path = benchmark_corpus_spec_path(cwd, explicit_config, "corpus-01")?;
+    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
+}
+
+fn expected_counts_for_scope(
+    spec: &PublicationCorpusSpec,
+    sample_scope: &str,
+) -> Result<(usize, BTreeMap<String, usize>)> {
+    let full_counts = BTreeMap::from([
+        ("ancient_pe".to_string(), spec.target_ancient_pe),
+        ("ancient_se".to_string(), spec.target_ancient_se),
+        ("modern_pe".to_string(), spec.target_modern_pe),
+        ("modern_se".to_string(), spec.target_modern_se),
+    ]);
+    match sample_scope {
+        "full" => Ok((full_counts.values().sum(), full_counts)),
+        "paired" => {
+            let paired_counts = BTreeMap::from([
+                ("ancient_pe".to_string(), spec.target_ancient_pe),
+                ("modern_pe".to_string(), spec.target_modern_pe),
+            ]);
+            Ok((paired_counts.values().sum(), paired_counts))
+        }
+        other => Err(anyhow!(
+            "unsupported corpus publication sample_scope: {other}"
+        )),
+    }
+}
+
+fn load_supplemental_findings(
+    path: &Path,
+) -> Result<(
+    BTreeMap<String, Vec<StageAuditIssue>>,
+    Vec<String>,
+    Option<String>,
+)> {
+    if !path.is_file() {
+        return Ok((
+            BTreeMap::new(),
+            vec![format!(
+                "missing supplemental findings file: {}",
+                path.display()
+            )],
+            None,
+        ));
+    }
+    let payload = load_json_value(path)?;
+    let mut warnings = Vec::new();
+    let generated_at_utc = payload
+        .get("generated_at_utc")
+        .and_then(|value| value.as_str())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned);
+    if generated_at_utc.is_none() {
+        warnings.push(format!(
+            "supplemental findings freshness is untracked in {}; add generated_at_utc",
+            path.display()
+        ));
+    }
+
+    let mut findings_by_stage = BTreeMap::<String, Vec<StageAuditIssue>>::new();
+    for finding in payload
+        .get("findings")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+    {
+        let invalid_message = || {
+            anyhow!(
+                "invalid supplemental finding in {}: stage_id, issue_id, and detail are required",
+                path.display()
+            )
+        };
+        let stage_id = finding
+            .get("stage_id")
+            .and_then(|value| value.as_str())
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(invalid_message)?;
+        let issue_id = finding
+            .get("issue_id")
+            .and_then(|value| value.as_str())
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(invalid_message)?;
+        let detail = finding
+            .get("detail")
+            .and_then(|value| value.as_str())
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .ok_or_else(invalid_message)?;
+        findings_by_stage
+            .entry(stage_id.to_string())
+            .or_default()
+            .push(StageAuditIssue {
+                stage_id: stage_id.to_string(),
+                issue_id: issue_id.to_string(),
+                severity: finding
+                    .get("severity")
+                    .and_then(|value| value.as_str())
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or("error")
+                    .to_string(),
+                detail: detail.to_string(),
+            });
+    }
+    Ok((findings_by_stage, warnings, generated_at_utc))
+}
+
+fn load_results_status(path: &Path) -> Result<(BTreeMap<String, serde_json::Value>, Vec<String>)> {
+    if !path.is_file() {
+        return Ok((
+            BTreeMap::new(),
+            vec![format!("missing results status file: {}", path.display())],
+        ));
+    }
+    let payload = load_json_value(path)?;
+    let stages = payload
+        .get("stages")
+        .and_then(|value| value.as_array())
+        .ok_or_else(|| {
+            anyhow!(
+                "invalid results status payload in {}: missing stages list",
+                path.display()
+            )
+        })?;
+    Ok((
+        stages
+            .iter()
+            .filter_map(|stage| {
+                stage
+                    .get("stage_id")
+                    .and_then(|value| value.as_str())
+                    .map(|stage_id| (stage_id.to_string(), stage.clone()))
+            })
+            .collect(),
+        Vec::new(),
+    ))
+}
+
+fn audit_publication_docs(
+    repo_root: &Path,
+    docs_root: &Path,
+    contracts: &[CorpusBenchmarkContract],
+    exclusions: &[CorpusBenchmarkExclusion],
+    corpus_spec: &PublicationCorpusSpec,
+    supplemental_findings: &BTreeMap<String, Vec<StageAuditIssue>>,
+    results_by_stage: &BTreeMap<String, serde_json::Value>,
+    audit_warnings: &[String],
+    supplemental_findings_generated_at_utc: Option<String>,
+) -> Result<BenchmarkPublicationStatusReport> {
+    let mut warnings = audit_warnings.to_vec();
+    warnings.extend(makefile_publication_warnings(repo_root, contracts)?);
+    let stages = contracts
+        .iter()
+        .map(|contract| {
+            audit_publication_stage(
+                docs_root,
+                contract,
+                corpus_spec,
+                supplemental_findings
+                    .get(&contract.stage_id)
+                    .cloned()
+                    .unwrap_or_default(),
+                results_by_stage.get(&contract.stage_id),
+            )
+        })
+        .collect::<Result<Vec<_>>>()?;
+    Ok(BenchmarkPublicationStatusReport {
+        corpus_id: "corpus-01".to_string(),
+        docs_root: docs_root.display().to_string(),
+        benchmarkable_stage_count: contracts.len() + exclusions.len(),
+        applicable_stage_count: stages.len(),
+        completed_stage_count: stages
+            .iter()
+            .filter(|stage| stage.status == "complete")
+            .count(),
+        incomplete_stage_count: stages
+            .iter()
+            .filter(|stage| stage.status != "complete")
+            .count(),
+        excluded_stage_count: exclusions.len(),
+        issue_count: stages.iter().map(|stage| stage.issue_count).sum(),
+        audit_warning_count: warnings.len(),
+        audit_warnings: warnings,
+        supplemental_findings_generated_at_utc,
+        excluded_stages: exclusions
+            .iter()
+            .map(|exclusion| ExcludedStageEntry {
+                stage_id: exclusion.stage_id.clone(),
+                reason: exclusion.reason.clone(),
+            })
+            .collect(),
+        stages,
+    })
+}
+
+fn audit_publication_stage(
+    docs_root: &Path,
+    contract: &CorpusBenchmarkContract,
+    corpus_spec: &PublicationCorpusSpec,
+    supplemental_issues: Vec<StageAuditIssue>,
+    results_stage: Option<&serde_json::Value>,
+) -> Result<PublicationStageReport> {
+    let (expected_total, expected_cohort_counts) =
+        expected_counts_for_scope(corpus_spec, &contract.sample_scope)?;
+    let stage_root = docs_root.join(&contract.stage_id);
+    let method_path = stage_root.join("corpus-01-method.md");
+    let corpus_root = stage_root.join("corpus-01");
+    let expected_tools = sorted_strings(&contract.tools);
+    let mut issues = Vec::new();
+
+    if !method_path.is_file() {
+        append_stage_audit_issue(
+            &mut issues,
+            &contract.stage_id,
+            "missing-method-doc",
+            format!("missing {}", relative_to_docs_root(&method_path, docs_root)),
+            "error",
+        );
+    }
+
+    if !corpus_root.is_dir() {
+        append_stage_audit_issue(
+            &mut issues,
+            &contract.stage_id,
+            "missing-corpus-dir",
+            format!("missing {}", relative_to_docs_root(&corpus_root, docs_root)),
+            "error",
+        );
+    } else {
+        for file_name in [
+            "summary.json",
+            "sample_results.csv",
+            "tool_runtime_summary.csv",
+            "cohort_runtime_summary.csv",
+            "sample_runtime_outliers.csv",
+            "benchmark.md",
+        ] {
+            let artifact_path = corpus_root.join(file_name);
+            if !artifact_path.is_file() {
+                append_stage_audit_issue(
+                    &mut issues,
+                    &contract.stage_id,
+                    &format!("missing-{}", file_name.replace('.', "-")),
+                    format!(
+                        "missing {}",
+                        relative_to_docs_root(&artifact_path, docs_root)
+                    ),
+                    "error",
+                );
+                continue;
+            }
+            if fs::metadata(&artifact_path)
+                .map(|metadata| metadata.len() == 0)
+                .unwrap_or(false)
+            {
+                append_stage_audit_issue(
+                    &mut issues,
+                    &contract.stage_id,
+                    &format!("empty-{}", file_name.replace('.', "-")),
+                    format!("empty {}", relative_to_docs_root(&artifact_path, docs_root)),
+                    "error",
+                );
+            }
+        }
+
+        audit_publication_summary(
+            &mut issues,
+            docs_root,
+            &corpus_root.join("summary.json"),
+            contract,
+            &expected_tools,
+            expected_total,
+            &expected_cohort_counts,
+        )?;
+        audit_sample_results(
+            &mut issues,
+            docs_root,
+            &corpus_root.join("sample_results.csv"),
+            contract,
+            &expected_tools,
+            expected_total,
+            &expected_cohort_counts,
+        )?;
+        audit_tool_runtime_summary(
+            &mut issues,
+            docs_root,
+            &corpus_root.join("tool_runtime_summary.csv"),
+            contract,
+            &expected_tools,
+        )?;
+        audit_cohort_runtime_summary(
+            &mut issues,
+            docs_root,
+            &corpus_root.join("cohort_runtime_summary.csv"),
+            contract,
+            &expected_cohort_counts,
+        )?;
+        audit_sample_runtime_outliers(
+            &mut issues,
+            docs_root,
+            &corpus_root.join("sample_runtime_outliers.csv"),
+            contract,
+            expected_total,
+        )?;
+    }
+
+    issues.extend(supplemental_issues);
+    let results_stage = results_stage
+        .cloned()
+        .unwrap_or_else(|| serde_json::json!({}));
+    Ok(PublicationStageReport {
+        stage_id: contract.stage_id.clone(),
+        scenario_id: contract.scenario_id.clone(),
+        sample_scope: contract.sample_scope.clone(),
+        contract_tool_roster: contract.tools.clone(),
+        expected_tool_roster: expected_tools,
+        method_path: relative_to_docs_root(&method_path, docs_root),
+        corpus_path: relative_to_docs_root(&corpus_root, docs_root),
+        status: if issues.is_empty() {
+            "complete".to_string()
+        } else {
+            "incomplete".to_string()
+        },
+        issue_count: issues.len(),
+        results_status: value_string(&results_stage, "status")
+            .unwrap_or("missing")
+            .to_string(),
+        results_issue_count: results_stage
+            .get("issue_count")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0) as usize,
+        results_selected_run_root: value_string(&results_stage, "selected_run_root")
+            .unwrap_or("")
+            .to_string(),
+        results_newest_available_run_root: value_string(
+            &results_stage,
+            "newest_available_run_root",
+        )
+        .unwrap_or("")
+        .to_string(),
+        results_selected_run_root_is_newest: results_stage
+            .get("selected_run_root_is_newest")
+            .and_then(|value| value.as_bool())
+            .unwrap_or(false),
+        issues,
+    })
+}
+
+fn audit_publication_summary(
+    issues: &mut Vec<StageAuditIssue>,
+    docs_root: &Path,
+    summary_path: &Path,
+    contract: &CorpusBenchmarkContract,
+    expected_tools: &[String],
+    expected_total: usize,
+    expected_cohort_counts: &BTreeMap<String, usize>,
+) -> Result<()> {
+    if !summary_path.is_file() || fs::metadata(summary_path)?.len() == 0 {
+        return Ok(());
+    }
+    let summary = load_json_value(summary_path)?;
+    if value_string(&summary, "stage_id") != Some(contract.stage_id.as_str()) {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "summary-stage-id-drift",
+            format!(
+                "{} stage_id={:?}",
+                relative_to_docs_root(summary_path, docs_root),
+                summary.get("stage_id").and_then(|value| value.as_str())
+            ),
+            "error",
+        );
+    }
+    if value_string(&summary, "scenario_id") != Some(contract.scenario_id.as_str()) {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "summary-scenario-id-drift",
+            format!(
+                "{} scenario_id={:?}",
+                relative_to_docs_root(summary_path, docs_root),
+                summary.get("scenario_id").and_then(|value| value.as_str())
+            ),
+            "error",
+        );
+    }
+    if sorted_json_string_array(summary.get("tools")) != expected_tools {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "summary-tool-roster-drift",
+            format!(
+                "{} tools={:?} expected {:?}",
+                relative_to_docs_root(summary_path, docs_root),
+                json_string_array(summary.get("tools")),
+                expected_tools
+            ),
+            "error",
+        );
+    }
+    if summary
+        .get("samples_total")
+        .and_then(|value| value.as_u64())
+        .unwrap_or(0) as usize
+        != expected_total
+    {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "summary-sample-count-drift",
+            format!(
+                "{} samples_total={:?} expected {}",
+                relative_to_docs_root(summary_path, docs_root),
+                summary.get("samples_total"),
+                expected_total
+            ),
+            "error",
+        );
+    }
+    if summary
+        .get("samples_failed")
+        .and_then(|value| value.as_u64())
+        .unwrap_or(0)
+        != 0
+    {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "summary-sample-failures",
+            format!(
+                "{} samples_failed={:?}",
+                relative_to_docs_root(summary_path, docs_root),
+                summary.get("samples_failed")
+            ),
+            "error",
+        );
+    }
+    if sort_count_map(summary.get("cohort_counts")) != *expected_cohort_counts {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "summary-cohort-count-drift",
+            format!(
+                "{} cohort_counts={:?} expected {:?}",
+                relative_to_docs_root(summary_path, docs_root),
+                summary.get("cohort_counts"),
+                expected_cohort_counts
+            ),
+            "error",
+        );
+    }
+    let summary_tool_ids = summary
+        .get("tool_summary")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|row| row.get("tool").and_then(|value| value.as_str()))
+        .map(ToOwned::to_owned)
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    if summary_tool_ids != expected_tools {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "summary-tool-summary-drift",
+            format!(
+                "{} tool_summary tools={:?} expected {:?}",
+                relative_to_docs_root(summary_path, docs_root),
+                summary_tool_ids,
+                expected_tools
+            ),
+            "error",
+        );
+    }
+    Ok(())
+}
+
+fn audit_sample_results(
+    issues: &mut Vec<StageAuditIssue>,
+    docs_root: &Path,
+    sample_results_path: &Path,
+    contract: &CorpusBenchmarkContract,
+    expected_tools: &[String],
+    expected_total: usize,
+    expected_cohort_counts: &BTreeMap<String, usize>,
+) -> Result<()> {
+    if !sample_results_path.is_file() || fs::metadata(sample_results_path)?.len() == 0 {
+        return Ok(());
+    }
+    let sample_rows = load_csv_rows(sample_results_path)?;
+    if sample_rows.is_empty() {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "empty-sample-results-rows",
+            format!(
+                "no CSV rows in {}",
+                relative_to_docs_root(sample_results_path, docs_root)
+            ),
+            "error",
+        );
+        return Ok(());
+    }
+
+    let mut per_sample_tools = BTreeMap::<String, Vec<String>>::new();
+    let mut sample_metadata = BTreeMap::<String, (String, String, String, String, String)>::new();
+    let mut cohort_counts_by_rows = BTreeMap::<String, usize>::new();
+    let mut observed_tools = BTreeSet::new();
+
+    for row in &sample_rows {
+        let sample_id = csv_value(row, "sample_id");
+        let tool = csv_value(row, "tool");
+        if sample_id.is_empty() || tool.is_empty() {
+            append_stage_audit_issue(
+                issues,
+                &contract.stage_id,
+                "sample-results-missing-sample-or-tool",
+                format!(
+                    "invalid row in {}",
+                    relative_to_docs_root(sample_results_path, docs_root)
+                ),
+                "error",
+            );
+            continue;
+        }
+        observed_tools.insert(tool.clone());
+        per_sample_tools
+            .entry(sample_id.clone())
+            .or_default()
+            .push(tool);
+        let metadata_tuple = (
+            csv_value(row, "accession"),
+            csv_value(row, "era"),
+            csv_value(row, "layout"),
+            csv_value(row, "study_accession"),
+            csv_value(row, "size_band"),
+        );
+        if let Some(existing) = sample_metadata.get(&sample_id) {
+            if existing != &metadata_tuple {
+                append_stage_audit_issue(
+                    issues,
+                    &contract.stage_id,
+                    "sample-results-metadata-drift",
+                    format!(
+                        "{} sample {} metadata differs across rows",
+                        relative_to_docs_root(sample_results_path, docs_root),
+                        sample_id
+                    ),
+                    "error",
+                );
+            }
+        } else {
+            *cohort_counts_by_rows
+                .entry(format!("{}_{}", metadata_tuple.1, metadata_tuple.2))
+                .or_default() += 1;
+            sample_metadata.insert(sample_id, metadata_tuple);
+        }
+    }
+
+    let observed_tools = observed_tools.into_iter().collect::<Vec<_>>();
+    if observed_tools != expected_tools {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "sample-results-tool-roster-drift",
+            format!(
+                "{} tools={:?} expected {:?}",
+                relative_to_docs_root(sample_results_path, docs_root),
+                observed_tools,
+                expected_tools
+            ),
+            "error",
+        );
+    }
+    if sample_metadata.len() != expected_total {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "sample-results-sample-count-drift",
+            format!(
+                "{} unique_samples={:?} expected {}",
+                relative_to_docs_root(sample_results_path, docs_root),
+                sample_metadata.len(),
+                expected_total
+            ),
+            "error",
+        );
+    }
+    if cohort_counts_by_rows != *expected_cohort_counts {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "sample-results-cohort-count-drift",
+            format!(
+                "{} cohort_counts={:?} expected {:?}",
+                relative_to_docs_root(sample_results_path, docs_root),
+                cohort_counts_by_rows,
+                expected_cohort_counts
+            ),
+            "error",
+        );
+    }
+    for (sample_id, tools) in &per_sample_tools {
+        let mut sample_tools = tools.clone();
+        sample_tools.sort();
+        if sample_tools != expected_tools {
+            append_stage_audit_issue(
+                issues,
+                &contract.stage_id,
+                "sample-results-tool-coverage-drift",
+                format!(
+                    "{} sample {} tools={:?} expected {:?}",
+                    relative_to_docs_root(sample_results_path, docs_root),
+                    sample_id,
+                    sample_tools,
+                    expected_tools
+                ),
+                "error",
+            );
+        }
+    }
+    let expected_row_count = expected_total * expected_tools.len();
+    if sample_rows.len() != expected_row_count {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "sample-results-row-count-drift",
+            format!(
+                "{} row_count={:?} expected {}",
+                relative_to_docs_root(sample_results_path, docs_root),
+                sample_rows.len(),
+                expected_row_count
+            ),
+            "error",
+        );
+    }
+    Ok(())
+}
+
+fn audit_tool_runtime_summary(
+    issues: &mut Vec<StageAuditIssue>,
+    docs_root: &Path,
+    tool_runtime_summary_path: &Path,
+    contract: &CorpusBenchmarkContract,
+    expected_tools: &[String],
+) -> Result<()> {
+    if !tool_runtime_summary_path.is_file() || fs::metadata(tool_runtime_summary_path)?.len() == 0 {
+        return Ok(());
+    }
+    let mut observed_tools = load_csv_rows(tool_runtime_summary_path)?
+        .into_iter()
+        .map(|row| csv_value(&row, "tool"))
+        .filter(|value| !value.is_empty())
+        .collect::<Vec<_>>();
+    observed_tools.sort();
+    if observed_tools != expected_tools {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "tool-runtime-summary-drift",
+            format!(
+                "{} tools={:?} expected {:?}",
+                relative_to_docs_root(tool_runtime_summary_path, docs_root),
+                observed_tools,
+                expected_tools
+            ),
+            "error",
+        );
+    }
+    Ok(())
+}
+
+fn audit_cohort_runtime_summary(
+    issues: &mut Vec<StageAuditIssue>,
+    docs_root: &Path,
+    cohort_runtime_summary_path: &Path,
+    contract: &CorpusBenchmarkContract,
+    expected_cohort_counts: &BTreeMap<String, usize>,
+) -> Result<()> {
+    if !cohort_runtime_summary_path.is_file()
+        || fs::metadata(cohort_runtime_summary_path)?.len() == 0
+    {
+        return Ok(());
+    }
+    let observed_cohorts = load_csv_rows(cohort_runtime_summary_path)?
+        .into_iter()
+        .filter(|row| {
+            let dimension = csv_value(row, "dimension");
+            dimension.is_empty() || dimension == "era_layout"
+        })
+        .map(|row| csv_value(&row, "cohort"))
+        .filter(|value| !value.is_empty())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    let expected_cohorts = expected_cohort_counts.keys().cloned().collect::<Vec<_>>();
+    if observed_cohorts != expected_cohorts {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "cohort-runtime-summary-drift",
+            format!(
+                "{} cohorts={:?} expected {:?}",
+                relative_to_docs_root(cohort_runtime_summary_path, docs_root),
+                observed_cohorts,
+                expected_cohorts
+            ),
+            "error",
+        );
+    }
+    Ok(())
+}
+
+fn audit_sample_runtime_outliers(
+    issues: &mut Vec<StageAuditIssue>,
+    docs_root: &Path,
+    sample_runtime_outliers_path: &Path,
+    contract: &CorpusBenchmarkContract,
+    expected_total: usize,
+) -> Result<()> {
+    if !sample_runtime_outliers_path.is_file()
+        || fs::metadata(sample_runtime_outliers_path)?.len() == 0
+    {
+        return Ok(());
+    }
+    let unique_sample_ids = load_csv_rows(sample_runtime_outliers_path)?
+        .into_iter()
+        .map(|row| csv_value(&row, "sample_id"))
+        .filter(|value| !value.is_empty())
+        .collect::<BTreeSet<_>>();
+    if unique_sample_ids.len() != expected_total {
+        append_stage_audit_issue(
+            issues,
+            &contract.stage_id,
+            "sample-runtime-outlier-coverage-drift",
+            format!(
+                "{} unique_samples={:?} expected {}",
+                relative_to_docs_root(sample_runtime_outliers_path, docs_root),
+                unique_sample_ids.len(),
+                expected_total
+            ),
+            "error",
+        );
+    }
+    Ok(())
+}
+
+fn render_publication_docs_markdown(report: &BenchmarkPublicationStatusReport) -> String {
+    let mut lines = vec![
+        "# `corpus-01` FASTQ benchmark publication status".to_string(),
+        "".to_string(),
+        format!(
+            "- Benchmarkable governed stages: `{}`",
+            report.benchmarkable_stage_count
+        ),
+        format!(
+            "- Corpus-applicable publication stages: `{}`",
+            report.applicable_stage_count
+        ),
+        format!(
+            "- Completed stage dossiers: `{}`",
+            report.completed_stage_count
+        ),
+        format!(
+            "- Incomplete stage dossiers: `{}`",
+            report.incomplete_stage_count
+        ),
+        format!("- Excluded stages: `{}`", report.excluded_stage_count),
+        format!("- Publication issues: `{}`", report.issue_count),
+        format!("- Audit warnings: `{}`", report.audit_warning_count),
+        "".to_string(),
+        "## Stage status".to_string(),
+        "".to_string(),
+    ];
+    for stage in &report.stages {
+        lines.push(format!(
+            "- `{}`: `{}` (`{}` publication issues, results `{}`, scope `{}`)",
+            stage.stage_id,
+            stage.status,
+            stage.issue_count,
+            stage.results_status,
+            stage.sample_scope
+        ));
+        if !stage.results_selected_run_root.is_empty() {
+            lines.push(format!(
+                "  - selected mirrored run root: `{}`",
+                stage.results_selected_run_root
+            ));
+        }
+        if !stage.results_newest_available_run_root.is_empty() {
+            lines.push(format!(
+                "  - newest mirrored run root: `{}` (selected newest=`{}`)",
+                stage.results_newest_available_run_root, stage.results_selected_run_root_is_newest
+            ));
+        }
+        if stage.results_issue_count > 0 {
+            lines.push(format!(
+                "  - mirrored result issues: `{}`",
+                stage.results_issue_count
+            ));
+        }
+        for issue in &stage.issues {
+            lines.push(format!("  - `{}`: {}", issue.issue_id, issue.detail));
+        }
+    }
+    if !report.audit_warnings.is_empty() {
+        lines.push(String::new());
+        lines.push("## Audit Warnings".to_string());
+        lines.push(String::new());
+        for warning in &report.audit_warnings {
+            lines.push(format!("- {warning}"));
+        }
+    }
+    lines.push(String::new());
+    lines.push("## Excluded Stages".to_string());
+    lines.push(String::new());
+    for exclusion in &report.excluded_stages {
+        lines.push(format!("- `{}`: {}", exclusion.stage_id, exclusion.reason));
+    }
+    lines.push(String::new());
+    lines.push("## Contract".to_string());
+    lines.push(String::new());
+    lines.push("A complete published corpus dossier requires `corpus-01-method.md`, `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, `sample_runtime_outliers.csv`, and `benchmark.md`.".to_string());
+    lines.push("Published summaries must also match the governed scenario id, exact benchmark tool roster, expected corpus scope (`full` or `paired`), zero sample failures, and complete sample-by-tool coverage.".to_string());
+    lines.join("\n") + "\n"
+}
+
+fn makefile_publication_warnings(
+    repo_root: &Path,
+    contracts: &[CorpusBenchmarkContract],
+) -> Result<Vec<String>> {
+    let makefile_path = repo_root.join("makes/benchmarks-fastq.mk");
+    if !makefile_path.is_file() {
+        return Ok(vec![format!(
+            "missing benchmark makefile: {}",
+            makefile_path.display()
+        )]);
+    }
+    let makefile_text = fs::read_to_string(&makefile_path)
+        .with_context(|| format!("read {}", makefile_path.display()))?;
+    let missing_targets = contracts
+        .iter()
+        .map(|contract| benchmark_make_target(&contract.stage_id, "report"))
+        .filter(|target| !makefile_text.contains(&format!("{target}:")))
+        .collect::<Vec<_>>();
+    if missing_targets.is_empty() {
+        return Ok(Vec::new());
+    }
+    Ok(vec![format!(
+        "benchmark makefile omits governed publication targets: {}",
+        missing_targets.join(", ")
+    )])
+}
+
 fn append_stage_result_issue(
     issues: &mut Vec<StageResultIssue>,
     stage_id: &str,
@@ -950,6 +1896,72 @@ fn append_stage_result_issue(
         issue_id: issue_id.to_string(),
         detail,
     });
+}
+
+fn append_stage_audit_issue(
+    issues: &mut Vec<StageAuditIssue>,
+    stage_id: &str,
+    issue_id: &str,
+    detail: String,
+    severity: &str,
+) {
+    issues.push(StageAuditIssue {
+        stage_id: stage_id.to_string(),
+        issue_id: issue_id.to_string(),
+        severity: severity.to_string(),
+        detail,
+    });
+}
+
+fn relative_to_docs_root(path: &Path, docs_root: &Path) -> String {
+    path.strip_prefix(docs_root.parent().unwrap_or(docs_root))
+        .unwrap_or(path)
+        .display()
+        .to_string()
+}
+
+fn load_csv_rows(path: &Path) -> Result<Vec<BTreeMap<String, String>>> {
+    let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let mut lines = raw.lines();
+    let Some(header_line) = lines.next() else {
+        return Ok(Vec::new());
+    };
+    let headers = header_line
+        .split(',')
+        .map(|value| value.trim().to_string())
+        .collect::<Vec<_>>();
+    let mut rows = Vec::new();
+    for line in lines {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let values = line
+            .split(',')
+            .map(|value| value.trim())
+            .collect::<Vec<_>>();
+        let mut row = BTreeMap::new();
+        for (header, value) in headers.iter().zip(values.iter()) {
+            row.insert(header.clone(), (*value).to_string());
+        }
+        rows.push(row);
+    }
+    Ok(rows)
+}
+
+fn csv_value(row: &BTreeMap<String, String>, key: &str) -> String {
+    row.get(key).cloned().unwrap_or_default().trim().to_string()
+}
+
+fn sort_count_map(value: Option<&serde_json::Value>) -> BTreeMap<String, usize> {
+    value
+        .and_then(|value| value.as_object())
+        .map(|value| {
+            value
+                .iter()
+                .map(|(key, value)| (key.clone(), value.as_u64().unwrap_or(0) as usize))
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn summary_corpus_id(
@@ -1860,19 +2872,22 @@ mod tests {
     fn publication_status_steps_stop_before_rust_owned_outputs() {
         let steps =
             super::publication_status_steps(Path::new("/repo"), Path::new("/repo/docs/benchmark"));
-        let last = steps.last().expect("status steps");
-        assert_eq!(last.program, "python3");
-        assert!(last
+        assert_eq!(steps.len(), 1);
+        let only = steps.first().expect("status steps");
+        assert_eq!(only.program, "python3");
+        assert!(only
             .args
             .iter()
-            .any(|arg| arg == "/repo/makes/bin/audit_corpus_01_fastq_benchmark_docs.py"));
-        assert!(last
-            .args
-            .contains(&"/repo/docs/benchmark/corpus-01-status.json".to_string()));
+            .any(|arg| arg == "/repo/makes/bin/benchmark_tooling_repo_checks.py"));
         assert!(!steps.iter().flat_map(|step| step.args.iter()).any(|arg| {
-            arg.contains("audit_published_corpus_01_fastq_results.py")
+            arg.contains("audit_corpus_01_fastq_benchmark_docs.py")
+                || arg.contains("corpus-01-status.json")
+                || arg.contains("corpus-01-status.md")
+                || arg.contains("audit_published_corpus_01_fastq_results.py")
                 || arg.contains("corpus-01-results-status.json")
                 || arg.contains("corpus-01-results-status.md")
+                || arg.contains("build_corpus_01_benchmark_dossier_index.py")
+                || arg.contains("audit_benchmark_workspace_layout.py")
                 || arg.contains("build_corpus_01_benchmark_remediation_queue.py")
                 || arg.contains("corpus-01-remediation-queue.json")
                 || arg.contains("corpus-01-remediation-queue.md")
@@ -2248,6 +3263,357 @@ mod tests {
             .issues
             .iter()
             .any(|issue| issue.issue_id == "polluting-mirror-artifact"));
+    }
+
+    #[test]
+    fn publication_docs_report_missing_stage_artifacts() {
+        let temp = tempdir().expect("tempdir");
+        let repo_root = temp.path();
+        let docs_root = repo_root.join("docs").join("benchmark");
+        fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
+        fs::write(
+            repo_root.join("configs/runtime/corpora/corpus-01.toml"),
+            concat!(
+                "corpus_id = \"corpus-01\"\n",
+                "target_ancient_se = 1\n",
+                "target_ancient_pe = 1\n",
+                "target_modern_se = 1\n",
+                "target_modern_pe = 1\n",
+            ),
+        )
+        .expect("write corpus spec");
+        let stage_root = docs_root.join("fastq.validate_reads");
+        let corpus_root = stage_root.join("corpus-01");
+        fs::create_dir_all(&corpus_root).expect("corpus dir");
+        fs::write(stage_root.join("corpus-01-method.md"), "# method\n").expect("method");
+        write_json(
+            &corpus_root.join("summary.json"),
+            serde_json::json!({
+                "stage_id": "fastq.validate_reads",
+                "scenario_id": "validation_fairness",
+            }),
+        );
+        fs::write(corpus_root.join("sample_results.csv"), "sample_id,tool\n").expect("sample csv");
+        let report = super::audit_publication_docs(
+            repo_root,
+            &docs_root,
+            &[validate_reads_contract()],
+            &[],
+            &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
+            &BTreeMap::new(),
+            &BTreeMap::new(),
+            &[],
+            None,
+        )
+        .expect("publication report");
+        let validate_report = report.stages.first().expect("stage");
+        assert_eq!(validate_report.status, "incomplete");
+        assert!(validate_report.issue_count >= 4);
+        assert!(validate_report
+            .issues
+            .iter()
+            .any(|issue| issue.issue_id == "missing-benchmark-md"));
+    }
+
+    #[test]
+    fn publication_docs_markdown_summarizes_completion_and_issue_count() {
+        let markdown =
+            super::render_publication_docs_markdown(&super::BenchmarkPublicationStatusReport {
+                corpus_id: "corpus-01".to_string(),
+                docs_root: "/tmp/docs/benchmark".to_string(),
+                benchmarkable_stage_count: 3,
+                applicable_stage_count: 2,
+                completed_stage_count: 1,
+                incomplete_stage_count: 1,
+                excluded_stage_count: 1,
+                issue_count: 3,
+                audit_warning_count: 0,
+                audit_warnings: Vec::new(),
+                supplemental_findings_generated_at_utc: None,
+                excluded_stages: vec![super::ExcludedStageEntry {
+                    stage_id: "fastq.index_reference".to_string(),
+                    reason: "reference bundle benchmark".to_string(),
+                }],
+                stages: vec![
+                    super::PublicationStageReport {
+                        stage_id: "fastq.validate_reads".to_string(),
+                        scenario_id: "validation_fairness".to_string(),
+                        sample_scope: "full".to_string(),
+                        contract_tool_roster: vec!["fastqvalidator".to_string()],
+                        expected_tool_roster: vec!["fastqvalidator".to_string()],
+                        method_path: "benchmark/fastq.validate_reads/corpus-01-method.md"
+                            .to_string(),
+                        corpus_path: "benchmark/fastq.validate_reads/corpus-01".to_string(),
+                        status: "complete".to_string(),
+                        issue_count: 0,
+                        results_status: "complete".to_string(),
+                        results_issue_count: 0,
+                        results_selected_run_root:
+                            "/tmp/results/fastq.validate_reads/lunarc".to_string(),
+                        results_newest_available_run_root:
+                            "/tmp/results/fastq.validate_reads/lunarc".to_string(),
+                        results_selected_run_root_is_newest: true,
+                        issues: Vec::new(),
+                    },
+                    super::PublicationStageReport {
+                        stage_id: "fastq.trim_reads".to_string(),
+                        scenario_id: "trim_fairness".to_string(),
+                        sample_scope: "full".to_string(),
+                        contract_tool_roster: vec!["fastp".to_string()],
+                        expected_tool_roster: vec!["fastp".to_string()],
+                        method_path: "benchmark/fastq.trim_reads/corpus-01-method.md".to_string(),
+                        corpus_path: "benchmark/fastq.trim_reads/corpus-01".to_string(),
+                        status: "incomplete".to_string(),
+                        issue_count: 3,
+                        results_status: "incomplete".to_string(),
+                        results_issue_count: 2,
+                        results_selected_run_root:
+                            "/tmp/results/fastq.trim_reads/lunarc".to_string(),
+                        results_newest_available_run_root:
+                            "/tmp/archive/fastq.trim_reads/lunarc".to_string(),
+                        results_selected_run_root_is_newest: false,
+                        issues: vec![super::StageAuditIssue {
+                            stage_id: "fastq.trim_reads".to_string(),
+                            issue_id: "missing-corpus-dir".to_string(),
+                            severity: "error".to_string(),
+                            detail: "missing docs/benchmark/fastq.trim_reads/corpus-01"
+                                .to_string(),
+                        }],
+                    },
+                ],
+            });
+        assert!(markdown.contains("Benchmarkable governed stages: `3`"));
+        assert!(markdown.contains("Completed stage dossiers: `1`"));
+        assert!(markdown.contains("Publication issues: `3`"));
+        assert!(markdown.contains(
+            "`fastq.trim_reads`: `incomplete` (`3` publication issues, results `incomplete`, scope `full`)"
+        ));
+        assert!(markdown
+            .contains("selected mirrored run root: `/tmp/results/fastq.trim_reads/lunarc`"));
+        assert!(markdown.contains(
+            "newest mirrored run root: `/tmp/archive/fastq.trim_reads/lunarc` (selected newest=`false`)"
+        ));
+        assert!(markdown.contains("mirrored result issues: `2`"));
+        assert!(markdown.contains("`fastq.index_reference`: reference bundle benchmark"));
+    }
+
+    #[test]
+    fn publication_docs_append_supplemental_findings() {
+        let temp = tempdir().expect("tempdir");
+        let repo_root = temp.path();
+        let docs_root = repo_root.join("docs").join("benchmark");
+        fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
+        fs::write(
+            repo_root.join("configs/runtime/corpora/corpus-01.toml"),
+            concat!(
+                "corpus_id = \"corpus-01\"\n",
+                "target_ancient_se = 1\n",
+                "target_ancient_pe = 0\n",
+                "target_modern_se = 1\n",
+                "target_modern_pe = 0\n",
+            ),
+        )
+        .expect("write corpus spec");
+        let stage_root = docs_root.join("fastq.validate_reads");
+        fs::create_dir_all(stage_root.join("corpus-01")).expect("corpus dir");
+        fs::write(stage_root.join("corpus-01-method.md"), "# method\n").expect("method");
+        let mut supplemental = BTreeMap::new();
+        supplemental.insert(
+            "fastq.validate_reads".to_string(),
+            vec![super::StageAuditIssue {
+                stage_id: "fastq.validate_reads".to_string(),
+                issue_id: "fixture-integrity-gap".to_string(),
+                severity: "error".to_string(),
+                detail:
+                    "synthetic fixture does not represent a publishable benchmark lineage"
+                        .to_string(),
+            }],
+        );
+        let report = super::audit_publication_docs(
+            repo_root,
+            &docs_root,
+            &[crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                sample_scope: "paired".to_string(),
+                ..validate_reads_contract()
+            }],
+            &[],
+            &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
+            &supplemental,
+            &BTreeMap::new(),
+            &[],
+            None,
+        )
+        .expect("publication report");
+        let validate_report = report.stages.first().expect("stage");
+        assert!(validate_report
+            .issues
+            .iter()
+            .any(|issue| issue.issue_id == "fixture-integrity-gap"));
+    }
+
+    #[test]
+    fn publication_docs_warn_when_makefile_omits_governed_target() {
+        let temp = tempdir().expect("tempdir");
+        let repo_root = temp.path();
+        let docs_root = repo_root.join("docs").join("benchmark");
+        fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
+        fs::write(
+            repo_root.join("configs/runtime/corpora/corpus-01.toml"),
+            concat!(
+                "corpus_id = \"corpus-01\"\n",
+                "target_ancient_se = 1\n",
+                "target_ancient_pe = 0\n",
+                "target_modern_se = 1\n",
+                "target_modern_pe = 0\n",
+            ),
+        )
+        .expect("write corpus spec");
+        fs::create_dir_all(repo_root.join("makes")).expect("makes dir");
+        fs::write(
+            repo_root.join("makes/benchmarks-fastq.mk"),
+            "_benchmark-validate-corpus-01-report:\n\t@true\n",
+        )
+        .expect("makefile");
+        let stage_root = docs_root.join("fastq.validate_reads");
+        fs::create_dir_all(stage_root.join("corpus-01")).expect("corpus dir");
+        fs::write(stage_root.join("corpus-01-method.md"), "# method\n").expect("method");
+        let report = super::audit_publication_docs(
+            repo_root,
+            &docs_root,
+            &[
+                validate_reads_contract(),
+                crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    scenario_id: "trim_fairness".to_string(),
+                    sample_scope: "full".to_string(),
+                    tools: vec!["fastp".to_string()],
+                },
+            ],
+            &[],
+            &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
+            &BTreeMap::new(),
+            &BTreeMap::new(),
+            &[],
+            None,
+        )
+        .expect("publication report");
+        assert!(report
+            .audit_warnings
+            .iter()
+            .any(|warning| warning.contains("_benchmark-trim-reads-corpus-01-report")));
+    }
+
+    #[test]
+    fn load_supplemental_findings_warns_when_freshness_missing() {
+        let temp = tempdir().expect("tempdir");
+        let findings_path = temp.path().join("findings.json");
+        write_json(
+            &findings_path,
+            serde_json::json!({
+                "findings": [{
+                    "stage_id": "fastq.validate_reads",
+                    "issue_id": "fixture-gap",
+                    "detail": "fixture gap",
+                }],
+            }),
+        );
+        let (findings, warnings, generated_at_utc) =
+            super::load_supplemental_findings(&findings_path).expect("findings");
+        assert!(findings.contains_key("fastq.validate_reads"));
+        assert_eq!(generated_at_utc, None);
+        assert!(warnings.iter().any(|warning| warning.contains("generated_at_utc")));
+    }
+
+    #[test]
+    fn publication_docs_reject_missing_tool_coverage_in_sample_results() {
+        let temp = tempdir().expect("tempdir");
+        let repo_root = temp.path();
+        let docs_root = repo_root.join("docs").join("benchmark");
+        fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
+        fs::write(
+            repo_root.join("configs/runtime/corpora/corpus-01.toml"),
+            concat!(
+                "corpus_id = \"corpus-01\"\n",
+                "target_ancient_se = 1\n",
+                "target_ancient_pe = 1\n",
+                "target_modern_se = 1\n",
+                "target_modern_pe = 1\n",
+            ),
+        )
+        .expect("write corpus spec");
+        let stage_root = docs_root.join("fastq.validate_reads");
+        let corpus_root = stage_root.join("corpus-01");
+        fs::create_dir_all(&corpus_root).expect("corpus dir");
+        fs::write(stage_root.join("corpus-01-method.md"), "# method\n").expect("method");
+        write_json(
+            &corpus_root.join("summary.json"),
+            serde_json::json!({
+                "stage_id": "fastq.validate_reads",
+                "scenario_id": "validation_fairness",
+                "tools": ["fastqvalidator", "seqtk"],
+                "samples_total": 4,
+                "samples_failed": 0,
+                "cohort_counts": {
+                    "ancient_pe": 1,
+                    "ancient_se": 1,
+                    "modern_pe": 1,
+                    "modern_se": 1,
+                },
+                "tool_summary": [
+                    {"tool": "fastqvalidator"},
+                    {"tool": "seqtk"},
+                ],
+            }),
+        );
+        fs::write(
+            corpus_root.join("sample_results.csv"),
+            concat!(
+                "sample_id,accession,era,layout,study_accession,size_band,tool\n",
+                "sample_0001,ACC1,ancient,se,PRJ1,under_100mb,fastqvalidator\n",
+                "sample_0002,ACC2,ancient,pe,PRJ2,under_100mb,fastqvalidator\n",
+                "sample_0003,ACC3,modern,se,PRJ3,under_500mb,fastqvalidator\n",
+                "sample_0004,ACC4,modern,pe,PRJ4,under_500mb,fastqvalidator\n",
+            ),
+        )
+        .expect("sample csv");
+        fs::write(
+            corpus_root.join("tool_runtime_summary.csv"),
+            "tool\nfastqvalidator\nseqtk\n",
+        )
+        .expect("tool summary");
+        fs::write(
+            corpus_root.join("cohort_runtime_summary.csv"),
+            "cohort\nancient_pe\nancient_se\nmodern_pe\nmodern_se\n",
+        )
+        .expect("cohort summary");
+        fs::write(
+            corpus_root.join("sample_runtime_outliers.csv"),
+            "sample_id\nsample_0001\nsample_0002\nsample_0003\nsample_0004\n",
+        )
+        .expect("outliers");
+        fs::write(corpus_root.join("benchmark.md"), "# dossier\n").expect("dossier");
+        let report = super::audit_publication_docs(
+            repo_root,
+            &docs_root,
+            &[crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                stage_id: "fastq.validate_reads".to_string(),
+                scenario_id: "validation_fairness".to_string(),
+                sample_scope: "full".to_string(),
+                tools: vec!["fastqvalidator".to_string(), "seqtk".to_string()],
+            }],
+            &[],
+            &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
+            &BTreeMap::new(),
+            &BTreeMap::new(),
+            &[],
+            None,
+        )
+        .expect("publication report");
+        let validate_report = report.stages.first().expect("stage");
+        assert!(validate_report
+            .issues
+            .iter()
+            .any(|issue| issue.issue_id == "sample-results-tool-coverage-drift"));
     }
 
     #[test]
