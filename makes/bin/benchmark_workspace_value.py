@@ -29,12 +29,22 @@ def resolve_workspace_value(key_path: str) -> str:
         return str(support.benchmark_remote_repo_root())
     if key_path == "remote.results_root":
         return str(support.benchmark_remote_results_root())
+    if key_path == "remote.cache_root":
+        return str(support.benchmark_remote_cache_root())
+    if key_path == "remote.extra_data_root":
+        return str(support.benchmark_remote_extra_data_root())
+    if key_path == "remote.reference_root":
+        return str(support.benchmark_remote_reference_root())
     if key_path == "remote.containers_root":
         return str(support.benchmark_remote_containers_root())
     if key_path == "local.results_root":
         return str(support.benchmark_local_results_root())
     if key_path == "local.cache_mirror_root":
         return str(support.benchmark_local_cache_mirror_root())
+    if key_path == "local.extra_data_root":
+        return str(support.benchmark_local_extra_data_root())
+    if key_path == "local.reference_root":
+        return str(support.benchmark_local_reference_root())
     raise SystemExit(f"unsupported benchmark workspace key path: {key_path}")
 
 

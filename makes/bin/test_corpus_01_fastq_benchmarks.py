@@ -286,6 +286,22 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             benchmark_workspace_value.resolve_workspace_value("remote.containers_root"),
             "/home/bijan/lu2024-12-24/.cache/bijux-dna-container",
         )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("remote.extra_data_root"),
+            "/home/bijan/lu2024-12-24/.cache/extra-data",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("remote.reference_root"),
+            "/home/bijan/lu2024-12-24/.cache/reference",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("local.extra_data_root"),
+            "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data",
+        )
+        self.assertEqual(
+            benchmark_workspace_value.resolve_workspace_value("local.reference_root"),
+            "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference",
+        )
 
     def test_benchmark_publication_config_defines_governed_exclusions(self) -> None:
         support.load_benchmark_publication_config.cache_clear()
@@ -357,6 +373,18 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 support.benchmark_remote_results_root(),
                 Path("/home/bijan/lu2024-12-24/.cache/results"),
             )
+            self.assertEqual(
+                support.benchmark_local_extra_data_root(),
+                Path(
+                    "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data"
+                ),
+            )
+            self.assertEqual(
+                support.benchmark_local_reference_root(),
+                Path(
+                    "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference"
+                ),
+            )
         finally:
             support.load_benchmark_workspace_config.cache_clear()
 
@@ -386,6 +414,24 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             support.legacy_local_results_stage_root(corpus_root, "fastq.trim_reads"),
             Path("/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc"),
         )
+
+    def test_stage_run_templates_are_loaded_from_workspace_contract(self) -> None:
+        support.load_benchmark_workspace_config.cache_clear()
+        try:
+            self.assertEqual(
+                support._workspace_layout_template(
+                    "stage_runs", "remote_results_template"
+                ),
+                "{corpus_id}/{stage_id}/lunarc",
+            )
+            self.assertEqual(
+                support._workspace_layout_template(
+                    "stage_runs", "local_cache_results_template"
+                ),
+                "results/{corpus_id}/{stage_id}/lunarc",
+            )
+        finally:
+            support.load_benchmark_workspace_config.cache_clear()
 
 
 class BenchmarkMakefileTests(unittest.TestCase):
@@ -1020,7 +1066,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
         )
         self.assertEqual(
             support.default_extra_data_root(local_out_root).resolve(),
-            Path("/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data").resolve(),
+            support.benchmark_local_extra_data_root().resolve(),
         )
         self.assertEqual(
             support.default_extra_data_root(remote_out_root).resolve(),

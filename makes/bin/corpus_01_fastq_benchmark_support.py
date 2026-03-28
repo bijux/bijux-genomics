@@ -73,6 +73,16 @@ def _workspace_template(section: str, key: str) -> str:
     )
 
 
+def _workspace_layout_template(section: str, key: str) -> str:
+    value = load_benchmark_workspace_config().get("layout", {}).get(section, {}).get(key)
+    if isinstance(value, str) and value.strip():
+        return value
+    raise SystemExit(
+        "missing benchmark layout template contract: "
+        f"[layout.{section}].{key} in configs/bench/workspace.toml"
+    )
+
+
 def _expand_workspace_template(template: str, values: dict[str, str]) -> Path:
     return Path(template.format(**values))
 
@@ -87,6 +97,14 @@ def benchmark_local_cache_mirror_root() -> Path:
     if LOCAL_CACHE_MIRROR_ROOT is not None:
         return LOCAL_CACHE_MIRROR_ROOT
     return _workspace_path("local", "cache_mirror_root")
+
+
+def benchmark_local_extra_data_root() -> Path:
+    return _workspace_path("local", "extra_data_root")
+
+
+def benchmark_local_reference_root() -> Path:
+    return _workspace_path("local", "reference_root")
 
 
 def benchmark_remote_repo_root() -> Path:
@@ -607,16 +625,42 @@ def merge_pairs_benchmark_defaults() -> dict:
     }
 
 
+def _configured_stage_run_root(root: Path, template_key: str, corpus_id: str, stage_id: str) -> Path:
+    relative_root = _expand_workspace_template(
+        _workspace_layout_template("stage_runs", template_key),
+        {
+            "corpus_id": corpus_id,
+            "stage_id": stage_id,
+        },
+    )
+    return root / relative_root
+
+
 def default_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
-    return benchmark_remote_results_root() / corpus_root.name / stage_id / "lunarc"
+    return _configured_stage_run_root(
+        benchmark_remote_results_root(),
+        "remote_results_template",
+        corpus_root.name,
+        stage_id,
+    )
 
 
 def default_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
-    return benchmark_local_cache_mirror_root() / "results" / corpus_root.name / stage_id / "lunarc"
+    return _configured_stage_run_root(
+        benchmark_local_cache_mirror_root(),
+        "local_cache_results_template",
+        corpus_root.name,
+        stage_id,
+    )
 
 
 def legacy_local_results_stage_root(corpus_root: Path, stage_id: str) -> Path:
-    return benchmark_local_results_root() / corpus_root.name / stage_id / "lunarc"
+    return _configured_stage_run_root(
+        benchmark_local_results_root(),
+        "local_archive_results_template",
+        corpus_root.name,
+        stage_id,
+    )
 
 
 def configured_stage_run_roots(corpus_root: Path, stage_id: str) -> list[StageRunRootCandidate]:
@@ -634,14 +678,6 @@ def configured_stage_run_roots(corpus_root: Path, stage_id: str) -> list[StageRu
             path=default_results_stage_root(corpus_root, stage_id),
         ),
     ]
-
-
-def infer_cache_root(path: Path) -> Path | None:
-    resolved = path.expanduser().resolve()
-    if ".cache" not in resolved.parts:
-        return None
-    cache_index = resolved.parts.index(".cache")
-    return Path(*resolved.parts[: cache_index + 1])
 
 
 def infer_results_archive_root(path: Path) -> Path | None:
@@ -678,7 +714,7 @@ def _workspace_cache_root_for_output(out_root: Path) -> Path | None:
         resolved, local_cache_mirror_root
     ):
         return local_cache_mirror_root
-    return infer_cache_root(resolved)
+    return None
 
 
 def benchmark_runtime_env(out_root: Path) -> dict[str, str]:
@@ -698,11 +734,11 @@ def default_extra_data_root(out_root: Path) -> Path:
     if cache_root is not None:
         if cache_root.resolve() == benchmark_remote_cache_root().resolve():
             return benchmark_remote_extra_data_root()
-        return cache_root / "extra-data"
+        return benchmark_local_extra_data_root()
     results_archive_root = infer_results_archive_root(out_root)
     if results_archive_root is not None:
         return results_archive_root / "extra-data"
-    return benchmark_local_cache_mirror_root() / "extra-data"
+    return benchmark_local_extra_data_root()
 
 
 def default_host_reference_index_root(
@@ -761,8 +797,8 @@ def localize_results_path(path_str: str, local_results_root: Path) -> Path:
     root_mappings = [
         ("/results/", local_results_root),
         ("/bijux-dna-results/", bijux_dna_results_root),
-        ("/extra-data/", cache_mirror_root / "extra-data"),
-        ("/reference/", cache_mirror_root / "reference"),
+        ("/extra-data/", benchmark_local_extra_data_root()),
+        ("/reference/", benchmark_local_reference_root()),
     ]
     for marker, mapped_root in root_mappings:
         if marker in path_str:

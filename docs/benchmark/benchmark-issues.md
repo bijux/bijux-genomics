@@ -2,10 +2,8 @@
 
 This file tracks benchmark hard-wiring, publication drift, storage layout ambiguity, and missing governance hooks discovered while auditing the FASTQ benchmark surface and the supporting Lunarc workflow.
 
-1. Hardcoded local benchmark mirror root in `makes/bin/corpus_01_fastq_benchmark_support.py` points to `/Users/bijan/bijux/bijux-dna-results`.
 7. `hpc_lunarc_push` and `hpc_lunarc_pull` are cluster-specific command names instead of generic benchmark environment sync commands.
 8. Push and pull behavior is spread across environment variables rather than a single benchmark workspace contract.
-10. Benchmark publication support derives local roots from code constants instead of configuration.
 11. Remote storage currently contains both `.cache/results` and `.cache/bijux-dna-results` benchmark trees.
 12. Remote storage currently contains both `.cache/reference` and `.cache/bijux-reference` trees.
 13. Remote storage still contains non-cache roots such as `results`, `corpus_01`, and `extra-data` beside the governed `.cache` layout.
@@ -13,14 +11,7 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 15. Local benchmark results also mix a top-level stage mirror with a separate archival `home/.../.cache` mirror path.
 20. `docs/benchmark/corpus-01-status.md` reports stale `fastq.trim_reads` coverage despite a more complete remote run.
 30. Publication refresh depends on manually curated make targets rather than the governed contract list.
-35. `default_extra_data_root()` in the Python support module assumes benchmark assets always live under `extra-data/benchmark`.
-36. `default_screen_taxonomy_database_root()` hardcodes the taxonomy database directory formula in Python.
-37. `default_host_reference_index_root()` hardcodes the host depletion index directory formula in Python.
 38. `preferred_report_run_root()` assumes a single local results topology and cannot represent mixed mirror roots cleanly.
-39. `default_results_stage_root()` assumes `corpus_root.parent / results / <corpus> / <stage>` rather than a governed workspace contract.
-40. `default_local_results_stage_root()` assumes the local mirror is always rooted at one fixed macOS path.
-41. `infer_cache_root()` only works when the path contains a literal `.cache` segment.
-42. `benchmark_runtime_env()` derives `BIJUX_HPC_ROOT` from `.cache` heuristics instead of explicit config.
 44. `load_published_sample_metadata()` hardcodes an expected total of 20 samples rather than loading the count from a contract file.
 45. Benchmark renderers duplicate argument parsing instead of using a shared workspace/path resolver.
 46. Benchmark renderers duplicate runtime summary calculations across many nearly identical scripts.

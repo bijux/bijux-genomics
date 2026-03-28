@@ -8,6 +8,8 @@
 [local]
 results_root = "/Users/bijan/bijux/bijux-dna-results"
 cache_mirror_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache"
+extra_data_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/extra-data"
+reference_root = "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/reference"
 
 [remote]
 ssh_host = "lunarc"
@@ -25,3 +27,8 @@ reference_index_template = "benchmark/fastq.deplete_host/{reference_catalog_id}/
 
 [artifacts.fastq_screen_taxonomy]
 database_root_template = "benchmark/fastq.screen_taxonomy/{database_namespace}/{database_scope}/{database_artifact_id}"
+
+[layout.stage_runs]
+remote_results_template = "{corpus_id}/{stage_id}/lunarc"
+local_cache_results_template = "results/{corpus_id}/{stage_id}/lunarc"
+local_archive_results_template = "{corpus_id}/{stage_id}/lunarc"
