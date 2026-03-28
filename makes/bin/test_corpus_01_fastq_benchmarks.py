@@ -2853,6 +2853,133 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_filter_reads_summary_preserves_configured_run_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            actual_run_root = repo_root / "results" / "corpus_01" / "fastq.filter_reads" / "lunarc"
+            run_root = repo_root / "mirror" / "fastq.filter_reads"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
+            docs_root = repo_root / "docs" / "benchmark" / "fastq.filter_reads" / "corpus-01"
+            sample_report = actual_run_root / "bench" / "filter_reads" / "sample_0001" / "report.json"
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "fastp",
+                                    "parameters": {
+                                        "max_n": 0,
+                                        "max_n_fraction": None,
+                                        "max_n_count": 3,
+                                        "low_complexity_threshold": 20.0,
+                                        "entropy_threshold": 18.0,
+                                        "kmer_ref": None,
+                                        "polyx_policy": "trim",
+                                        "raw_backend_report_format": "fastp_json",
+                                    },
+                                },
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "reads_in": 100,
+                                        "reads_out": 95,
+                                        "reads_dropped": 5,
+                                        "reads_removed_by_n": 2,
+                                        "reads_removed_low_complexity": 1,
+                                        "reads_removed_by_entropy": 1,
+                                        "reads_removed_by_kmer": 0,
+                                        "reads_removed_contaminant_kmer": 0,
+                                        "reads_removed_by_length": 1,
+                                        "bases_in": 1000,
+                                        "bases_out": 940,
+                                        "mean_q_before": 30.0,
+                                        "mean_q_after": 31.0,
+                                        "delta_metrics": {
+                                            "mean_q": 1.0,
+                                        },
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (actual_run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.filter_reads",
+                        "scenario_id": "filter_fairness",
+                        "tool_kind": "benchmark",
+                        "samples_failed": 0,
+                        "tools": ["fastp"],
+                        "max_n": 0,
+                        "max_n_fraction": None,
+                        "max_n_count": 3,
+                        "low_complexity_threshold": 20.0,
+                        "entropy_threshold": 18.0,
+                        "kmer_ref": None,
+                        "polyx_policy": "trim",
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "se",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_filter_reads_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    filter_reads_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    filter_reads_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "modern",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(filter_reads_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+            self.assertEqual(summary["run_root"], str(run_root))
+
     def test_filter_low_complexity_report_contract_rejects_missing_tool_row(self) -> None:
         run_manifest = {
             "tools": ["bbduk", "prinseq"],
