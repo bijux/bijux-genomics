@@ -349,6 +349,7 @@ def main() -> int:
         "corpus_root": str(corpus_root),
         "out_root": str(out_root),
         "tools": tools,
+        "sample_scope": CORRECT_ERRORS_BENCHMARK_CONTRACT.sample_scope,
         "threads": args.threads,
         "jobs": args.jobs,
         "sample_jobs": args.sample_jobs,
