@@ -426,7 +426,10 @@ _benchmark-corpus-01-published-dossiers: ## Render all published corpus-01 FASTQ
 	_benchmark-profile-read-lengths-corpus-01-report \
 	_benchmark-profile-overrepresented-corpus-01-report \
 	_benchmark-filter-low-complexity-corpus-01-report \
-	_benchmark-filter-reads-corpus-01-report _benchmark-deplete-rrna-corpus-01-report _benchmark-screen-taxonomy-corpus-01-report \
+	_benchmark-filter-reads-corpus-01-report _benchmark-remove-duplicates-corpus-01-report \
+	_benchmark-normalize-primers-corpus-01-report _benchmark-deplete-rrna-corpus-01-report \
+	_benchmark-deplete-host-corpus-01-report _benchmark-deplete-reference-contaminants-corpus-01-report \
+	_benchmark-screen-taxonomy-corpus-01-report \
 	_benchmark-correct-errors-corpus-01-report _benchmark-extract-umis-corpus-01-report _benchmark-merge-corpus-01-report \
 	_benchmark-report-qc-corpus-01-report _benchmark-corpus-01-publication-status \
 	_benchmark-corpus-01-published-dossiers

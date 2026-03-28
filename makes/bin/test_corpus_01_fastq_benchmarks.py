@@ -222,6 +222,16 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("_benchmark-deplete-host-corpus-01", phony)
         self.assertIn("_benchmark-deplete-reference-contaminants-corpus-01", phony)
 
+    def test_makefile_declares_fastq_dossier_targets_as_phony(self) -> None:
+        phony = makefile_phony_targets()
+
+        self.assertIn("_benchmark-remove-duplicates-corpus-01-report", phony)
+        self.assertIn("_benchmark-normalize-primers-corpus-01-report", phony)
+        self.assertIn("_benchmark-deplete-host-corpus-01-report", phony)
+        self.assertIn(
+            "_benchmark-deplete-reference-contaminants-corpus-01-report", phony
+        )
+
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:
         defaults = support.filter_low_complexity_benchmark_defaults()
         self.assertEqual(defaults["entropy_threshold"], 0.55)
