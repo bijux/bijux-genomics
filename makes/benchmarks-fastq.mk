@@ -3,9 +3,7 @@
 BIJUX_BIN ?= cargo run -q -p bijux-dna-dev -- tooling run bijux --
 BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --
 BENCHMARK_CONFIG ?= configs/bench/benchmark.toml
-BENCHMARK_FASTQ_CORPUS_CONFIG ?= $(BENCHMARK_CONFIG)
 export BIJUX_BENCHMARK_CONFIG := $(BENCHMARK_CONFIG)
-export BIJUX_FASTQ_CORPUS_CONFIG := $(BENCHMARK_FASTQ_CORPUS_CONFIG)
 BENCHMARK_CORPUS_ID ?= corpus-01
 OUT_DIR ?= .
 TOOLS ?=
