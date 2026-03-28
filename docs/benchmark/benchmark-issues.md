@@ -66,6 +66,5 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 89. `fastq.trim_reads` publication currently depends on stale local mirrors unless the user manually re-syncs.
 90. `fastq.screen_taxonomy` publication depends on a local mirror of the taxonomy database lineage file, but there is no governed sync command for that extra-data dependency.
 91. Benchmark support uses Python-only contracts, so Rust tooling cannot validate the same workspace path assumptions directly.
-94. There is no repo check that fails on hardcoded `lunarc` host names in benchmark tooling.
 97. The benchmark support layer still treats the local mirror as a special case rather than a first-class configured environment.
 100. The benchmark documentation surface still reflects historical storage decisions instead of one clear, durable benchmark workspace model.
