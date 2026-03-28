@@ -2222,6 +2222,21 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
             self.assertTrue(raw_run_root.exists())
             self.assertEqual(report["actions"][0]["status"], "skipped_existing_target")
 
+    def test_repair_results_manifests_parse_args_uses_workspace_results_root(self) -> None:
+        original_argv = sys.argv
+        try:
+            with mock.patch.object(
+                repair_results_manifests,
+                "benchmark_local_results_root",
+                return_value=Path("/tmp/workspace-results"),
+            ):
+                sys.argv = ["repair_corpus_01_fastq_result_manifests.py"]
+                args = repair_results_manifests.parse_args()
+        finally:
+            sys.argv = original_argv
+
+        self.assertEqual(args.results_root, "/tmp/workspace-results")
+
     def test_repair_results_manifests_reconstructs_detect_adapters_run_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             run_root = (
