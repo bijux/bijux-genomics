@@ -15,6 +15,7 @@ from corpus_01_fastq_benchmark_support import (
     load_csv_rows,
     load_json,
     parse_corpus_briefing_args,
+    publish_corpus_briefing_artifacts,
     percentile,
     safe_mean,
     safe_median,
@@ -25,6 +26,30 @@ def parse_args() -> argparse.Namespace:
         description="Render an enriched benchmark briefing from corpus-01 merge-pairs artifacts.",
         docs_root="docs/benchmark/fastq.merge_pairs/corpus-01",
     )
+
+
+def fmt_decimal(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value:.3f}"
+
+
+def format_merge_setting(value: object) -> str:
+    if value in {"", None}:
+        return "auto"
+    return str(value)
+
+
+def validate_inputs(summary: dict, rows: list[dict]) -> None:
+    expected_tools = sorted(summary.get("tools") or [])
+    observed_tools = sorted({row.get("tool", "") for row in rows if row.get("tool")})
+    if observed_tools != expected_tools:
+        raise SystemExit(
+            f"merge briefing drift: observed tools {observed_tools!r} expected {expected_tools!r}"
+        )
+    if any(row.get("layout") != "pe" for row in rows):
+        raise SystemExit("merge briefing drift: all rows must stay paired-end")
+
 
 def tool_runtime_summary(rows: list[dict]) -> list[dict]:
     by_tool: dict[str, list[dict]] = defaultdict(list)
@@ -301,77 +326,56 @@ def main() -> int:
     cohort_rows = cohort_runtime_summary(rows)
     outlier_rows = sample_runtime_outliers(rows)
 
-    for name, fieldnames, values in [
-        (
-            "tool_runtime_summary.csv",
-            [
-                "tool",
-                "samples",
-                "pass_rate",
-                "mean_runtime_s",
-                "median_runtime_s",
-                "p90_runtime_s",
-                "max_runtime_s",
-                "median_merge_rate",
-                "median_base_retention",
-                "mean_reads_merged",
-                "slowdown_vs_fastest_median",
-            ],
-            runtime_rows,
+    publish_corpus_briefing_artifacts(
+        docs_root,
+        markdown=render_markdown(
+            summary=summary,
+            rows=rows,
+            runtime_rows=runtime_rows,
+            cohort_rows=cohort_rows,
+            outliers=outlier_rows,
         ),
-        (
-            "cohort_runtime_summary.csv",
-            [
-                "tool",
-                "dimension",
-                "cohort",
-                "samples",
-                "mean_runtime_s",
-                "median_runtime_s",
-                "mean_merge_rate",
-                "median_base_retention",
-                "mean_reads_merged",
-            ],
-            cohort_rows,
-        ),
-        (
-            "sample_runtime_outliers.csv",
-            [
-                "sample_id",
-                "accession",
-                "era",
-                "layout",
-                "size_band",
-                "study_accession",
-                "total_runtime_s",
-                "slowest_tool",
-                "slowest_runtime_s",
-                "best_merge_rate_tool",
-                "best_merge_rate",
-            ],
-            outlier_rows,
-        ),
-    ]:
-        path = docs_root / name
-        with path.open("w", encoding="utf-8", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(
-                {
-                    key: fmt_csv_value(row.get(key))
-                    for key in fieldnames
-                }
-                for row in values
-            )
-
-    markdown = render_markdown(
-        summary=summary,
-        rows=rows,
         runtime_rows=runtime_rows,
         cohort_rows=cohort_rows,
-        outliers=outlier_rows,
+        outlier_rows=outlier_rows,
+        runtime_fieldnames=[
+            "tool",
+            "samples",
+            "pass_rate",
+            "mean_runtime_s",
+            "median_runtime_s",
+            "p90_runtime_s",
+            "max_runtime_s",
+            "median_merge_rate",
+            "median_base_retention",
+            "mean_reads_merged",
+            "slowdown_vs_fastest_median",
+        ],
+        cohort_fieldnames=[
+            "tool",
+            "dimension",
+            "cohort",
+            "samples",
+            "mean_runtime_s",
+            "median_runtime_s",
+            "mean_merge_rate",
+            "median_base_retention",
+            "mean_reads_merged",
+        ],
+        outlier_fieldnames=[
+            "sample_id",
+            "accession",
+            "era",
+            "layout",
+            "size_band",
+            "study_accession",
+            "total_runtime_s",
+            "slowest_tool",
+            "slowest_runtime_s",
+            "best_merge_rate_tool",
+            "best_merge_rate",
+        ],
     )
-    (docs_root / "benchmark.md").write_text(markdown, encoding="utf-8")
     return 0
 
 if __name__ == "__main__":
