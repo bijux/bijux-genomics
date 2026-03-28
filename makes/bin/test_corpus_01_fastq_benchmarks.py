@@ -2525,12 +2525,17 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_correct_errors_summary_preserves_configured_corpus_root(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo_root = Path(tmpdir)
-            run_root = repo_root / "results" / "corpus_01" / "fastq.correct_errors" / "lunarc"
+            actual_run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.correct_errors" / "lunarc"
+            )
+            run_root = repo_root / "mirror" / "fastq.correct_errors"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
             docs_root = (
                 repo_root / "docs" / "benchmark" / "fastq.correct_errors" / "corpus-01"
             )
             sample_report = (
-                run_root / "bench" / "correct_errors" / "sample_0001" / "report.json"
+                actual_run_root / "bench" / "correct_errors" / "sample_0001" / "report.json"
             )
             sample_report.parent.mkdir(parents=True)
             sample_report.write_text(
@@ -2569,7 +2574,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
-            (run_root / "run_manifest.json").write_text(
+            (actual_run_root / "run_manifest.json").write_text(
                 json.dumps(
                     {
                         "platform": "lunarc-apptainer",
@@ -2640,6 +2645,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 summary["corpus_root"],
                 "/home/bijan/lu2024-12-24/.cache/corpus_01",
             )
+            self.assertEqual(summary["run_root"], str(run_root))
 
     def test_extract_umis_report_contract_rejects_single_end_row(self) -> None:
         run_manifest = {
