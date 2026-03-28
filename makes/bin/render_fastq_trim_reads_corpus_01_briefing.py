@@ -75,9 +75,15 @@ def render_markdown(
     def format_trim_setting(value):
         return "governed tool default" if value is None else value
 
+    def format_slowdown(value):
+        return "n/a" if value is None else f"{value:.2f}x"
+
     tool_lookup = {row["tool"]: row for row in runtime_rows}
-    fastest = min(runtime_rows, key=lambda row: row["median_runtime_s"])
-    slowest = max(runtime_rows, key=lambda row: row["median_runtime_s"])
+    ranked_runtime_rows = [
+        row for row in runtime_rows if row["median_runtime_s"] is not None
+    ]
+    fastest = min(ranked_runtime_rows, key=lambda row: row["median_runtime_s"])
+    slowest = max(ranked_runtime_rows, key=lambda row: row["median_runtime_s"])
     best_retention = max(runtime_rows, key=lambda row: row["median_base_retention"])
     lowest_retention = min(runtime_rows, key=lambda row: row["median_base_retention"])
     modern_pe_fastp = find_cohort_entry(
@@ -136,9 +142,12 @@ def render_markdown(
         "| Tool | Pass rate | Median runtime (s) | p90 runtime (s) | Median base retention | Median read retention | Mean Q delta | Slowdown vs fastest |"
     )
     lines.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
-    for row in sorted(runtime_rows, key=lambda item: item["median_runtime_s"]):
+    for row in sorted(
+        runtime_rows,
+        key=lambda item: (item["median_runtime_s"] is None, item["median_runtime_s"] or 0.0),
+    ):
         lines.append(
-            f"| `{row['tool']}` | {fmt_fraction(row['pass_rate'])} | {fmt_runtime(row['median_runtime_s'])} | {fmt_runtime(row['p90_runtime_s'])} | {row['median_base_retention']:.3f} | {row['median_read_retention']:.3f} | {row['mean_q_delta']:.3f} | {row['slowdown_vs_fastest_median']:.2f}x |"
+            f"| `{row['tool']}` | {fmt_fraction(row['pass_rate'])} | {fmt_runtime(row['median_runtime_s'])} | {fmt_runtime(row['p90_runtime_s'])} | {row['median_base_retention']:.3f} | {row['median_read_retention']:.3f} | {row['mean_q_delta']:.3f} | {format_slowdown(row['slowdown_vs_fastest_median'])} |"
         )
     lines.append("")
     lines.append("## Cohort Behavior")

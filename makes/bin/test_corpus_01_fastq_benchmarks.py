@@ -7199,6 +7199,33 @@ class TrimPolygReportingTests(unittest.TestCase):
             by_tool["fastp"]["slowdown_vs_fastest_median"],
         )
 
+    def test_trim_reads_tool_runtime_summary_tolerates_missing_runtime_rows(self) -> None:
+        rows = [
+            {
+                "tool": "fastp",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "base_retention": "0.95",
+                "read_retention": "0.94",
+                "mean_q_delta": "0.40",
+            },
+            {
+                "tool": "trimmomatic",
+                "runtime_s": "",
+                "exit_code": "1",
+                "base_retention": "0.00",
+                "read_retention": "0.00",
+                "mean_q_delta": "0.00",
+            },
+        ]
+
+        summary_rows = trim_reads_briefing.tool_runtime_summary(rows)
+        by_tool = {row["tool"]: row for row in summary_rows}
+
+        self.assertAlmostEqual(by_tool["fastp"]["median_runtime_s"], 1.0)
+        self.assertIsNone(by_tool["trimmomatic"]["median_runtime_s"])
+        self.assertEqual(by_tool["trimmomatic"]["pass_rate"], 0.0)
+
     def test_trim_polyg_outliers_capture_slowest_and_strongest_trim_tools(self) -> None:
         rows = [
             {
@@ -7921,6 +7948,67 @@ class TrimReadsReportingTests(unittest.TestCase):
         markdown = trim_reads_briefing.render_markdown(summary, rows, runtime_rows, cohort_rows, outliers)
 
         self.assertIn("`2` governed trim backends were benchmarked across `2` human samples", markdown)
+
+    def test_trim_reads_briefing_renders_failed_tool_without_runtime(self) -> None:
+        summary = {
+            "platform": "lunarc-apptainer",
+            "stage_id": "fastq.trim_reads",
+            "scenario_id": "trim_fairness",
+            "samples_total": 1,
+            "tools": ["fastp", "trimmomatic"],
+            "min_length": 30,
+            "quality_cutoff": None,
+            "n_policy": "retain",
+            "adapter_policy": "none",
+            "polyx_policy": "none",
+            "contaminant_policy": "none",
+        }
+        rows = [
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "fastp",
+                "runtime_s": "1.0",
+                "exit_code": "0",
+                "base_retention": "0.95",
+                "read_retention": "0.94",
+                "mean_q_delta": "0.2",
+            },
+            {
+                "sample_id": "sample_0001",
+                "accession": "ACC1",
+                "era": "modern",
+                "layout": "pe",
+                "size_band": "under_100mb",
+                "study_accession": "PRJ1",
+                "tool": "trimmomatic",
+                "runtime_s": "",
+                "exit_code": "1",
+                "base_retention": "0.0",
+                "read_retention": "0.0",
+                "mean_q_delta": "0.0",
+            },
+        ]
+        runtime_rows = trim_reads_briefing.tool_runtime_summary(rows)
+        cohort_rows = [
+            {
+                "tool": "fastp",
+                "dimension": "era_layout",
+                "cohort": "modern_pe",
+                "median_runtime_s": 1.0,
+            }
+        ]
+        outliers = trim_reads_briefing.sample_runtime_outliers(rows)
+
+        markdown = trim_reads_briefing.render_markdown(
+            summary, rows, runtime_rows, cohort_rows, outliers
+        )
+
+        self.assertIn("| `trimmomatic` | 0.0% | n/a | n/a | 0.000 | 0.000 | 0.000 | n/a |", markdown)
 
     def test_trim_reads_report_contract_rejects_policy_drift(self) -> None:
         run_manifest = {
