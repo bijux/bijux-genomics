@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -44,6 +45,7 @@ pub(crate) fn run_corpus_fastq_publication_status(
     for spec in publication_status_steps(cwd, &docs_root) {
         run_subprocess(cwd, &config_path, &spec)?;
     }
+    write_corpus_fastq_remediation_queue(cwd, args.config.as_deref(), &docs_root)?;
     Ok(())
 }
 
@@ -156,6 +158,50 @@ struct DossierStageEntry {
     run_root_source: Option<String>,
 }
 
+#[derive(Debug, Serialize)]
+struct RemediationQueue {
+    corpus_id: String,
+    stage_count: usize,
+    open_stage_count: usize,
+    clear_stage_count: usize,
+    stages: Vec<RemediationStageEntry>,
+}
+
+#[derive(Debug, Serialize)]
+struct RemediationStageEntry {
+    stage_id: String,
+    owner: String,
+    status: String,
+    issue_count: usize,
+    issue_group_count: usize,
+    recommended_action: String,
+    publication_status: String,
+    results_status: String,
+    sample_scope: String,
+    published_generated_at_utc: Option<String>,
+    run_root_source: Option<String>,
+    issue_groups: Vec<RemediationIssueGroup>,
+    issues: Vec<RemediationIssue>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct RemediationIssue {
+    issue_id: String,
+    detail: String,
+    severity: String,
+    source: String,
+}
+
+#[derive(Debug, Serialize)]
+struct RemediationIssueGroup {
+    issue_id: String,
+    count: usize,
+    sources: Vec<String>,
+    severity: String,
+    example_details: Vec<String>,
+    additional_detail_count: usize,
+}
+
 fn publication_status_steps(repo_root: &Path, docs_root: &Path) -> Vec<SubprocessSpec> {
     let repo_root_string = repo_root.display().to_string();
     let docs_root_string = docs_root.display().to_string();
@@ -212,45 +258,6 @@ fn publication_status_steps(repo_root: &Path, docs_root: &Path) -> Vec<Subproces
                     .to_string(),
             ],
         },
-        SubprocessSpec {
-            program: "python3",
-            args: vec![
-                repo_root
-                    .join("makes/bin/build_corpus_01_benchmark_remediation_queue.py")
-                    .display()
-                    .to_string(),
-                "--status-json".to_string(),
-                docs_root
-                    .join("corpus-01-status.json")
-                    .display()
-                    .to_string(),
-                "--results-json".to_string(),
-                docs_root
-                    .join("corpus-01-results-status.json")
-                    .display()
-                    .to_string(),
-                "--findings-json".to_string(),
-                docs_root
-                    .join("corpus-01-publication-findings.json")
-                    .display()
-                    .to_string(),
-                "--dossier-index-json".to_string(),
-                docs_root
-                    .join("corpus-01-dossier-index.json")
-                    .display()
-                    .to_string(),
-                "--json-out".to_string(),
-                docs_root
-                    .join("corpus-01-remediation-queue.json")
-                    .display()
-                    .to_string(),
-                "--markdown-out".to_string(),
-                docs_root
-                    .join("corpus-01-remediation-queue.md")
-                    .display()
-                    .to_string(),
-            ],
-        },
     ]
 }
 
@@ -295,6 +302,39 @@ fn write_corpus_fastq_dossier_index(
 
     let markdown_path = docs_root.join("corpus-01-dossier-index.md");
     fs::write(&markdown_path, render_dossier_index_markdown(&index))
+        .with_context(|| format!("write {}", markdown_path.display()))?;
+    Ok(())
+}
+
+fn write_corpus_fastq_remediation_queue(
+    cwd: &Path,
+    explicit_config: Option<&Path>,
+    docs_root: &Path,
+) -> Result<()> {
+    let publication_status = load_json_value(&docs_root.join("corpus-01-status.json"))?;
+    let results_status = load_json_value(&docs_root.join("corpus-01-results-status.json"))?;
+    let findings_payload = load_json_value(&docs_root.join("corpus-01-publication-findings.json"))?;
+    let dossier_index = load_json_value(&docs_root.join("corpus-01-dossier-index.json"))?;
+    let publication = load_benchmark_publication_config(cwd, explicit_config)?;
+    let contracts = publication
+        .corpus_01
+        .map(|row| row.contracts)
+        .unwrap_or_default();
+    let queue = build_remediation_queue(
+        &contracts,
+        &publication_status,
+        &results_status,
+        &findings_payload,
+        &dossier_index,
+    );
+    let json_path = docs_root.join("corpus-01-remediation-queue.json");
+    fs::write(
+        &json_path,
+        format!("{}\n", serde_json::to_string_pretty(&queue)?),
+    )
+    .with_context(|| format!("write {}", json_path.display()))?;
+    let markdown_path = docs_root.join("corpus-01-remediation-queue.md");
+    fs::write(&markdown_path, render_remediation_queue_markdown(&queue))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
 }
@@ -408,6 +448,13 @@ fn resolve_existing_dossier_path(stage_docs_root: &Path) -> PathBuf {
     preferred
 }
 
+fn load_json_value(path: &Path) -> Result<serde_json::Value> {
+    serde_json::from_str(
+        &fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?,
+    )
+    .with_context(|| format!("parse {}", path.display()))
+}
+
 fn render_dossier_index_markdown(index: &DossierIndex) -> String {
     let mut lines = vec![
         "# `corpus-01` FASTQ dossier index".to_string(),
@@ -448,6 +495,291 @@ fn render_dossier_index_markdown(index: &DossierIndex) -> String {
         }
     }
     lines.join("\n") + "\n"
+}
+
+fn build_remediation_queue(
+    contracts: &[CorpusBenchmarkContract],
+    publication_status: &serde_json::Value,
+    results_status: &serde_json::Value,
+    findings_payload: &serde_json::Value,
+    dossier_index: &serde_json::Value,
+) -> RemediationQueue {
+    let publication_by_stage = stage_value_lookup(publication_status);
+    let results_by_stage = stage_value_lookup(results_status);
+    let dossier_by_stage = stage_value_lookup(dossier_index);
+    let findings_by_stage = findings_lookup(findings_payload);
+
+    let stages = contracts
+        .iter()
+        .map(|contract| {
+            let publication_stage = publication_by_stage.get(&contract.stage_id);
+            let results_stage = results_by_stage.get(&contract.stage_id);
+            let dossier_stage = dossier_by_stage.get(&contract.stage_id);
+
+            let mut issues = collect_stage_issues(publication_stage, "publication");
+            issues.extend(collect_stage_issues(results_stage, "results"));
+            issues.extend(
+                findings_by_stage
+                    .get(&contract.stage_id)
+                    .cloned()
+                    .unwrap_or_default(),
+            );
+            let issue_groups = summarize_issue_groups(&issues);
+            let issue_ids = issues
+                .iter()
+                .map(|issue| issue.issue_id.clone())
+                .collect::<Vec<_>>();
+
+            RemediationStageEntry {
+                stage_id: contract.stage_id.clone(),
+                owner: "benchmark-governance".to_string(),
+                status: if issues.is_empty() {
+                    "clear".to_string()
+                } else {
+                    "open".to_string()
+                },
+                issue_count: issues.len(),
+                issue_group_count: issue_groups.len(),
+                recommended_action: if issues.is_empty() {
+                    "none".to_string()
+                } else {
+                    classify_recommended_action(&issue_ids)
+                },
+                publication_status: stage_value_string(publication_stage, "status", "missing"),
+                results_status: stage_value_string(results_stage, "status", "missing"),
+                sample_scope: contract.sample_scope.clone(),
+                published_generated_at_utc: stage_value_optional_string(
+                    dossier_stage,
+                    "generated_at_utc",
+                ),
+                run_root_source: stage_value_optional_string(dossier_stage, "run_root_source"),
+                issue_groups,
+                issues,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    RemediationQueue {
+        corpus_id: "corpus-01".to_string(),
+        stage_count: stages.len(),
+        open_stage_count: stages.iter().filter(|stage| stage.status == "open").count(),
+        clear_stage_count: stages
+            .iter()
+            .filter(|stage| stage.status == "clear")
+            .count(),
+        stages,
+    }
+}
+
+fn stage_value_lookup<'a>(
+    payload: &'a serde_json::Value,
+) -> BTreeMap<String, &'a serde_json::Value> {
+    payload
+        .get("stages")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|stage| {
+            stage
+                .get("stage_id")
+                .and_then(|value| value.as_str())
+                .map(|stage_id| (stage_id.to_string(), stage))
+        })
+        .collect()
+}
+
+fn findings_lookup(payload: &serde_json::Value) -> BTreeMap<String, Vec<RemediationIssue>> {
+    let mut findings_by_stage = BTreeMap::new();
+    for finding in payload
+        .get("findings")
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+    {
+        let Some(stage_id) = finding.get("stage_id").and_then(|value| value.as_str()) else {
+            continue;
+        };
+        findings_by_stage
+            .entry(stage_id.to_string())
+            .or_insert_with(Vec::new)
+            .push(RemediationIssue {
+                issue_id: finding
+                    .get("issue_id")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("unknown")
+                    .to_string(),
+                detail: finding
+                    .get("detail")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+                severity: finding
+                    .get("severity")
+                    .and_then(|value| value.as_str())
+                    .unwrap_or("error")
+                    .to_string(),
+                source: "findings".to_string(),
+            });
+    }
+    findings_by_stage
+}
+
+fn collect_stage_issues(stage: Option<&&serde_json::Value>, source: &str) -> Vec<RemediationIssue> {
+    stage
+        .and_then(|value| value.get("issues"))
+        .and_then(|value| value.as_array())
+        .into_iter()
+        .flatten()
+        .map(|issue| RemediationIssue {
+            issue_id: issue
+                .get("issue_id")
+                .and_then(|value| value.as_str())
+                .unwrap_or("unknown")
+                .to_string(),
+            detail: issue
+                .get("detail")
+                .and_then(|value| value.as_str())
+                .unwrap_or("")
+                .to_string(),
+            severity: issue
+                .get("severity")
+                .and_then(|value| value.as_str())
+                .unwrap_or("error")
+                .to_string(),
+            source: source.to_string(),
+        })
+        .collect()
+}
+
+fn summarize_issue_groups(issues: &[RemediationIssue]) -> Vec<RemediationIssueGroup> {
+    let mut grouped = BTreeMap::<String, (usize, BTreeMap<String, ()>, Vec<String>, String)>::new();
+    for issue in issues {
+        let group = grouped
+            .entry(issue.issue_id.clone())
+            .or_insert_with(|| (0, BTreeMap::new(), Vec::new(), issue.severity.clone()));
+        group.0 += 1;
+        group.1.insert(issue.source.clone(), ());
+        let detail = issue.detail.trim();
+        if !detail.is_empty() && !group.2.iter().any(|existing| existing == detail) {
+            group.2.push(detail.to_string());
+        }
+    }
+    grouped
+        .into_iter()
+        .map(
+            |(issue_id, (count, sources, details, severity))| RemediationIssueGroup {
+                issue_id,
+                count,
+                sources: sources.into_keys().collect(),
+                severity,
+                example_details: details.iter().take(3).cloned().collect(),
+                additional_detail_count: details.len().saturating_sub(3),
+            },
+        )
+        .collect()
+}
+
+fn classify_recommended_action(issue_ids: &[String]) -> String {
+    let sync_issue_ids = [
+        "missing-local-run-root",
+        "missing-stage-run-manifest",
+        "missing-localized-report-json",
+        "duplicate-result-root-ambiguity",
+    ];
+    let publish_issue_ids = [
+        "missing-published-summary",
+        "missing-corpus-dir",
+        "missing-summary-json",
+        "missing-lunarc-md",
+        "missing-sample-results-csv",
+        "missing-tool-runtime-summary-csv",
+        "missing-cohort-runtime-summary-csv",
+        "missing-sample-runtime-outliers-csv",
+    ];
+    let rerun_issue_fragments = ["sample-failures", "dry-run", "sample-limit"];
+    if issue_ids
+        .iter()
+        .any(|issue_id| sync_issue_ids.contains(&issue_id.as_str()))
+    {
+        return "sync-or-normalize-results".to_string();
+    }
+    if issue_ids
+        .iter()
+        .any(|issue_id| publish_issue_ids.contains(&issue_id.as_str()))
+    {
+        return "render-or-publish-dossier".to_string();
+    }
+    if issue_ids.iter().any(|issue_id| {
+        rerun_issue_fragments
+            .iter()
+            .any(|fragment| issue_id.contains(fragment))
+    }) {
+        return "rerun-benchmark-stage".to_string();
+    }
+    "repair-benchmark-contract".to_string()
+}
+
+fn render_remediation_queue_markdown(queue: &RemediationQueue) -> String {
+    let mut lines = vec![
+        "# `corpus-01` FASTQ remediation queue".to_string(),
+        "".to_string(),
+        format!("- Governed publication stages: `{}`", queue.stage_count),
+        format!("- Open stages: `{}`", queue.open_stage_count),
+        format!("- Clear stages: `{}`", queue.clear_stage_count),
+        "".to_string(),
+        "## Stage queue".to_string(),
+        "".to_string(),
+    ];
+    for stage in &queue.stages {
+        lines.push(format!(
+            "- `{}`: `{}` via `{}`",
+            stage.stage_id, stage.status, stage.recommended_action
+        ));
+        lines.push(format!(
+            "  - publication `{}`, results `{}`, owner `{}`",
+            stage.publication_status, stage.results_status, stage.owner
+        ));
+        if let Some(generated_at) = stage.published_generated_at_utc.as_deref() {
+            lines.push(format!(
+                "  - dossier `{}` from `{}`",
+                generated_at,
+                stage.run_root_source.as_deref().unwrap_or("unknown")
+            ));
+        }
+        for group in &stage.issue_groups {
+            lines.push(format!(
+                "  - issue group `{}` x{} from {}",
+                group.issue_id,
+                group.count,
+                group.sources.join(", ")
+            ));
+            for detail in &group.example_details {
+                lines.push(format!("    - {detail}"));
+            }
+            if group.additional_detail_count > 0 {
+                lines.push(format!(
+                    "    - (+{} more detail rows)",
+                    group.additional_detail_count
+                ));
+            }
+        }
+    }
+    lines.join("\n") + "\n"
+}
+
+fn stage_value_string(stage: Option<&&serde_json::Value>, key: &str, default: &str) -> String {
+    stage
+        .and_then(|value| value.get(key))
+        .and_then(|value| value.as_str())
+        .unwrap_or(default)
+        .to_string()
+}
+
+fn stage_value_optional_string(stage: Option<&&serde_json::Value>, key: &str) -> Option<String> {
+    stage
+        .and_then(|value| value.get(key))
+        .and_then(|value| value.as_str())
+        .map(ToOwned::to_owned)
 }
 
 fn classify_run_root_source(
@@ -744,16 +1076,133 @@ mod tests {
     }
 
     #[test]
-    fn publication_status_steps_write_to_docs_root_outputs() {
+    fn publication_status_steps_stop_before_rust_owned_outputs() {
         let steps =
             super::publication_status_steps(Path::new("/repo"), Path::new("/repo/docs/benchmark"));
         let last = steps.last().expect("status steps");
         assert_eq!(last.program, "python3");
         assert!(last
             .args
-            .contains(&"/repo/docs/benchmark/corpus-01-remediation-queue.json".to_string()));
+            .iter()
+            .any(|arg| { arg == "/repo/makes/bin/audit_published_corpus_01_fastq_results.py" }));
         assert!(last
             .args
             .contains(&"/repo/docs/benchmark/corpus-01-results-status.json".to_string()));
+        assert!(!steps.iter().flat_map(|step| step.args.iter()).any(|arg| {
+            arg.contains("build_corpus_01_benchmark_remediation_queue.py")
+                || arg.contains("corpus-01-remediation-queue.json")
+                || arg.contains("corpus-01-remediation-queue.md")
+        }));
+    }
+
+    #[test]
+    fn remediation_queue_merges_publication_results_and_findings() {
+        let queue = super::build_remediation_queue(
+            &[
+                crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    scenario_id: "governed-fixture".to_string(),
+                    sample_scope: "paired-subset".to_string(),
+                    tools: Vec::new(),
+                },
+            ],
+            &serde_json::json!({
+                "stages": [{
+                    "stage_id": "fastq.validate_reads",
+                    "status": "incomplete",
+                    "issues": [{
+                        "issue_id": "missing-benchmark-md",
+                        "detail": "missing docs dossier",
+                    }],
+                }],
+            }),
+            &serde_json::json!({
+                "stages": [{
+                    "stage_id": "fastq.validate_reads",
+                    "status": "incomplete",
+                    "issues": [{
+                        "issue_id": "missing-local-run-root",
+                        "detail": "missing local mirror root",
+                    }],
+                }],
+            }),
+            &serde_json::json!({
+                "findings": [{
+                    "stage_id": "fastq.validate_reads",
+                    "issue_id": "publication-gap",
+                    "detail": "supplemental finding",
+                    "severity": "error",
+                }],
+            }),
+            &serde_json::json!({
+                "stages": [{
+                    "stage_id": "fastq.validate_reads",
+                    "generated_at_utc": "2026-03-28T00:00:00Z",
+                    "run_root_source": "local-results-root",
+                }],
+            }),
+        );
+
+        let stage = queue.stages.first().expect("stage");
+        assert_eq!(stage.stage_id, "fastq.validate_reads");
+        assert_eq!(stage.status, "open");
+        assert_eq!(stage.issue_count, 3);
+        assert_eq!(stage.recommended_action, "sync-or-normalize-results");
+        assert_eq!(
+            stage.published_generated_at_utc.as_deref(),
+            Some("2026-03-28T00:00:00Z")
+        );
+        assert_eq!(stage.run_root_source.as_deref(), Some("local-results-root"));
+    }
+
+    #[test]
+    fn remediation_queue_markdown_uses_issue_groups() {
+        let rendered = super::render_remediation_queue_markdown(&super::RemediationQueue {
+            corpus_id: "corpus-01".to_string(),
+            stage_count: 1,
+            open_stage_count: 1,
+            clear_stage_count: 0,
+            stages: vec![super::RemediationStageEntry {
+                stage_id: "fastq.validate_reads".to_string(),
+                owner: "benchmark-governance".to_string(),
+                status: "open".to_string(),
+                issue_count: 2,
+                issue_group_count: 1,
+                recommended_action: "sync-or-normalize-results".to_string(),
+                publication_status: "incomplete".to_string(),
+                results_status: "incomplete".to_string(),
+                sample_scope: "paired-subset".to_string(),
+                published_generated_at_utc: Some("2026-03-28T00:00:00Z".to_string()),
+                run_root_source: Some("local-cache-mirror".to_string()),
+                issue_groups: vec![super::RemediationIssueGroup {
+                    issue_id: "missing-localized-report-json".to_string(),
+                    count: 2,
+                    sources: vec!["results".to_string()],
+                    severity: "error".to_string(),
+                    example_details: vec![
+                        "sample_0001 missing report.json".to_string(),
+                        "sample_0002 missing report.json".to_string(),
+                    ],
+                    additional_detail_count: 0,
+                }],
+                issues: vec![
+                    super::RemediationIssue {
+                        issue_id: "missing-localized-report-json".to_string(),
+                        detail: "sample_0001 missing report.json".to_string(),
+                        severity: "error".to_string(),
+                        source: "results".to_string(),
+                    },
+                    super::RemediationIssue {
+                        issue_id: "missing-localized-report-json".to_string(),
+                        detail: "sample_0002 missing report.json".to_string(),
+                        severity: "error".to_string(),
+                        source: "results".to_string(),
+                    },
+                ],
+            }],
+        });
+
+        assert!(rendered.contains("issue group `missing-localized-report-json` x2"));
+        assert!(rendered.contains("sample_0001 missing report.json"));
     }
 }
