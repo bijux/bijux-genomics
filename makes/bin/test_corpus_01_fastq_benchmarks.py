@@ -107,6 +107,12 @@ def benchmark_workspace_contract_text() -> str:
     )
 
 
+def benchmark_workflow_operations_text() -> str:
+    return (ROOT / "docs" / "benchmark" / "workflow-operations.md").read_text(
+        encoding="utf-8"
+    )
+
+
 def makefile_target_recipe(target: str) -> str:
     lines = benchmark_makefile_text().splitlines()
     capture = False
@@ -595,6 +601,16 @@ class BenchmarkMakefileTests(unittest.TestCase):
         self.assertIn("local.cache_mirror_root", text)
         self.assertIn("remote.repo_root", text)
         self.assertIn("remote.cache_root", text)
+        self.assertIn("configs/bench/workspace.toml", text)
+
+    def test_benchmark_workflow_operations_doc_covers_mirror_and_cluster_migration(
+        self,
+    ) -> None:
+        text = benchmark_workflow_operations_text()
+
+        self.assertIn("Mirror The Shared Cache Tree", text)
+        self.assertIn("Move To Another Cluster With Config", text)
+        self.assertIn("local.cache_mirror_root", text)
         self.assertIn("configs/bench/workspace.toml", text)
 
     def test_filter_low_complexity_defaults_match_governed_suite(self) -> None:

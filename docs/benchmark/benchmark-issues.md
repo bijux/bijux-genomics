@@ -84,6 +84,4 @@ This file tracks benchmark hard-wiring, publication drift, storage layout ambigu
 94. There is no repo check that fails on hardcoded `lunarc` host names in benchmark tooling.
 96. There is no repo check that ensures all governed corpus-01 benchmark stages have publication audit coverage.
 97. The benchmark support layer still treats the local mirror as a special case rather than a first-class configured environment.
-98. The repository lacks a single documented procedure for moving the benchmark workflow from Lunarc to another cluster using config only.
-99. The repository lacks a single documented procedure for mirroring the governed `.cache` tree into the local results workspace with a stable path contract.
 100. The benchmark documentation surface still reflects historical storage decisions instead of one clear, durable benchmark workspace model.
