@@ -5826,21 +5826,32 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         .remote_ssh_host
         .as_deref()
         .unwrap_or("lunarc");
-    let lunarc_host = env_or_default_alias("BENCHMARK_SYNC_HOST", "LUNARC_HOST", default_lunarc_host);
-    let lunarc_root = env_or_default_alias("BENCHMARK_SYNC_FRONTEND_ROOT", "LUNARC_ROOT", "${HOME}/bijux");
+    let lunarc_host =
+        env_or_default_alias("BENCHMARK_SYNC_HOST", "LUNARC_HOST", default_lunarc_host);
+    let lunarc_root = env_or_default_alias(
+        "BENCHMARK_SYNC_FRONTEND_ROOT",
+        "LUNARC_ROOT",
+        "${HOME}/bijux",
+    );
     let default_lunarc_repo_dir = benchmark_workspace
         .remote_repo_root
         .clone()
         .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna"));
-    let lunarc_repo_dir =
-        env_or_default_alias("BENCHMARK_SYNC_REPO_ROOT", "LUNARC_REPO_DIR", &default_lunarc_repo_dir);
+    let lunarc_repo_dir = env_or_default_alias(
+        "BENCHMARK_SYNC_REPO_ROOT",
+        "LUNARC_REPO_DIR",
+        &default_lunarc_repo_dir,
+    );
     let default_lunarc_pull_base = benchmark_workspace
         .sync_default_pull_base
         .clone()
         .or_else(|| benchmark_workspace.local_results_root.clone())
         .unwrap_or_else(|| "${HOME}/bijux/bijux-dna-results".to_string());
-    let lunarc_pull_base =
-        env_or_default_alias("BENCHMARK_SYNC_PULL_BASE", "LUNARC_PULL_BASE", &default_lunarc_pull_base);
+    let lunarc_pull_base = env_or_default_alias(
+        "BENCHMARK_SYNC_PULL_BASE",
+        "LUNARC_PULL_BASE",
+        &default_lunarc_pull_base,
+    );
     let lunarc_pull_dest = env_or_empty_alias("BENCHMARK_SYNC_PULL_DEST", "LUNARC_PULL_DEST");
     let default_pull_mode = benchmark_workspace
         .sync_default_pull_mode
@@ -5911,14 +5922,10 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     let sync_profiles = load_lunarc_sync_profiles(&profiles_cfg)?;
     let include_sync_profile = lunarc_sync_profile(&sync_profiles, &include_profile);
     let exclude_sync_profile = lunarc_sync_profile(&sync_profiles, &exclude_profile);
-    if let Some(rel) = exclude_sync_profile
-        .and_then(|profile| profile.exclude_file.as_deref())
-    {
+    if let Some(rel) = exclude_sync_profile.and_then(|profile| profile.exclude_file.as_deref()) {
         pull_full_exclude = workspace.path(rel);
     }
-    if let Some(rel) = include_sync_profile
-        .and_then(|profile| profile.include_file.as_deref())
-    {
+    if let Some(rel) = include_sync_profile.and_then(|profile| profile.include_file.as_deref()) {
         pull_results_include = workspace.path(rel);
     }
     let effective_data_manifest_glob = if data_manifest_glob.trim().is_empty() {
@@ -6185,30 +6192,48 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         .remote_ssh_host
         .as_deref()
         .unwrap_or("lunarc");
-    let lunarc_host = env_or_default_alias("BENCHMARK_SYNC_HOST", "LUNARC_HOST", default_lunarc_host);
-    let lunarc_root = env_or_default_alias("BENCHMARK_SYNC_FRONTEND_ROOT", "LUNARC_ROOT", "${HOME}/bijux");
+    let lunarc_host =
+        env_or_default_alias("BENCHMARK_SYNC_HOST", "LUNARC_HOST", default_lunarc_host);
+    let lunarc_root = env_or_default_alias(
+        "BENCHMARK_SYNC_FRONTEND_ROOT",
+        "LUNARC_ROOT",
+        "${HOME}/bijux",
+    );
     let default_lunarc_repo_dir = benchmark_workspace
         .remote_repo_root
         .clone()
         .unwrap_or_else(|| format!("{lunarc_root}/bijux-dna"));
-    let lunarc_repo_dir =
-        env_or_default_alias("BENCHMARK_SYNC_REPO_ROOT", "LUNARC_REPO_DIR", &default_lunarc_repo_dir);
-    let clean_context_default = if benchmark_workspace.sync_default_clean_context.unwrap_or(true) {
+    let lunarc_repo_dir = env_or_default_alias(
+        "BENCHMARK_SYNC_REPO_ROOT",
+        "LUNARC_REPO_DIR",
+        &default_lunarc_repo_dir,
+    );
+    let clean_context_default = if benchmark_workspace
+        .sync_default_clean_context
+        .unwrap_or(true)
+    {
         "1"
     } else {
         "0"
     };
-    let allow_dirty_default = if benchmark_workspace.sync_default_allow_dirty.unwrap_or(false) {
+    let allow_dirty_default = if benchmark_workspace
+        .sync_default_allow_dirty
+        .unwrap_or(false)
+    {
         "1"
     } else {
         "0"
     };
-    let clean_context =
-        env_or_default_alias("BENCHMARK_SYNC_CLEAN_CONTEXT", "CLEAN_CONTEXT", clean_context_default)
-            == "1";
-    let allow_dirty =
-        env_or_default_alias("BENCHMARK_SYNC_ALLOW_DIRTY", "ALLOW_DIRTY", allow_dirty_default)
-            == "1";
+    let clean_context = env_or_default_alias(
+        "BENCHMARK_SYNC_CLEAN_CONTEXT",
+        "CLEAN_CONTEXT",
+        clean_context_default,
+    ) == "1";
+    let allow_dirty = env_or_default_alias(
+        "BENCHMARK_SYNC_ALLOW_DIRTY",
+        "ALLOW_DIRTY",
+        allow_dirty_default,
+    ) == "1";
     if !allow_dirty {
         let dirty = run_program(
             workspace,
@@ -8977,7 +9002,8 @@ fn validate_benchmark_sync_roots(benchmark_workspace: &BenchmarkWorkspacePaths) 
         }
     }
 
-    if let (Some(results_root), Some(cache_mirror_root)) = (&local_results_root, &local_cache_mirror_root)
+    if let (Some(results_root), Some(cache_mirror_root)) =
+        (&local_results_root, &local_cache_mirror_root)
     {
         if !cache_mirror_root.starts_with(results_root) {
             return Err(anyhow!(
@@ -9010,7 +9036,9 @@ fn default_pull_destination(
     PathBuf::from(expand_home_placeholder(pull_base, home)).join(format!("lunarc-{timestamp}"))
 }
 
-fn benchmark_remote_layout_candidates(benchmark_workspace: &BenchmarkWorkspacePaths) -> Vec<(String, String)> {
+fn benchmark_remote_layout_candidates(
+    benchmark_workspace: &BenchmarkWorkspacePaths,
+) -> Vec<(String, String)> {
     let mut candidates = Vec::new();
     if let Some(results_root) = benchmark_workspace.remote_results_root.as_deref() {
         candidates.push((
@@ -9057,7 +9085,8 @@ fn remote_layout_conflicts(
     let candidates = benchmark_remote_layout_candidates(benchmark_workspace);
     let canonical_results_root = benchmark_workspace.remote_results_root.as_deref();
     let legacy_results_root = benchmark_workspace.remote_results_legacy_root.as_deref();
-    if let (Some(results_root), Some(results_legacy_root)) = (canonical_results_root, legacy_results_root)
+    if let (Some(results_root), Some(results_legacy_root)) =
+        (canonical_results_root, legacy_results_root)
     {
         if remote_path_exists(workspace, host, results_root)?
             && remote_path_exists(workspace, host, results_legacy_root)?
@@ -9216,8 +9245,14 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let profile = lunarc_sync_profile(&profiles, "pull-benchmark-publication")
             .context("missing sync profile")?;
 
-        assert_eq!(profile.workspace_scope.as_deref(), Some("corpus-01-fastq-publication"));
-        assert_eq!(profile.pull_destination.as_deref(), Some("local.results_root"));
+        assert_eq!(
+            profile.workspace_scope.as_deref(),
+            Some("corpus-01-fastq-publication")
+        );
+        assert_eq!(
+            profile.pull_destination.as_deref(),
+            Some("local.results_root")
+        );
         assert_eq!(
             profile.remote_roots,
             vec!["remote.results_root", "remote.extra_data_root"]
@@ -9296,9 +9331,7 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let error = super::validate_benchmark_sync_roots(&workspace)
             .expect_err("expected overlapping remote roots to fail");
         assert!(
-            error
-                .to_string()
-                .contains("private frontend repo root"),
+            error.to_string().contains("private frontend repo root"),
             "unexpected error: {error}"
         );
     }
@@ -9330,9 +9363,7 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let error = super::validate_benchmark_sync_roots(&workspace)
             .expect_err("expected invalid local cache mirror to fail");
         assert!(
-            error
-                .to_string()
-                .contains("local cache mirror"),
+            error.to_string().contains("local cache mirror"),
             "unexpected error: {error}"
         );
     }

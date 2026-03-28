@@ -409,7 +409,9 @@ arch = "amd64"
         assert_eq!(platform.runner, RuntimeKind::Apptainer);
         assert_eq!(
             platform.container_dir,
-            std::path::Path::new("containers").join("apptainer").join("sif")
+            std::path::Path::new("containers")
+                .join("apptainer")
+                .join("sif")
         );
         Ok(())
     }
