@@ -586,7 +586,7 @@ def main() -> int:
     summary_path = docs_root / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
 
-    markdown_path = docs_root / "lunarc.md"
+    markdown_path = docs_root / "benchmark.md"
     markdown_path.write_text(render_markdown(summary), encoding="utf-8")
     return 0
 

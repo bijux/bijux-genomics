@@ -1070,6 +1070,21 @@ class BenchmarkMakefileTests(unittest.TestCase):
             self.assertIn("containers/apptainer/shared", text)
             self.assertNotIn("containers/apptainer/lunarc", text)
 
+    def test_benchmark_tooling_uses_neutral_dossier_filename(self) -> None:
+        support_text = (BIN_DIR / "corpus_01_fastq_benchmark_support.py").read_text(
+            encoding="utf-8"
+        )
+        audit_text = (BIN_DIR / "audit_corpus_01_fastq_benchmark_docs.py").read_text(
+            encoding="utf-8"
+        )
+        index_text = (BIN_DIR / "build_corpus_01_benchmark_dossier_index.py").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn('PUBLISHED_DOSSIER_NAME = "benchmark.md"', support_text)
+        self.assertIn("resolve_existing_dossier_path", audit_text)
+        self.assertIn("resolve_existing_dossier_path", index_text)
+
     def test_benchmark_workflow_operations_doc_records_repo_and_shared_storage_split(
         self,
     ) -> None:
@@ -5355,7 +5370,7 @@ class CorpusBenchmarkDocsAuditTests(unittest.TestCase):
             script_path = repo_root / "makes" / "bin" / "render.py"
             script_path.parent.mkdir(parents=True)
             script_path.write_text(
-                'DOSSIER_NAME = "lunarc.md"\nPROFILE_NAME = "lunarc-apptainer"\n',
+                'DOSSIER_NAME = "benchmark.md"\nPROFILE_NAME = "lunarc-apptainer"\n',
                 encoding="utf-8",
             )
 

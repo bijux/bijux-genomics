@@ -441,7 +441,7 @@ def main() -> int:
     write_csv(docs_root / "tool_runtime_summary.csv", runtime_rows)
     write_csv(docs_root / "cohort_runtime_summary.csv", cohort_rows)
     write_csv(docs_root / "sample_runtime_outliers.csv", outliers)
-    (docs_root / "lunarc.md").write_text(
+    (docs_root / "benchmark.md").write_text(
         render_markdown(summary, runtime_rows, cohort_rows, outliers),
         encoding="utf-8",
     )

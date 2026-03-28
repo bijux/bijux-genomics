@@ -15,7 +15,9 @@ from corpus_01_fastq_benchmark_support import (
     CorpusBenchmarkExclusion,
     corpus_01_make_report_target,
     expected_cohort_counts,
+    PUBLISHED_DOSSIER_NAME,
     load_corpus_spec,
+    resolve_existing_dossier_path,
     resolve_benchmark_tool_roster,
     resolve_stage_toolset,
 )
@@ -35,7 +37,7 @@ REQUIRED_STAGE_FILES = [
     "tool_runtime_summary.csv",
     "cohort_runtime_summary.csv",
     "sample_runtime_outliers.csv",
-    "lunarc.md",
+    PUBLISHED_DOSSIER_NAME,
 ]
 
 
@@ -635,7 +637,7 @@ def render_markdown(report: dict) -> str:
             "",
             "## Contract",
             "",
-            "A complete published corpus dossier requires `corpus-01-method.md`, `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, `sample_runtime_outliers.csv`, and `lunarc.md`.",
+            "A complete published corpus dossier requires `corpus-01-method.md`, `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, `sample_runtime_outliers.csv`, and `benchmark.md`.",
             "Published summaries must also match the governed scenario id, exact benchmark tool roster, expected corpus scope (`full` or `paired`), zero sample failures, and complete sample-by-tool coverage.",
         ]
     )

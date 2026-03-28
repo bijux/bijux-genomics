@@ -269,7 +269,7 @@ def main() -> int:
         json.dumps(summary, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
-    (docs_root / "lunarc.md").write_text(
+    (docs_root / "benchmark.md").write_text(
         render_markdown(summary),
         encoding="utf-8",
     )

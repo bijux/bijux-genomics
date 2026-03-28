@@ -419,7 +419,7 @@ def main() -> int:
             "most_trimmed_bases",
         ],
     )
-    (docs_root / "lunarc.md").write_text(
+    (docs_root / "benchmark.md").write_text(
         render_markdown(summary, rows, runtime_rows, cohort_rows, outliers),
         encoding="utf-8",
     )
