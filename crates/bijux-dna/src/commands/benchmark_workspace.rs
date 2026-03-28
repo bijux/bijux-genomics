@@ -211,7 +211,29 @@ pub(crate) fn benchmark_publication_config_path(
 
 fn load_toml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str::<T>(&raw).with_context(|| format!("parse {}", path.display()))
+    toml::from_str::<T>(&expand_env_placeholders(&raw))
+        .with_context(|| format!("parse {}", path.display()))
+}
+
+pub(crate) fn expand_env_placeholders(raw: &str) -> String {
+    let mut expanded = String::with_capacity(raw.len());
+    let mut chars = raw.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '$' && chars.peek() == Some(&'{') {
+            chars.next();
+            let mut name = String::new();
+            while let Some(next) = chars.next() {
+                if next == '}' {
+                    break;
+                }
+                name.push(next);
+            }
+            expanded.push_str(&std::env::var(&name).unwrap_or_default());
+            continue;
+        }
+        expanded.push(ch);
+    }
+    expanded
 }
 
 fn synthesize_legacy_benchmark_config(
@@ -618,6 +640,27 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         assert_eq!(
             path,
             temp.path().join("configs/runtime/corpora/corpus-01.toml")
+        );
+    }
+
+    #[test]
+    fn benchmark_config_expands_environment_placeholders() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("create config dir");
+        std::fs::write(
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
+results_root = "${BIJUX_TEST_RESULTS_ROOT}"
+"#,
+        )
+        .expect("write config");
+        std::env::set_var("BIJUX_TEST_RESULTS_ROOT", "/tmp/env-results");
+        let config = load_benchmark_config(temp.path(), None).expect("load benchmark config");
+        std::env::remove_var("BIJUX_TEST_RESULTS_ROOT");
+        assert_eq!(
+            config.workspace.local.and_then(|row| row.results_root),
+            Some("/tmp/env-results".to_string())
         );
     }
 }
