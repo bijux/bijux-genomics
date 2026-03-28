@@ -1064,6 +1064,35 @@ class BenchmarkMakefileTests(unittest.TestCase):
             Path("/tmp/local-cache/reference/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/hg38.1.bt2"),
         )
 
+    def test_localize_manifest_paths_maps_taxonomy_and_reference_artifacts(self) -> None:
+        with mock.patch.object(
+            support,
+            "benchmark_local_cache_mirror_root",
+            return_value=Path("/tmp/local-cache"),
+        ):
+            localized = support.localize_manifest_paths(
+                {
+                    "database_root": "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db",
+                    "database_lineage_json": "/home/bijan/lu2024-12-24/.cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.json",
+                    "reference_index": "/home/bijan/lu2024-12-24/.cache/reference/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index",
+                },
+                Path("/tmp/local-results"),
+                keys=["database_root", "database_lineage_json", "reference_index"],
+            )
+
+        self.assertEqual(
+            localized["database_root"],
+            "/tmp/local-cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db",
+        )
+        self.assertEqual(
+            localized["database_lineage_json"],
+            "/tmp/local-cache/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.json",
+        )
+        self.assertEqual(
+            localized["reference_index"],
+            "/tmp/local-cache/reference/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index",
+        )
+
     def test_preferred_report_run_root_falls_back_to_legacy_local_archive(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_root = Path(tmpdir)
