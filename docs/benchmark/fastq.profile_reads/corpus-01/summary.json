@@ -6,12 +6,12 @@
     "modern_se": 5
   },
   "corpus_id": "corpus-01",
-  "corpus_root": "/home/bijan/bijux/corpus_01",
+  "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "era_counts": {
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-26T23:43:52.351117+00:00",
+  "generated_at_utc": "2026-03-28T02:26:36.651353+00:00",
   "headline": {
     "fastest_runtime_s": 1.6135583665,
     "fastest_tool": "seqkit_stats",
