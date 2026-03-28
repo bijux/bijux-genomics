@@ -1,12 +1,13 @@
 {
   "schema_version": "bijux.fastq.merge_pairs.corpus_summary.v1",
-  "generated_at_utc": "2026-03-28T02:27:36.667006+00:00",
+  "generated_at_utc": "2026-03-28T02:56:04.491543+00:00",
   "corpus_id": "corpus-01",
   "stage_id": "fastq.merge_pairs",
   "scenario_id": "merge_fairness",
   "platform": "lunarc-apptainer",
   "corpus_root": "/home/bijan/lu2024-12-24/.cache/corpus_01",
   "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.merge_pairs/lunarc",
+  "sample_scope": "paired",
   "samples_total": 10,
   "samples_failed": 0,
   "tools": [
