@@ -44,6 +44,20 @@ def _workspace_path(section: str, key: str) -> Path:
     )
 
 
+def _workspace_template(section: str, key: str) -> str:
+    value = load_benchmark_workspace_config().get("artifacts", {}).get(section, {}).get(key)
+    if isinstance(value, str) and value.strip():
+        return value
+    raise SystemExit(
+        "missing benchmark artifact template contract: "
+        f"[artifacts.{section}].{key} in configs/bench/workspace.toml"
+    )
+
+
+def _expand_workspace_template(template: str, values: dict[str, str]) -> Path:
+    return Path(template.format(**values))
+
+
 def benchmark_local_results_root() -> Path:
     if LOCAL_RESULTS_ROOT is not None:
         return LOCAL_RESULTS_ROOT
@@ -724,14 +738,14 @@ def default_host_reference_index_root(
     reference_catalog_id: str,
     reference_index_backend: str,
 ) -> Path:
-    return (
-        default_extra_data_root(out_root)
-        / "benchmark"
-        / "fastq.deplete_host"
-        / reference_catalog_id
-        / reference_index_backend
-        / "index"
+    relative_root = _expand_workspace_template(
+        _workspace_template("fastq_deplete_host", "reference_index_template"),
+        {
+            "reference_catalog_id": reference_catalog_id,
+            "reference_index_backend": reference_index_backend,
+        },
     )
+    return default_extra_data_root(out_root) / relative_root
 
 
 def default_screen_taxonomy_database_root(
