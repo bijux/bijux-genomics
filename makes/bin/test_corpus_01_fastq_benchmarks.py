@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -62,8 +63,6 @@ import converge_benchmark_workspace_roots as converge_workspace_roots
 import normalize_benchmark_workspace_stage_roots as normalize_workspace_stage_roots
 import repair_corpus_01_fastq_result_manifests as repair_results_manifests
 import bootstrap_fastq_screen_taxonomy_database as taxonomy_db_bootstrap
-import benchmark_workspace_value
-import benchmark_publication_targets
 import benchmark_tooling_repo_checks
 import audit_benchmark_workspace_layout as workspace_layout_audit
 import build_corpus_01_benchmark_dossier_index as dossier_index
@@ -158,6 +157,67 @@ def runtime_platforms_text() -> str:
 
 def runner_script_text(name: str) -> str:
     return (ROOT / "makes" / "bin" / name).read_text(encoding="utf-8")
+
+
+def resolve_benchmark_workspace_value(
+    key_path: str,
+    *,
+    config: str = "",
+) -> str:
+    command = [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "bench",
+        "workspace-value",
+    ]
+    if config:
+        command.extend(["--config", config])
+    command.append(key_path)
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    value = completed.stdout.strip()
+    if value == "true":
+        return "1"
+    if value == "false":
+        return "0"
+    return value
+
+
+def resolve_benchmark_publication_targets(
+    kind: str,
+    *,
+    config: str = "",
+) -> list[str]:
+    command = [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "bijux-dna",
+        "--",
+        "bench",
+        "publication-targets",
+    ]
+    if config:
+        command.extend(["--config", config])
+    command.append(kind)
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout.split()
 
 
 def retired_execution_python_paths() -> list[Path]:
@@ -470,20 +530,27 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
         )
         self.assertNotIn('$(if $(OUT_DIR),--run-root "$(OUT_DIR)",)', text)
 
-    def test_benchmark_workspace_value_supports_explicit_config(self) -> None:
-        text = runner_script_text("benchmark_workspace_value.py")
+    def test_benchmark_workspace_value_python_shim_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "benchmark_workspace_value.py").exists()
+        )
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "benchmark_fastq_corpus" / "workspace_values.py").exists()
+        )
 
-        self.assertIn('--config', text)
-        self.assertIn('"workspace-value",', text)
-        self.assertNotIn("configure_workspace_config_path(args.config)", text)
-        self.assertIn("def resolve_workspace_value(", text)
-
-    def test_benchmark_publication_targets_uses_rust_shim(self) -> None:
-        text = runner_script_text("benchmark_publication_targets.py")
-
-        self.assertIn('"bench",', text)
-        self.assertIn('"publication-targets",', text)
-        self.assertIn("def resolve_targets(", text)
+    def test_benchmark_publication_targets_python_shim_is_deleted(self) -> None:
+        self.assertFalse(
+            (ROOT / "makes" / "bin" / "benchmark_publication_targets.py").exists()
+        )
+        self.assertFalse(
+            (
+                ROOT
+                / "makes"
+                / "bin"
+                / "benchmark_fastq_corpus"
+                / "publication_targets.py"
+            ).exists()
+        )
 
     def test_corpus_execution_runner_wrappers_are_deleted(self) -> None:
         for path in retired_execution_python_paths():
@@ -796,87 +863,87 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
     def test_benchmark_workspace_value_prints_configured_remote_corpus_root(self) -> None:
         with benchmark_contract_env() as env:
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("remote.corpus_root"),
+                resolve_benchmark_workspace_value("remote.corpus_root"),
                 env["BIJUX_BENCHMARK_REMOTE_CORPUS_ROOT"],
             )
 
     def test_benchmark_workspace_value_prints_governed_remote_sync_contract(self) -> None:
         with benchmark_contract_env() as env:
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("remote.ssh_host"),
+                resolve_benchmark_workspace_value("remote.ssh_host"),
                 env["BIJUX_BENCHMARK_REMOTE_SSH_HOST"],
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("remote.frontend_root"),
+                resolve_benchmark_workspace_value("remote.frontend_root"),
                 str(Path(env["BIJUX_BENCHMARK_REMOTE_REPO_ROOT"]).parent),
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("remote.results_root"),
+                resolve_benchmark_workspace_value("remote.results_root"),
                 env["BIJUX_BENCHMARK_REMOTE_RESULTS_ROOT"],
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("remote.containers_root"),
+                resolve_benchmark_workspace_value("remote.containers_root"),
                 env["BIJUX_BENCHMARK_REMOTE_CONTAINERS_ROOT"],
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("remote.extra_data_root"),
+                resolve_benchmark_workspace_value("remote.extra_data_root"),
                 env["BIJUX_BENCHMARK_REMOTE_EXTRA_DATA_ROOT"],
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("remote.reference_root"),
+                resolve_benchmark_workspace_value("remote.reference_root"),
                 env["BIJUX_BENCHMARK_REMOTE_REFERENCE_ROOT"],
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("local.extra_data_root"),
+                resolve_benchmark_workspace_value("local.extra_data_root"),
                 env["BIJUX_BENCHMARK_LOCAL_EXTRA_DATA_ROOT"],
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("local.reference_root"),
+                resolve_benchmark_workspace_value("local.reference_root"),
                 env["BIJUX_BENCHMARK_LOCAL_REFERENCE_ROOT"],
             )
 
     def test_benchmark_workspace_value_prints_governed_sync_defaults(self) -> None:
         with benchmark_contract_env() as env:
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("sync.defaults.pull_base"),
+                resolve_benchmark_workspace_value("sync.defaults.pull_base"),
                 env["BIJUX_BENCHMARK_PULL_BASE"],
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value("sync.defaults.pull_mode"),
+                resolve_benchmark_workspace_value("sync.defaults.pull_mode"),
                 "results",
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value(
+                resolve_benchmark_workspace_value(
                     "sync.defaults.include_profile"
                 ),
                 "pull-results-default",
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value(
+                resolve_benchmark_workspace_value(
                     "sync.defaults.exclude_profile"
                 ),
                 "pull-full-default",
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value(
+                resolve_benchmark_workspace_value(
                     "sync.defaults.clean_context"
                 ),
                 "1",
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value(
+                resolve_benchmark_workspace_value(
                     "sync.defaults.allow_dirty"
                 ),
                 "0",
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value(
+                resolve_benchmark_workspace_value(
                     "sync.defaults.include_containers_manifest"
                 ),
                 "0",
             )
             self.assertEqual(
-                benchmark_workspace_value.resolve_workspace_value(
+                resolve_benchmark_workspace_value(
                     "sync.defaults.data_manifest_glob"
                 ),
                 "",
@@ -965,7 +1032,7 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
 
     def test_benchmark_publication_targets_match_governed_contract_order(self) -> None:
         self.assertEqual(
-            benchmark_publication_targets.resolve_targets("report"),
+            resolve_benchmark_publication_targets("report"),
             [
                 support.corpus_01_make_report_target(contract.stage_id)
                 for contract in support.CORPUS_01_PUBLICATION_CONTRACTS
@@ -1251,13 +1318,13 @@ class BenchmarkMakefileTests(unittest.TestCase):
     def test_published_dossiers_refresh_includes_remove_duplicates(self) -> None:
         self.assertIn(
             "_benchmark-remove-duplicates-corpus-01-report",
-            benchmark_publication_targets.resolve_targets("report"),
+            resolve_benchmark_publication_targets("report"),
         )
 
     def test_published_dossiers_refresh_includes_deplete_host(self) -> None:
         self.assertIn(
             "_benchmark-deplete-host-corpus-01-report",
-            benchmark_publication_targets.resolve_targets("report"),
+            resolve_benchmark_publication_targets("report"),
         )
 
     def test_published_dossiers_refresh_includes_deplete_reference_contaminants(
@@ -1265,25 +1332,25 @@ class BenchmarkMakefileTests(unittest.TestCase):
     ) -> None:
         self.assertIn(
             "_benchmark-deplete-reference-contaminants-corpus-01-report",
-            benchmark_publication_targets.resolve_targets("report"),
+            resolve_benchmark_publication_targets("report"),
         )
 
     def test_published_dossiers_refresh_includes_screen_taxonomy(self) -> None:
         self.assertIn(
             "_benchmark-screen-taxonomy-corpus-01-report",
-            benchmark_publication_targets.resolve_targets("report"),
+            resolve_benchmark_publication_targets("report"),
         )
 
     def test_published_dossiers_refresh_includes_correct_errors(self) -> None:
         self.assertIn(
             "_benchmark-correct-errors-corpus-01-report",
-            benchmark_publication_targets.resolve_targets("report"),
+            resolve_benchmark_publication_targets("report"),
         )
 
     def test_published_dossiers_refresh_includes_extract_umis(self) -> None:
         self.assertIn(
             "_benchmark-extract-umis-corpus-01-report",
-            benchmark_publication_targets.resolve_targets("report"),
+            resolve_benchmark_publication_targets("report"),
         )
 
     def test_makefile_declares_fastq_stage_run_targets_as_phony(self) -> None:
@@ -1351,7 +1418,7 @@ class BenchmarkMakefileTests(unittest.TestCase):
             support.corpus_01_make_report_target(stage_id)
             for stage_id in publication_stage_ids()
             if support.corpus_01_make_report_target(stage_id)
-            not in benchmark_publication_targets.resolve_targets("report")
+            not in resolve_benchmark_publication_targets("report")
         ]
 
         self.assertEqual(missing_targets, [])
