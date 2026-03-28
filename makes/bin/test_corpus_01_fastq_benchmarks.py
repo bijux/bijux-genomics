@@ -2032,6 +2032,117 @@ class CorpusBenchmarkSupportTests(unittest.TestCase):
                 expected_sample_ids=["sample_0001"],
             )
 
+    def test_remove_duplicates_summary_preserves_configured_corpus_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            run_root = (
+                repo_root / "results" / "corpus_01" / "fastq.remove_duplicates" / "lunarc"
+            )
+            docs_root = (
+                repo_root
+                / "docs"
+                / "benchmark"
+                / "fastq.remove_duplicates"
+                / "corpus-01"
+            )
+            sample_report = (
+                run_root / "bench" / "remove_duplicates" / "sample_0001" / "report.json"
+            )
+            sample_report.parent.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {
+                                    "tool": "clumpify",
+                                    "parameters": {
+                                        "dedup_mode": "exact",
+                                        "keep_order": True,
+                                        "paired_mode": "paired_end",
+                                        "pair_count_match": True,
+                                        "raw_backend_report_format": "clumpify_log",
+                                    },
+                                },
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "layout": "pe",
+                                    "reads_in": 100,
+                                    "reads_out": 90,
+                                    "duplicate_reads": 10,
+                                    "dedup_rate": 0.1,
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "stage_id": "fastq.remove_duplicates",
+                        "scenario_id": "dedup_fairness",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "tools": ["clumpify"],
+                        "dedup_mode": "exact",
+                        "keep_order": True,
+                        "samples_failed": 0,
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "pe",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_remove_duplicates_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    remove_duplicates_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    remove_duplicates_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "ancient",
+                            "layout": "pe",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(remove_duplicates_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+
     def test_filter_low_complexity_briefing_summarizes_removed_reads(self) -> None:
         rows = [
             {
