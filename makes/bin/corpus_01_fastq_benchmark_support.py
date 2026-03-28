@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import csv
 import hashlib
 import json
@@ -162,6 +163,23 @@ def resolve_existing_dossier_path(stage_docs_root: Path) -> Path:
     if legacy.is_file():
         return legacy
     return preferred
+
+
+def parse_corpus_report_args(
+    *,
+    description: str,
+    docs_root: str,
+) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument("--repo-root", default=".")
+    parser.add_argument("--corpus-root", default=str(benchmark_remote_corpus_root()))
+    parser.add_argument("--run-root", default="")
+    parser.add_argument(
+        "--docs-root",
+        default=docs_root,
+        help="Directory where summary artifacts should be written.",
+    )
+    return parser.parse_args()
 
 
 def load_json(path: Path) -> dict:
