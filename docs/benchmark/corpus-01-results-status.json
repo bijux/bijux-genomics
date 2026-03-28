@@ -4,7 +4,7 @@
   "published_stage_count": 19,
   "complete_stage_count": 18,
   "incomplete_stage_count": 2,
-  "issue_count": 5,
+  "issue_count": 3,
   "stages": [
     {
       "stage_id": "fastq.validate_reads",
@@ -100,14 +100,14 @@
     {
       "stage_id": "fastq.trim_reads",
       "status": "incomplete",
-      "issue_count": 4,
-      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc",
-      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc",
+      "issue_count": 2,
+      "reported_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
+      "selected_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
       "newest_available_run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
-      "selected_run_root_is_newest": false,
+      "selected_run_root_is_newest": true,
       "available_run_roots": [
-        "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc",
-        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc"
+        "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc",
+        "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc"
       ],
       "issues": [
         {
@@ -117,18 +117,8 @@
         },
         {
           "stage_id": "fastq.trim_reads",
-          "issue_id": "newer-run-root-available",
-          "detail": "published dossier selected /Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_reads/lunarc but newer mirrored run exists at /Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_reads/lunarc"
-        },
-        {
-          "stage_id": "fastq.trim_reads",
-          "issue_id": "run-manifest-tool-roster-drift",
-          "detail": "run_manifest tools=['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] expected ['adapterremoval', 'alientrimmer', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'fastx_clipper', 'leehom', 'prinseq', 'seqkit', 'skewer', 'trim_galore', 'trimmomatic']"
-        },
-        {
-          "stage_id": "fastq.trim_reads",
-          "issue_id": "report-tool-roster-drift",
-          "detail": "sample_0001 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0002 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic']; sample_0003 observed ['adapterremoval', 'atropos', 'bbduk', 'cutadapt', 'fastp', 'prinseq', 'seqkit', 'trim_galore', 'trimmomatic'] (+17 more)"
+          "issue_id": "run-manifest-sample-failures",
+          "detail": "run_manifest samples_failed=20"
         }
       ]
     },

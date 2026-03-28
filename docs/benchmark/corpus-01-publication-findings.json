@@ -6,12 +6,6 @@
       "issue_id": "missing-run-report-json",
       "severity": "error",
       "detail": "The mirrored Lunarc run_manifest.json resolves paired samples correctly now, but the artifact tree still lacks bench/correct_errors/<sample>/report.json outputs needed to render benchmark/fastq.correct_errors/corpus-01 honestly."
-    },
-    {
-      "stage_id": "fastq.trim_reads",
-      "issue_id": "split-run-artifact-roots",
-      "severity": "error",
-      "detail": "The shared results mirror has partial bench/trim_reads/<sample>/report.json outputs but no run_manifest.json, while the legacy bijux-dna-results root still carries the manifest with zero rendered reports. That split state prevents an honest refresh of benchmark/fastq.trim_reads/corpus-01."
     }
   ]
 }
