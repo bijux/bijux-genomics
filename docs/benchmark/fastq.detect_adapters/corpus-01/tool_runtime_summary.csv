@@ -1,2 +1,2 @@
-tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,mean_candidate_adapter_count,mean_adapter_trimmed_fraction,median_mean_q,slowdown_vs_fastest_median
-fastqc,20,1.000000,16.403271,7.615611,35.157750,43.623838,1.000000,,0.000000,1.000000
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,slowdown_vs_fastest_median,mean_candidate_adapter_count,mean_adapter_trimmed_fraction,median_mean_q
+fastqc,20,1.000000,16.403271,7.615610,35.157750,43.623838,1.000000,1.000000,,0.000000

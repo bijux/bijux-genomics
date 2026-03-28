@@ -10,7 +10,7 @@
     "ancient": 10,
     "modern": 10
   },
-  "generated_at_utc": "2026-03-28T02:33:37.303465+00:00",
+  "generated_at_utc": "2026-03-28T16:40:44.138247+00:00",
   "headline": {
     "best_read_retention": 1.0,
     "best_read_retention_tool": "sortmerna",
@@ -29,7 +29,7 @@
   "rrna_bundle_id": "sortmerna_v4_3_default_db",
   "rrna_bundle_size_bytes": 146741693,
   "rrna_db": "/home/bijan/bijux/reference/rrna/sortmerna_v4_3_default_db.fasta",
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_rrna/lunarc",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.deplete_rrna/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "rrna_depletion_fairness",

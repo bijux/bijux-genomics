@@ -12,8 +12,8 @@ sample_0007,DRR001076,modern,se,under_100mb,PRJDA67461,11.964038,prinseq,8.10992
 sample_0016,ERR769585,ancient,se,under_100mb,PRJEB8448,9.730499,prinseq,6.649159,bbduk,791.000000
 sample_0004,DRR001059,modern,se,under_100mb,PRJDA67461,9.538823,prinseq,6.471221,prinseq,250.000000
 sample_0011,ERR15108349,ancient,pe,under_100mb,PRJEB80740,7.554655,prinseq,5.773536,bbduk,431904.000000
-sample_0005,DRR001066,modern,se,under_100mb,PRJDA67461,6.924233,prinseq,4.662344,prinseq,186.000000
-sample_0019,ERR769594,ancient,se,under_100mb,PRJEB8448,6.571553,prinseq,4.483784,bbduk,26990.000000
+sample_0005,DRR001066,modern,se,under_100mb,PRJDA67461,6.924234,prinseq,4.662344,prinseq,186.000000
+sample_0019,ERR769594,ancient,se,under_100mb,PRJEB8448,6.571554,prinseq,4.483784,bbduk,26990.000000
 sample_0014,ERR4210492,ancient,pe,under_100mb,PRJEB38152,6.439605,prinseq,4.745196,prinseq,542.000000
 sample_0009,DRR015482,modern,pe,under_100mb,PRJDB2640,3.358627,prinseq,1.796831,prinseq,46.000000
 sample_0020,ERR769610,ancient,se,under_100mb,PRJEB8448,3.309622,prinseq,1.894953,bbduk,1213.000000

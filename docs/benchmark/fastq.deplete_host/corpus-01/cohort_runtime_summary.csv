@@ -1,8 +1,8 @@
 tool,dimension,cohort,samples,mean_runtime_s,median_runtime_s,median_read_retention,median_base_retention,mean_host_fraction_removed
-bowtie2,era_layout,ancient_pe,5,21.316636,9.725841,0.974504,0.974504,0.028393
+bowtie2,era_layout,ancient_pe,5,21.316637,9.725841,0.974504,0.974504,0.028394
 bowtie2,era_layout,ancient_se,5,47.962498,17.328678,0.002221,0.001367,0.995671
 bowtie2,era_layout,modern_pe,5,244.597768,283.117501,0.315823,0.341266,0.676672
 bowtie2,era_layout,modern_se,5,49.116656,21.183282,0.041551,0.041551,0.884283
 bowtie2,size_band,under_1000mb,1,140.509964,140.509964,0.131586,0.131586,0.868414
-bowtie2,size_band,under_100mb,12,12.551770,10.731426,0.040880,0.040880,0.698157
+bowtie2,size_band,under_100mb,12,12.551770,10.731426,0.040879,0.040879,0.698157
 bowtie2,size_band,under_500mb,7,217.690942,172.515925,0.417871,0.417871,0.525543

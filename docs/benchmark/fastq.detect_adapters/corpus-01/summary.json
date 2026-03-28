@@ -13,7 +13,7 @@
   },
   "evidence_format": "fastqc_summary",
   "evidence_scope": "full_input",
-  "generated_at_utc": "2026-03-28T02:26:10.835428+00:00",
+  "generated_at_utc": "2026-03-28T16:40:40.220532+00:00",
   "headline": {
     "fastest_runtime_s": 7.615610562500001,
     "fastest_tool": "fastqc",
@@ -27,9 +27,11 @@
     "pe": 10,
     "se": 10
   },
+  "may_change_read_count": false,
+  "mutates_fastq": false,
   "platform": "lunarc-apptainer",
   "report_only": true,
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.detect_adapters/lunarc",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.detect_adapters/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "detect_adapters_fairness",

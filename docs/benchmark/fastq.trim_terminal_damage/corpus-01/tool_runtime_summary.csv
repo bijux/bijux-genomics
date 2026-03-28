@@ -1,4 +1,4 @@
-tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,median_base_retention,mean_asymmetry_reduction,mean_q_delta,slowdown_vs_fastest_median
-adapterremoval,20,1.000000,9.569360,3.275422,24.471054,27.962815,0.941520,,0.000000,1.000000
-cutadapt,20,1.000000,20.755648,7.717151,57.259225,63.155545,0.952220,,0.000000,2.356078
-seqkit,20,1.000000,9.688751,3.799489,24.029472,28.911393,0.947368,,0.000000,1.160000
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,slowdown_vs_fastest_median,median_base_retention,mean_asymmetry_reduction,mean_q_delta
+adapterremoval,20,1.000000,9.569361,3.275422,24.471054,27.962815,1.000000,0.941520,,0.000000
+cutadapt,20,1.000000,20.755648,7.717151,57.259225,63.155545,2.356078,0.952220,,0.000000
+seqkit,20,1.000000,9.688751,3.799489,24.029472,28.911393,1.160000,0.947368,,0.000000

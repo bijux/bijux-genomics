@@ -1,2 +1,2 @@
-tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,median_multiqc_module_count,median_multiqc_sample_count,median_governed_qc_input_count,median_contamination_rate,median_mean_q,slowdown_vs_fastest_median
-multiqc,20,1.000000,2.274014,2.275935,2.355747,2.482991,11.000000,1.500000,6.000000,0.000000,0.000000,1.000000
+tool,samples,pass_rate,mean_runtime_s,median_runtime_s,p90_runtime_s,max_runtime_s,slowdown_vs_fastest_median,median_multiqc_module_count,median_multiqc_sample_count,median_governed_qc_input_count,median_contamination_rate,median_mean_q
+multiqc,20,1.000000,2.274014,2.275936,2.355747,2.482991,1.000000,11.000000,1.500000,6.000000,0.000000,0.000000

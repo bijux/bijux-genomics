@@ -1,39 +1,57 @@
-# `fastq.deplete_host` on `corpus-01`
+# `fastq.deplete_host` benchmark on `corpus-01`
+
+## What was run
+
+This benchmark compares the governed `fastq.deplete_host` stage across the full `corpus-01` human DNA cohort on the Lunarc Apptainer platform.
+
+## Executive Summary
+
+- `1` governed host-depletion backends were benchmarked across `20` samples (`20/20` zero-exit tool-sample observations).
+- Fastest median runtime: `bowtie2` at `19.256` seconds.
+- Highest mean host fraction removed: `bowtie2` at `0.646`.
 
 ## Run Contract
 
-- Generated: 2026-03-28T02:41:03.183632+00:00
 - Platform: `lunarc-apptainer`
-- Corpus root: `/home/bijan/lu2024-12-24/.cache/corpus_01`
-- Run root: `/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.deplete_host/lunarc`
+- Stage: `fastq.deplete_host`
 - Scenario: `host_depletion_fairness`
-- Samples benchmarked: `20`
-- Layout balance: `10` single-end, `10` paired-end
-- Era balance: `10` ancient, `10` modern
 - Tools: `bowtie2`
-- reference_index: `/lunarc/nobackup/projects/snic2019-34-3/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/reference`
 - reference_index_digest: `639f1934a7933edae38d8bf42bf9f6cc43560e24686c53b0e94e27f9f6691831`
-- reference_index_lineage_json: `/lunarc/nobackup/projects/snic2019-34-3/.cache/extra-data/benchmark/fastq.deplete_host/host_reference/bowtie2_build/index/lineage.json`
 - reference_index_lineage_digest: `4680af76346224d129ceba82cb055f78b9936aa8bffd5e405b2b34acb04df872`
 - reference_catalog_id: `host_reference`
 - reference_index_backend: `bowtie2_build`
 - host_identity_threshold: `0.95`
 - retain_unmapped_only: `True`
 
-## Executive Summary
+## Tool Ranking
 
-- Fastest median runtime: `bowtie2` at `19.256` seconds.
-- Highest mean host fraction removed: `bowtie2` at `0.646`.
-- Highest median read retention: `bowtie2` at `0.224`.
-- Sample failures: `0` sample invocations ended non-zero.
-
-## Tool Summary
-
-| Tool | Samples | Pass rate | Median runtime (s) | Median read retention | Median base retention | Mean host fraction removed | Mean reads removed |
+| Tool | Median runtime (s) | p90 runtime (s) | Median read retention | Median base retention | Mean host fraction removed | Mean reads removed | Slowdown vs fastest |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `bowtie2` | 20 | 100.0% | 19.256 | 0.224 | 0.246 | 0.646 | 2383476.2 |
+| `bowtie2` | 19.256 | 283.118 | 0.224 | 0.246 | 0.646 | 2383476.200 | x1.00 |
 
-## Notes
+## Cohort Behavior
 
-- `corpus-01` is human DNA, so host depletion here is a deliberately high-pressure false-positive control rather than a permissive cleanup workload.
-- The dossier records host index lineage directly in the run manifest so later reruns can detect silent reference drift before comparing removal rates.
+| Tool | Cohort | Mean runtime (s) | Median runtime (s) | Median read retention | Median base retention | Mean host fraction removed | Samples |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `bowtie2` | `ancient_pe` | 21.317 | 9.726 | 0.975 | 0.975 | 0.028 | 5 |
+| `bowtie2` | `ancient_se` | 47.962 | 17.329 | 0.002 | 0.001 | 0.996 | 5 |
+| `bowtie2` | `modern_pe` | 244.598 | 283.118 | 0.316 | 0.341 | 0.677 | 5 |
+| `bowtie2` | `modern_se` | 49.117 | 21.183 | 0.042 | 0.042 | 0.884 | 5 |
+| `bowtie2` | `under_1000mb` | 140.510 | 140.510 | 0.132 | 0.132 | 0.868 | 1 |
+| `bowtie2` | `under_100mb` | 12.552 | 10.731 | 0.041 | 0.041 | 0.698 | 12 |
+| `bowtie2` | `under_500mb` | 217.691 | 172.516 | 0.418 | 0.418 | 0.526 | 7 |
+
+## Highest-Cost Samples
+
+| Sample | Accession | Era | Layout | Size band | Total stage runtime (s) | Slowest tool | Slowest tool runtime (s) | Strongest depletion tool | Host fraction removed |
+| --- | --- | --- | --- | --- | ---: | --- | ---: | --- | ---: |
+| `sample_0002` | `DRR000095` | `modern` | `pe` | `under_500mb` | 470.036 | `bowtie2` | 470.036 | `bowtie2` | 0.565 |
+| `sample_0001` | `DRR000093` | `modern` | `pe` | `under_500mb` | 457.540 | `bowtie2` | 457.540 | `bowtie2` | 0.582 |
+| `sample_0003` | `DRR000550` | `modern` | `pe` | `under_500mb` | 283.118 | `bowtie2` | 283.118 | `bowtie2` | 0.835 |
+| `sample_0018` | `ERR769591` | `ancient` | `se` | `under_500mb` | 172.516 | `bowtie2` | 172.516 | `bowtie2` | 0.998 |
+| `sample_0006` | `DRR001073` | `modern` | `se` | `under_1000mb` | 140.510 | `bowtie2` | 140.510 | `bowtie2` | 0.868 |
+
+## Interpretation
+
+- Because the cohort itself is human DNA, this benchmark is intentionally unforgiving: high removal can indicate aggressive false-positive behavior rather than success.
+- The published CSV artifacts keep index lineage and per-sample depletion outcomes explicit so later reruns can audit host-reference drift instead of relying on narrative summaries.

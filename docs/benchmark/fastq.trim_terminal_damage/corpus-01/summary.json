@@ -13,7 +13,7 @@
     "modern": 10
   },
   "execution_policy": "explicit_terminal_trim",
-  "generated_at_utc": "2026-03-28T02:45:48.078399+00:00",
+  "generated_at_utc": "2026-03-28T16:40:46.618339+00:00",
   "headline": {
     "best_base_retention": 0.9522198975727316,
     "best_base_retention_tool": "cutadapt",
@@ -25,7 +25,7 @@
     "se": 10
   },
   "platform": "lunarc-apptainer",
-  "run_root": "/Users/bijan/bijux/bijux-dna-results/corpus_01/fastq.trim_terminal_damage/lunarc",
+  "run_root": "/Users/bijan/bijux/bijux-dna-results/home/bijan/lu2024-12-24/.cache/results/corpus_01/fastq.trim_terminal_damage/lunarc",
   "samples_failed": 0,
   "samples_total": 20,
   "scenario_id": "terminal_damage_fairness",
