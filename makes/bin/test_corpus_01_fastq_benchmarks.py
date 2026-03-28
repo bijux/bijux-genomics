@@ -6737,6 +6737,142 @@ class OverrepresentedReportingTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 overrepresented_report.validate_artifact_paths(report_path, "fastqc")
 
+    def test_overrepresented_summary_preserves_configured_run_root(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir)
+            actual_run_root = (
+                repo_root
+                / "results"
+                / "corpus_01"
+                / "fastq.profile_overrepresented_sequences"
+                / "lunarc"
+            )
+            run_root = repo_root / "mirror" / "fastq.profile_overrepresented_sequences"
+            run_root.parent.mkdir(parents=True)
+            run_root.symlink_to(actual_run_root, target_is_directory=True)
+            docs_root = (
+                repo_root
+                / "docs"
+                / "benchmark"
+                / "fastq.profile_overrepresented_sequences"
+                / "corpus-01"
+            )
+            sample_report = (
+                actual_run_root
+                / "bench"
+                / "profile_overrepresented_sequences"
+                / "sample_0001"
+                / "report.json"
+            )
+            tool_dir = sample_report.parent / "tools" / "fastqc"
+            tool_dir.mkdir(parents=True)
+            sample_report.write_text(
+                json.dumps(
+                    {
+                        "records": [
+                            {
+                                "context": {"tool": "fastqc"},
+                                "execution": {"runtime_s": 1.5, "exit_code": 0},
+                                "metrics": {
+                                    "metrics": {
+                                        "sequence_count": 5,
+                                        "flagged_sequences": 1,
+                                        "top_fraction": 0.2,
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (tool_dir / "overrepresented_sequences.tsv").write_text(
+                "sequence\tcount\nACGT\t4\n",
+                encoding="utf-8",
+            )
+            (tool_dir / "overrepresented_sequences.json").write_text(
+                json.dumps({"sequence_count": 1}) + "\n",
+                encoding="utf-8",
+            )
+            (tool_dir / "overrepresented_report.json").write_text(
+                json.dumps({"top_fraction": 0.2}) + "\n",
+                encoding="utf-8",
+            )
+            (actual_run_root / "run_manifest.json").write_text(
+                json.dumps(
+                    {
+                        "platform": "lunarc-apptainer",
+                        "corpus_root": "/home/bijan/bijux/corpus_01",
+                        "stage_id": "fastq.profile_overrepresented_sequences",
+                        "scenario_id": "overrepresented_sequence_fairness",
+                        "tool_kind": "benchmark",
+                        "samples_total": 1,
+                        "samples_failed": 0,
+                        "tools": ["fastqc"],
+                        "report_only": True,
+                        "mutates_fastq": False,
+                        "may_change_read_count": False,
+                        "top_k": 50,
+                        "overrepresented_artifacts": [
+                            "overrepresented_sequences_tsv",
+                            "overrepresented_sequences_json",
+                            "report_json",
+                        ],
+                        "runs": [
+                            {
+                                "sample_id": "sample_0001",
+                                "layout": "se",
+                                "report_json": str(sample_report),
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            original_argv = sys.argv
+            try:
+                sys.argv = [
+                    "render_fastq_profile_overrepresented_sequences_corpus_01_report.py",
+                    "--repo-root",
+                    str(repo_root),
+                    "--corpus-root",
+                    "/home/bijan/lu2024-12-24/.cache/corpus_01",
+                    "--run-root",
+                    str(run_root),
+                    "--docs-root",
+                    str(docs_root.relative_to(repo_root)),
+                ]
+                with mock.patch.object(
+                    overrepresented_report,
+                    "load_corpus_spec",
+                    return_value={"corpus_id": "corpus-01"},
+                ), mock.patch.object(
+                    overrepresented_report,
+                    "resolve_corpus_metadata",
+                    return_value={
+                        "sample_0001": {
+                            "accession": "ACC1",
+                            "era": "modern",
+                            "layout": "se",
+                            "study_accession": "PRJ1",
+                            "size_band": "under_100mb",
+                        }
+                    },
+                ):
+                    self.assertEqual(overrepresented_report.main(), 0)
+            finally:
+                sys.argv = original_argv
+
+            summary = json.loads((docs_root / "summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(
+                summary["corpus_root"],
+                "/home/bijan/lu2024-12-24/.cache/corpus_01",
+            )
+            self.assertEqual(summary["run_root"], str(run_root))
+
     def test_overrepresented_briefing_avoids_hardcoded_tool_name(self) -> None:
         summary = {
             "stage_id": "fastq.profile_overrepresented_sequences",
