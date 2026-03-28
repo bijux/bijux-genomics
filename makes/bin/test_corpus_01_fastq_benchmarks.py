@@ -915,6 +915,20 @@ class BenchmarkMakefileTests(unittest.TestCase):
             ).resolve(),
         )
 
+    def test_screen_taxonomy_database_template_is_loaded_from_workspace_contract(
+        self,
+    ) -> None:
+        support.load_benchmark_workspace_config.cache_clear()
+        try:
+            self.assertEqual(
+                support._workspace_template(
+                    "fastq_screen_taxonomy", "database_root_template"
+                ),
+                "benchmark/fastq.screen_taxonomy/{database_namespace}/{database_scope}/{database_artifact_id}",
+            )
+        finally:
+            support.load_benchmark_workspace_config.cache_clear()
+
     def test_default_screen_taxonomy_database_root_uses_local_archive_extra_data(self) -> None:
         out_root = Path("/tmp/local-results/corpus_01/fastq.screen_taxonomy/lunarc")
         self.assertEqual(
