@@ -12,6 +12,7 @@ Read this together with `docs/benchmark/workspace-model.md` for the durable role
 
 - `local.results_root` is the stable local archive root where mirrored benchmark artifacts land.
 - `local.cache_mirror_root` is the local path that mirrors the remote shared `.cache` tree under the archive root.
+- `local.extra_data_root` and `local.reference_root` name the local mirrored non-result asset roots directly.
 
 The governed local mirror layout is:
 
@@ -33,13 +34,15 @@ Use the `home/.../.cache` mirror when publication needs the shared-tree layout e
 - `remote.results_root` is the canonical shared benchmark results tree.
 - `remote.results_legacy_root` is the legacy shared results root kept only for migration and audit compatibility.
 - `remote.extra_data_root`, `remote.containers_root`, and `remote.reference_root` are the shared non-result benchmark assets.
+- `layout.stage_runs.*` defines the governed relative templates for remote results roots, local cache-mirror results roots, and local archive results roots.
 
 The code checkout and the shared cache tree are separate contracts. Repo sync belongs under `remote.repo_root`. Benchmark artifacts belong under the shared cache layout rooted at `remote.cache_root`.
 
 ## Publication Rules
 
 - Published FASTQ dossiers should resolve default run roots from `remote.results_root` and local mirror roots from `local.cache_mirror_root`.
-- Extra-data defaults should resolve from `remote.extra_data_root` for shared runs and from `<local.cache_mirror_root>/extra-data` for local mirrors.
+- Extra-data defaults should resolve from `remote.extra_data_root` for shared runs and from `local.extra_data_root` for local mirrors.
+- Reference defaults should resolve from `remote.reference_root` for shared runs and from `local.reference_root` for local mirrors.
 - A benchmark helper should never infer authoritative roots from `corpus_root.parent` or from a guessed `.cache` segment when the workspace contract already names the path.
 
 ## Review Checklist
