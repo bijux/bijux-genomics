@@ -55,11 +55,11 @@
 
 ## Workflow
 ```bash
-make _benchmark-trim-reads-corpus-01 PLATFORM=lunarc-apptainer CORPUS_ROOT=/home/bijan/bijux/corpus_01
-make _benchmark-trim-reads-corpus-01-report CORPUS_ROOT=/home/bijan/bijux/corpus_01
+make _benchmark-trim-reads-corpus-01 PLATFORM=lunarc-apptainer
+make _benchmark-trim-reads-corpus-01-report
 ```
 
-By default, the runner and report renderer resolve the Lunarc run root to `/home/bijan/bijux/results/corpus_01/fastq.trim_reads/lunarc`.
+The runner and report renderer resolve the governed Lunarc corpus root and run root from [workspace.toml](/Users/bijan/bijux/bijux-dna/configs/bench/workspace.toml). Override `CORPUS_ROOT` or `--corpus-root` only when you intentionally audit a non-governed mirror.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
