@@ -6,7 +6,8 @@ pub(crate) fn write_run_manifest(
     let run_id = stage_runs
         .first()
         .map(|entry| entry.result.run_id.clone())
-        .unwrap_or_default();
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "not_recorded".to_string());
     let stages: Vec<serde_json::Value> = stage_runs
         .iter()
         .map(|entry| {
@@ -227,7 +228,8 @@ pub(crate) fn write_run_manifest(
         let params_hash = run_provenance
             .get("params_hash")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or("");
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or("not_recorded");
         let input_hashes = run_provenance
             .get("input_hashes")
             .and_then(serde_json::Value::as_array)
@@ -239,11 +241,13 @@ pub(crate) fn write_run_manifest(
         let tool_version = run_provenance
             .get("tool_version")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or("");
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or("not_recorded");
         let env_digest = run_provenance
             .get("tool_image_digest")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or("");
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or("not_declared");
         bijux_dna_core::prelude::CacheKey::new(
             bijux_dna_core::prelude::input_fingerprint(&input_hashes),
             params_hash,
