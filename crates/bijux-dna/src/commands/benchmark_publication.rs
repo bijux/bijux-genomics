@@ -496,13 +496,19 @@ fn build_corpus_artifact_set(
     let mut tool_summary = Vec::new();
     let mut tool_runtime_rows = Vec::new();
     for tool in &expected_tools {
-        let runtimes = tool_runtime_values.get(tool).cloned().unwrap_or_default();
-        let pass_flags = tool_passes.get(tool).cloned().unwrap_or_default();
+        let runtimes = tool_runtime_values
+            .get(tool)
+            .map(Vec::as_slice)
+            .ok_or_else(|| anyhow!("benchmark publication missing runtime values for `{tool}`"))?;
+        let pass_flags = tool_passes
+            .get(tool)
+            .map(Vec::as_slice)
+            .ok_or_else(|| anyhow!("benchmark publication missing pass flags for `{tool}`"))?;
         let pass_count = pass_flags.iter().filter(|value| **value).count();
         let pass_rate = fraction(pass_count, pass_flags.len());
-        let median_runtime_s = median(&runtimes);
-        let mean_runtime_s = mean(&runtimes);
-        let max_runtime_s = max_f64(&runtimes);
+        let median_runtime_s = median(runtimes);
+        let mean_runtime_s = mean(runtimes);
+        let max_runtime_s = max_f64(runtimes);
         tool_summary.push(CorpusToolSummary {
             tool: tool.clone(),
             records: pass_flags.len(),
