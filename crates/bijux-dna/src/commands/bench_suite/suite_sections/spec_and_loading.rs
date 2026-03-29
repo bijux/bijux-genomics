@@ -231,34 +231,30 @@ fn load_bench_knobs(cwd: &Path) -> BenchKnobs {
     let Ok(parsed): Result<toml::Value, _> = raw.parse() else {
         return BenchKnobs::default();
     };
-    let defaults = parsed
-        .get("defaults")
-        .and_then(toml::Value::as_table)
-        .cloned()
-        .unwrap_or_default();
+    let defaults = parsed.get("defaults").and_then(toml::Value::as_table);
     BenchKnobs {
         repetitions: defaults
-            .get("repetitions")
+            .and_then(|defaults| defaults.get("repetitions"))
             .and_then(toml::Value::as_integer)
             .and_then(|v| u32::try_from(v).ok()),
         threads: defaults
-            .get("threads")
+            .and_then(|defaults| defaults.get("threads"))
             .and_then(toml::Value::as_integer)
             .and_then(|v| u32::try_from(v).ok()),
         mem_gb: defaults
-            .get("mem_gb")
+            .and_then(|defaults| defaults.get("mem_gb"))
             .and_then(toml::Value::as_integer)
             .and_then(|v| u32::try_from(v).ok()),
         cold_runs: defaults
-            .get("cold_runs")
+            .and_then(|defaults| defaults.get("cold_runs"))
             .and_then(toml::Value::as_integer)
             .and_then(|v| u32::try_from(v).ok()),
         warm_runs: defaults
-            .get("warm_runs")
+            .and_then(|defaults| defaults.get("warm_runs"))
             .and_then(toml::Value::as_integer)
             .and_then(|v| u32::try_from(v).ok()),
         tmp_policy: defaults
-            .get("tmp_policy")
+            .and_then(|defaults| defaults.get("tmp_policy"))
             .and_then(toml::Value::as_str)
             .map(str::to_string),
     }
