@@ -27,4 +27,5 @@ pub use service::{
     MapProvider, PanelProvider, RefService, ReferenceProvider, RuntimeRefService, ref_service,
 };
 
-include!("reference_provider_tail.rs");
+#[cfg(test)]
+mod reference_provider_contract;
