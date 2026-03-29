@@ -1,4 +1,3 @@
-use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
@@ -26,19 +25,10 @@ struct DomainToolContainer {
     digest: Option<String>,
 }
 
-fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map_or_else(
-            || PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-            Path::to_path_buf,
-        )
-}
-
 fn load_domain_tool_yaml(tool_id: &str) -> Option<DomainToolYaml> {
+    let repo_root = crate::repo_root::resolve_repo_root().ok()?;
     for domain_name in ["fastq", "bam"] {
-        let path = workspace_root()
+        let path = repo_root
             .join("domain")
             .join(domain_name)
             .join("tools")
