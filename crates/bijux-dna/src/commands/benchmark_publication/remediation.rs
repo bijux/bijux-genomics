@@ -7,7 +7,10 @@ use anyhow::{anyhow, Context, Result};
 use super::models::{
     RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
 };
-use super::{benchmark_publication_contracts, load_json_value, publication_artifact_file_name, CorpusBenchmarkContract};
+use super::{
+    benchmark_publication_contracts, load_json_value, publication_artifact_file_name,
+    CorpusBenchmarkContract,
+};
 
 pub(super) fn write_corpus_fastq_remediation_queue(
     cwd: &Path,
@@ -78,9 +81,17 @@ pub(super) fn build_remediation_queue(
 
             let mut issues = collect_stage_issues(publication_stage, "publication");
             issues.extend(collect_stage_issues(results_stage, "results"));
-            issues.extend(findings_by_stage.get(&contract.stage_id).cloned().ok_or_else(
-                || anyhow!("remediation queue missing findings for stage `{}`", contract.stage_id),
-            )?);
+            issues.extend(
+                findings_by_stage
+                    .get(&contract.stage_id)
+                    .cloned()
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "remediation queue missing findings for stage `{}`",
+                            contract.stage_id
+                        )
+                    })?,
+            );
             let issue_groups = summarize_issue_groups(&issues);
             let issue_ids = issues
                 .iter()
@@ -146,7 +157,8 @@ fn stage_value_lookup<'a>(
 }
 
 fn declared_issue_field<'a>(value: &'a serde_json::Value, field: &str) -> Option<&'a str> {
-    value.get(field)
+    value
+        .get(field)
         .and_then(|entry| entry.as_str())
         .map(str::trim)
         .filter(|entry| !entry.is_empty())

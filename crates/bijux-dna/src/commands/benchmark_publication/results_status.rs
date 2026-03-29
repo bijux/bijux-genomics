@@ -94,7 +94,10 @@ pub(super) fn audit_published_results_stage(
             &mut issues,
             &contract.stage_id,
             "missing-published-summary",
-            format!("missing {}", relative_to_repo_root(&summary_path, repo_root)),
+            format!(
+                "missing {}",
+                relative_to_repo_root(&summary_path, repo_root)
+            ),
         );
         return Ok(PublishedResultsStageReport {
             stage_id: contract.stage_id.clone(),
@@ -242,7 +245,9 @@ pub(super) fn audit_published_results_stage(
                 "run-manifest-stage-id-drift",
                 format!(
                     "run_manifest stage_id={:?}",
-                    run_manifest.get("stage_id").and_then(|value| value.as_str())
+                    run_manifest
+                        .get("stage_id")
+                        .and_then(|value| value.as_str())
                 ),
             );
         }
@@ -253,7 +258,9 @@ pub(super) fn audit_published_results_stage(
                 "run-manifest-scenario-id-drift",
                 format!(
                     "run_manifest scenario_id={:?}",
-                    run_manifest.get("scenario_id").and_then(|value| value.as_str())
+                    run_manifest
+                        .get("scenario_id")
+                        .and_then(|value| value.as_str())
                 ),
             );
         }
@@ -289,7 +296,10 @@ pub(super) fn audit_published_results_stage(
                 &mut issues,
                 &contract.stage_id,
                 "run-manifest-sample-limit",
-                format!("run_manifest sample_limit={:?}", run_manifest.get("sample_limit")),
+                format!(
+                    "run_manifest sample_limit={:?}",
+                    run_manifest.get("sample_limit")
+                ),
             );
         }
         if run_manifest
@@ -337,11 +347,8 @@ pub(super) fn audit_published_results_stage(
                 let Some(sample_id) = run.get("sample_id").and_then(|value| value.as_str()) else {
                     continue;
                 };
-                tool_roster_drift_samples.push(format!(
-                    "{} observed {:?}",
-                    sample_id,
-                    observed_tools
-                ));
+                tool_roster_drift_samples
+                    .push(format!("{} observed {:?}", sample_id, observed_tools));
             }
         }
         if missing_report_count > 0 {

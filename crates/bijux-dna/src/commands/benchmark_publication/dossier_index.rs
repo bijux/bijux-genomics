@@ -60,7 +60,7 @@ pub(super) fn write_corpus_fastq_dossier_index(
     Ok(())
 }
 
-fn build_dossier_stage_entry(
+pub(super) fn build_dossier_stage_entry(
     repo_root: &Path,
     docs_root: &Path,
     workspace: &BenchmarkWorkspaceConfig,
@@ -153,7 +153,7 @@ fn build_dossier_stage_entry(
     Ok(entry)
 }
 
-fn resolve_existing_dossier_path(stage_docs_root: &Path) -> PathBuf {
+pub(super) fn resolve_existing_dossier_path(stage_docs_root: &Path) -> PathBuf {
     stage_docs_root.join("benchmark.md")
 }
 

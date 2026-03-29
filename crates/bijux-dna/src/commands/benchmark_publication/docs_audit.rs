@@ -232,7 +232,9 @@ pub(super) fn audit_publication_stage(
     })
 }
 
-pub(super) fn render_publication_docs_markdown(report: &BenchmarkPublicationStatusReport) -> String {
+pub(super) fn render_publication_docs_markdown(
+    report: &BenchmarkPublicationStatusReport,
+) -> String {
     let mut lines = vec![
         format!(
             "# `{}` FASTQ benchmark publication status",

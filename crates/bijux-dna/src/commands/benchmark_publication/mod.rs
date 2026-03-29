@@ -1,82 +1,68 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
-use chrono::{DateTime, Utc};
-use regex::Regex;
+use anyhow::Result;
 
-mod entrypoint;
 mod corpus_dossier;
-mod dossier_index;
 mod docs_audit;
 mod docs_status;
+mod dossier_index;
+mod entrypoint;
 mod models;
 mod remediation;
 mod results_status;
+mod support;
 
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_publication_contracts, benchmark_publication_exclusions,
     benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root, load_benchmark_config,
-    BenchmarkWorkspaceConfig,
-    CorpusBenchmarkContract, CorpusBenchmarkExclusion,
+    BenchmarkWorkspaceConfig, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
 };
 
+use self::corpus_dossier::render_corpus_fastq_dossier;
+use self::docs_audit::{audit_publication_docs, render_publication_docs_markdown};
+use self::docs_status::{expected_counts_for_scope, write_corpus_fastq_docs_status};
+#[cfg(test)]
+use self::docs_status::{load_publication_corpus_spec, load_supplemental_findings};
+use self::dossier_index::write_corpus_fastq_dossier_index;
+#[cfg(test)]
+use self::dossier_index::{build_dossier_stage_entry, resolve_existing_dossier_path};
+#[cfg(test)]
+use self::entrypoint::corpus_fastq_publication_command;
 pub(crate) use self::entrypoint::{
     print_benchmark_publication_targets, run_corpus_fastq_publication_status,
     run_corpus_fastq_published_dossiers, run_corpus_fastq_report,
 };
-use self::corpus_dossier::render_corpus_fastq_dossier;
-use self::dossier_index::write_corpus_fastq_dossier_index;
-use self::docs_audit::{audit_publication_docs, render_publication_docs_markdown};
-use self::docs_status::{expected_counts_for_scope, write_corpus_fastq_docs_status};
-use self::models::{
-    StageAuditIssue, StageRunRootCandidate, StageRunRootSelection,
-};
-use self::remediation::write_corpus_fastq_remediation_queue;
+use self::models::StageAuditIssue;
 #[cfg(test)]
-use self::docs_audit::audit_publication_stage;
+use self::models::StageRunRootCandidate;
 #[cfg(test)]
-use self::docs_status::{load_publication_corpus_spec, load_supplemental_findings};
+use self::models::{BenchmarkPublicationStatusReport, ExcludedStageEntry, PublicationStageReport};
+#[cfg(test)]
+use self::models::{PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue};
 #[cfg(test)]
 use self::models::{
     RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
 };
+use self::remediation::write_corpus_fastq_remediation_queue;
 #[cfg(test)]
 use self::remediation::{build_remediation_queue, render_remediation_queue_markdown};
-#[cfg(test)]
-use self::models::{
-    BenchmarkPublicationStatusReport, ExcludedStageEntry, PublicationCorpusSpec,
-    PublicationStageReport,
-};
 use self::results_status::write_corpus_fastq_results_status;
-#[cfg(test)]
-use self::models::{PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue};
 #[cfg(test)]
 use self::results_status::{
     audit_published_results, audit_published_results_stage, render_published_results_markdown,
 };
-
-fn publication_stage_docs_root(docs_root: &Path, stage_id: &str, corpus_id: &str) -> PathBuf {
-    docs_root.join(stage_id).join(corpus_id)
-}
-
-fn publication_artifact_file_name(corpus_id: &str, suffix: &str) -> String {
-    format!("{corpus_id}-{suffix}")
-}
-
-fn publication_method_file_name(corpus_id: &str) -> String {
-    format!("{corpus_id}-method.md")
-}
-
-fn load_json_value(path: &Path) -> Result<serde_json::Value> {
-    serde_json::from_str(
-        &fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?,
-    )
-    .with_context(|| format!("parse {}", path.display()))
-}
-
-
+use self::support::{
+    absolutize, classify_run_root_source, configured_stage_run_roots, csv_report_value,
+    csv_required_value, csv_value, find_polluting_ds_store_files, json_string_array, load_csv_rows,
+    load_json_value, localize_results_path, observed_tools_from_report,
+    publication_artifact_file_name, publication_method_file_name, publication_stage_docs_root,
+    relative_to_docs_root, relative_to_repo_root, select_stage_run_root, sort_count_map,
+    sorted_json_string_array, sorted_strings, summary_corpus_id, unique_existing_run_roots,
+    value_string, workspace_local_cache_mirror_root, workspace_local_results_root,
+    workspace_remote_corpus_root, workspace_remote_results_root,
+};
 
 fn audit_publication_summary(
     issues: &mut Vec<StageAuditIssue>,
@@ -493,372 +479,6 @@ fn append_stage_audit_issue(
     });
 }
 
-fn relative_to_docs_root(path: &Path, docs_root: &Path) -> String {
-    let repo_root = docs_root
-        .parent()
-        .and_then(Path::parent)
-        .unwrap_or(docs_root.parent().unwrap_or(docs_root));
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
-}
-
-fn relative_to_repo_root(path: &Path, repo_root: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
-}
-
-fn load_csv_rows(path: &Path) -> Result<Vec<BTreeMap<String, String>>> {
-    let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let mut lines = raw.lines();
-    let Some(header_line) = lines.next() else {
-        return Ok(Vec::new());
-    };
-    let headers = header_line
-        .split(',')
-        .map(|value| value.trim().to_string())
-        .collect::<Vec<_>>();
-    let mut rows = Vec::new();
-    for line in lines {
-        if line.trim().is_empty() {
-            continue;
-        }
-        let values = line
-            .split(',')
-            .map(|value| value.trim())
-            .collect::<Vec<_>>();
-        let mut row = BTreeMap::new();
-        for (header, value) in headers.iter().zip(values.iter()) {
-            row.insert(header.clone(), (*value).to_string());
-        }
-        rows.push(row);
-    }
-    Ok(rows)
-}
-
-fn csv_value(row: &BTreeMap<String, String>, key: &str) -> String {
-    row.get(key)
-        .map(|value| value.trim().to_string())
-        .unwrap_or_else(|| "missing".to_string())
-}
-
-fn csv_required_value(row: &BTreeMap<String, String>, key: &str) -> Option<String> {
-    let value = csv_value(row, key);
-    (value != "missing" && !value.is_empty()).then_some(value)
-}
-
-fn csv_report_value(row: &BTreeMap<String, String>, key: &str) -> String {
-    csv_required_value(row, key).unwrap_or_else(|| "missing".to_string())
-}
-
-fn sort_count_map(value: Option<&serde_json::Value>) -> Result<BTreeMap<String, usize>> {
-    let Some(value) = value else {
-        return Ok(BTreeMap::new());
-    };
-    let object = value
-        .as_object()
-        .ok_or_else(|| anyhow!("count map must be a JSON object"))?;
-    object
-        .iter()
-        .map(|(key, value)| {
-            let count = value
-                .as_u64()
-                .ok_or_else(|| anyhow!("count map entry `{key}` must be an unsigned integer"))?;
-            Ok((key.clone(), count as usize))
-        })
-        .collect()
-}
-
-fn summary_corpus_id(summary_corpus_root: &Path) -> Result<String> {
-    summary_corpus_root
-        .file_name()
-        .and_then(|value| value.to_str())
-        .map(ToOwned::to_owned)
-        .ok_or_else(|| anyhow!("summary corpus_root must end with a corpus directory name"))
-}
-
-fn configured_stage_run_roots(
-    workspace: &BenchmarkWorkspaceConfig,
-    corpus_id: &str,
-    stage_id: &str,
-) -> Result<Vec<StageRunRootCandidate>> {
-    Ok(vec![
-        StageRunRootCandidate {
-            path: workspace_local_cache_mirror_root(workspace)?.join(
-                benchmark_stage_run_relative_root(workspace, "local-cache", corpus_id, stage_id)?,
-            ),
-        },
-        StageRunRootCandidate {
-            path: workspace_local_results_root(workspace)?.join(benchmark_stage_run_relative_root(
-                workspace,
-                "local-archive",
-                corpus_id,
-                stage_id,
-            )?),
-        },
-    ])
-}
-
-fn unique_existing_run_roots(
-    reported_run_root: &Path,
-    configured_roots: &[StageRunRootCandidate],
-) -> Vec<PathBuf> {
-    let mut roots = Vec::new();
-    for root in std::iter::once(reported_run_root).chain(
-        configured_roots
-            .iter()
-            .map(|candidate| candidate.path.as_path()),
-    ) {
-        if !root.is_dir() || roots.iter().any(|existing| existing == root) {
-            continue;
-        }
-        roots.push(root.to_path_buf());
-    }
-    roots
-}
-
-fn select_stage_run_root(candidates: &[StageRunRootCandidate]) -> StageRunRootSelection {
-    let existing_candidates = candidates
-        .iter()
-        .filter(|candidate| candidate.path.is_dir())
-        .cloned()
-        .collect::<Vec<_>>();
-    if existing_candidates.is_empty() {
-        return StageRunRootSelection {
-            selected_path: PathBuf::new(),
-            newest_available_path: None,
-        };
-    }
-    let mut freshest_path = existing_candidates[0].path.clone();
-    let mut freshest_timestamp = run_root_freshness_timestamp(&freshest_path);
-    for candidate in existing_candidates.iter().skip(1) {
-        let candidate_timestamp = run_root_freshness_timestamp(&candidate.path);
-        if candidate_timestamp.is_some()
-            && (freshest_timestamp.is_none() || candidate_timestamp > freshest_timestamp)
-        {
-            freshest_path = candidate.path.clone();
-            freshest_timestamp = candidate_timestamp;
-        }
-    }
-    StageRunRootSelection {
-        selected_path: freshest_path.clone(),
-        newest_available_path: Some(freshest_path),
-    }
-}
-
-fn run_root_freshness_timestamp(run_root: &Path) -> Option<DateTime<Utc>> {
-    let manifest_path = run_root.join("run_manifest.json");
-    if manifest_path.is_file() {
-        let manifest = load_json_value(&manifest_path).ok()?;
-        for key in [
-            "completed_at_utc",
-            "generated_at_utc",
-            "finished_at_utc",
-            "started_at_utc",
-        ] {
-            if let Some(parsed) =
-                parse_utc_timestamp(manifest.get(key).and_then(|value| value.as_str()))
-            {
-                return Some(parsed);
-            }
-        }
-    }
-    None
-}
-
-fn run_root_observed_timestamp(run_root: &Path) -> Option<DateTime<Utc>> {
-    run_root_freshness_timestamp(run_root).or_else(|| {
-        fs::metadata(run_root)
-            .ok()
-            .and_then(|metadata| metadata.modified().ok())
-            .map(DateTime::<Utc>::from)
-    })
-}
-
-fn parse_utc_timestamp(raw: Option<&str>) -> Option<DateTime<Utc>> {
-    let normalized = raw?.trim().replace('Z', "+00:00");
-    if normalized.is_empty() {
-        return None;
-    }
-    DateTime::parse_from_rfc3339(&normalized)
-        .map(|value| value.with_timezone(&Utc))
-        .ok()
-}
-
-fn find_polluting_ds_store_files(root: &Path) -> Vec<PathBuf> {
-    let mut polluting_files = Vec::new();
-    let Ok(entries) = fs::read_dir(root) else {
-        return polluting_files;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            polluting_files.extend(find_polluting_ds_store_files(&path));
-        } else if path.file_name().and_then(|value| value.to_str()) == Some(".DS_Store") {
-            polluting_files.push(path);
-        }
-    }
-    polluting_files.sort();
-    polluting_files
-}
-
-fn observed_tools_from_report(path: &Path) -> Result<Vec<String>> {
-    let text = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let pattern = Regex::new(r#""tool"\s*:\s*"([^"]+)""#).expect("tool regex");
-    let tools = pattern
-        .captures_iter(&text)
-        .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_string()))
-        .collect::<BTreeSet<_>>();
-    Ok(tools.into_iter().collect())
-}
-
-fn localize_results_path(
-    path_str: &str,
-    local_results_root: &Path,
-    workspace: &BenchmarkWorkspaceConfig,
-) -> PathBuf {
-    let path = PathBuf::from(path_str);
-    if path.exists() {
-        return path;
-    }
-
-    let mut root_mappings = vec![("/results/", vec![local_results_root.to_path_buf()])];
-    if let Some(extra_data_root) = workspace
-        .local
-        .as_ref()
-        .and_then(|row| row.extra_data_root.as_deref())
-        .map(PathBuf::from)
-    {
-        root_mappings.push(("/extra-data/", vec![extra_data_root]));
-    }
-    if let Some(reference_root) = workspace
-        .local
-        .as_ref()
-        .and_then(|row| row.reference_root.as_deref())
-        .map(PathBuf::from)
-    {
-        root_mappings.push(("/reference/", vec![reference_root]));
-    }
-
-    let mut fallback_path = None;
-    for (marker, mapped_roots) in root_mappings {
-        if !path_str.contains(marker) {
-            continue;
-        }
-        let suffix = path_str
-            .split_once(marker)
-            .map(|(_, tail)| tail)
-            .unwrap_or_default();
-        for mapped_root in mapped_roots {
-            let localized = mapped_root.join(suffix);
-            if localized.exists() {
-                return localized;
-            }
-            if fallback_path.is_none() {
-                fallback_path = Some(localized);
-            }
-        }
-    }
-    fallback_path.unwrap_or(path)
-}
-
-fn sorted_strings(values: &[String]) -> Vec<String> {
-    let mut sorted = values.to_vec();
-    sorted.sort();
-    sorted
-}
-
-fn sorted_json_string_array(value: Option<&serde_json::Value>) -> Vec<String> {
-    let mut values = json_string_array(value);
-    values.sort();
-    values
-}
-
-fn json_string_array(value: Option<&serde_json::Value>) -> Vec<String> {
-    value
-        .and_then(|value| value.as_array())
-        .into_iter()
-        .flatten()
-        .filter_map(|entry| entry.as_str().map(ToOwned::to_owned))
-        .collect()
-}
-
-fn value_string<'a>(value: &'a serde_json::Value, key: &str) -> Option<&'a str> {
-    value.get(key).and_then(|entry| entry.as_str())
-}
-
-fn classify_run_root_source(
-    run_root: &Path,
-    expected_remote_run_root: &Path,
-    expected_local_cache_mirror_run_root: &Path,
-    expected_local_results_run_root: &Path,
-    remote_corpus_root: &Path,
-) -> String {
-    if run_root == expected_local_cache_mirror_run_root {
-        return "local-cache-mirror".to_string();
-    }
-    if run_root == expected_local_results_run_root {
-        return "local-results-root".to_string();
-    }
-    if run_root == expected_remote_run_root {
-        return "remote-results-root".to_string();
-    }
-    if remote_corpus_root
-        .parent()
-        .is_some_and(|root| run_root.starts_with(root))
-    {
-        return "remote-custom".to_string();
-    }
-    "custom".to_string()
-}
-
-fn workspace_remote_corpus_root(workspace: &BenchmarkWorkspaceConfig) -> Result<PathBuf> {
-    workspace
-        .remote
-        .as_ref()
-        .and_then(|row| row.corpus_root.as_deref())
-        .map(PathBuf::from)
-        .ok_or_else(|| anyhow!("workspace config is missing remote.corpus_root"))
-}
-
-fn workspace_remote_results_root(workspace: &BenchmarkWorkspaceConfig) -> Result<PathBuf> {
-    workspace
-        .remote
-        .as_ref()
-        .and_then(|row| row.results_root.as_deref())
-        .map(PathBuf::from)
-        .ok_or_else(|| anyhow!("workspace config is missing remote.results_root"))
-}
-
-fn workspace_local_cache_mirror_root(workspace: &BenchmarkWorkspaceConfig) -> Result<PathBuf> {
-    workspace
-        .local
-        .as_ref()
-        .and_then(|row| row.cache_mirror_root.as_deref())
-        .map(PathBuf::from)
-        .ok_or_else(|| anyhow!("workspace config is missing local.cache_mirror_root"))
-}
-
-fn workspace_local_results_root(workspace: &BenchmarkWorkspaceConfig) -> Result<PathBuf> {
-    workspace
-        .local
-        .as_ref()
-        .and_then(|row| row.results_root.as_deref())
-        .map(PathBuf::from)
-        .ok_or_else(|| anyhow!("workspace config is missing local.results_root"))
-}
-
-fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        cwd.join(path)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
@@ -972,7 +592,9 @@ mod tests {
     #[test]
     fn resolve_existing_dossier_path_uses_benchmark_markdown_contract() {
         let temp = tempdir().expect("tempdir");
-        let stage_docs_root = temp.path().join("docs/benchmark/fastq.validate_reads/corpus-01");
+        let stage_docs_root = temp
+            .path()
+            .join("docs/benchmark/fastq.validate_reads/corpus-01");
         fs::create_dir_all(&stage_docs_root).expect("stage docs root");
         fs::write(stage_docs_root.join("legacy-site.md"), "# legacy\n").expect("legacy dossier");
 
@@ -1154,12 +776,14 @@ reason = "Compact validation fixture."
     #[test]
     fn localize_results_path_does_not_translate_legacy_results_aliases() {
         let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
-            local: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
-                results_root: Some("/bench/local/results".to_string()),
-                cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
-                extra_data_root: None,
-                reference_root: None,
-            }),
+            local: Some(
+                crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
+                    results_root: Some("/bench/local/results".to_string()),
+                    cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
+                    extra_data_root: None,
+                    reference_root: None,
+                },
+            ),
             ..Default::default()
         };
 
@@ -1180,14 +804,18 @@ reason = "Compact validation fixture."
     #[test]
     fn stage_run_relative_root_uses_workspace_local_cache_template() {
         let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
-            layout: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
-                stage_runs: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
-                    local_cache_results_template: Some(
-                        "results/{corpus_id}/{stage_id}/cluster".to_string(),
+            layout: Some(
+                crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
+                    stage_runs: Some(
+                        crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
+                            local_cache_results_template: Some(
+                                "results/{corpus_id}/{stage_id}/cluster".to_string(),
+                            ),
+                            ..Default::default()
+                        },
                     ),
-                    ..Default::default()
-                }),
-            }),
+                },
+            ),
             ..Default::default()
         };
         assert_eq!(
@@ -1205,39 +833,52 @@ reason = "Compact validation fixture."
     #[test]
     fn configured_stage_run_roots_only_publish_local_mirrors() {
         let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
-            local: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
-                results_root: Some("/bench/local/archive".to_string()),
-                cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
-                extra_data_root: Some("/bench/local/extra-data".to_string()),
-                reference_root: None,
-            }),
-            remote: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceRemote {
-                results_root: Some("/bench/remote/results".to_string()),
-                ..Default::default()
-            }),
-            layout: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
-                stage_runs: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
-                    local_cache_results_template: Some(
-                        "results/{corpus_id}/{stage_id}/cluster".to_string(),
+            local: Some(
+                crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
+                    results_root: Some("/bench/local/archive".to_string()),
+                    cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
+                    extra_data_root: Some("/bench/local/extra-data".to_string()),
+                    reference_root: None,
+                },
+            ),
+            remote: Some(
+                crate::commands::benchmark_workspace::BenchmarkWorkspaceRemote {
+                    results_root: Some("/bench/remote/results".to_string()),
+                    ..Default::default()
+                },
+            ),
+            layout: Some(
+                crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
+                    stage_runs: Some(
+                        crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
+                            local_cache_results_template: Some(
+                                "results/{corpus_id}/{stage_id}/cluster".to_string(),
+                            ),
+                            local_archive_results_template: Some(
+                                "{corpus_id}/{stage_id}/cluster".to_string(),
+                            ),
+                            remote_results_template: Some(
+                                "{corpus_id}/{stage_id}/remote-cluster".to_string(),
+                            ),
+                        },
                     ),
-                    local_archive_results_template: Some(
-                        "{corpus_id}/{stage_id}/cluster".to_string(),
-                    ),
-                    remote_results_template: Some(
-                        "{corpus_id}/{stage_id}/remote-cluster".to_string(),
-                    ),
-                }),
-            }),
+                },
+            ),
             ..Default::default()
         };
 
-        let roots =
-            super::configured_stage_run_roots(&workspace, "benchmark_corpus", "fastq.validate_reads")
-                .expect("stage roots");
+        let roots = super::configured_stage_run_roots(
+            &workspace,
+            "benchmark_corpus",
+            "fastq.validate_reads",
+        )
+        .expect("stage roots");
         assert_eq!(roots.len(), 2);
         assert_eq!(
             roots[0].path,
-            PathBuf::from("/bench/local/cache-mirror/results/benchmark_corpus/fastq.validate_reads/cluster")
+            PathBuf::from(
+                "/bench/local/cache-mirror/results/benchmark_corpus/fastq.validate_reads/cluster"
+            )
         );
         assert_eq!(
             roots[1].path,
@@ -1622,13 +1263,13 @@ reason = "Compact validation fixture."
                     issue_count: 1,
                     reported_run_root:
                         "/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
-                        .to_string(),
+                            .to_string(),
                     selected_run_root:
                         "/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
-                        .to_string(),
+                            .to_string(),
                     newest_available_run_root:
                         "/archive/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
-                        .to_string(),
+                            .to_string(),
                     selected_run_root_is_newest: false,
                     available_run_roots: vec![
                         "/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
@@ -1644,12 +1285,11 @@ reason = "Compact validation fixture."
                 }],
             });
         assert!(rendered.contains("selected run root"));
-        assert!(rendered.contains(
-            "/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
-        ));
-        assert!(rendered.contains(
-            "/archive/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
-        ));
+        assert!(rendered
+            .contains("/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"));
+        assert!(
+            rendered.contains("/archive/benchmark_corpus/fastq.validate_reads/cluster-apptainer")
+        );
     }
 
     #[test]
@@ -1831,8 +1471,7 @@ reason = "Compact validation fixture."
                         results_status: "complete".to_string(),
                         results_issue_count: 0,
                         results_selected_run_root:
-                            "/bench/results/fastq.validate_reads/cluster-apptainer"
-                            .to_string(),
+                            "/bench/results/fastq.validate_reads/cluster-apptainer".to_string(),
                         results_newest_available_run_root:
                             "/bench/results/fastq.validate_reads/cluster-apptainer".to_string(),
                         results_selected_run_root_is_newest: true,
@@ -1851,11 +1490,9 @@ reason = "Compact validation fixture."
                         results_status: "incomplete".to_string(),
                         results_issue_count: 2,
                         results_selected_run_root:
-                            "/bench/results/fastq.trim_reads/cluster-apptainer"
-                            .to_string(),
+                            "/bench/results/fastq.trim_reads/cluster-apptainer".to_string(),
                         results_newest_available_run_root:
-                            "/bench/archive/fastq.trim_reads/cluster-apptainer"
-                            .to_string(),
+                            "/bench/archive/fastq.trim_reads/cluster-apptainer".to_string(),
                         results_selected_run_root_is_newest: false,
                         issues: vec![super::StageAuditIssue {
                             stage_id: "fastq.trim_reads".to_string(),
@@ -1872,11 +1509,9 @@ reason = "Compact validation fixture."
         assert!(markdown.contains(
             "`fastq.trim_reads`: `incomplete` (`3` publication issues, results `incomplete`, scope `full`)"
         ));
-        assert!(
-            markdown.contains(
-                "selected mirrored run root: `/bench/results/fastq.trim_reads/cluster-apptainer`"
-            )
-        );
+        assert!(markdown.contains(
+            "selected mirrored run root: `/bench/results/fastq.trim_reads/cluster-apptainer`"
+        ));
         assert!(markdown.contains(
             "newest mirrored run root: `/bench/archive/fastq.trim_reads/cluster-apptainer` (selected newest=`false`)"
         ));
