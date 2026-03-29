@@ -286,8 +286,18 @@ fn mini_suite_stability_gate(cwd: &Path) -> (bool, String) {
     if manifests.len() < 2 {
         return (false, "need at least two mini benchmark runs".to_string());
     }
-    let right = manifests.pop().unwrap_or_default();
-    let left = manifests.pop().unwrap_or_default();
+    let Some(right) = manifests.pop() else {
+        return (
+            false,
+            "need at least two mini benchmark runs".to_string(),
+        );
+    };
+    let Some(left) = manifests.pop() else {
+        return (
+            false,
+            "need at least two mini benchmark runs".to_string(),
+        );
+    };
     let left_raw = match fs::read_to_string(&left) {
         Ok(value) => value,
         Err(err) => return (false, format!("read {} failed: {err}", left.display())),
