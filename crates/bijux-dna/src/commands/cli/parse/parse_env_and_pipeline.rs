@@ -165,7 +165,7 @@ pub struct EnaSelectArgs {
     pub project: String,
     #[arg(long)]
     pub species: String,
-    #[arg(long, default_value = "corpus-01")]
+    #[arg(long, value_name = "CORPUS_ID")]
     pub corpus_id: String,
     #[arg(long = "target-se", default_value_t = 10)]
     pub target_se: usize,

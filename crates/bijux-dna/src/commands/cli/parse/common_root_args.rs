@@ -12,11 +12,7 @@ pub struct CorpusListArgs {
 
 #[derive(Debug, Args)]
 pub struct CorpusMaterializeArgs {
-    #[arg(
-        long,
-        value_name = "PATH",
-        default_value = "configs/runtime/corpora/corpus-01.toml"
-    )]
+    #[arg(long, value_name = "PATH")]
     pub spec: PathBuf,
     #[arg(long, value_name = "PATH")]
     pub root: Option<PathBuf>,
