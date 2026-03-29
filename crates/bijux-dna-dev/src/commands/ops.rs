@@ -5629,58 +5629,58 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
             other => return Err(anyhow!("unknown arg: {other}")),
         }
     }
-    let lunarc_host = env_or_contract(
+    let benchmark_host = env_or_contract(
         "BENCHMARK_SYNC_HOST",
         benchmark_workspace.remote_ssh_host.as_deref(),
         "workspace.remote.ssh_host",
     )?;
-    let lunarc_repo_dir = env_or_contract(
+    let benchmark_repo_dir = env_or_contract(
         "BENCHMARK_SYNC_REPO_ROOT",
         benchmark_workspace.remote_repo_root.as_deref(),
         "workspace.remote.repo_root",
     )?;
-    let lunarc_workspace_root = Path::new(&lunarc_repo_dir)
+    let benchmark_workspace_root = Path::new(&benchmark_repo_dir)
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
         .map(|parent| parent.display().to_string())
         .ok_or_else(|| anyhow!("benchmark sync repo root must have a parent directory"))?;
-    let default_lunarc_pull_base = benchmark_workspace
+    let default_pull_base = benchmark_workspace
         .sync_default_pull_base
         .clone()
         .or_else(|| benchmark_workspace.local_results_root.clone());
-    let lunarc_pull_base = env_or_contract(
+    let pull_base = env_or_contract(
         "BENCHMARK_SYNC_PULL_BASE",
-        default_lunarc_pull_base.as_deref(),
+        default_pull_base.as_deref(),
         "workspace.sync.defaults.pull_base or workspace.local.results_root",
     )?;
-    let lunarc_pull_dest = env_or_default("BENCHMARK_SYNC_PULL_DEST", "");
+    let pull_dest = env_or_default("BENCHMARK_SYNC_PULL_DEST", "");
     let default_pull_mode = benchmark_workspace
         .sync_default_pull_mode
         .as_deref()
         .unwrap_or("results");
     let pull_mode = env_or_default("BENCHMARK_SYNC_MODE", default_pull_mode);
-    let default_lunarc_results_dir = benchmark_workspace
+    let default_results_root = benchmark_workspace
         .remote_results_root
         .clone();
-    let lunarc_results_dir = env_or_contract(
+    let benchmark_results_root = env_or_contract(
         "BENCHMARK_SYNC_RESULTS_ROOT",
-        default_lunarc_results_dir.as_deref(),
+        default_results_root.as_deref(),
         "workspace.remote.results_root",
     )?;
-    let default_lunarc_containers_root = benchmark_workspace
+    let default_containers_root = benchmark_workspace
         .remote_containers_root
         .clone();
-    let lunarc_containers_root = env_or_contract(
+    let benchmark_containers_root = env_or_contract(
         "BENCHMARK_SYNC_CONTAINERS_ROOT",
-        default_lunarc_containers_root.as_deref(),
+        default_containers_root.as_deref(),
         "workspace.remote.containers_root",
     )?;
-    let default_lunarc_corpus_root = benchmark_workspace
+    let default_corpus_root = benchmark_workspace
         .remote_corpus_root
         .clone();
-    let lunarc_corpus_root = env_or_contract(
+    let benchmark_corpus_root = env_or_contract(
         "BENCHMARK_SYNC_CORPUS_ROOT",
-        default_lunarc_corpus_root.as_deref(),
+        default_corpus_root.as_deref(),
         "workspace.remote.corpus_root",
     )?;
     let include_containers_manifest_default = if benchmark_workspace
@@ -5723,19 +5723,20 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
     };
     let home = env_or_default("HOME", "");
     let use_governed_results_root = pull_mode == "results"
-        && lunarc_pull_dest.is_empty()
+        && pull_dest.is_empty()
         && benchmark_workspace.local_results_root.is_some();
     let configured_pull_destination = include_sync_profile
         .and_then(|profile| profile.pull_destination.as_deref())
         .and_then(|key| benchmark_workspace_lookup(&benchmark_workspace, key));
     let dest = default_pull_destination(
-        &lunarc_pull_dest,
+        &pull_dest,
         configured_pull_destination,
-        &lunarc_pull_base,
+        &pull_base,
         &home,
         use_governed_results_root,
     );
-    let layout_conflicts = remote_layout_conflicts(workspace, &lunarc_host, &benchmark_workspace)?;
+    let layout_conflicts =
+        remote_layout_conflicts(workspace, &benchmark_host, &benchmark_workspace)?;
     if !layout_conflicts.is_empty() {
         return Ok(OpsCommandOutcome::failure(format!(
             "refusing pull: remote benchmark layout is ambiguous\n{}\n",
@@ -5744,11 +5745,11 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
     }
     if dry_run {
         return success_line(format!(
-            "[dry-run] would pull mode={pull_mode} from {lunarc_host} to {}",
+            "[dry-run] would pull mode={pull_mode} from {benchmark_host} to {}",
             dest.display()
         ));
     }
-    if !use_governed_results_root && lunarc_pull_dest.is_empty() && dest.exists() {
+    if !use_governed_results_root && pull_dest.is_empty() && dest.exists() {
         return Ok(OpsCommandOutcome::failure(format!(
             "refusing pull: destination already exists: {}\n",
             dest.display()
@@ -5764,32 +5765,36 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
             &[
                 "-az".to_string(),
                 format!("--exclude-from={}", pull_full_exclude.display()),
-                format!("{lunarc_host}:{lunarc_workspace_root}/"),
+                format!("{benchmark_host}:{benchmark_workspace_root}/"),
                 format!("{}/", dest.display()),
             ],
         )?;
         if !outcome.is_success() {
             return Ok(outcome);
         }
-        pulled_paths.push(format!("{lunarc_workspace_root}/"));
+        pulled_paths.push(format!("{benchmark_workspace_root}/"));
         pulled_path_mappings.push(json!({
-            "remote_path": format!("{lunarc_workspace_root}/"),
+            "remote_path": format!("{benchmark_workspace_root}/"),
             "local_path": format!("{}/", dest.display()),
         }));
     } else if benchmark_workspace.remote_results_root.is_some() {
-        let local_path =
-            pull_benchmark_sync_tree(workspace, &lunarc_host, &lunarc_results_dir, &dest)?;
-        pulled_paths.push(format!("{lunarc_results_dir}/"));
+        let local_path = pull_benchmark_sync_tree(
+            workspace,
+            &benchmark_host,
+            &benchmark_results_root,
+            &dest,
+        )?;
+        pulled_paths.push(format!("{benchmark_results_root}/"));
         pulled_path_mappings.push(json!({
-            "remote_path": format!("{lunarc_results_dir}/"),
+            "remote_path": format!("{benchmark_results_root}/"),
             "local_path": format!("{}/", local_path.display()),
         }));
         if include_containers_manifest {
-            let manifest_root = format!("{lunarc_containers_root}/manifest");
-            if remote_path_exists(workspace, &lunarc_host, &manifest_root)? {
+            let manifest_root = format!("{benchmark_containers_root}/manifest");
+            if remote_path_exists(workspace, &benchmark_host, &manifest_root)? {
                 let local_path = pull_benchmark_sync_tree(
                     workspace,
-                    &lunarc_host,
+                    &benchmark_host,
                     &manifest_root,
                     &dest,
                 )?;
@@ -5807,12 +5812,12 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
                 .filter(|value| !value.is_empty())
             {
                 let clean_rel = rel.trim_start_matches('/');
-                let remote_path = format!("{lunarc_corpus_root}/{clean_rel}");
+                let remote_path = format!("{benchmark_corpus_root}/{clean_rel}");
                 let local_path =
-                    pull_benchmark_sync_path(workspace, &lunarc_host, &remote_path, &dest)?;
+                    pull_benchmark_sync_path(workspace, &benchmark_host, &remote_path, &dest)?;
                 pulled_paths.push(remote_path);
                 pulled_path_mappings.push(json!({
-                    "remote_path": format!("{lunarc_corpus_root}/{clean_rel}"),
+                    "remote_path": format!("{benchmark_corpus_root}/{clean_rel}"),
                     "local_path": local_path.display().to_string(),
                 }));
             }
@@ -5824,16 +5829,16 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
             &[
                 "-az".to_string(),
                 format!("--include-from={}", pull_results_include.display()),
-                format!("{lunarc_host}:{lunarc_workspace_root}/"),
+                format!("{benchmark_host}:{benchmark_workspace_root}/"),
                 format!("{}/", dest.display()),
             ],
         )?;
         if !outcome.is_success() {
             return Ok(outcome);
         }
-        pulled_paths.push(format!("{lunarc_results_dir}/"));
+        pulled_paths.push(format!("{benchmark_results_root}/"));
         pulled_path_mappings.push(json!({
-            "remote_path": format!("{lunarc_results_dir}/"),
+            "remote_path": format!("{benchmark_results_root}/"),
             "local_path": format!("{}/", dest.display()),
         }));
         if include_containers_manifest {
@@ -5843,15 +5848,15 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
                 "rsync",
                 &[
                     "-az".to_string(),
-                    format!("{lunarc_host}:{lunarc_containers_root}/manifest/"),
+                    format!("{benchmark_host}:{benchmark_containers_root}/manifest/"),
                     dest.join("bijux-dna-container/manifest")
                         .display()
                         .to_string(),
                 ],
             )?;
-            pulled_paths.push(format!("{lunarc_containers_root}/manifest/"));
+            pulled_paths.push(format!("{benchmark_containers_root}/manifest/"));
             pulled_path_mappings.push(json!({
-                "remote_path": format!("{lunarc_containers_root}/manifest/"),
+                "remote_path": format!("{benchmark_containers_root}/manifest/"),
                 "local_path": dest.join("bijux-dna-container/manifest").display().to_string(),
             }));
         }
@@ -5873,25 +5878,25 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
                     "rsync",
                     &[
                         "-az".to_string(),
-                        format!("{lunarc_host}:{lunarc_corpus_root}/{clean_rel}"),
+                        format!("{benchmark_host}:{benchmark_corpus_root}/{clean_rel}"),
                         target.display().to_string(),
                     ],
                 )?;
-                pulled_paths.push(format!("{lunarc_corpus_root}/{clean_rel}"));
+                pulled_paths.push(format!("{benchmark_corpus_root}/{clean_rel}"));
                 pulled_path_mappings.push(json!({
-                    "remote_path": format!("{lunarc_corpus_root}/{clean_rel}"),
+                    "remote_path": format!("{benchmark_corpus_root}/{clean_rel}"),
                     "local_path": target.display().to_string(),
                 }));
             }
         }
     }
-    let remote_commit = benchmark_sync_revision(workspace, &lunarc_host, &lunarc_repo_dir)?;
+    let remote_commit = benchmark_sync_revision(workspace, &benchmark_host, &benchmark_repo_dir)?;
     let remote_hostname = trim_newline(
         &run_program(
             workspace,
             "ssh",
             &[
-                lunarc_host.clone(),
+                benchmark_host.clone(),
                 "hostname -f 2>/dev/null || hostname".to_string(),
             ],
         )?
@@ -5901,10 +5906,10 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
         &dest.join("PULLED_FROM.json"),
         &json!({
             "schema_version": "bijux.benchmark.pull.v1",
-            "remote_host": lunarc_host,
+            "remote_host": benchmark_host,
             "remote_hostname": remote_hostname,
-            "remote_root": lunarc_workspace_root,
-            "remote_repo": lunarc_repo_dir,
+            "remote_root": benchmark_workspace_root,
+            "remote_repo": benchmark_repo_dir,
             "remote_cache_root": benchmark_workspace.remote_cache_root,
             "local_destination": dest.display().to_string(),
             "local_cache_mirror_root": benchmark_workspace.local_cache_mirror_root,
