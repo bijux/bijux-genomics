@@ -276,12 +276,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
     }
 
     let tools = resolve_tools(&contract.tools, &args.tools)?;
-    let platform = cli
-        .platform
-        .clone()
-        .or_else(|| std::env::var("BIJUX_PLATFORM").ok())
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "apptainer-amd64".to_string());
+    let platform = resolve_benchmark_platform(cli.platform.as_deref())?;
     let program = std::env::current_exe().context("resolve bijux-dna executable")?;
     let mut runs = Vec::new();
     let mut pending = Vec::new();
@@ -518,6 +513,27 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
         ));
     }
     Ok(())
+}
+
+fn resolve_benchmark_platform(explicit_platform: Option<&str>) -> Result<String> {
+    if let Some(platform) = explicit_platform {
+        let trimmed = platform.trim();
+        if trimmed.is_empty() {
+            return Err(anyhow!(
+                "benchmark platform must be a non-empty identifier"
+            ));
+        }
+        return Ok(trimmed.to_string());
+    }
+    std::env::var("BIJUX_PLATFORM")
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| {
+            anyhow!(
+                "benchmark platform must be declared with --platform or BIJUX_PLATFORM"
+            )
+        })
 }
 
 fn default_stage_out_root(
@@ -1903,9 +1919,9 @@ mod tests {
     use super::{
         benchmark_runtime_env, default_stage_out_root, prepare_report_qc_sample,
         prepare_sortmerna_sample_workdir, promote_sortmerna_sample_index_cache,
-        resolve_deplete_rrna_stage_options, resolve_tools, sample_report_is_resume_ready,
-        stage_command_spec, supports_apptainer_warmup, workspace_cache_root_for_output,
-        CorpusNormalizedSample,
+        resolve_benchmark_platform, resolve_deplete_rrna_stage_options, resolve_tools,
+        sample_report_is_resume_ready, stage_command_spec, supports_apptainer_warmup,
+        workspace_cache_root_for_output, CorpusNormalizedSample,
     };
     use crate::commands::benchmark_workspace::{
         BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceRemote,
@@ -1913,7 +1929,6 @@ mod tests {
     };
     use std::fs;
     use std::path::{Path, PathBuf};
-
     #[test]
     fn stage_mapping_preserves_filter_report_dir() {
         let spec = stage_command_spec("fastq.filter_reads").expect("stage spec");
@@ -2120,6 +2135,15 @@ mod tests {
         assert!(supports_apptainer_warmup("apptainer-amd64"));
         assert!(supports_apptainer_warmup("cluster-apptainer"));
         assert!(!supports_apptainer_warmup("docker-amd64"));
+    }
+
+    #[test]
+    fn resolve_benchmark_platform_rejects_empty_identifier() {
+        let error = resolve_benchmark_platform(Some("   "))
+            .expect_err("empty platform contract must fail");
+        assert!(error
+            .to_string()
+            .contains("benchmark platform must be a non-empty identifier"));
     }
 
     #[test]
