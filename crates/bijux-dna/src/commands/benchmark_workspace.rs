@@ -1037,8 +1037,8 @@ pub(crate) fn write_workspace_layout_status(
     explicit_config: Option<&Path>,
     docs_root: &Path,
 ) -> Result<()> {
-    let workspace = load_benchmark_workspace_config(cwd, explicit_config)?;
-    let report = workspace_layout_report(&workspace)?;
+    let config = load_benchmark_config(cwd, explicit_config)?;
+    let report = workspace_layout_report(&config)?;
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
     let json_path = docs_root.join("workspace-layout-status.json");
     fs::write(
@@ -1052,7 +1052,8 @@ pub(crate) fn write_workspace_layout_status(
     Ok(())
 }
 
-fn workspace_layout_report(workspace: &BenchmarkWorkspaceConfig) -> Result<WorkspaceLayoutReport> {
+fn workspace_layout_report(config: &BenchmarkConfig) -> Result<WorkspaceLayoutReport> {
+    let workspace = &config.workspace;
     let local_results_root = workspace
         .local
         .as_ref()
@@ -1069,7 +1070,7 @@ fn workspace_layout_report(workspace: &BenchmarkWorkspaceConfig) -> Result<Works
         .parent()
         .ok_or_else(|| anyhow!("invalid local.cache_mirror_root"))?
         .to_path_buf();
-    let corpus_dir_name = benchmark_runtime_corpus_dir_name(workspace, "corpus-01")?;
+    let corpus_dir_name = workspace_layout_corpus_dir_name(config)?;
 
     let root_pairs = vec![
         summarize_root_pair(
@@ -1354,12 +1355,25 @@ fn render_workspace_layout_markdown(report: &WorkspaceLayoutReport) -> String {
     lines.join("\n") + "\n"
 }
 
-pub(crate) fn corpus_01_publication_contract(
-    cwd: &Path,
-    explicit_path: Option<&Path>,
-    stage_id: &str,
-) -> Result<CorpusBenchmarkContract> {
-    benchmark_publication_contract(cwd, explicit_path, "corpus-01", stage_id)
+fn workspace_layout_corpus_dir_name(config: &BenchmarkConfig) -> Result<String> {
+    if let Some(dir_name) = config
+        .workspace
+        .remote
+        .as_ref()
+        .and_then(|row| row.corpus_root.as_deref())
+        .map(Path::new)
+        .and_then(Path::file_name)
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+    {
+        return Ok(dir_name.to_string());
+    }
+    if let Some(corpus_id) = config.corpora.keys().next() {
+        return Ok(corpus_id.replace('-', "_"));
+    }
+    Err(anyhow!(
+        "benchmark config must declare workspace.remote.corpus_root or at least one [corpora] entry"
+    ))
 }
 
 pub(crate) fn benchmark_publication_contract(
@@ -1423,10 +1437,11 @@ mod tests {
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
         benchmark_publication_corpus_key, benchmark_runtime_corpus_dir_name,
         benchmark_stage_run_relative_root, benchmark_workspace_config_path,
-        benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_config,
+        benchmark_workspace_value, load_benchmark_config, BenchmarkConfig,
         load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
-        plan_root_convergence, summarize_root_pair, BenchmarkWorkspaceConfig,
+        plan_root_convergence, summarize_root_pair, workspace_layout_corpus_dir_name,
+        BenchmarkWorkspaceConfig,
         BenchmarkWorkspaceLocal, BENCHMARK_CONFIG_ENV,
     };
     use std::path::Path;
@@ -1578,8 +1593,9 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
     fn publication_contract_loads_stage_contract() {
         let temp = tempfile::tempdir().expect("tempdir");
         write_publication(temp.path());
-        let contract = corpus_01_publication_contract(temp.path(), None, "fastq.validate_reads")
-            .expect("publication contract");
+        let contract =
+            super::benchmark_publication_contract(temp.path(), None, "corpus-01", "fastq.validate_reads")
+                .expect("publication contract");
         assert_eq!(contract.scenario_id, "validation_fairness");
         assert_eq!(contract.tools, vec!["fastqc"]);
     }
@@ -1750,6 +1766,26 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         assert_eq!(
             benchmark_runtime_corpus_dir_name(&workspace, "corpus-01").expect("dir name"),
             "corpus_01"
+        );
+    }
+
+    #[test]
+    fn workspace_layout_corpus_dir_name_falls_back_to_declared_corpus_id() {
+        let config = BenchmarkConfig {
+            corpora: [(
+                "corpus-42".to_string(),
+                super::BenchmarkCorpusConfig {
+                    spec_path: Some("configs/runtime/corpora/corpus-42.toml".to_string()),
+                },
+            )]
+            .into_iter()
+            .collect(),
+            ..BenchmarkConfig::default()
+        };
+
+        assert_eq!(
+            workspace_layout_corpus_dir_name(&config).expect("corpus dir name"),
+            "corpus_42"
         );
     }
 
