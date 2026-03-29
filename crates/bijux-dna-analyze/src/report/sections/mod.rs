@@ -1,8 +1,24 @@
-// split to keep module size manageable
+//! Owner: bijux-dna-analyze
+//! Report section builders.
 
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::Path;
+
+use bijux_dna_core::metrics::ToolInvocationV1;
+use bijux_dna_core::prelude::{InvariantStatusV1, RawFailure};
+use bijux_dna_runtime::{FactsRowV1, PipelineVerdictV1, StageReportV1, TelemetryEventV1};
+
+use crate::decision::score::{build_rankings, RankInput};
+use crate::failure::{classify_raw_failure, BenchmarkFailure};
+
+mod core;
+mod findings;
+mod metrics;
 mod qc;
 pub mod schema;
 
-include!("../sections_core.rs");
-include!("../sections_metrics.rs");
-include!("../sections_findings.rs");
+pub(crate) use core::*;
+pub(crate) use findings::*;
+pub(crate) use metrics::*;
+pub(crate) use qc::*;

@@ -1,8 +1,10 @@
+use super::*;
+
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 use bijux_dna_domain_bam::metrics::{evaluate_bam_invariants, BamInvariantThresholds};
 use bijux_dna_domain_bam::prelude::STAGE_PREFIX as BAM_STAGE_PREFIX;
 
-pub(super) fn accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut stages = Vec::new();
     for row in rows {
         let reads = row.reads_out.or(row.reads_in);
@@ -17,7 +19,7 @@ pub(super) fn accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
     serde_json::json!({"stages": stages})
 }
 
-pub(super) fn bam_accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn bam_accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut entries = Vec::new();
     let thresholds = BamInvariantThresholds::default();
     for row in rows {
@@ -58,7 +60,7 @@ pub(super) fn bam_accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
     serde_json::json!({ "entries": entries })
 }
 
-pub(super) fn bam_findings_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn bam_findings_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let findings = bam_claims(rows);
     let summaries: Vec<String> = findings
         .iter()
@@ -173,7 +175,7 @@ fn bam_claims(rows: &[FactsRowV1]) -> Vec<serde_json::Value> {
     findings
 }
 
-pub(super) fn bam_verdict_table(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn bam_verdict_table(rows: &[FactsRowV1]) -> serde_json::Value {
     let thresholds = BamInvariantThresholds::default();
     let mut entries = Vec::new();
     for row in rows {
@@ -214,7 +216,7 @@ pub(super) fn bam_verdict_table(rows: &[FactsRowV1]) -> serde_json::Value {
     serde_json::json!({ "entries": entries })
 }
 
-pub(super) fn bam_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn bam_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut plots = Vec::new();
     for row in rows {
         if !row.stage_id.starts_with(BAM_STAGE_PREFIX) {
@@ -251,7 +253,7 @@ pub(super) fn bam_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
     serde_json::json!({ "entries": plots })
 }
 
-pub(super) fn impact_metrics_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn impact_metrics_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut impacts = Vec::new();
     for row in rows {
         if row.stage_id == "fastq.filter_reads" || row.stage_id == "fastq.trim_reads" {
@@ -272,7 +274,7 @@ pub(super) fn impact_metrics_section(rows: &[FactsRowV1]) -> serde_json::Value {
     serde_json::json!({"impact": impacts})
 }
 
-pub(super) fn findings_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn findings_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let claims = fastq_claims(rows);
     let mut warnings: Vec<String> = Vec::new();
     let mut suspected = Vec::new();
@@ -400,7 +402,7 @@ fn fastq_claims(rows: &[FactsRowV1]) -> Vec<serde_json::Value> {
     claims
 }
 
-pub(super) fn claims_registry_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn claims_registry_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut claims = fastq_claims(rows);
     claims.extend(bam_claims(rows));
     serde_json::json!({ "claims": claims })
