@@ -175,7 +175,6 @@ mod tests {
         WriteMode,
     };
     use std::collections::BTreeMap;
-    use std::path::PathBuf;
 
     use crate::MetricsEnvelope;
     use bijux_dna_bench_model::{
@@ -185,11 +184,8 @@ mod tests {
 
     #[test]
     fn artifacts_are_stable_and_atomic() -> anyhow::Result<()> {
-        let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let out_dir = manifest_dir
-            .join("tests")
-            .join("fixtures")
-            .join("bench_artifacts");
+        let temp = tempfile::tempdir()?;
+        let out_dir = temp.path().join("bench_artifacts");
         bijux_dna_infra::ensure_dir(&out_dir)?;
 
         let obs = BenchmarkObservation {

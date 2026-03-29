@@ -610,10 +610,8 @@ mod tests {
             semantics_overrides: BTreeMap::new(),
             stage_overrides: BTreeMap::new(),
         };
-        let out_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join("bench_bundle");
+        let temp = tempfile::tempdir()?;
+        let out_dir = temp.path().join("bench_bundle");
         let options = BenchRunOptions {
             output_dir: Some(out_dir.clone()),
             resume: false,
