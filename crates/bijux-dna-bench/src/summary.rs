@@ -297,11 +297,11 @@ pub fn summarize(
             n_effective as f64 / group.len() as f64
         };
 
-        let first = group.first().copied();
-        let (dataset_class, read_layout) = match first {
-            Some(obs) => (obs.dataset_class.clone(), obs.read_layout.clone()),
-            None => ("unknown".to_string(), "unknown".to_string()),
+        let Some(first) = group.first().copied() else {
+            continue;
         };
+        let dataset_class = first.dataset_class.clone();
+        let read_layout = first.read_layout.clone();
 
         rows.push(SummaryRow {
             dataset_id,
