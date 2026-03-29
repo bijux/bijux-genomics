@@ -2244,7 +2244,7 @@ fn audit_publication_summary(
             "error",
         );
     }
-    if sort_count_map(summary.get("cohort_counts")) != *expected_cohort_counts {
+    if sort_count_map(summary.get("cohort_counts"))? != *expected_cohort_counts {
         append_stage_audit_issue(
             issues,
             &contract.stage_id,
@@ -2729,16 +2729,22 @@ fn csv_report_value(row: &BTreeMap<String, String>, key: &str) -> String {
     csv_required_value(row, key).unwrap_or_else(|| "missing".to_string())
 }
 
-fn sort_count_map(value: Option<&serde_json::Value>) -> BTreeMap<String, usize> {
-    value
-        .and_then(|value| value.as_object())
-        .map(|value| {
-            value
-                .iter()
-                .map(|(key, value)| (key.clone(), value.as_u64().unwrap_or(0) as usize))
-                .collect()
+fn sort_count_map(value: Option<&serde_json::Value>) -> Result<BTreeMap<String, usize>> {
+    let Some(value) = value else {
+        return Ok(BTreeMap::new());
+    };
+    let object = value
+        .as_object()
+        .ok_or_else(|| anyhow!("count map must be a JSON object"))?;
+    object
+        .iter()
+        .map(|(key, value)| {
+            let count = value
+                .as_u64()
+                .ok_or_else(|| anyhow!("count map entry `{key}` must be an unsigned integer"))?;
+            Ok((key.clone(), count as usize))
         })
-        .unwrap_or_default()
+        .collect()
 }
 
 fn summary_corpus_id(summary_corpus_root: &Path) -> Result<String> {
