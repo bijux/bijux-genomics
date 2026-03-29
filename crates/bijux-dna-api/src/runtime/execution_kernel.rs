@@ -206,7 +206,12 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     {
         let dry_path = req.context.stage_root.join("print_commands.txt");
         let image = req.step.image.image.clone();
-        let digest = req.step.image.digest.clone().unwrap_or_default();
+        let digest = req
+            .step
+            .image
+            .digest
+            .clone()
+            .unwrap_or_else(|| image.clone());
         let cmd = format!(
             "{} run {} {}",
             req.runner,
