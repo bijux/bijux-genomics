@@ -214,13 +214,11 @@ pub fn write_run_manifest(
         .or_else(|| Some(run_provenance.tool_version.clone()));
     let replay_tool_id = tool_invocations
         .first()
-        .map_or_else(|| "unknown".to_string(), |inv| inv.tool_id.to_string());
-    let image_upstream =
-        std::env::var("BIJUX_IMAGE_UPSTREAM").unwrap_or_else(|_| "unknown".to_string());
+        .map(|inv| inv.tool_id.to_string());
+    let image_upstream = std::env::var("BIJUX_IMAGE_UPSTREAM").ok();
     let image_build_timestamp_unix_s = std::env::var("BIJUX_IMAGE_BUILD_TIMESTAMP_UNIX_S")
         .ok()
-        .and_then(|v| v.parse::<u64>().ok())
-        .unwrap_or(0);
+        .and_then(|v| v.parse::<u64>().ok());
     let reproducibility_dir = run_artifacts_dir(run_dirs)?.join("reproducibility");
     bijux_dna_infra::ensure_dir(&reproducibility_dir).context("create reproducibility dir")?;
     let reproducibility_report_path = reproducibility_dir.join("report.json");
@@ -308,10 +306,7 @@ pub fn write_run_manifest(
         "image_identity_provenance": {
             "tool_id": replay_tool_id,
             "version": run_provenance.tool_version.clone(),
-            "digest": run_provenance
-                .tool_image_digest
-                .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
+            "digest": run_provenance.tool_image_digest.clone(),
             "upstream": image_upstream,
             "build_timestamp_unix_s": image_build_timestamp_unix_s,
         },
