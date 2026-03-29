@@ -20,6 +20,7 @@ pub(crate) mod fastq;
 pub mod hpc;
 mod policies;
 pub(crate) mod profile_runtime;
+pub(crate) mod repo_root;
 pub(crate) mod report_inputs;
 mod root_command_handlers;
 pub(crate) mod run_plan;

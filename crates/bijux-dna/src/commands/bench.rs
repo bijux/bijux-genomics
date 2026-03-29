@@ -5,7 +5,7 @@ use crate::commands::command_prelude::{
     load_image_catalog, load_platform, normalize_fastq_stage_id, objective_spec,
     preprocess_args_from_cli, qc_class_label, render, resolve_adapter_selection,
     resolve_effective_adapters, write_trim_report, write_validate_report, AdapterPresetsV1,
-    AdapterSelection, Cli, DnaCommand, FastqCommand, Objective, Path, PathBuf, Result, StageId,
+    AdapterSelection, Cli, DnaCommand, FastqCommand, Objective, Path, Result, StageId,
 };
 
 pub(crate) fn handle_fastq_bench(
@@ -471,8 +471,8 @@ fn explain_fastq_stage(
 
 fn lookup_param_schema_id(stage_id: &str) -> Option<String> {
     let cwd = std::env::current_dir().ok()?;
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let mut roots = vec![cwd, manifest_dir.parent()?.parent()?.to_path_buf()];
+    let repo_root = crate::commands::repo_root::resolve_repo_root().ok()?;
+    let mut roots = vec![cwd, repo_root];
     roots.sort();
     roots.dedup();
     for root in roots {
