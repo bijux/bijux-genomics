@@ -5,6 +5,9 @@ use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_runtime::observability::RunProvenanceV1;
 use bijux_dna_runtime::run_layout::{RunLayoutV1, RunManifest};
 
+#[path = "../../support.rs"]
+mod support;
+
 #[test]
 fn run_layout_schema_snapshot() {
     let layout = RunLayoutV1 {
@@ -121,7 +124,8 @@ fn run_manifest_schema_snapshot() {
 
 #[test]
 fn schema_fixture_names_include_version() {
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+    let dir = support::crate_root("bijux-dna-runtime")
+        .unwrap_or_else(|err| panic!("resolve runtime crate root: {err}"))
         .join("tests")
         .join("fixtures")
         .join("runtime_schema")
@@ -135,7 +139,10 @@ fn schema_fixture_names_include_version() {
         if !path.is_file() {
             continue;
         }
-        let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or_else(|| panic!("fixture name is not valid UTF-8: {}", path.display()));
         if !std::path::Path::new(name)
             .extension()
             .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
