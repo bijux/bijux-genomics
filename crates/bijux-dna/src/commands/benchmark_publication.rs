@@ -247,7 +247,13 @@ fn render_corpus_fastq_dossier(
             &configured_corpus_id,
             stage_id,
         )?;
-        select_stage_run_root(&configured_roots).selected_path
+        let selection = select_stage_run_root(&configured_roots);
+        if selection.selected_path.as_os_str().is_empty() {
+            return Err(anyhow!(
+                "no mirrored run root available for corpus `{corpus_id}` stage `{stage_id}`"
+            ));
+        }
+        selection.selected_path
     };
     let run_manifest_path = run_root.join("run_manifest.json");
     let run_manifest = load_json_value(&run_manifest_path)?;
@@ -2772,10 +2778,7 @@ fn select_stage_run_root(candidates: &[StageRunRootCandidate]) -> StageRunRootSe
         .collect::<Vec<_>>();
     if existing_candidates.is_empty() {
         return StageRunRootSelection {
-            selected_path: candidates
-                .first()
-                .map(|candidate| candidate.path.clone())
-                .unwrap_or_default(),
+            selected_path: PathBuf::new(),
             newest_available_path: None,
         };
     }
@@ -3676,6 +3679,23 @@ reason = "Compact validation fixture."
             roots[1].path,
             PathBuf::from("/bench/local/archive/benchmark_corpus/fastq.validate_reads/cluster")
         );
+    }
+
+    #[test]
+    fn select_stage_run_root_requires_existing_mirrors() {
+        let roots = vec![
+            super::StageRunRootCandidate {
+                path: PathBuf::from("/bench/local/cache-mirror/results/corpus_01/fastq.validate_reads/cluster-apptainer"),
+            },
+            super::StageRunRootCandidate {
+                path: PathBuf::from("/bench/local/archive/corpus_01/fastq.validate_reads/cluster-apptainer"),
+            },
+        ];
+
+        let selection = super::select_stage_run_root(&roots);
+
+        assert!(selection.selected_path.as_os_str().is_empty());
+        assert!(selection.newest_available_path.is_none());
     }
 
     #[test]
