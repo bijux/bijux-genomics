@@ -28,7 +28,7 @@ fn fastq_small_pipeline_emits_multi_stage_manifest() -> Result<()> {
         manifest
             .get("profile_id")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or_default(),
+            .unwrap_or_else(|| panic!("manifest missing string profile_id: {}", manifest_path.display())),
         "fastq_reference_adna"
     );
     let checksums: serde_json::Value =
