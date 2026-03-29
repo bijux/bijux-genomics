@@ -2872,31 +2872,7 @@ fn localize_results_path(
         return path;
     }
 
-    let cache_mirror_root = workspace
-        .local
-        .as_ref()
-        .and_then(|row| row.cache_mirror_root.as_deref())
-        .map(PathBuf::from);
-    let bijux_dna_results_root = cache_mirror_root.as_ref().and_then(|cache_root| {
-        (local_results_root
-            .file_name()
-            .and_then(|value| value.to_str())
-            == Some("results")
-            && local_results_root.parent() == Some(cache_root.as_path()))
-        .then(|| cache_root.join("bijux-dna-results"))
-    });
     let mut root_mappings = vec![("/results/", vec![local_results_root.to_path_buf()])];
-    if let Some(bijux_root) = bijux_dna_results_root {
-        root_mappings.push((
-            "/bijux-dna-results/",
-            vec![bijux_root, local_results_root.to_path_buf()],
-        ));
-    } else {
-        root_mappings.push((
-            "/bijux-dna-results/",
-            vec![local_results_root.to_path_buf()],
-        ));
-    }
     if let Some(extra_data_root) = workspace
         .local
         .as_ref()
@@ -3605,6 +3581,32 @@ reason = "Compact validation fixture."
                 Path::new("/bench/cluster/.cache/benchmark_corpus"),
             ),
             "local-cache-mirror"
+        );
+    }
+
+    #[test]
+    fn localize_results_path_does_not_translate_legacy_results_aliases() {
+        let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
+            local: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
+                results_root: Some("/bench/local/results".to_string()),
+                cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
+                extra_data_root: None,
+                reference_root: None,
+            }),
+            ..Default::default()
+        };
+
+        let localized = super::localize_results_path(
+            "/bench/local/cache-mirror/bijux-dna-results/corpus_01/fastq.validate_reads/cluster-apptainer/run_manifest.json",
+            Path::new("/bench/local/results"),
+            &workspace,
+        );
+
+        assert_eq!(
+            localized,
+            PathBuf::from(
+                "/bench/local/cache-mirror/bijux-dna-results/corpus_01/fastq.validate_reads/cluster-apptainer/run_manifest.json"
+            )
         );
     }
 
