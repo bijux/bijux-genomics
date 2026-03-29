@@ -312,13 +312,13 @@ fn ensure_stage_bank_requirements(cwd: &Path, stage_id: &str) -> Result<()> {
     if !stage_requires_banks(stage_id) {
         return Ok(());
     }
-    let hpc_root = crate::commands::hpc::load_hpc_config()
-        .map_or_else(|_| PathBuf::from("bijux"), |cfg| cfg.resolve_paths().root);
-    let candidates = [
-        hpc_root.join("bijux-dna-data").join("banks"),
-        cwd.join("examples").join("bijux-dna-data").join("banks"),
-        cwd.join("assets"),
-    ];
+    let mut candidates = Vec::new();
+    if let Ok(hpc_root) = crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root)
+    {
+        candidates.push(hpc_root.join("bijux-dna-data").join("banks"));
+    }
+    candidates.push(cwd.join("examples").join("bijux-dna-data").join("banks"));
+    candidates.push(cwd.join("assets"));
     let mut found = None;
     for path in candidates {
         if path.exists() && path.is_dir() {
