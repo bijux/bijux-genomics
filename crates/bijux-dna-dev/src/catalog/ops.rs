@@ -327,7 +327,7 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
         ),
         native(
             "benchmark-integrity-mini",
-            "Run the governed frontend mini benchmark integrity check.",
+            "Run the optional frontend mini benchmark integrity helper over bijux-dna bench fastq.",
             NativeOpsCommandKey::ToolingBenchmarkIntegrityMini,
         ),
         native(

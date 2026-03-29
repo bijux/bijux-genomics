@@ -6,6 +6,8 @@ Define acceptable run-to-run variance for frontend mini benchmark integrity chec
 ## Scope
 Mini benchmark integrity runs executed via `cargo run -q -p bijux-dna-dev -- tooling run benchmark-integrity-mini`.
 
+This helper is not a separate benchmark control plane. It runs two consecutive `bijux-dna bench fastq validate` executions against the same governed input and compares the emitted artifacts for drift.
+
 ## Non-goals
 This policy does not define domain-science correctness thresholds.
 
