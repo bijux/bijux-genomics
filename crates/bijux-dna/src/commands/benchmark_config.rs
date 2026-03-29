@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Result};
 
 use crate::commands::benchmark_workspace::{
-    benchmark_config_path, benchmark_corpus_spec_path, load_benchmark_config,
+    benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_corpus_key,
+    load_benchmark_config,
 };
 use crate::commands::cli::BenchConfigValidateArgs;
 
@@ -59,8 +60,8 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
     );
     if config
         .publication
-        .corpus_01
-        .as_ref()
+        .corpora
+        .get(&benchmark_publication_corpus_key("corpus-01"))
         .is_none_or(|row| row.contracts.is_empty())
     {
         errors.push("publication.corpus_01.contracts is empty".to_string());

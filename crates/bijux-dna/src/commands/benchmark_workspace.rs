@@ -90,7 +90,8 @@ pub(crate) struct BenchmarkWorkspaceSyncDefaults {
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(crate) struct BenchmarkPublicationConfig {
-    pub(crate) corpus_01: Option<Corpus01PublicationConfig>,
+    #[serde(flatten)]
+    pub(crate) corpora: BTreeMap<String, BenchmarkCorpusPublicationConfig>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
@@ -134,7 +135,7 @@ pub(crate) struct BenchmarkScreenTaxonomyInputConfig {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
-pub(crate) struct Corpus01PublicationConfig {
+pub(crate) struct BenchmarkCorpusPublicationConfig {
     #[serde(default)]
     pub(crate) contracts: Vec<CorpusBenchmarkContract>,
     #[serde(default)]
@@ -153,6 +154,10 @@ pub(crate) struct CorpusBenchmarkContract {
 
 fn default_sample_scope() -> String {
     "full".to_string()
+}
+
+pub(crate) fn benchmark_publication_corpus_key(corpus_id: &str) -> String {
+    corpus_id.replace('-', "_")
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -1388,41 +1393,34 @@ fn benchmark_publication_contracts_from_config(
     publication: &BenchmarkPublicationConfig,
     corpus_id: &str,
 ) -> Result<Vec<CorpusBenchmarkContract>> {
-    match corpus_id {
-        "corpus-01" => Ok(publication
-            .corpus_01
-            .clone()
-            .unwrap_or_default()
-            .contracts),
-        other => Err(anyhow!(
-            "unsupported publication corpus `{other}`; benchmark publication config does not define it"
-        )),
-    }
+    Ok(publication
+        .corpora
+        .get(&benchmark_publication_corpus_key(corpus_id))
+        .cloned()
+        .unwrap_or_default()
+        .contracts)
 }
 
 fn benchmark_publication_exclusions_from_config(
     publication: &BenchmarkPublicationConfig,
     corpus_id: &str,
 ) -> Result<Vec<CorpusBenchmarkExclusion>> {
-    match corpus_id {
-        "corpus-01" => Ok(publication
-            .corpus_01
-            .clone()
-            .unwrap_or_default()
-            .exclusions),
-        other => Err(anyhow!(
-            "unsupported publication corpus `{other}`; benchmark publication config does not define it"
-        )),
-    }
+    Ok(publication
+        .corpora
+        .get(&benchmark_publication_corpus_key(corpus_id))
+        .cloned()
+        .unwrap_or_default()
+        .exclusions)
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
-        benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
-        benchmark_workspace_config_path, benchmark_workspace_value, corpus_01_publication_contract,
-        load_benchmark_config, load_benchmark_publication_config, load_benchmark_workspace_config,
+        benchmark_publication_corpus_key, benchmark_runtime_corpus_dir_name,
+        benchmark_stage_run_relative_root, benchmark_workspace_config_path,
+        benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_config,
+        load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
         plan_root_convergence, summarize_root_pair, BenchmarkWorkspaceConfig,
         BenchmarkWorkspaceLocal, BENCHMARK_CONFIG_ENV,
@@ -1703,7 +1701,9 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         assert_eq!(
             config
                 .publication
-                .corpus_01
+                .corpora
+                .get(&benchmark_publication_corpus_key("corpus-01"))
+                .cloned()
                 .expect("corpus publication")
                 .contracts
                 .len(),
@@ -1712,7 +1712,9 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         assert_eq!(
             load_benchmark_publication_config(temp.path(), None)
                 .expect("publication config")
-                .corpus_01
+                .corpora
+                .get(&benchmark_publication_corpus_key("corpus-01"))
+                .cloned()
                 .expect("corpus publication")
                 .exclusions
                 .len(),
@@ -1856,7 +1858,9 @@ tools = ["fastqc"]
         assert_eq!(
             config
                 .publication
-                .corpus_01
+                .corpora
+                .get(&benchmark_publication_corpus_key("corpus-01"))
+                .cloned()
                 .expect("corpus publication")
                 .contracts
                 .len(),
