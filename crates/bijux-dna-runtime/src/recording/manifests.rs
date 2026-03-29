@@ -38,25 +38,25 @@ fn manifest_sort_key(value: &serde_json::Value, key: &str) -> String {
         .to_string()
 }
 
-fn detect_run_context() -> crate::RunContextV1 {
+fn detect_run_context() -> Result<crate::RunContextV1> {
     let mode = std::env::var("BIJUX_RUN_CONTEXT").unwrap_or_else(|_| "local".to_string());
     if mode.eq_ignore_ascii_case("hpc") {
         let site = std::env::var("BIJUX_HPC_SITE")
             .ok()
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| "not_declared".to_string());
+            .ok_or_else(|| anyhow!("HPC run context requires BIJUX_HPC_SITE"))?;
         let scratch = std::env::var("TMPDIR")
             .ok()
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| "not_declared".to_string());
+            .ok_or_else(|| anyhow!("HPC run context requires TMPDIR"))?;
         let slurm = std::env::var("SLURM_JOB_ID").is_ok();
-        crate::RunContextV1::Hpc {
+        Ok(crate::RunContextV1::Hpc {
             site,
             scratch,
             slurm,
-        }
+        })
     } else {
-        crate::RunContextV1::Local
+        Ok(crate::RunContextV1::Local)
     }
 }
 
@@ -248,7 +248,7 @@ pub fn write_run_manifest(
         "bank_hashes": serde_json::json!({}),
         "profile_hash": profile_hash,
     });
-    let run_context = detect_run_context();
+    let run_context = detect_run_context()?;
     if matches!(run_context, crate::RunContextV1::Hpc { .. }) {
         let has_tool_digests = reproducibility_tuple
             .get("tool_digests")
