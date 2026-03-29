@@ -699,7 +699,7 @@ fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContribu
                         .rsplit_once('.')
                         .map(|(_, tool_id)| tool_id.to_string())
                 })
-                .unwrap_or_default();
+                .unwrap_or_else(|| contributor_id.clone());
             GovernedQcContributor {
                 contributor_id,
                 stage_id,
@@ -882,7 +882,7 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
                 .contributor_id
                 .rsplit_once('.')
                 .map(|(_, tool_id)| tool_id.to_string())
-                .unwrap_or_default();
+                .unwrap_or_else(|| contributor.contributor_id.clone());
         }
     }
     contributors.sort_by(|left, right| {
