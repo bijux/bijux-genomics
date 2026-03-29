@@ -1,6 +1,5 @@
 ##@ Performance Benchmarks
 
-BIJUX_BIN ?= cargo run -q -p bijux-dna-dev -- tooling run bijux --
 BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --
 BENCHMARK_CONFIG ?= configs/bench/benchmark.toml
 export BIJUX_BENCHMARK_CONFIG := $(BENCHMARK_CONFIG)
@@ -31,6 +30,16 @@ BENCHMARK_SAMPLE_LIMIT_ARGS = $(if $(filter-out 0,$(SAMPLE_LIMIT)),--sample-limi
 BENCHMARK_RESUME_ARGS = $(if $(filter 0 false no,$(RESUME)),--resume false,)
 BENCHMARK_DRY_RUN_ARGS = $(if $(filter 1 true yes,$(DRY_RUN)),--dry-run,)
 
+define run_fastq_benchmark_stage
+	@$(BIJUX_BENCH_BIN) $(if $(PLATFORM),--platform "$(PLATFORM)",) bench fastq $(1) \
+		--sample-id "$(SAMPLE_ID)" \
+		--r1 "$(R1)" \
+		$(if $(R2),--r2 "$(R2)",) \
+		--out "$(OUT_DIR)" \
+		$(BENCH_TOOLS_ARGS) \
+		$(BENCH_EXPERIMENTAL_ARGS)
+endef
+
 define run_corpus_fastq_benchmark
 	@$(BIJUX_BENCH_BIN) $(if $(PLATFORM),--platform "$(PLATFORM)",) bench corpus-fastq \
 		--config "$(BENCHMARK_CONFIG)" \
@@ -55,7 +64,7 @@ define run_corpus_fastq_benchmark_report
 endef
 
 _benchmark-fastq-stage: ## Benchmark FASTQ stage via CLI (requires STAGE=<stage> SAMPLE_ID R1, optional R2)
-	@BIJUX_BIN="$(BIJUX_BIN)" BIJUX_PLATFORM="$(PLATFORM)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" STAGE="$(STAGE)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks fastq-stage
+	$(call run_fastq_benchmark_stage,$(STAGE))
 
 _benchmark-trim: ## Benchmark adapter/quality trimming tools
 	@$(MAKE) _benchmark-fastq-stage STAGE=trim SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
@@ -85,13 +94,29 @@ _benchmark-screen: ## Benchmark screening tools
 	@$(MAKE) _benchmark-fastq-stage STAGE=screen SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 _benchmark-preprocess: ## Benchmark full preprocessing pipeline
-	@BIJUX_BIN="$(BIJUX_BIN)" BIJUX_PLATFORM="$(PLATFORM)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks fastq-preprocess
+	@$(BIJUX_BENCH_BIN) $(if $(PLATFORM),--platform "$(PLATFORM)",) bench fastq preprocess \
+		--sample-id "$(SAMPLE_ID)" \
+		--r1 "$(R1)" \
+		$(if $(R2),--r2 "$(R2)",) \
+		--out "$(OUT_DIR)" \
+		$(BENCH_EXPERIMENTAL_ARGS)
 
 _benchmark-all: ## Run all FASTQ benchmarks sequentially for one explicit sample input
-	@BIJUX_BIN="$(BIJUX_BIN)" BIJUX_PLATFORM="$(PLATFORM)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks fastq-all
+	@$(MAKE) _benchmark-validate SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"
+	@$(MAKE) _benchmark-trim SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"
+	@$(MAKE) _benchmark-filter SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"
+	@$(MAKE) _benchmark-stats SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"
+	@$(MAKE) _benchmark-qc-post SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"
+	@$(MAKE) _benchmark-screen SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"
+	@$(MAKE) _benchmark-preprocess SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"
+	@if [ -n "$(R2)" ]; then \
+		$(MAKE) _benchmark-merge SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"; \
+		$(MAKE) _benchmark-correct SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"; \
+		$(MAKE) _benchmark-umi SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)" PLATFORM="$(PLATFORM)"; \
+	fi
 
 _benchmark-status: ## Show canonical benchmark suite/config directories and detected suites
-	@BIJUX_BIN="$(BIJUX_BIN)" BIJUX_PLATFORM="$(PLATFORM)" cargo run -q -p bijux-dna-dev -- tooling run benchmarks fastq-status
+	@$(BIJUX_BENCH_BIN) $(if $(PLATFORM),--platform "$(PLATFORM)",) bench status
 
 _benchmark-validate-corpus-01: ## Benchmark fastq.validate_reads across corpus-01
 	$(call run_corpus_fastq_benchmark,fastq.validate_reads,)
