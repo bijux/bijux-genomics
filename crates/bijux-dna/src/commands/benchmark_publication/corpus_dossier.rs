@@ -489,7 +489,8 @@ fn render_corpus_benchmark_markdown(
     tool_runtime_rows: &[BTreeMap<String, String>],
     outlier_rows: &[BTreeMap<String, String>],
 ) -> String {
-    let mut lines = vec![
+    let mut lines =
+        vec![
         format!("# `{}` benchmark on `{}`", summary.stage_id, summary.corpus_id),
         String::new(),
         "## Run Contract".to_string(),

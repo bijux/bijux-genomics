@@ -116,7 +116,12 @@ pub(super) fn load_supplemental_findings(
     let findings = payload
         .get("findings")
         .and_then(|value| value.as_array())
-        .ok_or_else(|| anyhow!("supplemental findings in {} must declare a findings array", path.display()))?;
+        .ok_or_else(|| {
+            anyhow!(
+                "supplemental findings in {} must declare a findings array",
+                path.display()
+            )
+        })?;
 
     let mut findings_by_stage = BTreeMap::<String, Vec<StageAuditIssue>>::new();
     for finding in findings {

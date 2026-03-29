@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 
 use super::{
     absolutize, render_corpus_fastq_dossier, write_corpus_fastq_docs_status,
@@ -40,7 +40,7 @@ pub(crate) fn print_benchmark_publication_targets(
     Ok(())
 }
 
-fn corpus_fastq_publication_command(
+pub(super) fn corpus_fastq_publication_command(
     stage_id: &str,
     corpus_id: &str,
     kind: &str,
