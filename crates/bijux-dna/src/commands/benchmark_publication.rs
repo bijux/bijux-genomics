@@ -2310,9 +2310,10 @@ fn audit_sample_results(
     let mut observed_tools = BTreeSet::new();
 
     for row in &sample_rows {
-        let sample_id = csv_value(row, "sample_id");
-        let tool = csv_value(row, "tool");
-        if sample_id.is_empty() || tool.is_empty() {
+        let (Some(sample_id), Some(tool)) = (
+            csv_required_value(row, "sample_id"),
+            csv_required_value(row, "tool"),
+        ) else {
             append_stage_audit_issue(
                 issues,
                 &contract.stage_id,
@@ -2324,18 +2325,18 @@ fn audit_sample_results(
                 "error",
             );
             continue;
-        }
+        };
         observed_tools.insert(tool.clone());
         per_sample_tools
             .entry(sample_id.clone())
             .or_default()
             .push(tool);
         let metadata_tuple = (
-            csv_value(row, "accession"),
-            csv_value(row, "era"),
-            csv_value(row, "layout"),
-            csv_value(row, "study_accession"),
-            csv_value(row, "size_band"),
+            csv_report_value(row, "accession"),
+            csv_report_value(row, "era"),
+            csv_report_value(row, "layout"),
+            csv_report_value(row, "study_accession"),
+            csv_report_value(row, "size_band"),
         );
         if let Some(existing) = sample_metadata.get(&sample_id) {
             if existing != &metadata_tuple {
@@ -2451,8 +2452,7 @@ fn audit_tool_runtime_summary(
     }
     let mut observed_tools = load_csv_rows(tool_runtime_summary_path)?
         .into_iter()
-        .map(|row| csv_value(&row, "tool"))
-        .filter(|value| !value.is_empty())
+        .filter_map(|row| csv_required_value(&row, "tool"))
         .collect::<Vec<_>>();
     observed_tools.sort();
     if observed_tools != expected_tools {
@@ -2487,11 +2487,10 @@ fn audit_cohort_runtime_summary(
     let observed_cohorts = load_csv_rows(cohort_runtime_summary_path)?
         .into_iter()
         .filter(|row| {
-            let dimension = csv_value(row, "dimension");
-            dimension.is_empty() || dimension == "era_layout"
+            let dimension = csv_report_value(row, "dimension");
+            dimension == "missing" || dimension == "era_layout"
         })
-        .map(|row| csv_value(&row, "cohort"))
-        .filter(|value| !value.is_empty())
+        .map(|row| csv_report_value(&row, "cohort"))
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
@@ -2709,6 +2708,15 @@ fn load_csv_rows(path: &Path) -> Result<Vec<BTreeMap<String, String>>> {
 
 fn csv_value(row: &BTreeMap<String, String>, key: &str) -> String {
     row.get(key).cloned().unwrap_or_default().trim().to_string()
+}
+
+fn csv_required_value(row: &BTreeMap<String, String>, key: &str) -> Option<String> {
+    let value = csv_value(row, key);
+    (!value.is_empty()).then_some(value)
+}
+
+fn csv_report_value(row: &BTreeMap<String, String>, key: &str) -> String {
+    csv_required_value(row, key).unwrap_or_else(|| "missing".to_string())
 }
 
 fn sort_count_map(value: Option<&serde_json::Value>) -> BTreeMap<String, usize> {
