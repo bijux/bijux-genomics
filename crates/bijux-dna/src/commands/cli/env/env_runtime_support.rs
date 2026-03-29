@@ -362,11 +362,16 @@ pub fn env_doctor<S: ::std::hash::BuildHasher>(
     platform: &PlatformSpec,
 ) {
     println!("bijux-dna env doctor");
-    let runners = available_runners().unwrap_or_default();
+    let runner_probe = available_runners();
+    let runners = match &runner_probe {
+        Ok(runners) => runners.clone(),
+        Err(_) => Vec::new(),
+    };
     print_check(
         "cache directory writable",
         ensure_cache_writable(platform.runner),
     );
+    print_check("runner discovery", runner_probe.is_ok());
     print_check("runner available", runners.contains(&platform.runner));
     println!("runners: {}", display_runners(&runners));
     for (tool, spec) in catalog {
