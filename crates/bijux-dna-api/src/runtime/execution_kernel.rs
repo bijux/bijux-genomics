@@ -46,6 +46,14 @@ fn stage_summary_path(stage_root: &std::path::Path) -> PathBuf {
     stage_root.join(STAGE_SUMMARY_FILE_NAME)
 }
 
+fn read_log_tail(path: &std::path::Path) -> String {
+    std::fs::read_to_string(path)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| "not_recorded".to_string())
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct ToolInvocationRequest {
     pub step: ExecutionStep,
@@ -391,8 +399,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             .context("write stage logs")?;
     let stdout_path = logs_dir.join("tool.stdout.log");
     let stderr_path = logs_dir.join("tool.stderr.log");
-    let stderr_tail = std::fs::read_to_string(&stderr_path).unwrap_or_default();
-    let stdout_tail = std::fs::read_to_string(&stdout_path).unwrap_or_default();
+    let stderr_tail = read_log_tail(&stderr_path);
+    let stdout_tail = read_log_tail(&stdout_path);
 
     let exit_taxonomy = classify_exit_code(stage_result.exit_code);
     if stage_result.exit_code != 0 {
