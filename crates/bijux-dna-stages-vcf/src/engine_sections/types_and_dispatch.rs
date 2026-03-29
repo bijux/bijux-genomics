@@ -233,11 +233,7 @@ fn stage_default_tool_id(stage: VcfDomainStage) -> &'static str {
 }
 
 fn stage_workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from("."))
+    crate::repo_root::resolve_repo_root().unwrap_or_else(|_| PathBuf::from("."))
 }
 
 fn stage_checksum_hex(bytes: &[u8]) -> String {
