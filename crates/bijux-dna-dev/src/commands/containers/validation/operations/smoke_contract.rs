@@ -62,7 +62,10 @@ pub(in super::super::super) fn check_smoke_contract(
     let mut exempt = BTreeSet::new();
     if images_path.exists() {
         let images = load_toml(&images_path)?;
-        if let Some(table) = images.get("smoke_exemptions").and_then(toml::Value::as_table) {
+        if let Some(table) = images
+            .get("smoke_exemptions")
+            .and_then(toml::Value::as_table)
+        {
             for (tool, value) in table {
                 if value.as_bool() == Some(true) {
                     exempt.insert(tool.clone());

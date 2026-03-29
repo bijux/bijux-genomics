@@ -118,7 +118,9 @@ pub(in super::super::super) fn check_vcf_imputation_toolchain(
             continue;
         };
         if !table_bool(row, "container") {
-            errors.push(format!("{tool}: container=false in vcf downstream registry"));
+            errors.push(format!(
+                "{tool}: container=false in vcf downstream registry"
+            ));
         }
         let runtimes = table_array_strings(row, "runtimes")
             .into_iter()
@@ -343,9 +345,13 @@ pub(in super::super::super) fn check_imputation_release_smoke(
                     .trim()
                     .to_string();
                 if output_path.is_empty() {
-                    errors.push(format!("{runtime}:{tool}: missing smoke_output_paths.{key}"));
+                    errors.push(format!(
+                        "{runtime}:{tool}: missing smoke_output_paths.{key}"
+                    ));
                 } else if !PathBuf::from(&output_path).exists() {
-                    errors.push(format!("{runtime}:{tool}: missing output file {output_path}"));
+                    errors.push(format!(
+                        "{runtime}:{tool}: missing output file {output_path}"
+                    ));
                 }
             }
             if row
