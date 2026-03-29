@@ -19,7 +19,7 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 ## Control Plane Contract
 - `bijux-dna` is the primary benchmark control plane for workspace lookups, dossier refresh, publication audits, and corpus benchmark execution.
 - `bijux-dna bench workspace-value`, `bijux-dna bench corpus-fastq`, `bijux-dna bench corpus-fastq-report`, `bijux-dna bench corpus-fastq-publication-status`, and `bijux-dna bench corpus-fastq-published-dossiers` consume the governed benchmark config directly.
-- `bijux-dna bench publication-targets` remains a contract inspection helper, not the primary publication orchestration path.
+- `bijux-dna bench publication-targets` remains a contract inspection helper that prints governed Rust command lines, not Make targets.
 - Top-level scripts under `makes/bin/` should remain thin wrappers or narrow bootstrap utilities, not benchmark orchestration peers to `bijux-dna`.
 - `configs/bench/benchmark.toml` is the canonical benchmark contract.
 - `BIJUX_BENCHMARK_CONFIG` and shared `--config` CLI options select a different benchmark config when a local or migration workflow needs one.
