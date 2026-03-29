@@ -37,11 +37,22 @@ fn tree_contract_is_minimal() {
     let src_dir = root.join("src");
     let allowed_src = [
         "execution_plan.rs",
+        "execution_plan_support.rs",
+        "execution_plan_validation.rs",
+        "execution_step.rs",
         "executor_registry.rs",
-        "stage_plan.rs",
-        "stage_plugin.rs",
-        "plan_run.rs",
+        "executor_registry_catalog.rs",
+        "executor_registry_lookup.rs",
         "lib.rs",
+        "plan_edge.rs",
+        "plan_run.rs",
+        "planner_contract.rs",
+        "run_artifact_catalog.rs",
+        "run_execution_builder.rs",
+        "stage_plan.rs",
+        "stage_plan_json.rs",
+        "stage_plugin.rs",
+        "stage_reason.rs",
     ];
     let mut src_entries = Vec::new();
     for entry in std::fs::read_dir(&src_dir).expect("read src dir") {
@@ -55,6 +66,6 @@ fn tree_contract_is_minimal() {
     let src_set: std::collections::BTreeSet<_> = src_entries.into_iter().collect();
     assert_eq!(
         src_set, allowed_set,
-        "Stage-contract src must only contain the minimal plan files."
+        "Stage-contract src must match the contract architecture layout."
     );
 }

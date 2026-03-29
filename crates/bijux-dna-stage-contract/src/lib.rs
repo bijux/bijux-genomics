@@ -4,6 +4,7 @@ mod execution_plan_support;
 mod execution_plan_validation;
 pub mod executor_registry;
 mod executor_registry_catalog;
+mod executor_registry_lookup;
 mod plan_edge;
 pub mod plan_run;
 mod planner_contract;
@@ -26,6 +27,8 @@ pub use execution_plan_validation::*;
 pub use plan_edge::*;
 #[allow(unused_imports)]
 pub use executor_registry::*;
+#[allow(unused_imports)]
+pub use executor_registry_lookup::*;
 pub use plan_run::*;
 #[allow(unused_imports)]
 pub use planner_contract::*;
