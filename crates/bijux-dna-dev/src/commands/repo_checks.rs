@@ -173,17 +173,24 @@ pub(crate) fn check_benchmark_integrity_policy(
 ) -> Result<CheckOutcome> {
     let native_ops = read(&workspace.path("crates/bijux-dna-dev/src/commands/ops.rs"))?;
     let mut errors = Vec::new();
-    if !native_ops.contains("tooling_benchmarks") {
-        errors.push("native tooling benchmarks workflow must exist".to_string());
+    if !native_ops.contains("tooling_benchmark_integrity_mini") {
+        errors.push("benchmark integrity mini workflow must exist".to_string());
     }
-    if !native_ops.contains("/benchmarks/") {
+    if !native_ops.contains("/benchmarks/integrity-mini") {
         errors.push(
-            "native tooling benchmarks workflow must default outputs under benchmarks/".to_string(),
+            "benchmark integrity mini workflow must default outputs under benchmarks/integrity-mini/"
+                .to_string(),
         );
     }
     if !native_ops.contains("containers/smoke") {
         errors.push(
-            "native tooling benchmarks workflow must guard against smoke/benchmark log mixing"
+            "benchmark integrity mini workflow must guard against smoke/benchmark log mixing"
+                .to_string(),
+        );
+    }
+    if !native_ops.contains("\"bench\"") || !native_ops.contains("\"fastq\"") {
+        errors.push(
+            "benchmark integrity mini workflow must invoke bijux-dna bench fastq directly"
                 .to_string(),
         );
     }
