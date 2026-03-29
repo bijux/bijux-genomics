@@ -128,7 +128,7 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
         "pipeline_id": request.graph.pipeline_id().to_string(),
         "profile_id": request.profile_id,
         "graph_hash": graph_hash,
-        "cache_key": bijux_dna_core::prelude::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
+        "cache_key": bijux_dna_core::prelude::CacheKey::new("", "", "", ""),
         "toolchain_versions": [],
         "dataset_fingerprints": [],
         "tool_invocations": [],
@@ -137,19 +137,19 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
                 "kind": "graph",
                 "schema": "bijux.execution_graph.v1",
                 "path": "graph.json",
-                "sha256": "unknown"
+                "sha256": serde_json::Value::Null
             },
             {
                 "kind": "run_manifest",
                 "schema": "bijux.run_manifest.v3",
                 "path": "run_manifest.json",
-                "sha256": "unknown"
+                "sha256": serde_json::Value::Null
             },
             {
                 "kind": "run_summary",
                 "schema": "bijux.run_summary.v1",
                 "path": "run_summary.json",
-                "sha256": "unknown"
+                "sha256": serde_json::Value::Null
             }
         ],
         "stages": [],
@@ -209,7 +209,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         "pipeline_id": request.graph.pipeline_id().to_string(),
         "profile_id": request.profile_id,
         "graph_hash": graph_hash,
-        "cache_key": bijux_dna_core::prelude::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
+        "cache_key": bijux_dna_core::prelude::CacheKey::new("", "", "", ""),
         "toolchain_versions": [],
         "dataset_fingerprints": [],
         "tool_invocations": [],
