@@ -128,12 +128,7 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
         "pipeline_id": request.graph.pipeline_id().to_string(),
         "profile_id": request.profile_id,
         "graph_hash": graph_hash,
-        "cache_key": bijux_dna_core::prelude::CacheKey::new(
-            "not_recorded",
-            "not_recorded",
-            "not_recorded",
-            "not_declared"
-        ),
+        "cache_key": serde_json::Value::Null,
         "toolchain_versions": [],
         "dataset_fingerprints": [],
         "tool_invocations": [],
@@ -214,12 +209,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         "pipeline_id": request.graph.pipeline_id().to_string(),
         "profile_id": request.profile_id,
         "graph_hash": graph_hash,
-        "cache_key": bijux_dna_core::prelude::CacheKey::new(
-            "not_recorded",
-            "not_recorded",
-            "not_recorded",
-            "not_declared"
-        ),
+        "cache_key": serde_json::Value::Null,
         "toolchain_versions": [],
         "dataset_fingerprints": [],
         "tool_invocations": [],
