@@ -1342,7 +1342,7 @@ fn render_dossier_index_markdown(index: &DossierIndex) -> String {
             ));
             lines.push(format!(
                 "  - published run root: `{}`",
-                stage.run_root.as_deref().unwrap_or("")
+                stage.run_root.as_deref().unwrap_or("missing")
             ));
             lines.push(format!(
                 "  - expected remote run root: `{}`",
@@ -2130,13 +2130,13 @@ fn audit_publication_stage(
             .and_then(|value| value.as_u64())
             .unwrap_or(0) as usize,
         results_selected_run_root: value_string(&results_stage, "selected_run_root")
-            .unwrap_or("")
+            .unwrap_or("missing")
             .to_string(),
         results_newest_available_run_root: value_string(
             &results_stage,
             "newest_available_run_root",
         )
-        .unwrap_or("")
+        .unwrap_or("missing")
         .to_string(),
         results_selected_run_root_is_newest: results_stage
             .get("selected_run_root_is_newest")
