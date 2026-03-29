@@ -5,9 +5,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, Utc};
 use regex::Regex;
-use serde::Serialize;
 
 mod entrypoint;
+mod models;
 
 use crate::commands::benchmark_corpus_metadata::{
     corpus_expected_sample_total, discover_normalized_samples, load_corpus_spec,
@@ -25,69 +25,14 @@ pub(crate) use self::entrypoint::{
     print_benchmark_publication_targets, run_corpus_fastq_publication_status,
     run_corpus_fastq_published_dossiers, run_corpus_fastq_report,
 };
-
-#[derive(Debug, Serialize)]
-struct CorpusSummary {
-    schema_version: String,
-    corpus_id: String,
-    stage_id: String,
-    scenario_id: String,
-    generated_at_utc: String,
-    platform: String,
-    corpus_root: String,
-    run_root: String,
-    sample_scope: String,
-    samples_total: usize,
-    samples_failed: usize,
-    tools: Vec<String>,
-    cohort_counts: BTreeMap<String, usize>,
-    era_counts: BTreeMap<String, usize>,
-    layout_counts: BTreeMap<String, usize>,
-    tool_summary: Vec<CorpusToolSummary>,
-    headline: CorpusHeadline,
-}
-
-#[derive(Debug, Serialize)]
-struct CorpusToolSummary {
-    tool: String,
-    records: usize,
-    pass_rate: Option<f64>,
-    median_runtime_s: Option<f64>,
-    mean_runtime_s: Option<f64>,
-    max_runtime_s: Option<f64>,
-}
-
-#[derive(Debug, Serialize)]
-struct CorpusHeadline {
-    fastest_tool: Option<String>,
-    fastest_runtime_s: Option<f64>,
-    highest_pass_rate_tool: Option<String>,
-    highest_pass_rate: Option<f64>,
-}
-
-#[derive(Debug, Clone)]
-struct CorpusSampleResultRow {
-    sample_id: String,
-    accession: String,
-    era: String,
-    layout: String,
-    study_accession: String,
-    size_band: String,
-    tool: String,
-    runtime_s: Option<f64>,
-    exit_code: Option<i64>,
-    report_json: String,
-}
-
-#[derive(Debug)]
-struct CorpusArtifactSet {
-    summary: CorpusSummary,
-    sample_rows: Vec<CorpusSampleResultRow>,
-    tool_runtime_rows: Vec<BTreeMap<String, String>>,
-    cohort_runtime_rows: Vec<BTreeMap<String, String>>,
-    outlier_rows: Vec<BTreeMap<String, String>>,
-    benchmark_markdown: String,
-}
+use self::models::{
+    BenchmarkPublicationStatusReport, CorpusArtifactSet, CorpusHeadline, CorpusSampleResultRow,
+    CorpusSummary, CorpusToolSummary, DossierIndex, DossierStageEntry, ExcludedStageEntry,
+    PublicationCorpusSpec, PublicationStageReport, PublishedResultsStageReport,
+    PublishedResultsStatusReport, RemediationIssue, RemediationIssueGroup, RemediationQueue,
+    RemediationStageEntry, StageAuditIssue, StageResultIssue, StageRunRootCandidate,
+    StageRunRootSelection,
+};
 
 fn render_corpus_fastq_dossier(
     cwd: &Path,
@@ -759,170 +704,6 @@ fn csv_sort_f64(value: Option<&String>) -> f64 {
         .unwrap_or_default()
 }
 
-#[derive(Debug, Serialize)]
-struct DossierIndex {
-    corpus_id: String,
-    stage_count: usize,
-    published_stage_count: usize,
-    missing_stage_count: usize,
-    stages: Vec<DossierStageEntry>,
-}
-
-#[derive(Debug, Serialize)]
-struct DossierStageEntry {
-    stage_id: String,
-    sample_scope: String,
-    status: String,
-    summary_path: String,
-    dossier_path: String,
-    expected_remote_run_root: String,
-    expected_local_cache_mirror_run_root: String,
-    expected_local_results_run_root: String,
-    generated_at_utc: Option<String>,
-    platform: Option<String>,
-    corpus_root: Option<String>,
-    run_root: Option<String>,
-    run_root_source: Option<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct PublishedResultsStatusReport {
-    corpus_id: String,
-    applicable_stage_count: usize,
-    published_stage_count: usize,
-    complete_stage_count: usize,
-    incomplete_stage_count: usize,
-    issue_count: usize,
-    stages: Vec<PublishedResultsStageReport>,
-}
-
-#[derive(Debug, Serialize)]
-struct PublishedResultsStageReport {
-    stage_id: String,
-    status: String,
-    issue_count: usize,
-    reported_run_root: String,
-    selected_run_root: String,
-    newest_available_run_root: String,
-    selected_run_root_is_newest: bool,
-    available_run_roots: Vec<String>,
-    issues: Vec<StageResultIssue>,
-}
-
-#[derive(Debug, Serialize)]
-struct StageResultIssue {
-    stage_id: String,
-    issue_id: String,
-    detail: String,
-}
-
-#[derive(Debug, Clone, serde::Deserialize)]
-struct PublicationCorpusSpec {
-    corpus_id: String,
-    #[serde(default)]
-    target_ancient_se: usize,
-    #[serde(default)]
-    target_ancient_pe: usize,
-    #[serde(default)]
-    target_modern_se: usize,
-    #[serde(default)]
-    target_modern_pe: usize,
-}
-
-#[derive(Debug, Serialize)]
-struct BenchmarkPublicationStatusReport {
-    corpus_id: String,
-    docs_root: String,
-    benchmarkable_stage_count: usize,
-    applicable_stage_count: usize,
-    completed_stage_count: usize,
-    incomplete_stage_count: usize,
-    excluded_stage_count: usize,
-    issue_count: usize,
-    audit_warning_count: usize,
-    audit_warnings: Vec<String>,
-    supplemental_findings_generated_at_utc: Option<String>,
-    excluded_stages: Vec<ExcludedStageEntry>,
-    stages: Vec<PublicationStageReport>,
-}
-
-#[derive(Debug, Serialize)]
-struct ExcludedStageEntry {
-    stage_id: String,
-    reason: String,
-}
-
-#[derive(Debug, Serialize)]
-struct PublicationStageReport {
-    stage_id: String,
-    scenario_id: String,
-    sample_scope: String,
-    contract_tool_roster: Vec<String>,
-    expected_tool_roster: Vec<String>,
-    method_path: String,
-    corpus_path: String,
-    status: String,
-    issue_count: usize,
-    results_status: String,
-    results_issue_count: usize,
-    results_selected_run_root: String,
-    results_newest_available_run_root: String,
-    results_selected_run_root_is_newest: bool,
-    issues: Vec<StageAuditIssue>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct StageAuditIssue {
-    stage_id: String,
-    issue_id: String,
-    severity: String,
-    detail: String,
-}
-
-#[derive(Debug, Serialize)]
-struct RemediationQueue {
-    corpus_id: String,
-    stage_count: usize,
-    open_stage_count: usize,
-    clear_stage_count: usize,
-    stages: Vec<RemediationStageEntry>,
-}
-
-#[derive(Debug, Serialize)]
-struct RemediationStageEntry {
-    stage_id: String,
-    owner: String,
-    status: String,
-    issue_count: usize,
-    issue_group_count: usize,
-    recommended_action: String,
-    publication_status: String,
-    results_status: String,
-    sample_scope: String,
-    published_generated_at_utc: Option<String>,
-    run_root_source: Option<String>,
-    issue_groups: Vec<RemediationIssueGroup>,
-    issues: Vec<RemediationIssue>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct RemediationIssue {
-    issue_id: String,
-    detail: String,
-    severity: String,
-    source: String,
-}
-
-#[derive(Debug, Serialize)]
-struct RemediationIssueGroup {
-    issue_id: String,
-    count: usize,
-    sources: Vec<String>,
-    severity: String,
-    example_details: Vec<String>,
-    additional_detail_count: usize,
-}
-
 fn publication_stage_docs_root(docs_root: &Path, stage_id: &str, corpus_id: &str) -> PathBuf {
     docs_root.join(stage_id).join(corpus_id)
 }
@@ -981,17 +762,6 @@ fn write_corpus_fastq_dossier_index(
     fs::write(&markdown_path, render_dossier_index_markdown(&index))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
-}
-
-#[derive(Debug, Clone)]
-struct StageRunRootCandidate {
-    path: PathBuf,
-}
-
-#[derive(Debug)]
-struct StageRunRootSelection {
-    selected_path: PathBuf,
-    newest_available_path: Option<PathBuf>,
 }
 
 fn write_corpus_fastq_results_status(
