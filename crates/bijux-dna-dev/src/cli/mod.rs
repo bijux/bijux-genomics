@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use anyhow::Result;
 use chrono::Utc;
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use serde_json::json;
 
 use crate::application::checks::CheckApplication;
@@ -16,94 +16,9 @@ use crate::catalog::ops::{
 use crate::model::check::{CheckOutcome, CheckSelection, CheckStatus};
 use crate::runtime::workspace::Workspace;
 
-#[derive(Parser, Debug)]
-#[command(
-    name = "bijux-dna-dev",
-    about = "Versioned development control-plane for the Bijux DNA workspace"
-)]
-pub struct Cli {
-    #[command(subcommand)]
-    command: Command,
-}
+mod schema;
 
-#[derive(Subcommand, Debug)]
-enum Command {
-    Assets(OpsCommand),
-    Checks(ChecksCommand),
-    Containers(ContainersCommand),
-    Domain(DomainCommand),
-    Docs(OpsCommand),
-    Examples(OpsCommand),
-    Hpc(OpsCommand),
-    Lab(OpsCommand),
-    Smoke(OpsCommand),
-    Test(OpsCommand),
-    Tooling(OpsCommand),
-}
-
-#[derive(Parser, Debug)]
-pub struct ChecksCommand {
-    #[command(subcommand)]
-    command: ChecksSubcommand,
-}
-
-#[derive(Subcommand, Debug)]
-enum ChecksSubcommand {
-    List,
-    Run {
-        #[arg(long, conflicts_with = "id")]
-        all: bool,
-        id: Option<String>,
-    },
-}
-
-#[derive(Parser, Debug)]
-pub struct ContainersCommand {
-    #[command(subcommand)]
-    command: ContainersSubcommand,
-}
-
-#[derive(Subcommand, Debug)]
-enum ContainersSubcommand {
-    List,
-    Run {
-        id: String,
-        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-        args: Vec<String>,
-    },
-}
-
-#[derive(Parser, Debug)]
-pub struct DomainCommand {
-    #[command(subcommand)]
-    command: DomainSubcommand,
-}
-
-#[derive(Parser, Debug)]
-pub struct OpsCommand {
-    #[command(subcommand)]
-    command: OpsSubcommand,
-}
-
-#[derive(Subcommand, Debug)]
-enum DomainSubcommand {
-    List,
-    Run {
-        id: String,
-        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-        args: Vec<String>,
-    },
-}
-
-#[derive(Subcommand, Debug)]
-enum OpsSubcommand {
-    List,
-    Run {
-        id: String,
-        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-        args: Vec<String>,
-    },
-}
+use self::schema::*;
 
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
