@@ -1650,7 +1650,9 @@ fn resolve_deplete_rrna_stage_options(stage_args: &[String]) -> Result<DepleteRr
         rrna_bundle_id: stage_values
             .get("rrna_bundle_id")
             .cloned()
-            .unwrap_or_else(|| DEPLETE_RRNA_DEFAULT_BUNDLE_ID.to_string()),
+            .ok_or_else(|| {
+                anyhow!("fastq.deplete_rrna requires --rrna-bundle-id in stage arguments")
+            })?,
         min_identity: stage_values
             .get("min_identity")
             .map(|row| row.parse::<f64>())
@@ -2174,6 +2176,22 @@ mod tests {
         assert_eq!(options.rrna_db, rrna_db);
         assert_eq!(options.rrna_bundle_id, "sortmerna_v4_3_default_db");
         assert!((options.min_identity - 0.95).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn deplete_rrna_stage_options_require_declared_bundle_id() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let rrna_db = temp.path().join("sortmerna_v4_3_default_db.fasta");
+        fs::write(&rrna_db, ">rrna\nACGT\n").expect("write rrna fasta");
+
+        let error = resolve_deplete_rrna_stage_options(&[
+            "--rrna-db".to_string(),
+            rrna_db.display().to_string(),
+        ])
+        .expect_err("missing rrna bundle id must fail");
+        assert!(error
+            .to_string()
+            .contains("fastq.deplete_rrna requires --rrna-bundle-id in stage arguments"));
     }
 
     #[test]
