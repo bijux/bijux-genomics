@@ -152,11 +152,75 @@ pub(super) fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
         });
     let payload = serde_json::json!({
         "schema_version": "bijux.site_lock.v1",
-        "site": std::env::var("BIJUX_HPC_SITE").unwrap_or_else(|_| "lunarc".to_string()),
+        "site": resolved_site_name(),
         "apptainer_version": apptainer_version,
         "kernel": kernel,
         "cpu_model": cpu_model,
     });
     bijux_dna_infra::atomic_write_json(&lock_path, &payload)?;
     Ok(())
+}
+
+fn resolved_site_name() -> String {
+    env_value("BIJUX_HPC_SITE")
+        .or_else(|| env_value("BIJUX_PLATFORM"))
+        .or_else(|| {
+            env_value("HOSTNAME").map(|value| {
+                value
+                    .split('.')
+                    .next()
+                    .unwrap_or(value.as_str())
+                    .to_string()
+            })
+        })
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+fn env_value(key: &str) -> Option<String> {
+    std::env::var(key)
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolved_site_name;
+    use std::sync::Mutex;
+
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn resolved_site_name_prefers_explicit_hpc_site() {
+        let _lock = ENV_LOCK.lock().expect("env lock");
+        unsafe {
+            std::env::set_var("BIJUX_HPC_SITE", "cluster-a");
+            std::env::set_var("BIJUX_PLATFORM", "platform-b");
+            std::env::set_var("HOSTNAME", "node-01.example");
+        }
+        assert_eq!(resolved_site_name(), "cluster-a");
+        unsafe {
+            std::env::remove_var("BIJUX_HPC_SITE");
+            std::env::remove_var("BIJUX_PLATFORM");
+            std::env::remove_var("HOSTNAME");
+        }
+    }
+
+    #[test]
+    fn resolved_site_name_falls_back_to_platform_then_hostname() {
+        let _lock = ENV_LOCK.lock().expect("env lock");
+        unsafe {
+            std::env::remove_var("BIJUX_HPC_SITE");
+            std::env::set_var("BIJUX_PLATFORM", "apptainer-amd64");
+            std::env::set_var("HOSTNAME", "node-01.example");
+        }
+        assert_eq!(resolved_site_name(), "apptainer-amd64");
+        unsafe {
+            std::env::remove_var("BIJUX_PLATFORM");
+        }
+        assert_eq!(resolved_site_name(), "node-01");
+        unsafe {
+            std::env::remove_var("HOSTNAME");
+        }
+        assert_eq!(resolved_site_name(), "unknown");
+    }
 }

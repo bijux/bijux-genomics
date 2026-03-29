@@ -278,7 +278,17 @@ where
     std::env::set_var("BIJUX_PROFILE_HASH", format!("{:x}", hasher.finalize()));
     if cli.profile.eq_ignore_ascii_case("hpc") {
         std::env::set_var("BIJUX_RUN_CONTEXT", "hpc");
-        std::env::set_var("BIJUX_HPC_SITE", "lunarc");
+        if std::env::var("BIJUX_HPC_SITE")
+            .ok()
+            .is_none_or(|value| value.trim().is_empty())
+        {
+            if let Some(platform) = std::env::var("BIJUX_PLATFORM")
+                .ok()
+                .filter(|value| !value.trim().is_empty())
+            {
+                std::env::set_var("BIJUX_HPC_SITE", platform);
+            }
+        }
     } else {
         std::env::set_var("BIJUX_RUN_CONTEXT", "local");
     }
