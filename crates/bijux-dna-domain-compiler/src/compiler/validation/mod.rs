@@ -1,10 +1,12 @@
 use super::*;
 
+mod catalog_coverage;
 mod catalog_validation;
 mod index_rules;
 mod stage_files;
 mod tool_files;
 
+use self::catalog_coverage::validate_canonical_stage_coverage;
 use self::catalog_validation::{
     validate_domain_vocabularies, validate_reference_catalogs, DomainVocabularies,
 };
@@ -65,26 +67,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         )?;
     }
 
-    let fastq_canonical = bijux_dna_domain_fastq::stages::ids::STAGES
-        .iter()
-        .map(|id| id.as_str().to_string())
-        .collect::<BTreeSet<_>>();
-    let bam_canonical = bijux_dna_domain_bam::stage_specs::BamStage::all()
-        .iter()
-        .map(|stage| stage.as_str().to_string())
-        .collect::<BTreeSet<_>>();
-    // Accept additional domain-declared stages so domain specs can evolve ahead
-    // of canonical stage catalogs; still enforce that canonical stages are present.
-    for stage_id in &fastq_canonical {
-        if !stage_ids.contains_key(stage_id) {
-            bail!("fastq stage catalog contains {stage_id} but domain yaml is missing it");
-        }
-    }
-    for stage_id in &bam_canonical {
-        if !stage_ids.contains_key(stage_id) {
-            bail!("bam stage catalog contains {stage_id} but domain yaml is missing it");
-        }
-    }
+    validate_canonical_stage_coverage(&stage_ids)?;
 
     validate_domain_indexes_and_pipelines(
         options,
