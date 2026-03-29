@@ -14,8 +14,7 @@ fn snapshot_name(bucket: &str, test_name: &str) -> String {
 
 #[test]
 fn cli_bank_preset_resolution_is_stable() -> Result<()> {
-    let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let snapshot_path = manifest_dir
+    let snapshot_path = support::crate_root("bijux-dna")?
         .join("tests")
         .join("snapshots")
         .join(snapshot_name("contracts", "bank_preset_resolution"))
