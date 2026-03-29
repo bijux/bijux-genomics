@@ -232,8 +232,8 @@ fn stage_default_tool_id(stage: VcfDomainStage) -> &'static str {
     }
 }
 
-fn stage_workspace_root() -> PathBuf {
-    crate::repo_root::resolve_repo_root().unwrap_or_else(|_| PathBuf::from("."))
+fn stage_workspace_root() -> Result<PathBuf> {
+    crate::repo_root::resolve_repo_root()
 }
 
 fn stage_checksum_hex(bytes: &[u8]) -> String {
@@ -244,7 +244,7 @@ fn stage_checksum_hex(bytes: &[u8]) -> String {
 }
 
 pub(crate) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
-    let root = stage_workspace_root();
+    let root = stage_workspace_root()?;
     for rel in [
         "configs/ci/registry/tool_registry_vcf.toml",
         "configs/ci/registry/tool_registry_vcf_downstream.toml",
