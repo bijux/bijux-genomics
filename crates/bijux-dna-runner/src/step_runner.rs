@@ -863,14 +863,14 @@ mod tests {
         let template = vec![
             "sh".to_string(),
             "-lc".to_string(),
-            "printf '%s' /tmp/results/corpus_01/fastq.report_qc/lunarc/bench/report_qc/sample_0001/tools/multiqc/report_qc_report.json > /tmp/results/corpus_01/fastq.report_qc/lunarc/bench/report_qc/sample_0001/tools/multiqc/report_qc_report.json".to_string(),
+            "printf '%s' /tmp/results/benchmark_corpus/fastq.report_qc/cluster/bench/report_qc/sample_0001/tools/multiqc/report_qc_report.json > /tmp/results/benchmark_corpus/fastq.report_qc/cluster/bench/report_qc/sample_0001/tools/multiqc/report_qc_report.json".to_string(),
         ];
 
         let rewritten = container_command_template(
             &template,
-            Path::new("/tmp/results/corpus_01"),
+            Path::new("/tmp/results/benchmark_corpus"),
             Path::new(
-                "/tmp/results/corpus_01/fastq.report_qc/lunarc/bench/report_qc/sample_0001/tools/multiqc",
+                "/tmp/results/benchmark_corpus/fastq.report_qc/cluster/bench/report_qc/sample_0001/tools/multiqc",
             ),
             false,
         );
@@ -901,7 +901,7 @@ mod tests {
             "-S".to_string(),
             "/dev/null".to_string(),
             "-1".to_string(),
-            "/data/corpus_01/normalized/sample_0001_R1.fastq.gz".to_string(),
+            "/data/benchmark_corpus/normalized/sample_0001_R1.fastq.gz".to_string(),
             "--met-file".to_string(),
             "/tmp/out/bowtie2.metrics.txt".to_string(),
         ];

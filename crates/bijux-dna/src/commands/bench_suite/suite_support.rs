@@ -284,7 +284,7 @@ fn mini_suite_stability_gate(cwd: &Path) -> (bool, String) {
         .collect::<Vec<_>>();
     manifests.sort();
     if manifests.len() < 2 {
-        return (false, "need at least two corpus-01-mini runs".to_string());
+        return (false, "need at least two mini benchmark runs".to_string());
     }
     let right = manifests.pop().unwrap_or_default();
     let left = manifests.pop().unwrap_or_default();
@@ -307,13 +307,13 @@ fn mini_suite_stability_gate(cwd: &Path) -> (bool, String) {
     if left_manifest.comparability_hash != right_manifest.comparability_hash {
         return (
             false,
-            "comparability_hash drift detected on corpus-01-mini".to_string(),
+            "comparability_hash drift detected across mini benchmark runs".to_string(),
         );
     }
     if left_manifest.decision_trace != right_manifest.decision_trace {
         return (
             false,
-            "decision trace drift detected on corpus-01-mini".to_string(),
+            "decision trace drift detected across mini benchmark runs".to_string(),
         );
     }
     (
