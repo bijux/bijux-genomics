@@ -1131,7 +1131,7 @@ mod tests {
         parse_profile_read_lengths_metrics, parse_profile_reads_metrics,
         parse_remove_duplicates_metrics, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
         parse_trim_polyg_metrics, parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
-        parse_validate_reads_metrics, required_metrics_keys, workspace_root_path,
+        parse_validate_reads_metrics, required_metrics_keys,
     };
 
     fn env_lock() -> &'static Mutex<()> {
