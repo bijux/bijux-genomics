@@ -7,7 +7,7 @@ pub(crate) fn write_run_manifest(
         .first()
         .map(|entry| entry.result.run_id.clone())
         .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "not_recorded".to_string());
+        .ok_or_else(|| anyhow::anyhow!("stage runs missing declared run_id"))?;
     let stages: Vec<serde_json::Value> = stage_runs
         .iter()
         .map(|entry| {
