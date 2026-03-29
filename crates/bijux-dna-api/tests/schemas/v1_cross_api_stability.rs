@@ -111,7 +111,10 @@ fn dry_run_response_schema_is_stable() -> anyhow::Result<()> {
     };
     let response = dry_run(&request)?;
     let mut json = serde_json::to_value(&response)?;
-    let root = temp.path().to_str().unwrap_or_default();
+    let root = temp
+        .path()
+        .to_str()
+        .unwrap_or_else(|| panic!("temp root is not valid UTF-8: {}", temp.path().display()));
     scrub_paths(&mut json, root);
     let name = snapshot_name("schemas", "dry_run_response_schema");
     let settings = snapshot_settings();
@@ -133,7 +136,10 @@ fn status_schema_is_stable() -> anyhow::Result<()> {
         "report_path": status.report_path,
         "has_failures": status.has_failures,
     });
-    let root = temp.path().to_str().unwrap_or_default();
+    let root = temp
+        .path()
+        .to_str()
+        .unwrap_or_else(|| panic!("temp root is not valid UTF-8: {}", temp.path().display()));
     scrub_paths(&mut json, root);
     let name = snapshot_name("schemas", "status_schema");
     let settings = snapshot_settings();
