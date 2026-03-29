@@ -369,7 +369,7 @@ fn write_udg_metadata(
         .params
         .get("udg_model")
         .and_then(serde_json::Value::as_str)
-        .unwrap_or("unknown");
+        .map(str::to_string);
     let path = stage_dir.join("udg_regime.json");
     bijux_dna_infra::atomic_write_json(
         &path,
