@@ -1,5 +1,8 @@
+#[path = "../support.rs"]
+mod support;
+
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use serde_json::Value;
 
@@ -16,7 +19,8 @@ fn stable_json(value: &Value) -> Value {
 /// Ensures JSON fixtures serialize deterministically.
 #[test]
 fn fixture_json_is_stable() {
-    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let fixture = support::crate_root("bijux-dna-runtime")
+        .expect("runtime crate root")
         .join("tests/fixtures/runtime_schema/default/run_record_v1.json");
     let value = load_fixture_json(&fixture);
     let sorted = stable_json(&value);

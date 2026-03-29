@@ -1,9 +1,12 @@
+#[path = "../../support.rs"]
+mod support;
+
 use std::fs;
-use std::path::PathBuf;
 
 #[test]
 fn reference_example_is_documented() {
-    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let doc = support::crate_root("bijux-dna-runtime")
+        .expect("runtime crate root")
         .join("docs")
         .join("RUNTIME_CONTRACT.md");
     let content = fs::read_to_string(&doc)
