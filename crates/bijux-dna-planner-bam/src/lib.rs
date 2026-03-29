@@ -39,41 +39,10 @@ impl BamPlanner {
 
 /// # Errors
 /// Returns an error if the stage cannot be planned with the provided inputs.
-#[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+#[allow(clippy::needless_pass_by_value)]
 pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
     let stage = bijux_dna_domain_bam::BamStage::try_from(request.stage_id)?;
-    let mut plan = match stage {
-        bijux_dna_domain_bam::BamStage::Align
-        | bijux_dna_domain_bam::BamStage::Validate
-        | bijux_dna_domain_bam::BamStage::QcPre
-        | bijux_dna_domain_bam::BamStage::MappingSummary
-        | bijux_dna_domain_bam::BamStage::Filter
-        | bijux_dna_domain_bam::BamStage::MapqFilter
-        | bijux_dna_domain_bam::BamStage::LengthFilter
-        | bijux_dna_domain_bam::BamStage::OverlapCorrection => {
-            stage_dispatch::pre::plan(stage, &request)
-        }
-        bijux_dna_domain_bam::BamStage::Markdup
-        | bijux_dna_domain_bam::BamStage::DuplicationMetrics
-        | bijux_dna_domain_bam::BamStage::Complexity
-        | bijux_dna_domain_bam::BamStage::Coverage
-        | bijux_dna_domain_bam::BamStage::InsertSize
-        | bijux_dna_domain_bam::BamStage::GcBias
-        | bijux_dna_domain_bam::BamStage::EndogenousContent
-        | bijux_dna_domain_bam::BamStage::Recalibration => {
-            stage_dispatch::post::plan(stage, &request)
-        }
-        bijux_dna_domain_bam::BamStage::Damage
-        | bijux_dna_domain_bam::BamStage::Authenticity
-        | bijux_dna_domain_bam::BamStage::Contamination
-        | bijux_dna_domain_bam::BamStage::Sex => stage_dispatch::adna::plan(stage, &request),
-        bijux_dna_domain_bam::BamStage::BiasMitigation
-        | bijux_dna_domain_bam::BamStage::Haplogroups
-        | bijux_dna_domain_bam::BamStage::Genotyping
-        | bijux_dna_domain_bam::BamStage::Kinship => {
-            stage_dispatch::downstream::plan(stage, &request)
-        }
-    }?;
+    let mut plan = stage_dispatch::plan(stage, &request)?;
     let mut details = serde_json::Map::new();
     details.insert("defaults_diff".to_string(), serde_json::json!({}));
     if let Some(Ok(hash)) = bijux_dna_domain_bam::stage_contract_hash(request.stage_id) {
