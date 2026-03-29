@@ -233,13 +233,13 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         {
             "kind": "graph",
             "schema": "bijux.execution_graph.v1",
-            "path": graph_path.display().to_string(),
+            "path": relative_path_string(&request.run_dir, &graph_path),
             "sha256": graph_sha
         },
         {
             "kind": "run_summary",
             "schema": "bijux.run_summary.v1",
-            "path": summary_path.display().to_string(),
+            "path": relative_path_string(&request.run_dir, &summary_path),
             "sha256": summary_sha
         }
     ]);
@@ -250,7 +250,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         artifacts.push(serde_json::json!({
             "kind": "run_manifest",
             "schema": "bijux.run_manifest.v3",
-            "path": manifest_path.display().to_string(),
+            "path": relative_path_string(&request.run_dir, &manifest_path),
             "sha256": manifest_sha
         }));
     } else {
@@ -275,7 +275,10 @@ fn write_run_summary_artifact(
         "schema_version": "bijux.run_summary.v1",
         "mode": mode,
         "pipeline_id": pipeline_id,
-        "manifest_path": manifest_path.display().to_string(),
+        "manifest_path": relative_path_string(
+            manifest_path.parent().unwrap_or_else(|| Path::new(".")),
+            manifest_path,
+        ),
         "generated_at": Utc::now().to_rfc3339(),
     });
     let bytes = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&payload)?;
@@ -388,4 +391,11 @@ fn run_layout_from_dir(base_dir: &Path) -> bijux_dna_runtime::run_layout::RunLay
         metadata_path: base_dir.join("run_metadata.json"),
         events_path: base_dir.join("events.jsonl"),
     }
+}
+
+fn relative_path_string(base: &Path, path: &Path) -> String {
+    path.strip_prefix(base)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .to_string()
 }
