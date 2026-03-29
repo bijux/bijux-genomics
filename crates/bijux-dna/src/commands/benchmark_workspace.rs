@@ -430,7 +430,7 @@ pub(crate) fn benchmark_stage_run_relative_root(
     scope: &str,
     corpus_dir_name: &str,
     stage_id: &str,
-) -> PathBuf {
+) -> Result<PathBuf> {
     let template = workspace
         .layout
         .as_ref()
@@ -441,17 +441,12 @@ pub(crate) fn benchmark_stage_run_relative_root(
             "local-archive" => row.local_archive_results_template.as_deref(),
             _ => None,
         })
-        .unwrap_or(match scope {
-            "remote" => "{corpus_id}/{stage_id}/lunarc",
-            "local-cache" => "results/{corpus_id}/{stage_id}/lunarc",
-            "local-archive" => "{corpus_id}/{stage_id}/lunarc",
-            _ => "{corpus_id}/{stage_id}/lunarc",
-        });
-    PathBuf::from(
+        .ok_or_else(|| anyhow!("benchmark config is missing workspace.layout.stage_runs template for scope `{scope}`"))?;
+    Ok(PathBuf::from(
         template
             .replace("{corpus_id}", corpus_dir_name)
             .replace("{stage_id}", stage_id),
-    )
+    ))
 }
 
 pub(crate) fn benchmark_workspace_value(
@@ -1441,7 +1436,7 @@ mod tests {
         load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
         plan_root_convergence, summarize_root_pair, workspace_layout_corpus_dir_name,
-        BenchmarkWorkspaceConfig,
+        BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceStageRuns,
         BenchmarkWorkspaceLocal, BENCHMARK_CONFIG_ENV,
     };
     use std::path::Path;
@@ -1790,24 +1785,54 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
     }
 
     #[test]
-    fn benchmark_stage_run_relative_root_uses_default_templates() {
+    fn benchmark_stage_run_relative_root_requires_declared_templates() {
+        let error = benchmark_stage_run_relative_root(
+            &BenchmarkWorkspaceConfig::default(),
+            "remote",
+            "corpus_01",
+            "fastq.validate_reads",
+        )
+        .expect_err("missing templates must fail");
+        assert!(error
+            .to_string()
+            .contains("benchmark config is missing workspace.layout.stage_runs template"));
+    }
+
+    #[test]
+    fn benchmark_stage_run_relative_root_uses_workspace_templates() {
+        let workspace = BenchmarkWorkspaceConfig {
+            layout: Some(BenchmarkWorkspaceLayout {
+                stage_runs: Some(BenchmarkWorkspaceStageRuns {
+                    remote_results_template: Some("{corpus_id}/{stage_id}/cluster".to_string()),
+                    local_cache_results_template: Some(
+                        "results/{corpus_id}/{stage_id}/cluster".to_string(),
+                    ),
+                    local_archive_results_template: Some(
+                        "archive/{corpus_id}/{stage_id}/cluster".to_string(),
+                    ),
+                }),
+            }),
+            ..BenchmarkWorkspaceConfig::default()
+        };
         assert_eq!(
             benchmark_stage_run_relative_root(
-                &BenchmarkWorkspaceConfig::default(),
+                &workspace,
                 "remote",
                 "corpus_01",
                 "fastq.validate_reads"
-            ),
-            std::path::PathBuf::from("corpus_01/fastq.validate_reads/lunarc")
+            )
+            .expect("remote path"),
+            std::path::PathBuf::from("corpus_01/fastq.validate_reads/cluster")
         );
         assert_eq!(
             benchmark_stage_run_relative_root(
-                &BenchmarkWorkspaceConfig::default(),
+                &workspace,
                 "local-cache",
                 "corpus_01",
                 "fastq.validate_reads"
-            ),
-            std::path::PathBuf::from("results/corpus_01/fastq.validate_reads/lunarc")
+            )
+            .expect("cache path"),
+            std::path::PathBuf::from("results/corpus_01/fastq.validate_reads/cluster")
         );
     }
 

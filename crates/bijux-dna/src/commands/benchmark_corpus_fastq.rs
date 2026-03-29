@@ -537,7 +537,7 @@ fn default_stage_out_root(
             "remote",
             &corpus_dir_name,
             stage_id,
-        )),
+        )?),
     )
 }
 
