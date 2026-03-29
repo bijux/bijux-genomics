@@ -503,12 +503,12 @@ pub(super) fn update_resume_report(
             .get("cached")
             .and_then(serde_json::Value::as_array)
             .cloned()
-            .unwrap_or_default();
+            .ok_or_else(|| anyhow!("resume report missing declared `cached` array"))?;
         recomputed = existing
             .get("recomputed")
             .and_then(serde_json::Value::as_array)
             .cloned()
-            .unwrap_or_default();
+            .ok_or_else(|| anyhow!("resume report missing declared `recomputed` array"))?;
     }
     let entry = serde_json::json!({
         "stage_id": stage_id,
