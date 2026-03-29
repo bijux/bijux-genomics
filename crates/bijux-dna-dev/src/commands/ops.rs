@@ -5887,7 +5887,7 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
     write_json_pretty(
         &dest.join("PULLED_FROM.json"),
         &json!({
-            "schema_version": "bijux.lunarc.pull.v1",
+            "schema_version": "bijux.benchmark.pull.v1",
             "remote_host": lunarc_host,
             "remote_hostname": remote_hostname,
             "remote_root": lunarc_workspace_root,
@@ -6023,7 +6023,7 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
             return Ok(tracked);
         }
         write_utf8(&files_from, &tracked.stdout)?;
-        write_lunarc_sync_source(workspace, &sync_source)?;
+        write_benchmark_sync_source(workspace, &sync_source)?;
         let sync = run_program(
             workspace,
             "rsync",
@@ -6053,7 +6053,7 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
     } else {
         let temp_root = temp_subdir(workspace, "benchmark-sync-push")?;
         let sync_source = temp_root.join("BENCHMARK_SYNC_SOURCE.json");
-        write_lunarc_sync_source(workspace, &sync_source)?;
+        write_benchmark_sync_source(workspace, &sync_source)?;
         let sync = run_program(
             workspace,
             "rsync",
@@ -8481,7 +8481,7 @@ fn trim_newline(raw: &str) -> String {
     raw.trim().to_string()
 }
 
-fn lunarc_sync_source_payload(workspace: &Workspace) -> Result<Value> {
+fn benchmark_sync_source_payload(workspace: &Workspace) -> Result<Value> {
     let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
     let source_commit = trim_newline(
         &run_program(
@@ -8504,7 +8504,7 @@ fn lunarc_sync_source_payload(workspace: &Workspace) -> Result<Value> {
         .stdout,
     );
     Ok(json!({
-        "schema_version": "bijux.lunarc.sync_source.v1",
+        "schema_version": "bijux.benchmark.sync_source.v1",
         "source_commit": source_commit,
         "source_branch": source_branch,
         "benchmark_workspace": {
@@ -8523,8 +8523,8 @@ fn lunarc_sync_source_payload(workspace: &Workspace) -> Result<Value> {
     }))
 }
 
-fn write_lunarc_sync_source(workspace: &Workspace, path: &Path) -> Result<()> {
-    write_json_pretty(path, &lunarc_sync_source_payload(workspace)?)
+fn write_benchmark_sync_source(workspace: &Workspace, path: &Path) -> Result<()> {
+    write_json_pretty(path, &benchmark_sync_source_payload(workspace)?)
 }
 
 fn benchmark_sync_revision(workspace: &Workspace, host: &str, repo_dir: &str) -> Result<String> {
