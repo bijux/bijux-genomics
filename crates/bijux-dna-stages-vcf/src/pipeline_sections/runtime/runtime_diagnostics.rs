@@ -1,16 +1,19 @@
-fn workspace_root() -> PathBuf {
-    crate::repo_root::resolve_repo_root().unwrap_or_else(|_| PathBuf::from("."))
+fn workspace_root() -> Option<PathBuf> {
+    crate::repo_root::resolve_repo_root().ok()
 }
 
 fn license_metadata_for_tool_exists(tool_id: &str) -> bool {
-    workspace_root()
-        .join("containers/licenses")
-        .join(format!("{tool_id}.license.toml"))
-        .exists()
+    workspace_root().is_some_and(|root| {
+        root.join("containers/licenses")
+            .join(format!("{tool_id}.license.toml"))
+            .exists()
+    })
 }
 
 fn resolve_tool_digest(tool_id: &str) -> Result<String> {
-    let registry = workspace_root().join("configs/ci/registry/tool_registry_vcf_downstream.toml");
+    let registry = workspace_root()
+        .ok_or_else(|| anyhow!("resolve repository root for VCF runtime diagnostics"))?
+        .join("configs/ci/registry/tool_registry_vcf_downstream.toml");
     let raw = std::fs::read_to_string(registry)?;
     let mut current_tool_id: Option<String> = None;
     let mut pinned_commit: Option<String> = None;
@@ -87,7 +90,8 @@ fn parse_threshold_value(raw: &str, key: &str) -> Option<f64> {
 }
 
 fn load_imputation_qc_thresholds() -> std::collections::BTreeMap<String, f64> {
-    let raw = std::fs::read_to_string(workspace_root().join("assets/reference/qc_thresholds.yaml"))
+    let raw = workspace_root()
+        .and_then(|root| std::fs::read_to_string(root.join("assets/reference/qc_thresholds.yaml")).ok())
         .unwrap_or_default();
     let mut out = std::collections::BTreeMap::new();
     let defaults = [
