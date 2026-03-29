@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let mut download = false;
     let mut verbose = false;
     let mut species_filter = String::new();
@@ -220,7 +220,7 @@ pub(super) fn tooling_acquire_reference(workspace: &Workspace, args: &[String]) 
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-pub(super) fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let mut download = false;
     let mut verbose = false;
     let mut panel_filter = String::new();
@@ -396,7 +396,7 @@ pub(super) fn tooling_acquire_panels(workspace: &Workspace, args: &[String]) -> 
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-pub(super) fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let mut download = false;
     let mut verbose = false;
     let mut map_filter = String::new();
@@ -521,7 +521,7 @@ pub(super) fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Re
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-pub(super) fn tooling_benchmark_integrity_mini(
+pub(in super::super) fn tooling_benchmark_integrity_mini(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -784,7 +784,7 @@ pub(super) fn tooling_benchmark_integrity_mini(
     })
 }
 
-pub(super) fn tooling_validate_frontend_mini_domain_stacks(
+pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {

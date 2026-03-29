@@ -16,8 +16,7 @@ pub(super) use self::acquisition::{
 pub(super) use self::cargo_targets::tooling_cargo_targets;
 pub(super) use self::certification::{
     tooling_certification_gate, tooling_certify_all, tooling_certify_bam,
-    tooling_certify_domains, tooling_certify_domains_with_mode, tooling_certify_fastq,
-    tooling_certify_vcf,
+    tooling_certify_domains, tooling_certify_fastq, tooling_certify_vcf,
 };
 pub(super) use self::ci::{
     tooling_ci_audit, tooling_ci_clippy, tooling_ci_clippy_executors, tooling_ci_coverage,

@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let mut expr = None;
     let mut runs = 20usize;
     let mut index = 0;
@@ -70,7 +70,7 @@ pub(super) fn tooling_flake_hunt(workspace: &Workspace, args: &[String]) -> Resu
     Ok(OpsCommandOutcome::failure(stdout))
 }
 
-pub(super) fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("lint-fast", args)?;
     let base_ref = std::env::var("LINT_FAST_BASE_REF")
         .ok()
@@ -183,7 +183,7 @@ pub(super) fn tooling_lint_fast(workspace: &Workspace, args: &[String]) -> Resul
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-pub(super) fn tooling_generate_tool_index(
+pub(in super::super) fn tooling_generate_tool_index(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -197,7 +197,7 @@ pub(super) fn tooling_generate_tool_index(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-pub(super) fn tooling_check_config_snapshot(
+pub(in super::super) fn tooling_check_config_snapshot(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -266,7 +266,7 @@ pub(super) fn tooling_check_config_snapshot(
     success_line("config snapshot: OK")
 }
 
-pub(super) fn tooling_generate_config_tree_snapshot(
+pub(in super::super) fn tooling_generate_config_tree_snapshot(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -291,7 +291,7 @@ pub(super) fn tooling_generate_config_tree_snapshot(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-pub(super) fn tooling_check_config_paths(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_check_config_paths(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-config-paths", args)?;
     let pattern = Regex::new(r"configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)")?;
     let mut refs = BTreeSet::new();
@@ -352,7 +352,7 @@ pub(super) fn tooling_check_config_paths(workspace: &Workspace, args: &[String])
     failure_lines("config path references: FAILED", &missing)
 }
 
-pub(super) fn tooling_clean_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_clean_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let docs_root = match args {
         [] => workspace.path("artifacts/docs"),
         [flag] if flag == "--help" || flag == "-h" => {
