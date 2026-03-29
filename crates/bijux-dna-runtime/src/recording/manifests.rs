@@ -374,14 +374,14 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
         .unwrap_or_else(|| serde_json::json!({}));
     let profile_manifest = serde_json::json!({
         "schema_version": "bijux.profile_manifest.v1",
-        "pipeline_id": run_manifest.get("pipeline_id").cloned().unwrap_or(serde_json::json!("unknown")),
-        "profile_id": run_manifest.get("profile_id").cloned().unwrap_or(serde_json::json!("unknown")),
-        "invariants_preset": run_manifest.get("invariants_preset").cloned().unwrap_or(serde_json::json!("unknown")),
+        "pipeline_id": run_manifest.get("pipeline_id").cloned().unwrap_or(serde_json::Value::Null),
+        "profile_id": run_manifest.get("profile_id").cloned().unwrap_or(serde_json::Value::Null),
+        "invariants_preset": run_manifest.get("invariants_preset").cloned().unwrap_or(serde_json::Value::Null),
         "stage_list": stages,
         "tool_digests": run_manifest.get("tool_invocations").cloned().unwrap_or_else(|| serde_json::json!([])),
         "param_hashes": run_provenance.get("params_by_stage").cloned().unwrap_or_else(|| serde_json::json!({})),
         "schema_versions": {
-            "run_manifest": run_manifest.get("schema_version").cloned().unwrap_or(serde_json::json!("unknown")),
+            "run_manifest": run_manifest.get("schema_version").cloned().unwrap_or(serde_json::Value::Null),
             "tool_invocation": "bijux.tool_invocation.v1",
             "metrics_envelope": "bijux.metrics_envelope.v2",
         }
