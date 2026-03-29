@@ -5,13 +5,11 @@ use regex::Regex;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
+#[path = "../support.rs"]
+mod support;
+
 fn repo_root() -> Result<PathBuf> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    manifest_dir
-        .parent()
-        .and_then(Path::parent)
-        .map(Path::to_path_buf)
-        .ok_or_else(|| anyhow!("workspace root not found"))
+    support::repo_root().map_err(|err| anyhow!("workspace root not found: {err}"))
 }
 
 fn golden_fastq_toy_dir() -> Result<PathBuf> {
