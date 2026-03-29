@@ -1,10 +1,13 @@
 use std::fs;
-use std::path::Path;
+
+#[path = "../../support.rs"]
+mod support;
 
 #[test]
 fn top_level_modules_have_owner() {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let src_dir = manifest_dir.join("src");
+    let src_dir = support::crate_root("bijux-dna-bench")
+        .unwrap_or_else(|err| panic!("resolve benchmark crate root: {err}"))
+        .join("src");
     let mut modules = Vec::new();
     let Ok(entries) = fs::read_dir(&src_dir) else {
         return;
