@@ -1,3 +1,9 @@
+use super::*;
+
+mod pipeline_run;
+
+pub use self::pipeline_run::{bench_fastq_preprocess, fastq_preprocess_run};
+
 pub(super) fn write_stage_resume_contract(
     stage_root: &std::path::Path,
     stage_id: &str,
@@ -270,7 +276,7 @@ pub(super) fn terminal_damage_profile(path: &std::path::Path) -> Result<serde_js
     }))
 }
 
-fn enforce_stage_applicability(
+pub(super) fn enforce_stage_applicability(
     planned: &ExecutionStep,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
     contaminant_bank: Option<&serde_json::Value>,
@@ -333,7 +339,7 @@ fn declared_contaminant_asset_root() -> Result<std::path::PathBuf> {
     ))
 }
 
-fn write_stage_governance_artifacts(
+pub(super) fn write_stage_governance_artifacts(
     stage_root: &std::path::Path,
     planned: &ExecutionStep,
     contaminant_bank: Option<&serde_json::Value>,
@@ -369,7 +375,7 @@ fn write_stage_governance_artifacts(
         .context("write stage.governance.json")
 }
 
-fn write_fastq_output_contract(
+pub(super) fn write_fastq_output_contract(
     stage_root: &std::path::Path,
     planned: &ExecutionStep,
     execution: &StageResultV1,
@@ -437,7 +443,7 @@ fn write_fastq_output_contract(
         .context("write stage output contract")
 }
 
-fn write_taxonomy_db_drift_report(
+pub(super) fn write_taxonomy_db_drift_report(
     run_root: &std::path::Path,
     contaminant_bank: Option<&serde_json::Value>,
 ) -> Result<()> {
@@ -477,6 +483,3 @@ fn write_taxonomy_db_drift_report(
     bijux_dna_infra::atomic_write_json(&lock_path, &report).context("write taxonomy_db lock")?;
     Ok(())
 }
-
-include!("pipeline_run.rs");
-use super::*;
