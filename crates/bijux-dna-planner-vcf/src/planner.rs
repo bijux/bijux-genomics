@@ -5,7 +5,7 @@ use anyhow::{anyhow, bail, Result};
 use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_dna_core::ids::{StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{StageIO, ToolConstraints};
-use bijux_dna_db_ref::{ref_service, validate_imputation_tool_compatibility};
+use bijux_dna_db_ref::ref_service;
 use bijux_dna_domain_vcf::contracts::refuse_unsupported_regime_transition;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use bijux_dna_stage_contract::{
@@ -21,53 +21,12 @@ use crate::params::{
     validate_generated_stage_params,
 };
 use crate::stage_catalog::{
-    default_tool, eagle_license_metadata_present, image_for_tool,
-    phasing_backend_supports_gl_only_input, stage_command, stage_compat_tools, stage_inputs_for,
-    stage_outputs_for,
+    image_for_tool, stage_command, stage_inputs_for, stage_outputs_for,
 };
 use crate::stage_sequence::resolve_requested_stages;
+use crate::tool_selection::{choose_tool, validate_selected_tool};
 use crate::reference_context::ResolvedPlanningContext;
 use crate::workspace_config::{load_registry_tools, load_required_tools};
-
-pub(crate) fn choose_tool(
-    stage: VcfDomainStage,
-    inputs: &VcfPipelineInputs,
-    resolved_coverage: CoverageRegime,
-    panel: &bijux_dna_db_ref::PanelCatalogEntry,
-    planned_stages: &[VcfDomainStage],
-) -> Result<(String, String)> {
-    let key = stage.as_str().to_string();
-    if let Some(selected) = inputs.stage_tool_overrides.get(&key) {
-        return Ok((selected.clone(), "stage_tool_override".to_string()));
-    }
-    if matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
-        if resolved_coverage == CoverageRegime::LowCovGl {
-            return Ok((
-                "glimpse".to_string(),
-                "lowcov_gl_default_glimpse".to_string(),
-            ));
-        }
-        let phased_gt_ready = planned_stages.contains(&VcfDomainStage::Phasing);
-        let big_panel = panel.id.contains("full");
-        if phased_gt_ready && big_panel {
-            if panel.compatibility.supports_minimac_m3vcf {
-                return Ok((
-                    "minimac4".to_string(),
-                    "phased_gt_plus_big_panel_minimac4".to_string(),
-                ));
-            }
-            return Ok((
-                "impute5".to_string(),
-                "phased_gt_plus_big_panel_impute5".to_string(),
-            ));
-        }
-        return Ok(("beagle".to_string(), "fallback_beagle_rule".to_string()));
-    }
-    Ok((
-        default_tool(stage, resolved_coverage).to_string(),
-        "coverage_regime_default".to_string(),
-    ))
-}
 
 fn stage_plan(
     stage: VcfDomainStage,
@@ -215,54 +174,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
                 stage.as_str()
             );
         }
-        if matches!(
-            stage,
-            VcfDomainStage::PrepareReferencePanel
-                | VcfDomainStage::Phasing
-                | VcfDomainStage::Imputation
-                | VcfDomainStage::Impute
-        ) {
-            if !(stage == VcfDomainStage::Impute
-                && tool == "beagle"
-                && panel_catalog
-                    .compatibility
-                    .tool_tags
-                    .iter()
-                    .any(|x| x == "beagle"))
-            {
-                validate_imputation_tool_compatibility(&tool, &panel_catalog, &map_catalog)?;
-            }
-        }
-        if stage == VcfDomainStage::Phasing {
-            if resolved_coverage == CoverageRegime::LowCovGl
-                && !phasing_backend_supports_gl_only_input(&tool)
-            {
-                bail!(
-                    "planner refusal: tool {} does not support GL-only input for {}",
-                    tool,
-                    stage.as_str()
-                );
-            }
-            if matches!(tool.as_str(), "shapeit5" | "eagle")
-                && resolved_coverage != CoverageRegime::Diploid
-            {
-                bail!(
-                    "planner refusal: tool {} requires diploid coverage regime for {}",
-                    tool,
-                    stage.as_str()
-                );
-            }
-            if tool == "eagle" && !eagle_license_metadata_present() {
-                bail!("planner refusal: eagle license metadata is missing");
-            }
-        }
-        if !stage_compat_tools(stage).contains(&tool.as_str()) {
-            bail!(
-                "selected tool {} is not compatible with stage {}",
-                tool,
-                stage.as_str()
-            );
-        }
+        validate_selected_tool(stage, &tool, resolved_coverage, &panel_catalog, &map_catalog)?;
         let plan = stage_plan(
             stage,
             &current_vcf,
