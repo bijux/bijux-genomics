@@ -1450,16 +1450,16 @@ mod tests {
         std::fs::write(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
-results_root = "/tmp/local-results"
-cache_mirror_root = "/tmp/local-results/cache"
+results_root = "/bench/local/results"
+cache_mirror_root = "/bench/local/cache-mirror"
 
 [workspace.remote]
 ssh_host = "cluster"
-repo_root = "/srv/repo"
-cache_root = "/srv/cache"
-corpus_root = "/srv/cache/corpus_01"
-results_root = "/srv/cache/results"
-containers_root = "/srv/cache/containers"
+repo_root = "/bench/remote/repo"
+cache_root = "/bench/remote/cache"
+corpus_root = "/bench/remote/cache/benchmark_corpus"
+results_root = "/bench/remote/cache/results"
+containers_root = "/bench/remote/cache/containers"
 
 [workspace.sync.defaults]
 pull_mode = "results"
@@ -1489,13 +1489,13 @@ tools = ["fastqc"]
         std::fs::write(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
-results_root = "/tmp/local-results"
+results_root = "/bench/local/results"
 
 [workspace.remote]
 ssh_host = "cluster"
-repo_root = "/srv/repo"
-corpus_root = "/srv/cache/corpus_01"
-results_root = "/srv/cache/results"
+repo_root = "/bench/remote/repo"
+corpus_root = "/bench/remote/cache/benchmark_corpus"
+results_root = "/bench/remote/cache/results"
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
@@ -1570,7 +1570,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         write_workspace(temp.path());
         let value =
             benchmark_workspace_value(temp.path(), None, "remote.corpus_root").expect("value");
-        assert_eq!(value, "/srv/cache/corpus_01");
+        assert_eq!(value, "/bench/remote/cache/benchmark_corpus");
     }
 
     #[test]
@@ -1580,7 +1580,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let config = load_benchmark_workspace_config(temp.path(), None).expect("workspace config");
         assert_eq!(
             config.remote.and_then(|row| row.repo_root),
-            Some("/srv/repo".to_string())
+            Some("/bench/remote/repo".to_string())
         );
     }
 
@@ -1658,24 +1658,28 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let temp = tempfile::tempdir().expect("tempdir");
         let results_root = temp.path().join("archive");
         let cache_mirror_root = temp.path().join("mirror");
-        let legacy_stage_root = results_root.join("corpus_01").join("fastq.trim_reads");
+        let legacy_stage_root = results_root.join("benchmark_corpus").join("fastq.trim_reads");
         let canonical_stage_root = cache_mirror_root
             .join("results")
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.trim_reads");
-        let archive_only_stage_root = results_root.join("corpus_01").join("fastq.validate_reads");
-        std::fs::create_dir_all(legacy_stage_root.join("lunarc")).expect("legacy stage");
-        std::fs::create_dir_all(canonical_stage_root.join("lunarc")).expect("canonical stage");
-        std::fs::create_dir_all(archive_only_stage_root.join("lunarc")).expect("archive stage");
-        std::fs::write(legacy_stage_root.join("lunarc/run_manifest.json"), "{}")
+        let archive_only_stage_root =
+            results_root.join("benchmark_corpus").join("fastq.validate_reads");
+        std::fs::create_dir_all(legacy_stage_root.join("cluster-apptainer"))
+            .expect("legacy stage");
+        std::fs::create_dir_all(canonical_stage_root.join("cluster-apptainer"))
+            .expect("canonical stage");
+        std::fs::create_dir_all(archive_only_stage_root.join("cluster-apptainer"))
+            .expect("archive stage");
+        std::fs::write(legacy_stage_root.join("cluster-apptainer/run_manifest.json"), "{}")
             .expect("write legacy manifest");
         std::fs::write(
-            canonical_stage_root.join("lunarc/run_manifest.json"),
+            canonical_stage_root.join("cluster-apptainer/run_manifest.json"),
             "{\"completed_at_utc\": \"2026-03-28T00:00:00Z\"}",
         )
         .expect("write canonical manifest");
         std::fs::write(
-            archive_only_stage_root.join("lunarc/run_manifest.json"),
+            archive_only_stage_root.join("cluster-apptainer/run_manifest.json"),
             "{\"completed_at_utc\": \"2026-03-27T00:00:00Z\"}",
         )
         .expect("write archive manifest");
@@ -1683,7 +1687,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let report = normalize_workspace_layout_report(
             &sample_workspace(&results_root, &cache_mirror_root),
             "corpus-01",
-            "corpus_01",
+            "benchmark_corpus",
             true,
         )
         .expect("report");
@@ -1693,9 +1697,9 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         assert!(!archive_only_stage_root.exists());
         assert!(cache_mirror_root
             .join("results")
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.validate_reads")
-            .join("lunarc")
+            .join("cluster-apptainer")
             .exists());
         assert_eq!(report.status, "clear");
         assert_eq!(report.moved_stage_ids, vec!["fastq.validate_reads"]);
@@ -1711,7 +1715,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let config = load_benchmark_config(temp.path(), None).expect("benchmark config");
         assert_eq!(
             config.workspace.remote.and_then(|row| row.corpus_root),
-            Some("/srv/cache/corpus_01".to_string())
+            Some("/bench/remote/cache/benchmark_corpus".to_string())
         );
         assert_eq!(
             config
@@ -1760,7 +1764,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let workspace = load_benchmark_workspace_config(temp.path(), None).expect("workspace");
         assert_eq!(
             benchmark_runtime_corpus_dir_name(&workspace, "corpus-01").expect("dir name"),
-            "corpus_01"
+            "benchmark_corpus"
         );
     }
 
@@ -1789,7 +1793,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let error = benchmark_stage_run_relative_root(
             &BenchmarkWorkspaceConfig::default(),
             "remote",
-            "corpus_01",
+            "benchmark_corpus",
             "fastq.validate_reads",
         )
         .expect_err("missing templates must fail");
@@ -1818,21 +1822,21 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             benchmark_stage_run_relative_root(
                 &workspace,
                 "remote",
-                "corpus_01",
+                "benchmark_corpus",
                 "fastq.validate_reads"
             )
             .expect("remote path"),
-            std::path::PathBuf::from("corpus_01/fastq.validate_reads/cluster")
+            std::path::PathBuf::from("benchmark_corpus/fastq.validate_reads/cluster")
         );
         assert_eq!(
             benchmark_stage_run_relative_root(
                 &workspace,
                 "local-cache",
-                "corpus_01",
+                "benchmark_corpus",
                 "fastq.validate_reads"
             )
             .expect("cache path"),
-            std::path::PathBuf::from("results/corpus_01/fastq.validate_reads/cluster")
+            std::path::PathBuf::from("results/benchmark_corpus/fastq.validate_reads/cluster")
         );
     }
 

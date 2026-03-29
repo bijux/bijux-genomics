@@ -517,13 +517,13 @@ mod tests {
 
     #[test]
     fn hpc_config_defaults_to_neutral_data_root() {
-        let config = HpcConfig::from_root(PathBuf::from("/srv/hpc"));
-        assert_eq!(config.paths.data, PathBuf::from("/srv/hpc/data"));
+        let config = HpcConfig::from_root(PathBuf::from("/bench/hpc"));
+        assert_eq!(config.paths.data, PathBuf::from("/bench/hpc/data"));
     }
 
     #[test]
     fn hpc_layout_defaults_to_neutral_data_root() {
-        let layout = HpcLayout::from_root(Path::new("/srv/hpc"));
-        assert_eq!(layout.data_dir, PathBuf::from("/srv/hpc/data"));
+        let layout = HpcLayout::from_root(Path::new("/bench/hpc"));
+        assert_eq!(layout.data_dir, PathBuf::from("/bench/hpc/data"));
     }
 }

@@ -190,13 +190,13 @@ mod tests {
         std::fs::write(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
-results_root = "/tmp/local-results"
+results_root = "/bench/local/results"
 
 [workspace.remote]
 ssh_host = "cluster"
-repo_root = "/srv/repo"
-corpus_root = "/srv/cache/corpus_01"
-results_root = "/srv/cache/results"
+repo_root = "/bench/remote/repo"
+corpus_root = "/bench/remote/cache/benchmark_corpus"
+results_root = "/bench/remote/cache/results"
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
@@ -229,13 +229,13 @@ tools = ["fastqvalidator"]
         std::fs::write(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
-results_root = "/tmp/local-results"
+results_root = "/bench/local/results"
 
 [workspace.remote]
 ssh_host = "cluster"
-repo_root = "/srv/repo"
-corpus_root = "/srv/cache/corpus_01"
-results_root = "/srv/cache/results"
+repo_root = "/bench/remote/repo"
+corpus_root = "/bench/remote/cache/benchmark_corpus"
+results_root = "/bench/remote/cache/results"
 
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
@@ -265,13 +265,13 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         std::fs::write(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
-results_root = "/tmp/local-results"
+results_root = "/bench/local/results"
 
 [workspace.remote]
 ssh_host = "cluster"
-repo_root = "/srv/repo"
-corpus_root = "/srv/cache/corpus_01"
-results_root = "/srv/cache/results"
+repo_root = "/bench/remote/repo"
+corpus_root = "/bench/remote/cache/benchmark_corpus"
+results_root = "/bench/remote/cache/results"
 
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
@@ -313,13 +313,13 @@ tools = ["fastqvalidator"]
         std::fs::write(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
-results_root = "/tmp/local-results"
+results_root = "/bench/local/results"
 
 [workspace.remote]
 ssh_host = "cluster"
-repo_root = "/srv/repo"
-corpus_root = "/srv/cache/corpus_01"
-results_root = "/srv/cache/results"
+repo_root = "/bench/remote/repo"
+corpus_root = "/bench/remote/cache/benchmark_corpus"
+results_root = "/bench/remote/cache/results"
 
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
