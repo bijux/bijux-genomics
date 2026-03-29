@@ -376,7 +376,9 @@ fn is_fastq_like_path(path: &Path) -> bool {
     let file_name = path
         .file_name()
         .and_then(|x| x.to_str())
-        .unwrap_or_default();
+        .filter(|value| !value.trim().is_empty())
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| path.display().to_string());
     let lower = file_name.to_ascii_lowercase();
     let ext_fastq = path
         .extension()
@@ -390,15 +392,20 @@ fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
     let mut span_bp: u64 = 0;
     for artifact in &request.plan.io.inputs {
         let p = request.plan.out_dir.join(&artifact.path);
-        let name = p.file_name().and_then(|x| x.to_str()).unwrap_or_default();
-        let ext_is_vcf = std::path::Path::new(name)
+        let name = p
+            .file_name()
+            .and_then(|x| x.to_str())
+            .filter(|value| !value.trim().is_empty())
+            .map(ToOwned::to_owned)
+            .unwrap_or_else(|| p.display().to_string());
+        let ext_is_vcf = std::path::Path::new(&name)
             .extension()
             .and_then(|ext| ext.to_str())
             .is_some_and(|ext| ext.eq_ignore_ascii_case("vcf"));
         if !(ext_is_vcf || name.to_ascii_lowercase().ends_with(".vcf.gz")) {
             continue;
         }
-        let raw = if std::path::Path::new(name)
+        let raw = if std::path::Path::new(&name)
             .extension()
             .and_then(|ext| ext.to_str())
             .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
