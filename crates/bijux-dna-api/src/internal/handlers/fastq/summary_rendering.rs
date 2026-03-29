@@ -12,7 +12,8 @@ pub(crate) fn render_run_summary(
     let run_id = stage_runs
         .first()
         .map(|entry| entry.result.run_id.clone())
-        .unwrap_or_default();
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "not_recorded".to_string());
     let stages: Vec<serde_json::Value> = stage_runs
         .iter()
         .map(|entry| {
