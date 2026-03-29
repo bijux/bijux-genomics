@@ -8,6 +8,8 @@ use anyhow::Result;
 #[path = "../../support.rs"]
 mod test_support;
 
+pub use test_support::crate_root;
+
 pub static CWD_LOCK: Mutex<()> = Mutex::new(());
 
 pub struct EnvGuard {
