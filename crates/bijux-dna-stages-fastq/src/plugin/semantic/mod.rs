@@ -1,6 +1,7 @@
 use super::*;
 
 mod feature_tables;
+mod profiling;
 mod quality;
 mod support;
 
@@ -12,6 +13,9 @@ pub(super) fn observed_semantic_metrics(
         return semantics;
     }
     if let Some(semantics) = feature_tables::observed_feature_table_metrics(plan, artifacts) {
+        return semantics;
+    }
+    if let Some(semantics) = profiling::observed_profiling_metrics(plan, artifacts) {
         return semantics;
     }
     serde_json::Value::Null
