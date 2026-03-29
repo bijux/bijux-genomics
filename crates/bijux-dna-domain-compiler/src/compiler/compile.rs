@@ -1,3 +1,9 @@
+use super::loading::{
+    build_images_toml, build_stages_toml, build_tool_registries_toml, collect_domain_data,
+    collect_vcf_image_versions,
+};
+use super::*;
+
 /// Compile generated config views from authored domain sources.
 ///
 /// # Errors
@@ -255,7 +261,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     Ok(())
 }
 
-fn require_exists(path: &Path) -> Result<()> {
+pub(super) fn require_exists(path: &Path) -> Result<()> {
     if !path.exists() {
         bail!("missing required file: {}", path.display());
     }

@@ -1,3 +1,5 @@
+use super::super::*;
+
 fn load_domain_tools(
     domain_dir: &Path,
     domain: &str,
@@ -204,7 +206,7 @@ fn load_domain_stages(
 }
 
 #[allow(clippy::too_many_lines)]
-fn collect_domain_data(
+pub(super) fn collect_domain_data(
     domain_dir: &Path,
     active_scope: &str,
 ) -> Result<(
