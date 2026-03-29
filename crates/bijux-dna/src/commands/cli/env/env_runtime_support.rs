@@ -16,34 +16,38 @@ fn normalize_stage_ids(domain: &str, stages_csv: &str) -> Vec<String> {
     stage_ids
 }
 
-fn declared_value_or(label: Option<&str>, fallback: &'static str) -> String {
+fn declared_value(label: Option<&str>) -> Option<String> {
     label
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(ToOwned::to_owned)
-        .unwrap_or_else(|| fallback.to_string())
 }
 
 fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
-    let pin = declared_value_or(tool.pinned_commit.as_deref(), "not_declared");
-    if let Some(digest) = pin.strip_prefix("sha256:") {
+    let pin = declared_value(tool.pinned_commit.as_deref());
+    if let Some(digest) = pin.as_deref().and_then(|value| value.strip_prefix("sha256:")) {
         return Some(digest.to_string());
     }
-    let container_ref = declared_value_or(tool.container_ref.as_deref(), "not_declared");
-    if let Some(digest) = container_ref
-        .split("@sha256:")
-        .nth(1)
-        .map(std::string::ToString::to_string)
-    {
+    let container_ref = declared_value(tool.container_ref.as_deref());
+    if let Some(digest) = container_ref.as_deref().and_then(|value| {
+        value
+            .split("@sha256:")
+            .nth(1)
+            .map(std::string::ToString::to_string)
+    }) {
         return Some(digest);
     }
 
+    let version = declared_value(tool.version.as_deref())?;
+    let pin = pin?;
+    let container_ref = container_ref?;
+    let apptainer_def = declared_value(tool.apptainer_def.as_deref())?;
     let stable_material = [
         tool.id.as_str(),
-        &declared_value_or(tool.version.as_deref(), "not_declared"),
+        &version,
         &pin,
         &container_ref,
-        &declared_value_or(tool.apptainer_def.as_deref(), "not_declared"),
+        &apptainer_def,
     ]
     .join("\n");
     Some(format!("{:x}", Sha256::digest(stable_material.as_bytes())))
@@ -115,24 +119,14 @@ fn run_smoke_with_manifest(
     } else {
         probe_failures == 0
     };
-    let parsed_version = parse_first_version(&version_out)
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "not_recorded".to_string());
+    let parsed_version = parse_first_version(&version_out).filter(|value| !value.trim().is_empty());
     let version_output_first_line = version_out
         .lines()
         .next()
         .map(str::trim)
         .filter(|line| !line.is_empty())
-        .unwrap_or("not_recorded")
-        .to_string();
-    let fallback_version = version_out
-        .lines()
-        .next()
-        .map(str::trim)
-        .filter(|line| !line.is_empty())
-        .unwrap_or("not_recorded")
-        .to_string();
-    let status = if help_ok && parsed_version != "not_recorded" {
+        .map(ToOwned::to_owned);
+    let status = if help_ok && parsed_version.is_some() {
         "ok"
     } else {
         "wrapper_failed"
@@ -151,12 +145,10 @@ fn run_smoke_with_manifest(
         sif_sha256: sif_sha256.to_string(),
         version_cmd: version_cmd.to_string(),
         help_cmd: help_cmd.to_string(),
-        version: if parsed_version.is_empty() {
-            fallback_version
-        } else {
-            parsed_version
-        },
-        version_output_first_line,
+        version: parsed_version
+            .or_else(|| version_output_first_line.clone())
+            .unwrap_or_default(),
+        version_output_first_line: version_output_first_line.unwrap_or_default(),
         help_ok,
         quick_smoke: true,
         probe_commands: effective_probes,
