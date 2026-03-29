@@ -7,8 +7,7 @@ mod resolution;
 mod service;
 
 use config::{
-    BundleEntry, MapLocksConfig, MapsConfig, PanelLocksConfig, PanelsConfig, load_toml,
-    workspace_root,
+    BundleEntry, MapLocksConfig, MapsConfig, load_toml, workspace_root,
 };
 
 pub use catalog::{
@@ -24,8 +23,8 @@ pub use resolution::{
     enforce_declared_build_and_contigs, resolve_contig_map, resolve_coverage_profile,
     normalize_contig_name, reference_provenance, resolve_default_reference_set,
     resolve_genetic_map_bank, resolve_organellar_policy, resolve_reference_bank,
-    resolve_reference_bundle, resolve_sex_chromosome_rule, resolve_species_alias,
-    resolve_species_authority, resolve_species_context,
+    resolve_panel, resolve_panel_lock, resolve_reference_bundle, resolve_sex_chromosome_rule,
+    resolve_species_alias, resolve_species_authority, resolve_species_context,
 };
 pub use service::{
     MapProvider, PanelProvider, RefService, ReferenceProvider, RuntimeRefService, ref_service,
