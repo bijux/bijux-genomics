@@ -1,21 +1,11 @@
 use std::collections::BTreeSet;
-use std::fs;
-use std::path::{Path, PathBuf};
-
 use anyhow::{anyhow, bail, Result};
 use bijux_dna_db_ref::ReferenceBundle;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 
 use crate::api::{ChunkPlanSettings, VcfPanelLock};
 use crate::models::RegionChunkPlan;
-
-fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from("."))
-}
+use crate::workspace_config;
 
 pub(crate) fn stage_params(
     stage: VcfDomainStage,
@@ -107,32 +97,8 @@ pub(crate) fn stage_params(
     }
 }
 
-#[derive(Debug, serde::Deserialize)]
-struct ParamRegistry {
-    #[serde(default)]
-    entries: Vec<ParamRegistryEntry>,
-}
-
-#[derive(Debug, serde::Deserialize)]
-struct ParamRegistryEntry {
-    stage_id: String,
-    #[serde(default)]
-    params: Vec<String>,
-}
-
 fn allowed_params_for_stage(stage_id: &str) -> Result<BTreeSet<String>> {
-    let path = workspace_root().join("configs/ci/params/param_registry_downstream.toml");
-    let raw = fs::read_to_string(&path)?;
-    let parsed: ParamRegistry = toml::from_str(&raw)?;
-    let mut allow = BTreeSet::new();
-    for entry in parsed.entries {
-        if entry.stage_id == stage_id {
-            for p in entry.params {
-                allow.insert(p);
-            }
-        }
-    }
-    Ok(allow)
+    workspace_config::allowed_params_for_stage(stage_id)
 }
 
 pub(crate) fn validate_generated_stage_params(

@@ -1,5 +1,4 @@
 use std::collections::BTreeSet;
-use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, bail, Result};
@@ -31,58 +30,7 @@ use crate::stage_catalog::{
     phasing_backend_supports_gl_only_input, resolve_requested_stages, stage_command,
     stage_compat_tools, stage_inputs_for, stage_outputs_for,
 };
-
-fn workspace_root() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| std::path::PathBuf::from("."))
-}
-
-fn load_required_tools() -> Result<BTreeSet<String>> {
-    let mut set = BTreeSet::<String>::new();
-    let root = workspace_root();
-    for rel in [
-        "configs/ci/tools/required_tools_vcf.toml",
-        "configs/ci/tools/required_tools_vcf_downstream.toml",
-    ] {
-        let raw = fs::read_to_string(root.join(rel))?;
-        let parsed: toml::Value = toml::from_str(&raw)?;
-        let arr = parsed
-            .get("required_tools")
-            .and_then(toml::Value::as_array)
-            .ok_or_else(|| anyhow!("missing required_tools in {rel}"))?;
-        for item in arr {
-            if let Some(s) = item.as_str() {
-                set.insert(s.to_string());
-            }
-        }
-    }
-    Ok(set)
-}
-
-fn load_registry_tools() -> Result<BTreeSet<String>> {
-    let mut set = BTreeSet::<String>::new();
-    let root = workspace_root();
-    for rel in [
-        "configs/ci/registry/tool_registry_vcf.toml",
-        "configs/ci/registry/tool_registry_vcf_downstream.toml",
-    ] {
-        let raw = fs::read_to_string(root.join(rel))?;
-        let parsed: toml::Value = toml::from_str(&raw)?;
-        let entries = parsed
-            .get("tools")
-            .and_then(toml::Value::as_array)
-            .ok_or_else(|| anyhow!("missing tools in {rel}"))?;
-        for entry in entries {
-            if let Some(id) = entry.get("id").and_then(toml::Value::as_str) {
-                set.insert(id.to_string());
-            }
-        }
-    }
-    Ok(set)
-}
+use crate::workspace_config::{load_registry_tools, load_required_tools};
 
 pub(crate) fn choose_tool(
     stage: VcfDomainStage,
