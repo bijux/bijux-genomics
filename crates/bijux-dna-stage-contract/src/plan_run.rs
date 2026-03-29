@@ -10,6 +10,7 @@ use bijux_dna_core::ids::{RunId, StageVersion};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 
 use crate::stage_plan::{PlannedArtifactV1, StagePlanV1};
+use crate::{PlanDecisionReason, PlanReasonKind};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, StageIO};
 use bijux_dna_core::ids::ArtifactId;
 
@@ -181,8 +182,8 @@ fn build_stage_plan(
         params: params.clone(),
         effective_params: params,
         aux_images: BTreeMap::new(),
-        reason: crate::stage_plan::PlanDecisionReason {
-            kind: crate::stage_plan::PlanReasonKind::Default,
+        reason: PlanDecisionReason {
+            kind: PlanReasonKind::Default,
             summary: "planner default".to_string(),
             details: serde_json::json!({
                 "runtime_scale": stage_spec.runtime_scale,
