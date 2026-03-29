@@ -189,7 +189,7 @@ pub fn write_run_manifest(
         run_provenance
             .tool_image_digest
             .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+            .unwrap_or_default(),
     );
     let tool_invocations = {
         let path = run_dirs.artifacts_dir.join("tool_invocation.json");
