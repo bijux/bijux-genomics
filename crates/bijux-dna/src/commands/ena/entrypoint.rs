@@ -245,17 +245,17 @@ fn snapshot_row_from_record(record: &EnaRecord) -> SelectionRow {
             .library_layout
             .clone()
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| "not_declared".to_string()),
+            .unwrap_or_default(),
         library_type: record
             .library_strategy
             .clone()
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| "not_declared".to_string()),
+            .unwrap_or_default(),
         instrument: record
             .instrument_model
             .clone()
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| "not_declared".to_string()),
+            .unwrap_or_default(),
         base_count: record.base_count.unwrap_or(0),
         read_count: record.read_count.unwrap_or(0),
         fastq_ftp: record.fastq_ftp.clone(),
@@ -307,18 +307,18 @@ fn validate_record(record: &EnaRecord) -> Result<LayoutKind, String> {
     if record
         .instrument_model
         .as_deref()
-        .unwrap_or("")
-        .trim()
-        .is_empty()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .is_none()
     {
         return Err("missing instrument_model".to_string());
     }
     if record
         .library_strategy
         .as_deref()
-        .unwrap_or("")
-        .trim()
-        .is_empty()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .is_none()
     {
         return Err("missing library_strategy".to_string());
     }
