@@ -20,7 +20,6 @@ use self::tool_files::validate_tool_files;
 ///
 /// Returns an error when required files are missing, schemas/invariants are
 /// violated, or domain catalogs are inconsistent.
-#[allow(clippy::too_many_lines)]
 pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     for rel in [
         "fastq/stages/_schema.yaml",
