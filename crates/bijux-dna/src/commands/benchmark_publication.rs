@@ -683,12 +683,12 @@ fn render_corpus_benchmark_markdown(
     for row in tool_runtime_rows {
         lines.push(format!(
             "| `{}` | {} | {} | {} | {} | {} |",
-            row.get("tool").cloned().unwrap_or_default(),
-            row.get("records").cloned().unwrap_or_default(),
-            row.get("pass_rate").cloned().unwrap_or_default(),
-            row.get("mean_runtime_s").cloned().unwrap_or_default(),
-            row.get("median_runtime_s").cloned().unwrap_or_default(),
-            row.get("max_runtime_s").cloned().unwrap_or_default(),
+            csv_report_value(&row, "tool"),
+            csv_report_value(&row, "records"),
+            csv_report_value(&row, "pass_rate"),
+            csv_report_value(&row, "mean_runtime_s"),
+            csv_report_value(&row, "median_runtime_s"),
+            csv_report_value(&row, "max_runtime_s"),
         ));
     }
     lines.push(String::new());
@@ -702,14 +702,14 @@ fn render_corpus_benchmark_markdown(
     for row in outlier_rows.iter().take(5) {
         lines.push(format!(
             "| `{}` | `{}` | `{}` | `{}` | `{}` | {} | `{}` | {} |",
-            row.get("sample_id").cloned().unwrap_or_default(),
-            row.get("accession").cloned().unwrap_or_default(),
-            row.get("era").cloned().unwrap_or_default(),
-            row.get("layout").cloned().unwrap_or_default(),
-            row.get("size_band").cloned().unwrap_or_default(),
-            row.get("total_runtime_s").cloned().unwrap_or_default(),
-            row.get("slowest_tool").cloned().unwrap_or_default(),
-            row.get("slowest_runtime_s").cloned().unwrap_or_default(),
+            csv_report_value(row, "sample_id"),
+            csv_report_value(row, "accession"),
+            csv_report_value(row, "era"),
+            csv_report_value(row, "layout"),
+            csv_report_value(row, "size_band"),
+            csv_report_value(row, "total_runtime_s"),
+            csv_report_value(row, "slowest_tool"),
+            csv_report_value(row, "slowest_runtime_s"),
         ));
     }
     lines.push(String::new());
@@ -782,7 +782,7 @@ fn write_csv_maps(path: &Path, rows: &[BTreeMap<String, String>]) -> Result<()> 
         .map(|row| {
             headers
                 .iter()
-                .map(|header| row.get(header).cloned().unwrap_or_default())
+                .map(|header| csv_report_value(row, header))
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
