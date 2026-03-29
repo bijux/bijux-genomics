@@ -1,3 +1,4 @@
+mod index_defaults;
 mod image_registries;
 mod load_and_collect;
 mod stage_loading;
