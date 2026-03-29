@@ -5766,7 +5766,8 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
             "local_path": format!("{}/", dest.display()),
         }));
     } else if benchmark_workspace.remote_results_root.is_some() {
-        let local_path = pull_lunarc_tree(workspace, &lunarc_host, &lunarc_results_dir, &dest)?;
+        let local_path =
+            pull_benchmark_sync_tree(workspace, &lunarc_host, &lunarc_results_dir, &dest)?;
         pulled_paths.push(format!("{lunarc_results_dir}/"));
         pulled_path_mappings.push(json!({
             "remote_path": format!("{lunarc_results_dir}/"),
@@ -5775,7 +5776,12 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
         if include_containers_manifest {
             let manifest_root = format!("{lunarc_containers_root}/manifest");
             if remote_path_exists(workspace, &lunarc_host, &manifest_root)? {
-                let local_path = pull_lunarc_tree(workspace, &lunarc_host, &manifest_root, &dest)?;
+                let local_path = pull_benchmark_sync_tree(
+                    workspace,
+                    &lunarc_host,
+                    &manifest_root,
+                    &dest,
+                )?;
                 pulled_paths.push(format!("{manifest_root}/"));
                 pulled_path_mappings.push(json!({
                     "remote_path": format!("{manifest_root}/"),
@@ -5791,7 +5797,8 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
             {
                 let clean_rel = rel.trim_start_matches('/');
                 let remote_path = format!("{lunarc_corpus_root}/{clean_rel}");
-                let local_path = pull_lunarc_path(workspace, &lunarc_host, &remote_path, &dest)?;
+                let local_path =
+                    pull_benchmark_sync_path(workspace, &lunarc_host, &remote_path, &dest)?;
                 pulled_paths.push(remote_path);
                 pulled_path_mappings.push(json!({
                     "remote_path": format!("{lunarc_corpus_root}/{clean_rel}"),
@@ -5865,7 +5872,7 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
             }
         }
     }
-    let remote_commit = lunarc_revision(workspace, &lunarc_host, &lunarc_repo_dir)?;
+    let remote_commit = benchmark_sync_revision(workspace, &lunarc_host, &lunarc_repo_dir)?;
     let remote_hostname = trim_newline(
         &run_program(
             workspace,
@@ -5948,7 +5955,9 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
     let profiles_cfg = workspace.path("configs/hpc/benchmark_sync_profiles.toml");
     let mut exclude_file = workspace.path("configs/hpc/rsync/push-excludes.txt");
     if profiles_cfg.is_file() {
-        if let Some(rel) = lunarc_profile_path(&profiles_cfg, &exclude_profile, "exclude_file")? {
+        if let Some(rel) =
+            benchmark_sync_profile_path(&profiles_cfg, &exclude_profile, "exclude_file")?
+        {
             exclude_file = workspace.path(&rel);
         }
     }
@@ -6072,7 +6081,7 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
             return Ok(sync_source_copy);
         }
     }
-    let remote_commit = lunarc_revision(workspace, &lunarc_host, &lunarc_repo_dir)?;
+    let remote_commit = benchmark_sync_revision(workspace, &lunarc_host, &lunarc_repo_dir)?;
     success_line(format!(
         "remote_repo={lunarc_repo_dir}\nremote_commit={remote_commit}"
     ))
@@ -8518,7 +8527,7 @@ fn write_lunarc_sync_source(workspace: &Workspace, path: &Path) -> Result<()> {
     write_json_pretty(path, &lunarc_sync_source_payload(workspace)?)
 }
 
-fn lunarc_revision(workspace: &Workspace, host: &str, repo_dir: &str) -> Result<String> {
+fn benchmark_sync_revision(workspace: &Workspace, host: &str, repo_dir: &str) -> Result<String> {
     let git_commit = trim_newline(
         &run_program(
             workspace,
@@ -8558,7 +8567,11 @@ fn lunarc_revision(workspace: &Workspace, host: &str, repo_dir: &str) -> Result<
     }
 }
 
-fn lunarc_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option<String>> {
+fn benchmark_sync_profile_path(
+    path: &Path,
+    profile: &str,
+    field: &str,
+) -> Result<Option<String>> {
     let value: TomlValue = toml::from_str(&read_utf8(path)?)?;
     let profiles = value
         .get("profiles")
@@ -8918,7 +8931,7 @@ fn mirror_remote_path(base: &Path, remote_path: &str) -> PathBuf {
     base.join(remote_path.trim_start_matches('/'))
 }
 
-fn pull_lunarc_tree(
+fn pull_benchmark_sync_tree(
     workspace: &Workspace,
     host: &str,
     remote_dir: &str,
@@ -8944,7 +8957,7 @@ fn pull_lunarc_tree(
     Ok(local_dir)
 }
 
-fn pull_lunarc_path(
+fn pull_benchmark_sync_path(
     workspace: &Workspace,
     host: &str,
     remote_path: &str,
