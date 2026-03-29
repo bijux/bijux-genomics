@@ -475,19 +475,24 @@ fn write_stage_path_contract(
         .context("write stage.path_contract.json")
 }
 
-fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<()> {
-    let args = vec!["--version".to_string()];
-    let output = bijux_dna_runner::command_runner::run_command(tool_bin, &args);
-    let (ok, raw) = match output {
-        Ok(out) => {
-            let raw = if out.stdout.is_empty() {
-                out.stderr
-            } else {
-                out.stdout
-            };
-            (out.exit_code == 0, raw)
-        }
-        Err(err) => (false, format!("failed to execute --version: {err}")),
+fn capture_tool_version(stage_root: &std::path::Path, tool_bin: Option<&str>) -> Result<()> {
+    let (declared_tool, ok, raw) = if let Some(tool_bin) = tool_bin.filter(|value| !value.trim().is_empty()) {
+        let args = vec!["--version".to_string()];
+        let output = bijux_dna_runner::command_runner::run_command(tool_bin, &args);
+        let (ok, raw) = match output {
+            Ok(out) => {
+                let raw = if out.stdout.is_empty() {
+                    out.stderr
+                } else {
+                    out.stdout
+                };
+                (out.exit_code == 0, raw)
+            }
+            Err(err) => (false, format!("failed to execute --version: {err}")),
+        };
+        (tool_bin, ok, raw)
+    } else {
+        ("", false, "tool command not declared in execution template".to_string())
     };
     let line = raw
         .lines()
@@ -510,7 +515,7 @@ fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<
         });
     let payload = serde_json::json!({
         "schema_version": "bijux.tool_version_capture.v1",
-        "tool": tool_bin,
+        "tool": declared_tool,
         "ok": ok,
         "raw": raw,
         "parsed": {
