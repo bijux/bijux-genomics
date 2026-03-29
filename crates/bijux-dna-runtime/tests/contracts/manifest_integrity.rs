@@ -129,7 +129,7 @@ fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
         let hash = item
             .get("sha256")
             .and_then(|v| v.as_str())
-            .unwrap_or_default();
+            .unwrap_or_else(|| panic!("artifact missing sha256 string: {item}"));
         assert_eq!(
             hash.len(),
             64,
