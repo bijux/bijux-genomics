@@ -12,11 +12,13 @@ mod edge_validation;
 mod param_binding_validation;
 mod schemas;
 mod stage_governance;
+mod suite_diversity;
 mod suite_graph;
 use edge_validation::validate_edge_ports;
 use param_binding_validation::validate_stage_param_bindings;
 pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
 use stage_governance::{ensure_supported_stage, planner_owned_graph_stage, validate_stage_tools};
+use suite_diversity::validate_suite_diversity;
 use suite_graph::{declared_graph_nodes, validate_suite_dag};
 
 /// # Errors
@@ -28,26 +30,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             suite.schema_version
         )));
     }
-    if suite.datasets.is_empty() || suite.stages.is_empty() {
-        return Err(BenchError::InvalidPolicy(
-            "suite must include datasets and stages".to_string(),
-        ));
-    }
-    if suite
-        .datasets
-        .iter()
-        .any(|dataset| dataset.hash.trim().is_empty())
-    {
-        return Err(BenchError::InvalidPolicy(
-            "suite datasets must include hash".to_string(),
-        ));
-    }
-    if suite.datasets.len() < suite.diversity.min_dataset_count {
-        return Err(BenchError::InvalidPolicy(format!(
-            "suite must include at least {} datasets",
-            suite.diversity.min_dataset_count
-        )));
-    }
+    validate_suite_diversity(suite)?;
     let mut seen_stage_nodes = std::collections::BTreeSet::new();
     let mut seen_stage_tool_nodes = std::collections::BTreeSet::new();
     let mut declared_stage_nodes = Vec::new();
@@ -208,52 +191,6 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             }
         }
         validate_edge_ports(edge, &declared_graph_nodes)?;
-    }
-    let mut classes = std::collections::BTreeSet::new();
-    let mut layouts = std::collections::BTreeSet::new();
-    for dataset in &suite.datasets {
-        classes.insert(dataset.class_label.as_str());
-        layouts.insert(dataset.read_layout.as_str());
-    }
-    if classes.len() < suite.diversity.min_classes {
-        return Err(BenchError::InvalidPolicy(format!(
-            "suite must include at least {} dataset classes",
-            suite.diversity.min_classes
-        )));
-    }
-    if layouts.len() < suite.diversity.min_read_layouts {
-        return Err(BenchError::InvalidPolicy(format!(
-            "suite must include at least {} read layouts",
-            suite.diversity.min_read_layouts
-        )));
-    }
-    for requirement in &suite.stratifications {
-        let values: std::collections::BTreeSet<&str> = match requirement.key.as_str() {
-            "dataset_class" => suite
-                .datasets
-                .iter()
-                .map(|dataset| dataset.class_label.as_str())
-                .collect(),
-            "read_layout" => suite
-                .datasets
-                .iter()
-                .map(|dataset| dataset.read_layout.as_str())
-                .collect(),
-            _ => {
-                return Err(BenchError::InvalidPolicy(format!(
-                    "unsupported stratification key {}",
-                    requirement.key
-                )))
-            }
-        };
-        for required in &requirement.required_values {
-            if !values.contains(required.as_str()) {
-                return Err(BenchError::InvalidPolicy(format!(
-                    "suite missing required stratification value {} for {}",
-                    required, requirement.key
-                )));
-            }
-        }
     }
     if suite.analysis_requirements.require_bootstrap
         && suite.replicate_policy.count < suite.analysis_requirements.min_replicates_for_bootstrap
