@@ -1,9 +1,12 @@
 use std::fs;
-use std::path::PathBuf;
+
+#[path = "../../support.rs"]
+mod support;
 
 #[test]
 fn public_type_snapshots_have_doc_anchors() {
-    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let doc = support::crate_root("bijux-dna-stage-contract")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"))
         .join("docs")
         .join("SCHEMAS.md");
     let content = fs::read_to_string(&doc).expect("read SCHEMAS.md");

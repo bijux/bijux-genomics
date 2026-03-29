@@ -1,6 +1,10 @@
+#[path = "../../support.rs"]
+mod support;
+
 #[test]
 fn tree_contract_is_minimal() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let root = support::crate_root("bijux-dna-stage-contract")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
     let expected = [
         "BOUNDARY.md",
         "Cargo.toml",
@@ -11,7 +15,7 @@ fn tree_contract_is_minimal() {
         "tests/",
     ];
     let mut entries = Vec::new();
-    for entry in std::fs::read_dir(root).expect("read crate root") {
+    for entry in std::fs::read_dir(&root).expect("read crate root") {
         let entry = entry.expect("read entry");
         let path = entry.path();
         let name = if path.is_dir() {
