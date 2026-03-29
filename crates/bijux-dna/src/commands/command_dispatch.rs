@@ -479,6 +479,13 @@ fn toml_list(value: &toml::Value, key: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
+fn declared_toml_str<'a>(value: &'a toml::Value, key: &str) -> Option<&'a str> {
+    value.get(key)
+        .and_then(toml::Value::as_str)
+        .map(str::trim)
+        .filter(|entry| !entry.is_empty())
+}
+
 fn print_contract_status(cwd: &Path) -> Result<()> {
     let domains = parse_toml_path(&bijux_dna_infra::configs_file(
         cwd,
@@ -506,28 +513,19 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
             .get("experimental")
             .and_then(toml::Value::as_bool)
             .unwrap_or(false);
-        let stages_rel = domain
-            .get("stages_ssot")
-            .and_then(toml::Value::as_str)
-            .unwrap_or_default();
-        let params_rel = domain
-            .get("param_registry_ssot")
-            .and_then(toml::Value::as_str)
-            .unwrap_or_default();
-        let tools_rel = domain
-            .get("tool_registry_ssot")
-            .and_then(toml::Value::as_str)
-            .unwrap_or_default();
-        if stages_rel.is_empty() || params_rel.is_empty() || tools_rel.is_empty() {
+        let stages_rel = declared_toml_str(domain, "stages_ssot");
+        let params_rel = declared_toml_str(domain, "param_registry_ssot");
+        let tools_rel = declared_toml_str(domain, "tool_registry_ssot");
+        if stages_rel.is_none() || params_rel.is_none() || tools_rel.is_none() {
             println!(
                 "{:<8} {:<12} {:<7} {:<7} {:<7} {:<7} {:<9} {:<8}",
                 id, "invalid", "-", "-", "-", "-", "-", "yes"
             );
             continue;
         }
-        let stages = parse_toml_path(&cwd.join(stages_rel))?;
-        let params = parse_toml_path(&cwd.join(params_rel))?;
-        let tools = parse_toml_path(&cwd.join(tools_rel))?;
+        let stages = parse_toml_path(&cwd.join(stages_rel.expect("checked above")))?;
+        let params = parse_toml_path(&cwd.join(params_rel.expect("checked above")))?;
+        let tools = parse_toml_path(&cwd.join(tools_rel.expect("checked above")))?;
 
         let param_stage_ids = param_rows(&params)
             .into_iter()
