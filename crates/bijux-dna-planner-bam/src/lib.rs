@@ -85,54 +85,10 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
         | bijux_dna_domain_bam::BamStage::Recalibration => {
             stage_dispatch::post::plan(stage, &request)
         }
-        bijux_dna_domain_bam::BamStage::Damage => {
-            let bam = request.bam.ok_or_else(|| anyhow!("damage requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Damage(params) = params else {
-                return Err(anyhow!("damage params mismatch"));
-            };
-            tool_adapters::stages_adna::damage::plan(request.tool, bam, request.out_dir, &params)
-        }
-        bijux_dna_domain_bam::BamStage::Authenticity => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("authenticity requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Authenticity(params) = params
-            else {
-                return Err(anyhow!("authenticity params mismatch"));
-            };
-            tool_adapters::stages_adna::authenticity::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )
-        }
-        bijux_dna_domain_bam::BamStage::Contamination => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("contamination requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Contamination(params) = params
-            else {
-                return Err(anyhow!("contamination params mismatch"));
-            };
-            tool_adapters::stages_adna::contamination::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )
-        }
-        bijux_dna_domain_bam::BamStage::Sex => {
-            let bam = request.bam.ok_or_else(|| anyhow!("sex requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Sex(params) = params else {
-                return Err(anyhow!("sex params mismatch"));
-            };
-            tool_adapters::stages_adna::sex::plan(request.tool, bam, request.out_dir, &params)
-        }
+        bijux_dna_domain_bam::BamStage::Damage
+        | bijux_dna_domain_bam::BamStage::Authenticity
+        | bijux_dna_domain_bam::BamStage::Contamination
+        | bijux_dna_domain_bam::BamStage::Sex => stage_dispatch::adna::plan(stage, &request),
         bijux_dna_domain_bam::BamStage::BiasMitigation => {
             #[cfg(feature = "bam_downstream")]
             {
