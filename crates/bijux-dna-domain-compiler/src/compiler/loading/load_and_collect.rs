@@ -1,4 +1,5 @@
 use super::super::*;
+use super::index_catalogs::{validate_benchmark_scenarios, validate_pipeline_compositions};
 use super::index_defaults::validate_index_defaults;
 use super::stage_loading::load_domain_stages;
 use super::tool_loading::load_domain_tools;
@@ -70,47 +71,8 @@ pub(super) fn collect_domain_data(
             &mut stage_defaults,
             &mut stage_default_rationale,
         )?;
-        if index.pipeline_compositions.is_empty() {
-            return Err(anyhow!("index missing pipeline_compositions"));
-        }
-        if !index.pipeline_compositions.contains_key("pre_hpc_best") {
-            return Err(anyhow!(
-                "index pipeline_compositions must include pre_hpc_best"
-            ));
-        }
-        for (pipeline_name, stages) in &index.pipeline_compositions {
-            if stages.is_empty() {
-                return Err(anyhow!(
-                    "index pipeline {pipeline_name} has empty stage list"
-                ));
-            }
-            for s in stages {
-                if !index.stage_ids.contains(s) {
-                    return Err(anyhow!(
-                        "index pipeline {pipeline_name} references unknown stage {s}"
-                    ));
-                }
-            }
-        }
-        if index.benchmark_scenarios.is_empty() {
-            return Err(anyhow!("index missing benchmark_scenarios"));
-        }
-        for (scenario_id, scenario) in &index.benchmark_scenarios {
-            if scenario.stage_id.trim().is_empty()
-                || scenario.description.trim().is_empty()
-                || scenario.fairness_rules.is_empty()
-            {
-                return Err(anyhow!(
-                    "index benchmark scenario {scenario_id} missing stage/description/fairness_rules"
-                ));
-            }
-            if !index.stage_ids.contains(&scenario.stage_id) {
-                return Err(anyhow!(
-                    "index benchmark scenario {scenario_id} references unknown stage {}",
-                    scenario.stage_id
-                ));
-            }
-        }
+        validate_pipeline_compositions(&index)?;
+        validate_benchmark_scenarios(&index)?;
     }
     for tool in tools.values() {
         for stage in &tool.stage_ids {
