@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 
 use crate::commands::{cli, hpc};
 
@@ -179,122 +179,6 @@ pub(crate) fn handle_environment_root(
                 | cli::EnvCommand::Prep(_) => {}
             }
         }
-    }
-    Ok(())
-}
-
-pub(crate) fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
-    #[derive(serde::Serialize)]
-    struct Check {
-        name: &'static str,
-        ok: bool,
-        detail: String,
-    }
-    #[derive(serde::Serialize)]
-    struct Summary {
-        schema_version: &'static str,
-        ok: bool,
-        checks: Vec<Check>,
-    }
-
-    let mut checks = Vec::new();
-
-    let workspace_out = cwd.join("artifacts").join("workspace");
-    let workspace_ok = crate::commands::workspace_audit(&workspace_out).is_ok();
-    checks.push(Check {
-        name: "workspace_audit",
-        ok: workspace_ok,
-        detail: workspace_out.display().to_string(),
-    });
-
-    let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
-    let policy_ok = crate::commands::cli::env::policy_clean_report(&registry_path, "fastq")
-        .map(|report| report.ok)
-        .unwrap_or(false);
-    checks.push(Check {
-        name: "registry_policy_clean_fastq",
-        ok: policy_ok,
-        detail: registry_path.display().to_string(),
-    });
-
-    let lint_ok = crate::commands::cli::env::lint_apptainer_defs(cwd).is_ok();
-    checks.push(Check {
-        name: "lint_apptainer_defs",
-        ok: lint_ok,
-        detail: "containers/apptainer".to_string(),
-    });
-
-    let ok = checks.iter().all(|check| check.ok);
-    let summary = Summary {
-        schema_version: "bijux.ci.verify.v1",
-        ok,
-        checks,
-    };
-    match command {
-        cli::CiCommand::Validate { out } => {
-            if let Some(parent) = out.parent() {
-                bijux_dna_infra::ensure_dir(parent)?;
-            }
-            bijux_dna_infra::atomic_write_json(out, &summary)?;
-            println!("ci_validate_summary={}", out.display());
-            if !ok {
-                return Err(anyhow!("ci validate failed; see {}", out.display()));
-            }
-        }
-    }
-    Ok(())
-}
-
-pub(crate) fn handle_lab_root(command: &cli::LabCommand, cwd: &Path) -> Result<()> {
-    match command {
-        cli::LabCommand::Corpus { command } => match command {
-            cli::LabCorpusCommand::ListFastq { corpus, paired } => {
-                let root = cwd.join("scripts").join("lab").join("corpus").join("fastq");
-                let corpus_root = if corpus == "canonical" {
-                    root.join("canonical")
-                } else {
-                    root.join(corpus)
-                };
-                let scan_root = if corpus_root.exists() {
-                    corpus_root
-                } else {
-                    root
-                };
-                let mut stack = vec![scan_root];
-                let mut files = Vec::new();
-                while let Some(dir) = stack.pop() {
-                    for entry in std::fs::read_dir(&dir)
-                        .with_context(|| format!("read {}", dir.display()))?
-                    {
-                        let entry = entry?;
-                        let path = entry.path();
-                        if path.is_dir() {
-                            stack.push(path);
-                            continue;
-                        }
-                        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
-                            continue;
-                        };
-                        let is_fastq = name.ends_with(".fastq.gz");
-                        if !is_fastq {
-                            continue;
-                        }
-                        if *paired {
-                            if name.ends_with("_R1.fastq.gz") || name.ends_with("_1.fastq.gz") {
-                                files.push(path);
-                            }
-                        } else {
-                            files.push(path);
-                        }
-                    }
-                }
-                files.sort();
-                files.dedup();
-                for file in files {
-                    println!("{}", file.display());
-                }
-            }
-        },
     }
     Ok(())
 }
