@@ -24,6 +24,24 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
     );
     require_value(
         &mut errors,
+        "workspace.local.cache_mirror_root",
+        config
+            .workspace
+            .local
+            .as_ref()
+            .and_then(|row| row.cache_mirror_root.as_deref()),
+    );
+    require_value(
+        &mut errors,
+        "workspace.local.extra_data_root",
+        config
+            .workspace
+            .local
+            .as_ref()
+            .and_then(|row| row.extra_data_root.as_deref()),
+    );
+    require_value(
+        &mut errors,
         "workspace.remote.ssh_host",
         config
             .workspace
@@ -42,6 +60,15 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
     );
     require_value(
         &mut errors,
+        "workspace.remote.cache_root",
+        config
+            .workspace
+            .remote
+            .as_ref()
+            .and_then(|row| row.cache_root.as_deref()),
+    );
+    require_value(
+        &mut errors,
         "workspace.remote.corpus_root",
         config
             .workspace
@@ -57,6 +84,45 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
             .remote
             .as_ref()
             .and_then(|row| row.results_root.as_deref()),
+    );
+    require_value(
+        &mut errors,
+        "workspace.remote.extra_data_root",
+        config
+            .workspace
+            .remote
+            .as_ref()
+            .and_then(|row| row.extra_data_root.as_deref()),
+    );
+    require_value(
+        &mut errors,
+        "workspace.layout.stage_runs.remote_results_template",
+        config
+            .workspace
+            .layout
+            .as_ref()
+            .and_then(|row| row.stage_runs.as_ref())
+            .and_then(|row| row.remote_results_template.as_deref()),
+    );
+    require_value(
+        &mut errors,
+        "workspace.layout.stage_runs.local_cache_results_template",
+        config
+            .workspace
+            .layout
+            .as_ref()
+            .and_then(|row| row.stage_runs.as_ref())
+            .and_then(|row| row.local_cache_results_template.as_deref()),
+    );
+    require_value(
+        &mut errors,
+        "workspace.layout.stage_runs.local_archive_results_template",
+        config
+            .workspace
+            .layout
+            .as_ref()
+            .and_then(|row| row.stage_runs.as_ref())
+            .and_then(|row| row.local_archive_results_template.as_deref()),
     );
     if config.corpora.is_empty() {
         errors
@@ -199,12 +265,21 @@ mod tests {
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
+cache_mirror_root = "/bench/local/cache-mirror"
+extra_data_root = "/bench/local/extra-data"
 
 [workspace.remote]
 ssh_host = "cluster"
 repo_root = "/bench/remote/repo"
+cache_root = "/bench/remote/cache"
 corpus_root = "/bench/remote/cache/benchmark_corpus"
 results_root = "/bench/remote/cache/results"
+extra_data_root = "/bench/remote/cache/extra-data"
+
+[workspace.layout.stage_runs]
+remote_results_template = "{corpus_id}/{stage_id}/cluster"
+local_cache_results_template = "results/{corpus_id}/{stage_id}/cluster"
+local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
@@ -238,12 +313,21 @@ tools = ["fastqvalidator"]
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
+cache_mirror_root = "/bench/local/cache-mirror"
+extra_data_root = "/bench/local/extra-data"
 
 [workspace.remote]
 ssh_host = "cluster"
 repo_root = "/bench/remote/repo"
+cache_root = "/bench/remote/cache"
 corpus_root = "/bench/remote/cache/benchmark_corpus"
 results_root = "/bench/remote/cache/results"
+extra_data_root = "/bench/remote/cache/extra-data"
+
+[workspace.layout.stage_runs]
+remote_results_template = "{corpus_id}/{stage_id}/cluster"
+local_cache_results_template = "results/{corpus_id}/{stage_id}/cluster"
+local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
@@ -274,12 +358,21 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
+cache_mirror_root = "/bench/local/cache-mirror"
+extra_data_root = "/bench/local/extra-data"
 
 [workspace.remote]
 ssh_host = "cluster"
 repo_root = "/bench/remote/repo"
+cache_root = "/bench/remote/cache"
 corpus_root = "/bench/remote/cache/benchmark_corpus"
 results_root = "/bench/remote/cache/results"
+extra_data_root = "/bench/remote/cache/extra-data"
+
+[workspace.layout.stage_runs]
+remote_results_template = "{corpus_id}/{stage_id}/cluster"
+local_cache_results_template = "results/{corpus_id}/{stage_id}/cluster"
+local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 
 [corpora.corpus-01]
 
@@ -307,7 +400,7 @@ tools = ["fastqvalidator"]
     }
 
     #[test]
-    fn validate_benchmark_config_rejects_undeclared_publication_corpus() {
+    fn validate_benchmark_config_requires_workspace_layout_contracts() {
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("config dir");
@@ -321,6 +414,62 @@ ssh_host = "cluster"
 repo_root = "/bench/remote/repo"
 corpus_root = "/bench/remote/cache/benchmark_corpus"
 results_root = "/bench/remote/cache/results"
+
+[corpora.corpus-01]
+spec_path = "configs/runtime/corpora/corpus-01.toml"
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.validate_reads"
+scenario_id = "validation_fairness"
+sample_scope = "full"
+tools = ["fastqvalidator"]
+"#,
+        )
+        .expect("write config");
+
+        let error = validate_benchmark_config(
+            temp.path(),
+            &crate::commands::cli::BenchConfigValidateArgs {
+                config: None,
+                check_paths: false,
+            },
+        )
+        .expect_err("validator should reject missing workspace contracts");
+
+        let rendered = error.to_string();
+        assert!(rendered.contains("missing required benchmark config key: workspace.local.cache_mirror_root"));
+        assert!(rendered.contains("missing required benchmark config key: workspace.local.extra_data_root"));
+        assert!(rendered.contains("missing required benchmark config key: workspace.remote.cache_root"));
+        assert!(rendered.contains("missing required benchmark config key: workspace.remote.extra_data_root"));
+        assert!(rendered.contains("missing required benchmark config key: workspace.layout.stage_runs.remote_results_template"));
+        assert!(rendered.contains("missing required benchmark config key: workspace.layout.stage_runs.local_cache_results_template"));
+        assert!(rendered.contains("missing required benchmark config key: workspace.layout.stage_runs.local_archive_results_template"));
+    }
+
+    #[test]
+    fn validate_benchmark_config_rejects_undeclared_publication_corpus() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("config dir");
+        std::fs::write(
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
+results_root = "/bench/local/results"
+cache_mirror_root = "/bench/local/cache-mirror"
+extra_data_root = "/bench/local/extra-data"
+
+[workspace.remote]
+ssh_host = "cluster"
+repo_root = "/bench/remote/repo"
+cache_root = "/bench/remote/cache"
+corpus_root = "/bench/remote/cache/benchmark_corpus"
+results_root = "/bench/remote/cache/results"
+extra_data_root = "/bench/remote/cache/extra-data"
+
+[workspace.layout.stage_runs]
+remote_results_template = "{corpus_id}/{stage_id}/cluster"
+local_cache_results_template = "results/{corpus_id}/{stage_id}/cluster"
+local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
@@ -363,12 +512,21 @@ tools = ["fastqvalidator"]
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
+cache_mirror_root = "/bench/local/cache-mirror"
+extra_data_root = "/bench/local/extra-data"
 
 [workspace.remote]
 ssh_host = "cluster"
 repo_root = "/bench/remote/repo"
+cache_root = "/bench/remote/cache"
 corpus_root = "/bench/remote/cache/benchmark_corpus"
 results_root = "/bench/remote/cache/results"
+extra_data_root = "/bench/remote/cache/extra-data"
+
+[workspace.layout.stage_runs]
+remote_results_template = "{corpus_id}/{stage_id}/cluster"
+local_cache_results_template = "results/{corpus_id}/{stage_id}/cluster"
+local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
