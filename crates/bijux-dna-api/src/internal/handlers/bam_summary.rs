@@ -68,9 +68,11 @@ pub(crate) fn render_bam_summary(
     bijux_dna_infra::atomic_write_bytes(&summary_tsv_path, tsv.as_bytes())
         .context("write summary.tsv")?;
     let report_html_path = root.join("report.html");
+    let rendered_summary =
+        serde_json::to_string_pretty(&summary).context("serialize BAM summary payload")?;
     let html = format!(
         "<!doctype html><html><head><meta charset=\"utf-8\"><title>BAM summary</title></head><body><pre>{}</pre></body></html>",
-        serde_json::to_string_pretty(&summary).unwrap_or_default()
+        rendered_summary
     );
     bijux_dna_infra::atomic_write_bytes(&report_html_path, html.as_bytes())
         .context("write report.html")?;
