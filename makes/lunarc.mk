@@ -4,27 +4,27 @@ BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --
 BENCHMARK_CONFIG ?= configs/bench/benchmark.toml
 BENCHMARK_WORKSPACE_VALUE = BIJUX_BENCHMARK_CONFIG="$(BENCHMARK_CONFIG)" $(BIJUX_BENCH_BIN) bench workspace-value --config "$(BENCHMARK_CONFIG)"
 
-LUNARC_HOST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.ssh_host)
-LUNARC_REPO_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.repo_root)
-LUNARC_RESULTS_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.results_root)
-LUNARC_CORPUS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.corpus_root)
-LUNARC_LOCAL_RESULTS_DIR ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) local.results_root)
-LUNARC_PULL_BASE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.pull_base)
-LUNARC_PULL_MODE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.pull_mode)
-LUNARC_INCLUDE_PROFILE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.include_profile)
-LUNARC_EXCLUDE_PROFILE ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.exclude_profile)
+BENCHMARK_REMOTE_HOST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.ssh_host)
+BENCHMARK_REMOTE_REPO_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.repo_root)
+BENCHMARK_REMOTE_RESULTS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.results_root)
+BENCHMARK_REMOTE_CORPUS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.corpus_root)
+BENCHMARK_LOCAL_RESULTS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) local.results_root)
+BENCHMARK_PULL_BASE_DEFAULT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.pull_base)
+BENCHMARK_PULL_MODE_DEFAULT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.pull_mode)
+BENCHMARK_INCLUDE_PROFILE_DEFAULT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.include_profile)
+BENCHMARK_EXCLUDE_PROFILE_DEFAULT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.exclude_profile)
 CLEAN_CONTEXT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.clean_context)
 ALLOW_DIRTY ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.allow_dirty)
 INCLUDE_CONTAINERS_MANIFEST ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.include_containers_manifest)
 DATA_MANIFEST_GLOB ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) sync.defaults.data_manifest_glob)
-LUNARC_CONTAINERS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.containers_root)
-LUNARC_APPTAINER_DIR ?= $(LUNARC_CONTAINERS_ROOT)/apptainer
-LUNARC_APPTAINER_ARTIFACT_DIR ?= $(LUNARC_REPO_DIR)/artifacts/containers/hpc/frontend-smoke
+BENCHMARK_REMOTE_CONTAINERS_ROOT ?= $(shell $(BENCHMARK_WORKSPACE_VALUE) remote.containers_root)
+LUNARC_APPTAINER_DIR ?= $(BENCHMARK_REMOTE_CONTAINERS_ROOT)/apptainer
+LUNARC_APPTAINER_ARTIFACT_DIR ?= $(BENCHMARK_REMOTE_REPO_ROOT)/artifacts/containers/hpc/frontend-smoke
 LUNARC_LOCAL_APPTAINER_DIR ?= ../bijux-dna-lunarc/bijux-dna-container/apptainer
 LUNARC_APPTAINER_JOBS ?= 10
 LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
-LUNARC_FRONTEND_SENTINEL ?= $(LUNARC_REPO_DIR)
-LUNARC_APPTAINER_BASE_SEED_DIR ?= $(LUNARC_CONTAINERS_ROOT)/base
+LUNARC_FRONTEND_SENTINEL ?= $(BENCHMARK_REMOTE_REPO_ROOT)
+LUNARC_APPTAINER_BASE_SEED_DIR ?= $(BENCHMARK_REMOTE_CONTAINERS_ROOT)/base
 
 _benchmark-sync-push: ## Push the governed benchmark repo checkout to the remote frontend
 	@BENCHMARK_SYNC_CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
@@ -43,42 +43,42 @@ benchmark-sync-push-confirm: ## Push the governed benchmark repo checkout to the
 push-lunarc-confirm: benchmark-sync-push-confirm ## Compatibility alias for benchmark-sync-push-confirm
 
 _benchmark-sync-pull: ## Pull the governed benchmark mirror into the default local destination
-	@BENCHMARK_SYNC_PULL_BASE="$(LUNARC_PULL_BASE)" \
+	@BENCHMARK_SYNC_PULL_BASE="$(BENCHMARK_PULL_BASE_DEFAULT)" \
 	BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	BENCHMARK_SYNC_DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
-	BENCHMARK_SYNC_MODE="$(LUNARC_PULL_MODE)" \
+	BENCHMARK_SYNC_MODE="$(BENCHMARK_PULL_MODE_DEFAULT)" \
 	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
-		--include-profile "$(LUNARC_INCLUDE_PROFILE)" \
-		--exclude-profile "$(LUNARC_EXCLUDE_PROFILE)"
+		--include-profile "$(BENCHMARK_INCLUDE_PROFILE_DEFAULT)" \
+		--exclude-profile "$(BENCHMARK_EXCLUDE_PROFILE_DEFAULT)"
 
 benchmark-sync-pull: _benchmark-sync-pull ## Pull the governed benchmark mirror into the default local destination
 
 pull-lunarc: benchmark-sync-pull ## Compatibility alias for benchmark-sync-pull
 
 _benchmark-sync-pull-results: ## Pull governed benchmark results and optional manifests into the local archive root
-	@BENCHMARK_SYNC_PULL_DEST="$(LUNARC_LOCAL_RESULTS_DIR)" \
-	BENCHMARK_SYNC_PULL_BASE="$(LUNARC_PULL_BASE)" \
+	@BENCHMARK_SYNC_PULL_DEST="$(BENCHMARK_LOCAL_RESULTS_ROOT)" \
+	BENCHMARK_SYNC_PULL_BASE="$(BENCHMARK_PULL_BASE_DEFAULT)" \
 	BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	BENCHMARK_SYNC_DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	BENCHMARK_SYNC_MODE="results" \
 	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
-		--include-profile "$(LUNARC_INCLUDE_PROFILE)" \
-		--exclude-profile "$(LUNARC_EXCLUDE_PROFILE)"
+		--include-profile "$(BENCHMARK_INCLUDE_PROFILE_DEFAULT)" \
+		--exclude-profile "$(BENCHMARK_EXCLUDE_PROFILE_DEFAULT)"
 
 benchmark-sync-pull-results: _benchmark-sync-pull-results ## Pull governed benchmark results into the local archive root
 
 pull-lunarc-results: benchmark-sync-pull-results ## Compatibility alias for benchmark-sync-pull-results
 
 benchmark-sync-pull-results-prune: _benchmark-sync-pull-results ## Pull governed results locally, then clear the remote results payload
-	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
-		mkdir -p "$(LUNARC_RESULTS_DIR)"; \
-		find "$(LUNARC_RESULTS_DIR)" -mindepth 1 -maxdepth 1 ! -name site_lock.json -exec rm -rf {} +'
+	@ssh "$(BENCHMARK_REMOTE_HOST)" 'set -euo pipefail; \
+		mkdir -p "$(BENCHMARK_REMOTE_RESULTS_ROOT)"; \
+		find "$(BENCHMARK_REMOTE_RESULTS_ROOT)" -mindepth 1 -maxdepth 1 ! -name site_lock.json -exec rm -rf {} +'
 
 pull-lunarc-results-prune: benchmark-sync-pull-results-prune ## Compatibility alias for benchmark-sync-pull-results-prune
 
 benchmark-publication-refresh: ## Pull governed publication inputs, render dossiers, and refresh audits
 	@$(MAKE) benchmark-sync-pull-results \
-		LUNARC_INCLUDE_PROFILE="pull-benchmark-publication" \
+		BENCHMARK_INCLUDE_PROFILE_DEFAULT="pull-benchmark-publication" \
 		INCLUDE_CONTAINERS_MANIFEST=1 \
 		DATA_MANIFEST_GLOB="benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"
 	@$(MAKE) _benchmark-normalize-local-results-layout
@@ -87,9 +87,9 @@ benchmark-publication-refresh: ## Pull governed publication inputs, render dossi
 benchmark-lunarc-publication-refresh: benchmark-publication-refresh ## Compatibility alias for benchmark-publication-refresh
 
 lunarc-footprint: ## Report Lunarc frontend footprint and fail above 20 GB
-	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
+	@ssh "$(BENCHMARK_REMOTE_HOST)" 'set -euo pipefail; \
 		total_kb=0; \
-		for dir in "$(LUNARC_REPO_DIR)" "$(LUNARC_CONTAINERS_ROOT)" "$(LUNARC_CORPUS_ROOT)" "$(LUNARC_RESULTS_DIR)"; do \
+		for dir in "$(BENCHMARK_REMOTE_REPO_ROOT)" "$(BENCHMARK_REMOTE_CONTAINERS_ROOT)" "$(BENCHMARK_REMOTE_CORPUS_ROOT)" "$(BENCHMARK_REMOTE_RESULTS_ROOT)"; do \
 			size_kb=$$(du -sk "$$dir" 2>/dev/null | awk "{print \$$1}" || true); \
 			size_kb=$${size_kb:-0}; \
 			total_kb=$$((total_kb + size_kb)); \
@@ -103,12 +103,12 @@ lunarc-footprint: ## Report Lunarc frontend footprint and fail above 20 GB
 		fi'
 
 lunarc-prune-code: ## Remove transient build residue from the Lunarc repo checkout
-	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
-		rm -rf "$(LUNARC_REPO_DIR)/artifacts" "$(LUNARC_REPO_DIR)/target"; \
-		mkdir -p "$(LUNARC_REPO_DIR)/artifacts"'
+	@ssh "$(BENCHMARK_REMOTE_HOST)" 'set -euo pipefail; \
+		rm -rf "$(BENCHMARK_REMOTE_REPO_ROOT)/artifacts" "$(BENCHMARK_REMOTE_REPO_ROOT)/target"; \
+		mkdir -p "$(BENCHMARK_REMOTE_REPO_ROOT)/artifacts"'
 
 apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc frontend
-	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
+	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(BENCHMARK_REMOTE_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(BENCHMARK_REMOTE_HOST)" ]; then :; else \
 		echo "refusing local-ssh target on frontend host; use: make apptainer-hpc-build"; \
 		exit 2; \
 	fi
@@ -117,8 +117,8 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 	else \
 		echo "skip push: current directory is not a git worktree"; \
 	fi
-	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
-		cd "$(LUNARC_REPO_DIR)"; \
+	@ssh "$(BENCHMARK_REMOTE_HOST)" 'set -euo pipefail; \
+		cd "$(BENCHMARK_REMOTE_REPO_ROOT)"; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/base" "$(LUNARC_APPTAINER_DIR)/logs" "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs"; \
 		if [ ! -s "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" ]; then \
 			apptainer build --force "$(LUNARC_APPTAINER_DIR)/base/ubuntu-jammy.sif" docker://ubuntu:22.04 || echo "warning: ubuntu base pull failed; trying non-docker fallback"; \
@@ -149,7 +149,7 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 		fi; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
-		env ARTIFACT_ROOT="$(LUNARC_REPO_DIR)/artifacts" \
+		env ARTIFACT_ROOT="$(BENCHMARK_REMOTE_REPO_ROOT)/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=build \
@@ -161,14 +161,14 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 		cargo run -q -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- "$(LUNARC_APPTAINER_ARTIFACT_DIR)"'
 
 apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lunarc frontend
-	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
+	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(BENCHMARK_REMOTE_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(BENCHMARK_REMOTE_HOST)" ]; then :; else \
 		echo "refusing local-ssh target on frontend host; use: make apptainer-hpc-test"; \
 		exit 2; \
 	fi
-	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
-		cd "$(LUNARC_REPO_DIR)"; \
+	@ssh "$(BENCHMARK_REMOTE_HOST)" 'set -euo pipefail; \
+		cd "$(BENCHMARK_REMOTE_REPO_ROOT)"; \
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs" "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs"; \
-		env ARTIFACT_ROOT="$(LUNARC_REPO_DIR)/artifacts" \
+		env ARTIFACT_ROOT="$(BENCHMARK_REMOTE_REPO_ROOT)/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=contract \
@@ -181,13 +181,13 @@ apptainer-lunarc-test: ## Run contract smoke test for all apptainer tools on Lun
 		tail -n 20 "$(LUNARC_APPTAINER_ARTIFACT_DIR)/logs/apptainer/summary.txt"'
 
 apptainer-lunarc-pull: ## Pull Lunarc apptainer artifacts into ../bijux-dna-lunarc/bijux-dna-container/apptainer
-	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(LUNARC_HOST)" ]; then :; else \
+	@if [ "$$(hostname -f 2>/dev/null || hostname)" != "$(BENCHMARK_REMOTE_HOST)" ] && [ "$$(hostname -s 2>/dev/null || hostname)" != "$(BENCHMARK_REMOTE_HOST)" ]; then :; else \
 		echo "refusing pull-to-local target on frontend host; run this from your local machine"; \
 		exit 2; \
 	fi
 	@mkdir -p "$(LUNARC_LOCAL_APPTAINER_DIR)"
 	@rsync -az --delete \
-		"$(LUNARC_HOST):$(LUNARC_APPTAINER_DIR)/" \
+		"$(BENCHMARK_REMOTE_HOST):$(LUNARC_APPTAINER_DIR)/" \
 		"$(LUNARC_LOCAL_APPTAINER_DIR)/"
 	@echo "pulled_to=$(LUNARC_LOCAL_APPTAINER_DIR)"
 
@@ -218,7 +218,7 @@ apptainer-hpc-build: ## Build all apptainer SIFs directly on HPC frontend (no ss
 		fi; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
-		env ARTIFACT_ROOT="$(LUNARC_REPO_DIR)/artifacts" \
+		env ARTIFACT_ROOT="$(BENCHMARK_REMOTE_REPO_ROOT)/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=build \
@@ -238,7 +238,7 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 		mkdir -p "$(LUNARC_APPTAINER_DIR)/logs"; \
 		py_arg=""; \
 		if [ -s "$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif" ]; then py_arg="APPTAINER_PYTHON_BASE_SIF=$(LUNARC_APPTAINER_DIR)/base/python-3.11-slim.sif"; fi; \
-		env ARTIFACT_ROOT="$(LUNARC_REPO_DIR)/artifacts" \
+		env ARTIFACT_ROOT="$(BENCHMARK_REMOTE_REPO_ROOT)/artifacts" \
 			BIJUX_WORKERS=1 JOBS="$(LUNARC_APPTAINER_JOBS)" \
 			FRONTEND_PROOF_MODE=1 \
 			SMOKE_LEVEL=contract \
