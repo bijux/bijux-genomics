@@ -302,7 +302,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 match governed_report.paired_mode {
                     bijux_dna_domain_fastq::PairedMode::SingleEnd => "single_end",
                     bijux_dna_domain_fastq::PairedMode::PairedEnd => "paired_end",
-                    bijux_dna_domain_fastq::PairedMode::Unknown => "unknown",
+                    bijux_dna_domain_fastq::PairedMode::Unknown => "not_declared",
                 }
                 .to_string(),
             ),
