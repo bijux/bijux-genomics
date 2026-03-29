@@ -9,10 +9,10 @@ use clap::Parser;
 use sha2::Digest as _;
 
 use crate::commands::root::{
-    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root, handle_ena_root,
-    handle_lab_root, handle_registry_root, handle_tool_root,
+    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root,
+    handle_ena_root, handle_environment_root, handle_lab_root, handle_registry_root,
+    handle_tool_root,
 };
-use crate::commands::root_command_handlers::handle_environment_root;
 use crate::commands::{bam, bench, cli, fastq, hpc, run_plan, vcf};
 
 struct CwdGuard(PathBuf);
