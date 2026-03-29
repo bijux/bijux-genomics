@@ -58,7 +58,7 @@ fn artifact_input_path_string(
 ) -> String {
     artifact_input_path(plan, name)
         .map(|path| path.display().to_string())
-        .unwrap_or_else(|| "not_declared".to_string())
+        .unwrap_or_default()
 }
 
 /// # Errors
