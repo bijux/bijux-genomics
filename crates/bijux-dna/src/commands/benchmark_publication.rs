@@ -863,6 +863,7 @@ fn max_f64(values: &[f64]) -> Option<f64> {
 
 fn csv_sort_f64(value: Option<&String>) -> f64 {
     value
+        .filter(|entry| entry.as_str() != "missing")
         .and_then(|entry| entry.parse::<f64>().ok())
         .unwrap_or_default()
 }
@@ -1478,8 +1479,10 @@ fn audit_published_results_stage(
     let reported_run_root = summary
         .get("run_root")
         .and_then(|value| value.as_str())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
         .map(PathBuf::from)
-        .unwrap_or_default();
+        .unwrap_or_else(PathBuf::new);
     let selection = select_stage_run_root(&configured_roots);
     let selected_run_root = if reported_run_root.is_dir() {
         reported_run_root.clone()
