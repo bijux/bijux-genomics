@@ -537,8 +537,16 @@ fn write_normalized_bam_metrics(
             image_digest: plan.image.digest.clone(),
             runner: "container".to_string(),
             platform: "cross".to_string(),
-            input_hash: "unknown".to_string(),
-            params_hash: "unknown".to_string(),
+            input_hash: bijux_dna_core::prelude::input_fingerprint(
+                &plan
+                    .io
+                    .inputs
+                    .iter()
+                    .map(|artifact| artifact.path.display().to_string())
+                    .collect::<Vec<_>>(),
+            ),
+            params_hash: bijux_dna_core::prelude::params_hash(&plan.effective_params)
+                .unwrap_or_default(),
             presets: std::collections::BTreeMap::new(),
             banks: std::collections::BTreeMap::new(),
         },
