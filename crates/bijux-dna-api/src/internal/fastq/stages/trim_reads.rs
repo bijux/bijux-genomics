@@ -524,12 +524,13 @@ mod tests {
         adapter_bank_requested, adapter_policy_uses_bank, apply_thread_override,
         benchmark_query_context, contaminant_policy_uses_bank, normalized_adapter_policy,
         normalized_contaminant_policy, normalized_polyx_policy, polyx_policy_uses_bank,
-        write_governed_trim_report,
+        prune_trim_tool_payload, write_governed_trim_report,
     };
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
     };
     use bijux_dna_domain_fastq::{PairedMode, TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
+    use std::fs;
 
     fn dummy_tool(tool_id: &'static str, threads: u32) -> ToolExecutionSpecV1 {
         ToolExecutionSpecV1 {
