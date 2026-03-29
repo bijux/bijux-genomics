@@ -16,6 +16,7 @@ mod api;
 mod coverage;
 mod explain;
 mod explain_model;
+mod input_policy;
 mod models;
 mod params;
 mod planner;
