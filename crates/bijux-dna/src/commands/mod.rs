@@ -25,6 +25,7 @@ pub(crate) mod report_inputs;
 mod root;
 mod router;
 pub(crate) mod run_plan;
+mod status;
 pub(crate) mod vcf;
 
 pub use command_dispatch::*;
