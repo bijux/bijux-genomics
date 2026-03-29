@@ -115,7 +115,9 @@ fn run_smoke_with_manifest(
     } else {
         probe_failures == 0
     };
-    let parsed_version = parse_first_version(&version_out).unwrap_or_default();
+    let parsed_version = parse_first_version(&version_out)
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "not_recorded".to_string());
     let version_output_first_line = version_out
         .lines()
         .next()
@@ -130,7 +132,7 @@ fn run_smoke_with_manifest(
         .filter(|line| !line.is_empty())
         .unwrap_or("not_recorded")
         .to_string();
-    let status = if help_ok && !parsed_version.is_empty() {
+    let status = if help_ok && parsed_version != "not_recorded" {
         "ok"
     } else {
         "wrapper_failed"
