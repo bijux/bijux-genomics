@@ -1337,7 +1337,7 @@ fn render_dossier_index_markdown(index: &DossierIndex) -> String {
             lines.push(format!(
                 "- `{}`: `{}` from `{}`",
                 stage.stage_id,
-                stage.generated_at_utc.as_deref().unwrap_or("unknown"),
+                stage.generated_at_utc.as_deref().unwrap_or("missing"),
                 stage.run_root_source.as_deref().unwrap_or("missing")
             ));
             lines.push(format!(
@@ -3187,7 +3187,7 @@ fn render_remediation_queue_markdown(queue: &RemediationQueue) -> String {
             lines.push(format!(
                 "  - dossier `{}` from `{}`",
                 generated_at,
-                stage.run_root_source.as_deref().unwrap_or("unknown")
+                stage.run_root_source.as_deref().unwrap_or("missing")
             ));
         }
         for group in &stage.issue_groups {
