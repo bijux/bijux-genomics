@@ -3,20 +3,15 @@ pub(crate) fn write_scientific_provenance(
     stage_runs: &[StageExecutionSummary],
 ) -> Result<()> {
     let defaults_path = out_dir.join("defaults_ledger.json");
-    let (pipeline_id, planner_version) = if defaults_path.exists() {
-        let raw = fs::read_to_string(&defaults_path)?;
-        let value: serde_json::Value = serde_json::from_str(&raw)?;
-        let pipeline_id = value
-            .get("pipeline_id")
-            .and_then(|v| v.as_str())
-            .unwrap_or("unknown")
-            .to_string();
-        let planner_version =
-            std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string());
-        (pipeline_id, planner_version)
-    } else {
-        ("unknown".to_string(), "unknown".to_string())
-    };
+    let raw = fs::read_to_string(&defaults_path)?;
+    let value: serde_json::Value = serde_json::from_str(&raw)?;
+    let pipeline_id = value
+        .get("pipeline_id")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("defaults_ledger.json missing pipeline_id"))?
+        .to_string();
+    let planner_version = std::env::var("BIJUX_PLANNER_VERSION")
+        .map_err(|_| anyhow::anyhow!("BIJUX_PLANNER_VERSION must be set for scientific provenance"))?;
     let mut invocations = Vec::new();
     let mut parameters_fingerprints = std::collections::BTreeMap::new();
     for entry in stage_runs {
@@ -76,7 +71,18 @@ fn run_provenance_from_stage_runs(
     let mut tool_versions = std::collections::BTreeSet::new();
     let mut image_digests = std::collections::BTreeSet::new();
     for entry in stage_runs {
-        tool_versions.insert("unknown".to_string());
+        let invocation_path =
+            bijux_dna_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
+                .join("tool_invocation.json");
+        if let Some(invocation) = read_json_if_exists(&invocation_path) {
+            if let Some(tool_version) = invocation
+                .get("resolved_tool_version")
+                .and_then(serde_json::Value::as_str)
+                .or_else(|| invocation.get("tool_version").and_then(serde_json::Value::as_str))
+            {
+                tool_versions.insert(tool_version.to_string());
+            }
+        }
         if let Some(digest) = entry.plan.image.digest.clone() {
             image_digests.insert(digest);
         }
@@ -100,25 +106,28 @@ fn run_provenance_from_stage_runs(
     }
     input_hashes.sort();
     input_hashes.dedup();
-    let params_hash =
-        params_hash(&serde_json::json!(params_by_stage)).unwrap_or_else(|_| "unknown".to_string());
+    let params_hash = params_hash(&serde_json::json!(params_by_stage)).ok();
     let tool_version = if tool_versions.len() == 1 {
-        tool_versions
-            .into_iter()
-            .next()
-            .unwrap_or_else(|| "unknown".to_string())
+        tool_versions.into_iter().next()
+    } else if tool_versions.is_empty() {
+        None
     } else {
-        "multiple".to_string()
+        Some("multiple".to_string())
     };
     let tool_image_digest = if image_digests.len() == 1 {
         image_digests.into_iter().next()
     } else {
         None
     };
-    let pipeline_id = std::env::var("BIJUX_PIPELINE_ID").unwrap_or_else(|_| "unknown".to_string());
-    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
-    let build_profile =
-        std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let pipeline_id = read_json_if_exists(&out_dir.join("defaults_ledger.json"))
+        .and_then(|value| {
+            value
+                .get("pipeline_id")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_string)
+        });
+    let git_commit = std::env::var("BIJUX_GIT_COMMIT").ok();
+    let build_profile = std::env::var("BIJUX_BUILD_PROFILE").ok();
     let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
     let plan_hash = std::env::var("BIJUX_PLAN_HASH").ok();
     let workspace_root = out_dir.parent().and_then(Path::parent).unwrap_or(out_dir);
@@ -161,4 +170,3 @@ fn run_provenance_from_stage_runs(
         "taxonomy_db_version": "v1",
     })
 }
-
