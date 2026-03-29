@@ -6,6 +6,7 @@ use std::time::Duration;
 
 pub mod backend;
 pub mod command_runner;
+mod repo_root;
 pub mod step_runner;
 
 #[derive(Debug, Clone, Copy)]
