@@ -367,14 +367,11 @@ fn materialize_amplicon_stage_outputs(
                 primer_orientation_report: orientation.display().to_string(),
                 primer_stats_json: primer_stats.display().to_string(),
                 raw_backend_report: Some(primer_stats.display().to_string()),
-                raw_backend_report_format: Some(
-                    match tool_id {
-                        "cutadapt" => "cutadapt_json",
-                        "seqkit" => "seqkit_grep",
-                        _ => "unknown",
-                    }
-                    .to_string(),
-                ),
+                raw_backend_report_format: match tool_id {
+                    "cutadapt" => Some("cutadapt_json".to_string()),
+                    "seqkit" => Some("seqkit_grep".to_string()),
+                    _ => None,
+                },
                 runtime_s: None,
                 memory_mb: None,
                 used_fallback: !stage_ok,
