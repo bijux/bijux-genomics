@@ -1,4 +1,4 @@
-use super::{anyhow, ExecuteRunRequest, Path, PathBuf, Result};
+use super::{anyhow, ExecuteRunRequest, Path, Result};
 
 pub(super) fn maybe_emit_reference_manifest(
     request: &ExecuteRunRequest,
@@ -274,10 +274,7 @@ struct CoverageThresholds {
 }
 
 fn load_coverage_thresholds(profile: &str) -> Result<CoverageThresholds> {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(std::path::Path::parent)
-        .map_or_else(|| PathBuf::from("."), std::path::Path::to_path_buf);
+    let root = crate::support::repo_root::resolve_repo_root()?;
     let raw = std::fs::read_to_string(root.join("configs/runtime/coverage_regimes.toml"))?;
     let parsed: toml::Value = toml::from_str(&raw)?;
     let decision = parsed
