@@ -35,7 +35,7 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionGraph) -> Result<st
             .image
             .digest
             .clone()
-            .unwrap_or_default();
+            .unwrap_or_else(|| "not_declared".to_string());
         let params_provenance = serde_json::json!({
             "tool_params": params.clone(),
             "defaults": serde_json::json!({}),
