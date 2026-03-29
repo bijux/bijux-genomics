@@ -13,7 +13,13 @@ pub(crate) struct RuntimeParityResult {
 }
 
 fn normalized_first_line(stdout: &str) -> String {
-    stdout.lines().next().unwrap_or_default().trim().to_string()
+    stdout
+        .lines()
+        .next()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or("not_recorded")
+        .to_string()
 }
 
 /// # Errors
