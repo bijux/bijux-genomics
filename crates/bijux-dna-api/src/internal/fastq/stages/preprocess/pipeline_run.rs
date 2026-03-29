@@ -555,7 +555,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     .command
                     .template
                     .first()
-                    .map_or("unknown", String::as_str),
+                    .map(String::as_str),
             )?;
             write_stage_standardized_metrics(
                 &stage_root,
