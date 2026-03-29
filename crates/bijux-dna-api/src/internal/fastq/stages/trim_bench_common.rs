@@ -146,9 +146,8 @@ pub(crate) fn infer_udg_classification(input: &Path) -> String {
     }
     let stem = input
         .file_name()
-        .and_then(|x| x.to_str())
-        .unwrap_or_default()
-        .to_ascii_lowercase();
+        .map(|name| name.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
     if stem.contains("partial_udg") || stem.contains("partial-udg") {
         "partial".to_string()
     } else if stem.contains("udg") {
