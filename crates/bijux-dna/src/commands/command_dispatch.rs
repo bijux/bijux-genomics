@@ -449,20 +449,22 @@ fn parse_toml_path(path: &Path) -> Result<toml::Value> {
         .map_err(|err| anyhow!("parse {}: {err}", path.display()))
 }
 
-fn toml_array<'a>(value: &'a toml::Value, key: &str) -> Vec<&'a toml::Value> {
-    value
-        .get(key)
-        .and_then(toml::Value::as_array)
-        .map(|rows| rows.iter().collect::<Vec<_>>())
-        .unwrap_or_default()
+fn toml_array<'a>(value: &'a toml::Value, key: &str) -> Result<Vec<&'a toml::Value>> {
+    let Some(raw) = value.get(key) else {
+        return Ok(Vec::new());
+    };
+    let rows = raw
+        .as_array()
+        .ok_or_else(|| anyhow!("registry field `{key}` must be an array"))?;
+    Ok(rows.iter().collect::<Vec<_>>())
 }
 
-fn param_rows(value: &toml::Value) -> Vec<&toml::Value> {
-    let rows = toml_array(value, "params");
+fn param_rows(value: &toml::Value) -> Result<Vec<&toml::Value>> {
+    let rows = toml_array(value, "params")?;
     if rows.is_empty() {
         toml_array(value, "entries")
     } else {
-        rows
+        Ok(rows)
     }
 }
 
@@ -545,7 +547,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         let stage_rows = declared_toml_array(&stages, "stages")
             .ok_or_else(|| anyhow!("stage registry must declare a stages array"))?;
 
-        let param_stage_ids = param_rows(&params)
+        let param_stage_ids = param_rows(&params)?
             .into_iter()
             .filter_map(|row| row.get("stage_id").and_then(toml::Value::as_str))
             .collect::<BTreeSet<_>>();
