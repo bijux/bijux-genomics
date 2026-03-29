@@ -835,8 +835,9 @@ fn corpus_inputs_for_root(cwd: &Path, root: &Path) -> Result<CorpusInputs> {
     let name = root
         .file_name()
         .and_then(|v| v.to_str())
-        .unwrap_or("unknown")
-        .to_string();
+        .filter(|value| !value.trim().is_empty())
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| root.display().to_string());
     let normalized = root.join("normalized");
     let mut files = if normalized.exists() {
         fs::read_dir(&normalized)
