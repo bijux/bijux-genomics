@@ -133,6 +133,7 @@ pub(crate) fn run_corpus_fastq_report(cwd: &Path, args: &BenchCorpusFastqReportA
         cwd,
         &benchmark_config,
         args.config.as_deref(),
+        &args.corpus_id,
         &args.stage,
         args.run_root.as_deref(),
         &stage_docs_root,
@@ -142,6 +143,7 @@ pub(crate) fn run_corpus_fastq_report(cwd: &Path, args: &BenchCorpusFastqReportA
 #[derive(Debug, Serialize)]
 struct CorpusSummary {
     schema_version: String,
+    corpus_id: String,
     stage_id: String,
     scenario_id: String,
     generated_at_utc: String,
@@ -205,12 +207,19 @@ fn render_corpus_fastq_dossier(
     cwd: &Path,
     benchmark_config: &BenchmarkConfig,
     config_path: Option<&Path>,
+    corpus_id: &str,
     stage_id: &str,
     explicit_run_root: Option<&Path>,
     stage_docs_root: &Path,
 ) -> Result<()> {
-    let contract = benchmark_publication_contract(cwd, config_path, "corpus-01", stage_id)?;
-    let corpus_spec = load_corpus_spec(cwd, config_path, "corpus-01")?;
+    let contract = benchmark_publication_contract(cwd, config_path, corpus_id, stage_id)?;
+    let corpus_spec = load_corpus_spec(cwd, config_path, corpus_id)?;
+    if corpus_spec.corpus_id != corpus_id {
+        return Err(anyhow!(
+            "configured publication corpus spec drift: expected `{corpus_id}`, found `{}`",
+            corpus_spec.corpus_id
+        ));
+    }
     let corpus_root = workspace_remote_corpus_root(&benchmark_config.workspace)?;
     let all_samples = discover_normalized_samples(
         &corpus_root,
@@ -318,7 +327,7 @@ fn render_corpus_fastq_dossier(
 fn build_corpus_artifact_set(
     workspace: &BenchmarkWorkspaceConfig,
     contract: &CorpusBenchmarkContract,
-    _corpus_spec: &CorpusSpec,
+    corpus_spec: &CorpusSpec,
     corpus_root: &Path,
     run_root: &Path,
     run_manifest: &serde_json::Value,
@@ -604,6 +613,7 @@ fn build_corpus_artifact_set(
         .unwrap_or(0) as usize;
     let summary = CorpusSummary {
         schema_version: "bijux.corpus_benchmark.summary.v1".to_string(),
+        corpus_id: corpus_spec.corpus_id.clone(),
         stage_id: contract.stage_id.clone(),
         scenario_id: contract.scenario_id.clone(),
         generated_at_utc: Utc::now().to_rfc3339(),
@@ -645,8 +655,9 @@ fn render_corpus_benchmark_markdown(
     tool_runtime_rows: &[BTreeMap<String, String>],
     outlier_rows: &[BTreeMap<String, String>],
 ) -> String {
-    let mut lines = vec![
-        format!("# `{}` benchmark on `corpus-01`", summary.stage_id),
+    let mut lines =
+        vec![
+        format!("# `{}` benchmark on `{}`", summary.stage_id, summary.corpus_id),
         String::new(),
         "## Run Contract".to_string(),
         String::new(),
