@@ -57,7 +57,6 @@ use self::amplicon_governance::*;
 use self::amplicon_runtime::*;
 use self::coverage_regime::*;
 use self::invariants::*;
-use self::runtime_tail::*;
 use self::stage_contracts::*;
 use self::stage_artifacts::*;
 use self::stage_backend_policy::*;

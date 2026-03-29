@@ -1,3 +1,9 @@
+use super::runtime_tail::command_io::{
+    command_exists, copy_if_missing, load_qc_thresholds_map, run_stage_command,
+    write_fastq_to_fasta_if_missing,
+};
+use super::runtime_tail::profiling::{infer_udg_classification, terminal_damage_profile};
+
 pub(super) fn materialize_amplicon_stage_outputs(
     stage_root: &std::path::Path,
     planned: &ExecutionStep,
