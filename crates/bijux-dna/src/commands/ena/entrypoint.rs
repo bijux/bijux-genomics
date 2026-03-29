@@ -241,18 +241,9 @@ fn snapshot_row_from_record(record: &EnaRecord) -> SelectionRow {
     SelectionRow {
         accession: record.accession_label(),
         sample_accession: record.sample_accession.clone(),
-        read_layout: record
-            .library_layout
-            .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
-        library_type: record
-            .library_strategy
-            .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
-        instrument: record
-            .instrument_model
-            .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+        read_layout: record.library_layout.clone().unwrap_or_default(),
+        library_type: record.library_strategy.clone().unwrap_or_default(),
+        instrument: record.instrument_model.clone().unwrap_or_default(),
         base_count: record.base_count.unwrap_or(0),
         read_count: record.read_count.unwrap_or(0),
         fastq_ftp: record.fastq_ftp.clone(),
@@ -270,10 +261,10 @@ fn record_from_snapshot_row(row: &SelectionRow) -> EnaRecord {
         analysis_accession: None,
         tax_id: None,
         scientific_name: None,
-        library_layout: Some(row.read_layout.clone()),
+        library_layout: optional_snapshot_field(&row.read_layout),
         library_source: None,
-        library_strategy: Some(row.library_type.clone()),
-        instrument_model: Some(row.instrument.clone()),
+        library_strategy: optional_snapshot_field(&row.library_type),
+        instrument_model: optional_snapshot_field(&row.instrument),
         base_count: Some(row.base_count),
         read_count: Some(row.read_count),
         fastq_bytes: row.fastq_bytes.clone(),
@@ -281,6 +272,15 @@ fn record_from_snapshot_row(row: &SelectionRow) -> EnaRecord {
         submitted_ftp: Vec::new(),
         sra_ftp: Vec::new(),
         bam_ftp: Vec::new(),
+    }
+}
+
+fn optional_snapshot_field(value: &str) -> Option<String> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
     }
 }
 
