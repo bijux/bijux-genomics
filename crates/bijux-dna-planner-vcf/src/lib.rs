@@ -20,6 +20,7 @@ mod models;
 mod params;
 mod planner;
 mod stage_catalog;
+mod workspace_config;
 
 pub use explain::explain_vcf_plan;
 pub use api::{ChunkPlanSettings, VcfPanelLock, VcfPipelineInputs};
