@@ -11,6 +11,7 @@ use serde_json::Value;
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-bam.v1";
 
 mod api;
+mod params;
 mod report_stage;
 mod selection;
 mod stages;
@@ -57,18 +58,6 @@ impl BamPlanner {
     }
 }
 
-fn effective_params_for_stage(
-    stage: bijux_dna_domain_bam::BamStage,
-    params: Option<&serde_json::Value>,
-) -> Result<bijux_dna_domain_bam::params::BamEffectiveParams> {
-    if let Some(value) = params {
-        return stage.parse_effective_params(value);
-    }
-    Ok(bijux_dna_domain_bam::stage_spec(stage)
-        .default_params
-        .clone())
-}
-
 /// # Errors
 /// Returns an error if the stage cannot be planned with the provided inputs.
 #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
@@ -83,7 +72,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let sample_id = request
                 .sample_id
                 .ok_or_else(|| anyhow!("align requires sample_id"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Align(params) = params else {
                 return Err(anyhow!("align params mismatch"));
             };
@@ -121,7 +110,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
         }
         bijux_dna_domain_bam::BamStage::Filter => {
             let bam = request.bam.ok_or_else(|| anyhow!("filter requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Filter(params) = params else {
                 return Err(anyhow!("filter params mismatch"));
             };
@@ -138,7 +127,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("mapq_filter requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::MapqFilter(params) = params
             else {
                 return Err(anyhow!("mapq_filter params mismatch"));
@@ -156,7 +145,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("length_filter requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::LengthFilter(params) = params
             else {
                 return Err(anyhow!("length_filter params mismatch"));
@@ -170,7 +159,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
         }
         bijux_dna_domain_bam::BamStage::Markdup => {
             let bam = request.bam.ok_or_else(|| anyhow!("markdup requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Markdup(params) = params else {
                 return Err(anyhow!("markdup params mismatch"));
             };
@@ -187,7 +176,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("duplication_metrics requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::DuplicationMetrics(params) =
                 params
             else {
@@ -206,7 +195,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("complexity requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Complexity(params) = params
             else {
                 return Err(anyhow!("complexity params mismatch"));
@@ -222,7 +211,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("coverage requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Coverage(params) = params else {
                 return Err(anyhow!("coverage params mismatch"));
             };
@@ -232,7 +221,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("insert_size requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::InsertSize(params) = params
             else {
                 return Err(anyhow!("insert_size params mismatch"));
@@ -249,7 +238,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let reference = request
                 .reference
                 .ok_or_else(|| anyhow!("gc_bias requires reference"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::GcBias(params) = params else {
                 return Err(anyhow!("gc_bias params mismatch"));
             };
@@ -265,7 +254,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("endogenous_content requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::EndogenousContent(params) =
                 params
             else {
@@ -284,7 +273,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("overlap_correction requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::OverlapCorrection(params) =
                 params
             else {
@@ -303,7 +292,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("recalibration requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Recalibration(params) = params
             else {
                 return Err(anyhow!("recalibration params mismatch"));
@@ -317,7 +306,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
         }
         bijux_dna_domain_bam::BamStage::Damage => {
             let bam = request.bam.ok_or_else(|| anyhow!("damage requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Damage(params) = params else {
                 return Err(anyhow!("damage params mismatch"));
             };
@@ -327,7 +316,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("authenticity requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Authenticity(params) = params
             else {
                 return Err(anyhow!("authenticity params mismatch"));
@@ -343,7 +332,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("contamination requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Contamination(params) = params
             else {
                 return Err(anyhow!("contamination params mismatch"));
@@ -357,7 +346,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
         }
         bijux_dna_domain_bam::BamStage::Sex => {
             let bam = request.bam.ok_or_else(|| anyhow!("sex requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
+            let params = params::effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Sex(params) = params else {
                 return Err(anyhow!("sex params mismatch"));
             };
@@ -369,7 +358,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 let bam = request
                     .bam
                     .ok_or_else(|| anyhow!("bias_mitigation requires bam"))?;
-                let params = effective_params_for_stage(stage, request.params)?;
+                let params = params::effective_params_for_stage(stage, request.params)?;
                 let bijux_dna_domain_bam::params::BamEffectiveParams::BiasMitigation(params) =
                     params
                 else {
@@ -393,7 +382,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 let bam = request
                     .bam
                     .ok_or_else(|| anyhow!("haplogroups requires bam"))?;
-                let params = effective_params_for_stage(stage, request.params)?;
+                let params = params::effective_params_for_stage(stage, request.params)?;
                 let bijux_dna_domain_bam::params::BamEffectiveParams::Haplogroups(params) = params
                 else {
                     return Err(anyhow!("haplogroups params mismatch"));
@@ -416,7 +405,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 let bam = request
                     .bam
                     .ok_or_else(|| anyhow!("genotyping requires bam"))?;
-                let params = effective_params_for_stage(stage, request.params)?;
+                let params = params::effective_params_for_stage(stage, request.params)?;
                 let bijux_dna_domain_bam::params::BamEffectiveParams::Genotyping(params) = params
                 else {
                     return Err(anyhow!("genotyping params mismatch"));
@@ -437,7 +426,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             #[cfg(feature = "bam_downstream")]
             {
                 let bam = request.bam.ok_or_else(|| anyhow!("kinship requires bam"))?;
-                let params = effective_params_for_stage(stage, request.params)?;
+                let params = params::effective_params_for_stage(stage, request.params)?;
                 let bijux_dna_domain_bam::params::BamEffectiveParams::Kinship(params) = params
                 else {
                     return Err(anyhow!("kinship params mismatch"));
