@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Result};
 
 use crate::commands::benchmark_workspace::{
-    benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_corpus_key,
-    load_benchmark_config,
+    benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_corpus_id,
+    benchmark_publication_corpus_key, load_benchmark_config,
 };
 use crate::commands::cli::BenchConfigValidateArgs;
 
@@ -58,21 +58,33 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
             .as_ref()
             .and_then(|row| row.results_root.as_deref()),
     );
-    if config
-        .publication
-        .corpora
-        .get(&benchmark_publication_corpus_key("corpus-01"))
-        .is_none_or(|row| row.contracts.is_empty())
-    {
-        errors.push("publication.corpus_01.contracts is empty".to_string());
-    }
-
     if config.corpora.is_empty() {
         errors
             .push("benchmark config must declare at least one corpus under [corpora]".to_string());
     }
 
     let corpus_rows = config.corpora.keys().cloned().collect::<Vec<_>>();
+    for corpus_id in &corpus_rows {
+        let publication_key = benchmark_publication_corpus_key(corpus_id);
+        if config
+            .publication
+            .corpora
+            .get(&publication_key)
+            .is_none_or(|row| row.contracts.is_empty())
+        {
+            errors.push(format!(
+                "publication.{publication_key}.contracts is empty for declared corpus {corpus_id}"
+            ));
+        }
+    }
+    for publication_key in config.publication.corpora.keys() {
+        let corpus_id = benchmark_publication_corpus_id(publication_key);
+        if !config.corpora.contains_key(&corpus_id) {
+            errors.push(format!(
+                "publication.{publication_key} does not match any declared corpus under [corpora]"
+            ));
+        }
+    }
     for corpus_id in corpus_rows {
         let spec_path = benchmark_corpus_spec_path(cwd, args.config.as_deref(), &corpus_id)?;
         if args.check_paths && !spec_path.is_file() {
@@ -207,6 +219,84 @@ tools = ["fastqvalidator"]
         assert!(error
             .to_string()
             .contains("benchmark config must declare at least one corpus under [corpora]"));
+    }
+
+    #[test]
+    fn validate_benchmark_config_requires_publication_contract_for_declared_corpus() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("config dir");
+        std::fs::write(
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
+results_root = "/tmp/local-results"
+
+[workspace.remote]
+ssh_host = "cluster"
+repo_root = "/srv/repo"
+corpus_root = "/srv/cache/corpus_01"
+results_root = "/srv/cache/results"
+
+[corpora.corpus-01]
+spec_path = "configs/runtime/corpora/corpus-01.toml"
+"#,
+        )
+        .expect("write config");
+
+        let error = validate_benchmark_config(
+            temp.path(),
+            &crate::commands::cli::BenchConfigValidateArgs {
+                config: None,
+                check_paths: false,
+            },
+        )
+        .expect_err("validator should reject missing publication contracts");
+
+        assert!(error
+            .to_string()
+            .contains("publication.corpus_01.contracts is empty for declared corpus corpus-01"));
+    }
+
+    #[test]
+    fn validate_benchmark_config_rejects_undeclared_publication_corpus() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("config dir");
+        std::fs::write(
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
+results_root = "/tmp/local-results"
+
+[workspace.remote]
+ssh_host = "cluster"
+repo_root = "/srv/repo"
+corpus_root = "/srv/cache/corpus_01"
+results_root = "/srv/cache/results"
+
+[corpora.corpus-01]
+spec_path = "configs/runtime/corpora/corpus-01.toml"
+
+[[publication.study_42.contracts]]
+stage_id = "fastq.validate_reads"
+scenario_id = "validation_fairness"
+sample_scope = "full"
+tools = ["fastqvalidator"]
+"#,
+        )
+        .expect("write config");
+
+        let error = validate_benchmark_config(
+            temp.path(),
+            &crate::commands::cli::BenchConfigValidateArgs {
+                config: None,
+                check_paths: false,
+            },
+        )
+        .expect_err("validator should reject undeclared publication corpus");
+
+        assert!(error
+            .to_string()
+            .contains("publication.study_42 does not match any declared corpus under [corpora]"));
     }
 
     #[test]
