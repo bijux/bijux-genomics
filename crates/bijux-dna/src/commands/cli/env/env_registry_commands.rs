@@ -907,8 +907,7 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
     let version_matches_regex = Regex::new(&expected_version_regex)
         .ok()
         .is_some_and(|regex| regex.is_match(&version_output));
-    let parsed_version =
-        parse_first_version(&version_output).unwrap_or_else(|| "unknown".to_string());
+    let parsed_version = parse_first_version(&version_output);
 
     crate::commands::cli::render::json::print_pretty(&serde_json::json!({
         "tool_id": tool.id,
