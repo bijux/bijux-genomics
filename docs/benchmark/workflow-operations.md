@@ -34,13 +34,24 @@ The stable local mirror contract is:
 
 Do not scatter benchmark pulls across ad hoc local directories. Keep mirrored artifacts under `workspace.local.results_root` so renderers, audits, and repair tools can resolve the same path contract.
 
-The governed one-shot command for corpus-01 FASTQ publication is:
+The governed publication refresh sequence is:
 
-```text
-make benchmark-lunarc-publication-refresh
+```bash
+BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST=1 \
+BENCHMARK_SYNC_DATA_MANIFEST_GLOB="benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv" \
+cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
+  --include-profile pull-benchmark-publication \
+  --exclude-profile pull-full-default
+cargo run -q -p bijux-dna -- bench normalize-workspace-layout \
+  --config configs/bench/benchmark.toml \
+  --confirm
+cargo run -q -p bijux-dna -- bench corpus-fastq-published-dossiers \
+  --config configs/bench/benchmark.toml
 ```
 
-That command pulls the governed results mirror, pulls the taxonomy lineage file required by `fastq.screen_taxonomy`, refreshes the published dossiers, and rebuilds the publication audits.
+Those commands pull the governed results mirror, preserve the sync profile contract from `configs/hpc/lunarc_sync_profiles.toml`, normalize the local archive layout, refresh the published dossiers, and rebuild the publication audits.
+
+`make benchmark-lunarc-publication-refresh` remains an optional wrapper around that governed sequence; it is not the benchmark authority.
 
 The default pull base, pull mode, sync profiles, repo cleanliness checks, and supplemental manifest settings now belong to `[sync.defaults]` in `configs/bench/benchmark.toml`. Use environment overrides only when the current operation genuinely needs to diverge from the governed defaults.
 
@@ -77,7 +88,7 @@ The repo push marker `LUNARC_SYNC_SOURCE.json` should carry the benchmark worksp
 
 - Confirm `configs/bench/benchmark.toml` names the correct `workspace.local` and `workspace.remote` roots.
 - Confirm the local mirror under `workspace.local.cache_mirror_root` contains the required `results`, `extra-data`, and `reference` trees.
-- Run `make benchmark-lunarc-publication-refresh` when the source run lives on Lunarc and publication inputs need a fresh sync.
+- Run the governed sync plus Rust publication refresh sequence above when the source run lives on Lunarc and publication inputs need a fresh sync.
 - Refresh corpus dossiers from the governed report targets when a local rerender is sufficient.
 - Re-run the publication audit after the refresh if you did not use the governed one-shot command.
 - Review `docs/benchmark/corpus-01-dossier-index.json` and `docs/benchmark/corpus-01-dossier-index.md` to confirm each dossier freshness stamp and published run-root source.

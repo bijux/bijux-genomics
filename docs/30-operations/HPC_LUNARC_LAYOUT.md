@@ -27,13 +27,16 @@ This document describes the Lunarc benchmark workspace contract as configured th
 - Validate HPC status:
   - `bijux status --hpc`
 - Pull Lunarc results into the local mirror:
-  - `make pull-lunarc-results`
+  - `cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull --include-profile pull-results-default --exclude-profile pull-full-default`
 - Pull results and clear the remote results payload:
-  - `make pull-lunarc-results-prune`
+  - `cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull --include-profile pull-results-default --exclude-profile pull-full-default`
+  - Resolve `workspace.remote.ssh_host` and `workspace.remote.results_root` through `cargo run -q -p bijux-dna -- bench workspace-value --config configs/bench/benchmark.toml <key>`, then prune that remote results root while preserving `site_lock.json`.
 - Audit the frontend footprint:
   - `make lunarc-footprint`
 - Clear transient build residue from the frontend repo checkout:
   - `make lunarc-prune-code`
+
+`make pull-lunarc-results` and `make pull-lunarc-results-prune` remain optional wrappers around the governed sync contract above.
 
 ## What
 Defines the Lunarc-facing workspace roles and operational invariants for deterministic benchmark execution.
