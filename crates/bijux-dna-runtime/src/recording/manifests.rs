@@ -285,8 +285,8 @@ pub fn write_run_manifest(
         "cache_key": cache_key,
         "stage_contract_hash": stage_contract_hash,
         "toolchain_versions": {
-            "planner": std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
-            "engine": std::env::var("BIJUX_ENGINE_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+            "planner": std::env::var("BIJUX_PLANNER_VERSION").ok(),
+            "engine": std::env::var("BIJUX_ENGINE_VERSION").ok(),
         },
         "dataset_fingerprints": run_provenance.input_hashes.clone(),
         "tool_invocations": tool_invocations,
