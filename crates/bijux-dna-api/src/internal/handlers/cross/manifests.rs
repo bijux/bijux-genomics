@@ -12,6 +12,18 @@ use crate::internal::handlers::fastq::StageExecutionSummary;
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_pipelines::STAGE_CROSS_ALIGN_STUB;
 
+fn declared_summary_field<'a>(
+    stage: &'a serde_json::Value,
+    field: &str,
+) -> Result<&'a str> {
+    stage
+        .get(field)
+        .and_then(serde_json::Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| anyhow::anyhow!("fastq summary stage missing declared `{field}`"))
+}
+
 pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) -> Result<PathBuf> {
     let boundaries_dir =
         bijux_dna_runtime::recording::run_artifacts_dir_for_out(out_dir).join("boundaries");
@@ -51,14 +63,8 @@ pub fn write_cross_run_manifest(
         .and_then(serde_json::Value::as_array)
     {
         for stage in fastq_stages {
-            let stage_id = stage
-                .get("stage_id")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("");
-            let tool_id = stage
-                .get("tool_id")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("");
+            let stage_id = declared_summary_field(stage, "stage_id")?;
+            let tool_id = declared_summary_field(stage, "tool_id")?;
             stages.push(serde_json::json!({
                 "stage_id": stage_id,
                 "tool_id": tool_id,
