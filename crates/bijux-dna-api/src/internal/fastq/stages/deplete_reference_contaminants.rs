@@ -319,10 +319,7 @@ fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
         reference_build_id: effective_params.reference_build_id,
         reference_digest: effective_params.reference_digest,
         retain_unmapped_pairs: effective_params.retain_unmapped_pairs,
-        input_r1: artifact_input_path(plan, "reads_r1")
-            .unwrap_or_default()
-            .display()
-            .to_string(),
+        input_r1: artifact_input_path_string(plan, "reads_r1"),
         input_r2: artifact_input_path(plan, "reads_r2").map(|path| path.display().to_string()),
         output_r1: output_r1.display().to_string(),
         output_r2: output_r2.map(|path| path.display().to_string()),
@@ -380,4 +377,13 @@ fn artifact_input_path(
         .iter()
         .find(|artifact| artifact.name.as_str() == artifact_id)
         .map(|artifact| artifact.path.clone())
+}
+
+fn artifact_input_path_string(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> String {
+    artifact_input_path(plan, artifact_id)
+        .map(|path| path.display().to_string())
+        .unwrap_or_else(|| "not_declared".to_string())
 }
