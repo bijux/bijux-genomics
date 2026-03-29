@@ -22,9 +22,10 @@ use crate::params::{
 };
 use crate::stage_catalog::{
     default_tool, eagle_license_metadata_present, image_for_tool,
-    phasing_backend_supports_gl_only_input, resolve_requested_stages, stage_command,
-    stage_compat_tools, stage_inputs_for, stage_outputs_for,
+    phasing_backend_supports_gl_only_input, stage_command, stage_compat_tools, stage_inputs_for,
+    stage_outputs_for,
 };
+use crate::stage_sequence::resolve_requested_stages;
 use crate::reference_context::ResolvedPlanningContext;
 use crate::workspace_config::{load_registry_tools, load_required_tools};
 
