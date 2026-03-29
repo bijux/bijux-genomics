@@ -35,7 +35,7 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionGraph) -> Result<st
             .image
             .digest
             .clone()
-            .unwrap_or_else(|| "unknown".to_string());
+            .unwrap_or_default();
         let params_provenance = serde_json::json!({
             "tool_params": params.clone(),
             "defaults": serde_json::json!({}),
@@ -48,12 +48,12 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionGraph) -> Result<st
             schema_version: "bijux.tool_invocation.v1".to_string(),
             contract_version: bijux_dna_core::contract::ContractVersion::v1(),
             stage_id: step.stage_id.clone(),
-            tool_id: bijux_dna_core::ids::ToolId::from_static("unknown"),
-            tool_version: "unknown".to_string(),
+            tool_id: bijux_dna_core::ids::ToolId::new(step.image.image.clone()),
+            tool_version: step.image.image.clone(),
             resolved_tool_version: None,
             image_digest,
             runner_kind: "fake".to_string(),
-            platform: "unknown".to_string(),
+            platform: "dry_run".to_string(),
             parameters_json: params.clone(),
             parameters_json_normalized: params.clone(),
             effective_params_json: params.clone(),
