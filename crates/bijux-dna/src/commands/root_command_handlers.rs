@@ -1,7 +1,6 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_domain_compiler::{domain_coverage_report, validate_domain, ValidateOptions};
 
 use crate::commands::{cli, hpc};
 
@@ -184,45 +183,6 @@ pub(crate) fn handle_environment_root(
     Ok(())
 }
 
-pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
-    match command {
-        cli::ConfigCommand::InitHpc { root } => {
-            let cfg = if let Some(root) = root.clone() {
-                hpc::HpcConfig::from_root(root)
-            } else {
-                hpc::load_hpc_config().context(
-                    "config init-hpc requires --root or BIJUX_HPC_CONFIG",
-                )?
-            };
-            let resolved = cfg.resolve_paths();
-            let layout = hpc::HpcLayout::from_resolved(&resolved);
-            layout.ensure_dirs()?;
-            let configs_dir = bijux_dna_infra::configs_dir(cwd);
-            bijux_dna_infra::ensure_dir(&configs_dir)?;
-            let profiles_dir = configs_dir.join("runtime").join("profiles");
-            bijux_dna_infra::ensure_dir(&profiles_dir)?;
-            let profile_path = profiles_dir.join("hpc.toml");
-            bijux_dna_api::v1::api::run::atomic_write_bytes(
-                &profile_path,
-                layout.profile_hpc_toml().as_bytes(),
-            )?;
-            let config_path = hpc::write_hpc_config(&cfg)?;
-            let lock_path = hpc::write_site_lock(&layout)?;
-            println!("written={}", profile_path.display());
-            println!("hpc_config={}", config_path.display());
-            println!("site_lock={}", lock_path.display());
-        }
-        cli::ConfigCommand::Doctor => {
-            let report = hpc::config_doctor()?;
-            cli::render::json::print_pretty(&report)?;
-            if !report.ok {
-                return Err(anyhow!("config doctor failed"));
-            }
-        }
-    }
-    Ok(())
-}
-
 pub(crate) fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
     #[derive(serde::Serialize)]
     struct Check {
@@ -335,29 +295,6 @@ pub(crate) fn handle_lab_root(command: &cli::LabCommand, cwd: &Path) -> Result<(
                 }
             }
         },
-    }
-    Ok(())
-}
-
-pub(crate) fn handle_domain_root(command: &cli::DomainCommand, cwd: &Path) -> Result<()> {
-    match command {
-        cli::DomainCommand::Validate { domain_dir } => {
-            let path = if domain_dir.is_absolute() {
-                domain_dir.clone()
-            } else {
-                cwd.join(domain_dir)
-            };
-            validate_domain(&ValidateOptions { domain_dir: path })?;
-        }
-        cli::DomainCommand::Coverage { domain_dir } => {
-            let path = if domain_dir.is_absolute() {
-                domain_dir.clone()
-            } else {
-                cwd.join(domain_dir)
-            };
-            let payload = domain_coverage_report(&path)?;
-            cli::render::json::print_pretty(&payload)?;
-        }
     }
     Ok(())
 }
