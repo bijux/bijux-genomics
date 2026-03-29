@@ -4,16 +4,11 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 
-use crate::commands::root::{
-    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root,
-    handle_ena_root, handle_environment_root, handle_lab_root, handle_registry_root,
-    handle_tool_root,
-};
-pub use crate::commands::router::argv::{parse_cli_from_argv, parse_process_cli};
+use crate::commands::router::argv::parse_cli_from_argv;
+use crate::commands::router::root::try_handle_root_command;
 use crate::commands::router::runtime::{
     configure_process_cli_env, configure_run_context_env, enter_cli_cwd,
 };
-use crate::commands::status::handle_status_root;
 use crate::commands::{bam, bench, cli, fastq, run_plan, vcf};
 
 /// # Errors
@@ -36,26 +31,8 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
 
     let dna_command = &cli.command;
-    match dna_command {
-        cli::DnaCommand::Environment(args) => {
-            return handle_environment_root(&args.command, cwd, cli.platform.as_deref());
-        }
-        cli::DnaCommand::Registry(args) => return handle_registry_root(&args.command, cwd),
-        #[cfg(debug_assertions)]
-        cli::DnaCommand::Ena(args) => return handle_ena_root(&args.command, cwd),
-        cli::DnaCommand::Corpus(args) => return handle_corpus_root(&args.command, cwd),
-        #[cfg(debug_assertions)]
-        cli::DnaCommand::Tool(args) => return handle_tool_root(&args.command, cwd),
-        #[cfg(debug_assertions)]
-        cli::DnaCommand::Domain(args) => return handle_domain_root(&args.command, cwd),
-        #[cfg(debug_assertions)]
-        cli::DnaCommand::Lab(args) => return handle_lab_root(&args.command, cwd),
-        #[cfg(debug_assertions)]
-        cli::DnaCommand::Config(args) => return handle_config_root(&args.command, cwd),
-        cli::DnaCommand::Status(args) => return handle_status_root(args, cwd),
-        #[cfg(debug_assertions)]
-        cli::DnaCommand::Ci(args) => return handle_ci_root(&args.command, cwd),
-        _ => {}
+    if try_handle_root_command(dna_command, cwd, cli.platform.as_deref())? {
+        return Ok(());
     }
 
     if fastq::handle_meta_commands(cli, dna_command, &domain_dir, &registry_path)? {
@@ -288,43 +265,5 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
             Ok(true)
         }
         _ => Ok(false),
-    }
-}
-
-#[cfg(test)]
-mod argv_normalization_contracts {
-    use super::normalize_cli_argv;
-
-    fn argv(values: &[&str]) -> Vec<String> {
-        values.iter().map(|value| (*value).to_string()).collect()
-    }
-
-    #[test]
-    fn direct_runtime_and_host_runtime_routes_normalize_to_the_same_surface() {
-        let direct = normalize_cli_argv(&argv(&["bijux-dna", "registry", "list-stages"]));
-        let host_route = normalize_cli_argv(&argv(&["bijux", "dna", "registry", "list-stages"]));
-        let legacy_direct =
-            normalize_cli_argv(&argv(&["bijux-dna", "dna", "registry", "list-stages"]));
-
-        assert_eq!(direct, host_route);
-        assert_eq!(direct, legacy_direct);
-    }
-
-    #[test]
-    fn host_runtime_route_preserves_global_options_before_the_namespace() {
-        let host_route = normalize_cli_argv(&argv(&[
-            "bijux",
-            "--json",
-            "--platform",
-            "test",
-            "dna",
-            "env",
-            "info",
-        ]));
-
-        assert_eq!(
-            host_route,
-            argv(&["bijux-dna", "--json", "--platform", "test", "env", "info"])
-        );
     }
 }
