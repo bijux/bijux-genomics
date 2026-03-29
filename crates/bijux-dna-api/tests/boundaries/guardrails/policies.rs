@@ -40,7 +40,8 @@ fn api_has_no_planning_policy_keywords() {
         .filter_map(Result::ok)
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
-        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        let content = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read {}: {err}", entry.path().display()));
         let path_str = entry.path().to_string_lossy();
         if allowlist_paths
             .iter()
