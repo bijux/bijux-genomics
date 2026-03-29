@@ -4,37 +4,19 @@ pub mod contracts;
 pub mod coverage;
 pub mod metrics;
 pub mod params;
+pub mod stage_baseline;
 pub mod taxonomy;
 
-use anyhow::{anyhow, Result};
-use serde::{Deserialize, Serialize};
 pub use metrics::{
     VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1,
+};
+pub use stage_baseline::{
+    VcfInvariantsPreset, VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_PREFIX, STAGE_STATS,
 };
 pub use taxonomy::{
     validate_downstream_transition, CoverageRegime, DomainSupportStatus, VcfDomainStage,
     VcfStageKind, VCF_FORBIDDEN_TRANSITIONS, VCF_STAGE_ORDER_DOWNSTREAM, VCF_STAGE_TAXONOMY,
 };
-
-pub const STAGE_PREFIX: &str = "vcf.";
-pub const STAGE_CALL: &str = "vcf.call";
-pub const STAGE_FILTER_READS: &str = "vcf.filter";
-pub const STAGE_STATS: &str = "vcf.stats";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum VcfInvariantsPreset {
-    Minimal,
-}
-
-impl VcfInvariantsPreset {
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::Minimal => "vcf_minimal",
-        }
-    }
-}
 
 pub const VCF_STAGE_ID_CATALOG: &[&str] = &[
     "vcf.admixture",
@@ -65,43 +47,6 @@ pub const VCF_PARAMS_CATALOG: &[&str] = &[
 ];
 pub const VCF_METRICS_CATALOG: &[&str] = &["bijux.vcf.stats.v1"];
 pub const VCF_PRODUCTION_TOOLS: &[&str] = &["bcftools"];
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum VcfStage {
-    Call,
-    Filter,
-    Stats,
-}
-
-impl VcfStage {
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::Call => STAGE_CALL,
-            Self::Filter => STAGE_FILTER_READS,
-            Self::Stats => STAGE_STATS,
-        }
-    }
-
-    #[must_use]
-    pub const fn all() -> &'static [Self] {
-        &[Self::Call, Self::Filter, Self::Stats]
-    }
-}
-
-impl TryFrom<&str> for VcfStage {
-    type Error = anyhow::Error;
-
-    fn try_from(value: &str) -> Result<Self> {
-        match value {
-            STAGE_CALL => Ok(Self::Call),
-            STAGE_FILTER_READS => Ok(Self::Filter),
-            STAGE_STATS => Ok(Self::Stats),
-            _ => Err(anyhow!("unknown VCF stage: {value}")),
-        }
-    }
-}
 
 #[must_use]
 pub fn param_registry_toml() -> String {
