@@ -2787,8 +2787,9 @@ fn write_retention_report(stage_root: &std::path::Path, planned: &ExecutionStep)
             let name = path
                 .file_name()
                 .and_then(|n| n.to_str())
-                .unwrap_or("unknown")
-                .to_string();
+                .filter(|value| !value.trim().is_empty())
+                .map(ToOwned::to_owned)
+                .unwrap_or_else(|| path.display().to_string());
             let reads = count_fastq_reads_if_plain(&path)
                 .map_or_else(|| "na".to_string(), |x| x.to_string());
             rows.push(format!("{name}\t{reads}"));
