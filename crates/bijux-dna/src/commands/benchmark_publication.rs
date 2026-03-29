@@ -2747,11 +2747,6 @@ fn configured_stage_run_roots(
                 stage_id,
             )?),
         },
-        StageRunRootCandidate {
-            path: workspace_remote_results_root(workspace)?.join(
-                benchmark_stage_run_relative_root(workspace, "remote", corpus_id, stage_id)?,
-            ),
-        },
     ])
 }
 
@@ -3639,6 +3634,49 @@ reason = "Compact validation fixture."
             )
             .expect("relative root"),
             Path::new("results/benchmark_corpus/fastq.validate_reads/cluster")
+        );
+    }
+
+    #[test]
+    fn configured_stage_run_roots_only_publish_local_mirrors() {
+        let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
+            local: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
+                results_root: Some("/bench/local/archive".to_string()),
+                cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
+                extra_data_root: Some("/bench/local/extra-data".to_string()),
+                reference_root: None,
+            }),
+            remote: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceRemote {
+                results_root: Some("/bench/remote/results".to_string()),
+                ..Default::default()
+            }),
+            layout: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
+                stage_runs: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
+                    local_cache_results_template: Some(
+                        "results/{corpus_id}/{stage_id}/cluster".to_string(),
+                    ),
+                    local_archive_results_template: Some(
+                        "{corpus_id}/{stage_id}/cluster".to_string(),
+                    ),
+                    remote_results_template: Some(
+                        "{corpus_id}/{stage_id}/remote-cluster".to_string(),
+                    ),
+                }),
+            }),
+            ..Default::default()
+        };
+
+        let roots =
+            super::configured_stage_run_roots(&workspace, "benchmark_corpus", "fastq.validate_reads")
+                .expect("stage roots");
+        assert_eq!(roots.len(), 2);
+        assert_eq!(
+            roots[0].path,
+            PathBuf::from("/bench/local/cache-mirror/results/benchmark_corpus/fastq.validate_reads/cluster")
+        );
+        assert_eq!(
+            roots[1].path,
+            PathBuf::from("/bench/local/archive/benchmark_corpus/fastq.validate_reads/cluster")
         );
     }
 
