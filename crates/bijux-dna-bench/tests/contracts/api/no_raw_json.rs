@@ -1,3 +1,6 @@
+#[path = "../../support.rs"]
+mod support;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -17,7 +20,7 @@ fn collect_rs_files(root: &Path, files: &mut Vec<PathBuf>) {
 
 #[test]
 fn serde_json_value_is_confined_to_repo_and_artifacts() {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest_dir = support::crate_root("bijux-dna-bench").expect("bench crate root");
     let src_dir = manifest_dir.join("src");
     let mut files = Vec::new();
     collect_rs_files(&src_dir, &mut files);
