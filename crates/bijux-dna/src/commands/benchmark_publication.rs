@@ -3558,7 +3558,6 @@ reason = "Compact validation fixture."
                 Path::new(
                     "/archive/srv/cluster/.cache/results/corpus_01/fastq.validate_reads/lunarc"
                 ),
-                Path::new("/archive/corpus_01/fastq.validate_reads/lunarc"),
                 Path::new("/srv/cluster/.cache/corpus_01"),
             ),
             "local-cache-mirror"
@@ -3593,6 +3592,7 @@ reason = "Compact validation fixture."
             &remote_corpus_root,
         );
         let report = super::audit_published_results(
+            temp.path(),
             &workspace,
             &temp.path().join("docs").join("benchmark"),
             &[validate_reads_contract()],
@@ -3636,6 +3636,7 @@ reason = "Compact validation fixture."
             }),
         );
         let report = super::audit_published_results_stage(
+            temp.path(),
             &workspace,
             &docs_root,
             &validate_reads_contract(),
@@ -3722,6 +3723,7 @@ reason = "Compact validation fixture."
             );
         }
         let report = super::audit_published_results_stage(
+            temp.path(),
             &workspace,
             &docs_root,
             &validate_reads_contract(),
@@ -3802,6 +3804,7 @@ reason = "Compact validation fixture."
             );
         }
         let report = super::audit_published_results_stage(
+            temp.path(),
             &workspace,
             &docs_root,
             &validate_reads_contract(),
@@ -3939,6 +3942,7 @@ reason = "Compact validation fixture."
             }),
         );
         let report = super::audit_published_results_stage(
+            temp.path(),
             &workspace,
             &docs_root,
             &validate_reads_contract(),
@@ -4137,7 +4141,6 @@ reason = "Compact validation fixture."
             .any(|issue| issue.issue_id == "fixture-integrity-gap"));
     }
 
-    #[test]
     #[test]
     fn load_supplemental_findings_warns_when_freshness_missing() {
         let temp = tempdir().expect("tempdir");

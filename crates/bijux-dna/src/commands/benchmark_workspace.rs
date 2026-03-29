@@ -1369,7 +1369,7 @@ mod tests {
         load_benchmark_config, load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
         plan_root_convergence, summarize_root_pair, BenchmarkWorkspaceConfig,
-        BenchmarkWorkspaceLocal,
+        BenchmarkWorkspaceLocal, BENCHMARK_CONFIG_ENV,
     };
     use std::path::Path;
     use std::sync::Mutex;
