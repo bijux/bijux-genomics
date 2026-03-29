@@ -469,7 +469,7 @@ fn validate_example_spec(cwd: &Path, spec: &ExampleSpec, root: &Path) -> Result<
         return Err(anyhow!("contracts directory must contain at least one .json file"));
     }
 
-    if spec.objective.as_deref().unwrap_or("").trim().is_empty() {
+    if declared_text(spec.objective.as_deref()).is_none() {
         return Err(anyhow!("examples require non-empty `objective`"));
     }
 
@@ -504,19 +504,21 @@ fn validate_example_spec(cwd: &Path, spec: &ExampleSpec, root: &Path) -> Result<
         if banks.is_empty() {
             return Err(anyhow!("2xx examples must declare non-empty `required_banks`"));
         }
-        let handoff = spec.handoff_mode.as_deref().unwrap_or("");
+        let handoff = declared_text(spec.handoff_mode.as_deref()).unwrap_or("");
         if handoff != "bijux_produced" && handoff != "external_bam" {
             return Err(anyhow!(
                 "2xx examples must set handoff_mode to `bijux_produced` or `external_bam`"
             ));
         }
-        if handoff == "bijux_produced" && spec.upstream_example.as_deref().unwrap_or("").is_empty()
+        if handoff == "bijux_produced"
+            && declared_text(spec.upstream_example.as_deref()).is_none()
         {
             return Err(anyhow!(
                 "2xx example with handoff_mode=bijux_produced must set upstream_example"
             ));
         }
-        if handoff == "external_bam" && spec.external_bam_manifest.as_deref().unwrap_or("").is_empty()
+        if handoff == "external_bam"
+            && declared_text(spec.external_bam_manifest.as_deref()).is_none()
         {
             return Err(anyhow!(
                 "2xx example with handoff_mode=external_bam must set external_bam_manifest"
@@ -578,6 +580,10 @@ fn collect_examples(cwd: &Path) -> Result<Vec<ExampleListRow>> {
     }
     rows.sort_by(|a, b| a.id.cmp(&b.id));
     Ok(rows)
+}
+
+fn declared_text(value: Option<&str>) -> Option<&str> {
+    value.map(str::trim).filter(|entry| !entry.is_empty())
 }
 
 fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool, redacted: bool) -> Result<ExamplePlan> {
