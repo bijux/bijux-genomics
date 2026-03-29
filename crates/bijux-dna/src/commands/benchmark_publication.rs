@@ -1211,7 +1211,7 @@ fn write_corpus_fastq_remediation_queue(
         &results_status,
         &findings_payload,
         &dossier_index,
-    );
+    )?;
     let json_path = docs_root.join(publication_artifact_file_name(
         corpus_id,
         "remediation-queue.json",
@@ -2983,7 +2983,7 @@ fn build_remediation_queue(
     results_status: &serde_json::Value,
     findings_payload: &serde_json::Value,
     dossier_index: &serde_json::Value,
-) -> RemediationQueue {
+) -> Result<RemediationQueue> {
     let publication_by_stage = stage_value_lookup(publication_status);
     let results_by_stage = stage_value_lookup(results_status);
     let dossier_by_stage = stage_value_lookup(dossier_index);
@@ -2991,26 +2991,23 @@ fn build_remediation_queue(
 
     let stages = contracts
         .iter()
-        .map(|contract| {
+        .map(|contract| -> Result<RemediationStageEntry> {
             let publication_stage = publication_by_stage.get(&contract.stage_id);
             let results_stage = results_by_stage.get(&contract.stage_id);
             let dossier_stage = dossier_by_stage.get(&contract.stage_id);
 
             let mut issues = collect_stage_issues(publication_stage, "publication");
             issues.extend(collect_stage_issues(results_stage, "results"));
-            issues.extend(
-                findings_by_stage
-                    .get(&contract.stage_id)
-                    .cloned()
-                    .unwrap_or_default(),
-            );
+            issues.extend(findings_by_stage.get(&contract.stage_id).cloned().ok_or_else(
+                || anyhow!("remediation queue missing findings for stage `{}`", contract.stage_id),
+            )?);
             let issue_groups = summarize_issue_groups(&issues);
             let issue_ids = issues
                 .iter()
                 .map(|issue| issue.issue_id.clone())
                 .collect::<Vec<_>>();
 
-            RemediationStageEntry {
+            Ok(RemediationStageEntry {
                 stage_id: contract.stage_id.clone(),
                 owner: "benchmark-governance".to_string(),
                 status: if issues.is_empty() {
@@ -3035,11 +3032,11 @@ fn build_remediation_queue(
                 run_root_source: stage_value_optional_string(dossier_stage, "run_root_source"),
                 issue_groups,
                 issues,
-            }
+            })
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>()?;
 
-    RemediationQueue {
+    Ok(RemediationQueue {
         corpus_id: corpus_id.to_string(),
         stage_count: stages.len(),
         open_stage_count: stages.iter().filter(|stage| stage.status == "open").count(),
@@ -3048,7 +3045,7 @@ fn build_remediation_queue(
             .filter(|stage| stage.status == "clear")
             .count(),
         stages,
-    }
+    })
 }
 
 fn stage_value_lookup<'a>(
@@ -4576,7 +4573,8 @@ reason = "Compact validation fixture."
                     "run_root_source": "local-results-root",
                 }],
             }),
-        );
+        )
+        .expect("remediation queue");
 
         let stage = queue.stages.first().expect("stage");
         assert_eq!(stage.stage_id, "fastq.validate_reads");
