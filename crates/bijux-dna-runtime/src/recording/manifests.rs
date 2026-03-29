@@ -177,12 +177,11 @@ pub fn write_run_manifest(
     let pipeline_id = std::env::var("BIJUX_PIPELINE_ID")
         .ok()
         .unwrap_or_else(|| run_provenance.pipeline_id.clone());
-    let profile_id = std::env::var("BIJUX_PROFILE_ID").unwrap_or_else(|_| "unknown".to_string());
+    let profile_id = std::env::var("BIJUX_PROFILE_ID").ok();
     let graph_hash = run_provenance
         .plan_hash
         .clone()
-        .or_else(|| std::env::var("BIJUX_PLAN_HASH").ok())
-        .unwrap_or_else(|| "unknown".to_string());
+        .or_else(|| std::env::var("BIJUX_PLAN_HASH").ok());
     let cache_key = CacheKey::new(
         input_fingerprint(&run_provenance.input_hashes),
         run_provenance.params_hash.clone(),
