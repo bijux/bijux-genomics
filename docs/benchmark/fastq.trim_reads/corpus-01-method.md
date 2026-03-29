@@ -63,7 +63,7 @@ cargo run -q -p bijux-dna -- bench corpus-fastq-report \
   --stage fastq.trim_reads
 ```
 
-The runner and dossier command resolve the governed Lunarc corpus root and run root from [benchmark.toml](<REPO_ROOT>/configs/bench/benchmark.toml); change that config or pass `--config` only when you intentionally target a different governed workspace.
+The runner and dossier command resolve the governed Lunarc corpus root and run root from `configs/bench/benchmark.toml`; change that config or pass `--config` only when you intentionally target a different governed workspace.
 
 ## Guardrails
 - Reject any run whose tool roster differs from the governed benchmark cohort.
