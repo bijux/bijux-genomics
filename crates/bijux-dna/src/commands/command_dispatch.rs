@@ -497,6 +497,8 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         cwd,
         "ci/registry/domains.toml",
     ))?;
+    let domain_rows = declared_toml_array(&domains, "domains")
+        .ok_or_else(|| anyhow!("ci/registry/domains.toml must declare a domains array"))?;
     let images = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/tools/images.toml"))?;
     let image_ids = images
         .as_table()
@@ -511,7 +513,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
     );
     println!("{}", "-".repeat(74));
 
-    for domain in toml_array(&domains, "domains") {
+    for domain in domain_rows {
         let id = domain
             .get("id")
             .and_then(toml::Value::as_str)
@@ -534,6 +536,8 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         let stages = parse_toml_path(&cwd.join(stages_rel.expect("checked above")))?;
         let params = parse_toml_path(&cwd.join(params_rel.expect("checked above")))?;
         let tools = parse_toml_path(&cwd.join(tools_rel.expect("checked above")))?;
+        let stage_rows = declared_toml_array(&stages, "stages")
+            .ok_or_else(|| anyhow!("stage registry must declare a stages array"))?;
 
         let param_stage_ids = param_rows(&params)
             .into_iter()
@@ -554,12 +558,9 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
                 invalid_tool_rows += 1;
                 continue;
             };
-            let metrics_schema = row
-                .get("metrics_schema")
-                .and_then(toml::Value::as_str)
-                .unwrap_or_default()
-                .to_string();
-            tool_metrics.insert(tool_id.clone(), metrics_schema);
+            if let Some(metrics_schema) = declared_toml_str(row, "metrics_schema") {
+                tool_metrics.insert(tool_id.clone(), metrics_schema.to_string());
+            }
             for stage_id in toml_list(row, "stage_ids") {
                 tools_by_stage
                     .entry(stage_id)
@@ -574,7 +575,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         let mut missing_metrics = 0usize;
         let mut missing_images = 0usize;
         let mut invalid_stage_rows = 0usize;
-        for stage in toml_array(&stages, "stages") {
+        for stage in stage_rows {
             let Some(stage_id) = stage
                 .get("id")
                 .and_then(toml::Value::as_str)
@@ -597,22 +598,13 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
             if !param_stage_ids.contains(stage_id) {
                 missing_params += 1;
             }
-            let stage_metrics_schema = stage
-                .get("metrics_schema")
-                .and_then(toml::Value::as_str)
-                .unwrap_or_default();
+            let stage_metrics_schema = declared_toml_str(stage, "metrics_schema");
             let stage_tools = toml_list(stage, "tools")
                 .into_iter()
-                .chain(
-                    tools_by_stage
-                        .get(stage_id)
-                        .cloned()
-                        .unwrap_or_default()
-                        .into_iter(),
-                )
+                .chain(tools_by_stage.get(stage_id).into_iter().flatten().cloned())
                 .collect::<BTreeSet<_>>();
-            let has_metrics = !stage_metrics_schema.trim().is_empty()
-                || stage_metrics_schema == "none"
+            let has_metrics = stage_metrics_schema.is_some_and(|schema| schema == "none")
+                || stage_metrics_schema.is_some()
                 || stage_tools.iter().any(|tool| {
                     tool_metrics.get(tool).is_some_and(|schema| {
                         !schema.trim().is_empty() && schema != "bijux.unknown.v1"
