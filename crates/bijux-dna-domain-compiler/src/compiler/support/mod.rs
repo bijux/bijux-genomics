@@ -1,12 +1,14 @@
 use super::*;
 
 mod placeholders;
+mod repository;
 mod status;
 
 pub(super) use placeholders::{
     ensure_no_placeholders_in_active_config, has_supported_placeholder_forbidden_token,
     placeholders_allowed,
 };
+pub(super) use repository::{domain_content_hash, git_head_commit};
 pub(super) use status::{
     ensure_status, is_tool_meaningful_in_domain, is_umbrella_stage, scope_active,
 };
@@ -41,82 +43,6 @@ pub(super) fn encode_threshold_map(map: &BTreeMap<String, ThresholdBand>) -> Str
         .collect::<Vec<_>>();
     items.sort();
     toml_array(&items)
-}
-
-pub(super) fn find_git_dir(start: &Path) -> Option<PathBuf> {
-    let mut current = Some(start);
-    while let Some(dir) = current {
-        let dot_git = dir.join(".git");
-        if dot_git.is_dir() {
-            return Some(dot_git);
-        }
-        if dot_git.is_file() {
-            let raw = std::fs::read_to_string(&dot_git).ok()?;
-            let line = raw.trim();
-            if let Some(path) = line.strip_prefix("gitdir:") {
-                let p = path.trim();
-                let git_dir = if Path::new(p).is_absolute() {
-                    PathBuf::from(p)
-                } else {
-                    dir.join(p)
-                };
-                return Some(git_dir);
-            }
-        }
-        current = dir.parent();
-    }
-    None
-}
-
-pub(super) fn git_head_commit(start: &Path) -> Option<String> {
-    let git_dir = find_git_dir(start)?;
-    let head = std::fs::read_to_string(git_dir.join("HEAD")).ok()?;
-    let head = head.trim();
-    if let Some(reference) = head.strip_prefix("ref:") {
-        let ref_path = git_dir.join(reference.trim());
-        return std::fs::read_to_string(ref_path)
-            .ok()
-            .map(|s| s.trim().to_string());
-    }
-    Some(head.to_string())
-}
-
-pub(super) fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<()> {
-    for entry in
-        std::fs::read_dir(dir).with_context(|| format!("read directory {}", dir.display()))?
-    {
-        let entry = entry?;
-        let path = entry.path();
-        if path.is_dir() {
-            collect_files(&path, out)?;
-        } else if path.is_file() {
-            out.push(path);
-        }
-    }
-    Ok(())
-}
-
-pub(super) fn domain_content_hash(domain_dir: &Path) -> Result<String> {
-    let mut files = Vec::new();
-    collect_files(domain_dir, &mut files)?;
-    files.sort();
-
-    let mut hasher = Sha256::new();
-    for file in files {
-        let rel = file
-            .strip_prefix(domain_dir)
-            .unwrap_or(&file)
-            .to_string_lossy()
-            .into_owned();
-        hasher.update(rel.as_bytes());
-        hasher.update([0]);
-        let file_hash = bijux_dna_infra::hash_file_sha256(&file)
-            .with_context(|| format!("hash {}", file.display()))?;
-        hasher.update(file_hash.as_bytes());
-        hasher.update([0]);
-    }
-    let hex = format!("{:x}", hasher.finalize());
-    Ok(hex.chars().take(40).collect())
 }
 
 pub(super) fn generated_header(source: &str, source_commit: &str) -> String {
