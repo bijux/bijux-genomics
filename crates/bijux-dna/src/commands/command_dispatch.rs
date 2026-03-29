@@ -500,7 +500,8 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         let id = domain
             .get("id")
             .and_then(toml::Value::as_str)
-            .unwrap_or("<unknown>");
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or("invalid_domain");
         let experimental = domain
             .get("experimental")
             .and_then(toml::Value::as_bool)
@@ -535,12 +536,17 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         let tool_rows = toml_array(&tools, "tools");
         let mut tools_by_stage = BTreeMap::<String, BTreeSet<String>>::new();
         let mut tool_metrics = BTreeMap::<String, String>::new();
+        let mut invalid_tool_rows = 0usize;
         for row in &tool_rows {
-            let tool_id = row
+            let Some(tool_id) = row
                 .get("id")
                 .and_then(toml::Value::as_str)
-                .unwrap_or_default()
-                .to_string();
+                .filter(|value| !value.trim().is_empty())
+                .map(ToOwned::to_owned)
+            else {
+                invalid_tool_rows += 1;
+                continue;
+            };
             let metrics_schema = row
                 .get("metrics_schema")
                 .and_then(toml::Value::as_str)
@@ -560,11 +566,16 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         let mut missing_tools = 0usize;
         let mut missing_metrics = 0usize;
         let mut missing_images = 0usize;
+        let mut invalid_stage_rows = 0usize;
         for stage in toml_array(&stages, "stages") {
-            let stage_id = stage
+            let Some(stage_id) = stage
                 .get("id")
                 .and_then(toml::Value::as_str)
-                .unwrap_or_default();
+                .filter(|value| !value.trim().is_empty())
+            else {
+                invalid_stage_rows += 1;
+                continue;
+            };
             if !stage_id.starts_with(&format!("{id}.")) {
                 continue;
             }
@@ -609,7 +620,12 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
                 missing_images += 1;
             }
         }
-        let failures = missing_params + missing_tools + missing_metrics + missing_images;
+        let failures = missing_params
+            + missing_tools
+            + missing_metrics
+            + missing_images
+            + invalid_tool_rows
+            + invalid_stage_rows;
         println!(
             "{:<8} {:<12} {:<7} {:<7} {:<7} {:<7} {:<9} {:<8}",
             id,
