@@ -447,18 +447,25 @@ fn write_taxonomy_db_drift_report(
         .unwrap_or_else(|| serde_json::json!({}));
     let lock_path = run_root.join("taxonomy_db.lock.json");
     let previous = if lock_path.exists() {
-        let raw = std::fs::read_to_string(&lock_path).unwrap_or_default();
-        serde_json::from_str::<serde_json::Value>(&raw).unwrap_or_else(|_| serde_json::json!({}))
+        let raw = std::fs::read_to_string(&lock_path)
+            .with_context(|| format!("read {}", lock_path.display()))?;
+        serde_json::from_str::<serde_json::Value>(&raw)
+            .with_context(|| format!("parse {}", lock_path.display()))?
     } else {
         serde_json::json!({})
     };
-    let current_hash = bijux_dna_core::prelude::params_hash(&current).unwrap_or_default();
+    let current_hash =
+        bijux_dna_core::prelude::params_hash(&current).context("hash taxonomy drift current")?;
     let previous_hash = previous
         .get("current_hash")
         .and_then(serde_json::Value::as_str)
-        .unwrap_or("")
-        .to_string();
-    let drift_detected = lock_path.exists() && current_hash != previous_hash;
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned);
+    let drift_detected = lock_path.exists()
+        && previous_hash
+            .as_deref()
+            .is_some_and(|previous_hash| current_hash != previous_hash);
     let report = serde_json::json!({
         "schema_version": "bijux.taxonomy_db_drift.v1",
         "drift_detected": drift_detected,
