@@ -5,6 +5,7 @@ use crate::coverage::{
     classify_coverage_regime, damage_aware_policy_for_regime, CoverageThresholds,
 };
 use crate::api::VcfPipelineInputs;
+use crate::chunk_plan::plan_region_chunks;
 use crate::explain_model::{PlannerExplainStage, PlannerExplainV1};
 use crate::reference_context::resolve_panel_lock;
 
@@ -37,7 +38,7 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             },
         ));
     let selected_panel = resolve_panel_lock(inputs).ok().flatten();
-    let chunk_count = super::planner::plan_region_chunks(&inputs.species_context, &inputs.chunking)
+    let chunk_count = plan_region_chunks(&inputs.species_context, &inputs.chunking)
         .map(|c| c.len())
         .unwrap_or(0);
     let stages = plans
