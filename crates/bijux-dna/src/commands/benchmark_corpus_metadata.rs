@@ -86,6 +86,7 @@ pub(crate) fn expected_counts_for_scope(
 
 pub(crate) fn discover_normalized_samples(
     corpus_root: &Path,
+    corpus_id: &str,
     expected_total: usize,
 ) -> Result<Vec<CorpusNormalizedSample>> {
     let normalized = corpus_root.join("normalized");
@@ -137,7 +138,7 @@ pub(crate) fn discover_normalized_samples(
 
     if samples.len() != expected_total {
         return Err(anyhow!(
-            "expected {expected_total} normalized samples for corpus-01, found {}",
+            "expected {expected_total} normalized samples for {corpus_id}, found {}",
             samples.len()
         ));
     }
@@ -219,7 +220,8 @@ pub(crate) fn validate_corpus_contract(
     let expected_counts = expected_counts_for_scope(spec, "full")?;
     if actual_counts != expected_counts {
         return Err(anyhow!(
-            "corpus-01 cohort contract drift: expected {:?}, found {:?}",
+            "{} cohort contract drift: expected {:?}, found {:?}",
+            spec.corpus_id,
             expected_counts,
             actual_counts
         ));
