@@ -84,7 +84,16 @@ fn write_merge_join_contract(
 }
 
 fn load_qc_thresholds_map() -> std::collections::BTreeMap<String, f64> {
-    let path = workspace_root_path().join("assets/reference/qc_thresholds.yaml");
+    let Some(path) = std::env::var_os("BIJUX_QC_THRESHOLDS_PATH")
+        .map(std::path::PathBuf::from)
+        .or_else(|| {
+            std::env::var_os("BIJUX_REFERENCE_ROOT")
+                .map(std::path::PathBuf::from)
+                .map(|root| root.join("qc_thresholds.yaml"))
+        })
+    else {
+        return std::collections::BTreeMap::new();
+    };
     let Ok(raw) = std::fs::read_to_string(path) else {
         return std::collections::BTreeMap::new();
     };
