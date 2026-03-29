@@ -166,7 +166,7 @@ fn quality_encoding_from_ascii(min_ascii: u8, max_ascii: u8) -> String {
     } else if min_ascii >= 64 && max_ascii <= 104 {
         "phred+64".to_string()
     } else {
-        "unknown".to_string()
+        "unclassified".to_string()
     }
 }
 
@@ -507,8 +507,7 @@ fn capture_tool_version(stage_root: &std::path::Path, tool_bin: &str) -> Result<
             } else {
                 None
             }
-        })
-        .unwrap_or_else(|| "unknown".to_string());
+        });
     let payload = serde_json::json!({
         "schema_version": "bijux.tool_version_capture.v1",
         "tool": tool_bin,
