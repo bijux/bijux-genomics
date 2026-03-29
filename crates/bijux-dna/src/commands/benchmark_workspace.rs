@@ -402,11 +402,9 @@ pub(crate) fn benchmark_corpus_spec_path(
     {
         return Ok(absolutize(cwd, Path::new(path)));
     }
-    Ok(cwd
-        .join("configs")
-        .join("runtime")
-        .join("corpora")
-        .join(format!("{corpus_id}.toml")))
+    Err(anyhow!(
+        "benchmark config is missing corpora.{corpus_id}.spec_path"
+    ))
 }
 
 pub(crate) fn benchmark_runtime_corpus_dir_name(
@@ -1757,6 +1755,17 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             path,
             temp.path().join("configs/runtime/corpora/corpus-01.toml")
         );
+    }
+
+    #[test]
+    fn corpus_spec_path_requires_declared_benchmark_contract() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        write_workspace(temp.path());
+        let error = benchmark_corpus_spec_path(temp.path(), None, "corpus-01")
+            .expect_err("missing corpus spec path must fail");
+        assert!(error
+            .to_string()
+            .contains("benchmark config is missing corpora.corpus-01.spec_path"));
     }
 
     #[test]
