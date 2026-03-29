@@ -88,12 +88,12 @@ pub(crate) fn run_corpus_fastq_publication_status(
     args: &BenchCorpusFastqPublicationStatusArgs,
 ) -> Result<()> {
     let docs_root = absolutize(cwd, &args.docs_root);
-    write_corpus_fastq_dossier_index(cwd, args.config.as_deref(), &docs_root)?;
+    write_corpus_fastq_dossier_index(cwd, args.config.as_deref(), &docs_root, &args.corpus_id)?;
     write_workspace_layout_status(cwd, args.config.as_deref(), &docs_root)?;
-    write_corpus_fastq_results_status(cwd, args.config.as_deref(), &docs_root)?;
+    write_corpus_fastq_results_status(cwd, args.config.as_deref(), &docs_root, &args.corpus_id)?;
     fail_on_repo_check_violations(&audit_repo_checks(cwd)?)?;
-    write_corpus_fastq_docs_status(cwd, args.config.as_deref(), &docs_root)?;
-    write_corpus_fastq_remediation_queue(cwd, args.config.as_deref(), &docs_root)?;
+    write_corpus_fastq_docs_status(cwd, args.config.as_deref(), &docs_root, &args.corpus_id)?;
+    write_corpus_fastq_remediation_queue(cwd, args.config.as_deref(), &docs_root, &args.corpus_id)?;
     Ok(())
 }
 
@@ -1020,21 +1020,34 @@ struct RemediationIssueGroup {
     additional_detail_count: usize,
 }
 
+fn publication_stage_docs_root(docs_root: &Path, stage_id: &str, corpus_id: &str) -> PathBuf {
+    docs_root.join(stage_id).join(corpus_id)
+}
+
+fn publication_artifact_file_name(corpus_id: &str, suffix: &str) -> String {
+    format!("{corpus_id}-{suffix}")
+}
+
+fn publication_method_file_name(corpus_id: &str) -> String {
+    format!("{corpus_id}-method.md")
+}
+
 fn write_corpus_fastq_dossier_index(
     cwd: &Path,
     explicit_config: Option<&Path>,
     docs_root: &Path,
+    corpus_id: &str,
 ) -> Result<()> {
     let config = load_benchmark_config(cwd, explicit_config)?;
     let workspace = &config.workspace;
-    let contracts = benchmark_publication_contracts(cwd, explicit_config, "corpus-01")?;
+    let contracts = benchmark_publication_contracts(cwd, explicit_config, corpus_id)?;
 
     let stages = contracts
         .iter()
-        .map(|contract| build_dossier_stage_entry(cwd, docs_root, workspace, contract))
+        .map(|contract| build_dossier_stage_entry(cwd, docs_root, workspace, corpus_id, contract))
         .collect::<Result<Vec<_>>>()?;
     let index = DossierIndex {
-        corpus_id: "corpus-01".to_string(),
+        corpus_id: corpus_id.to_string(),
         stage_count: stages.len(),
         published_stage_count: stages
             .iter()
@@ -1048,14 +1061,20 @@ fn write_corpus_fastq_dossier_index(
     };
 
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
-    let json_path = docs_root.join("corpus-01-dossier-index.json");
+    let json_path = docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "dossier-index.json",
+    ));
     fs::write(
         &json_path,
         format!("{}\n", serde_json::to_string_pretty(&index)?),
     )
     .with_context(|| format!("write {}", json_path.display()))?;
 
-    let markdown_path = docs_root.join("corpus-01-dossier-index.md");
+    let markdown_path = docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "dossier-index.md",
+    ));
     fs::write(&markdown_path, render_dossier_index_markdown(&index))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
@@ -1076,19 +1095,26 @@ fn write_corpus_fastq_results_status(
     cwd: &Path,
     explicit_config: Option<&Path>,
     docs_root: &Path,
+    corpus_id: &str,
 ) -> Result<()> {
     let config = load_benchmark_config(cwd, explicit_config)?;
     let workspace = &config.workspace;
-    let contracts = benchmark_publication_contracts(cwd, explicit_config, "corpus-01")?;
-    let report = audit_published_results(cwd, workspace, docs_root, &contracts)?;
+    let contracts = benchmark_publication_contracts(cwd, explicit_config, corpus_id)?;
+    let report = audit_published_results(cwd, workspace, docs_root, corpus_id, &contracts)?;
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
-    let json_path = docs_root.join("corpus-01-results-status.json");
+    let json_path = docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "results-status.json",
+    ));
     fs::write(
         &json_path,
         format!("{}\n", serde_json::to_string_pretty(&report)?),
     )
     .with_context(|| format!("write {}", json_path.display()))?;
-    let markdown_path = docs_root.join("corpus-01-results-status.md");
+    let markdown_path = docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "results-status.md",
+    ));
     fs::write(&markdown_path, render_published_results_markdown(&report))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
@@ -1098,21 +1124,27 @@ fn write_corpus_fastq_docs_status(
     cwd: &Path,
     explicit_config: Option<&Path>,
     docs_root: &Path,
+    corpus_id: &str,
 ) -> Result<()> {
-    let contracts = benchmark_publication_contracts(cwd, explicit_config, "corpus-01")?;
+    let contracts = benchmark_publication_contracts(cwd, explicit_config, corpus_id)?;
     if contracts.is_empty() {
         return Ok(());
     }
-    let exclusions = benchmark_publication_exclusions(cwd, explicit_config, "corpus-01")?;
-    let corpus_spec = load_publication_corpus_spec(cwd, explicit_config)?;
+    let exclusions = benchmark_publication_exclusions(cwd, explicit_config, corpus_id)?;
+    let corpus_spec = load_publication_corpus_spec(cwd, explicit_config, corpus_id)?;
     let (supplemental_findings, mut audit_warnings, findings_generated_at_utc) =
-        load_supplemental_findings(&docs_root.join("corpus-01-publication-findings.json"))?;
-    let (results_by_stage, results_warnings) =
-        load_results_status(&docs_root.join("corpus-01-results-status.json"))?;
+        load_supplemental_findings(&docs_root.join(publication_artifact_file_name(
+            corpus_id,
+            "publication-findings.json",
+        )))?;
+    let (results_by_stage, results_warnings) = load_results_status(&docs_root.join(
+        publication_artifact_file_name(corpus_id, "results-status.json"),
+    ))?;
     audit_warnings.extend(results_warnings);
     let report = audit_publication_docs(
         cwd,
         docs_root,
+        corpus_id,
         &contracts,
         &exclusions,
         &corpus_spec,
@@ -1121,13 +1153,13 @@ fn write_corpus_fastq_docs_status(
         &audit_warnings,
         findings_generated_at_utc,
     )?;
-    let json_path = docs_root.join("corpus-01-status.json");
+    let json_path = docs_root.join(publication_artifact_file_name(corpus_id, "status.json"));
     fs::write(
         &json_path,
         format!("{}\n", serde_json::to_string_pretty(&report)?),
     )
     .with_context(|| format!("write {}", json_path.display()))?;
-    let markdown_path = docs_root.join("corpus-01-status.md");
+    let markdown_path = docs_root.join(publication_artifact_file_name(corpus_id, "status.md"));
     fs::write(&markdown_path, render_publication_docs_markdown(&report))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
@@ -1137,26 +1169,44 @@ fn write_corpus_fastq_remediation_queue(
     cwd: &Path,
     explicit_config: Option<&Path>,
     docs_root: &Path,
+    corpus_id: &str,
 ) -> Result<()> {
-    let publication_status = load_json_value(&docs_root.join("corpus-01-status.json"))?;
-    let results_status = load_json_value(&docs_root.join("corpus-01-results-status.json"))?;
-    let findings_payload = load_json_value(&docs_root.join("corpus-01-publication-findings.json"))?;
-    let dossier_index = load_json_value(&docs_root.join("corpus-01-dossier-index.json"))?;
-    let contracts = benchmark_publication_contracts(cwd, explicit_config, "corpus-01")?;
+    let publication_status =
+        load_json_value(&docs_root.join(publication_artifact_file_name(corpus_id, "status.json")))?;
+    let results_status = load_json_value(&docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "results-status.json",
+    )))?;
+    let findings_payload = load_json_value(&docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "publication-findings.json",
+    )))?;
+    let dossier_index = load_json_value(&docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "dossier-index.json",
+    )))?;
+    let contracts = benchmark_publication_contracts(cwd, explicit_config, corpus_id)?;
     let queue = build_remediation_queue(
+        corpus_id,
         &contracts,
         &publication_status,
         &results_status,
         &findings_payload,
         &dossier_index,
     );
-    let json_path = docs_root.join("corpus-01-remediation-queue.json");
+    let json_path = docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "remediation-queue.json",
+    ));
     fs::write(
         &json_path,
         format!("{}\n", serde_json::to_string_pretty(&queue)?),
     )
     .with_context(|| format!("write {}", json_path.display()))?;
-    let markdown_path = docs_root.join("corpus-01-remediation-queue.md");
+    let markdown_path = docs_root.join(publication_artifact_file_name(
+        corpus_id,
+        "remediation-queue.md",
+    ));
     fs::write(&markdown_path, render_remediation_queue_markdown(&queue))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
@@ -1166,9 +1216,10 @@ fn build_dossier_stage_entry(
     repo_root: &Path,
     docs_root: &Path,
     workspace: &BenchmarkWorkspaceConfig,
+    corpus_id: &str,
     contract: &CorpusBenchmarkContract,
 ) -> Result<DossierStageEntry> {
-    let stage_docs_root = docs_root.join(&contract.stage_id).join("corpus-01");
+    let stage_docs_root = publication_stage_docs_root(docs_root, &contract.stage_id, corpus_id);
     let summary_path = stage_docs_root.join("summary.json");
     let dossier_path = resolve_existing_dossier_path(&stage_docs_root);
 
@@ -1278,7 +1329,7 @@ fn load_json_value(path: &Path) -> Result<serde_json::Value> {
 
 fn render_dossier_index_markdown(index: &DossierIndex) -> String {
     let mut lines = vec![
-        "# `corpus-01` FASTQ dossier index".to_string(),
+        format!("# `{}` FASTQ dossier index", index.corpus_id),
         "".to_string(),
         format!("- Governed publication stages: `{}`", index.stage_count),
         format!("- Published summaries: `{}`", index.published_stage_count),
@@ -1322,21 +1373,22 @@ fn audit_published_results(
     repo_root: &Path,
     workspace: &BenchmarkWorkspaceConfig,
     docs_root: &Path,
+    corpus_id: &str,
     contracts: &[CorpusBenchmarkContract],
 ) -> Result<PublishedResultsStatusReport> {
     let stages = contracts
         .iter()
-        .map(|contract| audit_published_results_stage(repo_root, workspace, docs_root, contract))
+        .map(|contract| {
+            audit_published_results_stage(repo_root, workspace, docs_root, corpus_id, contract)
+        })
         .collect::<Result<Vec<_>>>()?;
     Ok(PublishedResultsStatusReport {
-        corpus_id: "corpus-01".to_string(),
+        corpus_id: corpus_id.to_string(),
         applicable_stage_count: contracts.len(),
         published_stage_count: contracts
             .iter()
             .filter(|contract| {
-                docs_root
-                    .join(&contract.stage_id)
-                    .join("corpus-01")
+                publication_stage_docs_root(docs_root, &contract.stage_id, corpus_id)
                     .join("summary.json")
                     .is_file()
             })
@@ -1358,9 +1410,10 @@ fn audit_published_results_stage(
     repo_root: &Path,
     workspace: &BenchmarkWorkspaceConfig,
     docs_root: &Path,
+    corpus_id: &str,
     contract: &CorpusBenchmarkContract,
 ) -> Result<PublishedResultsStageReport> {
-    let stage_docs_root = docs_root.join(&contract.stage_id).join("corpus-01");
+    let stage_docs_root = publication_stage_docs_root(docs_root, &contract.stage_id, corpus_id);
     let summary_path = stage_docs_root.join("summary.json");
     let mut issues = Vec::new();
     if !summary_path.is_file() {
@@ -1659,7 +1712,7 @@ fn audit_published_results_stage(
 
 fn render_published_results_markdown(report: &PublishedResultsStatusReport) -> String {
     let mut lines = vec![
-        "# `corpus-01` published result mirror status".to_string(),
+        format!("# `{}` published result mirror status", report.corpus_id),
         "".to_string(),
         format!(
             "- Governed publication stages: `{}`",
@@ -1718,8 +1771,9 @@ fn render_published_results_markdown(report: &PublishedResultsStatusReport) -> S
 fn load_publication_corpus_spec(
     cwd: &Path,
     explicit_config: Option<&Path>,
+    corpus_id: &str,
 ) -> Result<PublicationCorpusSpec> {
-    let path = benchmark_corpus_spec_path(cwd, explicit_config, "corpus-01")?;
+    let path = benchmark_corpus_spec_path(cwd, explicit_config, corpus_id)?;
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
@@ -1865,6 +1919,7 @@ fn load_results_status(path: &Path) -> Result<(BTreeMap<String, serde_json::Valu
 fn audit_publication_docs(
     repo_root: &Path,
     docs_root: &Path,
+    corpus_id: &str,
     contracts: &[CorpusBenchmarkContract],
     exclusions: &[CorpusBenchmarkExclusion],
     corpus_spec: &PublicationCorpusSpec,
@@ -1879,6 +1934,7 @@ fn audit_publication_docs(
             audit_publication_stage(
                 docs_root,
                 contract,
+                corpus_id,
                 corpus_spec,
                 supplemental_findings
                     .get(&contract.stage_id)
@@ -1889,7 +1945,7 @@ fn audit_publication_docs(
         })
         .collect::<Result<Vec<_>>>()?;
     Ok(BenchmarkPublicationStatusReport {
-        corpus_id: "corpus-01".to_string(),
+        corpus_id: corpus_id.to_string(),
         docs_root: relative_to_repo_root(docs_root, repo_root),
         benchmarkable_stage_count: contracts.len() + exclusions.len(),
         applicable_stage_count: stages.len(),
@@ -1920,6 +1976,7 @@ fn audit_publication_docs(
 fn audit_publication_stage(
     docs_root: &Path,
     contract: &CorpusBenchmarkContract,
+    corpus_id: &str,
     corpus_spec: &PublicationCorpusSpec,
     supplemental_issues: Vec<StageAuditIssue>,
     results_stage: Option<&serde_json::Value>,
@@ -1927,8 +1984,8 @@ fn audit_publication_stage(
     let (expected_total, expected_cohort_counts) =
         expected_counts_for_scope(corpus_spec, &contract.sample_scope)?;
     let stage_root = docs_root.join(&contract.stage_id);
-    let method_path = stage_root.join("corpus-01-method.md");
-    let corpus_root = stage_root.join("corpus-01");
+    let method_path = stage_root.join(publication_method_file_name(corpus_id));
+    let corpus_root = stage_root.join(corpus_id);
     let expected_tools = sorted_strings(&contract.tools);
     let mut issues = Vec::new();
 
@@ -2473,7 +2530,10 @@ fn audit_sample_runtime_outliers(
 
 fn render_publication_docs_markdown(report: &BenchmarkPublicationStatusReport) -> String {
     let mut lines = vec![
-        "# `corpus-01` FASTQ benchmark publication status".to_string(),
+        format!(
+            "# `{}` FASTQ benchmark publication status",
+            report.corpus_id
+        ),
         "".to_string(),
         format!(
             "- Benchmarkable governed stages: `{}`",
@@ -2546,7 +2606,10 @@ fn render_publication_docs_markdown(report: &BenchmarkPublicationStatusReport) -
     lines.push(String::new());
     lines.push("## Contract".to_string());
     lines.push(String::new());
-    lines.push("A complete published corpus dossier requires `corpus-01-method.md`, `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, `sample_runtime_outliers.csv`, and `benchmark.md`.".to_string());
+    lines.push(format!(
+        "A complete published corpus dossier requires `{}`, `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, `sample_runtime_outliers.csv`, and `benchmark.md`.",
+        publication_method_file_name(&report.corpus_id)
+    ));
     lines.push("Published summaries must also match the governed scenario id, exact benchmark tool roster, expected corpus scope (`full` or `paired`), zero sample failures, and complete sample-by-tool coverage.".to_string());
     lines.join("\n") + "\n"
 }
@@ -2904,6 +2967,7 @@ fn value_string<'a>(value: &'a serde_json::Value, key: &str) -> Option<&'a str> 
 }
 
 fn build_remediation_queue(
+    corpus_id: &str,
     contracts: &[CorpusBenchmarkContract],
     publication_status: &serde_json::Value,
     results_status: &serde_json::Value,
@@ -2966,7 +3030,7 @@ fn build_remediation_queue(
         .collect::<Vec<_>>();
 
     RemediationQueue {
-        corpus_id: "corpus-01".to_string(),
+        corpus_id: corpus_id.to_string(),
         stage_count: stages.len(),
         open_stage_count: stages.iter().filter(|stage| stage.status == "open").count(),
         clear_stage_count: stages
@@ -3127,7 +3191,7 @@ fn classify_recommended_action(issue_ids: &[String]) -> String {
 
 fn render_remediation_queue_markdown(queue: &RemediationQueue) -> String {
     let mut lines = vec![
-        "# `corpus-01` FASTQ remediation queue".to_string(),
+        format!("# `{}` FASTQ remediation queue", queue.corpus_id),
         "".to_string(),
         format!("- Governed publication stages: `{}`", queue.stage_count),
         format!("- Open stages: `{}`", queue.open_stage_count),
@@ -3563,6 +3627,7 @@ reason = "Compact validation fixture."
             temp.path(),
             &workspace,
             &temp.path().join("docs").join("benchmark"),
+            "corpus-01",
             &[validate_reads_contract()],
         )
         .expect("results audit");
@@ -3607,6 +3672,7 @@ reason = "Compact validation fixture."
             temp.path(),
             &workspace,
             &docs_root,
+            "corpus-01",
             &validate_reads_contract(),
         )
         .expect("stage report");
@@ -3694,6 +3760,7 @@ reason = "Compact validation fixture."
             temp.path(),
             &workspace,
             &docs_root,
+            "corpus-01",
             &validate_reads_contract(),
         )
         .expect("stage report");
@@ -3775,6 +3842,7 @@ reason = "Compact validation fixture."
             temp.path(),
             &workspace,
             &docs_root,
+            "corpus-01",
             &validate_reads_contract(),
         )
         .expect("stage report");
@@ -3913,6 +3981,7 @@ reason = "Compact validation fixture."
             temp.path(),
             &workspace,
             &docs_root,
+            "corpus-01",
             &validate_reads_contract(),
         )
         .expect("stage report");
@@ -3954,9 +4023,11 @@ reason = "Compact validation fixture."
         let report = super::audit_publication_docs(
             repo_root,
             &docs_root,
+            "corpus-01",
             &[validate_reads_contract()],
             &[],
-            &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
+            &super::load_publication_corpus_spec(repo_root, None, "corpus-01")
+                .expect("corpus spec"),
             &BTreeMap::new(),
             &BTreeMap::new(),
             &[],
@@ -4088,6 +4159,7 @@ reason = "Compact validation fixture."
         let report = super::audit_publication_docs(
             repo_root,
             &docs_root,
+            "corpus-01",
             &[
                 crate::commands::benchmark_workspace::CorpusBenchmarkContract {
                     sample_scope: "paired".to_string(),
@@ -4095,7 +4167,8 @@ reason = "Compact validation fixture."
                 },
             ],
             &[],
-            &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
+            &super::load_publication_corpus_spec(repo_root, None, "corpus-01")
+                .expect("corpus spec"),
             &supplemental,
             &BTreeMap::new(),
             &[],
@@ -4203,6 +4276,7 @@ reason = "Compact validation fixture."
         let report = super::audit_publication_docs(
             repo_root,
             &docs_root,
+            "corpus-01",
             &[
                 crate::commands::benchmark_workspace::CorpusBenchmarkContract {
                     stage_id: "fastq.validate_reads".to_string(),
@@ -4212,7 +4286,8 @@ reason = "Compact validation fixture."
                 },
             ],
             &[],
-            &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
+            &super::load_publication_corpus_spec(repo_root, None, "corpus-01")
+                .expect("corpus spec"),
             &BTreeMap::new(),
             &BTreeMap::new(),
             &[],
