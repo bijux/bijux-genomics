@@ -36,11 +36,7 @@ pub(crate) fn print_benchmark_publication_targets(
         .contracts
         .into_iter()
         .map(|contract| {
-            corpus_fastq_publication_command(
-                &contract.stage_id,
-                &args.kind,
-                args.config.as_deref(),
-            )
+            corpus_fastq_publication_command(&contract.stage_id, &args.kind, args.config.as_deref())
         })
         .collect::<Result<Vec<_>>>()?;
     println!("{}", targets.join("\n"));
@@ -1018,7 +1014,7 @@ fn write_corpus_fastq_dossier_index(
 
     let stages = contracts
         .iter()
-        .map(|contract| build_dossier_stage_entry(docs_root, workspace, contract))
+        .map(|contract| build_dossier_stage_entry(cwd, docs_root, workspace, contract))
         .collect::<Result<Vec<_>>>()?;
     let index = DossierIndex {
         corpus_id: "corpus-01".to_string(),
@@ -1071,7 +1067,7 @@ fn write_corpus_fastq_results_status(
         .corpus_01
         .map(|row| row.contracts)
         .unwrap_or_default();
-    let report = audit_published_results(workspace, docs_root, &contracts)?;
+    let report = audit_published_results(cwd, workspace, docs_root, &contracts)?;
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
     let json_path = docs_root.join("corpus-01-results-status.json");
     fs::write(
@@ -1158,6 +1154,7 @@ fn write_corpus_fastq_remediation_queue(
 }
 
 fn build_dossier_stage_entry(
+    repo_root: &Path,
     docs_root: &Path,
     workspace: &BenchmarkWorkspaceConfig,
     contract: &CorpusBenchmarkContract,
@@ -1192,8 +1189,8 @@ fn build_dossier_stage_entry(
         stage_id: contract.stage_id.clone(),
         sample_scope: contract.sample_scope.clone(),
         status: "missing".to_string(),
-        summary_path: summary_path.display().to_string(),
-        dossier_path: dossier_path.display().to_string(),
+        summary_path: relative_to_repo_root(&summary_path, repo_root),
+        dossier_path: relative_to_repo_root(&dossier_path, repo_root),
         expected_remote_run_root: expected_remote_run_root.display().to_string(),
         expected_local_cache_mirror_run_root: expected_local_cache_mirror_run_root
             .display()
@@ -1309,13 +1306,14 @@ fn render_dossier_index_markdown(index: &DossierIndex) -> String {
 }
 
 fn audit_published_results(
+    repo_root: &Path,
     workspace: &BenchmarkWorkspaceConfig,
     docs_root: &Path,
     contracts: &[CorpusBenchmarkContract],
 ) -> Result<PublishedResultsStatusReport> {
     let stages = contracts
         .iter()
-        .map(|contract| audit_published_results_stage(workspace, docs_root, contract))
+        .map(|contract| audit_published_results_stage(repo_root, workspace, docs_root, contract))
         .collect::<Result<Vec<_>>>()?;
     Ok(PublishedResultsStatusReport {
         corpus_id: "corpus-01".to_string(),
@@ -1344,6 +1342,7 @@ fn audit_published_results(
 }
 
 fn audit_published_results_stage(
+    repo_root: &Path,
     workspace: &BenchmarkWorkspaceConfig,
     docs_root: &Path,
     contract: &CorpusBenchmarkContract,
@@ -1356,7 +1355,10 @@ fn audit_published_results_stage(
             &mut issues,
             &contract.stage_id,
             "missing-published-summary",
-            format!("missing {}", summary_path.display()),
+            format!(
+                "missing {}",
+                relative_to_repo_root(&summary_path, repo_root)
+            ),
         );
         return Ok(PublishedResultsStageReport {
             stage_id: contract.stage_id.clone(),
@@ -1848,7 +1850,7 @@ fn load_results_status(path: &Path) -> Result<(BTreeMap<String, serde_json::Valu
 }
 
 fn audit_publication_docs(
-    _repo_root: &Path,
+    repo_root: &Path,
     docs_root: &Path,
     contracts: &[CorpusBenchmarkContract],
     exclusions: &[CorpusBenchmarkExclusion],
@@ -1875,7 +1877,7 @@ fn audit_publication_docs(
         .collect::<Result<Vec<_>>>()?;
     Ok(BenchmarkPublicationStatusReport {
         corpus_id: "corpus-01".to_string(),
-        docs_root: docs_root.display().to_string(),
+        docs_root: relative_to_repo_root(docs_root, repo_root),
         benchmarkable_stage_count: contracts.len() + exclusions.len(),
         applicable_stage_count: stages.len(),
         completed_stage_count: stages
@@ -2565,7 +2567,18 @@ fn append_stage_audit_issue(
 }
 
 fn relative_to_docs_root(path: &Path, docs_root: &Path) -> String {
-    path.strip_prefix(docs_root.parent().unwrap_or(docs_root))
+    let repo_root = docs_root
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or(docs_root.parent().unwrap_or(docs_root));
+    path.strip_prefix(repo_root)
+        .unwrap_or(path)
+        .display()
+        .to_string()
+}
+
+fn relative_to_repo_root(path: &Path, repo_root: &Path) -> String {
+    path.strip_prefix(repo_root)
         .unwrap_or(path)
         .display()
         .to_string()

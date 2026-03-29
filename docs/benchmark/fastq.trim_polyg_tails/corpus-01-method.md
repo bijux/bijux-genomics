@@ -34,7 +34,7 @@ The runner writes the execution manifest under the Lunarc run root:
 - `bench/trim_polyg_tails/<sample_id>/bench.jsonl`
 - `bench/trim_polyg_tails/<sample_id>/bench.sqlite`
 
-The Rust dossier command publishes the doc set under [corpus-01](<REPO_ROOT>/docs/benchmark/fastq.trim_polyg_tails/corpus-01):
+The Rust dossier command publishes the doc set under `docs/benchmark/fastq.trim_polyg_tails/corpus-01`:
 
 - `summary.json`
 - `sample_results.csv`
