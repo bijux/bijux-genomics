@@ -1,5 +1,12 @@
 use super::{anyhow, ExecuteRunRequest, Path, Result};
 
+fn relative_path_string(base: &Path, path: &Path) -> String {
+    path.strip_prefix(base)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .to_string()
+}
+
 pub(super) fn maybe_emit_reference_manifest(
     request: &ExecuteRunRequest,
     run_artifacts_dir: &std::path::Path,
@@ -56,7 +63,7 @@ pub(super) fn maybe_emit_reference_manifest(
         };
         inputs.push(serde_json::json!({
             "name": artifact.name,
-            "path": resolved,
+            "path": relative_path_string(&request.plan.out_dir, &resolved),
             "sha256": sha256,
         }));
     }
@@ -100,9 +107,9 @@ pub(super) fn maybe_emit_reference_manifest(
         authority.insert(
             "reference_lock".to_string(),
             serde_json::json!({
-                "lock_json": lock_json,
+                "lock_json": relative_path_string(&workspace_root, &lock_json),
                 "lock_json_sha256": lock_json_sha256,
-                "lock_signature": lock_sig,
+                "lock_signature": relative_path_string(&workspace_root, &lock_sig),
                 "lock_signature_sha256": lock_sig_sha256,
             }),
         );
