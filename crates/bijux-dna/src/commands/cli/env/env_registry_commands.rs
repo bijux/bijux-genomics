@@ -186,7 +186,7 @@ pub fn ensure_apptainer_images(
                     require_help,
                     &probe_commands,
                     tool.java_heap_mb,
-                    tool.upstream.as_deref().unwrap_or("unknown"),
+                    tool.upstream.as_deref().unwrap_or(""),
                     &data_root,
                     &results_root,
                 );
@@ -334,7 +334,7 @@ pub fn ensure_apptainer_tools(
             tool.smoke_require_help.unwrap_or(true),
             &tool.smoke_probes,
             tool.java_heap_mb,
-            tool.upstream.as_deref().unwrap_or("unknown"),
+            tool.upstream.as_deref().unwrap_or(""),
             &data_root,
             &results_root,
         );
@@ -462,7 +462,7 @@ pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
                 .parent()
                 .and_then(Path::file_name)
                 .and_then(|v| v.to_str())
-                .unwrap_or("unknown")
+                .unwrap_or_default()
                 .to_string();
             let digest = hash_file_sha256_hex(&path)?;
             let stem = path
