@@ -100,23 +100,11 @@ fn default_site_name() -> String {
     "hpc".to_string()
 }
 
-fn default_hpc_root() -> PathBuf {
-    std::env::var_os("HOME").map_or_else(
-        || PathBuf::from("bijux"),
-        |home| PathBuf::from(home).join("bijux"),
-    )
-}
-
-fn default_hpc_config_path() -> PathBuf {
-    std::env::var_os("HOME").map_or_else(
-        || PathBuf::from(".config").join("bijux").join("hpc.toml"),
-        |home| {
-            PathBuf::from(home)
-                .join(".config")
-                .join("bijux")
-                .join("hpc.toml")
-        },
-    )
+fn configured_hpc_config_path() -> Result<PathBuf> {
+    std::env::var_os("BIJUX_HPC_CONFIG")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .ok_or_else(|| anyhow!("BIJUX_HPC_CONFIG must be declared for HPC configuration"))
 }
 
 impl HpcConfig {
@@ -152,24 +140,18 @@ impl HpcConfig {
 /// # Errors
 /// Returns an error if the configured `hpc.toml` cannot be read or parsed.
 pub fn load_hpc_config() -> Result<HpcConfig> {
-    let config_path =
-        std::env::var_os("BIJUX_HPC_CONFIG").map_or_else(default_hpc_config_path, PathBuf::from);
-    if config_path.exists() {
-        let raw = std::fs::read_to_string(&config_path)
-            .with_context(|| format!("read {}", config_path.display()))?;
-        let cfg: HpcConfig =
-            toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))?;
-        return Ok(cfg);
-    }
-    let root = std::env::var_os("BIJUX_HPC_ROOT").map_or_else(default_hpc_root, PathBuf::from);
-    Ok(HpcConfig::from_root(root))
+    let config_path = configured_hpc_config_path()?;
+    let raw = std::fs::read_to_string(&config_path)
+        .with_context(|| format!("read {}", config_path.display()))?;
+    let cfg: HpcConfig =
+        toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))?;
+    Ok(cfg)
 }
 
 /// # Errors
 /// Returns an error if the config file cannot be written.
 pub fn write_hpc_config(config: &HpcConfig) -> Result<PathBuf> {
-    let config_path =
-        std::env::var_os("BIJUX_HPC_CONFIG").map_or_else(default_hpc_config_path, PathBuf::from);
+    let config_path = configured_hpc_config_path()?;
     if let Some(parent) = config_path.parent() {
         bijux_dna_infra::ensure_dir(parent)
             .with_context(|| format!("create {}", parent.display()))?;
@@ -326,8 +308,7 @@ pub struct ConfigDoctorReport {
 /// # Errors
 /// Returns an error if config cannot be loaded.
 pub fn config_doctor() -> Result<ConfigDoctorReport> {
-    let config_path =
-        std::env::var_os("BIJUX_HPC_CONFIG").map_or_else(default_hpc_config_path, PathBuf::from);
+    let config_path = configured_hpc_config_path()?;
     let cfg = load_hpc_config()?;
     let paths = cfg.resolve_paths();
     let layout = HpcLayout::from_resolved(&paths);
