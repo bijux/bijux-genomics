@@ -15,8 +15,9 @@ use crate::commands::benchmark_corpus_metadata::{
 use crate::commands::benchmark_repo_checks::{audit_repo_checks, fail_on_repo_check_violations};
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_publication_contract, benchmark_publication_contracts,
-    benchmark_publication_exclusions, load_benchmark_config, write_workspace_layout_status,
-    BenchmarkConfig, BenchmarkWorkspaceConfig, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
+    benchmark_publication_exclusions, benchmark_stage_run_relative_root, load_benchmark_config,
+    write_workspace_layout_status, BenchmarkConfig, BenchmarkWorkspaceConfig,
+    CorpusBenchmarkContract, CorpusBenchmarkExclusion,
 };
 use crate::commands::cli::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
@@ -1165,18 +1166,22 @@ fn build_dossier_stage_entry(
         .file_name()
         .and_then(|value| value.to_str())
         .ok_or_else(|| anyhow!("invalid workspace.remote.corpus_root"))?;
-    let expected_remote_run_root = workspace_remote_results_root(workspace)?.join(
-        stage_run_relative_root(workspace, "remote", remote_corpus_id, &contract.stage_id),
-    );
+    let expected_remote_run_root =
+        workspace_remote_results_root(workspace)?.join(benchmark_stage_run_relative_root(
+            workspace,
+            "remote",
+            remote_corpus_id,
+            &contract.stage_id,
+        ));
     let expected_local_cache_mirror_run_root =
-        workspace_local_cache_mirror_root(workspace)?.join(stage_run_relative_root(
+        workspace_local_cache_mirror_root(workspace)?.join(benchmark_stage_run_relative_root(
             workspace,
             "local-cache",
             remote_corpus_id,
             &contract.stage_id,
         ));
     let expected_local_results_run_root =
-        workspace_local_results_root(workspace)?.join(stage_run_relative_root(
+        workspace_local_results_root(workspace)?.join(benchmark_stage_run_relative_root(
             workspace,
             "local-archive",
             remote_corpus_id,
@@ -2652,15 +2657,12 @@ fn configured_stage_run_roots(
 ) -> Result<Vec<StageRunRootCandidate>> {
     Ok(vec![
         StageRunRootCandidate {
-            path: workspace_local_cache_mirror_root(workspace)?.join(stage_run_relative_root(
-                workspace,
-                "local-cache",
-                corpus_id,
-                stage_id,
-            )),
+            path: workspace_local_cache_mirror_root(workspace)?.join(
+                benchmark_stage_run_relative_root(workspace, "local-cache", corpus_id, stage_id),
+            ),
         },
         StageRunRootCandidate {
-            path: workspace_local_results_root(workspace)?.join(stage_run_relative_root(
+            path: workspace_local_results_root(workspace)?.join(benchmark_stage_run_relative_root(
                 workspace,
                 "local-archive",
                 corpus_id,
@@ -2668,9 +2670,9 @@ fn configured_stage_run_roots(
             )),
         },
         StageRunRootCandidate {
-            path: workspace_remote_results_root(workspace)?.join(stage_run_relative_root(
-                workspace, "remote", corpus_id, stage_id,
-            )),
+            path: workspace_remote_results_root(workspace)?.join(
+                benchmark_stage_run_relative_root(workspace, "remote", corpus_id, stage_id),
+            ),
         },
     ])
 }
@@ -3200,35 +3202,6 @@ fn classify_run_root_source(
     "custom".to_string()
 }
 
-fn stage_run_relative_root(
-    workspace: &BenchmarkWorkspaceConfig,
-    scope: &str,
-    corpus_id: &str,
-    stage_id: &str,
-) -> PathBuf {
-    let template = workspace
-        .layout
-        .as_ref()
-        .and_then(|row| row.stage_runs.as_ref())
-        .and_then(|row| match scope {
-            "remote" => row.remote_results_template.as_deref(),
-            "local-cache" => row.local_cache_results_template.as_deref(),
-            "local-archive" => row.local_archive_results_template.as_deref(),
-            _ => None,
-        })
-        .unwrap_or(match scope {
-            "remote" => "{corpus_id}/{stage_id}/lunarc",
-            "local-cache" => "results/{corpus_id}/{stage_id}/lunarc",
-            "local-archive" => "{corpus_id}/{stage_id}/lunarc",
-            _ => "{corpus_id}/{stage_id}/lunarc",
-        });
-    PathBuf::from(
-        template
-            .replace("{corpus_id}", corpus_id)
-            .replace("{stage_id}", stage_id),
-    )
-}
-
 fn workspace_remote_corpus_root(workspace: &BenchmarkWorkspaceConfig) -> Result<PathBuf> {
     workspace
         .remote
@@ -3552,7 +3525,7 @@ reason = "Compact validation fixture."
     fn stage_run_relative_root_uses_default_local_cache_template() {
         let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig::default();
         assert_eq!(
-            super::stage_run_relative_root(
+            crate::commands::benchmark_workspace::benchmark_stage_run_relative_root(
                 &workspace,
                 "local-cache",
                 "corpus_01",
