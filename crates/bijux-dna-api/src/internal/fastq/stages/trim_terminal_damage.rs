@@ -459,13 +459,16 @@ fn read_governed_terminal_damage_report(
 mod tests {
     use super::{
         admitted_stage_tools, parse_requested_execution_policy,
-        read_governed_terminal_damage_report, required_plan_output_path, resolve_requested_tools,
+        prune_trim_terminal_damage_payload, read_governed_terminal_damage_report,
+        required_plan_output_path, resolve_requested_tools,
     };
     use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
+    use bijux_dna_domain_fastq::params::{trim::parse_terminal_damage_execution_policy, DamageMode};
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
+    use std::fs;
     use std::path::PathBuf;
 
     #[test]
@@ -652,15 +655,14 @@ mod tests {
             tool_id: "cutadapt".to_string(),
             paired_mode: bijux_dna_domain_fastq::PairedMode::PairedEnd,
             threads: 2,
-            damage_mode: "ancient".to_string(),
-            execution_policy: parse_terminal_damage_execution_policy(Some(
-                "explicit_terminal_trim",
-            ))
-            .unwrap_or_else(|err| panic!("execution policy: {err}")),
+            damage_mode: DamageMode::Ancient,
+            execution_policy: parse_terminal_damage_execution_policy("explicit_terminal_trim")
+                .unwrap_or_else(|| panic!("execution policy must parse"))
+                .unwrap_or_else(|| panic!("execution policy must be explicit")),
             trim_5p_bases: 2,
             trim_3p_bases: 2,
-            requested_trim_5p_bases: 2,
-            requested_trim_3p_bases: 2,
+            requested_trim_5p_bases: Some(2),
+            requested_trim_3p_bases: Some(2),
             udg_classification: "non_udg".to_string(),
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
