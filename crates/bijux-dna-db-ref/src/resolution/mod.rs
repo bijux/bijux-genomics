@@ -1,7 +1,9 @@
+mod maps;
 mod panels;
 mod reference_assets;
 mod species;
 
+pub use maps::{resolve_map, resolve_map_lock};
 pub use panels::{resolve_panel, resolve_panel_lock};
 pub use reference_assets::{
     normalize_contig_name, reference_provenance, resolve_default_reference_set,
