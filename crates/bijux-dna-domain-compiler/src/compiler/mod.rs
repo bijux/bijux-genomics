@@ -10,10 +10,14 @@ use serde::{Deserialize, Serialize};
 mod compile;
 mod coverage;
 mod loading;
+mod models;
 mod validation;
+
+use self::models::*;
 
 include!("shared.rs");
 
 pub use self::compile::compile_domain_configs;
 pub use self::coverage::domain_coverage_report;
+pub use self::models::{CompileOptions, ValidateOptions};
 pub use self::validation::validate_domain;
