@@ -500,11 +500,15 @@ fn validate_example_spec(cwd: &Path, spec: &ExampleSpec, root: &Path) -> Result<
     }
 
     if spec.id.starts_with("example-2") {
-        let banks = spec.required_banks.clone().unwrap_or_default();
+        let banks = declared_bank_ids(spec);
         if banks.is_empty() {
             return Err(anyhow!("2xx examples must declare non-empty `required_banks`"));
         }
-        let handoff = declared_text(spec.handoff_mode.as_deref()).unwrap_or("");
+        let Some(handoff) = declared_text(spec.handoff_mode.as_deref()) else {
+            return Err(anyhow!(
+                "2xx examples must set handoff_mode to `bijux_produced` or `external_bam`"
+            ));
+        };
         if handoff != "bijux_produced" && handoff != "external_bam" {
             return Err(anyhow!(
                 "2xx examples must set handoff_mode to `bijux_produced` or `external_bam`"
@@ -575,7 +579,7 @@ fn collect_examples(cwd: &Path) -> Result<Vec<ExampleListRow>> {
             runtime: spec.runtime,
             corpus_id: spec.corpus_id,
             handoff_mode: spec.handoff_mode,
-            required_banks: spec.required_banks.unwrap_or_default(),
+            required_banks: declared_bank_ids(&spec),
         });
     }
     rows.sort_by(|a, b| a.id.cmp(&b.id));
@@ -584,6 +588,18 @@ fn collect_examples(cwd: &Path) -> Result<Vec<ExampleListRow>> {
 
 fn declared_text(value: Option<&str>) -> Option<&str> {
     value.map(str::trim).filter(|entry| !entry.is_empty())
+}
+
+fn declared_bank_ids(spec: &ExampleSpec) -> Vec<String> {
+    spec.required_banks
+        .as_deref()
+        .into_iter()
+        .flatten()
+        .map(String::as_str)
+        .map(str::trim)
+        .filter(|bank| !bank.is_empty())
+        .map(ToOwned::to_owned)
+        .collect()
 }
 
 fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool, redacted: bool) -> Result<ExamplePlan> {
@@ -652,7 +668,7 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool, redacted: bool) ->
 }
 
 fn ensure_required_banks(cwd: &Path, spec: &ExampleSpec, hpc_root: &Path) -> Result<()> {
-    let required = spec.required_banks.clone().unwrap_or_default();
+    let required = declared_bank_ids(spec);
     if required.is_empty() {
         return Ok(());
     }
