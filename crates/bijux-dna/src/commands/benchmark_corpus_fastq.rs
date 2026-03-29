@@ -1601,11 +1601,6 @@ fn benchmark_runtime_env(out_root: &Path) -> BTreeMap<String, String> {
         "XDG_CACHE_HOME".to_string(),
         cache_root.display().to_string(),
     );
-    if cache_root.file_name().and_then(|row| row.to_str()) == Some(".cache") {
-        if let Some(parent) = cache_root.parent() {
-            env.insert("BIJUX_HPC_ROOT".to_string(), parent.display().to_string());
-        }
-    }
     env
 }
 
@@ -2021,10 +2016,7 @@ mod tests {
             env.get("XDG_CACHE_HOME"),
             Some(&"/bench/workspace/.cache".to_string())
         );
-        assert_eq!(
-            env.get("BIJUX_HPC_ROOT"),
-            Some(&"/bench/workspace".to_string())
-        );
+        assert!(!env.contains_key("BIJUX_HPC_ROOT"));
         assert_eq!(
             workspace_cache_root_for_output(&out_root),
             Some(PathBuf::from("/bench/workspace/.cache"))
