@@ -114,22 +114,22 @@ pub(crate) fn write_run_manifest(
         .and_then(serde_json::Value::as_str)
         .map(str::to_string)
         .ok_or_else(|| anyhow::anyhow!("defaults_ledger.json missing profile_id"))?;
-    let graph_hash = std::env::var("BIJUX_PLAN_HASH").ok().unwrap_or_else(|| {
+    let graph_hash = std::env::var("BIJUX_PLAN_HASH").ok().or_else(|| {
         let steps = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
         ExecutionGraph::new(
             pipeline_id.clone(),
-            "unknown",
+            profile_id.clone(),
             PlanPolicy::PreferAccuracy,
             steps,
             Vec::new(),
         )
         .and_then(|graph| graph.hash())
-        .unwrap_or_else(|_| "unknown".to_string())
+        .ok()
     });
     let toolchain_versions = serde_json::json!({
-        "planner": std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
-        "engine": std::env::var("BIJUX_ENGINE_VERSION").unwrap_or_else(|_| "unknown".to_string()),
-        "runner": std::env::var("BIJUX_RUNNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+        "planner": std::env::var("BIJUX_PLANNER_VERSION").ok(),
+        "engine": std::env::var("BIJUX_ENGINE_VERSION").ok(),
+        "runner": std::env::var("BIJUX_RUNNER_VERSION").ok(),
     });
     let mut dataset_fingerprints = Vec::new();
     for entry in stage_runs {
@@ -272,14 +272,13 @@ pub(crate) fn write_run_manifest(
         "execution_replay_identity": {
             "tool_image_ref": tool_invocations
                 .first()
-                .map_or_else(|| "unknown".to_string(), |inv| inv.tool_id.to_string()),
+                .map(|inv| inv.tool_id.to_string()),
             "tool_image_digest": tool_invocations
                 .first()
-                .map_or_else(|| "unknown".to_string(), |inv| inv.image_digest.clone()),
+                .map(|inv| inv.image_digest.clone()),
             "tool_version_output": tool_invocations
                 .first()
-                .and_then(|inv| inv.resolved_tool_version.clone())
-                .unwrap_or_else(|| "unknown".to_string()),
+                .and_then(|inv| inv.resolved_tool_version.clone()),
         },
         "telemetry": {
             "events": stage_runs.iter().map(|entry| {
