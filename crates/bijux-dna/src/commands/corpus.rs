@@ -443,7 +443,7 @@ pub fn diff_manifests_text(cwd: &Path, left: &str, right: &str) -> Result<()> {
 
 fn load_curated_spec(path: &Path) -> Result<CuratedCorpusSpec> {
     let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str(&crate::commands::benchmark_workspace::expand_env_placeholders(&raw))
+    toml::from_str(&crate::commands::benchmark_workspace::expand_env_placeholders(&raw)?)
         .with_context(|| format!("parse {}", path.display()))
 }
 
