@@ -409,7 +409,7 @@ pub(crate) fn benchmark_corpus_spec_path(
 
 pub(crate) fn benchmark_runtime_corpus_dir_name(
     workspace: &BenchmarkWorkspaceConfig,
-    corpus_id: &str,
+    _corpus_id: &str,
 ) -> Result<String> {
     if let Some(dir_name) = workspace
         .remote
@@ -422,7 +422,9 @@ pub(crate) fn benchmark_runtime_corpus_dir_name(
     {
         return Ok(dir_name.to_string());
     }
-    Ok(corpus_id.replace('-', "_"))
+    Err(anyhow!(
+        "benchmark config is missing workspace.remote.corpus_root"
+    ))
 }
 
 pub(crate) fn benchmark_stage_run_relative_root(
@@ -1797,6 +1799,15 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             workspace_layout_corpus_dir_name(&config).expect("corpus dir name"),
             "corpus_42"
         );
+    }
+
+    #[test]
+    fn benchmark_runtime_corpus_dir_name_requires_declared_remote_corpus_root() {
+        let error = benchmark_runtime_corpus_dir_name(&BenchmarkWorkspaceConfig::default(), "corpus-01")
+            .expect_err("missing remote corpus root must fail");
+        assert!(error
+            .to_string()
+            .contains("benchmark config is missing workspace.remote.corpus_root"));
     }
 
     #[test]
