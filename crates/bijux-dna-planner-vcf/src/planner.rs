@@ -6,9 +6,7 @@ use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_dna_core::ids::{StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{StageIO, ToolConstraints};
 use bijux_dna_db_ref::{ref_service, validate_imputation_tool_compatibility};
-use bijux_dna_domain_vcf::contracts::{
-    refuse_unsupported_regime_transition, SpeciesContext,
-};
+use bijux_dna_domain_vcf::contracts::refuse_unsupported_regime_transition;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use bijux_dna_stage_contract::{
     execution_step_from_stage_plan, PlanDecisionReason, PlanReasonKind, StagePlanV1,
@@ -16,7 +14,8 @@ use bijux_dna_stage_contract::{
 
 use crate::coverage::classify_coverage_regime;
 use crate::api::{ChunkPlanSettings, VcfPanelLock, VcfPipelineInputs};
-use crate::models::{short_species_context_digest, RegionChunkPlan};
+use crate::chunk_plan::{plan_region_chunks, RegionChunkPlan};
+use crate::models::short_species_context_digest;
 use crate::params::{
     apply_stage_param_overrides, attach_reference_provenance, stage_params,
     validate_generated_stage_params,
@@ -67,62 +66,6 @@ pub(crate) fn choose_tool(
         default_tool(stage, resolved_coverage).to_string(),
         "coverage_regime_default".to_string(),
     ))
-}
-
-pub(crate) fn plan_region_chunks(
-    species: &SpeciesContext,
-    chunking: &ChunkPlanSettings,
-) -> Result<Vec<RegionChunkPlan>> {
-    if chunking.window_size_bp == 0 {
-        bail!("chunk window_size_bp must be > 0");
-    }
-    if chunking.overlap_bp >= chunking.window_size_bp {
-        bail!("chunk overlap_bp must be < window_size_bp");
-    }
-    let mut chunks = Vec::new();
-    let include_all = chunking.chr_include.is_empty();
-    let step = chunking.window_size_bp - chunking.overlap_bp;
-    for contig in &species.contigs {
-        if !include_all && !chunking.chr_include.iter().any(|c| c == &contig.name) {
-            continue;
-        }
-        if chunking.chr_exclude.iter().any(|c| c == &contig.name) {
-            continue;
-        }
-        if contig.length_bp <= chunking.window_size_bp {
-            chunks.push(RegionChunkPlan {
-                chunk_id: format!("{}:whole", contig.name),
-                contig: contig.name.clone(),
-                start: 1,
-                end: contig.length_bp,
-            });
-            continue;
-        }
-        let mut start = 1u64;
-        let mut idx = 0usize;
-        while start <= contig.length_bp {
-            let end = std::cmp::min(start + chunking.window_size_bp - 1, contig.length_bp);
-            chunks.push(RegionChunkPlan {
-                chunk_id: format!("{}:{idx:05}", contig.name),
-                contig: contig.name.clone(),
-                start,
-                end,
-            });
-            if end == contig.length_bp {
-                break;
-            }
-            start = start.saturating_add(step);
-            idx += 1;
-        }
-    }
-    chunks.sort_by(|a, b| {
-        a.contig
-            .cmp(&b.contig)
-            .then(a.start.cmp(&b.start))
-            .then(a.end.cmp(&b.end))
-            .then(a.chunk_id.cmp(&b.chunk_id))
-    });
-    Ok(chunks)
 }
 
 fn stage_plan(

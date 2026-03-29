@@ -1,13 +1,5 @@
 use sha2::Digest;
 
-#[derive(Debug, Clone, serde::Serialize, PartialEq, Eq)]
-pub struct RegionChunkPlan {
-    pub chunk_id: String,
-    pub contig: String,
-    pub start: u64,
-    pub end: u64,
-}
-
 pub(crate) fn short_species_context_digest(
     species_id: &str,
     build_id: &str,

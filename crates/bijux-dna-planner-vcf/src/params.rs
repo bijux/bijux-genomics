@@ -4,7 +4,7 @@ use bijux_dna_db_ref::ReferenceBundle;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 
 use crate::api::{ChunkPlanSettings, VcfPanelLock};
-use crate::models::RegionChunkPlan;
+use crate::chunk_plan::RegionChunkPlan;
 use crate::workspace_config;
 
 pub(crate) fn stage_params(

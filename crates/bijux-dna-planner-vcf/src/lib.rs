@@ -13,6 +13,7 @@
 )]
 
 mod api;
+mod chunk_plan;
 mod coverage;
 mod explain;
 mod explain_model;
@@ -27,7 +28,7 @@ mod workspace_config;
 pub use explain::explain_vcf_plan;
 pub use api::{ChunkPlanSettings, VcfPanelLock, VcfPipelineInputs};
 pub use explain_model::{PlannerExplainStage, PlannerExplainV1};
-pub use models::RegionChunkPlan;
+pub use chunk_plan::RegionChunkPlan;
 pub use planner::{plan_vcf_minimal, plan_vcf_pipeline, plan_vcf_stage_plans};
 
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-vcf.v2";
