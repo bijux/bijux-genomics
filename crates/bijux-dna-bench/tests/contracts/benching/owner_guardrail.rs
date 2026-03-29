@@ -1,11 +1,8 @@
 use std::fs;
 
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn top_level_modules_have_owner() {
-    let src_dir = support::crate_root("bijux-dna-bench")
+    let src_dir = crate::support::crate_root("bijux-dna-bench")
         .unwrap_or_else(|err| panic!("resolve benchmark crate root: {err}"))
         .join("src");
     let mut modules = Vec::new();

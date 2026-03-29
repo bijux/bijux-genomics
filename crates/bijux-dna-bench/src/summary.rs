@@ -524,7 +524,6 @@ fn stage_scope_label(
 mod tests {
     use super::{run_suite, summarize, BenchRunOptions};
     use std::collections::BTreeMap;
-    use std::path::PathBuf;
 
     use bijux_dna_bench_model::GatePolicy;
     use bijux_dna_bench_model::{

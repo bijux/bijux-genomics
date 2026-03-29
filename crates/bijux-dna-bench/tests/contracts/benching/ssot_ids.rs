@@ -1,8 +1,5 @@
 use std::collections::HashSet;
 
-#[path = "../../support.rs"]
-mod support;
-
 fn extract_string_literals(contents: &str) -> Vec<String> {
     let mut literals = Vec::new();
     let mut in_string = false;
@@ -69,7 +66,7 @@ fn benchmark_references_canonical_ids() {
         }
     }
 
-    let root = support::crate_root("bijux-dna-bench")
+    let root = crate::support::crate_root("bijux-dna-bench")
         .unwrap_or_else(|err| panic!("resolve benchmark crate root: {err}"))
         .join("src");
     let mut offenders = Vec::new();
