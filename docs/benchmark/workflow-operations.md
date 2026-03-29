@@ -49,7 +49,7 @@ cargo run -q -p bijux-dna -- bench corpus-fastq-published-dossiers \
   --config configs/bench/benchmark.toml
 ```
 
-Those commands pull the governed results mirror, preserve the sync profile contract from `configs/hpc/lunarc_sync_profiles.toml`, normalize the local archive layout, refresh the published dossiers, and rebuild the publication audits.
+Those commands pull the governed results mirror, preserve the sync profile contract from `configs/hpc/benchmark_sync_profiles.toml`, normalize the local archive layout, refresh the published dossiers, and rebuild the publication audits.
 
 `make benchmark-publication-refresh` remains an optional wrapper around that governed sequence; it is not the benchmark authority. `make benchmark-lunarc-publication-refresh` remains only as a compatibility alias.
 
@@ -71,7 +71,7 @@ The benchmark control plane should consume `configs/bench/benchmark.toml` throug
 
 ## Sync Profile Contract
 
-`configs/hpc/lunarc_sync_profiles.toml` is the benchmark sync profile registry. Profiles must describe more than rsync include and exclude files:
+`configs/hpc/benchmark_sync_profiles.toml` is the benchmark sync profile registry. Profiles must describe more than rsync include and exclude files:
 
 - `workspace_scope` declares the governed benchmark workflow that owns the profile.
 - `pull_destination` names the workspace destination contract instead of relying on an operator-specific shell default.

@@ -53,7 +53,7 @@ configs/domain/external_tools.toml
 configs/domain/index.md
 configs/domain/shared_tools.toml
 configs/hpc/index.md
-configs/hpc/lunarc_sync_profiles.toml
+configs/hpc/benchmark_sync_profiles.toml
 configs/hpc/rsync/index.md
 configs/hpc/rsync/pull-full-excludes.txt
 configs/hpc/rsync/pull-results-includes.txt

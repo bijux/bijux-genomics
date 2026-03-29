@@ -5691,12 +5691,12 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             .as_deref()
             .unwrap_or(""),
     );
-    let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
+    let profiles_cfg = workspace.path("configs/hpc/benchmark_sync_profiles.toml");
     let mut pull_full_exclude = workspace.path("configs/hpc/rsync/pull-full-excludes.txt");
     let mut pull_results_include = workspace.path("configs/hpc/rsync/pull-results-includes.txt");
-    let sync_profiles = load_lunarc_sync_profiles(&profiles_cfg)?;
-    let include_sync_profile = lunarc_sync_profile(&sync_profiles, &include_profile);
-    let exclude_sync_profile = lunarc_sync_profile(&sync_profiles, &exclude_profile);
+    let sync_profiles = load_benchmark_sync_profiles(&profiles_cfg)?;
+    let include_sync_profile = benchmark_sync_profile(&sync_profiles, &include_profile);
+    let exclude_sync_profile = benchmark_sync_profile(&sync_profiles, &exclude_profile);
     if let Some(rel) = exclude_sync_profile.and_then(|profile| profile.exclude_file.as_deref()) {
         pull_full_exclude = workspace.path(rel);
     }
@@ -5945,7 +5945,7 @@ fn hpc_lunarc_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
     }
     let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
     validate_benchmark_sync_roots(&benchmark_workspace)?;
-    let profiles_cfg = workspace.path("configs/hpc/lunarc_sync_profiles.toml");
+    let profiles_cfg = workspace.path("configs/hpc/benchmark_sync_profiles.toml");
     let mut exclude_file = workspace.path("configs/hpc/rsync/push-excludes.txt");
     if profiles_cfg.is_file() {
         if let Some(rel) = lunarc_profile_path(&profiles_cfg, &exclude_profile, "exclude_file")? {
@@ -8701,7 +8701,7 @@ fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWork
     })
 }
 
-fn load_lunarc_sync_profiles(path: &Path) -> Result<Vec<BenchmarkSyncProfile>> {
+fn load_benchmark_sync_profiles(path: &Path) -> Result<Vec<BenchmarkSyncProfile>> {
     if !path.is_file() {
         return Ok(Vec::new());
     }
@@ -8751,7 +8751,7 @@ fn load_lunarc_sync_profiles(path: &Path) -> Result<Vec<BenchmarkSyncProfile>> {
         .collect())
 }
 
-fn lunarc_sync_profile<'a>(
+fn benchmark_sync_profile<'a>(
     profiles: &'a [BenchmarkSyncProfile],
     name: &str,
 ) -> Option<&'a BenchmarkSyncProfile> {
@@ -8838,7 +8838,8 @@ fn default_pull_destination(
         ));
     }
     let timestamp = Utc::now().format("%Y%m%d-%H%M%S").to_string();
-    PathBuf::from(expand_home_placeholder(pull_base, home)).join(format!("lunarc-{timestamp}"))
+    PathBuf::from(expand_home_placeholder(pull_base, home))
+        .join(format!("benchmark-sync-{timestamp}"))
 }
 
 fn benchmark_remote_layout_candidates(
@@ -8996,15 +8997,15 @@ mod tests {
 
     use super::{
         benchmark_workspace_lookup, config_string, expand_toml_env_placeholders,
-        load_benchmark_workspace_paths, load_lunarc_sync_profiles, lunarc_sync_profile,
+        benchmark_sync_profile, load_benchmark_sync_profiles, load_benchmark_workspace_paths,
         BenchmarkWorkspacePaths,
     };
     use crate::runtime::workspace::Workspace;
 
     #[test]
-    fn load_lunarc_sync_profiles_reads_workspace_profile_fields() -> anyhow::Result<()> {
-        let temp = bijux_dna_infra::temp_dir("bijux-lunarc-sync-profiles")?;
-        let path = temp.path().join("lunarc_sync_profiles.toml");
+    fn load_benchmark_sync_profiles_reads_workspace_profile_fields() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-benchmark-sync-profiles")?;
+        let path = temp.path().join("benchmark_sync_profiles.toml");
         std::fs::write(
             &path,
             r#"
@@ -9018,8 +9019,8 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
 "#,
         )?;
 
-        let profiles = load_lunarc_sync_profiles(&path)?;
-        let profile = lunarc_sync_profile(&profiles, "pull-benchmark-publication")
+        let profiles = load_benchmark_sync_profiles(&path)?;
+        let profile = benchmark_sync_profile(&profiles, "pull-benchmark-publication")
             .context("missing sync profile")?;
 
         assert_eq!(
