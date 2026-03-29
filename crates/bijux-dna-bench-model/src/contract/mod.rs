@@ -17,7 +17,9 @@ use bijux_dna_domain_fastq::{
 use bijux_dna_stage_contract::has_executor;
 
 mod schemas;
+mod suite_graph;
 pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+use suite_graph::{declared_graph_nodes, validate_suite_dag};
 
 /// # Errors
 /// Returns an error if the suite spec violates required fields.
@@ -352,16 +354,6 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn declared_graph_nodes(
-    suite: &BenchmarkSuiteSpec,
-) -> std::collections::BTreeMap<String, BenchmarkGraphNode> {
-    suite
-        .graph_nodes()
-        .into_iter()
-        .map(|node| (node.node_id.clone(), node))
-        .collect()
-}
-
 fn validate_edge_ports(
     edge: &crate::model::BenchmarkStageEdge,
     declared_graph_nodes: &std::collections::BTreeMap<String, BenchmarkGraphNode>,
@@ -515,65 +507,6 @@ fn validate_stage_param_binding_keys<'a>(
         return Err(BenchError::InvalidPolicy(format!(
             "suite stage {stage_id} stage-scoped param binding {key} is not declared in the governed stage parameter contract"
         )));
-    }
-    Ok(())
-}
-
-fn validate_suite_dag(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
-    let mut incoming = std::collections::BTreeMap::new();
-    let mut outgoing = std::collections::BTreeMap::<String, Vec<String>>::new();
-    for node_id in declared_graph_nodes(suite).into_keys() {
-        incoming.entry(node_id).or_insert(0usize);
-    }
-    for stage in &suite.stages {
-        let node_id = stage
-            .stage_instance_id
-            .as_deref()
-            .unwrap_or(stage.stage.as_str())
-            .to_string();
-        for upstream in &stage.upstream_stage_instance_ids {
-            outgoing
-                .entry(upstream.clone())
-                .or_default()
-                .push(node_id.clone());
-            *incoming.entry(node_id.clone()).or_insert(0) += 1;
-        }
-    }
-    for edge in &suite.edges {
-        outgoing
-            .entry(edge.from.clone())
-            .or_default()
-            .push(edge.to.clone());
-        *incoming.entry(edge.to.clone()).or_insert(0) += 1;
-    }
-    let mut ready = incoming
-        .iter()
-        .filter_map(|(node, count)| {
-            if *count == 0 {
-                Some(node.clone())
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
-    let mut visited = 0usize;
-    while let Some(node) = ready.pop() {
-        visited += 1;
-        if let Some(children) = outgoing.get(&node) {
-            for child in children {
-                if let Some(count) = incoming.get_mut(child) {
-                    *count -= 1;
-                    if *count == 0 {
-                        ready.push(child.clone());
-                    }
-                }
-            }
-        }
-    }
-    if visited != incoming.len() {
-        return Err(BenchError::InvalidPolicy(
-            "suite graph must be acyclic".to_string(),
-        ));
     }
     Ok(())
 }
