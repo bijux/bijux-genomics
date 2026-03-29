@@ -2,7 +2,6 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_dna_core::prelude::{id_catalog, StepId};
 use bijux_dna_domain_bam::BamStage;
-use bijux_dna_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_dna_pipelines::PipelineProfile;
 use bijux_dna_stage_contract::default_edges_for_stages;
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
@@ -12,6 +11,7 @@ pub const PLANNER_VERSION: &str = "bijux-dna-planner-bam.v1";
 
 mod api;
 mod params;
+mod profile_catalog;
 mod report_stage;
 mod selection;
 mod stage_dispatch;
@@ -113,7 +113,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
 /// Returns an error if pipeline planning fails.
 #[allow(non_snake_case)]
 pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
-    let profile = bam_adna_shotgun_profile();
+    let profile = profile_catalog::adna_shotgun_profile();
     build_bam_plan(&profile, inputs)
 }
 
@@ -121,38 +121,19 @@ pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<E
 /// Returns an error if pipeline planning fails.
 #[allow(non_snake_case)]
 pub fn plan_bam_to_bam__adna_capture__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
-    let profile = bam_adna_capture_profile();
+    let profile = profile_catalog::adna_capture_profile();
     build_bam_plan(&profile, inputs)
 }
 
-fn stage_order_for_profile(profile: &PipelineProfile) -> Result<Vec<BamStage>> {
-    profile
-        .capabilities
-        .required_stages
-        .iter()
-        .map(|stage_id| BamStage::try_from(stage_id.as_str()))
-        .collect()
-}
-
 pub fn pipeline_id_catalog(profile_id: &str) -> Vec<String> {
-    let profile = match profile_id {
-        "bam-to-bam__default__v1" => bijux_dna_pipelines::bam::bam_default_profile(),
-        "bam-to-bam__adna_shotgun__v1" => bam_adna_shotgun_profile(),
-        "bam-to-bam__adna_capture__v1" => bam_adna_capture_profile(),
-        _ => return Vec::new(),
-    };
-    stage_order_for_profile(&profile)
-        .unwrap_or_default()
-        .iter()
-        .map(|stage| stage.as_str().to_string())
-        .collect()
+    profile_catalog::pipeline_id_catalog(profile_id)
 }
 
 fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
     let mut bam = inputs.bam.clone();
     let mut bam_index = inputs.bam_index.clone();
     let mut stages = Vec::new();
-    for stage in stage_order_for_profile(profile)? {
+    for stage in profile_catalog::ordered_stages(profile)? {
         let stage_id = stage.as_str();
         enforce_stage_status(stage_id, inputs.allow_planned)?;
         let tool = inputs
