@@ -1972,7 +1972,12 @@ fn audit_publication_docs(
                 supplemental_findings
                     .get(&contract.stage_id)
                     .cloned()
-                    .unwrap_or_default(),
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "publication audit missing supplemental findings for stage `{}`",
+                            contract.stage_id
+                        )
+                    })?,
                 results_by_stage.get(&contract.stage_id),
             )
         })
