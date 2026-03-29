@@ -5,12 +5,9 @@ use anyhow::{anyhow, bail, Result};
 use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_dna_core::ids::{StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{StageIO, ToolConstraints};
-use bijux_dna_db_ref::{
-    ref_service, resolve_species_context, validate_imputation_tool_compatibility,
-};
+use bijux_dna_db_ref::{ref_service, validate_imputation_tool_compatibility};
 use bijux_dna_domain_vcf::contracts::{
-    refuse_unsupported_regime_transition, DefaultPanelSelectionPolicy, PanelSelectionPolicy,
-    ReferencePanelGovernance, SpeciesContext,
+    refuse_unsupported_regime_transition, SpeciesContext,
 };
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use bijux_dna_stage_contract::{
@@ -29,6 +26,7 @@ use crate::stage_catalog::{
     phasing_backend_supports_gl_only_input, resolve_requested_stages, stage_command,
     stage_compat_tools, stage_inputs_for, stage_outputs_for,
 };
+use crate::reference_context::ResolvedPlanningContext;
 use crate::workspace_config::{load_registry_tools, load_required_tools};
 
 pub(crate) fn choose_tool(
@@ -69,40 +67,6 @@ pub(crate) fn choose_tool(
         default_tool(stage, resolved_coverage).to_string(),
         "coverage_regime_default".to_string(),
     ))
-}
-
-pub(crate) fn resolve_panel_lock(inputs: &VcfPipelineInputs) -> Result<Option<VcfPanelLock>> {
-    if inputs
-        .requested_stages
-        .as_ref()
-        .is_some_and(|stages| !stages.iter().any(|s| s == "vcf.prepare_reference_panel"))
-    {
-        return Ok(None);
-    }
-    let policy = DefaultPanelSelectionPolicy;
-    let governance = inputs
-        .panel_locks
-        .iter()
-        .map(|lock| ReferencePanelGovernance {
-            panel_id: lock.panel_id.clone(),
-            reference_build: lock.reference_build.clone(),
-            panel_checksum_sha256: lock.panel_checksum_sha256.clone(),
-            index_checksum_sha256: lock.index_checksum_sha256.clone(),
-            license_id: lock.license_id.clone(),
-            license_constraints: vec![],
-            ancestry_tags: vec![],
-            target_tags: vec![],
-        })
-        .collect::<Vec<_>>();
-
-    let selected = policy.select_panel(&governance, &inputs.panel_selection);
-    Ok(selected.map(|entry| VcfPanelLock {
-        panel_id: entry.panel_id.clone(),
-        reference_build: entry.reference_build.clone(),
-        panel_checksum_sha256: entry.panel_checksum_sha256.clone(),
-        index_checksum_sha256: entry.index_checksum_sha256.clone(),
-        license_id: entry.license_id.clone(),
-    }))
 }
 
 pub(crate) fn plan_region_chunks(
@@ -247,41 +211,15 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     let required_tools = load_required_tools()?;
     let registry_tools = load_registry_tools()?;
     crate::input_policy::validate(inputs)?;
-    let refs = ref_service();
-    let resolved_species = resolve_species_context(
-        &inputs.species_context.species_id,
-        &inputs.species_context.build_id,
-    )?;
-    let bundle = refs.resolve_reference_bundle(
-        &inputs.species_context.species_id,
-        &inputs.species_context.build_id,
-    )?;
-    let panel_catalog = refs.resolve_panel(
-        &inputs.species_context.species_id,
-        &inputs.species_context.build_id,
-        inputs.panel_id.as_deref(),
-    )?;
-    let map_catalog = refs.resolve_map(
-        &inputs.species_context.species_id,
-        &inputs.species_context.build_id,
-        inputs.map_id.as_deref(),
-    )?;
-    let resolved_coverage_profile = refs.resolve_coverage_profile(
-        &inputs.species_context.species_id,
-        &inputs.species_context.build_id,
-    )?;
-    let (resolved_coverage, _coverage_reason, _thresholds) = classify_coverage_regime(
-        inputs.coverage_regime,
-        inputs.mean_depth_x,
-        resolved_coverage_profile.as_deref(),
-    )?;
+    let ResolvedPlanningContext {
+        species: resolved_species,
+        bundle,
+        panel_catalog,
+        map_catalog,
+        resolved_coverage,
+        selected_panel,
+    } = crate::reference_context::resolve(inputs)?;
     let chunks = plan_region_chunks(&inputs.species_context, &inputs.chunking)?;
-    if resolved_species.context.contig_set_digest != bundle.contig_set_digest {
-        bail!(
-            "reference bundle drift detected: species context digest does not match bundle digest"
-        );
-    }
-    let selected_panel = resolve_panel_lock(inputs)?;
     let stages = resolve_requested_stages(&inputs.requested_stages, resolved_coverage)?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
