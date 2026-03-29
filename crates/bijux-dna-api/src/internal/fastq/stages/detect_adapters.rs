@@ -232,7 +232,7 @@ fn build_detect_record(
             .image
             .digest
             .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+            .unwrap_or_default(),
         bench_inputs.runner,
         platform,
         input_hash.to_string(),

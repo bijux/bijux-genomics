@@ -380,7 +380,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
             .image
             .digest
             .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+            .unwrap_or_default(),
         bench_inputs.runner,
         platform,
         input_hash.to_string(),
