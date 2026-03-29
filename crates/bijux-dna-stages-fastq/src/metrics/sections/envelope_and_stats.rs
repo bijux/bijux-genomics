@@ -1,8 +1,11 @@
+use super::stage_metrics::stage_metrics_for_plan;
+use super::*;
+
 /// Build a fully-formed metrics envelope for a stage plan.
 ///
 /// # Errors
 /// Returns an error if metrics cannot be computed or hashed.
-pub fn build_metrics_envelope(
+pub(crate) fn build_metrics_envelope(
     plan: &StagePlanV1,
     input_paths: &[PathBuf],
     output_paths: &[PathBuf],
@@ -49,7 +52,7 @@ pub fn build_metrics_envelope(
     })
 }
 
-pub fn retention_conditions_from_effective(
+pub(crate) fn retention_conditions_from_effective(
     stage_id: &bijux_dna_core::ids::StageId,
     effective_params: &serde_json::Value,
     raw_params: &serde_json::Value,
@@ -99,7 +102,7 @@ pub fn retention_conditions_from_effective(
     serde_json::Value::Object(out)
 }
 
-pub fn bank_refs_from_params(params: &serde_json::Value) -> serde_json::Value {
+pub(super) fn bank_refs_from_params(params: &serde_json::Value) -> serde_json::Value {
     let mut banks = serde_json::Map::new();
     for (key, field) in [
         ("adapter", "adapter_bank"),
@@ -119,7 +122,7 @@ pub fn bank_refs_from_params(params: &serde_json::Value) -> serde_json::Value {
     serde_json::Value::Object(banks)
 }
 
-fn filter_removals_for_plan(
+pub(super) fn filter_removals_for_plan(
     tool_id: &str,
     out_dir: &Path,
     params: &serde_json::Value,
@@ -135,7 +138,7 @@ fn filter_removals_for_plan(
     }
 }
 
-pub fn stats_or_zero(
+pub(super) fn stats_or_zero(
     path: Option<&Path>,
 ) -> Result<bijux_dna_core::prelude::measure::SeqkitMetrics> {
     if let Some(path) = path {
@@ -167,7 +170,7 @@ pub fn stats_or_zero(
     })
 }
 
-fn stats_for_paths(
+pub(crate) fn stats_for_paths(
     paths: &[Option<&Path>],
 ) -> Result<Vec<bijux_dna_core::prelude::measure::SeqkitMetrics>> {
     let tasks: Vec<(usize, Option<PathBuf>)> = paths
@@ -230,7 +233,7 @@ fn finalize_observer_results(
 
 type LengthGcDistributions = (Vec<(u64, u64)>, Vec<(u8, u64)>);
 
-fn distributions_for_path(path: Option<&Path>) -> Result<LengthGcDistributions> {
+pub(super) fn distributions_for_path(path: Option<&Path>) -> Result<LengthGcDistributions> {
     let Some(path) = path else {
         return Ok((Vec::new(), Vec::new()));
     };
@@ -283,7 +286,7 @@ fn distributions_for_path(path: Option<&Path>) -> Result<LengthGcDistributions> 
     ))
 }
 
-fn pair_counts_from_paths(
+pub(crate) fn pair_counts_from_paths(
     inputs: &[PathBuf],
     outputs: &[PathBuf],
 ) -> Result<(Option<u64>, Option<u64>)> {
@@ -304,7 +307,7 @@ fn pair_counts_from_paths(
     Ok((pairs_in, pairs_out))
 }
 
-fn zero_seqkit_metrics() -> bijux_dna_core::prelude::measure::SeqkitMetrics {
+pub(crate) fn zero_seqkit_metrics() -> bijux_dna_core::prelude::measure::SeqkitMetrics {
     bijux_dna_core::prelude::measure::SeqkitMetrics {
         reads: 0,
         bases: 0,
@@ -320,7 +323,7 @@ fn observer_jobs() -> usize {
         .map_or(2, |value| value.clamp(1, 32))
 }
 
-fn f64_from_u64(value: u64) -> f64 {
+pub(crate) fn f64_from_u64(value: u64) -> f64 {
     value as f64
 }
 
@@ -387,7 +390,7 @@ fn fastq_stats(path: &Path) -> Result<bijux_dna_core::prelude::measure::SeqkitMe
     })
 }
 
-fn path_from_params(params: &serde_json::Value, name: &str) -> Option<PathBuf> {
+pub(super) fn path_from_params(params: &serde_json::Value, name: &str) -> Option<PathBuf> {
     params
         .get(name)
         .and_then(|value| value.as_str())

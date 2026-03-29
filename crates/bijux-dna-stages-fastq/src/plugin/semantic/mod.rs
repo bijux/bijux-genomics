@@ -7,6 +7,9 @@ mod quality;
 mod support;
 mod taxonomy;
 
+#[cfg(test)]
+pub(crate) use self::support::validate_semantic_metrics;
+
 pub(super) fn observed_semantic_metrics(
     plan: &StagePlanV1,
     artifacts: &[ArtifactRef],
