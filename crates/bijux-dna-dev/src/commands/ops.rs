@@ -9058,7 +9058,7 @@ mod tests {
 [[profiles]]
 name = "pull-benchmark-publication"
 include_file = "configs/hpc/rsync/pull-results-includes.txt"
-workspace_scope = "corpus-01-fastq-publication"
+workspace_scope = "benchmark-fastq-publication"
 pull_destination = "local.results_root"
 remote_roots = ["remote.results_root", "remote.extra_data_root"]
 data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"]
@@ -9071,7 +9071,7 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
 
         assert_eq!(
             profile.workspace_scope.as_deref(),
-            Some("corpus-01-fastq-publication")
+            Some("benchmark-fastq-publication")
         );
         assert_eq!(
             profile.pull_destination.as_deref(),
@@ -9102,14 +9102,14 @@ results_root = "/tmp/results"
 cache_mirror_root = "/tmp/results/.cache"
 
 [workspace.remote]
-ssh_host = "lunarc"
-repo_root = "/srv/repo"
-cache_root = "/srv/.cache"
-corpus_root = "/srv/.cache/corpus_01"
-results_root = "/srv/.cache/results"
-extra_data_root = "/srv/.cache/extra-data"
-reference_root = "/srv/.cache/reference"
-containers_root = "/srv/.cache/containers"
+ssh_host = "cluster"
+repo_root = "/opt/benchmark/repo"
+cache_root = "/opt/benchmark/.cache"
+corpus_root = "/opt/benchmark/.cache/benchmark_corpus"
+results_root = "/opt/benchmark/.cache/results"
+extra_data_root = "/opt/benchmark/.cache/extra-data"
+reference_root = "/opt/benchmark/.cache/reference"
+containers_root = "/opt/benchmark/.cache/containers"
 
 [workspace.sync.defaults]
 pull_base = "/tmp/pulls"
@@ -9129,8 +9129,11 @@ data_manifest_glob = ""
         let paths = load_benchmark_workspace_paths(&workspace)?;
 
         assert_eq!(paths.local_results_root.as_deref(), Some("/tmp/results"));
-        assert_eq!(paths.remote_repo_root.as_deref(), Some("/srv/repo"));
-        assert_eq!(paths.remote_results_root.as_deref(), Some("/srv/.cache/results"));
+        assert_eq!(paths.remote_repo_root.as_deref(), Some("/opt/benchmark/repo"));
+        assert_eq!(
+            paths.remote_results_root.as_deref(),
+            Some("/opt/benchmark/.cache/results")
+        );
         assert_eq!(paths.sync_default_pull_base.as_deref(), Some("/tmp/pulls"));
         Ok(())
     }
@@ -9177,7 +9180,7 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             remote_ssh_host: None,
             remote_repo_root: Some("/remote/repo".to_string()),
             remote_cache_root: Some("/remote/.cache".to_string()),
-            remote_corpus_root: Some("/remote/.cache/corpus_01".to_string()),
+            remote_corpus_root: Some("/remote/.cache/benchmark_corpus".to_string()),
             remote_results_root: Some("/remote/.cache/results".to_string()),
             remote_extra_data_root: Some("/remote/.cache/extra-data".to_string()),
             remote_reference_root: Some("/remote/.cache/reference".to_string()),
@@ -9276,7 +9279,7 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             remote_ssh_host: None,
             remote_repo_root: Some("/remote/repo".to_string()),
             remote_cache_root: Some("/remote/.cache".to_string()),
-            remote_corpus_root: Some("/remote/.cache/corpus_01".to_string()),
+            remote_corpus_root: Some("/remote/.cache/benchmark_corpus".to_string()),
             remote_results_root: Some("/remote/.cache/results".to_string()),
             remote_extra_data_root: Some("/remote/.cache/extra-data".to_string()),
             remote_reference_root: Some("/remote/.cache/reference".to_string()),
@@ -9292,7 +9295,7 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             label == "non-cache-sibling:results" && path == "/remote/results"
         }));
         assert!(candidates.iter().any(|(label, path)| {
-            label == "non-cache-sibling:corpus_01" && path == "/remote/corpus_01"
+            label == "non-cache-sibling:benchmark_corpus" && path == "/remote/benchmark_corpus"
         }));
     }
 
@@ -9319,7 +9322,7 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             "",
             Some("/tmp/results-archive"),
             "/tmp/fallback",
-            "/Users/bijan",
+            "/home/operator",
             false,
         );
 
@@ -9332,10 +9335,10 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             "${HOME}/custom-pull",
             Some("/tmp/results-archive"),
             "/tmp/fallback",
-            "/Users/bijan",
+            "/home/operator",
             true,
         );
 
-        assert_eq!(destination, PathBuf::from("/Users/bijan/custom-pull"));
+        assert_eq!(destination, PathBuf::from("/home/operator/custom-pull"));
     }
 }
