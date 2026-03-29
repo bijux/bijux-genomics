@@ -189,16 +189,18 @@ pub fn production_readiness_status(cwd: &Path, suite_id: &str) -> Result<serde_j
                     .filter_map(|row| row.get("stage").and_then(serde_json::Value::as_str))
                     .map(str::to_string)
                     .collect::<BTreeSet<_>>()
-            })
-            .unwrap_or_default();
-        let missing = required_stages
-            .difference(&seen)
-            .cloned()
-            .collect::<Vec<_>>();
+            });
+        let missing = seen
+            .as_ref()
+            .map(|seen| required_stages.difference(seen).cloned().collect::<Vec<_>>());
         checks.push(serde_json::json!({
             "name": "all_required_stages_ranked",
-            "ok": missing.is_empty(),
-            "detail": if missing.is_empty() { "ok".to_string() } else { format!("missing: {}", missing.join(",")) },
+            "ok": missing.as_ref().is_some_and(Vec::is_empty),
+            "detail": match missing {
+                Some(missing) if missing.is_empty() => "ok".to_string(),
+                Some(missing) => format!("missing: {}", missing.join(",")),
+                None => "performance_ranking missing or not an array".to_string(),
+            },
         }));
 
         let sufficiency_ok = report
