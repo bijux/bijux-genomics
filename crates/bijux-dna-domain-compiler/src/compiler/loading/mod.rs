@@ -1,7 +1,7 @@
 mod image_registries;
 mod load_and_collect;
-mod registry_emitters;
 mod stage_loading;
+mod stage_registries;
 mod tool_loading;
 mod tool_registries;
 
@@ -74,7 +74,7 @@ pub(super) fn build_stages_toml(
     domain_dir: &Path,
     source_commit: &str,
 ) -> String {
-    registry_emitters::build_stages_toml(
+    stage_registries::build_stages_toml(
         tools,
         stage_to_tools,
         stage_statuses,
