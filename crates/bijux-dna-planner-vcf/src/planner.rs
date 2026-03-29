@@ -1,111 +1,17 @@
 use std::collections::BTreeSet;
-use std::path::Path;
 
 use anyhow::{anyhow, bail, Result};
-use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
-use bijux_dna_core::ids::{StageId, StageVersion, StepId, ToolId};
-use bijux_dna_core::prelude::{StageIO, ToolConstraints};
-use bijux_dna_db_ref::ref_service;
+use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_domain_vcf::contracts::refuse_unsupported_regime_transition;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
-use bijux_dna_stage_contract::{
-    execution_step_from_stage_plan, PlanDecisionReason, PlanReasonKind, StagePlanV1,
-};
+use bijux_dna_stage_contract::StagePlanV1;
 
-use crate::coverage::classify_coverage_regime;
-use crate::api::{ChunkPlanSettings, VcfPanelLock, VcfPipelineInputs};
-use crate::chunk_plan::{plan_region_chunks, RegionChunkPlan};
-use crate::models::short_species_context_digest;
-use crate::params::{
-    apply_stage_param_overrides, attach_reference_provenance, stage_params,
-    validate_generated_stage_params,
-};
-use crate::stage_io::{stage_command, stage_inputs_for, stage_outputs_for};
+use crate::api::VcfPipelineInputs;
+use crate::chunk_plan::plan_region_chunks;
 use crate::stage_sequence::resolve_requested_stages;
-use crate::tool_catalog::image_for_tool;
 use crate::tool_selection::{choose_tool, validate_selected_tool};
 use crate::reference_context::ResolvedPlanningContext;
 use crate::workspace_config::{load_registry_tools, load_required_tools};
-
-fn stage_plan(
-    stage: VcfDomainStage,
-    input_vcf: &Path,
-    out_dir: &Path,
-    tool: &str,
-    coverage: CoverageRegime,
-    selected_panel: Option<&VcfPanelLock>,
-    map: &bijux_dna_db_ref::MapCatalogEntry,
-    bundle: &bijux_dna_db_ref::ReferenceBundle,
-    species_id: &str,
-    build_id: &str,
-    stage_param_overrides: &std::collections::BTreeMap<String, serde_json::Value>,
-    chunking: &ChunkPlanSettings,
-    chunks: &[RegionChunkPlan],
-    selection_rule: &str,
-) -> Result<StagePlanV1> {
-    let stage_id = stage.as_str().to_string();
-    let params = attach_reference_provenance(
-        apply_stage_param_overrides(
-            &stage_id,
-            stage_params(stage, tool, coverage, selected_panel, map, chunking, chunks),
-            stage_param_overrides.get(&stage_id),
-        )
-        .map_err(|err| anyhow!("stage param override validation failed for {stage_id}: {err}"))?,
-        species_id,
-        build_id,
-        bundle,
-    );
-    validate_generated_stage_params(&stage_id, &params)?;
-    Ok(StagePlanV1 {
-        stage_id: StageId::new(stage_id),
-        stage_instance_id: None,
-        stage_version: StageVersion(2),
-        tool_id: ToolId::new(tool.to_string()),
-        tool_version: "1.0".to_string(),
-        image: image_for_tool(tool),
-        command: stage_command(stage, tool),
-        resources: ToolConstraints {
-            runtime: "docker".to_string(),
-            mem_gb: if matches!(stage, VcfDomainStage::Impute | VcfDomainStage::Imputation) {
-                16
-            } else {
-                4
-            },
-            tmp_gb: 8,
-            threads: if matches!(
-                stage,
-                VcfDomainStage::Impute | VcfDomainStage::Imputation | VcfDomainStage::Phasing
-            ) {
-                8
-            } else {
-                2
-            },
-        },
-        io: StageIO {
-            inputs: stage_inputs_for(stage, input_vcf, out_dir),
-            outputs: stage_outputs_for(stage, out_dir),
-        },
-        out_dir: out_dir.join(stage.as_str().replace('.', "_")),
-        params: params.clone(),
-        effective_params: params,
-        aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason {
-            kind: PlanReasonKind::InputAssessed,
-            summary: format!(
-                "coverage regime {:?} selected tool {} for {} ({})",
-                coverage,
-                tool,
-                stage.as_str(),
-                selection_rule
-            ),
-            details: serde_json::json!({
-                "coverage_regime": coverage,
-                "stage_kind": stage.taxonomy().kind,
-                "selection_rule": selection_rule,
-            }),
-        },
-    })
-}
 
 /// # Errors
 /// Returns an error when stage selection is invalid for downstream execution.
@@ -174,7 +80,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             );
         }
         validate_selected_tool(stage, &tool, resolved_coverage, &panel_catalog, &map_catalog)?;
-        let plan = stage_plan(
+        let plan = crate::stage_plan::build_stage_plan(
             stage,
             &current_vcf,
             &inputs.out_dir,
@@ -205,46 +111,8 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
 /// Returns an error when graph materialization fails.
 pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
     let plans = plan_vcf_stage_plans(inputs)?;
-    let resolved_coverage_profile = ref_service().resolve_coverage_profile(
-        &inputs.species_context.species_id,
-        &inputs.species_context.build_id,
-    )?;
-    let (resolved_coverage, _coverage_reason, _thresholds) = classify_coverage_regime(
-        inputs.coverage_regime,
-        inputs.mean_depth_x,
-        resolved_coverage_profile.as_deref(),
-    )?;
-    let steps = plans
-        .iter()
-        .map(execution_step_from_stage_plan)
-        .collect::<Vec<_>>();
-    let edges = plans
-        .windows(2)
-        .map(|pair| {
-            ExecutionEdge::new(
-                StepId::new(pair[0].stage_id.to_string()),
-                StepId::new(pair[1].stage_id.to_string()),
-            )
-        })
-        .collect::<Vec<_>>();
-    let flavor_base = match resolved_coverage {
-        CoverageRegime::LowCovGl => "downstream_lowcov_gl",
-        CoverageRegime::Diploid => "downstream_diploid",
-        CoverageRegime::Pseudohaploid => "downstream_pseudohaploid",
-    };
-    let species_digest = short_species_context_digest(
-        &inputs.species_context.species_id,
-        &inputs.species_context.build_id,
-        &inputs.species_context.contig_set_digest,
-    );
-    let flavor = format!("{flavor_base}_sctx_{species_digest}");
-    Ok(ExecutionGraph::new(
-        format!("vcf-to-vcf__{flavor}__v2"),
-        crate::PLANNER_VERSION,
-        inputs.policy,
-        steps,
-        edges,
-    )?)
+    let resolved_coverage = crate::reference_context::resolve(inputs)?.resolved_coverage;
+    crate::execution_graph::build_vcf_pipeline_graph(inputs, resolved_coverage, &plans)
 }
 
 /// Backward-compatible entrypoint retained for older callers.
