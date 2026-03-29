@@ -65,6 +65,14 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
 
     let corpus_rows = config.corpora.keys().cloned().collect::<Vec<_>>();
     for corpus_id in &corpus_rows {
+        require_value(
+            &mut errors,
+            &format!("corpora.{corpus_id}.spec_path"),
+            config
+                .corpora
+                .get(corpus_id)
+                .and_then(|row| row.spec_path.as_deref()),
+        );
         let publication_key = benchmark_publication_corpus_key(corpus_id);
         if config
             .publication
@@ -255,6 +263,47 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         assert!(error
             .to_string()
             .contains("publication.corpus_01.contracts is empty for declared corpus corpus-01"));
+    }
+
+    #[test]
+    fn validate_benchmark_config_requires_declared_corpus_spec_path() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let config_dir = temp.path().join("configs/bench");
+        std::fs::create_dir_all(&config_dir).expect("config dir");
+        std::fs::write(
+            config_dir.join("benchmark.toml"),
+            r#"[workspace.local]
+results_root = "/bench/local/results"
+
+[workspace.remote]
+ssh_host = "cluster"
+repo_root = "/bench/remote/repo"
+corpus_root = "/bench/remote/cache/benchmark_corpus"
+results_root = "/bench/remote/cache/results"
+
+[corpora.corpus-01]
+
+[[publication.corpus_01.contracts]]
+stage_id = "fastq.validate_reads"
+scenario_id = "validation_fairness"
+sample_scope = "full"
+tools = ["fastqvalidator"]
+"#,
+        )
+        .expect("write config");
+
+        let error = validate_benchmark_config(
+            temp.path(),
+            &crate::commands::cli::BenchConfigValidateArgs {
+                config: None,
+                check_paths: false,
+            },
+        )
+        .expect_err("validator should reject missing corpus spec path");
+
+        assert!(error
+            .to_string()
+            .contains("missing required benchmark config key: corpora.corpus-01.spec_path"));
     }
 
     #[test]
