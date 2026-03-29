@@ -3,6 +3,7 @@
 mod invariants;
 mod profile_invariants;
 mod profiles;
+mod support;
 
 pub use invariants::{adna_invariants, DamageExpectation, DamageExpectationModel};
 pub use profile_invariants::{
