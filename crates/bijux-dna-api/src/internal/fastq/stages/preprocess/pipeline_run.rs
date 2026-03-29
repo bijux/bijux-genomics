@@ -717,7 +717,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let run_id = stage_runs
             .first()
             .map(|entry| entry.result.run_id.clone())
-            .unwrap_or_else(|| "not_recorded".to_string());
+            .ok_or_else(|| anyhow!("preprocess telemetry requires at least one recorded stage run"))?;
         let telemetry_path = run_artifacts_dir_for_out(&out_dir)
             .join("telemetry")
             .join("events.jsonl");
