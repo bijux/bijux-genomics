@@ -1,14 +1,16 @@
-use std::collections::BTreeMap;
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{anyhow, bail, Result};
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
-use serde::Deserialize;
 use std::sync::OnceLock;
 
 mod catalog;
+mod config;
 mod models;
+
+use config::{
+    AliasesConfig, BundleEntry, BundlesConfig, CoverageRegimesConfig, GeneticMapBankConfig,
+    MapLocksConfig, MapsConfig, OrganellarPolicyConfig, PanelLocksConfig, PanelsConfig,
+    ReferenceBankConfig, ReferenceSetConfig, SpeciesAuthorityConfig, load_toml, workspace_root,
+};
 
 pub use catalog::{
     CatalogCompatibility, CatalogFileEntry, MapCatalogEntry, MapCompatibility, MapLockEntry,
@@ -19,137 +21,6 @@ pub use models::{
     ParRegion, ReferenceBankEntry, ReferenceBundle, ReferenceProvenance, ReferenceSet,
     ResolvedSpeciesContext, SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures,
 };
-
-#[derive(Debug, Deserialize)]
-struct BundlesConfig {
-    #[serde(default)]
-    bundle: Vec<BundleEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-struct BundleEntry {
-    bundle_id: String,
-    species_id: String,
-    build_id: String,
-    fasta: String,
-    fai: String,
-    dict: String,
-    contig_set_digest: String,
-    #[serde(default)]
-    mask_bed: Option<String>,
-    #[serde(default)]
-    regions_bed: Option<String>,
-    source_lock_sha256: String,
-    bundle_lock_sha256: String,
-    normalization_policy: String,
-    #[serde(default)]
-    remap: BTreeMap<String, String>,
-    sex_system: String,
-    par_policy: String,
-    #[serde(default)]
-    default_coverage_regime: Option<String>,
-    #[serde(default)]
-    supported_features: SupportedFeatureEntry,
-    contigs: Vec<ContigEntry>,
-}
-
-#[derive(Debug, Default, Deserialize)]
-struct SupportedFeatureEntry {
-    #[serde(default)]
-    sex_chr: bool,
-    #[serde(default)]
-    imputation: bool,
-}
-
-#[derive(Debug, Deserialize)]
-struct ContigEntry {
-    name: String,
-    length_bp: u64,
-}
-
-#[derive(Debug, Deserialize)]
-struct AliasesConfig {
-    #[serde(default)]
-    aliases: BTreeMap<String, String>,
-    #[serde(default)]
-    default_builds: BTreeMap<String, String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CoverageRegimesConfig {
-    #[serde(default)]
-    species_profile: BTreeMap<String, String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct SpeciesAuthorityConfig {
-    #[serde(default)]
-    species: Vec<SpeciesAuthorityEntry>,
-    #[serde(default)]
-    contig_map: Vec<ContigMap>,
-    #[serde(default)]
-    sex_rule: Vec<SexChromosomeRule>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReferenceBankConfig {
-    #[serde(default)]
-    reference: Vec<ReferenceBankEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-struct GeneticMapBankConfig {
-    #[serde(default)]
-    map: Vec<GeneticMapBankEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-struct OrganellarPolicyConfig {
-    #[serde(default)]
-    policy: Vec<OrganellarPolicy>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReferenceSetConfig {
-    #[serde(default)]
-    set: Vec<ReferenceSet>,
-}
-
-#[derive(Debug, Deserialize)]
-struct PanelsConfig {
-    #[serde(default)]
-    panel: Vec<PanelCatalogEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-struct MapsConfig {
-    #[serde(default)]
-    map: Vec<MapCatalogEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-struct PanelLocksConfig {
-    #[serde(default)]
-    locks: BTreeMap<String, PanelLockEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-struct MapLocksConfig {
-    #[serde(default)]
-    locks: BTreeMap<String, MapLockEntry>,
-}
-
-fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map_or_else(|| PathBuf::from("."), Path::to_path_buf)
-}
-
-fn load_toml<T: for<'a> Deserialize<'a>>(path: &Path) -> Result<T> {
-    let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str::<T>(&raw).with_context(|| format!("parse {}", path.display()))
-}
 
 pub trait RefService: Send + Sync {
     /// # Errors
