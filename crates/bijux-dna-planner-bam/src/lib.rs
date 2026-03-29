@@ -14,6 +14,7 @@ mod api;
 mod params;
 mod report_stage;
 mod selection;
+mod stage_dispatch;
 mod stages;
 pub mod tool_adapters;
 
@@ -64,98 +65,15 @@ impl BamPlanner {
 pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
     let stage = bijux_dna_domain_bam::BamStage::try_from(request.stage_id)?;
     let mut plan = match stage {
-        bijux_dna_domain_bam::BamStage::Align => {
-            let r1 = request.r1.ok_or_else(|| anyhow!("align requires r1"))?;
-            let reference = request
-                .reference
-                .ok_or_else(|| anyhow!("align requires reference"))?;
-            let sample_id = request
-                .sample_id
-                .ok_or_else(|| anyhow!("align requires sample_id"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Align(params) = params else {
-                return Err(anyhow!("align params mismatch"));
-            };
-            tool_adapters::stages_pre::align::plan(
-                request.tool,
-                r1,
-                request.r2,
-                reference,
-                sample_id,
-                &params,
-                request.out_dir,
-            )
-        }
-        bijux_dna_domain_bam::BamStage::Validate => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("validate requires bam"))?;
-            tool_adapters::stages_pre::validate::plan(
-                request.tool,
-                bam,
-                request.bam_index,
-                request.reference,
-                request.out_dir,
-            )
-        }
-        bijux_dna_domain_bam::BamStage::QcPre => {
-            let bam = request.bam.ok_or_else(|| anyhow!("qc_pre requires bam"))?;
-            tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)
-        }
-        bijux_dna_domain_bam::BamStage::MappingSummary => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("mapping_summary requires bam"))?;
-            tool_adapters::stages_pre::mapping_summary::plan(request.tool, bam, request.out_dir)
-        }
-        bijux_dna_domain_bam::BamStage::Filter => {
-            let bam = request.bam.ok_or_else(|| anyhow!("filter requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Filter(params) = params else {
-                return Err(anyhow!("filter params mismatch"));
-            };
-            let mut plan = tool_adapters::stages_pre::filter::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
-            Ok(plan)
-        }
-        bijux_dna_domain_bam::BamStage::MapqFilter => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("mapq_filter requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::MapqFilter(params) = params
-            else {
-                return Err(anyhow!("mapq_filter params mismatch"));
-            };
-            let mut mapq_params = params;
-            mapq_params.min_length = 0;
-            tool_adapters::stages_pre::mapq_filter::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &mapq_params,
-            )
-        }
-        bijux_dna_domain_bam::BamStage::LengthFilter => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("length_filter requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::LengthFilter(params) = params
-            else {
-                return Err(anyhow!("length_filter params mismatch"));
-            };
-            tool_adapters::stages_pre::length_filter::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )
+        bijux_dna_domain_bam::BamStage::Align
+        | bijux_dna_domain_bam::BamStage::Validate
+        | bijux_dna_domain_bam::BamStage::QcPre
+        | bijux_dna_domain_bam::BamStage::MappingSummary
+        | bijux_dna_domain_bam::BamStage::Filter
+        | bijux_dna_domain_bam::BamStage::MapqFilter
+        | bijux_dna_domain_bam::BamStage::LengthFilter
+        | bijux_dna_domain_bam::BamStage::OverlapCorrection => {
+            stage_dispatch::pre::plan(stage, &request)
         }
         bijux_dna_domain_bam::BamStage::Markdup => {
             let bam = request.bam.ok_or_else(|| anyhow!("markdup requires bam"))?;
@@ -261,25 +179,6 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 return Err(anyhow!("endogenous_content params mismatch"));
             };
             let mut plan = tool_adapters::stages_post::coverage::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
-            Ok(plan)
-        }
-        bijux_dna_domain_bam::BamStage::OverlapCorrection => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("overlap_correction requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::OverlapCorrection(params) =
-                params
-            else {
-                return Err(anyhow!("overlap_correction params mismatch"));
-            };
-            let mut plan = tool_adapters::stages_pre::overlap_correction::plan(
                 request.tool,
                 bam,
                 request.out_dir,
