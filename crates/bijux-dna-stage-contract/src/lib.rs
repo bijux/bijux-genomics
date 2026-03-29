@@ -3,6 +3,7 @@ mod execution_step;
 mod execution_plan_support;
 mod execution_plan_validation;
 pub mod executor_registry;
+mod executor_registry_catalog;
 mod plan_edge;
 pub mod plan_run;
 mod planner_contract;
