@@ -62,13 +62,7 @@ pub(super) fn maybe_emit_reference_manifest(
     }
 
     let reference_provenance = request.plan.params.get("reference_provenance").cloned();
-    let workspace_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(std::path::Path::parent)
-        .map_or_else(
-            || std::path::PathBuf::from("."),
-            std::path::Path::to_path_buf,
-        );
+    let workspace_root = crate::support::repo_root::resolve_repo_root()?;
     let lock_json = workspace_root.join("configs/runtime/references/locks/lock.json");
     let lock_sig = workspace_root.join("configs/runtime/references/locks/lock.json.sha256");
     let lock_json_sha256 = if lock_json.exists() {

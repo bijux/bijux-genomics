@@ -5,7 +5,7 @@ use crate::explain::{ExplainExclusion, ExplainPlan, ExplainSelectionNote};
 use anyhow::{Context, Result};
 
 fn read_domain_snapshot_hash() -> Option<String> {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let root = crate::support::repo_root::resolve_repo_root().ok()?;
     let registry = root.join("configs/ci/registry/tool_registry.toml");
     let raw = std::fs::read_to_string(registry).ok()?;
     for line in raw.lines().take(8) {
