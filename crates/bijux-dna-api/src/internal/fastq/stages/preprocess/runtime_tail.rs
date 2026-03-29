@@ -9,8 +9,8 @@ fn write_stage_resume_contract(
         let key = path
             .file_name()
             .and_then(|x| x.to_str())
-            .unwrap_or("unknown")
-            .to_string();
+            .map(std::string::ToString::to_string)
+            .unwrap_or_else(|| path.display().to_string());
         let value = if path.exists() {
             bijux_dna_infra::hash_file_sha256(path).ok().map_or(
                 serde_json::Value::Null,
@@ -453,12 +453,11 @@ fn write_taxonomy_db_drift_report(
     } else {
         serde_json::json!({})
     };
-    let current_hash =
-        bijux_dna_core::prelude::params_hash(&current).unwrap_or_else(|_| "unknown".to_string());
+    let current_hash = bijux_dna_core::prelude::params_hash(&current).unwrap_or_default();
     let previous_hash = previous
         .get("current_hash")
         .and_then(serde_json::Value::as_str)
-        .unwrap_or("unknown")
+        .unwrap_or("")
         .to_string();
     let drift_detected = lock_path.exists() && current_hash != previous_hash;
     let report = serde_json::json!({
