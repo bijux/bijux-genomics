@@ -198,8 +198,7 @@ fn write_policy_snapshot(artifacts_dir: &Path) -> Result<()> {
     let commit_hash = bijux_dna_api::v1::api::env::run_shell_capture("git rev-parse HEAD")
         .ok()
         .map(|raw| raw.trim().to_string())
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| "unknown".to_string());
+        .filter(|value| !value.is_empty());
     let checks: serde_json::Value = std::env::var("BIJUX_POLICY_CLEAN_REPORT_JSON")
         .ok()
         .and_then(|raw| serde_json::from_str(&raw).ok())
