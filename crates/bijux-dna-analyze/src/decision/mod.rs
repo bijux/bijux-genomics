@@ -8,6 +8,5 @@ pub mod compare;
 pub mod effect;
 pub mod score;
 mod trace;
-mod score_helpers;
 
 pub use trace::{DecisionMetricTrace, DecisionTrace};
