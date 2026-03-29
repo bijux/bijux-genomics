@@ -1,12 +1,12 @@
 use std::path::{Path, PathBuf};
 
+#[path = "../../support.rs"]
+mod support;
+
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|path| path.parent())
-        .map_or_else(|| panic!("workspace root missing"), Path::to_path_buf)
+    support::repo_root().unwrap_or_else(|err| panic!("workspace root missing: {err}"))
 }
 
 fn is_allowed_command_path(path: &Path) -> bool {
