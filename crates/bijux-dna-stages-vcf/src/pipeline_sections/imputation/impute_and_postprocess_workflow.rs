@@ -28,8 +28,9 @@ fn parse_acceptance_stage_keys(raw: &str, stage_id: &str) -> Vec<String> {
 }
 
 fn load_downstream_acceptance_for_stage(stage_id: &str) -> Vec<String> {
-    let path = workspace_root().join("configs/vcf/downstream_acceptance.toml");
-    let raw = std::fs::read_to_string(path).unwrap_or_default();
+    let raw = workspace_root()
+        .and_then(|root| std::fs::read_to_string(root.join("configs/vcf/downstream_acceptance.toml")).ok())
+        .unwrap_or_default();
     parse_acceptance_stage_keys(&raw, stage_id)
 }
 
