@@ -396,7 +396,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             .template
             .first()
             .map(String::as_str)
-            .unwrap_or_default();
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| anyhow!("stage `{stage_id}` is missing a declared command entrypoint"))?;
         enforce_stage_applicability(planned, args, contaminant_bank.as_ref())?;
         enforce_fastq_backend_allowlist(&stage_id, tool_id)?;
         if !required_tools.contains(tool_id) {
@@ -716,7 +717,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let run_id = stage_runs
             .first()
             .map(|entry| entry.result.run_id.clone())
-            .unwrap_or_default();
+            .unwrap_or_else(|| "not_recorded".to_string());
         let telemetry_path = run_artifacts_dir_for_out(&out_dir)
             .join("telemetry")
             .join("events.jsonl");
