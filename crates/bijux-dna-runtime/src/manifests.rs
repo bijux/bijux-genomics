@@ -73,6 +73,14 @@ fn load_yaml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
+fn declared_file_name(path: &Path) -> Result<&str> {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .ok_or_else(|| anyhow!("path has no declared file name: {}", path.display()))
+}
+
 fn to_cardinality(raw: &str) -> Cardinality {
     if raw.eq_ignore_ascii_case("one") {
         Cardinality::One
@@ -114,10 +122,7 @@ fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                 if path.extension().and_then(|e| e.to_str()) != Some("yaml") {
                     continue;
                 }
-                let name = path
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or_default();
+                let name = declared_file_name(&path)?;
                 if name.starts_with('_') {
                     continue;
                 }
@@ -171,10 +176,7 @@ fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                 if path.extension().and_then(|e| e.to_str()) != Some("yaml") {
                     continue;
                 }
-                let name = path
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or_default();
+                let name = declared_file_name(&path)?;
                 if name.starts_with('_') {
                     continue;
                 }
@@ -416,8 +418,13 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
         .cloned()
         .unwrap_or_default()
     {
-        let Some(stage_id_raw) = stage.get("id").and_then(toml::Value::as_str) else {
-            continue;
+        let Some(stage_id_raw) = stage
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+        else {
+            return Err(anyhow!("generated stage registry row missing declared id"));
         };
         let stage_id = StageId::try_from(stage_id_raw)
             .map_err(|err| anyhow!("invalid stage id `{stage_id_raw}`: {err}"))?;
@@ -465,8 +472,13 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
         .cloned()
         .unwrap_or_default()
     {
-        let Some(tool_id_raw) = tool.get("id").and_then(toml::Value::as_str) else {
-            continue;
+        let Some(tool_id_raw) = tool
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+        else {
+            return Err(anyhow!("generated tool registry row missing declared id"));
         };
         for stage_id_raw in list_strings(&tool, "stage_ids") {
             let tool_id = ToolId::try_from(tool_id_raw)
