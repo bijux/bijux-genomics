@@ -1,6 +1,7 @@
 use super::*;
 
 mod placeholders;
+mod render;
 mod repository;
 mod status;
 
@@ -8,6 +9,7 @@ pub(super) use placeholders::{
     ensure_no_placeholders_in_active_config, has_supported_placeholder_forbidden_token,
     placeholders_allowed,
 };
+pub(super) use render::{encode_f64_map, encode_threshold_map, generated_header, toml_array};
 pub(super) use repository::{domain_content_hash, git_head_commit};
 pub(super) use status::{
     ensure_status, is_tool_meaningful_in_domain, is_umbrella_stage, scope_active,
@@ -16,39 +18,6 @@ pub(super) use status::{
 pub(super) fn read_yaml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
-}
-
-pub(super) fn toml_array(values: &[String]) -> String {
-    let joined = values
-        .iter()
-        .map(|v| format!("\"{v}\""))
-        .collect::<Vec<_>>()
-        .join(", ");
-    format!("[{joined}]")
-}
-
-pub(super) fn encode_f64_map(map: &BTreeMap<String, f64>) -> String {
-    let mut items = map
-        .iter()
-        .map(|(k, v)| format!("{k}:{v}"))
-        .collect::<Vec<_>>();
-    items.sort();
-    toml_array(&items)
-}
-
-pub(super) fn encode_threshold_map(map: &BTreeMap<String, ThresholdBand>) -> String {
-    let mut items = map
-        .iter()
-        .map(|(metric, band)| format!("{metric}|warn={}|fail={}", band.warn, band.fail))
-        .collect::<Vec<_>>();
-    items.sort();
-    toml_array(&items)
-}
-
-pub(super) fn generated_header(source: &str, source_commit: &str) -> String {
-    format!(
-        "# GENERATED - DO NOT EDIT - source: {source}\n# source_commit: {source_commit}\n# domain_schema_version: bijux.domain.v1\n# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs\n# schema_version = 1\n# owner = bijux-dna-domain-compiler\n# purpose = Contract config generated from domain/** sources\n# authority = bijux-dna-domain-compiler\n# stability = stable\n# last_updated = 2026-02-14\n\n"
-    )
 }
 
 pub(super) fn validate_tool_output_subset(
