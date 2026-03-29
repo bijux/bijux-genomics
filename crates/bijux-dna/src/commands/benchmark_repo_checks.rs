@@ -7,10 +7,6 @@ use serde::Serialize;
 
 use crate::commands::cli::BenchRepoChecksArgs;
 
-const EXCLUDED_TOOLING_PATHS: &[&str] = &[];
-const LOCAL_OPERATOR_PATH_PREFIX: &str = "/Users/bijan/";
-const REMOTE_OPERATOR_PATH_PREFIX: &str = "/home/bijan/";
-
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub(crate) struct RepoCheckViolation {
     issue_id: String,
@@ -56,17 +52,17 @@ pub(crate) fn audit_repo_checks(repo_root: &Path) -> Result<RepoChecksReport> {
     path_scan_paths.sort();
     path_scan_paths.dedup();
 
-    let mut violations = literal_matches(
+    let mut violations = regex_matches(
         &path_scan_paths,
         repo_root,
-        LOCAL_OPERATOR_PATH_PREFIX,
-        "hardcoded-local-operator-path",
+        "hardcoded-local-user-path",
+        &[Regex::new(r#"/Users/[^/"'\s]+/"#).expect("local user path regex")],
     )?;
-    violations.extend(literal_matches(
+    violations.extend(regex_matches(
         &path_scan_paths,
         repo_root,
-        REMOTE_OPERATOR_PATH_PREFIX,
-        "hardcoded-remote-operator-path",
+        "hardcoded-remote-user-path",
+        &[Regex::new(r#"/home/[^/"'\s]+/"#).expect("remote user path regex")],
     )?);
     violations.extend(regex_matches(
         &tooling_paths,
@@ -120,7 +116,7 @@ fn benchmark_tooling_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
             let path = entry.path();
             if path.is_file() && path.extension().is_some_and(|ext| ext == "py") {
                 let relative = relative_to_root(repo_root, &path)?;
-                if !EXCLUDED_TOOLING_PATHS.iter().any(|item| *item == relative) {
+                if !is_excluded_tooling_path(relative) {
                     paths.push(path);
                 }
             }
@@ -144,6 +140,10 @@ fn benchmark_tooling_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
     paths.sort();
     paths.dedup();
     Ok(paths)
+}
+
+fn is_excluded_tooling_path(relative: &str) -> bool {
+    relative.starts_with("makes/bin/test_")
 }
 
 fn benchmark_contract_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
@@ -186,30 +186,6 @@ fn benchmark_contract_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
     paths.sort();
     paths.dedup();
     Ok(paths)
-}
-
-fn literal_matches(
-    paths: &[PathBuf],
-    repo_root: &Path,
-    literal: &str,
-    issue_id: &str,
-) -> Result<Vec<RepoCheckViolation>> {
-    let mut matches = Vec::new();
-    for path in paths {
-        for (line_number, line) in read_lines(path)?.iter().enumerate() {
-            if !line.contains(literal) {
-                continue;
-            }
-            matches.push(RepoCheckViolation {
-                issue_id: issue_id.to_string(),
-                path: relative_to_root(repo_root, path)?.to_string(),
-                line: line_number + 1,
-                literal: literal.to_string(),
-                content: line.trim().to_string(),
-            });
-        }
-    }
-    Ok(matches)
 }
 
 fn regex_matches(
@@ -278,10 +254,7 @@ mod tests {
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
-        assert_eq!(
-            report.violations[0].issue_id,
-            "hardcoded-local-operator-path"
-        );
+        assert_eq!(report.violations[0].issue_id, "hardcoded-local-user-path");
     }
 
     #[test]
@@ -299,6 +272,20 @@ mod tests {
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 0);
+    }
+
+    #[test]
+    fn repo_checks_flag_hardcoded_remote_user_path() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let repo_root = temp.path();
+        let config_path = repo_root.join("configs/bench/workspace.md");
+        fs::create_dir_all(config_path.parent().expect("config dir")).expect("create config dir");
+        fs::write(&config_path, "remote_root = \"/home/alice/bijux/results\"\n")
+            .expect("write config");
+
+        let report = audit_repo_checks(repo_root).expect("repo checks");
+        assert_eq!(report.violation_count, 1);
+        assert_eq!(report.violations[0].issue_id, "hardcoded-remote-user-path");
     }
 
     #[test]
