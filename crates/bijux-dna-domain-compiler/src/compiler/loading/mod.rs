@@ -2,6 +2,7 @@ mod load_and_collect;
 mod registry_emitters;
 mod stage_loading;
 mod tool_loading;
+mod tool_registries;
 
 use super::*;
 
@@ -35,7 +36,7 @@ pub(super) fn build_tool_registries_toml(
     stage_default_rationale: &StageDefaultRationaleMap,
     source_commit: &str,
 ) -> ToolRegistryOutputs {
-    let outputs = registry_emitters::build_tool_registries_toml(
+    let outputs = tool_registries::build_tool_registries_toml(
         tools,
         stage_to_tools,
         stage_planned,
