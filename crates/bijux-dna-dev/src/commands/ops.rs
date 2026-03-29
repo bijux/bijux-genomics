@@ -50,8 +50,8 @@ pub fn run_native_ops_command(
             hpc_validate_frontend_constraints(workspace, args)
         }
         NativeOpsCommandKey::HpcRunFrontendMiniE2e => hpc_run_frontend_mini_e2e(workspace, args),
-        NativeOpsCommandKey::HpcLunarcPull => hpc_lunarc_pull(workspace, args),
-        NativeOpsCommandKey::HpcLunarcPush => hpc_lunarc_push(workspace, args),
+        NativeOpsCommandKey::HpcBenchmarkSyncPull => hpc_lunarc_pull(workspace, args),
+        NativeOpsCommandKey::HpcBenchmarkSyncPush => hpc_lunarc_push(workspace, args),
         NativeOpsCommandKey::LabRunBench => lab_run_bench(workspace, args),
         NativeOpsCommandKey::LabRunPipelines => lab_run_pipelines(workspace, args),
         NativeOpsCommandKey::SmokeRun => smoke_run(workspace, args),
