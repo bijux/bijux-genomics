@@ -666,7 +666,7 @@ pub(super) fn enforce_large_file_guard(
 
 pub(super) fn write_crash_bundle(
     req: &ToolInvocationRequest,
-    stderr_tail: &str,
+    stderr_tail: Option<&str>,
     exit_code: i32,
     command: &str,
 ) -> Result<PathBuf> {
@@ -683,14 +683,18 @@ pub(super) fn write_crash_bundle(
         }
     }
     let stderr_last_lines = stderr_tail
-        .lines()
-        .rev()
-        .take(50)
-        .collect::<Vec<_>>()
-        .into_iter()
-        .rev()
-        .map(std::string::ToString::to_string)
-        .collect::<Vec<_>>();
+        .map(|stderr_tail| {
+            stderr_tail
+                .lines()
+                .rev()
+                .take(50)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .map(std::string::ToString::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
     let env_subset = serde_json::json!({
         "LC_ALL": std::env::var("LC_ALL").ok(),
         "LANG": std::env::var("LANG").ok(),

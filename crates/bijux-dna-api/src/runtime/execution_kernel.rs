@@ -46,12 +46,11 @@ fn stage_summary_path(stage_root: &std::path::Path) -> PathBuf {
     stage_root.join(STAGE_SUMMARY_FILE_NAME)
 }
 
-fn read_log_tail(path: &std::path::Path) -> String {
+fn read_log_tail(path: &std::path::Path) -> Option<String> {
     std::fs::read_to_string(path)
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| "not_recorded".to_string())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -406,7 +405,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     if stage_result.exit_code != 0 {
         let _ = write_crash_bundle(
             req,
-            &stderr_tail,
+            stderr_tail.as_deref(),
             stage_result.exit_code,
             &stage_result.command,
         );
@@ -429,8 +428,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             "tool {} failed with exit code {} ({exit_taxonomy:?})\nstdout_tail:\n{}\nstderr_tail:\n{}",
             req.context.tool_id,
             stage_result.exit_code,
-            stdout_tail,
-            stderr_tail
+            stdout_tail.as_deref().unwrap_or(""),
+            stderr_tail.as_deref().unwrap_or("")
         );
         return Err(anyhow!(message));
     }
