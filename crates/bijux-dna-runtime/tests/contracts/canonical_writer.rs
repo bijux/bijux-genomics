@@ -1,8 +1,13 @@
+#[path = "../support.rs"]
+mod support;
+
 use walkdir::WalkDir;
 
 #[test]
 fn runtime_emits_use_canonical_json_writer() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let root = support::crate_root("bijux-dna-runtime")
+        .expect("runtime crate root")
+        .join("src");
     let mut offenders = Vec::new();
     let patterns = [
         concat!("serde_json::", "to_writer"),
