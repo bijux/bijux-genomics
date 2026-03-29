@@ -1,3 +1,5 @@
+use bijux_dna_runtime::FactsRowV1;
+
 #[derive(Debug, Clone, Copy)]
 enum ToolTier {
     Gold,
@@ -13,7 +15,7 @@ fn tool_tier_for(stage_id: &str, tool_id: &str) -> (ToolTier, &'static str) {
     }
 }
 
-fn pipeline_overview_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(super) fn pipeline_overview_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let stages: Vec<serde_json::Value> = rows
         .iter()
         .map(|row| {
@@ -37,7 +39,7 @@ fn pipeline_overview_section(rows: &[FactsRowV1]) -> serde_json::Value {
     })
 }
 
-fn key_findings_section(
+pub(super) fn key_findings_section(
     missing_metrics: &[String],
     missing_reports: &[String],
     rows: &[FactsRowV1],
@@ -96,7 +98,7 @@ fn key_findings_section(
     serde_json::Value::Array(findings)
 }
 
-fn data_contract_validation_section(
+pub(super) fn data_contract_validation_section(
     completeness: &bijux_dna_runtime::ReportCompletenessV1,
 ) -> serde_json::Value {
     serde_json::json!({

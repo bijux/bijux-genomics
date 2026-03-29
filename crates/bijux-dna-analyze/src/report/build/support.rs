@@ -1,4 +1,18 @@
-fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
+use std::path::Path;
+
+use bijux_dna_runtime::{
+    FactsRowV1, FilterReportV1, RetentionContextV1, RetentionDefinitionV1, RetentionReportV1,
+    StageReportV1, TelemetryEventV1,
+};
+
+use crate::report::sections::report_path_for;
+
+#[allow(clippy::cast_precision_loss)]
+fn u64_to_f64(value: u64) -> f64 {
+    value as f64
+}
+
+pub(super) fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut validate_mean_q = None;
     let mut qc_post_mean_q = None;
     for row in rows {
@@ -26,7 +40,7 @@ fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
     })
 }
 
-fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(super) fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut summary = None;
     let mut reads_removed = None;
     let mut percent_removed = None;
@@ -73,13 +87,13 @@ fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Value {
     })
 }
 
-fn read_json_value(path: &Path) -> Option<serde_json::Value> {
+pub(super) fn read_json_value(path: &Path) -> Option<serde_json::Value> {
     std::fs::read_to_string(path)
         .ok()
         .and_then(|raw| serde_json::from_str(&raw).ok())
 }
 
-fn stage_report_fields(report: Option<&StageReportV1>) -> (String, String, String) {
+pub(super) fn stage_report_fields(report: Option<&StageReportV1>) -> (String, String, String) {
     report.map_or_else(
         || (String::new(), String::new(), String::new()),
         |report| {
@@ -92,7 +106,7 @@ fn stage_report_fields(report: Option<&StageReportV1>) -> (String, String, Strin
     )
 }
 
-fn retention_context_from_report(
+pub(super) fn retention_context_from_report(
     path: Option<&str>,
 ) -> Option<(RetentionContextV1, RetentionDefinitionV1)> {
     let report = path
@@ -123,13 +137,16 @@ fn retention_context_from_report(
     Some((context, definition))
 }
 
-fn banks_from_report(path: Option<&str>, fallback: serde_json::Value) -> serde_json::Value {
+pub(super) fn banks_from_report(
+    path: Option<&str>,
+    fallback: serde_json::Value,
+) -> serde_json::Value {
     path.and_then(|path| read_json_value(Path::new(path)))
         .and_then(|value| value.get("banks").cloned())
         .unwrap_or(fallback)
 }
 
-fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<String> {
+pub(super) fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<String> {
     path.and_then(|path| {
         Path::new(path).parent().map(|parent| {
             let v2 = parent.join("telemetry.jsonl");
@@ -146,7 +163,7 @@ fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<String> {
     })
 }
 
-fn telemetry_counts(paths: &[String]) -> (usize, usize) {
+pub(super) fn telemetry_counts(paths: &[String]) -> (usize, usize) {
     let mut total_events = 0usize;
     let mut error_events = 0usize;
     for path in paths {
@@ -173,7 +190,7 @@ fn telemetry_counts(paths: &[String]) -> (usize, usize) {
     (total_events, error_events)
 }
 
-fn telemetry_timeline_from_paths(paths: &[String]) -> Vec<serde_json::Value> {
+pub(super) fn telemetry_timeline_from_paths(paths: &[String]) -> Vec<serde_json::Value> {
     let mut out = Vec::new();
     for path in paths {
         let Ok(raw) = std::fs::read_to_string(path) else {
@@ -200,7 +217,7 @@ fn telemetry_timeline_from_paths(paths: &[String]) -> Vec<serde_json::Value> {
     out
 }
 
-fn telemetry_decisions_from_paths(
+pub(super) fn telemetry_decisions_from_paths(
     paths: &[String],
 ) -> std::collections::BTreeMap<String, Vec<serde_json::Value>> {
     let mut by_stage: std::collections::BTreeMap<String, Vec<serde_json::Value>> =
