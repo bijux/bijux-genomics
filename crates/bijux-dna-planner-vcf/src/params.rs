@@ -6,7 +6,8 @@ use anyhow::{anyhow, bail, Result};
 use bijux_dna_db_ref::ReferenceBundle;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 
-use crate::models::{ChunkPlanSettings, RegionChunkPlan, VcfPanelLock};
+use crate::api::{ChunkPlanSettings, VcfPanelLock};
+use crate::models::RegionChunkPlan;
 
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
