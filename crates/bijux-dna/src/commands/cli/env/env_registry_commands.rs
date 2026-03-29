@@ -959,7 +959,7 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
             .next()
             .map(str::trim)
             .filter(|value| !value.is_empty())
-            .unwrap_or("not_recorded"),
+            .map(ToOwned::to_owned),
         "help_ok": help_output == "not_declared" || !help_output.starts_with("error:"),
         "healthcheck_ok": health_output == "not_declared" || !health_output.starts_with("error:"),
     }))?;
@@ -1055,11 +1055,11 @@ pub fn registry_export_containers_value(registry_path: &Path) -> Result<serde_js
     tools.sort_by(|a, b| {
         a.get("tool_id")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
+            .unwrap_or_else(|| panic!("container manifest row missing tool_id: {a}"))
             .cmp(
                 b.get("tool_id")
                     .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
+                    .unwrap_or_else(|| panic!("container manifest row missing tool_id: {b}")),
             )
     });
     Ok(serde_json::json!({
