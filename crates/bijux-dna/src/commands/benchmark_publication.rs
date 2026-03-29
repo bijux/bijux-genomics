@@ -3052,6 +3052,13 @@ fn stage_value_lookup<'a>(
         .collect()
 }
 
+fn declared_issue_field<'a>(value: &'a serde_json::Value, field: &str) -> Option<&'a str> {
+    value.get(field)
+        .and_then(|entry| entry.as_str())
+        .map(str::trim)
+        .filter(|entry| !entry.is_empty())
+}
+
 fn findings_lookup(payload: &serde_json::Value) -> BTreeMap<String, Vec<RemediationIssue>> {
     let mut findings_by_stage = BTreeMap::new();
     for finding in payload
@@ -3060,10 +3067,16 @@ fn findings_lookup(payload: &serde_json::Value) -> BTreeMap<String, Vec<Remediat
         .into_iter()
         .flatten()
     {
-        let Some(stage_id) = finding.get("stage_id").and_then(|value| value.as_str()) else {
+        let Some(stage_id) = declared_issue_field(finding, "stage_id") else {
             continue;
         };
-        let Some(issue_id) = finding.get("issue_id").and_then(|value| value.as_str()) else {
+        let Some(issue_id) = declared_issue_field(finding, "issue_id") else {
+            continue;
+        };
+        let Some(detail) = declared_issue_field(finding, "detail") else {
+            continue;
+        };
+        let Some(severity) = declared_issue_field(finding, "severity") else {
             continue;
         };
         findings_by_stage
@@ -3071,16 +3084,8 @@ fn findings_lookup(payload: &serde_json::Value) -> BTreeMap<String, Vec<Remediat
             .or_insert_with(Vec::new)
             .push(RemediationIssue {
                 issue_id: issue_id.to_string(),
-                detail: finding
-                    .get("detail")
-                    .and_then(|value| value.as_str())
-                    .unwrap_or("")
-                    .to_string(),
-                severity: finding
-                    .get("severity")
-                    .and_then(|value| value.as_str())
-                    .unwrap_or("error")
-                    .to_string(),
+                detail: detail.to_string(),
+                severity: severity.to_string(),
                 source: "findings".to_string(),
             });
     }
@@ -3094,19 +3099,13 @@ fn collect_stage_issues(stage: Option<&&serde_json::Value>, source: &str) -> Vec
         .into_iter()
         .flatten()
         .filter_map(|issue| {
-            let issue_id = issue.get("issue_id").and_then(|value| value.as_str())?;
+            let issue_id = declared_issue_field(issue, "issue_id")?;
+            let detail = declared_issue_field(issue, "detail")?;
+            let severity = declared_issue_field(issue, "severity")?;
             Some(RemediationIssue {
                 issue_id: issue_id.to_string(),
-            detail: issue
-                .get("detail")
-                .and_then(|value| value.as_str())
-                .unwrap_or("")
-                .to_string(),
-            severity: issue
-                .get("severity")
-                .and_then(|value| value.as_str())
-                .unwrap_or("error")
-                .to_string(),
+                detail: detail.to_string(),
+                severity: severity.to_string(),
                 source: source.to_string(),
             })
         })
