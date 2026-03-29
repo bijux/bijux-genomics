@@ -20,6 +20,7 @@ mod input_policy;
 mod models;
 mod params;
 mod planner;
+mod reference_context;
 mod stage_catalog;
 mod workspace_config;
 

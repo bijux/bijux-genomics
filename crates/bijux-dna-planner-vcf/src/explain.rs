@@ -6,7 +6,7 @@ use crate::coverage::{
 };
 use crate::api::VcfPipelineInputs;
 use crate::explain_model::{PlannerExplainStage, PlannerExplainV1};
-use crate::planner::resolve_panel_lock;
+use crate::reference_context::resolve_panel_lock;
 
 #[must_use]
 pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> PlannerExplainV1 {
