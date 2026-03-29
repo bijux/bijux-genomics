@@ -1,5 +1,6 @@
 pub mod execution_plan;
 mod execution_step;
+mod execution_plan_validation;
 pub mod executor_registry;
 mod plan_edge;
 pub mod plan_run;
@@ -13,6 +14,8 @@ pub mod stage_plugin;
 pub use execution_plan::*;
 #[allow(unused_imports)]
 pub use execution_step::*;
+#[allow(unused_imports)]
+pub use execution_plan_validation::*;
 #[allow(unused_imports)]
 pub use plan_edge::*;
 #[allow(unused_imports)]
