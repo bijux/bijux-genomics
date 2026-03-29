@@ -54,7 +54,7 @@ pub fn write_metrics_envelope(
             .metric_context
             .image_digest
             .clone()
-            .unwrap_or_default(),
+            .unwrap_or_else(|| "not_declared".to_string()),
         parameters_fingerprint: ctx.parameters_fingerprint.clone(),
         input_fingerprint: ctx.input_fingerprint.clone(),
         parameters_json_normalized: ctx.parameters_json_normalized.clone(),
