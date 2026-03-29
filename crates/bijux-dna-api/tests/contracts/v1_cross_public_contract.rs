@@ -1,10 +1,10 @@
-use std::path::PathBuf;
-
 use anyhow::Result;
 
+#[path = "../support.rs"]
+mod support;
+
 fn v1_surface() -> Result<String> {
-    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
+    let base = support::crate_src("bijux-dna-api")?
         .join("v1");
     let mut contents = String::new();
     for module in ["api.rs", "plan.rs", "run.rs", "report.rs", "bench.rs"] {
@@ -16,7 +16,7 @@ fn v1_surface() -> Result<String> {
 
 #[test]
 fn public_types_are_documented_and_v1_scoped() -> Result<()> {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src");
+    let root = support::crate_src("bijux-dna-api")?;
     let v1_surface = v1_surface()?;
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)

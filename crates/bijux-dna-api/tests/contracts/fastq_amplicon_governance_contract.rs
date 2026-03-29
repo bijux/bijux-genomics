@@ -1,13 +1,8 @@
-use std::path::Path;
+#[path = "../support.rs"]
+mod support;
 
 fn repo_root() -> std::path::PathBuf {
-    let Some(root) = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-    else {
-        panic!("repo root");
-    };
-    root.to_path_buf()
+    support::repo_root().unwrap_or_else(|err| panic!("repo root: {err}"))
 }
 
 #[test]
