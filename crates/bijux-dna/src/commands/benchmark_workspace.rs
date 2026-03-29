@@ -1408,24 +1408,26 @@ fn benchmark_publication_contracts_from_config(
     publication: &BenchmarkPublicationConfig,
     corpus_id: &str,
 ) -> Result<Vec<CorpusBenchmarkContract>> {
-    Ok(publication
+    let key = benchmark_publication_corpus_key(corpus_id);
+    publication
         .corpora
-        .get(&benchmark_publication_corpus_key(corpus_id))
+        .get(&key)
         .cloned()
-        .unwrap_or_default()
-        .contracts)
+        .map(|entry| entry.contracts)
+        .ok_or_else(|| anyhow!("benchmark publication config is missing [{key}]"))
 }
 
 fn benchmark_publication_exclusions_from_config(
     publication: &BenchmarkPublicationConfig,
     corpus_id: &str,
 ) -> Result<Vec<CorpusBenchmarkExclusion>> {
-    Ok(publication
+    let key = benchmark_publication_corpus_key(corpus_id);
+    publication
         .corpora
-        .get(&benchmark_publication_corpus_key(corpus_id))
+        .get(&key)
         .cloned()
-        .unwrap_or_default()
-        .exclusions)
+        .map(|entry| entry.exclusions)
+        .ok_or_else(|| anyhow!("benchmark publication config is missing [{key}]"))
 }
 
 #[cfg(test)]
