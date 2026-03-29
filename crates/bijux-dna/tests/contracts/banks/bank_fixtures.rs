@@ -5,6 +5,9 @@ use std::sync::Mutex;
 
 use anyhow::Result;
 
+#[path = "../../support.rs"]
+mod test_support;
+
 pub static CWD_LOCK: Mutex<()> = Mutex::new(());
 
 pub struct EnvGuard {
@@ -42,13 +45,9 @@ where
 {
     let env_guard = EnvGuard::new()?;
     let _guard = CWD_LOCK.lock().expect("cwd lock");
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let repo_root = manifest_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
+    let repo_root = test_support::repo_root()?;
     let prev_dir = std::env::current_dir()?;
-    std::env::set_current_dir(repo_root)?;
+    std::env::set_current_dir(&repo_root)?;
     let result = f();
     std::env::set_current_dir(prev_dir)?;
     drop(env_guard);
