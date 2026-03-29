@@ -226,16 +226,11 @@ fn current_registry_path() -> Result<PathBuf> {
 }
 
 fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
-    if let Ok(root) = std::env::var("BIJUX_HPC_ROOT") {
-        if !root.trim().is_empty() {
-            return Ok(PathBuf::from(root));
-        }
-    }
     if let Ok(config) = crate::commands::hpc::load_hpc_config() {
         return Ok(config.resolve_paths().root);
     }
     Err(anyhow!(
-        "unable to resolve Apptainer HPC root: declare BIJUX_HPC_ROOT or BIJUX_HPC_CONFIG"
+        "unable to resolve Apptainer HPC root: declare BIJUX_HPC_CONFIG"
     ))
 }
 
