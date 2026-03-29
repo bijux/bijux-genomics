@@ -419,7 +419,7 @@ pub(super) fn infer_tool_version_from_image(image: &str) -> String {
             return tag.to_string();
         }
     }
-    "unknown".to_string()
+    String::new()
 }
 
 pub(super) fn infer_version_line(stdout: &str, stderr: &str) -> Option<String> {
@@ -674,8 +674,7 @@ pub(super) fn write_crash_bundle(
     let mut input_list = Vec::new();
     for artifact in &req.step.io.inputs {
         if artifact.path.exists() {
-            let checksum = bijux_dna_infra::hash_file_sha256(&artifact.path)
-                .unwrap_or_else(|_| "unknown".to_string());
+            let checksum = bijux_dna_infra::hash_file_sha256(&artifact.path).ok();
             input_list.push(serde_json::json!({
                 "name": artifact.name,
                 "path": artifact.path,
