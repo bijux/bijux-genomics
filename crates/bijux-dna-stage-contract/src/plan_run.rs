@@ -167,7 +167,7 @@ fn build_stage_plan(
         stage_instance_id: None,
         stage_version: StageVersion(1),
         tool_id: run_spec.tool.clone(),
-        tool_version: "unknown".to_string(),
+        tool_version: String::new(),
         image: ContainerImageRefV1 {
             image: tool_manifest.tool_id.to_string(),
             digest: None,
@@ -198,7 +198,7 @@ fn build_tool_execution_spec(
 ) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: run_spec.tool.clone(),
-        tool_version: "unknown".to_string(),
+        tool_version: String::new(),
         image: ContainerImageRefV1 {
             image: tool_manifest.tool_id.to_string(),
             digest: None,
