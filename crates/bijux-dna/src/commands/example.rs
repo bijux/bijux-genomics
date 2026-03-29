@@ -149,10 +149,6 @@ pub fn run_example(cwd: &Path, id: &str, hpc_mode: bool) -> Result<()> {
     let suite = bench_suite::load_suite(cwd, &spec.benchmark_suite)?;
     ensure_workspace_corpus_binding(cwd, &suite.corpus, &corpus_root)?;
 
-    if hpc_mode {
-        std::env::set_var("BIJUX_HPC_ROOT", &plan.hpc_root);
-    }
-
     let stage_domain = spec.stage_1.split('.').next().unwrap_or("fastq").to_string();
     let _ensure_report = crate::commands::cli::env::ensure_apptainer_images(
         &bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"),
