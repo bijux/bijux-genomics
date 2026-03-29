@@ -929,20 +929,18 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
         .unwrap_or_else(|| "v?[0-9]+\\.[0-9]+([.-][0-9A-Za-z]+)?".to_string());
     let version_output = version_cmd
         .as_deref()
-        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")))
-        .unwrap_or_else(|| "not_declared".to_string());
+        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")));
     let help_output = help_cmd
         .as_deref()
-        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")))
-        .unwrap_or_else(|| "not_declared".to_string());
+        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")));
     let health_output = healthcheck_cmd
         .as_deref()
-        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")))
-        .unwrap_or_else(|| "not_declared".to_string());
+        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")));
     let version_matches_regex = Regex::new(&expected_version_regex)
         .ok()
-        .is_some_and(|regex| regex.is_match(&version_output));
-    let parsed_version = parse_first_version(&version_output);
+        .zip(version_output.as_deref())
+        .is_some_and(|(regex, output)| regex.is_match(output));
+    let parsed_version = version_output.as_deref().and_then(parse_first_version);
 
     crate::commands::cli::render::json::print_pretty(&serde_json::json!({
         "tool_id": tool.id,
@@ -955,13 +953,13 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
         "version_output_parse": parsed_version,
         "version_output_matches_regex": version_matches_regex,
         "version_output_sample": version_output
-            .lines()
-            .next()
+            .as_deref()
+            .and_then(|output| output.lines().next())
             .map(str::trim)
             .filter(|value| !value.is_empty())
             .map(ToOwned::to_owned),
-        "help_ok": help_output == "not_declared" || !help_output.starts_with("error:"),
-        "healthcheck_ok": health_output == "not_declared" || !health_output.starts_with("error:"),
+        "help_ok": help_output.as_deref().map(|output| !output.starts_with("error:")),
+        "healthcheck_ok": health_output.as_deref().map(|output| !output.starts_with("error:")),
     }))?;
     Ok(())
 }
