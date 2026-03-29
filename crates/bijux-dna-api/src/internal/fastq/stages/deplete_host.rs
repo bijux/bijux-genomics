@@ -52,6 +52,15 @@ fn artifact_input_path(
         .map(|artifact| artifact.path.clone())
 }
 
+fn artifact_input_path_string(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    name: &str,
+) -> String {
+    artifact_input_path(plan, name)
+        .map(|path| path.display().to_string())
+        .unwrap_or_else(|| "not_declared".to_string())
+}
+
 /// # Errors
 /// Returns an error if planning or execution fails.
 pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
@@ -328,10 +337,7 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
         emit_removed_reads: effective_params.emit_removed_reads,
         report_format: effective_params.report_format,
         retain_unmapped_pairs: effective_params.retain_unmapped_pairs,
-        input_r1: artifact_input_path(plan, "reads_r1")
-            .unwrap_or_default()
-            .display()
-            .to_string(),
+        input_r1: artifact_input_path_string(plan, "reads_r1"),
         input_r2: artifact_input_path(plan, "reads_r2").map(|path| path.display().to_string()),
         output_r1: output_r1.display().to_string(),
         output_r2: output_r2.map(|path| path.display().to_string()),
