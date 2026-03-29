@@ -245,17 +245,56 @@ fn alignment_meta_value(args: &FastqCrossArgs, key: &str) -> Option<String> {
     None
 }
 
+fn required_alignment_meta_value(args: &FastqCrossArgs, key: &str) -> Result<String> {
+    alignment_meta_value(args, key).ok_or_else(|| {
+        anyhow!(
+            "--alignment-reference not provided and alignment_meta is missing {key}=<value>"
+        )
+    })
+}
+
 fn resolve_alignment_reference(args: &FastqCrossArgs) -> Result<std::path::PathBuf> {
     if let Some(path) = args.alignment_reference.as_ref() {
         return Ok(path.clone());
     }
     let resolver = LocalReferenceResolver::default();
-    let species = alignment_meta_value(args, "species_id").unwrap_or_else(|| "human".to_string());
-    let build = alignment_meta_value(args, "build_id").unwrap_or_else(|| "hg38".to_string());
+    let species = required_alignment_meta_value(args, "species_id")?;
+    let build = required_alignment_meta_value(args, "build_id")?;
     let resolved_ref = resolver.resolve(&species, &build).with_context(|| {
         format!(
             "--alignment-reference not provided and resolver failed for species/build {species}/{build}"
         )
     })?;
     Ok(resolved_ref.fasta)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::required_alignment_meta_value;
+    use crate::request_args::FastqCrossArgs;
+
+    fn empty_args() -> FastqCrossArgs {
+        FastqCrossArgs {
+            sample_id: None,
+            r1: None,
+            r2: None,
+            alignment_bam: None,
+            alignment_bai: None,
+            alignment_reference: None,
+            alignment_rg_policy: None,
+            alignment_meta: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn required_alignment_meta_value_rejects_missing_species_and_build() {
+        let args = empty_args();
+        let species_error =
+            required_alignment_meta_value(&args, "species_id").expect_err("species required");
+        let build_error =
+            required_alignment_meta_value(&args, "build_id").expect_err("build required");
+
+        assert!(species_error.to_string().contains("species_id=<value>"));
+        assert!(build_error.to_string().contains("build_id=<value>"));
+    }
 }
