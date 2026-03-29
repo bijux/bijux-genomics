@@ -203,20 +203,15 @@ pub fn write_run_manifest(
     };
     let replay_tool_image_ref = tool_invocations
         .first()
-        .map_or_else(|| "unknown".to_string(), |inv| inv.tool_id.to_string());
-    let replay_tool_image_digest = tool_invocations.first().map_or_else(
-        || {
-            run_provenance
-                .tool_image_digest
-                .clone()
-                .unwrap_or_else(|| "unknown".to_string())
-        },
-        |inv| inv.image_digest.clone(),
-    );
+        .map(|inv| inv.tool_id.to_string());
+    let replay_tool_image_digest = tool_invocations
+        .first()
+        .map(|inv| inv.image_digest.clone())
+        .or_else(|| run_provenance.tool_image_digest.clone());
     let replay_tool_version_output = tool_invocations
         .first()
         .and_then(|inv| inv.resolved_tool_version.clone())
-        .unwrap_or_else(|| run_provenance.tool_version.clone());
+        .or_else(|| Some(run_provenance.tool_version.clone()));
     let replay_tool_id = tool_invocations
         .first()
         .map_or_else(|| "unknown".to_string(), |inv| inv.tool_id.to_string());
@@ -260,7 +255,7 @@ pub fn write_run_manifest(
         }
     }
     let reproducibility_identity = bijux_dna_core::prelude::ReproducibilityIdentityV1 {
-        image_digest: replay_tool_image_digest.clone(),
+        image_digest: replay_tool_image_digest.clone().unwrap_or_default(),
         tool_version: run_provenance.tool_version.clone(),
         params_hash: run_provenance.params_hash.clone(),
         input_hash: run_provenance
