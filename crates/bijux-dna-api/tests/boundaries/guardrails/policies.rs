@@ -1,18 +1,20 @@
-use std::path::Path;
+#[path = "../../support.rs"]
+mod support;
 
 use bijux_dna_policies::{check, GuardrailConfig};
 
 #[test]
 fn guardrails() {
-    let crate_root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let crate_root = support::crate_root("bijux-dna-api")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
     let config = GuardrailConfig::for_crate(env!("CARGO_PKG_NAME"));
-    check(crate_root, &config).unwrap_or_else(|err| panic!("guardrails failed: {err}"));
+    check(&crate_root, &config).unwrap_or_else(|err| panic!("guardrails failed: {err}"));
 }
 
 #[test]
 fn api_has_no_planning_policy_keywords() {
-    let crate_root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let src_dir = crate_root.join("src");
+    let src_dir = support::crate_src("bijux-dna-api")
+        .unwrap_or_else(|err| panic!("resolve crate src: {err}"));
     let denylist = [
         "smart_pipeline",
         "tool_list",

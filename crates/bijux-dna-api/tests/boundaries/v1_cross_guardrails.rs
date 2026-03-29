@@ -1,9 +1,11 @@
-use std::path::Path;
+#[path = "../support.rs"]
+mod support;
 
 #[test]
 fn v1_api_has_no_stage_id_literals() {
-    let crate_root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let v1_dir = crate_root.join("src").join("v1");
+    let v1_dir = support::crate_src("bijux-dna-api")
+        .unwrap_or_else(|err| panic!("resolve crate src: {err}"))
+        .join("v1");
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&v1_dir)
         .into_iter()

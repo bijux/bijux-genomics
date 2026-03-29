@@ -1,8 +1,12 @@
 use walkdir::WalkDir;
 
+#[path = "../../support.rs"]
+mod support;
+
 #[test]
 fn args_module_is_named_request_args() {
-    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src");
+    let root = support::crate_src("bijux-dna-api")
+        .unwrap_or_else(|err| panic!("resolve crate src: {err}"));
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {
