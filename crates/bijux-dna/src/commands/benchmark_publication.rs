@@ -4304,6 +4304,7 @@ reason = "Compact validation fixture."
     #[test]
     fn remediation_queue_merges_publication_results_and_findings() {
         let queue = super::build_remediation_queue(
+            "corpus-01",
             &[
                 crate::commands::benchmark_workspace::CorpusBenchmarkContract {
                     stage_id: "fastq.validate_reads".to_string(),
