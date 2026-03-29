@@ -6,6 +6,7 @@ pub mod executor_registry;
 mod plan_edge;
 pub mod plan_run;
 mod planner_contract;
+mod run_artifact_catalog;
 pub mod stage_plan;
 mod stage_plan_json;
 mod stage_reason;
@@ -26,6 +27,8 @@ pub use executor_registry::*;
 pub use plan_run::*;
 #[allow(unused_imports)]
 pub use planner_contract::*;
+#[allow(unused_imports)]
+pub use run_artifact_catalog::*;
 #[allow(unused_imports)]
 pub use stage_plan::*;
 #[allow(unused_imports)]
