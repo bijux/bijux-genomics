@@ -474,9 +474,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         input_hashes: vec![bench_inputs.input_hash.clone()],
         reference_genome: None,
         pipeline_id: STAGE_PROFILE_READS.as_str().to_string(),
-        git_commit: std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string()),
-        build_profile: std::env::var("BIJUX_BUILD_PROFILE")
-            .unwrap_or_else(|_| "unknown".to_string()),
+        git_commit: std::env::var("BIJUX_GIT_COMMIT").unwrap_or_default(),
+        build_profile: std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_default(),
         plan_hash: std::env::var("BIJUX_PLAN_HASH").ok(),
     };
     let extra_artifacts = [RunArtifactInput {
