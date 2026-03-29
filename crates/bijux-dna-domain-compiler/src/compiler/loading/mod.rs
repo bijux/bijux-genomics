@@ -1,5 +1,6 @@
 mod load_and_collect;
 mod registry_emitters;
+mod tool_loading;
 
 use super::*;
 
