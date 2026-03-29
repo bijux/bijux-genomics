@@ -1,15 +1,15 @@
 use anyhow::{anyhow, bail, Result};
-use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 
 mod catalog;
 mod config;
 mod models;
+mod resolution;
 mod service;
 
 use config::{
-    AliasesConfig, BundleEntry, BundlesConfig, CoverageRegimesConfig, GeneticMapBankConfig,
-    MapLocksConfig, MapsConfig, OrganellarPolicyConfig, PanelLocksConfig, PanelsConfig,
-    ReferenceBankConfig, ReferenceSetConfig, SpeciesAuthorityConfig, load_toml, workspace_root,
+    BundleEntry, BundlesConfig, GeneticMapBankConfig, MapLocksConfig, MapsConfig,
+    OrganellarPolicyConfig, PanelLocksConfig, PanelsConfig, ReferenceBankConfig,
+    ReferenceSetConfig, load_toml, workspace_root,
 };
 
 pub use catalog::{
@@ -20,6 +20,11 @@ pub use models::{
     BuildId, ContigMap, ContigNormalizationPolicy, GeneticMapBankEntry, OrganellarPolicy,
     ParRegion, ReferenceBankEntry, ReferenceBundle, ReferenceProvenance, ReferenceSet,
     ResolvedSpeciesContext, SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures,
+};
+pub use resolution::{
+    enforce_declared_build_and_contigs, resolve_contig_map, resolve_coverage_profile,
+    resolve_sex_chromosome_rule, resolve_species_alias, resolve_species_authority,
+    resolve_species_context,
 };
 pub use service::{
     MapProvider, PanelProvider, RefService, ReferenceProvider, RuntimeRefService, ref_service,
