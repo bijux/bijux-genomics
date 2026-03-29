@@ -1,4 +1,4 @@
-fn emit_fastq_stage_extra_artifacts(
+pub(super) fn emit_fastq_stage_extra_artifacts(
     stage_root: &std::path::Path,
     stage_id: &str,
     execution: &StageResultV1,
@@ -657,7 +657,7 @@ fn emit_fastq_stage_extra_artifacts(
     Ok(())
 }
 
-fn write_stage_standardized_metrics(
+pub(super) fn write_stage_standardized_metrics(
     stage_root: &std::path::Path,
     stage_id: &str,
     out_dir: &std::path::Path,
@@ -1263,3 +1263,4 @@ mod stage_artifact_tests {
         Ok(())
     }
 }
+use super::*;

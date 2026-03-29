@@ -1,4 +1,4 @@
-fn canonical_sample_identity(sample_id: &str) -> String {
+pub(super) fn canonical_sample_identity(sample_id: &str) -> String {
     let mut out = String::with_capacity(sample_id.len());
     for ch in sample_id.chars() {
         if ch.is_ascii_alphanumeric() || ch == '-' {
@@ -10,7 +10,7 @@ fn canonical_sample_identity(sample_id: &str) -> String {
     out.trim_matches('_').to_string()
 }
 
-fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
+pub(super) fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
     for line in text.lines() {
         if !line
             .to_ascii_lowercase()
@@ -26,7 +26,7 @@ fn parse_first_u64_after_key(text: &str, key: &str) -> Option<u64> {
     None
 }
 
-fn parse_validate_reads_metrics(
+pub(super) fn parse_validate_reads_metrics(
     out_dir: &std::path::Path,
     execution: &StageResultV1,
 ) -> serde_json::Value {
@@ -69,7 +69,7 @@ fn parse_validate_reads_metrics(
     })
 }
 
-pub(crate) fn parse_profile_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_profile_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("qc.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw) {
@@ -104,7 +104,7 @@ pub(crate) fn parse_profile_reads_metrics(out_dir: &std::path::Path) -> serde_js
     })
 }
 
-pub(crate) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("filter_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_filter_reads_report(&raw) {
@@ -156,7 +156,7 @@ pub(crate) fn parse_filter_reads_metrics(out_dir: &std::path::Path) -> serde_jso
     })
 }
 
-pub(crate) fn parse_correct_errors_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_correct_errors_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("correct_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_correct_errors_report(&raw) {
@@ -201,7 +201,7 @@ pub(crate) fn parse_correct_errors_metrics(out_dir: &std::path::Path) -> serde_j
     })
 }
 
-pub(crate) fn parse_filter_low_complexity_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_filter_low_complexity_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("low_complexity_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) =
@@ -239,7 +239,7 @@ pub(crate) fn parse_filter_low_complexity_metrics(out_dir: &std::path::Path) -> 
     })
 }
 
-pub(crate) fn parse_profile_read_lengths_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_profile_read_lengths_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("profile_read_lengths_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) =
@@ -275,7 +275,7 @@ pub(crate) fn parse_profile_read_lengths_metrics(out_dir: &std::path::Path) -> s
     })
 }
 
-pub(crate) fn parse_profile_overrepresented_metrics(
+pub(super) fn parse_profile_overrepresented_metrics(
     out_dir: &std::path::Path,
 ) -> serde_json::Value {
     let report_path = out_dir.join("overrepresented_report.json");
@@ -313,7 +313,7 @@ pub(crate) fn parse_profile_overrepresented_metrics(
     })
 }
 
-pub(crate) fn parse_infer_asvs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_infer_asvs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("infer_asvs_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_infer_asvs_report(&raw) {
@@ -345,7 +345,7 @@ pub(crate) fn parse_infer_asvs_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
-pub(crate) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("umi_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw) {
@@ -381,7 +381,7 @@ pub(crate) fn parse_extract_umis_metrics(out_dir: &std::path::Path) -> serde_jso
     })
 }
 
-pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_terminal_damage_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_terminal_damage_report(&raw) {
@@ -419,7 +419,7 @@ pub(crate) fn parse_trim_terminal_damage_metrics(out_dir: &std::path::Path) -> s
     })
 }
 
-pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_trim_reads_report(&raw) {
@@ -469,7 +469,7 @@ pub(crate) fn parse_trim_reads_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
-pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("merge_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw) {
@@ -519,7 +519,7 @@ pub(crate) fn parse_merge_pairs_metrics(out_dir: &std::path::Path) -> serde_json
     })
 }
 
-pub(crate) fn parse_cluster_otus_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_cluster_otus_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("cluster_otus_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_cluster_otus_report(&raw) {
@@ -553,7 +553,7 @@ pub(crate) fn parse_cluster_otus_metrics(out_dir: &std::path::Path) -> serde_jso
     })
 }
 
-pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("deduplicate_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_remove_duplicates_report(&raw) {
@@ -592,7 +592,7 @@ pub(crate) fn parse_remove_duplicates_metrics(out_dir: &std::path::Path) -> serd
     })
 }
 
-pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("trim_polyg_tails_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_trim_polyg_report(&raw) {
@@ -634,7 +634,7 @@ pub(crate) fn parse_trim_polyg_metrics(out_dir: &std::path::Path) -> serde_json:
     })
 }
 
-pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("normalize_primers_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_normalize_primers_report(&raw) {
@@ -672,7 +672,7 @@ pub(crate) fn parse_normalize_primers_metrics(out_dir: &std::path::Path) -> serd
     })
 }
 
-pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("normalize_abundance_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw)
@@ -709,7 +709,7 @@ pub(crate) fn parse_normalize_abundance_metrics(out_dir: &std::path::Path) -> se
     })
 }
 
-pub(crate) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("remove_chimeras_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_remove_chimeras_report(&raw) {
@@ -740,7 +740,7 @@ pub(crate) fn parse_remove_chimeras_metrics(out_dir: &std::path::Path) -> serde_
     })
 }
 
-pub(crate) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_screen_taxonomy_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = discover_screen_taxonomy_report(out_dir)
         .unwrap_or_else(|| out_dir.join("classification_report.json"));
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
@@ -800,7 +800,7 @@ fn discover_screen_taxonomy_report(out_dir: &std::path::Path) -> Option<std::pat
     .find(|path| path.exists())
 }
 
-pub(crate) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("rrna_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_deplete_rrna_report(&raw) {
@@ -842,7 +842,7 @@ pub(crate) fn parse_deplete_rrna_metrics(out_dir: &std::path::Path) -> serde_jso
     })
 }
 
-pub(crate) fn parse_deplete_reference_contaminants_metrics(
+pub(super) fn parse_deplete_reference_contaminants_metrics(
     out_dir: &std::path::Path,
 ) -> serde_json::Value {
     let report_path = out_dir.join("contaminant_screen_report.json");
@@ -888,7 +888,7 @@ pub(crate) fn parse_deplete_reference_contaminants_metrics(
     })
 }
 
-pub(crate) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("host_depletion_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_deplete_host_report(&raw) {
@@ -937,7 +937,7 @@ pub(crate) fn parse_deplete_host_metrics(out_dir: &std::path::Path) -> serde_jso
     })
 }
 
-pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("report_qc_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_report_qc_report(&raw) {
@@ -989,7 +989,7 @@ pub(crate) fn parse_report_qc_metrics(out_dir: &std::path::Path) -> serde_json::
     })
 }
 
-fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
+pub(super) fn parse_detect_adapters_metrics(out_dir: &std::path::Path) -> serde_json::Value {
     let report_path = out_dir.join("adapter_report.json");
     if let Ok(raw) = std::fs::read_to_string(&report_path) {
         if let Ok(report) = bijux_dna_domain_fastq::observer::parse_detect_adapters_report(&raw) {
@@ -1066,7 +1066,7 @@ pub(crate) fn parse_index_reference_metrics(out_dir: &std::path::Path) -> serde_
     })
 }
 
-fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
+pub(super) fn stage_network_policy(stage_id: &str) -> NetworkPolicy {
     match stage_id {
         "fastq.validate_reads"
         | "fastq.detect_adapters"
@@ -1098,7 +1098,7 @@ fn fastq_backend_allowlist(stage_id: &str) -> Option<Vec<String>> {
     )
 }
 
-fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
+pub(super) fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {
     let Some(allowed) = fastq_backend_allowlist(stage_id) else {
         return Ok(());
     };
@@ -2505,7 +2505,7 @@ mod tests {
     }
 }
 
-fn required_fastq_tools() -> Result<std::collections::BTreeSet<String>> {
+pub(super) fn required_fastq_tools() -> Result<std::collections::BTreeSet<String>> {
     let raw = std::fs::read_to_string(
         crate::support::repo_root::resolve_repo_root()?.join("configs/ci/tools/required_tools.toml"),
     )?;
@@ -2523,7 +2523,7 @@ fn required_fastq_tools() -> Result<std::collections::BTreeSet<String>> {
     Ok(set)
 }
 
-fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
+pub(super) fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
     let stage = planned.step_id.as_str();
     if !matches!(
         stage,
@@ -2548,7 +2548,7 @@ fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()> {
     Ok(())
 }
 
-fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
+pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
     match stage_id {
         "fastq.validate_reads" => &[
             "schema_version",
@@ -2744,7 +2744,7 @@ fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
     }
 }
 
-fn enforce_metrics_schema(stage_root: &std::path::Path, stage_id: &str) -> Result<()> {
+pub(super) fn enforce_metrics_schema(stage_root: &std::path::Path, stage_id: &str) -> Result<()> {
     let metrics_path = stage_root.join("metrics.json");
     let raw = std::fs::read_to_string(&metrics_path)
         .with_context(|| format!("reading metrics {}", metrics_path.display()))?;
@@ -2775,7 +2775,10 @@ fn count_fastq_reads_if_plain(path: &std::path::Path) -> Option<u64> {
     Some(lines / 4)
 }
 
-fn write_retention_report(stage_root: &std::path::Path, planned: &ExecutionStep) -> Result<()> {
+pub(super) fn write_retention_report(
+    stage_root: &std::path::Path,
+    planned: &ExecutionStep,
+) -> Result<()> {
     let out_dir = stage_root.join("out");
     let mut rows = vec!["artifact\treads_estimate".to_string()];
     if let Ok(entries) = std::fs::read_dir(&out_dir) {
@@ -2809,7 +2812,7 @@ fn write_retention_report(stage_root: &std::path::Path, planned: &ExecutionStep)
     Ok(())
 }
 
-fn classify_failure_hint(stage_id: &str, stdout: &str, stderr: &str) -> String {
+pub(super) fn classify_failure_hint(stage_id: &str, stdout: &str, stderr: &str) -> String {
     let merged = format!("{stdout}\n{stderr}").to_ascii_lowercase();
     if merged.contains("out of memory") || merged.contains("killed") {
         return "resource_exhausted_memory".to_string();
@@ -2826,7 +2829,7 @@ fn classify_failure_hint(stage_id: &str, stdout: &str, stderr: &str) -> String {
     format!("{stage_id}_execution_failure")
 }
 
-fn write_retry_policy(root: &std::path::Path) -> Result<()> {
+pub(super) fn write_retry_policy(root: &std::path::Path) -> Result<()> {
     let payload = serde_json::json!({
         "schema_version": "bijux.retry_policy.v1",
         "max_retries": 0,
@@ -2838,3 +2841,4 @@ fn write_retry_policy(root: &std::path::Path) -> Result<()> {
     )?;
     Ok(())
 }
+use super::*;

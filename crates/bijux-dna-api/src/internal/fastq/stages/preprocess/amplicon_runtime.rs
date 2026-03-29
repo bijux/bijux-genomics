@@ -1,4 +1,4 @@
-fn materialize_amplicon_stage_outputs(
+pub(super) fn materialize_amplicon_stage_outputs(
     stage_root: &std::path::Path,
     planned: &ExecutionStep,
 ) -> Result<serde_json::Value> {
@@ -1045,7 +1045,7 @@ fn infer_cluster_otus_effective_params(
     }
 }
 
-fn enforce_amplicon_qc_thresholds(
+pub(super) fn enforce_amplicon_qc_thresholds(
     stage_root: &std::path::Path,
     stage_id: &str,
     metrics: &serde_json::Value,
@@ -1361,3 +1361,4 @@ fn remove_chimeras_compatibility_metrics(
         "report_json": report_json,
     })
 }
+use super::*;
