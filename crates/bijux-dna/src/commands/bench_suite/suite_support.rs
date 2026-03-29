@@ -175,15 +175,15 @@ fn command_output(cmd: &str, args: &[&str]) -> Option<String> {
 }
 
 fn load_site_lock(cwd: &Path) -> serde_json::Value {
-    let hpc_root = crate::commands::hpc::load_hpc_config()
-        .map(|cfg| cfg.resolve_paths().root)
-        .unwrap_or(PathBuf::from("bijux"));
-    let candidates = [
-        hpc_root.join("results").join("site_lock.json"),
-        hpc_root.join("bijux-dna-results").join("site_lock.json"),
+    let mut candidates = vec![
         cwd.join("results").join("site_lock.json"),
         cwd.join("bijux-dna-results").join("site_lock.json"),
     ];
+    if let Ok(hpc_config) = crate::commands::hpc::load_hpc_config() {
+        let hpc_root = hpc_config.resolve_paths().root;
+        candidates.insert(0, hpc_root.join("results").join("site_lock.json"));
+        candidates.insert(1, hpc_root.join("bijux-dna-results").join("site_lock.json"));
+    }
     for path in candidates {
         if !path.exists() {
             continue;
