@@ -228,11 +228,7 @@ fn build_detect_record(
     let context = build_benchmark_context(
         tool,
         tool_spec.tool_version.clone(),
-        tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_default(),
+        benchmark_image_identity(&tool_spec),
         bench_inputs.runner,
         platform,
         input_hash.to_string(),

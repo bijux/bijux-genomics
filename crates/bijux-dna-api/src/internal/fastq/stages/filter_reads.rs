@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
+    benchmark_image_identity, build_benchmark_context, derive_trim_delta, observe_fastq_stats,
+    prepare_trim_bench,
 };
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
@@ -376,11 +377,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let context = build_benchmark_context(
         tool,
         tool_spec.tool_version.clone(),
-        tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_default(),
+        benchmark_image_identity(&tool_spec),
         bench_inputs.runner,
         platform,
         input_hash.to_string(),

@@ -31,7 +31,9 @@ use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
-use crate::internal::fastq::stages::trim_bench_common::require_existing_benchmark_output;
+use crate::internal::fastq::stages::trim_bench_common::{
+    benchmark_image_identity, require_existing_benchmark_output,
+};
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
@@ -308,11 +310,7 @@ fn build_validate_record(
     let context = BenchmarkContext {
         tool: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),
-        image_digest: tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_default(),
+        image_digest: benchmark_image_identity(tool_spec),
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
         input_hash: bench_inputs.input_hash.clone(),
