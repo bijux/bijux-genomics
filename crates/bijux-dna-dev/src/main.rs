@@ -4,6 +4,7 @@
 #![deny(clippy::todo)]
 
 mod application;
+mod app;
 mod catalog;
 mod cli;
 mod commands;
@@ -11,5 +12,5 @@ mod model;
 mod runtime;
 
 fn main() -> anyhow::Result<()> {
-    cli::run()
+    app::run()
 }
