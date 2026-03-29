@@ -329,7 +329,7 @@ pub fn write_run_manifest(
             serde_json::json!({
                 "stage_id": stage,
                 "name": artifact.get("name").cloned().unwrap_or_default(),
-                "role": "unknown",
+                "role": serde_json::Value::Null,
                 "optional": false,
                 "path": artifact.get("path").cloned().unwrap_or_default(),
                 "sha256": artifact.get("sha256").cloned().unwrap_or_default(),
