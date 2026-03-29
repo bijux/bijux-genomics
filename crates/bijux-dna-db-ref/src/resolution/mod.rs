@@ -1,6 +1,8 @@
+mod panels;
 mod reference_assets;
 mod species;
 
+pub use panels::{resolve_panel, resolve_panel_lock};
 pub use reference_assets::{
     normalize_contig_name, reference_provenance, resolve_default_reference_set,
     resolve_genetic_map_bank, resolve_organellar_policy, resolve_reference_bank,
@@ -12,4 +14,5 @@ pub use species::{
     resolve_species_context,
 };
 
+pub(crate) use panels::parse_lock_ref;
 pub(crate) use reference_assets::{resolve_bundle_entry, validate_sha256};
