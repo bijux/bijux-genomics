@@ -9,9 +9,8 @@ use bijux_dna_db_ref::{
     ref_service, resolve_species_context, validate_imputation_tool_compatibility,
 };
 use bijux_dna_domain_vcf::contracts::{
-    refuse_unsupported_regime_transition, validate_entry_vcf_invariants,
-    validate_panel_map_invariants, validate_species_context, DefaultPanelSelectionPolicy,
-    PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext,
+    refuse_unsupported_regime_transition, DefaultPanelSelectionPolicy, PanelSelectionPolicy,
+    ReferencePanelGovernance, SpeciesContext,
 };
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use bijux_dna_stage_contract::{
@@ -104,23 +103,6 @@ pub(crate) fn resolve_panel_lock(inputs: &VcfPipelineInputs) -> Result<Option<Vc
         index_checksum_sha256: entry.index_checksum_sha256.clone(),
         license_id: entry.license_id.clone(),
     }))
-}
-
-fn validate_species_and_invariants(inputs: &VcfPipelineInputs) -> Result<()> {
-    if inputs.pipeline_domain != "vcf" {
-        bail!(
-            "vcf planner refusal: non-applicable domain `{}`",
-            inputs.pipeline_domain
-        );
-    }
-    let lowered = inputs.pipeline_domain.to_ascii_lowercase();
-    if lowered.contains("edna") || lowered.contains("pollen") {
-        bail!("vcf planner refusal: imputation is not applicable to eDNA/pollen domains");
-    }
-    validate_species_context(&inputs.species_context)?;
-    validate_entry_vcf_invariants(&inputs.species_context, &inputs.entry_vcf_invariants)?;
-    validate_panel_map_invariants(&inputs.species_context, &inputs.panel_map_invariants)?;
-    Ok(())
 }
 
 pub(crate) fn plan_region_chunks(
@@ -264,7 +246,7 @@ fn stage_plan(
 pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV1>> {
     let required_tools = load_required_tools()?;
     let registry_tools = load_registry_tools()?;
-    validate_species_and_invariants(inputs)?;
+    crate::input_policy::validate(inputs)?;
     let refs = ref_service();
     let resolved_species = resolve_species_context(
         &inputs.species_context.species_id,
