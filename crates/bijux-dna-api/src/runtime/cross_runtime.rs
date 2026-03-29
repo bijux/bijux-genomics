@@ -12,14 +12,13 @@ pub(crate) struct RuntimeParityResult {
     pub matched: bool,
 }
 
-fn normalized_first_line(stdout: &str) -> String {
+fn normalized_first_line(stdout: &str) -> Option<String> {
     stdout
         .lines()
         .next()
         .map(str::trim)
         .filter(|value| !value.is_empty())
-        .unwrap_or("not_recorded")
-        .to_string()
+        .map(ToOwned::to_owned)
 }
 
 /// # Errors
@@ -37,15 +36,18 @@ pub fn check_invocation_parity(
         .join(format!("parity_{secondary_runtime}"));
     secondary_request.context.tmp_root = secondary_request.context.stage_root.join("tmp");
     let secondary = invoke_tool(&secondary_request)?;
+    let primary_stdout = normalized_first_line(&primary.stage_result.stdout);
+    let secondary_stdout = normalized_first_line(&secondary.stage_result.stdout);
     let matched = primary.stage_result.exit_code == secondary.stage_result.exit_code
-        && normalized_first_line(&primary.stage_result.stdout)
-            == normalized_first_line(&secondary.stage_result.stdout);
+        && primary_stdout == secondary_stdout;
     if !matched {
         return Err(anyhow!(
-            "cross-runtime parity mismatch for {} ({} vs {})",
+            "cross-runtime parity mismatch for {} ({} vs {}): stdout_first_line={:?} vs {:?}",
             request.context.tool_id,
             request.runner,
-            secondary_runtime
+            secondary_runtime,
+            primary_stdout,
+            secondary_stdout
         ));
     }
     Ok(RuntimeParityResult {
