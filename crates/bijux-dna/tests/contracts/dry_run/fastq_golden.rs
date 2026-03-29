@@ -1,5 +1,8 @@
 use bijux_dna::commands::run_with_args;
 
+#[path = "../../support.rs"]
+mod support;
+
 fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> Vec<u8> {
     let input = base.join("reads.fastq");
     std::fs::write(&input, "@r1\nACGT\n+\n####\n").expect("write fastq");
@@ -39,21 +42,14 @@ arch = "x86_64"
 "#,
     )
     .expect("write platforms");
-    let workspace_images = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
+    let repo_root = support::repo_root().expect("repo root");
+    let workspace_images = repo_root
         .join("configs")
         .join("ci")
         .join("tools")
         .join("images.toml");
     std::fs::copy(workspace_images, ci_tools_dir.join("images.toml")).expect("write images");
-    let workspace_tool_registry = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
+    let workspace_tool_registry = repo_root
         .join("configs")
         .join("ci")
         .join("registry")
@@ -63,11 +59,7 @@ arch = "x86_64"
         ci_registry_dir.join("tool_registry.toml"),
     )
     .expect("write tool registry");
-    let workspace_stages = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
+    let workspace_stages = repo_root
         .join("configs")
         .join("ci")
         .join("stages")
@@ -77,22 +69,12 @@ arch = "x86_64"
     #[cfg(unix)]
     {
         std::os::unix::fs::symlink(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .unwrap()
-                .parent()
-                .unwrap()
-                .join("domain"),
+            repo_root.join("domain"),
             base.join("domain"),
         )
         .expect("symlink domain");
         std::os::unix::fs::symlink(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .unwrap()
-                .parent()
-                .unwrap()
-                .join("assets"),
+            repo_root.join("assets"),
             base.join("assets"),
         )
         .expect("symlink assets");
