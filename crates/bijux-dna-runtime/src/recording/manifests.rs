@@ -150,6 +150,13 @@ pub fn write_run_manifest(
     stage_contract_hash: Option<String>,
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<()> {
+    let run_id = run_dirs
+        .run_manifest_path
+        .parent()
+        .and_then(Path::file_name)
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| anyhow!("run id missing from run manifest path"))?
+        .to_string();
     let telemetry_dir = run_artifacts_dir(run_dirs)?.join("telemetry");
     bijux_dna_infra::ensure_dir(&telemetry_dir).context("create telemetry dir")?;
     write_canonical_json(&telemetry_dir.join("timings.json"), &serde_json::json!([]))
@@ -283,7 +290,7 @@ pub fn write_run_manifest(
     let payload = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",
         "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
-        "run_id": "unknown",
+        "run_id": run_id,
         "pipeline_id": pipeline_id,
         "profile_id": profile_id,
         "graph_hash": graph_hash,
