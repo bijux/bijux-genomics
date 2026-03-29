@@ -1,15 +1,15 @@
 use anyhow::{anyhow, Result};
-use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
-use bijux_dna_core::prelude::{id_catalog, StepId};
+use bijux_dna_core::contract::ExecutionGraph;
+use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_pipelines::PipelineProfile;
-use bijux_dna_stage_contract::default_edges_for_stages;
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 use serde_json::Value;
 
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-bam.v1";
 
 mod api;
+mod execution_graph;
 mod params;
 mod profile_catalog;
 mod report_stage;
@@ -28,34 +28,12 @@ impl BamPlanner {
     /// # Errors
     /// Returns an error if the plan lint fails.
     pub fn plan(config: &BamPlanConfig) -> Result<ExecutionGraph> {
-        let edges = default_edges_for_stages(&config.stages);
-        let graph = ExecutionGraph::new(
-            config.pipeline_id.clone(),
-            PLANNER_VERSION,
+        execution_graph::from_stage_plans(
+            &config.pipeline_id,
             config.policy,
-            config
-                .stages
-                .iter()
-                .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
-                .collect(),
-            edges
-                .into_iter()
-                .map(|edge| {
-                    ExecutionEdge::new(
-                        StepId::new(edge.from().to_string()),
-                        StepId::new(edge.to().to_string()),
-                    )
-                })
-                .collect(),
-        )?;
-        tracing::info!(
-            target: "plan.graph",
-            pipeline_id = %graph.pipeline_id(),
-            steps = graph.steps().len(),
-            edges = graph.edges().len(),
+            &config.stages,
             "planned bam execution graph"
-        );
-        Ok(graph)
+        )
     }
 }
 
@@ -184,33 +162,12 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         }
         stages.push(plan);
     }
-    let edges = default_edges_for_stages(&stages);
-    let graph = ExecutionGraph::new(
+    execution_graph::from_stage_plans(
         profile.id.as_str(),
-        PLANNER_VERSION,
         inputs.policy,
-        stages
-            .iter()
-            .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
-            .collect(),
-        edges
-            .into_iter()
-            .map(|edge| {
-                ExecutionEdge::new(
-                    StepId::new(edge.from().to_string()),
-                    StepId::new(edge.to().to_string()),
-                )
-            })
-            .collect(),
-    )?;
-    tracing::info!(
-        target: "plan.graph",
-        pipeline_id = %graph.pipeline_id(),
-        steps = graph.steps().len(),
-        edges = graph.edges().len(),
+        &stages,
         "planned bam pipeline graph"
-    );
-    Ok(graph)
+    )
 }
 
 fn stage_status(stage_id: &str) -> Option<String> {
