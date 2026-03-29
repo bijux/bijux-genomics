@@ -530,7 +530,7 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
 
 #[cfg(test)]
 mod env_registry_command_tests {
-    use super::{benchmark_env_roots, shared_cache_root, BenchmarkEnvRoots};
+    use super::{benchmark_env_roots, requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots};
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
 
@@ -605,6 +605,23 @@ containers_root = "/remote/.cache/bijux-dna-container"
             PathBuf::from("/srv/cluster/.cache/results")
         );
     }
+
+    #[test]
+    fn governed_oci_metadata_targets_shared_defs() {
+        let defs_root = Path::new("/repo/containers/apptainer");
+        assert!(requires_governed_oci_metadata(
+            defs_root,
+            &defs_root.join("shared").join("fastqc.def")
+        ));
+        assert!(!requires_governed_oci_metadata(
+            defs_root,
+            &defs_root.join("non-bijux").join("external.def")
+        ));
+    }
+}
+
+fn requires_governed_oci_metadata(defs_root: &Path, path: &Path) -> bool {
+    path.starts_with(defs_root.join("shared"))
 }
 
 /// # Errors
@@ -682,7 +699,7 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
                     path.display()
                 ));
             }
-            if path.starts_with(defs_root.join("lunarc")) {
+            if requires_governed_oci_metadata(&defs_root, &path) {
                 for label in [
                     "org.opencontainers.image.source",
                     "org.opencontainers.image.revision",
