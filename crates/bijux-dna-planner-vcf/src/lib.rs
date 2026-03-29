@@ -23,6 +23,7 @@ mod params;
 mod planner;
 mod reference_context;
 mod stage_catalog;
+mod stage_sequence;
 mod workspace_config;
 
 pub use explain::explain_vcf_plan;
