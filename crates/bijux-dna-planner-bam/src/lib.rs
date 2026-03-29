@@ -89,96 +89,11 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
         | bijux_dna_domain_bam::BamStage::Authenticity
         | bijux_dna_domain_bam::BamStage::Contamination
         | bijux_dna_domain_bam::BamStage::Sex => stage_dispatch::adna::plan(stage, &request),
-        bijux_dna_domain_bam::BamStage::BiasMitigation => {
-            #[cfg(feature = "bam_downstream")]
-            {
-                let bam = request
-                    .bam
-                    .ok_or_else(|| anyhow!("bias_mitigation requires bam"))?;
-                let params = params::effective_params_for_stage(stage, request.params)?;
-                let bijux_dna_domain_bam::params::BamEffectiveParams::BiasMitigation(params) =
-                    params
-                else {
-                    return Err(anyhow!("bias_mitigation params mismatch"));
-                };
-                tool_adapters::stages_downstream::bias_mitigation::plan(
-                    request.tool,
-                    bam,
-                    request.out_dir,
-                    &params,
-                )
-            }
-            #[cfg(not(feature = "bam_downstream"))]
-            {
-                Err(anyhow!("bias_mitigation requires bam_downstream feature"))
-            }
-        }
-        bijux_dna_domain_bam::BamStage::Haplogroups => {
-            #[cfg(feature = "bam_downstream")]
-            {
-                let bam = request
-                    .bam
-                    .ok_or_else(|| anyhow!("haplogroups requires bam"))?;
-                let params = params::effective_params_for_stage(stage, request.params)?;
-                let bijux_dna_domain_bam::params::BamEffectiveParams::Haplogroups(params) = params
-                else {
-                    return Err(anyhow!("haplogroups params mismatch"));
-                };
-                tool_adapters::stages_downstream::haplogroups::plan(
-                    request.tool,
-                    bam,
-                    request.out_dir,
-                    &params,
-                )
-            }
-            #[cfg(not(feature = "bam_downstream"))]
-            {
-                Err(anyhow!("haplogroups requires bam_downstream feature"))
-            }
-        }
-        bijux_dna_domain_bam::BamStage::Genotyping => {
-            #[cfg(feature = "bam_downstream")]
-            {
-                let bam = request
-                    .bam
-                    .ok_or_else(|| anyhow!("genotyping requires bam"))?;
-                let params = params::effective_params_for_stage(stage, request.params)?;
-                let bijux_dna_domain_bam::params::BamEffectiveParams::Genotyping(params) = params
-                else {
-                    return Err(anyhow!("genotyping params mismatch"));
-                };
-                tool_adapters::stages_downstream::genotyping::plan(
-                    request.tool,
-                    bam,
-                    request.out_dir,
-                    &params,
-                )
-            }
-            #[cfg(not(feature = "bam_downstream"))]
-            {
-                Err(anyhow!("genotyping requires bam_downstream feature"))
-            }
-        }
-        bijux_dna_domain_bam::BamStage::Kinship => {
-            #[cfg(feature = "bam_downstream")]
-            {
-                let bam = request.bam.ok_or_else(|| anyhow!("kinship requires bam"))?;
-                let params = params::effective_params_for_stage(stage, request.params)?;
-                let bijux_dna_domain_bam::params::BamEffectiveParams::Kinship(params) = params
-                else {
-                    return Err(anyhow!("kinship params mismatch"));
-                };
-                tool_adapters::stages_downstream::kinship::plan(
-                    request.tool,
-                    bam,
-                    request.out_dir,
-                    &params,
-                )
-            }
-            #[cfg(not(feature = "bam_downstream"))]
-            {
-                Err(anyhow!("kinship requires bam_downstream feature"))
-            }
+        bijux_dna_domain_bam::BamStage::BiasMitigation
+        | bijux_dna_domain_bam::BamStage::Haplogroups
+        | bijux_dna_domain_bam::BamStage::Genotyping
+        | bijux_dna_domain_bam::BamStage::Kinship => {
+            stage_dispatch::downstream::plan(stage, &request)
         }
     }?;
     let mut details = serde_json::Map::new();
