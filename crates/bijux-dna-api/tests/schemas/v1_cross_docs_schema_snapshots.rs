@@ -1,9 +1,12 @@
 use std::fs;
-use std::path::PathBuf;
+
+#[path = "../support.rs"]
+mod support;
 
 #[test]
 fn schema_snapshots_are_documented() {
-    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let doc = support::crate_root("bijux-dna-api")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"))
         .join("docs")
         .join("API.md");
     let content = fs::read_to_string(&doc)

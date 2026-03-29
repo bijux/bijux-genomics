@@ -1,7 +1,8 @@
 use serde_json::Value;
-use std::path::PathBuf;
-
 use std::fs;
+
+#[path = "../support.rs"]
+mod support;
 
 fn load_fixture(path: &std::path::Path) -> Value {
     let raw = fs::read_to_string(path)
@@ -11,10 +12,8 @@ fn load_fixture(path: &std::path::Path) -> Value {
 
 #[test]
 fn contract_handshake_rejects_mismatched_schema() {
-    let policies_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap_or_else(|| panic!("crates dir missing"))
-        .join("bijux-dna-policies")
+    let policies_root = support::crate_root("bijux-dna-policies")
+        .unwrap_or_else(|err| panic!("resolve policies crate root: {err}"))
         .join("tests")
         .join("fixtures")
         .join("handshake")

@@ -1,6 +1,8 @@
 use insta::Settings;
 use std::fs;
-use std::path::PathBuf;
+
+#[path = "../support.rs"]
+mod support;
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-api__{group}__{name}")
@@ -9,8 +11,9 @@ fn snapshot_name(group: &str, name: &str) -> String {
 /// Snapshot locks API public surface for v1 cross endpoints.
 #[test]
 fn public_surface_is_snapshotted() {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let lib = manifest_dir.join("src").join("lib.rs");
+    let lib = support::crate_src("bijux-dna-api")
+        .unwrap_or_else(|err| panic!("resolve crate src: {err}"))
+        .join("lib.rs");
     let content = fs::read_to_string(&lib)
         .unwrap_or_else(|err| panic!("read lib.rs at {}: {err}", lib.display()));
     let mut snapshot = String::new();
@@ -23,7 +26,10 @@ fn public_surface_is_snapshotted() {
     let name = snapshot_name("schemas", "public_surface");
     let mut settings = Settings::new();
     settings.set_prepend_module_to_snapshot(false);
-    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+    settings.set_snapshot_path(
+        support::crate_snapshots("bijux-dna-api")
+            .unwrap_or_else(|err| panic!("resolve snapshots root: {err}")),
+    );
     settings.bind(|| {
         insta::assert_snapshot!(name, bijux_dna_testkit::snapshot_normalize_text(&snapshot));
     });
