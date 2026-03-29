@@ -156,9 +156,16 @@ pub(super) fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn resolved_site_name() -> Result<String> {
-    env_value("BIJUX_HPC_SITE")
+fn resolved_site_name_with<F>(lookup: F) -> Result<String>
+where
+    F: Fn(&str) -> Option<String>,
+{
+    lookup("BIJUX_HPC_SITE")
         .ok_or_else(|| anyhow!("BIJUX_HPC_SITE must be declared for HPC site locks"))
+}
+
+fn resolved_site_name() -> Result<String> {
+    resolved_site_name_with(env_value)
 }
 
 fn env_value(key: &str) -> Option<String> {
@@ -169,44 +176,32 @@ fn env_value(key: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{enforce_hpc_results_layout, resolved_site_name};
+    use super::{enforce_hpc_results_layout, resolved_site_name_with};
     use std::path::Path;
-    use std::sync::Mutex;
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn resolved_site_name_prefers_explicit_hpc_site() {
-        let _lock = ENV_LOCK.lock().expect("env lock");
-        unsafe {
-            std::env::set_var("BIJUX_HPC_SITE", "cluster-a");
-            std::env::set_var("BIJUX_PLATFORM", "platform-b");
-            std::env::set_var("HOSTNAME", "node-01.example");
-        }
-        assert_eq!(resolved_site_name().expect("site"), "cluster-a");
-        unsafe {
-            std::env::remove_var("BIJUX_HPC_SITE");
-            std::env::remove_var("BIJUX_PLATFORM");
-            std::env::remove_var("HOSTNAME");
-        }
+        let lookup = |key: &str| match key {
+            "BIJUX_HPC_SITE" => Some("cluster-a".to_string()),
+            "BIJUX_PLATFORM" => Some("platform-b".to_string()),
+            "HOSTNAME" => Some("node-01.example".to_string()),
+            _ => None,
+        };
+        assert_eq!(resolved_site_name_with(lookup).expect("site"), "cluster-a");
     }
 
     #[test]
     fn resolved_site_name_requires_explicit_hpc_site() {
-        let _lock = ENV_LOCK.lock().expect("env lock");
-        unsafe {
-            std::env::remove_var("BIJUX_HPC_SITE");
-            std::env::set_var("BIJUX_PLATFORM", "apptainer-amd64");
-            std::env::set_var("HOSTNAME", "node-01.example");
-        }
-        let error = resolved_site_name().expect_err("missing BIJUX_HPC_SITE must fail");
+        let lookup = |key: &str| match key {
+            "BIJUX_PLATFORM" => Some("apptainer-amd64".to_string()),
+            "HOSTNAME" => Some("node-01.example".to_string()),
+            _ => None,
+        };
+        let error =
+            resolved_site_name_with(lookup).expect_err("missing BIJUX_HPC_SITE must fail");
         assert!(error
             .to_string()
             .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
-        unsafe {
-            std::env::remove_var("BIJUX_PLATFORM");
-            std::env::remove_var("HOSTNAME");
-        }
     }
 
     #[test]
