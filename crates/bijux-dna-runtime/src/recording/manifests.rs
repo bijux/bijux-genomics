@@ -22,7 +22,20 @@ fn canonical_sha256(value: &serde_json::Value) -> Result<String> {
 fn detect_run_context() -> crate::RunContextV1 {
     let mode = std::env::var("BIJUX_RUN_CONTEXT").unwrap_or_else(|_| "local".to_string());
     if mode.eq_ignore_ascii_case("hpc") {
-        let site = std::env::var("BIJUX_HPC_SITE").unwrap_or_else(|_| "lunarc".to_string());
+        let site = std::env::var("BIJUX_HPC_SITE")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .or_else(|| {
+                std::env::var("SLURM_CLUSTER_NAME")
+                    .ok()
+                    .filter(|value| !value.trim().is_empty())
+            })
+            .or_else(|| {
+                std::env::var("HOSTNAME")
+                    .ok()
+                    .filter(|value| !value.trim().is_empty())
+            })
+            .unwrap_or_else(|| "hpc".to_string());
         let scratch = std::env::var("TMPDIR").unwrap_or_else(|_| String::new());
         let slurm = std::env::var("SLURM_JOB_ID").is_ok();
         crate::RunContextV1::Hpc {
