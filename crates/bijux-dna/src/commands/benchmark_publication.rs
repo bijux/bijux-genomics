@@ -13,7 +13,6 @@ use crate::commands::benchmark_corpus_metadata::{
     CorpusSpecSample,
 };
 use crate::commands::benchmark_repo_checks::{audit_repo_checks, fail_on_repo_check_violations};
-use crate::commands::benchmark_stage_catalog::corpus_fastq_make_target;
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, corpus_01_publication_contract, load_benchmark_config,
     load_benchmark_publication_config, write_workspace_layout_status, BenchmarkConfig,
@@ -36,10 +35,48 @@ pub(crate) fn print_benchmark_publication_targets(
     let targets = corpus_01
         .contracts
         .into_iter()
-        .map(|contract| corpus_fastq_make_target(&contract.stage_id, &args.kind))
+        .map(|contract| {
+            corpus_fastq_publication_command(
+                &contract.stage_id,
+                &args.kind,
+                args.config.as_deref(),
+            )
+        })
         .collect::<Result<Vec<_>>>()?;
-    println!("{}", targets.join(" "));
+    println!("{}", targets.join("\n"));
     Ok(())
+}
+
+fn corpus_fastq_publication_command(
+    stage_id: &str,
+    kind: &str,
+    config: Option<&Path>,
+) -> Result<String> {
+    let mut command = vec!["bijux-dna".to_string(), "bench".to_string()];
+    match kind {
+        "run" => {
+            command.push("corpus-fastq".to_string());
+            command.push("--corpus-id".to_string());
+            command.push("corpus-01".to_string());
+            command.push("--stage".to_string());
+            command.push(stage_id.to_string());
+        }
+        "report" => {
+            command.push("corpus-fastq-report".to_string());
+            command.push("--stage".to_string());
+            command.push(stage_id.to_string());
+        }
+        other => {
+            return Err(anyhow!(
+                "unsupported benchmark publication target kind: {other}"
+            ));
+        }
+    }
+    if let Some(path) = config {
+        command.push("--config".to_string());
+        command.push(path.display().to_string());
+    }
+    Ok(command.join(" "))
 }
 
 pub(crate) fn run_corpus_fastq_publication_status(
@@ -3289,38 +3326,37 @@ mod tests {
     }
 
     #[test]
-    fn publication_target_maps_profile_overrepresented_stage() {
+    fn publication_command_maps_profile_overrepresented_stage_report() {
         assert_eq!(
-            crate::commands::benchmark_stage_catalog::corpus_fastq_make_target(
+            super::corpus_fastq_publication_command(
                 "fastq.profile_overrepresented_sequences",
                 "report",
+                None,
             )
-            .expect("report target"),
-            "_benchmark-profile-overrepresented-corpus-01-report"
+            .expect("report command"),
+            "bijux-dna bench corpus-fastq-report --stage fastq.profile_overrepresented_sequences"
         );
     }
 
     #[test]
-    fn publication_target_maps_merge_pairs_stage() {
+    fn publication_command_maps_merge_pairs_stage_run() {
         assert_eq!(
-            crate::commands::benchmark_stage_catalog::corpus_fastq_make_target(
-                "fastq.merge_pairs",
-                "run",
-            )
-            .expect("run target"),
-            "_benchmark-merge-corpus-01"
+            super::corpus_fastq_publication_command("fastq.merge_pairs", "run", None)
+                .expect("run command"),
+            "bijux-dna bench corpus-fastq --corpus-id corpus-01 --stage fastq.merge_pairs"
         );
     }
 
     #[test]
-    fn publication_target_maps_filter_reads_stage() {
+    fn publication_command_includes_config_override() {
         assert_eq!(
-            crate::commands::benchmark_stage_catalog::corpus_fastq_make_target(
+            super::corpus_fastq_publication_command(
                 "fastq.filter_reads",
                 "report",
+                Some(Path::new("configs/bench/alt.toml")),
             )
-            .expect("report target"),
-            "_benchmark-filter-reads-corpus-01-report"
+            .expect("report command"),
+            "bijux-dna bench corpus-fastq-report --stage fastq.filter_reads --config configs/bench/alt.toml"
         );
     }
 
