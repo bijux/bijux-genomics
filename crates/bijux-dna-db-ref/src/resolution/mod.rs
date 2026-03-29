@@ -1,8 +1,10 @@
+mod compatibility;
 mod maps;
 mod panels;
 mod reference_assets;
 mod species;
 
+pub use compatibility::validate_imputation_tool_compatibility;
 pub use maps::{resolve_map, resolve_map_lock};
 pub use panels::{resolve_panel, resolve_panel_lock};
 pub use reference_assets::{
