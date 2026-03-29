@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn validate_semantic_metrics(
+pub(crate) fn validate_semantic_metrics(
     artifacts: &[ArtifactRef],
 ) -> Option<serde_json::Value> {
     let report = artifacts
