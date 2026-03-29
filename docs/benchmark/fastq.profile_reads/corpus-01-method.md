@@ -40,8 +40,12 @@
 
 ## Workflow
 ```bash
-make _benchmark-profile-reads-corpus-01 PLATFORM=apptainer-amd64
-make _benchmark-profile-reads-corpus-01-report
+cargo run -q -p bijux-dna -- --platform apptainer-amd64 bench corpus-fastq \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.profile_reads
+cargo run -q -p bijux-dna -- bench corpus-fastq-report \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.profile_reads
 ```
 
 The default corpus root is loaded from `configs/bench/benchmark.toml`. Update that config or pass `--config` when rerendering against a different governed workspace.

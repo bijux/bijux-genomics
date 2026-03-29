@@ -39,8 +39,12 @@
 
 ## Workflow
 ```bash
-make _benchmark-deplete-host-corpus-01 PLATFORM=apptainer-amd64
-make _benchmark-deplete-host-corpus-01-report
+cargo run -q -p bijux-dna -- --platform apptainer-amd64 bench corpus-fastq \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.deplete_host
+cargo run -q -p bijux-dna -- bench corpus-fastq-report \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.deplete_host
 ```
 
 The runner resolves the governed reference index from `configs/bench/benchmark.toml` when `REFERENCE_INDEX` and `--reference-index` are left unset. Override the reference path only when you intentionally audit a non-governed host bundle.

@@ -18,8 +18,12 @@ The benchmark contract is:
 ## Workflow
 
 ```bash
-make _benchmark-trim-terminal-damage-corpus-01 PLATFORM=apptainer-amd64
-make _benchmark-trim-terminal-damage-corpus-01-report
+cargo run -q -p bijux-dna -- --platform apptainer-amd64 bench corpus-fastq \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.trim_terminal_damage
+cargo run -q -p bijux-dna -- bench corpus-fastq-report \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.trim_terminal_damage
 ```
 
 The make targets are thin wrappers over `bijux-dna bench ...` commands. They resolve the governed corpus root and run root from `configs/bench/benchmark.toml`; change that config or pass `--config` only when you intentionally target a different governed workspace.

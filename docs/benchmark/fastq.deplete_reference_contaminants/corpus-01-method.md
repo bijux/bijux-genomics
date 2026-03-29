@@ -35,8 +35,12 @@
 
 ## Workflow
 ```bash
-make _benchmark-deplete-reference-contaminants-corpus-01 PLATFORM=apptainer-amd64
-make _benchmark-deplete-reference-contaminants-corpus-01-report
+cargo run -q -p bijux-dna -- --platform apptainer-amd64 bench corpus-fastq \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.deplete_reference_contaminants
+cargo run -q -p bijux-dna -- bench corpus-fastq-report \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.deplete_reference_contaminants
 ```
 
 The runner resolves the governed contaminant reference lineage through `configs/bench/benchmark.toml` unless you intentionally override `REFERENCE_INDEX` or `--reference-index` for a non-governed audit.

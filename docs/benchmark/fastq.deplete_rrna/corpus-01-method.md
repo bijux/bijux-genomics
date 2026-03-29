@@ -34,8 +34,12 @@
 
 ## Workflow
 ```bash
-make _benchmark-deplete-rrna-corpus-01 PLATFORM=apptainer-amd64
-make _benchmark-deplete-rrna-corpus-01-report
+cargo run -q -p bijux-dna -- --platform apptainer-amd64 bench corpus-fastq \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.deplete_rrna
+cargo run -q -p bijux-dna -- bench corpus-fastq-report \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.deplete_rrna
 ```
 
 Use `RRNA_DB=...` or `RRNA_BUNDLE_ID=...` only when you intentionally audit a non-governed rRNA reference input. The default corpus root remains governed by `configs/bench/benchmark.toml`.
