@@ -253,8 +253,8 @@ fn bam_smoke_runner_minimal_path_has_report_sections() -> Result<()> {
         .get("contract")
         .and_then(|v| v.get("required_sections"))
         .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+        .unwrap_or_else(|| panic!("report missing contract.required_sections array"))
+        .clone();
     for section in required {
         if let Some(name) = section.as_str() {
             let in_root = report.get(name).is_some();

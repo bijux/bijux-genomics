@@ -36,7 +36,7 @@ fn public_types_are_documented_and_v1_scoped() -> Result<()> {
                 let name = trimmed
                     .split_whitespace()
                     .nth(2)
-                    .unwrap_or("")
+                    .unwrap_or_else(|| panic!("unable to parse public type name at {}:{}", entry.path().display(), idx + 1))
                     .trim_end_matches('{')
                     .trim_end_matches(';');
                 let mut doc_block = Vec::new();
