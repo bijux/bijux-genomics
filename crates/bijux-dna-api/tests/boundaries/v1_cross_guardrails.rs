@@ -12,7 +12,8 @@ fn v1_api_has_no_stage_id_literals() {
         .filter_map(Result::ok)
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
-        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        let content = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read {}: {err}", entry.path().display()));
         if content.contains("fastq.") || content.contains("bam.") {
             offenders.push(entry.path().display().to_string());
         }
