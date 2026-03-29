@@ -241,9 +241,21 @@ fn snapshot_row_from_record(record: &EnaRecord) -> SelectionRow {
     SelectionRow {
         accession: record.accession_label(),
         sample_accession: record.sample_accession.clone(),
-        read_layout: record.library_layout.clone().unwrap_or_default(),
-        library_type: record.library_strategy.clone().unwrap_or_default(),
-        instrument: record.instrument_model.clone().unwrap_or_default(),
+        read_layout: record
+            .library_layout
+            .clone()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| "not_declared".to_string()),
+        library_type: record
+            .library_strategy
+            .clone()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| "not_declared".to_string()),
+        instrument: record
+            .instrument_model
+            .clone()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| "not_declared".to_string()),
         base_count: record.base_count.unwrap_or(0),
         read_count: record.read_count.unwrap_or(0),
         fastq_ftp: record.fastq_ftp.clone(),
