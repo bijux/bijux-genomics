@@ -147,7 +147,7 @@ pub(super) fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
         });
     let payload = serde_json::json!({
         "schema_version": "bijux.site_lock.v1",
-        "site": resolved_site_name(),
+        "site": resolved_site_name()?,
         "apptainer_version": apptainer_version,
         "kernel": kernel,
         "cpu_model": cpu_model,
@@ -156,19 +156,9 @@ pub(super) fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn resolved_site_name() -> String {
+fn resolved_site_name() -> Result<String> {
     env_value("BIJUX_HPC_SITE")
-        .or_else(|| env_value("BIJUX_PLATFORM"))
-        .or_else(|| {
-            env_value("HOSTNAME").map(|value| {
-                value
-                    .split('.')
-                    .next()
-                    .unwrap_or(value.as_str())
-                    .to_string()
-            })
-        })
-        .unwrap_or_else(|| "unknown".to_string())
+        .ok_or_else(|| anyhow!("BIJUX_HPC_SITE must be declared for HPC site locks"))
 }
 
 fn env_value(key: &str) -> Option<String> {
@@ -193,7 +183,7 @@ mod tests {
             std::env::set_var("BIJUX_PLATFORM", "platform-b");
             std::env::set_var("HOSTNAME", "node-01.example");
         }
-        assert_eq!(resolved_site_name(), "cluster-a");
+        assert_eq!(resolved_site_name().expect("site"), "cluster-a");
         unsafe {
             std::env::remove_var("BIJUX_HPC_SITE");
             std::env::remove_var("BIJUX_PLATFORM");
@@ -202,22 +192,21 @@ mod tests {
     }
 
     #[test]
-    fn resolved_site_name_falls_back_to_platform_then_hostname() {
+    fn resolved_site_name_requires_explicit_hpc_site() {
         let _lock = ENV_LOCK.lock().expect("env lock");
         unsafe {
             std::env::remove_var("BIJUX_HPC_SITE");
             std::env::set_var("BIJUX_PLATFORM", "apptainer-amd64");
             std::env::set_var("HOSTNAME", "node-01.example");
         }
-        assert_eq!(resolved_site_name(), "apptainer-amd64");
+        let error = resolved_site_name().expect_err("missing BIJUX_HPC_SITE must fail");
+        assert!(error
+            .to_string()
+            .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
         unsafe {
             std::env::remove_var("BIJUX_PLATFORM");
-        }
-        assert_eq!(resolved_site_name(), "node-01");
-        unsafe {
             std::env::remove_var("HOSTNAME");
         }
-        assert_eq!(resolved_site_name(), "unknown");
     }
 
     #[test]
