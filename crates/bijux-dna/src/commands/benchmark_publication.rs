@@ -15,7 +15,8 @@ use crate::commands::benchmark_corpus_metadata::{
 use crate::commands::benchmark_repo_checks::{audit_repo_checks, fail_on_repo_check_violations};
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_publication_contract, benchmark_publication_contracts,
-    benchmark_publication_exclusions, benchmark_stage_run_relative_root,
+    benchmark_publication_exclusions, benchmark_runtime_corpus_dir_name,
+    benchmark_stage_run_relative_root,
     load_benchmark_config, write_workspace_layout_status, BenchmarkConfig,
     BenchmarkWorkspaceConfig, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
 };
@@ -236,16 +237,14 @@ fn render_corpus_fastq_dossier(
             ))
         }
     };
-    let configured_corpus_id = corpus_root
-        .file_name()
-        .and_then(|value| value.to_str())
-        .ok_or_else(|| anyhow!("invalid workspace.remote.corpus_root"))?;
+    let configured_corpus_id =
+        benchmark_runtime_corpus_dir_name(&benchmark_config.workspace, corpus_id)?;
     let run_root = if let Some(path) = explicit_run_root {
         absolutize(cwd, path)
     } else {
         let configured_roots = configured_stage_run_roots(
             &benchmark_config.workspace,
-            configured_corpus_id,
+            &configured_corpus_id,
             stage_id,
         )?;
         select_stage_run_root(&configured_roots).selected_path
@@ -1224,29 +1223,26 @@ fn build_dossier_stage_entry(
     let dossier_path = resolve_existing_dossier_path(&stage_docs_root);
 
     let remote_corpus_root = workspace_remote_corpus_root(workspace)?;
-    let remote_corpus_id = remote_corpus_root
-        .file_name()
-        .and_then(|value| value.to_str())
-        .ok_or_else(|| anyhow!("invalid workspace.remote.corpus_root"))?;
+    let remote_corpus_id = benchmark_runtime_corpus_dir_name(workspace, corpus_id)?;
     let expected_remote_run_root =
         workspace_remote_results_root(workspace)?.join(benchmark_stage_run_relative_root(
             workspace,
             "remote",
-            remote_corpus_id,
+            &remote_corpus_id,
             &contract.stage_id,
         )?);
     let expected_local_cache_mirror_run_root =
         workspace_local_cache_mirror_root(workspace)?.join(benchmark_stage_run_relative_root(
             workspace,
             "local-cache",
-            remote_corpus_id,
+            &remote_corpus_id,
             &contract.stage_id,
         )?);
     let expected_local_results_run_root =
         workspace_local_results_root(workspace)?.join(benchmark_stage_run_relative_root(
             workspace,
             "local-archive",
-            remote_corpus_id,
+            &remote_corpus_id,
             &contract.stage_id,
         )?);
     let mut entry = DossierStageEntry {
@@ -3677,6 +3673,61 @@ reason = "Compact validation fixture."
         assert_eq!(
             roots[1].path,
             PathBuf::from("/bench/local/archive/benchmark_corpus/fastq.validate_reads/cluster")
+        );
+    }
+
+    #[test]
+    fn dossier_stage_entry_uses_requested_corpus_contract() {
+        let temp = tempdir().expect("tempdir");
+        let docs_root = temp.path().join("docs").join("benchmark");
+        let cache_root = temp.path().join("cache-mirror");
+        let archive_root = temp.path().join("archive");
+        let remote_root = temp.path().join("remote");
+        let remote_corpus_root = remote_root.join("shared-corpus-root");
+        let workspace = sample_workspace(
+            &cache_root,
+            &archive_root,
+            &remote_root,
+            &remote_corpus_root,
+        );
+
+        let entry = super::build_dossier_stage_entry(
+            temp.path(),
+            &docs_root,
+            &workspace,
+            "corpus-01",
+            &validate_reads_contract(),
+        )
+        .expect("dossier entry");
+
+        assert_eq!(
+            entry.expected_remote_run_root,
+            remote_root
+                .join("results")
+                .join("corpus_01")
+                .join("fastq.validate_reads")
+                .join("cluster-apptainer")
+                .display()
+                .to_string()
+        );
+        assert_eq!(
+            entry.expected_local_cache_mirror_run_root,
+            cache_root
+                .join("results")
+                .join("corpus_01")
+                .join("fastq.validate_reads")
+                .join("cluster-apptainer")
+                .display()
+                .to_string()
+        );
+        assert_eq!(
+            entry.expected_local_results_run_root,
+            archive_root
+                .join("corpus_01")
+                .join("fastq.validate_reads")
+                .join("cluster-apptainer")
+                .display()
+                .to_string()
         );
     }
 
