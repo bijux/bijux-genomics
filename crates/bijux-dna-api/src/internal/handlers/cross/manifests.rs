@@ -54,7 +54,7 @@ pub fn write_cross_run_manifest(
         .get("run_id")
         .and_then(serde_json::Value::as_str)
         .filter(|value| !value.trim().is_empty())
-        .unwrap_or("not_recorded")
+        .ok_or_else(|| anyhow::anyhow!("fastq summary missing declared run_id"))?
         .to_string();
 
     let mut stages = Vec::new();
