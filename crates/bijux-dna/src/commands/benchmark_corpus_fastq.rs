@@ -14,8 +14,8 @@ use crate::commands::benchmark_corpus_metadata::{
 };
 use crate::commands::benchmark_stage_catalog::corpus_fastq_stage_catalog_entry;
 use crate::commands::benchmark_workspace::{
-    benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
-    benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_config,
+    benchmark_publication_contract, benchmark_runtime_corpus_dir_name,
+    benchmark_stage_run_relative_root, benchmark_workspace_value, load_benchmark_config,
     load_benchmark_workspace_config, BenchmarkConfig,
 };
 use crate::commands::cli::{BenchCorpusFastqArgs, BenchWorkspaceValueArgs, Cli};
@@ -220,15 +220,10 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             &repo_root,
             args.publication_config.as_deref(),
         );
-    if args.corpus_id != "corpus-01" {
-        return Err(anyhow!(
-            "unsupported corpus benchmark `{}`; publication contracts are currently governed only for corpus-01",
-            args.corpus_id
-        ));
-    }
-    let contract = corpus_01_publication_contract(
+    let contract = benchmark_publication_contract(
         &repo_root,
         args.publication_config.as_deref(),
+        &args.corpus_id,
         &args.stage,
     )?;
     let stage_spec = stage_command_spec(&args.stage)?;

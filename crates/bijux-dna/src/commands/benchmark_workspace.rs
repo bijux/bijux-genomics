@@ -1350,14 +1350,70 @@ pub(crate) fn corpus_01_publication_contract(
     explicit_path: Option<&Path>,
     stage_id: &str,
 ) -> Result<CorpusBenchmarkContract> {
+    benchmark_publication_contract(cwd, explicit_path, "corpus-01", stage_id)
+}
+
+pub(crate) fn benchmark_publication_contract(
+    cwd: &Path,
+    explicit_path: Option<&Path>,
+    corpus_id: &str,
+    stage_id: &str,
+) -> Result<CorpusBenchmarkContract> {
     let publication = load_benchmark_publication_config(cwd, explicit_path)?;
-    publication
-        .corpus_01
-        .unwrap_or_default()
-        .contracts
+    benchmark_publication_contracts_from_config(&publication, corpus_id)?
         .into_iter()
         .find(|row| row.stage_id == stage_id)
-        .ok_or_else(|| anyhow!("missing corpus-01 publication contract for {stage_id}"))
+        .ok_or_else(|| anyhow!("missing {corpus_id} publication contract for {stage_id}"))
+}
+
+pub(crate) fn benchmark_publication_contracts(
+    cwd: &Path,
+    explicit_path: Option<&Path>,
+    corpus_id: &str,
+) -> Result<Vec<CorpusBenchmarkContract>> {
+    let publication = load_benchmark_publication_config(cwd, explicit_path)?;
+    benchmark_publication_contracts_from_config(&publication, corpus_id)
+}
+
+pub(crate) fn benchmark_publication_exclusions(
+    cwd: &Path,
+    explicit_path: Option<&Path>,
+    corpus_id: &str,
+) -> Result<Vec<CorpusBenchmarkExclusion>> {
+    let publication = load_benchmark_publication_config(cwd, explicit_path)?;
+    benchmark_publication_exclusions_from_config(&publication, corpus_id)
+}
+
+fn benchmark_publication_contracts_from_config(
+    publication: &BenchmarkPublicationConfig,
+    corpus_id: &str,
+) -> Result<Vec<CorpusBenchmarkContract>> {
+    match corpus_id {
+        "corpus-01" => Ok(publication
+            .corpus_01
+            .clone()
+            .unwrap_or_default()
+            .contracts),
+        other => Err(anyhow!(
+            "unsupported publication corpus `{other}`; benchmark publication config does not define it"
+        )),
+    }
+}
+
+fn benchmark_publication_exclusions_from_config(
+    publication: &BenchmarkPublicationConfig,
+    corpus_id: &str,
+) -> Result<Vec<CorpusBenchmarkExclusion>> {
+    match corpus_id {
+        "corpus-01" => Ok(publication
+            .corpus_01
+            .clone()
+            .unwrap_or_default()
+            .exclusions),
+        other => Err(anyhow!(
+            "unsupported publication corpus `{other}`; benchmark publication config does not define it"
+        )),
+    }
 }
 
 #[cfg(test)]

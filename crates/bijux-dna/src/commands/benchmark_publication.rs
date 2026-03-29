@@ -14,9 +14,9 @@ use crate::commands::benchmark_corpus_metadata::{
 };
 use crate::commands::benchmark_repo_checks::{audit_repo_checks, fail_on_repo_check_violations};
 use crate::commands::benchmark_workspace::{
-    benchmark_corpus_spec_path, corpus_01_publication_contract, load_benchmark_config,
-    load_benchmark_publication_config, write_workspace_layout_status, BenchmarkConfig,
-    BenchmarkWorkspaceConfig, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
+    benchmark_corpus_spec_path, benchmark_publication_contract, benchmark_publication_contracts,
+    benchmark_publication_exclusions, load_benchmark_config, write_workspace_layout_status,
+    BenchmarkConfig, BenchmarkWorkspaceConfig, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
 };
 use crate::commands::cli::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
@@ -27,13 +27,12 @@ pub(crate) fn print_benchmark_publication_targets(
     cwd: &Path,
     args: &BenchPublicationTargetsArgs,
 ) -> Result<()> {
-    let publication = load_benchmark_publication_config(cwd, args.config.as_deref())?;
-    let Some(corpus_01) = publication.corpus_01 else {
+    let contracts = benchmark_publication_contracts(cwd, args.config.as_deref(), &args.corpus_id)?;
+    if contracts.is_empty() {
         println!();
         return Ok(());
-    };
-    let targets = corpus_01
-        .contracts
+    }
+    let targets = contracts
         .into_iter()
         .map(|contract| {
             corpus_fastq_publication_command(
@@ -101,20 +100,17 @@ pub(crate) fn run_corpus_fastq_published_dossiers(
     cwd: &Path,
     args: &BenchCorpusFastqPublishedDossiersArgs,
 ) -> Result<()> {
-    let publication = load_benchmark_publication_config(cwd, args.config.as_deref())?;
-    if let Some(corpus_01) = publication.corpus_01 {
-        for contract in corpus_01.contracts {
-            run_corpus_fastq_report(
-                cwd,
-                &BenchCorpusFastqReportArgs {
-                    stage: contract.stage_id,
-                    corpus_id: args.corpus_id.clone(),
-                    config: args.config.clone(),
-                    docs_root: args.docs_root.clone(),
-                    run_root: args.run_root.clone(),
-                },
-            )?;
-        }
+    for contract in benchmark_publication_contracts(cwd, args.config.as_deref(), &args.corpus_id)? {
+        run_corpus_fastq_report(
+            cwd,
+            &BenchCorpusFastqReportArgs {
+                stage: contract.stage_id,
+                corpus_id: args.corpus_id.clone(),
+                config: args.config.clone(),
+                docs_root: args.docs_root.clone(),
+                run_root: args.run_root.clone(),
+            },
+        )?;
     }
     run_corpus_fastq_publication_status(
         cwd,
@@ -212,7 +208,7 @@ fn render_corpus_fastq_dossier(
     explicit_run_root: Option<&Path>,
     stage_docs_root: &Path,
 ) -> Result<()> {
-    let contract = corpus_01_publication_contract(cwd, config_path, stage_id)?;
+    let contract = benchmark_publication_contract(cwd, config_path, "corpus-01", stage_id)?;
     let corpus_spec = load_corpus_spec(cwd, config_path, "corpus-01")?;
     let corpus_root = workspace_remote_corpus_root(&benchmark_config.workspace)?;
     let all_samples = discover_normalized_samples(
@@ -1019,11 +1015,7 @@ fn write_corpus_fastq_dossier_index(
 ) -> Result<()> {
     let config = load_benchmark_config(cwd, explicit_config)?;
     let workspace = &config.workspace;
-    let contracts = config
-        .publication
-        .corpus_01
-        .map(|row| row.contracts)
-        .unwrap_or_default();
+    let contracts = benchmark_publication_contracts(cwd, explicit_config, "corpus-01")?;
 
     let stages = contracts
         .iter()
@@ -1075,11 +1067,7 @@ fn write_corpus_fastq_results_status(
 ) -> Result<()> {
     let config = load_benchmark_config(cwd, explicit_config)?;
     let workspace = &config.workspace;
-    let contracts = config
-        .publication
-        .corpus_01
-        .map(|row| row.contracts)
-        .unwrap_or_default();
+    let contracts = benchmark_publication_contracts(cwd, explicit_config, "corpus-01")?;
     let report = audit_published_results(cwd, workspace, docs_root, &contracts)?;
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
     let json_path = docs_root.join("corpus-01-results-status.json");
@@ -1099,11 +1087,11 @@ fn write_corpus_fastq_docs_status(
     explicit_config: Option<&Path>,
     docs_root: &Path,
 ) -> Result<()> {
-    let config = load_benchmark_config(cwd, explicit_config)?;
-    let publication = config.publication;
-    let Some(corpus_01) = publication.corpus_01 else {
+    let contracts = benchmark_publication_contracts(cwd, explicit_config, "corpus-01")?;
+    if contracts.is_empty() {
         return Ok(());
-    };
+    }
+    let exclusions = benchmark_publication_exclusions(cwd, explicit_config, "corpus-01")?;
     let corpus_spec = load_publication_corpus_spec(cwd, explicit_config)?;
     let (supplemental_findings, mut audit_warnings, findings_generated_at_utc) =
         load_supplemental_findings(&docs_root.join("corpus-01-publication-findings.json"))?;
@@ -1113,8 +1101,8 @@ fn write_corpus_fastq_docs_status(
     let report = audit_publication_docs(
         cwd,
         docs_root,
-        &corpus_01.contracts,
-        &corpus_01.exclusions,
+        &contracts,
+        &exclusions,
         &corpus_spec,
         &supplemental_findings,
         &results_by_stage,
@@ -1142,11 +1130,7 @@ fn write_corpus_fastq_remediation_queue(
     let results_status = load_json_value(&docs_root.join("corpus-01-results-status.json"))?;
     let findings_payload = load_json_value(&docs_root.join("corpus-01-publication-findings.json"))?;
     let dossier_index = load_json_value(&docs_root.join("corpus-01-dossier-index.json"))?;
-    let publication = load_benchmark_publication_config(cwd, explicit_config)?;
-    let contracts = publication
-        .corpus_01
-        .map(|row| row.contracts)
-        .unwrap_or_default();
+    let contracts = benchmark_publication_contracts(cwd, explicit_config, "corpus-01")?;
     let queue = build_remediation_queue(
         &contracts,
         &publication_status,
