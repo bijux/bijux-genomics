@@ -1,41 +1,8 @@
-//! Owner: bijux-dna-analyze
-//! Failure classification and structured remediation hints.
-//! Owns stable failure IDs and remediation guidance.
-//! Must not perform IO or depend on pipeline/report layers.
-//! Invariants: failure kinds are stable and hints are structured.
-
-use serde::Serialize;
-
-use bijux_dna_core::prelude::errors::{ErrorCategory, ErrorHintV1, HintSeverity};
+use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::RawFailure;
 
-#[derive(Debug, Clone, Copy, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum FailureKind {
-    ToolExit,
-    ContractViolation,
-    ObserverParse,
-    DataInvalid,
-    ResourceExhaustion,
-    ImageError,
-}
-
-#[derive(Debug, Clone, Copy, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum FailureClass {
-    ContractError,
-    ToolError,
-    EnvironmentError,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct BenchmarkFailure {
-    pub stage: String,
-    pub tool: String,
-    pub kind: FailureKind,
-    pub reason: String,
-    pub hints: Vec<ErrorHintV1>,
-}
+use super::hints::remediation_hints_for_failure;
+use super::{BenchmarkFailure, FailureClass, FailureKind};
 
 #[must_use]
 pub fn failure_class(kind: FailureKind) -> FailureClass {
@@ -97,56 +64,6 @@ pub fn classify_raw_failure(raw: &RawFailure) -> BenchmarkFailure {
         reason: raw.reason.clone(),
         hints: remediation_hints_for_failure(raw),
     }
-}
-
-#[must_use]
-fn remediation_hints_for_failure(raw: &RawFailure) -> Vec<ErrorHintV1> {
-    let msg = raw.reason.to_lowercase();
-    let mut hints = Vec::new();
-    if msg.contains("adapter") || msg.contains("adapter preset") {
-        hints.push(ErrorHintV1 {
-            id: "adapter_preset_missing".to_string(),
-            category: ErrorCategory::ContractError,
-            severity: HintSeverity::Medium,
-            message: "Adapter preset missing or invalid".to_string(),
-            suggested_action: "Configure a valid adapter preset or supply an adapter file"
-                .to_string(),
-            docs_link_key: Some("adapters".to_string()),
-        });
-    }
-    if msg.contains("polyg") || msg.contains("poly-g") {
-        hints.push(ErrorHintV1 {
-            id: "polyg_artifact".to_string(),
-            category: ErrorCategory::ContractError,
-            severity: HintSeverity::Low,
-            message: "Poly-G artifact suspected".to_string(),
-            suggested_action: "Enable illumina_twocolor or configure polyG filtering".to_string(),
-            docs_link_key: Some("polyg".to_string()),
-        });
-    }
-    if raw.stage == "fastq.screen_taxonomy" || msg.contains("contaminant") {
-        hints.push(ErrorHintV1 {
-            id: "contamination_screen".to_string(),
-            category: ErrorCategory::ContractError,
-            severity: HintSeverity::Medium,
-            message: "Potential contaminant signal detected".to_string(),
-            suggested_action: "Review contaminant screen output and adjust contaminant bank"
-                .to_string(),
-            docs_link_key: Some("contamination".to_string()),
-        });
-    }
-    if msg.contains("missing outputs") {
-        hints.push(ErrorHintV1 {
-            id: "missing_outputs".to_string(),
-            category: ErrorCategory::ToolError,
-            severity: HintSeverity::High,
-            message: "Expected outputs missing".to_string(),
-            suggested_action: "Check tool output paths, permissions, and working directory"
-                .to_string(),
-            docs_link_key: Some("outputs".to_string()),
-        });
-    }
-    hints
 }
 
 #[cfg(test)]
