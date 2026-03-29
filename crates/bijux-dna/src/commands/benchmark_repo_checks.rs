@@ -232,14 +232,17 @@ fn regex_matches(
     let mut matches = Vec::new();
     for path in paths {
         for (line_number, line) in repo_check_lines(path)?.iter().enumerate() {
-            if !patterns.iter().any(|pattern| pattern.is_match(line)) {
+            let Some(literal) = patterns
+                .iter()
+                .find_map(|pattern| pattern.find(line).map(|matched| matched.as_str().to_string()))
+            else {
                 continue;
-            }
+            };
             matches.push(RepoCheckViolation {
                 issue_id: issue_id.to_string(),
                 path: relative_to_root(repo_root, path)?.to_string(),
                 line: line_number + 1,
-                literal: "lunarc host literal".to_string(),
+                literal,
                 content: line.trim().to_string(),
             });
         }
@@ -311,29 +314,24 @@ mod tests {
         let repo_root = temp.path();
         let script_path = repo_root.join("makes/bin/example.py");
         fs::create_dir_all(script_path.parent().expect("script dir")).expect("create script dir");
-        fs::write(
-            &script_path,
-            "RESULTS_ROOT = \"/Users/bijan/bijux/bijux-dna-results\"\n",
-        )
-        .expect("write script");
+        fs::write(&script_path, "RESULTS_ROOT = \"/Users/operator/workspace/results\"\n")
+            .expect("write script");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
         assert_eq!(report.violations[0].issue_id, "hardcoded-local-user-path");
+        assert_eq!(report.violations[0].literal, "/Users/operator/");
     }
 
     #[test]
     fn repo_checks_ignore_test_fixture_paths() {
         let temp = tempfile::tempdir().expect("tempdir");
         let repo_root = temp.path();
-        let fixture_path = repo_root.join("makes/bin/test_corpus_01_fastq_benchmarks.py");
+        let fixture_path = repo_root.join("makes/bin/test_benchmark_fastq_suite.py");
         fs::create_dir_all(fixture_path.parent().expect("fixture dir"))
             .expect("create fixture dir");
-        fs::write(
-            &fixture_path,
-            "LOCAL_RESULTS = \"/Users/bijan/bijux/bijux-dna-results\"\n",
-        )
-        .expect("write fixture");
+        fs::write(&fixture_path, "LOCAL_RESULTS = \"/Users/operator/workspace/results\"\n")
+            .expect("write fixture");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 0);
@@ -351,10 +349,11 @@ mod tests {
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
         assert_eq!(report.violations[0].issue_id, "hardcoded-remote-user-path");
+        assert_eq!(report.violations[0].literal, "/home/alice/");
     }
 
     #[test]
-    fn repo_checks_flag_hardcoded_lunarc_host_alias() {
+    fn repo_checks_flag_hardcoded_site_host_alias() {
         let temp = tempfile::tempdir().expect("tempdir");
         let repo_root = temp.path();
         let makefile_path = repo_root.join("makes/sync.mk");
@@ -368,6 +367,7 @@ mod tests {
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
         assert_eq!(report.violations[0].issue_id, "hardcoded-ssh-host-alias");
+        assert_eq!(report.violations[0].literal, "\"lunarc:results-mirror/\"");
     }
 
     #[test]
