@@ -51,7 +51,7 @@ cargo run -q -p bijux-dna -- bench corpus-fastq-published-dossiers \
 
 Those commands pull the governed results mirror, preserve the sync profile contract from `configs/hpc/lunarc_sync_profiles.toml`, normalize the local archive layout, refresh the published dossiers, and rebuild the publication audits.
 
-`make benchmark-lunarc-publication-refresh` remains an optional wrapper around that governed sequence; it is not the benchmark authority.
+`make benchmark-publication-refresh` remains an optional wrapper around that governed sequence; it is not the benchmark authority. `make benchmark-lunarc-publication-refresh` remains only as a compatibility alias.
 
 The default pull base, pull mode, sync profiles, repo cleanliness checks, and supplemental manifest settings now belong to `[sync.defaults]` in `configs/bench/benchmark.toml`. Use environment overrides only when the current operation genuinely needs to diverge from the governed defaults.
 

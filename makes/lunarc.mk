@@ -26,19 +26,23 @@ LUNARC_APPTAINER_BUILD_TAG ?= hpc-all71-j10
 LUNARC_FRONTEND_SENTINEL ?= $(LUNARC_REPO_DIR)
 LUNARC_APPTAINER_BASE_SEED_DIR ?= $(LUNARC_CONTAINERS_ROOT)/base
 
-_push-lunarc: ## Push repo to Lunarc with safety checks and remote git status
+_benchmark-sync-push: ## Push the governed benchmark repo checkout to the remote frontend
 	@BENCHMARK_SYNC_CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
 	BENCHMARK_SYNC_ALLOW_DIRTY="$(ALLOW_DIRTY)" \
 	cargo run -q -p bijux-dna-dev -- hpc run lunarc/push
 
-push-lunarc: _push-lunarc ## Public alias for pushing repo to Lunarc
+benchmark-sync-push: _benchmark-sync-push ## Push the governed benchmark repo checkout to the remote frontend
 
-push-lunarc-confirm: ## Push repo to Lunarc (executes --confirm)
+push-lunarc: benchmark-sync-push ## Compatibility alias for benchmark-sync-push
+
+benchmark-sync-push-confirm: ## Push the governed benchmark repo checkout to the remote frontend with --confirm
 	@BENCHMARK_SYNC_CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
 	BENCHMARK_SYNC_ALLOW_DIRTY="$(ALLOW_DIRTY)" \
 	cargo run -q -p bijux-dna-dev -- hpc run lunarc/push --confirm
 
-_pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: results)
+push-lunarc-confirm: benchmark-sync-push-confirm ## Compatibility alias for benchmark-sync-push-confirm
+
+_benchmark-sync-pull: ## Pull the governed benchmark mirror into the default local destination
 	@BENCHMARK_SYNC_PULL_BASE="$(LUNARC_PULL_BASE)" \
 	BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	BENCHMARK_SYNC_DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
@@ -47,9 +51,11 @@ _pull-lunarc: ## Pull from Lunarc into timestamped local dir (default mode: resu
 		--include-profile "$(LUNARC_INCLUDE_PROFILE)" \
 		--exclude-profile "$(LUNARC_EXCLUDE_PROFILE)"
 
-pull-lunarc: _pull-lunarc ## Public alias for pull from Lunarc
+benchmark-sync-pull: _benchmark-sync-pull ## Pull the governed benchmark mirror into the default local destination
 
-_pull-lunarc-results: ## Recommended: pull results + optional manifests only
+pull-lunarc: benchmark-sync-pull ## Compatibility alias for benchmark-sync-pull
+
+_benchmark-sync-pull-results: ## Pull governed benchmark results and optional manifests into the local archive root
 	@BENCHMARK_SYNC_PULL_DEST="$(LUNARC_LOCAL_RESULTS_DIR)" \
 	BENCHMARK_SYNC_PULL_BASE="$(LUNARC_PULL_BASE)" \
 	BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
@@ -59,20 +65,26 @@ _pull-lunarc-results: ## Recommended: pull results + optional manifests only
 		--include-profile "$(LUNARC_INCLUDE_PROFILE)" \
 		--exclude-profile "$(LUNARC_EXCLUDE_PROFILE)"
 
-pull-lunarc-results: _pull-lunarc-results ## Public alias for pull results from Lunarc
+benchmark-sync-pull-results: _benchmark-sync-pull-results ## Pull governed benchmark results into the local archive root
 
-pull-lunarc-results-prune: _pull-lunarc-results ## Pull results locally, then clear remote results payload
+pull-lunarc-results: benchmark-sync-pull-results ## Compatibility alias for benchmark-sync-pull-results
+
+benchmark-sync-pull-results-prune: _benchmark-sync-pull-results ## Pull governed results locally, then clear the remote results payload
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
 		mkdir -p "$(LUNARC_RESULTS_DIR)"; \
 		find "$(LUNARC_RESULTS_DIR)" -mindepth 1 -maxdepth 1 ! -name site_lock.json -exec rm -rf {} +'
 
-benchmark-lunarc-publication-refresh: ## Pull governed publication inputs, render dossiers, and refresh audits
-	@$(MAKE) pull-lunarc-results \
+pull-lunarc-results-prune: benchmark-sync-pull-results-prune ## Compatibility alias for benchmark-sync-pull-results-prune
+
+benchmark-publication-refresh: ## Pull governed publication inputs, render dossiers, and refresh audits
+	@$(MAKE) benchmark-sync-pull-results \
 		LUNARC_INCLUDE_PROFILE="pull-benchmark-publication" \
 		INCLUDE_CONTAINERS_MANIFEST=1 \
 		DATA_MANIFEST_GLOB="benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db/lineage.tsv"
 	@$(MAKE) _benchmark-normalize-local-results-layout
 	@$(MAKE) _benchmark-corpus-01-published-dossiers
+
+benchmark-lunarc-publication-refresh: benchmark-publication-refresh ## Compatibility alias for benchmark-publication-refresh
 
 lunarc-footprint: ## Report Lunarc frontend footprint and fail above 20 GB
 	@ssh "$(LUNARC_HOST)" 'set -euo pipefail; \
@@ -101,7 +113,7 @@ apptainer-lunarc-build: ## Push repo then build all apptainer SIFs on Lunarc fro
 		exit 2; \
 	fi
 	@if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then \
-		$(MAKE) _push-lunarc; \
+		$(MAKE) _benchmark-sync-push; \
 	else \
 		echo "skip push: current directory is not a git worktree"; \
 	fi
@@ -243,4 +255,4 @@ apptainer-hpc-clean: ## Remove frontend apptainer output dir
 		rm -rf "$(LUNARC_APPTAINER_DIR)"; \
 		echo "removed $(LUNARC_APPTAINER_DIR)"
 
-.PHONY: _push-lunarc push-lunarc push-lunarc-confirm _pull-lunarc pull-lunarc _pull-lunarc-results pull-lunarc-results pull-lunarc-results-prune benchmark-lunarc-publication-refresh lunarc-footprint lunarc-prune-code apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean
+.PHONY: _benchmark-sync-push benchmark-sync-push push-lunarc benchmark-sync-push-confirm push-lunarc-confirm _benchmark-sync-pull benchmark-sync-pull pull-lunarc _benchmark-sync-pull-results benchmark-sync-pull-results pull-lunarc-results benchmark-sync-pull-results-prune pull-lunarc-results-prune benchmark-publication-refresh benchmark-lunarc-publication-refresh lunarc-footprint lunarc-prune-code apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean
