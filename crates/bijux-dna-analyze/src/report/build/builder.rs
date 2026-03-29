@@ -2,23 +2,27 @@ use anyhow::{Context, Result};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-pub use super::bench::{bench_schema_json, print_bench_schema};
-pub use super::bench::{derived_metrics_for_stage_json, rank_trim_tools};
-pub use super::bench::{
+pub use crate::report::bench::{bench_schema_json, print_bench_schema};
+pub use crate::report::bench::{derived_metrics_for_stage_json, rank_trim_tools};
+pub use crate::report::bench::{
     write_correct_report, write_filter_report, write_merge_report, write_qc_post_report,
     write_screen_report, write_stats_report, write_trim_polyg_report, write_trim_report,
     write_trim_terminal_damage_report, write_umi_report, write_validate_report,
 };
+use super::report_sections::{
+    data_contract_validation_section, key_findings_section, pipeline_overview_section,
+};
+use super::support::{
+    banks_from_report, contaminant_summary_section, qc_delta_section, read_json_value,
+    retention_context_from_report, stage_report_fields, telemetry_counts,
+    telemetry_decisions_from_paths, telemetry_path_from_stage_report,
+    telemetry_timeline_from_paths,
+};
 
-#[allow(clippy::cast_precision_loss)]
-fn u64_to_f64(value: u64) -> f64 {
-    value as f64
-}
-
-use super::sections::schema::{
+use crate::report::sections::schema::{
     build_report_sections, report_completeness, report_contract, report_metric_semantics,
 };
-use super::sections::{
+use crate::report::sections::{
     accounting_section, adapter_config_section, adapter_inference_section, assertions_section,
     bam_accounting_section, bam_findings_section, bam_plots_section, bam_verdict_table,
     bench_summary_section, claims_registry_section, comparison_view_section, decision_trace_section,
@@ -38,9 +42,8 @@ use bijux_dna_core::contract::objective_spec;
 use bijux_dna_domain_bam::prelude::STAGE_PREFIX as BAM_STAGE_PREFIX;
 use bijux_dna_domain_fastq::prelude::STAGE_PREFIX as FASTQ_STAGE_PREFIX;
 use bijux_dna_runtime::{
-    AssetsProvenanceV1, FactsRowV1, FilterReportV1, ReportProvenanceV1, ReportSchemaV1,
-    ReportStageSummaryV1, RetentionContextV1, RetentionDefinitionV1, RetentionReportV1,
-    StageReportV1, TelemetryEventV1,
+    AssetsProvenanceV1, FactsRowV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1,
+    StageReportV1,
 };
 
 fn required_vcf_metric_keys(stage_id: &str) -> &'static [&'static str] {
@@ -789,4 +792,3 @@ fn normalize_report_path(base_dir: &Path, raw: &str) -> String {
 pub fn write_run_summary_from_facts(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
     write_run_summary_json(path, rows)
 }
-include!("builder_report_sections.rs");
