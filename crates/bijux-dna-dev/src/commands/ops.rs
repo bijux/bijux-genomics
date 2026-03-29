@@ -2448,7 +2448,7 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
 fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [flag] if flag == "--help" || flag == "-h") || args.is_empty() {
         return success_line(
-            "Usage: cargo run -p bijux-dna-dev -- tooling run benchmarks -- <fastq-stage|fastq-preprocess|fastq-all|fastq-status|bam-stage|bam-pipeline|bam-all>",
+            "Usage: cargo run -p bijux-dna-dev -- tooling run benchmarks -- <bam-stage|bam-pipeline|bam-all>",
         );
     }
     let mode = args[0].as_str();
@@ -2475,10 +2475,6 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
     let tools = std::env::var("TOOLS")
         .ok()
         .filter(|value| !value.is_empty());
-    let allow_experimental = env_flag("ALLOW_EXPERIMENTAL");
-    let sample_id = std::env::var("SAMPLE_ID").unwrap_or_default();
-    let r1 = std::env::var("R1").unwrap_or_default();
-    let r2 = std::env::var("R2").unwrap_or_default();
     let bam = std::env::var("BAM").unwrap_or_default();
     let bam_profile =
         std::env::var("BAM_PROFILE").unwrap_or_else(|_| "bam-to-bam__default__v1".to_string());
@@ -2490,7 +2486,6 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
         out_dir: &Path,
         tools: &Option<String>,
         allow_experimental: bool,
-        allow_experimental_for_mode: bool,
     ) {
         argv.push("--out".to_string());
         argv.push(out_dir.display().to_string());
@@ -2498,7 +2493,7 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
             argv.push("--tools".to_string());
             argv.push(tools.clone());
         }
-        if allow_experimental && allow_experimental_for_mode {
+        if allow_experimental {
             argv.push("--allow-experimental".to_string());
         }
     }
@@ -2506,29 +2501,6 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
     fn run_bijux_bench(workspace: &Workspace, argv: Vec<String>) -> Result<OpsCommandOutcome> {
         tooling_run_bijux(workspace, &argv)
     }
-
-    let run_fastq_stage = |workspace: &Workspace, stage: &str| -> Result<OpsCommandOutcome> {
-        if stage.is_empty() || sample_id.is_empty() || r1.is_empty() {
-            return Ok(OpsCommandOutcome::failure(
-                "ERROR: set STAGE=<trim|validate|...> SAMPLE_ID=<id> R1=<path>\n",
-            ));
-        }
-        let mut argv = vec![
-            "bench".to_string(),
-            "fastq".to_string(),
-            stage.to_string(),
-            "--sample-id".to_string(),
-            sample_id.clone(),
-            "--r1".to_string(),
-            r1.clone(),
-        ];
-        if !r2.is_empty() {
-            argv.push("--r2".to_string());
-            argv.push(r2.clone());
-        }
-        push_common_bench_args(&mut argv, &out_dir, &tools, allow_experimental, true);
-        run_bijux_bench(workspace, argv)
-    };
 
     let run_bam_stage = |workspace: &Workspace| -> Result<OpsCommandOutcome> {
         if bam.is_empty() {
@@ -2547,7 +2519,7 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
             "--bam".to_string(),
             bam.clone(),
         ];
-        push_common_bench_args(&mut argv, &out_dir, &tools, allow_experimental, false);
+        push_common_bench_args(&mut argv, &out_dir, &tools, false);
         run_bijux_bench(workspace, argv)
     };
 
@@ -2568,58 +2540,11 @@ fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsComma
             "--bam".to_string(),
             bam.clone(),
         ];
-        push_common_bench_args(&mut argv, &out_dir, &tools, allow_experimental, false);
+        push_common_bench_args(&mut argv, &out_dir, &tools, false);
         run_bijux_bench(workspace, argv)
     };
 
     match mode {
-        "fastq-stage" => run_fastq_stage(workspace, &std::env::var("STAGE").unwrap_or_default()),
-        "fastq-preprocess" => {
-            if sample_id.is_empty() || r1.is_empty() {
-                return Ok(OpsCommandOutcome::failure(
-                    "ERROR: set SAMPLE_ID=<id> R1=<path>\n",
-                ));
-            }
-            let mut argv = vec![
-                "bench".to_string(),
-                "fastq".to_string(),
-                "preprocess".to_string(),
-                "--sample-id".to_string(),
-                sample_id,
-                "--r1".to_string(),
-                r1,
-            ];
-            push_common_bench_args(&mut argv, &out_dir, &tools, allow_experimental, true);
-            run_bijux_bench(workspace, argv)
-        }
-        "fastq-all" => {
-            let mut aggregate = OpsCommandOutcome::success(String::new());
-            for stage in ["validate", "trim", "filter", "stats", "qc-post", "screen"] {
-                aggregate = merge_outcomes(aggregate, run_fastq_stage(workspace, stage)?);
-                if !aggregate.is_success() {
-                    return Ok(aggregate);
-                }
-            }
-            aggregate = merge_outcomes(
-                aggregate,
-                tooling_benchmarks(workspace, &["fastq-preprocess".to_string()])?,
-            );
-            if !aggregate.is_success() {
-                return Ok(aggregate);
-            }
-            if !r2.is_empty() {
-                for stage in ["merge", "correct", "umi"] {
-                    aggregate = merge_outcomes(aggregate, run_fastq_stage(workspace, stage)?);
-                    if !aggregate.is_success() {
-                        return Ok(aggregate);
-                    }
-                }
-            }
-            Ok(aggregate)
-        }
-        "fastq-status" => {
-            run_bijux_bench(workspace, vec!["bench".to_string(), "status".to_string()])
-        }
         "bam-stage" => run_bam_stage(workspace),
         "bam-pipeline" => run_bam_pipeline(workspace),
         "bam-all" => {
@@ -2698,20 +2623,19 @@ fn tooling_benchmark_integrity_mini(
             "run".to_string(),
             "-q".to_string(),
             "-p".to_string(),
-            "bijux-dna-dev".to_string(),
+            "bijux-dna".to_string(),
             "--".to_string(),
-            "tooling".to_string(),
-            "run".to_string(),
-            "benchmarks".to_string(),
-            "--".to_string(),
-            "fastq-stage".to_string(),
+            "bench".to_string(),
+            "fastq".to_string(),
+            "validate".to_string(),
+            "--sample-id".to_string(),
+            sample_id.clone(),
+            "--r1".to_string(),
+            r1.display().to_string(),
+            "--out".to_string(),
+            run_a.display().to_string(),
         ],
-        &[
-            ("OUT_DIR".to_string(), run_a.display().to_string()),
-            ("SAMPLE_ID".to_string(), sample_id.clone()),
-            ("R1".to_string(), r1.display().to_string()),
-            ("STAGE".to_string(), "validate".to_string()),
-        ],
+        &[],
     )?;
     if !first.is_success() {
         return Ok(first);
@@ -2723,20 +2647,19 @@ fn tooling_benchmark_integrity_mini(
             "run".to_string(),
             "-q".to_string(),
             "-p".to_string(),
-            "bijux-dna-dev".to_string(),
+            "bijux-dna".to_string(),
             "--".to_string(),
-            "tooling".to_string(),
-            "run".to_string(),
-            "benchmarks".to_string(),
-            "--".to_string(),
-            "fastq-stage".to_string(),
+            "bench".to_string(),
+            "fastq".to_string(),
+            "validate".to_string(),
+            "--sample-id".to_string(),
+            sample_id.clone(),
+            "--r1".to_string(),
+            r1.display().to_string(),
+            "--out".to_string(),
+            run_b.display().to_string(),
         ],
-        &[
-            ("OUT_DIR".to_string(), run_b.display().to_string()),
-            ("SAMPLE_ID".to_string(), sample_id.clone()),
-            ("R1".to_string(), r1.display().to_string()),
-            ("STAGE".to_string(), "validate".to_string()),
-        ],
+        &[],
     )?;
     if !second.is_success() {
         return Ok(second);
