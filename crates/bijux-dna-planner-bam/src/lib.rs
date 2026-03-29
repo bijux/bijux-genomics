@@ -75,133 +75,15 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
         | bijux_dna_domain_bam::BamStage::OverlapCorrection => {
             stage_dispatch::pre::plan(stage, &request)
         }
-        bijux_dna_domain_bam::BamStage::Markdup => {
-            let bam = request.bam.ok_or_else(|| anyhow!("markdup requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Markdup(params) = params else {
-                return Err(anyhow!("markdup params mismatch"));
-            };
-            let mut plan = tool_adapters::stages_post::markdup::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
-            Ok(plan)
-        }
-        bijux_dna_domain_bam::BamStage::DuplicationMetrics => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("duplication_metrics requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::DuplicationMetrics(params) =
-                params
-            else {
-                return Err(anyhow!("duplication_metrics params mismatch"));
-            };
-            let mut plan = tool_adapters::stages_post::duplication_metrics::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
-            Ok(plan)
-        }
-        bijux_dna_domain_bam::BamStage::Complexity => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("complexity requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Complexity(params) = params
-            else {
-                return Err(anyhow!("complexity params mismatch"));
-            };
-            tool_adapters::stages_post::complexity::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )
-        }
-        bijux_dna_domain_bam::BamStage::Coverage => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("coverage requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Coverage(params) = params else {
-                return Err(anyhow!("coverage params mismatch"));
-            };
-            tool_adapters::stages_post::coverage::plan(request.tool, bam, request.out_dir, &params)
-        }
-        bijux_dna_domain_bam::BamStage::InsertSize => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("insert_size requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::InsertSize(params) = params
-            else {
-                return Err(anyhow!("insert_size params mismatch"));
-            };
-            tool_adapters::stages_post::insert_size::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )
-        }
-        bijux_dna_domain_bam::BamStage::GcBias => {
-            let bam = request.bam.ok_or_else(|| anyhow!("gc_bias requires bam"))?;
-            let reference = request
-                .reference
-                .ok_or_else(|| anyhow!("gc_bias requires reference"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::GcBias(params) = params else {
-                return Err(anyhow!("gc_bias params mismatch"));
-            };
-            tool_adapters::stages_post::gc_bias::plan(
-                request.tool,
-                bam,
-                reference,
-                request.out_dir,
-                &params,
-            )
-        }
-        bijux_dna_domain_bam::BamStage::EndogenousContent => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("endogenous_content requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::EndogenousContent(params) =
-                params
-            else {
-                return Err(anyhow!("endogenous_content params mismatch"));
-            };
-            let mut plan = tool_adapters::stages_post::coverage::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
-            Ok(plan)
-        }
-        bijux_dna_domain_bam::BamStage::Recalibration => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("recalibration requires bam"))?;
-            let params = params::effective_params_for_stage(stage, request.params)?;
-            let bijux_dna_domain_bam::params::BamEffectiveParams::Recalibration(params) = params
-            else {
-                return Err(anyhow!("recalibration params mismatch"));
-            };
-            tool_adapters::stages_post::recalibration::plan(
-                request.tool,
-                bam,
-                request.out_dir,
-                &params,
-            )
+        bijux_dna_domain_bam::BamStage::Markdup
+        | bijux_dna_domain_bam::BamStage::DuplicationMetrics
+        | bijux_dna_domain_bam::BamStage::Complexity
+        | bijux_dna_domain_bam::BamStage::Coverage
+        | bijux_dna_domain_bam::BamStage::InsertSize
+        | bijux_dna_domain_bam::BamStage::GcBias
+        | bijux_dna_domain_bam::BamStage::EndogenousContent
+        | bijux_dna_domain_bam::BamStage::Recalibration => {
+            stage_dispatch::post::plan(stage, &request)
         }
         bijux_dna_domain_bam::BamStage::Damage => {
             let bam = request.bam.ok_or_else(|| anyhow!("damage requires bam"))?;
