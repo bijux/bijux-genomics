@@ -50,8 +50,12 @@ A complete published dossier for this stage contains:
 ## Workflow
 
 ```bash
-make _benchmark-merge-corpus-01 PLATFORM=apptainer-amd64
-make _benchmark-merge-corpus-01-report
+cargo run -q -p bijux-dna -- --platform apptainer-amd64 bench corpus-fastq \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.merge_pairs
+cargo run -q -p bijux-dna -- bench corpus-fastq-report \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.merge_pairs
 ```
 
 The runner resolves the governed paired corpus root through `configs/bench/benchmark.toml`. Change that config or pass `--config` only when you intentionally target a different governed workspace.

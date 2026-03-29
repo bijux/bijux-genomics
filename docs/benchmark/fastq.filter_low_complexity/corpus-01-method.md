@@ -35,8 +35,12 @@
 
 ## Workflow
 ```bash
-make _benchmark-filter-low-complexity-corpus-01 PLATFORM=apptainer-amd64
-make _benchmark-filter-low-complexity-corpus-01-report
+cargo run -q -p bijux-dna -- --platform apptainer-amd64 bench corpus-fastq \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.filter_low_complexity
+cargo run -q -p bijux-dna -- bench corpus-fastq-report \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.filter_low_complexity
 ```
 
 The runner and dossier command resolve the governed corpus root through `configs/bench/benchmark.toml`; change that config or pass `--config` only when you intentionally target a different governed workspace.

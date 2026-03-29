@@ -38,8 +38,12 @@
 
 ## Workflow
 ```bash
-make _benchmark-screen-taxonomy-corpus-01 PLATFORM=apptainer-amd64
-make _benchmark-screen-taxonomy-corpus-01-report
+cargo run -q -p bijux-dna -- --platform apptainer-amd64 bench corpus-fastq \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.screen_taxonomy
+cargo run -q -p bijux-dna -- bench corpus-fastq-report \
+  --config configs/bench/benchmark.toml \
+  --stage fastq.screen_taxonomy
 ```
 
 The runner resolves the governed taxonomy bundle from `configs/bench/benchmark.toml` unless you intentionally override `DATABASE_ROOT` or `--database-root`. Use `bijux-dna bench write-screen-taxonomy-database-lineage` to validate a chosen bundle and write `lineage.json` before benchmarking it.
