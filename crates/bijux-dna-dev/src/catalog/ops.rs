@@ -117,19 +117,9 @@ pub fn hpc_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::HpcRunFrontendMiniE2e,
         ),
         native(
-            "lunarc-pull",
-            "Pull governed Lunarc outputs into a local evidence directory.",
-            NativeOpsCommandKey::HpcLunarcPull,
-        ),
-        native(
             "benchmark-sync-pull",
             "Pull governed benchmark-environment outputs into the local mirror.",
             NativeOpsCommandKey::HpcLunarcPull,
-        ),
-        native(
-            "lunarc-push",
-            "Push the governed repository context to Lunarc.",
-            NativeOpsCommandKey::HpcLunarcPush,
         ),
         native(
             "benchmark-sync-push",
