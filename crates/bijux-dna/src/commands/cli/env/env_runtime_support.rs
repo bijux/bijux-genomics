@@ -16,12 +16,20 @@ fn normalize_stage_ids(domain: &str, stages_csv: &str) -> Vec<String> {
     stage_ids
 }
 
+fn declared_value_or(label: Option<&str>, fallback: &'static str) -> String {
+    label
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| fallback.to_string())
+}
+
 fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
-    let pin = tool.pinned_commit.as_deref().unwrap_or("");
+    let pin = declared_value_or(tool.pinned_commit.as_deref(), "not_declared");
     if let Some(digest) = pin.strip_prefix("sha256:") {
         return Some(digest.to_string());
     }
-    let container_ref = tool.container_ref.as_deref().unwrap_or("");
+    let container_ref = declared_value_or(tool.container_ref.as_deref(), "not_declared");
     if let Some(digest) = container_ref
         .split("@sha256:")
         .nth(1)
@@ -32,15 +40,12 @@ fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
 
     let stable_material = [
         tool.id.as_str(),
-        tool.version.as_deref().unwrap_or(""),
-        pin,
-        container_ref,
-        tool.apptainer_def.as_deref().unwrap_or(""),
+        &declared_value_or(tool.version.as_deref(), "not_declared"),
+        &pin,
+        &container_ref,
+        &declared_value_or(tool.apptainer_def.as_deref(), "not_declared"),
     ]
     .join("\n");
-    if stable_material.trim().is_empty() {
-        return None;
-    }
     Some(format!("{:x}", Sha256::digest(stable_material.as_bytes())))
 }
 
@@ -111,12 +116,19 @@ fn run_smoke_with_manifest(
         probe_failures == 0
     };
     let parsed_version = parse_first_version(&version_out).unwrap_or_default();
+    let version_output_first_line = version_out
+        .lines()
+        .next()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .unwrap_or("not_recorded")
+        .to_string();
     let fallback_version = version_out
         .lines()
         .next()
         .map(str::trim)
         .filter(|line| !line.is_empty())
-        .unwrap_or("n/a")
+        .unwrap_or("not_recorded")
         .to_string();
     let status = if help_ok && !parsed_version.is_empty() {
         "ok"
@@ -142,7 +154,7 @@ fn run_smoke_with_manifest(
         } else {
             parsed_version
         },
-        version_output_first_line: version_out.lines().next().unwrap_or("").to_string(),
+        version_output_first_line,
         help_ok,
         quick_smoke: true,
         probe_commands: effective_probes,
