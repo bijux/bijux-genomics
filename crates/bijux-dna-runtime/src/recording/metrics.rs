@@ -32,6 +32,12 @@ pub fn write_metrics_envelope(
     metrics: &serde_json::Value,
     input_hashes: &[String],
 ) -> Result<PathBuf> {
+    let run_id = run_artifacts_dir
+        .parent()
+        .and_then(Path::file_name)
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| anyhow::anyhow!("run id missing from run artifacts dir"))?
+        .to_string();
     let manifest_hash = run_artifacts_dir
         .parent()
         .map(|dir| dir.join("run_manifest.json"))
@@ -48,13 +54,13 @@ pub fn write_metrics_envelope(
             .metric_context
             .image_digest
             .clone()
-            .unwrap_or_else(|| "unknown".to_string()),
+            .unwrap_or_default(),
         parameters_fingerprint: ctx.parameters_fingerprint.clone(),
         input_fingerprint: ctx.input_fingerprint.clone(),
         parameters_json_normalized: ctx.parameters_json_normalized.clone(),
         input_hashes: input_hashes.to_vec(),
         metric_provenance: Some(bijux_dna_core::contract::MetricProvenanceV1 {
-            run_id: std::env::var("BIJUX_RUN_ID").unwrap_or_else(|_| "unknown".to_string()),
+            run_id,
             stage_id: ctx.stage_id.clone(),
             tool_id: ctx.tool_id.clone(),
             tool_version: ctx.tool_version.clone(),
