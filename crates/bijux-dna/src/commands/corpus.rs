@@ -592,22 +592,22 @@ fn build_curated_rows(
             scientific_name: record
                 .scientific_name
                 .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
+                .ok_or_else(|| anyhow!("accession `{}` missing scientific_name", sample.accession))?,
             era: sample.era.as_str(),
             layout: sample.layout.as_str(),
             size_band: sample.size_band.as_str(),
             library_source: record
                 .library_source
                 .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
+                .ok_or_else(|| anyhow!("accession `{}` missing library_source", sample.accession))?,
             library_strategy: record
                 .library_strategy
                 .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
+                .ok_or_else(|| anyhow!("accession `{}` missing library_strategy", sample.accession))?,
             instrument_model: record
                 .instrument_model
                 .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
+                .ok_or_else(|| anyhow!("accession `{}` missing instrument_model", sample.accession))?,
             fastq_bytes: record.fastq_bytes.clone(),
             total_fastq_bytes: record.fastq_bytes.iter().sum(),
             fastq_ftp: record.fastq_ftp.clone(),
@@ -647,6 +647,30 @@ fn validate_curated_record(
     if record.base_count.unwrap_or(0) == 0 || record.read_count.unwrap_or(0) == 0 {
         return Err(anyhow!(
             "accession `{}` missing base_count/read_count",
+            sample.accession
+        ));
+    }
+    if record
+        .library_source
+        .as_deref()
+        .unwrap_or("")
+        .trim()
+        .is_empty()
+    {
+        return Err(anyhow!(
+            "accession `{}` missing library_source",
+            sample.accession
+        ));
+    }
+    if record
+        .library_strategy
+        .as_deref()
+        .unwrap_or("")
+        .trim()
+        .is_empty()
+    {
+        return Err(anyhow!(
+            "accession `{}` missing library_strategy",
             sample.accession
         ));
     }
