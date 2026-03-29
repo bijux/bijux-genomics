@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_domain_compiler::{domain_coverage_report, validate_domain, ValidateOptions};
@@ -187,17 +187,13 @@ pub(crate) fn handle_environment_root(
 pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::ConfigCommand::InitHpc { root } => {
-            let cfg = root.clone().map_or_else(
-                || {
-                    hpc::load_hpc_config().unwrap_or_else(|_| {
-                        hpc::HpcConfig::from_root(std::env::var_os("HOME").map_or_else(
-                            || PathBuf::from("bijux"),
-                            |h| PathBuf::from(h).join("bijux"),
-                        ))
-                    })
-                },
-                hpc::HpcConfig::from_root,
-            );
+            let cfg = if let Some(root) = root.clone() {
+                hpc::HpcConfig::from_root(root)
+            } else {
+                hpc::load_hpc_config().context(
+                    "config init-hpc requires --root or BIJUX_HPC_CONFIG",
+                )?
+            };
             let resolved = cfg.resolve_paths();
             let layout = hpc::HpcLayout::from_resolved(&resolved);
             layout.ensure_dirs()?;
