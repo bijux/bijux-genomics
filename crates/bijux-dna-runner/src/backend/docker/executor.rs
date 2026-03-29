@@ -146,7 +146,7 @@ fn unique_registry_sif(registry_root: &Path, tool: &str) -> Option<PathBuf> {
 fn apptainer_registry_root(container_dir: &Path) -> PathBuf {
     let parent = container_dir.parent();
     let grandparent = parent.and_then(Path::parent);
-    let is_flat_lunarc_dir = container_dir
+    let is_flat_apptainer_sif_dir = container_dir
         .file_name()
         .and_then(|name| name.to_str())
         .is_some_and(|name| name == "sif")
@@ -154,7 +154,7 @@ fn apptainer_registry_root(container_dir: &Path) -> PathBuf {
             .and_then(Path::file_name)
             .and_then(|name| name.to_str())
             .is_some_and(|name| name == "apptainer");
-    if is_flat_lunarc_dir {
+    if is_flat_apptainer_sif_dir {
         return grandparent.unwrap_or(container_dir).to_path_buf();
     }
     container_dir.to_path_buf()
@@ -443,9 +443,9 @@ pub fn docker_rm(container_id: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{assess_execution, resolve_image_for_run};
+    use super::{apptainer_registry_root, assess_execution, resolve_image_for_run};
     use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
 
     #[test]
     fn assess_execution_success() -> anyhow::Result<()> {
@@ -594,5 +594,14 @@ mod tests {
         assert_eq!(image.full_name, sif_path.display().to_string());
         assert_eq!(image.runner, RuntimeKind::Apptainer);
         Ok(())
+    }
+
+    #[test]
+    fn apptainer_registry_root_uses_parent_of_flat_sif_layout() {
+        let flat_dir = Path::new("/shared/containers/apptainer/sif");
+        assert_eq!(
+            apptainer_registry_root(flat_dir),
+            PathBuf::from("/shared/containers")
+        );
     }
 }
