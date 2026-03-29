@@ -432,7 +432,7 @@ mod env_runtime_support_tests {
     #[test]
     fn apptainer_bind_args_skips_missing_db_root() -> anyhow::Result<()> {
         let temp = bijux_dna_api::v1::api::run::temp_dir("bijux")?;
-        let data_root = temp.path().join("corpus_01");
+        let data_root = temp.path().join("benchmark_corpus");
         let results_root = temp.path().join("results");
         std::fs::create_dir_all(&data_root)?;
         std::fs::create_dir_all(&results_root)?;
@@ -448,7 +448,7 @@ mod env_runtime_support_tests {
     #[test]
     fn apptainer_bind_args_includes_db_root_when_present() -> anyhow::Result<()> {
         let temp = bijux_dna_api::v1::api::run::temp_dir("bijux")?;
-        let data_root = temp.path().join("corpus_01");
+        let data_root = temp.path().join("benchmark_corpus");
         let results_root = temp.path().join("results");
         std::fs::create_dir_all(data_root.join("banks"))?;
         std::fs::create_dir_all(&results_root)?;

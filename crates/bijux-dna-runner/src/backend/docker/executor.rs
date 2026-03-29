@@ -490,7 +490,7 @@ mod tests {
         let sif_path = temp.path().join("fastqc.sif");
         bijux_dna_infra::atomic_write_bytes(&sif_path, b"sif")?;
         let platform = PlatformSpec {
-            name: "lunarc-apptainer".to_string(),
+            name: "cluster-apptainer".to_string(),
             runner: RuntimeKind::Apptainer,
             container_dir: temp.path().to_path_buf(),
             image_prefix: "bijuxdna".to_string(),
@@ -514,7 +514,7 @@ mod tests {
     #[test]
     fn resolve_image_for_run_rejects_missing_apptainer_sif() {
         let platform = PlatformSpec {
-            name: "lunarc-apptainer".to_string(),
+            name: "cluster-apptainer".to_string(),
             runner: RuntimeKind::Apptainer,
             container_dir: PathBuf::from("/tmp/does-not-exist-bijux"),
             image_prefix: "bijuxdna".to_string(),
@@ -543,7 +543,7 @@ mod tests {
         let sif_path = registry_dir.join("abc123.sif");
         bijux_dna_infra::atomic_write_bytes(&sif_path, b"sif")?;
         let platform = PlatformSpec {
-            name: "lunarc-apptainer".to_string(),
+            name: "cluster-apptainer".to_string(),
             runner: RuntimeKind::Apptainer,
             container_dir: flat_dir,
             image_prefix: "bijuxdna".to_string(),
@@ -575,7 +575,7 @@ mod tests {
         let sif_path = registry_dir.join("pending.sif");
         bijux_dna_infra::atomic_write_bytes(&sif_path, b"sif")?;
         let platform = PlatformSpec {
-            name: "lunarc-apptainer".to_string(),
+            name: "cluster-apptainer".to_string(),
             runner: RuntimeKind::Apptainer,
             container_dir: flat_dir,
             image_prefix: "bijuxdna".to_string(),
