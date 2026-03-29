@@ -64,7 +64,7 @@ fn materialize_amplicon_stage_outputs(
                     bijux_dna_domain_fastq::TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION.to_string(),
                 stage: "fastq.trim_terminal_damage".to_string(),
                 stage_id: "fastq.trim_terminal_damage".to_string(),
-                tool_id: "unknown".to_string(),
+                tool_id: trim_terminal_damage_tool_id(planned).to_string(),
                 paired_mode: bijux_dna_domain_fastq::PairedMode::from_has_r2(input_r2.is_some()),
                 threads: planned.resources.threads.max(1),
                 damage_mode: bijux_dna_domain_fastq::params::DamageMode::Ancient,
@@ -832,6 +832,33 @@ fn normalize_primers_tool_id(planned: &ExecutionStep) -> &'static str {
         "seqkit"
     } else {
         "cutadapt"
+    }
+}
+
+fn trim_terminal_damage_tool_id(planned: &ExecutionStep) -> &'static str {
+    if planned
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("seqkit"))
+    {
+        "seqkit"
+    } else if planned
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("cutadapt"))
+    {
+        "cutadapt"
+    } else if planned
+        .command
+        .template
+        .iter()
+        .any(|part| part.contains("adapterremoval"))
+    {
+        "adapterremoval"
+    } else {
+        "not_declared"
     }
 }
 
