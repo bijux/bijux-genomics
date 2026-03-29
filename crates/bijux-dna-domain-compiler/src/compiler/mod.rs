@@ -13,6 +13,7 @@ mod loading;
 mod models;
 mod support;
 mod validation;
+mod vcf_emit;
 
 use self::models::*;
 use self::support::*;
