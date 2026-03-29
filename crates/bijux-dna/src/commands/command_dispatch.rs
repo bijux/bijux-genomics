@@ -700,9 +700,27 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
                 }
                 let raw = std::fs::read_to_string(&path)
                     .with_context(|| format!("read {}", path.display()))?;
-                let stage_id = parse_scalar(&raw, "stage_id").unwrap_or_else(|| "<unknown>".into());
-                let status = parse_scalar(&raw, "status").unwrap_or_else(|| "supported".into());
-                let scope = parse_scalar(&raw, "scope").unwrap_or_else(|| "unknown".into());
+                let Some(stage_id) = parse_scalar(&raw, "stage_id") else {
+                    missing_stage_fields.push(format!(
+                        "{} missing required key `stage_id`",
+                        path.display()
+                    ));
+                    continue;
+                };
+                let Some(status) = parse_scalar(&raw, "status") else {
+                    missing_stage_fields.push(format!(
+                        "{} missing required key `status`",
+                        path.display()
+                    ));
+                    continue;
+                };
+                let Some(scope) = parse_scalar(&raw, "scope") else {
+                    missing_stage_fields.push(format!(
+                        "{} missing required key `scope`",
+                        path.display()
+                    ));
+                    continue;
+                };
                 if scope != normalized_scope {
                     continue;
                 }
@@ -747,9 +765,27 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
                 }
                 let raw = std::fs::read_to_string(&path)
                     .with_context(|| format!("read {}", path.display()))?;
-                let tool_id = parse_scalar(&raw, "tool_id").unwrap_or_else(|| "<unknown>".into());
-                let status = parse_scalar(&raw, "status").unwrap_or_else(|| "supported".into());
-                let scope = parse_scalar(&raw, "scope").unwrap_or_else(|| "unknown".into());
+                let Some(tool_id) = parse_scalar(&raw, "tool_id") else {
+                    missing_tool_fields.push(format!(
+                        "{} missing required key `tool_id`",
+                        path.display()
+                    ));
+                    continue;
+                };
+                let Some(status) = parse_scalar(&raw, "status") else {
+                    missing_tool_fields.push(format!(
+                        "{} missing required key `status`",
+                        path.display()
+                    ));
+                    continue;
+                };
+                let Some(scope) = parse_scalar(&raw, "scope") else {
+                    missing_tool_fields.push(format!(
+                        "{} missing required key `scope`",
+                        path.display()
+                    ));
+                    continue;
+                };
                 if scope != normalized_scope {
                     continue;
                 }
