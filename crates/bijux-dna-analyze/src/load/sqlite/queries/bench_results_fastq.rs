@@ -100,6 +100,107 @@ fn benchmark_input_hashes(dataset: &BenchDataset) -> [Option<String>; 2] {
     [primary, paired]
 }
 
+fn missing_bench_record(dataset_id: &str, tool: &str) -> BenchResultRecord {
+    BenchResultRecord {
+        dataset_id: dataset_id.to_string(),
+        tool: tool.to_string(),
+        runtime_s: None,
+        memory_mb: None,
+        exit_code: None,
+        metrics: None,
+        status: BenchResultStatus::Missing,
+    }
+}
+
+type BenchCandidate = (f64, f64, i64, String);
+
+fn load_bench_candidate(
+    sqlite_path: &Path,
+    dataset: &BenchDataset,
+    table: &str,
+    tool: &str,
+    context: &BenchQueryContext,
+) -> Result<Option<BenchCandidate>> {
+    let conn = Connection::open(sqlite_path)
+        .with_context(|| format!("open bench sqlite for {}", dataset.id))?;
+    let [primary_input_hash, paired_input_hash] = benchmark_input_hashes(dataset);
+    let mut stmt = conn.prepare(&format!(
+        "SELECT runtime_s, memory_mb, exit_code, metrics_json, parameters_json \
+         FROM {table} \
+         WHERE tool = ?1 \
+           AND (input_hash = ?2 OR (?3 IS NOT NULL AND input_hash = ?3)) \
+           AND (?4 IS NULL OR image_digest = ?4) \
+           AND (?5 IS NULL OR params_hash = ?5) \
+         ORDER BY record_id DESC, inserted_at DESC"
+    ))?;
+    let rows = stmt.query_map(
+        params![
+            tool,
+            primary_input_hash,
+            paired_input_hash,
+            context.image_digest.as_deref(),
+            context.params_hash.as_deref()
+        ],
+        |row| {
+            let runtime_s: f64 = row.get(0)?;
+            let memory_mb: f64 = row.get(1)?;
+            let exit_code: i64 = row.get(2)?;
+            let metrics_json: String = row.get(3)?;
+            let parameters_json: String = row.get(4)?;
+            Ok((
+                runtime_s,
+                memory_mb,
+                exit_code,
+                metrics_json,
+                parameters_json,
+            ))
+        },
+    )?;
+    let mut legacy_candidate = None;
+    let mut exact_candidate = None;
+    for row in rows {
+        let (runtime_s, memory_mb, exit_code, metrics_json, parameters_json) = row?;
+        let parameters: JsonValue = serde_json::from_str(&parameters_json)
+            .with_context(|| format!("parse benchmark parameters for {}", dataset.id))?;
+        let candidate = (runtime_s, memory_mb, exit_code, metrics_json);
+        match context.match_against_parameters(&parameters) {
+            BenchQueryContextMatch::Exact => {
+                exact_candidate = Some(candidate);
+                break;
+            }
+            BenchQueryContextMatch::LegacyCompatible => {
+                legacy_candidate.get_or_insert(candidate);
+            }
+            BenchQueryContextMatch::NoMatch => {}
+        }
+    }
+    Ok(exact_candidate.or(legacy_candidate))
+}
+
+fn bench_record_from_candidate(
+    dataset: &BenchDataset,
+    tool: &str,
+    candidate: BenchCandidate,
+) -> Result<BenchResultRecord> {
+    let (runtime_s, memory_mb, exit_code, metrics_json) = candidate;
+    let metrics: JsonValue = serde_json::from_str(&metrics_json)
+        .with_context(|| format!("parse metrics for {}", dataset.id))?;
+    let status = if exit_code == 0 {
+        BenchResultStatus::Success
+    } else {
+        BenchResultStatus::Failure
+    };
+    Ok(BenchResultRecord {
+        dataset_id: dataset.id.to_string(),
+        tool: tool.to_string(),
+        runtime_s: Some(runtime_s),
+        memory_mb: Some(memory_mb),
+        exit_code: Some(exit_code),
+        metrics: Some(metrics),
+        status,
+    })
+}
+
 /// Load bench results for a stage/tool across the corpus.
 ///
 /// # Errors
@@ -121,101 +222,12 @@ pub fn get_results_from_sqlite(
         let bench_dir = bijux_dna_infra::bench_base_dir(out_dir, bench_dir_name, dataset.id);
         let sqlite_path = bench_dir.join("bench.sqlite");
         if !sqlite_path.exists() {
-            records.push(BenchResultRecord {
-                dataset_id: dataset.id.to_string(),
-                tool: tool.to_string(),
-                runtime_s: None,
-                memory_mb: None,
-                exit_code: None,
-                metrics: None,
-                status: BenchResultStatus::Missing,
-            });
+            records.push(missing_bench_record(dataset.id, tool));
             continue;
         }
-        let conn = Connection::open(&sqlite_path)
-            .with_context(|| format!("open bench sqlite for {}", dataset.id))?;
-        let [primary_input_hash, paired_input_hash] = benchmark_input_hashes(dataset);
-        let mut stmt = conn.prepare(&format!(
-            "SELECT runtime_s, memory_mb, exit_code, metrics_json, parameters_json \
-             FROM {table} \
-             WHERE tool = ?1 \
-               AND (input_hash = ?2 OR (?3 IS NOT NULL AND input_hash = ?3)) \
-               AND (?4 IS NULL OR image_digest = ?4) \
-               AND (?5 IS NULL OR params_hash = ?5) \
-             ORDER BY record_id DESC, inserted_at DESC"
-        ))?;
-        let rows = stmt.query_map(
-            params![
-                tool,
-                primary_input_hash,
-                paired_input_hash,
-                context.image_digest.as_deref(),
-                context.params_hash.as_deref()
-            ],
-            |row| {
-                let runtime_s: f64 = row.get(0)?;
-                let memory_mb: f64 = row.get(1)?;
-                let exit_code: i64 = row.get(2)?;
-                let metrics_json: String = row.get(3)?;
-                let parameters_json: String = row.get(4)?;
-                Ok((
-                    runtime_s,
-                    memory_mb,
-                    exit_code,
-                    metrics_json,
-                    parameters_json,
-                ))
-            },
-        );
-        let mut legacy_candidate = None;
-        let mut exact_candidate = None;
-        for row in rows? {
-            let (runtime_s, memory_mb, exit_code, metrics_json, parameters_json) = row?;
-            let parameters: JsonValue = serde_json::from_str(&parameters_json)
-                .with_context(|| format!("parse benchmark parameters for {}", dataset.id))?;
-            let candidate = (runtime_s, memory_mb, exit_code, metrics_json);
-            match context.match_against_parameters(&parameters) {
-                BenchQueryContextMatch::Exact => {
-                    exact_candidate = Some(candidate);
-                    break;
-                }
-                BenchQueryContextMatch::LegacyCompatible => {
-                    legacy_candidate.get_or_insert(candidate);
-                }
-                BenchQueryContextMatch::NoMatch => {}
-            }
-        }
-
-        match exact_candidate.or(legacy_candidate) {
-            Some((runtime_s, memory_mb, exit_code, metrics_json)) => {
-                let metrics: JsonValue = serde_json::from_str(&metrics_json)
-                    .with_context(|| format!("parse metrics for {}", dataset.id))?;
-                let status = if exit_code == 0 {
-                    BenchResultStatus::Success
-                } else {
-                    BenchResultStatus::Failure
-                };
-                records.push(BenchResultRecord {
-                    dataset_id: dataset.id.to_string(),
-                    tool: tool.to_string(),
-                    runtime_s: Some(runtime_s),
-                    memory_mb: Some(memory_mb),
-                    exit_code: Some(exit_code),
-                    metrics: Some(metrics),
-                    status,
-                });
-            }
-            None => {
-                records.push(BenchResultRecord {
-                    dataset_id: dataset.id.to_string(),
-                    tool: tool.to_string(),
-                    runtime_s: None,
-                    memory_mb: None,
-                    exit_code: None,
-                    metrics: None,
-                    status: BenchResultStatus::Missing,
-                });
-            }
+        match load_bench_candidate(&sqlite_path, dataset, table, tool, context)? {
+            Some(candidate) => records.push(bench_record_from_candidate(dataset, tool, candidate)?),
+            None => records.push(missing_bench_record(dataset.id, tool)),
         }
     }
 
@@ -226,6 +238,7 @@ pub fn get_results_from_sqlite(
 mod tests {
     use std::path::PathBuf;
 
+    use bijux_dna_core::prelude::BenchResultStatus;
     use rusqlite::{params, Connection};
 
     use super::{get_results_from_sqlite, table_for_stage, SqliteBenchResultsRepository};
@@ -656,6 +669,9 @@ mod tests {
         let temp = bijux_dna_testkit::tempdir_for("bench-results-fastq-paired-input-hash");
         let root_dir = temp.path().to_path_buf();
         let corpus = bench_paired_corpus_fixture();
+        let paired_hash = corpus.datasets[0]
+            .sha256_r2
+            .ok_or("paired corpus fixture is missing read 2 hash")?;
         let bench_dir = bijux_dna_infra::bench_base_dir(
             &root_dir,
             bench_dir_name(&STAGE_DETECT_ADAPTERS).unwrap_or("unknown"),
@@ -670,7 +686,7 @@ mod tests {
                 input_hash: format!(
                     "{}+{}",
                     corpus.datasets[0].sha256_r1,
-                    corpus.datasets[0].sha256_r2.expect("paired hash"),
+                    paired_hash,
                 ),
                 image_digest: "sha256:image-a".to_string(),
                 params_hash: "params-a".to_string(),
@@ -691,7 +707,7 @@ mod tests {
 
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].runtime_s, Some(5.0));
-        assert_eq!(records[0].status, BenchResultStatus::Success);
+        assert!(matches!(records[0].status, BenchResultStatus::Success));
         Ok(())
     }
 }

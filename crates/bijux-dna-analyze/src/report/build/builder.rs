@@ -2,13 +2,6 @@ use anyhow::{Context, Result};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-pub use crate::report::bench::{bench_schema_json, print_bench_schema};
-pub use crate::report::bench::{derived_metrics_for_stage_json, rank_trim_tools};
-pub use crate::report::bench::{
-    write_correct_report, write_filter_report, write_merge_report, write_qc_post_report,
-    write_screen_report, write_stats_report, write_trim_polyg_report, write_trim_report,
-    write_trim_terminal_damage_report, write_umi_report, write_validate_report,
-};
 use super::report_sections::{
     data_contract_validation_section, key_findings_section, pipeline_overview_section,
 };
@@ -18,27 +11,34 @@ use super::support::{
     telemetry_decisions_from_paths, telemetry_path_from_stage_report,
     telemetry_timeline_from_paths,
 };
+pub use crate::report::bench::{bench_schema_json, print_bench_schema};
+pub use crate::report::bench::{derived_metrics_for_stage_json, rank_trim_tools};
+pub use crate::report::bench::{
+    write_correct_report, write_filter_report, write_merge_report, write_qc_post_report,
+    write_screen_report, write_stats_report, write_trim_polyg_report, write_trim_report,
+    write_trim_terminal_damage_report, write_umi_report, write_validate_report,
+};
 
+use crate::export::write_run_summary_json;
+use crate::model::stable_sort_records;
+use crate::model::JsonBlob;
+use crate::report::model::ReportModel;
+use crate::report::render::json::write_report_json;
 use crate::report::sections::schema::{
     build_report_sections, report_completeness, report_contract, report_metric_semantics,
 };
 use crate::report::sections::{
     accounting_section, adapter_config_section, adapter_inference_section, assertions_section,
     bam_accounting_section, bam_findings_section, bam_plots_section, bam_verdict_table,
-    bench_summary_section, claims_registry_section, comparison_view_section, decision_trace_section,
-    failure_hints_section, filter_interpretation_section, findings_section, impact_metrics_section,
-    params_excerpt, pipeline_verdict_from_rows, pipeline_verdict_section, qc_artifacts_section,
-    qc_improvement_section, read_tool_invocation, report_path_for, reproducibility_section,
-    scientific_provenance_section, stage_completeness_table, stage_confidence_section,
-    stage_plots_section,
+    bench_summary_section, claims_registry_section, comparison_view_section,
+    decision_trace_section, failure_hints_section, filter_interpretation_section, findings_section,
+    impact_metrics_section, params_excerpt, pipeline_verdict_from_rows, pipeline_verdict_section,
+    qc_artifacts_section, qc_improvement_section, read_tool_invocation, report_path_for,
+    reproducibility_section, scientific_provenance_section, stage_completeness_table,
+    stage_confidence_section, stage_plots_section,
 };
-use crate::export::write_run_summary_json;
-use crate::model::stable_sort_records;
-use crate::model::JsonBlob;
-use crate::report::model::ReportModel;
-use crate::report::render::json::write_report_json;
-use bijux_dna_core::contract::Objective;
 use bijux_dna_core::contract::objective_spec;
+use bijux_dna_core::contract::Objective;
 use bijux_dna_domain_bam::prelude::STAGE_PREFIX as BAM_STAGE_PREFIX;
 use bijux_dna_domain_fastq::prelude::STAGE_PREFIX as FASTQ_STAGE_PREFIX;
 use bijux_dna_runtime::{
@@ -415,7 +415,11 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             if let Some(value) = row.metrics.get("snps").and_then(serde_json::Value::as_u64) {
                 snps = value;
             }
-            if let Some(value) = row.metrics.get("indels").and_then(serde_json::Value::as_u64) {
+            if let Some(value) = row
+                .metrics
+                .get("indels")
+                .and_then(serde_json::Value::as_u64)
+            {
                 indels = value;
             }
             if let Some(value) = row.metrics.get("ti_tv").and_then(serde_json::Value::as_f64) {
@@ -595,7 +599,9 @@ fn enforce_report_completeness_contract(
     let has_fastq = rows
         .iter()
         .any(|row| row.stage_id.starts_with(FASTQ_STAGE_PREFIX));
-    let has_bam = rows.iter().any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX));
+    let has_bam = rows
+        .iter()
+        .any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX));
     let has_vcf = rows.iter().any(|row| row.stage_id.starts_with("vcf."));
     if has_fastq && !sections.contains_key("fastq") {
         return Err(anyhow::anyhow!(
@@ -690,8 +696,9 @@ fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
     let manifest_path = base_dir.join("run_manifest.json");
     let manifest_signature = bijux_dna_infra::hash_file_sha256(&manifest_path).ok();
     let raw = std::fs::read_to_string(&manifest_path).ok();
-    let manifest: Option<serde_json::Value> =
-        raw.as_deref().and_then(|raw| serde_json::from_str(raw).ok());
+    let manifest: Option<serde_json::Value> = raw
+        .as_deref()
+        .and_then(|raw| serde_json::from_str(raw).ok());
     let mut base = manifest
         .as_ref()
         .and_then(|value| value.get("run_provenance").cloned())
@@ -705,7 +712,12 @@ fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
         .as_ref()
         .and_then(|value| value.get("dataset_fingerprints"))
         .cloned()
-        .or_else(|| manifest.as_ref().and_then(|value| value.get("input_hashes")).cloned())
+        .or_else(|| {
+            manifest
+                .as_ref()
+                .and_then(|value| value.get("input_hashes"))
+                .cloned()
+        })
         .unwrap_or_else(|| serde_json::json!([]));
     let stage_contracts = manifest
         .as_ref()
@@ -731,9 +743,7 @@ fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
         obj.insert("stage_contracts".to_string(), stage_contracts);
         obj.insert(
             "manifest_signature_sha256".to_string(),
-            serde_json::Value::String(
-                manifest_signature.unwrap_or_else(|| "unknown".to_string()),
-            ),
+            serde_json::Value::String(manifest_signature.unwrap_or_else(|| "unknown".to_string())),
         );
         if let Some(hash) = read_domain_snapshot_hash() {
             obj.insert(
@@ -767,8 +777,8 @@ fn pipeline_defaults_section(base_dir: &Path) -> Result<serde_json::Value> {
     let typed = serde_json::from_str::<bijux_dna_pipelines::DefaultsLedgerV1>(&raw)
         .context("parse typed defaults ledger json")?;
     typed.validate_strict()?;
-    let parsed = serde_json::from_str::<serde_json::Value>(&raw)
-        .context("parse defaults ledger json")?;
+    let parsed =
+        serde_json::from_str::<serde_json::Value>(&raw).context("parse defaults ledger json")?;
     Ok(serde_json::json!({
         "defaults_ledger": parsed,
         "overrides": [],

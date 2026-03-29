@@ -1,4 +1,18 @@
-use super::*;
+use super::{
+    atomic_write_bytes, classify_raw_failure, derived_correct_metrics, derived_filter_metrics,
+    derived_merge_metrics, derived_umi_metrics, gate_payload, rank_correct_tools,
+    rank_filter_tools, rank_merge_tools, rank_umi_tools, rank_validate_tools, sanity_flags_correct,
+    sanity_flags_filter, sanity_flags_merge, sanity_flags_qc_post, sanity_flags_stats,
+    sanity_flags_umi, sanity_flags_validate, semantic_filter, semantic_stats, semantic_validate,
+    BTreeMap, BenchmarkFailure, BenchmarkRecord, Context, FastqClusterOtusMetrics,
+    FastqCorrectMetrics, FastqDepleteHostMetrics, FastqDepleteReferenceContaminantsMetrics,
+    FastqDepleteRrnaMetrics, FastqDetectAdaptersMetrics, FastqFilterMetrics,
+    FastqIndexReferenceMetrics, FastqInferAsvsMetrics, FastqLowComplexityMetrics,
+    FastqMergeMetrics, FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics,
+    FastqOverrepresentedMetrics, FastqQcPostMetrics, FastqReadLengthMetrics, FastqScreenMetrics,
+    FastqStatsMetrics, FastqUmiMetrics, FastqValidateMetrics, Path, RawFailure, Result,
+};
+use crate::aggregate::{FastqChimeraMetrics, FastqDuplicateMetrics};
 
 /// Write the validate benchmark report.
 ///
@@ -32,7 +46,9 @@ pub fn write_validate_report(
     let rankings = rank_validate_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.validate_reads", &rankings);
     }
@@ -56,7 +72,9 @@ pub fn write_detect_adapters_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.detect_adapters", &BTreeMap::new());
     }
@@ -93,7 +111,9 @@ pub fn write_filter_report(
     let rankings = rank_filter_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.filter_reads", &rankings);
     }
@@ -117,7 +137,9 @@ pub fn write_filter_low_complexity_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.filter_low_complexity", &BTreeMap::new());
     }
@@ -149,7 +171,9 @@ pub fn write_merge_report(
     let rankings = rank_merge_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.merge_pairs", &rankings);
     }
@@ -181,7 +205,9 @@ pub fn write_correct_report(
     let rankings = rank_correct_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.correct_errors", &rankings);
     }
@@ -209,7 +235,9 @@ pub fn write_qc_post_report(
         serde_json::to_value(sanity_flags_qc_post(records))?,
     );
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.report_qc", &BTreeMap::new());
     }
@@ -431,7 +459,9 @@ pub fn write_umi_report(
     let rankings = rank_umi_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.extract_umis", &rankings);
     }
@@ -455,7 +485,9 @@ pub fn write_index_reference_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.index_reference", &BTreeMap::new());
     }
@@ -488,7 +520,9 @@ pub fn write_stats_report(
         .collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.profile_reads", &BTreeMap::new());
     }
@@ -512,7 +546,9 @@ pub fn write_overrepresented_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain(
             "fastq.profile_overrepresented_sequences",
@@ -539,7 +575,9 @@ pub fn write_read_lengths_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.profile_read_lengths", &BTreeMap::new());
     }
@@ -563,7 +601,9 @@ pub fn write_duplicates_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.remove_duplicates", &BTreeMap::new());
     }
@@ -587,7 +627,9 @@ pub fn write_chimeras_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.remove_chimeras", &BTreeMap::new());
     }
@@ -611,7 +653,9 @@ pub fn write_normalize_primers_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.normalize_primers", &BTreeMap::new());
     }
@@ -635,7 +679,9 @@ pub fn write_infer_asvs_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.infer_asvs", &BTreeMap::new());
     }
@@ -659,7 +705,9 @@ pub fn write_normalize_abundance_report(
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
     let json = serde_json::to_string_pretty(&report)?;
-    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.normalize_abundance", &BTreeMap::new());
     }
@@ -670,6 +718,7 @@ pub fn write_normalize_abundance_report(
 mod tests {
     use super::*;
     use crate::aggregate::{FastqDeltaMetrics, FastqTrimMetrics, FastqValidateMetrics};
+    use crate::report::bench::{semantic_trim, MetricValue};
 
     #[test]
     fn semantic_trim_generates_summary() {

@@ -1,4 +1,12 @@
-use super::*;
+use super::{
+    anyhow, atomic_write_bytes, build_rankings, classify_raw_failure, derived_metric_spec,
+    derived_metrics_for_stage, gate_payload, median, metric_kind_for_stage, metric_spec,
+    rank_trim_like_tools, ratio_u64, semantic_trim_like, stage_metric_spec, BTreeMap,
+    BenchmarkFailure, BenchmarkRecord, Context, DerivedMetricId, FastqCorrectMetrics,
+    FastqFilterMetrics, FastqMergeMetrics, FastqQcPostMetrics, FastqStatsMetrics, FastqTrimMetrics,
+    FastqTrimPolygMetrics, FastqTrimTerminalDamageMetrics, FastqUmiMetrics, FastqValidateMetrics,
+    Path, RankInput, RankingEntry, RawFailure, Result, TrimLikeMetricView,
+};
 /// Rank filter tools by metrics and execution stats.
 ///
 /// # Errors
@@ -108,12 +116,14 @@ pub fn sanity_flags_trim_terminal_damage(
     let mut flags = sanity_flags_trim_like(records);
     let asymmetry_deltas = records
         .iter()
-        .filter_map(|record| match (
-            record.metrics.metrics.ct_ga_asymmetry_pre,
-            record.metrics.metrics.ct_ga_asymmetry_post,
-        ) {
-            (Some(pre), Some(post)) => Some(pre.abs() - post.abs()),
-            _ => None,
+        .filter_map(|record| {
+            match (
+                record.metrics.metrics.ct_ga_asymmetry_pre,
+                record.metrics.metrics.ct_ga_asymmetry_post,
+            ) {
+                (Some(pre), Some(post)) => Some(pre.abs() - post.abs()),
+                _ => None,
+            }
         })
         .collect::<Vec<_>>();
     let median_asymmetry_reduction = median(asymmetry_deltas);
@@ -510,7 +520,13 @@ pub fn write_trim_polyg_report(
     failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
-    write_trim_like_report(base_dir, "fastq.trim_polyg_tails", records, failures, explain)
+    write_trim_like_report(
+        base_dir,
+        "fastq.trim_polyg_tails",
+        records,
+        failures,
+        explain,
+    )
 }
 
 /// Write the terminal-damage benchmark recommendation report.

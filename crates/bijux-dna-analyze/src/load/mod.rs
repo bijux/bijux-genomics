@@ -7,9 +7,9 @@
 pub mod facts;
 pub mod run_index;
 pub mod run_summary;
-mod support;
 #[cfg(feature = "sqlite")]
 pub mod sqlite;
+mod support;
 
 pub use facts::*;
 pub use run_index::*;
