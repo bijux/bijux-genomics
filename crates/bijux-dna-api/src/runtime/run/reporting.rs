@@ -78,7 +78,7 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
         .get("output_artifacts")
         .and_then(|v| v.as_array())
         .cloned()
-        .unwrap_or_default();
+        .ok_or_else(|| anyhow!("run_manifest.json missing output_artifacts array"))?;
     if verify_only {
         for entry in artifacts {
             let Some(path_value) = entry.get("path") else {
