@@ -17,7 +17,7 @@ pub fn run_demography_stage(
         let observed = raw
             .lines()
             .find_map(|line| line.strip_prefix("#build=").map(str::trim))
-            .unwrap_or("unknown");
+            .unwrap_or("not_declared");
         if !observed.eq_ignore_ascii_case(expected) {
             bail!(
                 "vcf.demography refusal: genome build mismatch (expected={}, observed={})",
