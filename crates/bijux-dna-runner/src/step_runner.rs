@@ -897,11 +897,11 @@ mod tests {
         let template = vec![
             "bowtie2".to_string(),
             "-x".to_string(),
-            "/lunarc/nobackup/projects/snic2019-34-3/.cache/bijux-reference/contaminants/phix/bowtie2/reference".to_string(),
+            "/opt/reference/contaminants/phix/bowtie2/reference".to_string(),
             "-S".to_string(),
             "/dev/null".to_string(),
             "-1".to_string(),
-            "/home/bijan/bijux/corpus_01/normalized/sample_0001_R1.fastq.gz".to_string(),
+            "/data/corpus_01/normalized/sample_0001_R1.fastq.gz".to_string(),
             "--met-file".to_string(),
             "/tmp/out/bowtie2.metrics.txt".to_string(),
         ];
