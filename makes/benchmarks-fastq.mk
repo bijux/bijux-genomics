@@ -67,10 +67,10 @@ _benchmark-fastq-stage: ## Benchmark FASTQ stage via CLI (requires STAGE=<stage>
 	$(call run_fastq_benchmark_stage,$(STAGE))
 
 _benchmark-trim: ## Benchmark adapter/quality trimming tools
-	@$(MAKE) _benchmark-fastq-stage STAGE=trim SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
+	@$(MAKE) _benchmark-fastq-stage STAGE=trim-reads SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 _benchmark-validate: ## Benchmark read validation tools
-	@$(MAKE) _benchmark-fastq-stage STAGE=validate SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
+	@$(MAKE) _benchmark-fastq-stage STAGE=validate-reads SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 _benchmark-filter: ## Benchmark contaminant filtering tools
 	@$(MAKE) _benchmark-fastq-stage STAGE=filter SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
@@ -82,16 +82,16 @@ _benchmark-correct: ## Benchmark error correction tools (paired-end)
 	@$(MAKE) _benchmark-fastq-stage STAGE=correct SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 _benchmark-qc-post: ## Benchmark post-processing QC tools
-	@$(MAKE) _benchmark-fastq-stage STAGE=qc-post SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
+	@$(MAKE) _benchmark-fastq-stage STAGE=report-qc SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 _benchmark-umi: ## Benchmark UMI processing tools (paired-end)
 	@$(MAKE) _benchmark-fastq-stage STAGE=umi SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" R2="$(R2)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 _benchmark-stats: ## Benchmark statistics computation tools
-	@$(MAKE) _benchmark-fastq-stage STAGE=stats SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
+	@$(MAKE) _benchmark-fastq-stage STAGE=profile-reads SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 _benchmark-screen: ## Benchmark screening tools
-	@$(MAKE) _benchmark-fastq-stage STAGE=screen SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
+	@$(MAKE) _benchmark-fastq-stage STAGE=screen-taxonomy SAMPLE_ID="$(SAMPLE_ID)" R1="$(R1)" OUT_DIR="$(OUT_DIR)" TOOLS="$(TOOLS)" ALLOW_EXPERIMENTAL="$(ALLOW_EXPERIMENTAL)"
 
 _benchmark-preprocess: ## Benchmark full preprocessing pipeline
 	@$(BIJUX_BENCH_BIN) $(if $(PLATFORM),--platform "$(PLATFORM)",) bench fastq preprocess \
