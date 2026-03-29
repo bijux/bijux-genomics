@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use bijux_dna_core::contract::{ContractVersion, ScientificProvenanceV1, ToolProvenanceV1};
 use bijux_dna_core::metrics::ToolInvocationV1;
+use bijux_dna_core::prelude::hashing::params_hash;
 
 #[must_use]
 pub fn build_scientific_provenance(
@@ -19,7 +20,8 @@ pub fn build_scientific_provenance(
         let params_hash = params_hashes
             .get(&key)
             .cloned()
-            .unwrap_or_else(|| "unknown".to_string());
+            .or_else(|| params_hash(&invocation.parameters_json_normalized).ok())
+            .unwrap_or_default();
         tools.push(ToolProvenanceV1 {
             stage_id: invocation.stage_id.to_string(),
             tool_id: invocation.tool_id.to_string(),
