@@ -623,7 +623,7 @@ fn build_corpus_artifact_set(
         scenario_id: contract.scenario_id.clone(),
         generated_at_utc: Utc::now().to_rfc3339(),
         platform: value_string(run_manifest, "platform")
-            .unwrap_or("unknown")
+            .unwrap_or("missing")
             .to_string(),
         corpus_root: corpus_root.display().to_string(),
         run_root: run_root.display().to_string(),
@@ -1663,11 +1663,12 @@ fn audit_published_results_stage(
             }
             let observed_tools = observed_tools_from_report(&localized_report)?;
             if observed_tools != expected_tools {
+                let Some(sample_id) = run.get("sample_id").and_then(|value| value.as_str()) else {
+                    continue;
+                };
                 tool_roster_drift_samples.push(format!(
                     "{} observed {:?}",
-                    run.get("sample_id")
-                        .and_then(|value| value.as_str())
-                        .unwrap_or("unknown"),
+                    sample_id,
                     observed_tools
                 ));
             }
