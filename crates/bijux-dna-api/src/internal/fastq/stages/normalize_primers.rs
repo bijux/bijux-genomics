@@ -233,14 +233,11 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             primer_orientation_report: orientation_report.display().to_string(),
             primer_stats_json: primer_stats_json.display().to_string(),
             raw_backend_report: Some(primer_stats_json.display().to_string()),
-            raw_backend_report_format: Some(
-                match tool.as_str() {
-                    "cutadapt" => "cutadapt_json",
-                    "seqkit" => "seqkit_grep",
-                    _ => "unknown",
-                }
-                .to_string(),
-            ),
+            raw_backend_report_format: match tool.as_str() {
+                "cutadapt" => Some("cutadapt_json".to_string()),
+                "seqkit" => Some("seqkit_grep".to_string()),
+                _ => None,
+            },
             runtime_s: Some(execution.runtime_s),
             memory_mb: Some(execution.memory_mb),
             used_fallback: payload
