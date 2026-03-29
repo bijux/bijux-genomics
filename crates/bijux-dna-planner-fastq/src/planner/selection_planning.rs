@@ -107,7 +107,7 @@ pub fn select_preprocess_stage_tools(
     Ok(selected_tools)
 }
 
-fn bench_query_context_for_stage(
+pub(crate) fn bench_query_context_for_stage(
     stage_id: &bijux_dna_core::ids::StageId,
 ) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
     bijux_dna_domain_fastq::governed_stage_bench_query_context(stage_id.as_str()).map_err(|err| {
@@ -118,7 +118,7 @@ fn bench_query_context_for_stage(
     })
 }
 
-fn bench_query_context_for_preprocess_stage(
+pub(crate) fn bench_query_context_for_preprocess_stage(
     stage_id: &bijux_dna_core::ids::StageId,
     args: &crate::selection::args::BenchFastqPreprocessArgs,
     prior_stages: &[String],

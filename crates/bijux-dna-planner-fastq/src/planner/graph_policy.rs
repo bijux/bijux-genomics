@@ -470,7 +470,7 @@ pub(super) fn ensure_unique_stage_binding_nodes(bindings: &[FastqStageBinding]) 
     Ok(())
 }
 
-fn stage_status(stage_id: &str) -> Option<String> {
+pub(crate) fn stage_status(stage_id: &str) -> Option<String> {
     let stage_id = bijux_dna_core::ids::StageId::try_from(stage_id).ok()?;
     bijux_dna_domain_fastq::execution_support_for_stage(&stage_id).map(|support| {
         match support.execution_status {

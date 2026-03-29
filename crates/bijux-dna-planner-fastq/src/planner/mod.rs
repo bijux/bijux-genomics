@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
@@ -14,13 +14,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::preprocess_pipeline_graph_for_stage_order;
 use bijux_dna_domain_fastq::{
-    stages::ids::{STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS},
-    FastqPipelineMode, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_RRNA,
-    STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS,
-    STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
-    STAGE_PREFIX, STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES,
-    STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
-    STAGE_VALIDATE_READS,
+    STAGE_PREFIX,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_stage_contract::{
@@ -29,7 +23,7 @@ use bijux_dna_stage_contract::{
 
 use crate::{
     default_pipeline_spec, plan_compose, BenchResultsRepository, DefaultPipelineOptions,
-    PLANNER_VERSION, STAGE_PREPROCESS_SUMMARY, TOOL_SEQKIT, required_id_catalog,
+    PLANNER_VERSION, STAGE_PREPROCESS_SUMMARY, required_id_catalog,
 };
 
 mod benchmark;
