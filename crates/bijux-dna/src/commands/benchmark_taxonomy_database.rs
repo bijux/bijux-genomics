@@ -7,7 +7,10 @@ use serde::Serialize;
 use crate::commands::benchmark_corpus_fastq::{
     artifact_bundle_size_bytes, sha256_artifact_bundle, sha256_file_hex,
 };
-use crate::commands::benchmark_workspace::{load_benchmark_config, BenchmarkConfig};
+use crate::commands::benchmark_workspace::{
+    benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root, load_benchmark_config,
+    BenchmarkConfig,
+};
 use crate::commands::cli::BenchWriteScreenTaxonomyDatabaseLineageArgs;
 
 const REQUIRED_BACKEND_DIRS: &[&str] =
@@ -93,25 +96,32 @@ fn resolve_database_root(
         return Ok(absolutize(cwd, Path::new(path)));
     }
     if let Some(results_root) = args.results_root.as_deref() {
+        let corpus_dir_name =
+            benchmark_runtime_corpus_dir_name(&config.workspace, &args.corpus_id)?;
         return default_screen_taxonomy_database_root(
             config,
-            &absolutize(cwd, results_root)
-                .join("corpus_01")
-                .join("fastq.screen_taxonomy")
-                .join("lunarc"),
+            &absolutize(cwd, results_root).join(benchmark_stage_run_relative_root(
+                &config.workspace,
+                "remote",
+                &corpus_dir_name,
+                "fastq.screen_taxonomy",
+            )),
             &args.database_namespace,
             &args.database_scope,
             &args.database_artifact_id,
         );
     }
     if let Some(cache_root) = args.cache_root.as_deref() {
+        let corpus_dir_name =
+            benchmark_runtime_corpus_dir_name(&config.workspace, &args.corpus_id)?;
         return default_screen_taxonomy_database_root(
             config,
-            &absolutize(cwd, cache_root)
-                .join("bijux-dna-results")
-                .join("corpus_01")
-                .join("fastq.screen_taxonomy")
-                .join("lunarc"),
+            &absolutize(cwd, cache_root).join(benchmark_stage_run_relative_root(
+                &config.workspace,
+                "local-cache",
+                &corpus_dir_name,
+                "fastq.screen_taxonomy",
+            )),
             &args.database_namespace,
             &args.database_scope,
             &args.database_artifact_id,
@@ -124,12 +134,15 @@ fn resolve_database_root(
         .and_then(|row| row.results_root.as_deref())
         .map(PathBuf::from)
         .ok_or_else(|| anyhow!("benchmark config is missing workspace.local.results_root"))?;
+    let corpus_dir_name = benchmark_runtime_corpus_dir_name(&config.workspace, &args.corpus_id)?;
     default_screen_taxonomy_database_root(
         config,
-        &local_results_root
-            .join("corpus_01")
-            .join("fastq.screen_taxonomy")
-            .join("lunarc"),
+        &local_results_root.join(benchmark_stage_run_relative_root(
+            &config.workspace,
+            "local-archive",
+            &corpus_dir_name,
+            "fastq.screen_taxonomy",
+        )),
         &args.database_namespace,
         &args.database_scope,
         &args.database_artifact_id,
@@ -388,6 +401,7 @@ mod tests {
     fn sample_args() -> BenchWriteScreenTaxonomyDatabaseLineageArgs {
         BenchWriteScreenTaxonomyDatabaseLineageArgs {
             config: None,
+            corpus_id: "corpus-01".to_string(),
             database_root: None,
             results_root: None,
             cache_root: None,

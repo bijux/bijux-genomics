@@ -36,7 +36,12 @@ pub(crate) fn print_benchmark_publication_targets(
         .contracts
         .into_iter()
         .map(|contract| {
-            corpus_fastq_publication_command(&contract.stage_id, &args.kind, args.config.as_deref())
+            corpus_fastq_publication_command(
+                &contract.stage_id,
+                &args.corpus_id,
+                &args.kind,
+                args.config.as_deref(),
+            )
         })
         .collect::<Result<Vec<_>>>()?;
     println!("{}", targets.join("\n"));
@@ -45,6 +50,7 @@ pub(crate) fn print_benchmark_publication_targets(
 
 fn corpus_fastq_publication_command(
     stage_id: &str,
+    corpus_id: &str,
     kind: &str,
     config: Option<&Path>,
 ) -> Result<String> {
@@ -53,7 +59,7 @@ fn corpus_fastq_publication_command(
         "run" => {
             command.push("corpus-fastq".to_string());
             command.push("--corpus-id".to_string());
-            command.push("corpus-01".to_string());
+            command.push(corpus_id.to_string());
             command.push("--stage".to_string());
             command.push(stage_id.to_string());
         }
@@ -61,6 +67,8 @@ fn corpus_fastq_publication_command(
             command.push("corpus-fastq-report".to_string());
             command.push("--stage".to_string());
             command.push(stage_id.to_string());
+            command.push("--corpus-id".to_string());
+            command.push(corpus_id.to_string());
         }
         other => {
             return Err(anyhow!(
@@ -100,6 +108,7 @@ pub(crate) fn run_corpus_fastq_published_dossiers(
                 cwd,
                 &BenchCorpusFastqReportArgs {
                     stage: contract.stage_id,
+                    corpus_id: args.corpus_id.clone(),
                     config: args.config.clone(),
                     docs_root: args.docs_root.clone(),
                     run_root: args.run_root.clone(),
@@ -110,6 +119,7 @@ pub(crate) fn run_corpus_fastq_published_dossiers(
     run_corpus_fastq_publication_status(
         cwd,
         &BenchCorpusFastqPublicationStatusArgs {
+            corpus_id: args.corpus_id.clone(),
             config: args.config.clone(),
             docs_root: args.docs_root.clone(),
         },
@@ -120,7 +130,7 @@ pub(crate) fn run_corpus_fastq_published_dossiers(
 pub(crate) fn run_corpus_fastq_report(cwd: &Path, args: &BenchCorpusFastqReportArgs) -> Result<()> {
     let stage_docs_root = absolutize(cwd, &args.docs_root)
         .join(&args.stage)
-        .join("corpus-01");
+        .join(&args.corpus_id);
     let benchmark_config = load_benchmark_config(cwd, args.config.as_deref())?;
     render_corpus_fastq_dossier(
         cwd,
@@ -205,8 +215,11 @@ fn render_corpus_fastq_dossier(
     let contract = corpus_01_publication_contract(cwd, config_path, stage_id)?;
     let corpus_spec = load_corpus_spec(cwd, config_path, "corpus-01")?;
     let corpus_root = workspace_remote_corpus_root(&benchmark_config.workspace)?;
-    let all_samples =
-        discover_normalized_samples(&corpus_root, corpus_expected_sample_total(&corpus_spec))?;
+    let all_samples = discover_normalized_samples(
+        &corpus_root,
+        &corpus_spec.corpus_id,
+        corpus_expected_sample_total(&corpus_spec),
+    )?;
     let metadata_by_sample = validate_corpus_contract(&corpus_root, &corpus_spec, &all_samples)?;
     let applicable_samples = match contract.sample_scope.as_str() {
         "full" => all_samples,
@@ -3343,18 +3356,19 @@ mod tests {
         assert_eq!(
             super::corpus_fastq_publication_command(
                 "fastq.profile_overrepresented_sequences",
+                "corpus-01",
                 "report",
                 None,
             )
             .expect("report command"),
-            "bijux-dna bench corpus-fastq-report --stage fastq.profile_overrepresented_sequences"
+            "bijux-dna bench corpus-fastq-report --stage fastq.profile_overrepresented_sequences --corpus-id corpus-01"
         );
     }
 
     #[test]
     fn publication_command_maps_merge_pairs_stage_run() {
         assert_eq!(
-            super::corpus_fastq_publication_command("fastq.merge_pairs", "run", None)
+            super::corpus_fastq_publication_command("fastq.merge_pairs", "corpus-01", "run", None)
                 .expect("run command"),
             "bijux-dna bench corpus-fastq --corpus-id corpus-01 --stage fastq.merge_pairs"
         );
@@ -3365,11 +3379,12 @@ mod tests {
         assert_eq!(
             super::corpus_fastq_publication_command(
                 "fastq.filter_reads",
+                "corpus-01",
                 "report",
                 Some(Path::new("configs/bench/alt.toml")),
             )
             .expect("report command"),
-            "bijux-dna bench corpus-fastq-report --stage fastq.filter_reads --config configs/bench/alt.toml"
+            "bijux-dna bench corpus-fastq-report --stage fastq.filter_reads --corpus-id corpus-01 --config configs/bench/alt.toml"
         );
     }
 
@@ -3506,6 +3521,7 @@ reason = "Compact validation fixture."
             repo_root,
             &crate::commands::cli::BenchCorpusFastqReportArgs {
                 stage: "fastq.validate_reads".to_string(),
+                corpus_id: "corpus-01".to_string(),
                 config: Some(PathBuf::from("configs/bench/benchmark.toml")),
                 docs_root: PathBuf::from("docs/benchmark"),
                 run_root: Some(run_root.clone()),

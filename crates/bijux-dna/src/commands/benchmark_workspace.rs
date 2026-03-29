@@ -195,7 +195,10 @@ pub(crate) fn benchmark_workspace_config_path(cwd: &Path, explicit_path: Option<
     benchmark_config_path(cwd, explicit_path)
 }
 
-pub(crate) fn benchmark_publication_config_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
+pub(crate) fn benchmark_publication_config_path(
+    cwd: &Path,
+    explicit_path: Option<&Path>,
+) -> PathBuf {
     benchmark_config_path(cwd, explicit_path)
 }
 
@@ -331,7 +334,9 @@ pub(crate) fn load_benchmark_config(
     if !path.is_file() {
         return Err(anyhow!("missing benchmark config: {}", path.display()));
     }
-    Ok(normalize_benchmark_config(load_toml::<BenchmarkConfig>(&path)?))
+    Ok(normalize_benchmark_config(load_toml::<BenchmarkConfig>(
+        &path,
+    )?))
 }
 
 pub(crate) fn load_optional_benchmark_workspace_config(
@@ -391,6 +396,53 @@ pub(crate) fn benchmark_corpus_spec_path(
         .join("runtime")
         .join("corpora")
         .join(format!("{corpus_id}.toml")))
+}
+
+pub(crate) fn benchmark_runtime_corpus_dir_name(
+    workspace: &BenchmarkWorkspaceConfig,
+    corpus_id: &str,
+) -> Result<String> {
+    if let Some(dir_name) = workspace
+        .remote
+        .as_ref()
+        .and_then(|row| row.corpus_root.as_deref())
+        .map(Path::new)
+        .and_then(Path::file_name)
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+    {
+        return Ok(dir_name.to_string());
+    }
+    Ok(corpus_id.replace('-', "_"))
+}
+
+pub(crate) fn benchmark_stage_run_relative_root(
+    workspace: &BenchmarkWorkspaceConfig,
+    scope: &str,
+    corpus_dir_name: &str,
+    stage_id: &str,
+) -> PathBuf {
+    let template = workspace
+        .layout
+        .as_ref()
+        .and_then(|row| row.stage_runs.as_ref())
+        .and_then(|row| match scope {
+            "remote" => row.remote_results_template.as_deref(),
+            "local-cache" => row.local_cache_results_template.as_deref(),
+            "local-archive" => row.local_archive_results_template.as_deref(),
+            _ => None,
+        })
+        .unwrap_or(match scope {
+            "remote" => "{corpus_id}/{stage_id}/lunarc",
+            "local-cache" => "results/{corpus_id}/{stage_id}/lunarc",
+            "local-archive" => "{corpus_id}/{stage_id}/lunarc",
+            _ => "{corpus_id}/{stage_id}/lunarc",
+        });
+    PathBuf::from(
+        template
+            .replace("{corpus_id}", corpus_dir_name)
+            .replace("{stage_id}", stage_id),
+    )
 }
 
 pub(crate) fn benchmark_workspace_value(
@@ -521,7 +573,13 @@ pub(crate) fn run_normalize_workspace_layout(
     args: &crate::commands::cli::BenchNormalizeWorkspaceLayoutArgs,
 ) -> Result<()> {
     let workspace = load_benchmark_workspace_config(cwd, args.config.as_deref())?;
-    let report = normalize_workspace_layout_report(&workspace, &args.corpus_id, args.confirm)?;
+    let corpus_dir_name = benchmark_runtime_corpus_dir_name(&workspace, &args.corpus_id)?;
+    let report = normalize_workspace_layout_report(
+        &workspace,
+        &args.corpus_id,
+        &corpus_dir_name,
+        args.confirm,
+    )?;
     println!("{}", serde_json::to_string_pretty(&report)?);
     Ok(())
 }
@@ -572,6 +630,7 @@ struct WorkspaceStageNormalizationReport {
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 struct WorkspaceNormalizationReport {
     corpus_id: String,
+    corpus_dir_name: String,
     canonical_corpus_root: String,
     legacy_corpus_root: String,
     archive_stage_ids: Vec<String>,
@@ -590,12 +649,15 @@ struct WorkspaceNormalizationReport {
 fn normalize_workspace_layout_report(
     workspace: &BenchmarkWorkspaceConfig,
     corpus_id: &str,
+    corpus_dir_name: &str,
     confirm: bool,
 ) -> Result<WorkspaceNormalizationReport> {
     let local_results_root = workspace_local_results_root(workspace)?;
     let local_cache_mirror_root = workspace_local_cache_mirror_root(workspace)?;
-    let legacy_corpus_root = local_results_root.join(corpus_id);
-    let canonical_corpus_root = local_cache_mirror_root.join("results").join(corpus_id);
+    let legacy_corpus_root = local_results_root.join(corpus_dir_name);
+    let canonical_corpus_root = local_cache_mirror_root
+        .join("results")
+        .join(corpus_dir_name);
 
     let archive_stage_ids = stage_directory_names(&legacy_corpus_root);
     let cache_stage_ids = stage_directory_names(&canonical_corpus_root);
@@ -656,6 +718,7 @@ fn normalize_workspace_layout_report(
 
     Ok(WorkspaceNormalizationReport {
         corpus_id: corpus_id.to_string(),
+        corpus_dir_name: corpus_dir_name.to_string(),
         canonical_corpus_root: canonical_corpus_root.display().to_string(),
         legacy_corpus_root: legacy_corpus_root.display().to_string(),
         archive_stage_ids,
@@ -997,6 +1060,7 @@ fn workspace_layout_report(workspace: &BenchmarkWorkspaceConfig) -> Result<Works
         .parent()
         .ok_or_else(|| anyhow!("invalid local.cache_mirror_root"))?
         .to_path_buf();
+    let corpus_dir_name = benchmark_runtime_corpus_dir_name(workspace, "corpus-01")?;
 
     let root_pairs = vec![
         summarize_root_pair(
@@ -1025,7 +1089,7 @@ fn workspace_layout_report(workspace: &BenchmarkWorkspaceConfig) -> Result<Works
     }
 
     let mut unexpected_remote_siblings = Vec::new();
-    for sibling in ["results", "corpus_01", "extra-data"] {
+    for sibling in ["results", corpus_dir_name.as_str(), "extra-data"] {
         let sibling_root = remote_workspace_root.join(sibling);
         if sibling_root.exists() {
             let detail = sibling_root.display().to_string();
@@ -1037,8 +1101,11 @@ fn workspace_layout_report(workspace: &BenchmarkWorkspaceConfig) -> Result<Works
         }
     }
 
-    let local_stage_layout =
-        summarize_local_stage_layout(&local_results_root, &local_cache_mirror_root);
+    let local_stage_layout = summarize_local_stage_layout(
+        &local_results_root,
+        &local_cache_mirror_root,
+        &corpus_dir_name,
+    );
     for stage_id in &local_stage_layout.shared_stage_ids {
         issues.push(WorkspaceLayoutIssue {
             issue_id: "duplicate-local-stage-root".to_string(),
@@ -1122,9 +1189,12 @@ fn summarize_root_pair(
 fn summarize_local_stage_layout(
     local_results_root: &Path,
     local_cache_mirror_root: &Path,
+    corpus_dir_name: &str,
 ) -> WorkspaceLocalStageLayout {
-    let archive_corpus_root = local_results_root.join("corpus_01");
-    let cache_corpus_root = local_cache_mirror_root.join("results").join("corpus_01");
+    let archive_corpus_root = local_results_root.join(corpus_dir_name);
+    let cache_corpus_root = local_cache_mirror_root
+        .join("results")
+        .join(corpus_dir_name);
     let archive_stage_ids = entry_names(&archive_corpus_root);
     let cache_stage_ids = entry_names(&cache_corpus_root);
     let archive_set = archive_stage_ids.iter().cloned().collect::<BTreeSet<_>>();
@@ -1294,6 +1364,7 @@ pub(crate) fn corpus_01_publication_contract(
 mod tests {
     use super::{
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
+        benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
         benchmark_workspace_config_path, benchmark_workspace_value, corpus_01_publication_contract,
         load_benchmark_config, load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
@@ -1542,6 +1613,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
 
         let report = normalize_workspace_layout_report(
             &sample_workspace(&results_root, &cache_mirror_root),
+            "corpus-01",
             "corpus_01",
             true,
         )
@@ -1605,6 +1677,39 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         assert_eq!(
             path,
             temp.path().join("configs/runtime/corpora/corpus-01.toml")
+        );
+    }
+
+    #[test]
+    fn benchmark_runtime_corpus_dir_name_prefers_remote_corpus_root_basename() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        write_workspace(temp.path());
+        let workspace = load_benchmark_workspace_config(temp.path(), None).expect("workspace");
+        assert_eq!(
+            benchmark_runtime_corpus_dir_name(&workspace, "corpus-01").expect("dir name"),
+            "corpus_01"
+        );
+    }
+
+    #[test]
+    fn benchmark_stage_run_relative_root_uses_default_templates() {
+        assert_eq!(
+            benchmark_stage_run_relative_root(
+                &BenchmarkWorkspaceConfig::default(),
+                "remote",
+                "corpus_01",
+                "fastq.validate_reads"
+            ),
+            std::path::PathBuf::from("corpus_01/fastq.validate_reads/lunarc")
+        );
+        assert_eq!(
+            benchmark_stage_run_relative_root(
+                &BenchmarkWorkspaceConfig::default(),
+                "local-cache",
+                "corpus_01",
+                "fastq.validate_reads"
+            ),
+            std::path::PathBuf::from("results/corpus_01/fastq.validate_reads/lunarc")
         );
     }
 

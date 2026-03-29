@@ -14,6 +14,7 @@ use crate::commands::benchmark_corpus_metadata::{
 };
 use crate::commands::benchmark_stage_catalog::corpus_fastq_stage_catalog_entry;
 use crate::commands::benchmark_workspace::{
+    benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
     benchmark_workspace_value, corpus_01_publication_contract, load_benchmark_config,
     load_benchmark_workspace_config, BenchmarkConfig,
 };
@@ -259,8 +260,11 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
     validate_benchmark_layout(&corpus_root, &out_root)?;
     fs::create_dir_all(&out_root).with_context(|| format!("create {}", out_root.display()))?;
 
-    let all_samples =
-        discover_normalized_samples(&corpus_root, corpus_expected_sample_total(&corpus_spec))?;
+    let all_samples = discover_normalized_samples(
+        &corpus_root,
+        &corpus_spec.corpus_id,
+        corpus_expected_sample_total(&corpus_spec),
+    )?;
     let metadata_by_sample = validate_corpus_contract(&corpus_root, &corpus_spec, &all_samples)?;
     let mut selected_samples = match contract.sample_scope.as_str() {
         "full" => all_samples,
@@ -531,16 +535,15 @@ fn default_stage_out_root(
         .as_ref()
         .and_then(|row| row.results_root.as_deref())
         .ok_or_else(|| anyhow!("workspace config is missing remote.results_root"))?;
-    let stage_template = workspace_config
-        .layout
-        .as_ref()
-        .and_then(|row| row.stage_runs.as_ref())
-        .and_then(|row| row.remote_results_template.as_deref())
-        .unwrap_or("{corpus_id}/{stage_id}/lunarc");
-    let rel = stage_template
-        .replace("{corpus_id}", corpus_id)
-        .replace("{stage_id}", stage_id);
-    Ok(PathBuf::from(results_root).join(rel))
+    let corpus_dir_name = benchmark_runtime_corpus_dir_name(workspace_config, corpus_id)?;
+    Ok(
+        PathBuf::from(results_root).join(benchmark_stage_run_relative_root(
+            workspace_config,
+            "remote",
+            &corpus_dir_name,
+            stage_id,
+        )),
+    )
 }
 
 fn stage_command_spec(stage_id: &str) -> Result<StageCommandSpec> {
@@ -1948,7 +1951,7 @@ mod tests {
             default_stage_out_root(&workspace, "corpus-01", "fastq.validate_reads").expect("root");
         assert_eq!(
             out_root,
-            PathBuf::from("/srv/cache/results/corpus-01/fastq.validate_reads/cluster")
+            PathBuf::from("/srv/cache/results/corpus_01/fastq.validate_reads/cluster")
         );
     }
 

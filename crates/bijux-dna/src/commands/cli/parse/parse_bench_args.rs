@@ -79,6 +79,8 @@ pub struct BenchRepoChecksArgs {
 pub struct BenchWriteScreenTaxonomyDatabaseLineageArgs {
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
+    #[arg(long, default_value = "corpus-01")]
+    pub corpus_id: String,
     #[arg(long, value_name = "PATH")]
     pub database_root: Option<PathBuf>,
     #[arg(long, value_name = "PATH")]
@@ -106,6 +108,8 @@ pub struct BenchPublicationTargetsArgs {
     pub kind: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
+    #[arg(long, default_value = "corpus-01")]
+    pub corpus_id: String,
 }
 
 #[derive(Debug, Args)]
@@ -146,7 +150,7 @@ pub struct BenchCorpusFastqArgs {
 pub struct BenchNormalizeWorkspaceLayoutArgs {
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
-    #[arg(long, default_value = "corpus_01")]
+    #[arg(long, default_value = "corpus-01")]
     pub corpus_id: String,
     #[arg(long, default_value_t = false)]
     pub confirm: bool,
@@ -156,6 +160,8 @@ pub struct BenchNormalizeWorkspaceLayoutArgs {
 pub struct BenchCorpusFastqReportArgs {
     #[arg(long)]
     pub stage: String,
+    #[arg(long, default_value = "corpus-01")]
+    pub corpus_id: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
     #[arg(long, value_name = "PATH", default_value = "docs/benchmark")]
@@ -166,6 +172,8 @@ pub struct BenchCorpusFastqReportArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchCorpusFastqPublicationStatusArgs {
+    #[arg(long, default_value = "corpus-01")]
+    pub corpus_id: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
     #[arg(long, value_name = "PATH", default_value = "docs/benchmark")]
@@ -174,6 +182,8 @@ pub struct BenchCorpusFastqPublicationStatusArgs {
 
 #[derive(Debug, Args)]
 pub struct BenchCorpusFastqPublishedDossiersArgs {
+    #[arg(long, default_value = "corpus-01")]
+    pub corpus_id: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
     #[arg(long, value_name = "PATH", default_value = "docs/benchmark")]
