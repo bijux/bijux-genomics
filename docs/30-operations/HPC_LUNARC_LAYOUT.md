@@ -36,7 +36,7 @@ This document describes the Lunarc benchmark workspace contract as configured th
 - Clear transient build residue from the frontend repo checkout:
   - `make lunarc-prune-code`
 
-`make pull-lunarc-results` and `make pull-lunarc-results-prune` remain optional wrappers around the governed sync contract above.
+`make benchmark-sync-pull-results` and `make benchmark-sync-pull-results-prune` are the canonical optional wrappers around the governed sync contract above. `make pull-lunarc-results` and `make pull-lunarc-results-prune` remain compatibility aliases.
 
 ## What
 Defines the Lunarc-facing workspace roles and operational invariants for deterministic benchmark execution.
