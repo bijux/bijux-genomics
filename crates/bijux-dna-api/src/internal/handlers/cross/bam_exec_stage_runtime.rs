@@ -546,7 +546,7 @@ fn write_normalized_bam_metrics(
                     .collect::<Vec<_>>(),
             ),
             params_hash: bijux_dna_core::prelude::params_hash(&plan.effective_params)
-                .unwrap_or_default(),
+                .context("hash BAM effective params")?,
             presets: std::collections::BTreeMap::new(),
             banks: std::collections::BTreeMap::new(),
         },
