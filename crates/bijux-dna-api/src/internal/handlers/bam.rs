@@ -104,14 +104,15 @@ pub fn bench_bam_stage(
                     .collect();
                 let stage_contract_hash = bijux_dna_domain_bam::stage_contract_hash(stage_id)
                     .and_then(std::result::Result::ok);
+                let graph_hash = graph.hash()?;
                 let manifest = serde_json::json!({
                     "schema_version": "bijux.run_manifest.v3",
                     "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
                     "run_id": "dry-run",
                     "pipeline_id": stage_id,
                     "profile_id": args.stage.as_str(),
-                    "graph_hash": graph.hash().unwrap_or_default(),
-                    "cache_key": bijux_dna_core::prelude::CacheKey::new("", "", "", ""),
+                    "graph_hash": graph_hash,
+                    "cache_key": serde_json::Value::Null,
                     "stage_contract_hash": stage_contract_hash,
                     "toolchain_versions": [],
                     "dataset_fingerprints": [],
