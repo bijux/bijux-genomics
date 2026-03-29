@@ -19,6 +19,16 @@ fn canonical_sha256(value: &serde_json::Value) -> Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+fn manifest_sort_key(value: &serde_json::Value, key: &str) -> String {
+    value
+        .get(key)
+        .and_then(|entry| entry.as_str())
+        .map(str::trim)
+        .filter(|entry| !entry.is_empty())
+        .unwrap_or("not_declared")
+        .to_string()
+}
+
 fn detect_run_context() -> crate::RunContextV1 {
     let mode = std::env::var("BIJUX_RUN_CONTEXT").unwrap_or_else(|_| "local".to_string());
     if mode.eq_ignore_ascii_case("hpc") {
@@ -444,10 +454,7 @@ fn collect_all_run_artifacts(
         }
     }
     out.sort_by(|a, b| {
-        a.get("name")
-            .and_then(|v| v.as_str())
-            .unwrap_or_default()
-            .cmp(b.get("name").and_then(|v| v.as_str()).unwrap_or_default())
+        manifest_sort_key(a, "name").cmp(&manifest_sort_key(b, "name"))
     });
     Ok(out)
 }
