@@ -1,5 +1,7 @@
 //! BAM pipeline profiles and presets.
 
+mod adna_profiles;
+mod baseline_profiles;
 mod invariants;
 mod profile_invariants;
 mod profiles;
