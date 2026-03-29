@@ -256,11 +256,7 @@ pub fn write_run_manifest(
         image_digest: replay_tool_image_digest.clone().unwrap_or_default(),
         tool_version: run_provenance.tool_version.clone(),
         params_hash: run_provenance.params_hash.clone(),
-        input_hash: run_provenance
-            .input_hashes
-            .first()
-            .cloned()
-            .unwrap_or_else(|| "unknown".to_string()),
+        input_hash: input_fingerprint(&run_provenance.input_hashes),
         bank_hashes: serde_json::json!({}),
     };
     write_canonical_json(
