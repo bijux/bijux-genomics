@@ -94,7 +94,6 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::ToolingBenchmarkIntegrityMini => {
             tooling_benchmark_integrity_mini(workspace, args)
         }
-        NativeOpsCommandKey::ToolingBenchmarks => tooling_benchmarks(workspace, args),
         NativeOpsCommandKey::ToolingConfigInventory => tooling_config_inventory(workspace, args),
         NativeOpsCommandKey::ToolingCoverageSummary => tooling_coverage_summary(workspace, args),
         NativeOpsCommandKey::ToolingCrashTriage => tooling_crash_triage(workspace, args),
@@ -2443,121 +2442,6 @@ fn tooling_acquire_maps(workspace: &Workspace, args: &[String]) -> Result<OpsCom
     )?;
     stdout.push_str(&format!("wrote {}\n", workspace.rel(&run_log).display()));
     Ok(OpsCommandOutcome::success(stdout))
-}
-
-fn tooling_benchmarks(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
-    if matches!(args, [flag] if flag == "--help" || flag == "-h") || args.is_empty() {
-        return success_line(
-            "Usage: cargo run -p bijux-dna-dev -- tooling run benchmarks -- <bam-stage|bam-pipeline|bam-all>",
-        );
-    }
-    let mode = args[0].as_str();
-    let run_id = std::env::var("ISO_RUN_ID").unwrap_or_else(|_| "manual".to_string());
-    let benchmark_segment = "/benchmarks/";
-    let out_dir = std::env::var("OUT_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            artifact_root_path(workspace)
-                .unwrap_or_else(|_| workspace.path("artifacts"))
-                .join("benchmarks")
-                .join(run_id)
-        });
-    let out_dir_display = out_dir.display().to_string();
-    debug_assert!(
-        out_dir_display.contains(benchmark_segment) || out_dir_display.ends_with("benchmarks")
-    );
-    if out_dir_display.contains("/containers/smoke") {
-        return Ok(OpsCommandOutcome::failure(format!(
-            "benchmark out dir must not overlap smoke logs: {}\n",
-            out_dir.display()
-        )));
-    }
-    let tools = std::env::var("TOOLS")
-        .ok()
-        .filter(|value| !value.is_empty());
-    let bam = std::env::var("BAM").unwrap_or_default();
-    let bam_profile =
-        std::env::var("BAM_PROFILE").unwrap_or_else(|_| "bam-to-bam__default__v1".to_string());
-    let bam_stage = std::env::var("BAM_STAGE").unwrap_or_else(|_| "validate".to_string());
-    let bam_sample_id = std::env::var("BAM_SAMPLE_ID").unwrap_or_else(|_| "sample".to_string());
-
-    fn push_common_bench_args(
-        argv: &mut Vec<String>,
-        out_dir: &Path,
-        tools: &Option<String>,
-        allow_experimental: bool,
-    ) {
-        argv.push("--out".to_string());
-        argv.push(out_dir.display().to_string());
-        if let Some(tools) = tools {
-            argv.push("--tools".to_string());
-            argv.push(tools.clone());
-        }
-        if allow_experimental {
-            argv.push("--allow-experimental".to_string());
-        }
-    }
-
-    fn run_bijux_bench(workspace: &Workspace, argv: Vec<String>) -> Result<OpsCommandOutcome> {
-        tooling_run_bijux(workspace, &argv)
-    }
-
-    let run_bam_stage = |workspace: &Workspace| -> Result<OpsCommandOutcome> {
-        if bam.is_empty() {
-            return Ok(OpsCommandOutcome::failure(
-                "ERROR: set BAM=<path/to/input.bam>\n",
-            ));
-        }
-        let mut argv = vec![
-            "bench".to_string(),
-            "bam".to_string(),
-            "stage".to_string(),
-            "--sample-id".to_string(),
-            bam_sample_id.clone(),
-            "--stage".to_string(),
-            bam_stage.clone(),
-            "--bam".to_string(),
-            bam.clone(),
-        ];
-        push_common_bench_args(&mut argv, &out_dir, &tools, false);
-        run_bijux_bench(workspace, argv)
-    };
-
-    let run_bam_pipeline = |workspace: &Workspace| -> Result<OpsCommandOutcome> {
-        if bam.is_empty() {
-            return Ok(OpsCommandOutcome::failure(
-                "ERROR: set BAM=<path/to/input.bam>\n",
-            ));
-        }
-        let mut argv = vec![
-            "bench".to_string(),
-            "bam".to_string(),
-            "pipeline".to_string(),
-            "--sample-id".to_string(),
-            bam_sample_id.clone(),
-            "--profile".to_string(),
-            bam_profile.clone(),
-            "--bam".to_string(),
-            bam.clone(),
-        ];
-        push_common_bench_args(&mut argv, &out_dir, &tools, false);
-        run_bijux_bench(workspace, argv)
-    };
-
-    match mode {
-        "bam-stage" => run_bam_stage(workspace),
-        "bam-pipeline" => run_bam_pipeline(workspace),
-        "bam-all" => {
-            let first = run_bam_stage(workspace)?;
-            if !first.is_success() {
-                return Ok(first);
-            }
-            Ok(merge_outcomes(first, run_bam_pipeline(workspace)?))
-        }
-        other => Ok(OpsCommandOutcome::failure(format!(
-            "unsupported mode: {other}\n"
-        ))),
-    }
 }
 
 fn tooling_benchmark_integrity_mini(

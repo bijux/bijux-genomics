@@ -68,7 +68,6 @@ pub enum NativeOpsCommandKey {
     ToolingAcquirePanels,
     ToolingAcquireReference,
     ToolingBenchmarkIntegrityMini,
-    ToolingBenchmarks,
     ToolingConfigInventory,
     ToolingCoverageSummary,
     ToolingCrashTriage,
