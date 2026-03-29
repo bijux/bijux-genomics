@@ -156,6 +156,12 @@ fn build_stage_plan(
     inputs: Vec<ArtifactRef>,
     outputs: Vec<ArtifactRef>,
 ) -> Result<StagePlanV1> {
+    let params = serde_json::to_value(&run_spec.params).map_err(|err| {
+        anyhow!(
+            "failed to serialize run parameters for {}: {err}",
+            run_spec.stage.0
+        )
+    })?;
     Ok(StagePlanV1 {
         stage_id: run_spec.stage.clone(),
         stage_instance_id: None,
@@ -172,13 +178,8 @@ fn build_stage_plan(
         resources: tool_manifest.constraints.clone(),
         io: StageIO { inputs, outputs },
         out_dir: run_dir.join("stage"),
-        params: serde_json::to_value(&run_spec.params).map_err(|err| {
-            anyhow!(
-                "failed to serialize run parameters for {}: {err}",
-                run_spec.stage.0
-            )
-        })?,
-        effective_params: serde_json::json!({}),
+        params: params.clone(),
+        effective_params: params,
         aux_images: BTreeMap::new(),
         reason: crate::stage_plan::PlanDecisionReason {
             kind: crate::stage_plan::PlanReasonKind::Default,
@@ -223,5 +224,82 @@ fn artifact_kind_schema(role: &str) -> (&'static str, &'static str) {
         "metrics_envelope" => ("json", "bijux.metrics.envelope.v1"),
         "stage_report" => ("json", "bijux.stage_report.v1"),
         _ => ("file", "bijux.artifact.file.v1"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
+    use bijux_dna_core::contract::ToolRole;
+    use bijux_dna_core::contract::{
+        ArtifactKind, Cardinality, PathSpec, PortSpec, RunSpec, RuntimeScale, StageSemanticKind,
+        StageSpec, ToolConstraints, ToolManifest,
+    };
+    use bijux_dna_core::ids::{StageId, ToolId};
+
+    #[test]
+    fn build_stage_plan_copies_run_params_into_effective_params() {
+        let run_spec = RunSpec {
+            stage: StageId::from_static("fastq.trim_reads"),
+            tool: ToolId::from_static("fastp"),
+            paths: PathSpec {
+                input: Vec::new(),
+                output: Vec::new(),
+                work: PathBuf::from("work"),
+            },
+            params: BTreeMap::from([
+                ("quality".to_string(), "20".to_string()),
+                ("trim_poly_g".to_string(), "true".to_string()),
+            ]),
+        };
+        let tool_manifest = ToolManifest {
+            tool_id: ToolId::from_static("fastp"),
+            stage_id: StageId::from_static("fastq.trim_reads"),
+            role: ToolRole::Authoritative,
+            command_template: vec!["fastp".to_string()],
+            outputs: Vec::new(),
+            metrics_parser: None,
+            constraints: ToolConstraints::default(),
+            execution_contract: Default::default(),
+        };
+        let stage_spec = StageSpec {
+            stage_id: StageId::from_static("fastq.trim_reads"),
+            semantic_kind: StageSemanticKind::Transform,
+            input_kind: ArtifactKind::Fastq,
+            output_kind: ArtifactKind::Fastq,
+            produced_artifacts: vec!["trimmed_reads".to_string()],
+            stage_semver: "1.0.0".to_string(),
+            runtime_scale: RuntimeScale::Small,
+            inputs: Vec::new(),
+            outputs: vec![PortSpec {
+                name: "trimmed_reads".to_string(),
+                data_type: "fastq".to_string(),
+                cardinality: Cardinality::One,
+            }],
+            parameters: Vec::new(),
+            metrics: Vec::new(),
+            description: None,
+            behavior: Default::default(),
+            image_requirements: None,
+            extends: None,
+        };
+
+        let plan = super::build_stage_plan(
+            &run_spec,
+            &tool_manifest,
+            &stage_spec,
+            PathBuf::from("runs/run-1"),
+            Vec::new(),
+            Vec::new(),
+        )
+        .expect("build stage plan");
+
+        assert_eq!(
+            plan.params,
+            serde_json::json!({"quality": "20", "trim_poly_g": "true"})
+        );
+        assert_eq!(plan.effective_params, plan.params);
     }
 }
