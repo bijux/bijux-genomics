@@ -22,6 +22,7 @@ pub mod invariants;
 pub mod metrics;
 pub mod path_contract;
 pub mod pipeline;
+mod repo_root;
 pub mod stage_specs;
 pub mod vcf_io;
 #[path = "engine_sections/wrappers.rs"]
