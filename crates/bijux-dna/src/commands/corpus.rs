@@ -650,37 +650,19 @@ fn validate_curated_record(
             sample.accession
         ));
     }
-    if record
-        .library_source
-        .as_deref()
-        .unwrap_or("")
-        .trim()
-        .is_empty()
-    {
+    if !has_declared_text(record.library_source.as_deref()) {
         return Err(anyhow!(
             "accession `{}` missing library_source",
             sample.accession
         ));
     }
-    if record
-        .library_strategy
-        .as_deref()
-        .unwrap_or("")
-        .trim()
-        .is_empty()
-    {
+    if !has_declared_text(record.library_strategy.as_deref()) {
         return Err(anyhow!(
             "accession `{}` missing library_strategy",
             sample.accession
         ));
     }
-    if record
-        .instrument_model
-        .as_deref()
-        .unwrap_or("")
-        .trim()
-        .is_empty()
-    {
+    if !has_declared_text(record.instrument_model.as_deref()) {
         return Err(anyhow!(
             "accession `{}` missing instrument_model",
             sample.accession
@@ -863,6 +845,10 @@ fn corpus_inputs_for_root(cwd: &Path, root: &Path) -> Result<CorpusInputs> {
         corpus: name,
         files,
     })
+}
+
+fn has_declared_text(value: Option<&str>) -> bool {
+    value.is_some_and(|entry| !entry.trim().is_empty())
 }
 
 fn diff_manifests(cwd: &Path, left: &str, right: &str) -> Result<ManifestDiff> {
