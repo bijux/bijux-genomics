@@ -281,11 +281,7 @@ pub fn bench_status(cwd: &Path) -> serde_json::Value {
 }
 
 fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .unwrap_or_else(|| panic!("workspace root"))
-        .to_path_buf()
+    crate::commands::repo_root::resolve_repo_root().unwrap_or_else(|err| panic!("{err}"))
 }
 
 fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
