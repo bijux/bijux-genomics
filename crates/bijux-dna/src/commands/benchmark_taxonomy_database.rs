@@ -373,9 +373,9 @@ mod tests {
         BenchmarkConfig {
             workspace: BenchmarkWorkspaceConfig {
                 local: Some(BenchmarkWorkspaceLocal {
-                    results_root: Some("/tmp/local-results".to_string()),
-                    cache_mirror_root: Some("/tmp/local-results/.cache".to_string()),
-                    extra_data_root: Some("/tmp/local-results/extra-data".to_string()),
+                    results_root: Some("/bench/local/results".to_string()),
+                    cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
+                    extra_data_root: Some("/bench/local/extra-data".to_string()),
                     reference_root: None,
                 }),
                 remote: None,
@@ -422,7 +422,7 @@ mod tests {
             Path::new("/repo"),
             &config,
             &BenchWriteScreenTaxonomyDatabaseLineageArgs {
-                results_root: Some(PathBuf::from("/tmp/local-results")),
+                results_root: Some(PathBuf::from("/bench/local/results")),
                 ..sample_args()
             },
         )
@@ -430,7 +430,7 @@ mod tests {
         assert_eq!(
             path,
             Path::new(
-                "/tmp/local-results/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
+                "/bench/local/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
             )
         );
     }
@@ -518,7 +518,9 @@ mod tests {
     fn default_screen_taxonomy_database_root_uses_template() {
         let path = default_screen_taxonomy_database_root(
             &sample_config(),
-            Path::new("/tmp/local-results/corpus_01/fastq.screen_taxonomy/lunarc"),
+            Path::new(
+                "/bench/local/results/benchmark_corpus/fastq.screen_taxonomy/cluster-apptainer",
+            ),
             "read_screening",
             "read_screening",
             "taxonomy_db",
@@ -527,7 +529,7 @@ mod tests {
         assert_eq!(
             path,
             Path::new(
-                "/tmp/local-results/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
+                "/bench/local/results/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
             )
         );
     }
