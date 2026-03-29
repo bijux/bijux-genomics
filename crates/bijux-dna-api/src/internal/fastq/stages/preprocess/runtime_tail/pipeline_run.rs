@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Context, Result};
 
 use super::contracts::{write_merge_join_contract, write_stage_resume_contract};
-use crate::internal::fastq::stages::preprocess::*;
-use crate::internal::fastq::stages::preprocess::runtime_tail::{
+use super::governance::{
     enforce_stage_applicability, write_fastq_output_contract, write_stage_governance_artifacts,
     write_taxonomy_db_drift_report,
 };
+use crate::internal::fastq::stages::preprocess::*;
 
 /// Run the preprocess pipeline.
 ///
