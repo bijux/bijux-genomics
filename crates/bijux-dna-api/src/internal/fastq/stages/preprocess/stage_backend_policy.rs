@@ -1171,7 +1171,7 @@ mod tests {
         std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
         std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
 
-        let stages_dir = workspace_root_path().join("domain/fastq/stages");
+        let stages_dir = crate::support::repo_root::resolve_repo_root()?.join("domain/fastq/stages");
         for entry in std::fs::read_dir(&stages_dir)? {
             let path = entry?.path();
             if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
@@ -2505,16 +2505,9 @@ mod tests {
     }
 }
 
-fn workspace_root_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(std::path::Path::parent)
-        .map_or_else(|| PathBuf::from("."), std::path::Path::to_path_buf)
-}
-
 fn required_fastq_tools() -> Result<std::collections::BTreeSet<String>> {
     let raw = std::fs::read_to_string(
-        workspace_root_path().join("configs/ci/tools/required_tools.toml"),
+        crate::support::repo_root::resolve_repo_root()?.join("configs/ci/tools/required_tools.toml"),
     )?;
     let parsed: toml::Value = toml::from_str(&raw)?;
     let mut set = std::collections::BTreeSet::new();

@@ -61,15 +61,33 @@ pub(super) struct EffectiveRuntimePolicy {
 
 static EXEC_POLICY: OnceLock<RuntimeExecutionConfig> = OnceLock::new();
 
-fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map_or_else(|| PathBuf::from("."), Path::to_path_buf)
-}
-
 fn load_runtime_execution_config() -> RuntimeExecutionConfig {
-    let path = workspace_root().join("configs/runtime/execution_kernel.toml");
+    let Ok(root) = crate::support::repo_root::resolve_repo_root() else {
+        return RuntimeExecutionConfig {
+            default_threads: None,
+            default_memory_mb: None,
+            default_compression_threads: Some(1),
+            default_timeout_s: None,
+            default_temp_root: None,
+            heavy_stage_patterns: Some(vec![
+                "bam.align".to_string(),
+                "vcf.impute".to_string(),
+                "vcf.phasing".to_string(),
+            ]),
+            max_local_heavy_parallel: Some(1),
+            bgzip_tabix_max_parallel: Some(1),
+            cache_root: None,
+            deterministic_env: Some(DeterministicEnvKnobs {
+                lc_all: Some("C".to_string()),
+                lang: Some("C".to_string()),
+                tz: Some("UTC".to_string()),
+                umask: Some("027".to_string()),
+                path: None,
+            }),
+            per_stage: None,
+        };
+    };
+    let path = root.join("configs/runtime/execution_kernel.toml");
     let Ok(raw) = std::fs::read_to_string(&path) else {
         return RuntimeExecutionConfig {
             default_threads: None,
@@ -188,7 +206,8 @@ pub(super) fn stage_matches(pattern: &str, stage_id: &str) -> bool {
 
 pub(super) fn effective_runtime_policy(req: &ToolInvocationRequest) -> EffectiveRuntimePolicy {
     let cfg = runtime_execution_config();
-    let root = workspace_root();
+    let root = crate::support::repo_root::resolve_repo_root()
+        .unwrap_or_else(|_| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let mut stage_knobs = StageResourceKnobs {
         threads: None,
         memory_mb: None,

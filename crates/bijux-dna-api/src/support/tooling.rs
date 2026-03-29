@@ -1,21 +1,14 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::ToolRole;
 use bijux_dna_core::ids::{StageId, ToolId};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map_or_else(
-            || PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-            Path::to_path_buf,
-        )
+fn workspace_root() -> Result<PathBuf> {
+    crate::support::repo_root::resolve_repo_root()
 }
 
-#[must_use]
-pub fn workspace_domain_dir() -> PathBuf {
-    workspace_root().join("domain")
+pub fn workspace_domain_dir() -> Result<PathBuf> {
+    Ok(workspace_root()?.join("domain"))
 }
 
 pub fn load_registry(
@@ -39,7 +32,7 @@ pub fn load_registry(
 }
 
 pub fn load_workspace_registry() -> Result<bijux_dna_core::contract::ToolRegistry> {
-    load_registry(&workspace_domain_dir())
+    load_registry(&workspace_domain_dir()?)
 }
 
 pub fn ensure_bench_runner(
@@ -147,7 +140,7 @@ mod tests {
 
     #[test]
     fn workspace_domain_dir_resolves_repo_domain_tree() {
-        let domain_dir = workspace_domain_dir();
+        let domain_dir = workspace_domain_dir().expect("workspace domain dir");
         assert!(
             domain_dir.join("fastq").is_dir(),
             "workspace domain dir must resolve the repo domain tree"

@@ -22,8 +22,18 @@ struct MergeDeterminismPolicy {
     max_mismatch_rate: f64,
 }
 
-fn governance_config_path() -> PathBuf {
-    workspace_root_path().join("assets/reference/amplicon_governance.toml")
+fn reference_assets_root() -> Result<PathBuf> {
+    if let Some(root) = std::env::var_os("BIJUX_REFERENCE_ROOT")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+    {
+        return Ok(root);
+    }
+    Ok(crate::support::repo_root::resolve_repo_root()?.join("assets/reference"))
+}
+
+fn governance_config_path() -> Result<PathBuf> {
+    Ok(reference_assets_root()?.join("amplicon_governance.toml"))
 }
 
 fn read_f64_from_toml(value: Option<&toml::Value>, default: f64) -> f64 {
@@ -45,7 +55,7 @@ fn read_u64_from_toml(value: Option<&toml::Value>, default: u64) -> u64 {
 }
 
 fn load_amplicon_governance() -> Result<toml::Value> {
-    let path = governance_config_path();
+    let path = governance_config_path()?;
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
@@ -74,7 +84,7 @@ fn primer_set_governance_for_marker(
         .get("primer_fasta")
         .and_then(toml::Value::as_str)
         .ok_or_else(|| anyhow!("marker `{marker_id}` missing primer_fasta path"))?;
-    let primer_path = workspace_root_path().join(primer_fasta);
+    let primer_path = reference_assets_root()?.join(primer_fasta);
     if !primer_path.exists() {
         return Err(anyhow!(
             "primer governance refusal: primer fasta missing for marker `{marker_id}`: {}",
@@ -213,7 +223,8 @@ fn write_reference_db_validation_artifact(
     let db_path = taxonomy_cfg
         .get("db_path")
         .and_then(toml::Value::as_str)
-        .map(|rel| workspace_root_path().join(rel));
+        .map(|rel| reference_assets_root().map(|root| root.join(rel)))
+        .transpose()?;
     let db_license = taxonomy_cfg
         .get("license")
         .and_then(toml::Value::as_str)
