@@ -14,7 +14,7 @@ use bijux_dna_domain_fastq::{
     admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,
     stage_input_ids, stage_output_ids, stage_parameter_ids, stage_tool_binding,
 };
-use bijux_dna_stage_contract::executor_registry::has_executor;
+use bijux_dna_stage_contract::has_executor;
 
 mod schemas;
 pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
