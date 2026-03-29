@@ -138,14 +138,14 @@ fn bam_header_contig_names_hint(bam_path: &Path) -> Vec<String> {
 
 fn read_group_presence_hint(bam_path: &Path) -> &'static str {
     let Ok(raw) = std::fs::read_to_string(bam_path) else {
-        return "unknown";
+        return "missing_header";
     };
     if raw.lines().any(|line| line.starts_with("@RG")) {
         "present"
     } else if raw.lines().any(|line| line.starts_with('@')) {
         "absent"
     } else {
-        "unknown"
+        "missing_header"
     }
 }
 
