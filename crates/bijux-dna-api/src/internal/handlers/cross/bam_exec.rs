@@ -28,8 +28,7 @@ fn write_stage_accounting(
         .iter()
         .filter(|path| path.exists())
         .map(|path| {
-            let sha256 =
-                bijux_dna_infra::hash_file_sha256(path).unwrap_or_else(|_| "unknown".to_string());
+            let sha256 = bijux_dna_infra::hash_file_sha256(path).ok();
             serde_json::json!({
                 "path": path,
                 "sha256": sha256,
