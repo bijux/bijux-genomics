@@ -20,9 +20,8 @@ use bijux_dna_stage_contract::{
 };
 
 use crate::coverage::classify_coverage_regime;
-use crate::models::{
-    short_species_context_digest, RegionChunkPlan, VcfPanelLock, VcfPipelineInputs,
-};
+use crate::api::{ChunkPlanSettings, VcfPanelLock, VcfPipelineInputs};
+use crate::models::{short_species_context_digest, RegionChunkPlan};
 use crate::params::{
     apply_stage_param_overrides, attach_reference_provenance, stage_params,
     validate_generated_stage_params,
@@ -178,7 +177,7 @@ fn validate_species_and_invariants(inputs: &VcfPipelineInputs) -> Result<()> {
 
 pub(crate) fn plan_region_chunks(
     species: &SpeciesContext,
-    chunking: &crate::models::ChunkPlanSettings,
+    chunking: &ChunkPlanSettings,
 ) -> Result<Vec<RegionChunkPlan>> {
     if chunking.window_size_bp == 0 {
         bail!("chunk window_size_bp must be > 0");
@@ -244,7 +243,7 @@ fn stage_plan(
     species_id: &str,
     build_id: &str,
     stage_param_overrides: &std::collections::BTreeMap<String, serde_json::Value>,
-    chunking: &crate::models::ChunkPlanSettings,
+    chunking: &ChunkPlanSettings,
     chunks: &[RegionChunkPlan],
     selection_rule: &str,
 ) -> Result<StagePlanV1> {
