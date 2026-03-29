@@ -1,21 +1,9 @@
 use std::collections::BTreeSet;
-use std::path::PathBuf;
 
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_domain_bam::BamStage;
 
-fn registry_toml() -> Option<toml::Value> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir
-        .parent()
-        .and_then(std::path::Path::parent)
-        .map(|root| bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml"))?;
-    if !path.exists() {
-        return None;
-    }
-    let raw = std::fs::read_to_string(path).ok()?;
-    raw.parse::<toml::Value>().ok()
-}
+use super::registry::tool_registry_toml;
 
 #[must_use]
 pub fn allowed_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
@@ -31,7 +19,7 @@ pub fn default_tool_for_stage(stage: BamStage) -> ToolId {
 #[must_use]
 pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
     let mut tools = BTreeSet::new();
-    let Some(parsed) = registry_toml() else {
+    let Some(parsed) = tool_registry_toml() else {
         return domain_tools_for_stage(stage);
     };
     let Some(entries) = parsed.get("tools").and_then(toml::Value::as_array) else {
@@ -103,7 +91,7 @@ pub fn default_tool(stage: BamStage) -> ToolId {
             stage.as_str()
         );
     }
-    if let Some(parsed) = registry_toml() {
+    if let Some(parsed) = tool_registry_toml() {
         if let Some(stages) = parsed.get("stages").and_then(toml::Value::as_array) {
             for stage_entry in stages {
                 let Some(id) = stage_entry.get("id").and_then(toml::Value::as_str) else {
