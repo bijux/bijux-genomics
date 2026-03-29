@@ -1,5 +1,7 @@
 use std::collections::HashSet;
-use std::path::Path;
+
+#[path = "../../support.rs"]
+mod support;
 
 fn extract_string_literals(contents: &str) -> Vec<String> {
     let mut literals = Vec::new();
@@ -67,7 +69,9 @@ fn benchmark_references_canonical_ids() {
         }
     }
 
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let root = support::crate_root("bijux-dna-bench")
+        .unwrap_or_else(|err| panic!("resolve benchmark crate root: {err}"))
+        .join("src");
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)
         .into_iter()
