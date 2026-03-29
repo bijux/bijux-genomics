@@ -347,7 +347,7 @@ fn list_adapters(effective: &bijux_dna_api::v1::api::bench::EffectiveAdapterSet)
             bijux_dna_api::v1::api::bench::ReadScope::Both => "both",
             bijux_dna_api::v1::api::bench::ReadScope::SingleEnd => "single_end",
             bijux_dna_api::v1::api::bench::ReadScope::PairedEnd => "paired_end",
-            bijux_dna_api::v1::api::bench::ReadScope::Unknown => "unknown",
+            bijux_dna_api::v1::api::bench::ReadScope::Unknown => "not_declared",
         };
         let tags = if adapter.tags.is_empty() {
             "none".to_string()
