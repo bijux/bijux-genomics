@@ -655,7 +655,7 @@ fn materialize_profile_reads_outputs(
             .inputs
             .first()
             .map(|artifact| artifact.path.display().to_string())
-            .unwrap_or_default(),
+            .ok_or_else(|| anyhow!("profile_reads report requires declared primary input"))?,
         input_r2: plan
             .io
             .inputs
