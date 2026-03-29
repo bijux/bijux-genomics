@@ -5669,7 +5669,12 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
     let default_lunarc_corpus_root = benchmark_workspace
         .remote_corpus_root
         .clone()
-        .unwrap_or_else(|| format!("{lunarc_workspace_root}/corpus_01"));
+        .unwrap_or_else(|| {
+            format!(
+                "{lunarc_workspace_root}/{}",
+                benchmark_corpus_dir_name(&benchmark_workspace)
+            )
+        });
     let lunarc_corpus_root =
         env_or_default("BENCHMARK_SYNC_CORPUS_ROOT", &default_lunarc_corpus_root);
     let include_containers_manifest_default = if benchmark_workspace
@@ -5851,7 +5856,9 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
                 .filter(|value| !value.is_empty())
             {
                 let clean_rel = rel.trim_start_matches('/');
-                let target = dest.join("corpus_01").join(clean_rel);
+                let target = dest
+                    .join(benchmark_corpus_dir_name(&benchmark_workspace))
+                    .join(clean_rel);
                 if let Some(parent) = target.parent() {
                     bijux_dna_infra::ensure_dir(parent)?;
                 }
@@ -8771,6 +8778,17 @@ fn benchmark_sync_profile<'a>(
     profiles.iter().find(|profile| profile.name == name)
 }
 
+fn benchmark_corpus_dir_name(benchmark_workspace: &BenchmarkWorkspacePaths) -> String {
+    benchmark_workspace
+        .remote_corpus_root
+        .as_deref()
+        .and_then(|path| Path::new(path).file_name())
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| "corpus".to_string())
+}
+
 fn benchmark_workspace_lookup<'a>(
     benchmark_workspace: &'a BenchmarkWorkspacePaths,
     key: &str,
@@ -8874,7 +8892,11 @@ fn benchmark_remote_layout_candidates(
     if let Some(cache_root) = benchmark_workspace.remote_cache_root.as_deref() {
         let cache_path = Path::new(cache_root);
         if let Some(parent) = cache_path.parent() {
-            for sibling in ["results", "corpus_01", "extra-data"] {
+            for sibling in [
+                "results".to_string(),
+                benchmark_corpus_dir_name(benchmark_workspace),
+                "extra-data".to_string(),
+            ] {
                 candidates.push((
                     format!("non-cache-sibling:{sibling}"),
                     parent.join(sibling).display().to_string(),
@@ -9007,11 +9029,12 @@ fn sha256_hex(path: &Path) -> Result<String> {
 mod tests {
     use anyhow::Context;
     use std::path::PathBuf;
+    use toml::Value as TomlValue;
 
     use super::{
-        benchmark_workspace_lookup, config_string, expand_toml_env_placeholders,
-        benchmark_sync_profile, load_benchmark_sync_profiles, load_benchmark_workspace_paths,
-        BenchmarkWorkspacePaths,
+        benchmark_corpus_dir_name, benchmark_workspace_lookup, config_string,
+        expand_toml_env_placeholders, benchmark_sync_profile, load_benchmark_sync_profiles,
+        load_benchmark_workspace_paths, BenchmarkWorkspacePaths,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -9258,6 +9281,17 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
         assert!(candidates.iter().any(|(label, path)| {
             label == "non-cache-sibling:results" && path == "/remote/results"
         }));
+        assert!(candidates.iter().any(|(label, path)| {
+            label == "non-cache-sibling:corpus_01" && path == "/remote/corpus_01"
+        }));
+    }
+
+    #[test]
+    fn benchmark_corpus_dir_name_falls_back_to_generic_contract_name() {
+        assert_eq!(
+            benchmark_corpus_dir_name(&BenchmarkWorkspacePaths::default()),
+            "corpus"
+        );
     }
 
     #[test]
