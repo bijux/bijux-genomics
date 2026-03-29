@@ -19,6 +19,15 @@ fn canonical_sha256(value: &serde_json::Value) -> Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+fn declared_json_array<'a>(
+    value: &'a serde_json::Value,
+    key: &str,
+) -> Result<&'a Vec<serde_json::Value>> {
+    value.get(key)
+        .and_then(serde_json::Value::as_array)
+        .ok_or_else(|| anyhow!("run manifest missing declared `{key}` array"))
+}
+
 fn manifest_sort_key(value: &serde_json::Value, key: &str) -> String {
     value
         .get(key)
@@ -355,12 +364,9 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
         .with_context(|| format!("read {}", run_manifest_path.display()))?;
     let run_manifest: serde_json::Value = serde_json::from_str(&raw)
         .with_context(|| format!("parse {}", run_manifest_path.display()))?;
-    let stages = run_manifest
-        .get("stages")
-        .and_then(serde_json::Value::as_array)
+    let stages = declared_json_array(&run_manifest, "stages")?
+        .iter()
         .cloned()
-        .unwrap_or_default()
-        .into_iter()
         .map(|stage| {
             serde_json::json!({
                 "stage_id": stage.get("stage_id").cloned().unwrap_or(serde_json::Value::Null),
@@ -389,12 +395,9 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
     });
     let profile_manifest_hash = canonical_sha256(&profile_manifest)?;
     let run_manifest_hash = hash_file_sha256(run_manifest_path)?;
-    let mut resolved_tools = run_manifest
-        .get("tool_invocations")
-        .and_then(serde_json::Value::as_array)
+    let mut resolved_tools = declared_json_array(&run_manifest, "tool_invocations")?
+        .iter()
         .cloned()
-        .unwrap_or_default()
-        .into_iter()
         .map(|inv| {
             serde_json::json!({
                 "stage_id": inv.get("stage_id").cloned().unwrap_or(serde_json::Value::Null),
