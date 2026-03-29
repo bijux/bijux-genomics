@@ -1,3 +1,5 @@
+use super::*;
+
 /// # Errors
 /// Returns an error if domain indexes/tools/stages cannot be parsed.
 #[allow(clippy::too_many_lines)]
@@ -166,11 +168,12 @@ outputs:
             ("fastq.trim_reads", trim_stage.to_string()),
             ("fastq.filter_reads", filter_stage.to_string()),
         ];
-        validate_tool_output_subset(tool, &stage_specs, Path::new("tool.yaml"))
-            .unwrap_or_else(|err| {
+        validate_tool_output_subset(tool, &stage_specs, Path::new("tool.yaml")).unwrap_or_else(
+            |err| {
                 panic!(
                     "shared tool outputs should validate against the union of bound stages: {err}"
                 )
-            });
+            },
+        );
     }
 }

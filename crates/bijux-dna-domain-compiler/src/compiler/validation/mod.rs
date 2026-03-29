@@ -1,3 +1,8 @@
+use super::*;
+
+mod index_rules;
+
+use self::index_rules::validate_domain_indexes_and_pipelines;
 
 /// Validate authored domain files and cross-domain invariants.
 ///
@@ -24,7 +29,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         "bam/index.yaml",
         "vcf/index.yaml",
     ] {
-        require_exists(&options.domain_dir.join(rel))?;
+        super::compile::require_exists(&options.domain_dir.join(rel))?;
     }
     let workspace_root = options.domain_dir.parent().unwrap_or(&options.domain_dir);
     let adapter_bank_path = workspace_root
@@ -42,9 +47,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         .join("reference")
         .join("contaminants")
         .join("db_bank.v1.yaml");
-    require_exists(&adapter_bank_path)?;
-    require_exists(&reference_bank_path)?;
-    require_exists(&contamination_db_bank_path)?;
+    super::compile::require_exists(&adapter_bank_path)?;
+    super::compile::require_exists(&reference_bank_path)?;
+    super::compile::require_exists(&contamination_db_bank_path)?;
     let adapter_bank: AdapterBank = read_yaml(&adapter_bank_path)?;
     if adapter_bank.schema_version.trim().is_empty()
         || adapter_bank.bank_id.trim().is_empty()
@@ -440,7 +445,11 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 }
                 if dom != "vcf" && tool.status == "supported" {
                     if tool.stage_ids.is_empty() {
-                        bail!("{} supported tool {} missing governed stage_ids", path.display(), tool.tool_id);
+                        bail!(
+                            "{} supported tool {} missing governed stage_ids",
+                            path.display(),
+                            tool.tool_id
+                        );
                     }
                     let artifact_ids = artifact_vocab
                         .get(dom)
@@ -556,5 +565,3 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     println!("domain-validate: OK");
     Ok(())
 }
-
-include!("domain_validation_index_rules.rs");

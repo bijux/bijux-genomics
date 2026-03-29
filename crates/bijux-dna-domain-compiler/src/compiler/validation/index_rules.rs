@@ -1,4 +1,6 @@
-fn validate_domain_indexes_and_pipelines(
+use super::*;
+
+pub(super) fn validate_domain_indexes_and_pipelines(
     options: &ValidateOptions,
     stage_ids: &BTreeMap<String, String>,
     tool_ids: &BTreeMap<String, String>,

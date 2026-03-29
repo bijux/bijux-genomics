@@ -1,12 +1,14 @@
-struct ToolRegistryOutputs {
-    production_registry: String,
-    experimental_registry: String,
-    required_tools: String,
-    production_tool_ids: BTreeSet<String>,
+use super::super::*;
+
+pub(super) struct ToolRegistryOutputs {
+    pub(super) production_registry: String,
+    pub(super) experimental_registry: String,
+    pub(super) required_tools: String,
+    pub(super) production_tool_ids: BTreeSet<String>,
 }
 
 #[allow(clippy::uninlined_format_args)]
-fn build_tool_registries_toml(
+pub(super) fn build_tool_registries_toml(
     tools: &ToolMap,
     stage_to_tools: &StageToolMap,
     stage_planned: &StagePlannedMap,
@@ -246,7 +248,7 @@ fn build_tool_registries_toml(
     }
 }
 
-fn collect_vcf_image_versions(domain_dir: &Path) -> Result<BTreeMap<String, String>> {
+pub(super) fn collect_vcf_image_versions(domain_dir: &Path) -> Result<BTreeMap<String, String>> {
     let mut out = BTreeMap::new();
     let vcf_tools_dir = domain_dir.join("vcf").join("tools");
     if !vcf_tools_dir.exists() {
@@ -268,7 +270,7 @@ fn collect_vcf_image_versions(domain_dir: &Path) -> Result<BTreeMap<String, Stri
     Ok(out)
 }
 
-fn build_images_toml(
+pub(super) fn build_images_toml(
     tools: &ToolMap,
     vcf_image_versions: &BTreeMap<String, String>,
     source_commit: &str,
@@ -299,7 +301,7 @@ fn build_images_toml(
     images_toml
 }
 
-fn build_stages_toml(
+pub(super) fn build_stages_toml(
     tools: &ToolMap,
     stage_to_tools: &StageToolMap,
     stage_statuses: &StageStatusMap,
