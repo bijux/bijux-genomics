@@ -25,18 +25,11 @@ fn detect_run_context() -> crate::RunContextV1 {
         let site = std::env::var("BIJUX_HPC_SITE")
             .ok()
             .filter(|value| !value.trim().is_empty())
-            .or_else(|| {
-                std::env::var("SLURM_CLUSTER_NAME")
-                    .ok()
-                    .filter(|value| !value.trim().is_empty())
-            })
-            .or_else(|| {
-                std::env::var("HOSTNAME")
-                    .ok()
-                    .filter(|value| !value.trim().is_empty())
-            })
-            .unwrap_or_else(|| "hpc".to_string());
-        let scratch = std::env::var("TMPDIR").unwrap_or_else(|_| String::new());
+            .unwrap_or_else(|| "not_declared".to_string());
+        let scratch = std::env::var("TMPDIR")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| "not_declared".to_string());
         let slurm = std::env::var("SLURM_JOB_ID").is_ok();
         crate::RunContextV1::Hpc {
             site,
