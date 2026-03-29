@@ -7,6 +7,23 @@ fn relative_path_string(base: &Path, path: &Path) -> String {
         .to_string()
 }
 
+fn declared_string_array(value: Option<&serde_json::Value>, key: &str) -> Result<Vec<String>> {
+    let Some(value) = value else {
+        return Ok(Vec::new());
+    };
+    let items = value
+        .as_array()
+        .ok_or_else(|| anyhow!("{key} must be an array when declared"))?;
+    items
+        .iter()
+        .map(|item| {
+            item.as_str()
+                .map(str::to_string)
+                .ok_or_else(|| anyhow!("{key} entries must be strings"))
+        })
+        .collect()
+}
+
 pub(super) fn maybe_emit_reference_manifest(
     request: &ExecuteRunRequest,
     run_artifacts_dir: &std::path::Path,
@@ -39,19 +56,8 @@ pub(super) fn maybe_emit_reference_manifest(
         .get("usecase")
         .and_then(serde_json::Value::as_str)
         .map(str::to_string);
-    let observed_contigs = request
-        .plan
-        .params
-        .get("observed_contigs")
-        .and_then(serde_json::Value::as_array)
-        .map(|items| {
-            items
-                .iter()
-                .filter_map(serde_json::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
-        })
-        .unwrap_or_default();
+    let observed_contigs =
+        declared_string_array(request.plan.params.get("observed_contigs"), "observed_contigs")?;
 
     let mut inputs = Vec::new();
     for artifact in reference_inputs {
