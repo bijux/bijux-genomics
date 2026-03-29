@@ -160,6 +160,10 @@ pub(crate) fn benchmark_publication_corpus_key(corpus_id: &str) -> String {
     corpus_id.replace('-', "_")
 }
 
+pub(crate) fn benchmark_publication_corpus_id(publication_key: &str) -> String {
+    publication_key.replace('_', "-")
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub(crate) struct CorpusBenchmarkExclusion {
     pub(crate) stage_id: String,
