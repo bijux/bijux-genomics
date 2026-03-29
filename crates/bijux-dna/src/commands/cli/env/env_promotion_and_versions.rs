@@ -1,3 +1,7 @@
+fn declared_text(value: Option<&str>) -> Option<&str> {
+    value.map(str::trim).filter(|entry| !entry.is_empty())
+}
+
 /// # Errors
 /// Returns an error if a tool cannot be promoted under registry contracts.
 pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Result<()> {
@@ -30,14 +34,14 @@ pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Resu
         .smoke_version_cmd
         .as_deref()
         .or(tool.version_cmd.as_deref())
-        .unwrap_or("")
-        .trim();
+        .map(str::trim)
+        .unwrap_or("");
     let help_cmd = tool
         .smoke_help_cmd
         .as_deref()
         .or(tool.help_cmd.as_deref())
-        .unwrap_or("")
-        .trim();
+        .map(str::trim)
+        .unwrap_or("");
     if version_cmd.is_empty() || (tool.smoke_require_help.unwrap_or(true) && help_cmd.is_empty()) {
         failures.push("tool has smoke warnings/errors (missing smoke version/help probe)".to_string());
     }
@@ -142,15 +146,15 @@ fn set_registry_tool_status(raw: &str, tool_id: &str, target_status: &str) -> Re
     Err(anyhow!("tool `{tool_id}` block not found in registry"))
 }
 
-fn normalize_semver_like(value: Option<&str>) -> String {
-    let Some(raw) = value.map(str::trim).filter(|v| !v.is_empty()) else {
-        return "0.0.0".to_string();
+fn normalize_semver_like(value: Option<&str>) -> Result<String> {
+    let Some(raw) = declared_text(value) else {
+        return Err(anyhow!("versions.toml entry requires a declared version"));
     };
     let trimmed = raw.trim_start_matches('v');
     let mut parts = trimmed
         .split(|ch: char| !(ch.is_ascii_digit() || ch == '.'))
         .find(|part| !part.is_empty())
-        .unwrap_or_default()
+        .ok_or_else(|| anyhow!("version `{raw}` does not contain a semver-like core"))?
         .split('.')
         .filter(|part| !part.is_empty())
         .take(3)
@@ -160,15 +164,15 @@ fn normalize_semver_like(value: Option<&str>) -> String {
         parts.push("0".to_string());
     }
     if parts.iter().all(|part| part.chars().all(|ch| ch.is_ascii_digit())) {
-        parts.join(".")
+        Ok(parts.join("."))
     } else {
-        "0.0.0".to_string()
+        Err(anyhow!("version `{raw}` is not semver-like"))
     }
 }
 
 fn upsert_container_version_entry(
     versions_path: &Path,
-    tool_id: &str,
+    _tool_id: &str,
     version: Option<&str>,
     source: Option<&str>,
 ) -> Result<()> {
@@ -183,20 +187,18 @@ fn upsert_container_version_entry(
     let mut row = toml::map::Map::new();
     row.insert(
         "version".to_string(),
-        toml::Value::String(normalize_semver_like(version)),
+        toml::Value::String(normalize_semver_like(version)?),
     );
+    let source = declared_text(source)
+        .map(str::to_string)
+        .ok_or_else(|| anyhow!("versions.toml entry requires a declared upstream/source"))?;
     row.insert(
         "source".to_string(),
-        toml::Value::String(
-            source
-                .map(str::trim)
-                .filter(|v| !v.is_empty())
-                .map_or_else(|| format!("tag:{tool_id}"), str::to_string),
-        ),
+        toml::Value::String(source),
     );
     row.insert(
         "date_pinned".to_string(),
-        toml::Value::String("2026-02-12".to_string()),
+        toml::Value::String(chrono::Utc::now().date_naive().to_string()),
     );
     table.insert(tool_id.to_string(), toml::Value::Table(row));
     let rendered = toml::to_string_pretty(&parsed)
