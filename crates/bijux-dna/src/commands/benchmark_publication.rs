@@ -1235,21 +1235,21 @@ fn build_dossier_stage_entry(
             "remote",
             remote_corpus_id,
             &contract.stage_id,
-        ));
+        )?);
     let expected_local_cache_mirror_run_root =
         workspace_local_cache_mirror_root(workspace)?.join(benchmark_stage_run_relative_root(
             workspace,
             "local-cache",
             remote_corpus_id,
             &contract.stage_id,
-        ));
+        )?);
     let expected_local_results_run_root =
         workspace_local_results_root(workspace)?.join(benchmark_stage_run_relative_root(
             workspace,
             "local-archive",
             remote_corpus_id,
             &contract.stage_id,
-        ));
+        )?);
     let mut entry = DossierStageEntry {
         stage_id: contract.stage_id.clone(),
         sample_scope: contract.sample_scope.clone(),
@@ -2734,7 +2734,7 @@ fn configured_stage_run_roots(
     Ok(vec![
         StageRunRootCandidate {
             path: workspace_local_cache_mirror_root(workspace)?.join(
-                benchmark_stage_run_relative_root(workspace, "local-cache", corpus_id, stage_id),
+                benchmark_stage_run_relative_root(workspace, "local-cache", corpus_id, stage_id)?,
             ),
         },
         StageRunRootCandidate {
@@ -2743,11 +2743,11 @@ fn configured_stage_run_roots(
                 "local-archive",
                 corpus_id,
                 stage_id,
-            )),
+            )?),
         },
         StageRunRootCandidate {
             path: workspace_remote_results_root(workspace)?.join(
-                benchmark_stage_run_relative_root(workspace, "remote", corpus_id, stage_id),
+                benchmark_stage_run_relative_root(workspace, "remote", corpus_id, stage_id)?,
             ),
         },
     ])
@@ -3599,16 +3599,27 @@ reason = "Compact validation fixture."
     }
 
     #[test]
-    fn stage_run_relative_root_uses_default_local_cache_template() {
-        let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig::default();
+    fn stage_run_relative_root_uses_workspace_local_cache_template() {
+        let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
+            layout: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
+                stage_runs: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
+                    local_cache_results_template: Some(
+                        "results/{corpus_id}/{stage_id}/cluster".to_string(),
+                    ),
+                    ..Default::default()
+                }),
+            }),
+            ..Default::default()
+        };
         assert_eq!(
             crate::commands::benchmark_workspace::benchmark_stage_run_relative_root(
                 &workspace,
                 "local-cache",
                 "corpus_01",
                 "fastq.validate_reads",
-            ),
-            Path::new("results/corpus_01/fastq.validate_reads/lunarc")
+            )
+            .expect("relative root"),
+            Path::new("results/corpus_01/fastq.validate_reads/cluster")
         );
     }
 
