@@ -486,6 +486,12 @@ fn declared_toml_str<'a>(value: &'a toml::Value, key: &str) -> Option<&'a str> {
         .filter(|entry| !entry.is_empty())
 }
 
+fn declared_toml_array<'a>(value: &'a toml::Value, key: &str) -> Option<Vec<&'a toml::Value>> {
+    value.get(key)
+        .and_then(toml::Value::as_array)
+        .map(|rows| rows.iter().collect::<Vec<_>>())
+}
+
 fn print_contract_status(cwd: &Path) -> Result<()> {
     let domains = parse_toml_path(&bijux_dna_infra::configs_file(
         cwd,
@@ -494,8 +500,10 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
     let images = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/tools/images.toml"))?;
     let image_ids = images
         .as_table()
-        .map(|table| table.keys().cloned().collect::<BTreeSet<_>>())
-        .unwrap_or_default();
+        .ok_or_else(|| anyhow!("ci/tools/images.toml must contain a top-level table"))?
+        .keys()
+        .cloned()
+        .collect::<BTreeSet<_>>();
 
     println!(
         "{:<8} {:<12} {:<7} {:<7} {:<7} {:<7} {:<9} {:<8}",
@@ -531,7 +539,8 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
             .into_iter()
             .filter_map(|row| row.get("stage_id").and_then(toml::Value::as_str))
             .collect::<BTreeSet<_>>();
-        let tool_rows = toml_array(&tools, "tools");
+        let tool_rows = declared_toml_array(&tools, "tools")
+            .ok_or_else(|| anyhow!("tool registry must declare a tools array"))?;
         let mut tools_by_stage = BTreeMap::<String, BTreeSet<String>>::new();
         let mut tool_metrics = BTreeMap::<String, String>::new();
         let mut invalid_tool_rows = 0usize;
