@@ -1,11 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
-use sha2::Digest as _;
 
 use crate::commands::root::{
     handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root,
@@ -13,15 +12,10 @@ use crate::commands::root::{
     handle_tool_root,
 };
 pub use crate::commands::router::argv::{parse_cli_from_argv, parse_process_cli};
+use crate::commands::router::runtime::{
+    configure_process_cli_env, configure_run_context_env, enter_cli_cwd,
+};
 use crate::commands::{bam, bench, cli, fastq, hpc, run_plan, vcf};
-
-struct CwdGuard(PathBuf);
-
-impl Drop for CwdGuard {
-    fn drop(&mut self) {
-        let _ = std::env::set_current_dir(&self.0);
-    }
-}
 
 /// # Errors
 /// Returns an error if CLI execution fails.
@@ -37,30 +31,8 @@ pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error if CLI execution fails.
 pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
-    let original_cwd = std::env::current_dir().context("resolve current dir")?;
-    std::env::set_current_dir(cwd).context("set current dir")?;
-    let _guard = CwdGuard(original_cwd);
-
-    if let Some(path) = &cli.telemetry_jsonl {
-        let telemetry_path = if path.is_absolute() {
-            path.clone()
-        } else {
-            cwd.join(path)
-        };
-        std::env::set_var("BIJUX_TELEMETRY_JSONL", telemetry_path);
-    }
-    if cli.json {
-        std::env::set_var("BIJUX_OUTPUT_JSON", "1");
-    }
-    if cli.verbose {
-        std::env::set_var("BIJUX_VERBOSE", "1");
-    }
-    if cli.quiet {
-        std::env::set_var("BIJUX_QUIET", "1");
-    }
-    if let Some(level) = &cli.log_level {
-        std::env::set_var("RUST_LOG", level);
-    }
+    let _guard = enter_cli_cwd(cwd)?;
+    configure_process_cli_env(cli, cwd);
     let domain_dir = cwd.join("domain");
     let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
 
@@ -186,33 +158,6 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     }
 
     run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
-}
-
-fn configure_run_context_env<T>(cli: &cli::Cli, profile: &T) -> Result<()>
-where
-    T: serde::Serialize,
-{
-    let bytes = serde_json::to_vec(profile)?;
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(bytes);
-    std::env::set_var("BIJUX_PROFILE_HASH", format!("{:x}", hasher.finalize()));
-    if cli.profile.eq_ignore_ascii_case("hpc") {
-        std::env::set_var("BIJUX_RUN_CONTEXT", "hpc");
-        if std::env::var("BIJUX_HPC_SITE")
-            .ok()
-            .is_none_or(|value| value.trim().is_empty())
-        {
-            if let Some(platform) = std::env::var("BIJUX_PLATFORM")
-                .ok()
-                .filter(|value| !value.trim().is_empty())
-            {
-                std::env::set_var("BIJUX_HPC_SITE", platform);
-            }
-        }
-    } else {
-        std::env::set_var("BIJUX_RUN_CONTEXT", "local");
-    }
-    Ok(())
 }
 
 fn enforce_offline_runtime_policy() -> Result<()> {
