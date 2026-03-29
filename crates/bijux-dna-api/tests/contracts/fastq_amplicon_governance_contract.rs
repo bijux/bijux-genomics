@@ -16,8 +16,7 @@ fn fastq_amplicon_governance_has_marker_ranges_and_primer_files() {
     let markers = doc
         .get("markers")
         .and_then(toml::Value::as_table)
-        .cloned()
-        .unwrap_or_default();
+        .unwrap_or_else(|| panic!("markers table missing in {}", cfg.display()));
     assert!(!markers.is_empty(), "markers table must not be empty");
     for (marker, row) in markers {
         let primer_rel = row
@@ -66,8 +65,7 @@ fn fastq_amplicon_governance_taxonomy_lock_fields_present() {
     let taxonomy = doc
         .get("taxonomy")
         .and_then(toml::Value::as_table)
-        .cloned()
-        .unwrap_or_default();
+        .unwrap_or_else(|| panic!("taxonomy table missing in {}", cfg.display()));
     let db_path = taxonomy
         .get("db_path")
         .and_then(toml::Value::as_str)
