@@ -4,6 +4,18 @@ use bijux_dna_core::contract::{ContractVersion, ScientificProvenanceV1, ToolProv
 use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_core::prelude::hashing::params_hash;
 
+fn resolved_params_hash(
+    key: &str,
+    params_hashes: &BTreeMap<String, String>,
+    invocation: &ToolInvocationV1,
+) -> String {
+    params_hashes
+        .get(key)
+        .cloned()
+        .or_else(|| params_hash(&invocation.parameters_json_normalized).ok())
+        .unwrap_or_else(|| "not_recorded".to_string())
+}
+
 #[must_use]
 pub fn build_scientific_provenance(
     pipeline_id: String,
@@ -17,11 +29,7 @@ pub fn build_scientific_provenance(
     for invocation in invocations {
         input_hashes.extend(invocation.input_hashes.clone());
         let key = format!("{}:{}", invocation.stage_id, invocation.tool_id);
-        let params_hash = params_hashes
-            .get(&key)
-            .cloned()
-            .or_else(|| params_hash(&invocation.parameters_json_normalized).ok())
-            .unwrap_or_default();
+        let params_hash = resolved_params_hash(&key, params_hashes, invocation);
         tools.push(ToolProvenanceV1 {
             stage_id: invocation.stage_id.to_string(),
             tool_id: invocation.tool_id.to_string(),
