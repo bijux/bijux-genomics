@@ -2,19 +2,15 @@
 // Benchmark reporting helpers.
 
 use std::collections::BTreeMap;
-use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
-use bijux_dna_infra::atomic_write_bytes;
+use anyhow::Result;
 
 use crate::aggregate::{
-    derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,
-    stage_metric_spec, BenchmarkRecord, DerivedMetricId, FastqCorrectMetrics, FastqFilterMetrics,
-    FastqMergeMetrics, FastqQcPostMetrics, FastqStatsMetrics, FastqTrimMetrics,
-    FastqTrimPolygMetrics, FastqTrimTerminalDamageMetrics, FastqUmiMetrics, FastqValidateMetrics,
+    BenchmarkRecord, FastqFilterMetrics, FastqStatsMetrics, FastqTrimMetrics,
+    FastqTrimPolygMetrics, FastqTrimTerminalDamageMetrics, FastqValidateMetrics,
 };
 use crate::decision::score::{build_rankings, RankInput, RankingEntry};
-use crate::failure::{classify_raw_failure, BenchmarkFailure};
+use crate::failure::BenchmarkFailure;
 
 #[must_use]
 pub fn gate_payload(failures: &[BenchmarkFailure]) -> serde_json::Value {
@@ -63,7 +59,7 @@ pub fn ratio_u64(num: u64, denom: u64) -> f64 {
     }
 }
 
-trait TrimLikeMetricView {
+pub(super) trait TrimLikeMetricView {
     fn reads_in(&self) -> u64;
     fn reads_out(&self) -> u64;
     fn bases_in(&self) -> u64;
@@ -105,54 +101,54 @@ impl TrimLikeMetricView for FastqTrimTerminalDamageMetrics {
 
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
-enum MetricValue {
+pub(super) enum MetricValue {
     U64(u64),
     F64(f64),
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
-struct MetricDescriptor {
-    value: MetricValue,
-    meaning: &'static str,
-    range: &'static str,
-    notes: &'static str,
+pub(super) struct MetricDescriptor {
+    pub(super) value: MetricValue,
+    pub(super) meaning: &'static str,
+    pub(super) range: &'static str,
+    pub(super) notes: &'static str,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
-struct IntegrityMetrics {
-    reads_in: MetricDescriptor,
-    reads_out: MetricDescriptor,
-    bases_in: MetricDescriptor,
-    bases_out: MetricDescriptor,
+pub(super) struct IntegrityMetrics {
+    pub(super) reads_in: MetricDescriptor,
+    pub(super) reads_out: MetricDescriptor,
+    pub(super) bases_in: MetricDescriptor,
+    pub(super) bases_out: MetricDescriptor,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
-struct RetentionMetrics {
+pub(super) struct RetentionMetrics {
     read_retention: MetricDescriptor,
     base_retention: MetricDescriptor,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
-struct QualityShiftMetrics {
+pub(super) struct QualityShiftMetrics {
     mean_q_before: MetricDescriptor,
     mean_q_after: MetricDescriptor,
     delta_mean_q: MetricDescriptor,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
-struct ContaminationMetrics {
+pub(super) struct ContaminationMetrics {
     gc_before: MetricDescriptor,
     gc_after: MetricDescriptor,
     delta_gc: MetricDescriptor,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
-struct SemanticMetrics {
-    integrity: IntegrityMetrics,
-    retention: RetentionMetrics,
-    quality_shift: Option<QualityShiftMetrics>,
-    contamination: Option<ContaminationMetrics>,
-    interpretation: &'static str,
+pub(super) struct SemanticMetrics {
+    pub(super) integrity: IntegrityMetrics,
+    pub(super) retention: RetentionMetrics,
+    pub(super) quality_shift: Option<QualityShiftMetrics>,
+    pub(super) contamination: Option<ContaminationMetrics>,
+    pub(super) interpretation: &'static str,
 }
 
 fn metric_u64(
@@ -183,7 +179,7 @@ fn metric_f64(
     }
 }
 
-fn semantic_trim_like<T: TrimLikeMetricView>(metrics: &T) -> SemanticMetrics {
+pub(super) fn semantic_trim_like<T: TrimLikeMetricView>(metrics: &T) -> SemanticMetrics {
     let delta = metrics.delta_metrics();
     let interpretation = if delta.read_retention < 0.8 {
         "Trim removed a substantial fraction of reads; likely adapter/low-quality trimming."
@@ -254,11 +250,11 @@ fn semantic_trim_like<T: TrimLikeMetricView>(metrics: &T) -> SemanticMetrics {
 }
 
 #[allow(dead_code)]
-fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
+pub(super) fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
     semantic_trim_like(metrics)
 }
 
-fn semantic_filter(metrics: &FastqFilterMetrics) -> SemanticMetrics {
+pub(super) fn semantic_filter(metrics: &FastqFilterMetrics) -> SemanticMetrics {
     let delta = &metrics.delta_metrics;
     let removed = metrics.reads_dropped;
     let interpretation = if removed == 0 {
@@ -336,7 +332,7 @@ fn semantic_filter(metrics: &FastqFilterMetrics) -> SemanticMetrics {
     }
 }
 
-fn semantic_validate(metrics: &FastqValidateMetrics) -> SemanticMetrics {
+pub(super) fn semantic_validate(metrics: &FastqValidateMetrics) -> SemanticMetrics {
     let reads_total = metrics.reads_total;
     let reads_valid = metrics.reads_valid;
     let read_retention = if reads_total == 0 {
@@ -371,7 +367,7 @@ fn semantic_validate(metrics: &FastqValidateMetrics) -> SemanticMetrics {
     }
 }
 
-fn semantic_stats(metrics: &FastqStatsMetrics) -> SemanticMetrics {
+pub(super) fn semantic_stats(metrics: &FastqStatsMetrics) -> SemanticMetrics {
     let reads_total = metrics.reads_total;
     let bases_total = metrics.bases_total;
     let read_retention = if reads_total == 0 { 0.0 } else { 1.0 };
@@ -463,7 +459,7 @@ pub fn rank_trim_terminal_damage_tools(
     rank_trim_like_tools(records)
 }
 
-fn rank_trim_like_tools<T: TrimLikeMetricView + crate::aggregate::StageMetricSchema>(
+pub(super) fn rank_trim_like_tools<T: TrimLikeMetricView + crate::aggregate::StageMetricSchema>(
     records: &[BenchmarkRecord<T>],
 ) -> Result<BTreeMap<String, Vec<RankingEntry>>> {
     let inputs = records
