@@ -234,12 +234,9 @@ fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
     if let Ok(config) = crate::commands::hpc::load_hpc_config() {
         return Ok(config.resolve_paths().root);
     }
-    let Some(home) = std::env::var_os("HOME") else {
-        return Err(anyhow!(
-            "unable to resolve Apptainer HPC root: BIJUX_HPC_ROOT, hpc config, and HOME are all missing"
-        ));
-    };
-    Ok(PathBuf::from(home).join("bijux"))
+    Err(anyhow!(
+        "unable to resolve Apptainer HPC root: declare BIJUX_HPC_ROOT or BIJUX_HPC_CONFIG"
+    ))
 }
 
 #[cfg(test)]
@@ -247,10 +244,9 @@ mod env_registry_query_tests {
     use super::registry_tools_for_stage;
 
     fn registry_path() -> std::path::PathBuf {
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../configs/ci/registry/tool_registry.toml")
-            .canonicalize()
-            .expect("canonical registry path")
+        crate::commands::repo_root::resolve_repo_root()
+            .expect("repo root")
+            .join("configs/ci/registry/tool_registry.toml")
     }
 
     #[test]
