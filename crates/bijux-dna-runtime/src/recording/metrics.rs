@@ -43,6 +43,11 @@ pub fn write_metrics_envelope(
         .map(|dir| dir.join("run_manifest.json"))
         .filter(|path| path.exists())
         .and_then(|path| bijux_dna_infra::hash_file_sha256(&path).ok());
+    let image_digest = ctx
+        .metric_context
+        .image_digest
+        .clone()
+        .ok_or_else(|| anyhow::anyhow!("metrics envelope requires declared image digest"))?;
     let payload: MetricsEnvelope<serde_json::Value> = MetricsEnvelope {
         schema_version: "bijux.metrics_envelope.v2".to_string(),
         contract_version: ContractVersion::v1(),
@@ -50,11 +55,7 @@ pub fn write_metrics_envelope(
         stage_version: ctx.stage_version,
         tool_id: ctx.tool_id.clone(),
         tool_version: ctx.tool_version.clone(),
-        image_digest: ctx
-            .metric_context
-            .image_digest
-            .clone()
-            .unwrap_or_else(|| "not_declared".to_string()),
+        image_digest,
         parameters_fingerprint: ctx.parameters_fingerprint.clone(),
         input_fingerprint: ctx.input_fingerprint.clone(),
         parameters_json_normalized: ctx.parameters_json_normalized.clone(),
