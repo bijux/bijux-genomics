@@ -45,12 +45,12 @@ fn checked_in_suite_catalog_uses_governed_schema_and_stage_ids() -> Result<()> {
         if path
             .file_name()
             .and_then(|name| name.to_str())
-            .unwrap_or_default()
+            .unwrap_or_else(|| panic!("suite file name is not valid UTF-8: {}", path.display()))
             .starts_with("fastq_")
             || path
                 .file_name()
                 .and_then(|name| name.to_str())
-                .unwrap_or_default()
+                .unwrap_or_else(|| panic!("suite file name is not valid UTF-8: {}", path.display()))
                 .contains("fastq")
         {
             for legacy in ["validate_pre", "trim", "filter", "stats", "qc_post"] {
@@ -153,7 +153,13 @@ fn checked_in_suite_catalog_exercises_stage_and_tool_param_bindings() -> Result<
 fn checked_in_suites_only_bind_manifest_declared_stage_parameters() -> Result<()> {
     for (path, suite) in checked_in_suites()? {
         for stage in suite.stages {
-            let declared = stage_parameter_ids(&stage.stage).unwrap_or_default();
+            let declared = stage_parameter_ids(&stage.stage).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "{} references stage {} without a declared parameter registry entry",
+                    path.display(),
+                    stage.stage
+                )
+            })?;
             for binding in stage.param_bindings {
                 if binding.tool.is_some() {
                     continue;
