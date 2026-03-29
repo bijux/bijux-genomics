@@ -1310,15 +1310,7 @@ fn build_dossier_stage_entry(
 }
 
 fn resolve_existing_dossier_path(stage_docs_root: &Path) -> PathBuf {
-    let preferred = stage_docs_root.join("benchmark.md");
-    if preferred.is_file() {
-        return preferred;
-    }
-    let legacy = stage_docs_root.join("lunarc.md");
-    if legacy.is_file() {
-        return legacy;
-    }
-    preferred
+    stage_docs_root.join("benchmark.md")
 }
 
 fn load_json_value(path: &Path) -> Result<serde_json::Value> {
@@ -3430,6 +3422,19 @@ mod tests {
         assert_eq!(
             docs_root,
             Path::new("/repo/docs/benchmark/fastq.validate_reads/corpus-01")
+        );
+    }
+
+    #[test]
+    fn resolve_existing_dossier_path_uses_benchmark_markdown_contract() {
+        let temp = tempdir().expect("tempdir");
+        let stage_docs_root = temp.path().join("docs/benchmark/fastq.validate_reads/corpus-01");
+        fs::create_dir_all(&stage_docs_root).expect("stage docs root");
+        fs::write(stage_docs_root.join("lunarc.md"), "# legacy\n").expect("legacy dossier");
+
+        assert_eq!(
+            super::resolve_existing_dossier_path(&stage_docs_root),
+            stage_docs_root.join("benchmark.md")
         );
     }
 
