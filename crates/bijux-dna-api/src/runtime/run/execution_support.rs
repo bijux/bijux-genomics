@@ -187,16 +187,16 @@ fn resolve_regime_stamp(request: &ExecuteRunRequest) -> Result<serde_json::Value
         ));
     } else {
         (
-            "unknown",
+            "not_required",
             "regime not required for stage and no observed/requested signal available".to_string(),
         )
     };
 
     let (impute_backend_default, chunk_size_bp_default) = match selected {
-        "gl" => ("glimpse", 2_000_000_u64),
-        "pseudohaploid" => ("beagle", 3_000_000_u64),
-        "diploid" => ("minimac4", 5_000_000_u64),
-        _ => ("unknown", 0_u64),
+        "gl" => (Some("glimpse"), Some(2_000_000_u64)),
+        "pseudohaploid" => (Some("beagle"), Some(3_000_000_u64)),
+        "diploid" => (Some("minimac4"), Some(5_000_000_u64)),
+        _ => (None, None),
     };
 
     Ok(serde_json::json!({
@@ -219,10 +219,10 @@ fn resolve_regime_stamp(request: &ExecuteRunRequest) -> Result<serde_json::Value
         },
         "routing": {
             "call_stage": match selected {
-                "gl" => "vcf.call_gl",
-                "pseudohaploid" => "vcf.call_pseudohaploid",
-                "diploid" => "vcf.call_diploid",
-                _ => "unknown",
+                "gl" => Some("vcf.call_gl"),
+                "pseudohaploid" => Some("vcf.call_pseudohaploid"),
+                "diploid" => Some("vcf.call_diploid"),
+                _ => None,
             },
             "imputation_backend_default": impute_backend_default,
             "chunk_size_bp_default": chunk_size_bp_default,
