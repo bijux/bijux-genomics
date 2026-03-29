@@ -43,17 +43,20 @@ pub const STAGE_PREPROCESS_SUMMARY: StageId = StageId::from_static("fastq.prepro
 pub use bijux_dna_domain_fastq::BenchResultsRepository;
 
 mod plan_compose;
+mod planner;
 mod qc_contract;
 mod report_stage;
 mod selection;
 pub mod tool_adapters;
 
+pub use planner::*;
 pub use report_stage::report_stage_step;
 pub use selection::args;
+use planner::{apply_layout_branching, estimate_mean_q};
 
 pub mod stage_api;
 
-fn required_id_catalog() -> Vec<String> {
+pub(crate) fn required_id_catalog() -> Vec<String> {
     default_shotgun_preprocess_stage_order()
         .into_iter()
         .map(|stage| stage.as_str().to_string())
@@ -485,5 +488,3 @@ fn filter_preprocess_pipeline(
             .collect::<Vec<_>>(),
     )
 }
-
-include!("planner_fastq_pipeline_decisions.rs");
