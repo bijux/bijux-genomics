@@ -150,7 +150,7 @@ fn capture_environment_snapshot(cwd: &Path) -> EnvironmentSnapshot {
     let apptainer_version = command_output("apptainer", &["--version"])
         .or_else(|| command_output("singularity", &["--version"]))
         .unwrap_or_else(|| "unavailable".to_string());
-    let kernel = command_output("uname", &["-r"]).unwrap_or_else(|| "unknown".to_string());
+    let kernel = command_output("uname", &["-r"]).unwrap_or_else(|| "unavailable".to_string());
     let site_lock = load_site_lock(cwd);
     EnvironmentSnapshot {
         apptainer_version,
