@@ -5979,12 +5979,12 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
             exclude_file = workspace.path(&rel);
         }
     }
-    let lunarc_host = env_or_contract(
+    let benchmark_host = env_or_contract(
         "BENCHMARK_SYNC_HOST",
         benchmark_workspace.remote_ssh_host.as_deref(),
         "workspace.remote.ssh_host",
     )?;
-    let lunarc_repo_dir = env_or_contract(
+    let benchmark_repo_dir = env_or_contract(
         "BENCHMARK_SYNC_REPO_ROOT",
         benchmark_workspace.remote_repo_root.as_deref(),
         "workspace.remote.repo_root",
@@ -6021,13 +6021,13 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
     }
     if dry_run {
         return success_line(format!(
-            "[dry-run] would sync repo to {lunarc_host}:{lunarc_repo_dir}"
+            "[dry-run] would sync repo to {benchmark_host}:{benchmark_repo_dir}"
         ));
     }
     let mkdir = run_program(
         workspace,
         "ssh",
-        &[lunarc_host.clone(), format!("mkdir -p '{lunarc_repo_dir}'")],
+        &[benchmark_host.clone(), format!("mkdir -p '{benchmark_repo_dir}'")],
     )?;
     if !mkdir.is_success() {
         return Ok(mkdir);
@@ -6050,7 +6050,7 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
                 "--delete".to_string(),
                 format!("--files-from={}", files_from.display()),
                 "./".to_string(),
-                format!("{lunarc_host}:{lunarc_repo_dir}/"),
+                format!("{benchmark_host}:{benchmark_repo_dir}/"),
             ],
         )?;
         if !sync.is_success() {
@@ -6062,7 +6062,7 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
             &[
                 "-az".to_string(),
                 sync_source.display().to_string(),
-                format!("{lunarc_host}:{lunarc_repo_dir}/BENCHMARK_SYNC_SOURCE.json"),
+                format!("{benchmark_host}:{benchmark_repo_dir}/BENCHMARK_SYNC_SOURCE.json"),
             ],
         )?;
         if !sync_source_copy.is_success() {
@@ -6080,7 +6080,7 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
                 "--delete".to_string(),
                 format!("--exclude-from={}", exclude_file.display()),
                 "./".to_string(),
-                format!("{lunarc_host}:{lunarc_repo_dir}/"),
+                format!("{benchmark_host}:{benchmark_repo_dir}/"),
             ],
         )?;
         if !sync.is_success() {
@@ -6092,16 +6092,16 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
             &[
                 "-az".to_string(),
                 sync_source.display().to_string(),
-                format!("{lunarc_host}:{lunarc_repo_dir}/BENCHMARK_SYNC_SOURCE.json"),
+                format!("{benchmark_host}:{benchmark_repo_dir}/BENCHMARK_SYNC_SOURCE.json"),
             ],
         )?;
         if !sync_source_copy.is_success() {
             return Ok(sync_source_copy);
         }
     }
-    let remote_commit = benchmark_sync_revision(workspace, &lunarc_host, &lunarc_repo_dir)?;
+    let remote_commit = benchmark_sync_revision(workspace, &benchmark_host, &benchmark_repo_dir)?;
     success_line(format!(
-        "remote_repo={lunarc_repo_dir}\nremote_commit={remote_commit}"
+        "remote_repo={benchmark_repo_dir}\nremote_commit={remote_commit}"
     ))
 }
 
