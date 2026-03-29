@@ -213,7 +213,7 @@ pub(crate) fn benchmark_publication_config_path(
 
 fn load_toml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str::<T>(&expand_env_placeholders(&raw))
+    toml::from_str::<T>(&expand_env_placeholders(&raw)?)
         .with_context(|| format!("parse {}", path.display()))
 }
 
@@ -314,7 +314,7 @@ fn normalize_benchmark_config(mut config: BenchmarkConfig) -> BenchmarkConfig {
     config
 }
 
-pub(crate) fn expand_env_placeholders(raw: &str) -> String {
+pub(crate) fn expand_env_placeholders(raw: &str) -> Result<String> {
     let mut expanded = String::with_capacity(raw.len());
     let mut chars = raw.chars().peekable();
     while let Some(ch) = chars.next() {
@@ -327,12 +327,14 @@ pub(crate) fn expand_env_placeholders(raw: &str) -> String {
                 }
                 name.push(next);
             }
-            expanded.push_str(&std::env::var(&name).unwrap_or_default());
+            let value = std::env::var(&name)
+                .with_context(|| format!("missing environment placeholder ${{{name}}}"))?;
+            expanded.push_str(&value);
             continue;
         }
         expanded.push(ch);
     }
-    expanded
+    Ok(expanded)
 }
 
 pub(crate) fn load_benchmark_config(
@@ -1432,7 +1434,7 @@ mod tests {
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
         benchmark_publication_corpus_key, benchmark_runtime_corpus_dir_name,
         benchmark_stage_run_relative_root, benchmark_workspace_config_path,
-        benchmark_workspace_value, load_benchmark_config, BenchmarkConfig,
+        benchmark_workspace_value, expand_env_placeholders, load_benchmark_config, BenchmarkConfig,
         load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
         plan_root_convergence, summarize_root_pair, workspace_layout_corpus_dir_name,
@@ -1935,5 +1937,15 @@ tools = ["fastqc"]
                 .len(),
             1
         );
+    }
+
+    #[test]
+    fn benchmark_config_rejects_missing_environment_placeholders() {
+        let _env_lock = ENV_LOCK.lock().expect("env lock");
+        let error = expand_env_placeholders("results_root = \"${BIJUX_MISSING_RESULTS_ROOT}\"\n")
+            .expect_err("missing environment placeholder must fail");
+        assert!(error
+            .to_string()
+            .contains("missing environment placeholder ${BIJUX_MISSING_RESULTS_ROOT}"));
     }
 }
