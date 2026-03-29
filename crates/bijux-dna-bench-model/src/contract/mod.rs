@@ -5,11 +5,11 @@
 #![allow(dead_code)]
 
 use crate::error::BenchError;
-use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
-use crate::policy::GateDecision;
+use crate::model::BenchmarkSuiteSpec;
 
 mod edge_validation;
 mod param_binding_validation;
+mod record_validation;
 mod schemas;
 mod stage_governance;
 mod suite_analysis;
@@ -17,6 +17,7 @@ mod suite_diversity;
 mod suite_graph;
 use edge_validation::validate_edge_ports;
 use param_binding_validation::validate_stage_param_bindings;
+pub use record_validation::{validate_decision, validate_observation, validate_summary};
 pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
 use stage_governance::{ensure_supported_stage, planner_owned_graph_stage, validate_stage_tools};
 use suite_analysis::validate_suite_analysis_requirements;
@@ -196,42 +197,6 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     }
     validate_suite_analysis_requirements(suite)?;
     validate_suite_dag(suite)?;
-    Ok(())
-}
-
-/// # Errors
-/// Returns an error if required confounders are missing.
-pub fn validate_observation(obs: &BenchmarkObservation) -> Result<(), BenchError> {
-    if obs.schema_version != OBSERVATION_SCHEMA_V1 {
-        return Err(BenchError::InvalidObservation {
-            reason: format!("observation schema mismatch: {}", obs.schema_version),
-        });
-    }
-    obs.validate()?;
-    Ok(())
-}
-
-/// # Errors
-/// Returns an error if summary schema is invalid.
-pub fn validate_summary(summary: &BenchmarkSummary) -> Result<(), BenchError> {
-    if summary.schema_version != SUMMARY_SCHEMA_V1 {
-        return Err(BenchError::InvalidPolicy(format!(
-            "summary schema mismatch: {}",
-            summary.schema_version
-        )));
-    }
-    Ok(())
-}
-
-/// # Errors
-/// Returns an error if decision schema is invalid.
-pub fn validate_decision(decision: &GateDecision) -> Result<(), BenchError> {
-    if decision.schema_version != DECISION_SCHEMA_V1 {
-        return Err(BenchError::InvalidPolicy(format!(
-            "decision schema mismatch: {}",
-            decision.schema_version
-        )));
-    }
     Ok(())
 }
 
