@@ -17,6 +17,8 @@ use super::invocation_policy::{
 };
 use crate::writers::{ArtifactWriter, MetricsWriter};
 
+const STAGE_SUMMARY_FILE_NAME: &str = "stage_human_summary.json";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) enum NetworkPolicy {
     Allow,
@@ -38,6 +40,10 @@ pub(crate) struct ToolContext {
     pub compression_threads: Option<u32>,
     pub seed: Option<u64>,
     pub network_policy: NetworkPolicy,
+}
+
+fn stage_summary_path(stage_root: &std::path::Path) -> PathBuf {
+    stage_root.join(STAGE_SUMMARY_FILE_NAME)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -209,7 +215,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         );
         bijux_dna_infra::atomic_write_bytes(&dry_path, cmd.as_bytes())?;
         if req.mode == ToolExecMode::DryRun || req.mode == ToolExecMode::DryRunExplain {
-            let summary_path = req.context.stage_root.join("stage_human_summary.json");
+            let summary_path = stage_summary_path(&req.context.stage_root);
             let stage_status_path = req.context.stage_root.join("stage_result_status.json");
             let summary = serde_json::json!({
                 "schema_version": "bijux.stage_summary.v1",
@@ -271,7 +277,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             stage_manifest_path: req.context.stage_root.join("stage_manifest.json"),
             stdout_path: req.context.stage_root.join("logs").join("tool.stdout.log"),
             stderr_path: req.context.stage_root.join("logs").join("tool.stderr.log"),
-            summary_path: req.context.stage_root.join("stage_human_summary.json"),
+            summary_path: stage_summary_path(&req.context.stage_root),
         });
     }
     if can_resume(req)? {
@@ -312,7 +318,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             stage_manifest_path: req.context.stage_root.join("stage_manifest.json"),
             stdout_path: req.context.stage_root.join("logs").join("tool.stdout.log"),
             stderr_path: req.context.stage_root.join("logs").join("tool.stderr.log"),
-            summary_path: req.context.stage_root.join("stage_human_summary.json"),
+            summary_path: stage_summary_path(&req.context.stage_root),
         });
     }
     let _ = update_resume_report(
@@ -532,7 +538,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         &serde_json::to_string(&stage_end_event)?,
     )?;
 
-    let summary_path = req.context.stage_root.join("stage_human_summary.json");
+    let summary_path = stage_summary_path(&req.context.stage_root);
     let summary = serde_json::json!({
         "schema_version": "bijux.stage_summary.v1",
         "stage_id": req.context.stage_id,
