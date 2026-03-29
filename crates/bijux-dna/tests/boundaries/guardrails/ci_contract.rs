@@ -1,13 +1,11 @@
 use std::fs;
-use std::path::PathBuf;
+
+#[path = "../../support.rs"]
+mod support;
 
 #[test]
 fn cli_ci_profile_membership_is_bounded() -> anyhow::Result<()> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let repo_root = manifest_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
+    let repo_root = support::repo_root()?;
     let crates_dir = repo_root.join("crates");
     let mut slow = 0usize;
     let mut science = 0usize;
