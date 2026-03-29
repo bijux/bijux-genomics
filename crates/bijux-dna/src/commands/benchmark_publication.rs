@@ -3430,7 +3430,7 @@ mod tests {
         let temp = tempdir().expect("tempdir");
         let stage_docs_root = temp.path().join("docs/benchmark/fastq.validate_reads/corpus-01");
         fs::create_dir_all(&stage_docs_root).expect("stage docs root");
-        fs::write(stage_docs_root.join("lunarc.md"), "# legacy\n").expect("legacy dossier");
+        fs::write(stage_docs_root.join("legacy-site.md"), "# legacy\n").expect("legacy dossier");
 
         assert_eq!(
             super::resolve_existing_dossier_path(&stage_docs_root),
@@ -3445,7 +3445,7 @@ mod tests {
         let cache_root = repo_root.join("cache-mirror");
         let archive_root = repo_root.join("archive");
         let remote_root = repo_root.join("remote");
-        let remote_corpus_root = repo_root.join("corpus_01");
+        let remote_corpus_root = repo_root.join("benchmark_corpus");
         let config_path = repo_root.join("configs/bench/benchmark.toml");
         let corpus_spec_path = repo_root.join("configs/runtime/corpora/corpus-01.toml");
         fs::create_dir_all(config_path.parent().expect("config dir")).expect("config dir");
@@ -3521,9 +3521,9 @@ reason = "Compact validation fixture."
 
         let run_root = cache_root
             .join("results")
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.validate_reads")
-            .join("lunarc");
+            .join("cluster-apptainer");
         let sample_report = run_root
             .join("bench")
             .join("validate_reads")
@@ -3546,7 +3546,7 @@ reason = "Compact validation fixture."
             serde_json::json!({
                 "stage_id": "fastq.validate_reads",
                 "scenario_id": "validation_fairness",
-                "platform": "lunarc-apptainer",
+                "platform": "cluster-apptainer",
                 "samples_failed": 0,
                 "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
                 "runs": [{
@@ -3590,14 +3590,18 @@ reason = "Compact validation fixture."
         assert_eq!(
             super::classify_run_root_source(
                 Path::new(
-                    "/archive/srv/cluster/.cache/results/corpus_01/fastq.validate_reads/lunarc"
+                    "/archive/bench/cluster/.cache/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                 ),
-                Path::new("/srv/cluster/.cache/results/corpus_01/fastq.validate_reads/lunarc"),
-                Path::new("/srv/cluster/results/corpus_01/fastq.validate_reads/lunarc"),
                 Path::new(
-                    "/archive/srv/cluster/.cache/results/corpus_01/fastq.validate_reads/lunarc"
+                    "/bench/cluster/.cache/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                 ),
-                Path::new("/srv/cluster/.cache/corpus_01"),
+                Path::new(
+                    "/bench/cluster/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+                ),
+                Path::new(
+                    "/archive/bench/cluster/.cache/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+                ),
+                Path::new("/bench/cluster/.cache/benchmark_corpus"),
             ),
             "local-cache-mirror"
         );
@@ -3620,11 +3624,11 @@ reason = "Compact validation fixture."
             crate::commands::benchmark_workspace::benchmark_stage_run_relative_root(
                 &workspace,
                 "local-cache",
-                "corpus_01",
+                "benchmark_corpus",
                 "fastq.validate_reads",
             )
             .expect("relative root"),
-            Path::new("results/corpus_01/fastq.validate_reads/cluster")
+            Path::new("results/benchmark_corpus/fastq.validate_reads/cluster")
         );
     }
 
@@ -3634,7 +3638,7 @@ reason = "Compact validation fixture."
         let cache_root = temp.path().join("cache-mirror");
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
-        let remote_corpus_root = cache_root.join("corpus_01");
+        let remote_corpus_root = cache_root.join("benchmark_corpus");
         let workspace = sample_workspace(
             &cache_root,
             &archive_root,
@@ -3664,7 +3668,7 @@ reason = "Compact validation fixture."
         let cache_root = temp.path().join("cache-mirror");
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
-        let remote_corpus_root = cache_root.join("corpus_01");
+        let remote_corpus_root = cache_root.join("benchmark_corpus");
         let workspace = sample_workspace(
             &cache_root,
             &archive_root,
@@ -3673,9 +3677,9 @@ reason = "Compact validation fixture."
         );
         let reported_run_root = cache_root
             .join("results")
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.validate_reads")
-            .join("lunarc");
+            .join("cluster-apptainer");
         write_json(
             &docs_root
                 .join("fastq.validate_reads")
@@ -3717,7 +3721,7 @@ reason = "Compact validation fixture."
         let cache_root = temp.path().join("cache-mirror");
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
-        let remote_corpus_root = cache_root.join("corpus_01");
+        let remote_corpus_root = cache_root.join("benchmark_corpus");
         let workspace = sample_workspace(
             &cache_root,
             &archive_root,
@@ -3726,13 +3730,13 @@ reason = "Compact validation fixture."
         );
         let canonical_run_root = cache_root
             .join("results")
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.validate_reads")
-            .join("lunarc");
+            .join("cluster-apptainer");
         let legacy_run_root = archive_root
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.validate_reads")
-            .join("lunarc");
+            .join("cluster-apptainer");
         let sample_report = canonical_run_root
             .join("bench")
             .join("validate_reads")
@@ -3795,7 +3799,7 @@ reason = "Compact validation fixture."
         let cache_root = temp.path().join("cache-mirror");
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
-        let remote_corpus_root = cache_root.join("corpus_01");
+        let remote_corpus_root = cache_root.join("benchmark_corpus");
         let workspace = sample_workspace(
             &cache_root,
             &archive_root,
@@ -3804,13 +3808,13 @@ reason = "Compact validation fixture."
         );
         let canonical_run_root = cache_root
             .join("results")
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.validate_reads")
-            .join("lunarc");
+            .join("cluster-apptainer");
         let legacy_run_root = archive_root
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.validate_reads")
-            .join("lunarc");
+            .join("cluster-apptainer");
         let sample_report = canonical_run_root
             .join("bench")
             .join("validate_reads")
@@ -3893,16 +3897,21 @@ reason = "Compact validation fixture."
                     stage_id: "fastq.validate_reads".to_string(),
                     status: "incomplete".to_string(),
                     issue_count: 1,
-                    reported_run_root: "/mirror/results/corpus_01/fastq.validate_reads/lunarc"
+                    reported_run_root:
+                        "/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                         .to_string(),
-                    selected_run_root: "/mirror/results/corpus_01/fastq.validate_reads/lunarc"
+                    selected_run_root:
+                        "/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                         .to_string(),
-                    newest_available_run_root: "/archive/corpus_01/fastq.validate_reads/lunarc"
+                    newest_available_run_root:
+                        "/archive/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                         .to_string(),
                     selected_run_root_is_newest: false,
                     available_run_roots: vec![
-                        "/mirror/results/corpus_01/fastq.validate_reads/lunarc".to_string(),
-                        "/archive/corpus_01/fastq.validate_reads/lunarc".to_string(),
+                        "/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+                            .to_string(),
+                        "/archive/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+                            .to_string(),
                     ],
                     issues: vec![super::StageResultIssue {
                         stage_id: "fastq.validate_reads".to_string(),
@@ -3912,8 +3921,12 @@ reason = "Compact validation fixture."
                 }],
             });
         assert!(rendered.contains("selected run root"));
-        assert!(rendered.contains("/mirror/results/corpus_01/fastq.validate_reads/lunarc"));
-        assert!(rendered.contains("/archive/corpus_01/fastq.validate_reads/lunarc"));
+        assert!(rendered.contains(
+            "/mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+        ));
+        assert!(rendered.contains(
+            "/archive/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+        ));
     }
 
     #[test]
@@ -3941,7 +3954,7 @@ reason = "Compact validation fixture."
         let cache_root = temp.path().join("cache-mirror");
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
-        let remote_corpus_root = cache_root.join("corpus_01");
+        let remote_corpus_root = cache_root.join("benchmark_corpus");
         let workspace = sample_workspace(
             &cache_root,
             &archive_root,
@@ -3951,9 +3964,9 @@ reason = "Compact validation fixture."
         let run_root = temp
             .path()
             .join("mirror")
-            .join("corpus_01")
+            .join("benchmark_corpus")
             .join("fastq.validate_reads")
-            .join("lunarc");
+            .join("cluster-apptainer");
         let sample_report = run_root
             .join("bench")
             .join("validate_reads")
@@ -4066,7 +4079,7 @@ reason = "Compact validation fixture."
         let markdown =
             super::render_publication_docs_markdown(&super::BenchmarkPublicationStatusReport {
                 corpus_id: "corpus-01".to_string(),
-                docs_root: "/tmp/docs/benchmark".to_string(),
+                docs_root: "/bench/docs/benchmark".to_string(),
                 benchmarkable_stage_count: 3,
                 applicable_stage_count: 2,
                 completed_stage_count: 1,
@@ -4094,10 +4107,11 @@ reason = "Compact validation fixture."
                         issue_count: 0,
                         results_status: "complete".to_string(),
                         results_issue_count: 0,
-                        results_selected_run_root: "/tmp/results/fastq.validate_reads/lunarc"
+                        results_selected_run_root:
+                            "/bench/results/fastq.validate_reads/cluster-apptainer"
                             .to_string(),
                         results_newest_available_run_root:
-                            "/tmp/results/fastq.validate_reads/lunarc".to_string(),
+                            "/bench/results/fastq.validate_reads/cluster-apptainer".to_string(),
                         results_selected_run_root_is_newest: true,
                         issues: Vec::new(),
                     },
@@ -4113,9 +4127,11 @@ reason = "Compact validation fixture."
                         issue_count: 3,
                         results_status: "incomplete".to_string(),
                         results_issue_count: 2,
-                        results_selected_run_root: "/tmp/results/fastq.trim_reads/lunarc"
+                        results_selected_run_root:
+                            "/bench/results/fastq.trim_reads/cluster-apptainer"
                             .to_string(),
-                        results_newest_available_run_root: "/tmp/archive/fastq.trim_reads/lunarc"
+                        results_newest_available_run_root:
+                            "/bench/archive/fastq.trim_reads/cluster-apptainer"
                             .to_string(),
                         results_selected_run_root_is_newest: false,
                         issues: vec![super::StageAuditIssue {
@@ -4134,10 +4150,12 @@ reason = "Compact validation fixture."
             "`fastq.trim_reads`: `incomplete` (`3` publication issues, results `incomplete`, scope `full`)"
         ));
         assert!(
-            markdown.contains("selected mirrored run root: `/tmp/results/fastq.trim_reads/lunarc`")
+            markdown.contains(
+                "selected mirrored run root: `/bench/results/fastq.trim_reads/cluster-apptainer`"
+            )
         );
         assert!(markdown.contains(
-            "newest mirrored run root: `/tmp/archive/fastq.trim_reads/lunarc` (selected newest=`false`)"
+            "newest mirrored run root: `/bench/archive/fastq.trim_reads/cluster-apptainer` (selected newest=`false`)"
         ));
         assert!(markdown.contains("mirrored result issues: `2`"));
         assert!(markdown.contains("`fastq.index_reference`: reference bundle benchmark"));
