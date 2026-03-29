@@ -3,6 +3,7 @@ use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 
 use crate::config::{AliasesConfig, CoverageRegimesConfig, SpeciesAuthorityConfig, load_toml, workspace_root};
+use crate::resolution::resolve_bundle_entry;
 use crate::{ContigMap, ResolvedSpeciesContext, SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures};
 
 /// # Errors
@@ -100,7 +101,7 @@ pub fn resolve_coverage_profile(species: &str, build: &str) -> Result<Option<Str
 /// # Errors
 /// Returns an error when the species/build bundle cannot be resolved.
 pub fn resolve_species_context(species: &str, build: &str) -> Result<ResolvedSpeciesContext> {
-    let bundle = crate::resolve_bundle_entry(species, build)?;
+    let bundle = resolve_bundle_entry(species, build)?;
     let default_coverage_regime = bundle
         .default_coverage_regime
         .as_deref()
