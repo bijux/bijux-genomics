@@ -5,19 +5,19 @@
 #![allow(dead_code)]
 
 use crate::error::BenchError;
-use crate::model::{
-    BenchmarkGraphNode, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
-};
+use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 use crate::policy::GateDecision;
 use bijux_dna_core::{id_catalog, ids};
 use bijux_dna_domain_fastq::{
     admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,
-    stage_input_ids, stage_output_ids, stage_parameter_ids, stage_tool_binding,
+    stage_parameter_ids, stage_tool_binding,
 };
 use bijux_dna_stage_contract::has_executor;
 
+mod edge_validation;
 mod schemas;
 mod suite_graph;
+use edge_validation::validate_edge_ports;
 pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
 use suite_graph::{declared_graph_nodes, validate_suite_dag};
 
@@ -352,64 +352,6 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
     }
     validate_suite_dag(suite)?;
     Ok(())
-}
-
-fn validate_edge_ports(
-    edge: &crate::model::BenchmarkStageEdge,
-    declared_graph_nodes: &std::collections::BTreeMap<String, BenchmarkGraphNode>,
-) -> Result<(), BenchError> {
-    match (&edge.from_output_id, &edge.to_input_id) {
-        (Some(from_output_id), Some(to_input_id)) => {
-            validate_stage_output_port(&edge.from, from_output_id, declared_graph_nodes)?;
-            validate_stage_input_port(&edge.to, to_input_id, declared_graph_nodes)?;
-            Ok(())
-        }
-        (None, None) => Ok(()),
-        _ => Err(BenchError::InvalidPolicy(format!(
-            "suite edge {} -> {} must set from_output_id and to_input_id together",
-            edge.from, edge.to
-        ))),
-    }
-}
-
-fn validate_stage_output_port(
-    node_id: &str,
-    output_id: &str,
-    declared_graph_nodes: &std::collections::BTreeMap<String, BenchmarkGraphNode>,
-) -> Result<(), BenchError> {
-    let Some(node) = declared_graph_nodes.get(node_id) else {
-        return Ok(());
-    };
-    let Some(output_ids) = stage_output_ids(&node.stage_id) else {
-        return Ok(());
-    };
-    if output_ids.contains(output_id) {
-        return Ok(());
-    }
-    Err(BenchError::InvalidPolicy(format!(
-        "suite edge source node {} does not expose output {} in the governed {} contract",
-        node_id, output_id, node.stage_id
-    )))
-}
-
-fn validate_stage_input_port(
-    node_id: &str,
-    input_id: &str,
-    declared_graph_nodes: &std::collections::BTreeMap<String, BenchmarkGraphNode>,
-) -> Result<(), BenchError> {
-    let Some(node) = declared_graph_nodes.get(node_id) else {
-        return Ok(());
-    };
-    let Some(input_ids) = stage_input_ids(&node.stage_id) else {
-        return Ok(());
-    };
-    if input_ids.contains(input_id) {
-        return Ok(());
-    }
-    Err(BenchError::InvalidPolicy(format!(
-        "suite edge target node {} does not accept input {} in the governed {} contract",
-        node_id, input_id, node.stage_id
-    )))
 }
 
 fn ensure_supported_stage(stage_id: &str) -> Result<(), BenchError> {
