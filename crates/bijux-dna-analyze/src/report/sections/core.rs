@@ -1,20 +1,7 @@
 // Owner: bijux-dna-analyze
 // Report sections for run reports.
 
-use bijux_dna_core::metrics::ToolInvocationV1;
-use bijux_dna_core::prelude::{InvariantStatusV1, RawFailure};
-use bijux_dna_runtime::{FactsRowV1, PipelineVerdictV1, StageReportV1, TelemetryEventV1};
-use std::collections::BTreeMap;
-use std::fs;
-use std::path::Path;
-
-use crate::decision::score::build_rankings;
-use crate::failure::{classify_raw_failure, BenchmarkFailure};
-use crate::RankInput;
-pub(super) use qc::{
-    adapter_config_section, adapter_inference_section, filter_interpretation_section,
-    qc_artifacts_section, qc_improvement_section,
-};
+use super::*;
 
 pub(crate) fn report_path_for(reports: &serde_json::Value, key: &str) -> Option<String> {
     reports
@@ -30,7 +17,7 @@ pub(crate) fn artifact_path_for(artifacts: &serde_json::Value, key: &str) -> Opt
         .map(str::to_string)
 }
 
-pub(super) fn stage_completeness_table(
+pub(crate) fn stage_completeness_table(
     rows: &[FactsRowV1],
     missing_by_stage: &BTreeMap<String, (Vec<String>, Vec<String>)>,
 ) -> serde_json::Value {
@@ -53,7 +40,7 @@ pub(super) fn stage_completeness_table(
     serde_json::json!({ "rows": rows })
 }
 
-pub(super) fn decision_trace_section(
+pub(crate) fn decision_trace_section(
     rows: &[FactsRowV1],
     missing_by_stage: &BTreeMap<String, (Vec<String>, Vec<String>)>,
     telemetry_decisions: &BTreeMap<String, Vec<serde_json::Value>>,
@@ -92,7 +79,7 @@ pub(super) fn decision_trace_section(
     serde_json::json!({ "entries": entries })
 }
 
-pub(super) fn bench_summary_section(base_dir: &Path) -> serde_json::Value {
+pub(crate) fn bench_summary_section(base_dir: &Path) -> serde_json::Value {
     let path = base_dir.join("bench").join("summary.json");
     if !path.exists() {
         return serde_json::json!({});
@@ -159,7 +146,7 @@ fn stage_confidence_for_row(row: &FactsRowV1) -> (f64, Vec<String>) {
     (score, reasons)
 }
 
-pub(super) fn assertions_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn assertions_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let entries: Vec<serde_json::Value> = rows
         .iter()
         .map(|row| {
@@ -173,7 +160,7 @@ pub(super) fn assertions_section(rows: &[FactsRowV1]) -> serde_json::Value {
     serde_json::json!({ "entries": entries })
 }
 
-pub(super) fn stage_confidence_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn stage_confidence_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut entries: Vec<serde_json::Value> = rows
         .iter()
         .map(|row| {
@@ -211,11 +198,11 @@ pub(super) fn stage_confidence_section(rows: &[FactsRowV1]) -> serde_json::Value
 }
 
 #[allow(clippy::cast_precision_loss)]
-fn u64_to_f64(value: u64) -> f64 {
+pub(crate) fn u64_to_f64(value: u64) -> f64 {
     value as f64
 }
 
-pub(super) fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut entries = Vec::new();
     let mut waterfall = Vec::new();
     for row in rows {
@@ -268,7 +255,7 @@ pub(super) fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
     })
 }
 
-pub(super) fn reproducibility_section(
+pub(crate) fn reproducibility_section(
     rows: &[FactsRowV1],
     telemetry_paths: &[String],
 ) -> serde_json::Value {
@@ -339,7 +326,7 @@ fn telemetry_bounds(paths: &[String]) -> (serde_json::Value, serde_json::Value) 
     )
 }
 
-pub(super) fn scientific_provenance_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn scientific_provenance_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut entries = Vec::new();
     for row in rows {
         let mut effective_params = serde_json::json!({});

@@ -1,10 +1,12 @@
-fn read_json_value(path: &Path) -> Option<serde_json::Value> {
+use super::*;
+
+pub(crate) fn read_json_value(path: &Path) -> Option<serde_json::Value> {
     fs::read_to_string(path)
         .ok()
         .and_then(|raw| serde_json::from_str(&raw).ok())
 }
 
-pub(super) fn pipeline_verdict_from_rows(rows: &[FactsRowV1]) -> PipelineVerdictV1 {
+pub(crate) fn pipeline_verdict_from_rows(rows: &[FactsRowV1]) -> PipelineVerdictV1 {
     let mut verdict = InvariantStatusV1::Pass;
     let mut reasons = Vec::new();
     for row in rows {
@@ -31,7 +33,7 @@ pub(super) fn pipeline_verdict_from_rows(rows: &[FactsRowV1]) -> PipelineVerdict
     PipelineVerdictV1 { verdict, reasons }
 }
 
-pub(super) fn pipeline_verdict_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn pipeline_verdict_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let verdict = pipeline_verdict_from_rows(rows);
     serde_json::json!({
         "verdict": verdict.verdict,
@@ -46,7 +48,7 @@ pub(super) fn pipeline_verdict_section(rows: &[FactsRowV1]) -> serde_json::Value
     })
 }
 
-pub(super) fn comparison_view_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn comparison_view_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut by_stage: BTreeMap<String, Vec<&FactsRowV1>> = BTreeMap::new();
     for row in rows {
         by_stage.entry(row.stage_id.clone()).or_default().push(row);
@@ -139,7 +141,7 @@ pub(super) fn comparison_view_section(rows: &[FactsRowV1]) -> serde_json::Value 
     })
 }
 
-pub(super) fn failure_hints_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn failure_hints_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut failures: Vec<BenchmarkFailure> = Vec::new();
     for row in rows {
         if let Some(failures_value) = row.reports.get("failures") {
@@ -158,13 +160,13 @@ pub(super) fn failure_hints_section(rows: &[FactsRowV1]) -> serde_json::Value {
     })
 }
 
-pub(super) fn read_tool_invocation(path: &Path) -> Option<ToolInvocationV1> {
+pub(crate) fn read_tool_invocation(path: &Path) -> Option<ToolInvocationV1> {
     fs::read_to_string(path)
         .ok()
         .and_then(|raw| serde_json::from_str(&raw).ok())
 }
 
-pub(super) fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_json::Value {
+pub(crate) fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_json::Value {
     let Some(obj) = value.as_object() else {
         return value.clone();
     };
@@ -179,7 +181,7 @@ pub(super) fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_j
     serde_json::Value::Object(out)
 }
 
-pub(super) fn stage_report_for_row(row: &FactsRowV1) -> Option<StageReportV1> {
+pub(crate) fn stage_report_for_row(row: &FactsRowV1) -> Option<StageReportV1> {
     let path = report_path_for(&row.reports, "stage_report")?;
     let report_raw = fs::read_to_string(path).ok()?;
     serde_json::from_str(&report_raw).ok()
