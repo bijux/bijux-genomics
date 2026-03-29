@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
@@ -6,13 +5,12 @@ use serde::{Deserialize, Serialize};
 
 use bijux_dna_core::contract::{run_dir, Profile, RunSpec};
 use bijux_dna_core::contract::{ToolExecutionSpecV1, ToolRegistry};
-use bijux_dna_core::ids::{RunId, StageVersion};
-use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
+use bijux_dna_core::ids::RunId;
 
 use crate::stage_plan::{PlannedArtifactV1, StagePlanV1};
 use crate::artifact_kind_schema;
-use crate::{PlanDecisionReason, PlanReasonKind};
-use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, StageIO};
+use crate::{build_stage_plan, build_tool_execution_spec, validate_stage_outputs};
+use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::ids::ArtifactId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -127,89 +125,6 @@ pub fn build_run_execution_plan(
         stage,
         tool,
     })
-}
-
-fn validate_stage_outputs(
-    stage_spec: &bijux_dna_core::contract::StageSpec,
-    run_spec: &RunSpec,
-) -> Result<()> {
-    if stage_spec.outputs.is_empty() {
-        return Err(anyhow!(
-            "stage {} has no declared outputs; planning requires explicit output contract",
-            run_spec.stage.0
-        ));
-    }
-    for output in &stage_spec.outputs {
-        if output.name.trim().is_empty() || output.data_type.trim().is_empty() {
-            return Err(anyhow!(
-                "stage {} has invalid output contract entry (name/data_type must be non-empty)",
-                run_spec.stage.0
-            ));
-        }
-    }
-    Ok(())
-}
-
-fn build_stage_plan(
-    run_spec: &RunSpec,
-    tool_manifest: &bijux_dna_core::contract::ToolManifest,
-    stage_spec: &bijux_dna_core::contract::StageSpec,
-    run_dir: PathBuf,
-    inputs: Vec<ArtifactRef>,
-    outputs: Vec<ArtifactRef>,
-) -> Result<StagePlanV1> {
-    let params = serde_json::to_value(&run_spec.params).map_err(|err| {
-        anyhow!(
-            "failed to serialize run parameters for {}: {err}",
-            run_spec.stage.0
-        )
-    })?;
-    Ok(StagePlanV1 {
-        stage_id: run_spec.stage.clone(),
-        stage_instance_id: None,
-        stage_version: StageVersion(1),
-        tool_id: run_spec.tool.clone(),
-        tool_version: String::new(),
-        image: ContainerImageRefV1 {
-            image: tool_manifest.tool_id.to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: tool_manifest.command_template.clone(),
-        },
-        resources: tool_manifest.constraints.clone(),
-        io: StageIO { inputs, outputs },
-        out_dir: run_dir.join("stage"),
-        params: params.clone(),
-        effective_params: params,
-        aux_images: BTreeMap::new(),
-        reason: PlanDecisionReason {
-            kind: PlanReasonKind::Default,
-            summary: "planner default".to_string(),
-            details: serde_json::json!({
-                "runtime_scale": stage_spec.runtime_scale,
-                "semantic_kind": stage_spec.semantic_kind,
-            }),
-        },
-    })
-}
-
-fn build_tool_execution_spec(
-    run_spec: &RunSpec,
-    tool_manifest: &bijux_dna_core::contract::ToolManifest,
-) -> ToolExecutionSpecV1 {
-    ToolExecutionSpecV1 {
-        tool_id: run_spec.tool.clone(),
-        tool_version: String::new(),
-        image: ContainerImageRefV1 {
-            image: tool_manifest.tool_id.to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: tool_manifest.command_template.clone(),
-        },
-        resources: tool_manifest.constraints.clone(),
-    }
 }
 
 #[cfg(test)]

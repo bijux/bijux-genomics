@@ -7,6 +7,7 @@ mod plan_edge;
 pub mod plan_run;
 mod planner_contract;
 mod run_artifact_catalog;
+mod run_execution_builder;
 pub mod stage_plan;
 mod stage_plan_json;
 mod stage_reason;
@@ -29,6 +30,8 @@ pub use plan_run::*;
 pub use planner_contract::*;
 #[allow(unused_imports)]
 pub use run_artifact_catalog::*;
+#[allow(unused_imports)]
+pub use run_execution_builder::*;
 #[allow(unused_imports)]
 pub use stage_plan::*;
 #[allow(unused_imports)]
