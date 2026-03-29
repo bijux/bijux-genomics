@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("config-inventory", args)?;
     let out_txt = workspace.path("artifacts/configs_inventory.txt");
     let out_md = workspace.path("artifacts/inventory/configs.md");
@@ -47,7 +47,7 @@ pub(super) fn tooling_config_inventory(workspace: &Workspace, args: &[String]) -
     ))
 }
 
-pub(super) fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     #[derive(Default, Clone)]
     struct CoverageEntry {
         lines_hit: u64,
@@ -344,7 +344,7 @@ pub(super) fn tooling_coverage_summary(_workspace: &Workspace, args: &[String]) 
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-pub(super) fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") || args.is_empty() {
         return success_line(
             "Usage: cargo run -p bijux-dna-dev -- tooling run crash-triage -- <crash_provenance.json>",
@@ -421,7 +421,7 @@ pub(super) fn tooling_crash_triage(_workspace: &Workspace, args: &[String]) -> R
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-pub(super) fn tooling_deprecate_vcf_knob(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_deprecate_vcf_knob(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let usage = "Usage: cargo run -p bijux-dna-dev -- tooling run deprecate-vcf-knob -- --stage <stage_id> --knob <name> --phase <warn|fail|remove> --replacement <name> --rationale <text>";
     let mut stage = None;
     let mut knob = None;
@@ -506,7 +506,7 @@ pub(super) fn tooling_deprecate_vcf_knob(workspace: &Workspace, args: &[String])
     success_line(format!("added knob deprecation {stage}:{knob} ({phase})"))
 }
 
-pub(super) fn tooling_deprecate_vcf_panel(
+pub(in super::super) fn tooling_deprecate_vcf_panel(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -584,7 +584,7 @@ pub(super) fn tooling_deprecate_vcf_panel(
     success_line(format!("added panel deprecation {panel} ({phase})"))
 }
 
-pub(super) fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let mode = args.first().map(String::as_str).unwrap_or_default();
     if matches!(mode, "--help" | "-h") || mode.is_empty() {
         return success_line(
@@ -680,7 +680,7 @@ pub(super) fn tooling_docs_build(workspace: &Workspace, args: &[String]) -> Resu
     )
 }
 
-pub(super) fn tooling_generate_configs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_generate_configs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("generate-configs", args)?;
     run_program(
         workspace,
@@ -700,7 +700,7 @@ pub(super) fn tooling_generate_configs(workspace: &Workspace, args: &[String]) -
     )
 }
 
-pub(super) fn tooling_generate_panel_compatibility_matrix(
+pub(in super::super) fn tooling_generate_panel_compatibility_matrix(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -855,7 +855,7 @@ pub(super) fn tooling_generate_panel_compatibility_matrix(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-pub(super) fn tooling_generate_policy_index(
+pub(in super::super) fn tooling_generate_policy_index(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -890,7 +890,7 @@ pub(super) fn tooling_generate_policy_index(
     success_line(format!("wrote {}", out_file.display()))
 }
 
-pub(super) fn tooling_image_qa(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_image_qa(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     run_program(
         workspace,
         "cargo",
@@ -906,7 +906,7 @@ pub(super) fn tooling_image_qa(workspace: &Workspace, args: &[String]) -> Result
     )
 }
 
-pub(super) fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("inventory", args)?;
     let out_dir = workspace.path("artifacts/inventory");
     bijux_dna_infra::ensure_dir(&out_dir)
@@ -952,7 +952,7 @@ pub(super) fn tooling_inventory(workspace: &Workspace, args: &[String]) -> Resul
     ))
 }
 
-pub(super) fn tooling_make_help(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_make_help(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let show_internal = match args {
         [] => false,
         [flag] if flag == "--internal" => true,
@@ -1019,7 +1019,7 @@ pub(super) fn tooling_make_help(workspace: &Workspace, args: &[String]) -> Resul
     Ok(OpsCommandOutcome::success(out))
 }
 
-pub(super) fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let mode = args.first().map_or("--fast", String::as_str);
     if matches!(mode, "--help" | "-h") {
         return success_line(
@@ -1077,7 +1077,7 @@ pub(super) fn tooling_repo_doctor(workspace: &Workspace, args: &[String]) -> Res
     Ok(OpsCommandOutcome::success(aggregate))
 }
 
-pub(super) fn tooling_run_bijux(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_run_bijux(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args.first().map(String::as_str), Some("--help" | "-h")) {
         return success_line("Usage: cargo run -p bijux-dna-dev -- tooling run bijux -- <args...>");
     }
@@ -1097,7 +1097,7 @@ pub(super) fn tooling_run_bijux(workspace: &Workspace, args: &[String]) -> Resul
     run_program(workspace, "cargo", &argv)
 }
 
-pub(super) fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("setup-docs-venv", args)?;
     let docs_py = env_or_default("DOCS_PY", "python3");
     let docs_venv = resolve_workspace_path(
@@ -1155,7 +1155,7 @@ pub(super) fn tooling_setup_docs_venv(workspace: &Workspace, args: &[String]) ->
     )
 }
 
-pub(super) fn tooling_simulate_coverage_regime(
+pub(in super::super) fn tooling_simulate_coverage_regime(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -1300,7 +1300,7 @@ pub(super) fn tooling_simulate_coverage_regime(
     ))?))
 }
 
-pub(super) fn tooling_generate_domain_coverage_doc(
+pub(in super::super) fn tooling_generate_domain_coverage_doc(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -1322,7 +1322,7 @@ pub(super) fn tooling_generate_domain_coverage_doc(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-pub(super) fn tooling_generate_repo_root_map(
+pub(in super::super) fn tooling_generate_repo_root_map(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -1336,7 +1336,7 @@ pub(super) fn tooling_generate_repo_root_map(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-pub(super) fn tooling_generate_compatibility_matrix(
+pub(in super::super) fn tooling_generate_compatibility_matrix(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -1350,7 +1350,7 @@ pub(super) fn tooling_generate_compatibility_matrix(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-pub(super) fn tooling_generate_docs_graph(
+pub(in super::super) fn tooling_generate_docs_graph(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
@@ -1364,7 +1364,7 @@ pub(super) fn tooling_generate_docs_graph(
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-pub(super) fn tooling_generate_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_generate_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let out_root =
         match args {
             [] => workspace.path("docs"),

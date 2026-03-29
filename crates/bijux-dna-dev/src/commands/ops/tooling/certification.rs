@@ -1,31 +1,31 @@
 use super::*;
 
-pub(super) fn tooling_certification_gate(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_certification_gate(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("certification-gate", args)?;
     tooling_certify_all(workspace, &[])
 }
 
-pub(super) fn tooling_certify_all(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_certify_all(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("certify-all", args)?;
     tooling_certify_domains_with_mode(workspace, "all")
 }
 
-pub(super) fn tooling_certify_fastq(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_certify_fastq(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("certify-fastq", args)?;
     tooling_certify_domains_with_mode(workspace, "fastq")
 }
 
-pub(super) fn tooling_certify_bam(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_certify_bam(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("certify-bam", args)?;
     tooling_certify_domains_with_mode(workspace, "bam")
 }
 
-pub(super) fn tooling_certify_vcf(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_certify_vcf(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("certify-vcf", args)?;
     tooling_certify_domains_with_mode(workspace, "vcf")
 }
 
-pub(super) fn tooling_certify_domains(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_certify_domains(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     let Some(mode) = args.first().map(String::as_str) else {
         return Ok(OpsCommandOutcome::failure(
             "Usage: cargo run -p bijux-dna-dev -- tooling run certify-domains -- <fastq|bam|vcf|all>\n",
@@ -34,7 +34,7 @@ pub(super) fn tooling_certify_domains(workspace: &Workspace, args: &[String]) ->
     tooling_certify_domains_with_mode(workspace, mode)
 }
 
-pub(super) fn tooling_certify_domains_with_mode(
+pub(in super::super) fn tooling_certify_domains_with_mode(
     workspace: &Workspace,
     mode: &str,
 ) -> Result<OpsCommandOutcome> {

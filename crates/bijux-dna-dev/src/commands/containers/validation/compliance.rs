@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_tool_name_collision(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let images = images_metadata(workspace)?;
     let versions = tool_versions(workspace)?;
     let tool_ids = tool_status_manifest(workspace)?
@@ -152,7 +152,7 @@ pub(super) fn check_tool_name_collision(workspace: &Workspace) -> Result<Contain
     failure_lines("tool-name-collision: failed", &errors)
 }
 
-pub(super) fn check_tool_container_coverage(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_tool_container_coverage(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let images = images_metadata(workspace)?;
     let docker_ids = docker_tool_ids(workspace)?;
     let apptainer_ids = apptainer_tool_ids(workspace);
@@ -267,7 +267,7 @@ pub(super) fn check_tool_container_coverage(workspace: &Workspace) -> Result<Con
     failure_lines("tool/container coverage check failed:", &errors)
 }
 
-pub(super) fn check_toolkit_bundles(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_toolkit_bundles(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let bundles = toolkit_bundles(workspace)?;
     if bundles.is_empty() {
         return Ok(ContainerCommandOutcome::failure(
@@ -374,7 +374,7 @@ pub(super) fn check_toolkit_bundles(workspace: &Workspace) -> Result<ContainerCo
     failure_lines("toolkit bundle completeness check failed:", &errors)
 }
 
-pub(super) fn check_hpc_image_naming(
+pub(in super::super) fn check_hpc_image_naming(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
@@ -472,7 +472,7 @@ pub(super) fn check_hpc_image_naming(
     failure_lines("hpc image naming: FAILED", &errors)
 }
 
-pub(super) fn check_planned_actionability(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_planned_actionability(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let planned = workspace.path("containers/docs/PLANNED.md");
     if !planned.exists() {
         return Ok(ContainerCommandOutcome::failure(
@@ -536,7 +536,7 @@ pub(super) fn check_planned_actionability(workspace: &Workspace) -> Result<Conta
     failure_lines("planned actionability: FAILED", &errors)
 }
 
-pub(super) fn check_bijux_template_markers(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_bijux_template_markers(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let template = workspace.path("containers/apptainer/shared/TEMPLATE.def.inc");
     let mut errors = Vec::new();
     if !template.exists() {
@@ -572,7 +572,7 @@ pub(super) fn check_bijux_template_markers(workspace: &Workspace) -> Result<Cont
     failure_lines("bijux-template-markers: failed", &errors)
 }
 
-pub(super) fn check_tool_id_contract(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_tool_id_contract(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let manifest = workspace.path("containers/TOOL_IDS.txt");
     if !manifest.is_file() {
         return Ok(ContainerCommandOutcome::failure(format!(
@@ -666,7 +666,7 @@ pub(super) fn check_tool_id_contract(workspace: &Workspace) -> Result<ContainerC
     failure_lines("tool id contract check failed:", &errors)
 }
 
-pub(super) fn check_docker_arch_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_docker_arch_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let amd64_dir = workspace.path("containers/docker/amd64");
     let policy_doc = workspace.path("containers/docker/multiarch-policy.md");
     if !policy_doc.is_file() {
@@ -716,7 +716,7 @@ pub(super) fn check_docker_arch_policy(workspace: &Workspace) -> Result<Containe
     failure_lines("docker arch policy: failed", &errors)
 }
 
-pub(super) fn check_docker_arm64_completeness(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_docker_arm64_completeness(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let docker = docker_tool_ids(workspace)?;
     let mut required = BTreeSet::new();
     for row in registry_tool_rows(workspace)? {
@@ -777,7 +777,7 @@ pub(super) fn check_docker_arm64_completeness(workspace: &Workspace) -> Result<C
     )
 }
 
-pub(super) fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_docker_context(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let mut errors = Vec::new();
     let scan_roots = [
         workspace.path("makes"),
@@ -880,7 +880,7 @@ pub(super) fn check_docker_context(workspace: &Workspace) -> Result<ContainerCom
     failure_lines("docker context check failed:", &errors)
 }
 
-pub(super) fn check_docker_hardening(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_docker_hardening(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let exceptions_doc = workspace.path("containers/docker/NONROOT_EXCEPTIONS.md");
     let entrypoint_doc = workspace.path("containers/docker/ENTRYPOINT_EXCEPTIONS.md");
     if !exceptions_doc.exists() {
@@ -1014,7 +1014,7 @@ pub(super) fn check_docker_hardening(workspace: &Workspace) -> Result<ContainerC
     failure_lines("docker hardening: failed", &errors)
 }
 
-pub(super) fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_docker_labels(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let required = [
         "org.opencontainers.image.title",
         "org.opencontainers.image.version",
@@ -1099,7 +1099,7 @@ pub(super) fn check_docker_labels(workspace: &Workspace) -> Result<ContainerComm
     failure_lines("docker label policy check failed:", &errors)
 }
 
-pub(super) fn check_docker_unpinned_apt(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_docker_unpinned_apt(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let ci_mode = matches!(
         env_or_empty("CI").trim().to_ascii_lowercase().as_str(),
         "1" | "true" | "yes"
@@ -1161,7 +1161,7 @@ pub(super) fn check_docker_unpinned_apt(workspace: &Workspace) -> Result<Contain
     )))
 }
 
-pub(super) fn check_docker_version_sync(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_docker_version_sync(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let versions = tool_versions(workspace)?;
     let arg_re = Regex::new(r"^ARG\s+TOOL_VERSION\s*=\s*([^\s#]+)\s*$").expect("regex");
     let mut errors = Vec::new();
@@ -1224,7 +1224,7 @@ pub(super) fn check_docker_version_sync(workspace: &Workspace) -> Result<Contain
     failure_lines("docker version sync: failed", &errors)
 }
 
-pub(super) fn check_dockerfiles_built(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_dockerfiles_built(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     if env_or_empty("CI").is_empty() {
         return success_line("dockerfiles built check: SKIP (CI-only gate)");
     }
@@ -1300,7 +1300,7 @@ pub(super) fn check_dockerfiles_built(workspace: &Workspace) -> Result<Container
     failure_lines("dockerfiles built check: failed", &errors)
 }
 
-pub(super) fn check_no_secrets(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_no_secrets(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let mut scan = Vec::new();
     scan.extend(apptainer_def_paths(workspace));
     scan.extend(dockerfile_paths(workspace)?);
@@ -1338,7 +1338,7 @@ pub(super) fn check_no_secrets(workspace: &Workspace) -> Result<ContainerCommand
     failure_lines("container secret scan: FAILED", &errors)
 }
 
-pub(super) fn check_runtime_downloads(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_runtime_downloads(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let mut runtime_allowed = BTreeMap::new();
     let network_dir = workspace.path("containers/network");
     if network_dir.exists() {
@@ -1430,7 +1430,7 @@ pub(super) fn check_runtime_downloads(workspace: &Workspace) -> Result<Container
     failure_lines("runtime download policy: FAILED", &errors)
 }
 
-pub(super) fn check_vuln_allowlist(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_vuln_allowlist(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let path = std::env::var("ALLOWLIST").map_or_else(
         |_| workspace.path("configs/ci/tools/vuln_allowlist.toml"),
         PathBuf::from,
@@ -1489,7 +1489,7 @@ pub(super) fn check_vuln_allowlist(workspace: &Workspace) -> Result<ContainerCom
     failure_lines("vuln allowlist: FAILED", &errors)
 }
 
-pub(super) fn check_vuln_hook(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_vuln_hook(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let out = iso_root_path(workspace).join("containers/vuln_scan_report.json");
     let allowlist = check_vuln_allowlist(workspace)?;
     if !allowlist.is_success() {
@@ -1570,7 +1570,7 @@ pub(super) fn check_vuln_hook(workspace: &Workspace) -> Result<ContainerCommandO
     failure_lines("vuln hook: FAILED", &errors)
 }
 
-pub(super) fn check_sbom_artifacts(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_sbom_artifacts(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let manifest_root = workspace.path("artifacts/containers");
     if !manifest_root.exists() {
         if !env_or_empty("CI").is_empty() {
@@ -1718,7 +1718,7 @@ pub(super) fn check_sbom_artifacts(workspace: &Workspace) -> Result<ContainerCom
     failure_lines("sbom artifacts: FAILED", &errors)
 }
 
-pub(super) fn check_time_locale_determinism(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_time_locale_determinism(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let mut errors = Vec::new();
     for path in apptainer_def_paths(workspace) {
         let text = read_utf8(&path)?;
@@ -1746,7 +1746,7 @@ pub(super) fn check_time_locale_determinism(workspace: &Workspace) -> Result<Con
     failure_lines("time/locale determinism: FAILED", &errors)
 }
 
-pub(super) fn check_tool_invocation_normalization(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_tool_invocation_normalization(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let mut errors = Vec::new();
     for row in registry_tool_rows(workspace)? {
         let runtimes = table_array_strings(&row, "runtimes");
@@ -1792,7 +1792,7 @@ pub(super) fn check_tool_invocation_normalization(workspace: &Workspace) -> Resu
     failure_lines("tool invocation normalization: FAILED", &errors)
 }
 
-pub(super) fn check_smoke_inputs_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(in super::super) fn check_smoke_inputs_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let policy = workspace.path("configs/ci/tools/smoke_inputs_policy.toml");
     if !policy.is_file() {
         return Ok(ContainerCommandOutcome::failure(format!(
