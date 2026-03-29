@@ -1862,14 +1862,13 @@ fn load_supplemental_findings(
             path.display()
         ));
     }
-
-    let mut findings_by_stage = BTreeMap::<String, Vec<StageAuditIssue>>::new();
-    for finding in payload
+    let findings = payload
         .get("findings")
         .and_then(|value| value.as_array())
-        .into_iter()
-        .flatten()
-    {
+        .ok_or_else(|| anyhow!("supplemental findings in {} must declare a findings array", path.display()))?;
+
+    let mut findings_by_stage = BTreeMap::<String, Vec<StageAuditIssue>>::new();
+    for finding in findings {
         let invalid_message = || {
             anyhow!(
                 "invalid supplemental finding in {}: stage_id, issue_id, and detail are required",
