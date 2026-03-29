@@ -1,5 +1,7 @@
+#[path = "../../support.rs"]
+mod support;
+
 use std::fs;
-use std::path::PathBuf;
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-bench__{group}__{name}")
@@ -7,7 +9,7 @@ fn snapshot_name(group: &str, name: &str) -> String {
 
 #[test]
 fn public_api_snapshot() -> anyhow::Result<()> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let manifest_dir = support::crate_root("bijux-dna-bench")?;
     let lib_path = manifest_dir.join("src").join("lib.rs");
     let raw = fs::read_to_string(&lib_path)?;
     let mut items = Vec::new();

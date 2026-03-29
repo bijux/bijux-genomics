@@ -1,6 +1,8 @@
+#[path = "../support.rs"]
+mod support;
+
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_dna_bench::{
@@ -15,7 +17,7 @@ fn snapshot_name(group: &str, name: &str) -> String {
 
 #[test]
 fn bench_compare_snapshot() -> Result<()> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let manifest_dir = support::crate_root("bijux-dna-bench")?;
     let suite_a = BenchmarkSuiteSpec::v1(
         "suite-a".to_string(),
         vec![DatasetSpec {
