@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::fastq::stages::trim_bench_common::benchmark_image_identity;
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
@@ -429,11 +430,7 @@ fn build_qc_post_record(
     let context = BenchmarkContext {
         tool: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),
-        image_digest: tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_default(),
+        image_digest: benchmark_image_identity(tool_spec),
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
         input_hash: bench_inputs.input_hash.clone(),

@@ -30,7 +30,7 @@ use bijux_dna_runner::step_runner::StageResultV1;
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, observe_fastq_stats,
+    benchmark_image_identity, build_benchmark_context, observe_fastq_stats,
 };
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
@@ -267,11 +267,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let context = build_benchmark_context(
         &report.tool_id,
         tool_spec.tool_version.clone(),
-        tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_default(),
+        benchmark_image_identity(&tool_spec),
         runner,
         platform,
         input_hash.to_string(),
