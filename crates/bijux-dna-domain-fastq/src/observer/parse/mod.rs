@@ -30,83 +30,22 @@ use crate::{
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 
 mod sequence;
+mod reports;
 
 pub use self::sequence::{
     parse_fastqvalidator_count, parse_length_histogram, parse_seqkit_stats,
 };
 
 
-/// # Errors
-/// Returns an error if the governed validation report JSON cannot be parsed.
-pub fn parse_validation_report(report_json: &str) -> Result<ValidationReportV1> {
-    serde_json::from_str(report_json).context("parse validation report")
-}
+pub use self::reports::{
+    parse_cluster_otus_report, parse_filter_reads_report, parse_index_reference_report,
+    parse_infer_asvs_report, parse_merge_pairs_report, parse_normalize_abundance_report,
+    parse_normalize_primers_report, parse_report_qc_report, parse_screen_taxonomy_report,
+    parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
+    parse_validated_reads_manifest, parse_validation_report,
+};
 
-/// # Errors
-/// Returns an error if the governed filter-reads report JSON cannot be parsed.
-pub fn parse_filter_reads_report(report_json: &str) -> Result<FilterReadsReportV1> {
-    serde_json::from_str(report_json).context("parse filter-reads report")
-}
 
-/// # Errors
-/// Returns an error if the governed index-reference report JSON cannot be parsed.
-pub fn parse_index_reference_report(report_json: &str) -> Result<IndexReferenceReportV1> {
-    serde_json::from_str(report_json).context("parse index-reference report")
-}
-
-/// # Errors
-/// Returns an error if the governed validated-reads lineage manifest JSON cannot be parsed.
-pub fn parse_validated_reads_manifest(manifest_json: &str) -> Result<ValidatedReadsManifestV1> {
-    serde_json::from_str(manifest_json).context("parse validated reads manifest")
-}
-
-/// # Errors
-/// Returns an error if the governed terminal-damage report JSON cannot be parsed.
-pub fn parse_terminal_damage_report(report_json: &str) -> Result<TerminalDamageReportV1> {
-    serde_json::from_str(report_json).context("parse terminal damage report")
-}
-
-/// # Errors
-/// Returns an error if the governed trim report JSON cannot be parsed.
-pub fn parse_trim_reads_report(report_json: &str) -> Result<TrimReadsReportV1> {
-    serde_json::from_str(report_json).context("parse trim reads report")
-}
-
-/// # Errors
-/// Returns an error if the governed trim-polyg report JSON cannot be parsed.
-pub fn parse_trim_polyg_report(report_json: &str) -> Result<TrimPolygReportV1> {
-    serde_json::from_str(report_json).context("parse trim polyg report")
-}
-
-/// # Errors
-/// Returns an error if the governed normalize-primers report JSON cannot be parsed.
-pub fn parse_normalize_primers_report(report_json: &str) -> Result<NormalizePrimersReportV1> {
-    serde_json::from_str(report_json).context("parse normalize primers report")
-}
-
-/// # Errors
-/// Returns an error if the governed normalize-abundance report JSON cannot be parsed.
-pub fn parse_normalize_abundance_report(report_json: &str) -> Result<NormalizeAbundanceReportV1> {
-    serde_json::from_str(report_json).context("parse normalize abundance report")
-}
-
-/// # Errors
-/// Returns an error if the governed infer-asvs report JSON cannot be parsed.
-pub fn parse_infer_asvs_report(report_json: &str) -> Result<InferAsvsReportV1> {
-    serde_json::from_str(report_json).context("parse infer asvs report")
-}
-
-/// # Errors
-/// Returns an error if the governed cluster-otus report JSON cannot be parsed.
-pub fn parse_cluster_otus_report(report_json: &str) -> Result<ClusterOtusReportV1> {
-    serde_json::from_str(report_json).context("parse cluster otus report")
-}
-
-/// # Errors
-/// Returns an error if the governed merge-pairs report JSON cannot be parsed.
-pub fn parse_merge_pairs_report(report_json: &str) -> Result<MergePairsReportV1> {
-    serde_json::from_str(report_json).context("parse merge pairs report")
-}
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -203,11 +142,6 @@ pub fn parse_correct_errors_report(report_json: &str) -> Result<CorrectErrorsRep
         .context("parse correct errors report")
 }
 
-/// # Errors
-/// Returns an error if the governed report-qc report JSON cannot be parsed.
-pub fn parse_report_qc_report(report_json: &str) -> Result<ReportQcReportV1> {
-    serde_json::from_str(report_json).context("parse report qc report")
-}
 
 /// # Errors
 /// Returns an error if the governed profile-reads report JSON cannot be parsed.
@@ -235,11 +169,6 @@ pub fn parse_profile_overrepresented_report(
         .context("parse profile overrepresented report")
 }
 
-/// # Errors
-/// Returns an error if the governed taxonomy-screen report JSON cannot be parsed.
-pub fn parse_screen_taxonomy_report(report_json: &str) -> Result<ScreenTaxonomyReportV1> {
-    serde_json::from_str(report_json).context("parse screen taxonomy report")
-}
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
