@@ -433,7 +433,7 @@ pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
         });
     let payload = serde_json::json!({
         "schema_version": "bijux.site_lock.v1",
-        "site": "lunarc",
+        "site": resolved_site_name(),
         "generated_at_unix_s": std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map_or(0, |d| d.as_secs()),
@@ -444,6 +444,18 @@ pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
     bijux_dna_infra::atomic_write_json(&lock_path, &payload)
         .with_context(|| format!("write {}", lock_path.display()))?;
     Ok(lock_path)
+}
+
+fn resolved_site_name() -> String {
+    env_value("BIJUX_HPC_SITE")
+        .or_else(|| env_value("BIJUX_PLATFORM"))
+        .unwrap_or_else(|| "hpc".to_string())
+}
+
+fn env_value(key: &str) -> Option<String> {
+    std::env::var(key)
+        .ok()
+        .filter(|value| !value.trim().is_empty())
 }
 
 /// # Errors
