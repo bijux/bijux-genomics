@@ -15,9 +15,10 @@ use crate::commands::benchmark_corpus_metadata::{
 use crate::commands::benchmark_repo_checks::{audit_repo_checks, fail_on_repo_check_violations};
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_publication_contract, benchmark_publication_contracts,
-    benchmark_publication_exclusions, benchmark_stage_run_relative_root, load_benchmark_config,
-    write_workspace_layout_status, BenchmarkConfig, BenchmarkWorkspaceConfig,
-    CorpusBenchmarkContract, CorpusBenchmarkExclusion,
+    benchmark_publication_exclusions, benchmark_runtime_corpus_dir_name,
+    benchmark_stage_run_relative_root, load_benchmark_config, write_workspace_layout_status,
+    BenchmarkConfig, BenchmarkWorkspaceConfig, CorpusBenchmarkContract,
+    CorpusBenchmarkExclusion,
 };
 use crate::commands::cli::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
@@ -1445,10 +1446,11 @@ fn audit_published_results_stage(
         .and_then(|value| value.as_str())
         .map(PathBuf::from)
         .unwrap_or_default();
-    let corpus_id = summary_corpus_id(&summary_corpus_root, workspace)
-        .unwrap_or_else(|| "corpus_01".to_string());
+    let corpus_dir_name = summary_corpus_id(&summary_corpus_root, workspace)
+        .unwrap_or(benchmark_runtime_corpus_dir_name(workspace, corpus_id)?);
     let expected_tools = sorted_strings(&contract.tools);
-    let configured_roots = configured_stage_run_roots(workspace, &corpus_id, &contract.stage_id)?;
+    let configured_roots =
+        configured_stage_run_roots(workspace, &corpus_dir_name, &contract.stage_id)?;
     let canonical_run_root = configured_roots[0].path.clone();
     let legacy_run_root = configured_roots[1].path.clone();
     let reported_run_root = summary
@@ -3160,7 +3162,7 @@ fn classify_recommended_action(issue_ids: &[String]) -> String {
         "missing-published-summary",
         "missing-corpus-dir",
         "missing-summary-json",
-        "missing-lunarc-md",
+        "missing-benchmark-md",
         "missing-sample-results-csv",
         "missing-tool-runtime-summary-csv",
         "missing-cohort-runtime-summary-csv",
