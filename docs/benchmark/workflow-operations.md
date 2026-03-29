@@ -57,7 +57,7 @@ The default pull base, pull mode, sync profiles, repo cleanliness checks, and su
 
 When a caller needs a non-default benchmark workspace contract, set `BIJUX_BENCHMARK_CONFIG` or pass `--config <path>` to `bijux-dna bench ...`. Do not fork path formulas into new scripts.
 
-When driving the sync surface directly through `cargo run -p bijux-dna-dev -- hpc run ...`, prefer the neutral aliases `benchmark-sync-pull` and `benchmark-sync-push`. The legacy `lunarc-pull` and `lunarc-push` aliases remain available for compatibility with existing automation.
+When driving the sync surface directly through `cargo run -p bijux-dna-dev -- hpc run ...`, use `benchmark-sync-pull` and `benchmark-sync-push`.
 
 ## Move To Another Cluster With Config
 
@@ -80,9 +80,9 @@ The benchmark control plane should consume `configs/bench/benchmark.toml` throug
 
 The `pull-benchmark-publication` profile is the governed profile for corpus-01 FASTQ dossier publication. It mirrors the shared results trees plus the taxonomy lineage file needed by `fastq.screen_taxonomy`.
 
-If you need environment overrides, prefer the neutral `BENCHMARK_SYNC_*` variables over the legacy `LUNARC_*` names. The workspace contract in `configs/bench/benchmark.toml`, including `[sync.defaults]`, should still remain the primary source of truth.
+If you need environment overrides, use the `BENCHMARK_SYNC_*` variables. The workspace contract in `configs/bench/benchmark.toml`, including `[sync.defaults]`, should still remain the primary source of truth.
 
-The repo push marker `LUNARC_SYNC_SOURCE.json` should carry the benchmark workspace roots alongside the synced commit so the remote checkout records which benchmark environment contract the push was prepared against.
+The repo push marker `BENCHMARK_SYNC_SOURCE.json` should carry the benchmark workspace roots alongside the synced commit so the remote checkout records which benchmark environment contract the push was prepared against.
 
 ## Publication Checklist
 
