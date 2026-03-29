@@ -1,3 +1,4 @@
+mod image_registries;
 mod load_and_collect;
 mod registry_emitters;
 mod stage_loading;
@@ -53,7 +54,7 @@ pub(super) fn build_tool_registries_toml(
 }
 
 pub(super) fn collect_vcf_image_versions(domain_dir: &Path) -> Result<BTreeMap<String, String>> {
-    registry_emitters::collect_vcf_image_versions(domain_dir)
+    image_registries::collect_vcf_image_versions(domain_dir)
 }
 
 pub(super) fn build_images_toml(
@@ -61,7 +62,7 @@ pub(super) fn build_images_toml(
     vcf_image_versions: &BTreeMap<String, String>,
     source_commit: &str,
 ) -> String {
-    registry_emitters::build_images_toml(tools, vcf_image_versions, source_commit)
+    image_registries::build_images_toml(tools, vcf_image_versions, source_commit)
 }
 
 pub(super) fn build_stages_toml(
