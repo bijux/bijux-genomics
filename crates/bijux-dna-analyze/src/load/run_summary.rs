@@ -4,26 +4,15 @@
 use std::path::Path;
 
 use super::AnalyzeError;
+use super::support::read_required_json;
 use crate::model::RunSummaryV1;
-use serde_json;
 
 /// Load a run summary from JSON.
 ///
 /// # Errors
 /// Returns an error if the file is missing, unreadable, or has an invalid schema.
 pub fn load_run_summary(path: &Path) -> std::result::Result<RunSummaryV1, AnalyzeError> {
-    if !path.exists() {
-        return Err(AnalyzeError::MissingFile {
-            path: path.display().to_string(),
-        });
-    }
-    let raw = std::fs::read_to_string(path).map_err(|err| AnalyzeError::InvalidJson {
-        message: err.to_string(),
-    })?;
-    let summary: RunSummaryV1 =
-        serde_json::from_str(&raw).map_err(|err| AnalyzeError::InvalidJson {
-            message: err.to_string(),
-        })?;
+    let summary: RunSummaryV1 = read_required_json(path)?;
     if summary.schema_version != "bijux.run_summary.v1" {
         return Err(AnalyzeError::InvalidSchemaVersion {
             found: summary.schema_version,

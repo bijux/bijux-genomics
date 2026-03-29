@@ -8,6 +8,7 @@ use std::path::Path;
 use serde_json;
 
 use super::AnalyzeError;
+use super::support::open_required_file;
 use crate::model::stable_sort_records;
 use crate::model::FactTable;
 
@@ -16,14 +17,7 @@ use crate::model::FactTable;
 /// # Errors
 /// Returns an error if the file is missing, unreadable, or contains invalid rows.
 pub fn load_facts(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeError> {
-    if !path.exists() {
-        return Err(AnalyzeError::MissingFile {
-            path: path.display().to_string(),
-        });
-    }
-    let file = std::fs::File::open(path).map_err(|err| AnalyzeError::InvalidJson {
-        message: err.to_string(),
-    })?;
+    let file = open_required_file(path)?;
     let reader = BufReader::new(file);
     let mut rows = Vec::new();
     for (idx, line) in reader.lines().enumerate() {
@@ -79,9 +73,7 @@ pub fn load_facts_parquet(_path: &Path) -> std::result::Result<Vec<FactsRowV1>, 
 #[cfg(feature = "parquet")]
 pub fn load_facts_parquet(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeError> {
     use parquet::file::reader::{FileReader, SerializedFileReader};
-    let file = std::fs::File::open(path).map_err(|err| AnalyzeError::InvalidJson {
-        message: err.to_string(),
-    })?;
+    let file = open_required_file(path)?;
     let reader = SerializedFileReader::new(file).map_err(|err| AnalyzeError::InvalidJson {
         message: err.to_string(),
     })?;

@@ -7,20 +7,14 @@ use bijux_dna_core::contract::RunIndexLine;
 use serde_json;
 
 use super::AnalyzeError;
+use super::support::read_required_string;
 
 /// Load a run index from JSONL.
 ///
 /// # Errors
 /// Returns an error if the file is missing, unreadable, or contains invalid rows.
 pub fn load_run_index(path: &Path) -> std::result::Result<Vec<RunIndexLine>, AnalyzeError> {
-    if !path.exists() {
-        return Err(AnalyzeError::MissingFile {
-            path: path.display().to_string(),
-        });
-    }
-    let raw = std::fs::read_to_string(path).map_err(|err| AnalyzeError::InvalidJson {
-        message: err.to_string(),
-    })?;
+    let raw = read_required_string(path)?;
     let mut rows = Vec::new();
     for (idx, line) in raw.lines().enumerate() {
         if line.trim().is_empty() {
