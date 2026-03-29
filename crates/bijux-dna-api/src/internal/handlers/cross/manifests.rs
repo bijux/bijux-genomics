@@ -211,7 +211,7 @@ pub fn write_cross_run_manifest(
         let params_hash = run_provenance
             .get("params_hash")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or("unknown");
+            .unwrap_or("");
         let input_hashes = run_provenance
             .get("input_hashes")
             .and_then(serde_json::Value::as_array)
@@ -223,11 +223,11 @@ pub fn write_cross_run_manifest(
         let tool_version = run_provenance
             .get("tool_version")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or("unknown");
+            .unwrap_or("");
         let env_digest = run_provenance
             .get("tool_image_digest")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or("unknown");
+            .unwrap_or("");
         bijux_dna_core::prelude::CacheKey::new(
             bijux_dna_core::prelude::input_fingerprint(&input_hashes),
             params_hash,
