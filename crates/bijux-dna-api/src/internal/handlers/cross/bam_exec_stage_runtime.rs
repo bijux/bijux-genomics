@@ -401,7 +401,7 @@ fn maybe_resume_bam_stage(
         .get("output_checksums")
         .and_then(serde_json::Value::as_array)
         .cloned()
-        .unwrap_or_default();
+        .ok_or_else(|| anyhow::anyhow!("stage accounting missing declared `output_checksums` array"))?;
     let mut checksum_map = std::collections::BTreeMap::new();
     for entry in prior_checksums {
         if let (Some(path), Some(sha)) = (
