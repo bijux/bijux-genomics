@@ -428,7 +428,7 @@ fn explain_fastq_stage(
         )?;
         let trim_stage = StageId::from_static("fastq.trim_reads");
         let param_schema = lookup_param_schema_id("fastq.trim_reads")
-            .unwrap_or_else(|| "unknown_from_registry".to_string());
+            .ok_or_else(|| anyhow!("param schema for fastq.trim_reads missing from registry"))?;
         let payload = serde_json::json!({
             "stage_id": "fastq.trim_reads",
             "param_schema": param_schema,
