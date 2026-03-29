@@ -1,6 +1,9 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
+#[path = "../../support.rs"]
+mod support;
+
 fn collect_fixture_paths(root: &Path) -> BTreeSet<String> {
     let mut paths = BTreeSet::new();
     if !root.exists() {
@@ -19,7 +22,8 @@ fn collect_fixture_paths(root: &Path) -> BTreeSet<String> {
 
 #[test]
 fn backend_fixtures_are_structurally_identical() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+    let root = support::crate_root("bijux-dna-runner")
+        .unwrap_or_else(|err| panic!("resolve runner root: {err}"))
         .join("tests")
         .join("fixtures")
         .join("backend");
