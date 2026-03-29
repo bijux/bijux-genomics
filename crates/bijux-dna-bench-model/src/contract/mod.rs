@@ -12,12 +12,14 @@ mod edge_validation;
 mod param_binding_validation;
 mod schemas;
 mod stage_governance;
+mod suite_analysis;
 mod suite_diversity;
 mod suite_graph;
 use edge_validation::validate_edge_ports;
 use param_binding_validation::validate_stage_param_bindings;
 pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
 use stage_governance::{ensure_supported_stage, planner_owned_graph_stage, validate_stage_tools};
+use suite_analysis::validate_suite_analysis_requirements;
 use suite_diversity::validate_suite_diversity;
 use suite_graph::{declared_graph_nodes, validate_suite_dag};
 
@@ -192,19 +194,7 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
         }
         validate_edge_ports(edge, &declared_graph_nodes)?;
     }
-    if suite.analysis_requirements.require_bootstrap
-        && suite.replicate_policy.count < suite.analysis_requirements.min_replicates_for_bootstrap
-    {
-        return Err(BenchError::InvalidPolicy(format!(
-            "suite requires bootstrap with at least {} replicates",
-            suite.analysis_requirements.min_replicates_for_bootstrap
-        )));
-    }
-    if suite.analysis_requirements.require_outlier_detection && suite.replicate_policy.count < 3 {
-        return Err(BenchError::InvalidPolicy(
-            "suite requires outlier detection with at least 3 replicates".to_string(),
-        ));
-    }
+    validate_suite_analysis_requirements(suite)?;
     validate_suite_dag(suite)?;
     Ok(())
 }
