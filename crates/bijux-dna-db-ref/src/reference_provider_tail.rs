@@ -1,20 +1,3 @@
-impl MapProvider for RuntimeRefService {
-    fn resolve_map(
-        &self,
-        species: &str,
-        build: &str,
-        map_id: Option<&str>,
-    ) -> Result<MapCatalogEntry> {
-        resolve_map(species, build, map_id)
-    }
-}
-
-#[must_use]
-pub fn ref_service() -> &'static dyn RefService {
-    static SERVICE: OnceLock<RuntimeRefService> = OnceLock::new();
-    SERVICE.get_or_init(RuntimeRefService::default)
-}
-
 /// # Errors
 /// Returns an error if alias config cannot be read or the alias is unknown.
 pub fn resolve_species_alias(
