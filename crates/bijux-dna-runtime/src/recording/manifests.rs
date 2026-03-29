@@ -194,14 +194,15 @@ pub fn write_run_manifest(
         .plan_hash
         .clone()
         .or_else(|| std::env::var("BIJUX_PLAN_HASH").ok());
+    let declared_tool_image_digest = run_provenance
+        .tool_image_digest
+        .clone()
+        .ok_or_else(|| anyhow!("run manifest requires declared tool image digest"))?;
     let cache_key = CacheKey::new(
         input_fingerprint(&run_provenance.input_hashes),
         run_provenance.params_hash.clone(),
         run_provenance.tool_version.clone(),
-        run_provenance
-            .tool_image_digest
-            .clone()
-            .unwrap_or_else(|| "not_declared".to_string()),
+        declared_tool_image_digest.clone(),
     );
     let tool_invocations = {
         let path = run_dirs.artifacts_dir.join("tool_invocation.json");
@@ -267,7 +268,7 @@ pub fn write_run_manifest(
     let reproducibility_identity = bijux_dna_core::prelude::ReproducibilityIdentityV1 {
         image_digest: replay_tool_image_digest
             .clone()
-            .unwrap_or_else(|| "not_declared".to_string()),
+            .unwrap_or_else(|| declared_tool_image_digest.clone()),
         tool_version: run_provenance.tool_version.clone(),
         params_hash: run_provenance.params_hash.clone(),
         input_hash: input_fingerprint(&run_provenance.input_hashes),
