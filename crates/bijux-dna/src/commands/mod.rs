@@ -23,6 +23,7 @@ pub(crate) mod profile_runtime;
 pub(crate) mod repo_root;
 pub(crate) mod report_inputs;
 mod root;
+mod router;
 pub(crate) mod run_plan;
 pub(crate) mod vcf;
 
