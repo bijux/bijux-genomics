@@ -433,7 +433,7 @@ pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
         });
     let payload = serde_json::json!({
         "schema_version": "bijux.site_lock.v1",
-        "site": resolved_site_name(),
+        "site": resolved_site_name()?,
         "generated_at_unix_s": std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map_or(0, |d| d.as_secs()),
@@ -446,10 +446,9 @@ pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
     Ok(lock_path)
 }
 
-fn resolved_site_name() -> String {
+fn resolved_site_name() -> Result<String> {
     env_value("BIJUX_HPC_SITE")
-        .or_else(|| env_value("BIJUX_PLATFORM"))
-        .unwrap_or_else(|| "hpc".to_string())
+        .ok_or_else(|| anyhow!("BIJUX_HPC_SITE must be declared for HPC site locks"))
 }
 
 fn env_value(key: &str) -> Option<String> {
@@ -490,9 +489,12 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{enforce_hpc_results_layout, HpcConfig, HpcLayout};
+    use super::{enforce_hpc_results_layout, resolved_site_name, HpcConfig, HpcLayout};
     use std::path::Path;
     use std::path::PathBuf;
+    use std::sync::Mutex;
+
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn hpc_layout_accepts_canonical_shape() {
@@ -514,6 +516,22 @@ mod tests {
             "/hpc/root/bijux-dna-results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123",
         );
         assert!(enforce_hpc_results_layout(bad).is_err());
+    }
+
+    #[test]
+    fn hpc_site_lock_requires_explicit_site_identity() {
+        let _lock = ENV_LOCK.lock().expect("env lock");
+        unsafe {
+            std::env::remove_var("BIJUX_HPC_SITE");
+            std::env::set_var("BIJUX_PLATFORM", "cluster-apptainer");
+        }
+        let error = resolved_site_name().expect_err("missing site id must fail");
+        assert!(error
+            .to_string()
+            .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
+        unsafe {
+            std::env::remove_var("BIJUX_PLATFORM");
+        }
     }
 
     #[test]
