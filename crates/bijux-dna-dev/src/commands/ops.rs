@@ -5629,23 +5629,30 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
             other => return Err(anyhow!("unknown arg: {other}")),
         }
     }
-    let default_lunarc_host = benchmark_workspace
-        .remote_ssh_host
-        .as_deref()
-        .unwrap_or("lunarc");
-    let lunarc_host = env_or_default("BENCHMARK_SYNC_HOST", default_lunarc_host);
-    let default_lunarc_repo_dir = benchmark_workspace
-        .remote_repo_root
-        .clone()
-        .unwrap_or_else(|| "${HOME}/bijux/bijux-dna".to_string());
-    let lunarc_repo_dir = env_or_default("BENCHMARK_SYNC_REPO_ROOT", &default_lunarc_repo_dir);
-    let lunarc_workspace_root = parent_path_or_fallback(&lunarc_repo_dir, "${HOME}/bijux");
+    let lunarc_host = env_or_contract(
+        "BENCHMARK_SYNC_HOST",
+        benchmark_workspace.remote_ssh_host.as_deref(),
+        "workspace.remote.ssh_host",
+    )?;
+    let lunarc_repo_dir = env_or_contract(
+        "BENCHMARK_SYNC_REPO_ROOT",
+        benchmark_workspace.remote_repo_root.as_deref(),
+        "workspace.remote.repo_root",
+    )?;
+    let lunarc_workspace_root = Path::new(&lunarc_repo_dir)
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .map(|parent| parent.display().to_string())
+        .ok_or_else(|| anyhow!("benchmark sync repo root must have a parent directory"))?;
     let default_lunarc_pull_base = benchmark_workspace
         .sync_default_pull_base
         .clone()
-        .or_else(|| benchmark_workspace.local_results_root.clone())
-        .unwrap_or_else(|| "${HOME}/bijux/bijux-dna-results".to_string());
-    let lunarc_pull_base = env_or_default("BENCHMARK_SYNC_PULL_BASE", &default_lunarc_pull_base);
+        .or_else(|| benchmark_workspace.local_results_root.clone());
+    let lunarc_pull_base = env_or_contract(
+        "BENCHMARK_SYNC_PULL_BASE",
+        default_lunarc_pull_base.as_deref(),
+        "workspace.sync.defaults.pull_base or workspace.local.results_root",
+    )?;
     let lunarc_pull_dest = env_or_default("BENCHMARK_SYNC_PULL_DEST", "");
     let default_pull_mode = benchmark_workspace
         .sync_default_pull_mode
@@ -5654,29 +5661,28 @@ fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<Ops
     let pull_mode = env_or_default("BENCHMARK_SYNC_MODE", default_pull_mode);
     let default_lunarc_results_dir = benchmark_workspace
         .remote_results_root
-        .clone()
-        .unwrap_or_else(|| format!("{lunarc_workspace_root}/results"));
-    let lunarc_results_dir =
-        env_or_default("BENCHMARK_SYNC_RESULTS_ROOT", &default_lunarc_results_dir);
+        .clone();
+    let lunarc_results_dir = env_or_contract(
+        "BENCHMARK_SYNC_RESULTS_ROOT",
+        default_lunarc_results_dir.as_deref(),
+        "workspace.remote.results_root",
+    )?;
     let default_lunarc_containers_root = benchmark_workspace
         .remote_containers_root
-        .clone()
-        .unwrap_or_else(|| format!("{lunarc_workspace_root}/bijux-dna-container"));
-    let lunarc_containers_root = env_or_default(
+        .clone();
+    let lunarc_containers_root = env_or_contract(
         "BENCHMARK_SYNC_CONTAINERS_ROOT",
-        &default_lunarc_containers_root,
-    );
+        default_lunarc_containers_root.as_deref(),
+        "workspace.remote.containers_root",
+    )?;
     let default_lunarc_corpus_root = benchmark_workspace
         .remote_corpus_root
-        .clone()
-        .unwrap_or_else(|| {
-            format!(
-                "{lunarc_workspace_root}/{}",
-                benchmark_corpus_dir_name(&benchmark_workspace)
-            )
-        });
-    let lunarc_corpus_root =
-        env_or_default("BENCHMARK_SYNC_CORPUS_ROOT", &default_lunarc_corpus_root);
+        .clone();
+    let lunarc_corpus_root = env_or_contract(
+        "BENCHMARK_SYNC_CORPUS_ROOT",
+        default_lunarc_corpus_root.as_deref(),
+        "workspace.remote.corpus_root",
+    )?;
     let include_containers_manifest_default = if benchmark_workspace
         .sync_default_include_containers_manifest
         .unwrap_or(false)
@@ -5968,16 +5974,16 @@ fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<Ops
             exclude_file = workspace.path(&rel);
         }
     }
-    let default_lunarc_host = benchmark_workspace
-        .remote_ssh_host
-        .as_deref()
-        .unwrap_or("lunarc");
-    let lunarc_host = env_or_default("BENCHMARK_SYNC_HOST", default_lunarc_host);
-    let default_lunarc_repo_dir = benchmark_workspace
-        .remote_repo_root
-        .clone()
-        .unwrap_or_else(|| "${HOME}/bijux/bijux-dna".to_string());
-    let lunarc_repo_dir = env_or_default("BENCHMARK_SYNC_REPO_ROOT", &default_lunarc_repo_dir);
+    let lunarc_host = env_or_contract(
+        "BENCHMARK_SYNC_HOST",
+        benchmark_workspace.remote_ssh_host.as_deref(),
+        "workspace.remote.ssh_host",
+    )?;
+    let lunarc_repo_dir = env_or_contract(
+        "BENCHMARK_SYNC_REPO_ROOT",
+        benchmark_workspace.remote_repo_root.as_deref(),
+        "workspace.remote.repo_root",
+    )?;
     let clean_context_default = if benchmark_workspace
         .sync_default_clean_context
         .unwrap_or(true)
@@ -9011,12 +9017,16 @@ fn env_or_default(key: &str, fallback: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| fallback.to_string())
 }
 
-fn parent_path_or_fallback(path: &str, fallback: &str) -> String {
-    Path::new(path)
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .map(|parent| parent.display().to_string())
-        .unwrap_or_else(|| fallback.to_string())
+fn env_or_contract(key: &str, contract_value: Option<&str>, contract_key: &str) -> Result<String> {
+    if let Ok(value) = std::env::var(key) {
+        if !value.trim().is_empty() {
+            return Ok(value);
+        }
+    }
+    contract_value
+        .filter(|value| !value.trim().is_empty())
+        .map(ToOwned::to_owned)
+        .ok_or_else(|| anyhow!("{key} or {contract_key} must be declared"))
 }
 
 fn sha256_hex(path: &Path) -> Result<String> {
@@ -9032,7 +9042,7 @@ mod tests {
     use toml::Value as TomlValue;
 
     use super::{
-        benchmark_corpus_dir_name, benchmark_workspace_lookup, config_string,
+        benchmark_corpus_dir_name, benchmark_workspace_lookup, config_string, env_or_contract,
         expand_toml_env_placeholders, benchmark_sync_profile, load_benchmark_sync_profiles,
         load_benchmark_workspace_paths, BenchmarkWorkspacePaths,
     };
@@ -9292,6 +9302,15 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             benchmark_corpus_dir_name(&BenchmarkWorkspacePaths::default()),
             "corpus"
         );
+    }
+
+    #[test]
+    fn env_or_contract_requires_declared_value() {
+        let error = env_or_contract("BIJUX_TEST_MISSING", None, "workspace.remote.repo_root")
+            .expect_err("missing contract must fail");
+        assert!(error
+            .to_string()
+            .contains("BIJUX_TEST_MISSING or workspace.remote.repo_root must be declared"));
     }
 
     #[test]
