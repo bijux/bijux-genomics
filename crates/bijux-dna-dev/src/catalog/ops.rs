@@ -331,11 +331,6 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkIntegrityMini,
         ),
         native(
-            "benchmarks",
-            "Run governed benchmark workflows through the native control plane.",
-            NativeOpsCommandKey::ToolingBenchmarks,
-        ),
-        native(
             "config-inventory",
             "Generate governed config inventory artifacts under artifacts/.",
             NativeOpsCommandKey::ToolingConfigInventory,
