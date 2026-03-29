@@ -1,5 +1,7 @@
 use std::fs;
-use std::path::PathBuf;
+
+#[path = "../../support.rs"]
+mod support;
 
 fn snapshot_name(bucket: &str, test_name: &str) -> String {
     format!("{}__{}__{}", env!("CARGO_PKG_NAME"), bucket, test_name)
@@ -8,8 +10,9 @@ fn snapshot_name(bucket: &str, test_name: &str) -> String {
 /// Snapshot locks CLI public surface to prevent accidental exports.
 #[test]
 fn cli_public_surface_is_snapshotted() {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let lib = manifest_dir.join("src").join("lib.rs");
+    let crate_root = support::crate_root("bijux-dna")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
+    let lib = crate_root.join("src").join("lib.rs");
     let content = fs::read_to_string(&lib)
         .unwrap_or_else(|err| panic!("read lib.rs at {}: {err}", lib.display()));
     let mut snapshot = String::new();
@@ -21,7 +24,7 @@ fn cli_public_surface_is_snapshotted() {
     }
     let name = snapshot_name("schemas", "public_surface");
     let mut settings = insta::Settings::new();
-    settings.set_snapshot_path(manifest_dir.join("tests").join("snapshots"));
+    settings.set_snapshot_path(crate_root.join("tests").join("snapshots"));
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {
         insta::assert_snapshot!(name, snapshot);
