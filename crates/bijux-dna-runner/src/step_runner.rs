@@ -6,7 +6,7 @@ use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::metrics::{ToolInvocationSpecV1, ToolInvocationV1};
 use bijux_dna_core::prelude::cache::CacheKey;
 use bijux_dna_core::prelude::hashing::{
-    input_fingerprint, parameters_fingerprint, params_hash, run_id_from_hashes,
+    input_fingerprint, parameters_fingerprint, run_id_from_hashes,
 };
 use bijux_dna_environment::api::RuntimeKind;
 use sha2::{Digest, Sha256};
@@ -459,14 +459,24 @@ pub fn execute_step(
         step.image.image.clone(),
         env_digest,
     );
+    let pipeline_id = execution_pipeline_identity(step);
+    let sample_id = execution_sample_identity(step);
     let run_id = run_id_from_hashes(
-        "unknown_pipeline",
-        "unknown_sample",
+        &pipeline_id,
+        &sample_id,
         &params_fingerprint,
         &input_hashes,
         None,
     );
-    write_minimum_run_artifacts(step, &input_hashes, &output_hashes, runner, &output.command)?;
+    write_minimum_run_artifacts(
+        step,
+        &input_hashes,
+        &output_hashes,
+        runner,
+        &output.command,
+        &run_id,
+        &params_fingerprint,
+    )?;
 
     Ok(StageResultV1 {
         run_id,
@@ -545,6 +555,34 @@ fn network_allowed() -> bool {
         .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
 }
 
+fn execution_pipeline_identity(step: &ExecutionStep) -> String {
+    std::env::var("BIJUX_PIPELINE_ID")
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| step.stage_id.to_string())
+}
+
+fn execution_sample_identity(step: &ExecutionStep) -> String {
+    std::env::var("BIJUX_SAMPLE_ID")
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| step.step_id.to_string())
+}
+
+fn runtime_platform_identity(runner: RuntimeKind) -> String {
+    std::env::var("BIJUX_PLATFORM")
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| match runner {
+            RuntimeKind::Docker => "docker".to_string(),
+            RuntimeKind::Apptainer => "apptainer".to_string(),
+            RuntimeKind::Singularity => "singularity".to_string(),
+        })
+}
+
 fn infer_tool_version_from_image(image: &str) -> String {
     let without_digest = image.split('@').next().unwrap_or(image);
     if let Some((_, tag)) = without_digest.rsplit_once(':') {
@@ -561,6 +599,8 @@ fn write_minimum_run_artifacts(
     output_hashes: &[String],
     runner: RuntimeKind,
     command: &str,
+    run_id: &str,
+    params_fingerprint: &str,
 ) -> Result<()> {
     let run_artifacts_dir = step.out_dir.join("run_artifacts");
     bijux_dna_infra::ensure_dir(&run_artifacts_dir)
@@ -598,9 +638,6 @@ fn write_minimum_run_artifacts(
     let stage_report_path = run_artifacts_dir.join("stage_report.json");
     if !stage_report_path.exists() {
         let inferred_tool_version = infer_tool_version_from_image(&step.image.image);
-        let summary_params_hash =
-            params_hash(&serde_json::json!({ "command": step.command.template.clone() }))
-                .unwrap_or_else(|_| "unknown".to_string());
         let payload = serde_json::json!({
             "schema_version": "bijux.stage_report.v1",
             "stage_id": step.stage_id.to_string(),
@@ -614,11 +651,11 @@ fn write_minimum_run_artifacts(
             "facts_row_id": null,
             "summary": {
                 "metric_provenance": {
-                    "run_id": std::env::var("BIJUX_RUN_ID").unwrap_or_else(|_| "unknown".to_string()),
+                    "run_id": run_id,
                     "stage_id": step.stage_id.to_string(),
                     "tool_id": step.image.image.clone(),
                     "tool_version": inferred_tool_version,
-                    "params_hash": summary_params_hash,
+                    "params_hash": params_fingerprint,
                     "input_artifact_hashes": input_hashes,
                 }
             },
@@ -673,7 +710,7 @@ fn write_tool_invocation(
             .clone()
             .unwrap_or_else(|| step.image.image.clone()),
         runner_kind: format!("{runner:?}"),
-        platform: inferred_tool_version.clone(),
+        platform: runtime_platform_identity(runner),
         parameters_json: parameters_json.clone(),
         parameters_json_normalized: parameters_json,
         effective_params_json: serde_json::json!({}),
@@ -694,7 +731,8 @@ fn write_tool_invocation(
 mod tests {
     use super::{
         build_apptainer_exec_args, build_observer_command_args, container_command_template,
-        container_input_mapping, hash_inputs, hash_path,
+        container_input_mapping, execution_pipeline_identity, execution_sample_identity,
+        hash_inputs, hash_path, runtime_platform_identity,
     };
     use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};
     use bijux_dna_core::prelude::{
@@ -717,6 +755,43 @@ mod tests {
         assert_eq!(bin, "docker");
         assert!(args.starts_with(&["run".to_string(), "--rm".to_string()]));
         assert!(args.contains(&"/tmp/input:/data:ro".to_string()));
+    }
+
+    #[test]
+    fn execution_identity_defaults_to_stage_and_step_ids() {
+        let step = ExecutionStep {
+            step_id: StepId::from_static("sample-0001.fastq.trim_reads.fastp"),
+            stage_id: StageId::from_static("fastq.trim_reads"),
+            command: CommandSpecV1 {
+                template: vec!["fastp".to_string()],
+            },
+            image: ContainerImageRefV1 {
+                image: "fastp:0.23.4".to_string(),
+                digest: None,
+            },
+            resources: ToolConstraints::default(),
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: Vec::new(),
+            },
+            out_dir: PathBuf::from("/tmp/out"),
+            aux_images: Default::default(),
+            expected_artifact_ids: Vec::new(),
+            metrics_schema_ids: Vec::new(),
+        };
+
+        assert_eq!(execution_pipeline_identity(&step), "fastq.trim_reads");
+        assert_eq!(
+            execution_sample_identity(&step),
+            "sample-0001.fastq.trim_reads.fastp"
+        );
+    }
+
+    #[test]
+    fn runtime_platform_identity_defaults_to_runner_name() {
+        assert_eq!(runtime_platform_identity(RuntimeKind::Docker), "docker");
+        assert_eq!(runtime_platform_identity(RuntimeKind::Apptainer), "apptainer");
+        assert_eq!(runtime_platform_identity(RuntimeKind::Singularity), "singularity");
     }
 
     #[test]
