@@ -1,3 +1,6 @@
+#[path = "../support.rs"]
+mod support;
+
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 
@@ -5,19 +8,13 @@ use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_runtime::manifests::load_manifests;
 
 fn registry_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(std::path::Path::parent)
-        .unwrap_or_else(|| std::path::Path::new("."))
+    support::repo_root()
+        .expect("repo root")
         .join("configs/ci/registry/tool_registry.toml")
 }
 
 fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(std::path::Path::parent)
-        .unwrap_or_else(|| std::path::Path::new("."))
-        .to_path_buf()
+    support::repo_root().expect("repo root")
 }
 
 fn env_lock() -> &'static Mutex<()> {
