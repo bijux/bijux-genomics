@@ -1,11 +1,5 @@
-//! Cross-domain FASTQ → BAM profile (aDNA).
+//! Cross-domain FASTQ-to-BAM profile definitions.
 
-use crate::bam::bam_adna_shotgun_profile;
-use crate::fastq::fastq_adna_profile;
-use crate::{
-    ArtifactType, DefaultParams, Domain, EffectiveDefaults, EmptyParams, InvariantsPreset,
-    MetricsBundle, PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
-};
 use bijux_dna_core::ids::{
     AssayKind, LibraryLayout, LibraryModel, PlatformHint, StageId, ToolId, UdgTreatment,
 };
@@ -13,37 +7,11 @@ use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{adna_shotgun_params_json, default_params_json};
 use bijux_dna_domain_bam::BamStage;
 
-fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
-    let fastq_profile = fastq_adna_profile();
-    let bam_profile = bam_adna_shotgun_profile();
-
-    let mut defaults = EffectiveDefaults::default();
-    defaults.tools.extend(fastq_profile.defaults.tools.clone());
-    defaults
-        .params
-        .extend(fastq_profile.defaults.params.clone());
-    defaults
-        .rationales
-        .extend(fastq_profile.defaults.rationales.clone());
-    defaults.tools.extend(bam_profile.defaults.tools.clone());
-    defaults.params.extend(bam_profile.defaults.params.clone());
-    defaults
-        .rationales
-        .extend(bam_profile.defaults.rationales.clone());
-    (fastq_profile, bam_profile, defaults)
-}
-
-fn required_cross_stages(fastq_profile: &PipelineProfile) -> Vec<String> {
-    let mut stages = fastq_profile.capabilities.required_stages.clone();
-    stages.extend([
-        "core.prepare_reference".to_string(),
-        "bam.align".to_string(),
-        "bam.qc_pre".to_string(),
-        "bam.coverage".to_string(),
-        "bam.damage".to_string(),
-    ]);
-    stages
-}
+use super::fastq_to_bam_support::{base_defaults, required_cross_stages};
+use crate::{
+    ArtifactType, DefaultParams, Domain, EmptyParams, InvariantsPreset, MetricsBundle,
+    PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
+};
 
 #[must_use]
 pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
@@ -106,7 +74,7 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
 
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_TO_BAM_ADNA_SHOTGUN),
-        description: "FASTQ preprocess → align → BAM QC/damage (aDNA shotgun)",
+        description: "FASTQ preprocess -> align -> BAM QC/damage (aDNA shotgun)",
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Fastq, Domain::Cross],
         output_domains: vec![Domain::Bam],
@@ -208,7 +176,7 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
 
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_TO_BAM_DEFAULT),
-        description: "FASTQ preprocess → align → BAM QC/damage (modern defaults)",
+        description: "FASTQ preprocess -> align -> BAM QC/damage (modern defaults)",
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Fastq, Domain::Cross],
         output_domains: vec![Domain::Bam],
