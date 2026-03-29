@@ -986,7 +986,7 @@ fn infer_asvs_tool_id(planned: &ExecutionStep) -> &'static str {
     {
         "dada2"
     } else {
-        "unknown"
+        "not_declared"
     }
 }
 
