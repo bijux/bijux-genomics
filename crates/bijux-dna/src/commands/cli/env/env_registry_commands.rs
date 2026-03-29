@@ -905,21 +905,35 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
         .pinned_commit
         .clone()
         .unwrap_or_else(|| "missing".to_string());
-    let version_cmd = tool.version_cmd.clone().unwrap_or_default();
-    let help_cmd = tool.help_cmd.clone().unwrap_or_default();
+    let version_cmd = tool
+        .version_cmd
+        .clone()
+        .filter(|value| !value.trim().is_empty());
+    let help_cmd = tool
+        .help_cmd
+        .clone()
+        .filter(|value| !value.trim().is_empty());
     let healthcheck_cmd = tool
         .healthcheck_cmd
         .clone()
-        .unwrap_or_else(|| help_cmd.clone());
+        .filter(|value| !value.trim().is_empty())
+        .or_else(|| help_cmd.clone());
     let expected_version_regex = tool
         .expected_version_regex
         .clone()
         .unwrap_or_else(|| "v?[0-9]+\\.[0-9]+([.-][0-9A-Za-z]+)?".to_string());
-    let version_output =
-        run_shell_capture(&version_cmd).unwrap_or_else(|err| format!("error:{err}"));
-    let help_output = run_shell_capture(&help_cmd).unwrap_or_else(|err| format!("error:{err}"));
-    let health_output =
-        run_shell_capture(&healthcheck_cmd).unwrap_or_else(|err| format!("error:{err}"));
+    let version_output = version_cmd
+        .as_deref()
+        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")))
+        .unwrap_or_else(|| "not_declared".to_string());
+    let help_output = help_cmd
+        .as_deref()
+        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")))
+        .unwrap_or_else(|| "not_declared".to_string());
+    let health_output = healthcheck_cmd
+        .as_deref()
+        .map(|cmd| run_shell_capture(cmd).unwrap_or_else(|err| format!("error:{err}")))
+        .unwrap_or_else(|| "not_declared".to_string());
     let version_matches_regex = Regex::new(&expected_version_regex)
         .ok()
         .is_some_and(|regex| regex.is_match(&version_output));
@@ -941,8 +955,8 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
             .map(str::trim)
             .filter(|value| !value.is_empty())
             .unwrap_or("not_recorded"),
-        "help_ok": !help_output.starts_with("error:"),
-        "healthcheck_ok": !health_output.starts_with("error:"),
+        "help_ok": help_output == "not_declared" || !help_output.starts_with("error:"),
+        "healthcheck_ok": health_output == "not_declared" || !health_output.starts_with("error:"),
     }))?;
     Ok(())
 }
