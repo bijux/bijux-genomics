@@ -428,7 +428,11 @@ pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
 }
 
 fn resolved_site_name() -> Result<String> {
-    env_value("BIJUX_HPC_SITE")
+    declared_site_name(env_value("BIJUX_HPC_SITE"))
+}
+
+fn declared_site_name(site: Option<String>) -> Result<String> {
+    site
         .ok_or_else(|| anyhow!("BIJUX_HPC_SITE must be declared for HPC site locks"))
 }
 
@@ -470,12 +474,9 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{enforce_hpc_results_layout, resolved_site_name, HpcConfig, HpcLayout};
+    use super::{declared_site_name, enforce_hpc_results_layout, HpcConfig, HpcLayout};
     use std::path::Path;
     use std::path::PathBuf;
-    use std::sync::Mutex;
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn hpc_layout_accepts_canonical_shape() {
@@ -501,18 +502,12 @@ mod tests {
 
     #[test]
     fn hpc_site_lock_requires_explicit_site_identity() {
-        let _lock = ENV_LOCK.lock().expect("env lock");
-        unsafe {
-            std::env::remove_var("BIJUX_HPC_SITE");
-            std::env::set_var("BIJUX_PLATFORM", "cluster-apptainer");
-        }
-        let error = resolved_site_name().expect_err("missing site id must fail");
-        assert!(error
-            .to_string()
-            .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
-        unsafe {
-            std::env::remove_var("BIJUX_PLATFORM");
-        }
+        let error = declared_site_name(None).expect_err("missing site id must fail");
+        assert!(
+            error
+                .to_string()
+                .contains("BIJUX_HPC_SITE must be declared for HPC site locks")
+        );
     }
 
     #[test]

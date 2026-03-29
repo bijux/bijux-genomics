@@ -81,3 +81,41 @@ pub fn parse_process_cli(argv: &[String]) -> cli::Cli {
     let normalized = normalize_cli_argv(argv);
     cli::Cli::parse_from(normalized)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_cli_argv;
+
+    fn argv(values: &[&str]) -> Vec<String> {
+        values.iter().map(|value| (*value).to_string()).collect()
+    }
+
+    #[test]
+    fn direct_runtime_and_host_runtime_routes_normalize_to_the_same_surface() {
+        let direct = normalize_cli_argv(&argv(&["bijux-dna", "registry", "list-stages"]));
+        let host_route = normalize_cli_argv(&argv(&["bijux", "dna", "registry", "list-stages"]));
+        let legacy_direct =
+            normalize_cli_argv(&argv(&["bijux-dna", "dna", "registry", "list-stages"]));
+
+        assert_eq!(direct, host_route);
+        assert_eq!(direct, legacy_direct);
+    }
+
+    #[test]
+    fn host_runtime_route_preserves_global_options_before_the_namespace() {
+        let host_route = normalize_cli_argv(&argv(&[
+            "bijux",
+            "--json",
+            "--platform",
+            "test",
+            "dna",
+            "env",
+            "info",
+        ]));
+
+        assert_eq!(
+            host_route,
+            argv(&["bijux-dna", "--json", "--platform", "test", "env", "info"])
+        );
+    }
+}
