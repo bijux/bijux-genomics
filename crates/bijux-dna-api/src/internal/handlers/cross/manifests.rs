@@ -114,17 +114,12 @@ pub fn write_cross_run_manifest(
     let defaults_path = out_dir.join("defaults_ledger.json");
     let defaults_hash = hash_file_sha256(&defaults_path)?;
     let pipeline_id = profile.id.as_str().to_string();
-    let _git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
-    let _build_profile =
-        std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
     let run_provenance = run_provenance_from_cross(out_dir, fastq_summary, bam_runs, &pipeline_id);
-    let graph_hash = std::env::var("BIJUX_PLAN_HASH")
-        .ok()
-        .unwrap_or_else(|| "unknown".to_string());
+    let graph_hash = std::env::var("BIJUX_PLAN_HASH").ok();
     let toolchain_versions = serde_json::json!({
-        "planner": std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
-        "engine": std::env::var("BIJUX_ENGINE_VERSION").unwrap_or_else(|_| "unknown".to_string()),
-        "runner": std::env::var("BIJUX_RUNNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+        "planner": std::env::var("BIJUX_PLANNER_VERSION").ok(),
+        "engine": std::env::var("BIJUX_ENGINE_VERSION").ok(),
+        "runner": std::env::var("BIJUX_RUNNER_VERSION").ok(),
     });
     let mut dataset_fingerprints = Vec::new();
     if let Some(value) = run_provenance
@@ -261,14 +256,13 @@ pub fn write_cross_run_manifest(
         "execution_replay_identity": {
             "tool_image_ref": tool_invocations
                 .first()
-                .map_or_else(|| "unknown".to_string(), |inv| inv.tool_id.to_string()),
+                .map(|inv| inv.tool_id.to_string()),
             "tool_image_digest": tool_invocations
                 .first()
-                .map_or_else(|| "unknown".to_string(), |inv| inv.image_digest.clone()),
+                .map(|inv| inv.image_digest.clone()),
             "tool_version_output": tool_invocations
                 .first()
-                .and_then(|inv| inv.resolved_tool_version.clone())
-                .unwrap_or_else(|| "unknown".to_string()),
+                .and_then(|inv| inv.resolved_tool_version.clone()),
         },
         "domain_transitions": [{
             "from": "fastq",
@@ -384,7 +378,20 @@ fn run_provenance_from_cross(
         }
     }
     for entry in bam_runs {
-        tool_versions.insert("unknown".to_string());
+        let invocation_path =
+            bijux_dna_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
+                .join("tool_invocation.json");
+        if let Ok(raw) = std::fs::read_to_string(&invocation_path) {
+            if let Ok(invocation) =
+                serde_json::from_str::<bijux_dna_core::metrics::ToolInvocationV1>(&raw)
+            {
+                let tool_version = invocation
+                    .resolved_tool_version
+                    .clone()
+                    .unwrap_or(invocation.tool_version);
+                tool_versions.insert(tool_version);
+            }
+        }
         if let Some(digest) = entry.plan.image.digest.clone() {
             image_digests.insert(digest);
         }
@@ -410,29 +417,25 @@ fn run_provenance_from_cross(
     }
     input_hashes.sort();
     input_hashes.dedup();
-    let params_hash =
-        params_hash(&serde_json::json!(params_by_stage)).unwrap_or_else(|_| "unknown".to_string());
+    let params_hash = params_hash(&serde_json::json!(params_by_stage)).ok();
     let tool_version = if tool_versions.len() == 1 {
-        tool_versions
-            .into_iter()
-            .next()
-            .unwrap_or_else(|| "unknown".to_string())
+        tool_versions.into_iter().next()
+    } else if tool_versions.is_empty() {
+        None
     } else {
-        "multiple".to_string()
+        Some("multiple".to_string())
     };
     let tool_image_digest = if image_digests.len() == 1 {
         image_digests.into_iter().next()
     } else {
         None
     };
-    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
-    let build_profile =
-        std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let git_commit = std::env::var("BIJUX_GIT_COMMIT").ok();
+    let build_profile = std::env::var("BIJUX_BUILD_PROFILE").ok();
     let library_type = std::env::var("BIJUX_LIBRARY_TYPE")
         .ok()
         .map(|v| v.to_ascii_lowercase())
-        .filter(|v| matches!(v.as_str(), "ssdna" | "dsdna"))
-        .unwrap_or_else(|| "unknown".to_string());
+        .filter(|v| matches!(v.as_str(), "ssdna" | "dsdna"));
     let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
     let plan_hash = std::env::var("BIJUX_PLAN_HASH").ok();
     let workspace_root = out_dir.parent().and_then(Path::parent).unwrap_or(out_dir);
