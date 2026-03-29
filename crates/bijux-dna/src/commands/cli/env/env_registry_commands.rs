@@ -43,12 +43,26 @@ fn benchmark_env_roots(cwd: &Path, hpc_root: &Path) -> Result<BenchmarkEnvRoots>
         }
     }
     let cache_root = shared_cache_root(hpc_root);
+    let corpus_dir_name = benchmark_fallback_corpus_dir_name();
     Ok(BenchmarkEnvRoots {
         containers_root: cache_root.join("bijux-dna-container"),
-        corpus_root: cache_root.join("corpus_01"),
+        corpus_root: cache_root.join(corpus_dir_name),
         results_root: cache_root.join("results"),
         cache_root,
     })
+}
+
+fn benchmark_fallback_corpus_dir_name() -> String {
+    std::env::var("BIJUX_BENCHMARK_CORPUS_DIR")
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .or_else(|| {
+            std::env::var("BIJUX_BENCHMARK_CORPUS_ID")
+                .ok()
+                .map(|value| value.replace('-', "_"))
+                .filter(|value| !value.trim().is_empty())
+        })
+        .unwrap_or_else(|| "corpus".to_string())
 }
 
 /// # Errors
@@ -542,19 +556,13 @@ containers_root = "/remote/.cache/bijux-dna-container"
     #[test]
     fn shared_cache_root_appends_cache_for_hpc_root() {
         let root = Path::new("/srv/cluster");
-        assert_eq!(
-            shared_cache_root(root),
-            Path::new("/srv/cluster/.cache")
-        );
+        assert_eq!(shared_cache_root(root), Path::new("/srv/cluster/.cache"));
     }
 
     #[test]
     fn shared_cache_root_keeps_cache_root_stable() {
         let root = Path::new("/srv/cluster/.cache");
-        assert_eq!(
-            shared_cache_root(root),
-            Path::new("/srv/cluster/.cache")
-        );
+        assert_eq!(shared_cache_root(root), Path::new("/srv/cluster/.cache"));
     }
 
     #[test]
@@ -583,17 +591,14 @@ containers_root = "/remote/.cache/bijux-dna-container"
         let roots = benchmark_env_roots(temp.path(), Path::new("/srv/cluster"))
             .expect("benchmark env roots");
 
-        assert_eq!(
-            roots.cache_root,
-            PathBuf::from("/srv/cluster/.cache")
-        );
+        assert_eq!(roots.cache_root, PathBuf::from("/srv/cluster/.cache"));
         assert_eq!(
             roots.containers_root,
             PathBuf::from("/srv/cluster/.cache/bijux-dna-container")
         );
         assert_eq!(
             roots.corpus_root,
-            PathBuf::from("/srv/cluster/.cache/corpus_01")
+            PathBuf::from("/srv/cluster/.cache/corpus")
         );
         assert_eq!(
             roots.results_root,
