@@ -1799,18 +1799,22 @@ fn deplete_rrna_bind_root(
         .map(Path::to_path_buf)
 }
 
-fn lunarc_container_input_path(bind_root: &Path, host_path: &Path) -> Result<String> {
+fn apptainer_container_input_path(bind_root: &Path, host_path: &Path) -> Result<String> {
     let resolved = host_path
         .canonicalize()
         .unwrap_or_else(|_| host_path.to_path_buf());
     let relative = resolved.strip_prefix(bind_root).with_context(|| {
         format!(
-            "{} must live under {} for Lunarc warmup",
+            "{} must live under {} for Apptainer warmup",
             resolved.display(),
             bind_root.display()
         )
     })?;
     Ok(format!("/data/input/{}", path_display(relative)))
+}
+
+fn supports_apptainer_warmup(platform: &str) -> bool {
+    platform.contains("apptainer")
 }
 
 fn warm_sortmerna_shared_index_cache(
@@ -1821,7 +1825,7 @@ fn warm_sortmerna_shared_index_cache(
     shared_idx_dir: &Path,
     threads: u32,
 ) -> Result<()> {
-    if !matches!(platform, "apptainer-amd64" | "lunarc-apptainer") {
+    if !supports_apptainer_warmup(platform) {
         return Ok(());
     }
     fs::create_dir_all(shared_idx_dir)
@@ -1848,8 +1852,8 @@ fn warm_sortmerna_shared_index_cache(
             sif_path.display()
         ));
     }
-    let rrna_input = lunarc_container_input_path(&bind_root, rrna_db)?;
-    let seed_input = lunarc_container_input_path(&bind_root, seed_r1)?;
+    let rrna_input = apptainer_container_input_path(&bind_root, rrna_db)?;
+    let seed_input = apptainer_container_input_path(&bind_root, seed_r1)?;
     let warm_threads = threads.clamp(1, 4);
     let status = Command::new("apptainer")
         .args([
@@ -1900,7 +1904,8 @@ mod tests {
         benchmark_runtime_env, default_stage_out_root, prepare_report_qc_sample,
         prepare_sortmerna_sample_workdir, promote_sortmerna_sample_index_cache,
         resolve_deplete_rrna_stage_options, resolve_tools, sample_report_is_resume_ready,
-        stage_command_spec, workspace_cache_root_for_output, CorpusNormalizedSample,
+        stage_command_spec, supports_apptainer_warmup, workspace_cache_root_for_output,
+        CorpusNormalizedSample,
     };
     use crate::commands::benchmark_workspace::{
         BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceRemote,
@@ -2108,6 +2113,13 @@ mod tests {
                 .and_then(serde_json::Value::as_str),
             Some(expected_raw_fastqc_dir.as_str())
         );
+    }
+
+    #[test]
+    fn supports_apptainer_warmup_accepts_apptainer_platform_names() {
+        assert!(supports_apptainer_warmup("apptainer-amd64"));
+        assert!(supports_apptainer_warmup("cluster-apptainer"));
+        assert!(!supports_apptainer_warmup("docker-amd64"));
     }
 
     #[test]
