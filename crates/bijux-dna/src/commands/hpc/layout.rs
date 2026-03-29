@@ -465,19 +465,12 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
         .components()
         .map(|c| c.as_os_str().to_string_lossy().to_string())
         .collect::<Vec<_>>();
-    let Some(mut results_idx) = comps
+    let Some(results_idx) = comps
         .iter()
-        .position(|v| v == "results" || v == "bijux-dna-results")
+        .position(|v| v == "results")
     else {
         return Err(anyhow!("HPC out_dir must be rooted under results"));
     };
-    if comps
-        .get(results_idx)
-        .is_some_and(|v| v == "bijux-dna-results")
-        && comps.get(results_idx + 1).is_some_and(|v| v == "results")
-    {
-        results_idx += 1;
-    }
     if comps.len() < results_idx + 7 {
         return Err(anyhow!(
             "HPC results path must be results/<corpus>/<pipeline>/<stage>/<tool>/<timestamp>/<run_id>"
@@ -512,6 +505,14 @@ mod tests {
     #[test]
     fn hpc_layout_rejects_adhoc_paths() {
         let bad = Path::new("/tmp/random-output");
+        assert!(enforce_hpc_results_layout(bad).is_err());
+    }
+
+    #[test]
+    fn hpc_layout_rejects_legacy_results_root_name() {
+        let bad = Path::new(
+            "/hpc/root/bijux-dna-results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123",
+        );
         assert!(enforce_hpc_results_layout(bad).is_err());
     }
 

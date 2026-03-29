@@ -91,17 +91,12 @@ pub(super) fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
         .components()
         .map(|c| c.as_os_str().to_string_lossy().to_string())
         .collect::<Vec<_>>();
-    let Some(mut idx) = comps
+    let Some(idx) = comps
         .iter()
-        .position(|v| v == "results" || v == "bijux-dna-results")
+        .position(|v| v == "results")
     else {
         return Err(anyhow!("HPC run out_dir must be under results root"));
     };
-    if comps.get(idx).is_some_and(|v| v == "bijux-dna-results")
-        && comps.get(idx + 1).is_some_and(|v| v == "results")
-    {
-        idx += 1;
-    }
     if comps.len() < idx + 7 {
         return Err(anyhow!(
             "HPC out_dir must match results/<corpus>/<pipeline>/<stage>/<tool>/<timestamp>/<run_id>"
@@ -184,7 +179,8 @@ fn env_value(key: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::resolved_site_name;
+    use super::{enforce_hpc_results_layout, resolved_site_name};
+    use std::path::Path;
     use std::sync::Mutex;
 
     static ENV_LOCK: Mutex<()> = Mutex::new(());
@@ -222,5 +218,16 @@ mod tests {
             std::env::remove_var("HOSTNAME");
         }
         assert_eq!(resolved_site_name(), "unknown");
+    }
+
+    #[test]
+    fn hpc_results_layout_rejects_legacy_results_root_name() {
+        let path = Path::new(
+            "/hpc/root/bijux-dna-results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123",
+        );
+        let error = enforce_hpc_results_layout(path).expect_err("legacy root must fail");
+        assert!(error
+            .to_string()
+            .contains("HPC run out_dir must be under results root"));
     }
 }
