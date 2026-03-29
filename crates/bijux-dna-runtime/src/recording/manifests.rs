@@ -326,11 +326,11 @@ pub fn write_run_manifest(
         .map(|artifact| {
             serde_json::json!({
                 "stage_id": stage,
-                "name": artifact.get("name").cloned().unwrap_or_default(),
+                "name": artifact.get("name").cloned().unwrap_or(serde_json::Value::Null),
                 "role": serde_json::Value::Null,
                 "optional": false,
-                "path": artifact.get("path").cloned().unwrap_or_default(),
-                "sha256": artifact.get("sha256").cloned().unwrap_or_default(),
+                "path": artifact.get("path").cloned().unwrap_or(serde_json::Value::Null),
+                "sha256": artifact.get("sha256").cloned().unwrap_or(serde_json::Value::Null),
             })
         })
         .collect();
