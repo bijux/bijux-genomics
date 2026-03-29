@@ -232,13 +232,13 @@ fn build_vcf_provenance_line(stages: &[VcfStageOutputs]) -> String {
                     .get("panel")
                     .and_then(|p| p.get("id"))
                     .and_then(serde_json::Value::as_str)
-                    .unwrap_or("unknown_panel")
+                    .unwrap_or("panel_not_declared")
                     .to_string();
                 reference_lock = json
                     .get("map")
                     .and_then(|m| m.get("id"))
                     .and_then(serde_json::Value::as_str)
-                    .unwrap_or("unknown_map")
+                    .unwrap_or("map_not_declared")
                     .to_string();
             }
         }
