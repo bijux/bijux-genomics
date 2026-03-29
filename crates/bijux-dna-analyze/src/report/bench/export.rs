@@ -1,11 +1,4 @@
-use crate::{
-    FastqChimeraMetrics, FastqClusterOtusMetrics, FastqDepleteHostMetrics, FastqDepleteReferenceContaminantsMetrics,
-    FastqDepleteRrnaMetrics,
-    FastqDetectAdaptersMetrics, FastqDuplicateMetrics,
-    FastqIndexReferenceMetrics, FastqInferAsvsMetrics, FastqLowComplexityMetrics,
-    FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics, FastqOverrepresentedMetrics,
-    FastqReadLengthMetrics, FastqScreenMetrics,
-};
+use super::*;
 
 /// Write the validate benchmark report.
 ///
