@@ -6,136 +6,172 @@
 
 use super::{defs, fields};
 
-#[must_use]
-pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
-    match kind {
-        defs::StageMetricKind::FastqTrim => defs::StageMetricSpec {
-            stage: "fastq.trim_reads",
-            version: 2,
-            metrics: &fields::FASTQ_TRIM_METRICS,
-            invariants: &fields::FASTQ_TRIM_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqTrimPolyg => defs::StageMetricSpec {
-            stage: "fastq.trim_polyg_tails",
-            version: 1,
-            metrics: &fields::FASTQ_TRIM_POLYG_METRICS,
-            invariants: &fields::FASTQ_TRIM_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqTrimTerminalDamage => defs::StageMetricSpec {
-            stage: "fastq.trim_terminal_damage",
-            version: 1,
-            metrics: &fields::FASTQ_TRIM_TERMINAL_DAMAGE_METRICS,
-            invariants: &fields::FASTQ_TRIM_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqValidate => defs::StageMetricSpec {
-            stage: "fastq.validate_reads",
-            version: 1,
-            metrics: &fields::FASTQ_VALIDATE_METRICS,
-            invariants: &fields::FASTQ_VALIDATE_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqDetectAdapters => defs::StageMetricSpec {
-            stage: "fastq.detect_adapters",
-            version: 1,
-            metrics: &fields::FASTQ_DETECT_ADAPTERS_METRICS,
-            invariants: &fields::FASTQ_DETECT_ADAPTERS_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqFilter => defs::StageMetricSpec {
-            stage: "fastq.filter_reads",
-            version: 2,
-            metrics: &fields::FASTQ_FILTER_METRICS,
-            invariants: &fields::FASTQ_FILTER_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqLowComplexity => defs::StageMetricSpec {
-            stage: "fastq.filter_low_complexity",
-            version: 1,
-            metrics: &fields::FASTQ_LOW_COMPLEXITY_METRICS,
-            invariants: &fields::FASTQ_LOW_COMPLEXITY_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqDeduplicate => defs::StageMetricSpec {
-            stage: "fastq.remove_duplicates",
-            version: 1,
-            metrics: &fields::FASTQ_DEDUPLICATE_METRICS,
-            invariants: &fields::FASTQ_DEDUPLICATE_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqMerge => defs::StageMetricSpec {
-            stage: "fastq.merge_pairs",
-            version: 1,
-            metrics: &fields::FASTQ_MERGE_METRICS,
-            invariants: &fields::FASTQ_MERGE_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqCorrect => defs::StageMetricSpec {
-            stage: "fastq.correct_errors",
-            version: 1,
-            metrics: &fields::FASTQ_CORRECT_METRICS,
-            invariants: &fields::FASTQ_CORRECT_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqQcPost => defs::StageMetricSpec {
-            stage: "fastq.report_qc",
-            version: 1,
-            metrics: &fields::FASTQ_QC_POST_METRICS,
-            invariants: &fields::FASTQ_QC_POST_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqUmi => defs::StageMetricSpec {
-            stage: "fastq.extract_umis",
-            version: 1,
-            metrics: &fields::FASTQ_UMI_METRICS,
-            invariants: &fields::FASTQ_UMI_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqIndexReference => defs::StageMetricSpec {
-            stage: "fastq.index_reference",
-            version: 1,
-            metrics: &fields::FASTQ_INDEX_REFERENCE_METRICS,
-            invariants: &fields::FASTQ_INDEX_REFERENCE_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqDepleteHost => defs::StageMetricSpec {
-            stage: "fastq.deplete_host",
-            version: 1,
-            metrics: &fields::FASTQ_DEPLETE_HOST_METRICS,
-            invariants: &fields::FASTQ_DEPLETE_HOST_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqDepleteReferenceContaminants => defs::StageMetricSpec {
-            stage: "fastq.deplete_reference_contaminants",
-            version: 1,
-            metrics: &fields::FASTQ_DEPLETE_REFERENCE_CONTAMINANTS_METRICS,
-            invariants: &fields::FASTQ_DEPLETE_REFERENCE_CONTAMINANTS_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqDepleteRrna => defs::StageMetricSpec {
-            stage: "fastq.deplete_rrna",
-            version: 1,
-            metrics: &fields::FASTQ_DEPLETE_RRNA_METRICS,
-            invariants: &fields::FASTQ_DEPLETE_RRNA_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqScreen => defs::StageMetricSpec {
-            stage: "fastq.screen_taxonomy",
-            version: 1,
-            metrics: &fields::FASTQ_SCREEN_METRICS,
-            invariants: &fields::FASTQ_SCREEN_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqNormalizePrimers => defs::StageMetricSpec {
-            stage: "fastq.normalize_primers",
-            version: 1,
-            metrics: &fields::FASTQ_NORMALIZE_PRIMERS_METRICS,
-            invariants: &fields::FASTQ_NORMALIZE_PRIMERS_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqStats => defs::StageMetricSpec {
-            stage: "fastq.profile_reads",
-            version: 1,
-            metrics: &fields::FASTQ_STATS_METRICS,
-            invariants: &fields::FASTQ_STATS_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqReadLengths => defs::StageMetricSpec {
-            stage: "fastq.profile_read_lengths",
-            version: 1,
-            metrics: &fields::FASTQ_READ_LENGTH_METRICS,
-            invariants: &fields::FASTQ_READ_LENGTH_INVARIANTS,
-        },
-        defs::StageMetricKind::FastqOverrepresented => defs::StageMetricSpec {
-            stage: "fastq.profile_overrepresented_sequences",
-            version: 1,
-            metrics: &fields::FASTQ_OVERREPRESENTED_METRICS,
-            invariants: &fields::FASTQ_OVERREPRESENTED_INVARIANTS,
-        },
+fn stage_metric_spec_entry(
+    stage: &'static str,
+    version: i32,
+    metrics: &'static [defs::MetricId],
+    invariants: &'static [&'static str],
+) -> defs::StageMetricSpec {
+    defs::StageMetricSpec {
+        stage,
+        version,
+        metrics,
+        invariants,
     }
+}
+
+fn stage_metric_spec_transform(kind: defs::StageMetricKind) -> Option<defs::StageMetricSpec> {
+    match kind {
+        defs::StageMetricKind::FastqTrim => Some(stage_metric_spec_entry(
+            "fastq.trim_reads",
+            2,
+            &fields::FASTQ_TRIM_METRICS,
+            &fields::FASTQ_TRIM_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqTrimPolyg => Some(stage_metric_spec_entry(
+            "fastq.trim_polyg_tails",
+            1,
+            &fields::FASTQ_TRIM_POLYG_METRICS,
+            &fields::FASTQ_TRIM_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqTrimTerminalDamage => Some(stage_metric_spec_entry(
+            "fastq.trim_terminal_damage",
+            1,
+            &fields::FASTQ_TRIM_TERMINAL_DAMAGE_METRICS,
+            &fields::FASTQ_TRIM_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqFilter => Some(stage_metric_spec_entry(
+            "fastq.filter_reads",
+            2,
+            &fields::FASTQ_FILTER_METRICS,
+            &fields::FASTQ_FILTER_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqLowComplexity => Some(stage_metric_spec_entry(
+            "fastq.filter_low_complexity",
+            1,
+            &fields::FASTQ_LOW_COMPLEXITY_METRICS,
+            &fields::FASTQ_LOW_COMPLEXITY_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqDeduplicate => Some(stage_metric_spec_entry(
+            "fastq.remove_duplicates",
+            1,
+            &fields::FASTQ_DEDUPLICATE_METRICS,
+            &fields::FASTQ_DEDUPLICATE_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqMerge => Some(stage_metric_spec_entry(
+            "fastq.merge_pairs",
+            1,
+            &fields::FASTQ_MERGE_METRICS,
+            &fields::FASTQ_MERGE_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqCorrect => Some(stage_metric_spec_entry(
+            "fastq.correct_errors",
+            1,
+            &fields::FASTQ_CORRECT_METRICS,
+            &fields::FASTQ_CORRECT_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqQcPost => Some(stage_metric_spec_entry(
+            "fastq.report_qc",
+            1,
+            &fields::FASTQ_QC_POST_METRICS,
+            &fields::FASTQ_QC_POST_INVARIANTS,
+        )),
+        _ => None,
+    }
+}
+
+fn stage_metric_spec_reference(kind: defs::StageMetricKind) -> Option<defs::StageMetricSpec> {
+    match kind {
+        defs::StageMetricKind::FastqIndexReference => Some(stage_metric_spec_entry(
+            "fastq.index_reference",
+            1,
+            &fields::FASTQ_INDEX_REFERENCE_METRICS,
+            &fields::FASTQ_INDEX_REFERENCE_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqDepleteHost => Some(stage_metric_spec_entry(
+            "fastq.deplete_host",
+            1,
+            &fields::FASTQ_DEPLETE_HOST_METRICS,
+            &fields::FASTQ_DEPLETE_HOST_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqDepleteReferenceContaminants => Some(stage_metric_spec_entry(
+            "fastq.deplete_reference_contaminants",
+            1,
+            &fields::FASTQ_DEPLETE_REFERENCE_CONTAMINANTS_METRICS,
+            &fields::FASTQ_DEPLETE_REFERENCE_CONTAMINANTS_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqDepleteRrna => Some(stage_metric_spec_entry(
+            "fastq.deplete_rrna",
+            1,
+            &fields::FASTQ_DEPLETE_RRNA_METRICS,
+            &fields::FASTQ_DEPLETE_RRNA_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqScreen => Some(stage_metric_spec_entry(
+            "fastq.screen_taxonomy",
+            1,
+            &fields::FASTQ_SCREEN_METRICS,
+            &fields::FASTQ_SCREEN_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqNormalizePrimers => Some(stage_metric_spec_entry(
+            "fastq.normalize_primers",
+            1,
+            &fields::FASTQ_NORMALIZE_PRIMERS_METRICS,
+            &fields::FASTQ_NORMALIZE_PRIMERS_INVARIANTS,
+        )),
+        _ => None,
+    }
+}
+
+fn stage_metric_spec_profile(kind: defs::StageMetricKind) -> Option<defs::StageMetricSpec> {
+    match kind {
+        defs::StageMetricKind::FastqValidate => Some(stage_metric_spec_entry(
+            "fastq.validate_reads",
+            1,
+            &fields::FASTQ_VALIDATE_METRICS,
+            &fields::FASTQ_VALIDATE_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqDetectAdapters => Some(stage_metric_spec_entry(
+            "fastq.detect_adapters",
+            1,
+            &fields::FASTQ_DETECT_ADAPTERS_METRICS,
+            &fields::FASTQ_DETECT_ADAPTERS_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqUmi => Some(stage_metric_spec_entry(
+            "fastq.extract_umis",
+            1,
+            &fields::FASTQ_UMI_METRICS,
+            &fields::FASTQ_UMI_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqStats => Some(stage_metric_spec_entry(
+            "fastq.profile_reads",
+            1,
+            &fields::FASTQ_STATS_METRICS,
+            &fields::FASTQ_STATS_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqReadLengths => Some(stage_metric_spec_entry(
+            "fastq.profile_read_lengths",
+            1,
+            &fields::FASTQ_READ_LENGTH_METRICS,
+            &fields::FASTQ_READ_LENGTH_INVARIANTS,
+        )),
+        defs::StageMetricKind::FastqOverrepresented => Some(stage_metric_spec_entry(
+            "fastq.profile_overrepresented_sequences",
+            1,
+            &fields::FASTQ_OVERREPRESENTED_METRICS,
+            &fields::FASTQ_OVERREPRESENTED_INVARIANTS,
+        )),
+        _ => None,
+    }
+}
+
+#[must_use]
+/// # Panics
+/// Panics if a known stage kind is missing from the metric registry mapping.
+pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
+    stage_metric_spec_transform(kind)
+        .or_else(|| stage_metric_spec_reference(kind))
+        .or_else(|| stage_metric_spec_profile(kind))
+        .unwrap_or_else(|| panic!("missing stage metric spec for {kind:?}"))
 }
 
 pub struct StageMetricRegistry;

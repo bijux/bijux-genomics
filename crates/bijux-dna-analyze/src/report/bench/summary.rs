@@ -70,33 +70,75 @@ pub(super) trait TrimLikeMetricView {
 }
 
 impl TrimLikeMetricView for FastqTrimMetrics {
-    fn reads_in(&self) -> u64 { self.reads_in }
-    fn reads_out(&self) -> u64 { self.reads_out }
-    fn bases_in(&self) -> u64 { self.bases_in }
-    fn bases_out(&self) -> u64 { self.bases_out }
-    fn mean_q_before(&self) -> f64 { self.mean_q_before }
-    fn mean_q_after(&self) -> f64 { self.mean_q_after }
-    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics { &self.delta_metrics }
+    fn reads_in(&self) -> u64 {
+        self.reads_in
+    }
+    fn reads_out(&self) -> u64 {
+        self.reads_out
+    }
+    fn bases_in(&self) -> u64 {
+        self.bases_in
+    }
+    fn bases_out(&self) -> u64 {
+        self.bases_out
+    }
+    fn mean_q_before(&self) -> f64 {
+        self.mean_q_before
+    }
+    fn mean_q_after(&self) -> f64 {
+        self.mean_q_after
+    }
+    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics {
+        &self.delta_metrics
+    }
 }
 
 impl TrimLikeMetricView for FastqTrimPolygMetrics {
-    fn reads_in(&self) -> u64 { self.reads_in }
-    fn reads_out(&self) -> u64 { self.reads_out }
-    fn bases_in(&self) -> u64 { self.bases_in }
-    fn bases_out(&self) -> u64 { self.bases_out }
-    fn mean_q_before(&self) -> f64 { self.mean_q_before }
-    fn mean_q_after(&self) -> f64 { self.mean_q_after }
-    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics { &self.delta_metrics }
+    fn reads_in(&self) -> u64 {
+        self.reads_in
+    }
+    fn reads_out(&self) -> u64 {
+        self.reads_out
+    }
+    fn bases_in(&self) -> u64 {
+        self.bases_in
+    }
+    fn bases_out(&self) -> u64 {
+        self.bases_out
+    }
+    fn mean_q_before(&self) -> f64 {
+        self.mean_q_before
+    }
+    fn mean_q_after(&self) -> f64 {
+        self.mean_q_after
+    }
+    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics {
+        &self.delta_metrics
+    }
 }
 
 impl TrimLikeMetricView for FastqTrimTerminalDamageMetrics {
-    fn reads_in(&self) -> u64 { self.reads_in }
-    fn reads_out(&self) -> u64 { self.reads_out }
-    fn bases_in(&self) -> u64 { self.bases_in }
-    fn bases_out(&self) -> u64 { self.bases_out }
-    fn mean_q_before(&self) -> f64 { self.mean_q_before }
-    fn mean_q_after(&self) -> f64 { self.mean_q_after }
-    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics { &self.delta_metrics }
+    fn reads_in(&self) -> u64 {
+        self.reads_in
+    }
+    fn reads_out(&self) -> u64 {
+        self.reads_out
+    }
+    fn bases_in(&self) -> u64 {
+        self.bases_in
+    }
+    fn bases_out(&self) -> u64 {
+        self.bases_out
+    }
+    fn mean_q_before(&self) -> f64 {
+        self.mean_q_before
+    }
+    fn mean_q_after(&self) -> f64 {
+        self.mean_q_after
+    }
+    fn delta_metrics(&self) -> &crate::aggregate::FastqDeltaMetrics {
+        &self.delta_metrics
+    }
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -202,7 +244,12 @@ pub(super) fn semantic_trim_like<T: TrimLikeMetricView>(metrics: &T) -> Semantic
                 ">= 0",
                 "Reads after trimming.",
             ),
-            bases_in: metric_u64(metrics.bases_in(), "Input bases", ">= 0", "Raw input bases."),
+            bases_in: metric_u64(
+                metrics.bases_in(),
+                "Input bases",
+                ">= 0",
+                "Raw input bases.",
+            ),
             bases_out: metric_u64(
                 metrics.bases_out(),
                 "Output bases",

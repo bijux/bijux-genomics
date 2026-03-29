@@ -3,8 +3,8 @@
 
 use std::path::Path;
 
-use super::AnalyzeError;
 use super::support::read_required_json;
+use super::AnalyzeError;
 use crate::model::RunSummaryV1;
 
 /// Load a run summary from JSON.

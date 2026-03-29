@@ -6,7 +6,7 @@ use serde::de::DeserializeOwned;
 
 use super::schema::ensure_sqlite_schema_version;
 
-pub(super) fn json_from_str<T: DeserializeOwned>(
+pub(crate) fn json_from_str<T: DeserializeOwned>(
     value: &str,
 ) -> std::result::Result<T, rusqlite::Error> {
     serde_json::from_str(value).map_err(|err| {

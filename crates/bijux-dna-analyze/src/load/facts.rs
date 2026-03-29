@@ -7,8 +7,8 @@ use std::path::Path;
 
 use serde_json;
 
-use super::AnalyzeError;
 use super::support::open_required_file;
+use super::AnalyzeError;
 use crate::model::stable_sort_records;
 use crate::model::FactTable;
 
