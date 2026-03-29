@@ -300,9 +300,11 @@ fn enforce_stage_applicability(
     }
     if stage == "fastq.deplete_reference_contaminants" {
         let template = planned.command.template.join(" ");
-        if !template.contains("assets/reference/contaminants/") {
+        let contaminant_root = declared_contaminant_asset_root()?;
+        if !template.contains(&contaminant_root.display().to_string()) {
             return Err(anyhow!(
-                "fastq.deplete_reference_contaminants requires contaminant assets under assets/reference/contaminants"
+                "fastq.deplete_reference_contaminants requires contaminant assets under {}",
+                contaminant_root.display()
             ));
         }
         if contaminant_bank.is_none() {
@@ -312,6 +314,24 @@ fn enforce_stage_applicability(
         }
     }
     Ok(())
+}
+
+fn declared_contaminant_asset_root() -> Result<std::path::PathBuf> {
+    if let Some(root) = std::env::var_os("BIJUX_CONTAMINANT_ROOT")
+        .filter(|value| !value.is_empty())
+        .map(std::path::PathBuf::from)
+    {
+        return Ok(root);
+    }
+    if let Some(root) = std::env::var_os("BIJUX_REFERENCE_ROOT")
+        .filter(|value| !value.is_empty())
+        .map(std::path::PathBuf::from)
+    {
+        return Ok(root.join("contaminants"));
+    }
+    Err(anyhow!(
+        "BIJUX_CONTAMINANT_ROOT or BIJUX_REFERENCE_ROOT must be declared for contaminant governance"
+    ))
 }
 
 fn write_stage_governance_artifacts(
