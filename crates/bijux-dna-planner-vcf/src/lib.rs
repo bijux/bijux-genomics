@@ -15,14 +15,15 @@
 mod api;
 mod chunk_plan;
 mod coverage;
+mod execution_graph;
 mod explain;
 mod explain_model;
 mod input_policy;
-mod models;
 mod params;
 mod planner;
 mod reference_context;
 mod stage_io;
+mod stage_plan;
 mod stage_sequence;
 mod tool_catalog;
 mod tool_selection;
