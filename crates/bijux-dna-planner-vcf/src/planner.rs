@@ -20,10 +20,9 @@ use crate::params::{
     apply_stage_param_overrides, attach_reference_provenance, stage_params,
     validate_generated_stage_params,
 };
-use crate::stage_catalog::{
-    image_for_tool, stage_command, stage_inputs_for, stage_outputs_for,
-};
+use crate::stage_io::{stage_command, stage_inputs_for, stage_outputs_for};
 use crate::stage_sequence::resolve_requested_stages;
+use crate::tool_catalog::image_for_tool;
 use crate::tool_selection::{choose_tool, validate_selected_tool};
 use crate::reference_context::ResolvedPlanningContext;
 use crate::workspace_config::{load_registry_tools, load_required_tools};
