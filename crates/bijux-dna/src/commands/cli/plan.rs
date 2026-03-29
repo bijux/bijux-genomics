@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::bench::fastq_args as engine_args;
 use bijux_dna_api::v1::api::run::{StageId, ToolId};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
@@ -717,7 +717,7 @@ fn resolve_registry_path() -> Result<PathBuf> {
     }
 
     let workspace_registry = bijux_dna_infra::configs_file(
-        workspace_root_from_manifest().as_path(),
+        crate::commands::repo_root::resolve_repo_root()?.as_path(),
         "ci/registry/tool_registry.toml",
     );
     if workspace_registry.exists() {
@@ -725,16 +725,6 @@ fn resolve_registry_path() -> Result<PathBuf> {
     }
 
     Ok(cwd_registry)
-}
-
-fn workspace_root_from_manifest() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map_or_else(
-            || PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-            Path::to_path_buf,
-        )
 }
 
 fn bench_tools_resolved_implicitly(raw_tools: &[String]) -> bool {
