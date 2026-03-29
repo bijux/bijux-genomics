@@ -102,21 +102,18 @@ pub(crate) fn write_run_manifest(
     let defaults_path = out_dir.join("defaults_ledger.json");
     let defaults_hash =
         bijux_dna_infra::hash_file_sha256(&defaults_path).context("hash defaults_ledger.json")?;
-    let defaults_payload = read_json_if_exists(&defaults_path);
+    let defaults_payload = read_json_if_exists(&defaults_path)
+        .ok_or_else(|| anyhow::anyhow!("defaults_ledger.json missing or unreadable"))?;
     let pipeline_id = defaults_payload
-        .as_ref()
-        .and_then(|value| value.get("pipeline_id"))
+        .get("pipeline_id")
         .and_then(serde_json::Value::as_str)
         .map(str::to_string)
-        .or_else(|| std::env::var("BIJUX_PIPELINE_ID").ok())
-        .unwrap_or_else(|| "unknown".to_string());
+        .ok_or_else(|| anyhow::anyhow!("defaults_ledger.json missing pipeline_id"))?;
     let profile_id = defaults_payload
-        .as_ref()
-        .and_then(|value| value.get("profile_id"))
+        .get("profile_id")
         .and_then(serde_json::Value::as_str)
         .map(str::to_string)
-        .or_else(|| std::env::var("BIJUX_PROFILE_ID").ok())
-        .unwrap_or_else(|| "unknown".to_string());
+        .ok_or_else(|| anyhow::anyhow!("defaults_ledger.json missing profile_id"))?;
     let graph_hash = std::env::var("BIJUX_PLAN_HASH").ok().unwrap_or_else(|| {
         let steps = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
         ExecutionGraph::new(
@@ -340,4 +337,3 @@ fn backfill_metric_manifest_hash(path: &Path, manifest_hash: &str) -> Result<()>
     }
     Ok(())
 }
-
