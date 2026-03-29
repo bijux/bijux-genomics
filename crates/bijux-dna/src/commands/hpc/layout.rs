@@ -125,7 +125,7 @@ impl HpcConfig {
         let paths = HpcPathsSection {
             repo: root.join("bijux-dna"),
             containers: root.join("bijux-dna-container"),
-            data: root.join("corpus_01"),
+            data: root.join("data"),
             results: root.join("results"),
         };
         Self {
@@ -187,7 +187,7 @@ impl HpcLayout {
             root: root.to_path_buf(),
             code_dir: root.join("bijux-dna"),
             containers_dir: root.join("bijux-dna-container"),
-            data_dir: root.join("corpus_01"),
+            data_dir: root.join("data"),
             results_dir: root.join("results"),
         }
     }
@@ -497,8 +497,9 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::enforce_hpc_results_layout;
+    use super::{enforce_hpc_results_layout, HpcConfig, HpcLayout};
     use std::path::Path;
+    use std::path::PathBuf;
 
     #[test]
     fn hpc_layout_accepts_canonical_shape() {
@@ -512,5 +513,17 @@ mod tests {
     fn hpc_layout_rejects_adhoc_paths() {
         let bad = Path::new("/tmp/random-output");
         assert!(enforce_hpc_results_layout(bad).is_err());
+    }
+
+    #[test]
+    fn hpc_config_defaults_to_neutral_data_root() {
+        let config = HpcConfig::from_root(PathBuf::from("/srv/hpc"));
+        assert_eq!(config.paths.data, PathBuf::from("/srv/hpc/data"));
+    }
+
+    #[test]
+    fn hpc_layout_defaults_to_neutral_data_root() {
+        let layout = HpcLayout::from_root(Path::new("/srv/hpc"));
+        assert_eq!(layout.data_dir, PathBuf::from("/srv/hpc/data"));
     }
 }
