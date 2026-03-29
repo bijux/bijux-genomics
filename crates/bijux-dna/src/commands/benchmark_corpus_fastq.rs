@@ -1951,7 +1951,7 @@ mod tests {
     fn default_out_root_uses_workspace_template() {
         let workspace = BenchmarkWorkspaceConfig {
             remote: Some(BenchmarkWorkspaceRemote {
-                results_root: Some("/srv/cache/results".to_string()),
+                results_root: Some("/bench/remote/cache/results".to_string()),
                 ..BenchmarkWorkspaceRemote::default()
             }),
             layout: Some(BenchmarkWorkspaceLayout {
@@ -1962,11 +1962,17 @@ mod tests {
             }),
             ..BenchmarkWorkspaceConfig::default()
         };
-        let out_root =
-            default_stage_out_root(&workspace, "corpus-01", "fastq.validate_reads").expect("root");
+        let out_root = default_stage_out_root(
+            &workspace,
+            "benchmark-corpus",
+            "fastq.validate_reads",
+        )
+        .expect("root");
         assert_eq!(
             out_root,
-            PathBuf::from("/srv/cache/results/corpus_01/fastq.validate_reads/cluster")
+            PathBuf::from(
+                "/bench/remote/cache/results/benchmark_corpus/fastq.validate_reads/cluster",
+            )
         );
     }
 
@@ -2001,24 +2007,25 @@ mod tests {
 
     #[test]
     fn benchmark_runtime_env_follows_cache_root_ancestor() {
-        let out_root =
-            PathBuf::from("/tmp/workspace/.cache/results/corpus_01/fastq.trim_reads/lunarc");
+        let out_root = PathBuf::from(
+            "/bench/workspace/.cache/results/benchmark_corpus/fastq.trim_reads/cluster-apptainer",
+        );
         let env = benchmark_runtime_env(&out_root);
         assert_eq!(
             env.get("BIJUX_CACHE_ROOT"),
-            Some(&"/tmp/workspace/.cache".to_string())
+            Some(&"/bench/workspace/.cache".to_string())
         );
         assert_eq!(
             env.get("XDG_CACHE_HOME"),
-            Some(&"/tmp/workspace/.cache".to_string())
+            Some(&"/bench/workspace/.cache".to_string())
         );
         assert_eq!(
             env.get("BIJUX_HPC_ROOT"),
-            Some(&"/tmp/workspace".to_string())
+            Some(&"/bench/workspace".to_string())
         );
         assert_eq!(
             workspace_cache_root_for_output(&out_root),
-            Some(PathBuf::from("/tmp/workspace/.cache"))
+            Some(PathBuf::from("/bench/workspace/.cache"))
         );
     }
 
@@ -2040,16 +2047,19 @@ mod tests {
             }),
             layout: Some(BenchmarkWorkspaceLayout {
                 stage_runs: Some(BenchmarkWorkspaceStageRuns {
-                    remote_results_template: Some("{corpus_id}/{stage_id}/lunarc".to_string()),
+                    remote_results_template: Some(
+                        "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                    ),
                     ..BenchmarkWorkspaceStageRuns::default()
                 }),
             }),
             ..BenchmarkWorkspaceConfig::default()
         };
+        let corpus_root = temp.path().join("corpus");
         let sample = CorpusNormalizedSample {
             sample_id: "sample_0001".to_string(),
-            r1: PathBuf::from("/tmp/corpus/sample_0001_R1.fastq.gz"),
-            r2: Some(PathBuf::from("/tmp/corpus/sample_0001_R2.fastq.gz")),
+            r1: corpus_root.join("sample_0001_R1.fastq.gz"),
+            r2: Some(corpus_root.join("sample_0001_R2.fastq.gz")),
             layout: "pe".to_string(),
         };
 
@@ -2058,7 +2068,7 @@ mod tests {
             &repo_root,
             &workspace,
             "corpus-01",
-            "apptainer-amd64",
+            "cluster-apptainer",
             &out_root,
             &sample,
             true,
@@ -2096,7 +2106,7 @@ mod tests {
             .join("remote-results")
             .join("corpus-01")
             .join("fastq.detect_adapters")
-            .join("lunarc")
+            .join("cluster-apptainer")
             .join("bench")
             .join("detect_adapters")
             .join("sample_0001")
