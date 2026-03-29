@@ -1,3 +1,7 @@
+fn declared_role(value: Option<&str>) -> Option<&str> {
+    value.map(str::trim).filter(|entry| !entry.is_empty())
+}
+
 /// # Errors
 /// Returns an error if registry cannot be read or parsed.
 pub fn print_registry_audit_fix_suggestions(registry_path: &Path) -> Result<()> {
@@ -26,7 +30,7 @@ pub fn print_registry_audit_fix_suggestions(registry_path: &Path) -> Result<()> 
                 suggestions.push(format!("domains = {}", toml_array_inline(&domains)));
             }
         }
-        if tool.tool_role.as_deref().unwrap_or("").trim().is_empty() {
+        if declared_role(tool.tool_role.as_deref()).is_none() {
             suggestions.push("tool_role = \"<aligner|screen|trimmer|qc|filter|validator|merger|corrector|transform>\"".to_string());
         }
         if let Some(domain) = tool.domain.clone().filter(|_| !tool.bindings.is_empty()) {
@@ -199,12 +203,12 @@ fn role_policy_offenders(
         }
         for tool_id in stage_tool_ids(stage) {
             match tool_by_id.get(&tool_id) {
-                Some(tool) if required.contains(tool.tool_role.as_deref().unwrap_or("")) => {}
+                Some(tool) if required.contains(declared_role(tool.tool_role.as_deref()).unwrap_or("not_declared")) => {}
                 Some(tool) => offenders.push(format!(
                     "stage={} tool={} role={} not in {:?}",
                     stage.id,
                     tool_id,
-                    tool.tool_role.as_deref().unwrap_or(""),
+                    declared_role(tool.tool_role.as_deref()).unwrap_or("not_declared"),
                     stage.required_tool_roles
                 )),
                 None => offenders.push(format!("stage={} unknown tool={tool_id}", stage.id)),
@@ -236,14 +240,14 @@ fn smoke_policy_offenders(tools: Vec<RegistryRow>, domain: &str) -> Vec<String> 
             .smoke_version_cmd
             .as_deref()
             .or(tool.version_cmd.as_deref())
-            .unwrap_or("")
-            .trim();
+            .map(str::trim)
+            .unwrap_or("");
         let help_cmd = tool
             .smoke_help_cmd
             .as_deref()
             .or(tool.help_cmd.as_deref())
-            .unwrap_or("")
-            .trim();
+            .map(str::trim)
+            .unwrap_or("");
         let require_help = tool.smoke_require_help.unwrap_or(true);
         if version_cmd.is_empty() || (require_help && help_cmd.is_empty()) {
             offenders.push(format!(
@@ -369,4 +373,3 @@ pub fn print_registry_doctor(registry_path: &Path, domain: Option<&str>) -> Resu
         Err(anyhow!("registry doctor failed for domain={domain}"))
     }
 }
-
