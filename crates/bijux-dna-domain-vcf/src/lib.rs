@@ -4,12 +4,14 @@ pub mod contracts;
 pub mod coverage;
 pub mod metrics;
 pub mod params;
+pub mod registry_emit;
 pub mod stage_baseline;
 pub mod taxonomy;
 
 pub use metrics::{
     VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1,
 };
+pub use registry_emit::{param_registry_toml, required_tools_toml};
 pub use stage_baseline::{
     VcfInvariantsPreset, VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_PREFIX, STAGE_STATS,
 };
@@ -47,24 +49,3 @@ pub const VCF_PARAMS_CATALOG: &[&str] = &[
 ];
 pub const VCF_METRICS_CATALOG: &[&str] = &["bijux.vcf.stats.v1"];
 pub const VCF_PRODUCTION_TOOLS: &[&str] = &["bcftools"];
-
-#[must_use]
-pub fn param_registry_toml() -> String {
-    let mut out = String::new();
-    out.push_str("# GENERATED - DO NOT EDIT - source: crates/bijux-dna-domain-vcf\n\n");
-    out.push_str("[[params]]\nstage_id = \"vcf.call\"\nparam_type_id = \"bijux.vcf.call.params\"\nschema_version = \"bijux.vcf.params.v1\"\n\n");
-    out.push_str("[[params]]\nstage_id = \"vcf.filter\"\nparam_type_id = \"bijux.vcf.filter.params\"\nschema_version = \"bijux.vcf.params.v1\"\n\n");
-    out.push_str("[[params]]\nstage_id = \"vcf.stats\"\nparam_type_id = \"bijux.vcf.stats.params\"\nschema_version = \"bijux.vcf.params.v1\"\n");
-    out
-}
-
-#[must_use]
-pub fn required_tools_toml() -> String {
-    let mut out = String::new();
-    out.push_str("# GENERATED - DO NOT EDIT - source: crates/bijux-dna-domain-vcf\n");
-    out.push_str("# source_commit: 53b050a6d117e40e0122777655e9d8cc428be9ad\n");
-    out.push_str("# domain_schema_version: bijux.domain.v1\n\n");
-    out.push_str("schema_version = \"bijux.required_tools.v1\"\n");
-    out.push_str("required_tools = [\"bcftools\"]\n");
-    out
-}
