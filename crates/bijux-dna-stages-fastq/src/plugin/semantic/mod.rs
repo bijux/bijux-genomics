@@ -5,6 +5,7 @@ mod processing;
 mod profiling;
 mod quality;
 mod support;
+mod taxonomy;
 
 pub(super) fn observed_semantic_metrics(
     plan: &StagePlanV1,
@@ -20,6 +21,9 @@ pub(super) fn observed_semantic_metrics(
         return semantics;
     }
     if let Some(semantics) = processing::observed_processing_metrics(plan, artifacts) {
+        return semantics;
+    }
+    if let Some(semantics) = taxonomy::observed_taxonomy_metrics(plan, artifacts) {
         return semantics;
     }
     serde_json::Value::Null
