@@ -15,10 +15,9 @@ use crate::commands::benchmark_corpus_metadata::{
 use crate::commands::benchmark_repo_checks::{audit_repo_checks, fail_on_repo_check_violations};
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_publication_contract, benchmark_publication_contracts,
-    benchmark_publication_exclusions, benchmark_runtime_corpus_dir_name,
-    benchmark_stage_run_relative_root, load_benchmark_config, write_workspace_layout_status,
-    BenchmarkConfig, BenchmarkWorkspaceConfig, CorpusBenchmarkContract,
-    CorpusBenchmarkExclusion,
+    benchmark_publication_exclusions, benchmark_stage_run_relative_root,
+    load_benchmark_config, write_workspace_layout_status, BenchmarkConfig,
+    BenchmarkWorkspaceConfig, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
 };
 use crate::commands::cli::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
@@ -1433,13 +1432,36 @@ fn audit_published_results_stage(
     }
 
     let summary = load_json_value(&summary_path)?;
-    let summary_corpus_root = summary
+    let summary_corpus_root = match summary
         .get("corpus_root")
         .and_then(|value| value.as_str())
         .map(PathBuf::from)
-        .unwrap_or_default();
-    let corpus_dir_name = summary_corpus_id(&summary_corpus_root, workspace)
-        .unwrap_or(benchmark_runtime_corpus_dir_name(workspace, corpus_id)?);
+    {
+        Some(path) => path,
+        None => {
+            append_stage_result_issue(
+                &mut issues,
+                &contract.stage_id,
+                "missing-summary-corpus-root",
+                format!(
+                    "summary {} must declare corpus_root",
+                    relative_to_repo_root(&summary_path, repo_root)
+                ),
+            );
+            return Ok(PublishedResultsStageReport {
+                stage_id: contract.stage_id.clone(),
+                status: "incomplete".to_string(),
+                issue_count: issues.len(),
+                reported_run_root: String::new(),
+                selected_run_root: String::new(),
+                newest_available_run_root: String::new(),
+                selected_run_root_is_newest: false,
+                available_run_roots: Vec::new(),
+                issues,
+            });
+        }
+    };
+    let corpus_dir_name = summary_corpus_id(&summary_corpus_root)?;
     let expected_tools = sorted_strings(&contract.tools);
     let configured_roots =
         configured_stage_run_roots(workspace, &corpus_dir_name, &contract.stage_id)?;
@@ -2698,24 +2720,12 @@ fn sort_count_map(value: Option<&serde_json::Value>) -> BTreeMap<String, usize> 
         .unwrap_or_default()
 }
 
-fn summary_corpus_id(
-    summary_corpus_root: &Path,
-    workspace: &BenchmarkWorkspaceConfig,
-) -> Option<String> {
+fn summary_corpus_id(summary_corpus_root: &Path) -> Result<String> {
     summary_corpus_root
         .file_name()
         .and_then(|value| value.to_str())
         .map(ToOwned::to_owned)
-        .or_else(|| {
-            workspace
-                .remote
-                .as_ref()
-                .and_then(|row| row.corpus_root.as_deref())
-                .map(Path::new)
-                .and_then(|path| path.file_name())
-                .and_then(|value| value.to_str())
-                .map(ToOwned::to_owned)
-        })
+        .ok_or_else(|| anyhow!("summary corpus_root must end with a corpus directory name"))
 }
 
 fn configured_stage_run_roots(
@@ -3659,6 +3669,44 @@ reason = "Compact validation fixture."
             .iter()
             .flat_map(|stage| stage.issues.iter())
             .any(|issue| issue.issue_id == "missing-published-summary"));
+    }
+
+    #[test]
+    fn results_audit_requires_summary_corpus_root() {
+        let temp = tempdir().expect("tempdir");
+        let docs_root = temp.path().join("docs").join("benchmark");
+        let cache_root = temp.path().join("cache-mirror");
+        let archive_root = temp.path().join("archive");
+        let remote_root = temp.path().join("remote");
+        let remote_corpus_root = cache_root.join("benchmark_corpus");
+        let workspace = sample_workspace(
+            &cache_root,
+            &archive_root,
+            &remote_root,
+            &remote_corpus_root,
+        );
+        write_json(
+            &docs_root
+                .join("fastq.validate_reads")
+                .join("corpus-01")
+                .join("summary.json"),
+            serde_json::json!({
+                "run_root": cache_root.join("results"),
+            }),
+        );
+
+        let report = super::audit_published_results_stage(
+            temp.path(),
+            &workspace,
+            &docs_root,
+            "corpus-01",
+            &validate_reads_contract(),
+        )
+        .expect("stage report");
+        assert!(report
+            .issues
+            .iter()
+            .any(|issue| issue.issue_id == "missing-summary-corpus-root"));
     }
 
     #[test]
