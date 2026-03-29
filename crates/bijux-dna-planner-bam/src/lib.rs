@@ -1,7 +1,5 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::ExecutionGraph;
-use bijux_dna_core::prelude::id_catalog;
-use bijux_dna_domain_bam::BamStage;
 use bijux_dna_pipelines::PipelineProfile;
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 use serde_json::Value;
@@ -17,6 +15,7 @@ mod selection;
 mod stage_activation;
 mod stage_dispatch;
 mod stages;
+mod tool_policy;
 pub mod tool_adapters;
 
 pub use api::{BamPipelineInputs, BamPlanConfig, StagePlanRequest};
@@ -129,7 +128,7 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
             .params_overrides
             .get(stage_id)
             .or(default_params.as_ref());
-        enforce_stage_tool_contracts(stage, &tool.tool_id.0, params, inputs.reference.as_deref())?;
+        tool_policy::enforce(stage, &tool.tool_id.0, params, inputs.reference.as_deref())?;
         let stage_dir = inputs.out_dir.join(stage_id.replace('.', "_"));
         let plan = plan_stage(StagePlanRequest {
             stage_id,
@@ -169,80 +168,4 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         &stages,
         "planned bam pipeline graph"
     )
-}
-
-fn enforce_stage_tool_contracts(
-    stage: BamStage,
-    tool_id: &str,
-    params: Option<&serde_json::Value>,
-    reference: Option<&std::path::Path>,
-) -> Result<()> {
-    match stage {
-        BamStage::Authenticity if tool_id == id_catalog::TOOL_PMDTOOLS => {
-            if reference.is_none() {
-                return Err(anyhow!(
-                    "{} with pmdtools requires reference input",
-                    id_catalog::BAM_AUTHENTICITY
-                ));
-            }
-        }
-        BamStage::Contamination => {
-            let effective = params
-                .map(|value| stage.parse_effective_params(value))
-                .transpose()?
-                .and_then(|effective| match effective {
-                    bijux_dna_domain_bam::params::BamEffectiveParams::Contamination(c) => Some(c),
-                    _ => None,
-                });
-            let scope = effective
-                .as_ref()
-                .map(|contamination| contamination.scope)
-                .unwrap_or(bijux_dna_domain_bam::params::ContaminationScope::Both);
-            match tool_id {
-                id_catalog::TOOL_SCHMUTZI
-                    if !matches!(
-                        scope,
-                        bijux_dna_domain_bam::params::ContaminationScope::Mito
-                            | bijux_dna_domain_bam::params::ContaminationScope::Both
-                    ) =>
-                {
-                    return Err(anyhow!(
-                        "{} tool schmutzi requires scope mito/both",
-                        id_catalog::BAM_CONTAMINATION
-                    ));
-                }
-                id_catalog::TOOL_SCHMUTZI if reference.is_none() => {
-                    return Err(anyhow!(
-                        "{} tool schmutzi requires mitochondrial reference input",
-                        id_catalog::BAM_CONTAMINATION
-                    ));
-                }
-                id_catalog::TOOL_VERIFYBAMID2 | id_catalog::TOOL_CONTAMMIX
-                    if !matches!(
-                        scope,
-                        bijux_dna_domain_bam::params::ContaminationScope::Nuclear
-                            | bijux_dna_domain_bam::params::ContaminationScope::Both
-                    ) =>
-                {
-                    return Err(anyhow!(
-                        "{} tool {tool_id} requires scope nuclear/both",
-                        id_catalog::BAM_CONTAMINATION
-                    ));
-                }
-                id_catalog::TOOL_VERIFYBAMID2 | id_catalog::TOOL_CONTAMMIX
-                    if effective
-                        .as_ref()
-                        .is_some_and(|contamination| contamination.reference_panels.is_empty()) =>
-                {
-                    return Err(anyhow!(
-                        "{} tool {tool_id} requires non-empty reference_panels",
-                        id_catalog::BAM_CONTAMINATION
-                    ));
-                }
-                _ => {}
-            }
-        }
-        _ => {}
-    }
-    Ok(())
 }
