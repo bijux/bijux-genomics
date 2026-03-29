@@ -46,43 +46,36 @@ fn canonical_json_line<T: serde::Serialize>(value: &T) -> Result<String> {
     Ok(serde_json::to_string(&canonical)?)
 }
 
+fn required_jsonl_key<'a>(
+    value: &'a serde_json::Value,
+    field: &str,
+    line_number: usize,
+) -> Result<&'a str> {
+    value
+        .get(field)
+        .and_then(|entry| entry.as_str())
+        .map(str::trim)
+        .filter(|entry| !entry.is_empty())
+        .ok_or_else(|| anyhow::anyhow!("observation row {line_number} missing `{field}`"))
+}
+
 fn load_existing_keys(path: &Path) -> Result<BTreeSet<ObservationKey>> {
     let mut keys = BTreeSet::new();
     if !path.exists() {
         return Ok(keys);
     }
     let raw = std::fs::read_to_string(path)?;
-    for line in raw.lines() {
+    for (line_number, line) in raw.lines().enumerate() {
         if line.trim().is_empty() {
             continue;
         }
         let value: serde_json::Value = serde_json::from_str(line)?;
         let key = (
-            value
-                .get("dataset_id")
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
-            value
-                .get("stage_id")
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
-            value
-                .get(TOOL_ID_KEY)
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
-            value
-                .get("params_hash")
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
-            value
-                .get("replicate_id")
-                .and_then(|v| v.as_str())
-                .unwrap_or_default()
-                .to_string(),
+            required_jsonl_key(&value, "dataset_id", line_number + 1)?.to_string(),
+            required_jsonl_key(&value, "stage_id", line_number + 1)?.to_string(),
+            required_jsonl_key(&value, TOOL_ID_KEY, line_number + 1)?.to_string(),
+            required_jsonl_key(&value, "params_hash", line_number + 1)?.to_string(),
+            required_jsonl_key(&value, "replicate_id", line_number + 1)?.to_string(),
         );
         keys.insert(key);
     }
