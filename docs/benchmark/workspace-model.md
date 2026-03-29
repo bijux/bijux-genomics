@@ -28,7 +28,6 @@ Use these terms consistently in code, docs, and commit messages:
 - Contract root: `workspace.remote.cache_root`
 - Child roots:
   - `workspace.remote.results_root`
-  - `workspace.remote.results_legacy_root`
   - `workspace.remote.extra_data_root`
   - `workspace.remote.containers_root`
   - `workspace.remote.reference_root`

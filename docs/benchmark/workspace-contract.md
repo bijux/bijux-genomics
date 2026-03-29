@@ -34,7 +34,6 @@ Use the mirrored remote-cache subtree when publication needs the shared-tree lay
 - `workspace.remote.repo_root` is the private frontend checkout used for code sync.
 - `workspace.remote.cache_root` is the governed shared benchmark cache root.
 - `workspace.remote.results_root` is the canonical shared benchmark results tree.
-- `workspace.remote.results_legacy_root` exists only for migration and audit compatibility.
 - `workspace.remote.extra_data_root`, `workspace.remote.containers_root`, and `workspace.remote.reference_root` are the shared non-result benchmark assets.
 - `workspace.layout.stage_runs.*` defines the relative templates for remote results roots, local cache-mirror results roots, and local archive results roots.
 
