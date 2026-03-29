@@ -47,8 +47,10 @@ pub(crate) fn run_benchmark_repo_checks_command(
 pub(crate) fn audit_repo_checks(repo_root: &Path) -> Result<RepoChecksReport> {
     let tooling_paths = benchmark_tooling_paths(repo_root)?;
     let contract_paths = benchmark_contract_paths(repo_root)?;
+    let crate_paths = benchmark_crate_paths(repo_root)?;
     let mut path_scan_paths = tooling_paths.clone();
     path_scan_paths.extend(contract_paths);
+    path_scan_paths.extend(crate_paths.clone());
     path_scan_paths.sort();
     path_scan_paths.dedup();
 
@@ -65,7 +67,11 @@ pub(crate) fn audit_repo_checks(repo_root: &Path) -> Result<RepoChecksReport> {
         &[Regex::new(r#"/home/[^/"'\s]+/"#).expect("remote user path regex")],
     )?);
     violations.extend(regex_matches(
-        &tooling_paths,
+        &tooling_paths
+            .iter()
+            .chain(crate_paths.iter())
+            .cloned()
+            .collect::<Vec<_>>(),
         repo_root,
         "hardcoded-ssh-host-alias",
         &[
@@ -188,6 +194,35 @@ fn benchmark_contract_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
     Ok(paths)
 }
 
+fn benchmark_crate_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
+    let roots = [
+        repo_root.join("crates/bijux-dna/src/commands"),
+        repo_root.join("crates/bijux-dna-dev/src/commands"),
+        repo_root.join("crates/bijux-dna-api/src/runtime/run"),
+        repo_root.join("crates/bijux-dna-stage-contract/src"),
+    ];
+    let mut paths = Vec::new();
+    for root in roots {
+        if !root.is_dir() {
+            continue;
+        }
+        for entry in walkdir::WalkDir::new(&root) {
+            let entry = entry.with_context(|| format!("walk {}", root.display()))?;
+            let path = entry.path();
+            if !path.is_file() || path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
+                continue;
+            }
+            if path.file_name().and_then(|name| name.to_str()) == Some("mod.rs") {
+                continue;
+            }
+            paths.push(path.to_path_buf());
+        }
+    }
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
+}
+
 fn regex_matches(
     paths: &[PathBuf],
     repo_root: &Path,
@@ -196,7 +231,7 @@ fn regex_matches(
 ) -> Result<Vec<RepoCheckViolation>> {
     let mut matches = Vec::new();
     for path in paths {
-        for (line_number, line) in read_lines(path)?.iter().enumerate() {
+        for (line_number, line) in repo_check_lines(path)?.iter().enumerate() {
             if !patterns.iter().any(|pattern| pattern.is_match(line)) {
                 continue;
             }
@@ -212,12 +247,42 @@ fn regex_matches(
     Ok(matches)
 }
 
-fn read_lines(path: &Path) -> Result<Vec<String>> {
-    Ok(fs::read_to_string(path)
-        .with_context(|| format!("read {}", path.display()))?
-        .lines()
-        .map(ToOwned::to_owned)
-        .collect())
+fn repo_check_lines(path: &Path) -> Result<Vec<String>> {
+    let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+        return Ok(strip_rust_test_modules(&raw));
+    }
+    Ok(raw.lines().map(ToOwned::to_owned).collect())
+}
+
+fn strip_rust_test_modules(raw: &str) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut awaiting_test_module = false;
+    let mut skip_depth: usize = 0;
+
+    for raw_line in raw.lines() {
+        let trimmed = raw_line.trim();
+        if skip_depth > 0 {
+            skip_depth = skip_depth
+                .saturating_add(raw_line.matches('{').count())
+                .saturating_sub(raw_line.matches('}').count());
+            continue;
+        }
+        if trimmed == "#[cfg(test)]" {
+            awaiting_test_module = true;
+            continue;
+        }
+        if awaiting_test_module {
+            if trimmed.starts_with("mod ") && raw_line.contains('{') {
+                skip_depth = raw_line.matches('{').count().saturating_sub(raw_line.matches('}').count());
+                awaiting_test_module = false;
+                continue;
+            }
+            awaiting_test_module = false;
+        }
+        lines.push(raw_line.to_string());
+    }
+    lines
 }
 
 fn relative_to_root<'a>(repo_root: &Path, path: &'a Path) -> Result<&'a str> {
@@ -237,7 +302,7 @@ fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::audit_repo_checks;
+    use super::{audit_repo_checks, strip_rust_test_modules};
     use std::fs;
 
     #[test]
@@ -303,5 +368,27 @@ mod tests {
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
         assert_eq!(report.violations[0].issue_id, "hardcoded-ssh-host-alias");
+    }
+
+    #[test]
+    fn strip_rust_test_modules_excludes_cfg_test_blocks() {
+        let stripped = strip_rust_test_modules(
+            r#"
+fn governed() {
+    let host = "cluster";
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn fixture() {
+        let host = "lunarc";
+    }
+}
+"#,
+        );
+        let joined = stripped.join("\n");
+        assert!(joined.contains("governed"));
+        assert!(!joined.contains("lunarc"));
     }
 }
