@@ -16,7 +16,8 @@ fn no_execution_details() {
         if entry.path().extension().and_then(|e| e.to_str()) != Some("rs") {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        let content = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read {}: {err}", entry.path().display()));
         if content.contains(concat!("Command::", "new"))
             || content.contains("docker")
             || content.contains("RuntimeKind")

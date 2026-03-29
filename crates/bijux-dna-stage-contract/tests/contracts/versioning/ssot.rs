@@ -19,7 +19,8 @@ fn stage_contract_types_are_ssot() {
         if path_str.contains("/crates/bijux-dna-stage-contract/") {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        let content = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read {}: {err}", entry.path().display()));
         if content.contains("struct StagePlanV1")
             || content.contains("struct ExecutionPlan")
             || content.contains("struct StagePluginOutputV1")
