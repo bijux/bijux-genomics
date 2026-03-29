@@ -8,7 +8,7 @@ use bijux_dna_core::contract::{ArtifactRef, ToolConstraints};
 use bijux_dna_core::id_catalog;
 use bijux_dna_core::prelude::ContainerImageRefV1;
 
-use crate::stage_plan::{PlanDecisionReason, StagePlanV1};
+use crate::{PlanDecisionReason, StagePlanV1};
 use sha2::Digest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
