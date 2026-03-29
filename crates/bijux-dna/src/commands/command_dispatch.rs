@@ -466,17 +466,23 @@ fn param_rows(value: &toml::Value) -> Vec<&toml::Value> {
     }
 }
 
-fn toml_list(value: &toml::Value, key: &str) -> Vec<String> {
-    value
-        .get(key)
-        .and_then(toml::Value::as_array)
-        .map(|rows| {
-            rows.iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+fn toml_list(value: &toml::Value, key: &str) -> Result<Vec<String>> {
+    let Some(raw) = value.get(key) else {
+        return Ok(Vec::new());
+    };
+    let rows = raw
+        .as_array()
+        .ok_or_else(|| anyhow!("registry field `{key}` must be an array"))?;
+    rows.iter()
+        .map(|entry| {
+            entry
+                .as_str()
+                .map(str::trim)
+                .filter(|entry| !entry.is_empty())
+                .map(ToOwned::to_owned)
+                .ok_or_else(|| anyhow!("registry field `{key}` must contain non-empty strings"))
         })
-        .unwrap_or_default()
+        .collect()
 }
 
 fn declared_toml_str<'a>(value: &'a toml::Value, key: &str) -> Option<&'a str> {
@@ -561,7 +567,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
             if let Some(metrics_schema) = declared_toml_str(row, "metrics_schema") {
                 tool_metrics.insert(tool_id.clone(), metrics_schema.to_string());
             }
-            for stage_id in toml_list(row, "stage_ids") {
+            for stage_id in toml_list(row, "stage_ids")? {
                 tools_by_stage
                     .entry(stage_id)
                     .or_default()
@@ -599,7 +605,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
                 missing_params += 1;
             }
             let stage_metrics_schema = declared_toml_str(stage, "metrics_schema");
-            let stage_tools = toml_list(stage, "tools")
+            let stage_tools = toml_list(stage, "tools")?
                 .into_iter()
                 .chain(tools_by_stage.get(stage_id).into_iter().flatten().cloned())
                 .collect::<BTreeSet<_>>();
