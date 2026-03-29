@@ -172,7 +172,7 @@ fn normalize_semver_like(value: Option<&str>) -> Result<String> {
 
 fn upsert_container_version_entry(
     versions_path: &Path,
-    _tool_id: &str,
+    tool_id: &str,
     version: Option<&str>,
     source: Option<&str>,
 ) -> Result<()> {

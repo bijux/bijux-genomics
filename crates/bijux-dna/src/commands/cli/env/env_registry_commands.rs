@@ -927,7 +927,12 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
         "expected_version_regex": expected_version_regex,
         "version_output_parse": parsed_version,
         "version_output_matches_regex": version_matches_regex,
-        "version_output_sample": version_output.lines().next().unwrap_or(""),
+        "version_output_sample": version_output
+            .lines()
+            .next()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .unwrap_or("not_recorded"),
         "help_ok": !help_output.starts_with("error:"),
         "healthcheck_ok": !health_output.starts_with("error:"),
     }))?;
