@@ -81,6 +81,8 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
             cross_args,
             &out_dir,
         )?;
+        let (alignment_bam_path, alignment_bai_path) =
+            require_alignment_boundary_outputs(&bam_stage_runs)?;
         let bam_out_dir = out_dir.join("bam");
         let failures = Vec::new();
         let _ = render_bam_summary(&bam_out_dir, &bam_stage_runs, &failures)?;
@@ -106,23 +108,8 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
             },
         });
         let alignment_boundary = AlignmentBoundary {
-            bam_path: bam_stage_runs
-                .first()
-                .map(|entry| entry.plan.out_dir.join("align.bam").display().to_string())
-                .unwrap_or_default(),
-            bai_path: Some(
-                bam_stage_runs
-                    .first()
-                    .map(|entry| {
-                        entry
-                            .plan
-                            .out_dir
-                            .join("align.bam.bai")
-                            .display()
-                            .to_string()
-                    })
-                    .unwrap_or_default(),
-            ),
+            bam_path: alignment_bam_path,
+            bai_path: Some(alignment_bai_path),
             reference: Some(record.fasta.display().to_string()),
             rg_policy: cross_args.alignment_rg_policy.clone(),
             aligner_meta: None,
@@ -192,6 +179,24 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     println!("cross-domain run complete: {}", out_dir.display());
     println!("alignment_boundary: {}", boundary_path.display());
     Ok(())
+}
+
+fn require_alignment_boundary_outputs(
+    bam_stage_runs: &[StageExecutionSummary],
+) -> Result<(String, String)> {
+    let align_run = bam_stage_runs
+        .iter()
+        .find(|entry| entry.plan.step_id.as_str() == BamStage::Align.as_str())
+        .ok_or_else(|| anyhow!("cross-domain alignment boundary requires bam.align outputs"))?;
+    Ok((
+        align_run.plan.out_dir.join("align.bam").display().to_string(),
+        align_run
+            .plan
+            .out_dir
+            .join("align.bam.bai")
+            .display()
+            .to_string(),
+    ))
 }
 
 fn build_alignment_boundary(args: &FastqCrossArgs) -> Result<AlignmentBoundary> {
