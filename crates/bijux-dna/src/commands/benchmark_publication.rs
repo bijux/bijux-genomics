@@ -3043,15 +3043,14 @@ fn findings_lookup(payload: &serde_json::Value) -> BTreeMap<String, Vec<Remediat
         let Some(stage_id) = finding.get("stage_id").and_then(|value| value.as_str()) else {
             continue;
         };
+        let Some(issue_id) = finding.get("issue_id").and_then(|value| value.as_str()) else {
+            continue;
+        };
         findings_by_stage
             .entry(stage_id.to_string())
             .or_insert_with(Vec::new)
             .push(RemediationIssue {
-                issue_id: finding
-                    .get("issue_id")
-                    .and_then(|value| value.as_str())
-                    .unwrap_or("unknown")
-                    .to_string(),
+                issue_id: issue_id.to_string(),
                 detail: finding
                     .get("detail")
                     .and_then(|value| value.as_str())
@@ -3074,12 +3073,10 @@ fn collect_stage_issues(stage: Option<&&serde_json::Value>, source: &str) -> Vec
         .and_then(|value| value.as_array())
         .into_iter()
         .flatten()
-        .map(|issue| RemediationIssue {
-            issue_id: issue
-                .get("issue_id")
-                .and_then(|value| value.as_str())
-                .unwrap_or("unknown")
-                .to_string(),
+        .filter_map(|issue| {
+            let issue_id = issue.get("issue_id").and_then(|value| value.as_str())?;
+            Some(RemediationIssue {
+                issue_id: issue_id.to_string(),
             detail: issue
                 .get("detail")
                 .and_then(|value| value.as_str())
@@ -3090,7 +3087,8 @@ fn collect_stage_issues(stage: Option<&&serde_json::Value>, source: &str) -> Vec
                 .and_then(|value| value.as_str())
                 .unwrap_or("error")
                 .to_string(),
-            source: source.to_string(),
+                source: source.to_string(),
+            })
         })
         .collect()
 }
