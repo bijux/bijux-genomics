@@ -1,5 +1,5 @@
 #[derive(Debug, Clone)]
-struct PrimerGovernanceResult {
+pub(super) struct PrimerGovernanceResult {
     marker_id: String,
     primer_set_id: String,
     expected_amplicon_min_bp: u64,
@@ -137,7 +137,7 @@ pub(crate) fn resolve_primer_set_governance(
     primer_set_governance_for_marker(&governance, &read_marker_id()?)
 }
 
-fn enforce_primer_governance(
+pub(super) fn enforce_primer_governance(
     run_root: &std::path::Path,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
     invariants: &FastqInvariantsReport,
@@ -209,7 +209,7 @@ fn enforce_primer_governance(
     }))
 }
 
-fn write_reference_db_validation_artifact(
+pub(super) fn write_reference_db_validation_artifact(
     run_root: &std::path::Path,
     contaminant_bank: Option<&serde_json::Value>,
     primer: Option<&PrimerGovernanceResult>,
@@ -280,7 +280,10 @@ fn write_reference_db_validation_artifact(
     Ok(())
 }
 
-fn write_contamination_controls_report(run_root: &std::path::Path, sample_id: &str) -> Result<()> {
+pub(super) fn write_contamination_controls_report(
+    run_root: &std::path::Path,
+    sample_id: &str,
+) -> Result<()> {
     let controls = std::env::var("BIJUX_NEGATIVE_CONTROL_SAMPLES")
         .unwrap_or_default()
         .split(',')
@@ -299,7 +302,7 @@ fn write_contamination_controls_report(run_root: &std::path::Path, sample_id: &s
     Ok(())
 }
 
-fn write_batch_effect_summary(
+pub(super) fn write_batch_effect_summary(
     run_root: &std::path::Path,
     sample_id: &str,
     invariants: &FastqInvariantsReport,
@@ -368,7 +371,7 @@ fn amplicon_merge_policy() -> Result<MergeDeterminismPolicy> {
     })
 }
 
-fn enforce_amplicon_merge_determinism(
+pub(super) fn enforce_amplicon_merge_determinism(
     stage_root: &std::path::Path,
     mode: bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode,
     execution: &StageResultV1,
@@ -404,7 +407,7 @@ fn enforce_amplicon_merge_determinism(
     Ok(())
 }
 
-fn write_edna_report_summary(
+pub(super) fn write_edna_report_summary(
     run_root: &std::path::Path,
     stage_runs: &[StageExecutionSummary],
 ) -> Result<()> {
@@ -481,3 +484,4 @@ fn write_edna_report_summary(
     bijux_dna_infra::atomic_write_json(&run_root.join("edna_summary.json"), &payload)?;
     Ok(())
 }
+use super::*;

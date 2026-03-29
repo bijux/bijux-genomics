@@ -1,4 +1,4 @@
-fn write_stage_resume_contract(
+pub(super) fn write_stage_resume_contract(
     stage_root: &std::path::Path,
     stage_id: &str,
     execution: &StageResultV1,
@@ -33,7 +33,7 @@ fn write_stage_resume_contract(
         .context("write stage.resume_contract.json")
 }
 
-fn write_merge_join_contract(
+pub(super) fn write_merge_join_contract(
     stage_root: &std::path::Path,
     execution: &StageResultV1,
     paired_consistent: bool,
@@ -83,7 +83,7 @@ fn write_merge_join_contract(
         .context("write merge.join_contract.json")
 }
 
-fn load_qc_thresholds_map() -> std::collections::BTreeMap<String, f64> {
+pub(super) fn load_qc_thresholds_map() -> std::collections::BTreeMap<String, f64> {
     let Some(path) = std::env::var_os("BIJUX_QC_THRESHOLDS_PATH")
         .map(std::path::PathBuf::from)
         .or_else(|| {
@@ -111,7 +111,7 @@ fn load_qc_thresholds_map() -> std::collections::BTreeMap<String, f64> {
         .collect()
 }
 
-fn copy_if_missing(src: &std::path::Path, dst: &std::path::Path) -> Result<()> {
+pub(super) fn copy_if_missing(src: &std::path::Path, dst: &std::path::Path) -> Result<()> {
     if dst.exists() {
         return Ok(());
     }
@@ -123,12 +123,12 @@ fn copy_if_missing(src: &std::path::Path, dst: &std::path::Path) -> Result<()> {
     Ok(())
 }
 
-fn command_exists(bin: &str) -> bool {
+pub(super) fn command_exists(bin: &str) -> bool {
     let args = vec!["--version".to_string()];
     bijux_dna_runner::command_runner::run_command(bin, &args).is_ok()
 }
 
-fn run_stage_command(
+pub(super) fn run_stage_command(
     out_dir: &std::path::Path,
     command_label: &str,
     bin: &str,
@@ -157,7 +157,7 @@ fn run_stage_command(
     ok
 }
 
-fn write_fastq_to_fasta_if_missing(
+pub(super) fn write_fastq_to_fasta_if_missing(
     input_fastq: &std::path::Path,
     out_fasta: &std::path::Path,
 ) -> Result<()> {
@@ -199,7 +199,7 @@ fn write_fastq_to_fasta_if_missing(
     Ok(())
 }
 
-fn infer_udg_classification(input: &std::path::Path) -> String {
+pub(super) fn infer_udg_classification(input: &std::path::Path) -> String {
     if let Ok(configured) = std::env::var("BIJUX_UDG_CLASSIFICATION") {
         let normalized = configured.trim().to_ascii_lowercase();
         if matches!(normalized.as_str(), "udg" | "partial" | "non_udg") {
@@ -219,7 +219,7 @@ fn infer_udg_classification(input: &std::path::Path) -> String {
     }
 }
 
-fn terminal_damage_profile(path: &std::path::Path) -> Result<serde_json::Value> {
+pub(super) fn terminal_damage_profile(path: &std::path::Path) -> Result<serde_json::Value> {
     let mut ct_events = 0_u64;
     let mut ga_events = 0_u64;
     let mut seen = 0_u64;
@@ -479,3 +479,4 @@ fn write_taxonomy_db_drift_report(
 }
 
 include!("pipeline_run.rs");
+use super::*;

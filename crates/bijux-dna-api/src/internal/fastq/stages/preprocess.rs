@@ -43,10 +43,20 @@ use bijux_dna_planner_fastq::stage_api::{
 use std::io::BufRead;
 use std::path::PathBuf;
 
-include!("preprocess/stage_backend_policy.rs");
-include!("preprocess/stage_artifacts.rs");
-include!("preprocess/amplicon_governance.rs");
-include!("preprocess/amplicon_runtime.rs");
+mod amplicon_governance;
+mod amplicon_runtime;
+mod runtime_tail;
+mod stage_artifacts;
+mod stage_backend_policy;
+
+pub(crate) use self::amplicon_governance::resolve_primer_set_governance;
+pub use self::runtime_tail::{bench_fastq_preprocess, fastq_preprocess_run};
+
+use self::amplicon_governance::*;
+use self::amplicon_runtime::*;
+use self::runtime_tail::*;
+use self::stage_artifacts::*;
+use self::stage_backend_policy::*;
 
 #[derive(Debug, Clone, serde::Serialize)]
 struct FastqInvariantsReport {
@@ -527,7 +537,6 @@ fn capture_tool_version(stage_root: &std::path::Path, tool_bin: Option<&str>) ->
         .context("write stage.tool_version.json")
 }
 
-include!("preprocess/runtime_tail.rs");
 use std::io::Read;
 
 pub(crate) fn materialize_amplicon_stage_outputs_for_bench(
