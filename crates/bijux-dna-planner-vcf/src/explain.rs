@@ -5,7 +5,7 @@ use crate::coverage::{
     classify_coverage_regime, damage_aware_policy_for_regime, CoverageThresholds,
 };
 use crate::api::VcfPipelineInputs;
-use crate::models::{PlannerExplainStage, PlannerExplainV1};
+use crate::explain_model::{PlannerExplainStage, PlannerExplainV1};
 use crate::planner::resolve_panel_lock;
 
 #[must_use]
