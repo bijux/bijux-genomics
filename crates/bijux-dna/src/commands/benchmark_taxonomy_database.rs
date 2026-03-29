@@ -180,9 +180,6 @@ fn default_extra_data_root(config: &BenchmarkConfig, out_root: &Path) -> Result<
     let remote_results_root = remote
         .and_then(|row| row.results_root.as_deref())
         .map(PathBuf::from);
-    let remote_results_legacy_root = remote
-        .and_then(|row| row.results_legacy_root.as_deref())
-        .map(PathBuf::from);
     let remote_extra_data_root = remote
         .and_then(|row| row.extra_data_root.as_deref())
         .map(PathBuf::from);
@@ -191,9 +188,6 @@ fn default_extra_data_root(config: &BenchmarkConfig, out_root: &Path) -> Result<
         .as_ref()
         .is_some_and(|root| path_is_under(&resolved, root))
         || remote_results_root
-            .as_ref()
-            .is_some_and(|root| path_is_under(&resolved, root))
-        || remote_results_legacy_root
             .as_ref()
             .is_some_and(|root| path_is_under(&resolved, root))
     {

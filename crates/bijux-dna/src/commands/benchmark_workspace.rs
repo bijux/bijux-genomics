@@ -48,7 +48,6 @@ pub(crate) struct BenchmarkWorkspaceRemote {
     pub(crate) cache_root: Option<String>,
     pub(crate) corpus_root: Option<String>,
     pub(crate) results_root: Option<String>,
-    pub(crate) results_legacy_root: Option<String>,
     pub(crate) extra_data_root: Option<String>,
     pub(crate) containers_root: Option<String>,
     pub(crate) reference_root: Option<String>,
@@ -230,7 +229,6 @@ fn normalize_benchmark_config(mut config: BenchmarkConfig) -> BenchmarkConfig {
         normalize_optional_string(&mut remote.cache_root);
         normalize_optional_string(&mut remote.corpus_root);
         normalize_optional_string(&mut remote.results_root);
-        normalize_optional_string(&mut remote.results_legacy_root);
         normalize_optional_string(&mut remote.extra_data_root);
         normalize_optional_string(&mut remote.containers_root);
         normalize_optional_string(&mut remote.reference_root);
@@ -438,10 +436,6 @@ pub(crate) fn benchmark_workspace_value(
             .remote
             .as_ref()
             .and_then(|row| row.results_root.clone()),
-        "remote.results_legacy_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.results_legacy_root.clone()),
         "remote.extra_data_root" => workspace
             .remote
             .as_ref()

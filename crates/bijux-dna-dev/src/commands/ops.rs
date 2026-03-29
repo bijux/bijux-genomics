@@ -5863,15 +5863,6 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
         "LUNARC_RESULTS_DIR",
         &default_lunarc_results_dir,
     );
-    let default_lunarc_results_legacy_dir = benchmark_workspace
-        .remote_results_legacy_root
-        .clone()
-        .unwrap_or_default();
-    let lunarc_results_legacy_dir = env_or_default_alias(
-        "BENCHMARK_SYNC_RESULTS_LEGACY_ROOT",
-        "LUNARC_RESULTS_LEGACY_DIR",
-        &default_lunarc_results_legacy_dir,
-    );
     let default_lunarc_containers_root = benchmark_workspace
         .remote_containers_root
         .clone()
@@ -5992,17 +5983,6 @@ fn hpc_lunarc_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandO
             "remote_path": format!("{lunarc_results_dir}/"),
             "local_path": format!("{}/", local_path.display()),
         }));
-        if !lunarc_results_legacy_dir.is_empty()
-            && remote_path_exists(workspace, &lunarc_host, &lunarc_results_legacy_dir)?
-        {
-            let local_path =
-                pull_lunarc_tree(workspace, &lunarc_host, &lunarc_results_legacy_dir, &dest)?;
-            pulled_paths.push(format!("{lunarc_results_legacy_dir}/"));
-            pulled_path_mappings.push(json!({
-                "remote_path": format!("{lunarc_results_legacy_dir}/"),
-                "local_path": format!("{}/", local_path.display()),
-            }));
-        }
         if include_containers_manifest {
             let manifest_root = format!("{lunarc_containers_root}/manifest");
             if remote_path_exists(workspace, &lunarc_host, &manifest_root)? {
@@ -8750,7 +8730,6 @@ fn lunarc_sync_source_payload(workspace: &Workspace) -> Result<Value> {
             "remote_cache_root": benchmark_workspace.remote_cache_root,
             "remote_corpus_root": benchmark_workspace.remote_corpus_root,
             "remote_results_root": benchmark_workspace.remote_results_root,
-            "remote_results_legacy_root": benchmark_workspace.remote_results_legacy_root,
             "remote_extra_data_root": benchmark_workspace.remote_extra_data_root,
             "remote_reference_root": benchmark_workspace.remote_reference_root,
             "remote_containers_root": benchmark_workspace.remote_containers_root,
@@ -8838,7 +8817,6 @@ struct BenchmarkWorkspacePaths {
     remote_cache_root: Option<String>,
     remote_corpus_root: Option<String>,
     remote_results_root: Option<String>,
-    remote_results_legacy_root: Option<String>,
     remote_extra_data_root: Option<String>,
     remote_reference_root: Option<String>,
     remote_containers_root: Option<String>,
@@ -8932,10 +8910,6 @@ fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWork
             .and_then(|table| table.get("results_root"))
             .and_then(TomlValue::as_str)
             .map(ToOwned::to_owned),
-        remote_results_legacy_root: remote
-            .and_then(|table| table.get("results_legacy_root"))
-            .and_then(TomlValue::as_str)
-            .map(ToOwned::to_owned),
         remote_extra_data_root: remote
             .and_then(|table| table.get("extra_data_root"))
             .and_then(TomlValue::as_str)
@@ -9019,7 +8993,6 @@ fn benchmark_workspace_lookup<'a>(
         "remote.cache_root" => benchmark_workspace.remote_cache_root.as_deref(),
         "remote.corpus_root" => benchmark_workspace.remote_corpus_root.as_deref(),
         "remote.results_root" => benchmark_workspace.remote_results_root.as_deref(),
-        "remote.results_legacy_root" => benchmark_workspace.remote_results_legacy_root.as_deref(),
         "remote.extra_data_root" => benchmark_workspace.remote_extra_data_root.as_deref(),
         "remote.reference_root" => benchmark_workspace.remote_reference_root.as_deref(),
         "remote.containers_root" => benchmark_workspace.remote_containers_root.as_deref(),
@@ -9102,12 +9075,6 @@ fn benchmark_remote_layout_candidates(
             results_root.to_string(),
         ));
     }
-    if let Some(results_legacy_root) = benchmark_workspace.remote_results_legacy_root.as_deref() {
-        candidates.push((
-            "legacy-results-root".to_string(),
-            results_legacy_root.to_string(),
-        ));
-    }
     if let Some(reference_root) = benchmark_workspace.remote_reference_root.as_deref() {
         candidates.push((
             "canonical-reference-root".to_string(),
@@ -9139,24 +9106,8 @@ fn remote_layout_conflicts(
 ) -> Result<Vec<String>> {
     let mut conflicts = Vec::new();
     let candidates = benchmark_remote_layout_candidates(benchmark_workspace);
-    let canonical_results_root = benchmark_workspace.remote_results_root.as_deref();
-    let legacy_results_root = benchmark_workspace.remote_results_legacy_root.as_deref();
-    if let (Some(results_root), Some(results_legacy_root)) =
-        (canonical_results_root, legacy_results_root)
-    {
-        if remote_path_exists(workspace, host, results_root)?
-            && remote_path_exists(workspace, host, results_legacy_root)?
-        {
-            conflicts.push(format!(
-                "duplicate results roots exist: {results_root} and {results_legacy_root}"
-            ));
-        }
-    }
     for (label, path) in candidates {
-        if label == "canonical-results-root"
-            || label == "legacy-results-root"
-            || label == "canonical-reference-root"
-        {
+        if label == "canonical-results-root" || label == "canonical-reference-root" {
             continue;
         }
         if remote_path_exists(workspace, host, &path)? {
@@ -9345,7 +9296,6 @@ repo_root = "/srv/repo"
 cache_root = "/srv/.cache"
 corpus_root = "/srv/.cache/corpus_01"
 results_root = "/srv/.cache/results"
-results_legacy_root = "/srv/.cache/bijux-dna-results"
 extra_data_root = "/srv/.cache/extra-data"
 reference_root = "/srv/.cache/reference"
 containers_root = "/srv/.cache/containers"
@@ -9369,10 +9319,7 @@ data_manifest_glob = ""
 
         assert_eq!(paths.local_results_root.as_deref(), Some("/tmp/results"));
         assert_eq!(paths.remote_repo_root.as_deref(), Some("/srv/repo"));
-        assert_eq!(
-            paths.remote_results_legacy_root.as_deref(),
-            Some("/srv/.cache/bijux-dna-results")
-        );
+        assert_eq!(paths.remote_results_root.as_deref(), Some("/srv/.cache/results"));
         assert_eq!(paths.sync_default_pull_base.as_deref(), Some("/tmp/pulls"));
         Ok(())
     }
@@ -9421,7 +9368,6 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             remote_cache_root: Some("/remote/.cache".to_string()),
             remote_corpus_root: Some("/remote/.cache/corpus_01".to_string()),
             remote_results_root: Some("/remote/.cache/results".to_string()),
-            remote_results_legacy_root: Some("/remote/.cache/bijux-dna-results".to_string()),
             remote_extra_data_root: Some("/remote/.cache/extra-data".to_string()),
             remote_reference_root: Some("/remote/.cache/reference".to_string()),
             remote_containers_root: Some("/remote/.cache/bijux-dna-container".to_string()),
@@ -9459,7 +9405,6 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             remote_cache_root: Some("/remote/.cache".to_string()),
             remote_corpus_root: None,
             remote_results_root: None,
-            remote_results_legacy_root: None,
             remote_extra_data_root: None,
             remote_reference_root: None,
             remote_containers_root: None,
@@ -9491,7 +9436,6 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             remote_cache_root: Some("/remote/.cache".to_string()),
             remote_corpus_root: None,
             remote_results_root: None,
-            remote_results_legacy_root: None,
             remote_extra_data_root: None,
             remote_reference_root: None,
             remote_containers_root: None,
@@ -9506,7 +9450,7 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
     }
 
     #[test]
-    fn benchmark_remote_layout_candidates_include_legacy_and_non_cache_roots() {
+    fn benchmark_remote_layout_candidates_include_non_cache_roots() {
         let workspace = BenchmarkWorkspacePaths {
             local_results_root: None,
             local_cache_mirror_root: None,
@@ -9523,7 +9467,6 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             remote_cache_root: Some("/remote/.cache".to_string()),
             remote_corpus_root: Some("/remote/.cache/corpus_01".to_string()),
             remote_results_root: Some("/remote/.cache/results".to_string()),
-            remote_results_legacy_root: Some("/remote/.cache/bijux-dna-results".to_string()),
             remote_extra_data_root: Some("/remote/.cache/extra-data".to_string()),
             remote_reference_root: Some("/remote/.cache/reference".to_string()),
             remote_containers_root: Some("/remote/.cache/bijux-dna-container".to_string()),
@@ -9531,9 +9474,6 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
 
         let candidates = super::benchmark_remote_layout_candidates(&workspace);
 
-        assert!(candidates.iter().any(|(label, path)| {
-            label == "legacy-results-root" && path == "/remote/.cache/bijux-dna-results"
-        }));
         assert!(candidates.iter().any(|(label, path)| {
             label == "legacy-reference-root" && path == "/remote/bijux-reference"
         }));

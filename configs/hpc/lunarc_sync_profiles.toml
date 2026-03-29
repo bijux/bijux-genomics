@@ -25,7 +25,6 @@ workspace_scope = "corpus-01-fastq-publication"
 pull_destination = "local.results_root"
 remote_roots = [
   "remote.results_root",
-  "remote.results_legacy_root",
   "remote.extra_data_root",
 ]
 data_manifest_globs = [
