@@ -50,11 +50,11 @@ fn load_amplicon_governance() -> Result<toml::Value> {
     toml::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
-fn read_marker_id() -> String {
+fn read_marker_id() -> Result<String> {
     std::env::var("BIJUX_MARKER_ID")
         .ok()
         .filter(|v| !v.trim().is_empty())
-        .unwrap_or_else(|| "16S".to_string())
+        .ok_or_else(|| anyhow!("BIJUX_MARKER_ID must be declared for amplicon governance"))
 }
 
 fn primer_set_governance_for_marker(
@@ -124,7 +124,7 @@ pub(crate) fn resolve_primer_set_governance(
             "unknown primer_set_id `{requested_primer_set_id}` in amplicon governance"
         ));
     }
-    primer_set_governance_for_marker(&governance, &read_marker_id())
+    primer_set_governance_for_marker(&governance, &read_marker_id()?)
 }
 
 fn enforce_primer_governance(
@@ -140,7 +140,7 @@ fn enforce_primer_governance(
         return Ok(None);
     }
     let governance = load_amplicon_governance()?;
-    let marker_id = read_marker_id();
+    let marker_id = read_marker_id()?;
     let primer = primer_set_governance_for_marker(&governance, &marker_id)?;
     let marker_cfg = governance
         .get("markers")
