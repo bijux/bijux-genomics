@@ -177,7 +177,7 @@ fn write_crash_provenance_artifact(
             chars[chars.len() - keep..].iter().collect::<String>()
         }
     };
-    let digest = resolve_tool_digest(backend).unwrap_or_else(|_| "unknown".to_string());
+    let digest = resolve_tool_digest(backend).ok();
     let payload = serde_json::json!({
         "schema_version": "bijux.vcf.crash_provenance.v1",
         "stage_id": stage_id,
