@@ -2,6 +2,13 @@ fn declared_text(value: Option<&str>) -> Option<&str> {
     value.map(str::trim).filter(|entry| !entry.is_empty())
 }
 
+fn declared_promotion_probe_command<'a>(
+    primary: Option<&'a str>,
+    fallback: Option<&'a str>,
+) -> Option<&'a str> {
+    primary.or(fallback).map(str::trim).filter(|value| !value.is_empty())
+}
+
 /// # Errors
 /// Returns an error if a tool cannot be promoted under registry contracts.
 pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Result<()> {
@@ -30,19 +37,15 @@ pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Resu
         }
     }
 
-    let version_cmd = tool
-        .smoke_version_cmd
-        .as_deref()
-        .or(tool.version_cmd.as_deref())
-        .map(str::trim)
-        .unwrap_or("");
-    let help_cmd = tool
-        .smoke_help_cmd
-        .as_deref()
-        .or(tool.help_cmd.as_deref())
-        .map(str::trim)
-        .unwrap_or("");
-    if version_cmd.is_empty() || (tool.smoke_require_help.unwrap_or(true) && help_cmd.is_empty()) {
+    let version_cmd = declared_promotion_probe_command(
+        tool.smoke_version_cmd.as_deref(),
+        tool.version_cmd.as_deref(),
+    );
+    let help_cmd = declared_promotion_probe_command(
+        tool.smoke_help_cmd.as_deref(),
+        tool.help_cmd.as_deref(),
+    );
+    if version_cmd.is_none() || (tool.smoke_require_help.unwrap_or(true) && help_cmd.is_none()) {
         failures.push("tool has smoke warnings/errors (missing smoke version/help probe)".to_string());
     }
 
