@@ -12,6 +12,14 @@ fn declared_registry_text<'a>(value: Option<&'a str>, fallback: &'static str) ->
     value.map(str::trim).filter(|entry| !entry.is_empty()).unwrap_or(fallback)
 }
 
+fn apptainer_section_body<'a>(raw: &'a str, section: &str) -> Option<&'a str> {
+    raw.split(&format!("%{section}"))
+        .nth(1)
+        .and_then(|chunk| chunk.split("\n%").next())
+        .map(str::trim)
+        .filter(|chunk| !chunk.is_empty())
+}
+
 fn shared_cache_root(root: &Path) -> PathBuf {
     if root
         .file_name()
@@ -701,19 +709,16 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
                     path.display()
                 )),
             }
-            let runscript_chunk = raw
-                .split("%runscript")
-                .nth(1)
-                .and_then(|chunk| chunk.split("\n%").next())
-                .unwrap_or("");
-            if !runscript_chunk.contains("exec ") {
-                offenders.push(format!("{}: %runscript must use exec", path.display()));
-            }
-            if !runscript_chunk.contains("\"$@\"") {
-                offenders.push(format!(
-                    "{}: %runscript must pass through \"$@\"",
-                    path.display()
-                ));
+            if let Some(runscript_chunk) = apptainer_section_body(&raw, "runscript") {
+                if !runscript_chunk.contains("exec ") {
+                    offenders.push(format!("{}: %runscript must use exec", path.display()));
+                }
+                if !runscript_chunk.contains("\"$@\"") {
+                    offenders.push(format!(
+                        "{}: %runscript must pass through \"$@\"",
+                        path.display()
+                    ));
+                }
             }
             if requires_governed_oci_metadata(&defs_root, &path) {
                 for label in [

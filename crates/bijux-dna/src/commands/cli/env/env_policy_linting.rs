@@ -230,26 +230,22 @@ fn stage_tool_ids(stage: &StageRegistryRow) -> Vec<String> {
     ids
 }
 
+fn declared_probe_command<'a>(primary: Option<&'a str>, fallback: Option<&'a str>) -> Option<&'a str> {
+    primary.or(fallback).map(str::trim).filter(|value| !value.is_empty())
+}
+
 fn smoke_policy_offenders(tools: Vec<RegistryRow>, domain: &str) -> Vec<String> {
     let mut offenders = Vec::new();
     for tool in tools {
         if tool.status != "supported" || !tool_in_domain(&tool, domain) {
             continue;
         }
-        let version_cmd = tool
-            .smoke_version_cmd
-            .as_deref()
-            .or(tool.version_cmd.as_deref())
-            .map(str::trim)
-            .unwrap_or("");
-        let help_cmd = tool
-            .smoke_help_cmd
-            .as_deref()
-            .or(tool.help_cmd.as_deref())
-            .map(str::trim)
-            .unwrap_or("");
+        let version_cmd =
+            declared_probe_command(tool.smoke_version_cmd.as_deref(), tool.version_cmd.as_deref());
+        let help_cmd =
+            declared_probe_command(tool.smoke_help_cmd.as_deref(), tool.help_cmd.as_deref());
         let require_help = tool.smoke_require_help.unwrap_or(true);
-        if version_cmd.is_empty() || (require_help && help_cmd.is_empty()) {
+        if version_cmd.is_none() || (require_help && help_cmd.is_none()) {
             offenders.push(format!(
                 "tool={} missing smoke commands (version/help policy)",
                 tool.id
