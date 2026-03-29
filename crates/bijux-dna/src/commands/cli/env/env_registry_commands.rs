@@ -409,7 +409,15 @@ fn quarantine_file(path: &Path, quarantine_root: &Path, reason: &str) -> Result<
         .parent()
         .and_then(Path::file_name)
         .and_then(|v| v.to_str())
-        .unwrap_or("unknown_tool");
+        .filter(|value| !value.trim().is_empty())
+        .map(ToOwned::to_owned)
+        .or_else(|| {
+            path.file_stem()
+                .and_then(|value| value.to_str())
+                .filter(|value| !value.trim().is_empty())
+                .map(ToOwned::to_owned)
+        })
+        .unwrap_or_else(|| "orphaned_artifact".to_string());
     let dest_dir = quarantine_root.join(tool);
     bijux_dna_api::v1::api::run::ensure_dir(&dest_dir)?;
     let name = path
