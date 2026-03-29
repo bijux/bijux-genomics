@@ -165,7 +165,7 @@ fn write_sidecars(
         format!(
             "stage={}\nhostname={}\nLC_ALL=C\nTZ=UTC\nTMPDIR={}\nNO_NETWORK=true\n",
             stage.as_str(),
-            std::env::var("HOSTNAME").unwrap_or_else(|_| "unknown".to_string()),
+            std::env::var("HOSTNAME").unwrap_or_default(),
             tmp_dir.display()
         )
         .as_bytes(),
