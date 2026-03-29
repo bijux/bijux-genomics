@@ -117,7 +117,7 @@ pub fn run_ibd_stage(input_vcf: &Path, out_dir: &Path, params: &IbdStageParams) 
             bail!(
                 "vcf.ibd refusal: genome build mismatch (expected={}, observed={})",
                 expected,
-                observed.unwrap_or_else(|| "unknown".to_string())
+                observed.unwrap_or_else(|| "not_declared".to_string())
             );
         }
     }

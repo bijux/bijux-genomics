@@ -379,7 +379,7 @@ fn env_library_type() -> String {
         .ok()
         .map(|v| v.to_ascii_lowercase())
         .filter(|v| matches!(v.as_str(), "ssdna" | "dsdna"))
-        .unwrap_or_else(|| "unknown".to_string())
+        .unwrap_or_else(|| "not_declared".to_string())
 }
 
 fn env_damage_mask_mode() -> String {
