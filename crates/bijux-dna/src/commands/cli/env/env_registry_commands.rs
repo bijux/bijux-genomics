@@ -8,6 +8,10 @@ struct BenchmarkEnvRoots {
     results_root: PathBuf,
 }
 
+fn declared_registry_text<'a>(value: Option<&'a str>, fallback: &'static str) -> &'a str {
+    value.map(str::trim).filter(|entry| !entry.is_empty()).unwrap_or(fallback)
+}
+
 fn shared_cache_root(root: &Path) -> PathBuf {
     if root
         .file_name()
@@ -186,7 +190,7 @@ pub fn ensure_apptainer_images(
                     require_help,
                     &probe_commands,
                     tool.java_heap_mb,
-                    tool.upstream.as_deref().unwrap_or(""),
+                    declared_registry_text(tool.upstream.as_deref(), "not_declared"),
                     &data_root,
                     &results_root,
                 );
@@ -334,7 +338,7 @@ pub fn ensure_apptainer_tools(
             tool.smoke_require_help.unwrap_or(true),
             &tool.smoke_probes,
             tool.java_heap_mb,
-            tool.upstream.as_deref().unwrap_or(""),
+            declared_registry_text(tool.upstream.as_deref(), "not_declared"),
             &data_root,
             &results_root,
         );
@@ -470,13 +474,17 @@ pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
                 .parent()
                 .and_then(Path::file_name)
                 .and_then(|v| v.to_str())
-                .unwrap_or_default()
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .ok_or_else(|| anyhow!("SIF path missing governed tool directory: {}", path.display()))?
                 .to_string();
             let digest = hash_file_sha256_hex(&path)?;
             let stem = path
                 .file_stem()
                 .and_then(|v| v.to_str())
-                .unwrap_or_default();
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .ok_or_else(|| anyhow!("SIF path missing file stem: {}", path.display()))?;
             let manifest = path
                 .parent()
                 .map(|p| p.join(format!("{stem}.smoke_manifest.json")));
