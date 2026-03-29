@@ -5,7 +5,7 @@ use bijux_dna_db_ref::{
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 
 use crate::api::VcfPipelineInputs;
-use crate::stage_catalog::{
+use crate::tool_catalog::{
     default_tool, eagle_license_metadata_present, phasing_backend_supports_gl_only_input,
     stage_compat_tools,
 };

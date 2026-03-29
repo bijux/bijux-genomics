@@ -22,8 +22,9 @@ mod models;
 mod params;
 mod planner;
 mod reference_context;
-mod stage_catalog;
+mod stage_io;
 mod stage_sequence;
+mod tool_catalog;
 mod tool_selection;
 mod workspace_config;
 
