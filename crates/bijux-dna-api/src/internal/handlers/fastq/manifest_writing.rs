@@ -224,37 +224,7 @@ pub(crate) fn write_run_manifest(
     });
     bijux_dna_infra::atomic_write_json(&out_dir.join("tool_provenance.json"), &tool_provenance)
         .context("write tool_provenance.json")?;
-    let cache_key = {
-        let params_hash = run_provenance
-            .get("params_hash")
-            .and_then(serde_json::Value::as_str)
-            .filter(|value| !value.trim().is_empty())
-            .unwrap_or("not_recorded");
-        let input_hashes = run_provenance
-            .get("input_hashes")
-            .and_then(serde_json::Value::as_array)
-            .cloned()
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|value| value.as_str().map(std::string::ToString::to_string))
-            .collect::<Vec<_>>();
-        let tool_version = run_provenance
-            .get("tool_version")
-            .and_then(serde_json::Value::as_str)
-            .filter(|value| !value.trim().is_empty())
-            .unwrap_or("not_recorded");
-        let env_digest = run_provenance
-            .get("tool_image_digest")
-            .and_then(serde_json::Value::as_str)
-            .filter(|value| !value.trim().is_empty())
-            .unwrap_or("not_declared");
-        bijux_dna_core::prelude::CacheKey::new(
-            bijux_dna_core::prelude::input_fingerprint(&input_hashes),
-            params_hash,
-            tool_version,
-            env_digest,
-        )
-    };
+    let cache_key = declared_provenance_cache_key(&run_provenance);
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",
         "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
@@ -312,6 +282,44 @@ pub(crate) fn write_run_manifest(
         backfill_metric_manifest_hash(&artifacts_dir.join("stage_metrics.json"), &manifest_hash)?;
     }
     Ok(())
+}
+
+fn declared_provenance_cache_key(
+    run_provenance: &serde_json::Value,
+) -> Option<bijux_dna_core::prelude::CacheKey> {
+    let params_hash = run_provenance
+        .get("params_hash")
+        .and_then(serde_json::Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())?;
+    let input_hashes = run_provenance
+        .get("input_hashes")
+        .and_then(serde_json::Value::as_array)?
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+        .collect::<Vec<_>>();
+    if input_hashes.is_empty() {
+        return None;
+    }
+    let tool_version = run_provenance
+        .get("tool_version")
+        .and_then(serde_json::Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())?;
+    let env_digest = run_provenance
+        .get("tool_image_digest")
+        .and_then(serde_json::Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())?;
+    Some(bijux_dna_core::prelude::CacheKey::new(
+        bijux_dna_core::prelude::input_fingerprint(&input_hashes),
+        params_hash,
+        tool_version,
+        env_digest,
+    ))
 }
 
 fn backfill_metric_manifest_hash(path: &Path, manifest_hash: &str) -> Result<()> {
