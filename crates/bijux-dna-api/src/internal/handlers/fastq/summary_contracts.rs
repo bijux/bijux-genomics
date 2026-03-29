@@ -242,8 +242,10 @@ mod tests {
         let name = snapshot_name("schemas", "scientific_provenance_contract");
         let mut settings = Settings::new();
         settings.set_prepend_module_to_snapshot(false);
-        settings
-            .set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+        settings.set_snapshot_path(
+            crate::support::repo_root::resolve_repo_root()?
+                .join("crates/bijux-dna-api/tests/snapshots"),
+        );
         settings.bind(|| {
             insta::assert_json_snapshot!(
                 name,
