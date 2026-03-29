@@ -11,11 +11,11 @@ mod compile;
 mod coverage;
 mod loading;
 mod models;
+mod support;
 mod validation;
 
 use self::models::*;
-
-include!("shared.rs");
+use self::support::*;
 
 pub use self::compile::compile_domain_configs;
 pub use self::coverage::domain_coverage_report;
