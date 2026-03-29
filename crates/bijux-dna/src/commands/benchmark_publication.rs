@@ -303,8 +303,12 @@ fn render_corpus_fastq_dossier(
                     optional_f64(row.runtime_s),
                     row.exit_code
                         .map(|value| value.to_string())
-                        .unwrap_or_default(),
-                    row.report_json.clone(),
+                        .unwrap_or_else(|| "missing".to_string()),
+                    if row.report_json.trim().is_empty() {
+                        "missing".to_string()
+                    } else {
+                        row.report_json.clone()
+                    },
                 ]
             })
             .collect(),
@@ -819,7 +823,9 @@ fn csv_cell(value: String) -> String {
 }
 
 fn optional_f64(value: Option<f64>) -> String {
-    value.map(format_f64).unwrap_or_default()
+    value
+        .map(format_f64)
+        .unwrap_or_else(|| "missing".to_string())
 }
 
 fn format_f64(value: f64) -> String {
@@ -2707,12 +2713,14 @@ fn load_csv_rows(path: &Path) -> Result<Vec<BTreeMap<String, String>>> {
 }
 
 fn csv_value(row: &BTreeMap<String, String>, key: &str) -> String {
-    row.get(key).cloned().unwrap_or_default().trim().to_string()
+    row.get(key)
+        .map(|value| value.trim().to_string())
+        .unwrap_or_else(|| "missing".to_string())
 }
 
 fn csv_required_value(row: &BTreeMap<String, String>, key: &str) -> Option<String> {
     let value = csv_value(row, key);
-    (!value.is_empty()).then_some(value)
+    (value != "missing" && !value.is_empty()).then_some(value)
 }
 
 fn csv_report_value(row: &BTreeMap<String, String>, key: &str) -> String {
