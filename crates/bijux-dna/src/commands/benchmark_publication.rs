@@ -1811,7 +1811,7 @@ fn load_results_status(path: &Path) -> Result<(BTreeMap<String, serde_json::Valu
 }
 
 fn audit_publication_docs(
-    repo_root: &Path,
+    _repo_root: &Path,
     docs_root: &Path,
     contracts: &[CorpusBenchmarkContract],
     exclusions: &[CorpusBenchmarkExclusion],
@@ -1821,8 +1821,6 @@ fn audit_publication_docs(
     audit_warnings: &[String],
     supplemental_findings_generated_at_utc: Option<String>,
 ) -> Result<BenchmarkPublicationStatusReport> {
-    let mut warnings = audit_warnings.to_vec();
-    warnings.extend(makefile_publication_warnings(repo_root, contracts)?);
     let stages = contracts
         .iter()
         .map(|contract| {
@@ -1853,8 +1851,8 @@ fn audit_publication_docs(
             .count(),
         excluded_stage_count: exclusions.len(),
         issue_count: stages.iter().map(|stage| stage.issue_count).sum(),
-        audit_warning_count: warnings.len(),
-        audit_warnings: warnings,
+        audit_warning_count: audit_warnings.len(),
+        audit_warnings: audit_warnings.to_vec(),
         supplemental_findings_generated_at_utc,
         excluded_stages: exclusions
             .iter()
@@ -2499,35 +2497,6 @@ fn render_publication_docs_markdown(report: &BenchmarkPublicationStatusReport) -
     lines.push("A complete published corpus dossier requires `corpus-01-method.md`, `summary.json`, `sample_results.csv`, `tool_runtime_summary.csv`, `cohort_runtime_summary.csv`, `sample_runtime_outliers.csv`, and `benchmark.md`.".to_string());
     lines.push("Published summaries must also match the governed scenario id, exact benchmark tool roster, expected corpus scope (`full` or `paired`), zero sample failures, and complete sample-by-tool coverage.".to_string());
     lines.join("\n") + "\n"
-}
-
-fn makefile_publication_warnings(
-    repo_root: &Path,
-    contracts: &[CorpusBenchmarkContract],
-) -> Result<Vec<String>> {
-    let makefile_path = repo_root.join("makes/benchmarks-fastq.mk");
-    if !makefile_path.is_file() {
-        return Ok(vec![format!(
-            "missing benchmark makefile: {}",
-            makefile_path.display()
-        )]);
-    }
-    let makefile_text = fs::read_to_string(&makefile_path)
-        .with_context(|| format!("read {}", makefile_path.display()))?;
-    let missing_targets = contracts
-        .iter()
-        .map(|contract| corpus_fastq_make_target(&contract.stage_id, "report"))
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .filter(|target| !makefile_text.contains(&format!("{target}:")))
-        .collect::<Vec<_>>();
-    if missing_targets.is_empty() {
-        return Ok(Vec::new());
-    }
-    Ok(vec![format!(
-        "benchmark makefile omits governed publication targets: {}",
-        missing_targets.join(", ")
-    )])
 }
 
 fn append_stage_result_issue(
@@ -4104,57 +4073,6 @@ reason = "Compact validation fixture."
     }
 
     #[test]
-    fn publication_docs_warn_when_makefile_omits_governed_target() {
-        let temp = tempdir().expect("tempdir");
-        let repo_root = temp.path();
-        let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
-        fs::write(
-            repo_root.join("configs/runtime/corpora/corpus-01.toml"),
-            concat!(
-                "corpus_id = \"corpus-01\"\n",
-                "target_ancient_se = 1\n",
-                "target_ancient_pe = 0\n",
-                "target_modern_se = 1\n",
-                "target_modern_pe = 0\n",
-            ),
-        )
-        .expect("write corpus spec");
-        fs::create_dir_all(repo_root.join("makes")).expect("makes dir");
-        fs::write(
-            repo_root.join("makes/benchmarks-fastq.mk"),
-            "_benchmark-validate-corpus-01-report:\n\t@true\n",
-        )
-        .expect("makefile");
-        let stage_root = docs_root.join("fastq.validate_reads");
-        fs::create_dir_all(stage_root.join("corpus-01")).expect("corpus dir");
-        fs::write(stage_root.join("corpus-01-method.md"), "# method\n").expect("method");
-        let report = super::audit_publication_docs(
-            repo_root,
-            &docs_root,
-            &[
-                validate_reads_contract(),
-                crate::commands::benchmark_workspace::CorpusBenchmarkContract {
-                    stage_id: "fastq.trim_reads".to_string(),
-                    scenario_id: "trim_fairness".to_string(),
-                    sample_scope: "full".to_string(),
-                    tools: vec!["fastp".to_string()],
-                },
-            ],
-            &[],
-            &super::load_publication_corpus_spec(repo_root, None).expect("corpus spec"),
-            &BTreeMap::new(),
-            &BTreeMap::new(),
-            &[],
-            None,
-        )
-        .expect("publication report");
-        assert!(report
-            .audit_warnings
-            .iter()
-            .any(|warning| warning.contains("_benchmark-trim-reads-corpus-01-report")));
-    }
-
     #[test]
     fn load_supplemental_findings_warns_when_freshness_missing() {
         let temp = tempdir().expect("tempdir");
