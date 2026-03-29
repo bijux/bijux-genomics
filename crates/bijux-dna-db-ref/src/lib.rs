@@ -4,11 +4,16 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::sync::OnceLock;
 
+mod catalog;
 mod models;
 
+pub use catalog::{
+    CatalogCompatibility, CatalogFileEntry, MapCatalogEntry, MapCompatibility, MapLockEntry,
+    PanelCatalogEntry, PanelLockEntry,
+};
 pub use models::{
     BuildId, ContigMap, ContigNormalizationPolicy, GeneticMapBankEntry, OrganellarPolicy,
     ParRegion, ReferenceBankEntry, ReferenceBundle, ReferenceProvenance, ReferenceSet,
@@ -110,70 +115,6 @@ struct ReferenceSetConfig {
     set: Vec<ReferenceSet>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct PanelCatalogEntry {
-    pub id: String,
-    pub species_id: String,
-    pub build_id: String,
-    #[serde(default)]
-    pub status: String,
-    pub version: String,
-    #[serde(default)]
-    pub license: String,
-    #[serde(default)]
-    pub lock_ref: String,
-    #[serde(default)]
-    pub citation: Option<String>,
-    #[serde(default)]
-    pub files: Vec<CatalogFileEntry>,
-    pub compatibility: CatalogCompatibility,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct MapCatalogEntry {
-    pub id: String,
-    pub species_id: String,
-    pub build_id: String,
-    #[serde(default)]
-    pub status: String,
-    pub version: String,
-    #[serde(default)]
-    pub lock_ref: String,
-    #[serde(default)]
-    pub citation: Option<String>,
-    #[serde(default)]
-    pub files: Vec<CatalogFileEntry>,
-    pub compatibility: MapCompatibility,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct CatalogFileEntry {
-    pub name: String,
-    pub path: String,
-    pub format: String,
-    pub url: String,
-    pub checksum_sha256: String,
-    #[serde(default)]
-    pub required: bool,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct CatalogCompatibility {
-    #[serde(default)]
-    pub tool_tags: Vec<String>,
-    pub requires_phased: bool,
-    pub supports_gl_input: bool,
-    pub supports_minimac_m3vcf: bool,
-    pub glimpse_reference_format: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct MapCompatibility {
-    #[serde(default)]
-    pub tool_tags: Vec<String>,
-    pub coordinate_system: String,
-}
-
 #[derive(Debug, Deserialize)]
 struct PanelsConfig {
     #[serde(default)]
@@ -192,30 +133,10 @@ struct PanelLocksConfig {
     locks: BTreeMap<String, PanelLockEntry>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct PanelLockEntry {
-    pub species_id: String,
-    pub build_id: String,
-    pub panel_id: String,
-    pub version: String,
-    #[serde(default)]
-    pub files: Vec<CatalogFileEntry>,
-}
-
 #[derive(Debug, Deserialize)]
 struct MapLocksConfig {
     #[serde(default)]
     locks: BTreeMap<String, MapLockEntry>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct MapLockEntry {
-    pub species_id: String,
-    pub build_id: String,
-    pub map_id: String,
-    pub version: String,
-    #[serde(default)]
-    pub files: Vec<CatalogFileEntry>,
 }
 
 fn workspace_root() -> PathBuf {
