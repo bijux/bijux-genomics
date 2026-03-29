@@ -205,12 +205,7 @@ fn default_extra_data_root(config: &BenchmarkConfig, out_root: &Path) -> Result<
             .is_some_and(|root| path_is_under(&resolved, root))
     {
         return remote_extra_data_root
-            .or_else(|| {
-                remote_cache_root
-                    .as_ref()
-                    .map(|root| root.join("extra-data"))
-            })
-            .ok_or_else(|| anyhow!("benchmark config is missing remote extra-data root"));
+            .ok_or_else(|| anyhow!("benchmark config is missing workspace.remote.extra_data_root"));
     }
 
     if local_results_root
@@ -221,17 +216,11 @@ fn default_extra_data_root(config: &BenchmarkConfig, out_root: &Path) -> Result<
             .is_some_and(|root| path_is_under(&resolved, root))
     {
         return local_extra_data_root
-            .or_else(|| infer_results_archive_root(&resolved).map(|root| root.join("extra-data")))
-            .ok_or_else(|| anyhow!("benchmark config is missing local extra-data root"));
+            .ok_or_else(|| anyhow!("benchmark config is missing workspace.local.extra_data_root"));
     }
 
     local_extra_data_root
-        .or_else(|| infer_results_archive_root(&resolved).map(|root| root.join("extra-data")))
         .ok_or_else(|| anyhow!("unable to infer extra-data root for {}", out_root.display()))
-}
-
-fn infer_results_archive_root(out_root: &Path) -> Option<PathBuf> {
-    out_root.ancestors().nth(3).map(Path::to_path_buf)
 }
 
 fn path_is_under(path: &Path, root: &Path) -> bool {
@@ -532,5 +521,28 @@ mod tests {
                 "/bench/local/results/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
             )
         );
+    }
+
+    #[test]
+    fn screen_taxonomy_database_root_requires_declared_local_extra_data_root() {
+        let mut config = sample_config();
+        config
+            .workspace
+            .local
+            .as_mut()
+            .expect("local workspace")
+            .extra_data_root = None;
+        let error = resolve_database_root(
+            Path::new("/repo"),
+            &config,
+            &BenchWriteScreenTaxonomyDatabaseLineageArgs {
+                results_root: Some(PathBuf::from("/bench/local/results")),
+                ..sample_args()
+            },
+        )
+        .expect_err("missing local extra-data root must fail");
+        assert!(error
+            .to_string()
+            .contains("benchmark config is missing workspace.local.extra_data_root"));
     }
 }
