@@ -1,5 +1,8 @@
 use bijux_dna::commands::run_with_args;
 
+#[path = "../../support.rs"]
+mod support;
+
 #[test]
 fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
     let temp = tempfile::tempdir().expect("tempdir");
@@ -62,11 +65,7 @@ arch = "x86_64"
     )
     .expect("write platforms");
 
-    let ws_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap();
+    let ws_root = support::repo_root().expect("repo root");
     for (src, dest) in [
         (
             ws_root.join("configs/ci/tools/images.toml"),
