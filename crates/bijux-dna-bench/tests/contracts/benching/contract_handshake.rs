@@ -5,8 +5,12 @@ use anyhow::Result;
 use bijux_dna_core::contract::RunRecordV1;
 use bijux_dna_runtime::ReportSchemaV1;
 
+#[path = "../../support.rs"]
+mod support;
+
 fn fixture_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    support::crate_root("bijux-dna-bench")
+        .unwrap_or_else(|err| panic!("resolve benchmark crate root: {err}"))
         .join("tests")
         .join("fixtures")
         .join("handshake")
@@ -14,9 +18,8 @@ fn fixture_root() -> PathBuf {
 }
 
 fn analyze_report_fixture() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
+    support::repo_root()
+        .unwrap_or_else(|err| panic!("resolve repo root: {err}"))
         .join("bijux-dna-analyze")
         .join("tests")
         .join("fixtures")
