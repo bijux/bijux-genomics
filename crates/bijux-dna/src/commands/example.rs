@@ -726,8 +726,7 @@ fn write_provenance_stamp(cwd: &Path, root: &Path) -> Result<()> {
     let commit = bijux_dna_api::v1::api::env::run_shell_capture(&command)
         .ok()
         .map(|raw| raw.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "unknown".to_string());
+        .filter(|s| !s.is_empty());
 
     let registry_raw = fs::read_to_string(bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"))
         .unwrap_or_else(|_| String::new());
