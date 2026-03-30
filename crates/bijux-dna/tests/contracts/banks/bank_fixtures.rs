@@ -3,12 +3,12 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
-#[path = "../../support.rs"]
+#[path = "../../workspace_paths.rs"]
 mod test_support;
 
-pub use test_support::crate_root;
+pub use test_support::{crate_root, repo_root};
 
 pub static CWD_LOCK: Mutex<()> = Mutex::new(());
 
@@ -46,7 +46,7 @@ where
     F: FnOnce() -> Result<T>,
 {
     let env_guard = EnvGuard::new()?;
-    let _guard = CWD_LOCK.lock().expect("cwd lock");
+    let _guard = CWD_LOCK.lock().map_err(|err| anyhow!("cwd lock: {err}"))?;
     let repo_root = test_support::repo_root()?;
     let prev_dir = std::env::current_dir()?;
     std::env::set_current_dir(&repo_root)?;

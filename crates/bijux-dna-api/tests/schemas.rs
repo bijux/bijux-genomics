@@ -1,6 +1,4 @@
 // Auto-generated test aggregator for schemas
-#[path = "support.rs"]
-mod support;
 #[path = "schemas/v1_cross_api_stability.rs"]
 mod mod_schemas_v1_cross_api_stability_rs;
 #[path = "schemas/v1_cross_contract_handshake.rs"]
@@ -11,3 +9,5 @@ mod mod_schemas_v1_cross_docs_schema_snapshots_rs;
 mod mod_schemas_v1_cross_public_surface_rs;
 #[path = "schemas/v1_operator_failure_contract.rs"]
 mod mod_schemas_v1_operator_failure_contract_rs;
+#[path = "workspace_paths.rs"]
+mod support;

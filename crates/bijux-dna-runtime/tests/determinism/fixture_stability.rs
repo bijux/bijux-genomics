@@ -1,4 +1,4 @@
-#[path = "../support.rs"]
+#[path = "../workspace_paths.rs"]
 mod support;
 
 use std::fs;
@@ -20,7 +20,7 @@ fn stable_json(value: &Value) -> Value {
 #[test]
 fn fixture_json_is_stable() {
     let fixture = support::crate_root("bijux-dna-runtime")
-        .expect("runtime crate root")
+        .unwrap_or_else(|err| panic!("resolve runtime crate root: {err}"))
         .join("tests/fixtures/runtime_schema/default/run_record_v1.json");
     let value = load_fixture_json(&fixture);
     let sorted = stable_json(&value);

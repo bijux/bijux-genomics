@@ -7,3 +7,5 @@ mod mod_boundaries_guardrails_no_execution_scan_rs;
 mod mod_boundaries_guardrails_rs;
 #[path = "boundaries/guardrails/tree_contract.rs"]
 mod mod_boundaries_guardrails_tree_contract_rs;
+#[path = "workspace_paths.rs"]
+mod support;

@@ -1,6 +1,6 @@
 use bijux_dna_testkit::{load_fixture_json, stable_json};
 
-#[path = "../support.rs"]
+#[path = "../workspace_paths.rs"]
 mod support;
 
 /// Ensures JSON fixtures serialize deterministically.
