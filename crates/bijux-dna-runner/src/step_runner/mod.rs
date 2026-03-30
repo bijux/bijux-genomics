@@ -391,7 +391,10 @@ mod tests {
         };
 
         assert_eq!(execution_pipeline_identity(&step), "stage.trim");
-        assert_eq!(execution_sample_identity(&step), "sample-0001.reads.trim.fastp");
+        assert_eq!(
+            execution_sample_identity(&step),
+            "sample-0001.reads.trim.fastp"
+        );
     }
 
     #[test]

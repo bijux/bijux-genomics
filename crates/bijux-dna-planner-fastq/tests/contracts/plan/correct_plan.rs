@@ -48,24 +48,9 @@ fn slow__bayeshammer_reconstruction_preserves_paired_record_count() {
         "+\n",
         "IIIIII\n",
     );
-    let corrected_r1 = concat!(
-        "@read1/1\n",
-        "AACCAA\n",
-        "+\n",
-        "IIIIII\n",
-    );
-    let corrected_r2 = concat!(
-        "@read1/2\n",
-        "CCGGCC\n",
-        "+\n",
-        "IIIIII\n",
-    );
-    let unpaired = concat!(
-        "@read2/1\n",
-        "TTTTAA\n",
-        "+\n",
-        "IIIIII\n",
-    );
+    let corrected_r1 = concat!("@read1/1\n", "AACCAA\n", "+\n", "IIIIII\n",);
+    let corrected_r2 = concat!("@read1/2\n", "CCGGCC\n", "+\n", "IIIIII\n",);
+    let unpaired = concat!("@read2/1\n", "TTTTAA\n", "+\n", "IIIIII\n",);
 
     let plan = plan_correct_with_options(
         &tool("bayeshammer"),
@@ -176,8 +161,7 @@ fn reconstruct_bayeshammer_pairs(
         .into_iter()
         .map(|record| (read_key(&record), record))
         .collect::<std::collections::BTreeMap<_, _>>();
-    let mut unpaired_by_key =
-        std::collections::BTreeMap::<String, Vec<FastqRecord>>::new();
+    let mut unpaired_by_key = std::collections::BTreeMap::<String, Vec<FastqRecord>>::new();
     for record in unpaired {
         unpaired_by_key
             .entry(read_key(&record))
