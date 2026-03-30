@@ -9,12 +9,28 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+fn stage_specs_surface(root: &Path, crate_name: &str) -> PathBuf {
+    let crate_src = root.join("crates").join(crate_name).join("src");
+    let module_dir = crate_src.join("stage_specs").join("mod.rs");
+    if module_dir.exists() {
+        return module_dir;
+    }
+
+    let flat_file = crate_src.join("stage_specs.rs");
+    if flat_file.exists() {
+        return flat_file;
+    }
+
+    panic!("resolve stage_specs surface for {crate_name}");
+}
+
 #[test]
 fn policy__boundaries__stage_specs_purity__stage_specs_are_declarative_only() {
     let root = repo_root();
     let specs = [
-        root.join("crates/bijux-dna-stages-fastq/src/stage_specs.rs"),
-        root.join("crates/bijux-dna-stages-bam/src/stage_specs.rs"),
+        stage_specs_surface(&root, "bijux-dna-stages-fastq"),
+        stage_specs_surface(&root, "bijux-dna-stages-bam"),
+        stage_specs_surface(&root, "bijux-dna-stages-vcf"),
     ];
     let forbidden = [
         "CommandSpec",
