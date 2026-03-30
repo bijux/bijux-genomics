@@ -13,7 +13,10 @@ impl StagePlugin for BamStagePlugin {
         invocation::handles_bam_stage(stage_id)
     }
 
-    fn materialize(&self, plan: &StagePlanV1) -> Result<bijux_dna_stage_contract::StageInvocationV1> {
+    fn materialize(
+        &self,
+        plan: &StagePlanV1,
+    ) -> Result<bijux_dna_stage_contract::StageInvocationV1> {
         invocation::materialize_stage_invocation(plan)
     }
 
