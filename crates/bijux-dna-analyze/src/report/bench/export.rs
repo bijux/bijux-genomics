@@ -50,7 +50,7 @@ pub fn write_validate_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.validate_reads", &rankings);
+        crate::print_rank_explain("fastq.validate_reads", &rankings);
     }
     Ok(())
 }
@@ -76,7 +76,7 @@ pub fn write_detect_adapters_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.detect_adapters", &BTreeMap::new());
+        crate::print_rank_explain("fastq.detect_adapters", &BTreeMap::new());
     }
     Ok(())
 }
@@ -115,7 +115,7 @@ pub fn write_filter_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.filter_reads", &rankings);
+        crate::print_rank_explain("fastq.filter_reads", &rankings);
     }
     Ok(())
 }
@@ -141,7 +141,7 @@ pub fn write_filter_low_complexity_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.filter_low_complexity", &BTreeMap::new());
+        crate::print_rank_explain("fastq.filter_low_complexity", &BTreeMap::new());
     }
     Ok(())
 }
@@ -175,7 +175,7 @@ pub fn write_merge_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.merge_pairs", &rankings);
+        crate::print_rank_explain("fastq.merge_pairs", &rankings);
     }
     Ok(())
 }
@@ -209,7 +209,7 @@ pub fn write_correct_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.correct_errors", &rankings);
+        crate::print_rank_explain("fastq.correct_errors", &rankings);
     }
     Ok(())
 }
@@ -239,7 +239,7 @@ pub fn write_qc_post_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.report_qc", &BTreeMap::new());
+        crate::print_rank_explain("fastq.report_qc", &BTreeMap::new());
     }
     Ok(())
 }
@@ -282,7 +282,7 @@ pub fn write_screen_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.screen_taxonomy", &BTreeMap::new());
+        crate::print_rank_explain("fastq.screen_taxonomy", &BTreeMap::new());
     }
     Ok(())
 }
@@ -318,7 +318,7 @@ pub fn write_deplete_host_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.deplete_host", &BTreeMap::new());
+        crate::print_rank_explain("fastq.deplete_host", &BTreeMap::new());
     }
     Ok(())
 }
@@ -354,10 +354,7 @@ pub fn write_deplete_reference_contaminants_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain(
-            "fastq.deplete_reference_contaminants",
-            &BTreeMap::new(),
-        );
+        crate::print_rank_explain("fastq.deplete_reference_contaminants", &BTreeMap::new());
     }
     Ok(())
 }
@@ -393,7 +390,7 @@ pub fn write_deplete_rrna_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.deplete_rrna", &BTreeMap::new());
+        crate::print_rank_explain("fastq.deplete_rrna", &BTreeMap::new());
     }
     Ok(())
 }
@@ -429,7 +426,7 @@ pub fn write_cluster_otus_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.cluster_otus", &BTreeMap::new());
+        crate::print_rank_explain("fastq.cluster_otus", &BTreeMap::new());
     }
     Ok(())
 }
@@ -463,7 +460,7 @@ pub fn write_umi_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.extract_umis", &rankings);
+        crate::print_rank_explain("fastq.extract_umis", &rankings);
     }
     Ok(())
 }
@@ -489,7 +486,7 @@ pub fn write_index_reference_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.index_reference", &BTreeMap::new());
+        crate::print_rank_explain("fastq.index_reference", &BTreeMap::new());
     }
     Ok(())
 }
@@ -524,7 +521,7 @@ pub fn write_stats_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.profile_reads", &BTreeMap::new());
+        crate::print_rank_explain("fastq.profile_reads", &BTreeMap::new());
     }
     Ok(())
 }
@@ -550,10 +547,7 @@ pub fn write_overrepresented_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain(
-            "fastq.profile_overrepresented_sequences",
-            &BTreeMap::new(),
-        );
+        crate::print_rank_explain("fastq.profile_overrepresented_sequences", &BTreeMap::new());
     }
     Ok(())
 }
@@ -579,7 +573,7 @@ pub fn write_read_lengths_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.profile_read_lengths", &BTreeMap::new());
+        crate::print_rank_explain("fastq.profile_read_lengths", &BTreeMap::new());
     }
     Ok(())
 }
@@ -605,7 +599,7 @@ pub fn write_duplicates_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.remove_duplicates", &BTreeMap::new());
+        crate::print_rank_explain("fastq.remove_duplicates", &BTreeMap::new());
     }
     Ok(())
 }
@@ -631,7 +625,7 @@ pub fn write_chimeras_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.remove_chimeras", &BTreeMap::new());
+        crate::print_rank_explain("fastq.remove_chimeras", &BTreeMap::new());
     }
     Ok(())
 }
@@ -657,7 +651,7 @@ pub fn write_normalize_primers_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.normalize_primers", &BTreeMap::new());
+        crate::print_rank_explain("fastq.normalize_primers", &BTreeMap::new());
     }
     Ok(())
 }
@@ -683,7 +677,7 @@ pub fn write_infer_asvs_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.infer_asvs", &BTreeMap::new());
+        crate::print_rank_explain("fastq.infer_asvs", &BTreeMap::new());
     }
     Ok(())
 }
@@ -709,16 +703,16 @@ pub fn write_normalize_abundance_report(
         .map_err(anyhow::Error::from)
         .context("write report.json")?;
     if explain {
-        crate::decision::score::print_rank_explain("fastq.normalize_abundance", &BTreeMap::new());
+        crate::print_rank_explain("fastq.normalize_abundance", &BTreeMap::new());
     }
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+    use super::super::summary::{semantic_trim, MetricValue};
     use super::*;
     use crate::aggregate::{FastqDeltaMetrics, FastqTrimMetrics, FastqValidateMetrics};
-    use crate::report::bench::{semantic_trim, MetricValue};
 
     #[test]
     fn semantic_trim_generates_summary() {

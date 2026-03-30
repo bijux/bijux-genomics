@@ -35,8 +35,18 @@ metrics:
     meaning: "Number of input reads."
   - name: "reads_out"
     meaning: "Reads retained after contaminant depletion."
+  - name: "bases_in"
+    meaning: "Number of input bases."
+  - name: "bases_out"
+    meaning: "Number of retained bases after contaminant depletion."
+  - name: "pairs_in"
+    meaning: "Number of input read pairs."
+  - name: "pairs_out"
+    meaning: "Number of retained read pairs after contaminant depletion."
   - name: "contaminant_fraction_removed"
     meaning: "Fraction of reads removed during reference contaminant depletion."
+  - name: "depletion_summary"
+    meaning: "Structured governed depletion summary for contaminant depletion."
 description: "FASTQ stage for contaminant/decoy screen distinct from taxonomy classification."
 mutates_fastq: true
 report_only: false

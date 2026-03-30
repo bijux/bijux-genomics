@@ -48,6 +48,8 @@ metrics:
     meaning: "Number of retained read pairs after rRNA filtering"
   - name: "rrna_fraction_removed"
     meaning: "Fraction of input reads removed as rRNA"
+  - name: "depletion_summary"
+    meaning: "Structured governed depletion summary for rRNA depletion"
 description: "FASTQ stage for optional rRNA depletion/screening."
 mutates_fastq: true
 report_only: false

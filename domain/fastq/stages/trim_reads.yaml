@@ -49,8 +49,6 @@ parameters:
     param_type: "string"
     default: "none"
 metrics:
-  - name: "threads"
-    meaning: "Resolved trim threads executed by the selected backend"
   - name: "reads_in"
     meaning: "Number of input reads"
   - name: "reads_out"

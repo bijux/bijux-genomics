@@ -1210,6 +1210,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "genome_size": null,
             "kmer_size": null,
             "max_memory_gb": null,
+            "musket_kmer_budget": null,
             "paired_mode": "single_end",
             "quality_encoding": "phred33",
             "schema_version": "bijux.fastq.params.correct.v1",
@@ -1709,7 +1710,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "definitions": []
     },
     "run_provenance": {
-      "domain_snapshot_hash": "039523aef3eb373e936130df047ff0c87516b41a",
+      "domain_snapshot_hash": "0a4314ededd7b40bd3bb9fe2680f6216f49ed2bb",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",

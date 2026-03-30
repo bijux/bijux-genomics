@@ -27,6 +27,8 @@ parameters:
 metrics:
   - name: "sequence_count"
     meaning: "Number of profiled overrepresented sequences"
+  - name: "flagged_sequences"
+    meaning: "Number of overrepresented sequences that crossed the governed reporting threshold."
   - name: "top_fraction"
     meaning: "Fraction carried by the dominant overrepresented sequence"
 description: "FASTQ report-only stage for profiling overrepresented sequence content."
