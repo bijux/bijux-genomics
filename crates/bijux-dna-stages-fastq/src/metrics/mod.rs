@@ -20,6 +20,7 @@ mod envelope_support;
 mod fastqc;
 mod filters;
 mod stage_metrics;
+mod stage_metrics_analysis;
 mod stage_metrics_reporting;
 mod stage_metrics_transform;
 
