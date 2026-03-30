@@ -29,7 +29,9 @@ fn parse_acceptance_stage_keys(raw: &str, stage_id: &str) -> Vec<String> {
 
 fn load_downstream_acceptance_for_stage(stage_id: &str) -> Vec<String> {
     let raw = workspace_root()
-        .and_then(|root| std::fs::read_to_string(root.join("configs/vcf/downstream_acceptance.toml")).ok())
+        .and_then(|root| {
+            std::fs::read_to_string(root.join("configs/vcf/downstream_acceptance.toml")).ok()
+        })
         .unwrap_or_default();
     parse_acceptance_stage_keys(&raw, stage_id)
 }
@@ -69,6 +71,6 @@ fn choose_backend_by_regime(requested: ImputeBackend, evidence: BackendEvidence)
     }
 }
 
-include!("impute_stage_execution_engine.rs");
+include!("execution_engine.rs");
 
-include!("../postprocess/postprocess_output_normalization.rs");
+include!("postprocess.rs");
