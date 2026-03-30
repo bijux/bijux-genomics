@@ -1,6 +1,5 @@
 #![allow(clippy::too_many_arguments)]
 
-use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
@@ -8,7 +7,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{trim::TrimEffectiveParams, PairedMode};
-use bijux_dna_domain_fastq::{STAGE_TRIM_READS, TRIM_READS_REPORT_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::STAGE_TRIM_READS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
 mod config;
@@ -21,7 +20,7 @@ pub use config::{
 };
 use reporting::{
     move_first_existing_output_script, raw_backend_report_path, trim_raw_backend_output,
-    wrap_trim_command_with_report,
+    wrap_trim_command_with_report, wrap_trim_shell_script_with_report, write_trim_report_script,
 };
 
 pub const STAGE_ID: StageId = STAGE_TRIM_READS;

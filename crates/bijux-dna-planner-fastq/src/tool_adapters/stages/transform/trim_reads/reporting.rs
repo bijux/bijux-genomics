@@ -94,7 +94,7 @@ fn governed_trim_report_payload(
     })
 }
 
-fn write_trim_report_script(
+pub(super) fn write_trim_report_script(
     tool_id: &str,
     r1: &Path,
     r2: Option<&Path>,
@@ -171,7 +171,7 @@ pub(super) fn wrap_trim_command_with_report(
     )
 }
 
-fn wrap_trim_shell_script_with_report(
+pub(super) fn wrap_trim_shell_script_with_report(
     script: String,
     output_r1: &Path,
     output_r2: Option<&Path>,

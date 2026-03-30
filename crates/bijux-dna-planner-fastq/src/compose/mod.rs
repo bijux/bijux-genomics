@@ -5,39 +5,20 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactRef, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::defaults::{screen_defaults, validate_defaults};
-use bijux_dna_domain_fastq::params::{
-    edna::ChimeraDetectionEffectiveParams,
-    qc_post::{
-        QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
-    },
-    remove_duplicates::RemoveDuplicatesEffectiveParams,
-    screen::ScreenEffectiveParams,
-    stats::FastqStatsParams,
-    trim::{TrimEffectiveParams, TrimPolygTailsParams},
-    validate::ValidateEffectiveParams,
-    PairedMode,
-};
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::{
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READ_LENGTHS,
     STAGE_TRIM_POLYG_TAILS,
 };
-use bijux_dna_domain_fastq::{FastqOverrepresentedProfileParams, FastqReadLengthProfileParams};
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
 use crate::{
-    ClusterOtusStageParams, CorrectErrorsStageParams, DepleteHostStageParams,
-    DepleteReferenceContaminantsStageParams, DepleteRrnaStageParams, DetectAdaptersStageParams,
-    ExtractUmisStageParams, FastqStageBinding, FastqStageParameters,
-    FilterLowComplexityStageParams, FilterReadsStageParams, IndexReferenceStageParams,
-    InferAsvsStageParams, MergePairsStageParams, NormalizeAbundanceStageParams,
-    NormalizePrimersStageParams, TrimTerminalDamageStageParams, STAGE_CLUSTER_OTUS,
-    STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
-    STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY,
-    STAGE_FILTER_READS, STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE,
-    STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS, STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES,
-    STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE,
-    STAGE_VALIDATE_READS,
+    FastqStageBinding, STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
+    STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
+    STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INFER_ASVS,
+    STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS, STAGE_PROFILE_READS,
+    STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+    STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
 };
 
 mod input_resolution;
