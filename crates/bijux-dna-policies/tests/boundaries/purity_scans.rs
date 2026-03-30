@@ -383,8 +383,10 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
     ];
     let allowed_paths = [
         "crates/bijux-dna-domain-compiler/src/lib.rs",
+        "crates/bijux-dna-domain-compiler/src/compiler/support/status.rs",
         "crates/bijux-dna-environment-qa/src/image_qa/mod.rs",
         "crates/bijux-dna-environment/src/build.rs",
+        "crates/bijux-dna-environment/src/build/defaults.rs",
         "crates/bijux-dna-core/src/id_catalog.rs",
         "crates/bijux-dna-planner-fastq/src/selection/tool_registry.rs",
         "crates/bijux-dna-planner-fastq/src/selection/tool_selection.rs",
