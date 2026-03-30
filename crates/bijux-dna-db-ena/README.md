@@ -7,10 +7,10 @@
 This crate must not perform pipeline planning, stage execution, or report rendering. It must not own host-path policy.
 
 ## Effects & determinism guarantees
-Effects are limited to ENA network I/O and explicit filesystem writes under caller-provided output roots. URL normalization and download task planning are deterministic from input metadata.
+Effects are limited to ENA network I/O and explicit filesystem writes under caller-provided output roots. URL normalization and download planning are deterministic from input metadata.
 
 ## Public API / entrypoints
-Core entrypoints are in `src/client.rs`, `src/model.rs`, and `src/download.rs`.
+Core entrypoints are re-exported directly from `src/lib.rs` and owned by `src/client/`, `src/model/`, and `src/download/`.
 
 ## Key contracts it owns/consumes
 It owns ENA response parsing/normalization contracts and consumes workspace guardrails for boundary and docs compliance.
