@@ -233,7 +233,7 @@ fn benchmark_fanout_propagates_typed_correct_error_params() -> anyhow::Result<()
                     threads: Some(6),
                     quality_encoding: QualityEncoding::Phred33,
                     kmer_size: Some(31),
-                    musket_kmer_budget: None,
+                    musket_kmer_budget: Some(536_870_912),
                     genome_size: Some(2_500_000),
                     max_memory_gb: None,
                     trusted_kmer_artifact: Some(trusted.clone()),
@@ -266,6 +266,7 @@ fn benchmark_fanout_propagates_typed_correct_error_params() -> anyhow::Result<()
         .find(|step| step.step_id.as_str() == "fastq.correct_errors.tool.musket")
         .expect("musket step");
     assert!(musket_step.command.template[2].contains("\"kmer_size\":31"));
+    assert!(musket_step.command.template[2].contains("\"musket_kmer_budget\":536870912"));
     assert!(!musket_step.command.template[2].contains("\"genome_size\":2500000"));
     assert!(!musket_step.command.template[2].contains("trusted.kmers"));
     Ok(())
