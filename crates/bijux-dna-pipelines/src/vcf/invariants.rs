@@ -217,7 +217,7 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
                 "artifact_correctness_missing",
                 Some(id_catalog::VCF_FILTER),
                 InvariantSeverity::Hard,
-                "bgzip/tabix policy requires vcf.tbi artifact declaration",
+                "indexed VCF output requires vcf.tbi artifact declaration",
             ));
         }
     }
