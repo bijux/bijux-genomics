@@ -4,12 +4,14 @@ mod support;
 
 use std::collections::BTreeSet;
 
+use walkdir::WalkDir;
+
 #[test]
 fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_smoke_paths() {
     let root = support::workspace_root();
     let registry_path = root.join("configs/ci/registry/tool_registry_vcf.toml");
     let images_path = root.join("configs/ci/tools/images.toml");
-    let native_path = root.join("crates/bijux-dna-dev/src/commands/containers.rs");
+    let native_dir = root.join("crates/bijux-dna-dev/src/commands/containers");
 
     let registry_raw = std::fs::read_to_string(&registry_path)
         .unwrap_or_else(|_| panic!("read {registry_path:?}"));
@@ -21,8 +23,24 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let images: toml::Value = images_raw
         .parse()
         .unwrap_or_else(|_| panic!("parse {images_path:?}"));
-    let native =
-        std::fs::read_to_string(&native_path).unwrap_or_else(|_| panic!("read {native_path:?}"));
+    let mut native_sources = WalkDir::new(&native_dir)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "rs"))
+        .map(|entry| entry.into_path())
+        .collect::<Vec<_>>();
+    native_sources.sort();
+    assert!(
+        !native_sources.is_empty(),
+        "expected native container sources under {}",
+        native_dir.display()
+    );
+    let native = native_sources
+        .iter()
+        .map(|path| support::read_to_string(path))
+        .collect::<Vec<_>>()
+        .join("\n");
 
     let image_ids = images
         .as_table()
