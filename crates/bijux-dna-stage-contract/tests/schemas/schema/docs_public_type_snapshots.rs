@@ -1,11 +1,8 @@
 use std::fs;
 
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn public_type_snapshots_have_doc_anchors() {
-    let doc = support::crate_root("bijux-dna-stage-contract")
+    let doc = crate::support::crate_root("bijux-dna-stage-contract")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"))
         .join("docs")
         .join("SCHEMAS.md");

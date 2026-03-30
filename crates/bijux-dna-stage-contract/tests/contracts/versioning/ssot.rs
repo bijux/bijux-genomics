@@ -1,9 +1,6 @@
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn stage_contract_types_are_ssot() {
-    let root = support::repo_root().unwrap_or_else(|err| panic!("resolve repo root: {err}"));
+    let root = crate::support::repo_root().unwrap_or_else(|err| panic!("resolve repo root: {err}"));
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root.join("crates"))
         .into_iter()

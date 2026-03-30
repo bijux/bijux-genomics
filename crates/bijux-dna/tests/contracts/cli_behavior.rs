@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
