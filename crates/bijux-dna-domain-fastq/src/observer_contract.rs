@@ -132,11 +132,6 @@ const OBSERVER_SPECIALIZATION_CONTRACTS: &[ObserverSpecializationContract] = &[
         semantic_surface: "report_json",
     },
     ObserverSpecializationContract {
-        stage_id: "fastq.normalize_primers",
-        tool_id: "seqkit",
-        semantic_surface: "report_json",
-    },
-    ObserverSpecializationContract {
         stage_id: "fastq.normalize_abundance",
         tool_id: "seqkit",
         semantic_surface: "report_json",
