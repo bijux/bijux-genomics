@@ -947,7 +947,8 @@ impl StageMetricSchema for FastqOverrepresentedMetrics {
 pub struct FastqDuplicateMetrics {
     pub reads_in: u64,
     pub reads_out: u64,
-    pub duplicate_reads: u64,
+    #[serde(alias = "duplicate_reads")]
+    pub duplicates_removed: u64,
     pub dedup_rate: f64,
     #[serde(default)]
     pub tool: Option<String>,
@@ -977,9 +978,9 @@ impl StageMetricSchema for FastqDuplicateMetrics {
                 "reads_out must be <= reads_in".to_string(),
             ));
         }
-        if self.duplicate_reads != self.reads_in.saturating_sub(self.reads_out) {
+        if self.duplicates_removed != self.reads_in.saturating_sub(self.reads_out) {
             return Err(BenchError::Validation(
-                "duplicate_reads must equal reads_in - reads_out".to_string(),
+                "duplicates_removed must equal reads_in - reads_out".to_string(),
             ));
         }
         if !self.dedup_rate.is_finite() || !(0.0..=1.0).contains(&self.dedup_rate) {

@@ -273,7 +273,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
     let deduplicate = metric_set(FastqDuplicateMetrics {
         reads_in: 100,
         reads_out: 92,
-        duplicate_reads: 8,
+        duplicates_removed: 8,
         dedup_rate: 0.08,
         tool: Some("fastuniq".to_string()),
         paired_mode: Some("paired_end".to_string()),
