@@ -33,8 +33,9 @@ Offenders:\n{}",
 fn stage_specs_are_declarative() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("src")
-        .join("stage_specs.rs");
-    let contents = std::fs::read_to_string(&path).expect("read stage_specs.rs");
+        .join("stage_specs")
+        .join("mod.rs");
+    let contents = std::fs::read_to_string(&path).expect("read stage_specs/mod.rs");
     let banned = [
         "std::process",
         "Command::",
@@ -45,7 +46,7 @@ fn stage_specs_are_declarative() {
     for needle in banned {
         assert!(
             !contents.contains(needle),
-            "stage_specs.rs must be declarative; found {needle}"
+            "stage_specs/mod.rs must be declarative; found {needle}"
         );
     }
 }
