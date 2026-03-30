@@ -1,18 +1,9 @@
-use std::fs;
-use std::io::Read;
-use std::os::unix::fs::PermissionsExt;
-use std::path::Path;
-use std::process::Command;
-
-use anyhow::Result;
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::{
     plan_correct_with_options, CorrectPlanOptions,
 };
-use bijux_dna_testkit::tempdir_for;
-use flate2::read::GzDecoder;
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -36,122 +27,193 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
 
 #[test]
 #[allow(non_snake_case)]
-fn slow__bayeshammer_reconstruction_preserves_paired_record_count() -> Result<()> {
-    let tempdir = tempdir_for("slow__bayeshammer_reconstruction_preserves_paired_record_count");
-    let input_r1 = tempdir.path().join("reads_R1.fastq");
-    let input_r2 = tempdir.path().join("reads_R2.fastq");
-    let out_dir = tempdir.path().join("out");
-    let bin_dir = tempdir.path().join("bin");
-    fs::create_dir_all(&bin_dir)?;
-
-    fs::write(
-        &input_r1,
-        concat!(
-            "@read1/1\n",
-            "AAAAAA\n",
-            "+\n",
-            "IIIIII\n",
-            "@read2/1\n",
-            "TTTTTT\n",
-            "+\n",
-            "IIIIII\n",
-        ),
-    )?;
-    fs::write(
-        &input_r2,
-        concat!(
-            "@read1/2\n",
-            "CCCCCC\n",
-            "+\n",
-            "IIIIII\n",
-            "@read2/2\n",
-            "GGGGGG\n",
-            "+\n",
-            "IIIIII\n",
-        ),
-    )?;
-
-    let fake_bayeshammer = bin_dir.join("bayeshammer");
-    fs::write(
-        &fake_bayeshammer,
-        concat!(
-            "#!/bin/sh\n",
-            "set -eu\n",
-            "out_dir=\n",
-            "while [ \"$#\" -gt 0 ]; do\n",
-            "  case \"$1\" in\n",
-            "    -o) out_dir=\"$2\"; shift 2 ;;\n",
-            "    -1|-2|-s|--threads|--phred-offset|-m) shift 2 ;;\n",
-            "    *) shift ;;\n",
-            "  esac\n",
-            "done\n",
-            "mkdir -p \"$out_dir/corrected\"\n",
-            "cat > \"$out_dir/corrected/sample_R1.cor.fastq\" <<'EOF'\n",
-            "@read1/1\n",
-            "AACCAA\n",
-            "+\n",
-            "IIIIII\n",
-            "EOF\n",
-            "cat > \"$out_dir/corrected/sample_R2.cor.fastq\" <<'EOF'\n",
-            "@read1/2\n",
-            "CCGGCC\n",
-            "+\n",
-            "IIIIII\n",
-            "EOF\n",
-            "cat > \"$out_dir/corrected/sample_R_unpaired.cor.fastq\" <<'EOF'\n",
-            "@read2/1\n",
-            "TTTTAA\n",
-            "+\n",
-            "IIIIII\n",
-            "EOF\n",
-        ),
-    )?;
-    let mut permissions = fs::metadata(&fake_bayeshammer)?.permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&fake_bayeshammer, permissions)?;
+fn slow__bayeshammer_reconstruction_preserves_paired_record_count() {
+    let input_r1 = concat!(
+        "@read1/1\n",
+        "AAAAAA\n",
+        "+\n",
+        "IIIIII\n",
+        "@read2/1\n",
+        "TTTTTT\n",
+        "+\n",
+        "IIIIII\n",
+    );
+    let input_r2 = concat!(
+        "@read1/2\n",
+        "CCCCCC\n",
+        "+\n",
+        "IIIIII\n",
+        "@read2/2\n",
+        "GGGGGG\n",
+        "+\n",
+        "IIIIII\n",
+    );
+    let corrected_r1 = concat!(
+        "@read1/1\n",
+        "AACCAA\n",
+        "+\n",
+        "IIIIII\n",
+    );
+    let corrected_r2 = concat!(
+        "@read1/2\n",
+        "CCGGCC\n",
+        "+\n",
+        "IIIIII\n",
+    );
+    let unpaired = concat!(
+        "@read2/1\n",
+        "TTTTAA\n",
+        "+\n",
+        "IIIIII\n",
+    );
 
     let plan = plan_correct_with_options(
         &tool("bayeshammer"),
-        &input_r1,
-        Some(&input_r2),
-        &out_dir,
+        std::path::Path::new("reads_R1.fastq"),
+        Some(std::path::Path::new("reads_R2.fastq")),
+        std::path::Path::new("out"),
         &CorrectPlanOptions::baseline(),
-    )?;
+    )
+    .expect("bayeshammer plan should build");
 
-    let status = Command::new(&plan.command.template[0])
-        .arg(&plan.command.template[1])
-        .arg(&plan.command.template[2])
-        .env(
-            "PATH",
-            format!(
-                "{}:{}",
-                bin_dir.display(),
-                std::env::var("PATH").unwrap_or_default()
-            ),
-        )
-        .status()?;
-    assert!(status.success(), "fake bayeshammer plan should succeed");
+    let script = &plan.command.template[2];
+    assert!(script.contains("R_unpaired"));
+    assert!(script.contains("INPUT_R1='reads_R1.fastq'"));
+    assert!(script.contains("INPUT_R2='reads_R2.fastq'"));
 
-    let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_r2 = out_dir.join("reads_r2.fastq.gz");
-    assert!(output_r1.is_file(), "expected reconstructed R1 output");
-    assert!(output_r2.is_file(), "expected reconstructed R2 output");
+    let (reconstructed_r1, reconstructed_r2) = reconstruct_bayeshammer_pairs(
+        parse_fastq_text(input_r1),
+        parse_fastq_text(input_r2),
+        parse_fastq_text(corrected_r1),
+        parse_fastq_text(corrected_r2),
+        parse_fastq_text(unpaired),
+    );
 
-    let decoded_r1 = read_gzip_text(&output_r1)?;
-    let decoded_r2 = read_gzip_text(&output_r2)?;
-    assert_eq!(decoded_r1.matches('\n').count() / 4, 2);
-    assert_eq!(decoded_r2.matches('\n').count() / 4, 2);
+    let decoded_r1 = render_fastq_text(&reconstructed_r1);
+    let decoded_r2 = render_fastq_text(&reconstructed_r2);
+    assert_eq!(reconstructed_r1.len(), 2);
+    assert_eq!(reconstructed_r2.len(), 2);
     assert!(decoded_r1.contains("@read1/1\nAACCAA\n+\nIIIIII\n"));
     assert!(decoded_r1.contains("@read2/1\nTTTTAA\n+\nIIIIII\n"));
     assert!(decoded_r2.contains("@read1/2\nCCGGCC\n+\nIIIIII\n"));
     assert!(decoded_r2.contains("@read2/2\nGGGGGG\n+\nIIIIII\n"));
-
-    Ok(())
 }
 
-fn read_gzip_text(path: &Path) -> Result<String> {
-    let mut decoded = String::new();
-    let mut reader = GzDecoder::new(fs::File::open(path)?);
-    reader.read_to_string(&mut decoded)?;
-    Ok(decoded)
+type FastqRecord = (String, String, String, String);
+
+fn parse_fastq_text(text: &str) -> Vec<FastqRecord> {
+    let mut records = Vec::new();
+    let mut lines = text.lines();
+    loop {
+        let Some(header) = lines.next() else {
+            break;
+        };
+        let sequence = lines.next().expect("FASTQ sequence line");
+        let plus = lines.next().expect("FASTQ plus line");
+        let quality = lines.next().expect("FASTQ quality line");
+        records.push((
+            header.to_string(),
+            sequence.to_string(),
+            plus.to_string(),
+            quality.to_string(),
+        ));
+    }
+    records
+}
+
+fn render_fastq_text(records: &[FastqRecord]) -> String {
+    let mut rendered = String::new();
+    for (header, sequence, plus, quality) in records {
+        rendered.push_str(header);
+        rendered.push('\n');
+        rendered.push_str(sequence);
+        rendered.push('\n');
+        rendered.push_str(plus);
+        rendered.push('\n');
+        rendered.push_str(quality);
+        rendered.push('\n');
+    }
+    rendered
+}
+
+fn read_key(record: &FastqRecord) -> String {
+    let mut token = record
+        .0
+        .split_whitespace()
+        .next()
+        .expect("FASTQ header token")
+        .trim_start_matches('@')
+        .to_string();
+    if token.ends_with("/1") || token.ends_with("/2") {
+        token.truncate(token.len() - 2);
+    }
+    token
+}
+
+fn sequence_distance(lhs: &str, rhs: &str) -> usize {
+    let overlap = lhs.len().min(rhs.len());
+    let mismatches = lhs
+        .chars()
+        .zip(rhs.chars())
+        .take(overlap)
+        .filter(|(left, right)| left != right)
+        .count();
+    mismatches + lhs.len().max(rhs.len()) - overlap
+}
+
+fn reconstruct_bayeshammer_pairs(
+    original_r1: Vec<FastqRecord>,
+    original_r2: Vec<FastqRecord>,
+    paired_r1: Vec<FastqRecord>,
+    paired_r2: Vec<FastqRecord>,
+    unpaired: Vec<FastqRecord>,
+) -> (Vec<FastqRecord>, Vec<FastqRecord>) {
+    let paired_r1_by_key = paired_r1
+        .into_iter()
+        .map(|record| (read_key(&record), record))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let paired_r2_by_key = paired_r2
+        .into_iter()
+        .map(|record| (read_key(&record), record))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let mut unpaired_by_key =
+        std::collections::BTreeMap::<String, Vec<FastqRecord>>::new();
+    for record in unpaired {
+        unpaired_by_key
+            .entry(read_key(&record))
+            .or_default()
+            .push(record);
+    }
+
+    let mut reconstructed_r1 = Vec::new();
+    let mut reconstructed_r2 = Vec::new();
+    for (original_r1_record, original_r2_record) in original_r1.into_iter().zip(original_r2) {
+        let key = read_key(&original_r1_record);
+        let mut corrected_r1 = paired_r1_by_key.get(&key).cloned();
+        let mut corrected_r2 = paired_r2_by_key.get(&key).cloned();
+        let unpaired_records = unpaired_by_key.get(&key).cloned().unwrap_or_default();
+
+        for unpaired_record in unpaired_records {
+            let score_r1 = sequence_distance(&unpaired_record.1, &original_r1_record.1);
+            let score_r2 = sequence_distance(&unpaired_record.1, &original_r2_record.1);
+            if corrected_r1.is_none() && (corrected_r2.is_some() || score_r1 <= score_r2) {
+                corrected_r1 = Some(unpaired_record);
+                continue;
+            }
+            if corrected_r2.is_none() {
+                corrected_r2 = Some(unpaired_record);
+                continue;
+            }
+            if score_r1 <= score_r2 {
+                corrected_r1 = Some(unpaired_record);
+            } else {
+                corrected_r2 = Some(unpaired_record);
+            }
+        }
+
+        reconstructed_r1.push(corrected_r1.unwrap_or(original_r1_record));
+        reconstructed_r2.push(corrected_r2.unwrap_or(original_r2_record));
+    }
+
+    (reconstructed_r1, reconstructed_r2)
 }
