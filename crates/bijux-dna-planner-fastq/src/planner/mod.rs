@@ -26,9 +26,10 @@ use crate::{
 
 mod benchmark;
 mod graph_policy;
+mod layout_branching;
+mod quality_sampling;
 mod route_expansion;
 mod selection_planning;
-mod support;
 mod types;
 
 pub use crate::selection::{
@@ -56,7 +57,8 @@ use graph_policy::{
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};
 pub use route_expansion::{StageToolSelection, ToolsetSelection};
 pub use selection_planning::select_preprocess_stage_tools;
-pub(crate) use support::{apply_layout_branching, estimate_mean_q};
+pub(crate) use layout_branching::apply_layout_branching;
+pub(crate) use quality_sampling::estimate_mean_q;
 pub use types::*;
 
 pub struct FastqPlanner;
