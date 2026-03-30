@@ -192,7 +192,7 @@ fn policy__boundaries__ownership_contract__no_hidden_param_defaults_outside_doma
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"impl\s+Default\s+for\s+[A-Za-z0-9_]*Params").unwrap();
     let stages_vcf_allowlist = [
-        "crates/bijux-dna-stages-vcf/src/pipeline_sections/qc/qc_and_stage_params.rs",
+        "crates/bijux-dna-stages-vcf/src/pipeline/qc/stage_params.rs",
         "crates/bijux-dna-stages-vcf/src/pipeline_sections/imputation/imputation_types_and_population_params.rs",
         "crates/bijux-dna-stages-vcf/src/pipeline_sections/runtime/call_and_damage_stages.rs",
         "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/chunking_and_resume.rs",

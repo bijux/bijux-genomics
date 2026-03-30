@@ -83,7 +83,10 @@ fn detect_gl_or_gp_in_vcf(raw: &str) -> bool {
     })
 }
 
-pub(crate) fn resolve_phasing_backend(params: &PhasingStageParams, raw_vcf: &str) -> PhasingBackend {
+pub(crate) fn resolve_phasing_backend(
+    params: &PhasingStageParams,
+    raw_vcf: &str,
+) -> PhasingBackend {
     if params.backend != PhasingBackend::Auto {
         return params.backend;
     }
@@ -215,12 +218,36 @@ pub struct PopulationPreprocessingParams {
     pub max_missingness: f64,
 }
 
+impl Default for PopulationPreprocessingParams {
+    fn default() -> Self {
+        Self {
+            ld_window: 50,
+            ld_step: 5,
+            ld_r2_threshold: 0.2,
+            ld_pruning_policy: Some("plink2_indep_pairwise".to_string()),
+            maf_threshold: 0.01,
+            max_missingness: 0.1,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct PcaStageParams {
     pub toolchain: String,
     pub components: usize,
     pub sample_metadata_manifest: Option<PathBuf>,
     pub preprocessing: PopulationPreprocessingParams,
+}
+
+impl Default for PcaStageParams {
+    fn default() -> Self {
+        Self {
+            toolchain: "plink2".to_string(),
+            components: 10,
+            sample_metadata_manifest: None,
+            preprocessing: PopulationPreprocessingParams::default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -241,6 +268,19 @@ pub struct PopulationStructureStageParams {
     pub preprocessing: PopulationPreprocessingParams,
 }
 
+impl Default for PopulationStructureStageParams {
+    fn default() -> Self {
+        Self {
+            toolchain: "plink2".to_string(),
+            smartpca: true,
+            run_admixture: false,
+            sample_metadata_manifest: None,
+            admixture_params: None,
+            preprocessing: PopulationPreprocessingParams::default(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct PopulationStructureStageOutputs {
     pub pruned_variants_tsv: PathBuf,
@@ -253,6 +293,16 @@ pub struct AdmixtureStageParams {
     pub toolchain: String,
     pub k_values: Vec<usize>,
     pub sample_metadata_manifest: Option<PathBuf>,
+}
+
+impl Default for AdmixtureStageParams {
+    fn default() -> Self {
+        Self {
+            toolchain: "plink2".to_string(),
+            k_values: vec![2, 3, 4],
+            sample_metadata_manifest: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -277,6 +327,24 @@ pub struct RohStageParams {
     pub plink_homozyg_gap_kb: u64,
 }
 
+impl Default for RohStageParams {
+    fn default() -> Self {
+        Self {
+            toolchain: "plink2".to_string(),
+            min_snp_density_per_mb: 10.0,
+            max_missingness: 0.2,
+            low_coverage_missingness_threshold: 0.35,
+            allow_pseudohaploid_low_coverage: false,
+            min_segment_kb: 500,
+            max_gap_bp: 1_000_000,
+            max_segment_count: 20_000,
+            plink_homozyg_window_snp: 50,
+            plink_homozyg_kb: 500,
+            plink_homozyg_gap_kb: 1000,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct RohStageOutputs {
     pub roh_segments_tsv: PathBuf,
@@ -299,6 +367,20 @@ pub struct IbdStageParams {
     pub min_markers_per_segment: usize,
 }
 
+impl Default for IbdStageParams {
+    fn default() -> Self {
+        Self {
+            toolchain: "germline+ibdhap".to_string(),
+            expected_build: None,
+            min_variant_density_per_mb: 1.0,
+            max_missingness: 0.2,
+            min_samples: 2,
+            min_segment_cm: 2.0,
+            min_markers_per_segment: 50,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct IbdStageOutputs {
     pub ibd_input_tsv: PathBuf,
@@ -314,6 +396,15 @@ pub struct IbdStageOutputs {
 pub struct DemographyStageParams {
     pub min_segments: usize,
     pub expected_build: Option<String>,
+}
+
+impl Default for DemographyStageParams {
+    fn default() -> Self {
+        Self {
+            min_segments: 1,
+            expected_build: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
