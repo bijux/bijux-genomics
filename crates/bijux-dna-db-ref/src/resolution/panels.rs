@@ -1,6 +1,6 @@
-use anyhow::{Result, anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 
-use crate::config::{PanelLocksConfig, PanelsConfig, load_toml, workspace_root};
+use crate::config::{load_toml, workspace_root, PanelLocksConfig, PanelsConfig};
 use crate::{PanelCatalogEntry, PanelLockEntry};
 
 /// # Errors
@@ -49,7 +49,10 @@ pub fn resolve_panel_lock(panel: &PanelCatalogEntry) -> Result<PanelLockEntry> {
         || entry.species_id != panel.species_id
         || entry.build_id != panel.build_id
     {
-        bail!("panel lock entry does not match panel identity {}", panel.id);
+        bail!(
+            "panel lock entry does not match panel identity {}",
+            panel.id
+        );
     }
     if entry.files.is_empty() {
         bail!("panel lock entry {} has no files", panel.id);

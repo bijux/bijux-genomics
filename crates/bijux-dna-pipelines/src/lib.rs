@@ -15,8 +15,8 @@ pub mod vcf;
 pub const STAGE_CORE_PREPARE_REFERENCE: &str = "core.prepare_reference";
 pub const STAGE_CROSS_ALIGN_STUB: &str = "cross.align_stub";
 
-pub use defaults::{DefaultProvenanceV1, DefaultsLedgerV1};
 pub use default_params::{DefaultParams, EmptyParams};
+pub use defaults::{DefaultProvenanceV1, DefaultsLedgerV1};
 pub use model::{
     ArtifactType, Domain, EffectiveDefaults, InvariantSeverity, InvariantViolationV1,
     InvariantsPreset, InvariantsReportV1, MetricsBundle, PipelineCapabilities, PipelineContract,

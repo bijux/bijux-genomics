@@ -18,8 +18,12 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             let BamEffectiveParams::Markdup(params) = params else {
                 return Err(anyhow!("markdup params mismatch"));
             };
-            let mut plan =
-                tool_adapters::stages_post::markdup::plan(request.tool, bam, request.out_dir, &params)?;
+            let mut plan = tool_adapters::stages_post::markdup::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )?;
             plan.stage_id = StageId::new(stage.as_str().to_string());
             Ok(plan)
         }

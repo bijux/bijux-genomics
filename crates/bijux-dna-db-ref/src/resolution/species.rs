@@ -1,10 +1,14 @@
-use anyhow::{Result, anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 
-use crate::config::{AliasesConfig, CoverageRegimesConfig, SpeciesAuthorityConfig, load_toml, workspace_root};
+use crate::config::{
+    load_toml, workspace_root, AliasesConfig, CoverageRegimesConfig, SpeciesAuthorityConfig,
+};
 use crate::resolution::resolve_bundle_entry;
-use crate::{ContigMap, ResolvedSpeciesContext, SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures};
+use crate::{
+    ContigMap, ResolvedSpeciesContext, SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures,
+};
 
 /// # Errors
 /// Returns an error if alias config cannot be read or the alias is unknown.

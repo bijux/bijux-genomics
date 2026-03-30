@@ -24,7 +24,7 @@ pub use resolution::{
     resolve_species_context, validate_imputation_tool_compatibility,
 };
 pub use service::{
-    MapProvider, PanelProvider, RefService, ReferenceProvider, RuntimeRefService, ref_service,
+    ref_service, MapProvider, PanelProvider, RefService, ReferenceProvider, RuntimeRefService,
 };
 
 #[cfg(test)]

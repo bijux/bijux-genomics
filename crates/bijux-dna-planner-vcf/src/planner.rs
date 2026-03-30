@@ -8,9 +8,9 @@ use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::api::VcfPipelineInputs;
 use crate::chunk_plan::plan_region_chunks;
+use crate::reference_context::ResolvedPlanningContext;
 use crate::stage_sequence::resolve_requested_stages;
 use crate::tool_selection::{choose_tool, validate_selected_tool};
-use crate::reference_context::ResolvedPlanningContext;
 use crate::workspace_config::{load_registry_tools, load_required_tools};
 
 /// # Errors
@@ -79,7 +79,13 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
                 stage.as_str()
             );
         }
-        validate_selected_tool(stage, &tool, resolved_coverage, &panel_catalog, &map_catalog)?;
+        validate_selected_tool(
+            stage,
+            &tool,
+            resolved_coverage,
+            &panel_catalog,
+            &map_catalog,
+        )?;
         let plan = crate::stage_plan::build_stage_plan(
             stage,
             &current_vcf,

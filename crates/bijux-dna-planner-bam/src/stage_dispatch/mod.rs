@@ -6,8 +6,8 @@ use crate::api::StagePlanRequest;
 
 pub mod adna;
 pub mod downstream;
-pub mod pre;
 pub mod post;
+pub mod pre;
 
 /// # Errors
 /// Returns an error if the stage family planner cannot build a valid stage plan.

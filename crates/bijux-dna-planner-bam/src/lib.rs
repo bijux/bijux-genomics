@@ -15,11 +15,11 @@ mod selection;
 mod stage_activation;
 mod stage_dispatch;
 mod stages;
-mod tool_policy;
 pub mod tool_adapters;
+mod tool_policy;
 
-pub use api::{BamPipelineInputs, BamPlanConfig, StagePlanRequest};
 pub use api::stage_api;
+pub use api::{BamPipelineInputs, BamPlanConfig, StagePlanRequest};
 pub use report_stage::report_stage_step;
 
 pub struct BamPlanner;
@@ -32,7 +32,7 @@ impl BamPlanner {
             &config.pipeline_id,
             config.policy,
             &config.stages,
-            "planned bam execution graph"
+            "planned bam execution graph",
         )
     }
 }
@@ -135,6 +135,6 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         profile.id.as_str(),
         inputs.policy,
         &stages,
-        "planned bam pipeline graph"
+        "planned bam pipeline graph",
     )
 }
