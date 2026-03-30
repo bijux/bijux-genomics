@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::Path;
@@ -67,14 +69,16 @@ fn toml_list(value: &toml::Value, key: &str) -> Result<Vec<String>> {
 }
 
 fn declared_toml_str<'a>(value: &'a toml::Value, key: &str) -> Option<&'a str> {
-    value.get(key)
+    value
+        .get(key)
         .and_then(toml::Value::as_str)
         .map(str::trim)
         .filter(|entry| !entry.is_empty())
 }
 
 fn declared_toml_array<'a>(value: &'a toml::Value, key: &str) -> Option<Vec<&'a toml::Value>> {
-    value.get(key)
+    value
+        .get(key)
         .and_then(toml::Value::as_array)
         .map(|rows| rows.iter().collect::<Vec<_>>())
 }
@@ -113,16 +117,18 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         let stages_rel = declared_toml_str(domain, "stages_ssot");
         let params_rel = declared_toml_str(domain, "param_registry_ssot");
         let tools_rel = declared_toml_str(domain, "tool_registry_ssot");
-        if stages_rel.is_none() || params_rel.is_none() || tools_rel.is_none() {
+        let (Some(stages_rel), Some(params_rel), Some(tools_rel)) =
+            (stages_rel, params_rel, tools_rel)
+        else {
             println!(
                 "{:<8} {:<12} {:<7} {:<7} {:<7} {:<7} {:<9} {:<8}",
                 id, "invalid", "-", "-", "-", "-", "-", "yes"
             );
             continue;
-        }
-        let stages = parse_toml_path(&cwd.join(stages_rel.expect("checked above")))?;
-        let params = parse_toml_path(&cwd.join(params_rel.expect("checked above")))?;
-        let tools = parse_toml_path(&cwd.join(tools_rel.expect("checked above")))?;
+        };
+        let stages = parse_toml_path(&cwd.join(stages_rel))?;
+        let params = parse_toml_path(&cwd.join(params_rel))?;
+        let tools = parse_toml_path(&cwd.join(tools_rel))?;
         let stage_rows = declared_toml_array(&stages, "stages")
             .ok_or_else(|| anyhow!("stage registry must declare a stages array"))?;
 
@@ -309,17 +315,13 @@ pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<(
                     continue;
                 };
                 let Some(status) = parse_scalar(&raw, "status") else {
-                    missing_stage_fields.push(format!(
-                        "{} missing required key `status`",
-                        path.display()
-                    ));
+                    missing_stage_fields
+                        .push(format!("{} missing required key `status`", path.display()));
                     continue;
                 };
                 let Some(scope) = parse_scalar(&raw, "scope") else {
-                    missing_stage_fields.push(format!(
-                        "{} missing required key `scope`",
-                        path.display()
-                    ));
+                    missing_stage_fields
+                        .push(format!("{} missing required key `scope`", path.display()));
                     continue;
                 };
                 if scope != normalized_scope {
@@ -367,24 +369,18 @@ pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<(
                 let raw = std::fs::read_to_string(&path)
                     .with_context(|| format!("read {}", path.display()))?;
                 let Some(tool_id) = parse_scalar(&raw, "tool_id") else {
-                    missing_tool_fields.push(format!(
-                        "{} missing required key `tool_id`",
-                        path.display()
-                    ));
+                    missing_tool_fields
+                        .push(format!("{} missing required key `tool_id`", path.display()));
                     continue;
                 };
                 let Some(status) = parse_scalar(&raw, "status") else {
-                    missing_tool_fields.push(format!(
-                        "{} missing required key `status`",
-                        path.display()
-                    ));
+                    missing_tool_fields
+                        .push(format!("{} missing required key `status`", path.display()));
                     continue;
                 };
                 let Some(scope) = parse_scalar(&raw, "scope") else {
-                    missing_tool_fields.push(format!(
-                        "{} missing required key `scope`",
-                        path.display()
-                    ));
+                    missing_tool_fields
+                        .push(format!("{} missing required key `scope`", path.display()));
                     continue;
                 };
                 if scope != normalized_scope {

@@ -432,8 +432,7 @@ fn resolved_site_name() -> Result<String> {
 }
 
 fn declared_site_name(site: Option<String>) -> Result<String> {
-    site
-        .ok_or_else(|| anyhow!("BIJUX_HPC_SITE must be declared for HPC site locks"))
+    site.ok_or_else(|| anyhow!("BIJUX_HPC_SITE must be declared for HPC site locks"))
 }
 
 fn env_value(key: &str) -> Option<String> {
@@ -449,10 +448,7 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
         .components()
         .map(|c| c.as_os_str().to_string_lossy().to_string())
         .collect::<Vec<_>>();
-    let Some(results_idx) = comps
-        .iter()
-        .position(|v| v == "results")
-    else {
+    let Some(results_idx) = comps.iter().position(|v| v == "results") else {
         return Err(anyhow!("HPC out_dir must be rooted under results"));
     };
     if comps.len() < results_idx + 7 {
@@ -473,6 +469,7 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{declared_site_name, enforce_hpc_results_layout, HpcConfig, HpcLayout};
     use std::path::Path;
@@ -503,11 +500,9 @@ mod tests {
     #[test]
     fn hpc_site_lock_requires_explicit_site_identity() {
         let error = declared_site_name(None).expect_err("missing site id must fail");
-        assert!(
-            error
-                .to_string()
-                .contains("BIJUX_HPC_SITE must be declared for HPC site locks")
-        );
+        assert!(error
+            .to_string()
+            .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
     }
 
     #[test]

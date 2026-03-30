@@ -160,13 +160,13 @@ pub(super) fn resolve_existing_dossier_path(stage_docs_root: &Path) -> PathBuf {
 fn render_dossier_index_markdown(index: &DossierIndex) -> String {
     let mut lines = vec![
         format!("# `{}` FASTQ dossier index", index.corpus_id),
-        "".to_string(),
+        String::new(),
         format!("- Governed publication stages: `{}`", index.stage_count),
         format!("- Published summaries: `{}`", index.published_stage_count),
         format!("- Missing summaries: `{}`", index.missing_stage_count),
-        "".to_string(),
+        String::new(),
         "## Stage index".to_string(),
-        "".to_string(),
+        String::new(),
     ];
     for stage in &index.stages {
         if stage.status == "published" {

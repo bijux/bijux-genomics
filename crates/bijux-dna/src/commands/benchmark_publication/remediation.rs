@@ -139,9 +139,7 @@ pub(super) fn build_remediation_queue(
     })
 }
 
-fn stage_value_lookup<'a>(
-    payload: &'a serde_json::Value,
-) -> BTreeMap<String, &'a serde_json::Value> {
+fn stage_value_lookup(payload: &serde_json::Value) -> BTreeMap<String, &serde_json::Value> {
     payload
         .get("stages")
         .and_then(|value| value.as_array())
@@ -218,13 +216,15 @@ fn collect_stage_issues(stage: Option<&&serde_json::Value>, source: &str) -> Vec
 }
 
 fn summarize_issue_groups(issues: &[RemediationIssue]) -> Vec<RemediationIssueGroup> {
-    let mut grouped = BTreeMap::<String, (usize, BTreeMap<String, ()>, Vec<String>, String)>::new();
+    let mut grouped = BTreeMap::<String, (usize, Vec<String>, Vec<String>, String)>::new();
     for issue in issues {
         let group = grouped
             .entry(issue.issue_id.clone())
-            .or_insert_with(|| (0, BTreeMap::new(), Vec::new(), issue.severity.clone()));
+            .or_insert_with(|| (0, Vec::new(), Vec::new(), issue.severity.clone()));
         group.0 += 1;
-        group.1.insert(issue.source.clone(), ());
+        if !group.1.iter().any(|source| source == &issue.source) {
+            group.1.push(issue.source.clone());
+        }
         let detail = issue.detail.trim();
         if !detail.is_empty() && !group.2.iter().any(|existing| existing == detail) {
             group.2.push(detail.to_string());
@@ -236,7 +236,7 @@ fn summarize_issue_groups(issues: &[RemediationIssue]) -> Vec<RemediationIssueGr
             |(issue_id, (count, sources, details, severity))| RemediationIssueGroup {
                 issue_id,
                 count,
-                sources: sources.into_keys().collect(),
+                sources,
                 severity,
                 example_details: details.iter().take(3).cloned().collect(),
                 additional_detail_count: details.len().saturating_sub(3),
@@ -288,13 +288,13 @@ fn classify_recommended_action(issue_ids: &[String]) -> String {
 pub(super) fn render_remediation_queue_markdown(queue: &RemediationQueue) -> String {
     let mut lines = vec![
         format!("# `{}` FASTQ remediation queue", queue.corpus_id),
-        "".to_string(),
+        String::new(),
         format!("- Governed publication stages: `{}`", queue.stage_count),
         format!("- Open stages: `{}`", queue.open_stage_count),
         format!("- Clear stages: `{}`", queue.clear_stage_count),
-        "".to_string(),
+        String::new(),
         "## Stage queue".to_string(),
-        "".to_string(),
+        String::new(),
     ];
     for stage in &queue.stages {
         lines.push(format!(

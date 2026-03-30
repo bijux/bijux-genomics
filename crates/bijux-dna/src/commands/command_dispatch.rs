@@ -154,7 +154,8 @@ fn ensure_stage_bank_requirements(cwd: &Path, stage_id: &str) -> Result<()> {
         return Ok(());
     }
     let mut candidates = Vec::new();
-    if let Ok(hpc_root) = crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root)
+    if let Ok(hpc_root) =
+        crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root)
     {
         candidates.push(hpc_root.join("bijux-dna-data").join("banks"));
     }
