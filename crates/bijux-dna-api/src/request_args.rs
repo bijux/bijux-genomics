@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 /// Benchmark a single BAM stage.
 ///
 /// Stability: v1 (stable).
-#[allow(clippy::struct_excessive_bools)]
 pub struct BenchBamStageArgs {
     pub sample_id: String,
     pub stage: bijux_dna_planner_bam::stage_api::BamStage,
@@ -21,10 +21,10 @@ pub struct BenchBamStageArgs {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 /// Benchmark a full BAM pipeline.
 ///
 /// Stability: v1 (stable).
-#[allow(clippy::struct_excessive_bools)]
 pub struct BenchBamPipelineArgs {
     pub profile: String,
     pub sample_id: String,
@@ -41,10 +41,10 @@ pub struct BenchBamPipelineArgs {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 /// Run a BAM pipeline with explicit tool selection.
 ///
 /// Stability: v1 (stable).
-#[allow(clippy::struct_excessive_bools)]
 pub struct BamRunArgs {
     pub stage: bijux_dna_planner_bam::stage_api::BamStage,
     pub profile: String,
