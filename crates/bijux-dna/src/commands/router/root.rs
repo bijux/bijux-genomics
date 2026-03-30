@@ -3,10 +3,9 @@ use std::path::Path;
 use anyhow::Result;
 
 use crate::commands::cli;
-use crate::commands::root::{
-    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root,
-    handle_ena_root, handle_environment_root, handle_lab_root, handle_registry_root,
-    handle_tool_root,
+use crate::commands::root_handlers::{
+    handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root, handle_ena_root,
+    handle_environment_root, handle_lab_root, handle_registry_root, handle_tool_root,
 };
 use crate::commands::status::handle_status_root;
 

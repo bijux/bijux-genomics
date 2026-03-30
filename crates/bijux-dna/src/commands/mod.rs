@@ -22,12 +22,12 @@ mod policies;
 pub(crate) mod profile_runtime;
 pub(crate) mod repo_root;
 pub(crate) mod report_inputs;
-mod root;
+mod root_handlers;
 mod router;
 pub(crate) mod run_plan;
 mod status;
 pub(crate) mod vcf;
 
 pub use command_dispatch::{run_with_args, run_with_cli};
-pub use router::argv::{parse_cli_from_argv, parse_process_cli};
 pub(crate) use policies::workspace_audit;
+pub use router::argv::{parse_cli_from_argv, parse_process_cli};

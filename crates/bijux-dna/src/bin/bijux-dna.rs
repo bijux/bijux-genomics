@@ -44,7 +44,7 @@ fn print_refusal_if_present(err: &anyhow::Error) {
 }
 
 fn run() -> Result<()> {
-    bijux_dna::app::run_from_env()
+    bijux_dna::run_from_env()
 }
 
 fn exit_code_for_error(err: &anyhow::Error) -> i32 {
