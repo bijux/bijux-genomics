@@ -18,6 +18,12 @@ use crate::backend::docker::executor::{
 };
 use crate::command_runner::{run_command, CommandOutputV1};
 
+mod inputs;
+
+use inputs::{
+    common_parent, container_input_mapping, input_bind_roots, preserve_absolute_input_paths,
+};
+
 #[derive(Debug, Clone, Copy)]
 enum RunnerEffectKind {
     Filesystem,
@@ -52,20 +58,6 @@ pub struct StageResultV1 {
     pub stdout: String,
     pub stderr: String,
     pub command: String,
-}
-
-fn common_parent(paths: &[PathBuf]) -> Option<PathBuf> {
-    let mut iter = paths.iter();
-    let first = iter.next()?.clone();
-    let mut prefix = first;
-    for path in iter {
-        while !path.starts_with(&prefix) {
-            if !prefix.pop() {
-                return None;
-            }
-        }
-    }
-    Some(prefix)
 }
 
 fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
@@ -128,66 +120,6 @@ fn hash_directory(root: &Path) -> Result<String> {
     }
 
     Ok(format!("{:x}", hasher.finalize()))
-}
-
-fn container_input_mapping(input_root: &Path) -> (PathBuf, String) {
-    if input_root.is_file() {
-        let mount_root = input_root
-            .parent()
-            .map_or_else(|| PathBuf::from("/"), Path::to_path_buf);
-        let file_name = input_root.file_name().map_or_else(
-            || "input".to_string(),
-            |name| name.to_string_lossy().into_owned(),
-        );
-        return (mount_root, format!("/data/input/{file_name}"));
-    }
-    (input_root.to_path_buf(), "/data/input".to_string())
-}
-
-fn preserve_absolute_input_paths(inputs: &[PathBuf]) -> bool {
-    common_parent(inputs).is_some_and(|path| path == Path::new("/"))
-}
-
-fn input_bind_root(input: &Path) -> PathBuf {
-    if input.exists() {
-        if input.is_file() {
-            return input
-                .parent()
-                .map_or_else(|| PathBuf::from("/"), Path::to_path_buf);
-        }
-        return input.to_path_buf();
-    }
-    input
-        .parent()
-        .map_or_else(|| PathBuf::from("/"), Path::to_path_buf)
-}
-
-fn collapse_bind_roots(mut roots: Vec<PathBuf>) -> Vec<PathBuf> {
-    roots.sort_by(|left, right| {
-        left.components()
-            .count()
-            .cmp(&right.components().count())
-            .then_with(|| left.cmp(right))
-    });
-    let mut collapsed = Vec::<PathBuf>::new();
-    for root in roots {
-        if collapsed.iter().any(|existing| root.starts_with(existing)) {
-            continue;
-        }
-        collapsed.push(root);
-    }
-    collapsed
-}
-
-fn input_bind_roots(
-    inputs: &[PathBuf],
-    input_root: &Path,
-    preserve_absolute: bool,
-) -> Vec<PathBuf> {
-    if !preserve_absolute {
-        return vec![container_input_mapping(input_root).0];
-    }
-    collapse_bind_roots(inputs.iter().map(|input| input_bind_root(input)).collect())
 }
 
 fn rewrite_container_path(value: &str, host_root: &Path, container_root: &str) -> String {
