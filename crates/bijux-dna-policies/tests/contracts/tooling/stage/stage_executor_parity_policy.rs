@@ -1,13 +1,11 @@
 #![allow(non_snake_case)]
-#[path = "../../../../../bijux-dna-stage-contract/src/executor_registry.rs"]
-mod executor_registry;
 #[path = "../../../support/fs.rs"]
 mod support;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use executor_registry::{entries, ReadinessBadge};
+use bijux_dna_stage_contract::{entries, ReadinessBadge};
 
 fn read_toml(path: &Path) -> toml::Value {
     std::fs::read_to_string(path)
