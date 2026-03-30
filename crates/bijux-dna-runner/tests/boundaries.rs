@@ -11,5 +11,5 @@ mod mod_boundaries_backend_invocation_hash_rs;
 mod mod_boundaries_backend_process_guardrail_rs;
 #[path = "boundaries/guardrails.rs"]
 mod mod_boundaries_guardrails_rs;
-#[path = "support.rs"]
+#[path = "workspace_paths.rs"]
 mod support;

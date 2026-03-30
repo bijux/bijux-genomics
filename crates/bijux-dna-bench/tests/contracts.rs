@@ -1,6 +1,4 @@
 // Auto-generated test aggregator for contracts
-#[path = "support.rs"]
-mod support;
 #[path = "contracts/benching/architecture.rs"]
 mod mod_contracts_architecture_rs;
 #[path = "contracts/benching/bench_contract.rs"]
@@ -27,3 +25,5 @@ mod mod_contracts_public_api_rs;
 mod mod_contracts_ssot_ids_rs;
 #[path = "contracts/benching/suite_catalog.rs"]
 mod mod_contracts_suite_catalog_rs;
+#[path = "workspace_paths.rs"]
+mod support;

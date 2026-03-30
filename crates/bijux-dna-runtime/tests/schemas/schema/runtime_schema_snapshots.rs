@@ -5,7 +5,7 @@ use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_runtime::observability::RunProvenanceV1;
 use bijux_dna_runtime::run_layout::{RunLayoutV1, RunManifest};
 
-#[path = "../../support.rs"]
+#[path = "../../workspace_paths.rs"]
 mod support;
 
 #[test]
