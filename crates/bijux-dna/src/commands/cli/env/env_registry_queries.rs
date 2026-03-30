@@ -124,32 +124,7 @@ pub fn registry_tools_for_stage(
 }
 
 fn benchmark_tools_for_stage(stage_id: &str, scenario: Option<&str>) -> Result<Vec<String>> {
-    let stage_id = bijux_dna_core::ids::StageId::new(stage_id.to_string());
-    let benchmark_tools = if let Some(scenario_id) = scenario {
-        bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
-            &stage_id,
-            scenario_id,
-        )
-    } else {
-        bijux_dna_planner_fastq::stage_api::benchmark_default_scenario_toolset(&stage_id)
-    };
-    if benchmark_tools.is_empty() {
-        return if let Some(scenario_id) = scenario {
-            Err(anyhow!(
-                "stage `{}` does not expose benchmark cohort `{scenario_id}`",
-                stage_id.as_str()
-            ))
-        } else {
-            Err(anyhow!(
-                "stage `{}` does not expose a unique default benchmark cohort",
-                stage_id.as_str()
-            ))
-        };
-    }
-    Ok(benchmark_tools
-        .into_iter()
-        .map(|tool_id| tool_id.to_string())
-        .collect())
+    bijux_dna_api::v1::api::fastq::benchmark_tools_for_stage(stage_id, scenario)
 }
 
 /// # Errors
@@ -235,6 +210,7 @@ fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod env_registry_query_tests {
     use super::registry_tools_for_stage;
 
