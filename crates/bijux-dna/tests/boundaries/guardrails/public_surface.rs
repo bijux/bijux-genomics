@@ -1,8 +1,5 @@
 use std::fs;
 
-#[path = "../../support.rs"]
-mod support;
-
 fn snapshot_name(bucket: &str, test_name: &str) -> String {
     format!("{}__{}__{}", env!("CARGO_PKG_NAME"), bucket, test_name)
 }
@@ -10,7 +7,7 @@ fn snapshot_name(bucket: &str, test_name: &str) -> String {
 /// Snapshot locks CLI public surface to prevent accidental exports.
 #[test]
 fn cli_public_surface_is_snapshotted() {
-    let crate_root = support::crate_root("bijux-dna")
+    let crate_root = super::support::crate_root("bijux-dna")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
     let lib = crate_root.join("src").join("lib.rs");
     let content = fs::read_to_string(&lib)

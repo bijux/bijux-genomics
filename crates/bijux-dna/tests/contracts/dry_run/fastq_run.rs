@@ -1,7 +1,6 @@
-use bijux_dna::commands::run_with_args;
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
-#[path = "../../support.rs"]
-mod support;
+use bijux_dna::commands::run_with_args;
 
 #[test]
 fn cli_fastq_run_dry_run_emits_manifest_and_graph() {
@@ -46,7 +45,7 @@ arch = "x86_64"
 "#,
     )
     .expect("write platforms");
-    let repo_root = support::repo_root().expect("repo root");
+    let repo_root = crate::support::repo_root().expect("repo root");
     let workspace_images = repo_root
         .join("configs")
         .join("ci")
@@ -71,16 +70,10 @@ arch = "x86_64"
     std::fs::copy(workspace_stages, ci_stages_dir.join("stages.toml")).expect("write stages");
 
     #[cfg(unix)]
-    std::os::unix::fs::symlink(
-        repo_root.join("domain"),
-        root.join("domain"),
-    )
-    .expect("symlink domain");
-    std::os::unix::fs::symlink(
-        repo_root.join("assets"),
-        root.join("assets"),
-    )
-    .expect("symlink assets");
+    std::os::unix::fs::symlink(repo_root.join("domain"), root.join("domain"))
+        .expect("symlink domain");
+    std::os::unix::fs::symlink(repo_root.join("assets"), root.join("assets"))
+        .expect("symlink assets");
 
     let defaults_dir = out_dir
         .join("bench")

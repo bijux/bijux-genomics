@@ -1,11 +1,8 @@
 use anyhow::Result;
 
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn cli_forbids_internal_deps() -> Result<()> {
-    let manifest = support::crate_root("bijux-dna")?.join("Cargo.toml");
+    let manifest = super::support::crate_root("bijux-dna")?.join("Cargo.toml");
     let content = std::fs::read_to_string(&manifest)?;
     let mut in_deps = false;
     let mut deps = Vec::new();

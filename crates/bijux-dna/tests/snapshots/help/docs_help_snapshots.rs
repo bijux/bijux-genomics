@@ -1,11 +1,10 @@
-use std::fs;
+#![allow(clippy::expect_used)]
 
-#[path = "../../support.rs"]
-mod support;
+use std::fs;
 
 #[test]
 fn cli_help_texts_are_documented() {
-    let doc = support::crate_root("bijux-dna")
+    let doc = super::support::crate_root("bijux-dna")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"))
         .join("docs")
         .join("COMMANDS.md");

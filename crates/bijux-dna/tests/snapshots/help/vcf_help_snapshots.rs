@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use bijux_dna::commands::cli::Cli;
 use clap::CommandFactory;
 
