@@ -2,10 +2,6 @@
 //! Observer parsers for tool stdout and report artifacts.
 //! Supported formats must be deterministic and stable across versions.
 
-use anyhow::{anyhow, Context, Result};
-use serde::Deserialize;
-use tracing::warn;
-
 use crate::metrics::{
     AdapterRemovalToolMetricsV1, FastpToolMetricsV1, FastqcToolMetricsV1, MultiqcToolMetricsV1,
     SamtoolsFlagstatMetricsV1, SeqkitToolMetricsV1,
@@ -29,22 +25,19 @@ use crate::{
 };
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 
-mod sequence;
-mod reports;
+mod adapter_taxonomy;
 mod correct_errors;
 mod depletion;
-mod adapter_taxonomy;
 mod duplicates;
-mod profiles;
 mod filtering;
-pub(super) mod tool_metrics;
 #[cfg(test)]
-mod tests;
+mod parser_contracts;
+mod profiles;
+mod reports;
+mod sequence;
+pub(super) mod tool_metrics;
 
-pub use self::sequence::{
-    parse_fastqvalidator_count, parse_length_histogram, parse_seqkit_stats,
-};
-
+pub use self::sequence::{parse_fastqvalidator_count, parse_length_histogram, parse_seqkit_stats};
 
 pub use self::reports::{
     parse_cluster_otus_report, parse_filter_reads_report, parse_index_reference_report,
@@ -54,41 +47,28 @@ pub use self::reports::{
     parse_validated_reads_manifest, parse_validation_report,
 };
 
-
 pub use self::correct_errors::parse_correct_errors_report;
-
-
-
 
 pub use self::profiles::{
     parse_profile_overrepresented_report, parse_profile_read_lengths_report,
     parse_profile_reads_report,
 };
 
-
-
 pub use self::depletion::{
     parse_deplete_host_report, parse_deplete_reference_contaminants_report,
     parse_deplete_rrna_report,
 };
 
-pub use self::adapter_taxonomy::{
-    parse_detect_adapters_report, parse_screen_summary_tsv,
-};
-
+pub use self::adapter_taxonomy::{parse_detect_adapters_report, parse_screen_summary_tsv};
 
 pub use self::duplicates::{
     parse_deduplicate_report, parse_duplicate_classes_tsv, parse_remove_chimeras_report,
     parse_remove_duplicates_provenance, parse_remove_duplicates_report,
 };
 
-
-
 pub use self::filtering::{
     parse_bbduk_reads_removed, parse_extract_umis_report, parse_filter_low_complexity_report,
     parse_low_complexity_report,
 };
 
-use self::tool_metrics::{
-    parse_report_u64_field, u64_to_f64,
-};
+use self::tool_metrics::{parse_report_u64_field, u64_to_f64};

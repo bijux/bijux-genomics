@@ -19,7 +19,9 @@ pub use suite_validation::validate_suite;
 
 #[cfg(test)]
 mod tests {
-    mod suite_validation_test_support;
+    mod suite_validation_harness {
+        include!("harness/suite_validation_harness.rs");
+    }
 
     use crate::{
         AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageEdge, BenchmarkStageSpec,
@@ -27,7 +29,7 @@ mod tests {
         StratificationRequirement,
     };
     use bijux_dna_core::id_catalog;
-    use suite_validation_test_support::{
+    use suite_validation_harness::{
         assert_valid_suite, fastq_instance, fastq_stage, stage_instance, stage_tool_instance,
         suite_error, suite_with_stage,
     };

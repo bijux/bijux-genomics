@@ -1,6 +1,9 @@
 use super::*;
 
-pub(super) fn test_control_plane_smoke(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn test_control_plane_smoke(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     let mut dry_run = false;
     for arg in args {
         match arg.as_str() {
@@ -153,7 +156,10 @@ pub(super) fn test_triage(workspace: &Workspace, args: &[String]) -> Result<OpsC
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-pub(super) fn test_reproduce_failure(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn test_reproduce_failure(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
             "Usage: cargo run -p bijux-dna-dev -- test run reproduce-failure -- <nextest-jsonl-log>",
@@ -212,7 +218,10 @@ pub(super) fn test_reproduce_failure(workspace: &Workspace, args: &[String]) -> 
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-pub(super) fn test_fastq_gold_repro(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn test_fastq_gold_repro(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
             "Usage: cargo run -p bijux-dna-dev -- test run fastq-gold-repro -- [out-dir]",
@@ -398,7 +407,10 @@ pub(super) fn failure_lines(title: &str, errors: &[String]) -> Result<OpsCommand
     Ok(OpsCommandOutcome::failure(stderr))
 }
 
-pub(super) fn merge_outcomes(mut left: OpsCommandOutcome, right: OpsCommandOutcome) -> OpsCommandOutcome {
+pub(super) fn merge_outcomes(
+    mut left: OpsCommandOutcome,
+    right: OpsCommandOutcome,
+) -> OpsCommandOutcome {
     left.exit_code = if left.exit_code != 0 {
         left.exit_code
     } else {
