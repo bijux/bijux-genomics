@@ -58,7 +58,10 @@ fn parse_gt_counts(format_field: &str, sample_fields: &[&str]) -> Option<(u64, u
 
 fn is_transition(reference: &str, alt: &str) -> bool {
     matches!(
-        (reference.to_ascii_uppercase().as_str(), alt.to_ascii_uppercase().as_str()),
+        (
+            reference.to_ascii_uppercase().as_str(),
+            alt.to_ascii_uppercase().as_str()
+        ),
         ("A", "G") | ("G", "A") | ("C", "T") | ("T", "C")
     )
 }
@@ -69,7 +72,11 @@ fn is_transversion(reference: &str, alt: &str) -> bool {
 
 /// # Errors
 /// Returns an error if QC metrics cannot be computed or fail production thresholds.
-pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) -> Result<QcStageOutputs> {
+pub fn run_qc_stage(
+    input_vcf: &Path,
+    out_dir: &Path,
+    params: &QcStageParams,
+) -> Result<QcStageOutputs> {
     if params.is_ancient_dna && !params.allow_hwe_for_ancient {
         // HWE and other modern-only metrics are intentionally skipped by default for aDNA.
     }
@@ -105,7 +112,10 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             fields[6].to_string()
         };
         *filter_counts.entry(filter_label).or_insert(0) += 1;
-        post_variant_keys.insert(format!("{}:{}:{}:{}", fields[0], fields[1], fields[3], fields[4]));
+        post_variant_keys.insert(format!(
+            "{}:{}:{}:{}",
+            fields[0], fields[1], fields[3], fields[4]
+        ));
         if let (Some(reference), Some(alt)) = (fields.get(3), fields.get(4)) {
             if is_transition(reference, alt) {
                 ti_count += 1;
@@ -114,7 +124,15 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             }
         }
         if let Some(dp) = parse_depth_from_info(fields[7]) {
-            let bucket = if dp < 10 { "0-9" } else if dp < 20 { "10-19" } else if dp < 30 { "20-29" } else { "30+" };
+            let bucket = if dp < 10 {
+                "0-9"
+            } else if dp < 20 {
+                "10-19"
+            } else if dp < 30 {
+                "20-29"
+            } else {
+                "30+"
+            };
             *depth.entry(bucket.to_string()).or_insert(0) += 1;
         }
         if let Some(v) = parse_info_value_f64(fields[7], "INFO") {
@@ -163,7 +181,9 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
                 }
             }
             if !params.is_ancient_dna || params.allow_hwe_for_ancient {
-                if let Some((hom_ref, het, hom_alt, total)) = parse_gt_counts(fields[8], &fields[9..]) {
+                if let Some((hom_ref, het, hom_alt, total)) =
+                    parse_gt_counts(fields[8], &fields[9..])
+                {
                     if total > 0 {
                         let n = total as f64;
                         let p = (2.0 * hom_ref as f64 + het as f64) / (2.0 * n);
@@ -183,31 +203,59 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             }
         }
     }
-    let missingness_post = if called + missing == 0 { 0.0 } else { missing as f64 / (called + missing) as f64 };
+    let missingness_post = if called + missing == 0 {
+        0.0
+    } else {
+        missing as f64 / (called + missing) as f64
+    };
     let missingness_pre = if let Some(pre) = &params.pre_filter_vcf {
         let pre_raw = read_vcf_text(pre)?;
         let mut pre_missing = 0_u64;
         let mut pre_called = 0_u64;
         for line in pre_raw.lines() {
-            let Some(fields) = parse_record_fields(line) else { continue; };
-            if fields.len() <= 9 { continue; }
+            let Some(fields) = parse_record_fields(line) else {
+                continue;
+            };
+            if fields.len() <= 9 {
+                continue;
+            }
             let keys = fields[8].split(':').collect::<Vec<_>>();
             if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
                 for sample in &fields[9..] {
                     let vals = sample.split(':').collect::<Vec<_>>();
                     if let Some(gt) = vals.get(gt_idx) {
-                        if gt.contains('.') { pre_missing += 1; } else { pre_called += 1; }
+                        if gt.contains('.') {
+                            pre_missing += 1;
+                        } else {
+                            pre_called += 1;
+                        }
                     }
                 }
             }
         }
-        if pre_missing + pre_called == 0 { missingness_post } else { pre_missing as f64 / (pre_missing + pre_called) as f64 }
+        if pre_missing + pre_called == 0 {
+            missingness_post
+        } else {
+            pre_missing as f64 / (pre_missing + pre_called) as f64
+        }
     } else {
         missingness_post
     };
-    let info_mean = if info_values.is_empty() { 0.0 } else { info_values.iter().sum::<f64>() / info_values.len() as f64 };
-    let rsq_mean = if rsq_values.is_empty() { 0.0 } else { rsq_values.iter().sum::<f64>() / rsq_values.len() as f64 };
-    let af_mean = if af_values.is_empty() { 0.0 } else { af_values.iter().sum::<f64>() / af_values.len() as f64 };
+    let info_mean = if info_values.is_empty() {
+        0.0
+    } else {
+        info_values.iter().sum::<f64>() / info_values.len() as f64
+    };
+    let rsq_mean = if rsq_values.is_empty() {
+        0.0
+    } else {
+        rsq_values.iter().sum::<f64>() / rsq_values.len() as f64
+    };
+    let af_mean = if af_values.is_empty() {
+        0.0
+    } else {
+        af_values.iter().sum::<f64>() / af_values.len() as f64
+    };
     let site_missingness_mean = if site_missingness.is_empty() {
         0.0
     } else {
@@ -230,7 +278,11 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     };
     let thresholds = load_imputation_qc_thresholds();
     if params.production_profile {
-        if missingness_post > *thresholds.get("vcf_qc_missingness_post_fail").unwrap_or(&0.15) {
+        if missingness_post
+            > *thresholds
+                .get("vcf_qc_missingness_post_fail")
+                .unwrap_or(&0.15)
+        {
             bail!("vcf.qc production gate failed: missingness_post above fail threshold");
         }
         if !info_values.is_empty()
@@ -247,7 +299,9 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     table.push_str(&format!("missingness_pre\t{missingness_pre:.6}\n"));
     table.push_str(&format!("missingness_post\t{missingness_post:.6}\n"));
     table.push_str(&format!("allele_freq_mean\t{af_mean:.6}\n"));
-    table.push_str(&format!("site_missingness_mean\t{site_missingness_mean:.6}\n"));
+    table.push_str(&format!(
+        "site_missingness_mean\t{site_missingness_mean:.6}\n"
+    ));
     table.push_str(&format!("imputation_info_mean\t{info_mean:.6}\n"));
     table.push_str(&format!("rsq_mean\t{rsq_mean:.6}\n"));
     for (bin, count) in &maf_bins {
@@ -284,7 +338,10 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
             let Some(fields) = parse_record_fields(line) else {
                 continue;
             };
-            pre_variant_keys.insert(format!("{}:{}:{}:{}", fields[0], fields[1], fields[3], fields[4]));
+            pre_variant_keys.insert(format!(
+                "{}:{}:{}:{}",
+                fields[0], fields[1], fields[3], fields[4]
+            ));
         }
         let shared = pre_variant_keys.intersection(&post_variant_keys).count() as u64;
         let pre_total = pre_variant_keys.len() as u64;
@@ -311,7 +368,11 @@ pub fn run_qc_stage(input_vcf: &Path, out_dir: &Path, params: &QcStageParams) ->
     let mut sample_missingness = per_sample
         .iter()
         .map(|(sample, (total, miss))| {
-            let frac = if *total == 0 { 0.0 } else { *miss as f64 / *total as f64 };
+            let frac = if *total == 0 {
+                0.0
+            } else {
+                *miss as f64 / *total as f64
+            };
             (sample.clone(), frac)
         })
         .collect::<Vec<_>>();
@@ -545,24 +606,25 @@ pub fn run_stats_stage_real(
         normalized_input
     };
     let bcftools_stats_txt = out_dir.join("bcftools_stats.txt");
-    let mut metrics = if let Ok(real) = crate::vcf_io::vcf_stats_basic(&source_vcfgz, &bcftools_stats_txt) {
-        real
-    } else {
-        let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
-        let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
-        VcfStatsMetricsV1 {
-            schema_version: "bijux.vcf.stats.v1".to_string(),
-            sample_name: params.sample_name.clone(),
-            variants_total: call.variants_called,
-            snps: call.snps,
-            indels: call.indels,
-            ti_tv: None,
-            filter_breakdown: filter.filter_breakdown.clone(),
-            depth_distribution: std::collections::BTreeMap::new(),
-            call_summary: call,
-            filter_summary: filter,
-        }
-    };
+    let mut metrics =
+        if let Ok(real) = crate::vcf_io::vcf_stats_basic(&source_vcfgz, &bcftools_stats_txt) {
+            real
+        } else {
+            let call = parse_vcf_call_summary(input_vcf, &params.sample_name)?;
+            let filter = parse_vcf_filter_breakdown(input_vcf, &params.sample_name)?;
+            VcfStatsMetricsV1 {
+                schema_version: "bijux.vcf.stats.v1".to_string(),
+                sample_name: params.sample_name.clone(),
+                variants_total: call.variants_called,
+                snps: call.snps,
+                indels: call.indels,
+                ti_tv: None,
+                filter_breakdown: filter.filter_breakdown.clone(),
+                depth_distribution: std::collections::BTreeMap::new(),
+                call_summary: call,
+                filter_summary: filter,
+            }
+        };
     metrics.sample_name = params.sample_name.clone();
     let stats_json = out_dir.join("stats.json");
     atomic_write_json(&stats_json, &serde_json::to_value(&metrics)?)?;
@@ -574,4 +636,6 @@ pub fn run_stats_stage_real(
 }
 
 // Errors are surfaced from helpers and include deserialization/index checks.
-include!("qc_stage_params_tail.rs");
+mod stage_params;
+
+pub use stage_params::*;
