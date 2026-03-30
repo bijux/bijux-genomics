@@ -25,9 +25,6 @@ pub mod pipeline_contract;
 pub mod prelude;
 mod qc_contract;
 pub mod run;
-pub mod stage_contract;
-pub mod stage_semantics;
-pub mod stage_specs;
 mod stage_tool_governance;
 pub mod stages;
 pub mod types;
@@ -207,3 +204,32 @@ pub use artifacts::{
     ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
     VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
 };
+
+pub mod stage_contract {
+    pub use crate::stages::contract::{stage_contract_hash, stage_contract_json};
+}
+
+pub mod stage_ids {
+    pub use crate::stages::ids::{
+        bench_dir_name, STAGES, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_RRNA,
+        STAGE_DETECT_ADAPTERS, STAGE_EXTRACT_UMIS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS,
+        STAGE_PREFIX, STAGE_PROFILE_READS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+        STAGE_TRIM_READS, STAGE_VALIDATE_READS,
+    };
+}
+
+pub mod stage_semantics {
+    pub use crate::stages::semantics::{
+        canonical_stage_order, fastq_stage_is_stable, optional_branches, stage_criticality,
+        stage_kind, stage_metric_classes, stage_metric_invariants, stage_semantics,
+        BoundaryInvariant, FastqStageKind, StageDefinition, StageSemantics,
+        STAGE_BOUNDARY_INVARIANTS,
+    };
+}
+
+pub mod stage_specs {
+    pub use crate::stages::specs::{
+        canonical_contract_for_stage, infer_input_kind, qc_class_for_stage, FastqStage,
+        FastqStageContract, QcClass, StageContract, StageIO,
+    };
+}
