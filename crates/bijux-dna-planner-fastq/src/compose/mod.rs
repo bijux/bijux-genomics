@@ -40,40 +40,13 @@ use crate::{
     STAGE_VALIDATE_READS,
 };
 
-#[derive(Debug, Clone)]
-struct ReferenceIndexState {
-    path: PathBuf,
-    tool_id: String,
-}
+mod models;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct StageArtifactInputBinding {
-    pub from_stage_node_id: String,
-    pub from_output_id: String,
-    pub to_input_id: String,
-}
-
-pub type StageArtifactInputPolicy = BTreeMap<String, Vec<StageArtifactInputBinding>>;
-pub type StageDependencyPolicy = BTreeMap<String, Vec<String>>;
-pub type SyntheticStageArtifactPolicy = BTreeMap<String, Vec<ArtifactRef>>;
-
-#[derive(Debug, Clone)]
-struct ResolvedStageInputArtifact {
-    to_input_id: String,
-    artifact: ArtifactRef,
-    source_stage_node_id: String,
-    source_tool_id: String,
-}
-
-#[derive(Debug, Clone)]
-struct PlannedStageLineage {
-    reads_r1: PathBuf,
-    reads_r2: Option<PathBuf>,
-    feature_table: Option<PathBuf>,
-    reference_index: Option<ReferenceIndexState>,
-    qc_inputs: Vec<ArtifactRef>,
-    lineage_inputs: Vec<ArtifactRef>,
-}
+use models::{PlannedStageLineage, ReferenceIndexState, ResolvedStageInputArtifact};
+pub use models::{
+    StageArtifactInputBinding, StageArtifactInputPolicy, StageDependencyPolicy,
+    SyntheticStageArtifactPolicy,
+};
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 pub fn compose_fastq_stage_bindings<F>(
