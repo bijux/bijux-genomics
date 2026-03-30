@@ -27,27 +27,39 @@ fn db_ena_tree_matches_architecture_contract() {
             "lib.rs",
             "main.rs",
             "model/",
-            "surface.rs",
         ]),
         "src tree must match the documented db-ena layout"
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/cli")),
+        btree_set(&["args.rs", "dispatch.rs", "manifest.rs", "mod.rs"]),
+        "cli tree must remain decomposed by parsing, dispatch, and manifest output"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src/client")),
-        btree_set(&["mod.rs", "parse.rs", "request.rs"]),
-        "client tree must remain decomposed by request and parsing concern"
+        btree_set(&["error.rs", "mod.rs", "parse.rs", "request.rs"]),
+        "client tree must remain decomposed by error, request, and parsing concern"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/download")),
-        btree_set(&["mod.rs", "planning.rs", "transfer.rs"]),
-        "download tree must remain decomposed by planning and transfer concern"
+        btree_set(&[
+            "config.rs",
+            "execute.rs",
+            "item.rs",
+            "mod.rs",
+            "plan.rs",
+            "report.rs",
+        ]),
+        "download tree must remain decomposed by config, execution, item, planning, and report concern"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/model")),
-        btree_set(&["mod.rs", "query.rs", "record.rs"]),
-        "model tree must remain decomposed by query and record concern"
+        btree_set(&["manifest.rs", "mod.rs", "query.rs", "record.rs"]),
+        "model tree must remain decomposed by manifest, query, and record concern"
     );
 }
 

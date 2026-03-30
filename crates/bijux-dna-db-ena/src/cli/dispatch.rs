@@ -14,6 +14,8 @@ pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, Downlo
         extra_accessions: args.accessions.clone(),
         result: args.result.into(),
     };
+    query.validate().context("validate ENA query selectors")?;
+
     let client = EnaClient::from_crate_identity().context("create ena client")?;
     let records = client
         .fetch_records(&query)
@@ -39,7 +41,7 @@ pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, Downlo
 
 pub(crate) fn execute_download(args: &DownloadArgs) -> Result<(EnaRunManifest, DownloadConfig)> {
     let (manifest, mut config) = execute_query(&args.shared)?;
-    config.output_dir = args.shared.output_dir.clone();
+    config.output_dir.clone_from(&args.shared.output_dir);
     config.jobs = args.jobs;
     config.retries = args.retries;
     config.dry_run = args.dry_run;

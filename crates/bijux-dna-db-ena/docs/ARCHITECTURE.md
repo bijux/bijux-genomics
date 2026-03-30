@@ -3,7 +3,7 @@
 ## Goals
 - Keep the library root thin and stable.
 - Separate ENA domain models, request parsing, and download execution by concern.
-- Keep the binary entrypoint thin by delegating CLI workflow into dedicated modules.
+- Keep the binary entrypoint thin by delegating CLI command dispatch into dedicated modules.
 
 ## Source tree
 
@@ -11,34 +11,42 @@
 src/
 ├── cli/
 │   ├── args.rs
+│   ├── dispatch.rs
 │   ├── manifest.rs
-│   ├── mod.rs
-│   └── workflow.rs
+│   └── mod.rs
 ├── client/
+│   ├── error.rs
 │   ├── mod.rs
 │   ├── parse.rs
 │   └── request.rs
 ├── download/
+│   ├── config.rs
+│   ├── execute.rs
+│   ├── item.rs
 │   ├── mod.rs
-│   ├── planning.rs
-│   └── transfer.rs
+│   ├── plan.rs
+│   └── report.rs
 ├── lib.rs
 ├── main.rs
 ├── model/
+│   ├── manifest.rs
 │   ├── mod.rs
 │   ├── query.rs
 │   └── record.rs
-└── surface.rs
 ```
 
 ## Responsibilities
-- `surface.rs`: public library exports.
-- `model/`: ENA query, source, record, and manifest domain types.
+- `lib.rs`: public library exports and enduring library entrypoint.
+- `model/`: ENA query, manifest, source, and record domain types.
+- `client/error.rs`: ENA client failure contract.
 - `client/request.rs`: filereport URL and field selection.
 - `client/parse.rs`: TSV decoding into normalized records.
-- `download/planning.rs`: deterministic download task planning.
-- `download/transfer.rs`: parallel transfer execution and reporting.
-- `cli/`: binary-only argument parsing, workflow orchestration, and manifest writing.
+- `download/config.rs`: transfer configuration defaults and serialization.
+- `download/item.rs`: one planned file download.
+- `download/plan.rs`: deterministic download planning.
+- `download/execute.rs`: parallel download execution.
+- `download/report.rs`: transfer outcome summary.
+- `cli/`: binary-only argument parsing, command dispatch, and manifest writing.
 
 ## Change rules
 - Add new root files only for enduring top-level concerns.

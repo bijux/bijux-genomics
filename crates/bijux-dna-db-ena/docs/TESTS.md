@@ -2,7 +2,7 @@
 
 ## Unit tests
 - `client` URL/query and TSV parsing tests.
-- `download` task materialization tests.
+- `download` plan materialization tests.
 - `model` normalization tests.
 
 ## Guardrails

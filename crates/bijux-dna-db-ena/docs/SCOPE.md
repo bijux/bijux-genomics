@@ -6,7 +6,7 @@ Provide deterministic ENA selection/fetch primitives used by higher-level orches
 ## In scope
 - Query URL/building.
 - Response parsing and normalization.
-- Download task planning and transfer.
+- Download planning and execution.
 
 ## Out of scope
 - Pipeline execution.
