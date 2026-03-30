@@ -1,6 +1,8 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
+
+mod discovery;
 
 #[must_use]
 pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
@@ -14,7 +16,7 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
 }
 
 fn parse_alignment_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
-    let flagstat_path = first_existing(
+    let flagstat_path = discovery::first_existing(
         out_dir,
         &[
             "flagstat.after.txt",
@@ -28,7 +30,7 @@ fn parse_alignment_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
             metrics.alignment = counts;
         }
     }
-    let idxstats_path = first_existing(out_dir, &["idxstats.after.txt", "idxstats.txt"]);
+    let idxstats_path = discovery::first_existing(out_dir, &["idxstats.after.txt", "idxstats.txt"]);
     if let Some(path) = idxstats_path {
         if let Ok(idxstats) = bijux_dna_domain_bam::metrics::parse_samtools_idxstats(&path) {
             metrics.idxstats = idxstats;
@@ -37,14 +39,14 @@ fn parse_alignment_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
 }
 
 fn parse_coverage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
-    let stats_path = first_existing(out_dir, &["samtools_stats.txt"]);
+    let stats_path = discovery::first_existing(out_dir, &["samtools_stats.txt"]);
     if let Some(path) = stats_path {
         if let Ok((fragment, mapq)) = bijux_dna_domain_bam::metrics::parse_samtools_stats(&path) {
             metrics.fragment_length = fragment;
             metrics.mapq = mapq;
         }
     }
-    let mosdepth_path = first_existing(
+    let mosdepth_path = discovery::first_existing(
         out_dir,
         &["coverage.mosdepth.summary.txt", "mosdepth.summary.txt"],
     );
@@ -53,7 +55,7 @@ fn parse_coverage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
             metrics.coverage = coverage;
         }
     } else {
-        let depth_path = first_existing(out_dir, &["coverage.depth.txt", "depth.txt"]);
+        let depth_path = discovery::first_existing(out_dir, &["coverage.depth.txt", "depth.txt"]);
         if let Some(path) = depth_path {
             if let Ok((coverage, uniformity)) =
                 bijux_dna_domain_bam::metrics::parse_samtools_depth_with_uniformity(&path)
@@ -66,14 +68,14 @@ fn parse_coverage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
 }
 
 fn parse_quality_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
-    let preseq_path = first_existing(out_dir, &["preseq.txt"]);
+    let preseq_path = discovery::first_existing(out_dir, &["preseq.txt"]);
     if let Some(path) = preseq_path {
         if let Ok(complexity) = bijux_dna_domain_bam::metrics::parse_preseq_estimates(&path) {
             metrics.complexity = complexity;
         }
     }
 
-    let insert_size_path = first_existing(out_dir, &["insert_size.metrics.txt"]);
+    let insert_size_path = discovery::first_existing(out_dir, &["insert_size.metrics.txt"]);
     if let Some(path) = insert_size_path {
         if let Ok(insert_size) =
             bijux_dna_domain_bam::metrics::parse_picard_insert_size_metrics(&path)
@@ -82,7 +84,7 @@ fn parse_quality_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
         }
     }
 
-    let gc_bias_path = first_existing(out_dir, &["gc_bias.metrics.txt"]);
+    let gc_bias_path = discovery::first_existing(out_dir, &["gc_bias.metrics.txt"]);
     if let Some(path) = gc_bias_path {
         if let Ok(gc_bias) = bijux_dna_domain_bam::metrics::parse_picard_gc_bias_metrics(&path) {
             metrics.gc_bias = gc_bias;
@@ -93,14 +95,16 @@ fn parse_quality_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
 fn parse_damage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
     let mut damage_sources: Vec<(String, bijux_dna_domain_bam::metrics::DamageMetricsV1)> =
         Vec::new();
-    let pydamage_path = first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);
+    let pydamage_path =
+        discovery::first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);
     if let Some(path) = pydamage_path {
         if let Ok(damage) = bijux_dna_domain_bam::metrics::parse_pydamage_json(&path) {
             metrics.damage = damage.clone();
             damage_sources.push(("pydamage".to_string(), damage));
         }
     }
-    let mapdamage2_path = first_existing(out_dir, &["damage.mapdamage2.txt", "mapdamage2.txt"]);
+    let mapdamage2_path =
+        discovery::first_existing(out_dir, &["damage.mapdamage2.txt", "mapdamage2.txt"]);
     if let Some(path) = mapdamage2_path {
         if let Ok(damage) = bijux_dna_domain_bam::metrics::parse_mapdamage2_misincorporation(&path)
         {
@@ -111,7 +115,7 @@ fn parse_damage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
         }
     }
     let damageprofiler_path =
-        first_existing(out_dir, &["damage.profiler.json", "damageprofiler.json"]);
+        discovery::first_existing(out_dir, &["damage.profiler.json", "damageprofiler.json"]);
     if let Some(path) = damageprofiler_path {
         if let Ok(damage) = bijux_dna_domain_bam::metrics::parse_damageprofiler_json(&path) {
             if damage_sources.is_empty() {
@@ -131,7 +135,7 @@ fn parse_damage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
 }
 
 fn parse_contamination_and_sex(out_dir: &Path, metrics: &mut BamMetricsV1) {
-    let contamination_path = first_existing(out_dir, &["contamination.json"]);
+    let contamination_path = discovery::first_existing(out_dir, &["contamination.json"]);
     if let Some(path) = contamination_path {
         if let Ok(contamination) = bijux_dna_domain_bam::metrics::parse_contamination_json(&path) {
             metrics.contamination = contamination;
@@ -147,20 +151,10 @@ fn parse_contamination_and_sex(out_dir: &Path, metrics: &mut BamMetricsV1) {
         }
     }
 
-    let sex_path = first_existing(out_dir, &["sex.json"]);
+    let sex_path = discovery::first_existing(out_dir, &["sex.json"]);
     if let Some(path) = sex_path {
         if let Ok(sex) = bijux_dna_domain_bam::metrics::parse_sex_json(&path) {
             metrics.sex = sex;
         }
     }
-}
-
-fn first_existing(out_dir: &Path, names: &[&str]) -> Option<PathBuf> {
-    for name in names {
-        let candidate = out_dir.join(name);
-        if candidate.exists() {
-            return Some(candidate);
-        }
-    }
-    None
 }
