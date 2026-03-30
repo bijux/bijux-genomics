@@ -14,7 +14,11 @@ pub(super) const CONTRACTS: &[ObserverSpecializationContract] = &[
     ),
     contract("fastq.filter_low_complexity", "bbduk", "filter_report_json"),
     contract("fastq.deplete_rrna", "sortmerna", "rrna_report_json"),
-    contract("fastq.deplete_host", "bowtie2", "host_depletion_report_json"),
+    contract(
+        "fastq.deplete_host",
+        "bowtie2",
+        "host_depletion_report_json",
+    ),
     contract(
         "fastq.deplete_reference_contaminants",
         "bowtie2",
@@ -43,14 +47,22 @@ pub(super) const CONTRACTS: &[ObserverSpecializationContract] = &[
     contract("fastq.trim_reads", "seqpurge", "report_json"),
     contract("fastq.remove_duplicates", "fastuniq", "report_json"),
     contract("fastq.remove_duplicates", "clumpify", "report_json"),
-    contract("fastq.trim_terminal_damage", "adapterremoval", "report_json"),
+    contract(
+        "fastq.trim_terminal_damage",
+        "adapterremoval",
+        "report_json",
+    ),
     contract(
         "fastq.trim_terminal_damage",
         id_catalog::TOOL_CUTADAPT,
         "report_json",
     ),
     contract("fastq.trim_terminal_damage", "seqkit", "report_json"),
-    contract("fastq.trim_polyg_tails", id_catalog::TOOL_FASTP, "report_json"),
+    contract(
+        "fastq.trim_polyg_tails",
+        id_catalog::TOOL_FASTP,
+        "report_json",
+    ),
     contract("fastq.trim_polyg_tails", "bbduk", "report_json"),
     contract("fastq.correct_errors", "rcorrector", "report_json"),
     contract("fastq.correct_errors", "musket", "report_json"),

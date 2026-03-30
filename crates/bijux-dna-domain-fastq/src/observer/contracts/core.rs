@@ -5,7 +5,11 @@ use super::{contract, ObserverSpecializationContract};
 pub(super) const CONTRACTS: &[ObserverSpecializationContract] = &[
     contract("fastq.index_reference", "bowtie2_build", "report_json"),
     contract("fastq.index_reference", "star", "report_json"),
-    contract("fastq.validate_reads", "fastqvalidator", "validation_report"),
+    contract(
+        "fastq.validate_reads",
+        "fastqvalidator",
+        "validation_report",
+    ),
     contract("fastq.validate_reads", "fastqc", "validation_report"),
     contract("fastq.validate_reads", "fastq_scan", "validation_report"),
     contract("fastq.validate_reads", "seqtk", "validation_report"),

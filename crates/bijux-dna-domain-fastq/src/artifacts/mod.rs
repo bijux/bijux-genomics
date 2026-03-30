@@ -68,9 +68,7 @@ pub use screen_taxonomy::{
 };
 pub use trim_polyg_tails::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
 pub use trim_reads::{TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
-pub use trim_terminal_damage::{
-    TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION,
-};
+pub use trim_terminal_damage::{TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION};
 pub use validate_reads::{
     ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
     VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
