@@ -1,6 +1,6 @@
 {
   "corpus_id": "corpus-01",
-  "docs_root": "docs/benchmark",
+  "docs_root": "docs/30-operations/benchmark",
   "benchmarkable_stage_count": 23,
   "applicable_stage_count": 20,
   "completed_stage_count": 18,

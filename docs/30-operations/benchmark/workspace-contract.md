@@ -8,7 +8,7 @@ This document defines the governed benchmark workspace layout for corpus publica
 
 `bijux-dna` owns benchmark orchestration and dossier generation against this contract. Make may wrap those Rust commands, but it must not introduce an independent path model or a second execution surface.
 
-Read this together with `docs/benchmark/workspace-model.md` for the durable role names used across the benchmark surface.
+Read this together with `docs/30-operations/benchmark/workspace-model.md` for the durable role names used across the benchmark surface.
 
 ## Local Workspace
 
