@@ -48,7 +48,10 @@ pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<Strin
     ))
 }
 
-pub(super) fn extract_version_map(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+pub(super) fn extract_version_map(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     let usage =
         "Usage: cargo run -p bijux-dna-dev -- containers run extract-version-map -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
@@ -119,7 +122,9 @@ pub(super) fn check_versions_index_sha(workspace: &Workspace) -> Result<Containe
     success_line("versions index sha: OK")
 }
 
-pub(super) fn check_lock_change_discipline(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(super) fn check_lock_change_discipline(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
     if env_or_empty("CI").is_empty() {
         return success_line("lock change discipline: SKIP (CI-only gate)");
     }
@@ -498,7 +503,9 @@ pub(super) fn check_promotion_policy(workspace: &Workspace) -> Result<ContainerC
     failure_lines("promotion policy: failed", &errors)
 }
 
-pub(super) fn check_promotion_lock_integrity(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(super) fn check_promotion_lock_integrity(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
     if env_or_empty("CI").is_empty() {
         return success_line("promotion lock integrity: SKIP (CI-only gate)");
     }
@@ -942,7 +949,10 @@ pub(super) fn parse_required_option(
         .ok_or_else(|| anyhow!("{command}: missing required option --{key}"))
 }
 
-pub(super) fn parse_named_options(command: &str, args: &[String]) -> Result<BTreeMap<String, String>> {
+pub(super) fn parse_named_options(
+    command: &str,
+    args: &[String],
+) -> Result<BTreeMap<String, String>> {
     let mut options = BTreeMap::new();
     let mut index = 0;
     while index < args.len() {
@@ -1019,7 +1029,10 @@ pub(super) fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> 
     Ok(())
 }
 
-pub(super) fn promote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+pub(super) fn promote_tool(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     let usage =
         "Usage: cargo run -p bijux-dna-dev -- containers run promote -- --tool <id> --to <experimental|production>";
     if matches!(args, [single] if single == "--help" || single == "-h") {
@@ -1117,7 +1130,10 @@ pub(super) fn promote_tool(workspace: &Workspace, args: &[String]) -> Result<Con
     success_line(format!("promoted {tool} -> {to_status}"))
 }
 
-pub(super) fn demote_tool(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+pub(super) fn demote_tool(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     let usage =
         "Usage: cargo run -p bijux-dna-dev -- containers run demote -- --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>";
     if matches!(args, [single] if single == "--help" || single == "-h") {
@@ -1159,7 +1175,10 @@ pub(super) fn demote_tool(workspace: &Workspace, args: &[String]) -> Result<Cont
     ))
 }
 
-pub(super) fn deprecate_version(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+pub(super) fn deprecate_version(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     let usage = "Usage: cargo run -p bijux-dna-dev -- containers run deprecate-version -- --tool <id> --version <semver> --rationale <text> --sunset-date <YYYY-MM-DD> --replacement-tool <id> --replacement-version <semver> [--compatibility-mode allowed|blocked]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
@@ -1237,7 +1256,10 @@ pub(super) fn deprecate_version(workspace: &Workspace, args: &[String]) -> Resul
     ))
 }
 
-pub(super) fn tool_lifecycle(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+pub(super) fn tool_lifecycle(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     let usage = "Usage:\n  cargo run -p bijux-dna-dev -- containers run tool-lifecycle -- --tool <id> --to experimental\n  cargo run -p bijux-dna-dev -- containers run tool-lifecycle -- --tool <id> --to stable\n\nNotes:\n- `stable` is the lifecycle alias for production container status.\n- Status changes must be done through this command (no manual edits).\n";
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
@@ -1270,4 +1292,3 @@ pub(super) fn tool_lifecycle(workspace: &Workspace, args: &[String]) -> Result<C
         ],
     )
 }
-

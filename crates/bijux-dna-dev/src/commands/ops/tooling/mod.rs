@@ -1,11 +1,11 @@
-use super::*;
 use super::examples::examples_run;
 use super::smoke::smoke_run;
+use super::*;
 
 mod acquisition;
 mod cargo_targets;
-mod ci;
 mod certification;
+mod ci;
 mod config_docs;
 mod diagnostics;
 
@@ -15,8 +15,8 @@ pub(super) use self::acquisition::{
 };
 pub(super) use self::cargo_targets::tooling_cargo_targets;
 pub(super) use self::certification::{
-    tooling_certification_gate, tooling_certify_all, tooling_certify_bam,
-    tooling_certify_domains, tooling_certify_fastq, tooling_certify_vcf,
+    tooling_certification_gate, tooling_certify_all, tooling_certify_bam, tooling_certify_domains,
+    tooling_certify_fastq, tooling_certify_vcf,
 };
 pub(super) use self::ci::{
     tooling_ci_audit, tooling_ci_clippy, tooling_ci_clippy_executors, tooling_ci_coverage,
@@ -31,8 +31,8 @@ pub(super) use self::config_docs::{
 pub(super) use self::diagnostics::{
     tooling_config_inventory, tooling_coverage_summary, tooling_crash_triage,
     tooling_deprecate_vcf_knob, tooling_deprecate_vcf_panel, tooling_docs_build,
-    tooling_generate_compatibility_matrix, tooling_generate_configs,
-    tooling_generate_docs, tooling_generate_docs_graph, tooling_generate_domain_coverage_doc,
+    tooling_generate_compatibility_matrix, tooling_generate_configs, tooling_generate_docs,
+    tooling_generate_docs_graph, tooling_generate_domain_coverage_doc,
     tooling_generate_panel_compatibility_matrix, tooling_generate_policy_index,
     tooling_generate_repo_root_map, tooling_image_qa, tooling_inventory, tooling_make_help,
     tooling_repo_doctor, tooling_run_bijux, tooling_setup_docs_venv,

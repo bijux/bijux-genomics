@@ -1,6 +1,9 @@
 use super::*;
 
-pub(super) fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn docs_check_doc_assets(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-doc-assets", args)?;
     let docs_root = workspace.path("docs");
     let mut offenders = Vec::new();
@@ -29,7 +32,10 @@ pub(super) fn docs_check_doc_assets(workspace: &Workspace, args: &[String]) -> R
     )
 }
 
-pub(super) fn docs_check_doc_depth(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn docs_check_doc_depth(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-doc-depth", args)?;
     let docs_root = workspace.path("docs");
     let purpose = Regex::new(r"(?mi)^##\s+(Purpose|What)\s*$")?;
@@ -84,7 +90,10 @@ pub(super) fn docs_check_doc_depth(workspace: &Workspace, args: &[String]) -> Re
     failure_lines("doc-depth: missing required sections", &violations)
 }
 
-pub(super) fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn docs_check_doc_links(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-doc-links", args)?;
     let docs_root = workspace.path("docs");
     let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
@@ -164,7 +173,10 @@ pub(super) fn docs_check_doc_links(workspace: &Workspace, args: &[String]) -> Re
     failure_lines("docs link check failed:", &errors)
 }
 
-pub(super) fn docs_check_doc_root_layout(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn docs_check_doc_root_layout(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-doc-root-layout", args)?;
     let allowed_dirs = BTreeSet::from([
         "00-intro",
@@ -221,7 +233,10 @@ pub(super) fn docs_check_doc_root_layout(workspace: &Workspace, args: &[String])
     failure_lines("doc-root-layout: FAILED", &violations)
 }
 
-pub(super) fn docs_check_docs_graph(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn docs_check_docs_graph(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-docs-graph", args)?;
     let docs_root = workspace.path("docs");
     let graph_path = docs_root.join("DOCS_GRAPH.toml");
@@ -446,7 +461,10 @@ pub(super) fn docs_check_domain_doc_references(
     failure_lines("docs reference unknown stage/tool ids", &errors)
 }
 
-pub(super) fn docs_check_generated_docs(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn docs_check_generated_docs(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-generated-docs", args)?;
     let required = [
         "docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md",
@@ -592,7 +610,10 @@ pub(super) fn docs_check_no_placeholder_language(
     )
 }
 
-pub(super) fn docs_check_root_pollution(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn docs_check_root_pollution(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-root-pollution", args)?;
     let mut offenders = Vec::new();
     for rel in ["coverage", "target-docs"] {
@@ -616,7 +637,10 @@ pub(super) fn docs_check_root_pollution(workspace: &Workspace, args: &[String]) 
     )
 }
 
-pub(super) fn docs_check_doc_major_depth(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn docs_check_doc_major_depth(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-doc-major-depth", args)?;
     let required = BTreeMap::from([
         ("purpose", Regex::new(r"(?mi)^##\s+Purpose:?\s*$")?),
@@ -655,4 +679,3 @@ pub(super) fn docs_check_doc_major_depth(workspace: &Workspace, args: &[String])
     }
     failure_lines("doc-major-depth: FAILED", &errors)
 }
-

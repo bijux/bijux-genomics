@@ -1,6 +1,9 @@
 use super::*;
 
-pub(super) fn examples_generate_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn examples_generate_index(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     let mut out = workspace.path("examples/index.yaml");
     let mut index = 0;
     while index < args.len() {
@@ -84,7 +87,10 @@ pub(super) fn examples_generate_index(workspace: &Workspace, args: &[String]) ->
     success_line(format!("generated {}", workspace.rel(&out).display()))
 }
 
-pub(super) fn examples_check_index(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn examples_check_index(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-index", args)?;
     let index_path = workspace.path("examples/index.yaml");
     if !index_path.is_file() {
@@ -255,7 +261,10 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
     ))
 }
 
-pub(super) fn examples_check_drift(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn examples_check_drift(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(
             "Usage: cargo run -p bijux-dna-dev -- examples run check-drift -- <example-id>",
@@ -284,4 +293,3 @@ pub(super) fn examples_check_drift(workspace: &Workspace, args: &[String]) -> Re
     }
     success_line(format!("example drift: OK ({example_id})"))
 }
-

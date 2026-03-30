@@ -1,6 +1,8 @@
 use super::*;
 
-pub(super) fn check_apptainer_cache_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(super) fn check_apptainer_cache_policy(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
     let policy = workspace.path("configs/ci/tools/apptainer_cache_policy.toml");
     if !policy.is_file() {
         return Ok(ContainerCommandOutcome::failure(format!(
@@ -638,7 +640,9 @@ pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<Contain
     failure_lines("apptainer post pin policy: failed", &errors)
 }
 
-pub(super) fn check_apptainer_version_label_sync(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(super) fn check_apptainer_version_label_sync(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
     if env_or_empty("CI").is_empty() {
         return success_line("apptainer version label sync: SKIP (CI-only gate)");
     }
@@ -692,7 +696,9 @@ pub(super) fn check_apptainer_version_label_sync(workspace: &Workspace) -> Resul
     failure_lines("apptainer version label sync: failed", &errors)
 }
 
-pub(super) fn check_bijux_apptainer_built(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(super) fn check_bijux_apptainer_built(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
     if env_or_empty("CI").is_empty() {
         return success_line("bijux apptainer built: SKIP (CI-only gate)");
     }
@@ -1576,7 +1582,11 @@ pub(super) fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerComm
     Ok(ContainerCommandOutcome::failure(stdout))
 }
 
-pub(super) fn sampled_apptainer_defs(workspace: &Workspace, seed: &str, count: usize) -> Vec<PathBuf> {
+pub(super) fn sampled_apptainer_defs(
+    workspace: &Workspace,
+    seed: &str,
+    count: usize,
+) -> Vec<PathBuf> {
     let mut scored = apptainer_def_paths(workspace)
         .into_iter()
         .map(|path| {

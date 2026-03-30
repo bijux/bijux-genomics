@@ -11,7 +11,10 @@ fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
     Ok(out)
 }
 
-pub(super) fn generate_tool_ids(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+pub(super) fn generate_tool_ids(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     let usage =
         "Usage: cargo run -p bijux-dna-dev -- containers run generate-tool-ids -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
@@ -102,7 +105,9 @@ pub(super) fn generate_tool_name_map(
     success_line(format!("generated {}", out.display()))
 }
 
-pub(super) fn check_tool_name_map_generated(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(super) fn check_tool_name_map_generated(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
     let target = workspace.path("containers/docs/TOOL_NAME_MAP.md");
     if read_utf8(&target)? != generate_tool_name_map_content(workspace)? {
         return Ok(ContainerCommandOutcome::failure(
@@ -546,7 +551,9 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
     failure_lines("license metadata check failed:", &errors)
 }
 
-pub(super) fn check_license_index_generated(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+pub(super) fn check_license_index_generated(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
     let target = workspace.path("docs/30-operations/CONTAINER_LICENSE_INDEX.md");
     let expected = generate_license_index_content(&license_metadata_entries(workspace)?);
     if read_utf8(&target)? != expected {
@@ -930,7 +937,10 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
     Ok(outputs)
 }
 
-pub(super) fn generate_tool_docs(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+pub(super) fn generate_tool_docs(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     let usage =
         "Usage: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -- [<output-dir>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {
@@ -1198,7 +1208,10 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
     Ok(format!("{}\n", lines.join("\n")))
 }
 
-pub(super) fn generate_qa_matrix(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+pub(super) fn generate_qa_matrix(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
     let usage =
         "Usage: cargo run -p bijux-dna-dev -- containers run generate-qa-matrix -- [<output-path>]";
     if matches!(args, [single] if single == "--help" || single == "-h") {

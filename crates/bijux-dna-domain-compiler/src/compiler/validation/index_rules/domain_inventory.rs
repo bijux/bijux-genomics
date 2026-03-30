@@ -1,4 +1,7 @@
-use super::*;
+use super::{
+    bail, is_umbrella_stage, read_yaml, BTreeMap, Context, DomainIndex, DomainStage,
+    DomainToolLoose, Result, ValidateOptions,
+};
 
 pub(super) fn validate_domain_index_inventory(
     options: &ValidateOptions,
@@ -46,7 +49,8 @@ pub(super) fn validate_domain_index_inventory(
     }
 
     let stage_dir = options.domain_dir.join(dom).join("stages");
-    for entry in std::fs::read_dir(&stage_dir).with_context(|| format!("read {}", stage_dir.display()))?
+    for entry in
+        std::fs::read_dir(&stage_dir).with_context(|| format!("read {}", stage_dir.display()))?
     {
         let path = entry?.path();
         if path.extension().and_then(|value| value.to_str()) != Some("yaml") {
@@ -66,7 +70,8 @@ pub(super) fn validate_domain_index_inventory(
     }
 
     let tool_dir = options.domain_dir.join(dom).join("tools");
-    for entry in std::fs::read_dir(&tool_dir).with_context(|| format!("read {}", tool_dir.display()))?
+    for entry in
+        std::fs::read_dir(&tool_dir).with_context(|| format!("read {}", tool_dir.display()))?
     {
         let path = entry?.path();
         if path.extension().and_then(|value| value.to_str()) != Some("yaml") {

@@ -1,6 +1,8 @@
-use super::*;
+use super::{bail, BTreeMap, BTreeSet, Result};
 
-pub(super) fn validate_canonical_stage_coverage(stage_ids: &BTreeMap<String, String>) -> Result<()> {
+pub(super) fn validate_canonical_stage_coverage(
+    stage_ids: &BTreeMap<String, String>,
+) -> Result<()> {
     let fastq_canonical = bijux_dna_domain_fastq::stages::ids::STAGES
         .iter()
         .map(|id| id.as_str().to_string())

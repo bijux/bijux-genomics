@@ -1,4 +1,4 @@
-use super::*;
+use super::{bail, read_yaml, DomainIndex, Result, ValidateOptions};
 
 pub(super) fn validate_domain_versions(options: &ValidateOptions) -> Result<()> {
     for dom in ["fastq", "bam", "vcf"] {

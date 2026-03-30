@@ -1,4 +1,8 @@
-use super::*;
+use super::{
+    anyhow, bail, ensure_status, has_supported_placeholder_forbidden_token, is_umbrella_stage,
+    placeholders_allowed, read_yaml, BTreeMap, BTreeSet, Context, DomainStage, Result,
+    ValidateOptions,
+};
 
 pub(super) fn validate_stage_files(
     options: &ValidateOptions,
@@ -130,7 +134,10 @@ pub(super) fn validate_stage_files(
         }
         for port in &stage.outputs {
             if port.data_type.trim().is_empty() || port.cardinality.trim().is_empty() {
-                bail!("{} has output missing data_type/cardinality", path.display());
+                bail!(
+                    "{} has output missing data_type/cardinality",
+                    path.display()
+                );
             }
         }
         for required in &stage.required_inputs {

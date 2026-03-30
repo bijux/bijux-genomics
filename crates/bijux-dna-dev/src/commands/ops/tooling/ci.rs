@@ -1,6 +1,9 @@
 use super::*;
 
-pub(in super::super) fn tooling_ci_fmt(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_fmt(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-fmt", args)?;
     let envs = artifact_env(workspace)?;
     run_program_with_env(
@@ -16,7 +19,10 @@ pub(in super::super) fn tooling_ci_fmt(workspace: &Workspace, args: &[String]) -
     )
 }
 
-pub(in super::super) fn tooling_ci_clippy(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_clippy(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-clippy", args)?;
     let mut envs = artifact_env(workspace)?;
     envs.push(("CLIPPY_CONF_DIR".to_string(), "configs/rust".to_string()));
@@ -79,7 +85,10 @@ pub(in super::super) fn tooling_ci_clippy_executors(
     )
 }
 
-pub(in super::super) fn tooling_ci_audit(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_audit(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-audit", args)?;
     let mut stdout = String::new();
     run_check_ids(&mut stdout, &["check-audit-allowlist"])?;
@@ -97,7 +106,10 @@ pub(in super::super) fn tooling_ci_audit(workspace: &Workspace, args: &[String])
     Ok(merge_outcomes(OpsCommandOutcome::success(stdout), outcome))
 }
 
-pub(in super::super) fn tooling_ci_install_tools(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_install_tools(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-install-tools", args)?;
     run_program_with_env(
         workspace,
@@ -113,17 +125,26 @@ pub(in super::super) fn tooling_ci_install_tools(workspace: &Workspace, args: &[
     )
 }
 
-pub(in super::super) fn tooling_ci_fast(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_fast(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-fast", args)?;
     run_make_target(workspace, "_ci-fast")
 }
 
-pub(in super::super) fn tooling_ci_slow(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_slow(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-slow", args)?;
     run_make_target(workspace, "_ci-slow")
 }
 
-pub(in super::super) fn tooling_ci_test(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_test(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-test", args)?;
     let mut stdout = String::new();
     run_check_ids(
@@ -167,7 +188,10 @@ pub(in super::super) fn tooling_ci_test(workspace: &Workspace, args: &[String]) 
     Ok(combined)
 }
 
-pub(in super::super) fn tooling_ci_test_slow(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_test_slow(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-test-slow", args)?;
     set_assets_readonly(workspace, true)?;
     let envs = ci_test_env(workspace, true)?;
@@ -206,7 +230,10 @@ pub(in super::super) fn tooling_ci_test_slow(workspace: &Workspace, args: &[Stri
     Ok(test_outcome)
 }
 
-pub(in super::super) fn tooling_ci_coverage(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_ci_coverage(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-coverage", args)?;
     let artifact_root = artifact_root_path(workspace)?;
     let coverage_root = artifact_root.join("coverage");
@@ -284,4 +311,3 @@ pub(in super::super) fn tooling_ci_coverage(workspace: &Workspace, args: &[Strin
         html_report,
     ))
 }
-

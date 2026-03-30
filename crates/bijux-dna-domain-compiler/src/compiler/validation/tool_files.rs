@@ -1,4 +1,8 @@
-use super::*;
+use super::{
+    anyhow, bail, ensure_status, has_supported_placeholder_forbidden_token,
+    is_tool_meaningful_in_domain, placeholders_allowed, read_yaml, validate_tool_output_subset,
+    BTreeMap, BTreeSet, Context, DomainToolLoose, Result, ValidateOptions,
+};
 
 pub(super) fn validate_tool_files(
     options: &ValidateOptions,
@@ -106,20 +110,21 @@ pub(super) fn validate_tool_files(
             let mut stage_specs = Vec::new();
             for stage_id in &tool.stage_ids {
                 let stage_domain = stage_id.split('.').next().unwrap_or(dom);
-                let stage_path = options
-                    .domain_dir
-                    .join(stage_domain)
-                    .join("stages")
-                    .join(format!(
-                        "{}.yaml",
-                        stage_id
-                            .split_once('.')
-                            .map_or(stage_id.as_str(), |(_, suffix)| suffix)
-                            .replace('.', "_")
-                    ));
+                let stage_path =
+                    options
+                        .domain_dir
+                        .join(stage_domain)
+                        .join("stages")
+                        .join(format!(
+                            "{}.yaml",
+                            stage_id
+                                .split_once('.')
+                                .map_or(stage_id.as_str(), |(_, suffix)| suffix)
+                                .replace('.', "_")
+                        ));
                 if stage_path.exists() {
-                    let stage_yaml_raw = std::fs::read_to_string(&stage_path)
-                        .with_context(|| {
+                    let stage_yaml_raw =
+                        std::fs::read_to_string(&stage_path).with_context(|| {
                             format!("read stage for output validation {}", stage_path.display())
                         })?;
                     stage_specs.push((stage_id.as_str(), stage_yaml_raw));

@@ -1,38 +1,36 @@
-use super::*;
 use super::runtime::*;
+use super::*;
 
 mod compliance;
 mod operations;
 
 pub(super) use self::compliance::{
     check_bijux_template_markers, check_docker_arch_policy, check_docker_arm64_completeness,
-    check_docker_context, check_docker_hardening, check_docker_labels,
-    check_docker_unpinned_apt, check_docker_version_sync, check_dockerfiles_built,
-    check_hpc_image_naming, check_no_secrets, check_planned_actionability,
-    check_runtime_downloads, check_sbom_artifacts, check_smoke_inputs_policy,
-    check_time_locale_determinism, check_tool_container_coverage, check_tool_id_contract,
-    check_tool_invocation_normalization, check_tool_name_collision, check_toolkit_bundles,
-    check_vuln_allowlist, check_vuln_hook,
+    check_docker_context, check_docker_hardening, check_docker_labels, check_docker_unpinned_apt,
+    check_docker_version_sync, check_dockerfiles_built, check_hpc_image_naming, check_no_secrets,
+    check_planned_actionability, check_runtime_downloads, check_sbom_artifacts,
+    check_smoke_inputs_policy, check_time_locale_determinism, check_tool_container_coverage,
+    check_tool_id_contract, check_tool_invocation_normalization, check_tool_name_collision,
+    check_toolkit_bundles, check_vuln_allowlist, check_vuln_hook,
 };
 pub(super) use self::operations::{
     check_apptainer_bijux_header, check_apptainer_rebuild_repro, check_build_provenance,
-    check_cross_runtime_representative, check_cross_runtime_smoke, check_cross_runtime_smoke_at_paths,
-    check_digest_changes_on_version_change, check_digest_output_policy,
-    check_hpc_frontend_policy_enforcement, check_image_size_regression,
+    check_cross_runtime_representative, check_cross_runtime_smoke,
+    check_cross_runtime_smoke_at_paths, check_digest_changes_on_version_change,
+    check_digest_output_policy, check_hpc_frontend_policy_enforcement, check_image_size_regression,
     check_imputation_cross_runtime_parity, check_imputation_hardening,
     check_imputation_network_policy, check_imputation_release_smoke,
-    check_imputation_runtime_constraints, check_lock_matches_built_output,
-    check_release_checklist, check_rebuild_repro, check_runtime_tool_digest_recording,
-    check_smoke_contract, check_smoke_contract_lock, check_smoke_failure_classification,
-    check_toolkit_bundle_buildable, check_vcf_downstream_bundle_coverage,
-    check_vcf_imputation_toolchain, current_host_name, run_apptainer_build_all,
-    run_apptainer_ensure, run_apptainer_ensure_stage, run_apptainer_frontend_reproducibility,
-    run_apptainer_frontend_security, run_apptainer_frontend_smoke, run_build_apptainer_all,
-    run_build_apptainer_hpc_frontend, run_build_contract, run_container_doctor,
-    run_container_lint, run_container_smoke, run_containers_smoke, run_docker_build_all,
-    run_ensure_images, run_env_prep, run_env_smoke, run_image_qa, run_image_smoke_vcf,
-    run_registry_tools, run_release_gate, run_test_images, run_test_images_stage,
-    run_test_images_tool, run_vuln_scan_hook, summary,
+    check_imputation_runtime_constraints, check_lock_matches_built_output, check_rebuild_repro,
+    check_release_checklist, check_runtime_tool_digest_recording, check_smoke_contract,
+    check_smoke_contract_lock, check_smoke_failure_classification, check_toolkit_bundle_buildable,
+    check_vcf_downstream_bundle_coverage, check_vcf_imputation_toolchain, current_host_name,
+    run_apptainer_build_all, run_apptainer_ensure, run_apptainer_ensure_stage,
+    run_apptainer_frontend_reproducibility, run_apptainer_frontend_security,
+    run_apptainer_frontend_smoke, run_build_apptainer_all, run_build_apptainer_hpc_frontend,
+    run_build_contract, run_container_doctor, run_container_lint, run_container_smoke,
+    run_containers_smoke, run_docker_build_all, run_ensure_images, run_env_prep, run_env_smoke,
+    run_image_qa, run_image_smoke_vcf, run_registry_tools, run_release_gate, run_test_images,
+    run_test_images_stage, run_test_images_tool, run_vuln_scan_hook, summary,
 };
 
 pub(super) fn load_runtime_manifest_rows(
