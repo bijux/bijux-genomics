@@ -134,19 +134,18 @@ fn container_input_mapping(input_root: &Path) -> (PathBuf, String) {
     if input_root.is_file() {
         let mount_root = input_root
             .parent()
-            .map(Path::to_path_buf)
-            .unwrap_or_else(|| PathBuf::from("/"));
-        let file_name = input_root
-            .file_name()
-            .map(|name| name.to_string_lossy().into_owned())
-            .unwrap_or_else(|| "input".to_string());
+            .map_or_else(|| PathBuf::from("/"), Path::to_path_buf);
+        let file_name = input_root.file_name().map_or_else(
+            || "input".to_string(),
+            |name| name.to_string_lossy().into_owned(),
+        );
         return (mount_root, format!("/data/input/{file_name}"));
     }
     (input_root.to_path_buf(), "/data/input".to_string())
 }
 
 fn preserve_absolute_input_paths(inputs: &[PathBuf]) -> bool {
-    common_parent(inputs).is_some_and(|path| path == PathBuf::from("/"))
+    common_parent(inputs).is_some_and(|path| path == Path::new("/"))
 }
 
 fn input_bind_root(input: &Path) -> PathBuf {
@@ -154,15 +153,13 @@ fn input_bind_root(input: &Path) -> PathBuf {
         if input.is_file() {
             return input
                 .parent()
-                .map(Path::to_path_buf)
-                .unwrap_or_else(|| PathBuf::from("/"));
+                .map_or_else(|| PathBuf::from("/"), Path::to_path_buf);
         }
         return input.to_path_buf();
     }
     input
         .parent()
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from("/"))
+        .map_or_else(|| PathBuf::from("/"), Path::to_path_buf)
 }
 
 fn collapse_bind_roots(mut roots: Vec<PathBuf>) -> Vec<PathBuf> {
@@ -504,7 +501,7 @@ pub fn execute_observer_command(
     let mount_dir = mount_dir
         .canonicalize()
         .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
-    let (bin, command_args) = build_observer_command_args(image, &mount_dir, args, runner)?;
+    let (bin, command_args) = build_observer_command_args(image, &mount_dir, args, runner);
     let output = run_command(bin, &command_args)
         .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
     Ok(output)
@@ -515,7 +512,7 @@ fn build_observer_command_args(
     mount_dir: &Path,
     args: &[String],
     runner: RuntimeKind,
-) -> Result<(&'static str, Vec<String>)> {
+) -> (&'static str, Vec<String>) {
     let mount_arg = format!("{}:/data:ro", mount_dir.display());
     match runner {
         RuntimeKind::Docker => {
@@ -526,7 +523,7 @@ fn build_observer_command_args(
             }
             command_args.extend(["-v".to_string(), mount_arg, image.to_string()]);
             command_args.extend(args.iter().cloned());
-            Ok(("docker", command_args))
+            ("docker", command_args)
         }
         RuntimeKind::Apptainer | RuntimeKind::Singularity => {
             let mut command_args = vec![
@@ -544,7 +541,7 @@ fn build_observer_command_args(
             } else {
                 "singularity"
             };
-            Ok((bin, command_args))
+            (bin, command_args)
         }
     }
 }
@@ -734,6 +731,7 @@ mod tests {
         container_input_mapping, execution_pipeline_identity, execution_sample_identity,
         hash_inputs, hash_path, runtime_platform_identity,
     };
+    use anyhow::anyhow;
     use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};
     use bijux_dna_core::prelude::{
         ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId,
@@ -749,8 +747,7 @@ mod tests {
             Path::new("/tmp/input"),
             &["stats".to_string(), "/data/reads.fastq.gz".to_string()],
             RuntimeKind::Docker,
-        )
-        .expect("docker observer args");
+        );
 
         assert_eq!(bin, "docker");
         assert!(args.starts_with(&["run".to_string(), "--rm".to_string()]));
@@ -775,7 +772,7 @@ mod tests {
                 outputs: Vec::new(),
             },
             out_dir: PathBuf::from("/tmp/out"),
-            aux_images: Default::default(),
+            aux_images: std::collections::BTreeMap::default(),
             expected_artifact_ids: Vec::new(),
             metrics_schema_ids: Vec::new(),
         };
@@ -790,8 +787,14 @@ mod tests {
     #[test]
     fn runtime_platform_identity_defaults_to_runner_name() {
         assert_eq!(runtime_platform_identity(RuntimeKind::Docker), "docker");
-        assert_eq!(runtime_platform_identity(RuntimeKind::Apptainer), "apptainer");
-        assert_eq!(runtime_platform_identity(RuntimeKind::Singularity), "singularity");
+        assert_eq!(
+            runtime_platform_identity(RuntimeKind::Apptainer),
+            "apptainer"
+        );
+        assert_eq!(
+            runtime_platform_identity(RuntimeKind::Singularity),
+            "singularity"
+        );
     }
 
     #[test]
@@ -801,8 +804,7 @@ mod tests {
             Path::new("/tmp/input"),
             &["stats".to_string(), "/data/reads.fastq.gz".to_string()],
             RuntimeKind::Apptainer,
-        )
-        .expect("apptainer observer args");
+        );
 
         assert_eq!(bin, "apptainer");
         assert!(args.starts_with(&[
@@ -817,7 +819,7 @@ mod tests {
     }
 
     #[test]
-    fn apptainer_exec_defaults_workdir_to_output_mount() {
+    fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
         let step = ExecutionStep {
             step_id: StepId::from_static("step.trim_reads.tool.seqkit"),
             stage_id: StageId::from_static("fastq.trim_reads"),
@@ -842,7 +844,7 @@ mod tests {
                 )],
             },
             out_dir: Path::new("/tmp/out").to_path_buf(),
-            aux_images: Default::default(),
+            aux_images: std::collections::BTreeMap::default(),
             expected_artifact_ids: Vec::new(),
             metrics_schema_ids: Vec::new(),
         };
@@ -853,14 +855,14 @@ mod tests {
             Path::new("/tmp/input"),
             Path::new("/tmp/out"),
             RuntimeKind::Apptainer,
-        )
-        .expect("apptainer exec args");
+        )?;
 
         let pwd_index = args
             .iter()
             .position(|value| value == "--pwd")
-            .expect("pwd flag present");
+            .ok_or_else(|| anyhow!("missing --pwd flag in apptainer args"))?;
         assert_eq!(args[pwd_index + 1], "/data/output");
+        Ok(())
     }
 
     #[test]
@@ -886,12 +888,13 @@ mod tests {
     }
 
     #[test]
-    fn container_command_template_rewrites_single_file_mounts_inside_shell_scripts() {
-        let temp = tempdir().expect("tempdir");
+    fn container_command_template_rewrites_single_file_mounts_inside_shell_scripts(
+    ) -> anyhow::Result<()> {
+        let temp = tempdir()?;
         let input = temp.path().join("sample_0004_R1.fastq.gz");
-        std::fs::write(&input, b"@read\nACGT\n+\n!!!!\n").expect("write input");
+        std::fs::write(&input, b"@read\nACGT\n+\n!!!!\n")?;
         let out_dir = temp.path().join("out");
-        std::fs::create_dir_all(&out_dir).expect("create out dir");
+        std::fs::create_dir_all(&out_dir)?;
         let template = vec![
             "sh".to_string(),
             "-lc".to_string(),
@@ -909,6 +912,7 @@ mod tests {
             rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input/sample_0004_R1.fastq.gz")
         );
         assert!(rewritten[2].contains("> /data/output/reads.tsv"));
+        Ok(())
     }
 
     #[test]
@@ -956,15 +960,16 @@ mod tests {
     }
 
     #[test]
-    fn container_input_mapping_preserves_single_file_basename() {
-        let temp = tempdir().expect("tempdir");
+    fn container_input_mapping_preserves_single_file_basename() -> anyhow::Result<()> {
+        let temp = tempdir()?;
         let input = temp.path().join("sample_0004_R1.fastq.gz");
-        std::fs::write(&input, b"@read\nACGT\n+\n!!!!\n").expect("write input");
+        std::fs::write(&input, b"@read\nACGT\n+\n!!!!\n")?;
 
         let (mount_root, container_root) = container_input_mapping(&input);
 
         assert_eq!(mount_root, temp.path());
         assert_eq!(container_root, "/data/input/sample_0004_R1.fastq.gz");
+        Ok(())
     }
 
     #[test]
@@ -991,42 +996,43 @@ mod tests {
     }
 
     #[test]
-    fn hash_path_supports_directory_outputs() {
-        let temp = tempdir().expect("tempdir");
+    fn hash_path_supports_directory_outputs() -> anyhow::Result<()> {
+        let temp = tempdir()?;
         let root = temp.path().join("fastqc");
-        std::fs::create_dir_all(root.join("nested")).expect("create dir tree");
-        std::fs::write(root.join("nested").join("summary.txt"), b"adapter-summary")
-            .expect("write file");
+        std::fs::create_dir_all(root.join("nested"))?;
+        std::fs::write(root.join("nested").join("summary.txt"), b"adapter-summary")?;
 
-        let digest = hash_path(&root).expect("hash directory");
+        let digest = hash_path(&root)?;
 
         assert_eq!(digest.len(), 64);
+        Ok(())
     }
 
     #[test]
-    fn hash_path_supports_directory_symlinks() {
-        let temp = tempdir().expect("tempdir");
+    fn hash_path_supports_directory_symlinks() -> anyhow::Result<()> {
+        let temp = tempdir()?;
         let root = temp.path().join("taxonomy");
-        std::fs::create_dir_all(root.join("kraken2")).expect("create db dir");
-        std::fs::write(root.join("kraken2").join("hash.k2d"), b"kraken-hash").expect("write db");
-        std::os::unix::fs::symlink(root.join("kraken2"), root.join("krakenuniq"))
-            .expect("create db symlink");
+        std::fs::create_dir_all(root.join("kraken2"))?;
+        std::fs::write(root.join("kraken2").join("hash.k2d"), b"kraken-hash")?;
+        std::os::unix::fs::symlink(root.join("kraken2"), root.join("krakenuniq"))?;
 
-        let digest = hash_path(&root).expect("hash directory with symlink");
+        let digest = hash_path(&root)?;
 
         assert_eq!(digest.len(), 64);
+        Ok(())
     }
 
     #[test]
-    fn hash_inputs_ignores_missing_paths_and_hashes_directories() {
-        let temp = tempdir().expect("tempdir");
+    fn hash_inputs_ignores_missing_paths_and_hashes_directories() -> anyhow::Result<()> {
+        let temp = tempdir()?;
         let root = temp.path().join("fastqc");
-        std::fs::create_dir_all(&root).expect("create dir");
-        std::fs::write(root.join("summary.txt"), b"adapter-summary").expect("write file");
+        std::fs::create_dir_all(&root)?;
+        std::fs::write(root.join("summary.txt"), b"adapter-summary")?;
 
-        let hashes = hash_inputs(&[root, temp.path().join("missing.txt")]).expect("hash inputs");
+        let hashes = hash_inputs(&[root, temp.path().join("missing.txt")])?;
 
         assert_eq!(hashes.len(), 1);
         assert_eq!(hashes[0].len(), 64);
+        Ok(())
     }
 }
