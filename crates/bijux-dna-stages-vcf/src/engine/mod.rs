@@ -22,10 +22,13 @@ use crate::pipeline::{
     QcStageParams, RohStageParams,
 };
 
+mod reporting;
 mod request;
 pub mod wrappers;
 
 pub use request::*;
+
+use reporting::*;
 
 include!("../engine_sections/stage_runner_impl.rs");
 include!("../engine_sections/pipeline_entrypoints.rs");
