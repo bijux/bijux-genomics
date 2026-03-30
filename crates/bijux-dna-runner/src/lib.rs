@@ -28,8 +28,17 @@ impl Runner for DockerRunner {
             bijux_dna_environment::api::RuntimeKind::Docker,
             self.timeout,
         )?;
-        let mut paths = result.outputs.clone();
-        if let Some(metrics_path) = result.metrics_path.clone() {
+        let step_runner::StageResultV1 {
+            exit_code,
+            runtime_s,
+            outputs,
+            metrics_path,
+            stdout,
+            stderr,
+            ..
+        } = result;
+        let mut paths = outputs;
+        if let Some(metrics_path) = metrics_path {
             paths.push(metrics_path);
         }
         let mut artifacts = Vec::new();
@@ -40,10 +49,10 @@ impl Runner for DockerRunner {
             }
         }
         Ok(RunnerResult {
-            exit_code: result.exit_code,
-            stdout: result.stdout,
-            stderr: result.stderr,
-            duration: Duration::from_secs_f64(result.runtime_s),
+            exit_code,
+            stdout,
+            stderr,
+            duration: Duration::from_secs_f64(runtime_s),
             artifacts,
         })
     }
