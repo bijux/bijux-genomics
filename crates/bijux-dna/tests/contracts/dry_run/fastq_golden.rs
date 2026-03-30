@@ -1,7 +1,6 @@
-use bijux_dna::commands::run_with_args;
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
-#[path = "../../support.rs"]
-mod support;
+use bijux_dna::commands::run_with_args;
 
 fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> Vec<u8> {
     let input = base.join("reads.fastq");
@@ -42,7 +41,7 @@ arch = "x86_64"
 "#,
     )
     .expect("write platforms");
-    let repo_root = support::repo_root().expect("repo root");
+    let repo_root = crate::support::repo_root().expect("repo root");
     let workspace_images = repo_root
         .join("configs")
         .join("ci")
@@ -68,16 +67,10 @@ arch = "x86_64"
 
     #[cfg(unix)]
     {
-        std::os::unix::fs::symlink(
-            repo_root.join("domain"),
-            base.join("domain"),
-        )
-        .expect("symlink domain");
-        std::os::unix::fs::symlink(
-            repo_root.join("assets"),
-            base.join("assets"),
-        )
-        .expect("symlink assets");
+        std::os::unix::fs::symlink(repo_root.join("domain"), base.join("domain"))
+            .expect("symlink domain");
+        std::os::unix::fs::symlink(repo_root.join("assets"), base.join("assets"))
+            .expect("symlink assets");
     }
 
     let defaults_dir = out_dir
@@ -127,7 +120,7 @@ arch = "x86_64"
     ];
     let err = run_with_args(&args, base).expect_err("fastq command family should be removed");
     assert!(err.to_string().contains("unrecognized subcommand"));
-    bijux_dna_core::contract::canonical::to_canonical_json_bytes(&serde_json::json!({
+    bijux_dna_api::v1::api::run::canonical::to_canonical_json_bytes(&serde_json::json!({
         "removed": "fastq",
     }))
     .expect("canonical")
