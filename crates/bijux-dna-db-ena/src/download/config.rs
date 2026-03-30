@@ -2,6 +2,9 @@ use crate::model::{EnaFileSource, EnaSourcePreference};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+pub const DEFAULT_DOWNLOAD_JOBS: usize = 8;
+pub const DEFAULT_DOWNLOAD_RETRIES: usize = 2;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DownloadConfig {
     pub output_dir: PathBuf,
@@ -17,8 +20,8 @@ impl DownloadConfig {
     pub fn from_defaults(output_dir: PathBuf) -> Self {
         Self {
             output_dir,
-            jobs: 8,
-            retries: 2,
+            jobs: DEFAULT_DOWNLOAD_JOBS,
+            retries: DEFAULT_DOWNLOAD_RETRIES,
             source: EnaFileSource::FastqFtp,
             preference: EnaSourcePreference::Ftp,
             dry_run: false,

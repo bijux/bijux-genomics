@@ -7,12 +7,20 @@ mod request;
 
 pub use error::EnaClientError;
 
+pub const CRATE_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+
 #[derive(Debug, Clone)]
 pub struct EnaClient {
     http: Client,
 }
 
 impl EnaClient {
+    /// # Errors
+    /// Returns an error if the HTTP client cannot be constructed.
+    pub fn from_crate_identity() -> Result<Self, EnaClientError> {
+        Self::new(CRATE_USER_AGENT)
+    }
+
     /// # Errors
     /// Returns an error if the HTTP client cannot be constructed.
     pub fn new(user_agent: &str) -> Result<Self, EnaClientError> {

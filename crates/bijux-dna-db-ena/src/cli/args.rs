@@ -1,7 +1,10 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
-use bijux_dna_db_ena::{EnaFileSource, EnaResultKind, EnaSourcePreference};
+use bijux_dna_db_ena::{
+    download::{DEFAULT_DOWNLOAD_JOBS, DEFAULT_DOWNLOAD_RETRIES},
+    EnaFileSource, EnaResultKind, EnaSourcePreference,
+};
 
 #[derive(Debug, Parser)]
 #[command(name = "bijux-dna-db-ena")]
@@ -41,9 +44,9 @@ pub(crate) struct SharedArgs {
 pub(crate) struct DownloadArgs {
     #[command(flatten)]
     pub(crate) shared: SharedArgs,
-    #[arg(long, default_value_t = 8)]
+    #[arg(long, default_value_t = DEFAULT_DOWNLOAD_JOBS)]
     pub(crate) jobs: usize,
-    #[arg(long, default_value_t = 2)]
+    #[arg(long, default_value_t = DEFAULT_DOWNLOAD_RETRIES)]
     pub(crate) retries: usize,
     #[arg(long)]
     pub(crate) dry_run: bool,
