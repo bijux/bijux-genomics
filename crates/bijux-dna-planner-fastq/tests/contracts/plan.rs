@@ -1,5 +1,7 @@
 #[path = "plan/contract_handshake.rs"]
 mod contract_handshake;
+#[path = "plan/correct_plan.rs"]
+mod correct_plan;
 #[path = "plan/domain_parity.rs"]
 mod domain_parity;
 #[path = "plan/filter_plan.rs"]
