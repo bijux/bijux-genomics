@@ -346,7 +346,6 @@ mod tests {
     };
     use anyhow::anyhow;
     use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};
-    use bijux_dna_core::id_catalog;
     use bijux_dna_core::prelude::{
         ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId,
     };
@@ -359,7 +358,7 @@ mod tests {
         let (bin, args) = build_observer_command_args(
             "bijuxdna/seqkit:latest-pinned-amd64",
             Path::new("/tmp/input"),
-            &["stats".to_string(), "/data/reads.fastq.gz".to_string()],
+            &["stats".to_string(), "/data/reads.fq.gz".to_string()],
             RuntimeKind::Docker,
         );
 
@@ -371,8 +370,8 @@ mod tests {
     #[test]
     fn execution_identity_defaults_to_stage_and_step_ids() {
         let step = ExecutionStep {
-            step_id: StepId::from_static("sample-0001.fastq.trim_reads.fastp"),
-            stage_id: StageId::from_static(id_catalog::FASTQ_TRIM),
+            step_id: StepId::from_static("sample-0001.reads.trim.fastp"),
+            stage_id: StageId::from_static("stage.trim"),
             command: CommandSpecV1 {
                 template: vec!["fastp".to_string()],
             },
@@ -391,11 +390,8 @@ mod tests {
             metrics_schema_ids: Vec::new(),
         };
 
-        assert_eq!(execution_pipeline_identity(&step), id_catalog::FASTQ_TRIM);
-        assert_eq!(
-            execution_sample_identity(&step),
-            "sample-0001.fastq.trim_reads.fastp"
-        );
+        assert_eq!(execution_pipeline_identity(&step), "stage.trim");
+        assert_eq!(execution_sample_identity(&step), "sample-0001.reads.trim.fastp");
     }
 
     #[test]
@@ -416,7 +412,7 @@ mod tests {
         let (bin, args) = build_observer_command_args(
             "/containers/seqkit.sif",
             Path::new("/tmp/input"),
-            &["stats".to_string(), "/data/reads.fastq.gz".to_string()],
+            &["stats".to_string(), "/data/reads.fq.gz".to_string()],
             RuntimeKind::Apptainer,
         );
 
@@ -436,7 +432,7 @@ mod tests {
     fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
         let step = ExecutionStep {
             step_id: StepId::from_static("step.trim_reads.tool.seqkit"),
-            stage_id: StageId::from_static(id_catalog::FASTQ_TRIM),
+            stage_id: StageId::from_static("stage.trim"),
             command: CommandSpecV1 {
                 template: vec!["seqkit".to_string(), "stats".to_string()],
             },
@@ -448,7 +444,7 @@ mod tests {
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
                     ArtifactId::from_static("reads"),
-                    Path::new("/tmp/input/sample.fastq.gz").to_path_buf(),
+                    Path::new("/tmp/input/sample.fq.gz").to_path_buf(),
                     ArtifactRole::Reads,
                 )],
                 outputs: vec![ArtifactRef::required(
@@ -465,7 +461,7 @@ mod tests {
 
         let args = build_apptainer_exec_args(
             &step,
-            &[PathBuf::from("/tmp/input/sample.fastq.gz")],
+            &[PathBuf::from("/tmp/input/sample.fq.gz")],
             Path::new("/tmp/input"),
             Path::new("/tmp/out"),
             RuntimeKind::Apptainer,
@@ -484,7 +480,7 @@ mod tests {
         let template = vec![
             "sh".to_string(),
             "-lc".to_string(),
-            "validator /tmp/corpus/sample_0004_R1.fastq.gz > /tmp/out/validation_r1.log && printf '%s' /tmp/out/validation.json"
+            "validator /tmp/corpus/sample_0004_R1.fq.gz > /tmp/out/validation_r1.log && printf '%s' /tmp/out/validation.json"
                 .to_string(),
         ];
 
@@ -496,7 +492,7 @@ mod tests {
         );
 
         assert_eq!(rewritten[0], "sh");
-        assert!(rewritten[2].contains("/data/input/sample_0004_R1.fastq.gz"));
+        assert!(rewritten[2].contains("/data/input/sample_0004_R1.fq.gz"));
         assert!(rewritten[2].contains("/data/output/validation_r1.log"));
         assert!(rewritten[2].contains("/data/output/validation.json"));
     }
@@ -505,7 +501,7 @@ mod tests {
     fn container_command_template_rewrites_single_file_mounts_inside_shell_scripts(
     ) -> anyhow::Result<()> {
         let temp = tempdir()?;
-        let input = temp.path().join("sample_0004_R1.fastq.gz");
+        let input = temp.path().join("sample_0004_R1.fq.gz");
         bijux_dna_infra::write_bytes(&input, b"@read\nACGT\n+\n!!!!\n")?;
         let out_dir = temp.path().join("out");
         std::fs::create_dir_all(&out_dir)?;
@@ -522,9 +518,7 @@ mod tests {
         let rewritten = container_command_template(&template, &input, &out_dir, false);
 
         assert_eq!(rewritten[0], "sh");
-        assert!(
-            rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input/sample_0004_R1.fastq.gz")
-        );
+        assert!(rewritten[2].contains("seqkit fx2tab -j 1 -n -s /data/input/sample_0004_R1.fq.gz"));
         assert!(rewritten[2].contains("> /data/output/reads.tsv"));
         Ok(())
     }
@@ -534,7 +528,7 @@ mod tests {
         let template = vec![
             "sh".to_string(),
             "-lc".to_string(),
-            "flash2 -o flash2 -d /tmp/out -t 1 /tmp/corpus/sample_0004_R1.fastq.gz /tmp/corpus/sample_0004_R2.fastq.gz"
+            "flash2 -o flash2 -d /tmp/out -t 1 /tmp/corpus/sample_0004_R1.fq.gz /tmp/corpus/sample_0004_R2.fq.gz"
                 .to_string(),
         ];
 
@@ -547,8 +541,8 @@ mod tests {
 
         assert_eq!(rewritten[0], "sh");
         assert!(rewritten[2].contains("-d /data/output"));
-        assert!(rewritten[2].contains("/data/input/sample_0004_R1.fastq.gz"));
-        assert!(rewritten[2].contains("/data/input/sample_0004_R2.fastq.gz"));
+        assert!(rewritten[2].contains("/data/input/sample_0004_R1.fq.gz"));
+        assert!(rewritten[2].contains("/data/input/sample_0004_R2.fq.gz"));
     }
 
     #[test]
@@ -556,33 +550,33 @@ mod tests {
         let template = vec![
             "sh".to_string(),
             "-lc".to_string(),
-            "printf '%s' /tmp/results/benchmark_corpus/fastq.report_qc/cluster/bench/report_qc/sample_0001/tools/multiqc/report_qc_report.json > /tmp/results/benchmark_corpus/fastq.report_qc/cluster/bench/report_qc/sample_0001/tools/multiqc/report_qc_report.json".to_string(),
+            "printf '%s' /tmp/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc/report_summary.json > /tmp/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc/report_summary.json".to_string(),
         ];
 
         let rewritten = container_command_template(
             &template,
             Path::new("/tmp/results/benchmark_corpus"),
             Path::new(
-                "/tmp/results/benchmark_corpus/fastq.report_qc/cluster/bench/report_qc/sample_0001/tools/multiqc",
+                "/tmp/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc",
             ),
             false,
         );
 
         assert_eq!(rewritten[0], "sh");
-        assert!(rewritten[2].contains("/data/output/report_qc_report.json"));
-        assert!(!rewritten[2].contains("/data/input/fastq.report_qc"));
+        assert!(rewritten[2].contains("/data/output/report_summary.json"));
+        assert!(!rewritten[2].contains("/data/input/reads.report_summary"));
     }
 
     #[test]
     fn container_input_mapping_preserves_single_file_basename() -> anyhow::Result<()> {
         let temp = tempdir()?;
-        let input = temp.path().join("sample_0004_R1.fastq.gz");
+        let input = temp.path().join("sample_0004_R1.fq.gz");
         bijux_dna_infra::write_bytes(&input, b"@read\nACGT\n+\n!!!!\n")?;
 
         let (mount_root, container_root) = container_input_mapping(&input);
 
         assert_eq!(mount_root, temp.path());
-        assert_eq!(container_root, "/data/input/sample_0004_R1.fastq.gz");
+        assert_eq!(container_root, "/data/input/sample_0004_R1.fq.gz");
         Ok(())
     }
 
@@ -595,7 +589,7 @@ mod tests {
             "-S".to_string(),
             "/dev/null".to_string(),
             "-1".to_string(),
-            "/data/benchmark_corpus/normalized/sample_0001_R1.fastq.gz".to_string(),
+            "/data/benchmark_corpus/normalized/sample_0001_R1.fq.gz".to_string(),
             "--met-file".to_string(),
             "/tmp/out/bowtie2.metrics.txt".to_string(),
         ];
@@ -612,7 +606,7 @@ mod tests {
     #[test]
     fn hash_path_supports_directory_outputs() -> anyhow::Result<()> {
         let temp = tempdir()?;
-        let root = temp.path().join("fastqc");
+        let root = temp.path().join("summary_bundle");
         std::fs::create_dir_all(root.join("nested"))?;
         bijux_dna_infra::write_bytes(root.join("nested").join("summary.txt"), b"adapter-summary")?;
 
@@ -639,7 +633,7 @@ mod tests {
     #[test]
     fn hash_inputs_ignores_missing_paths_and_hashes_directories() -> anyhow::Result<()> {
         let temp = tempdir()?;
-        let root = temp.path().join("fastqc");
+        let root = temp.path().join("summary_bundle");
         std::fs::create_dir_all(&root)?;
         bijux_dna_infra::write_bytes(root.join("summary.txt"), b"adapter-summary")?;
 
