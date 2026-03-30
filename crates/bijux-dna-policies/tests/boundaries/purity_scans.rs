@@ -23,10 +23,7 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
 }
 
 fn contains_tool_id_token(content: &str, tool_id: &str) -> bool {
-    let pattern = format!(
-        r"(^|[^a-z0-9_]){}([^a-z0-9_]|$)",
-        regex::escape(tool_id)
-    );
+    let pattern = format!(r"(^|[^a-z0-9_]){}([^a-z0-9_]|$)", regex::escape(tool_id));
     Regex::new(&pattern)
         .expect("compile tool-id token matcher")
         .is_match(content)
