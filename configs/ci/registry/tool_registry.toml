@@ -1983,7 +1983,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Default ASV inference uses DADA2 for deterministic denoising with established amplicon error modeling."
 requires_validation = false
 requires_reporting = false
 
@@ -2043,7 +2043,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Default ASV inference uses DADA2 for deterministic denoising with established amplicon error modeling."
 requires_validation = false
 requires_reporting = false
 
@@ -2211,7 +2211,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Default ASV inference uses DADA2 for deterministic denoising with established amplicon error modeling."
 requires_validation = false
 requires_reporting = false
 
