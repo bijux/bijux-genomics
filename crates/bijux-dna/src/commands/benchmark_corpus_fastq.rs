@@ -27,7 +27,7 @@ struct PendingSampleRun {
     report_json: PathBuf,
     command_args: Vec<String>,
     command: Vec<String>,
-    env_overrides: BTreeMap<String, String>,
+    env_bindings: BTreeMap<String, String>,
     extra_fields: BTreeMap<String, serde_json::Value>,
     post_success_action: Option<PostSuccessAction>,
 }
@@ -402,7 +402,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
             report_json,
             command_args,
             command,
-            env_overrides: runtime_env.clone(),
+            env_bindings: runtime_env.clone(),
             extra_fields: prepared.run_extra_fields,
             post_success_action: None,
         });
@@ -674,7 +674,7 @@ fn execute_sample(
         command_name,
         &row.command_args,
         Some(repo_root),
-        Some(&row.env_overrides),
+        Some(&row.env_bindings),
     )
     .with_context(|| format!("run {}", row.command.join(" ")))?;
     let exit_code = output.exit_code;
