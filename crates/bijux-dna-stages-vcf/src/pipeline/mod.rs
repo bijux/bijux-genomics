@@ -20,12 +20,14 @@ use crate::metrics::{parse_depth_from_info, parse_vcf_call_summary, parse_vcf_fi
 // "tool_digest": resolve_tool_digest
 // "tool_digest": tool_digest
 
-include!("../pipeline_sections/execution/call_filter_and_gl.rs");
+mod calling;
 include!("../pipeline_sections/qc/qc_and_stage_params.rs");
 include!("../pipeline_sections/execution/population_and_panel_prep.rs");
 include!("../pipeline_sections/execution/runtime_and_orchestration.rs");
 include!("../pipeline_sections/imputation/impute_and_postprocess.rs");
 include!("../pipeline_sections/execution/chunking_and_resume.rs");
+
+pub use calling::*;
 
 fn resolve_panel(
     species: &str,

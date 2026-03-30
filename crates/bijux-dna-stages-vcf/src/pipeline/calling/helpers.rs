@@ -51,7 +51,8 @@ fn normalize_alleles(reference: &str, alternate: &str) -> (String, String) {
 }
 
 fn format_has_token(fmt: &str, tokens: &[&str]) -> bool {
-    fmt.split(':').any(|key| tokens.iter().any(|token| token == &key))
+    fmt.split(':')
+        .any(|key| tokens.iter().any(|token| token == &key))
 }
 
 fn sample_has_diploid_gt(fmt: &str, sample: &str) -> bool {
@@ -179,7 +180,10 @@ fn parse_info_value_f64(info: &str, key: &str) -> Option<f64> {
 
 fn normalize_sample_fields(format_field: &str, sample_field: &str) -> String {
     let keys = format_field.split(':').collect::<Vec<_>>();
-    let mut vals = sample_field.split(':').map(str::to_string).collect::<Vec<_>>();
+    let mut vals = sample_field
+        .split(':')
+        .map(str::to_string)
+        .collect::<Vec<_>>();
     if vals.len() < keys.len() {
         vals.resize(keys.len(), ".".to_string());
     }
