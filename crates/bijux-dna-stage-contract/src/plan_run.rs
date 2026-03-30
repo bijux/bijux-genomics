@@ -1,14 +1,15 @@
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
+use bijux_dna_core::id_catalog;
 use serde::{Deserialize, Serialize};
 
 use bijux_dna_core::contract::{run_dir, Profile, RunSpec};
 use bijux_dna_core::contract::{ToolExecutionSpecV1, ToolRegistry};
 use bijux_dna_core::ids::RunId;
 
-use crate::stage_plan::{PlannedArtifactV1, StagePlanV1};
 use crate::artifact_kind_schema;
+use crate::stage_plan::{PlannedArtifactV1, StagePlanV1};
 use crate::{build_stage_plan, build_tool_execution_spec, validate_stage_outputs};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::ids::ArtifactId;
@@ -142,7 +143,7 @@ mod tests {
     #[test]
     fn build_stage_plan_copies_run_params_into_effective_params() {
         let run_spec = RunSpec {
-            stage: StageId::from_static("fastq.trim_reads"),
+            stage: StageId::from_static(id_catalog::FASTQ_TRIM),
             tool: ToolId::from_static("fastp"),
             paths: PathSpec {
                 input: Vec::new(),
@@ -156,7 +157,7 @@ mod tests {
         };
         let tool_manifest = ToolManifest {
             tool_id: ToolId::from_static("fastp"),
-            stage_id: StageId::from_static("fastq.trim_reads"),
+            stage_id: StageId::from_static(id_catalog::FASTQ_TRIM),
             role: ToolRole::Authoritative,
             command_template: vec!["fastp".to_string()],
             outputs: Vec::new(),
@@ -165,7 +166,7 @@ mod tests {
             execution_contract: Default::default(),
         };
         let stage_spec = StageSpec {
-            stage_id: StageId::from_static("fastq.trim_reads"),
+            stage_id: StageId::from_static(id_catalog::FASTQ_TRIM),
             semantic_kind: StageSemanticKind::Transform,
             input_kind: ArtifactKind::Fastq,
             output_kind: ArtifactKind::Fastq,

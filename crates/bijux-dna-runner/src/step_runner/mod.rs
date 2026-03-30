@@ -346,6 +346,7 @@ mod tests {
     };
     use anyhow::anyhow;
     use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};
+    use bijux_dna_core::id_catalog;
     use bijux_dna_core::prelude::{
         ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId,
     };
@@ -371,7 +372,7 @@ mod tests {
     fn execution_identity_defaults_to_stage_and_step_ids() {
         let step = ExecutionStep {
             step_id: StepId::from_static("sample-0001.fastq.trim_reads.fastp"),
-            stage_id: StageId::from_static("fastq.trim_reads"),
+            stage_id: StageId::from_static(id_catalog::FASTQ_TRIM),
             command: CommandSpecV1 {
                 template: vec!["fastp".to_string()],
             },
@@ -390,7 +391,7 @@ mod tests {
             metrics_schema_ids: Vec::new(),
         };
 
-        assert_eq!(execution_pipeline_identity(&step), "fastq.trim_reads");
+        assert_eq!(execution_pipeline_identity(&step), id_catalog::FASTQ_TRIM);
         assert_eq!(
             execution_sample_identity(&step),
             "sample-0001.fastq.trim_reads.fastp"
@@ -435,7 +436,7 @@ mod tests {
     fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
         let step = ExecutionStep {
             step_id: StepId::from_static("step.trim_reads.tool.seqkit"),
-            stage_id: StageId::from_static("fastq.trim_reads"),
+            stage_id: StageId::from_static(id_catalog::FASTQ_TRIM),
             command: CommandSpecV1 {
                 template: vec!["seqkit".to_string(), "stats".to_string()],
             },
