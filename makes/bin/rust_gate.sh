@@ -112,7 +112,7 @@ run_nextest() {
     NEXTEST_CACHE_DIR="${rs_nextest_cache_dir}" \
     XDG_CONFIG_HOME="${rs_nextest_config_home}" \
     LLVM_PROFILE_FILE="${rs_llvm_profile_file}" \
-    "$@" 2>&1 | tee "${report_path}"
+    "$@" --target-dir "${target_dir}" 2>&1 | tee "${report_path}"
   status=$?
   set -e
   print_nextest_summary "${report_path}"
