@@ -54,11 +54,11 @@ use graph_policy::{
     synthetic_stage_artifact_policy, validate_reference_index_bindings,
     validate_select_stage_nodes,
 };
+pub(crate) use layout_branching::apply_layout_branching;
+pub(crate) use quality_sampling::estimate_mean_q;
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};
 pub use route_expansion::{StageToolSelection, ToolsetSelection};
 pub use selection_planning::select_preprocess_stage_tools;
-pub(crate) use layout_branching::apply_layout_branching;
-pub(crate) use quality_sampling::estimate_mean_q;
 pub use types::*;
 
 pub struct FastqPlanner;

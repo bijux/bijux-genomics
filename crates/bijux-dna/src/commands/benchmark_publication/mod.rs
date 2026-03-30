@@ -12,9 +12,9 @@ mod docs_status;
 mod dossier_index;
 mod entrypoint;
 mod models;
+mod publication_io;
 mod remediation;
 mod results_status;
-mod publication_io;
 
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_publication_contracts, benchmark_publication_exclusions,
@@ -47,14 +47,6 @@ use self::models::{PublishedResultsStageReport, PublishedResultsStatusReport, St
 use self::models::{
     RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
 };
-use self::remediation::write_corpus_fastq_remediation_queue;
-#[cfg(test)]
-use self::remediation::{build_remediation_queue, render_remediation_queue_markdown};
-use self::results_status::write_corpus_fastq_results_status;
-#[cfg(test)]
-use self::results_status::{
-    audit_published_results, audit_published_results_stage, render_published_results_markdown,
-};
 use self::publication_io::{
     absolutize, classify_run_root_source, configured_stage_run_roots, csv_report_value,
     csv_required_value, csv_value, find_polluting_ds_store_files, json_string_array, load_csv_rows,
@@ -64,6 +56,14 @@ use self::publication_io::{
     sorted_json_string_array, sorted_strings, summary_corpus_id, unique_existing_run_roots,
     value_string, workspace_local_cache_mirror_root, workspace_local_results_root,
     workspace_remote_corpus_root, workspace_remote_results_root,
+};
+use self::remediation::write_corpus_fastq_remediation_queue;
+#[cfg(test)]
+use self::remediation::{build_remediation_queue, render_remediation_queue_markdown};
+use self::results_status::write_corpus_fastq_results_status;
+#[cfg(test)]
+use self::results_status::{
+    audit_published_results, audit_published_results_stage, render_published_results_markdown,
 };
 
 fn audit_publication_summary(

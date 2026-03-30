@@ -8,8 +8,8 @@ use serde::Serialize;
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
-use super::schema_policy::external_tools;
 use super::domain_workflow::*;
+use super::schema_policy::external_tools;
 use super::{
     cargo_registry_list_stages, cargo_registry_list_tools, cargo_registry_stage_tools, toml_tools,
 };

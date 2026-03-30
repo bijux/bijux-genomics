@@ -4,9 +4,9 @@ use std::fs;
 use anyhow::{anyhow, Context, Result};
 use toml::Value as TomlValue;
 
+use super::domain_workflow::*;
 use super::load_toml;
 use super::schema_policy::external_tools;
-use super::domain_workflow::*;
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 
