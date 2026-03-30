@@ -45,7 +45,6 @@ tools = [
   "trim_galore",
   "prinseq",
   "seqkit",
-  "seqpurge",
 ]
 
 [[stages.param_bindings]]

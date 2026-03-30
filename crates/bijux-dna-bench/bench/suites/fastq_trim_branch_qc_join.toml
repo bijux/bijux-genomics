@@ -112,12 +112,6 @@ tools = ["seqkit"]
 upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
 
 [[stages]]
-stage = "fastq.trim_reads"
-stage_instance_id = "fastq.trim_reads.seqpurge_branch"
-tools = ["seqpurge"]
-upstream_stage_instance_ids = ["fastq.validate_reads.validation"]
-
-[[stages]]
 stage = "fastq.report_qc"
 stage_instance_id = "fastq.report_qc.aggregate"
 tools = ["multiqc"]
@@ -136,7 +130,6 @@ upstream_stage_instance_ids = [
   "fastq.trim_reads.trim_galore_branch",
   "fastq.trim_reads.prinseq_branch",
   "fastq.trim_reads.seqkit_branch",
-  "fastq.trim_reads.seqpurge_branch",
 ]
 
 [[edges]]
@@ -190,10 +183,6 @@ to = "fastq.trim_reads.prinseq_branch"
 [[edges]]
 from = "fastq.validate_reads.validation"
 to = "fastq.trim_reads.seqkit_branch"
-
-[[edges]]
-from = "fastq.validate_reads.validation"
-to = "fastq.trim_reads.seqpurge_branch"
 
 [[edges]]
 from = "fastq.validate_reads.validation"
@@ -275,12 +264,6 @@ to_input_id = "qc_artifacts"
 
 [[edges]]
 from = "fastq.trim_reads.seqkit_branch"
-to = "fastq.report_qc.aggregate"
-from_output_id = "report_json"
-to_input_id = "qc_artifacts"
-
-[[edges]]
-from = "fastq.trim_reads.seqpurge_branch"
 to = "fastq.report_qc.aggregate"
 from_output_id = "report_json"
 to_input_id = "qc_artifacts"
