@@ -1,52 +1,15 @@
-use crate::model::{EnaFileSource, EnaRecord, EnaSourcePreference};
-use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
+use crate::model::{EnaRecord, EnaResultKind};
+use anyhow::Result;
 
+mod config;
+mod item;
 mod planning;
+mod report;
 mod transfer;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DownloadTask {
-    pub project: Option<String>,
-    pub sample: Option<String>,
-    pub accession: String,
-    pub source: EnaFileSource,
-    pub url: String,
-    pub output: PathBuf,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DownloadConfig {
-    pub output_dir: PathBuf,
-    pub jobs: usize,
-    pub retries: usize,
-    pub source: EnaFileSource,
-    pub preference: EnaSourcePreference,
-    pub dry_run: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DownloadReport {
-    pub attempted: usize,
-    pub downloaded: usize,
-    pub failed: usize,
-    pub failed_outputs: Vec<PathBuf>,
-}
-
-impl DownloadConfig {
-    #[must_use]
-    pub fn from_defaults(output_dir: PathBuf) -> Self {
-        Self {
-            output_dir,
-            jobs: 8,
-            retries: 2,
-            source: EnaFileSource::FastqFtp,
-            preference: EnaSourcePreference::Ftp,
-            dry_run: false,
-        }
-    }
-}
+pub use config::DownloadConfig;
+pub use item::DownloadTask;
+pub use report::DownloadReport;
 
 #[must_use]
 pub fn build_download_tasks(records: &[EnaRecord], config: &DownloadConfig) -> Vec<DownloadTask> {
@@ -63,7 +26,8 @@ pub fn download_tasks(tasks: &[DownloadTask], config: &DownloadConfig) -> Result
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::EnaResultKind;
+    use crate::model::{EnaFileSource, EnaSourcePreference};
+    use std::path::PathBuf;
 
     #[test]
     fn build_download_tasks_materializes_accession_subdirs() {
