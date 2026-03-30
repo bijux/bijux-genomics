@@ -1,4 +1,7 @@
-use super::*;
+use anyhow::{anyhow, Context, Result};
+use serde::Deserialize;
+
+use super::{CorrectErrorsReportV1, PairedMode};
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]

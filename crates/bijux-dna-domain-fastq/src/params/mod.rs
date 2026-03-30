@@ -354,7 +354,7 @@ impl EffectiveParams {
 }
 
 #[must_use]
-pub fn parse_effective_params(
+fn parse_preprocess_effective_params(
     stage_id: &StageId,
     value: &serde_json::Value,
 ) -> Option<EffectiveParams> {
@@ -412,12 +412,7 @@ pub fn parse_effective_params(
         .ok()
         .map(EffectiveParams::RemoveDuplicates);
     }
-    if stage_id == &STAGE_FILTER_READS {
-        return serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())
-            .ok()
-            .map(EffectiveParams::Filter);
-    }
-    if stage_id == &STAGE_FILTER_LOW_COMPLEXITY {
+    if stage_id == &STAGE_FILTER_READS || stage_id == &STAGE_FILTER_LOW_COMPLEXITY {
         return serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Filter);
@@ -434,6 +429,14 @@ pub fn parse_effective_params(
         .ok()
         .map(EffectiveParams::ReferenceIndex);
     }
+    None
+}
+
+#[must_use]
+fn parse_screen_effective_params(
+    stage_id: &StageId,
+    value: &serde_json::Value,
+) -> Option<EffectiveParams> {
     if stage_id == &STAGE_DEPLETE_HOST {
         return serde_json::from_value::<screen::HostDepletionEffectiveParams>(value.clone())
             .ok()
@@ -466,6 +469,14 @@ pub fn parse_effective_params(
             .ok()
             .map(EffectiveParams::OverrepresentedProfile);
     }
+    None
+}
+
+#[must_use]
+fn parse_amplicon_effective_params(
+    stage_id: &StageId,
+    value: &serde_json::Value,
+) -> Option<EffectiveParams> {
     if stage_id == &STAGE_NORMALIZE_PRIMERS {
         return serde_json::from_value::<edna::PrimerNormalizationEffectiveParams>(value.clone())
             .ok()
@@ -494,4 +505,14 @@ pub fn parse_effective_params(
         .map(EffectiveParams::AbundanceNormalization);
     }
     None
+}
+
+#[must_use]
+pub fn parse_effective_params(
+    stage_id: &StageId,
+    value: &serde_json::Value,
+) -> Option<EffectiveParams> {
+    parse_preprocess_effective_params(stage_id, value)
+        .or_else(|| parse_screen_effective_params(stage_id, value))
+        .or_else(|| parse_amplicon_effective_params(stage_id, value))
 }

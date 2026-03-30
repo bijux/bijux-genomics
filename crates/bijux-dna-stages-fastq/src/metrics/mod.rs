@@ -12,7 +12,6 @@ use bijux_dna_core::contract::ContractVersion;
 use bijux_dna_core::contract::MetricProvenanceV1;
 use bijux_dna_core::metrics::MetricsEnvelope;
 use bijux_dna_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
-use bijux_dna_domain_fastq::metrics::*;
 use bijux_dna_domain_fastq::parse_effective_params;
 use bijux_dna_stage_contract::StagePlanV1;
 
@@ -27,9 +26,4 @@ mod stage_metrics_transform;
 pub(crate) use envelope_support::{
     build_metrics_envelope, f64_from_u64, pair_counts_from_paths,
     retention_conditions_from_effective, stats_for_paths, zero_seqkit_metrics,
-};
-use fastqc::fastqc_metrics_v2_from_dir;
-use filters::{
-    filter_metrics_with_removals, filter_removals_from_bbduk_stats, filter_removals_from_fastp,
-    parse_screen_report, FilterRemovalCounts,
 };

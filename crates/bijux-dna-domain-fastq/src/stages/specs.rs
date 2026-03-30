@@ -44,6 +44,44 @@ pub struct StageContract {
     pub io: StageIO,
 }
 
+fn stats_stage_io(stage: FastqStage) -> StageContract {
+    StageContract {
+        stage,
+        io: StageIO {
+            inputs: vec![
+                FastqArtifactKind::SingleEnd,
+                FastqArtifactKind::PairedEnd,
+                FastqArtifactKind::Merged,
+            ],
+            outputs: vec![FastqArtifactKind::StatsOnly],
+            optional_outputs: if matches!(stage, FastqStage::Screen) {
+                Some(vec![FastqArtifactKind::TaxonomyMapping])
+            } else {
+                None
+            },
+        },
+    }
+}
+
+fn paired_fastq_stage_io(stage: FastqStage) -> StageContract {
+    StageContract {
+        stage,
+        io: StageIO {
+            inputs: vec![FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd],
+            outputs: vec![FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd],
+            optional_outputs: Some(vec![FastqArtifactKind::StatsOnly]),
+        },
+    }
+}
+
+fn broad_fastq_inputs() -> Vec<FastqArtifactKind> {
+    vec![
+        FastqArtifactKind::SingleEnd,
+        FastqArtifactKind::PairedEnd,
+        FastqArtifactKind::Merged,
+    ]
+}
+
 #[must_use]
 pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
     match stage {
@@ -61,22 +99,7 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
         | FastqStage::ProfileReads
         | FastqStage::ProfileOverrepresentedSequences
         | FastqStage::ReportQc
-        | FastqStage::Screen => StageContract {
-            stage,
-            io: StageIO {
-                inputs: vec![
-                    FastqArtifactKind::SingleEnd,
-                    FastqArtifactKind::PairedEnd,
-                    FastqArtifactKind::Merged,
-                ],
-                outputs: vec![FastqArtifactKind::StatsOnly],
-                optional_outputs: if matches!(stage, FastqStage::Screen) {
-                    Some(vec![FastqArtifactKind::TaxonomyMapping])
-                } else {
-                    None
-                },
-            },
-        },
+        | FastqStage::Screen => stats_stage_io(stage),
         FastqStage::DamageAwarePretrim
         | FastqStage::PrimerNormalization
         | FastqStage::PolygTailing
@@ -86,14 +109,7 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
         | FastqStage::LowComplexity
         | FastqStage::HostDepletion
         | FastqStage::ContaminantScreen
-        | FastqStage::Rrna => StageContract {
-            stage,
-            io: StageIO {
-                inputs: vec![FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd],
-                outputs: vec![FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd],
-                optional_outputs: Some(vec![FastqArtifactKind::StatsOnly]),
-            },
-        },
+        | FastqStage::Rrna => paired_fastq_stage_io(stage),
         FastqStage::Merge => StageContract {
             stage,
             io: StageIO {
@@ -113,27 +129,15 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
         FastqStage::ChimeraDetection => StageContract {
             stage,
             io: StageIO {
-                inputs: vec![
-                    FastqArtifactKind::SingleEnd,
-                    FastqArtifactKind::PairedEnd,
-                    FastqArtifactKind::Merged,
-                ],
-                outputs: vec![
-                    FastqArtifactKind::SingleEnd,
-                    FastqArtifactKind::PairedEnd,
-                    FastqArtifactKind::Merged,
-                ],
+                inputs: broad_fastq_inputs(),
+                outputs: broad_fastq_inputs(),
                 optional_outputs: Some(vec![FastqArtifactKind::StatsOnly]),
             },
         },
         FastqStage::AsvInference => StageContract {
             stage,
             io: StageIO {
-                inputs: vec![
-                    FastqArtifactKind::SingleEnd,
-                    FastqArtifactKind::PairedEnd,
-                    FastqArtifactKind::Merged,
-                ],
+                inputs: broad_fastq_inputs(),
                 outputs: vec![FastqArtifactKind::AmpliconTable],
                 optional_outputs: Some(vec![FastqArtifactKind::RepresentativeFasta]),
             },
@@ -141,11 +145,7 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
         FastqStage::OtuClustering => StageContract {
             stage,
             io: StageIO {
-                inputs: vec![
-                    FastqArtifactKind::SingleEnd,
-                    FastqArtifactKind::PairedEnd,
-                    FastqArtifactKind::Merged,
-                ],
+                inputs: broad_fastq_inputs(),
                 outputs: vec![
                     FastqArtifactKind::AmpliconTable,
                     FastqArtifactKind::RepresentativeFasta,

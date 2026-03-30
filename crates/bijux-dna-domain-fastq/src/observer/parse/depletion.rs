@@ -1,4 +1,9 @@
-use super::*;
+use anyhow::{anyhow, Context, Result};
+use serde::Deserialize;
+
+use super::{
+    DepleteHostReportV1, DepleteReferenceContaminantsReportV1, DepleteRrnaReportV1, PairedMode,
+};
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]

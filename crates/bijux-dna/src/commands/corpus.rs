@@ -67,11 +67,11 @@ enum CorpusLayout {
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 enum SizeBand {
     #[serde(rename = "under_100mb")]
-    Under100Mb,
+    Under100,
     #[serde(rename = "under_500mb")]
-    Under500Mb,
+    Under500,
     #[serde(rename = "under_1000mb")]
-    Under1000Mb,
+    Under1000,
 }
 
 #[derive(Debug, Serialize)]
@@ -136,17 +136,17 @@ impl CorpusLayout {
 impl SizeBand {
     fn as_str(self) -> &'static str {
         match self {
-            Self::Under100Mb => "under_100mb",
-            Self::Under500Mb => "under_500mb",
-            Self::Under1000Mb => "under_1000mb",
+            Self::Under100 => "under_100mb",
+            Self::Under500 => "under_500mb",
+            Self::Under1000 => "under_1000mb",
         }
     }
 
     fn upper_bound_bytes(self) -> u64 {
         match self {
-            Self::Under100Mb => 100_000_000,
-            Self::Under500Mb => 500_000_000,
-            Self::Under1000Mb => 1_000_000_000,
+            Self::Under100 => 100_000_000,
+            Self::Under500 => 500_000_000,
+            Self::Under1000 => 1_000_000_000,
         }
     }
 }
@@ -475,10 +475,10 @@ fn validate_curated_spec(spec: &CuratedCorpusSpec) -> Result<()> {
     }
 
     let mut accessions = BTreeSet::new();
-    let mut ancient_se = 0usize;
-    let mut ancient_pe = 0usize;
-    let mut modern_se = 0usize;
-    let mut modern_pe = 0usize;
+    let mut ancient_single_end_count = 0usize;
+    let mut ancient_paired_end_count = 0usize;
+    let mut modern_single_end_count = 0usize;
+    let mut modern_paired_end_count = 0usize;
     for sample in &spec.samples {
         if !accessions.insert(sample.accession.clone()) {
             return Err(anyhow!(
@@ -496,10 +496,10 @@ fn validate_curated_spec(spec: &CuratedCorpusSpec) -> Result<()> {
             return Err(anyhow!("sample `{}` missing reason", sample.accession));
         }
         match (sample.era, sample.layout) {
-            (CorpusEra::Ancient, CorpusLayout::Se) => ancient_se += 1,
-            (CorpusEra::Ancient, CorpusLayout::Pe) => ancient_pe += 1,
-            (CorpusEra::Modern, CorpusLayout::Se) => modern_se += 1,
-            (CorpusEra::Modern, CorpusLayout::Pe) => modern_pe += 1,
+            (CorpusEra::Ancient, CorpusLayout::Se) => ancient_single_end_count += 1,
+            (CorpusEra::Ancient, CorpusLayout::Pe) => ancient_paired_end_count += 1,
+            (CorpusEra::Modern, CorpusLayout::Se) => modern_single_end_count += 1,
+            (CorpusEra::Modern, CorpusLayout::Pe) => modern_paired_end_count += 1,
         }
     }
     if let Some(expected) = spec.target_total {
@@ -510,10 +510,18 @@ fn validate_curated_spec(spec: &CuratedCorpusSpec) -> Result<()> {
             ));
         }
     }
-    ensure_expected_count("ancient_se", spec.target_ancient_se, ancient_se)?;
-    ensure_expected_count("ancient_pe", spec.target_ancient_pe, ancient_pe)?;
-    ensure_expected_count("modern_se", spec.target_modern_se, modern_se)?;
-    ensure_expected_count("modern_pe", spec.target_modern_pe, modern_pe)?;
+    ensure_expected_count(
+        "ancient_se",
+        spec.target_ancient_se,
+        ancient_single_end_count,
+    )?;
+    ensure_expected_count(
+        "ancient_pe",
+        spec.target_ancient_pe,
+        ancient_paired_end_count,
+    )?;
+    ensure_expected_count("modern_se", spec.target_modern_se, modern_single_end_count)?;
+    ensure_expected_count("modern_pe", spec.target_modern_pe, modern_paired_end_count)?;
     Ok(())
 }
 
@@ -589,25 +597,21 @@ fn build_curated_rows(
             accession: sample.accession.clone(),
             study_accession: sample.study_accession.clone(),
             sample_accession: record.sample_accession.clone(),
-            scientific_name: record
-                .scientific_name
-                .clone()
-                .ok_or_else(|| anyhow!("accession `{}` missing scientific_name", sample.accession))?,
+            scientific_name: record.scientific_name.clone().ok_or_else(|| {
+                anyhow!("accession `{}` missing scientific_name", sample.accession)
+            })?,
             era: sample.era.as_str(),
             layout: sample.layout.as_str(),
             size_band: sample.size_band.as_str(),
-            library_source: record
-                .library_source
-                .clone()
-                .ok_or_else(|| anyhow!("accession `{}` missing library_source", sample.accession))?,
-            library_strategy: record
-                .library_strategy
-                .clone()
-                .ok_or_else(|| anyhow!("accession `{}` missing library_strategy", sample.accession))?,
-            instrument_model: record
-                .instrument_model
-                .clone()
-                .ok_or_else(|| anyhow!("accession `{}` missing instrument_model", sample.accession))?,
+            library_source: record.library_source.clone().ok_or_else(|| {
+                anyhow!("accession `{}` missing library_source", sample.accession)
+            })?,
+            library_strategy: record.library_strategy.clone().ok_or_else(|| {
+                anyhow!("accession `{}` missing library_strategy", sample.accession)
+            })?,
+            instrument_model: record.instrument_model.clone().ok_or_else(|| {
+                anyhow!("accession `{}` missing instrument_model", sample.accession)
+            })?,
             fastq_bytes: record.fastq_bytes.clone(),
             total_fastq_bytes: record.fastq_bytes.iter().sum(),
             fastq_ftp: record.fastq_ftp.clone(),
@@ -818,8 +822,7 @@ fn corpus_inputs_for_root(cwd: &Path, root: &Path) -> Result<CorpusInputs> {
         .file_name()
         .and_then(|v| v.to_str())
         .filter(|value| !value.trim().is_empty())
-        .map(ToOwned::to_owned)
-        .unwrap_or_else(|| root.display().to_string());
+        .map_or_else(|| root.display().to_string(), ToOwned::to_owned);
     let normalized = root.join("normalized");
     let mut files = if normalized.exists() {
         fs::read_dir(&normalized)
@@ -1064,6 +1067,7 @@ fn normalize_read_header(header: &str) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -1078,7 +1082,7 @@ mod tests {
             study_accession: study_accession.to_string(),
             era,
             layout,
-            size_band: SizeBand::Under100Mb,
+            size_band: SizeBand::Under100,
             reason: "fixture".to_string(),
         }
     }
@@ -1134,8 +1138,8 @@ mod tests {
 
     #[test]
     fn size_band_upper_bounds_are_stable() {
-        assert_eq!(SizeBand::Under100Mb.upper_bound_bytes(), 100_000_000);
-        assert_eq!(SizeBand::Under500Mb.upper_bound_bytes(), 500_000_000);
-        assert_eq!(SizeBand::Under1000Mb.upper_bound_bytes(), 1_000_000_000);
+        assert_eq!(SizeBand::Under100.upper_bound_bytes(), 100_000_000);
+        assert_eq!(SizeBand::Under500.upper_bound_bytes(), 500_000_000);
+        assert_eq!(SizeBand::Under1000.upper_bound_bytes(), 1_000_000_000);
     }
 }

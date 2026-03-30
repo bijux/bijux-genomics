@@ -203,6 +203,7 @@ pub struct StageToolGovernanceProfile {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct StageToolCapabilityContract {
     pub stage_id: StageId,
     pub tool_id: ToolId,

@@ -63,78 +63,149 @@ fn benchmark_governance(stage_id: &StageId) -> bijux_dna_domain_fastq::StageBenc
         .unwrap_or_else(|| panic!("benchmark governance missing for {stage_id}"))
 }
 
+fn assert_benchmark_scenario(
+    stage_name: &str,
+    scenario_id: &str,
+    fairness_rule: &str,
+    comparison_artifact_id: Option<&str>,
+    normalization_artifact_id: Option<&str>,
+    cohort_artifact_id: Option<&str>,
+) {
+    let stage_id = StageId::new(stage_name.to_string());
+    let scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&stage_id);
+    assert_eq!(scenarios.len(), 1);
+    assert_eq!(scenarios[0].scenario_id, scenario_id);
+    assert!(scenarios[0]
+        .fairness_rules
+        .iter()
+        .any(|rule| rule == fairness_rule));
+    if let Some(expected_comparison_artifact_id) = comparison_artifact_id {
+        assert_eq!(
+            scenarios[0].comparison_artifact_id,
+            expected_comparison_artifact_id
+        );
+    }
+    if let Some(expected_normalization_artifact_id) = normalization_artifact_id {
+        assert_eq!(
+            scenarios[0].normalization_artifact_id,
+            expected_normalization_artifact_id
+        );
+    }
+    if let Some(expected_cohort_artifact_id) = cohort_artifact_id {
+        assert_eq!(scenarios[0].cohort_artifact_id, expected_cohort_artifact_id);
+    }
+}
+
 #[test]
-fn benchmark_scenarios_attach_to_governed_stages() {
-    let trim_stage = StageId::from_static("fastq.trim_reads");
-    let trim_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&trim_stage);
-    assert_eq!(trim_scenarios.len(), 1);
-    assert_eq!(trim_scenarios[0].scenario_id, "trim_fairness");
-    assert!(trim_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_input_hash"));
-    assert_eq!(
-        trim_scenarios[0].comparison_artifact_id,
-        "trim_tool_comparison_json"
+fn preprocessing_benchmark_scenarios_attach_to_governed_stages() {
+    assert_benchmark_scenario(
+        "fastq.trim_reads",
+        "trim_fairness",
+        "same_input_hash",
+        Some("trim_tool_comparison_json"),
+        None,
+        None,
     );
-
-    let polyg_stage = StageId::from_static("fastq.trim_polyg_tails");
-    let polyg_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&polyg_stage);
-    assert_eq!(polyg_scenarios.len(), 1);
-    assert_eq!(polyg_scenarios[0].scenario_id, "polyg_trim_fairness");
-    assert!(polyg_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_polyg_trim_policy"));
-    assert_eq!(
-        polyg_scenarios[0].normalization_artifact_id,
-        "polyg_trim_tool_normalization_json"
+    assert_benchmark_scenario(
+        "fastq.trim_polyg_tails",
+        "polyg_trim_fairness",
+        "same_polyg_trim_policy",
+        None,
+        Some("polyg_trim_tool_normalization_json"),
+        None,
     );
-
-    let screen_stage = StageId::from_static("fastq.screen_taxonomy");
-    let screen_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&screen_stage);
-    assert_eq!(screen_scenarios.len(), 1);
-    assert_eq!(screen_scenarios[0].scenario_id, "screen_fairness");
-    assert!(screen_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_contamination_db_hash"));
-    assert_eq!(
-        screen_scenarios[0].cohort_artifact_id,
-        "taxonomy_tool_benchmark_cohort_json"
+    assert_benchmark_scenario(
+        "fastq.screen_taxonomy",
+        "screen_fairness",
+        "same_contamination_db_hash",
+        None,
+        None,
+        Some("taxonomy_tool_benchmark_cohort_json"),
     );
-
-    let filter_stage = StageId::from_static("fastq.filter_reads");
-    let filter_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&filter_stage);
-    assert_eq!(filter_scenarios.len(), 1);
-    assert_eq!(filter_scenarios[0].scenario_id, "filter_fairness");
-    assert!(filter_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_filter_contract_hash"));
-
-    let merge_stage = StageId::from_static("fastq.merge_pairs");
-    let merge_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&merge_stage);
-    assert_eq!(merge_scenarios.len(), 1);
-    assert_eq!(merge_scenarios[0].scenario_id, "merge_fairness");
-    assert!(merge_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_merge_policy"));
-
-    let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");
-    let low_complexity_scenarios =
-        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&low_complexity_stage);
-    assert_eq!(low_complexity_scenarios.len(), 1);
-    assert_eq!(
-        low_complexity_scenarios[0].scenario_id,
-        "low_complexity_fairness"
+    assert_benchmark_scenario(
+        "fastq.filter_reads",
+        "filter_fairness",
+        "same_filter_contract_hash",
+        None,
+        None,
+        None,
     );
-    assert!(low_complexity_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_complexity_policy"));
+    assert_benchmark_scenario(
+        "fastq.merge_pairs",
+        "merge_fairness",
+        "same_merge_policy",
+        None,
+        None,
+        None,
+    );
+    assert_benchmark_scenario(
+        "fastq.filter_low_complexity",
+        "low_complexity_fairness",
+        "same_complexity_policy",
+        None,
+        None,
+        None,
+    );
+    assert_benchmark_scenario(
+        "fastq.profile_read_lengths",
+        "read_length_fairness",
+        "same_length_profile_contract",
+        None,
+        None,
+        None,
+    );
+    assert_benchmark_scenario(
+        "fastq.correct_errors",
+        "correction_fairness",
+        "same_correction_policy",
+        None,
+        None,
+        None,
+    );
+    assert_benchmark_scenario(
+        "fastq.trim_terminal_damage",
+        "terminal_damage_fairness",
+        "same_damage_trim_policy",
+        None,
+        None,
+        None,
+    );
+    assert_benchmark_scenario(
+        "fastq.validate_reads",
+        "validation_fairness",
+        "same_validation_contract",
+        Some("validation_tool_comparison_json"),
+        None,
+        None,
+    );
+}
 
+#[test]
+fn specialized_benchmark_scenarios_attach_to_governed_stages() {
+    assert_benchmark_scenario(
+        "fastq.screen_taxonomy",
+        "screen_fairness",
+        "same_contamination_db_hash",
+        None,
+        None,
+        Some("taxonomy_tool_benchmark_cohort_json"),
+    );
+    assert_benchmark_scenario(
+        "fastq.normalize_primers",
+        "primer_normalization_fairness",
+        "same_primer_contract",
+        None,
+        None,
+        None,
+    );
+    assert_benchmark_scenario(
+        "fastq.profile_overrepresented_sequences",
+        "overrepresented_sequence_fairness",
+        "same_overrepresented_sequence_contract",
+        None,
+        None,
+        None,
+    );
     let dedup_stage = StageId::from_static("fastq.remove_duplicates");
     let dedup_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&dedup_stage);
     assert_eq!(dedup_scenarios.len(), 1);
@@ -147,79 +218,6 @@ fn benchmark_scenarios_attach_to_governed_stages() {
         .fairness_rules
         .iter()
         .any(|rule| rule == "same_keep_order_policy"));
-
-    let read_length_stage = StageId::from_static("fastq.profile_read_lengths");
-    let read_length_scenarios =
-        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&read_length_stage);
-    assert_eq!(read_length_scenarios.len(), 1);
-    assert_eq!(read_length_scenarios[0].scenario_id, "read_length_fairness");
-    assert!(read_length_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_length_profile_contract"));
-
-    let correction_stage = StageId::from_static("fastq.correct_errors");
-    let correction_scenarios =
-        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&correction_stage);
-    assert_eq!(correction_scenarios.len(), 1);
-    assert_eq!(correction_scenarios[0].scenario_id, "correction_fairness");
-    assert!(correction_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_correction_policy"));
-
-    let normalize_primers_stage = StageId::from_static("fastq.normalize_primers");
-    let primer_scenarios =
-        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&normalize_primers_stage);
-    assert_eq!(primer_scenarios.len(), 1);
-    assert_eq!(
-        primer_scenarios[0].scenario_id,
-        "primer_normalization_fairness"
-    );
-    assert!(primer_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_primer_contract"));
-
-    let terminal_damage_stage = StageId::from_static("fastq.trim_terminal_damage");
-    let terminal_damage_scenarios =
-        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&terminal_damage_stage);
-    assert_eq!(terminal_damage_scenarios.len(), 1);
-    assert_eq!(
-        terminal_damage_scenarios[0].scenario_id,
-        "terminal_damage_fairness"
-    );
-    assert!(terminal_damage_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_damage_trim_policy"));
-
-    let overrepresented_stage = StageId::from_static("fastq.profile_overrepresented_sequences");
-    let overrepresented_scenarios =
-        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&overrepresented_stage);
-    assert_eq!(overrepresented_scenarios.len(), 1);
-    assert_eq!(
-        overrepresented_scenarios[0].scenario_id,
-        "overrepresented_sequence_fairness"
-    );
-    assert!(overrepresented_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_overrepresented_sequence_contract"));
-
-    let validation_stage = StageId::from_static("fastq.validate_reads");
-    let validation_scenarios =
-        bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&validation_stage);
-    assert_eq!(validation_scenarios.len(), 1);
-    assert_eq!(validation_scenarios[0].scenario_id, "validation_fairness");
-    assert!(validation_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_validation_contract"));
-    assert_eq!(
-        validation_scenarios[0].comparison_artifact_id,
-        "validation_tool_comparison_json"
-    );
 }
 
 #[test]

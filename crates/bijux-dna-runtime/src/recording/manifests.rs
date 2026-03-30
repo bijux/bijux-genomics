@@ -23,7 +23,8 @@ fn declared_json_array<'a>(
     value: &'a serde_json::Value,
     key: &str,
 ) -> Result<&'a Vec<serde_json::Value>> {
-    value.get(key)
+    value
+        .get(key)
         .and_then(serde_json::Value::as_array)
         .ok_or_else(|| anyhow!("run manifest missing declared `{key}` array"))
 }
@@ -214,9 +215,7 @@ pub fn write_run_manifest(
             Vec::new()
         }
     };
-    let replay_tool_image_ref = tool_invocations
-        .first()
-        .map(|inv| inv.tool_id.to_string());
+    let replay_tool_image_ref = tool_invocations.first().map(|inv| inv.tool_id.to_string());
     let replay_tool_image_digest = tool_invocations
         .first()
         .map(|inv| inv.image_digest.clone())
@@ -225,9 +224,7 @@ pub fn write_run_manifest(
         .first()
         .and_then(|inv| inv.resolved_tool_version.clone())
         .or_else(|| Some(run_provenance.tool_version.clone()));
-    let replay_tool_id = tool_invocations
-        .first()
-        .map(|inv| inv.tool_id.to_string());
+    let replay_tool_id = tool_invocations.first().map(|inv| inv.tool_id.to_string());
     let image_upstream = std::env::var("BIJUX_IMAGE_UPSTREAM").ok();
     let image_build_timestamp_unix_s = std::env::var("BIJUX_IMAGE_BUILD_TIMESTAMP_UNIX_S")
         .ok()
@@ -367,7 +364,6 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
         .with_context(|| format!("parse {}", run_manifest_path.display()))?;
     let stages = declared_json_array(&run_manifest, "stages")?
         .iter()
-        .cloned()
         .map(|stage| {
             serde_json::json!({
                 "stage_id": stage.get("stage_id").cloned().unwrap_or(serde_json::Value::Null),
@@ -398,7 +394,6 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
     let run_manifest_hash = hash_file_sha256(run_manifest_path)?;
     let mut resolved_tools = declared_json_array(&run_manifest, "tool_invocations")?
         .iter()
-        .cloned()
         .map(|inv| {
             serde_json::json!({
                 "stage_id": inv.get("stage_id").cloned().unwrap_or(serde_json::Value::Null),
@@ -457,9 +452,7 @@ fn collect_all_run_artifacts(
             out.push(make_artifact_record(&name, &path)?);
         }
     }
-    out.sort_by(|a, b| {
-        manifest_sort_key(a, "name").cmp(&manifest_sort_key(b, "name"))
-    });
+    out.sort_by_key(|artifact| manifest_sort_key(artifact, "name"));
     Ok(out)
 }
 

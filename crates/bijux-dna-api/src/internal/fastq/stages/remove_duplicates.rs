@@ -401,9 +401,7 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
         .iter()
         .map(|entry| entry.reads_removed)
         .sum();
-    if !report.duplicate_classes.is_empty()
-        && classified_duplicates_removed != duplicates_removed
-    {
+    if !report.duplicate_classes.is_empty() && classified_duplicates_removed != duplicates_removed {
         return Err(anyhow!(
             "governed remove-duplicates report {} is inconsistent: duplicate_classes sum to {} but duplicates_removed={duplicate_reads}",
             report_path.display(),

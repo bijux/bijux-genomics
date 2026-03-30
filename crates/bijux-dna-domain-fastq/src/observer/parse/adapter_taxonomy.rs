@@ -1,4 +1,10 @@
-use super::*;
+use anyhow::{anyhow, Context, Result};
+use serde::Deserialize;
+
+use super::{
+    AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode, DetectAdaptersReportV1,
+    PairedMode, TaxonomyScreenSummaryEntryV1,
+};
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
