@@ -91,7 +91,9 @@ fn parse_threshold_value(raw: &str, key: &str) -> Option<f64> {
 
 fn load_imputation_qc_thresholds() -> std::collections::BTreeMap<String, f64> {
     let raw = workspace_root()
-        .and_then(|root| std::fs::read_to_string(root.join("assets/reference/qc_thresholds.yaml")).ok())
+        .and_then(|root| {
+            std::fs::read_to_string(root.join("assets/reference/qc_thresholds.yaml")).ok()
+        })
         .unwrap_or_default();
     let mut out = std::collections::BTreeMap::new();
     let defaults = [
@@ -121,7 +123,11 @@ fn cleanup_policy() -> String {
         .to_ascii_lowercase()
 }
 
-fn backend_error_hint(stage_id: &str, backend: &str, err: &anyhow::Error) -> (&'static str, String) {
+fn backend_error_hint(
+    stage_id: &str,
+    backend: &str,
+    err: &anyhow::Error,
+) -> (&'static str, String) {
     let msg = err.to_string();
     if msg.contains("contig") || msg.contains("SpeciesContext") {
         return (
@@ -346,7 +352,8 @@ fn run_phasing_stage_inner(
     let raw = read_vcf_text_runtime(input_vcf)?;
     let resolved_backend = resolve_phasing_backend(params, &raw);
     let backend_tool = resolved_backend.as_str();
-    if matches!(resolved_backend, PhasingBackend::Eagle) && !license_metadata_for_tool_exists("eagle")
+    if matches!(resolved_backend, PhasingBackend::Eagle)
+        && !license_metadata_for_tool_exists("eagle")
     {
         bail!("eagle requires non-bijux license metadata before execution");
     }
@@ -452,7 +459,11 @@ fn run_phasing_stage_inner(
     if !saw_records {
         bail!("phasing requires non-empty VCF records");
     }
-    if matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) && !has_gt {
+    if matches!(
+        resolved_backend,
+        PhasingBackend::Shapeit5 | PhasingBackend::Eagle
+    ) && !has_gt
+    {
         bail!("backend {} requires GT field", backend_tool);
     }
     if matches!(resolved_backend, PhasingBackend::Beagle) && !has_gt && !has_gl_or_gp {
@@ -461,7 +472,10 @@ fn run_phasing_stage_inner(
     if has_gl_or_gp
         && !has_gt
         && !params.allow_gl_only_input
-        && matches!(resolved_backend, PhasingBackend::Beagle | PhasingBackend::Auto)
+        && matches!(
+            resolved_backend,
+            PhasingBackend::Beagle | PhasingBackend::Auto
+        )
     {
         bail!("GL-only/GP-only inputs are refused for phasing unless allow_gl_only_input=true");
     }
@@ -514,7 +528,10 @@ fn run_phasing_stage_inner(
                 "--memory-mb".to_string(),
                 memory_mb.to_string(),
                 "--output".to_string(),
-                out_dir.join("shapeit5.out.vcf.gz").to_string_lossy().to_string(),
+                out_dir
+                    .join("shapeit5.out.vcf.gz")
+                    .to_string_lossy()
+                    .to_string(),
             ];
             if let Some(region) = &params.region {
                 argv.push("--region".to_string());
@@ -567,7 +584,11 @@ fn run_phasing_stage_inner(
     } else {
         out_records.clone()
     };
-    let phased_payload = format!("{}\n{}\n", header_lines.join("\n"), phased_records.join("\n"));
+    let phased_payload = format!(
+        "{}\n{}\n",
+        header_lines.join("\n"),
+        phased_records.join("\n")
+    );
     let phasing_backend_attempted = if backend_argv.is_empty() {
         false
     } else {
@@ -712,4 +733,6 @@ fn run_phasing_stage_inner(
 }
 
 // Errors are propagated from backend checks and artifact write contracts.
-include!("runtime_orchestration_tail.rs");
+mod tail;
+
+pub use tail::*;

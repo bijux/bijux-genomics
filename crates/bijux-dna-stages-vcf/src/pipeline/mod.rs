@@ -21,13 +21,14 @@ use crate::metrics::{parse_depth_from_info, parse_vcf_call_summary, parse_vcf_fi
 // "tool_digest": tool_digest
 
 mod calling;
+mod orchestration;
 mod population_panel;
 mod qc;
-include!("../pipeline_sections/execution/runtime_and_orchestration.rs");
 include!("../pipeline_sections/imputation/impute_and_postprocess.rs");
 include!("../pipeline_sections/execution/chunking_and_resume.rs");
 
 pub use calling::*;
+pub use orchestration::*;
 pub use population_panel::*;
 pub use qc::*;
 
