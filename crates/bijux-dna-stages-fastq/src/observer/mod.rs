@@ -1,6 +1,3 @@
-use std::path::Path;
-
-use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_domain_fastq::{
     is_observer_specialized_stage_tool as domain_is_observer_specialized_stage_tool,
@@ -8,6 +5,7 @@ use bijux_dna_domain_fastq::{
 };
 
 pub mod artifacts;
+pub mod commands;
 
 pub use artifacts::*;
 pub use bijux_dna_domain_fastq::observer::{
@@ -26,6 +24,7 @@ pub use bijux_dna_domain_fastq::observer::{
     parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
     parse_validated_reads_manifest, parse_validation_report,
 };
+pub use commands::*;
 
 #[must_use]
 pub fn observer_specialized_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
@@ -35,78 +34,4 @@ pub fn observer_specialized_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
 #[must_use]
 pub fn is_observer_specialized_stage_tool(stage_id: &StageId, tool_id: &ToolId) -> bool {
     domain_is_observer_specialized_stage_tool(stage_id, tool_id)
-}
-
-#[derive(Debug, Clone)]
-pub struct ObserverCommandSpec {
-    pub image: String,
-    pub mount_dir: std::path::PathBuf,
-    pub args: Vec<String>,
-}
-
-#[derive(Debug, Clone)]
-pub struct ObserverCommandOutput {
-    pub stdout: String,
-    pub stderr: String,
-    pub exit_code: i32,
-}
-
-pub enum ObserverCommandKind {
-    SeqkitStats,
-    SeqkitLengthHistogram,
-}
-
-pub fn input_fastq_stats(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
-    seqkit_stats_command(mount_dir, fastq)
-}
-
-pub fn output_fastq_stats(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
-    seqkit_stats_command(mount_dir, fastq)
-}
-
-fn seqkit_stats_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
-    let mount_dir = mount_dir
-        .canonicalize()
-        .context("resolve mount directory")?;
-    let fastq = fastq.canonicalize().context("resolve fastq path")?;
-    let fastq_name = fastq
-        .file_name()
-        .ok_or_else(|| anyhow!("fastq missing filename"))?
-        .to_string_lossy()
-        .to_string();
-
-    Ok(ObserverCommandSpec {
-        image: "seqkit".to_string(),
-        mount_dir,
-        args: vec![
-            "seqkit".to_string(),
-            "stats".to_string(),
-            "-a".to_string(),
-            "-T".to_string(),
-            format!("/data/{fastq_name}"),
-        ],
-    })
-}
-
-pub fn length_histogram_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
-    let mount_dir = mount_dir
-        .canonicalize()
-        .context("resolve mount directory")?;
-    let fastq = fastq.canonicalize().context("resolve fastq path")?;
-    let fastq_name = fastq
-        .file_name()
-        .ok_or_else(|| anyhow!("fastq missing filename"))?
-        .to_string_lossy()
-        .to_string();
-
-    Ok(ObserverCommandSpec {
-        image: "seqkit".to_string(),
-        mount_dir,
-        args: vec![
-            "seqkit".to_string(),
-            "fx2tab".to_string(),
-            "-l".to_string(),
-            format!("/data/{fastq_name}"),
-        ],
-    })
 }
