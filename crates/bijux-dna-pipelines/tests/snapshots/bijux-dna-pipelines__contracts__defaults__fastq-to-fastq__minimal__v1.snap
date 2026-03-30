@@ -182,6 +182,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "genome_size": null,
       "kmer_size": null,
       "max_memory_gb": null,
+      "musket_kmer_budget": null,
       "paired_mode": "single_end",
       "quality_encoding": "phred33",
       "schema_version": "bijux.fastq.params.correct.v1",
