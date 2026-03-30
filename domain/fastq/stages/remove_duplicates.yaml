@@ -40,6 +40,8 @@ parameters:
 metrics:
   - name: "tool"
     meaning: "Governed backend selected for duplicate removal."
+  - name: "threads"
+    meaning: "Resolved worker threads executed by the selected duplicate-removal backend."
   - name: "dedup_mode"
     meaning: "Governed duplicate-definition mode applied by the selected backend."
   - name: "paired_mode"
@@ -50,7 +52,7 @@ metrics:
     meaning: "Number of input reads."
   - name: "reads_out"
     meaning: "Number of output reads."
-  - name: "duplicate_reads"
+  - name: "duplicates_removed"
     meaning: "Number of reads removed as duplicates."
   - name: "dedup_rate"
     meaning: "Fraction of reads removed as duplicates."
