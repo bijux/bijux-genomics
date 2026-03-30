@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::id_catalog;
 use serde::{Deserialize, Serialize};
 
 use bijux_dna_core::contract::{run_dir, Profile, RunSpec};
@@ -138,6 +137,7 @@ mod tests {
         ArtifactKind, Cardinality, PathSpec, PortSpec, RunSpec, RuntimeScale, StageSemanticKind,
         StageSpec, ToolConstraints, ToolManifest,
     };
+    use bijux_dna_core::id_catalog;
     use bijux_dna_core::ids::{StageId, ToolId};
 
     #[test]
