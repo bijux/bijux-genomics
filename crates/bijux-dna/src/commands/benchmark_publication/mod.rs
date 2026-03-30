@@ -612,9 +612,12 @@ mod tests {
 
     #[test]
     fn corpus_fastq_report_docs_root_tracks_stage_contract() {
-        let docs_root = super::absolutize(Path::new("/repo"), Path::new("docs/30-operations/benchmark"))
-            .join("fastq.validate_reads")
-            .join("corpus-01");
+        let docs_root = super::absolutize(
+            Path::new("/repo"),
+            Path::new("docs/30-operations/benchmark"),
+        )
+        .join("fastq.validate_reads")
+        .join("corpus-01");
         assert_eq!(
             docs_root,
             Path::new("/repo/docs/30-operations/benchmark/fastq.validate_reads/corpus-01")
@@ -1535,7 +1538,9 @@ reason = "Compact validation fixture."
                             stage_id: "fastq.trim_reads".to_string(),
                             issue_id: "missing-corpus-dir".to_string(),
                             severity: "error".to_string(),
-                            detail: "missing docs/30-operations/benchmark/fastq.trim_reads/corpus-01".to_string(),
+                            detail:
+                                "missing docs/30-operations/benchmark/fastq.trim_reads/corpus-01"
+                                    .to_string(),
                         }],
                     },
                 ],
