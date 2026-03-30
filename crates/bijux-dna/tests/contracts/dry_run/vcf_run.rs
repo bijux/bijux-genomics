@@ -103,9 +103,11 @@ arch = "x86_64"
     }
 
     #[cfg(unix)]
-    std::os::unix::fs::symlink(ws_root.join("domain"), root.join("domain")).expect("symlink domain");
+    std::os::unix::fs::symlink(ws_root.join("domain"), root.join("domain"))
+        .expect("symlink domain");
     #[cfg(unix)]
-    std::os::unix::fs::symlink(ws_root.join("assets"), root.join("assets")).expect("symlink assets");
+    std::os::unix::fs::symlink(ws_root.join("assets"), root.join("assets"))
+        .expect("symlink assets");
 
     std::env::set_var("BIJUX_REPO_ROOT", root);
     let args = [
