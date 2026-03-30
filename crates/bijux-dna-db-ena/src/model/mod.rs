@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 mod manifest;
 mod query;
 mod record;

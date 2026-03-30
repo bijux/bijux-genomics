@@ -1,4 +1,4 @@
-use crate::model::{EnaRecord, EnaResultKind};
+use crate::model::EnaRecord;
 use anyhow::Result;
 
 mod config;
@@ -26,7 +26,7 @@ pub fn download_tasks(tasks: &[DownloadTask], config: &DownloadConfig) -> Result
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{EnaFileSource, EnaSourcePreference};
+    use crate::model::{EnaFileSource, EnaResultKind, EnaSourcePreference};
     use std::path::PathBuf;
 
     #[test]

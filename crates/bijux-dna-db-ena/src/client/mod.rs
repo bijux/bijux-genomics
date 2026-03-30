@@ -1,4 +1,4 @@
-use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord, EnaResultKind};
+use crate::model::{EnaQuery, EnaRecord, EnaResultKind};
 use reqwest::blocking::Client;
 
 mod error;
@@ -36,19 +36,17 @@ impl EnaClient {
         for accession in accessions {
             let url = request::build_filereport_url(&accession, query.result);
             let body = self.http.get(url).send()?.error_for_status()?.text()?;
-            out.extend(parse::parse_filereport_tsv(&body, query));
+            out.extend(parse::parse_filereport_tsv(&body, query)?);
         }
         Ok(out)
     }
 }
 
-#[must_use]
 pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
     request::build_filereport_url(accession, result)
 }
 
-#[must_use]
-pub fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Vec<EnaRecord> {
+pub fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Result<Vec<EnaRecord>, EnaClientError> {
     parse::parse_filereport_tsv(tsv, query)
 }
 
@@ -84,8 +82,24 @@ mod tests {
             result: EnaResultKind::ReadRun,
         };
         let tsv = "study_accession\tsample_accession\trun_accession\tfastq_ftp\nPRJEBX\tSAMEA1\tERR1\tftp.sra.ebi.ac.uk/a.fastq.gz\nPRJEBX\tSAMEA2\tERR2\tftp.sra.ebi.ac.uk/b.fastq.gz\n";
-        let rows = parse_filereport_tsv(tsv, &query);
+        let rows = parse_filereport_tsv(tsv, &query).expect("parse filtered rows");
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].run_accession.as_deref(), Some("ERR1"));
+    }
+
+    #[test]
+    fn parse_filereport_tsv_rejects_missing_required_columns() {
+        let query = EnaQuery {
+            projects: vec!["PRJEBX".to_string()],
+            samples: Vec::new(),
+            extra_accessions: Vec::new(),
+            result: EnaResultKind::ReadRun,
+        };
+        let tsv = "study_accession\trun_accession\nPRJEBX\tERR1\n";
+
+        let error = parse_filereport_tsv(tsv, &query).expect_err("missing columns must fail");
+        assert!(error
+            .to_string()
+            .contains("missing required columns: sample_accession"));
     }
 }
