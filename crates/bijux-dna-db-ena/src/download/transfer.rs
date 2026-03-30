@@ -9,7 +9,10 @@ use super::{DownloadConfig, DownloadReport, DownloadTask};
 /// # Errors
 /// Returns an error if configuration is invalid, the thread pool cannot be
 /// created, or HTTP client initialization fails.
-pub(super) fn download_tasks(tasks: &[DownloadTask], config: &DownloadConfig) -> Result<DownloadReport> {
+pub(super) fn download_tasks(
+    tasks: &[DownloadTask],
+    config: &DownloadConfig,
+) -> Result<DownloadReport> {
     if config.dry_run {
         return Ok(DownloadReport {
             attempted: tasks.len(),
