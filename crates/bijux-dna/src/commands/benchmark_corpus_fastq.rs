@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments, clippy::too_many_lines)]
+
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -519,9 +521,7 @@ fn resolve_benchmark_platform(explicit_platform: Option<&str>) -> Result<String>
     if let Some(platform) = explicit_platform {
         let trimmed = platform.trim();
         if trimmed.is_empty() {
-            return Err(anyhow!(
-                "benchmark platform must be a non-empty identifier"
-            ));
+            return Err(anyhow!("benchmark platform must be a non-empty identifier"));
         }
         return Ok(trimmed.to_string());
     }
@@ -530,9 +530,7 @@ fn resolve_benchmark_platform(explicit_platform: Option<&str>) -> Result<String>
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
         .ok_or_else(|| {
-            anyhow!(
-                "benchmark platform must be declared with --platform or BIJUX_PLATFORM"
-            )
+            anyhow!("benchmark platform must be declared with --platform or BIJUX_PLATFORM")
         })
 }
 
@@ -860,9 +858,7 @@ fn resolve_tools(default_tools: &[String], requested_tools: &[String]) -> Result
     requested.dedup();
     if requested != expected {
         return Err(anyhow!(
-            "tool roster drift for corpus benchmark: expected {:?}, found {:?}",
-            expected,
-            requested
+            "tool roster drift for corpus benchmark: expected {expected:?}, found {requested:?}"
         ));
     }
     Ok(default_tools.to_vec())
@@ -998,13 +994,14 @@ fn prepare_report_qc_sample(
     )
     .with_context(|| format!("write {}", governed_manifest.display()))?;
 
-    let mut extra_stage_args = Vec::new();
-    extra_stage_args.push("--aggregation-engine".to_string());
-    extra_stage_args.push("multiqc".to_string());
-    extra_stage_args.push("--aggregation-scope".to_string());
-    extra_stage_args.push("governed_qc_artifacts".to_string());
-    extra_stage_args.push("--governed-qc-manifest".to_string());
-    extra_stage_args.push(governed_manifest.display().to_string());
+    let extra_stage_args = vec![
+        "--aggregation-engine".to_string(),
+        "multiqc".to_string(),
+        "--aggregation-scope".to_string(),
+        "governed_qc_artifacts".to_string(),
+        "--governed-qc-manifest".to_string(),
+        governed_manifest.display().to_string(),
+    ];
 
     let mut run_extra_fields = BTreeMap::new();
     run_extra_fields.insert(
@@ -1106,7 +1103,7 @@ fn ensure_report_qc_upstream_stage_outputs(
         command_args.push("--r2".to_string());
         command_args.push(r2.display().to_string());
     }
-    command_args.extend(upstream.extra_args.iter().map(|row| row.to_string()));
+    command_args.extend(upstream.extra_args.iter().copied().map(str::to_string));
 
     if dry_run {
         return Ok(());
@@ -1285,8 +1282,7 @@ fn collect_stage_manifest_fields(
 fn parse_cli_arg_pairs(label: &str, args: &[String]) -> Result<BTreeMap<String, String>> {
     if args.len() % 2 != 0 {
         return Err(anyhow!(
-            "{label} expects flag/value pairs, found odd-length input: {:?}",
-            args
+            "{label} expects flag/value pairs, found odd-length input: {args:?}"
         ));
     }
     let mut values = BTreeMap::new();
@@ -1508,7 +1504,7 @@ fn collect_sorted_paths(root: &Path) -> Result<Vec<PathBuf>> {
             .collect::<Vec<_>>();
         children.sort();
         for child in &children {
-            all.push(child.to_path_buf());
+            all.push(child.clone());
         }
         children.reverse();
         stack.extend(children);
@@ -1530,7 +1526,7 @@ pub(crate) fn resolve_artifact_lineage_json(path: &Path) -> Option<PathBuf> {
 pub(crate) fn sha256_file_hex(path: &Path) -> Result<String> {
     let mut handle = fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
     let mut digest = sha2::Sha256::new();
-    let mut buffer = [0_u8; 1024 * 1024];
+    let mut buffer = vec![0_u8; 1024 * 1024];
     loop {
         use std::io::Read as _;
         let read = handle
@@ -1642,12 +1638,9 @@ fn resolve_deplete_rrna_stage_options(stage_args: &[String]) -> Result<DepleteRr
     }
     Ok(DepleteRrnaStageOptions {
         rrna_db,
-        rrna_bundle_id: stage_values
-            .get("rrna_bundle_id")
-            .cloned()
-            .ok_or_else(|| {
-                anyhow!("fastq.deplete_rrna requires --rrna-bundle-id in stage arguments")
-            })?,
+        rrna_bundle_id: stage_values.get("rrna_bundle_id").cloned().ok_or_else(|| {
+            anyhow!("fastq.deplete_rrna requires --rrna-bundle-id in stage arguments")
+        })?,
         min_identity: stage_values
             .get("min_identity")
             .map(|row| row.parse::<f64>())
@@ -1912,6 +1905,7 @@ fn warm_sortmerna_shared_index_cache(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         benchmark_runtime_env, default_stage_out_root, prepare_report_qc_sample,
@@ -1948,6 +1942,7 @@ mod tests {
     fn default_out_root_uses_workspace_template() {
         let workspace = BenchmarkWorkspaceConfig {
             remote: Some(BenchmarkWorkspaceRemote {
+                corpus_root: Some("/bench/remote/corpora/benchmark_corpus".to_string()),
                 results_root: Some("/bench/remote/cache/results".to_string()),
                 ..BenchmarkWorkspaceRemote::default()
             }),
@@ -1959,12 +1954,9 @@ mod tests {
             }),
             ..BenchmarkWorkspaceConfig::default()
         };
-        let out_root = default_stage_out_root(
-            &workspace,
-            "benchmark-corpus",
-            "fastq.validate_reads",
-        )
-        .expect("root");
+        let out_root =
+            default_stage_out_root(&workspace, "benchmark-corpus", "fastq.validate_reads")
+                .expect("root");
         assert_eq!(
             out_root,
             PathBuf::from(
@@ -2036,6 +2028,13 @@ mod tests {
         fs::create_dir_all(&out_root).expect("out root");
         let workspace = BenchmarkWorkspaceConfig {
             remote: Some(BenchmarkWorkspaceRemote {
+                corpus_root: Some(
+                    temp.path()
+                        .join("remote-corpora")
+                        .join("corpus-01")
+                        .display()
+                        .to_string(),
+                ),
                 results_root: Some(temp.path().join("remote-results").display().to_string()),
                 ..BenchmarkWorkspaceRemote::default()
             }),
@@ -2123,7 +2122,7 @@ mod tests {
             payload
                 .get("qc_inputs")
                 .and_then(serde_json::Value::as_array)
-                .map(|row| row.len()),
+                .map(std::vec::Vec::len),
             Some(6)
         );
         assert_eq!(
@@ -2143,8 +2142,8 @@ mod tests {
 
     #[test]
     fn resolve_benchmark_platform_rejects_empty_identifier() {
-        let error = resolve_benchmark_platform(Some("   "))
-            .expect_err("empty platform contract must fail");
+        let error =
+            resolve_benchmark_platform(Some("   ")).expect_err("empty platform contract must fail");
         assert!(error
             .to_string()
             .contains("benchmark platform must be a non-empty identifier"));
