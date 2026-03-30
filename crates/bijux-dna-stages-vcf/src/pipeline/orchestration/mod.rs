@@ -1,8 +1,10 @@
-fn workspace_root() -> Option<PathBuf> {
+use super::*;
+
+pub(crate) fn workspace_root() -> Option<PathBuf> {
     crate::repo_root::resolve_repo_root().ok()
 }
 
-fn license_metadata_for_tool_exists(tool_id: &str) -> bool {
+pub(crate) fn license_metadata_for_tool_exists(tool_id: &str) -> bool {
     workspace_root().is_some_and(|root| {
         root.join("containers/licenses")
             .join(format!("{tool_id}.license.toml"))
@@ -10,7 +12,7 @@ fn license_metadata_for_tool_exists(tool_id: &str) -> bool {
     })
 }
 
-fn resolve_tool_digest(tool_id: &str) -> Result<String> {
+pub(crate) fn resolve_tool_digest(tool_id: &str) -> Result<String> {
     let registry = workspace_root()
         .ok_or_else(|| anyhow!("resolve repository root for VCF runtime contracts"))?
         .join("configs/ci/registry/tool_registry_vcf_downstream.toml");
@@ -67,7 +69,7 @@ fn resolve_tool_digest(tool_id: &str) -> Result<String> {
     bail!("could not resolve tool digest source for {tool_id}");
 }
 
-fn parse_format_index(fields: &[&str], name: &str) -> Option<usize> {
+pub(crate) fn parse_format_index(fields: &[&str], name: &str) -> Option<usize> {
     fields
         .get(8)?
         .split(':')
@@ -89,7 +91,7 @@ fn parse_threshold_value(raw: &str, key: &str) -> Option<f64> {
     })
 }
 
-fn load_imputation_qc_thresholds() -> std::collections::BTreeMap<String, f64> {
+pub(crate) fn load_imputation_qc_thresholds() -> std::collections::BTreeMap<String, f64> {
     let raw = workspace_root()
         .and_then(|root| {
             std::fs::read_to_string(root.join("assets/reference/qc_thresholds.yaml")).ok()

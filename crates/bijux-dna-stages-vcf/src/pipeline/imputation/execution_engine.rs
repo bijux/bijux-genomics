@@ -1,4 +1,4 @@
-fn run_impute_stage_inner(
+pub(crate) fn run_impute_stage_inner(
     input_vcf: &Path,
     out_dir: &Path,
     species_context: &SpeciesContext,

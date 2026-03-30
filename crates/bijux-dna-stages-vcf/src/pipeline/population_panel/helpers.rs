@@ -1,4 +1,6 @@
-fn variant_maf(fields: &[&str]) -> Option<f64> {
+use super::*;
+
+pub(crate) fn variant_maf(fields: &[&str]) -> Option<f64> {
     if let Some(v) = parse_info_value_f64(fields[7], "AF") {
         return Some(if v > 0.5 { 1.0 - v } else { v });
     }
@@ -29,7 +31,7 @@ fn variant_maf(fields: &[&str]) -> Option<f64> {
     }
 }
 
-fn try_run_tool(bin: &str, args: &[&str]) -> bool {
+pub(crate) fn try_run_tool(bin: &str, args: &[&str]) -> bool {
     std::process::Command::new(bin)
         .args(args)
         .output()
@@ -37,7 +39,7 @@ fn try_run_tool(bin: &str, args: &[&str]) -> bool {
         .unwrap_or(false)
 }
 
-fn write_bgzip_with_best_effort_index(
+pub(crate) fn write_bgzip_with_best_effort_index(
     out_vcfgz: &Path,
     payload: &str,
     tmp_name: &str,

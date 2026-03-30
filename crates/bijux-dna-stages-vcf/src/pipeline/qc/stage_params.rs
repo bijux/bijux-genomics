@@ -1,3 +1,5 @@
+use super::*;
+
 pub fn assert_bgzip_tabix_artifacts(vcf_path: &Path, tbi_path: &Path) -> Result<()> {
     if !vcf_path.exists() {
         return Err(anyhow!("VCF artifact missing: {}", vcf_path.display()));
@@ -81,7 +83,7 @@ fn detect_gl_or_gp_in_vcf(raw: &str) -> bool {
     })
 }
 
-fn resolve_phasing_backend(params: &PhasingStageParams, raw_vcf: &str) -> PhasingBackend {
+pub(crate) fn resolve_phasing_backend(params: &PhasingStageParams, raw_vcf: &str) -> PhasingBackend {
     if params.backend != PhasingBackend::Auto {
         return params.backend;
     }

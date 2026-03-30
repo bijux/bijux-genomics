@@ -1,3 +1,5 @@
+use super::*;
+
 #[derive(Debug, Clone)]
 pub struct QcStageParams {
     pub sample_name: String,
