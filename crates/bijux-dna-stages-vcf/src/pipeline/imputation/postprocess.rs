@@ -67,7 +67,12 @@ fn normalize_sample_fields_for_split(
         let original = fields[9..].to_vec();
         let reordered = order
             .iter()
-            .map(|idx| original.get(*idx).cloned().unwrap_or_else(|| "./.".to_string()))
+            .map(|idx| {
+                original
+                    .get(*idx)
+                    .cloned()
+                    .unwrap_or_else(|| "./.".to_string())
+            })
             .collect::<Vec<_>>();
         for (offset, value) in reordered.into_iter().enumerate() {
             fields[9 + offset] = value;
@@ -176,15 +181,7 @@ fn write_postprocess_vcf_with_left_alignment(
         .to_str()
         .ok_or_else(|| anyhow!("non-utf8 postprocess temporary output path"))?;
     let output = std::process::Command::new("bcftools")
-        .args([
-            "norm",
-            "-f",
-            reference_s,
-            "-Oz",
-            "-o",
-            tmp_out_s,
-            input_s,
-        ])
+        .args(["norm", "-f", reference_s, "-Oz", "-o", tmp_out_s, input_s])
         .output()
         .map_err(|err| anyhow!("bcftools norm invocation failed: {err}"))?;
     if !output.status.success() {
@@ -401,8 +398,14 @@ pub fn run_postprocess_stage(
     let final_sample_header = if sample_cols.len() <= 9 {
         sample_header
     } else {
-        let mut out = sample_cols[..9].iter().map(|x| (*x).to_string()).collect::<Vec<_>>();
-        let mut sorted_names = sample_cols[9..].iter().map(|x| (*x).to_string()).collect::<Vec<_>>();
+        let mut out = sample_cols[..9]
+            .iter()
+            .map(|x| (*x).to_string())
+            .collect::<Vec<_>>();
+        let mut sorted_names = sample_cols[9..]
+            .iter()
+            .map(|x| (*x).to_string())
+            .collect::<Vec<_>>();
         sorted_names.sort();
         out.extend(sorted_names);
         out.join("\t")
@@ -432,9 +435,11 @@ pub fn run_postprocess_stage(
         if let Some(reference_fasta) =
             resolve_postprocess_reference_fasta(&params.species_id, &params.build_id)
         {
-            if let Ok(tbi) =
-                write_postprocess_vcf_with_left_alignment(&merged_vcf, &merged_payload, &reference_fasta)
-            {
+            if let Ok(tbi) = write_postprocess_vcf_with_left_alignment(
+                &merged_vcf,
+                &merged_payload,
+                &reference_fasta,
+            ) {
                 left_align_applied = true;
                 left_align_reason = "bcftools_norm_with_reference".to_string();
                 tbi
