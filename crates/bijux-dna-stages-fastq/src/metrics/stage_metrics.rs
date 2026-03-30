@@ -1,4 +1,4 @@
-use super::envelope_and_stats::{
+use super::envelope_support::{
     distributions_for_path, f64_from_u64, filter_removals_for_plan, pair_counts_from_paths,
     path_from_params, retention_conditions_from_effective, stats_for_paths, stats_or_zero,
     zero_seqkit_metrics,

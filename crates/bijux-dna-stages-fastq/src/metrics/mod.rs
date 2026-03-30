@@ -16,13 +16,12 @@ use bijux_dna_domain_fastq::metrics::*;
 use bijux_dna_domain_fastq::parse_effective_params;
 use bijux_dna_stage_contract::StagePlanV1;
 
-#[path = "sections/envelope_and_stats.rs"]
-mod envelope_and_stats;
+mod envelope_support;
 mod fastqc;
 mod filters;
 mod stage_metrics;
 
-pub(crate) use envelope_and_stats::{
+pub(crate) use envelope_support::{
     build_metrics_envelope, f64_from_u64, pair_counts_from_paths,
     retention_conditions_from_effective, stats_for_paths, zero_seqkit_metrics,
 };
