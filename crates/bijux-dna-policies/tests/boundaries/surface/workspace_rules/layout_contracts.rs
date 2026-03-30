@@ -318,9 +318,10 @@ fn policy__boundaries__workspace__workspace_stages_layout_contract() {
         let stage_specs = src.join("stage_specs");
         let has_stage_specs = stage_specs.exists() || src.join("stage_specs.rs").exists();
         bijux_dna_policies::policy_assert!(has_stage_specs, "{name} missing stage_specs module");
+        let has_plugin = src.join("plugin.rs").exists() || src.join("plugin").join("mod.rs").exists();
         bijux_dna_policies::policy_assert!(
-            src.join("plugin.rs").exists(),
-            "{name} missing src/plugin.rs"
+            has_plugin,
+            "{name} missing src/plugin.rs or src/plugin/mod.rs"
         );
         let has_metrics =
             src.join("metrics.rs").exists() || src.join("metrics").join("mod.rs").exists();
