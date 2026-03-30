@@ -23,10 +23,10 @@ pub use bijux_dna_domain_fastq::{
 pub use crate::pipeline_defaults::{default_pipeline_spec, DefaultPipelineOptions};
 pub(crate) use crate::pipeline_defaults::{pipeline_spec_from_stage_catalog, required_id_catalog};
 pub use crate::planner::*;
-pub use crate::preprocess_planning::{
+pub use crate::preprocess::{apply_preprocess_policy, PreprocessPolicyDecision};
+pub use crate::preprocess::{
     plan_preprocess, preprocess_decisions, resolve_preprocess_pipeline, CorrectDecisionTrace,
     MergeDecisionTrace, PreprocessDecisions,
 };
-pub use crate::preprocess_policy::{apply_preprocess_policy, PreprocessPolicyDecision};
 pub use crate::report_stage::report_stage_step;
 pub use crate::selection::args;
