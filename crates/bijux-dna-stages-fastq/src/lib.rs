@@ -3,13 +3,13 @@
 pub mod metrics;
 pub mod observer;
 mod plugin;
-mod runtime_interpretation;
+mod runtime;
 pub mod stage_specs;
 mod surface;
 
 pub use bijux_dna_stage_contract::StagePlanJsonV1 as StagePlanJson;
 pub use plugin::FastqStagePlugin;
-pub use runtime_interpretation::{
+pub use runtime::{
     runtime_interpretation_for_stage, runtime_interpretation_for_stage_tool,
     runtime_interpretation_stage_ids, RuntimeInterpretationLevel,
 };
