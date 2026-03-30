@@ -24,13 +24,10 @@ mod observer;
 use artifacts::write_minimum_run_artifacts;
 use command_template::container_command_template;
 use identity::{
-    execution_pipeline_identity, execution_sample_identity, hash_inputs, hash_path,
+    execution_pipeline_identity, execution_sample_identity, hash_inputs,
     infer_tool_version_from_image, runtime_platform_identity,
 };
-use inputs::{
-    common_parent, container_input_mapping, input_bind_roots, preserve_absolute_input_paths,
-};
-use observer::build_observer_command_args;
+use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};
 pub use observer::execute_observer_command;
 
 #[derive(Debug, Clone, Copy)]
@@ -340,10 +337,12 @@ fn network_allowed() -> bool {
 
 #[cfg(test)]
 mod tests {
+    use super::identity::hash_path;
+    use super::inputs::container_input_mapping;
+    use super::observer::build_observer_command_args;
     use super::{
-        build_apptainer_exec_args, build_observer_command_args, container_command_template,
-        container_input_mapping, execution_pipeline_identity, execution_sample_identity,
-        hash_inputs, hash_path, runtime_platform_identity,
+        build_apptainer_exec_args, container_command_template, execution_pipeline_identity,
+        execution_sample_identity, hash_inputs, runtime_platform_identity,
     };
     use anyhow::anyhow;
     use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};

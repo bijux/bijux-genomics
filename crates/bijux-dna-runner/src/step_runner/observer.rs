@@ -11,7 +11,7 @@ use super::{network_allowed, runner_failure, RunnerEffectKind};
 ///
 /// # Errors
 /// Returns an error if execution fails or docker is unavailable.
-pub(super) fn execute_observer_command(
+pub fn execute_observer_command(
     image: &str,
     mount_dir: &Path,
     args: &[String],
