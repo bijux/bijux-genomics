@@ -20,7 +20,6 @@ mod integration_matrix;
 pub mod invariants;
 pub mod metrics;
 pub mod observer;
-mod observer_contract;
 pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
@@ -106,7 +105,7 @@ pub use artifacts::{
 pub use artifacts::{
     NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
 };
-pub use observer_contract::{
+pub use observer::contracts::{
     is_observer_specialized_stage_tool, observer_semantic_surface_for_stage_tool,
     observer_specialization_contract_for_stage_tool, observer_specialization_contracts,
     observer_specialized_stage_tool_bindings, ObserverSpecializationContract,
