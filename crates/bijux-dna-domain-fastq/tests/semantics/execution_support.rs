@@ -215,6 +215,7 @@ fn execution_support_reports_benchmark_stage_sets_from_manifest_truth() {
     assert!(cohort.contains("fastq.deplete_host"));
     assert!(cohort.contains("fastq.deplete_reference_contaminants"));
     assert!(cohort.contains("fastq.extract_umis"));
+    assert!(cohort.contains("fastq.profile_reads"));
     assert!(comparable.contains("fastq.validate_reads"));
     assert!(comparable.contains("fastq.detect_adapters"));
     assert!(comparable.contains("fastq.report_qc"));
@@ -223,5 +224,5 @@ fn execution_support_reports_benchmark_stage_sets_from_manifest_truth() {
     assert!(runnable.contains("fastq.infer_asvs"));
 
     let support = stage_support("fastq.profile_reads");
-    assert_eq!(support.benchmark_support, BenchmarkSupport::None);
+    assert_eq!(support.benchmark_support, BenchmarkSupport::Cohort);
 }
