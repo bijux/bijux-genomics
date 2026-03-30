@@ -2,10 +2,10 @@ use crate::model::{EnaRecord, EnaResultKind};
 use anyhow::Result;
 
 mod config;
+mod execute;
 mod item;
 mod plan;
 mod report;
-mod transfer;
 
 pub use config::DownloadConfig;
 pub use item::DownloadTask;
@@ -20,7 +20,7 @@ pub fn build_download_tasks(records: &[EnaRecord], config: &DownloadConfig) -> V
 /// Returns an error if configuration is invalid, the thread pool cannot be
 /// created, or HTTP client initialization fails.
 pub fn download_tasks(tasks: &[DownloadTask], config: &DownloadConfig) -> Result<DownloadReport> {
-    transfer::download_tasks(tasks, config)
+    execute::download_tasks(tasks, config)
 }
 
 #[cfg(test)]
