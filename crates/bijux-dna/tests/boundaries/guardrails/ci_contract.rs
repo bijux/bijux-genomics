@@ -1,11 +1,8 @@
 use std::fs;
 
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn cli_ci_profile_membership_is_bounded() -> anyhow::Result<()> {
-    let repo_root = support::repo_root()?;
+    let repo_root = super::support::repo_root()?;
     let crates_dir = repo_root.join("crates");
     let mut slow = 0usize;
     let mut science = 0usize;

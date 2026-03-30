@@ -1,9 +1,6 @@
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn cli_does_not_contain_fastq_exec_modules() {
-    let path = support::repo_root()
+    let path = super::support::repo_root()
         .unwrap_or_else(|err| panic!("resolve repo root: {err}"))
         .join("src/fastq_exec");
     assert!(
