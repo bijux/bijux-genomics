@@ -1,3 +1,9 @@
+use std::collections::BTreeMap;
+
+use anyhow::{anyhow, Result};
+
+use crate::required_id_catalog;
+
 pub fn select_trim_tools(tools: &[String], _allow_experimental: bool) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM_READS);
@@ -37,7 +43,8 @@ pub fn select_filter_low_complexity_tools(tools: &[String]) -> Result<Vec<String
 }
 
 pub fn select_merge_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_MERGE_PAIRS);
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_MERGE_PAIRS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
@@ -98,7 +105,8 @@ pub fn select_qc_post_tools(tools: &[String]) -> Result<Vec<String>> {
 }
 
 pub fn select_umi_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS);
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
