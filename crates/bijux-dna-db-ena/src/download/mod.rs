@@ -7,7 +7,7 @@ mod item;
 mod plan;
 mod report;
 
-pub use config::DownloadConfig;
+pub use config::{DownloadConfig, DEFAULT_DOWNLOAD_JOBS, DEFAULT_DOWNLOAD_RETRIES};
 pub use item::DownloadTask;
 pub use report::DownloadReport;
 

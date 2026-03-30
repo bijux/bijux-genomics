@@ -14,7 +14,7 @@ pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, Downlo
         extra_accessions: args.accessions.clone(),
         result: args.result.into(),
     };
-    let client = EnaClient::new("bijux-dna-db-ena/0.1").context("create ena client")?;
+    let client = EnaClient::from_crate_identity().context("create ena client")?;
     let records = client
         .fetch_records(&query)
         .context("fetch ENA metadata records")?;
@@ -29,17 +29,12 @@ pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, Downlo
         records,
     };
 
-    Ok((
-        manifest,
-        DownloadConfig {
-            output_dir: args.output_dir.clone(),
-            jobs: 8,
-            retries: 2,
-            source,
-            preference,
-            dry_run: true,
-        },
-    ))
+    let mut config = DownloadConfig::from_defaults(args.output_dir.clone());
+    config.source = source;
+    config.preference = preference;
+    config.dry_run = true;
+
+    Ok((manifest, config))
 }
 
 pub(crate) fn execute_download(args: &DownloadArgs) -> Result<(EnaRunManifest, DownloadConfig)> {

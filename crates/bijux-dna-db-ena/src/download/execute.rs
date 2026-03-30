@@ -4,6 +4,8 @@ use reqwest::blocking::Client;
 use std::fs;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use crate::client::CRATE_USER_AGENT;
+
 use super::{DownloadConfig, DownloadReport, DownloadTask};
 
 /// # Errors
@@ -32,7 +34,7 @@ pub(super) fn download_tasks(
         .context("create rayon pool")?;
 
     let http = Client::builder()
-        .user_agent("bijux-dna-db-ena/0.1")
+        .user_agent(CRATE_USER_AGENT)
         .build()
         .context("create download http client")?;
 
