@@ -1,8 +1,9 @@
 use anyhow::Result;
 
+use super::request::refusal;
 use super::{
-    atomic_write_json, refusal, VcfPipelineRequest, VcfPipelineResult, VcfPreflightResult,
-    VcfRefusalCode, VcfStageOutputs,
+    atomic_write_json, VcfPipelineRequest, VcfPipelineResult, VcfPreflightResult, VcfRefusalCode,
+    VcfStageOutputs,
 };
 
 pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> {

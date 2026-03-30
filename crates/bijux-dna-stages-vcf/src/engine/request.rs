@@ -16,7 +16,7 @@ pub struct VcfRefusal {
     pub how: &'static str,
 }
 
-fn refusal(code: VcfRefusalCode, what: impl Into<String>) -> anyhow::Error {
+pub(super) fn refusal(code: VcfRefusalCode, what: impl Into<String>) -> anyhow::Error {
     let r = VcfRefusal {
         code,
         what: what.into(),
@@ -83,7 +83,7 @@ pub struct ToolInvocation {
 }
 
 #[derive(Debug, Clone)]
-struct ToolInvocationBuilder {
+pub(super) struct ToolInvocationBuilder {
     tool_id: String,
     runtime: String,
     image_digest: String,
@@ -93,7 +93,7 @@ struct ToolInvocationBuilder {
 }
 
 impl ToolInvocationBuilder {
-    fn new(tool_id: &str, runtime: &str, image_digest: &str) -> Self {
+    pub(super) fn new(tool_id: &str, runtime: &str, image_digest: &str) -> Self {
         Self {
             tool_id: tool_id.to_string(),
             runtime: runtime.to_string(),
@@ -104,18 +104,18 @@ impl ToolInvocationBuilder {
         }
     }
 
-    fn argv(mut self, argv: Vec<String>) -> Self {
+    pub(super) fn argv(mut self, argv: Vec<String>) -> Self {
         self.argv = argv;
         self
     }
 
-    fn io(mut self, inputs: Vec<PathBuf>, outputs: Vec<PathBuf>) -> Self {
+    pub(super) fn io(mut self, inputs: Vec<PathBuf>, outputs: Vec<PathBuf>) -> Self {
         self.inputs = inputs;
         self.outputs = outputs;
         self
     }
 
-    fn build(self) -> Result<ToolInvocation> {
+    pub(super) fn build(self) -> Result<ToolInvocation> {
         if self.image_digest.trim().is_empty() || !self.image_digest.starts_with("sha256:") {
             bail!("tool invocation requires pinned image digest");
         }
@@ -145,11 +145,11 @@ pub trait VcfStageRunner {
 }
 
 #[derive(Debug, Clone, Copy)]
-struct DispatchRunner {
-    stage: VcfDomainStage,
+pub(super) struct DispatchRunner {
+    pub(super) stage: VcfDomainStage,
 }
 
-fn write_sidecars(
+pub(super) fn write_sidecars(
     out_dir: &Path,
     stage: VcfDomainStage,
     argv: &[String],
@@ -187,7 +187,7 @@ fn write_sidecars(
     Ok(())
 }
 
-fn write_stage_manifest(
+pub(super) fn write_stage_manifest(
     out_dir: &Path,
     stage: VcfDomainStage,
     input: &Path,
@@ -215,7 +215,7 @@ fn write_stage_manifest(
     Ok(manifest)
 }
 
-fn stage_default_tool_id(stage: VcfDomainStage) -> &'static str {
+pub(super) fn stage_default_tool_id(stage: VcfDomainStage) -> &'static str {
     match stage {
         VcfDomainStage::Call
         | VcfDomainStage::CallDiploid
@@ -249,7 +249,7 @@ fn stage_checksum_hex(bytes: &[u8]) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-pub(crate) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
+pub(super) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
     let root = stage_workspace_root()?;
     for rel in [
         "configs/ci/registry/tool_registry_vcf.toml",
@@ -319,7 +319,7 @@ pub(crate) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
     bail!("tool {tool_id} missing from VCF registries")
 }
 
-fn resolve_call_alias(ctx: &VcfStageRunContext<'_>) -> Result<VcfDomainStage> {
+pub(super) fn resolve_call_alias(ctx: &VcfStageRunContext<'_>) -> Result<VcfDomainStage> {
     if let Some(coverage_regime) = ctx.request.species_context.default_coverage_regime {
         return Ok(match coverage_regime {
             bijux_dna_domain_vcf::taxonomy::CoverageRegime::LowCovGl => VcfDomainStage::CallGl,
@@ -346,7 +346,7 @@ fn resolve_call_alias(ctx: &VcfStageRunContext<'_>) -> Result<VcfDomainStage> {
     }
 }
 
-fn map_runner_error(msg: &str) -> (VcfRefusalCode, String) {
+pub(super) fn map_runner_error(msg: &str) -> (VcfRefusalCode, String) {
     if msg.contains("tabix index missing") {
         return (
             VcfRefusalCode::RunnerFailed,
@@ -368,7 +368,7 @@ fn map_runner_error(msg: &str) -> (VcfRefusalCode, String) {
     (VcfRefusalCode::RunnerFailed, msg.to_string())
 }
 
-fn write_artifact_checksums(stage_dir: &Path, artifacts: &[PathBuf]) -> Result<PathBuf> {
+pub(super) fn write_artifact_checksums(stage_dir: &Path, artifacts: &[PathBuf]) -> Result<PathBuf> {
     let path = stage_dir.join("artifact_checksums.json");
     let mut rows = Vec::<serde_json::Value>::new();
     for a in artifacts {
@@ -389,7 +389,10 @@ fn write_artifact_checksums(stage_dir: &Path, artifacts: &[PathBuf]) -> Result<P
     Ok(path)
 }
 
-fn try_resume_stage(stage: VcfDomainStage, stage_dir: &Path) -> Result<Option<VcfStageOutputs>> {
+pub(super) fn try_resume_stage(
+    stage: VcfDomainStage,
+    stage_dir: &Path,
+) -> Result<Option<VcfStageOutputs>> {
     let manifest = stage_dir.join("stage_manifest.json");
     let checksums = stage_dir.join("artifact_checksums.json");
     if !manifest.exists() || !checksums.exists() {

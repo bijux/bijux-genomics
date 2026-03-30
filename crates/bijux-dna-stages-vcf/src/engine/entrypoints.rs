@@ -1,3 +1,9 @@
+use super::reporting::{
+    build_vcf_provenance_line, maybe_bam_handoff, verify_contract_surface, write_runtime_explain,
+};
+use super::request::refusal;
+use super::*;
+
 fn deterministic_stage_list(requested: &[VcfDomainStage]) -> Result<Vec<VcfDomainStage>> {
     if requested.is_empty() {
         return Ok(vec![
