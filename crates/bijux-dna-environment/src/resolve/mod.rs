@@ -9,6 +9,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Context;
 use sha2::{Digest, Sha256};
 
+mod catalog;
 mod commands;
 mod platform;
 mod types;
@@ -18,7 +19,6 @@ pub use types::{
     EnvError, ImageRef, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageCatalog,
     ToolImageSpec,
 };
-use types::RegistryImagePinFile;
 /// Resolver entrypoint for environment specs and image catalog.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct EnvironmentResolver;
@@ -100,25 +100,7 @@ pub fn resolve_image(
     tool: &ToolImageSpec,
     platform: &PlatformSpec,
 ) -> Result<ResolvedImage, EnvError> {
-    if tool.tool.to_lowercase().contains("base") {
-        return Err(EnvError::Image(format!(
-            "tool image name must not reference base: {}",
-            tool.tool
-        )));
-    }
-    let full_name = if let Some(digest) = tool.digest.as_ref() {
-        format!("{}/{}@{}", platform.image_prefix, tool.tool, digest)
-    } else {
-        format!(
-            "{}/{}:{}-{}",
-            platform.image_prefix, tool.tool, tool.version, platform.arch
-        )
-    };
-    Ok(ResolvedImage {
-        full_name,
-        arch: platform.arch.clone(),
-        runner: platform.runner,
-    })
+    catalog::resolve_image(tool, platform)
 }
 
 #[cfg(test)]
@@ -193,12 +175,7 @@ arch = "amd64"
 /// # Errors
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
 pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
-    let path = bijux_dna_infra::configs_file(Path::new("."), "ci/tools/images.toml");
-    let mut catalog = load_image_catalog_from_file(&path)?;
-    let registry_path =
-        bijux_dna_infra::configs_file(Path::new("."), "ci/registry/tool_registry.toml");
-    hydrate_catalog_digests_from_registry(&mut catalog, &registry_path)?;
-    Ok(catalog)
+    catalog::load_image_catalog()
 }
 
 /// Load tool images from a specific TOML file.
@@ -208,57 +185,14 @@ pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> 
 pub(crate) fn load_image_catalog_from_file(
     path: &Path,
 ) -> Result<HashMap<String, ToolImageSpec>, EnvError> {
-    let contents = std::fs::read_to_string(path)?;
-    let raw: HashMap<String, ToolImageSpec> = bijux_dna_infra::formats::parse_toml(&contents)
-        .map_err(|err| EnvError::Parse(err.message))?;
-    let mut catalog = HashMap::new();
-    for (key, mut spec) in raw {
-        if key.trim().is_empty() {
-            return Err(EnvError::Image(
-                "empty tool name in images.toml".to_string(),
-            ));
-        }
-        if spec.version.trim().is_empty() {
-            return Err(EnvError::Image(format!("empty version for tool {key}")));
-        }
-        if spec.tool.trim().is_empty() {
-            spec.tool.clone_from(&key);
-        }
-        if catalog.insert(key.clone(), spec).is_some() {
-            return Err(EnvError::Image(format!("duplicate tool {key}")));
-        }
-    }
-    Ok(catalog)
+    catalog::load_image_catalog_from_file(path)
 }
 
 pub(crate) fn hydrate_catalog_digests_from_registry(
     catalog: &mut HashMap<String, ToolImageSpec>,
     registry_path: &Path,
 ) -> Result<(), EnvError> {
-    if !registry_path.is_file() {
-        return Ok(());
-    }
-    let contents = std::fs::read_to_string(registry_path)?;
-    let registry: RegistryImagePinFile = bijux_dna_infra::formats::parse_toml(&contents)
-        .map_err(|err| EnvError::Parse(err.message))?;
-    for tool in registry.tools {
-        if tool.id.trim().is_empty() {
-            continue;
-        }
-        let Some(container_ref) = tool.container_ref.as_deref() else {
-            continue;
-        };
-        let Some((_, digest)) = container_ref.split_once("@sha256:") else {
-            continue;
-        };
-        let Some(spec) = catalog.get_mut(&tool.id) else {
-            continue;
-        };
-        if spec.digest.is_none() {
-            spec.digest = Some(format!("sha256:{digest}"));
-        }
-    }
-    Ok(())
+    catalog::hydrate_catalog_digests_from_registry(catalog, registry_path)
 }
 
 /// Validate that tools have image entries.
@@ -270,14 +204,7 @@ pub fn validate_images_for_stage(
     catalog: &HashMap<String, ToolImageSpec>,
     tools: &[&str],
 ) -> Result<(), EnvError> {
-    for tool in tools {
-        if !catalog.contains_key(*tool) {
-            return Err(EnvError::Image(format!(
-                "missing image entry for tool {tool}"
-            )));
-        }
-    }
-    Ok(())
+    catalog::validate_images_for_stage(catalog, tools)
 }
 
 /// Execute container smoke contract script for a runtime/tool pair.
