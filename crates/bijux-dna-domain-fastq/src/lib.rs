@@ -11,7 +11,7 @@
 // Structural layout of this crate is frozen as of FASTQ v1.
 pub mod banks;
 mod artifacts;
-pub mod bench_repository;
+mod bench;
 mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
@@ -44,7 +44,7 @@ pub use banks::{
     load_polyx_bank, load_polyx_presets, polyx_bank_path, polyx_presets_path, resolve_polyx_preset,
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
-pub use bench_repository::{
+pub use bench::{
     governed_stage_bench_query_context, BenchQueryContext, BenchResultsRepository,
 };
 pub use artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
@@ -204,6 +204,13 @@ pub use artifacts::{
     ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
     VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
 };
+
+pub mod bench_repository {
+    pub use crate::bench::{
+        governed_stage_bench_query_context, BenchQueryContext, BenchQueryContextMatch,
+        BenchResultsRepository,
+    };
+}
 
 pub mod stage_contract {
     pub use crate::stages::contract::{stage_contract_hash, stage_contract_json};
