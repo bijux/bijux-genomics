@@ -3,6 +3,6 @@
 
 mod builder;
 mod report_sections;
-mod support;
+mod report_inputs;
 
 pub use builder::*;

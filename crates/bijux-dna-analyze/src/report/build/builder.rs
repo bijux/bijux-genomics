@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use super::report_sections::{
     data_contract_validation_section, key_findings_section, pipeline_overview_section,
 };
-use super::support::{
+use super::report_inputs::{
     banks_from_report, contaminant_summary_section, qc_delta_section, read_json_value,
     retention_context_from_report, stage_report_fields, telemetry_counts,
     telemetry_decisions_from_paths, telemetry_path_from_stage_report,

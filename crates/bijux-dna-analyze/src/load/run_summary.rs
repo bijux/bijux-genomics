@@ -3,7 +3,7 @@
 
 use std::path::Path;
 
-use super::support::read_required_json;
+use super::required_reads::read_required_json;
 use super::AnalyzeError;
 use crate::model::RunSummaryV1;
 

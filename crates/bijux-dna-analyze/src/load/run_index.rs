@@ -6,7 +6,7 @@ use std::path::Path;
 use bijux_dna_core::contract::RunIndexLine;
 use serde_json;
 
-use super::support::read_required_string;
+use super::required_reads::read_required_string;
 use super::AnalyzeError;
 
 /// Load a run index from JSONL.
