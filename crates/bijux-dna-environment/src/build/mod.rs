@@ -8,19 +8,13 @@ use std::path::Path;
 use crate::resolve::EnvError;
 use regex::Regex;
 
+mod models;
+
 pub mod api {
     pub use crate::resolve::*;
 }
 
-#[derive(Debug, Clone)]
-pub struct DockerToolSpec {
-    pub name: String,
-    pub executable: Option<String>,
-    pub version_cmd: String,
-    pub help_cmd: Option<String>,
-    pub probe_cmd: Option<String>,
-    pub probe_expected_exit: Vec<i32>,
-}
+pub use models::DockerToolSpec;
 
 /// Builder entrypoint for environment definitions.
 #[derive(Debug, Default, Clone, Copy)]
