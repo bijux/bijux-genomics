@@ -26,15 +26,15 @@ struct DomainToolContainer {
 
 fn load_domain_tool_yaml(tool_id: &str) -> Option<DomainToolYaml> {
     let repo_root = crate::repo_root::resolve_repo_root().ok()?;
-    for domain_name in ["fastq", "bam"] {
-        let path = repo_root
-            .join("domain")
-            .join(domain_name)
-            .join("tools")
-            .join(format!("{tool_id}.yaml"));
-        if !path.exists() {
-            continue;
-        }
+    let domain_root = repo_root.join("domain");
+    let entries = std::fs::read_dir(domain_root).ok()?;
+    let mut matches = entries
+        .filter_map(Result::ok)
+        .map(|entry| entry.path().join("tools").join(format!("{tool_id}.yaml")))
+        .filter(|path| path.is_file())
+        .collect::<Vec<_>>();
+    matches.sort();
+    for path in matches {
         let raw = std::fs::read_to_string(path).ok()?;
         let parsed: DomainToolYaml = bijux_dna_infra::formats::parse_yaml(&raw).ok()?;
         return Some(parsed);
