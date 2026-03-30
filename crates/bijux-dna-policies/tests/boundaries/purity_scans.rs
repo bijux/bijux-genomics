@@ -80,7 +80,8 @@ fn policy__boundaries__purity_scans__engine_has_no_domain_strings() {
         "tool_registry",
     ];
     for file in collect_rs_files(&root.join("crates/bijux-dna-engine/src")) {
-        let content = strip_rust_test_modules(&std::fs::read_to_string(&file).expect("read source"));
+        let content =
+            strip_rust_test_modules(&std::fs::read_to_string(&file).expect("read source"));
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(file.display().to_string());
         }
@@ -106,7 +107,8 @@ fn policy__boundaries__purity_scans__runner_has_no_domain_strings() {
         "tool_registry",
     ];
     for file in collect_rs_files(&root.join("crates/bijux-dna-runner/src")) {
-        let content = strip_rust_test_modules(&std::fs::read_to_string(&file).expect("read source"));
+        let content =
+            strip_rust_test_modules(&std::fs::read_to_string(&file).expect("read source"));
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(file.display().to_string());
         }
