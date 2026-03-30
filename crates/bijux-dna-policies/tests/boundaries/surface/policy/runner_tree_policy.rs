@@ -13,7 +13,13 @@ fn repo_root() -> PathBuf {
 fn policy__boundaries__runner_tree_policy__runner_src_layout_contract() {
     let root = repo_root();
     let src_dir = root.join("crates/bijux-dna-runner/src");
-    let allowed = ["lib.rs", "step_runner.rs", "command_runner.rs", "backend"];
+    let allowed = [
+        "lib.rs",
+        "command_runner.rs",
+        "repo_root.rs",
+        "backend",
+        "step_runner",
+    ];
     let mut offenders = Vec::new();
     let entries = std::fs::read_dir(&src_dir).expect("read bijux-dna-runner/src");
     for entry in entries {
@@ -27,7 +33,7 @@ fn policy__boundaries__runner_tree_policy__runner_src_layout_contract() {
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "bijux-dna-runner/src may only contain lib.rs, step_runner.rs, command_runner.rs, and backend/.\n\
+        "bijux-dna-runner/src may only contain lib.rs, command_runner.rs, repo_root.rs, backend/, and step_runner/.\n\
 Unexpected entries: {:?}\n\
 Fix by moving new code under backend/* or updating the policy with justification.\n\
 See docs/40-policies/STYLE.md for layout rules.",
