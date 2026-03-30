@@ -932,11 +932,9 @@ fn planner_uses_typed_index_reference_params_from_stage_binding() -> anyhow::Res
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.index_reference.custom");
     assert_eq!(step.resources.threads, 7);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|pair| pair == ["--threads", "7"]));
+    assert_eq!(step.command.template[0], "sh");
+    assert_eq!(step.command.template[1], "-lc");
+    assert!(step.command.template[2].contains("bowtie2-build --threads 7"));
     Ok(())
 }
 
@@ -976,11 +974,9 @@ fn planner_uses_manifest_default_index_reference_threads_without_binding_overrid
 
     let step = &plan.steps()[0];
     assert_eq!(step.resources.threads, 2);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|pair| pair == ["--threads", "2"]));
+    assert_eq!(step.command.template[0], "sh");
+    assert_eq!(step.command.template[1], "-lc");
+    assert!(step.command.template[2].contains("bowtie2-build --threads 2"));
     Ok(())
 }
 
@@ -1238,8 +1234,9 @@ fn planner_uses_typed_profile_overrepresented_params_from_stage_binding() -> any
         "fastq.profile_overrepresented_sequences.custom"
     );
     assert_eq!(step.resources.threads, 6);
-    assert!(step.command.template.iter().any(|part| part == "--threads"));
-    assert!(step.command.template.iter().any(|part| part == "6"));
+    assert_eq!(step.command.template[0], "sh");
+    assert_eq!(step.command.template[1], "-lc");
+    assert!(step.command.template[2].contains("'--threads' '6'"));
     Ok(())
 }
 
@@ -2483,11 +2480,9 @@ fn planner_uses_typed_detect_adapters_params_from_stage_binding() -> anyhow::Res
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.detect_adapters.custom");
     assert_eq!(step.resources.threads, 3);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|window| window == ["--threads", "3"]));
+    assert_eq!(step.command.template[0], "sh");
+    assert_eq!(step.command.template[1], "-lc");
+    assert!(step.command.template[2].contains("'--threads' '3'"));
     Ok(())
 }
 

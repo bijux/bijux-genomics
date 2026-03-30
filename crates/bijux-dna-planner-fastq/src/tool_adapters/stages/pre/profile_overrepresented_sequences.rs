@@ -297,7 +297,7 @@ mod tests {
         );
         assert!(plan.command.template[2].contains("seqkit"));
         assert!(plan.command.template[2].contains("fx2tab"));
-        assert!(plan.command.template[2].contains("-j '4'"));
+        assert!(plan.command.template[2].contains("'-j' '4'"));
         assert!(plan.command.template[2].contains("> /dev/null"));
     }
 }
