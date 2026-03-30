@@ -17,8 +17,7 @@ fn collect_rs_files(root: &Path, files: &mut Vec<PathBuf>) {
 
 #[test]
 fn no_panics_in_public_api() {
-    let manifest_dir =
-        crate::support::crate_root("bijux-dna-bench").expect("bench crate root");
+    let manifest_dir = crate::support::crate_root("bijux-dna-bench").expect("bench crate root");
     let src_dir = manifest_dir.join("src");
     let mut files = Vec::new();
     collect_rs_files(&src_dir, &mut files);

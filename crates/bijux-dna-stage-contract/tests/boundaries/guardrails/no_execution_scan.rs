@@ -1,9 +1,6 @@
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn no_execution_details() {
-    let root = support::crate_src("bijux-dna-stage-contract")
+    let root = crate::support::crate_src("bijux-dna-stage-contract")
         .unwrap_or_else(|err| panic!("resolve crate src: {err}"));
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root)

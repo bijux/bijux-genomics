@@ -1,9 +1,6 @@
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn contract_versioning_rules_documented() {
-    let path = support::crate_root("bijux-dna-stage-contract")
+    let path = crate::support::crate_root("bijux-dna-stage-contract")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"))
         .join("docs")
         .join("CONTRACT.md");

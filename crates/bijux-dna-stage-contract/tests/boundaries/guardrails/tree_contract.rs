@@ -1,9 +1,6 @@
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn tree_contract_is_minimal() {
-    let root = support::crate_root("bijux-dna-stage-contract")
+    let root = crate::support::crate_root("bijux-dna-stage-contract")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
     let expected = [
         "BOUNDARY.md",

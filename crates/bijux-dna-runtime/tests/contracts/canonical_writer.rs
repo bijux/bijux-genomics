@@ -1,12 +1,9 @@
-#[path = "../support.rs"]
-mod support;
-
 use walkdir::WalkDir;
 
 #[test]
 fn runtime_emits_use_canonical_json_writer() {
-    let root = support::crate_root("bijux-dna-runtime")
-        .expect("runtime crate root")
+    let root = crate::support::crate_root("bijux-dna-runtime")
+        .unwrap_or_else(|err| panic!("resolve runtime crate root: {err}"))
         .join("src");
     let mut offenders = Vec::new();
     let patterns = [
