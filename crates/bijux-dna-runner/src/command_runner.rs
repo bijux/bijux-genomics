@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::Path;
 use std::process::Command;
 use std::time::Instant;
 
@@ -24,9 +25,27 @@ fn build_command_string(command: &str, args: &[String]) -> String {
 /// # Errors
 /// Returns an error if the command cannot be executed.
 pub fn run_command(command: &str, args: &[String]) -> Result<CommandOutputV1> {
+    run_command_with_context(command, args, None, None)
+}
+
+/// # Errors
+/// Returns an error if the command cannot be executed.
+pub fn run_command_with_context(
+    command: &str,
+    args: &[String],
+    current_dir: Option<&Path>,
+    envs: Option<&BTreeMap<String, String>>,
+) -> Result<CommandOutputV1> {
     let start = Instant::now();
-    let output = Command::new(command)
-        .args(args)
+    let mut child = Command::new(command);
+    child.args(args);
+    if let Some(current_dir) = current_dir {
+        child.current_dir(current_dir);
+    }
+    if let Some(envs) = envs {
+        child.envs(envs);
+    }
+    let output = child
         .output()
         .with_context(|| format!("run command {command}"))?;
     let runtime_s = start.elapsed().as_secs_f64();
