@@ -405,6 +405,7 @@ fn display_runners(runners: &[RuntimeKind]) -> String {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod env_runtime_support_tests {
     use super::*;
 

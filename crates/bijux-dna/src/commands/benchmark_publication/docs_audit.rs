@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments, clippy::too_many_lines)]
+
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
@@ -104,15 +106,7 @@ pub(super) fn audit_publication_stage(
         );
     }
 
-    if !corpus_root.is_dir() {
-        append_stage_audit_issue(
-            &mut issues,
-            &contract.stage_id,
-            "missing-corpus-dir",
-            format!("missing {}", relative_to_docs_root(&corpus_root, docs_root)),
-            "error",
-        );
-    } else {
+    if corpus_root.is_dir() {
         for file_name in [
             "summary.json",
             "sample_results.csv",
@@ -188,6 +182,14 @@ pub(super) fn audit_publication_stage(
             contract,
             expected_total,
         )?;
+    } else {
+        append_stage_audit_issue(
+            &mut issues,
+            &contract.stage_id,
+            "missing-corpus-dir",
+            format!("missing {}", relative_to_docs_root(&corpus_root, docs_root)),
+            "error",
+        );
     }
 
     issues.extend(supplemental_issues);
@@ -213,8 +215,9 @@ pub(super) fn audit_publication_stage(
             .to_string(),
         results_issue_count: results_stage
             .get("issue_count")
-            .and_then(|value| value.as_u64())
-            .unwrap_or(0) as usize,
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| usize::try_from(value).ok())
+            .unwrap_or(0),
         results_selected_run_root: value_string(&results_stage, "selected_run_root")
             .unwrap_or("missing")
             .to_string(),
@@ -226,7 +229,7 @@ pub(super) fn audit_publication_stage(
         .to_string(),
         results_selected_run_root_is_newest: results_stage
             .get("selected_run_root_is_newest")
-            .and_then(|value| value.as_bool())
+            .and_then(serde_json::Value::as_bool)
             .unwrap_or(false),
         issues,
     })
@@ -240,7 +243,7 @@ pub(super) fn render_publication_docs_markdown(
             "# `{}` FASTQ benchmark publication status",
             report.corpus_id
         ),
-        "".to_string(),
+        String::new(),
         format!(
             "- Benchmarkable governed stages: `{}`",
             report.benchmarkable_stage_count
@@ -260,9 +263,9 @@ pub(super) fn render_publication_docs_markdown(
         format!("- Excluded stages: `{}`", report.excluded_stage_count),
         format!("- Publication issues: `{}`", report.issue_count),
         format!("- Audit warnings: `{}`", report.audit_warning_count),
-        "".to_string(),
+        String::new(),
         "## Stage status".to_string(),
-        "".to_string(),
+        String::new(),
     ];
     for stage in &report.stages {
         lines.push(format!(

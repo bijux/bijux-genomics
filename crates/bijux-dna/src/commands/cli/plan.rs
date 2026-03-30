@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::bench::fastq_args as engine_args;
 use bijux_dna_api::v1::api::run::{StageId, ToolId};

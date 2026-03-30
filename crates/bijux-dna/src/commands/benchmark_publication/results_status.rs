@@ -113,34 +113,31 @@ pub(super) fn audit_published_results_stage(
     }
 
     let summary = load_json_value(&summary_path)?;
-    let summary_corpus_root = match summary
+    let Some(summary_corpus_root) = summary
         .get("corpus_root")
-        .and_then(|value| value.as_str())
+        .and_then(serde_json::Value::as_str)
         .map(PathBuf::from)
-    {
-        Some(path) => path,
-        None => {
-            append_stage_result_issue(
-                &mut issues,
-                &contract.stage_id,
-                "missing-summary-corpus-root",
-                format!(
-                    "summary {} must declare corpus_root",
-                    relative_to_repo_root(&summary_path, repo_root)
-                ),
-            );
-            return Ok(PublishedResultsStageReport {
-                stage_id: contract.stage_id.clone(),
-                status: "incomplete".to_string(),
-                issue_count: issues.len(),
-                reported_run_root: String::new(),
-                selected_run_root: String::new(),
-                newest_available_run_root: String::new(),
-                selected_run_root_is_newest: false,
-                available_run_roots: Vec::new(),
-                issues,
-            });
-        }
+    else {
+        append_stage_result_issue(
+            &mut issues,
+            &contract.stage_id,
+            "missing-summary-corpus-root",
+            format!(
+                "summary {} must declare corpus_root",
+                relative_to_repo_root(&summary_path, repo_root)
+            ),
+        );
+        return Ok(PublishedResultsStageReport {
+            stage_id: contract.stage_id.clone(),
+            status: "incomplete".to_string(),
+            issue_count: issues.len(),
+            reported_run_root: String::new(),
+            selected_run_root: String::new(),
+            newest_available_run_root: String::new(),
+            selected_run_root_is_newest: false,
+            available_run_roots: Vec::new(),
+            issues,
+        });
     };
     let corpus_dir_name = summary_corpus_id(&summary_corpus_root)?;
     let expected_tools = sorted_strings(&contract.tools);
@@ -150,11 +147,11 @@ pub(super) fn audit_published_results_stage(
     let legacy_run_root = configured_roots[1].path.clone();
     let reported_run_root = summary
         .get("run_root")
-        .and_then(|value| value.as_str())
+        .and_then(serde_json::Value::as_str)
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(PathBuf::from)
-        .unwrap_or_else(PathBuf::new);
+        .unwrap_or_default();
     let selection = select_stage_run_root(&configured_roots);
     let selected_run_root = if reported_run_root.is_dir() {
         reported_run_root.clone()
@@ -200,19 +197,7 @@ pub(super) fn audit_published_results_stage(
             );
         }
     }
-    if !selected_run_root.is_dir() {
-        append_stage_result_issue(
-            &mut issues,
-            &contract.stage_id,
-            "missing-local-run-root",
-            format!(
-                "local mirror missing: selected={}; summary_run_root={}; expected_local_mirror={}",
-                selected_run_root.display(),
-                reported_run_root.display(),
-                canonical_run_root.display()
-            ),
-        );
-    } else {
+    if selected_run_root.is_dir() {
         let polluting_files = find_polluting_ds_store_files(&selected_run_root);
         if !polluting_files.is_empty() {
             append_stage_result_issue(
@@ -226,17 +211,22 @@ pub(super) fn audit_published_results_stage(
                 ),
             );
         }
-    }
-
-    let stage_run_manifest = selected_run_root.join("run_manifest.json");
-    if !stage_run_manifest.is_file() {
+    } else {
         append_stage_result_issue(
             &mut issues,
             &contract.stage_id,
-            "missing-stage-run-manifest",
-            format!("missing {}", stage_run_manifest.display()),
+            "missing-local-run-root",
+            format!(
+                "local mirror missing: selected={}; summary_run_root={}; expected_local_mirror={}",
+                selected_run_root.display(),
+                reported_run_root.display(),
+                canonical_run_root.display()
+            ),
         );
-    } else {
+    }
+
+    let stage_run_manifest = selected_run_root.join("run_manifest.json");
+    if stage_run_manifest.is_file() {
         let run_manifest = load_json_value(&stage_run_manifest)?;
         if value_string(&run_manifest, "stage_id") != Some(contract.stage_id.as_str()) {
             append_stage_result_issue(
@@ -278,7 +268,7 @@ pub(super) fn audit_published_results_stage(
         }
         if run_manifest
             .get("dry_run")
-            .and_then(|value| value.as_bool())
+            .and_then(serde_json::Value::as_bool)
             .unwrap_or(false)
         {
             append_stage_result_issue(
@@ -304,7 +294,7 @@ pub(super) fn audit_published_results_stage(
         }
         if run_manifest
             .get("samples_failed")
-            .and_then(|value| value.as_i64())
+            .and_then(serde_json::Value::as_i64)
             .unwrap_or(0)
             != 0
         {
@@ -322,8 +312,7 @@ pub(super) fn audit_published_results_stage(
         let local_results_root = selected_run_root
             .ancestors()
             .nth(2)
-            .map(Path::to_path_buf)
-            .unwrap_or_else(|| selected_run_root.clone());
+            .map_or_else(|| selected_run_root.clone(), Path::to_path_buf);
         let mut missing_report_count = 0usize;
         let mut tool_roster_drift_samples = Vec::new();
         for run in run_manifest
@@ -347,8 +336,7 @@ pub(super) fn audit_published_results_stage(
                 let Some(sample_id) = run.get("sample_id").and_then(|value| value.as_str()) else {
                     continue;
                 };
-                tool_roster_drift_samples
-                    .push(format!("{} observed {:?}", sample_id, observed_tools));
+                tool_roster_drift_samples.push(format!("{sample_id} observed {observed_tools:?}"));
             }
         }
         if missing_report_count > 0 {
@@ -356,10 +344,7 @@ pub(super) fn audit_published_results_stage(
                 &mut issues,
                 &contract.stage_id,
                 "missing-localized-report-json",
-                format!(
-                    "{} run rows do not resolve to a local report.json",
-                    missing_report_count
-                ),
+                format!("{missing_report_count} run rows do not resolve to a local report.json"),
             );
         }
         if !tool_roster_drift_samples.is_empty() {
@@ -381,6 +366,13 @@ pub(super) fn audit_published_results_stage(
                 detail,
             );
         }
+    } else {
+        append_stage_result_issue(
+            &mut issues,
+            &contract.stage_id,
+            "missing-stage-run-manifest",
+            format!("missing {}", stage_run_manifest.display()),
+        );
     }
 
     let newest_available_run_root = selection
@@ -410,7 +402,7 @@ pub(super) fn audit_published_results_stage(
 pub(super) fn render_published_results_markdown(report: &PublishedResultsStatusReport) -> String {
     let mut lines = vec![
         format!("# `{}` published result mirror status", report.corpus_id),
-        "".to_string(),
+        String::new(),
         format!(
             "- Governed publication stages: `{}`",
             report.applicable_stage_count
@@ -428,9 +420,9 @@ pub(super) fn render_published_results_markdown(report: &PublishedResultsStatusR
             report.incomplete_stage_count
         ),
         format!("- Mirror issues: `{}`", report.issue_count),
-        "".to_string(),
+        String::new(),
         "## Stage status".to_string(),
-        "".to_string(),
+        String::new(),
     ];
     for stage in &report.stages {
         lines.push(format!(

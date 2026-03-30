@@ -11,6 +11,12 @@ use super::{
     render_publication_docs_markdown,
 };
 
+type SupplementalFindingsPayload = (
+    BTreeMap<String, Vec<StageAuditIssue>>,
+    Vec<String>,
+    Option<String>,
+);
+
 pub(super) fn write_corpus_fastq_docs_status(
     cwd: &Path,
     explicit_config: Option<&Path>,
@@ -82,13 +88,7 @@ pub(super) fn expected_counts_for_scope(
     }
 }
 
-pub(super) fn load_supplemental_findings(
-    path: &Path,
-) -> Result<(
-    BTreeMap<String, Vec<StageAuditIssue>>,
-    Vec<String>,
-    Option<String>,
-)> {
+pub(super) fn load_supplemental_findings(path: &Path) -> Result<SupplementalFindingsPayload> {
     if !path.is_file() {
         return Ok((
             BTreeMap::new(),

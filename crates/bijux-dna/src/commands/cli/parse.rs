@@ -1,3 +1,5 @@
+#![allow(clippy::large_enum_variant, clippy::struct_excessive_bools)]
+
 // split to keep module size manageable
 
 include!("parse/parse_root_and_analyze.rs");
