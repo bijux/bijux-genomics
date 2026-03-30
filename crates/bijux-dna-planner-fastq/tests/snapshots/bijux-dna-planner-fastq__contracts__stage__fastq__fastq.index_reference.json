@@ -10,11 +10,9 @@
   },
   "command": {
     "template": [
-      "bowtie2-build",
-      "--threads",
-      "2",
-      "reference.fa",
-      "out/reference_index/bowtie2/reference"
+      "sh",
+      "-lc",
+      "set -eu\nmkdir -p 'out/reference_index/bowtie2'\nbowtie2-build --threads 2 'reference.fa' 'out/reference_index/bowtie2/reference'"
     ]
   },
   "resources": {

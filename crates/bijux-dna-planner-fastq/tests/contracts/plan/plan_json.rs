@@ -195,12 +195,9 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         out_dir,
     )?;
     assert_snapshot("stage__fastq__fastq.index_reference", &plan)?;
-    assert_eq!(plan.command.template[0], "bowtie2-build");
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "out/reference_index/bowtie2/reference"));
+    assert_eq!(plan.command.template[0], "sh");
+    assert_eq!(plan.command.template[1], "-lc");
+    assert!(plan.command.template[2].contains("out/reference_index/bowtie2/reference"));
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads::plan(
         &domain_tool("fastq.validate_reads", "fastqvalidator"),
