@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+mod manifest;
 mod query;
 mod record;
 
+pub use manifest::EnaRunManifest;
 pub use query::{EnaQuery, EnaResultKind, EnaSourcePreference};
-pub use record::{
-    normalize_url, split_ena_field, split_ena_u64_field, EnaFileSource, EnaRecord, EnaRunManifest,
-};
+pub use record::{normalize_url, split_ena_field, split_ena_u64_field, EnaFileSource, EnaRecord};
 
 #[cfg(test)]
 mod tests {

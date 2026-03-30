@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{EnaQuery, EnaSourcePreference};
+use super::EnaSourcePreference;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -71,14 +71,6 @@ impl EnaRecord {
             .map(|u| normalize_url(u, preference))
             .collect::<Vec<_>>()
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct EnaRunManifest {
-    pub query: EnaQuery,
-    pub source: EnaFileSource,
-    pub preference: EnaSourcePreference,
-    pub records: Vec<EnaRecord>,
 }
 
 #[must_use]
