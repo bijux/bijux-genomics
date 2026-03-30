@@ -1963,8 +1963,7 @@ stage_id = "fastq.validate_reads"
 scenario_id = "validation_fairness"
 tools = ["fastqc"]
 "#,
-        )
-        .expect("write benchmark config");
+        );
 
         std::env::set_var("BIJUX_TEST_RESULTS_ROOT", "/tmp/legacy-results");
         std::env::set_var("BIJUX_TEST_CORPUS_ROOT", "/tmp/legacy-corpus");
