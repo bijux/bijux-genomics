@@ -16,6 +16,35 @@ fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-analyze__{group}__{name}")
 }
 
+fn is_optional_bam_downstream(stage_id: &str) -> bool {
+    matches!(
+        stage_id,
+        "bam.genotyping" | "bam.haplogroups" | "bam.kinship"
+    )
+}
+
+fn feature_stable_profile(
+    mut profile: bijux_dna_pipelines::PipelineProfile,
+) -> bijux_dna_pipelines::PipelineProfile {
+    profile
+        .capabilities
+        .required_stages
+        .retain(|stage_id| !is_optional_bam_downstream(stage_id));
+    profile
+        .defaults
+        .tools
+        .retain(|stage_id, _| !is_optional_bam_downstream(stage_id.as_str()));
+    profile
+        .defaults
+        .params
+        .retain(|stage_id, _| !is_optional_bam_downstream(stage_id.as_str()));
+    profile
+        .defaults
+        .rationales
+        .retain(|stage_id, _| !is_optional_bam_downstream(stage_id.as_str()));
+    profile
+}
+
 fn metrics_for_stage(stage_id: &str) -> serde_json::Value {
     if stage_id.starts_with("bam.") {
         serde_json::to_value(BamMetricsV1::empty()).unwrap_or(serde_json::json!({}))
@@ -106,8 +135,9 @@ fn write_stage_artifacts(root: &Path, stage_id: &str) -> Result<()> {
 }
 
 fn build_report(domain: Domain, pipeline_id: &str) -> Result<Value> {
-    let profile =
-        profile_by_id(domain, pipeline_id).unwrap_or_else(|err| panic!("profile exists: {err}"));
+    let profile = feature_stable_profile(
+        profile_by_id(domain, pipeline_id).unwrap_or_else(|err| panic!("profile exists: {err}")),
+    );
     let paths = bijux_dna_testkit::TestPaths::new(&format!("pipeline-e2e-{pipeline_id}"));
     let root = paths.root();
 
@@ -225,5 +255,27 @@ fn pipeline_reports_are_stable_across_repeated_builds() -> Result<()> {
             "pipeline report must be deterministic for {pipeline_id}"
         );
     }
+    Ok(())
+}
+
+#[test]
+fn feature_stable_profile_prunes_optional_bam_downstream_stages() -> Result<()> {
+    let profile =
+        feature_stable_profile(profile_by_id(Domain::Bam, "bam-to-bam__adna_shotgun__v1")?);
+    let stage_ids = &profile.capabilities.required_stages;
+
+    assert!(
+        !stage_ids.iter().any(|stage_id| is_optional_bam_downstream(stage_id)),
+        "pipeline_e2e snapshots must stay stable when workspace feature unification enables optional BAM downstream stages"
+    );
+    assert!(
+        profile
+            .defaults
+            .tools
+            .keys()
+            .all(|stage_id| !is_optional_bam_downstream(stage_id.as_str())),
+        "tool defaults must stay aligned with the pruned BAM snapshot stage set"
+    );
+
     Ok(())
 }
