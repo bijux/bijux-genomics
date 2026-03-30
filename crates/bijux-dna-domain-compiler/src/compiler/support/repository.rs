@@ -1,4 +1,4 @@
-use super::*;
+use super::{Context, Digest, Path, PathBuf, Result, Sha256};
 
 pub(crate) fn find_git_dir(start: &Path) -> Option<PathBuf> {
     let mut current = Some(start);

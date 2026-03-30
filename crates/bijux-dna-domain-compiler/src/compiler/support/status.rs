@@ -1,4 +1,4 @@
-use super::*;
+use super::{anyhow, Path, Result};
 
 pub(crate) fn ensure_status(status: &str, path: &Path) -> Result<()> {
     match status {

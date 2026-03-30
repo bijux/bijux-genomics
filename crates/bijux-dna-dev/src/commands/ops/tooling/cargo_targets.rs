@@ -1,6 +1,9 @@
 use super::*;
 
-pub(in super::super) fn tooling_cargo_targets(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(in super::super) fn tooling_cargo_targets(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     let Some(subcommand) = args.first().map(String::as_str) else {
         return Ok(OpsCommandOutcome::failure(
             "Usage: cargo run -p bijux-dna-dev -- tooling run cargo-targets -- <subcommand> [args...]\n",
@@ -384,4 +387,3 @@ pub(in super::super) fn tooling_cargo_targets(workspace: &Workspace, args: &[Str
         ))),
     }
 }
-

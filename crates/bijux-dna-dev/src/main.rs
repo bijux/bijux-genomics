@@ -3,8 +3,8 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 #![deny(clippy::todo)]
 
-mod application;
 mod app;
+mod application;
 mod catalog;
 mod cli;
 mod commands;

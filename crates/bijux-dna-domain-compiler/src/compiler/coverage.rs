@@ -1,4 +1,7 @@
-use super::*;
+use super::{
+    anyhow, read_yaml, BTreeMap, Context, DomainIndex, DomainStage, DomainToolLoose, Path, PathBuf,
+    Result,
+};
 
 /// # Errors
 /// Returns an error if domain indexes/tools/stages cannot be parsed.
@@ -119,7 +122,7 @@ pub fn domain_coverage_report(domain_dir: &Path) -> Result<serde_json::Value> {
 
 #[cfg(test)]
 mod tests {
-    use super::validate_tool_output_subset;
+    use crate::compiler::validate_tool_output_subset;
     use std::path::Path;
 
     #[test]

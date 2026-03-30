@@ -1,6 +1,9 @@
 use super::*;
 
-pub(super) fn assets_refresh_golden(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn assets_refresh_golden(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("refresh-golden", args)?;
     let out_dir = workspace.path("artifacts/assets-refresh/golden/toy-runs-v1");
     let target_dir = workspace.path("assets/golden/toy-runs-v1");
@@ -81,7 +84,10 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-golden`.
     success_line(format!("golden refresh: wrote {}", target_dir.display()))
 }
 
-pub(super) fn assets_refresh_toy(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn assets_refresh_toy(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("refresh-toy", args)?;
     let stage_dir = workspace.path("artifacts/assets-refresh/toy/core-v1");
     let target_dir = workspace.path("assets/toy/core-v1");
@@ -167,7 +173,10 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
     success_line(format!("toy refresh: wrote {}", target_dir.display()))
 }
 
-pub(super) fn assets_validate_reference(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn assets_validate_reference(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("validate-reference", args)?;
     let ref_root = workspace.path("assets/reference");
     if !ref_root.exists() {
@@ -326,4 +335,3 @@ pub(super) fn assets_validate_reference(workspace: &Workspace, args: &[String]) 
     }
     failure_lines("assets-reference-schema: FAILED", &errors)
 }
-

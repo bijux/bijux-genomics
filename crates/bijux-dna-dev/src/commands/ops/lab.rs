@@ -52,7 +52,10 @@ pub(super) fn lab_run_bench(workspace: &Workspace, args: &[String]) -> Result<Op
     ))
 }
 
-pub(super) fn lab_run_pipelines(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn lab_run_pipelines(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     ensure_help_only("run-pipelines", args)?;
     ensure_artifact_root_inside_artifacts(workspace)?;
     let config = lab_config(workspace)?;
@@ -92,4 +95,3 @@ pub(super) fn lab_run_pipelines(workspace: &Workspace, args: &[String]) -> Resul
     }
     Ok(aggregate)
 }
-

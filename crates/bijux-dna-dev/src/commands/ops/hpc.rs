@@ -1,5 +1,5 @@
-use super::*;
 use super::examples::examples_run;
+use super::*;
 
 pub(super) fn hpc_validate_frontend_constraints(
     workspace: &Workspace,
@@ -111,7 +111,10 @@ pub(super) fn hpc_validate_frontend_constraints(
     ))
 }
 
-pub(super) fn hpc_run_frontend_mini_e2e(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn hpc_run_frontend_mini_e2e(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     if args
         .iter()
         .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
@@ -222,7 +225,10 @@ pub(super) fn hpc_run_frontend_mini_e2e(workspace: &Workspace, args: &[String]) 
     })
 }
 
-pub(super) fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn hpc_benchmark_sync_pull(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     if args
         .iter()
         .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
@@ -308,25 +314,19 @@ pub(super) fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) ->
         .as_deref()
         .unwrap_or("results");
     let pull_mode = env_or_default("BENCHMARK_SYNC_MODE", default_pull_mode);
-    let default_results_root = benchmark_workspace
-        .remote_results_root
-        .clone();
+    let default_results_root = benchmark_workspace.remote_results_root.clone();
     let benchmark_results_root = env_or_contract(
         "BENCHMARK_SYNC_RESULTS_ROOT",
         default_results_root.as_deref(),
         "workspace.remote.results_root",
     )?;
-    let default_containers_root = benchmark_workspace
-        .remote_containers_root
-        .clone();
+    let default_containers_root = benchmark_workspace.remote_containers_root.clone();
     let benchmark_containers_root = env_or_contract(
         "BENCHMARK_SYNC_CONTAINERS_ROOT",
         default_containers_root.as_deref(),
         "workspace.remote.containers_root",
     )?;
-    let default_corpus_root = benchmark_workspace
-        .remote_corpus_root
-        .clone();
+    let default_corpus_root = benchmark_workspace.remote_corpus_root.clone();
     let benchmark_corpus_root = env_or_contract(
         "BENCHMARK_SYNC_CORPUS_ROOT",
         default_corpus_root.as_deref(),
@@ -427,12 +427,8 @@ pub(super) fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) ->
             "local_path": format!("{}/", dest.display()),
         }));
     } else if benchmark_workspace.remote_results_root.is_some() {
-        let local_path = pull_benchmark_sync_tree(
-            workspace,
-            &benchmark_host,
-            &benchmark_results_root,
-            &dest,
-        )?;
+        let local_path =
+            pull_benchmark_sync_tree(workspace, &benchmark_host, &benchmark_results_root, &dest)?;
         pulled_paths.push(format!("{benchmark_results_root}/"));
         pulled_path_mappings.push(json!({
             "remote_path": format!("{benchmark_results_root}/"),
@@ -441,12 +437,8 @@ pub(super) fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) ->
         if include_containers_manifest {
             let manifest_root = format!("{benchmark_containers_root}/manifest");
             if remote_path_exists(workspace, &benchmark_host, &manifest_root)? {
-                let local_path = pull_benchmark_sync_tree(
-                    workspace,
-                    &benchmark_host,
-                    &manifest_root,
-                    &dest,
-                )?;
+                let local_path =
+                    pull_benchmark_sync_tree(workspace, &benchmark_host, &manifest_root, &dest)?;
                 pulled_paths.push(format!("{manifest_root}/"));
                 pulled_path_mappings.push(json!({
                     "remote_path": format!("{manifest_root}/"),
@@ -581,7 +573,10 @@ pub(super) fn hpc_benchmark_sync_pull(workspace: &Workspace, args: &[String]) ->
     success_line(format!("pulled_to={}", dest.display()))
 }
 
-pub(super) fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
+pub(super) fn hpc_benchmark_sync_push(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
     if args
         .iter()
         .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
@@ -654,7 +649,8 @@ pub(super) fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) ->
     } else {
         "0"
     };
-    let clean_context = env_or_default("BENCHMARK_SYNC_CLEAN_CONTEXT", clean_context_default) == "1";
+    let clean_context =
+        env_or_default("BENCHMARK_SYNC_CLEAN_CONTEXT", clean_context_default) == "1";
     let allow_dirty = env_or_default("BENCHMARK_SYNC_ALLOW_DIRTY", allow_dirty_default) == "1";
     if !allow_dirty {
         let dirty = run_program(
@@ -676,7 +672,10 @@ pub(super) fn hpc_benchmark_sync_push(workspace: &Workspace, args: &[String]) ->
     let mkdir = run_program(
         workspace,
         "ssh",
-        &[benchmark_host.clone(), format!("mkdir -p '{benchmark_repo_dir}'")],
+        &[
+            benchmark_host.clone(),
+            format!("mkdir -p '{benchmark_repo_dir}'"),
+        ],
     )?;
     if !mkdir.is_success() {
         return Ok(mkdir);

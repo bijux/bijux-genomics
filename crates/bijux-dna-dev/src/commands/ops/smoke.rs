@@ -79,4 +79,3 @@ pub(super) fn smoke_fastq(workspace: &Workspace, args: &[String]) -> Result<OpsC
         ],
     )
 }
-

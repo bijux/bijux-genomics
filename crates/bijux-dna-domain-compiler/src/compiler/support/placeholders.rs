@@ -1,4 +1,4 @@
-use super::*;
+use super::{bail, Result};
 
 fn has_placeholder_token(raw: &str) -> bool {
     let lower = raw.to_ascii_lowercase();

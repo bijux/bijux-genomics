@@ -1,13 +1,16 @@
-mod index_defaults;
 mod image_registries;
 mod index_catalogs;
+mod index_defaults;
 mod load_and_collect;
 mod stage_loading;
 mod stage_registries;
 mod tool_loading;
 mod tool_registries;
 
-use super::*;
+use super::{
+    BTreeMap, BTreeSet, Path, Result, StageDefaultMap, StageDefaultRationaleMap,
+    StageOutputKindsMap, StagePlannedMap, StageStatusMap, StageToolMap, ToolMap,
+};
 
 pub(super) struct ToolRegistryOutputs {
     pub(super) production_registry: String,

@@ -29,15 +29,23 @@ pub fn run_native_container_command(
         NativeContainerCommandKey::Lint => validation::run_container_lint(workspace, args),
         NativeContainerCommandKey::RegistryTools => validation::run_registry_tools(workspace, args),
         NativeContainerCommandKey::EnsureImages => validation::run_ensure_images(workspace, args),
-        NativeContainerCommandKey::ContainerDoctor => validation::run_container_doctor(workspace, args),
+        NativeContainerCommandKey::ContainerDoctor => {
+            validation::run_container_doctor(workspace, args)
+        }
         NativeContainerCommandKey::ReleaseGate => validation::run_release_gate(workspace, args),
         NativeContainerCommandKey::VulnScanHook => validation::run_vuln_scan_hook(workspace, args),
-        NativeContainerCommandKey::ApptainerBuildAll => validation::run_apptainer_build_all(workspace, args),
-        NativeContainerCommandKey::BuildApptainerAll => validation::run_build_apptainer_all(workspace, args),
+        NativeContainerCommandKey::ApptainerBuildAll => {
+            validation::run_apptainer_build_all(workspace, args)
+        }
+        NativeContainerCommandKey::BuildApptainerAll => {
+            validation::run_build_apptainer_all(workspace, args)
+        }
         NativeContainerCommandKey::BuildApptainerHpcFrontend => {
             validation::run_build_apptainer_hpc_frontend(workspace, args)
         }
-        NativeContainerCommandKey::DockerBuildAll => validation::run_docker_build_all(workspace, args),
+        NativeContainerCommandKey::DockerBuildAll => {
+            validation::run_docker_build_all(workspace, args)
+        }
         NativeContainerCommandKey::SmokeApptainer => {
             ensure_no_args("smoke-apptainer", args)?;
             run_runtime_smoke_contract(workspace, "apptainer", resolved_smoke_tools(workspace)?)
@@ -93,12 +101,16 @@ pub fn run_native_container_command(
             ensure_no_args("check-license-index-generated", args)?;
             metadata::check_license_index_generated(workspace)
         }
-        NativeContainerCommandKey::GenerateQaMatrix => metadata::generate_qa_matrix(workspace, args),
+        NativeContainerCommandKey::GenerateQaMatrix => {
+            metadata::generate_qa_matrix(workspace, args)
+        }
         NativeContainerCommandKey::CheckQaMatrixGenerated => {
             ensure_no_args("check-qa-matrix-generated", args)?;
             metadata::check_qa_matrix_generated(workspace)
         }
-        NativeContainerCommandKey::GenerateToolDocs => metadata::generate_tool_docs(workspace, args),
+        NativeContainerCommandKey::GenerateToolDocs => {
+            metadata::generate_tool_docs(workspace, args)
+        }
         NativeContainerCommandKey::CheckToolDocsGenerated => {
             ensure_no_args("check-tool-docs-generated", args)?;
             metadata::check_tool_docs_generated(workspace)
@@ -109,7 +121,9 @@ pub fn run_native_container_command(
         NativeContainerCommandKey::CheckNetworkDisclosure => {
             metadata::check_network_disclosure(workspace, args)
         }
-        NativeContainerCommandKey::ExtractVersionMap => versioning::extract_version_map(workspace, args),
+        NativeContainerCommandKey::ExtractVersionMap => {
+            versioning::extract_version_map(workspace, args)
+        }
         NativeContainerCommandKey::GenerateVersionLock => {
             versioning::generate_version_lock(workspace, args)
         }
@@ -166,7 +180,9 @@ pub fn run_native_container_command(
         }
         NativeContainerCommandKey::Promote => versioning::promote_tool(workspace, args),
         NativeContainerCommandKey::Demote => versioning::demote_tool(workspace, args),
-        NativeContainerCommandKey::DeprecateVersion => versioning::deprecate_version(workspace, args),
+        NativeContainerCommandKey::DeprecateVersion => {
+            versioning::deprecate_version(workspace, args)
+        }
         NativeContainerCommandKey::ToolLifecycle => versioning::tool_lifecycle(workspace, args),
         NativeContainerCommandKey::CheckApptainerCachePolicy => {
             ensure_no_args("check-apptainer-cache-policy", args)?;
@@ -235,7 +251,9 @@ pub fn run_native_container_command(
             ensure_no_args("check-toolkit-bundles", args)?;
             validation::check_toolkit_bundles(workspace)
         }
-        NativeContainerCommandKey::CheckHpcImageNaming => validation::check_hpc_image_naming(workspace, args),
+        NativeContainerCommandKey::CheckHpcImageNaming => {
+            validation::check_hpc_image_naming(workspace, args)
+        }
         NativeContainerCommandKey::CheckPlannedActionability => {
             ensure_no_args("check-planned-actionability", args)?;
             validation::check_planned_actionability(workspace)
@@ -372,7 +390,9 @@ pub fn run_native_container_command(
             ensure_no_args("check-runtime-tool-digest-recording", args)?;
             validation::check_runtime_tool_digest_recording(workspace)
         }
-        NativeContainerCommandKey::CheckRebuildRepro => validation::check_rebuild_repro(workspace, args),
+        NativeContainerCommandKey::CheckRebuildRepro => {
+            validation::check_rebuild_repro(workspace, args)
+        }
         NativeContainerCommandKey::CheckApptainerRebuildRepro => {
             validation::check_apptainer_rebuild_repro(workspace, args)
         }
@@ -407,8 +427,12 @@ pub fn run_native_container_command(
         NativeContainerCommandKey::Summary => validation::summary(workspace, args),
         NativeContainerCommandKey::EnvPrep => validation::run_env_prep(workspace, args),
         NativeContainerCommandKey::EnvSmoke => validation::run_env_smoke(workspace, args),
-        NativeContainerCommandKey::ContainerSmoke => validation::run_container_smoke(workspace, args),
-        NativeContainerCommandKey::ContainersSmoke => validation::run_containers_smoke(workspace, args),
+        NativeContainerCommandKey::ContainerSmoke => {
+            validation::run_container_smoke(workspace, args)
+        }
+        NativeContainerCommandKey::ContainersSmoke => {
+            validation::run_containers_smoke(workspace, args)
+        }
         NativeContainerCommandKey::SmokeContainersDockerArm64 => {
             ensure_no_args("smoke-containers-docker-arm64", args)?;
             run_runtime_smoke_contract(workspace, "docker-arm64", resolved_smoke_tools(workspace)?)
@@ -476,11 +500,19 @@ pub fn run_native_container_command(
             validation::run_build_contract(workspace, &resolve_toolkit_tools(workspace, &toolkit)?)
         }
         NativeContainerCommandKey::TestImages => validation::run_test_images(workspace, args),
-        NativeContainerCommandKey::TestImagesStage => validation::run_test_images_stage(workspace, args),
-        NativeContainerCommandKey::TestImagesTool => validation::run_test_images_tool(workspace, args),
-        NativeContainerCommandKey::ImageSmokeVcf => validation::run_image_smoke_vcf(workspace, args),
+        NativeContainerCommandKey::TestImagesStage => {
+            validation::run_test_images_stage(workspace, args)
+        }
+        NativeContainerCommandKey::TestImagesTool => {
+            validation::run_test_images_tool(workspace, args)
+        }
+        NativeContainerCommandKey::ImageSmokeVcf => {
+            validation::run_image_smoke_vcf(workspace, args)
+        }
         NativeContainerCommandKey::ImageQa => validation::run_image_qa(workspace, args),
-        NativeContainerCommandKey::ApptainerEnsure => validation::run_apptainer_ensure(workspace, args),
+        NativeContainerCommandKey::ApptainerEnsure => {
+            validation::run_apptainer_ensure(workspace, args)
+        }
         NativeContainerCommandKey::ApptainerEnsureStage => {
             validation::run_apptainer_ensure_stage(workspace, args)
         }

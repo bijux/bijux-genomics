@@ -1,4 +1,13 @@
-use super::*;
+use super::{
+    anyhow, bail, is_unspecified, read_yaml, BTreeMap, BTreeSet, DomainIndex, DomainStage, Path,
+    Result, ValidateOptions,
+};
+
+pub(super) struct ToolCatalogs<'a> {
+    pub(super) capabilities: &'a BTreeMap<String, BTreeSet<String>>,
+    pub(super) statuses: &'a BTreeMap<String, String>,
+    pub(super) metrics_schemas: &'a BTreeMap<String, String>,
+}
 
 #[allow(clippy::too_many_lines)]
 pub(super) fn validate_index_matrix_and_pipelines(
@@ -7,9 +16,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
     index: &DomainIndex,
     index_path: &Path,
     stage_status_by_id: &BTreeMap<String, String>,
-    tool_capabilities: &BTreeMap<String, BTreeSet<String>>,
-    tool_statuses: &BTreeMap<String, String>,
-    tool_metrics_schemas: &BTreeMap<String, String>,
+    tool_catalogs: &ToolCatalogs<'_>,
 ) -> Result<()> {
     for (stage_id, status) in stage_status_by_id {
         if status != "supported" {
@@ -52,7 +59,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
         .flat_map(|tools| tools.iter().cloned())
         .collect::<BTreeSet<_>>();
     for tool_id in &index.tool_ids {
-        if tool_statuses
+        if tool_catalogs
+            .statuses
             .get(tool_id)
             .is_some_and(|status| status != "supported")
         {
@@ -377,7 +385,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 );
             }
             if stage.status == "supported" {
-                let caps = tool_capabilities.get(tool).ok_or_else(|| {
+                let caps = tool_catalogs.capabilities.get(tool).ok_or_else(|| {
                     anyhow!(
                         "{} missing capabilities for supported tool {}",
                         index_path.display(),
@@ -405,7 +413,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 );
             }
             if stage.status == "supported"
-                && tool_statuses
+                && tool_catalogs
+                    .statuses
                     .get(tool)
                     .is_some_and(|status| status == "supported")
             {
@@ -426,7 +435,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
         }
     }
 
-    for (tool_id, status) in tool_statuses {
+    for (tool_id, status) in tool_catalogs.statuses {
         if !index.tool_ids.contains(tool_id) || status != "supported" {
             continue;
         }
@@ -448,7 +457,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 tool_id
             );
         }
-        if tool_metrics_schemas
+        if tool_catalogs
+            .metrics_schemas
             .get(tool_id)
             .map_or(true, |schema| schema.trim().is_empty())
         {

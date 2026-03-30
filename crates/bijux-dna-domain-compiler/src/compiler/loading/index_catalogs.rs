@@ -1,4 +1,4 @@
-use super::super::*;
+use super::super::{anyhow, DomainIndex, Result};
 
 pub(super) fn validate_pipeline_compositions(index: &DomainIndex) -> Result<()> {
     if index.pipeline_compositions.is_empty() {
