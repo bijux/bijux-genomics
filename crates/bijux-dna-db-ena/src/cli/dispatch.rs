@@ -8,17 +8,12 @@ use bijux_dna_db_ena::{
 use super::args::{DownloadArgs, SharedArgs};
 
 pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, DownloadConfig)> {
-    if args.projects.is_empty() && args.samples.is_empty() && args.accessions.is_empty() {
-        anyhow::bail!("provide at least one of --project, --sample, or --accession");
-    }
-
     let query = EnaQuery {
         projects: args.projects.clone(),
         samples: args.samples.clone(),
         extra_accessions: args.accessions.clone(),
         result: args.result.into(),
     };
-
     let client = EnaClient::new("bijux-dna-db-ena/0.1").context("create ena client")?;
     let records = client
         .fetch_records(&query)
