@@ -114,9 +114,9 @@ mod tests {
     fn load_platform_prefers_cache_root_for_apptainer_platforms() -> anyhow::Result<()> {
         let temp = bijux_dna_infra::temp_dir("bijux-platform-cache-root")?;
         let platform_path = temp.path().join("platforms.toml");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &platform_path,
-            r#"
+            br#"
 default = "apptainer-amd64"
 
 [platforms.apptainer-amd64]
@@ -145,9 +145,9 @@ arch = "amd64"
     fn load_platform_keeps_relative_apptainer_dir_without_cache_env() -> anyhow::Result<()> {
         let temp = bijux_dna_infra::temp_dir("bijux-platform-relative-apptainer")?;
         let platform_path = temp.path().join("platforms.toml");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &platform_path,
-            r#"
+            br#"
 default = "apptainer-amd64"
 
 [platforms.apptainer-amd64]

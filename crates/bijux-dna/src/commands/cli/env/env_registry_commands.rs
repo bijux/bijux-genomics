@@ -337,8 +337,7 @@ pub fn ensure_apptainer_tools(
             tool_id,
             tool.stage_ids
                 .first()
-                .map(std::string::String::as_str)
-                .unwrap_or("tool.apptainer"),
+                .map_or("tool.apptainer", std::string::String::as_str),
             &registry_digest,
             &sif_sha256,
             &version_cmd,
@@ -553,6 +552,7 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod env_registry_command_tests {
     use super::{benchmark_env_roots, requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots};
     use std::path::{Path, PathBuf};
@@ -561,9 +561,9 @@ mod env_registry_command_tests {
     fn write_workspace_contract(temp: &TempDir) {
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create benchmark config dir");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             config_dir.join("benchmark.toml"),
-            r#"[workspace.local]
+            br#"[workspace.local]
 results_root = "/local/results"
 cache_mirror_root = "/local/results/home/user/.cache"
 
@@ -1027,6 +1027,9 @@ pub fn print_registry_export_json(registry_path: &Path) -> Result<()> {
 
 /// # Errors
 /// Returns an error if registry cannot be read or parsed.
+///
+/// # Panics
+/// Panics only if JSON value assembly encounters an impossible in-memory formatting failure.
 pub fn registry_export_containers_value(registry_path: &Path) -> Result<serde_json::Value> {
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;

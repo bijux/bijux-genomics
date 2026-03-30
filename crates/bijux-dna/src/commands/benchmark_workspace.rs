@@ -1482,10 +1482,14 @@ mod tests {
 
     static ENV_LOCK: Mutex<()> = Mutex::new(());
 
+    fn write_text(path: impl AsRef<Path>, content: &str) {
+        bijux_dna_infra::write_bytes(path.as_ref(), content.as_bytes()).expect("write fixture");
+    }
+
     fn write_workspace(root: &Path) {
         let config_dir = root.join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create bench config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
@@ -1502,14 +1506,13 @@ containers_root = "/bench/remote/cache/containers"
 [workspace.sync.defaults]
 pull_mode = "results"
 "#,
-        )
-        .expect("write workspace");
+        );
     }
 
     fn write_publication(root: &Path) {
         let config_dir = root.join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create bench config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
@@ -1517,14 +1520,13 @@ scenario_id = "validation_fairness"
 sample_scope = "full"
 tools = ["fastqc"]
 "#,
-        )
-        .expect("write publication");
+        );
     }
 
     fn write_unified_config(root: &Path) {
         let config_dir = root.join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create bench config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
@@ -1548,8 +1550,7 @@ reason = "reference indexing does not benchmark corpus execution"
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
 "#,
-        )
-        .expect("write unified config");
+        );
     }
 
     fn sample_workspace(results_root: &Path, cache_mirror_root: &Path) -> BenchmarkWorkspaceConfig {
@@ -1571,7 +1572,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
     fn workspace_path_honors_explicit_override() {
         let temp = tempfile::tempdir().expect("tempdir");
         let override_path = temp.path().join("custom.toml");
-        std::fs::write(&override_path, "").expect("write override");
+        write_text(&override_path, "");
         let resolved = benchmark_workspace_config_path(temp.path(), Some(&override_path));
         assert_eq!(resolved, override_path);
     }
@@ -1581,7 +1582,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let _env_lock = ENV_LOCK.lock().expect("env lock");
         let temp = tempfile::tempdir().expect("tempdir");
         let override_path = temp.path().join("custom-benchmark.toml");
-        std::fs::write(&override_path, "").expect("write override");
+        write_text(&override_path, "");
 
         std::env::set_var(BENCHMARK_CONFIG_ENV, &override_path);
         let benchmark_path = benchmark_config_path(temp.path(), None);
@@ -1665,12 +1666,9 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         std::fs::create_dir_all(canonical_root.join("fastq.trim_reads")).expect("canonical root");
         std::fs::create_dir_all(legacy_root.join("fastq.trim_reads")).expect("legacy shared");
         std::fs::create_dir_all(legacy_root.join("fastq.filter_reads")).expect("legacy archive");
-        std::fs::write(canonical_root.join("fastq.trim_reads/new.txt"), "fresh")
-            .expect("write canonical file");
-        std::fs::write(legacy_root.join("fastq.trim_reads/old.txt"), "old")
-            .expect("write legacy duplicate");
-        std::fs::write(legacy_root.join("fastq.filter_reads/report.json"), "{}")
-            .expect("write unique legacy");
+        write_text(canonical_root.join("fastq.trim_reads/new.txt"), "fresh");
+        write_text(legacy_root.join("fastq.trim_reads/old.txt"), "old");
+        write_text(legacy_root.join("fastq.filter_reads/report.json"), "{}");
         let stale_time = filetime::FileTime::from_unix_time(1, 0);
         filetime::set_file_times(
             legacy_root.join("fastq.trim_reads/old.txt"),
@@ -1715,21 +1713,18 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             .expect("canonical stage");
         std::fs::create_dir_all(archive_only_stage_root.join("cluster-apptainer"))
             .expect("archive stage");
-        std::fs::write(
+        write_text(
             legacy_stage_root.join("cluster-apptainer/run_manifest.json"),
             "{}",
-        )
-        .expect("write legacy manifest");
-        std::fs::write(
+        );
+        write_text(
             canonical_stage_root.join("cluster-apptainer/run_manifest.json"),
             "{\"completed_at_utc\": \"2026-03-28T00:00:00Z\"}",
-        )
-        .expect("write canonical manifest");
-        std::fs::write(
+        );
+        write_text(
             archive_only_stage_root.join("cluster-apptainer/run_manifest.json"),
             "{\"completed_at_utc\": \"2026-03-27T00:00:00Z\"}",
-        )
-        .expect("write archive manifest");
+        );
 
         let report = normalize_workspace_layout_report(
             &sample_workspace(&results_root, &cache_mirror_root),
@@ -1914,13 +1909,12 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "${BIJUX_TEST_RESULTS_ROOT}"
 "#,
-        )
-        .expect("write config");
+        );
         std::env::set_var("BIJUX_TEST_RESULTS_ROOT", "/tmp/env-results");
         let config = load_benchmark_config(temp.path(), None).expect("load benchmark config");
         std::env::remove_var("BIJUX_TEST_RESULTS_ROOT");
@@ -1936,13 +1930,12 @@ results_root = "${BIJUX_TEST_RESULTS_ROOT}"
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.remote]
 corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
 "#,
-        )
-        .expect("write config");
+        );
 
         let error = load_benchmark_config(temp.path(), None)
             .expect_err("unset placeholder must fail during expansion");
@@ -1957,7 +1950,7 @@ corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "${BIJUX_TEST_RESULTS_ROOT}"

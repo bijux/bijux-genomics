@@ -2543,9 +2543,9 @@ mod tests {
     fn load_benchmark_sync_profiles_reads_workspace_profile_fields() -> anyhow::Result<()> {
         let temp = bijux_dna_infra::temp_dir("bijux-benchmark-sync-profiles")?;
         let path = temp.path().join("benchmark_sync_profiles.toml");
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             &path,
-            r#"
+            br#"
 [[profiles]]
 name = "pull-benchmark-publication"
 include_file = "configs/hpc/rsync/pull-results-includes.txt"
@@ -2586,9 +2586,9 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let temp = bijux_dna_infra::temp_dir("bijux-benchmark-workspace-paths")?;
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir)?;
-        std::fs::write(
+        bijux_dna_infra::write_bytes(
             config_dir.join("benchmark.toml"),
-            r#"[workspace.local]
+            br#"[workspace.local]
 results_root = "/tmp/results"
 cache_mirror_root = "/tmp/results/.cache"
 
