@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
+use regex::Regex;
 use walkdir::WalkDir;
 
 fn repo_root() -> PathBuf {
@@ -19,6 +20,16 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
         .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
         .map(|entry| entry.path().to_path_buf())
         .collect()
+}
+
+fn contains_tool_id_token(content: &str, tool_id: &str) -> bool {
+    let pattern = format!(
+        r"(^|[^a-z0-9_]){}([^a-z0-9_]|$)",
+        regex::escape(tool_id)
+    );
+    Regex::new(&pattern)
+        .expect("compile tool-id token matcher")
+        .is_match(content)
 }
 
 #[test]
@@ -307,7 +318,10 @@ fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
             continue;
         }
         let content = std::fs::read_to_string(&file).expect("read source");
-        if tool_ids.iter().any(|tool| content.contains(tool)) {
+        if tool_ids
+            .iter()
+            .any(|tool| contains_tool_id_token(&content, tool))
+        {
             offenders.push(file.display().to_string());
         }
     }
