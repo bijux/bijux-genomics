@@ -1,9 +1,9 @@
 pub mod client;
 pub mod download;
 pub mod model;
-mod surface;
 
-pub use surface::{
-    download_tasks, DownloadConfig, DownloadReport, DownloadTask, EnaClient, EnaFileSource,
-    EnaQuery, EnaRecord, EnaResultKind, EnaRunManifest, EnaSourcePreference,
+pub use client::EnaClient;
+pub use download::{download_tasks, DownloadConfig, DownloadReport, DownloadTask};
+pub use model::{
+    EnaFileSource, EnaQuery, EnaRecord, EnaResultKind, EnaRunManifest, EnaSourcePreference,
 };

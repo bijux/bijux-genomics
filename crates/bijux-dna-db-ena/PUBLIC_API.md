@@ -4,7 +4,7 @@
 - client
   - ENA filereport query construction and parsing.
 - download
-  - Deterministic download task planning and execution.
+  - Deterministic download planning and execution.
 - model
   - Typed ENA row/model normalization.
 
