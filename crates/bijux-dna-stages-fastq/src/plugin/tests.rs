@@ -200,8 +200,7 @@ fn parse_outputs_surfaces_detect_adapter_semantics() {
         serde_json::json!(2_u64)
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["evidence_scope"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["evidence_scope"],
         serde_json::json!("full_input")
     );
 }
@@ -563,8 +562,7 @@ fn parse_outputs_surfaces_terminal_damage_semantics() {
         serde_json::json!("explicit_terminal_trim")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["trim_5p_bases"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["trim_5p_bases"],
         serde_json::json!(2_u64)
     );
     assert_eq!(
@@ -577,8 +575,7 @@ fn parse_outputs_surfaces_terminal_damage_semantics() {
         serde_json::json!("non_udg")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["used_fallback"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["used_fallback"],
         serde_json::json!(false)
     );
     assert_eq!(
@@ -699,8 +696,7 @@ fn parse_outputs_surfaces_trim_read_semantics() {
         serde_json::json!("ObserverSpecialized")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["adapter_policy"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["adapter_policy"],
         serde_json::json!("bank")
     );
     assert_eq!(
@@ -838,8 +834,7 @@ fn parse_outputs_surfaces_filter_read_semantics() {
         serde_json::json!(8_u32)
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["max_n_fraction"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["max_n_fraction"],
         serde_json::json!(0.05)
     );
     assert_eq!(
@@ -1075,13 +1070,11 @@ fn parse_outputs_surfaces_extract_umis_semantics() {
         .parse_outputs(&plan, &outputs)
         .expect("parse outputs");
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["umi_pattern"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["umi_pattern"],
         serde_json::json!("NNNNNNNN")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["reads_with_umi"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_with_umi"],
         serde_json::json!(2_u64)
     );
     assert_eq!(
@@ -1186,8 +1179,7 @@ fn parse_outputs_surfaces_polyg_trim_semantics() {
         serde_json::json!(4_u64)
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["min_polyg_run"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["min_polyg_run"],
         serde_json::json!(10_u64)
     );
     assert_eq!(
@@ -1196,8 +1188,7 @@ fn parse_outputs_surfaces_polyg_trim_semantics() {
         serde_json::json!("fastp_json")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["polyx_preset"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["polyx_preset"],
         serde_json::json!("illumina_twocolor")
     );
     assert_eq!(
@@ -1305,8 +1296,7 @@ fn parse_outputs_surfaces_bbduk_polyg_trim_semantics() {
         serde_json::json!("bbduk_stats")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["reads_removed"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_removed"],
         serde_json::json!(137_u64)
     );
 }
@@ -1428,8 +1418,7 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
     let report_tsv = temp.path().join("rrna_report.tsv");
     let report_json = temp.path().join("rrna_report.json");
     bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-    bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n")
-        .expect("write filtered reads");
+    bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
     bijux_dna_infra::write_bytes(&report_tsv, b"sample\treads_removed\tfraction\n")
         .expect("write tsv");
     bijux_dna_infra::write_bytes(
@@ -1518,8 +1507,7 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
         serde_json::json!("silva_nr99")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["reads_removed"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_removed"],
         serde_json::json!(36_u64)
     );
 }
@@ -1532,8 +1520,7 @@ fn parse_outputs_surfaces_deplete_reference_contaminants_semantics() {
     let output_path = temp.path().join("contaminant_screened.fastq.gz");
     let report_json = temp.path().join("contaminant_screen_report.json");
     bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-    bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n")
-        .expect("write filtered reads");
+    bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
     bijux_dna_infra::write_bytes(
         &report_json,
         serde_json::json!({
@@ -1614,8 +1601,7 @@ fn parse_outputs_surfaces_deplete_reference_contaminants_semantics() {
         serde_json::json!("phix_and_spikeins")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["reads_removed"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["reads_removed"],
         serde_json::json!(28_u64)
     );
 }
@@ -1628,8 +1614,7 @@ fn parse_outputs_surfaces_deplete_host_semantics() {
     let output_path = temp.path().join("host_depleted.fastq.gz");
     let report_json = temp.path().join("host_depletion_report.json");
     bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-    bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n")
-        .expect("write filtered reads");
+    bijux_dna_infra::write_bytes(&output_path, b"@r1\nAC\n+\n##\n").expect("write filtered reads");
     bijux_dna_infra::write_bytes(
         &report_json,
         r#"{
@@ -1733,10 +1718,8 @@ fn parse_outputs_surfaces_correction_semantics() {
     let corrected_r1_path = temp.path().join("corrected_R1.fastq");
     let corrected_r2_path = temp.path().join("corrected_R2.fastq");
     let report_path = temp.path().join("correct_report.json");
-    bijux_dna_infra::write_bytes(&reads_r1_path, b"@r1\nACGT\n+\n####\n")
-        .expect("write reads r1");
-    bijux_dna_infra::write_bytes(&reads_r2_path, b"@r1\nTGCA\n+\n####\n")
-        .expect("write reads r2");
+    bijux_dna_infra::write_bytes(&reads_r1_path, b"@r1\nACGT\n+\n####\n").expect("write reads r1");
+    bijux_dna_infra::write_bytes(&reads_r2_path, b"@r1\nTGCA\n+\n####\n").expect("write reads r2");
     bijux_dna_infra::write_bytes(&corrected_r1_path, b"@r1\nACGT\n+\n####\n")
         .expect("write corrected r1");
     bijux_dna_infra::write_bytes(&corrected_r2_path, b"@r1\nTGCA\n+\n####\n")
@@ -1878,8 +1861,7 @@ fn parse_outputs_surfaces_qc_contributor_lineage_semantics() {
     let report_path = temp.path().join("multiqc_report.html");
     let data_dir = temp.path().join("multiqc_data");
     let manifest_path = temp.path().join("governed_qc_inputs_manifest.json");
-    bijux_dna_infra::write_bytes(&qc_input_path, b"@r1\nACGT\n+\n####\n")
-        .expect("write qc input");
+    bijux_dna_infra::write_bytes(&qc_input_path, b"@r1\nACGT\n+\n####\n").expect("write qc input");
     bijux_dna_infra::ensure_dir(&data_dir).expect("multiqc data dir");
     bijux_dna_infra::write_bytes(
         data_dir.join("multiqc_general_stats.json"),
@@ -2029,8 +2011,7 @@ fn parse_outputs_surfaces_qc_contributor_lineage_semantics() {
         serde_json::json!(2)
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["lineage_hash"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["lineage_hash"],
         serde_json::json!("fastq.trim_reads.fastp=report_json")
     );
     assert_eq!(
@@ -2156,8 +2137,7 @@ fn parse_outputs_surfaces_remove_duplicates_semantics() {
         serde_json::json!(2)
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["backend_log"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["backend_log"],
         serde_json::json!("clumpify.log")
     );
 }
@@ -2233,8 +2213,7 @@ fn parse_outputs_surfaces_profile_read_semantics() {
         .expect("parse outputs");
 
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["paired_mode"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["paired_mode"],
         serde_json::json!("paired_end")
     );
     assert_eq!(
@@ -2333,8 +2312,7 @@ fn parse_outputs_surfaces_normalize_primer_semantics() {
         .expect("parse outputs");
 
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["primer_set_id"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["primer_set_id"],
         serde_json::json!("16S_universal_v1")
     );
     assert_eq!(
@@ -2407,13 +2385,11 @@ fn parse_outputs_surfaces_normalize_abundance_semantics() {
         serde_json::json!("counts_per_million")
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["feature_count"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["feature_count"],
         serde_json::json!(4)
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["zero_fraction"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["zero_fraction"],
         serde_json::json!(0.25)
     );
 }
@@ -2481,8 +2457,7 @@ fn parse_outputs_surfaces_infer_asvs_semantics() {
         .expect("parse outputs");
 
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["pooling_mode"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["pooling_mode"],
         serde_json::json!("pseudo_pool")
     );
     assert_eq!(
@@ -2550,8 +2525,7 @@ fn parse_outputs_surfaces_cluster_otus_semantics() {
         .expect("parse outputs");
 
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["otu_identity"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["otu_identity"],
         serde_json::json!(0.99)
     );
     assert_eq!(
@@ -2617,8 +2591,7 @@ fn parse_outputs_surfaces_index_reference_semantics() {
         .expect("parse outputs");
 
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["index_format"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["index_format"],
         serde_json::json!("bowtie2_build")
     );
     assert_eq!(
@@ -2691,8 +2664,7 @@ fn parse_outputs_surfaces_profile_read_length_semantics() {
         .expect("parse outputs");
 
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["histogram_bins"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["histogram_bins"],
         serde_json::json!(64)
     );
     assert_eq!(
@@ -2774,8 +2746,7 @@ fn parse_outputs_surfaces_overrepresented_semantics() {
         serde_json::json!(25)
     );
     assert_eq!(
-        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
-            ["sequence_count"],
+        output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["sequence_count"],
         serde_json::json!(25)
     );
     assert_eq!(
