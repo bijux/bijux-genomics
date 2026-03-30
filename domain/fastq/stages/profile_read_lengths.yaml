@@ -33,8 +33,10 @@ metrics:
     meaning: "Number of reads observed."
   - name: "mean_read_length"
     meaning: "Average read length before trimming."
-  - name: "length_histogram"
-    meaning: "Length histogram buckets."
+  - name: "max_read_length"
+    meaning: "Maximum read length observed in the governed profile."
+  - name: "distinct_lengths"
+    meaning: "Number of distinct read lengths observed in the governed profile."
 description: "FASTQ stage for read-length profiling."
 mutates_fastq: false
 report_only: true

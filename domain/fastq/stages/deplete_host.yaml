@@ -54,6 +54,8 @@ metrics:
     meaning: "Number of output read pairs after host depletion."
   - name: "host_fraction_removed"
     meaning: "Fraction of input reads removed during host depletion."
+  - name: "depletion_summary"
+    meaning: "Structured governed depletion summary for host depletion."
 description: "FASTQ stage for host read depletion via reference mapping."
 mutates_fastq: true
 report_only: false

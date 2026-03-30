@@ -39,8 +39,6 @@ parameters:
 metrics:
   - name: "threads"
     meaning: "Resolved trim-polyg worker threads executed by the selected backend."
-  - name: "tool"
-    meaning: "Governed backend selected for polyG-tail trimming."
   - name: "paired_mode"
     meaning: "Whether the stage ran on single-end or paired-end reads."
   - name: "trim_polyg"

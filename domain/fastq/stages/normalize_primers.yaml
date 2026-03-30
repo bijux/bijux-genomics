@@ -46,6 +46,10 @@ parameters:
     param_type: "bool"
     default: "true"
 metrics:
+  - name: "reads_in"
+    meaning: "Number of input reads presented for primer normalization."
+  - name: "reads_out"
+    meaning: "Number of reads emitted after primer normalization."
   - name: "primer_trimmed_fraction"
     meaning: "Fraction of reads that required primer trimming"
   - name: "orientation_forward_fraction"
