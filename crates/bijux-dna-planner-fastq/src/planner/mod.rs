@@ -20,8 +20,8 @@ use bijux_dna_stage_contract::{
 };
 
 use crate::{
-    compose, default_pipeline_spec, required_id_catalog, BenchResultsRepository,
-    DefaultPipelineOptions, PLANNER_VERSION, STAGE_PREPROCESS_SUMMARY,
+    compose, default_pipeline_spec, BenchResultsRepository, DefaultPipelineOptions,
+    PLANNER_VERSION, STAGE_PREPROCESS_SUMMARY,
 };
 
 mod benchmark;
