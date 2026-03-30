@@ -3,7 +3,7 @@ use anyhow::Result;
 
 mod config;
 mod item;
-mod planning;
+mod plan;
 mod report;
 mod transfer;
 
@@ -13,7 +13,7 @@ pub use report::DownloadReport;
 
 #[must_use]
 pub fn build_download_tasks(records: &[EnaRecord], config: &DownloadConfig) -> Vec<DownloadTask> {
-    planning::build_download_tasks(records, config)
+    plan::build_download_tasks(records, config)
 }
 
 /// # Errors
