@@ -33,7 +33,9 @@ pub fn project_correct_options_for_tool(
 ) -> CorrectPlanOptions {
     let mut projected = options.clone();
     match tool_id {
-        "lighter" => {}
+        "lighter" => {
+            projected.musket_kmer_budget = None;
+        }
         "musket" => {
             projected.genome_size = None;
             projected.max_memory_gb = None;
@@ -853,6 +855,7 @@ mod tests {
             "lighter",
             &CorrectPlanOptions {
                 kmer_size: Some(31),
+                musket_kmer_budget: Some(536_870_912),
                 genome_size: Some(3_200_000),
                 trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
                 ..CorrectPlanOptions::baseline()
@@ -860,6 +863,7 @@ mod tests {
         );
 
         assert_eq!(projected.kmer_size, Some(31));
+        assert_eq!(projected.musket_kmer_budget, None);
         assert_eq!(projected.genome_size, Some(3_200_000));
         assert_eq!(
             projected.trusted_kmer_artifact,
@@ -1121,6 +1125,7 @@ mod tests {
             None,
             Path::new("out"),
             &CorrectPlanOptions {
+                musket_kmer_budget: Some(536_870_912),
                 trusted_kmer_artifact: Some(Path::new("trusted.kmers").to_path_buf()),
                 ..CorrectPlanOptions::baseline()
             },

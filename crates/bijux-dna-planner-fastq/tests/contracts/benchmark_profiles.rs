@@ -143,12 +143,16 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .collect::<Vec<_>>(),
         vec![
             "adapterremoval",
+            "alientrimmer",
             "atropos",
             "bbduk",
             "cutadapt",
             "fastp",
+            "fastx_clipper",
+            "leehom",
             "prinseq",
             "seqkit",
+            "skewer",
             "trim_galore",
             "trimmomatic",
         ]
@@ -161,12 +165,16 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .collect::<Vec<_>>(),
         vec![
             "adapterremoval",
+            "alientrimmer",
             "atropos",
             "bbduk",
             "cutadapt",
             "fastp",
+            "fastx_clipper",
+            "leehom",
             "prinseq",
             "seqkit",
+            "skewer",
             "trim_galore",
             "trimmomatic",
         ]
@@ -317,8 +325,22 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&read_length_stage);
     assert_eq!(read_length_cohorts.len(), 1);
     assert_eq!(read_length_cohorts[0].scenario_id, "read_length_fairness");
-    assert!(read_length_cohorts[0].tool_ids.is_empty());
-    assert!(read_length_cohorts[0].observer_specialized_tools.is_empty());
+    assert_eq!(
+        read_length_cohorts[0]
+            .tool_ids
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["seqkit_stats"]
+    );
+    assert_eq!(
+        read_length_cohorts[0]
+            .observer_specialized_tools
+            .iter()
+            .map(|tool_id| tool_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["seqkit_stats"]
+    );
 
     let correction_stage = StageId::from_static("fastq.correct_errors");
     let correction_cohorts =
