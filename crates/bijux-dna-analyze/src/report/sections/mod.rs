@@ -12,13 +12,13 @@ use bijux_dna_runtime::{FactsRowV1, PipelineVerdictV1, StageReportV1, TelemetryE
 use crate::decision::score::{build_rankings, RankInput};
 use crate::failure::{classify_raw_failure, BenchmarkFailure};
 
-mod core;
+mod run_overview;
 mod findings;
 mod metrics;
 mod qc;
 pub mod schema;
 
-pub(crate) use core::*;
+pub(crate) use run_overview::*;
 pub(crate) use findings::*;
 pub(crate) use metrics::*;
 pub(crate) use qc::*;
