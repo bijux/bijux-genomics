@@ -6,12 +6,12 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-use anyhow::Context;
 use sha2::{Digest, Sha256};
 
 mod catalog;
 mod commands;
 mod platform;
+mod smoke;
 mod types;
 
 pub use commands::{available_runners, docker_image_exists};
@@ -212,33 +212,7 @@ pub fn validate_images_for_stage(
 /// # Errors
 /// Returns an error when the runtime is unsupported or smoke script exits non-zero.
 pub fn run_smoke_script(runtime: &str, tool: &str) -> anyhow::Result<()> {
-    let command = match runtime {
-        "docker-arm64" => "smoke-containers-docker-arm64",
-        "docker-amd64" => "smoke-containers-docker-amd64",
-        "apptainer" => "smoke-containers-apptainer",
-        other => {
-            anyhow::bail!(
-                "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
-            );
-        }
-    };
-    let status = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "-q",
-            "-p",
-            "bijux-dna-dev",
-            "--",
-            "containers",
-            "run",
-            command,
-        ])
-        .env("TOOLS", tool)
-        .status()?;
-    if !status.success() {
-        anyhow::bail!("smoke failed for runtime={runtime} tool={tool} (exit={status})");
-    }
-    Ok(())
+    smoke::run_smoke_script(runtime, tool)
 }
 
 /// Execute smoke contract script for a runtime with multiple tools.
@@ -250,35 +224,7 @@ pub fn run_smoke_script_batch(
     tools: &[String],
     smoke_level: &str,
 ) -> anyhow::Result<()> {
-    let command = match runtime {
-        "docker-arm64" => "smoke-containers-docker-arm64",
-        "docker-amd64" => "smoke-containers-docker-amd64",
-        "apptainer" => "smoke-containers-apptainer",
-        other => {
-            anyhow::bail!(
-                "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
-            );
-        }
-    };
-    let tools_csv = tools.join(",");
-    let status = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "-q",
-            "-p",
-            "bijux-dna-dev",
-            "--",
-            "containers",
-            "run",
-            command,
-        ])
-        .env("TOOLS", tools_csv)
-        .env("SMOKE_LEVEL", smoke_level)
-        .status()?;
-    if !status.success() {
-        anyhow::bail!("smoke failed for runtime={runtime} (exit={status})");
-    }
-    Ok(())
+    smoke::run_smoke_script_batch(runtime, tools, smoke_level)
 }
 
 /// Execute a shell command and capture stdout/stderr.
@@ -286,36 +232,7 @@ pub fn run_smoke_script_batch(
 /// # Errors
 /// Returns an error when command execution fails or exits non-zero.
 pub fn run_shell_capture(cmd: &str) -> anyhow::Result<String> {
-    if cmd.trim().is_empty() {
-        anyhow::bail!("empty command");
-    }
-    let output = std::process::Command::new("sh")
-        .arg("-lc")
-        .arg(cmd)
-        .output()
-        .with_context(|| format!("execute `{cmd}`"))?;
-    let merged = merge_command_output(&output.stdout, &output.stderr);
-    if output.status.success() {
-        Ok(merged)
-    } else {
-        Err(anyhow::anyhow!("{merged}"))
-    }
-}
-
-fn merge_command_output(stdout: &[u8], stderr: &[u8]) -> String {
-    let stdout = String::from_utf8_lossy(stdout).to_string();
-    let stderr = String::from_utf8_lossy(stderr).to_string();
-    if stdout.trim().is_empty() {
-        return stderr;
-    }
-    if stderr.trim().is_empty() {
-        return stdout;
-    }
-    if stdout.ends_with('\n') || stderr.starts_with('\n') {
-        format!("{stdout}{stderr}")
-    } else {
-        format!("{stdout}\n{stderr}")
-    }
+    smoke::run_shell_capture(cmd)
 }
 
 #[must_use]
