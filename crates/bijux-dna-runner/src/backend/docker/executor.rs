@@ -5,6 +5,8 @@ use std::process::Command;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_environment::api::ResolvedImage;
 
+pub use crate::backend::docker::image_resolution::resolve_image_for_run;
+
 #[derive(Debug, Clone)]
 pub struct StageExecutionPlan {
     pub tool: String,
