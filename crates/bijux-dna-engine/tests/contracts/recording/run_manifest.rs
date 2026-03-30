@@ -13,7 +13,7 @@ fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
     bijux_dna_infra::write_bytes(&run_dirs.metrics_path, "{}")?;
     let run_provenance = RunProvenanceV1 {
         schema_version: "bijux.run_provenance.v1".to_string(),
-        tool_image_digest: None,
+        tool_image_digest: Some("sha256:tool-image-digest".to_string()),
         tool_version: "tool".to_string(),
         params_hash: "params".to_string(),
         input_hashes: vec!["input".to_string()],
