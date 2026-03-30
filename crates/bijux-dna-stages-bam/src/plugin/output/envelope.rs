@@ -3,26 +3,13 @@ use bijux_dna_core::contract::canonical::parameters_json_canonicalization;
 use bijux_dna_core::contract::ContractVersion;
 use bijux_dna_core::metrics::MetricsEnvelope;
 use bijux_dna_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
-use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1, StagePluginOutputV1};
+use bijux_dna_domain_bam::metrics::BamMetricsV1;
+use bijux_dna_stage_contract::StagePlanV1;
 
-use crate::metrics::bam_metrics_from_dir;
-
-pub(super) fn parse_stage_outputs(
+pub(super) fn build_metrics_envelope(
     plan: &StagePlanV1,
-    outputs: &[ArtifactRef],
-) -> Result<StagePluginOutputV1> {
-    let out_dir = outputs
-        .first()
-        .and_then(|output| output.path.parent())
-        .map_or_else(|| std::path::PathBuf::from("."), std::path::PathBuf::from);
-    let mut metrics = bam_metrics_from_dir(&out_dir);
-    let thresholds = bijux_dna_domain_bam::metrics::BamInvariantThresholds::default();
-    let evaluation = bijux_dna_domain_bam::metrics::evaluate_bam_invariants(
-        &plan.stage_id.0,
-        &metrics,
-        &thresholds,
-    );
-    metrics.stage_verdict = Some(evaluation.verdict.into());
+    metrics: BamMetricsV1,
+) -> Result<MetricsEnvelope> {
     let metrics_json = serde_json::to_value(metrics)?;
     let mut input_hashes = Vec::new();
     for input in &plan.io.inputs {
@@ -40,7 +27,7 @@ pub(super) fn parse_stage_outputs(
         .digest
         .clone()
         .unwrap_or_else(|| plan.image.image.clone());
-    let envelope = MetricsEnvelope {
+    Ok(MetricsEnvelope {
         schema_version: "bijux.metrics_envelope.v2".to_string(),
         contract_version: ContractVersion::v1(),
         stage_id: plan.stage_id.0.to_string(),
@@ -54,14 +41,5 @@ pub(super) fn parse_stage_outputs(
         input_hashes,
         metric_provenance: None,
         metrics: metrics_json,
-    };
-    Ok(StagePluginOutputV1 {
-        metrics: envelope,
-        artifacts: Vec::new(),
-        report_parts: Vec::new(),
-        warnings: Vec::new(),
-        invariants: Vec::new(),
-        verdict: None,
-        event_hints: Vec::new(),
     })
 }
