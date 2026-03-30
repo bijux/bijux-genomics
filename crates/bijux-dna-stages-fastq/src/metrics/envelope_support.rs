@@ -1,5 +1,8 @@
 use super::stage_metrics::stage_metrics_for_plan;
 use super::*;
+use crate::metrics::filters::{
+    filter_removals_from_bbduk_stats, filter_removals_from_fastp, FilterRemovalCounts,
+};
 
 /// Build a fully-formed metrics envelope for a stage plan.
 ///

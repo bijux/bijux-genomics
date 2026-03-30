@@ -4,7 +4,9 @@
 //! Invariants: same inputs produce identical resolved specs; no network pulls.
 
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+#[cfg(test)]
+use std::path::Path;
+use std::path::PathBuf;
 
 mod cache;
 mod catalog;
@@ -67,6 +69,7 @@ pub fn load_platform(name: Option<&str>) -> Result<PlatformSpec, EnvError> {
 ///
 /// # Errors
 /// Returns an error if the config file cannot be read or parsed, or if the platform is missing.
+#[cfg(test)]
 pub(crate) fn load_platform_from_file(
     path: &Path,
     name: Option<&str>,
@@ -182,12 +185,14 @@ pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> 
 ///
 /// # Errors
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
+#[cfg(test)]
 pub(crate) fn load_image_catalog_from_file(
     path: &Path,
 ) -> Result<HashMap<String, ToolImageSpec>, EnvError> {
     catalog::load_image_catalog_from_file(path)
 }
 
+#[cfg(test)]
 pub(crate) fn hydrate_catalog_digests_from_registry(
     catalog: &mut HashMap<String, ToolImageSpec>,
     registry_path: &Path,

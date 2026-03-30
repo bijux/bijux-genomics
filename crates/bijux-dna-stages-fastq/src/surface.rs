@@ -1,9 +1,6 @@
 use bijux_dna_core::ids::{StageId, ToolId};
 
-use crate::runtime::{
-    runtime_interpretation_for_stage, runtime_interpretation_for_stage_tool,
-    RuntimeInterpretationLevel,
-};
+use crate::runtime::{runtime_interpretation_for_stage, RuntimeInterpretationLevel};
 
 #[must_use]
 pub fn contract_stage_ids() -> Vec<StageId> {
@@ -50,8 +47,9 @@ pub mod contracts {
 mod tests {
     use super::{
         implemented_stages, observer_specialized_stage_ids, runtime_interpretation_for_stage,
-        runtime_interpretation_for_stage_tool, RuntimeInterpretationLevel,
+        RuntimeInterpretationLevel,
     };
+    use crate::runtime::runtime_interpretation_for_stage_tool;
     use bijux_dna_core::ids::{StageId, ToolId};
 
     #[test]
