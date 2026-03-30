@@ -15,10 +15,11 @@ fn report_build_is_within_budget() -> Result<()> {
     if std::env::var("BIJUX_PERF_SKIP").is_ok() {
         return Ok(());
     }
-    let root = fixture_root();
-    let facts_path = root.join("happy").join("facts.jsonl");
+    let fixture_root = fixture_root();
+    let facts_path = fixture_root.join("happy").join("facts.jsonl");
     let facts = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
-    let output_dir = root.join("perf_budget");
+    let temp = tempfile::tempdir()?;
+    let output_dir = temp.path().join("perf_budget");
     bijux_dna_infra::ensure_dir(&output_dir)?;
     let defaults = serde_json::json!({
         "pipeline_id": "fastq-to-fastq__default__v1",
@@ -43,7 +44,7 @@ fn report_build_is_within_budget() -> Result<()> {
         elapsed.as_secs_f64()
     );
     // Ensure output exists to avoid optimizer skipping.
-    let report_path = root.join("perf_budget").join("report.json");
+    let report_path = output_dir.join("report.json");
     assert!(fs::metadata(report_path).is_ok());
     Ok(())
 }

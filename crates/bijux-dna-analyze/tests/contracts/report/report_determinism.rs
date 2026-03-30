@@ -15,12 +15,18 @@ fn fixture_root() -> PathBuf {
 
 #[test]
 fn report_json_is_deterministic() -> Result<()> {
-    let root = fixture_root();
-    let facts_path = root.join("facts.jsonl");
+    let fixture_root = fixture_root();
+    let facts_path = fixture_root.join("facts.jsonl");
     let facts = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
+    let temp = tempfile::tempdir()?;
+    let root = temp.path();
+    std::fs::copy(
+        fixture_root.join("defaults_ledger.json"),
+        root.join("defaults_ledger.json"),
+    )?;
 
-    let report_a = write_run_report_from_facts(&root, &facts)?;
-    let report_b = write_run_report_from_facts(&root, &facts)?;
+    let report_a = write_run_report_from_facts(root, &facts)?;
+    let report_b = write_run_report_from_facts(root, &facts)?;
     let raw_a = std::fs::read_to_string(report_a)?;
     let raw_b = std::fs::read_to_string(report_b)?;
     let json_a: serde_json::Value = serde_json::from_str(&raw_a)?;
