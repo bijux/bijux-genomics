@@ -23,7 +23,7 @@ fn stages_bam_tree_matches_architecture_contract() {
         btree_set(&[
             "lib.rs",
             "metrics/",
-            "observer/",
+            "observer.rs",
             "plugin/",
             "stage_specs.rs",
             "surface.rs",

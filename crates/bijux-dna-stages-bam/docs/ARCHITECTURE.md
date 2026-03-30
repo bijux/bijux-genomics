@@ -6,7 +6,7 @@ This document is intentionally short. It records the stable crate map and points
 - `lib.rs` and `surface.rs` expose the public stage surface.
 - `stage_specs.rs` owns planner-facing stage and domain re-exports.
 - `plugin/` owns invocation materialization and output envelope construction.
-- `observer/` owns observer-facing parser exports.
+- `observer.rs` owns observer-facing parser exports.
 - `metrics/` owns BAM metrics grouped by enduring concerns such as alignment, coverage, quality, damage, and contamination.
 
 ## Change rules
