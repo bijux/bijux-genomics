@@ -1,8 +1,6 @@
 use super::*;
 
-pub(crate) fn validate_semantic_metrics(
-    artifacts: &[ArtifactRef],
-) -> Option<serde_json::Value> {
+pub(crate) fn validate_semantic_metrics(artifacts: &[ArtifactRef]) -> Option<serde_json::Value> {
     let report = artifacts
         .iter()
         .find(|artifact| artifact.name.as_str() == "validation_report")
