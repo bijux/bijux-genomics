@@ -13,17 +13,15 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::preprocess_pipeline_graph_for_stage_order;
-use bijux_dna_domain_fastq::{
-    STAGE_PREFIX,
-};
+use bijux_dna_domain_fastq::STAGE_PREFIX;
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_stage_contract::{
     default_edges_for_stages, PlanDecisionReason, PlanReasonKind, StagePlanV1,
 };
 
 use crate::{
-    default_pipeline_spec, plan_compose, BenchResultsRepository, DefaultPipelineOptions,
-    PLANNER_VERSION, STAGE_PREPROCESS_SUMMARY, required_id_catalog,
+    default_pipeline_spec, plan_compose, required_id_catalog, BenchResultsRepository,
+    DefaultPipelineOptions, PLANNER_VERSION, STAGE_PREPROCESS_SUMMARY,
 };
 
 mod benchmark;
@@ -33,11 +31,21 @@ mod selection_planning;
 mod support;
 mod types;
 
+pub use crate::selection::{
+    apply_tool_overrides, apply_toolset_overrides, fastq_pipeline_id_catalog,
+    select_cluster_otus_tools, select_correct_tools, select_deplete_host_tools,
+    select_deplete_reference_contaminants_tools, select_deplete_rrna_tools,
+    select_detect_adapters_tools, select_filter_low_complexity_tools, select_filter_tools,
+    select_index_reference_tools, select_infer_asvs_tools, select_merge_tools,
+    select_normalize_abundance_tools, select_normalize_primers_tools,
+    select_profile_overrepresented_tools, select_profile_read_lengths_tools, select_qc_post_tools,
+    select_remove_chimeras_tools, select_remove_duplicates_tools, select_screen_tools,
+    select_stats_tools, select_trim_tools, select_umi_tools, select_validate_tools,
+};
 use benchmark::{
     benchmark_compare_steps_for_toolsets, benchmark_select_steps_for_pipeline,
-    comparison_artifact_file_name, comparison_command_for_stage,
-    inferred_selection_artifact_role, project_benchmark_stage_params_for_tool,
-    selection_artifact_file_name,
+    comparison_artifact_file_name, comparison_command_for_stage, inferred_selection_artifact_role,
+    project_benchmark_stage_params_for_tool, selection_artifact_file_name,
 };
 use graph_policy::{
     enforce_stage_status, ensure_unique_stage_binding_nodes, execution_edges_for_stage_plans,
@@ -45,10 +53,10 @@ use graph_policy::{
     synthetic_stage_artifact_policy, validate_reference_index_bindings,
     validate_select_stage_nodes,
 };
-pub(crate) use support::{apply_layout_branching, estimate_mean_q};
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};
 pub use route_expansion::{StageToolSelection, ToolsetSelection};
 pub use selection_planning::select_preprocess_stage_tools;
+pub(crate) use support::{apply_layout_branching, estimate_mean_q};
 pub use types::*;
 
 pub struct FastqPlanner;
@@ -177,7 +185,11 @@ impl FastqPlanner {
                 stage_instance_id: None,
                 tool: tool.clone(),
                 reason: None,
-                params: project_benchmark_stage_params_for_tool(&stage_id, &tool.tool_id, config.params.as_ref()),
+                params: project_benchmark_stage_params_for_tool(
+                    &stage_id,
+                    &tool.tool_id,
+                    config.params.as_ref(),
+                ),
             }];
             let stage_plans = compose_fastq_stage_bindings(
                 &stage_bindings,
@@ -867,8 +879,6 @@ where
         out_dir_for_stage,
     )
 }
-
-include!("../tool_selection_facade.rs");
 
 #[must_use]
 pub fn scale_tool_spec_for_jobs(tool: &ToolExecutionSpecV1, jobs: usize) -> ToolExecutionSpecV1 {
