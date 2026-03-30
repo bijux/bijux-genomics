@@ -204,8 +204,9 @@ fn default_extra_data_root(config: &BenchmarkConfig, out_root: &Path) -> Result<
             .as_ref()
             .is_some_and(|root| path_is_under(&resolved, root))
     {
-        return remote_extra_data_root
-            .ok_or_else(|| anyhow!("benchmark config is missing workspace.remote.extra_data_root"));
+        return remote_extra_data_root.ok_or_else(|| {
+            anyhow!("benchmark config is missing workspace.remote.extra_data_root")
+        });
     }
 
     if local_results_root
@@ -229,13 +230,17 @@ fn path_is_under(path: &Path, root: &Path) -> bool {
 }
 
 fn resolve_source_manifest(cwd: &Path, database_root: &Path, path: Option<&Path>) -> PathBuf {
-    path.map(|item| absolutize(cwd, item))
-        .unwrap_or_else(|| database_root.join("source").join("panel_manifest.json"))
+    path.map_or_else(
+        || database_root.join("source").join("panel_manifest.json"),
+        |item| absolutize(cwd, item),
+    )
 }
 
 fn resolve_lineage_json(cwd: &Path, database_root: &Path, path: Option<&Path>) -> PathBuf {
-    path.map(|item| absolutize(cwd, item))
-        .unwrap_or_else(|| database_root.join("lineage.json"))
+    path.map_or_else(
+        || database_root.join("lineage.json"),
+        |item| absolutize(cwd, item),
+    )
 }
 
 fn build_lineage_payload(
@@ -260,7 +265,7 @@ fn build_lineage_payload(
         .and_then(|value| value.as_array())
         .or_else(|| source_manifest_value.get("entries").and_then(|value| value.as_array()))
         .ok_or_else(|| anyhow!("source manifest must contain a non-empty records list (legacy entries accepted): {}", source_manifest.display()))?
-        .to_vec();
+        .clone();
     if source_records.is_empty() {
         return Err(anyhow!(
             "source manifest must contain a non-empty records list (legacy entries accepted): {}",
@@ -334,13 +339,16 @@ fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         build_lineage_payload, default_screen_taxonomy_database_root, resolve_database_root,
     };
     use crate::commands::benchmark_workspace::{
-        BenchmarkConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
-        BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLocal,
+        BenchmarkConfig, BenchmarkPublicationConfig, BenchmarkScreenTaxonomyInputConfig,
+        BenchmarkStageInputConfig, BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig,
+        BenchmarkWorkspaceLayout, BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote,
+        BenchmarkWorkspaceStageRuns,
     };
     use crate::commands::cli::BenchWriteScreenTaxonomyDatabaseLineageArgs;
     use std::collections::BTreeMap;
@@ -367,13 +375,26 @@ mod tests {
                     extra_data_root: Some("/bench/local/extra-data".to_string()),
                     reference_root: None,
                 }),
-                remote: None,
-                layout: None,
+                remote: Some(BenchmarkWorkspaceRemote {
+                    cache_root: Some("/bench/remote/cache".to_string()),
+                    corpus_root: Some("/bench/remote/benchmark_corpus".to_string()),
+                    results_root: Some("/bench/remote/results".to_string()),
+                    extra_data_root: Some("/bench/remote/extra-data".to_string()),
+                    ..Default::default()
+                }),
+                layout: Some(BenchmarkWorkspaceLayout {
+                    stage_runs: Some(BenchmarkWorkspaceStageRuns {
+                        remote_results_template: Some(
+                            "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                        ),
+                        ..Default::default()
+                    }),
+                }),
                 artifacts,
                 sync: None,
             },
-            publication: Default::default(),
-            corpora: Default::default(),
+            publication: BenchmarkPublicationConfig::default(),
+            corpora: BTreeMap::default(),
             stage_inputs: BenchmarkStageInputConfig {
                 fastq_screen_taxonomy: BenchmarkScreenTaxonomyInputConfig {
                     database_root: None,
@@ -518,7 +539,7 @@ mod tests {
         assert_eq!(
             path,
             Path::new(
-                "/bench/local/results/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
+                "/bench/local/extra-data/benchmark/fastq.screen_taxonomy/read_screening/read_screening/taxonomy_db"
             )
         );
     }

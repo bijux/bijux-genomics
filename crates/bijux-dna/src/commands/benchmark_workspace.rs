@@ -1,3 +1,5 @@
+#![allow(clippy::struct_field_names, clippy::too_many_lines)]
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -321,7 +323,7 @@ pub(crate) fn expand_env_placeholders(raw: &str) -> Result<String> {
         if ch == '$' && chars.peek() == Some(&'{') {
             chars.next();
             let mut name = String::new();
-            while let Some(next) = chars.next() {
+            for next in chars.by_ref() {
                 if next == '}' {
                     break;
                 }
@@ -772,7 +774,7 @@ fn stage_directory_names(root: &Path) -> Vec<String> {
         .read_dir()
         .ok()
         .into_iter()
-        .flat_map(|iter| iter.filter_map(|entry| entry.ok()))
+        .flat_map(|iter| iter.filter_map(Result::ok))
         .filter_map(|entry| match entry.file_type() {
             Ok(kind) if kind.is_dir() => Some(entry.file_name().to_string_lossy().into_owned()),
             _ => None,
@@ -790,11 +792,17 @@ fn remove_empty_parents(root: &Path, stop_at: &Path) -> Result<()> {
                 current = current
                     .parent()
                     .ok_or_else(|| anyhow!("missing parent for {}", root.display()))?
-                    .to_path_buf()
+                    .to_path_buf();
             }
-            Err(err) if err.kind() == std::io::ErrorKind::DirectoryNotEmpty => break,
             Err(err) if err.kind() == std::io::ErrorKind::NotFound => break,
             Err(err) => {
+                if current.exists()
+                    && fs::read_dir(&current)
+                        .map(|mut entries| entries.next().is_some())
+                        .unwrap_or(false)
+                {
+                    break;
+                }
                 return Err(err).with_context(|| format!("remove dir {}", current.display()));
             }
         }
@@ -1226,7 +1234,7 @@ fn entry_names(root: &Path) -> Vec<String> {
         .read_dir()
         .ok()
         .into_iter()
-        .flat_map(|iter| iter.filter_map(|entry| entry.ok()))
+        .flat_map(|iter| iter.filter_map(Result::ok))
         .map(|entry| entry.file_name().to_string_lossy().into_owned())
         .collect::<Vec<_>>();
     entries.sort();
@@ -1236,7 +1244,7 @@ fn entry_names(root: &Path) -> Vec<String> {
 fn render_workspace_layout_markdown(report: &WorkspaceLayoutReport) -> String {
     let mut lines = vec![
         "# Benchmark Workspace Layout Status".to_string(),
-        "".to_string(),
+        String::new(),
         format!("- Local results root: `{}`", report.local_results_root),
         format!(
             "- Local cache mirror root: `{}`",
@@ -1260,9 +1268,9 @@ fn render_workspace_layout_markdown(report: &WorkspaceLayoutReport) -> String {
         ),
         format!("- Status: `{}`", report.status),
         format!("- Issues: `{}`", report.issue_count),
-        "".to_string(),
+        String::new(),
         "## Root Pairs".to_string(),
-        "".to_string(),
+        String::new(),
     ];
     for pair in &report.root_pairs {
         lines.push(format!(
@@ -1301,9 +1309,9 @@ fn render_workspace_layout_markdown(report: &WorkspaceLayoutReport) -> String {
         }
     }
     lines.extend([
-        "".to_string(),
+        String::new(),
         "## Local Stage Layout".to_string(),
-        "".to_string(),
+        String::new(),
         format!(
             "- Archive corpus root: `{}`",
             report.local_stage_layout.archive_corpus_root
@@ -1431,18 +1439,20 @@ fn benchmark_publication_exclusions_from_config(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
         benchmark_publication_corpus_key, benchmark_runtime_corpus_dir_name,
         benchmark_stage_run_relative_root, benchmark_workspace_config_path,
-        benchmark_workspace_value, expand_env_placeholders, load_benchmark_config, BenchmarkConfig,
+        benchmark_workspace_value, expand_env_placeholders, load_benchmark_config,
         load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
         plan_root_convergence, summarize_root_pair, workspace_layout_corpus_dir_name,
-        BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceStageRuns,
-        BenchmarkWorkspaceLocal, BENCHMARK_CONFIG_ENV,
+        BenchmarkConfig, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
+        BenchmarkWorkspaceLocal, BenchmarkWorkspaceStageRuns, BENCHMARK_CONFIG_ENV,
     };
+    use std::collections::BTreeMap;
     use std::path::Path;
     use std::sync::Mutex;
 
@@ -1528,7 +1538,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             }),
             remote: None,
             layout: None,
-            artifacts: Default::default(),
+            artifacts: BTreeMap::default(),
             sync: None,
         }
     }
@@ -1592,9 +1602,13 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
     fn publication_contract_loads_stage_contract() {
         let temp = tempfile::tempdir().expect("tempdir");
         write_publication(temp.path());
-        let contract =
-            super::benchmark_publication_contract(temp.path(), None, "corpus-01", "fastq.validate_reads")
-                .expect("publication contract");
+        let contract = super::benchmark_publication_contract(
+            temp.path(),
+            None,
+            "corpus-01",
+            "fastq.validate_reads",
+        )
+        .expect("publication contract");
         assert_eq!(contract.scenario_id, "validation_fairness");
         assert_eq!(contract.tools, vec!["fastqc"]);
     }
@@ -1662,21 +1676,26 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let temp = tempfile::tempdir().expect("tempdir");
         let results_root = temp.path().join("archive");
         let cache_mirror_root = temp.path().join("mirror");
-        let legacy_stage_root = results_root.join("benchmark_corpus").join("fastq.trim_reads");
+        let legacy_stage_root = results_root
+            .join("benchmark_corpus")
+            .join("fastq.trim_reads");
         let canonical_stage_root = cache_mirror_root
             .join("results")
             .join("benchmark_corpus")
             .join("fastq.trim_reads");
-        let archive_only_stage_root =
-            results_root.join("benchmark_corpus").join("fastq.validate_reads");
-        std::fs::create_dir_all(legacy_stage_root.join("cluster-apptainer"))
-            .expect("legacy stage");
+        let archive_only_stage_root = results_root
+            .join("benchmark_corpus")
+            .join("fastq.validate_reads");
+        std::fs::create_dir_all(legacy_stage_root.join("cluster-apptainer")).expect("legacy stage");
         std::fs::create_dir_all(canonical_stage_root.join("cluster-apptainer"))
             .expect("canonical stage");
         std::fs::create_dir_all(archive_only_stage_root.join("cluster-apptainer"))
             .expect("archive stage");
-        std::fs::write(legacy_stage_root.join("cluster-apptainer/run_manifest.json"), "{}")
-            .expect("write legacy manifest");
+        std::fs::write(
+            legacy_stage_root.join("cluster-apptainer/run_manifest.json"),
+            "{}",
+        )
+        .expect("write legacy manifest");
         std::fs::write(
             canonical_stage_root.join("cluster-apptainer/run_manifest.json"),
             "{\"completed_at_utc\": \"2026-03-28T00:00:00Z\"}",
@@ -1805,8 +1824,9 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
 
     #[test]
     fn benchmark_runtime_corpus_dir_name_requires_declared_remote_corpus_root() {
-        let error = benchmark_runtime_corpus_dir_name(&BenchmarkWorkspaceConfig::default(), "corpus-01")
-            .expect_err("missing remote corpus root must fail");
+        let error =
+            benchmark_runtime_corpus_dir_name(&BenchmarkWorkspaceConfig::default(), "corpus-01")
+                .expect_err("missing remote corpus root must fail");
         assert!(error
             .to_string()
             .contains("benchmark config is missing workspace.remote.corpus_root"));
@@ -1900,16 +1920,11 @@ corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
         )
         .expect("write config");
 
-        let config = load_benchmark_config(temp.path(), None).expect("load benchmark config");
-        assert_eq!(
-            config.workspace.remote.and_then(|row| row.corpus_root),
-            None
-        );
-        let error = benchmark_workspace_value(temp.path(), None, "remote.corpus_root")
-            .expect_err("missing value");
+        let error = load_benchmark_config(temp.path(), None)
+            .expect_err("unset placeholder must fail during expansion");
         assert!(error
             .to_string()
-            .contains("missing benchmark workspace value for `remote.corpus_root`"));
+            .contains("missing environment placeholder ${BIJUX_TEST_CORPUS_ROOT}"));
     }
 
     #[test]

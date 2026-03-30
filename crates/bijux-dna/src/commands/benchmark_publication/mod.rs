@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
@@ -119,8 +121,9 @@ fn audit_publication_summary(
     }
     if summary
         .get("samples_total")
-        .and_then(|value| value.as_u64())
-        .unwrap_or(0) as usize
+        .and_then(serde_json::Value::as_u64)
+        .and_then(|value| usize::try_from(value).ok())
+        .unwrap_or(0)
         != expected_total
     {
         append_stage_audit_issue(
@@ -138,7 +141,7 @@ fn audit_publication_summary(
     }
     if summary
         .get("samples_failed")
-        .and_then(|value| value.as_u64())
+        .and_then(serde_json::Value::as_u64)
         .unwrap_or(0)
         != 0
     {
@@ -480,6 +483,7 @@ fn append_stage_audit_issue(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use std::collections::BTreeMap;
     use std::fs;
@@ -524,12 +528,40 @@ mod tests {
                     ..Default::default()
                 },
             ),
-            layout: None,
+            layout: Some(
+                crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
+                    stage_runs: Some(
+                        crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
+                            remote_results_template: Some(
+                                "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                            ),
+                            local_cache_results_template: Some(
+                                "results/{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                            ),
+                            local_archive_results_template: Some(
+                                "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                            ),
+                        },
+                    ),
+                },
+            ),
             artifacts: BTreeMap::new(),
             sync: None,
         }
     }
 
+    fn write_benchmark_config_for_corpus(repo_root: &Path, corpus_id: &str) {
+        let config_path = repo_root.join("configs/bench/benchmark.toml");
+        let corpus_spec_path = format!("configs/runtime/corpora/{corpus_id}.toml");
+        fs::create_dir_all(config_path.parent().expect("config dir")).expect("config dir");
+        fs::write(
+            config_path,
+            format!("[corpora.\"{corpus_id}\"]\nspec_path = \"{corpus_spec_path}\"\n"),
+        )
+        .expect("write benchmark config");
+    }
+
+    #[allow(clippy::needless_pass_by_value)]
     fn write_json(path: &Path, value: serde_json::Value) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).expect("create parent");
@@ -635,6 +667,9 @@ reference_root = "{}"
 [workspace.remote]
 corpus_root = "{}"
 results_root = "{}"
+
+[corpora."corpus-01"]
+spec_path = "configs/runtime/corpora/corpus-01.toml"
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
@@ -756,18 +791,18 @@ reason = "Compact validation fixture."
         assert_eq!(
             super::classify_run_root_source(
                 Path::new(
-                    "/archive/bench/cluster/.cache/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+                    "/bench/local/cache-mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                 ),
                 Path::new(
-                    "/bench/cluster/.cache/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+                    "/bench/remote/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                 ),
                 Path::new(
-                    "/bench/cluster/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+                    "/bench/local/cache-mirror/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                 ),
                 Path::new(
-                    "/archive/bench/cluster/.cache/results/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
+                    "/bench/local/archive/benchmark_corpus/fastq.validate_reads/cluster-apptainer"
                 ),
-                Path::new("/bench/cluster/.cache/benchmark_corpus"),
+                Path::new("/bench/remote/corpus/benchmark_corpus"),
             ),
             "local-cache-mirror"
         );
@@ -904,13 +939,13 @@ reason = "Compact validation fixture."
     }
 
     #[test]
-    fn dossier_stage_entry_uses_requested_corpus_contract() {
+    fn dossier_stage_entry_uses_workspace_run_root_templates() {
         let temp = tempdir().expect("tempdir");
         let docs_root = temp.path().join("docs").join("benchmark");
         let cache_root = temp.path().join("cache-mirror");
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
-        let remote_corpus_root = remote_root.join("shared-corpus-root");
+        let remote_corpus_root = remote_root.join("corpus_01");
         let workspace = sample_workspace(
             &cache_root,
             &archive_root,
@@ -1402,6 +1437,7 @@ reason = "Compact validation fixture."
             ),
         )
         .expect("write corpus spec");
+        write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         let corpus_root = stage_root.join("corpus-01");
         fs::create_dir_all(&corpus_root).expect("corpus dir");
@@ -1414,6 +1450,7 @@ reason = "Compact validation fixture."
             }),
         );
         fs::write(corpus_root.join("sample_results.csv"), "sample_id,tool\n").expect("sample csv");
+        let supplemental = BTreeMap::from([("fastq.validate_reads".to_string(), Vec::new())]);
         let report = super::audit_publication_docs(
             repo_root,
             &docs_root,
@@ -1422,7 +1459,7 @@ reason = "Compact validation fixture."
             &[],
             &super::load_publication_corpus_spec(repo_root, None, "corpus-01")
                 .expect("corpus spec"),
-            &BTreeMap::new(),
+            &supplemental,
             &BTreeMap::new(),
             &[],
             None,
@@ -1536,6 +1573,7 @@ reason = "Compact validation fixture."
             ),
         )
         .expect("write corpus spec");
+        write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         fs::create_dir_all(stage_root.join("corpus-01")).expect("corpus dir");
         fs::write(stage_root.join("corpus-01-method.md"), "# method\n").expect("method");
@@ -1616,6 +1654,7 @@ reason = "Compact validation fixture."
             ),
         )
         .expect("write corpus spec");
+        write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         let corpus_root = stage_root.join("corpus-01");
         fs::create_dir_all(&corpus_root).expect("corpus dir");
@@ -1667,6 +1706,7 @@ reason = "Compact validation fixture."
         )
         .expect("outliers");
         fs::write(corpus_root.join("benchmark.md"), "# dossier\n").expect("dossier");
+        let supplemental = BTreeMap::from([("fastq.validate_reads".to_string(), Vec::new())]);
         let report = super::audit_publication_docs(
             repo_root,
             &docs_root,
@@ -1682,7 +1722,7 @@ reason = "Compact validation fixture."
             &[],
             &super::load_publication_corpus_spec(repo_root, None, "corpus-01")
                 .expect("corpus spec"),
-            &BTreeMap::new(),
+            &supplemental,
             &BTreeMap::new(),
             &[],
             None,
@@ -1713,6 +1753,7 @@ reason = "Compact validation fixture."
                     "status": "incomplete",
                     "issues": [{
                         "issue_id": "missing-benchmark-md",
+                        "severity": "error",
                         "detail": "missing docs dossier",
                     }],
                 }],
@@ -1723,6 +1764,7 @@ reason = "Compact validation fixture."
                     "status": "incomplete",
                     "issues": [{
                         "issue_id": "missing-local-run-root",
+                        "severity": "error",
                         "detail": "missing local mirror root",
                     }],
                 }],
