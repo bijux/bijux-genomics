@@ -1,4 +1,8 @@
-include!("population_and_panel_prep_helpers.rs");
+mod analysis_and_panel;
+mod helpers;
+
+use analysis_and_panel::*;
+use helpers::*;
 
 fn require_ld_pruning_policy(policy: Option<&str>, stage_id: &str) -> Result<String> {
     let Some(policy) = policy.map(str::trim).filter(|x| !x.is_empty()) else {
@@ -31,7 +35,10 @@ fn parse_sample_population_labels(
             }
         }
     }
-    if let Some(map) = json.get("population_labels").and_then(serde_json::Value::as_object) {
+    if let Some(map) = json
+        .get("population_labels")
+        .and_then(serde_json::Value::as_object)
+    {
         for (sample, population) in map {
             if let Some(population) = population.as_str() {
                 let sample = sample.trim();
@@ -62,9 +69,7 @@ fn run_tool(bin: &str, args: &[&str], workdir: Option<&Path>) -> bool {
     if let Some(dir) = workdir {
         cmd.current_dir(dir);
     }
-    cmd.output()
-        .map(|x| x.status.success())
-        .unwrap_or(false)
+    cmd.output().map(|x| x.status.success()).unwrap_or(false)
 }
 
 fn parse_plink2_eigenvec(path: &Path, components: usize) -> Option<String> {
@@ -111,10 +116,8 @@ pub fn run_pca_stage(
     params: &PcaStageParams,
 ) -> Result<PcaStageOutputs> {
     bijux_dna_infra::ensure_dir(out_dir)?;
-    let ld_policy = require_ld_pruning_policy(
-        params.preprocessing.ld_pruning_policy.as_deref(),
-        "vcf.pca",
-    )?;
+    let ld_policy =
+        require_ld_pruning_policy(params.preprocessing.ld_pruning_policy.as_deref(), "vcf.pca")?;
     let raw = read_vcf_text(input_vcf)?;
     let mut samples = Vec::<String>::new();
     let mut passing = 0_u64;
@@ -128,7 +131,8 @@ pub fn run_pca_stage(
         };
         let maf = variant_maf(&fields).unwrap_or(0.0);
         let miss = genotype_missing_fraction(fields[8], &fields[9..]).unwrap_or(0.0);
-        if maf >= params.preprocessing.maf_threshold && miss <= params.preprocessing.max_missingness {
+        if maf >= params.preprocessing.maf_threshold && miss <= params.preprocessing.max_missingness
+        {
             passing += 1;
         }
     }
@@ -292,10 +296,9 @@ pub fn run_population_structure_stage(
         "vcf.population_structure",
     )?;
     let mut passing = Vec::<String>::new();
-    let metadata_manifest = params
-        .sample_metadata_manifest
-        .as_ref()
-        .ok_or_else(|| anyhow!("vcf.population_structure refusal: sample metadata manifest path is required"))?;
+    let metadata_manifest = params.sample_metadata_manifest.as_ref().ok_or_else(|| {
+        anyhow!("vcf.population_structure refusal: sample metadata manifest path is required")
+    })?;
     for line in raw.lines() {
         if line.starts_with("#CHROM\t") {
             samples = line.split('\t').skip(9).map(str::to_string).collect();
@@ -306,7 +309,8 @@ pub fn run_population_structure_stage(
         };
         let maf = variant_maf(&fields).unwrap_or(0.0);
         let miss = genotype_missing_fraction(fields[8], &fields[9..]).unwrap_or(0.0);
-        if maf >= params.preprocessing.maf_threshold && miss <= params.preprocessing.max_missingness {
+        if maf >= params.preprocessing.maf_threshold && miss <= params.preprocessing.max_missingness
+        {
             passing.push(format!("{}:{}", fields[0], fields[1]));
         }
     }
@@ -350,10 +354,13 @@ pub fn run_population_structure_stage(
         Some(run_admixture_stage(
             input_vcf,
             out_dir,
-            &params.admixture_params.clone().unwrap_or_else(|| AdmixtureStageParams {
-                sample_metadata_manifest: Some(metadata_manifest.clone()),
-                ..AdmixtureStageParams::default()
-            }),
+            &params
+                .admixture_params
+                .clone()
+                .unwrap_or_else(|| AdmixtureStageParams {
+                    sample_metadata_manifest: Some(metadata_manifest.clone()),
+                    ..AdmixtureStageParams::default()
+                }),
         )?)
     } else {
         None
@@ -447,7 +454,12 @@ pub fn run_admixture_stage(
         .lines()
         .find_map(|line| {
             if line.starts_with("#CHROM\t") {
-                Some(line.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>())
+                Some(
+                    line.split('\t')
+                        .skip(9)
+                        .map(str::to_string)
+                        .collect::<Vec<_>>(),
+                )
             } else {
                 None
             }
@@ -456,10 +468,9 @@ pub fn run_admixture_stage(
     if samples.is_empty() {
         bail!("vcf.admixture refusal: no samples found in VCF header");
     }
-    let metadata_manifest = params
-        .sample_metadata_manifest
-        .as_ref()
-        .ok_or_else(|| anyhow!("vcf.admixture refusal: sample metadata manifest path is required"))?;
+    let metadata_manifest = params.sample_metadata_manifest.as_ref().ok_or_else(|| {
+        anyhow!("vcf.admixture refusal: sample metadata manifest path is required")
+    })?;
     let labels = parse_sample_population_labels(metadata_manifest, &samples)?;
     if params.k_values.is_empty() {
         bail!("vcf.admixture refusal: k_values cannot be empty");
@@ -536,7 +547,13 @@ pub fn run_admixture_stage(
         let q_path = out_dir.join(format!("admixture_plink.{}.Q", selected_k));
         if let Ok(q_raw) = std::fs::read_to_string(&q_path) {
             execution_mode = "real_tool";
-            q_tsv = format!("sample\t{}\n", (1..=selected_k).map(|k| format!("Q{k}")).collect::<Vec<_>>().join("\t"));
+            q_tsv = format!(
+                "sample\t{}\n",
+                (1..=selected_k)
+                    .map(|k| format!("Q{k}"))
+                    .collect::<Vec<_>>()
+                    .join("\t")
+            );
             for (sample, row) in samples.iter().zip(q_raw.lines()) {
                 q_tsv.push_str(sample);
                 for value in row.split_whitespace() {
@@ -550,9 +567,9 @@ pub fn run_admixture_stage(
     if q_tsv.is_empty() {
         q_tsv = format!("sample\t{}\n", clusters.join("\t"));
         for sample in &samples {
-            let label = labels
-                .get(sample)
-                .ok_or_else(|| anyhow!("vcf.admixture refusal: missing label for sample `{sample}`"))?;
+            let label = labels.get(sample).ok_or_else(|| {
+                anyhow!("vcf.admixture refusal: missing label for sample `{sample}`")
+            })?;
             q_tsv.push_str(sample);
             for cluster in &clusters {
                 let score = if cluster == label { 1.0 } else { 0.0 };
@@ -584,5 +601,3 @@ pub fn run_admixture_stage(
         logs_txt,
     })
 }
-
-include!("population_and_panel_prep_analysis_and_panel.rs");
