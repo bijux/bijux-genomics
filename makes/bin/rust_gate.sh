@@ -48,6 +48,17 @@ nextest_fast_expr="${NEXTEST_FAST_EXPR:-not test(/::slow__/)}"
 nextest_slow_expr="${NEXTEST_SLOW_EXPR:-test(/::slow__/)}"
 rs_clippy_excludes="${RS_CLIPPY_EXCLUDES:-}"
 
+default_fast_test_runner() {
+  case "$(uname -s)" in
+    Darwin)
+      printf '%s' "package-nextest"
+      ;;
+    *)
+      printf '%s' "nextest"
+      ;;
+  esac
+}
+
 default_nextest_threads() {
   case "$(uname -s)" in
     Darwin)
@@ -59,6 +70,7 @@ default_nextest_threads() {
   esac
 }
 
+fast_test_runner="${RS_FAST_TEST_RUNNER:-$(default_fast_test_runner)}"
 nextest_threads="${NEXTEST_THREADS:-$(default_nextest_threads)}"
 
 mkdir -p \
@@ -138,6 +150,39 @@ run_nextest() {
   return "${status}"
 }
 
+workspace_package_names() {
+  cargo metadata --format-version 1 --no-deps | perl -MJSON::PP -e '
+    my $metadata = decode_json(do { local $/; <STDIN> });
+    my %members = map { $_ => 1 } @{$metadata->{workspace_members}};
+    for my $package (sort { $a->{name} cmp $b->{name} } @{$metadata->{packages}}) {
+      print "$package->{name}\n" if $members{$package->{id}};
+    }
+  '
+}
+
+run_nextest_by_package() {
+  local report_root="$1"
+  local target_dir="$2"
+  shift 2
+  while IFS= read -r package_name; do
+    [ -n "${package_name}" ] || continue
+    local package_report="${report_root%.log}--${package_name}.log"
+    printf '%s\n' "run: cargo nextest run -p ${package_name} --all-features --profile ${nextest_profile_fast} -E ${nextest_fast_expr}"
+    run_nextest "${package_report}" "${target_dir}" "$@" -p "${package_name}"
+  done < <(workspace_package_names)
+}
+
+run_cargo_test() {
+  local report_path="$1"
+  local target_dir="$2"
+  shift 2
+  mkdir -p "$(dirname "${report_path}")" "${rs_profraw_dir}"
+  run_logged "${report_path}" env \
+    CARGO_TARGET_DIR="${target_dir}" \
+    LLVM_PROFILE_FILE="${rs_llvm_profile_file}" \
+    "$@"
+}
+
 prepare_common_env
 
 case "${command_name}" in
@@ -186,16 +231,35 @@ case "${command_name}" in
     test "${audit_status}" -eq 0
     ;;
   test)
-    require_tool cargo-nextest
-    printf '%s\n' "run: cargo nextest run --workspace --all-features --profile ${nextest_profile_fast} -E ${nextest_fast_expr}"
-    run_nextest "${rs_test_report}" "${rs_target_dir}" cargo nextest run \
-      --workspace \
-      --all-features \
-      --config-file "${nextest_config_file}" \
-      --profile "${nextest_profile_fast}" \
-      --status-level "${nextest_status_level}" \
-      --final-status-level "${nextest_final_status_level}" \
-      -E "${nextest_fast_expr}"
+    if [ "${fast_test_runner}" = "package-nextest" ]; then
+      require_tool cargo-nextest
+      run_nextest_by_package "${rs_test_report}" "${rs_target_dir}" cargo nextest run \
+        --all-features \
+        --config-file "${nextest_config_file}" \
+        --profile "${nextest_profile_fast}" \
+        --status-level "${nextest_status_level}" \
+        --final-status-level "${nextest_final_status_level}" \
+        -E "${nextest_fast_expr}"
+    elif [ "${fast_test_runner}" = "cargo" ]; then
+      printf '%s\n' "run: cargo test --workspace --all-features --no-fail-fast -- --skip ::slow__"
+      run_cargo_test "${rs_test_report}" "${rs_target_dir}" cargo test \
+        --workspace \
+        --all-features \
+        --no-fail-fast \
+        -- \
+        --skip "::slow__"
+    else
+      require_tool cargo-nextest
+      printf '%s\n' "run: cargo nextest run --workspace --all-features --profile ${nextest_profile_fast} -E ${nextest_fast_expr}"
+      run_nextest "${rs_test_report}" "${rs_target_dir}" cargo nextest run \
+        --workspace \
+        --all-features \
+        --config-file "${nextest_config_file}" \
+        --profile "${nextest_profile_fast}" \
+        --status-level "${nextest_status_level}" \
+        --final-status-level "${nextest_final_status_level}" \
+        -E "${nextest_fast_expr}"
+    fi
     ;;
   test-slow)
     require_tool cargo-nextest
