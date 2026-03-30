@@ -539,7 +539,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["cutadapt", "seqkit"]
+tools = ["cutadapt"]
 
 [[stages]]
 id = "fastq.profile_overrepresented_sequences"
@@ -913,4 +913,3 @@ id = "fastq.validation_fairness"
 stage_id = "fastq.validate_reads"
 description = "Compare FASTQ validators on identical raw reads and governed validation semantics."
 fairness_rules = ["same_input_hash", "same_dataset_class", "same_validation_contract"]
-
