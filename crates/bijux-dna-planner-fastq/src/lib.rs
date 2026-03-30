@@ -1,5 +1,5 @@
+mod compose;
 mod pipeline_defaults;
-mod plan_compose;
 mod planner;
 mod preprocess;
 mod qc_contract;

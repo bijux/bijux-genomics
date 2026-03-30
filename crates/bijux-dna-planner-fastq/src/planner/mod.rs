@@ -20,7 +20,7 @@ use bijux_dna_stage_contract::{
 };
 
 use crate::{
-    default_pipeline_spec, plan_compose, required_id_catalog, BenchResultsRepository,
+    compose, default_pipeline_spec, required_id_catalog, BenchResultsRepository,
     DefaultPipelineOptions, PLANNER_VERSION, STAGE_PREPROCESS_SUMMARY,
 };
 
@@ -78,7 +78,7 @@ impl FastqPlanner {
         let synthetic_stage_artifacts =
             synthetic_stage_artifact_policy(&pipeline_spec, &config.out_dir)?;
         let stage_dependencies = stage_dependency_policy(&pipeline_spec);
-        let plans = crate::plan_compose::compose_fastq_stage_bindings_with_dependencies(
+        let plans = crate::compose::compose_fastq_stage_bindings_with_dependencies(
             &stage_bindings,
             &config.aux_images,
             config.adapter_bank.as_ref(),
@@ -859,13 +859,13 @@ pub fn compose_fastq_stage_bindings<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     reference_fasta: Option<&std::path::Path>,
-    explicit_stage_inputs: Option<&crate::plan_compose::StageArtifactInputPolicy>,
+    explicit_stage_inputs: Option<&crate::compose::StageArtifactInputPolicy>,
     out_dir_for_stage: F,
 ) -> Result<Vec<bijux_dna_stage_contract::StagePlanV1>>
 where
     F: FnMut(&FastqStageBinding, &std::path::Path, Option<&std::path::Path>) -> Result<PathBuf>,
 {
-    plan_compose::compose_fastq_stage_bindings(
+    compose::compose_fastq_stage_bindings(
         stage_bindings,
         aux_images,
         adapter_bank,

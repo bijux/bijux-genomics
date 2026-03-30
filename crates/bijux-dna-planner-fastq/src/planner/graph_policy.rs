@@ -95,8 +95,8 @@ pub(super) fn planner_owned_graph_stage(stage_id: &str) -> bool {
 pub(super) fn synthetic_stage_artifact_policy(
     pipeline_spec: &PipelineSpec,
     root_out_dir: &std::path::Path,
-) -> Result<crate::plan_compose::SyntheticStageArtifactPolicy> {
-    let mut artifacts = crate::plan_compose::SyntheticStageArtifactPolicy::new();
+) -> Result<crate::compose::SyntheticStageArtifactPolicy> {
+    let mut artifacts = crate::compose::SyntheticStageArtifactPolicy::new();
     if !pipeline_spec.declares_graph_topology() {
         return Ok(artifacts);
     }
@@ -229,7 +229,7 @@ pub(super) fn stage_dependency_policy(
 
 fn explicit_reference_index_binding<'a>(
     binding: &FastqStageBinding,
-    explicit_stage_inputs: &'a crate::plan_compose::StageArtifactInputPolicy,
+    explicit_stage_inputs: &'a crate::compose::StageArtifactInputPolicy,
     binding_by_node_id: &'a std::collections::BTreeMap<String, &'a FastqStageBinding>,
 ) -> Result<Option<&'a FastqStageBinding>> {
     Ok(explicit_stage_inputs
@@ -393,8 +393,8 @@ fn derived_lineage_execution_edges(
 
 pub(super) fn stage_artifact_input_policy(
     pipeline_spec: &PipelineSpec,
-) -> crate::plan_compose::StageArtifactInputPolicy {
-    let mut policies = crate::plan_compose::StageArtifactInputPolicy::new();
+) -> crate::compose::StageArtifactInputPolicy {
+    let mut policies = crate::compose::StageArtifactInputPolicy::new();
     if !pipeline_spec.declares_graph_topology() {
         return policies;
     }
@@ -404,7 +404,7 @@ pub(super) fn stage_artifact_input_policy(
             continue;
         };
         policies.entry(edge.to.clone()).or_default().push(
-            crate::plan_compose::StageArtifactInputBinding {
+            crate::compose::StageArtifactInputBinding {
                 from_stage_node_id: edge.from.clone(),
                 from_output_id: from_output_id.clone(),
                 to_input_id: to_input_id.clone(),

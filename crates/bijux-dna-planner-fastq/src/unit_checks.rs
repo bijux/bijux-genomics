@@ -1,9 +1,9 @@
-use super::*;
 use super::graph_policy::stage_status;
 use super::selection_planning::{
     bench_query_context_for_preprocess_stage, bench_query_context_for_stage,
 };
-use crate::{PreprocessDecisions, resolve_preprocess_pipeline};
+use super::*;
+use crate::{resolve_preprocess_pipeline, PreprocessDecisions};
 use bijux_dna_core::contract::{PipelineEdgeSpec, PipelineNodeSpec, PipelineSpec};
 use bijux_dna_core::id_catalog;
 use bijux_dna_core::ids::ToolId;
@@ -79,7 +79,10 @@ fn stage_status_comes_from_domain_execution_support() {
         stage_status("fastq.validate_reads").as_deref(),
         Some("supported")
     );
-    assert_eq!(stage_status("fastq.infer_asvs").as_deref(), Some("supported"));
+    assert_eq!(
+        stage_status("fastq.infer_asvs").as_deref(),
+        Some("supported")
+    );
     assert!(stage_status("fastq.unknown_stage").is_none());
 }
 
@@ -99,7 +102,7 @@ fn benchmark_query_context_stays_empty_for_unknown_stages() {
         "{}unknown",
         id_catalog::FASTQ_PREFIX
     )))
-        .expect("unknown stages should not fail benchmark query context construction");
+    .expect("unknown stages should not fail benchmark query context construction");
 
     assert!(context.is_empty());
 }
@@ -221,7 +224,7 @@ fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
         }],
     );
 
-    let plans = crate::plan_compose::compose_fastq_stage_bindings_with_dependencies(
+    let plans = crate::compose::compose_fastq_stage_bindings_with_dependencies(
         &bindings,
         &std::collections::BTreeMap::new(),
         None,
@@ -237,14 +240,19 @@ fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
         |binding, _r1, _r2| Ok(std::path::PathBuf::from("out").join(&binding.stage_id)),
     )
     .expect("compose plans");
-    let edges = execution_edges_for_stage_plans(&pipeline, &plans, &std::collections::BTreeMap::new())
-        .expect("derive execution edges");
+    let edges =
+        execution_edges_for_stage_plans(&pipeline, &plans, &std::collections::BTreeMap::new())
+            .expect("derive execution edges");
 
     assert!(edges.iter().any(|edge| {
         edge.from().as_str() == "fastq.validate_reads.fastqvalidator"
             && edge.to().as_str() == "fastq.trim_reads.fastp"
-            && edge.from_output_id().is_some_and(|artifact| artifact.as_str() == "validated_reads_manifest")
-            && edge.to_input_id().is_some_and(|artifact| artifact.as_str() == "validated_reads_manifest")
+            && edge
+                .from_output_id()
+                .is_some_and(|artifact| artifact.as_str() == "validated_reads_manifest")
+            && edge
+                .to_input_id()
+                .is_some_and(|artifact| artifact.as_str() == "validated_reads_manifest")
     }));
     assert!(!edges.iter().any(|edge| {
         edge.from().as_str() == "fastq.validate_reads.fastqvalidator"
@@ -343,7 +351,7 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
         ],
     );
 
-    let plans = crate::plan_compose::compose_fastq_stage_bindings_with_dependencies(
+    let plans = crate::compose::compose_fastq_stage_bindings_with_dependencies(
         &bindings,
         &std::collections::BTreeMap::new(),
         None,
@@ -368,13 +376,12 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
     assert!(report_plan.io.inputs.iter().any(|artifact| {
         artifact.name.as_str() == "fastq.detect_adapters.fastqc.adapter_evidence_dir"
     }));
-    assert!(report_plan.io.inputs.iter().any(|artifact| {
-        artifact.name.as_str() == "fastq.profile_reads.seqkit_stats.qc_json"
-    }));
-    assert_eq!(
-        report_plan.params["qc_input_count"],
-        serde_json::json!(2)
-    );
+    assert!(report_plan
+        .io
+        .inputs
+        .iter()
+        .any(|artifact| { artifact.name.as_str() == "fastq.profile_reads.seqkit_stats.qc_json" }));
+    assert_eq!(report_plan.params["qc_input_count"], serde_json::json!(2));
 }
 
 #[test]
@@ -439,7 +446,7 @@ fn mixed_normalization_stages_only_mark_observer_specialized_tools_comparable() 
 
 #[test]
 fn normalize_abundance_rejects_planned_seqfu_backend() {
-    let error = crate::plan_compose::ensure_normalize_abundance_tool("seqfu")
+    let error = crate::compose::ensure_normalize_abundance_tool("seqfu")
         .expect_err("seqfu should stay outside the governed normalize_abundance runtime");
 
     assert!(error.to_string().contains("requires seqkit"));
@@ -547,8 +554,11 @@ fn expand_pipeline_stage_tool_routes_materializes_graph_bound_stage_bindings() {
                 .is_some_and(|id| id.contains("fastq.validate_reads.entry=fastqvalidator"))
     }));
     assert!(expanded_pipeline.edges.iter().all(|edge| {
-        edge.from.contains("fastq.validate_reads.entry=fastqvalidator")
-            && edge.to.contains("fastq.validate_reads.entry=fastqvalidator")
+        edge.from
+            .contains("fastq.validate_reads.entry=fastqvalidator")
+            && edge
+                .to
+                .contains("fastq.validate_reads.entry=fastqvalidator")
     }));
 }
 
@@ -650,7 +660,6 @@ fn expand_pipeline_stage_tool_routes_rejects_excessive_route_counts() {
         .contains("preprocess tool route expansion would create"));
 }
 
-
 #[test]
 fn expand_pipeline_stage_tool_routes_collapses_selected_stage_context() {
     let pipeline = PipelineSpec::graph(
@@ -683,20 +692,24 @@ fn expand_pipeline_stage_tool_routes_collapses_selected_stage_context() {
             },
         ],
     );
-    let toolsets = vec![ToolsetSelection {
-        stage_id: "fastq.trim_reads".to_string(),
-        stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
-        tool_ids: vec!["fastp".to_string(), "cutadapt".to_string()],
-        reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
-    }, ToolsetSelection {
-        stage_id: "fastq.filter_reads".to_string(),
-        stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
-        tool_ids: vec!["seqkit".to_string()],
-        reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
-    }];
+    let toolsets = vec![
+        ToolsetSelection {
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: Some("fastq.trim_reads.cleanup".to_string()),
+            tool_ids: vec!["fastp".to_string(), "cutadapt".to_string()],
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+        },
+        ToolsetSelection {
+            stage_id: "fastq.filter_reads".to_string(),
+            stage_instance_id: Some("fastq.filter_reads.selected".to_string()),
+            tool_ids: vec!["seqkit".to_string()],
+            reason: PlanDecisionReason::new(PlanReasonKind::Default, "test"),
+        },
+    ];
 
-    let (expanded_pipeline, expanded_selections) = expand_pipeline_stage_tool_routes(&pipeline, &toolsets)
-        .expect("planner-owned select nodes should collapse route context");
+    let (expanded_pipeline, expanded_selections) =
+        expand_pipeline_stage_tool_routes(&pipeline, &toolsets)
+            .expect("planner-owned select nodes should collapse route context");
 
     let select_nodes = expanded_pipeline
         .nodes
