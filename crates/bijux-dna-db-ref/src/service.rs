@@ -3,12 +3,12 @@ use std::sync::OnceLock;
 use anyhow::Result;
 
 use crate::{
-    ContigMap, GeneticMapBankEntry, MapCatalogEntry, OrganellarPolicy, PanelCatalogEntry,
-    ReferenceBankEntry, ReferenceBundle, ReferenceSet, SexChromosomeRule, SpeciesAuthorityEntry,
     resolve_contig_map, resolve_coverage_profile, resolve_default_reference_set,
     resolve_genetic_map_bank, resolve_map, resolve_organellar_policy, resolve_panel,
     resolve_reference_bank, resolve_reference_bundle, resolve_sex_chromosome_rule,
-    resolve_species_authority,
+    resolve_species_authority, ContigMap, GeneticMapBankEntry, MapCatalogEntry, OrganellarPolicy,
+    PanelCatalogEntry, ReferenceBankEntry, ReferenceBundle, ReferenceSet, SexChromosomeRule,
+    SpeciesAuthorityEntry,
 };
 
 pub trait RefService: Send + Sync {

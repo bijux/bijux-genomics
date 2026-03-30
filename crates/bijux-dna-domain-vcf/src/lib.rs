@@ -8,9 +8,7 @@ pub mod registry_emit;
 pub mod stage_baseline;
 pub mod taxonomy;
 
-pub use metrics::{
-    VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1,
-};
+pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
 pub use registry_emit::{param_registry_toml, required_tools_toml};
 pub use stage_baseline::{
     VcfInvariantsPreset, VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_PREFIX, STAGE_STATS,

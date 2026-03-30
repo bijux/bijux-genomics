@@ -42,9 +42,7 @@ pub(crate) fn default_tool(stage: VcfDomainStage, coverage: CoverageRegime) -> &
             CoverageRegime::LowCovGl => "glimpse",
             CoverageRegime::Pseudohaploid => "beagle",
         },
-        VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Roh => {
-            "plink2"
-        }
+        VcfDomainStage::PopulationStructure | VcfDomainStage::Pca | VcfDomainStage::Roh => "plink2",
         VcfDomainStage::Ibd => "germline",
         VcfDomainStage::Demography => "ibdne",
         _ => "bcftools",

@@ -1,11 +1,11 @@
 use bijux_dna_db_ref::{resolve_coverage_profile, resolve_reference_bundle};
 use bijux_dna_stage_contract::StagePlanV1;
 
+use crate::api::VcfPipelineInputs;
+use crate::chunk_plan::plan_region_chunks;
 use crate::coverage::{
     classify_coverage_regime, damage_aware_policy_for_regime, CoverageThresholds,
 };
-use crate::api::VcfPipelineInputs;
-use crate::chunk_plan::plan_region_chunks;
 use crate::explain_model::{PlannerExplainStage, PlannerExplainV1};
 use crate::reference_context::resolve_panel_lock;
 

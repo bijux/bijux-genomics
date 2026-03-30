@@ -1,8 +1,8 @@
-use anyhow::{Result, anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 
 use crate::config::{
-    BundlesConfig, GeneticMapBankConfig, OrganellarPolicyConfig, ReferenceBankConfig,
-    ReferenceSetConfig, load_toml, workspace_root,
+    load_toml, workspace_root, BundlesConfig, GeneticMapBankConfig, OrganellarPolicyConfig,
+    ReferenceBankConfig, ReferenceSetConfig,
 };
 use crate::{
     BundleEntry, ContigNormalizationPolicy, GeneticMapBankEntry, OrganellarPolicy,

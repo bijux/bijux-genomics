@@ -1,7 +1,7 @@
-use std::collections::BTreeSet;
 use anyhow::{anyhow, bail, Result};
 use bijux_dna_db_ref::ReferenceBundle;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
+use std::collections::BTreeSet;
 
 use crate::api::{ChunkPlanSettings, VcfPanelLock};
 use crate::chunk_plan::RegionChunkPlan;

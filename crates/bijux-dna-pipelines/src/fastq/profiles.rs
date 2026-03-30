@@ -1,8 +1,6 @@
 //! FASTQ pipeline profile definitions.
 
-use bijux_dna_core::ids::{
-    AssayKind, LibraryLayout, LibraryModel, PlatformHint, UdgTreatment,
-};
+use bijux_dna_core::ids::{AssayKind, LibraryLayout, LibraryModel, PlatformHint, UdgTreatment};
 use bijux_dna_core::prelude::id_catalog;
 
 use super::defaults::{

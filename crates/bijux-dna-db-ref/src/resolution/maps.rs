@@ -1,6 +1,6 @@
-use anyhow::{Result, anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 
-use crate::config::{MapLocksConfig, MapsConfig, load_toml, workspace_root};
+use crate::config::{load_toml, workspace_root, MapLocksConfig, MapsConfig};
 use crate::{MapCatalogEntry, MapLockEntry};
 
 /// # Errors
@@ -38,7 +38,9 @@ pub fn resolve_map_lock(map: &MapCatalogEntry) -> Result<MapLockEntry> {
         .get(key)
         .ok_or_else(|| anyhow!("map lock entry `{key}` not found in {}", path.display()))?
         .clone();
-    if entry.map_id != map.id || entry.species_id != map.species_id || entry.build_id != map.build_id
+    if entry.map_id != map.id
+        || entry.species_id != map.species_id
+        || entry.build_id != map.build_id
     {
         bail!("map lock entry does not match map identity {}", map.id);
     }

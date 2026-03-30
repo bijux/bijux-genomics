@@ -13,8 +13,6 @@ pub use decision::BenchmarkDecision;
 pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]
-pub use suite::{
-    BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec,
-};
+pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};
 #[allow(unused_imports)]
 pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};
