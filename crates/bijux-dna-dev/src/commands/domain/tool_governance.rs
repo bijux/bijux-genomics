@@ -1,12 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use toml::Value as TomlValue;
 
-use super::schema_policy::external_tools;
-use super::support::*;
 use super::load_toml;
+use super::schema_policy::external_tools;
+use super::domain_workflow::*;
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 
@@ -116,9 +116,7 @@ pub(super) fn check_shared_tools(workspace: &Workspace) -> Result<DomainCommandO
     failure_block("shared-tools check failed", errors)
 }
 
-pub(super) fn check_tool_container_parity(
-    workspace: &Workspace,
-) -> Result<DomainCommandOutcome> {
+pub(super) fn check_tool_container_parity(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let external = external_tools(workspace)?;
     let docker_tools = fs::read_dir(workspace.path("containers/docker/arm64"))
         .with_context(|| {

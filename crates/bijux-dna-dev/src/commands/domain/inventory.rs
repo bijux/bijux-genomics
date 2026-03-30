@@ -2,14 +2,14 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::PathBuf;
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::id_catalog;
 use serde::Serialize;
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
 use super::schema_policy::external_tools;
-use super::support::*;
+use super::domain_workflow::*;
 use super::{
     cargo_registry_list_stages, cargo_registry_list_tools, cargo_registry_stage_tools, toml_tools,
 };
@@ -117,7 +117,11 @@ fn render_inventory_markdown(rows: &[InventoryRow]) -> String {
 }
 
 fn yes_no(value: bool) -> &'static str {
-    if value { "yes" } else { "no" }
+    if value {
+        "yes"
+    } else {
+        "no"
+    }
 }
 
 pub(super) fn check_inventory(workspace: &Workspace) -> Result<DomainCommandOutcome> {

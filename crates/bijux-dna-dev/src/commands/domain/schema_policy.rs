@@ -2,11 +2,11 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
-use super::support::*;
+use super::domain_workflow::*;
 use super::{load_toml, toml_stages, toml_tools, tool_registry_files};
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
@@ -537,9 +537,7 @@ pub(super) fn external_tools(workspace: &Workspace) -> Result<BTreeSet<String>> 
         .unwrap_or_default())
 }
 
-pub(super) fn check_external_tool_policy(
-    workspace: &Workspace,
-) -> Result<DomainCommandOutcome> {
+pub(super) fn check_external_tool_policy(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let external = external_tools(workspace)?;
     let mut registry_tools = BTreeSet::new();
     for path in tool_registry_files(workspace) {

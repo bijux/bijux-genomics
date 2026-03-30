@@ -2,11 +2,11 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{anyhow, bail, Context, Result};
 use walkdir::WalkDir;
 
+use super::domain_workflow::*;
 use super::DOMAIN_INDEX_REGENERATE_PREFIX;
-use super::support::*;
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 
@@ -46,7 +46,10 @@ pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<St
     }
 
     let existing = read_utf8(&index_path)?;
-    let mut lines = existing.lines().map(ToString::to_string).collect::<Vec<_>>();
+    let mut lines = existing
+        .lines()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>();
     if lines
         .first()
         .is_some_and(|line| line == "# GENERATED FILE - DO NOT EDIT")
@@ -455,7 +458,10 @@ pub(super) fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandO
     failure_block("domain completeness check failed", errors)
 }
 
-pub(super) fn generate_index(workspace: &Workspace, args: &[String]) -> Result<DomainCommandOutcome> {
+pub(super) fn generate_index(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<DomainCommandOutcome> {
     if args.len() != 1 {
         return Ok(DomainCommandOutcome {
             exit_code: 2,
