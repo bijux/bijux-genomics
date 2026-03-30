@@ -15,9 +15,8 @@ fn fixture_root() -> PathBuf {
 }
 
 fn analyze_report_fixture() -> PathBuf {
-    crate::support::repo_root()
-        .unwrap_or_else(|err| panic!("resolve repo root: {err}"))
-        .join("bijux-dna-analyze")
+    crate::support::crate_root("bijux-dna-analyze")
+        .unwrap_or_else(|err| panic!("resolve analyze crate root: {err}"))
         .join("tests")
         .join("fixtures")
         .join("pipelines")
