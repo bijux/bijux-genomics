@@ -4,7 +4,6 @@
 pub mod build;
 pub mod resolve;
 pub mod runtime_spec;
+mod surface;
 
-pub mod api {
-    pub use crate::resolve::*;
-}
+pub use surface::api;
