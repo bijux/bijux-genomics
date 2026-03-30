@@ -29,6 +29,43 @@ fn contains_tool_id_token(content: &str, tool_id: &str) -> bool {
         .is_match(content)
 }
 
+fn strip_rust_test_modules(raw: &str) -> String {
+    let mut lines = Vec::new();
+    let mut awaiting_test_module = false;
+    let mut skip_depth: usize = 0;
+
+    for raw_line in raw.lines() {
+        let trimmed = raw_line.trim();
+        if skip_depth > 0 {
+            skip_depth = skip_depth
+                .saturating_add(raw_line.matches('{').count())
+                .saturating_sub(raw_line.matches('}').count());
+            continue;
+        }
+        if trimmed == "#[cfg(test)]" {
+            awaiting_test_module = true;
+            continue;
+        }
+        if awaiting_test_module {
+            if trimmed.is_empty() || trimmed.starts_with("#[") {
+                continue;
+            }
+            if trimmed.starts_with("mod ") && raw_line.contains('{') {
+                skip_depth = raw_line
+                    .matches('{')
+                    .count()
+                    .saturating_sub(raw_line.matches('}').count());
+                awaiting_test_module = false;
+                continue;
+            }
+            awaiting_test_module = false;
+        }
+        lines.push(raw_line);
+    }
+
+    lines.join("\n")
+}
+
 #[test]
 fn policy__boundaries__purity_scans__engine_has_no_domain_strings() {
     let root = repo_root();
@@ -43,7 +80,7 @@ fn policy__boundaries__purity_scans__engine_has_no_domain_strings() {
         "tool_registry",
     ];
     for file in collect_rs_files(&root.join("crates/bijux-dna-engine/src")) {
-        let content = std::fs::read_to_string(&file).expect("read source");
+        let content = strip_rust_test_modules(&std::fs::read_to_string(&file).expect("read source"));
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(file.display().to_string());
         }
@@ -69,7 +106,7 @@ fn policy__boundaries__purity_scans__runner_has_no_domain_strings() {
         "tool_registry",
     ];
     for file in collect_rs_files(&root.join("crates/bijux-dna-runner/src")) {
-        let content = std::fs::read_to_string(&file).expect("read source");
+        let content = strip_rust_test_modules(&std::fs::read_to_string(&file).expect("read source"));
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(file.display().to_string());
         }
