@@ -14,7 +14,7 @@ mod entrypoint;
 mod models;
 mod remediation;
 mod results_status;
-mod support;
+mod publication_io;
 
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_publication_contracts, benchmark_publication_exclusions,
@@ -55,7 +55,7 @@ use self::results_status::write_corpus_fastq_results_status;
 use self::results_status::{
     audit_published_results, audit_published_results_stage, render_published_results_markdown,
 };
-use self::support::{
+use self::publication_io::{
     absolutize, classify_run_root_source, configured_stage_run_roots, csv_report_value,
     csv_required_value, csv_value, find_polluting_ds_store_files, json_string_array, load_csv_rows,
     load_json_value, localize_results_path, observed_tools_from_report,
