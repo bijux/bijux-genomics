@@ -4,7 +4,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "param_hashes": {
-    "fastq.correct_errors": "98a9219248337eaadf546bc2b8c2d040167f833b6fea21ad913c2c426ad88ccb",
+    "fastq.correct_errors": "8b91ff3d4c5d2d832b8c03c18b098f38e33204824dc04b3665b35a379dddc5df",
     "fastq.detect_adapters": "686a4bd9ef18c0738f3030d5b56d85f59eeb02f273864e92eab4b7c3c3d88c45",
     "fastq.extract_umis": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
     "fastq.filter_low_complexity": "9f87c0a7b5bd23cfe60b142cce2543a36e028dc02c5b5353d6c7971772c4eb50",
