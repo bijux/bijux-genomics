@@ -16,35 +16,13 @@ use crate::stages::ids::{
 };
 use bijux_dna_core::ids::StageId;
 
-#[path = "processing/correct.rs"]
-pub mod correct;
 pub mod defaults;
-#[path = "quality/detect_adapters.rs"]
-pub mod detect_adapters;
-#[path = "edna/edna.rs"]
 pub mod edna;
-#[path = "quality/filter.rs"]
-pub mod filter;
-#[path = "processing/merge.rs"]
-pub mod merge;
-#[path = "processing/preprocess.rs"]
-pub mod preprocess;
-#[path = "quality/qc_post.rs"]
-pub mod qc_post;
-#[path = "processing/reference_index.rs"]
-pub mod reference_index;
-#[path = "processing/remove_duplicates.rs"]
-pub mod remove_duplicates;
-#[path = "quality/screen.rs"]
-pub mod screen;
-#[path = "quality/stats.rs"]
-pub mod stats;
-#[path = "quality/trim.rs"]
-pub mod trim;
-#[path = "processing/umi.rs"]
-pub mod umi;
-#[path = "quality/validate.rs"]
-pub mod validate;
+pub mod processing;
+pub mod quality;
+
+pub use processing::{correct, merge, preprocess, reference_index, remove_duplicates, umi};
+pub use quality::{detect_adapters, filter, qc_post, screen, stats, trim, validate};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StageParamDescriptor {
