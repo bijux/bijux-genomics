@@ -170,9 +170,15 @@ fn write_sidecars(
         )
         .as_bytes(),
     )?;
-    atomic_write_bytes(&out_dir.join("stdout.log"), b"captured-by-dispatch-runner\n")?;
+    atomic_write_bytes(
+        &out_dir.join("stdout.log"),
+        b"captured-by-dispatch-runner\n",
+    )?;
     atomic_write_bytes(&out_dir.join("stderr.log"), b"")?;
-    atomic_write_bytes(&chunk_logs_dir.join("command.txt"), command_payload.as_bytes())?;
+    atomic_write_bytes(
+        &chunk_logs_dir.join("command.txt"),
+        command_payload.as_bytes(),
+    )?;
     atomic_write_bytes(
         &chunk_logs_dir.join("stdout.log"),
         b"captured-by-dispatch-runner\n",
@@ -269,7 +275,10 @@ pub(crate) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
                 container_ref.as_deref().unwrap_or("registry_lock"),
                 version.as_deref().unwrap_or("planned")
             );
-            Some(format!("sha256:{}", stage_checksum_hex(digest_source.as_bytes())))
+            Some(format!(
+                "sha256:{}",
+                stage_checksum_hex(digest_source.as_bytes())
+            ))
         };
         for line in raw.lines() {
             let trimmed = line.trim();
