@@ -1,0 +1,87 @@
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+use crate::params::PairedMode;
+
+pub const EXTRACT_UMIS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.extract_umis.report.v2";
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct ExtractUmisReportV1 {
+    pub schema_version: String,
+    pub stage: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub paired_mode: PairedMode,
+    pub threads: u32,
+    pub umi_pattern: String,
+    pub input_r1: String,
+    pub input_r2: Option<String>,
+    pub output_r1: String,
+    pub output_r2: Option<String>,
+    pub report_json: String,
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    pub pairs_in: Option<u64>,
+    pub pairs_out: Option<u64>,
+    pub reads_with_umi: u64,
+    pub mean_q_before: f64,
+    pub mean_q_after: f64,
+    pub runtime_s: Option<f64>,
+    pub memory_mb: Option<f64>,
+    pub exit_code: Option<i32>,
+    pub raw_backend_report: Option<String>,
+    pub raw_backend_report_format: Option<String>,
+    pub backend_metrics: Option<serde_json::Value>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
+    use crate::params::PairedMode;
+
+    #[test]
+    fn extract_umis_report_contract_round_trips() {
+        let report = ExtractUmisReportV1 {
+            schema_version: EXTRACT_UMIS_REPORT_SCHEMA_VERSION.to_string(),
+            stage: "fastq.extract_umis".to_string(),
+            stage_id: "fastq.extract_umis".to_string(),
+            tool_id: "umi_tools".to_string(),
+            paired_mode: PairedMode::PairedEnd,
+            threads: 2,
+            umi_pattern: "NNNNNNNN".to_string(),
+            input_r1: "reads_R1.fastq.gz".to_string(),
+            input_r2: Some("reads_R2.fastq.gz".to_string()),
+            output_r1: "umi_reads_R1.fastq.gz".to_string(),
+            output_r2: Some("umi_reads_R2.fastq.gz".to_string()),
+            report_json: "umi_report.json".to_string(),
+            reads_in: 200,
+            reads_out: 200,
+            bases_in: 20_000,
+            bases_out: 20_000,
+            pairs_in: Some(100),
+            pairs_out: Some(100),
+            reads_with_umi: 200,
+            mean_q_before: 30.0,
+            mean_q_after: 30.0,
+            runtime_s: Some(1.4),
+            memory_mb: Some(64.0),
+            exit_code: Some(0),
+            raw_backend_report: Some("umi_tools.extract.log".to_string()),
+            raw_backend_report_format: Some("umi_tools_log".to_string()),
+            backend_metrics: Some(serde_json::json!({
+                "reads_with_umi_fraction": 1.0,
+            })),
+        };
+
+        let encoded =
+            serde_json::to_string(&report).unwrap_or_else(|err| panic!("serialize failed: {err}"));
+        let decoded: ExtractUmisReportV1 = serde_json::from_str(&encoded)
+            .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
+        assert_eq!(decoded.tool_id, "umi_tools");
+        assert_eq!(decoded.umi_pattern, "NNNNNNNN");
+        assert_eq!(decoded.reads_with_umi, 200);
+    }
+}
