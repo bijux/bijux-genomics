@@ -3,7 +3,7 @@ use reqwest::blocking::Client;
 use std::collections::HashMap;
 use thiserror::Error;
 
-const ENA_API_BASE: &str = "https://www.ebi.ac.uk/ena/portal/api/filereport";
+mod request;
 
 #[derive(Debug, Error)]
 pub enum EnaClientError {
@@ -32,7 +32,7 @@ impl EnaClient {
         let accessions = query.normalized_accessions();
         let mut out = Vec::new();
         for accession in accessions {
-            let url = build_filereport_url(&accession, query.result);
+            let url = request::build_filereport_url(&accession, query.result);
             let body = self.http.get(url).send()?.error_for_status()?.text()?;
             out.extend(parse_filereport_tsv(&body, query));
         }
@@ -42,46 +42,7 @@ impl EnaClient {
 
 #[must_use]
 pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
-    let fields = filereport_fields(result).join(",");
-
-    format!(
-        "{ENA_API_BASE}?accession={accession}&result={}&fields={fields}&format=tsv&download=true&limit=0",
-        result.as_api_value()
-    )
-}
-
-fn filereport_fields(result: EnaResultKind) -> &'static [&'static str] {
-    match result {
-        EnaResultKind::ReadRun => &[
-            "study_accession",
-            "sample_accession",
-            "experiment_accession",
-            "run_accession",
-            "tax_id",
-            "scientific_name",
-            "library_layout",
-            "library_source",
-            "library_strategy",
-            "instrument_model",
-            "base_count",
-            "read_count",
-            "fastq_bytes",
-            "fastq_ftp",
-            "submitted_ftp",
-            "sra_ftp",
-        ],
-        EnaResultKind::Analysis => &[
-            "study_accession",
-            "sample_accession",
-            "experiment_accession",
-            "analysis_accession",
-            "analysis_type",
-            "tax_id",
-            "scientific_name",
-            "submitted_ftp",
-            "bam_ftp",
-        ],
-    }
+    request::build_filereport_url(accession, result)
 }
 
 #[must_use]
