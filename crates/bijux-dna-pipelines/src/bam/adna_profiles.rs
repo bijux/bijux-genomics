@@ -1,12 +1,12 @@
 //! Ancient DNA BAM profile definitions.
 
-use bijux_dna_core::ids::{
-    AssayKind, LibraryLayout, LibraryModel, PlatformHint, UdgTreatment,
-};
+use bijux_dna_core::ids::{AssayKind, LibraryLayout, LibraryModel, PlatformHint, UdgTreatment};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{adna_capture_params_json, adna_shotgun_params_json};
 
-use super::support::{catalog_bam_stages, defaults_for, filter_downstream, to_effective_defaults};
+use super::profile_defaults::{
+    catalog_bam_stages, defaults_for, filter_downstream, to_effective_defaults,
+};
 use crate::{
     ArtifactType, Domain, InvariantsPreset, MetricsBundle, PipelineCapabilities, PipelineId,
     PipelineProfile, ReportSection, StabilityTier,

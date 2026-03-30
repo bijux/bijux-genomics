@@ -5,7 +5,7 @@ mod baseline_profiles;
 mod invariants;
 mod profile_invariants;
 mod profiles;
-mod support;
+mod profile_defaults;
 
 pub use invariants::{adna_invariants, DamageExpectation, DamageExpectationModel};
 pub use profile_invariants::{
