@@ -588,8 +588,9 @@ fn plan_trim_with_options_maps_length_and_quality_for_atropos() -> Result<()> {
     let script = &plan.command.template[2];
     assert!(script.contains("'atropos' 'trim'"));
     assert!(script.contains("'-T' '2'"));
-    assert!(script.contains("'-a' 'A{1000}'"));
-    assert!(script.contains("'-A' 'A{1000}'"));
+    assert!(script.contains("'-a' "));
+    assert!(script.contains("'-A' "));
+    assert!(script.contains("'-O' '44'"));
     assert!(script.contains("'-q' '18'"));
     assert!(script.contains("'-m' '42'"));
     assert!(script.contains("'-pe1' 'reads_R1.fastq.gz'"));

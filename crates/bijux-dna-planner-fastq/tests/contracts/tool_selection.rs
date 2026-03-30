@@ -57,11 +57,15 @@ fn correct_errors_planning_accepts_closed_backends() {
         },
     };
 
-    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct(
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::correct_errors::plan_correct_with_options(
         &tool,
         std::path::Path::new("reads_R1.fastq.gz"),
         Some(std::path::Path::new("reads_R2.fastq.gz")),
         std::path::Path::new("out"),
+        &bijux_dna_planner_fastq::CorrectErrorsStageParams {
+            musket_kmer_budget: Some(536_870_912),
+            ..bijux_dna_planner_fastq::CorrectErrorsStageParams::baseline()
+        },
     )
     .expect("planner must accept correction tools that are closed in domain execution support");
     assert_eq!(plan.tool_id.as_str(), "musket");
@@ -69,6 +73,7 @@ fn correct_errors_planning_accepts_closed_backends() {
     assert_eq!(plan.command.template[1], "-lc");
     let script = &plan.command.template[2];
     assert!(script.contains("musket -p"));
+    assert!(script.contains("536870912"));
     assert!(script.contains("correct_report.json"));
     assert!(script.contains("\"tool_id\":\"musket\""));
     assert!(script.contains("\"correction_engine\":\"musket\""));
