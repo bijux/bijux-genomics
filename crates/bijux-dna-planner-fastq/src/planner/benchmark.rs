@@ -6,12 +6,11 @@ pub(super) fn project_benchmark_stage_params_for_tool(
     params: Option<&FastqStageParameters>,
 ) -> Option<FastqStageParameters> {
     match (stage_id.as_str(), params) {
-        (
-            "fastq.correct_errors",
-            Some(FastqStageParameters::CorrectErrors(params)),
-        ) => Some(FastqStageParameters::CorrectErrors(
-            project_correct_errors_params_for_tool(tool_id.as_str(), params),
-        )),
+        ("fastq.correct_errors", Some(FastqStageParameters::CorrectErrors(params))) => {
+            Some(FastqStageParameters::CorrectErrors(
+                project_correct_errors_params_for_tool(tool_id.as_str(), params),
+            ))
+        }
         (_, Some(params)) => Some(params.clone()),
         (_, None) => None,
     }
@@ -429,7 +428,9 @@ fn plan_originates_from_toolset(plan: &StagePlanV1, toolset: &FastqStageToolsetB
 
 fn compare_context_key_for_plan(plan: &StagePlanV1, stage_node_id: &str) -> String {
     let Some(assignments) = expanded_route_assignments(
-        plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        plan.stage_instance_id
+            .as_ref()
+            .map(|step_id| step_id.as_str()),
     ) else {
         return String::new();
     };
