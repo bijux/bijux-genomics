@@ -1,6 +1,3 @@
-use bijux_dna_runtime::{
-    attrs_from_json, build_telemetry_adapter, TelemetryEventName, TelemetryEventV1,
-};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
 use crate::{execution_kernel, execution_kernel::NetworkPolicy};
@@ -23,6 +20,9 @@ use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_runtime::recording::run_artifacts_dir_for_out;
 use bijux_dna_runtime::recording::write_telemetry_event;
+use bijux_dna_runtime::{
+    attrs_from_json, build_telemetry_adapter, TelemetryEventName, TelemetryEventV1,
+};
 
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::summary::{
@@ -46,20 +46,28 @@ mod amplicon_runtime;
 mod coverage_regime;
 mod invariants;
 mod runtime_tail;
-mod stage_contracts;
 mod stage_artifacts;
 mod stage_backend_policy;
+mod stage_contracts;
 
 pub(crate) use self::amplicon_governance::resolve_primer_set_governance;
 pub use self::runtime_tail::{bench_fastq_preprocess, fastq_preprocess_run};
 
-use self::amplicon_governance::*;
-use self::amplicon_runtime::*;
-use self::coverage_regime::*;
-use self::invariants::*;
-use self::stage_contracts::*;
-use self::stage_artifacts::*;
-use self::stage_backend_policy::*;
+use self::amplicon_governance::{
+    enforce_amplicon_merge_determinism, enforce_primer_governance, write_batch_effect_summary,
+    write_contamination_controls_report, write_edna_report_summary,
+    write_reference_db_validation_artifact,
+};
+use self::amplicon_runtime::{enforce_amplicon_qc_thresholds, materialize_amplicon_stage_outputs};
+use self::coverage_regime::maybe_write_fastq_coverage_classifier;
+use self::invariants::{open_fastq_lines, write_fastq_entry_invariants, FastqInvariantsReport};
+use self::stage_artifacts::{emit_fastq_stage_extra_artifacts, write_stage_standardized_metrics};
+use self::stage_backend_policy::{
+    canonical_sample_identity, classify_failure_hint, enforce_fastq_backend_allowlist,
+    enforce_metrics_schema, enforce_screen_db_governance, parse_first_u64_after_key,
+    required_fastq_tools, stage_network_policy, write_retention_report, write_retry_policy,
+};
+use self::stage_contracts::{capture_tool_version, write_stage_path_contract};
 
 use std::io::Read;
 

@@ -62,6 +62,7 @@ fn relative_path_string(base: &Path, path: &Path) -> String {
         .to_string()
 }
 
+#[allow(clippy::too_many_lines)]
 fn run_provenance_from_stage_runs(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],

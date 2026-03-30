@@ -42,6 +42,7 @@ use super::trim_bench_common::{benchmark_image_identity, build_benchmark_context
 
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -273,6 +274,7 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
     })
 }
 
+#[allow(clippy::too_many_lines)]
 fn build_screen_record(
     platform: &PlatformSpec,
     bench_inputs: &ScreenBenchInputs,

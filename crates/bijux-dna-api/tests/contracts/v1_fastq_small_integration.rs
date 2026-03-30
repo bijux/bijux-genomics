@@ -5,11 +5,8 @@ use regex::Regex;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-#[path = "../support.rs"]
-mod support;
-
 fn repo_root() -> Result<PathBuf> {
-    support::repo_root().map_err(|err| anyhow!("workspace root not found: {err}"))
+    crate::support::repo_root().map_err(|err| anyhow!("workspace root not found: {err}"))
 }
 
 fn golden_fastq_toy_dir() -> Result<PathBuf> {
@@ -28,7 +25,10 @@ fn fastq_small_pipeline_emits_multi_stage_manifest() -> Result<()> {
         manifest
             .get("profile_id")
             .and_then(serde_json::Value::as_str)
-            .unwrap_or_else(|| panic!("manifest missing string profile_id: {}", manifest_path.display())),
+            .unwrap_or_else(|| panic!(
+                "manifest missing string profile_id: {}",
+                manifest_path.display()
+            )),
         "fastq_reference_adna"
     );
     let checksums: serde_json::Value =

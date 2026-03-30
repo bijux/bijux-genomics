@@ -23,6 +23,7 @@ use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 
 /// # Errors
 /// Returns an error if pipeline planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
@@ -189,7 +190,12 @@ fn require_alignment_boundary_outputs(
         .find(|entry| entry.plan.step_id.as_str() == BamStage::Align.as_str())
         .ok_or_else(|| anyhow!("cross-domain alignment boundary requires bam.align outputs"))?;
     Ok((
-        align_run.plan.out_dir.join("align.bam").display().to_string(),
+        align_run
+            .plan
+            .out_dir
+            .join("align.bam")
+            .display()
+            .to_string(),
         align_run
             .plan
             .out_dir
@@ -252,9 +258,7 @@ fn alignment_meta_value(args: &FastqCrossArgs, key: &str) -> Option<String> {
 
 fn required_alignment_meta_value(args: &FastqCrossArgs, key: &str) -> Result<String> {
     alignment_meta_value(args, key).ok_or_else(|| {
-        anyhow!(
-            "--alignment-reference not provided and alignment_meta is missing {key}=<value>"
-        )
+        anyhow!("--alignment-reference not provided and alignment_meta is missing {key}=<value>")
     })
 }
 
@@ -274,6 +278,7 @@ fn resolve_alignment_reference(args: &FastqCrossArgs) -> Result<std::path::PathB
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::required_alignment_meta_value;
     use crate::request_args::FastqCrossArgs;

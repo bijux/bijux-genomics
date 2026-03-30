@@ -33,6 +33,7 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 ///
 /// # Errors
 /// Returns an error if planning, execution, indexing, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -160,6 +161,7 @@ pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_index_reference_record(
     platform: &PlatformSpec,
     runner: RuntimeKind,
@@ -258,6 +260,7 @@ fn collect_index_reference_files(index_root: &std::path::Path) -> Vec<IndexRefer
     files
 }
 
+#[allow(clippy::too_many_arguments)]
 fn canonical_index_reference_report(
     tool_id: &str,
     params: &serde_json::Value,

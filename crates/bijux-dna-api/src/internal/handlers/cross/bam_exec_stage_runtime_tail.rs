@@ -98,6 +98,7 @@ fn write_duplicate_policy_split(
     .with_context(|| format!("write {}", path.display()))
 }
 
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
@@ -227,6 +228,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     Ok(StageExecutionSummary { plan: step, result })
 }
 
+#[allow(clippy::too_many_lines)]
 pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,

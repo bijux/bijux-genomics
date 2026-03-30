@@ -97,6 +97,7 @@ impl ToolExec {
 
 /// # Errors
 /// Returns an error if path contracts fail, tool execution fails, or artifacts cannot be written.
+#[allow(clippy::too_many_lines)]
 pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> {
     enforce_path_contracts(req)?;
     require_pinned_digest(&req.step)?;

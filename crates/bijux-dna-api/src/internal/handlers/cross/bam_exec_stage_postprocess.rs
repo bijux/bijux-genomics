@@ -1,3 +1,4 @@
+#[allow(clippy::too_many_lines)]
 fn stage_postprocess(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
     stage_dir: &Path,

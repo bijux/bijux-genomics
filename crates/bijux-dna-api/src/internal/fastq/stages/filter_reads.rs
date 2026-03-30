@@ -41,6 +41,7 @@ fn apply_thread_override(
 
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -216,6 +217,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     })
 }
 
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 fn build_filter_record<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -377,7 +379,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let context = build_benchmark_context(
         tool,
         tool_spec.tool_version.clone(),
-        benchmark_image_identity(&tool_spec),
+        benchmark_image_identity(tool_spec),
         bench_inputs.runner,
         platform,
         input_hash.to_string(),

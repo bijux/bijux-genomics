@@ -1,3 +1,5 @@
+#![allow(clippy::wildcard_imports)]
+
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Context, Result};
@@ -26,6 +28,7 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
 ///
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -408,7 +411,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             .first()
             .map(String::as_str)
             .filter(|value| !value.trim().is_empty())
-            .ok_or_else(|| anyhow!("stage `{stage_id}` is missing a declared command entrypoint"))?;
+            .ok_or_else(|| {
+                anyhow!("stage `{stage_id}` is missing a declared command entrypoint")
+            })?;
         enforce_stage_applicability(planned, args, contaminant_bank.as_ref())?;
         enforce_fastq_backend_allowlist(&stage_id, tool_id)?;
         if !required_tools.contains(tool_id) {
@@ -563,11 +568,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
             capture_tool_version(
                 &stage_root,
-                planned
-                    .command
-                    .template
-                    .first()
-                    .map(String::as_str),
+                planned.command.template.first().map(String::as_str),
             )?;
             write_stage_standardized_metrics(
                 &stage_root,
@@ -728,7 +729,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let run_id = stage_runs
             .first()
             .map(|entry| entry.result.run_id.clone())
-            .ok_or_else(|| anyhow!("preprocess telemetry requires at least one recorded stage run"))?;
+            .ok_or_else(|| {
+                anyhow!("preprocess telemetry requires at least one recorded stage run")
+            })?;
         let telemetry_path = run_artifacts_dir_for_out(&out_dir)
             .join("telemetry")
             .join("events.jsonl");
@@ -788,11 +791,10 @@ fn report_qc_aux_tool_ids(
         .into_iter()
         .filter(|node| node.stage_id == STAGE_REPORT_QC.as_str())
         .flat_map(|report_node| {
-            let report_node_id =
-                bijux_dna_core::contract::PipelineSpec::stage_node_id(
-                    &report_node.stage_id,
-                    report_node.stage_instance_id.as_deref(),
-                );
+            let report_node_id = bijux_dna_core::contract::PipelineSpec::stage_node_id(
+                &report_node.stage_id,
+                report_node.stage_instance_id.as_deref(),
+            );
             pipeline
                 .edges
                 .iter()
@@ -804,11 +806,10 @@ fn report_qc_aux_tool_ids(
     let mut tool_ids = selected_stage_tools
         .iter()
         .filter_map(|selection| {
-            let node_id =
-                bijux_dna_core::contract::PipelineSpec::stage_node_id(
-                    &selection.stage_id,
-                    selection.stage_instance_id.as_deref(),
-                );
+            let node_id = bijux_dna_core::contract::PipelineSpec::stage_node_id(
+                &selection.stage_id,
+                selection.stage_instance_id.as_deref(),
+            );
             contributor_node_ids
                 .contains(node_id.as_str())
                 .then(|| selection.tool_id.clone())
@@ -927,6 +928,7 @@ fn planner_selection_surfaces(
         .collect::<Vec<_>>()
 }
 
+#[allow(clippy::too_many_lines)]
 fn execute_preprocess_batch(
     batch: &[ExecutionStep],
     runner: RuntimeKind,
@@ -1396,26 +1398,29 @@ mod pipeline_run_tests {
                 },
             ],
         );
-        let tool_ids = report_qc_aux_tool_ids(&pipeline, &[
-            StageToolSelection {
-                stage_id: "fastq.validate_reads".to_string(),
-                stage_instance_id: Some("fastq.validate_reads.validation".to_string()),
-                tool_id: "fastqvalidator".to_string(),
-                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
-            },
-            StageToolSelection {
-                stage_id: "fastq.trim_reads".to_string(),
-                stage_instance_id: Some("fastq.trim_reads.trim.fastp".to_string()),
-                tool_id: "fastp".to_string(),
-                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
-            },
-            StageToolSelection {
-                stage_id: "fastq.report_qc".to_string(),
-                stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
-                tool_id: "multiqc".to_string(),
-                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
-            },
-        ]);
+        let tool_ids = report_qc_aux_tool_ids(
+            &pipeline,
+            &[
+                StageToolSelection {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    stage_instance_id: Some("fastq.validate_reads.validation".to_string()),
+                    tool_id: "fastqvalidator".to_string(),
+                    reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+                },
+                StageToolSelection {
+                    stage_id: "fastq.trim_reads".to_string(),
+                    stage_instance_id: Some("fastq.trim_reads.trim.fastp".to_string()),
+                    tool_id: "fastp".to_string(),
+                    reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+                },
+                StageToolSelection {
+                    stage_id: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    tool_id: "multiqc".to_string(),
+                    reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+                },
+            ],
+        );
 
         assert_eq!(
             tool_ids,
@@ -1438,20 +1443,23 @@ mod pipeline_run_tests {
             ],
             Vec::new(),
         );
-        let tool_ids = report_qc_aux_tool_ids(&pipeline, &[
-            StageToolSelection {
-                stage_id: "fastq.index_reference".to_string(),
-                stage_instance_id: Some("fastq.index_reference.reference".to_string()),
-                tool_id: "bwa".to_string(),
-                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
-            },
-            StageToolSelection {
-                stage_id: "fastq.report_qc".to_string(),
-                stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
-                tool_id: "multiqc".to_string(),
-                reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
-            },
-        ]);
+        let tool_ids = report_qc_aux_tool_ids(
+            &pipeline,
+            &[
+                StageToolSelection {
+                    stage_id: "fastq.index_reference".to_string(),
+                    stage_instance_id: Some("fastq.index_reference.reference".to_string()),
+                    tool_id: "bwa".to_string(),
+                    reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+                },
+                StageToolSelection {
+                    stage_id: "fastq.report_qc".to_string(),
+                    stage_instance_id: Some("fastq.report_qc.aggregate".to_string()),
+                    tool_id: "multiqc".to_string(),
+                    reason: PlanDecisionReason::new(PlanReasonKind::Default, "governed"),
+                },
+            ],
+        );
 
         assert!(tool_ids.is_empty());
     }

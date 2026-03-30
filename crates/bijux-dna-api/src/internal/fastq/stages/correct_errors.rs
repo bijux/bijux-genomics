@@ -78,6 +78,7 @@ fn parse_quality_encoding(
 
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -485,6 +486,7 @@ fn decode_effective_correct_params(
     serde_json::from_value(effective_params.clone()).context("decode effective correction params")
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_correction_report(
     tool: &str,
     input_r1: &Path,

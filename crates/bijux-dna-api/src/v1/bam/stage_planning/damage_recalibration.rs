@@ -7,6 +7,7 @@ use super::{
     StagePlanV1, ToolExecutionSpecV1,
 };
 
+#[allow(clippy::too_many_lines)]
 pub(super) fn plan_damage_recalibration_stage(
     stage: BamStage,
     spec: &ToolExecutionSpecV1,

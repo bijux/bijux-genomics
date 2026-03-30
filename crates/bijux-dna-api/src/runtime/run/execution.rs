@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::execution_support::{maybe_emit_reference_manifest, resolve_and_write_regime_stamp};
 use super::{
     anyhow, enforce_hpc_results_layout, ensure_stage_supported_by_runner, file_len_i64,
@@ -21,6 +23,7 @@ fn common_input_root(paths: &[PathBuf]) -> Option<PathBuf> {
 
 /// # Errors
 /// Returns an error if execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let runner_contract = match request.runner {
         bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,
@@ -218,8 +221,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
                 path
             } else {
                 path.parent()
-                    .map(Path::to_path_buf)
-                    .unwrap_or_else(|| path.clone())
+                    .map_or_else(|| path.clone(), Path::to_path_buf)
             }
         })
         .collect::<Vec<_>>();

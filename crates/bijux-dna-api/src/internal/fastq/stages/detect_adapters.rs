@@ -37,6 +37,7 @@ use bijux_dna_runner::step_runner::StageResultV1;
 
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -186,6 +187,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_detect_record(
     platform: &PlatformSpec,
     bench_inputs: &crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs,
@@ -228,7 +230,7 @@ fn build_detect_record(
     let context = build_benchmark_context(
         tool,
         tool_spec.tool_version.clone(),
-        benchmark_image_identity(&tool_spec),
+        benchmark_image_identity(tool_spec),
         bench_inputs.runner,
         platform,
         input_hash.to_string(),

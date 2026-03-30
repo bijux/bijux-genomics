@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for schemas
+#[path = "support.rs"]
+mod support;
 #[path = "schemas/v1_cross_api_stability.rs"]
 mod mod_schemas_v1_cross_api_stability_rs;
 #[path = "schemas/v1_cross_contract_handshake.rs"]

@@ -45,6 +45,7 @@ fn apply_thread_override(
 
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -184,6 +185,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_umi_record<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -264,6 +266,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     Ok(record)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_umi_report(
     tool: &str,
     threads: u32,

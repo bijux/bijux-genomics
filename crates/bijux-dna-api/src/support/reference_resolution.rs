@@ -27,7 +27,9 @@ impl ReferenceResolver for LocalReferenceResolver {
         } else {
             std::env::var("BIJUX_REFERENCE_ROOT")
                 .map(PathBuf::from)
-                .map_err(|_| anyhow!("BIJUX_REFERENCE_ROOT must be declared for local reference resolution"))?
+                .map_err(|_| {
+                    anyhow!("BIJUX_REFERENCE_ROOT must be declared for local reference resolution")
+                })?
         };
         let fasta = root.join(species_id).join(build_id).join("reference.fa");
         if !fasta.exists() {
@@ -43,6 +45,7 @@ impl ReferenceResolver for LocalReferenceResolver {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{LocalReferenceResolver, ReferenceResolver};
 

@@ -1,3 +1,18 @@
+#![allow(clippy::too_many_lines)]
+
+use super::stage_backend_policy::{
+    parse_cluster_otus_metrics, parse_correct_errors_metrics, parse_deplete_host_metrics,
+    parse_deplete_reference_contaminants_metrics, parse_deplete_rrna_metrics,
+    parse_detect_adapters_metrics, parse_extract_umis_metrics, parse_filter_low_complexity_metrics,
+    parse_filter_reads_metrics, parse_index_reference_metrics, parse_infer_asvs_metrics,
+    parse_merge_pairs_metrics, parse_normalize_abundance_metrics, parse_normalize_primers_metrics,
+    parse_profile_overrepresented_metrics, parse_profile_read_lengths_metrics,
+    parse_profile_reads_metrics, parse_remove_chimeras_metrics, parse_remove_duplicates_metrics,
+    parse_report_qc_metrics, parse_screen_taxonomy_metrics, parse_trim_polyg_metrics,
+    parse_trim_reads_metrics, parse_trim_terminal_damage_metrics, parse_validate_reads_metrics,
+};
+use super::{Context, Result, StageResultV1};
+
 pub(super) fn emit_fastq_stage_extra_artifacts(
     stage_root: &std::path::Path,
     stage_id: &str,
@@ -55,7 +70,9 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let report_path = execution
                 .outputs
                 .iter()
-                .find(|path| path.file_name().and_then(|name| name.to_str()) == Some("filter_report.json"))
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str()) == Some("filter_report.json")
+                })
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("filter_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
@@ -90,7 +107,9 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
             let report_path = execution
                 .outputs
                 .iter()
-                .find(|path| path.file_name().and_then(|name| name.to_str()) == Some("correct_report.json"))
+                .find(|path| {
+                    path.file_name().and_then(|name| name.to_str()) == Some("correct_report.json")
+                })
                 .cloned()
                 .unwrap_or_else(|| stage_root.join("correct_report.json"));
             let governed = std::fs::read_to_string(&report_path).ok().and_then(|raw| {
@@ -1032,10 +1051,14 @@ mod stage_artifact_tests {
             &host_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.extra.json"),
+        )?)?;
         assert_eq!(extra["tool"], serde_json::json!("bowtie2"));
-        assert_eq!(extra["reference_catalog_id"], serde_json::json!("host_reference"));
+        assert_eq!(
+            extra["reference_catalog_id"],
+            serde_json::json!("host_reference")
+        );
         assert_eq!(extra["reads_removed"], serde_json::json!(30));
         assert_eq!(extra["host_fraction_removed"], serde_json::json!(0.30));
         Ok(())
@@ -1045,10 +1068,15 @@ mod stage_artifact_tests {
     fn merge_pairs_extra_artifacts_prefer_governed_report() -> Result<()> {
         let temp = tempfile::tempdir()?;
         write_merge_report(temp.path())?;
-        emit_fastq_stage_extra_artifacts(temp.path(), "fastq.merge_pairs", &merge_execution(temp.path()))?;
+        emit_fastq_stage_extra_artifacts(
+            temp.path(),
+            "fastq.merge_pairs",
+            &merge_execution(temp.path()),
+        )?;
 
-        let extra: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.extra.json"),
+        )?)?;
         assert_eq!(extra["tool"], serde_json::json!("pear"));
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["reads_r1"], serde_json::json!(100));
@@ -1057,7 +1085,10 @@ mod stage_artifact_tests {
         assert_eq!(extra["reads_unmerged"], serde_json::json!(12));
         assert_eq!(extra["merge_rate"], serde_json::json!(0.88));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("pear.log"));
-        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("pear_log"));
+        assert_eq!(
+            extra["raw_backend_report_format"],
+            serde_json::json!("pear_log")
+        );
         Ok(())
     }
 
@@ -1091,8 +1122,9 @@ mod stage_artifact_tests {
             &trim_terminal_damage_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.extra.json"),
+        )?)?;
         assert_eq!(
             extra["tool"],
             serde_json::json!(bijux_dna_core::id_catalog::TOOL_CUTADAPT)
@@ -1100,7 +1132,10 @@ mod stage_artifact_tests {
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["trim_5p_bases"], serde_json::json!(2));
         assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
-        assert_eq!(extra["raw_backend_report"], serde_json::json!("cutadapt.raw.json"));
+        assert_eq!(
+            extra["raw_backend_report"],
+            serde_json::json!("cutadapt.raw.json")
+        );
         assert_eq!(extra["used_fallback"], serde_json::json!(false));
         Ok(())
     }
@@ -1115,8 +1150,9 @@ mod stage_artifact_tests {
             &trim_polyg_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.extra.json"),
+        )?)?;
         assert_eq!(
             extra["tool"],
             serde_json::json!(bijux_dna_core::id_catalog::TOOL_FASTP)
@@ -1124,7 +1160,10 @@ mod stage_artifact_tests {
         assert_eq!(extra["threads"], serde_json::json!(6));
         assert_eq!(extra["trim_polyg"], serde_json::json!(true));
         assert_eq!(extra["polyx_bank_id"], serde_json::json!("polyx"));
-        assert_eq!(extra["polyx_preset"], serde_json::json!("illumina_twocolor"));
+        assert_eq!(
+            extra["polyx_preset"],
+            serde_json::json!("illumina_twocolor")
+        );
         assert_eq!(
             extra["raw_backend_report"],
             serde_json::json!("trim_polyg_tails_report.fastp.json")
@@ -1146,8 +1185,9 @@ mod stage_artifact_tests {
             &remove_duplicates_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.extra.json"),
+        )?)?;
         assert_eq!(extra["tool"], serde_json::json!("clumpify"));
         assert_eq!(extra["threads"], serde_json::json!(6));
         assert_eq!(extra["dedup_mode"], serde_json::json!("optical_aware"));
@@ -1159,7 +1199,10 @@ mod stage_artifact_tests {
         assert_eq!(extra["duplicates_removed"], serde_json::json!(28));
         assert_eq!(extra["dedup_rate"], serde_json::json!(0.14));
         assert_eq!(extra["pair_count_match"], serde_json::json!(true));
-        assert_eq!(extra["raw_backend_report"], serde_json::json!("clumpify.log"));
+        assert_eq!(
+            extra["raw_backend_report"],
+            serde_json::json!("clumpify.log")
+        );
         Ok(())
     }
 
@@ -1247,9 +1290,13 @@ mod stage_artifact_tests {
             &report_qc_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value =
-            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
-        assert_eq!(extra["aggregation_scope"], serde_json::json!("governed_qc_artifacts"));
+        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("stage.extra.json"),
+        )?)?;
+        assert_eq!(
+            extra["aggregation_scope"],
+            serde_json::json!("governed_qc_artifacts")
+        );
         assert_eq!(extra["contamination_rate"], serde_json::json!(0.23));
         assert_eq!(extra["adapter_content_max"], serde_json::json!(0.12));
         assert_eq!(
@@ -1263,4 +1310,3 @@ mod stage_artifact_tests {
         Ok(())
     }
 }
-use super::*;

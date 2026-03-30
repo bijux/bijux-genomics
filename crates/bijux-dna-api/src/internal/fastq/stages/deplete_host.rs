@@ -52,10 +52,7 @@ fn artifact_input_path(
         .map(|artifact| artifact.path.clone())
 }
 
-fn artifact_input_path_string(
-    plan: &bijux_dna_stage_contract::StagePlanV1,
-    name: &str,
-) -> String {
+fn artifact_input_path_string(plan: &bijux_dna_stage_contract::StagePlanV1, name: &str) -> String {
     artifact_input_path(plan, name)
         .map(|path| path.display().to_string())
         .unwrap_or_default()
@@ -63,6 +60,7 @@ fn artifact_input_path_string(
 
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -273,6 +271,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     input_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,

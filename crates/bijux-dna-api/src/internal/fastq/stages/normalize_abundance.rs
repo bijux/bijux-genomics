@@ -95,6 +95,7 @@ pub(crate) fn normalize_abundance_effective_params(
 ///
 /// # Errors
 /// Returns an error if planning, execution, normalization, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -382,6 +383,7 @@ pub(crate) fn read_normalized_table_metrics(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn canonical_normalize_abundance_report(
     stage_id: &str,
     tool_id: &str,

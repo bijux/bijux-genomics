@@ -1,4 +1,4 @@
-use super::*;
+use super::{open_fastq_lines, Context, Result};
 
 pub(crate) fn load_qc_thresholds_map() -> std::collections::BTreeMap<String, f64> {
     let Some(path) = std::env::var_os("BIJUX_QC_THRESHOLDS_PATH")

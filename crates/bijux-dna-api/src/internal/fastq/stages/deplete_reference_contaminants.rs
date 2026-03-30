@@ -35,6 +35,7 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -265,6 +266,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     input_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,

@@ -1,4 +1,4 @@
-use super::*;
+use super::StageResultV1;
 
 pub(crate) fn canonical_sample_identity(sample_id: &str) -> String {
     let mut out = String::with_capacity(sample_id.len());

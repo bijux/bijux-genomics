@@ -146,6 +146,7 @@ pub(crate) fn canonical_infer_asvs_report(inputs: InferAsvsReportInputs<'_>) -> 
 ///
 /// # Errors
 /// Returns an error if planning, execution, artifact parsing, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,

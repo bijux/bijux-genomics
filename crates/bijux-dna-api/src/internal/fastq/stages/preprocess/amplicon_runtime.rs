@@ -1,3 +1,9 @@
+#![allow(
+    clippy::items_after_test_module,
+    clippy::too_many_arguments,
+    clippy::too_many_lines
+)]
+
 use super::runtime_tail::command_io::{
     command_exists, copy_if_missing, load_qc_thresholds_map, run_stage_command,
     write_fastq_to_fasta_if_missing,
@@ -47,16 +53,20 @@ pub(super) fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone());
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("trim_terminal_damage_report.json"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map_or_else(
+                    || out_dir.join("trim_terminal_damage_report.json"),
+                    |artifact| artifact.path.clone(),
+                );
             let raw_backend_report = outputs
                 .iter()
                 .find(|artifact| artifact.name.as_str() == "raw_backend_report_json")
                 .map(|artifact| artifact.path.clone());
             let pre_profile_r1 =
                 terminal_damage_profile(&input).unwrap_or_else(|_| serde_json::json!({}));
-            let pre_profile_r2 = input_r2
-                .as_deref()
-                .map(|path| terminal_damage_profile(path).unwrap_or_else(|_| serde_json::json!({})));
+            let pre_profile_r2 = input_r2.as_deref().map(|path| {
+                terminal_damage_profile(path).unwrap_or_else(|_| serde_json::json!({}))
+            });
             let mut planned_report = planned_terminal_damage_report(
                 planned,
                 &input,
@@ -126,9 +136,9 @@ pub(super) fn materialize_amplicon_stage_outputs(
             }
             let post_profile_r1 =
                 terminal_damage_profile(&primary).unwrap_or_else(|_| serde_json::json!({}));
-            let post_profile_r2 = output_r2
-                .as_deref()
-                .map(|path| terminal_damage_profile(path).unwrap_or_else(|_| serde_json::json!({})));
+            let post_profile_r2 = output_r2.as_deref().map(|path| {
+                terminal_damage_profile(path).unwrap_or_else(|_| serde_json::json!({}))
+            });
             let udg_classification = planned_report.udg_classification.clone();
             let classification_artifact = serde_json::json!({
                 "schema_version": "bijux.fastq.damage_classification.v1",
@@ -168,10 +178,8 @@ pub(super) fn materialize_amplicon_stage_outputs(
                 combined_terminal_damage_asymmetry(&pre_profile_r1, pre_profile_r2.as_ref());
             planned_report.ct_ga_asymmetry_post =
                 combined_terminal_damage_asymmetry(&post_profile_r1, post_profile_r2.as_ref());
-            planned_report.ct_ga_asymmetry_pre_r1 =
-                terminal_damage_asymmetry(&pre_profile_r1);
-            planned_report.ct_ga_asymmetry_post_r1 =
-                terminal_damage_asymmetry(&post_profile_r1);
+            planned_report.ct_ga_asymmetry_pre_r1 = terminal_damage_asymmetry(&pre_profile_r1);
+            planned_report.ct_ga_asymmetry_post_r1 = terminal_damage_asymmetry(&post_profile_r1);
             planned_report.ct_ga_asymmetry_pre_r2 =
                 pre_profile_r2.as_ref().and_then(terminal_damage_asymmetry);
             planned_report.ct_ga_asymmetry_post_r2 =
@@ -180,14 +188,12 @@ pub(super) fn materialize_amplicon_stage_outputs(
                 terminal_damage_base_composition(&pre_profile_r1, "terminal_base_composition_5p");
             planned_report.terminal_base_composition_post_r1 =
                 terminal_damage_base_composition(&post_profile_r1, "terminal_base_composition_5p");
-            planned_report.terminal_base_composition_pre_r2 = pre_profile_r2
-                .as_ref()
-                .and_then(|profile| {
+            planned_report.terminal_base_composition_pre_r2 =
+                pre_profile_r2.as_ref().and_then(|profile| {
                     terminal_damage_base_composition(profile, "terminal_base_composition_5p")
                 });
-            planned_report.terminal_base_composition_post_r2 = post_profile_r2
-                .as_ref()
-                .and_then(|profile| {
+            planned_report.terminal_base_composition_post_r2 =
+                post_profile_r2.as_ref().and_then(|profile| {
                     terminal_damage_base_composition(profile, "terminal_base_composition_5p")
                 });
             planned_report.used_fallback = !stage_ok;
@@ -237,13 +243,25 @@ pub(super) fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone());
             let primer_stats = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "primer_stats_json").map_or_else(|| out_dir.join("primer_stats.json"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "primer_stats_json")
+                .map_or_else(
+                    || out_dir.join("primer_stats.json"),
+                    |artifact| artifact.path.clone(),
+                );
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("normalize_primers_report.json"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map_or_else(
+                    || out_dir.join("normalize_primers_report.json"),
+                    |artifact| artifact.path.clone(),
+                );
             let orientation = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "primer_orientation_report").map_or_else(|| out_dir.join("primer_orientation.tsv"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "primer_orientation_report")
+                .map_or_else(
+                    || out_dir.join("primer_orientation.tsv"),
+                    |artifact| artifact.path.clone(),
+                );
             let primer_governance = resolve_primer_set_governance(None)?;
             let tool_id = normalize_primers_tool_id(planned);
             let planned_report = planned_normalize_primers_report(
@@ -256,17 +274,25 @@ pub(super) fn materialize_amplicon_stage_outputs(
                 &primer_stats,
                 tool_id,
             );
-            let primer_set_id = planned_report
-                .as_ref().map_or_else(|| primer_governance.primer_set_id.clone(), |report| report.primer_set_id.clone());
+            let primer_set_id = planned_report.as_ref().map_or_else(
+                || primer_governance.primer_set_id.clone(),
+                |report| report.primer_set_id.clone(),
+            );
             let marker_id = planned_report
                 .as_ref()
                 .and_then(|report| report.marker_id.clone())
                 .or_else(|| Some(primer_governance.marker_id.clone()));
             let primer_fasta = planned_report
                 .as_ref()
-                .and_then(|report| report.primer_fasta.as_ref()).map_or_else(|| primer_governance.primer_fasta.clone(), std::path::PathBuf::from);
-            let orientation_policy = planned_report
-                .as_ref().map_or_else(|| "normalize_to_forward_primer".to_string(), |report| report.orientation_policy.clone());
+                .and_then(|report| report.primer_fasta.as_ref())
+                .map_or_else(
+                    || primer_governance.primer_fasta.clone(),
+                    std::path::PathBuf::from,
+                );
+            let orientation_policy = planned_report.as_ref().map_or_else(
+                || "normalize_to_forward_primer".to_string(),
+                |report| report.orientation_policy.clone(),
+            );
             let max_mismatch_rate = planned_report
                 .as_ref()
                 .map_or(0.10_f64, |report| report.max_mismatch_rate);
@@ -425,16 +451,32 @@ pub(super) fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone());
             let metrics = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "chimera_metrics_json").map_or_else(|| out_dir.join("chimera_metrics.json"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "chimera_metrics_json")
+                .map_or_else(
+                    || out_dir.join("chimera_metrics.json"),
+                    |artifact| artifact.path.clone(),
+                );
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("remove_chimeras_report.json"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map_or_else(
+                    || out_dir.join("remove_chimeras_report.json"),
+                    |artifact| artifact.path.clone(),
+                );
             let chimera_fasta = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "chimeras_fasta").map_or_else(|| out_dir.join("chimeras.fasta"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "chimeras_fasta")
+                .map_or_else(
+                    || out_dir.join("chimeras.fasta"),
+                    |artifact| artifact.path.clone(),
+                );
             let uchime_out = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "uchime_report_tsv").map_or_else(|| out_dir.join("uchime.tsv"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "uchime_report_tsv")
+                .map_or_else(
+                    || out_dir.join("uchime.tsv"),
+                    |artifact| artifact.path.clone(),
+                );
             let vsearch_ok = command_exists("vsearch")
                 && run_stage_command(
                     out_dir,
@@ -507,7 +549,11 @@ pub(super) fn materialize_amplicon_stage_outputs(
             let taxonomy_fastq_out = out_dir.join("taxonomy_ready.fastq");
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("cluster_otus_report.json"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map_or_else(
+                    || out_dir.join("cluster_otus_report.json"),
+                    |artifact| artifact.path.clone(),
+                );
             let effective_params = infer_cluster_otus_effective_params(planned);
             let otu_input_fasta = out_dir.join("otu_input.fasta");
             let otu_clusters_uc = out_dir.join("otu_clusters.uc");
@@ -557,30 +603,31 @@ pub(super) fn materialize_amplicon_stage_outputs(
                 crate::internal::fastq::stages::cluster_otus::count_cluster_otus_representatives(
                     &otu_fasta,
                 )?;
-            let report = crate::internal::fastq::stages::cluster_otus::canonical_cluster_otus_report(
-                crate::internal::fastq::stages::cluster_otus::ClusterOtusReportInputs {
-                    tool_id: "vsearch",
-                    input_reads: &input,
-                    otu_table: &otu_table,
-                    otu_representatives: &otu_fasta,
-                    taxonomy_reference_fasta: &taxonomy_ready_fasta,
-                    taxonomy_reads_fastq: &taxonomy_fastq_out,
-                    report_json: &report_json,
-                    effective_params: &effective_params,
-                    table_metrics,
-                    representative_sequence_count: representative_count,
-                    runtime_s: None,
-                    memory_mb: None,
-                    exit_code: Some(0),
-                    used_fallback: !vsearch_ok,
-                    raw_backend_report: otu_clusters_uc
-                        .exists()
-                        .then_some(otu_clusters_uc.as_path()),
-                    backend_metrics: Some(serde_json::json!({
-                        "materialized_from": "amplicon_runtime",
-                    })),
-                },
-            );
+            let report =
+                crate::internal::fastq::stages::cluster_otus::canonical_cluster_otus_report(
+                    crate::internal::fastq::stages::cluster_otus::ClusterOtusReportInputs {
+                        tool_id: "vsearch",
+                        input_reads: &input,
+                        otu_table: &otu_table,
+                        otu_representatives: &otu_fasta,
+                        taxonomy_reference_fasta: &taxonomy_ready_fasta,
+                        taxonomy_reads_fastq: &taxonomy_fastq_out,
+                        report_json: &report_json,
+                        effective_params: &effective_params,
+                        table_metrics,
+                        representative_sequence_count: representative_count,
+                        runtime_s: None,
+                        memory_mb: None,
+                        exit_code: Some(0),
+                        used_fallback: !vsearch_ok,
+                        raw_backend_report: otu_clusters_uc
+                            .exists()
+                            .then_some(otu_clusters_uc.as_path()),
+                        backend_metrics: Some(serde_json::json!({
+                            "materialized_from": "amplicon_runtime",
+                        })),
+                    },
+                );
             bijux_dna_infra::atomic_write_json(&report_json, &report)?;
             payload = serde_json::json!({
                 "otu_count": table_metrics.otu_count,
@@ -606,7 +653,11 @@ pub(super) fn materialize_amplicon_stage_outputs(
                 .map(|artifact| artifact.path.clone());
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("infer_asvs_report.json"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map_or_else(
+                    || out_dir.join("infer_asvs_report.json"),
+                    |artifact| artifact.path.clone(),
+                );
             let dada2_script = out_dir.join("dada2_entrypoint.R");
             let dada2_inputs = out_dir.join("dada2_inputs.json");
             if !dada2_script.exists() {
@@ -709,10 +760,18 @@ writeLines(c(">ASV_0001","ACGTACGTACGA"), out_fasta)
         "fastq.normalize_abundance" => {
             let normalized_table = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "normalized_abundance_tsv").map_or_else(|| out_dir.join("abundance_normalized.tsv"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "normalized_abundance_tsv")
+                .map_or_else(
+                    || out_dir.join("abundance_normalized.tsv"),
+                    |artifact| artifact.path.clone(),
+                );
             let report_json = outputs
                 .iter()
-                .find(|artifact| artifact.name.as_str() == "report_json").map_or_else(|| out_dir.join("normalize_abundance_report.json"), |artifact| artifact.path.clone());
+                .find(|artifact| artifact.name.as_str() == "report_json")
+                .map_or_else(
+                    || out_dir.join("normalize_abundance_report.json"),
+                    |artifact| artifact.path.clone(),
+                );
             let method = normalize_abundance_method(planned);
             let tool_id = normalize_abundance_tool_id(planned);
             let effective_params =
@@ -905,11 +964,9 @@ fn planned_terminal_damage_report(
     raw_backend_report: Option<&std::path::Path>,
 ) -> Option<bijux_dna_domain_fastq::TerminalDamageReportV1> {
     let marker = "printf '%s\\n' '";
-    let script = planned
-        .command
-        .template
-        .iter()
-        .find(|part| part.contains("\"stage_id\":\"fastq.trim_terminal_damage\"") && part.contains(marker))?;
+    let script = planned.command.template.iter().find(|part| {
+        part.contains("\"stage_id\":\"fastq.trim_terminal_damage\"") && part.contains(marker)
+    })?;
     let start = script.find(marker)? + marker.len();
     let end = script[start..].find("' >").map(|idx| start + idx)?;
     let raw = &script[start..end];
@@ -924,11 +981,15 @@ fn planned_terminal_damage_report(
 }
 
 fn terminal_damage_reads_profiled(profile: &serde_json::Value) -> Option<u64> {
-    profile.get("reads_profiled").and_then(serde_json::Value::as_u64)
+    profile
+        .get("reads_profiled")
+        .and_then(serde_json::Value::as_u64)
 }
 
 fn terminal_damage_asymmetry(profile: &serde_json::Value) -> Option<f64> {
-    profile.get("ct_ga_asymmetry").and_then(serde_json::Value::as_f64)
+    profile
+        .get("ct_ga_asymmetry")
+        .and_then(serde_json::Value::as_f64)
 }
 
 fn combined_terminal_damage_asymmetry(
@@ -937,7 +998,9 @@ fn combined_terminal_damage_asymmetry(
 ) -> Option<f64> {
     let primary_reads = terminal_damage_reads_profiled(primary)?;
     let primary_asymmetry = terminal_damage_asymmetry(primary)?;
-    let secondary_reads = secondary.and_then(terminal_damage_reads_profiled).unwrap_or(0);
+    let secondary_reads = secondary
+        .and_then(terminal_damage_reads_profiled)
+        .unwrap_or(0);
     let secondary_asymmetry = secondary.and_then(terminal_damage_asymmetry).unwrap_or(0.0);
     let total_reads = primary_reads + secondary_reads;
     if total_reads == 0 {
@@ -1367,4 +1430,4 @@ fn remove_chimeras_compatibility_metrics(
         "report_json": report_json,
     })
 }
-use super::*;
+use super::{anyhow, open_fastq_lines, resolve_primer_set_governance, ExecutionStep, Result};

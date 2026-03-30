@@ -4,6 +4,7 @@ use super::{
     Path, PipelineProfile, Result, StagePlanRequest, StagePlanV1, ToolExecutionSpecV1,
 };
 
+#[allow(clippy::too_many_lines)]
 pub(super) fn plan_alignment_qc_stage(
     stage: BamStage,
     spec: &ToolExecutionSpecV1,

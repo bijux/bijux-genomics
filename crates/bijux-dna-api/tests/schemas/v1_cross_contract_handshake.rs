@@ -1,9 +1,6 @@
 use serde_json::Value;
 use std::fs;
 
-#[path = "../support.rs"]
-mod support;
-
 fn load_fixture(path: &std::path::Path) -> Value {
     let raw = fs::read_to_string(path)
         .unwrap_or_else(|err| panic!("read fixture {}: {err}", path.display()));
@@ -12,7 +9,7 @@ fn load_fixture(path: &std::path::Path) -> Value {
 
 #[test]
 fn contract_handshake_rejects_mismatched_schema() {
-    let policies_root = support::crate_root("bijux-dna-policies")
+    let policies_root = crate::support::crate_root("bijux-dna-policies")
         .unwrap_or_else(|err| panic!("resolve policies crate root: {err}"))
         .join("tests")
         .join("fixtures")

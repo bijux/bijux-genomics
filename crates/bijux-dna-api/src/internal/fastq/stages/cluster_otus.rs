@@ -137,6 +137,7 @@ pub(crate) fn canonical_cluster_otus_report(
 /// # Errors
 /// Returns an error if input discovery, planning, execution, report materialization,
 /// or `SQLite` persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,

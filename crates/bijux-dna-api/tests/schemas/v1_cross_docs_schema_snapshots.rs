@@ -1,11 +1,8 @@
 use std::fs;
 
-#[path = "../support.rs"]
-mod support;
-
 #[test]
 fn schema_snapshots_are_documented() {
-    let doc = support::crate_root("bijux-dna-api")
+    let doc = crate::support::crate_root("bijux-dna-api")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"))
         .join("docs")
         .join("API.md");
