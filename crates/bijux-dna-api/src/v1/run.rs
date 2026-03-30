@@ -31,6 +31,7 @@ pub use bijux_dna_core::prelude::{ErrorHintV1, HintSeverity};
 pub use bijux_dna_infra::init_logging;
 pub use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 pub use bijux_dna_runner::backend::docker::replay::replay_run;
+pub use bijux_dna_runner::command_runner::{run_command, run_command_with_context, CommandOutputV1};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]

@@ -3,7 +3,6 @@
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Context, Result};
@@ -668,15 +667,17 @@ fn execute_sample(
     repo_root: &Path,
     row: PendingSampleRun,
 ) -> Result<SampleRunRecord> {
-    let mut command = Command::new(program);
-    command
-        .args(&row.command_args)
-        .current_dir(repo_root)
-        .envs(&row.env_overrides);
-    let status = command
-        .status()
-        .with_context(|| format!("run {}", row.command.join(" ")))?;
-    let exit_code = status.code().unwrap_or(1);
+    let command_name = program
+        .to_str()
+        .ok_or_else(|| anyhow!("benchmark executable path is not valid UTF-8"))?;
+    let output = bijux_dna_api::v1::api::run::run_command_with_context(
+        command_name,
+        &row.command_args,
+        Some(repo_root),
+        Some(&row.env_overrides),
+    )
+    .with_context(|| format!("run {}", row.command.join(" ")))?;
+    let exit_code = output.exit_code;
     if exit_code == 0 {
         if let Some(action) = row.post_success_action.as_ref() {
             match action {
@@ -1109,18 +1110,22 @@ fn ensure_report_qc_upstream_stage_outputs(
         return Ok(());
     }
 
-    let status = Command::new(program)
-        .args(&command_args)
-        .current_dir(repo_root)
-        .envs(benchmark_runtime_env(&out_root))
-        .status()
-        .with_context(|| format!("run {}", command_args.join(" ")))?;
-    if !status.success() {
+    let command_name = program
+        .to_str()
+        .ok_or_else(|| anyhow!("benchmark executable path is not valid UTF-8"))?;
+    let output = bijux_dna_api::v1::api::run::run_command_with_context(
+        command_name,
+        &command_args,
+        Some(repo_root),
+        Some(&benchmark_runtime_env(&out_root)),
+    )
+    .with_context(|| format!("run {}", command_args.join(" ")))?;
+    if output.exit_code != 0 {
         return Err(anyhow!(
             "{} governed QC bootstrap failed for {} with exit code {}",
             upstream.stage_id,
             sample.sample_id,
-            status.code().unwrap_or(1)
+            output.exit_code
         ));
     }
     Ok(())
@@ -1861,37 +1866,36 @@ fn warm_sortmerna_shared_index_cache(
     let rrna_input = apptainer_container_input_path(&bind_root, rrna_db)?;
     let seed_input = apptainer_container_input_path(&bind_root, seed_r1)?;
     let warm_threads = threads.clamp(1, 4);
-    let status = Command::new("apptainer")
-        .args([
-            "exec",
-            "--cleanenv",
-            "--no-home",
-            "--containall",
-            "--bind",
-            &format!("{}:/data/input:ro", bind_root.display()),
-            "--bind",
-            &format!("{}:/data/output", cache_workdir.display()),
-            "--pwd",
-            "/data/output",
-            &sif_path.display().to_string(),
-            "/usr/local/bin/sortmerna-bin",
-            "--ref",
-            &rrna_input,
-            "--reads",
-            &seed_input,
-            "--workdir",
-            "/data/output/",
-            "--index",
-            "1",
-            "--threads",
-            &warm_threads.to_string(),
-        ])
-        .status()
+    let command_args = vec![
+        "exec".to_string(),
+        "--cleanenv".to_string(),
+        "--no-home".to_string(),
+        "--containall".to_string(),
+        "--bind".to_string(),
+        format!("{}:/data/input:ro", bind_root.display()),
+        "--bind".to_string(),
+        format!("{}:/data/output", cache_workdir.display()),
+        "--pwd".to_string(),
+        "/data/output".to_string(),
+        sif_path.display().to_string(),
+        "/usr/local/bin/sortmerna-bin".to_string(),
+        "--ref".to_string(),
+        rrna_input,
+        "--reads".to_string(),
+        seed_input,
+        "--workdir".to_string(),
+        "/data/output/".to_string(),
+        "--index".to_string(),
+        "1".to_string(),
+        "--threads".to_string(),
+        warm_threads.to_string(),
+    ];
+    let output = bijux_dna_api::v1::api::run::run_command("apptainer", &command_args)
         .context("run SortMeRNA shared-index warmup")?;
-    if !status.success() {
+    if output.exit_code != 0 {
         return Err(anyhow!(
             "SortMeRNA shared-index warmup failed with exit code {} for {}",
-            status.code().unwrap_or(1),
+            output.exit_code,
             shared_idx_dir.display()
         ));
     }
