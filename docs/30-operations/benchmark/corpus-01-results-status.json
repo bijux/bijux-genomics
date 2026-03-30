@@ -215,7 +215,7 @@
         {
           "stage_id": "fastq.correct_errors",
           "issue_id": "missing-published-summary",
-          "detail": "missing docs/benchmark/fastq.correct_errors/corpus-01/summary.json"
+          "detail": "missing docs/30-operations/benchmark/fastq.correct_errors/corpus-01/summary.json"
         }
       ]
     },

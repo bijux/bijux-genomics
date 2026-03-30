@@ -312,7 +312,7 @@
           ],
           "severity": "error",
           "example_details": [
-            "missing docs/benchmark/fastq.correct_errors/corpus-01/summary.json"
+            "missing docs/30-operations/benchmark/fastq.correct_errors/corpus-01/summary.json"
           ],
           "additional_detail_count": 0
         },
@@ -423,7 +423,7 @@
         },
         {
           "issue_id": "missing-published-summary",
-          "detail": "missing docs/benchmark/fastq.correct_errors/corpus-01/summary.json",
+          "detail": "missing docs/30-operations/benchmark/fastq.correct_errors/corpus-01/summary.json",
           "severity": "error",
           "source": "results"
         },

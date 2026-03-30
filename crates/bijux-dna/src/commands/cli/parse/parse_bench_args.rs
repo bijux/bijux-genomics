@@ -164,7 +164,7 @@ pub struct BenchCorpusFastqReportArgs {
     pub corpus_id: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
-    #[arg(long, value_name = "PATH", default_value = "docs/benchmark")]
+    #[arg(long, value_name = "PATH", default_value = "docs/30-operations/benchmark")]
     pub docs_root: PathBuf,
     #[arg(long, value_name = "PATH")]
     pub run_root: Option<PathBuf>,
@@ -176,7 +176,7 @@ pub struct BenchCorpusFastqPublicationStatusArgs {
     pub corpus_id: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
-    #[arg(long, value_name = "PATH", default_value = "docs/benchmark")]
+    #[arg(long, value_name = "PATH", default_value = "docs/30-operations/benchmark")]
     pub docs_root: PathBuf,
 }
 
@@ -186,7 +186,7 @@ pub struct BenchCorpusFastqPublishedDossiersArgs {
     pub corpus_id: String,
     #[arg(long, value_name = "PATH")]
     pub config: Option<PathBuf>,
-    #[arg(long, value_name = "PATH", default_value = "docs/benchmark")]
+    #[arg(long, value_name = "PATH", default_value = "docs/30-operations/benchmark")]
     pub docs_root: PathBuf,
     #[arg(long, value_name = "PATH")]
     pub run_root: Option<PathBuf>,

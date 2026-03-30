@@ -62,7 +62,7 @@
   - issue group `missing-cohort_runtime_summary-csv` x1 from publication
     - missing benchmark/fastq.correct_errors/corpus-01/cohort_runtime_summary.csv
   - issue group `missing-published-summary` x1 from results
-    - missing docs/benchmark/fastq.correct_errors/corpus-01/summary.json
+    - missing docs/30-operations/benchmark/fastq.correct_errors/corpus-01/summary.json
   - issue group `missing-run-report-json` x2 from findings, publication
     - The mirrored Lunarc run_manifest.json resolves paired samples correctly now, but the artifact tree still lacks bench/correct_errors/<sample>/report.json outputs needed to render benchmark/fastq.correct_errors/corpus-01 honestly.
   - issue group `missing-sample_results-csv` x1 from publication

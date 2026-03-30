@@ -612,12 +612,12 @@ mod tests {
 
     #[test]
     fn corpus_fastq_report_docs_root_tracks_stage_contract() {
-        let docs_root = super::absolutize(Path::new("/repo"), Path::new("docs/benchmark"))
+        let docs_root = super::absolutize(Path::new("/repo"), Path::new("docs/30-operations/benchmark"))
             .join("fastq.validate_reads")
             .join("corpus-01");
         assert_eq!(
             docs_root,
-            Path::new("/repo/docs/benchmark/fastq.validate_reads/corpus-01")
+            Path::new("/repo/docs/30-operations/benchmark/fastq.validate_reads/corpus-01")
         );
     }
 
@@ -626,7 +626,7 @@ mod tests {
         let temp = tempdir().expect("tempdir");
         let stage_docs_root = temp
             .path()
-            .join("docs/benchmark/fastq.validate_reads/corpus-01");
+            .join("docs/30-operations/benchmark/fastq.validate_reads/corpus-01");
         fs::create_dir_all(&stage_docs_root).expect("stage docs root");
         fs::write(stage_docs_root.join("legacy-site.md"), "# legacy\n").expect("legacy dossier");
 
@@ -763,14 +763,14 @@ reason = "Compact validation fixture."
                 stage: "fastq.validate_reads".to_string(),
                 corpus_id: "corpus-01".to_string(),
                 config: Some(PathBuf::from("configs/bench/benchmark.toml")),
-                docs_root: PathBuf::from("docs/benchmark"),
+                docs_root: PathBuf::from("docs/30-operations/benchmark"),
                 run_root: Some(run_root.clone()),
             },
         )
         .expect("render dossier");
 
         let stage_docs_root = repo_root
-            .join("docs/benchmark")
+            .join("docs/30-operations/benchmark")
             .join("fastq.validate_reads")
             .join("corpus-01");
         let summary = fs::read_to_string(stage_docs_root.join("summary.json")).expect("summary");
@@ -1479,7 +1479,7 @@ reason = "Compact validation fixture."
         let markdown =
             super::render_publication_docs_markdown(&super::BenchmarkPublicationStatusReport {
                 corpus_id: "corpus-01".to_string(),
-                docs_root: "/bench/docs/benchmark".to_string(),
+                docs_root: "/bench/docs/30-operations/benchmark".to_string(),
                 benchmarkable_stage_count: 3,
                 applicable_stage_count: 2,
                 completed_stage_count: 1,
@@ -1535,7 +1535,7 @@ reason = "Compact validation fixture."
                             stage_id: "fastq.trim_reads".to_string(),
                             issue_id: "missing-corpus-dir".to_string(),
                             severity: "error".to_string(),
-                            detail: "missing docs/benchmark/fastq.trim_reads/corpus-01".to_string(),
+                            detail: "missing docs/30-operations/benchmark/fastq.trim_reads/corpus-01".to_string(),
                         }],
                     },
                 ],

@@ -70,7 +70,7 @@
   - newest available run root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_reference_contaminants/lunarc` (selected newest=`True`)
   - available run roots: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.deplete_reference_contaminants/lunarc`
 - `fastq.correct_errors`: `incomplete` (`1` issues)
-  - `missing-published-summary`: missing docs/benchmark/fastq.correct_errors/corpus-01/summary.json
+  - `missing-published-summary`: missing docs/30-operations/benchmark/fastq.correct_errors/corpus-01/summary.json
 - `fastq.extract_umis`: `complete` (`0` issues)
   - selected run root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.extract_umis/lunarc`
   - newest available run root: `<LOCAL_CACHE_RESULTS_ROOT>/corpus_01/fastq.extract_umis/lunarc` (selected newest=`True`)

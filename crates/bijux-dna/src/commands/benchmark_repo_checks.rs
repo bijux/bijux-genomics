@@ -207,7 +207,7 @@ fn benchmark_contract_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
         }
     }
 
-    let docs_root = repo_root.join("docs/benchmark");
+    let docs_root = repo_root.join("docs/30-operations/benchmark");
     if docs_root.is_dir() {
         paths.extend(collect_matching_files_recursive(&docs_root, &|path| {
             path.extension()
