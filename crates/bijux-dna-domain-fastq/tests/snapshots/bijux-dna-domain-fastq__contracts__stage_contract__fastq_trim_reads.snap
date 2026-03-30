@@ -61,7 +61,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "trim_galore",
     "prinseq",
     "seqkit",
-    "seqpurge",
     "skewer"
   ]
 }

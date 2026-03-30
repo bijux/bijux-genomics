@@ -722,9 +722,6 @@ stage_default_settings:
     seqkit:
       profile: adna_sane_default
       notes: stream-friendly trim preset
-    seqpurge:
-      profile: adna_sane_default
-      notes: paired-end overlap-aware trim preset
     skewer:
       profile: adna_sane_default
       notes: adapter trimming benchmark preset
