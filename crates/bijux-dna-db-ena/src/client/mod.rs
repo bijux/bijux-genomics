@@ -1,17 +1,11 @@
 use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord, EnaResultKind};
 use reqwest::blocking::Client;
-use thiserror::Error;
 
+mod error;
 mod parse;
 mod request;
 
-#[derive(Debug, Error)]
-pub enum EnaClientError {
-    #[error("http request failed: {0}")]
-    Http(#[from] reqwest::Error),
-    #[error("invalid ENA response: {0}")]
-    InvalidResponse(String),
-}
+pub use error::EnaClientError;
 
 #[derive(Debug, Clone)]
 pub struct EnaClient {
