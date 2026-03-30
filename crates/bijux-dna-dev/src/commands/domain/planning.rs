@@ -4,7 +4,7 @@ use anyhow::Result;
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
-use super::support::*;
+use super::domain_workflow::*;
 use super::toml_stages;
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
@@ -54,9 +54,7 @@ pub(super) fn check_planner_fixture_coverage(
     failure_block("planner fixture coverage check failed", errors)
 }
 
-pub(super) fn check_planner_stage_coverage(
-    workspace: &Workspace,
-) -> Result<DomainCommandOutcome> {
+pub(super) fn check_planner_stage_coverage(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let planner_stage_ids = planner_stage_ids(workspace)?;
     let mut errors = Vec::new();
     for dom_dir in domain_directories(workspace)? {

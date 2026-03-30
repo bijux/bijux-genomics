@@ -11,7 +11,7 @@ mod locking;
 mod parity;
 mod planning;
 mod schema_policy;
-mod support;
+mod domain_workflow;
 mod tool_governance;
 mod validation;
 
@@ -24,7 +24,7 @@ use self::schema_policy::{
     check_domain_schema, check_domain_tool_metadata, check_external_tool_policy,
     check_fixture_contracts,
 };
-use self::support::*;
+use self::domain_workflow::*;
 use self::tool_governance::{check_shared_tools, check_tool_container_parity};
 use self::validation::validate;
 use crate::model::domain::{DomainCommandOutcome, NativeDomainCommandKey};

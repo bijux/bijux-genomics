@@ -1,10 +1,10 @@
 use std::fs;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use sha2::{Digest, Sha256};
 
+use super::domain_workflow::*;
 use super::REGISTRY_LOCK_GENERATED_BY;
-use super::support::*;
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 
@@ -12,9 +12,7 @@ fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
-pub(super) fn check_reference_bundle_lock(
-    workspace: &Workspace,
-) -> Result<DomainCommandOutcome> {
+pub(super) fn check_reference_bundle_lock(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let catalog = workspace.path("configs/runtime/reference_bundles.toml");
     let lock = workspace.path("configs/runtime/reference_bundles_lock.sha256");
     let materialization_lock_json = workspace.path("configs/runtime/references/locks/lock.json");
