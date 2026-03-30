@@ -1,44 +1,20 @@
 # Architecture
 
-## Goals
-- Keep the crate root thin and public-surface oriented.
-- Separate build-time catalog helpers from runtime resolution behavior.
-- Split environment resolution by enduring concerns instead of one catch-all module.
+This file is a pointer map. The environment contract is intentionally documented in small focused docs instead of one long architecture essay.
 
-## Source tree
-
-```text
-src/
-├── build/
-│   ├── defaults.rs
-│   ├── mod.rs
-│   ├── models.rs
-│   └── version_parser.rs
-├── lib.rs
-├── resolve/
-│   ├── cache.rs
-│   ├── catalog.rs
-│   ├── commands.rs
-│   ├── mod.rs
-│   ├── platform.rs
-│   ├── reference.rs
-│   ├── smoke.rs
-│   └── types.rs
-├── runtime_spec.rs
-└── surface.rs
-```
-
-## Responsibilities
-- `surface.rs`: crate-level public API surface.
-- `build/`: docker tool definitions and dockerfile version parsing.
-- `resolve/platform.rs`: platform loading and runner selection rules.
-- `resolve/catalog.rs`: image catalog loading, digest hydration, and image resolution.
-- `resolve/smoke.rs`: smoke command execution and shell capture support.
-- `resolve/cache.rs`: cache roots and deterministic image-cache paths.
-- `resolve/reference.rs`: prepared reference materialization and index registration.
-- `runtime_spec.rs`: pure runtime spec pairing between platform and runner.
+## Layout
+- `surface.rs` exposes the public crate surface.
+- `build/` owns build-time image defaults, models, and version parsing.
+- `resolve/` owns runtime catalog loading, platform selection, cache paths, smoke commands, and reference preparation.
+- `runtime_spec.rs` owns the pure runtime pairing between platform and runner.
+- `lib.rs` stays thin and re-exports the supported surface.
 
 ## Change rules
-- Add new root files only for enduring top-level concerns.
-- Prefer focused submodules over expanding `resolve/mod.rs` or `build/mod.rs`.
-- Update this document and the boundary architecture contract together when the tree changes intentionally.
+- Add new root files only for enduring crate-level concerns.
+- Prefer focused `build/` and `resolve/` modules over catch-all expansion.
+- Update this map and the architecture boundary contract together when the tree changes intentionally.
+
+## Pointers
+- `INDEX.md` for the document map.
+- `ENV_REFERENCE.md` and `ENV_MATRIX.md` for runtime behavior.
+- `CACHE_SEMANTICS.md`, `BOUNDARY.md`, and `CHANGE_RULES.md` for extension rules.
