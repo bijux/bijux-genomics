@@ -158,7 +158,10 @@ pub fn run_gl_propagation_stage(
         }
         output_lines.push(row.join("\t"));
     }
-    if let Some(chrom_idx) = output_lines.iter().position(|line| line.starts_with("#CHROM\t")) {
+    if let Some(chrom_idx) = output_lines
+        .iter()
+        .position(|line| line.starts_with("#CHROM\t"))
+    {
         let has_gt = output_lines
             .iter()
             .any(|line| line.starts_with("##FORMAT=<ID=GT,"));
@@ -181,7 +184,8 @@ pub fn run_gl_propagation_stage(
         if !has_gl {
             output_lines.insert(
                 insert_at,
-                "##FORMAT=<ID=GL,Number=G,Type=Float,Description=\"Genotype Likelihood\">".to_string(),
+                "##FORMAT=<ID=GL,Number=G,Type=Float,Description=\"Genotype Likelihood\">"
+                    .to_string(),
             );
         }
         let insert_at = output_lines
@@ -203,7 +207,8 @@ pub fn run_gl_propagation_stage(
     }
 
     let normalized_vcf = out_dir.join("gl_normalized.vcf.gz");
-    let normalized_payload = output_lines.join("\n") + if output_lines.is_empty() { "" } else { "\n" };
+    let normalized_payload =
+        output_lines.join("\n") + if output_lines.is_empty() { "" } else { "\n" };
     let normalized_tbi =
         write_vcf_with_best_effort_index(&normalized_vcf, &normalized_payload, "gl_propagation")?;
 
@@ -219,7 +224,10 @@ pub fn run_gl_propagation_stage(
         run_checked_command("bcftools", &["view", "-Ob", "-o", bcf_s, normalized_vcf_s])?;
         run_checked_command("bcftools", &["index", "-f", bcf_s])?;
         if !csi.exists() {
-            bail!("vcf.gl_propagation contract violation: missing BCF index {}", csi.display());
+            bail!(
+                "vcf.gl_propagation contract violation: missing BCF index {}",
+                csi.display()
+            );
         }
         (Some(bcf), Some(csi))
     } else {
@@ -339,7 +347,11 @@ pub fn run_damage_filter_stage(
             v
         } else {
             proxy_used += 1;
-            if is_ct || is_ga { 1.0 } else { 0.0 }
+            if is_ct || is_ga {
+                1.0
+            } else {
+                0.0
+            }
         };
         let pmd_score = parse_info_value_f64(info, "PMD_SCORE")
             .or_else(|| parse_info_value_f64(info, "PMD"))
@@ -357,8 +369,10 @@ pub fn run_damage_filter_stage(
                 ga_three_prime_high += 1;
             }
         }
-        let terminal_damage = (is_ct && parse_info_value_f64(info, "DEAM5P").unwrap_or(ratio) >= terminal_threshold)
-            || (is_ga && parse_info_value_f64(info, "DEAM3P").unwrap_or(ratio) >= terminal_threshold);
+        let terminal_damage = (is_ct
+            && parse_info_value_f64(info, "DEAM5P").unwrap_or(ratio) >= terminal_threshold)
+            || (is_ga
+                && parse_info_value_f64(info, "DEAM3P").unwrap_or(ratio) >= terminal_threshold);
         let filter_for_damage = ratio > threshold || pmd_fail || terminal_damage;
         if filter_for_damage {
             if is_ct {
@@ -369,13 +383,17 @@ pub fn run_damage_filter_stage(
                 filtered_other += 1;
             }
             if ratio > threshold {
-                *counts.entry("damage_ratio_exceeded".to_string()).or_insert(0) += 1;
+                *counts
+                    .entry("damage_ratio_exceeded".to_string())
+                    .or_insert(0) += 1;
             }
             if pmd_fail {
                 *counts.entry("pmd_below_threshold".to_string()).or_insert(0) += 1;
             }
             if terminal_damage {
-                *counts.entry("terminal_damage_filtered".to_string()).or_insert(0) += 1;
+                *counts
+                    .entry("terminal_damage_filtered".to_string())
+                    .or_insert(0) += 1;
             }
             if mask_mode == "mark" {
                 let mut row = fields.iter().map(|f| (*f).to_string()).collect::<Vec<_>>();
@@ -407,8 +425,7 @@ pub fn run_damage_filter_stage(
         payload.push_str(&kept.join("\n"));
         payload.push('\n');
     }
-    let filtered_tbi =
-        write_vcf_with_best_effort_index(&filtered_vcf, &payload, "damage_filter")?;
+    let filtered_tbi = write_vcf_with_best_effort_index(&filtered_vcf, &payload, "damage_filter")?;
 
     let total_damage = pre_damage_ct + pre_damage_ga;
     let asymmetry = if total_damage == 0 {

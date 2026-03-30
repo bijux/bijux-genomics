@@ -1,5 +1,10 @@
-include!("call_filter_and_gl_helpers.rs");
-include!("call_filter_and_gl_types.rs");
+mod damage_and_propagation;
+mod helpers;
+mod types;
+
+pub use damage_and_propagation::*;
+use helpers::*;
+pub use types::*;
 
 fn resolve_reference_path(params: &VcfCallParams) -> Result<String> {
     if let Some(reference) = params.reference_fasta.as_deref() {
@@ -23,7 +28,10 @@ fn resolve_reference_path(params: &VcfCallParams) -> Result<String> {
 
 fn ensure_bam_prerequisites(input_bam: &Path, params: &VcfCallParams) -> Result<()> {
     if input_bam.extension().and_then(|x| x.to_str()) != Some("bam") {
-        bail!("call stage BAM flow requires .bam input: {}", input_bam.display());
+        bail!(
+            "call stage BAM flow requires .bam input: {}",
+            input_bam.display()
+        );
     }
     let bai = input_bam.with_extension("bam.bai");
     if !bai.exists() {
@@ -31,7 +39,10 @@ fn ensure_bam_prerequisites(input_bam: &Path, params: &VcfCallParams) -> Result<
     }
     let reference = resolve_reference_path(params)?;
     if !Path::new(&reference).exists() {
-        bail!("call stage BAM flow reference does not exist: {}", reference);
+        bail!(
+            "call stage BAM flow reference does not exist: {}",
+            reference
+        );
     }
     Ok(())
 }
@@ -113,7 +124,11 @@ fn run_bcftools_mpileup_call(
     Ok(())
 }
 
-fn run_gatk_haplotype_caller(input_bam: &Path, out_vcf: &Path, params: &VcfCallParams) -> Result<()> {
+fn run_gatk_haplotype_caller(
+    input_bam: &Path,
+    out_vcf: &Path,
+    params: &VcfCallParams,
+) -> Result<()> {
     ensure_bam_prerequisites(input_bam, params)?;
     let reference = resolve_reference_path(params)?;
     let out_dir = out_vcf
@@ -156,7 +171,11 @@ fn run_gatk_haplotype_caller(input_bam: &Path, out_vcf: &Path, params: &VcfCallP
     Ok(())
 }
 
-fn try_run_angsd_gl_from_bam(input_bam: &Path, out_dir: &Path, params: &VcfCallParams) -> Result<bool> {
+fn try_run_angsd_gl_from_bam(
+    input_bam: &Path,
+    out_dir: &Path,
+    params: &VcfCallParams,
+) -> Result<bool> {
     ensure_bam_prerequisites(input_bam, params)?;
     let reference = resolve_reference_path(params)?;
     let min_map_q = params.min_mapping_quality.to_string();
@@ -265,8 +284,8 @@ fn write_call_outputs(
         };
         let reference = fields[3].to_ascii_uppercase();
         let alternate = fields[4].to_ascii_uppercase();
-        let ct_or_ga = (reference == "C" && alternate == "T")
-            || (reference == "G" && alternate == "A");
+        let ct_or_ga =
+            (reference == "C" && alternate == "T") || (reference == "G" && alternate == "A");
         if ct_or_ga {
             ct_ga_total += 1;
             if fields[6] == "PASS" {
@@ -289,7 +308,10 @@ fn write_call_outputs(
 
     let called_tbi = PathBuf::from(format!("{}.tbi", output_vcf.display()));
     if !called_tbi.exists() {
-        bail!("call stage contract violation: missing tabix index for {}", output_vcf.display());
+        bail!(
+            "call stage contract violation: missing tabix index for {}",
+            output_vcf.display()
+        );
     }
     let call_metrics_json = out_dir.join("call_metrics.json");
     atomic_write_json(
@@ -307,7 +329,10 @@ fn write_call_outputs(
     )?;
     let call_metrics_tsv = out_dir.join("call_metrics.tsv");
     let mut metric_rows = vec![
-        format!("stage_kind\t{}", serde_json::to_string(&kind)?.trim_matches('"')),
+        format!(
+            "stage_kind\t{}",
+            serde_json::to_string(&kind)?.trim_matches('"')
+        ),
         format!("variants_called\t{}", call.variants_called),
         format!("snps\t{}", call.snps),
         format!("indels\t{}", call.indels),
@@ -315,7 +340,10 @@ fn write_call_outputs(
     for (k, v) in &depth {
         metric_rows.push(format!("depth.{k}\t{v}"));
     }
-    atomic_write_bytes(&call_metrics_tsv, (metric_rows.join("\n") + "\n").as_bytes())?;
+    atomic_write_bytes(
+        &call_metrics_tsv,
+        (metric_rows.join("\n") + "\n").as_bytes(),
+    )?;
     let call_manifest_json = out_dir.join("call_manifest.json");
     atomic_write_json(
         &call_manifest_json,
@@ -495,8 +523,7 @@ pub fn run_call_pseudohaploid_stage(
         }
         let out_vcf = out_dir.join("called_pseudohaploid.vcf.gz");
         let normalized = normalize_header_sample_order(&out);
-        let _ =
-            write_vcf_with_best_effort_index(&out_vcf, &normalized, "call_pseudohaploid")?;
+        let _ = write_vcf_with_best_effort_index(&out_vcf, &normalized, "call_pseudohaploid")?;
         return write_call_outputs(
             out_dir,
             CallStageKind::Pseudohaploid,
@@ -593,7 +620,6 @@ pub struct FilterStageOutputs {
     pub filter_breakdown_tsv: PathBuf,
 }
 
-
 /// # Errors
 /// Returns an error if filter stage outputs cannot be materialized.
 pub fn run_filter_stage_real(
@@ -666,7 +692,11 @@ pub fn run_filter_stage_real(
             if params.require_pass && !reasons.is_empty() {
                 continue;
             }
-            let mut row = fields.iter().copied().map(str::to_string).collect::<Vec<_>>();
+            let mut row = fields
+                .iter()
+                .copied()
+                .map(str::to_string)
+                .collect::<Vec<_>>();
             row[6] = if reasons.is_empty() {
                 "PASS".to_string()
             } else {
@@ -700,8 +730,7 @@ pub fn run_filter_stage_real(
     bijux_dna_infra::ensure_dir(out_dir)?;
     let filtered_vcf = out_dir.join("filtered.vcf.gz");
     let normalized = normalize_header_sample_order(&out);
-    let filtered_tbi =
-        write_vcf_with_best_effort_index(&filtered_vcf, &normalized, "vcf_filter")?;
+    let filtered_tbi = write_vcf_with_best_effort_index(&filtered_vcf, &normalized, "vcf_filter")?;
     let filter_breakdown_json = out_dir.join("filter_breakdown.json");
     atomic_write_json(
         &filter_breakdown_json,
