@@ -1,12 +1,10 @@
 //! Baseline BAM profile definitions.
 
-use bijux_dna_core::ids::{
-    AssayKind, LibraryLayout, LibraryModel, PlatformHint, UdgTreatment,
-};
+use bijux_dna_core::ids::{AssayKind, LibraryLayout, LibraryModel, PlatformHint, UdgTreatment};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::default_params_json;
 
-use super::support::{defaults_for, stable_bam_stages, to_effective_defaults};
+use super::profile_defaults::{defaults_for, stable_bam_stages, to_effective_defaults};
 use crate::{
     ArtifactType, Domain, MetricsBundle, PipelineCapabilities, PipelineId, PipelineProfile,
     ReportSection, StabilityTier,
