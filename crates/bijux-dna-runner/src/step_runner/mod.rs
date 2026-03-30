@@ -504,7 +504,7 @@ mod tests {
         let input = temp.path().join("sample_0004_R1.fq.gz");
         bijux_dna_infra::write_bytes(&input, b"@read\nACGT\n+\n!!!!\n")?;
         let out_dir = temp.path().join("out");
-        std::fs::create_dir_all(&out_dir)?;
+        bijux_dna_infra::ensure_dir(&out_dir)?;
         let template = vec![
             "sh".to_string(),
             "-lc".to_string(),
@@ -585,7 +585,7 @@ mod tests {
         let template = vec![
             "bowtie2".to_string(),
             "-x".to_string(),
-            "/opt/reference/contaminants/phix/bowtie2/reference".to_string(),
+            "/opt/reference/panel/phix/bowtie2/reference".to_string(),
             "-S".to_string(),
             "/dev/null".to_string(),
             "-1".to_string(),
@@ -607,8 +607,8 @@ mod tests {
     fn hash_path_supports_directory_outputs() -> anyhow::Result<()> {
         let temp = tempdir()?;
         let root = temp.path().join("summary_bundle");
-        std::fs::create_dir_all(root.join("nested"))?;
-        bijux_dna_infra::write_bytes(root.join("nested").join("summary.txt"), b"adapter-summary")?;
+        bijux_dna_infra::ensure_dir(root.join("nested"))?;
+        bijux_dna_infra::write_bytes(root.join("nested").join("summary.txt"), b"bundle-summary")?;
 
         let digest = hash_path(&root)?;
 
@@ -620,7 +620,7 @@ mod tests {
     fn hash_path_supports_directory_symlinks() -> anyhow::Result<()> {
         let temp = tempdir()?;
         let root = temp.path().join("taxonomy");
-        std::fs::create_dir_all(root.join("kraken2"))?;
+        bijux_dna_infra::ensure_dir(root.join("kraken2"))?;
         bijux_dna_infra::write_bytes(root.join("kraken2").join("hash.k2d"), b"kraken-hash")?;
         std::os::unix::fs::symlink(root.join("kraken2"), root.join("krakenuniq"))?;
 
@@ -634,8 +634,8 @@ mod tests {
     fn hash_inputs_ignores_missing_paths_and_hashes_directories() -> anyhow::Result<()> {
         let temp = tempdir()?;
         let root = temp.path().join("summary_bundle");
-        std::fs::create_dir_all(&root)?;
-        bijux_dna_infra::write_bytes(root.join("summary.txt"), b"adapter-summary")?;
+        bijux_dna_infra::ensure_dir(&root)?;
+        bijux_dna_infra::write_bytes(root.join("summary.txt"), b"bundle-summary")?;
 
         let hashes = hash_inputs(&[root, temp.path().join("missing.txt")])?;
 
