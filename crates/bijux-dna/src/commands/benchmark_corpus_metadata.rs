@@ -191,7 +191,7 @@ pub(crate) fn validate_corpus_contract(
         };
         let accessions = hash_to_accessions
             .get(digest)
-            .ok_or_else(|| anyhow!("missing accession for {}", relative_path))?;
+            .ok_or_else(|| anyhow!("missing accession for {relative_path}"))?;
         if accessions.len() != 1 {
             return Err(anyhow!(
                 "expected one accession for {}, found {}",
@@ -207,7 +207,10 @@ pub(crate) fn validate_corpus_contract(
         metadata_by_sample.insert(sample_id, metadata);
     }
 
-    let mut actual_counts = BTreeMap::<String, usize>::new();
+    let mut actual_counts = expected_counts_for_scope(spec, "full")?;
+    for count in actual_counts.values_mut() {
+        *count = 0;
+    }
     for sample in samples {
         let metadata = metadata_by_sample
             .get(&sample.sample_id)
@@ -255,9 +258,7 @@ pub(crate) fn select_paired_samples(
     let expected_counts = expected_counts_for_scope(spec, "paired")?;
     if actual_counts != expected_counts {
         return Err(anyhow!(
-            "paired corpus contract drift: expected {:?}, found {:?}",
-            expected_counts,
-            actual_counts
+            "paired corpus contract drift: expected {expected_counts:?}, found {actual_counts:?}"
         ));
     }
     Ok(paired)
