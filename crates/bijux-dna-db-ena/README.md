@@ -32,6 +32,7 @@ Common failures: ENA endpoint/network errors, malformed filereport rows, and dow
 - `cargo test -p bijux-dna-db-ena download::tests`
 - `cargo test -p bijux-dna-db-ena model::tests`
 - `cargo test -p bijux-dna-db-ena --test guardrails`
+- Core crate-level policy entrypoints live in `tests/guardrails.rs`, `tests/boundaries.rs`, and `tests/boundaries/architecture.rs`.
 
 ## Where the docs live
 Crate documentation lives in `docs/` and is indexed from [docs/INDEX.md](docs/INDEX.md).
