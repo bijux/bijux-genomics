@@ -2,7 +2,7 @@
 //! Report model builders.
 
 mod builder;
-mod report_sections;
 mod report_inputs;
+mod report_sections;
 
 pub use builder::*;
