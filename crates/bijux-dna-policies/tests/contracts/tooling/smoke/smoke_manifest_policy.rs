@@ -2,10 +2,12 @@
 #[path = "../../../support/fs.rs"]
 mod support;
 
+use walkdir::WalkDir;
+
 #[test]
 fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_image_identity() {
     let root = support::workspace_root();
-    let source = root.join("crates/bijux-dna-dev/src/commands/containers.rs");
+    let source_dir = root.join("crates/bijux-dna-dev/src/commands/containers");
     let required_tokens = [
         "\"runtime\"",
         "\"image\"",
@@ -17,14 +19,32 @@ fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_i
         "\"version_output\"",
     ];
 
+    let mut sources = WalkDir::new(&source_dir)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "rs"))
+        .map(|entry| entry.into_path())
+        .collect::<Vec<_>>();
+    sources.sort();
+
+    assert!(
+        !sources.is_empty(),
+        "expected container command sources under {}",
+        source_dir.display()
+    );
+
     let mut offenders = Vec::new();
-    let raw =
-        std::fs::read_to_string(&source).unwrap_or_else(|_| panic!("read {}", source.display()));
+    let raw = sources
+        .iter()
+        .map(|path| support::read_to_string(path))
+        .collect::<Vec<_>>()
+        .join("\n");
     for token in required_tokens {
         if !raw.contains(token) {
             offenders.push(format!(
                 "{} missing manifest token {}",
-                source.display(),
+                source_dir.display(),
                 token
             ));
         }
