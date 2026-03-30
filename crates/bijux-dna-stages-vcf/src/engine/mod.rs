@@ -22,6 +22,8 @@ use crate::pipeline::{
     QcStageParams, RohStageParams,
 };
 
-include!("engine_sections/types_and_dispatch.rs");
-include!("engine_sections/stage_runner_impl.rs");
-include!("engine_sections/pipeline_entrypoints.rs");
+pub mod wrappers;
+
+include!("../engine_sections/types_and_dispatch.rs");
+include!("../engine_sections/stage_runner_impl.rs");
+include!("../engine_sections/pipeline_entrypoints.rs");

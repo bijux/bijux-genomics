@@ -25,7 +25,6 @@ pub mod pipeline;
 mod repo_root;
 pub mod stage_specs;
 pub mod vcf_io;
-#[path = "engine_sections/wrappers.rs"]
 pub mod wrappers;
 
 #[must_use]
