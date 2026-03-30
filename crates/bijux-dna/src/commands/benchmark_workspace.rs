@@ -172,7 +172,7 @@ pub(crate) struct CorpusBenchmarkExclusion {
     pub(crate) reason: String,
 }
 
-fn benchmark_config_path_env_override() -> Option<PathBuf> {
+fn benchmark_config_path_env_binding() -> Option<PathBuf> {
     std::env::var_os(BENCHMARK_CONFIG_ENV)
         .filter(|value| !value.is_empty())
         .map(PathBuf::from)
@@ -191,7 +191,7 @@ fn resolve_config_path(cwd: &Path, explicit_path: Option<&Path>, default_rel: &s
         return absolutize(cwd, path);
     }
     if default_rel == DEFAULT_BENCHMARK_CONFIG {
-        if let Some(path) = benchmark_config_path_env_override() {
+        if let Some(path) = benchmark_config_path_env_binding() {
             return absolutize(cwd, &path);
         }
     }
@@ -1569,30 +1569,30 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
     }
 
     #[test]
-    fn workspace_path_honors_explicit_override() {
+    fn workspace_path_honors_explicit_path() {
         let temp = tempfile::tempdir().expect("tempdir");
-        let override_path = temp.path().join("custom.toml");
-        write_text(&override_path, "");
-        let resolved = benchmark_workspace_config_path(temp.path(), Some(&override_path));
-        assert_eq!(resolved, override_path);
+        let config_path = temp.path().join("custom.toml");
+        write_text(&config_path, "");
+        let resolved = benchmark_workspace_config_path(temp.path(), Some(&config_path));
+        assert_eq!(resolved, config_path);
     }
 
     #[test]
-    fn benchmark_config_path_honors_benchmark_config_env_override() {
+    fn benchmark_config_path_honors_benchmark_config_env_binding() {
         let _env_lock = ENV_LOCK.lock().expect("env lock");
         let temp = tempfile::tempdir().expect("tempdir");
-        let override_path = temp.path().join("custom-benchmark.toml");
-        write_text(&override_path, "");
+        let config_path = temp.path().join("custom-benchmark.toml");
+        write_text(&config_path, "");
 
-        std::env::set_var(BENCHMARK_CONFIG_ENV, &override_path);
+        std::env::set_var(BENCHMARK_CONFIG_ENV, &config_path);
         let benchmark_path = benchmark_config_path(temp.path(), None);
         let workspace_path = benchmark_workspace_config_path(temp.path(), None);
         let publication_path = benchmark_publication_config_path(temp.path(), None);
         std::env::remove_var(BENCHMARK_CONFIG_ENV);
 
-        assert_eq!(benchmark_path, override_path);
-        assert_eq!(workspace_path, override_path);
-        assert_eq!(publication_path, override_path);
+        assert_eq!(benchmark_path, config_path);
+        assert_eq!(workspace_path, config_path);
+        assert_eq!(publication_path, config_path);
     }
 
     #[test]

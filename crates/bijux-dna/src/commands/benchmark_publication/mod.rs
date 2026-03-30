@@ -597,7 +597,7 @@ mod tests {
     }
 
     #[test]
-    fn publication_command_includes_config_override() {
+    fn publication_command_includes_config_path() {
         assert_eq!(
             super::corpus_fastq_publication_command(
                 "fastq.filter_reads",
