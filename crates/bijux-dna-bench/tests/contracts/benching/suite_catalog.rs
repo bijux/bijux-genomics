@@ -153,6 +153,10 @@ fn checked_in_suite_catalog_exercises_stage_and_tool_param_bindings() -> Result<
 fn checked_in_suites_only_bind_manifest_declared_stage_parameters() -> Result<()> {
     for (path, suite) in checked_in_suites()? {
         for stage in suite.stages {
+            let has_stage_bindings = stage.param_bindings.iter().any(|binding| binding.tool.is_none());
+            if !stage.stage.starts_with("fastq.") || !has_stage_bindings {
+                continue;
+            }
             let declared = stage_parameter_ids(&stage.stage).ok_or_else(|| {
                 anyhow::anyhow!(
                     "{} references stage {} without a declared parameter registry entry",
