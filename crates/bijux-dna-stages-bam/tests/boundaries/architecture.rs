@@ -25,7 +25,7 @@ fn stages_bam_tree_matches_architecture_contract() {
             "metrics/",
             "observer/",
             "plugin/",
-            "stage_specs/",
+            "stage_specs.rs",
             "surface.rs",
         ]),
         "src tree must match the documented stages-bam layout"
