@@ -296,7 +296,7 @@ fn build_lineage_payload(
 
     Ok(ScreenTaxonomyDatabaseLineagePayload {
         schema_version: "bijux.fastq.screen_taxonomy.database_lineage.v1".to_string(),
-        generated_at_utc: chrono::Utc::now().to_rfc3339(),
+        generated_at_utc: bijux_dna_api::v1::api::shared::current_utc_timestamp(),
         database_catalog_id: database_catalog_id.to_string(),
         database_artifact_id: database_artifact_id.to_string(),
         database_namespace: database_namespace.to_string(),

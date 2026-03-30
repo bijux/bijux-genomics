@@ -14,6 +14,7 @@ pub(crate) mod fastq;
 pub(crate) mod plan;
 pub(crate) mod report;
 pub(crate) mod run;
+pub(crate) mod shared;
 
 // Keep this module non-empty to satisfy guardrails and clarify intent.
 pub const API_V1_BANNER: &str = "bijux-dna-api v1";

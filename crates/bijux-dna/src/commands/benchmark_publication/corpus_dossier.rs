@@ -1,9 +1,10 @@
+#![allow(clippy::too_many_arguments, clippy::too_many_lines)]
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use chrono::Utc;
 
 use super::models::{
     CorpusArtifactSet, CorpusHeadline, CorpusSampleResultRow, CorpusSummary, CorpusToolSummary,
@@ -121,8 +122,7 @@ pub(super) fn render_corpus_fastq_dossier(
                     row.tool.clone(),
                     optional_f64(row.runtime_s),
                     row.exit_code
-                        .map(|value| value.to_string())
-                        .unwrap_or_else(|| "missing".to_string()),
+                        .map_or_else(|| "missing".to_string(), |value| value.to_string()),
                     if row.report_json.trim().is_empty() {
                         "missing".to_string()
                     } else {
@@ -181,17 +181,14 @@ fn build_corpus_artifact_set(
     let observed_manifest_tools = sorted_json_string_array(run_manifest.get("tools"));
     if observed_manifest_tools != expected_tools {
         return Err(anyhow!(
-            "run manifest tool roster drift: expected {:?}, found {:?}",
-            expected_tools,
-            observed_manifest_tools
+            "run manifest tool roster drift: expected {expected_tools:?}, found {observed_manifest_tools:?}"
         ));
     }
 
     let local_results_root = run_root
         .ancestors()
         .nth(2)
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| run_root.to_path_buf());
+        .map_or_else(|| run_root.to_path_buf(), Path::to_path_buf);
 
     let mut sample_rows = Vec::new();
     let mut sample_tool_runtimes = BTreeMap::<String, Vec<(String, f64)>>::new();
@@ -242,11 +239,11 @@ fn build_corpus_artifact_set(
             let runtime_s = record
                 .get("execution")
                 .and_then(|value| value.get("runtime_s"))
-                .and_then(|value| value.as_f64());
+                .and_then(serde_json::Value::as_f64);
             let exit_code = record
                 .get("execution")
                 .and_then(|value| value.get("exit_code"))
-                .and_then(|value| value.as_i64());
+                .and_then(serde_json::Value::as_i64);
             if let Some(runtime) = runtime_s {
                 sample_tool_runtimes
                     .entry(sample_id.clone())
@@ -291,18 +288,14 @@ fn build_corpus_artifact_set(
         let observed_tools = sample_tools.into_iter().collect::<Vec<_>>();
         if observed_tools != expected_tools {
             return Err(anyhow!(
-                "sample report tool roster drift for `{sample_id}`: expected {:?}, found {:?}",
-                expected_tools,
-                observed_tools
+                "sample report tool roster drift for `{sample_id}`: expected {expected_tools:?}, found {observed_tools:?}"
             ));
         }
     }
 
     if observed_sample_ids != expected_sample_ids {
         return Err(anyhow!(
-            "run manifest sample coverage drift: expected {:?}, found {:?}",
-            expected_sample_ids,
-            observed_sample_ids
+            "run manifest sample coverage drift: expected {expected_sample_ids:?}, found {observed_sample_ids:?}"
         ));
     }
 
@@ -374,7 +367,11 @@ fn build_corpus_artifact_set(
         for size_band in size_bands {
             let values = size_band_runtime_values
                 .get(&(tool.clone(), size_band.clone()))
-                .expect("size band values");
+                .ok_or_else(|| {
+                    anyhow!(
+                        "benchmark publication missing size-band runtime values for `{tool}` in `{size_band}`"
+                    )
+                })?;
             let mut row = BTreeMap::new();
             row.insert("tool".to_string(), tool.clone());
             row.insert("dimension".to_string(), "size_band".to_string());
@@ -443,14 +440,14 @@ fn build_corpus_artifact_set(
         });
     let samples_failed = run_manifest
         .get("samples_failed")
-        .and_then(|value| value.as_u64())
-        .unwrap_or(0) as usize;
+        .and_then(serde_json::Value::as_u64)
+        .map_or(Ok(0_usize), usize::try_from)?;
     let summary = CorpusSummary {
         schema_version: "bijux.corpus_benchmark.summary.v1".to_string(),
         corpus_id: corpus_spec.corpus_id.clone(),
         stage_id: contract.stage_id.clone(),
         scenario_id: contract.scenario_id.clone(),
-        generated_at_utc: Utc::now().to_rfc3339(),
+        generated_at_utc: bijux_dna_api::v1::api::shared::current_utc_timestamp(),
         platform: value_string(run_manifest, "platform")
             .unwrap_or("missing")
             .to_string(),
@@ -648,19 +645,19 @@ fn csv_cell(value: String) -> String {
 }
 
 fn optional_f64(value: Option<f64>) -> String {
-    value
-        .map(format_f64)
-        .unwrap_or_else(|| "missing".to_string())
+    value.map_or_else(|| "missing".to_string(), format_f64)
 }
 
 fn format_f64(value: f64) -> String {
     format!("{value:.6}")
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn fraction(numerator: usize, denominator: usize) -> Option<f64> {
     (denominator > 0).then_some(numerator as f64 / denominator as f64)
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn mean(values: &[f64]) -> Option<f64> {
     (!values.is_empty()).then_some(values.iter().sum::<f64>() / values.len() as f64)
 }

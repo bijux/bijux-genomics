@@ -46,6 +46,11 @@ pub mod env {
     pub use crate::v1::env::*;
 }
 
+/// Shared helpers (v1).
+pub mod shared {
+    pub use crate::v1::shared::*;
+}
+
 /// Build an explainability bundle for a planned graph.
 #[must_use]
 pub fn explain(
