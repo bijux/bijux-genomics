@@ -8,7 +8,7 @@ pub(super) fn parse_stage_outputs(
     plan: &StagePlanV1,
     outputs: &[ArtifactRef],
 ) -> Result<StagePluginOutputV1> {
-    let metrics = collected_metrics::collect_output_metrics(plan, outputs)?;
+    let metrics = collected_metrics::collect_output_metrics(plan, outputs);
     let envelope = envelope::build_metrics_envelope(plan, metrics)?;
     Ok(StagePluginOutputV1 {
         metrics: envelope,

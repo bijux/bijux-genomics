@@ -17,7 +17,7 @@ impl StagePlugin for BamStagePlugin {
         &self,
         plan: &StagePlanV1,
     ) -> Result<bijux_dna_stage_contract::StageInvocationV1> {
-        invocation::materialize_stage_invocation(plan)
+        Ok(invocation::materialize_stage_invocation(plan))
     }
 
     fn parse_outputs(

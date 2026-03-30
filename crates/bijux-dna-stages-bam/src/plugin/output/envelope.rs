@@ -9,7 +9,7 @@ use bijux_dna_stage_contract::StagePlanV1;
 pub(super) fn build_metrics_envelope(
     plan: &StagePlanV1,
     metrics: BamMetricsV1,
-) -> Result<MetricsEnvelope> {
+) -> Result<MetricsEnvelope<serde_json::Value>> {
     let metrics_json = serde_json::to_value(metrics)?;
     let mut input_hashes = Vec::new();
     for input in &plan.io.inputs {

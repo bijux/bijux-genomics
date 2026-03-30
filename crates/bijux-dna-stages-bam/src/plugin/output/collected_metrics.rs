@@ -1,13 +1,9 @@
-use anyhow::Result;
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 
 use crate::metrics::bam_metrics_from_dir;
 
-pub(super) fn collect_output_metrics(
-    plan: &StagePlanV1,
-    outputs: &[ArtifactRef],
-) -> Result<BamMetricsV1> {
+pub(super) fn collect_output_metrics(plan: &StagePlanV1, outputs: &[ArtifactRef]) -> BamMetricsV1 {
     let out_dir = outputs
         .first()
         .and_then(|output| output.path.parent())
@@ -20,5 +16,5 @@ pub(super) fn collect_output_metrics(
         &thresholds,
     );
     metrics.stage_verdict = Some(evaluation.verdict.into());
-    Ok(metrics)
+    metrics
 }
