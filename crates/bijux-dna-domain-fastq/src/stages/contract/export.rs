@@ -85,6 +85,7 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
 
 /// # Errors
 /// Returns an error if JSON canonicalization fails.
+#[must_use]
 pub fn stage_contract_hash(stage_id: &str) -> Option<anyhow::Result<String>> {
     let json = stage_contract_json(stage_id)?;
     let canonical = canonicalize_json_value(&json);
