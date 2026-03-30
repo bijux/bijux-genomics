@@ -4,9 +4,9 @@ use super::{
     artifact_env, check_default_settings_docs, check_doc_links, check_domain_index,
     check_domain_layout, check_domain_schema, check_domain_tool_metadata,
     check_external_tool_policy, check_fixture_contracts, check_inventory, check_orphan_files,
-    check_planner_fixture_coverage, check_planner_stage_coverage,
-    check_reference_bundle_lock, check_rust_stage_catalog_parity, check_shared_tools,
-    check_ssot_authority, check_tool_container_parity, command_runner,
+    check_planner_fixture_coverage, check_planner_stage_coverage, check_reference_bundle_lock,
+    check_rust_stage_catalog_parity, check_shared_tools, check_ssot_authority,
+    check_tool_container_parity, command_runner,
 };
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
