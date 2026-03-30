@@ -1,4 +1,5 @@
 use cargo_metadata::MetadataCommand;
+use std::collections::BTreeSet;
 
 #[test]
 fn runner_has_no_engine_dependency() {
@@ -29,4 +30,103 @@ fn runner_has_no_engine_dependency() {
         !has_edge,
         "bijux-dna-runner must not depend on bijux-dna-engine"
     );
+}
+
+#[test]
+fn runner_tree_matches_architecture_contract() {
+    let root = crate::support::crate_root("bijux-dna-runner")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
+
+    let root_entries = dir_entries(&root);
+    let expected_root: BTreeSet<_> = [
+        "BOUNDARY.md",
+        "Cargo.toml",
+        "PUBLIC_API.md",
+        "README.md",
+        "docs/",
+        "src/",
+        "tests/",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        root_entries, expected_root,
+        "runner crate root must stay minimal and intentional"
+    );
+
+    let src_entries = dir_entries(&root.join("src"));
+    let expected_src: BTreeSet<_> = [
+        "backend/",
+        "command_runner.rs",
+        "lib.rs",
+        "repo_root.rs",
+        "step_runner/",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        src_entries, expected_src,
+        "runner src tree must match the documented architecture"
+    );
+
+    let backend_entries = dir_entries(&root.join("src/backend"));
+    let expected_backend: BTreeSet<_> = ["docker/", "kinds.rs", "mod.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        backend_entries, expected_backend,
+        "runner backend tree must stay focused"
+    );
+
+    let docker_entries = dir_entries(&root.join("src/backend/docker"));
+    let expected_docker: BTreeSet<_> = [
+        "execution_spec.rs",
+        "executor.rs",
+        "image_resolution.rs",
+        "mod.rs",
+        "replay.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        docker_entries, expected_docker,
+        "runner docker backend tree must match its execution responsibilities"
+    );
+
+    let step_runner_entries = dir_entries(&root.join("src/step_runner"));
+    let expected_step_runner: BTreeSet<_> = [
+        "artifacts.rs",
+        "command_template.rs",
+        "identity.rs",
+        "inputs.rs",
+        "mod.rs",
+        "observer.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        step_runner_entries, expected_step_runner,
+        "runner step_runner tree must remain decomposed by concern"
+    );
+}
+
+fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
+    std::fs::read_dir(path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
+        .map(|entry| entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display())))
+        .map(|entry| {
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().to_string();
+            if path.is_dir() {
+                format!("{name}/")
+            } else {
+                name
+            }
+        })
+        .collect()
 }
