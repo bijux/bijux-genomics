@@ -1,11 +1,8 @@
 use std::fs;
 
-#[path = "../support.rs"]
-mod support;
-
 #[test]
 fn backend_invariants_are_documented() {
-    let doc = support::crate_root("bijux-dna-runner")
+    let doc = crate::support::crate_root("bijux-dna-runner")
         .unwrap_or_else(|err| panic!("resolve runner root: {err}"))
         .join("docs")
         .join("BACKENDS.md");

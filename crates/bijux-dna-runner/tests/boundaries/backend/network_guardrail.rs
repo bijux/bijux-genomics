@@ -1,10 +1,7 @@
 use std::path::PathBuf;
 
-#[path = "../../support.rs"]
-mod support;
-
 fn step_runner_path() -> PathBuf {
-    support::crate_src("bijux-dna-runner")
+    crate::support::crate_src("bijux-dna-runner")
         .unwrap_or_else(|err| panic!("resolve runner src: {err}"))
         .join("step_runner.rs")
 }
