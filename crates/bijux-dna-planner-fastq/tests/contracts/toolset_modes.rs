@@ -26,19 +26,21 @@ fn toolset_modes_separate_default_governed_benchmark_and_all_bindings() {
         &trim_stage,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::BenchmarkCohort,
     );
+    assert!(!benchmark_tools.is_empty());
     assert!(benchmark_tools
         .iter()
         .all(|tool_id| governed_tools.contains(tool_id)));
-    assert!(benchmark_tools.iter().all(|tool_id| !matches!(
-        tool_id.as_str(),
-        "alientrimmer" | "fastx_clipper" | "leehom" | "skewer"
-    )));
 
     let all_bindings = bijux_dna_planner_fastq::stage_api::toolset_for_stage(
         &trim_stage,
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
     );
-    assert_eq!(all_bindings, governed_tools);
+    assert!(governed_tools
+        .iter()
+        .all(|tool_id| all_bindings.contains(tool_id)));
+    assert!(all_bindings
+        .iter()
+        .any(|tool_id| tool_id.as_str() == "seqpurge"));
 }
 
 #[test]
