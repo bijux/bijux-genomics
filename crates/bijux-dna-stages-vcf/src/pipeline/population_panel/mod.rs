@@ -1,9 +1,11 @@
 mod analysis_and_panel;
-mod helpers;
+mod panel_output;
+mod panel_variants;
 
 use super::*;
 pub use analysis_and_panel::*;
-pub(crate) use helpers::*;
+pub(crate) use panel_output::*;
+pub(crate) use panel_variants::*;
 
 fn require_ld_pruning_policy(policy: Option<&str>, stage_id: &str) -> Result<String> {
     let Some(policy) = policy.map(str::trim).filter(|x| !x.is_empty()) else {

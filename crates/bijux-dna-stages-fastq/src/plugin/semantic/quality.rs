@@ -1,4 +1,4 @@
-use super::support::{parse_qc_contributor_identity, validate_semantic_metrics};
+use super::validation_semantics::{parse_qc_contributor_identity, validate_semantic_metrics};
 use super::*;
 
 pub(super) fn observed_quality_metrics(

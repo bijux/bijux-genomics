@@ -4,11 +4,11 @@ mod feature_tables;
 mod processing;
 mod profiling;
 mod quality;
-mod support;
 mod taxonomy;
+mod validation_semantics;
 
 #[cfg(test)]
-pub(crate) use self::support::validate_semantic_metrics;
+pub(crate) use self::validation_semantics::validate_semantic_metrics;
 
 pub(super) fn observed_semantic_metrics(
     plan: &StagePlanV1,

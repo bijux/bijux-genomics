@@ -1,11 +1,11 @@
 mod damage_and_propagation;
-mod helpers;
 mod types;
+mod variant_records;
 
 use super::*;
 pub use damage_and_propagation::*;
-pub(crate) use helpers::*;
 pub use types::*;
+pub(crate) use variant_records::*;
 
 fn resolve_reference_path(params: &VcfCallParams) -> Result<String> {
     if let Some(reference) = params.reference_fasta.as_deref() {
