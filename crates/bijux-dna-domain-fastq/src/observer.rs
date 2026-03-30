@@ -2,6 +2,7 @@
 
 mod parse;
 
+pub use parse::tool_metrics::{parse_fastp_metrics, parse_multiqc_general_stats_metrics};
 pub use parse::{
     parse_bbduk_reads_removed, parse_cluster_otus_report, parse_correct_errors_report,
     parse_deduplicate_report, parse_deplete_host_report,
@@ -17,4 +18,3 @@ pub use parse::{
     parse_terminal_damage_report, parse_trim_polyg_report, parse_trim_reads_report,
     parse_validated_reads_manifest, parse_validation_report,
 };
-pub use parse::tool_metrics::{parse_fastp_metrics, parse_multiqc_general_stats_metrics};
