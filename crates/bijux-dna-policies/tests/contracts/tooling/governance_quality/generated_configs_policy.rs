@@ -2,6 +2,18 @@
 #[path = "../../../support/fs.rs"]
 mod support;
 
+fn native_ops_sources(root: &std::path::Path) -> Vec<std::path::PathBuf> {
+    [
+        "crates/bijux-dna-dev/src/commands/ops/tooling/diagnostics.rs",
+        "crates/bijux-dna-dev/src/commands/ops/mod.rs",
+        "crates/bijux-dna-dev/src/commands/ops.rs",
+    ]
+    .into_iter()
+    .map(|rel| root.join(rel))
+    .filter(|path| path.is_file())
+    .collect()
+}
+
 #[test]
 #[ignore = "TODO: generated header/source_commit format migration in progress"]
 fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_edited() {
@@ -49,14 +61,17 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
 fn policy__contracts__generated_configs_policy__single_generator_command_is_canonical() {
     let root = support::workspace_root();
     let makefile = root.join("makes/cargo.mk");
-    let native_source = root.join("crates/bijux-dna-dev/src/commands/ops.rs");
     let make_raw = std::fs::read_to_string(&makefile)
         .unwrap_or_else(|_| panic!("read {}", makefile.display()));
-    let native_raw = std::fs::read_to_string(&native_source)
-        .unwrap_or_else(|_| panic!("read {}", native_source.display()));
+    let native_sources = native_ops_sources(&root);
+    let native_contains_generator = native_sources.iter().any(|path| {
+        std::fs::read_to_string(path)
+            .unwrap_or_else(|_| panic!("read {}", path.display()))
+            .contains("compile_domain_configs")
+    });
 
     assert!(
-        native_raw.contains("compile_domain_configs"),
+        native_contains_generator,
         "bijux-dna-dev native ops must call compile_domain_configs"
     );
     assert!(
