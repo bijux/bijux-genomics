@@ -1,8 +1,7 @@
 mod pipeline_defaults;
 mod plan_compose;
 mod planner;
-mod preprocess_planning;
-mod preprocess_policy;
+mod preprocess;
 mod qc_contract;
 mod report_stage;
 mod selection;
