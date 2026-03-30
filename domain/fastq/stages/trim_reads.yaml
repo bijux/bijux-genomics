@@ -125,6 +125,8 @@ compatible_tools:
   - prinseq
   - seqkit
   - skewer
+planned_out_of_scope:
+  - seqpurge
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "adapter, polyx, and contaminant trimming policies are explicit in effective params."
