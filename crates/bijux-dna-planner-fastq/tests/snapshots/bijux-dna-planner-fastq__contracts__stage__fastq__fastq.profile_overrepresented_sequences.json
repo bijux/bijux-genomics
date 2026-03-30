@@ -10,13 +10,9 @@
   },
   "command": {
     "template": [
-      "fastqc",
-      "--outdir",
-      "out/fastqc_overrepresented",
-      "--threads",
-      "4",
-      "reads_R1.fastq.gz",
-      "reads_R2.fastq.gz"
+      "sh",
+      "-lc",
+      "mkdir -p 'out/fastqc_overrepresented'\n'fastqc' '--outdir' 'out/fastqc_overrepresented' '--threads' '4' 'reads_R1.fastq.gz' 'reads_R2.fastq.gz'"
     ]
   },
   "resources": {
