@@ -161,6 +161,31 @@ fn is_excluded_tooling_path(relative: &str) -> bool {
     relative.starts_with("makes/bin/test_")
 }
 
+fn collect_matching_files_recursive(
+    root: &Path,
+    predicate: &impl Fn(&Path) -> bool,
+) -> Result<Vec<PathBuf>> {
+    let mut paths = Vec::new();
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        for entry in dir
+            .read_dir()
+            .with_context(|| format!("read {}", dir.display()))?
+        {
+            let entry = entry.with_context(|| format!("read {}", dir.display()))?;
+            let path = entry.path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            if predicate(&path) {
+                paths.push(path);
+            }
+        }
+    }
+    Ok(paths)
+}
+
 fn benchmark_contract_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
     let bench_config_root = repo_root.join("configs/bench");
@@ -184,18 +209,11 @@ fn benchmark_contract_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
 
     let docs_root = repo_root.join("docs/benchmark");
     if docs_root.is_dir() {
-        for entry in walkdir::WalkDir::new(&docs_root) {
-            let entry = entry.with_context(|| format!("walk {}", docs_root.display()))?;
-            let path = entry.path();
-            if path.is_file()
-                && path
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    .is_some_and(|ext| matches!(ext, "md" | "json" | "csv"))
-            {
-                paths.push(path.to_path_buf());
-            }
-        }
+        paths.extend(collect_matching_files_recursive(&docs_root, &|path| {
+            path.extension()
+                .and_then(|ext| ext.to_str())
+                .is_some_and(|ext| matches!(ext, "md" | "json" | "csv"))
+        })?);
     }
 
     paths.sort();
@@ -215,17 +233,10 @@ fn benchmark_crate_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
         if !root.is_dir() {
             continue;
         }
-        for entry in walkdir::WalkDir::new(&root) {
-            let entry = entry.with_context(|| format!("walk {}", root.display()))?;
-            let path = entry.path();
-            if !path.is_file() || path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
-                continue;
-            }
-            if path.file_name().and_then(|name| name.to_str()) == Some("mod.rs") {
-                continue;
-            }
-            paths.push(path.to_path_buf());
-        }
+        paths.extend(collect_matching_files_recursive(&root, &|path| {
+            path.extension().and_then(|ext| ext.to_str()) == Some("rs")
+                && path.file_name().and_then(|name| name.to_str()) != Some("mod.rs")
+        })?);
     }
     paths.sort();
     paths.dedup();

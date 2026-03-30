@@ -201,7 +201,7 @@ fn upsert_container_version_entry(
     );
     row.insert(
         "date_pinned".to_string(),
-        toml::Value::String(chrono::Utc::now().date_naive().to_string()),
+        toml::Value::String(bijux_dna_api::v1::api::shared::current_utc_date()),
     );
     table.insert(tool_id.to_string(), toml::Value::Table(row));
     let rendered = toml::to_string_pretty(&parsed)

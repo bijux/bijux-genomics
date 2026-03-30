@@ -890,19 +890,12 @@ fn workspace_entry_summary(path: &Path) -> Result<WorkspaceEntrySummary> {
     let mut file_count = 0u64;
     let mut total_size_bytes = 0u64;
     let mut newest_mtime = modified_secs(&metadata).unwrap_or(0);
-    for child in walkdir::WalkDir::new(path) {
-        let child = child.with_context(|| format!("walk {}", path.display()))?;
-        let child_metadata = child
-            .metadata()
-            .with_context(|| format!("stat {}", child.path().display()))?;
-        if let Some(mtime) = modified_secs(&child_metadata) {
-            newest_mtime = newest_mtime.max(mtime);
-        }
-        if child.file_type().is_file() {
-            file_count += 1;
-            total_size_bytes += child_metadata.len();
-        }
-    }
+    accumulate_workspace_entry_summary(
+        path,
+        &mut file_count,
+        &mut total_size_bytes,
+        &mut newest_mtime,
+    )?;
 
     Ok(WorkspaceEntrySummary {
         exists: true,
@@ -919,6 +912,37 @@ fn modified_secs(metadata: &fs::Metadata) -> Option<u64> {
         .ok()
         .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
         .map(|duration| duration.as_secs())
+}
+
+fn accumulate_workspace_entry_summary(
+    path: &Path,
+    file_count: &mut u64,
+    total_size_bytes: &mut u64,
+    newest_mtime: &mut u64,
+) -> Result<()> {
+    for entry in fs::read_dir(path).with_context(|| format!("read {}", path.display()))? {
+        let entry = entry.with_context(|| format!("read {}", path.display()))?;
+        let child_path = entry.path();
+        let child_metadata =
+            fs::metadata(&child_path).with_context(|| format!("stat {}", child_path.display()))?;
+        if let Some(mtime) = modified_secs(&child_metadata) {
+            *newest_mtime = (*newest_mtime).max(mtime);
+        }
+        if child_metadata.is_dir() {
+            accumulate_workspace_entry_summary(
+                &child_path,
+                file_count,
+                total_size_bytes,
+                newest_mtime,
+            )?;
+            continue;
+        }
+        if child_metadata.is_file() {
+            *file_count += 1;
+            *total_size_bytes += child_metadata.len();
+        }
+    }
+    Ok(())
 }
 
 fn apply_root_convergence(plan: &WorkspaceConvergencePlan) -> Result<WorkspaceConvergencePlan> {

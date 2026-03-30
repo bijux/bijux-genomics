@@ -1,9 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::UNIX_EPOCH;
 
 use anyhow::{anyhow, Context, Result};
-use chrono::{DateTime, Utc};
 use regex::Regex;
 
 use super::models::{StageRunRootCandidate, StageRunRootSelection};
@@ -67,10 +67,7 @@ pub(super) fn load_csv_rows(path: &Path) -> Result<Vec<BTreeMap<String, String>>
         if line.trim().is_empty() {
             continue;
         }
-        let values = line
-            .split(',')
-            .map(|value| value.trim())
-            .collect::<Vec<_>>();
+        let values = line.split(',').map(str::trim).collect::<Vec<_>>();
         let mut row = BTreeMap::new();
         for (header, value) in headers.iter().zip(values.iter()) {
             row.insert(header.clone(), (*value).to_string());
@@ -82,8 +79,7 @@ pub(super) fn load_csv_rows(path: &Path) -> Result<Vec<BTreeMap<String, String>>
 
 pub(super) fn csv_value(row: &BTreeMap<String, String>, key: &str) -> String {
     row.get(key)
-        .map(|value| value.trim().to_string())
-        .unwrap_or_else(|| "missing".to_string())
+        .map_or_else(|| "missing".to_string(), |value| value.trim().to_string())
 }
 
 pub(super) fn csv_required_value(row: &BTreeMap<String, String>, key: &str) -> Option<String> {
@@ -108,7 +104,9 @@ pub(super) fn sort_count_map(value: Option<&serde_json::Value>) -> Result<BTreeM
             let count = value
                 .as_u64()
                 .ok_or_else(|| anyhow!("count map entry `{key}` must be an unsigned integer"))?;
-            Ok((key.clone(), count as usize))
+            let count = usize::try_from(count)
+                .map_err(|_| anyhow!("count map entry `{key}` exceeds usize"))?;
+            Ok((key.clone(), count))
         })
         .collect()
 }
@@ -180,7 +178,7 @@ pub(super) fn select_stage_run_root(candidates: &[StageRunRootCandidate]) -> Sta
         if candidate_timestamp.is_some()
             && (freshest_timestamp.is_none() || candidate_timestamp > freshest_timestamp)
         {
-            freshest_path = candidate.path.clone();
+            freshest_path.clone_from(&candidate.path);
             freshest_timestamp = candidate_timestamp;
         }
     }
@@ -190,7 +188,7 @@ pub(super) fn select_stage_run_root(candidates: &[StageRunRootCandidate]) -> Sta
     }
 }
 
-pub(super) fn run_root_freshness_timestamp(run_root: &Path) -> Option<DateTime<Utc>> {
+pub(super) fn run_root_freshness_timestamp(run_root: &Path) -> Option<i64> {
     let manifest_path = run_root.join("run_manifest.json");
     if manifest_path.is_file() {
         let manifest = load_json_value(&manifest_path).ok()?;
@@ -200,8 +198,10 @@ pub(super) fn run_root_freshness_timestamp(run_root: &Path) -> Option<DateTime<U
             "finished_at_utc",
             "started_at_utc",
         ] {
-            if let Some(parsed) =
-                parse_utc_timestamp(manifest.get(key).and_then(|value| value.as_str()))
+            if let Some(parsed) = manifest
+                .get(key)
+                .and_then(|value| value.as_str())
+                .and_then(bijux_dna_api::v1::api::shared::parse_rfc3339_timestamp_to_unix_seconds)
             {
                 return Some(parsed);
             }
@@ -210,23 +210,14 @@ pub(super) fn run_root_freshness_timestamp(run_root: &Path) -> Option<DateTime<U
     None
 }
 
-pub(super) fn run_root_observed_timestamp(run_root: &Path) -> Option<DateTime<Utc>> {
+pub(super) fn run_root_observed_timestamp(run_root: &Path) -> Option<i64> {
     run_root_freshness_timestamp(run_root).or_else(|| {
         fs::metadata(run_root)
             .ok()
             .and_then(|metadata| metadata.modified().ok())
-            .map(DateTime::<Utc>::from)
+            .and_then(|value| value.duration_since(UNIX_EPOCH).ok())
+            .and_then(|value| i64::try_from(value.as_secs()).ok())
     })
-}
-
-pub(super) fn parse_utc_timestamp(raw: Option<&str>) -> Option<DateTime<Utc>> {
-    let normalized = raw?.trim().replace('Z', "+00:00");
-    if normalized.is_empty() {
-        return None;
-    }
-    DateTime::parse_from_rfc3339(&normalized)
-        .map(|value| value.with_timezone(&Utc))
-        .ok()
 }
 
 pub(super) fn find_polluting_ds_store_files(root: &Path) -> Vec<PathBuf> {
@@ -248,7 +239,8 @@ pub(super) fn find_polluting_ds_store_files(root: &Path) -> Vec<PathBuf> {
 
 pub(super) fn observed_tools_from_report(path: &Path) -> Result<Vec<String>> {
     let text = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let pattern = Regex::new(r#""tool"\s*:\s*"([^"]+)""#).expect("tool regex");
+    let pattern = Regex::new(r#""tool"\s*:\s*"([^"]+)""#)
+        .map_err(|err| anyhow!("compile tool regex: {err}"))?;
     let tools = pattern
         .captures_iter(&text)
         .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_string()))
