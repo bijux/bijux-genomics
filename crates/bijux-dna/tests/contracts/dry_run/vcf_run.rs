@@ -1,7 +1,6 @@
-use bijux_dna::commands::run_with_args;
+#![allow(clippy::expect_used, clippy::too_many_lines)]
 
-#[path = "../../support.rs"]
-mod support;
+use bijux_dna::commands::run_with_args;
 
 #[test]
 fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
@@ -65,7 +64,7 @@ arch = "x86_64"
     )
     .expect("write platforms");
 
-    let ws_root = support::repo_root().expect("repo root");
+    let ws_root = crate::support::repo_root().expect("repo root");
     for (src, dest) in [
         (
             ws_root.join("configs/ci/tools/images.toml"),
@@ -103,6 +102,12 @@ arch = "x86_64"
         std::fs::copy(&src, &dest).unwrap_or_else(|err| panic!("copy {}: {err}", src.display()));
     }
 
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(ws_root.join("domain"), root.join("domain")).expect("symlink domain");
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(ws_root.join("assets"), root.join("assets")).expect("symlink assets");
+
+    std::env::set_var("BIJUX_REPO_ROOT", root);
     let args = [
         "bijux",
         "--platform",
