@@ -1,7 +1,13 @@
 //! Observer parsing support for governed FASTQ reports and tool outputs.
 
+pub mod contracts;
 mod parse;
 
+pub use contracts::{
+    is_observer_specialized_stage_tool, observer_semantic_surface_for_stage_tool,
+    observer_specialization_contract_for_stage_tool, observer_specialization_contracts,
+    observer_specialized_stage_tool_bindings, ObserverSpecializationContract,
+};
 pub use parse::tool_metrics::{parse_fastp_metrics, parse_multiqc_general_stats_metrics};
 pub use parse::{
     parse_bbduk_reads_removed, parse_cluster_otus_report, parse_correct_errors_report,
