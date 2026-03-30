@@ -1,3 +1,6 @@
+#![allow(clippy::too_many_lines)]
+//! Root-level command handlers routed from the CLI entrypoint.
+
 use std::path::Path;
 
 use anyhow::Context;
@@ -64,7 +67,9 @@ pub(crate) fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -
             if *json {
                 print_registry_export_containers_json(&registry_path)?;
             } else {
-                return Err(anyhow::anyhow!("registry export-containers requires --json"));
+                return Err(anyhow::anyhow!(
+                    "registry export-containers requires --json"
+                ));
             }
         }
         cli::RegistryCommand::CoverageMatrix => print_registry_coverage_matrix(&registry_path)?,
@@ -270,8 +275,8 @@ pub(crate) fn handle_environment_root(
         cli::EnvCommand::Images | cli::EnvCommand::Info | cli::EnvCommand::Doctor => {
             let platform = load_platform(platform_name)
                 .map_err(|err| anyhow::anyhow!("failed to load platform: {err}"))?;
-            let catalog =
-                load_image_catalog().map_err(|err| anyhow::anyhow!("failed to load images: {err}"))?;
+            let catalog = load_image_catalog()
+                .map_err(|err| anyhow::anyhow!("failed to load images: {err}"))?;
             match command {
                 cli::EnvCommand::Images => print_env_images(&catalog, &platform)?,
                 cli::EnvCommand::Info => print_env_info(&catalog, &platform),
