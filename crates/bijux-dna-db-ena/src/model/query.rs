@@ -94,7 +94,7 @@ mod tests {
     fn normalized_accessions_trim_empty_and_deduplicate() {
         let query = EnaQuery {
             projects: vec![" PRJEB1 ".to_string()],
-            samples: vec!["".to_string(), " SAMEA1 ".to_string()],
+            samples: vec![String::new(), " SAMEA1 ".to_string()],
             extra_accessions: vec!["PRJEB1".to_string(), "  ".to_string()],
             result: EnaResultKind::ReadRun,
         };
@@ -110,7 +110,7 @@ mod tests {
         let query = EnaQuery {
             projects: vec![" ".to_string()],
             samples: Vec::new(),
-            extra_accessions: vec!["".to_string()],
+            extra_accessions: vec![String::new()],
             result: EnaResultKind::ReadRun,
         };
 

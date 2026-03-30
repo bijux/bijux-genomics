@@ -1,4 +1,4 @@
-use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord, EnaResultKind};
+use crate::model::{EnaQuery, EnaRecord, EnaResultKind};
 use reqwest::blocking::Client;
 
 mod error;
@@ -36,7 +36,7 @@ impl EnaClient {
         for accession in accessions {
             let url = request::build_filereport_url(&accession, query.result);
             let body = self.http.get(url).send()?.error_for_status()?.text()?;
-            out.extend(parse::parse_filereport_tsv(&body, query));
+            out.extend(parse::parse_filereport_tsv(&body, query)?);
         }
         Ok(out)
     }
@@ -47,8 +47,9 @@ pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
     request::build_filereport_url(accession, result)
 }
 
-#[must_use]
-pub fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Vec<EnaRecord> {
+/// # Errors
+/// Returns an error when the filereport payload is empty or missing required columns.
+pub fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Result<Vec<EnaRecord>, EnaClientError> {
     parse::parse_filereport_tsv(tsv, query)
 }
 
@@ -83,9 +84,31 @@ mod tests {
             extra_accessions: Vec::new(),
             result: EnaResultKind::ReadRun,
         };
-        let tsv = "study_accession\tsample_accession\trun_accession\tfastq_ftp\nPRJEBX\tSAMEA1\tERR1\tftp.sra.ebi.ac.uk/a.fastq.gz\nPRJEBX\tSAMEA2\tERR2\tftp.sra.ebi.ac.uk/b.fastq.gz\n";
-        let rows = parse_filereport_tsv(tsv, &query);
+        let tsv = "study_accession\tsample_accession\texperiment_accession\trun_accession\ttax_id\tscientific_name\tlibrary_layout\tlibrary_source\tlibrary_strategy\tinstrument_model\tbase_count\tread_count\tfastq_bytes\tfastq_ftp\tsubmitted_ftp\tsra_ftp\nPRJEBX\tSAMEA1\tERX1\tERR1\t9606\tHuman\tPAIRED\tGENOMIC\tWGS\tIllumina\t100\t10\t100\tftp.sra.ebi.ac.uk/a.fastq.gz\t\t\nPRJEBX\tSAMEA2\tERX2\tERR2\t9606\tHuman\tPAIRED\tGENOMIC\tWGS\tIllumina\t100\t10\t100\tftp.sra.ebi.ac.uk/b.fastq.gz\t\t\n";
+        let rows = match parse_filereport_tsv(tsv, &query) {
+            Ok(rows) => rows,
+            Err(error) => panic!("parse filtered rows: {error}"),
+        };
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].run_accession.as_deref(), Some("ERR1"));
+    }
+
+    #[test]
+    fn parse_filereport_tsv_rejects_missing_required_columns() {
+        let query = EnaQuery {
+            projects: vec!["PRJEBX".to_string()],
+            samples: Vec::new(),
+            extra_accessions: Vec::new(),
+            result: EnaResultKind::ReadRun,
+        };
+        let tsv = "study_accession\trun_accession\nPRJEBX\tERR1\n";
+
+        let error = match parse_filereport_tsv(tsv, &query) {
+            Ok(rows) => panic!("missing columns must fail, parsed {} rows", rows.len()),
+            Err(error) => error,
+        };
+        assert!(error
+            .to_string()
+            .contains("missing required columns: sample_accession"));
     }
 }

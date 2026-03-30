@@ -12,7 +12,7 @@ pub(super) fn build_filereport_url(accession: &str, result: EnaResultKind) -> St
     )
 }
 
-fn filereport_fields(result: EnaResultKind) -> &'static [&'static str] {
+pub(super) fn filereport_fields(result: EnaResultKind) -> &'static [&'static str] {
     match result {
         EnaResultKind::ReadRun => &[
             "study_accession",
