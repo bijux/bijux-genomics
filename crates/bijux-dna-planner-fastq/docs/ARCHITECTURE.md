@@ -1,58 +1,21 @@
 # Architecture
 
-`bijux-dna-planner-fastq` turns FASTQ planning inputs, policy, and stage-tool choices into
-governed stage plans and execution graphs. The crate should read as a thin public surface over
-focused subsystems instead of a pile of root-level files.
+This file stays short on purpose. `bijux-dna-planner-fastq` should read as a thin surface over named planning subsystems, with deeper rules documented next to the relevant contract docs.
 
-## Intended tree
+## Layout
+- `lib.rs` and `surface.rs` expose the supported planner surface.
+- `preprocess/` owns pipeline choice and preprocess policy.
+- `selection/` owns tool allowlisting, override merging, and selection helpers.
+- `planner/` owns route expansion, graph planning, and planner-local support types.
+- `compose/` owns stage-plan composition, input resolution, and parameter binding.
+- `tool_adapters/` owns stage-specific plan construction.
 
-```text
-src/
-  lib.rs
-  surface.rs
-  preprocess/
-    mod.rs
-    planning.rs
-    policy.rs
-  selection/
-    mod.rs
-    args.rs
-    facade.rs
-    tool_selection.rs
-  planner/
-    mod.rs
-    benchmark.rs
-    graph_policy.rs
-    route_expansion.rs
-    selection_planning.rs
-    support.rs
-    types.rs
-  compose/
-    mod.rs
-    input_resolution.rs
-    models.rs
-    stage_params.rs
-  tool_adapters/
-    ...
-    stages/transform/trim_reads/
-      mod.rs
-      config.rs
-      reporting.rs
-```
+## Change rules
+- Keep root files as facades or stable subsystem entrypoints.
+- Split adapter support by concern instead of growing catch-all modules.
+- Update this map and the tree contract together when the layout changes intentionally.
 
-## Responsibilities
-
-- `lib.rs` stays thin and re-exports the supported crate surface.
-- `surface.rs` owns the public planner facade and crate-level stage constants.
-- `preprocess/` owns pipeline choice and preprocess policy decisions.
-- `selection/` owns tool allowlisting, override merging, and CLI-facing selection helpers.
-- `planner/` owns graph planning, benchmarking, route expansion, and planner-local support.
-- `compose/` owns stage-plan composition, explicit input resolution, and binding support models.
-- `tool_adapters/` owns backend-specific stage plan construction.
-
-## Design rules
-
-- Root-level modules should be facades or stable subsystem entrypoints, not catch-all helpers.
-- Selection logic should never rely on `include!`-based wiring.
-- Composition helpers should be grouped by concern rather than accumulating in one file.
-- Large stage adapter modules should split config/reporting support into named submodules.
+## Pointers
+- `INDEX.md` for the doc map.
+- `PLANNER_MODEL.md`, `TOOL_SELECTION.md`, and `STAGE_MAPPING.md` for planner structure.
+- `CHANGE_RULES.md`, `EFFECTS.md`, and `TESTS.md` for extension and verification policy.
