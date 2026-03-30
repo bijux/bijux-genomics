@@ -1,4 +1,3 @@
-
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
@@ -6,7 +5,7 @@ use bijux_dna_core::prelude::{
 use bijux_dna_environment::api::{PlatformSpec, ToolImageCatalog};
 use serde::Deserialize;
 
-use crate::backend::docker::executor::resolve_image_for_run;
+use crate::backend::docker::image_resolution::resolve_image_for_run;
 use crate::command_runner::invocation_hash;
 
 #[derive(Debug, Deserialize, Default)]
@@ -75,15 +74,20 @@ pub fn build_tool_execution_spec(
     let mut command_template = manifest.command_template.clone();
     let mut constraints = manifest.constraints.clone();
     if let Some(domain_tool) = load_domain_tool_yaml(tool_id.as_str()) {
+        let DomainToolYaml {
+            container,
+            command_template: domain_command_template,
+            constraints: domain_constraints,
+        } = domain_tool;
         if image_digest.is_none() {
-            image_digest = domain_tool.container.digest.clone();
+            image_digest = container.digest;
         }
         if command_template.is_empty() {
-            if !domain_tool.command_template.is_empty() {
-                command_template = domain_tool.command_template;
+            if !domain_command_template.is_empty() {
+                command_template = domain_command_template;
             }
             if constraints_are_default(&constraints) {
-                if let Some(domain_constraints) = domain_tool.constraints {
+                if let Some(domain_constraints) = domain_constraints {
                     constraints = domain_constraints;
                 }
             }
