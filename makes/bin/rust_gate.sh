@@ -48,6 +48,19 @@ nextest_fast_expr="${NEXTEST_FAST_EXPR:-not test(/::slow__/)}"
 nextest_slow_expr="${NEXTEST_SLOW_EXPR:-test(/::slow__/)}"
 rs_clippy_excludes="${RS_CLIPPY_EXCLUDES:-}"
 
+default_nextest_threads() {
+  case "$(uname -s)" in
+    Darwin)
+      printf '%s' "1"
+      ;;
+    *)
+      printf '%s' ""
+      ;;
+  esac
+}
+
+nextest_threads="${NEXTEST_THREADS:-$(default_nextest_threads)}"
+
 mkdir -p \
   "${rs_artifact_root}" \
   "${rs_target_dir}" \
@@ -103,6 +116,12 @@ run_nextest() {
   local report_path="$1"
   local target_dir="$2"
   shift 2
+  local nextest_args=("$@")
+
+  if [ -n "${nextest_threads}" ]; then
+    nextest_args+=(-j "${nextest_threads}")
+  fi
+
   mkdir -p "$(dirname "${report_path}")" "${rs_profraw_dir}" "${rs_nextest_config_home}" "${rs_nextest_cache_dir}"
   local status=0
   set +e
@@ -112,7 +131,7 @@ run_nextest() {
     NEXTEST_CACHE_DIR="${rs_nextest_cache_dir}" \
     XDG_CONFIG_HOME="${rs_nextest_config_home}" \
     LLVM_PROFILE_FILE="${rs_llvm_profile_file}" \
-    "$@" --target-dir "${target_dir}" 2>&1 | tee "${report_path}"
+    "${nextest_args[@]}" --target-dir "${target_dir}" 2>&1 | tee "${report_path}"
   status=$?
   set -e
   print_nextest_summary "${report_path}"
