@@ -312,6 +312,7 @@ stage_tool_integration:
     leehom: governed_contract
     prinseq: governed_contract
     seqkit: governed_contract
+    seqpurge: planned_contract
     skewer: governed_contract
     trim_galore: governed_contract
     trimmomatic: governed_contract
