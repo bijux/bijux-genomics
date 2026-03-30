@@ -17,10 +17,10 @@ mod examples;
 mod hpc;
 mod lab;
 mod smoke;
-mod test;
 mod tooling;
+mod verification;
 
-use self::test::{
+use self::verification::{
     ensure_help_only, failure_lines, merge_outcomes, run_check_ids, success_line, test_toy_runs,
 };
 use crate::application::checks::CheckApplication;
@@ -84,16 +84,16 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::SmokeBam => smoke::smoke_bam(workspace, args),
         NativeOpsCommandKey::SmokeFastq => smoke::smoke_fastq(workspace, args),
         NativeOpsCommandKey::TestControlPlaneSmoke => {
-            test::test_control_plane_smoke(workspace, args)
+            verification::test_control_plane_smoke(workspace, args)
         }
-        NativeOpsCommandKey::TestTriage => test::test_triage(workspace, args),
+        NativeOpsCommandKey::TestTriage => verification::test_triage(workspace, args),
         NativeOpsCommandKey::TestReproduceFailure => {
-            test::test_reproduce_failure(workspace, args)
+            verification::test_reproduce_failure(workspace, args)
         }
         NativeOpsCommandKey::TestFastqGoldRepro => {
-            test::test_fastq_gold_repro(workspace, args)
+            verification::test_fastq_gold_repro(workspace, args)
         }
-        NativeOpsCommandKey::TestToyRuns => test::test_toy_runs(workspace, args),
+        NativeOpsCommandKey::TestToyRuns => verification::test_toy_runs(workspace, args),
         NativeOpsCommandKey::ToolingCargoTargets => tooling::tooling_cargo_targets(workspace, args),
         NativeOpsCommandKey::ToolingCheckConfigSnapshot => {
             tooling::tooling_check_config_snapshot(workspace, args)
@@ -127,8 +127,12 @@ pub fn run_native_ops_command(
         NativeOpsCommandKey::ToolingCertifyFastq => tooling::tooling_certify_fastq(workspace, args),
         NativeOpsCommandKey::ToolingCertifyVcf => tooling::tooling_certify_vcf(workspace, args),
         NativeOpsCommandKey::ToolingAcquireMaps => tooling::tooling_acquire_maps(workspace, args),
-        NativeOpsCommandKey::ToolingAcquirePanels => tooling::tooling_acquire_panels(workspace, args),
-        NativeOpsCommandKey::ToolingAcquireReference => tooling::tooling_acquire_reference(workspace, args),
+        NativeOpsCommandKey::ToolingAcquirePanels => {
+            tooling::tooling_acquire_panels(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingAcquireReference => {
+            tooling::tooling_acquire_reference(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkIntegrityMini => {
             tooling::tooling_benchmark_integrity_mini(workspace, args)
         }
@@ -1832,7 +1836,8 @@ fn lab_config(workspace: &Workspace) -> Result<TomlValue> {
             resolved.display()
         ));
     }
-    let mut value: TomlValue = toml::from_str(&read_utf8(&resolved)?).context("parse lab config")?;
+    let mut value: TomlValue =
+        toml::from_str(&read_utf8(&resolved)?).context("parse lab config")?;
     expand_toml_env_placeholders(&mut value);
     Ok(value)
 }
@@ -2070,11 +2075,7 @@ fn benchmark_sync_revision(workspace: &Workspace, host: &str, repo_dir: &str) ->
     }
 }
 
-fn benchmark_sync_profile_path(
-    path: &Path,
-    profile: &str,
-    field: &str,
-) -> Result<Option<String>> {
+fn benchmark_sync_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option<String>> {
     let value: TomlValue = toml::from_str(&read_utf8(path)?)?;
     let profiles = value
         .get("profiles")
@@ -2532,8 +2533,8 @@ mod tests {
     use toml::Value as TomlValue;
 
     use super::{
-        benchmark_corpus_dir_name, benchmark_workspace_lookup, config_string, env_or_contract,
-        expand_toml_env_placeholders, benchmark_sync_profile, load_benchmark_sync_profiles,
+        benchmark_corpus_dir_name, benchmark_sync_profile, benchmark_workspace_lookup,
+        config_string, env_or_contract, expand_toml_env_placeholders, load_benchmark_sync_profiles,
         load_benchmark_workspace_paths, BenchmarkWorkspacePaths,
     };
     use crate::runtime::workspace::Workspace;
@@ -2619,7 +2620,10 @@ data_manifest_glob = ""
         let paths = load_benchmark_workspace_paths(&workspace)?;
 
         assert_eq!(paths.local_results_root.as_deref(), Some("/tmp/results"));
-        assert_eq!(paths.remote_repo_root.as_deref(), Some("/opt/benchmark/repo"));
+        assert_eq!(
+            paths.remote_repo_root.as_deref(),
+            Some("/opt/benchmark/repo")
+        );
         assert_eq!(
             paths.remote_results_root.as_deref(),
             Some("/opt/benchmark/.cache/results")
@@ -2632,7 +2636,10 @@ data_manifest_glob = ""
     fn config_string_reads_string_arrays_as_csv() {
         let value: TomlValue =
             toml::from_str("pipeline_ids = [\"one\", \"two\"]").expect("parse config");
-        assert_eq!(config_string(&value, "pipeline_ids"), Some("one,two".to_string()));
+        assert_eq!(
+            config_string(&value, "pipeline_ids"),
+            Some("one,two".to_string())
+        );
     }
 
     #[test]
@@ -2650,8 +2657,14 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
         std::env::remove_var("BIJUX_TEST_CORPUS_ROOT");
         std::env::remove_var("BIJUX_TEST_PIPELINE_A");
 
-        assert_eq!(config_string(&value, "corpus_root"), Some("/tmp/corpus".to_string()));
-        assert_eq!(config_string(&value, "pipeline_ids"), Some("pipe-a,fixed".to_string()));
+        assert_eq!(
+            config_string(&value, "corpus_root"),
+            Some("/tmp/corpus".to_string())
+        );
+        assert_eq!(
+            config_string(&value, "pipeline_ids"),
+            Some("pipe-a,fixed".to_string())
+        );
     }
 
     #[test]

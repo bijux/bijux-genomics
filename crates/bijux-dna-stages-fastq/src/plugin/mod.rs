@@ -281,4 +281,4 @@ impl StagePlugin for FastqStagePlugin {
 }
 
 #[cfg(test)]
-mod tests;
+mod plugin_contracts;
