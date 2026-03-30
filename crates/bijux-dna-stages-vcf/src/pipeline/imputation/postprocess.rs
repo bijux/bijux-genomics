@@ -121,7 +121,7 @@ fn normalize_info_fields(info: &str, retain: &[String], remove: &[String]) -> St
     }
 }
 
-fn canonical_contig_label(raw: &str) -> String {
+pub(crate) fn canonical_contig_label(raw: &str) -> String {
     let trimmed = raw.trim();
     let without_chr = trimmed
         .strip_prefix("chr")

@@ -2,8 +2,9 @@ mod damage_and_propagation;
 mod helpers;
 mod types;
 
+use super::*;
 pub use damage_and_propagation::*;
-use helpers::*;
+pub(crate) use helpers::*;
 pub use types::*;
 
 fn resolve_reference_path(params: &VcfCallParams) -> Result<String> {
@@ -595,8 +596,6 @@ pub enum DamageUdgRegime {
     NonUdg,
     Unknown,
 }
-
-include!("call_filter_and_gl_damage_and_propagation.rs");
 
 /// # Errors
 /// Returns an error if input cannot be read or output cannot be written.

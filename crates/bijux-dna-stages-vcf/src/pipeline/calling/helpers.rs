@@ -1,4 +1,6 @@
-fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
+use super::*;
+
+pub(crate) fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
     if line.trim().is_empty() || line.starts_with('#') {
         return None;
     }
@@ -9,7 +11,7 @@ fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
     Some(fields)
 }
 
-fn read_vcf_text(path: &Path) -> Result<String> {
+pub(crate) fn read_vcf_text(path: &Path) -> Result<String> {
     if path
         .extension()
         .and_then(|x| x.to_str())
@@ -34,7 +36,7 @@ fn read_vcf_text(path: &Path) -> Result<String> {
     Ok(std::fs::read_to_string(path)?)
 }
 
-fn variant_key(fields: &[&str]) -> Option<(String, String)> {
+pub(crate) fn variant_key(fields: &[&str]) -> Option<(String, String)> {
     if fields.len() < 5 {
         return None;
     }
@@ -43,19 +45,19 @@ fn variant_key(fields: &[&str]) -> Option<(String, String)> {
     Some((chr, key))
 }
 
-fn normalize_alleles(reference: &str, alternate: &str) -> (String, String) {
+pub(crate) fn normalize_alleles(reference: &str, alternate: &str) -> (String, String) {
     (
         reference.to_ascii_uppercase(),
         alternate.to_ascii_uppercase(),
     )
 }
 
-fn format_has_token(fmt: &str, tokens: &[&str]) -> bool {
+pub(crate) fn format_has_token(fmt: &str, tokens: &[&str]) -> bool {
     fmt.split(':')
         .any(|key| tokens.iter().any(|token| token == &key))
 }
 
-fn sample_has_diploid_gt(fmt: &str, sample: &str) -> bool {
+pub(crate) fn sample_has_diploid_gt(fmt: &str, sample: &str) -> bool {
     let keys = fmt.split(':').collect::<Vec<_>>();
     let Some(gt_idx) = keys.iter().position(|k| *k == "GT") else {
         return false;
@@ -67,7 +69,7 @@ fn sample_has_diploid_gt(fmt: &str, sample: &str) -> bool {
     gt.split(['/', '|']).count() == 2
 }
 
-fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
+pub(crate) fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
     let keys = fmt.split(':').collect::<Vec<_>>();
     let mut vals = sample.split(':').map(str::to_string).collect::<Vec<_>>();
     if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
@@ -116,7 +118,7 @@ fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
     sample.to_string()
 }
 
-fn normalize_header_sample_order(vcf_text: &str) -> String {
+pub(crate) fn normalize_header_sample_order(vcf_text: &str) -> String {
     let mut out = String::new();
     let mut sample_order: Option<Vec<usize>> = None;
     for line in vcf_text.lines() {
@@ -168,7 +170,7 @@ fn normalize_header_sample_order(vcf_text: &str) -> String {
     out
 }
 
-fn parse_info_value_f64(info: &str, key: &str) -> Option<f64> {
+pub(crate) fn parse_info_value_f64(info: &str, key: &str) -> Option<f64> {
     info.split(';').find_map(|entry| {
         let mut parts = entry.splitn(2, '=');
         match (parts.next(), parts.next()) {
@@ -178,7 +180,7 @@ fn parse_info_value_f64(info: &str, key: &str) -> Option<f64> {
     })
 }
 
-fn normalize_sample_fields(format_field: &str, sample_field: &str) -> String {
+pub(crate) fn normalize_sample_fields(format_field: &str, sample_field: &str) -> String {
     let keys = format_field.split(':').collect::<Vec<_>>();
     let mut vals = sample_field
         .split(':')
@@ -198,11 +200,11 @@ fn normalize_sample_fields(format_field: &str, sample_field: &str) -> String {
     vals.join(":")
 }
 
-fn parse_af_from_info(info: &str) -> Option<f64> {
+pub(crate) fn parse_af_from_info(info: &str) -> Option<f64> {
     parse_info_value_f64(info, "AF").or_else(|| parse_info_value_f64(info, "MAF"))
 }
 
-fn genotype_missing_fraction(format_field: &str, sample_fields: &[&str]) -> Option<f64> {
+pub(crate) fn genotype_missing_fraction(format_field: &str, sample_fields: &[&str]) -> Option<f64> {
     let keys = format_field.split(':').collect::<Vec<_>>();
     let gt_idx = keys.iter().position(|k| *k == "GT")?;
     if sample_fields.is_empty() {

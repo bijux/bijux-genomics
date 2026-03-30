@@ -27,6 +27,16 @@ mod population_panel;
 mod qc;
 include!("../pipeline_sections/execution/chunking_and_resume.rs");
 
+pub(crate) use calling::{
+    format_has_token, parse_af_from_info, parse_info_value_f64, parse_record_fields,
+    read_vcf_text, variant_key,
+};
+pub(crate) use imputation::{canonical_contig_label, run_impute_stage_inner};
+pub(crate) use orchestration::{
+    license_metadata_for_tool_exists, load_imputation_qc_thresholds, parse_format_index,
+    resolve_tool_digest, workspace_root,
+};
+pub(crate) use qc::resolve_phasing_backend;
 pub use calling::*;
 pub use imputation::*;
 pub use orchestration::*;

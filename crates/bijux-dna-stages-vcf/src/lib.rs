@@ -14,7 +14,8 @@
     clippy::redundant_closure_for_method_calls,
     clippy::similar_names,
     clippy::too_many_lines,
-    clippy::uninlined_format_args
+    clippy::uninlined_format_args,
+    clippy::wildcard_imports
 )]
 
 pub mod engine;

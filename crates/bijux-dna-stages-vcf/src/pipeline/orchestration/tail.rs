@@ -1,3 +1,5 @@
+use super::*;
+
 pub fn run_impute_stage(
     input_vcf: &Path,
     out_dir: &Path,
