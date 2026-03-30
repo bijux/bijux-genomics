@@ -1,9 +1,14 @@
 use std::path::PathBuf;
 
 fn step_runner_path() -> PathBuf {
-    crate::support::crate_src("bijux-dna-runner")
-        .unwrap_or_else(|err| panic!("resolve runner src: {err}"))
-        .join("step_runner.rs")
+    let src_root = crate::support::crate_src("bijux-dna-runner")
+        .unwrap_or_else(|err| panic!("resolve runner src: {err}"));
+    let split_module = src_root.join("step_runner").join("mod.rs");
+    if split_module.is_file() {
+        split_module
+    } else {
+        src_root.join("step_runner.rs")
+    }
 }
 
 #[test]
@@ -14,10 +19,12 @@ fn runner_defaults_to_offline_network_mode() {
 
     assert!(
         content.contains("--network") && content.contains("none"),
-        "step_runner.rs must enforce docker --network none by default"
+        "{} must enforce docker --network none by default",
+        path.display()
     );
     assert!(
         content.contains("BIJUX_ALLOW_NETWORK"),
-        "step_runner.rs must support explicit BIJUX_ALLOW_NETWORK override"
+        "{} must support explicit BIJUX_ALLOW_NETWORK override",
+        path.display()
     );
 }
