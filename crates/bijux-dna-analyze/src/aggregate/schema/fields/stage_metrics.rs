@@ -644,7 +644,7 @@ pub const METRIC_REGISTRY_FASTQ: [MetricSpec; 82] = [
     },
     MetricSpec {
         id: MetricId::DuplicateReads,
-        name: "duplicate_reads",
+        name: "duplicates_removed",
         meaning: "Number of reads removed as duplicates",
         direction: MetricDirection::Neutral,
         range: Some(MetricRange {
