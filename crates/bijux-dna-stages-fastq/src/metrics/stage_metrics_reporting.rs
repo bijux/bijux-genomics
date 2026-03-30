@@ -220,7 +220,7 @@ fn detect_adapters_metrics(
         .and_then(|path| std::fs::read_to_string(&path).ok())
         .and_then(|raw| crate::observer::parse_detect_adapters_report(&raw).ok());
     if let Some(report) = governed_report {
-        serde_json::to_value(FastqDetectAdaptersMetricsV1 {
+        Ok(serde_json::to_value(FastqDetectAdaptersMetricsV1 {
             reads_in: report.reads_in,
             reads_out: report.reads_out,
             bases_in: report.bases_in,
@@ -234,7 +234,7 @@ fn detect_adapters_metrics(
             n_rate: report.n_rate,
             kmer_warning_count: report.kmer_warning_count,
             overrepresented_sequence_count: report.overrepresented_sequence_count,
-        })
+        })?)
     } else {
         let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
         let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
@@ -263,7 +263,7 @@ fn detect_adapters_metrics(
         let overrepresented_sequence_count = metrics
             .as_ref()
             .and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count));
-        serde_json::to_value(FastqDetectAdaptersMetricsV1 {
+        Ok(serde_json::to_value(FastqDetectAdaptersMetricsV1 {
             reads_in: input.reads,
             reads_out: input.reads,
             bases_in: input.bases,
@@ -277,7 +277,7 @@ fn detect_adapters_metrics(
             n_rate,
             kmer_warning_count,
             overrepresented_sequence_count,
-        })
+        })?)
     }
 }
 
@@ -308,7 +308,7 @@ fn correct_metrics(
         let bases_out = report.bases_out.unwrap_or(bases_in);
         let reads_corrected = report.corrected_reads.unwrap_or(reads_out);
         let bases_corrected = report.bases_out.unwrap_or(bases_out);
-        serde_json::to_value(FastqCorrectMetricsV1 {
+        Ok(serde_json::to_value(FastqCorrectMetricsV1 {
             reads_in,
             reads_out,
             bases_in,
@@ -319,7 +319,7 @@ fn correct_metrics(
             reads_uncorrected: reads_in.saturating_sub(reads_corrected),
             bases_corrected,
             bases_uncorrected: bases_in.saturating_sub(bases_corrected),
-        })
+        })?)
     } else {
         let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
         let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
@@ -330,7 +330,7 @@ fn correct_metrics(
             stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
         };
         let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-        serde_json::to_value(FastqCorrectMetricsV1 {
+        Ok(serde_json::to_value(FastqCorrectMetricsV1 {
             reads_in: input.reads,
             reads_out: output.reads,
             bases_in: input.bases,
@@ -341,7 +341,7 @@ fn correct_metrics(
             reads_uncorrected: input.reads.saturating_sub(output.reads),
             bases_corrected: output.bases,
             bases_uncorrected: input.bases.saturating_sub(output.bases),
-        })
+        })?)
     }
 }
 
@@ -384,7 +384,7 @@ fn umi_metrics(
                 &plan.params,
             ),
         };
-        serde_json::to_value(FastqUmiMetricsV1 {
+        Ok(serde_json::to_value(FastqUmiMetricsV1 {
             reads_in: report.reads_in,
             reads_out: report.reads_out,
             bases_in: report.bases_in,
@@ -395,7 +395,7 @@ fn umi_metrics(
             mean_q_after: report.mean_q_after,
             delta_metrics: delta,
             retention,
-        })
+        })?)
     } else {
         let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
         let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
@@ -436,7 +436,7 @@ fn umi_metrics(
                 &plan.params,
             ),
         };
-        serde_json::to_value(FastqUmiMetricsV1 {
+        Ok(serde_json::to_value(FastqUmiMetricsV1 {
             reads_in: input.reads,
             reads_out: output.reads,
             bases_in: input.bases,
@@ -447,7 +447,7 @@ fn umi_metrics(
             mean_q_after: output.mean_q,
             delta_metrics: delta,
             retention,
-        })
+        })?)
     }
 }
 
@@ -495,7 +495,7 @@ fn preprocess_metrics(
             &plan.params,
         ),
     };
-    serde_json::to_value(FastqPreprocessMetricsV1 {
+    Ok(serde_json::to_value(FastqPreprocessMetricsV1 {
         reads_in: input.reads,
         reads_out: output.reads,
         bases_in: input.bases,
@@ -506,7 +506,7 @@ fn preprocess_metrics(
         mean_q_after: output.mean_q,
         delta_metrics: delta,
         retention,
-    })
+    })?)
 }
 
 fn qc_post_metrics(
@@ -624,7 +624,7 @@ fn qc_post_metrics(
             &plan.params,
         ),
     };
-    serde_json::to_value(FastqQcPostMetricsV1 {
+    Ok(serde_json::to_value(FastqQcPostMetricsV1 {
         reads_in,
         reads_out,
         bases_in,
@@ -730,7 +730,7 @@ fn qc_post_metrics(
         multiqc_module_count: governed_report
             .as_ref()
             .and_then(|report| report.multiqc_module_count),
-    })
+    })?)
 }
 
 fn stats_neutral_metrics(
@@ -785,7 +785,7 @@ fn stats_neutral_metrics(
     } else {
         distributions_for_path(inputs.first().map(PathBuf::as_path))?
     };
-    serde_json::to_value(FastqStatsNeutralMetricsV1 {
+    Ok(serde_json::to_value(FastqStatsNeutralMetricsV1 {
         reads_in: governed_report
             .as_ref()
             .map(|report| report.reads_total)
@@ -806,7 +806,7 @@ fn stats_neutral_metrics(
         pairs_out,
         read_length_distribution,
         gc_distribution,
-    })
+    })?)
 }
 
 fn profile_read_lengths_metrics(

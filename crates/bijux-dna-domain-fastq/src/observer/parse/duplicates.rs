@@ -1,4 +1,9 @@
-use super::*;
+use anyhow::{anyhow, Context, Result};
+
+use super::{
+    parse_report_u64_field, u64_to_f64, DuplicateClassEntryV1, RemoveChimerasReportV1,
+    RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
+};
 
 /// # Errors
 /// Returns an error if the governed remove-chimeras report JSON cannot be parsed.
@@ -7,7 +12,6 @@ pub fn parse_remove_chimeras_report(report_json: &str) -> Result<RemoveChimerasR
         .or_else(|_| parse_legacy_remove_chimeras_report(report_json))
         .context("parse remove chimeras report")
 }
-
 
 /// # Errors
 /// Returns an error if report JSON cannot be parsed.

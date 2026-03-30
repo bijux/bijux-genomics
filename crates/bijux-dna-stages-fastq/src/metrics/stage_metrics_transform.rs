@@ -69,7 +69,7 @@ fn trim_metrics(
             &plan.params,
         ),
     };
-    serde_json::to_value(FastqTrimMetricsV1 {
+    Ok(serde_json::to_value(FastqTrimMetricsV1 {
         reads_in: input.reads,
         reads_out: output.reads,
         bases_in: input.bases,
@@ -86,7 +86,7 @@ fn trim_metrics(
         contaminant_policy: None,
         raw_backend_report_format: None,
         retention,
-    })
+    })?)
 }
 
 fn filter_metrics(
@@ -140,7 +140,7 @@ fn filter_metrics(
                 &plan.params,
             ),
         };
-        serde_json::to_value(FastqFilterMetricsV1 {
+        Ok(serde_json::to_value(FastqFilterMetricsV1 {
             reads_in: report.reads_in,
             reads_out: report.reads_out,
             reads_dropped: report.reads_dropped,
@@ -158,7 +158,7 @@ fn filter_metrics(
             mean_q_after: report.mean_q_after,
             delta_metrics: delta,
             retention,
-        })
+        })?)
     } else {
         let removals = filter_removals_for_plan(plan.tool_id.as_str(), &plan.out_dir, &plan.params);
         filter_metrics_with_removals(
@@ -228,7 +228,7 @@ fn deduplicate_metrics(
             &plan.params,
         ),
     };
-    serde_json::to_value(FastqDeduplicateMetricsV1 {
+    Ok(serde_json::to_value(FastqDeduplicateMetricsV1 {
         reads_in,
         reads_out,
         reads_removed_duplicates: reads_in.saturating_sub(reads_out),
@@ -270,7 +270,7 @@ fn deduplicate_metrics(
             .and_then(|report| report.raw_backend_report_format.clone()),
         delta_metrics: delta,
         retention,
-    })
+    })?)
 }
 
 fn low_complexity_metrics(
@@ -312,7 +312,7 @@ fn low_complexity_metrics(
                 &plan.params,
             ),
         };
-        serde_json::to_value(FastqFilterMetricsV1 {
+        Ok(serde_json::to_value(FastqFilterMetricsV1 {
             reads_in: report.reads_in,
             reads_out: report.reads_out,
             reads_dropped: report.reads_removed_low_complexity,
@@ -330,7 +330,7 @@ fn low_complexity_metrics(
             mean_q_after: report.mean_q_after,
             delta_metrics: delta,
             retention,
-        })
+        })?)
     } else {
         let mut removals = FilterRemovalCounts::default();
         let stats = stats_for_paths(&[
@@ -405,7 +405,7 @@ fn merge_metrics(
     let bases_in = r1.bases.min(r2.bases);
     let mean_q_in = (r1.mean_q + r2.mean_q) / 2.0;
     let merge_q_delta = merged.mean_q - mean_q_in;
-    serde_json::to_value(FastqMergeMetricsV1 {
+    Ok(serde_json::to_value(FastqMergeMetricsV1 {
         reads_in: min_reads,
         reads_out: reads_merged,
         bases_in,
@@ -419,7 +419,7 @@ fn merge_metrics(
         reads_discarded: 0,
         merge_rate,
         merge_q_delta,
-    })
+    })?)
 }
 
 fn validate_metrics(plan: &StagePlanV1, inputs: &[PathBuf]) -> Result<serde_json::Value> {
@@ -483,23 +483,25 @@ fn validate_metrics(plan: &StagePlanV1, inputs: &[PathBuf]) -> Result<serde_json
                     .and_then(|value| value.as_str().map(ToOwned::to_owned)),
             }
         });
-    serde_json::to_value(report_metrics.unwrap_or(FastqValidateMetricsV1 {
-        reads_in,
-        reads_out: reads_in,
-        bases_in,
-        bases_out: bases_in,
-        pairs_in,
-        pairs_out,
-        reads_total: reads_in,
-        reads_valid: reads_in,
-        reads_invalid: 0,
-        mean_q,
-        validated_inputs: None,
-        validated_pairs: None,
-        pair_sync_checked: None,
-        pair_sync_pass: None,
-        pair_count_match: None,
-        strict_pass: None,
-        failure_class: None,
-    }))
+    Ok(serde_json::to_value(report_metrics.unwrap_or(
+        FastqValidateMetricsV1 {
+            reads_in,
+            reads_out: reads_in,
+            bases_in,
+            bases_out: bases_in,
+            pairs_in,
+            pairs_out,
+            reads_total: reads_in,
+            reads_valid: reads_in,
+            reads_invalid: 0,
+            mean_q,
+            validated_inputs: None,
+            validated_pairs: None,
+            pair_sync_checked: None,
+            pair_sync_pass: None,
+            pair_count_match: None,
+            strict_pass: None,
+            failure_class: None,
+        },
+    ))?)
 }

@@ -131,122 +131,165 @@ pub enum DerivedMetricId {
     ErrorReductionProxy,
 }
 
+const fn metric_id_execution_str(metric_id: MetricId) -> Option<&'static str> {
+    match metric_id {
+        MetricId::RuntimeS => Some("runtime_s"),
+        MetricId::MemoryMb => Some("memory_mb"),
+        MetricId::ExitCode => Some("exit_code"),
+        MetricId::ReadsIn => Some("reads_in"),
+        MetricId::ReadsOut => Some("reads_out"),
+        MetricId::ReadsDropped => Some("reads_dropped"),
+        MetricId::ReadsRemovedByN => Some("reads_removed_by_n"),
+        MetricId::ReadsRemovedByEntropy => Some("reads_removed_by_entropy"),
+        MetricId::ReadsRemovedLowComplexity => Some("reads_removed_low_complexity"),
+        MetricId::ReadsRemovedByKmer => Some("reads_removed_by_kmer"),
+        MetricId::ReadsRemovedContaminantKmer => Some("reads_removed_contaminant_kmer"),
+        MetricId::ReadsRemovedByLength => Some("reads_removed_by_length"),
+        MetricId::ReadsTotal => Some("reads_total"),
+        MetricId::ReadsValid => Some("reads_valid"),
+        MetricId::ReadsInvalid => Some("reads_invalid"),
+        MetricId::BasesIn => Some("bases_in"),
+        MetricId::BasesOut => Some("bases_out"),
+        MetricId::BasesTotal => Some("bases_total"),
+        MetricId::PairsIn => Some("pairs_in"),
+        MetricId::PairsOut => Some("pairs_out"),
+        MetricId::Threads => Some("threads"),
+        MetricId::ReadsR1 => Some("reads_r1"),
+        MetricId::ReadsR2 => Some("reads_r2"),
+        MetricId::ReadsMerged => Some("reads_merged"),
+        MetricId::ReadsUnmerged => Some("reads_unmerged"),
+        MetricId::DuplicateReads => Some("duplicate_reads"),
+        _ => None,
+    }
+}
+
+const fn metric_id_quality_str(metric_id: MetricId) -> Option<&'static str> {
+    match metric_id {
+        MetricId::MeanQBefore => Some("mean_q_before"),
+        MetricId::MeanQAfter => Some("mean_q_after"),
+        MetricId::MeanQ => Some("mean_q"),
+        MetricId::MergeRate => Some("merge_rate"),
+        MetricId::ReadsWithUmi => Some("reads_with_umi"),
+        MetricId::DedupRate => Some("dedup_rate"),
+        MetricId::KmerFixRate => Some("kmer_fix_rate"),
+        MetricId::CandidateAdapterCount => Some("candidate_adapter_count"),
+        MetricId::AdapterTrimmedFraction => Some("adapter_trimmed_fraction"),
+        MetricId::PrimerTrimmedFraction => Some("primer_trimmed_fraction"),
+        MetricId::OrientationForwardFraction => Some("orientation_forward_fraction"),
+        MetricId::HostFractionRemoved => Some("host_fraction_removed"),
+        MetricId::ContaminantFractionRemoved => Some("contaminant_fraction_removed"),
+        MetricId::RrnaFractionRemoved => Some("rrna_fraction_removed"),
+        MetricId::DepletionSummary => Some("depletion_summary"),
+        MetricId::ContaminationRate => Some("contamination_rate"),
+        MetricId::ContaminationSummary => Some("contamination_summary"),
+        MetricId::GcPercent => Some("gc_percent"),
+        MetricId::LengthHistogram => Some("length_histogram"),
+        MetricId::ReadCount => Some("read_count"),
+        MetricId::MeanReadLength => Some("mean_read_length"),
+        MetricId::MaxReadLength => Some("max_read_length"),
+        MetricId::DistinctLengths => Some("distinct_lengths"),
+        MetricId::ReferenceBytes => Some("reference_bytes"),
+        MetricId::IndexBytes => Some("index_bytes"),
+        MetricId::IndexFileCount => Some("index_file_count"),
+        MetricId::SequenceCount => Some("sequence_count"),
+        MetricId::FlaggedSequences => Some("flagged_sequences"),
+        MetricId::TopFraction => Some("top_fraction"),
+        MetricId::DeltaMetrics => Some("delta_metrics"),
+        _ => None,
+    }
+}
+
+const fn metric_id_policy_str(metric_id: MetricId) -> Option<&'static str> {
+    match metric_id {
+        MetricId::PairedMode => Some("paired_mode"),
+        MetricId::AdapterPolicy => Some("adapter_policy"),
+        MetricId::PolyxPolicy => Some("polyx_policy"),
+        MetricId::NPolicy => Some("n_policy"),
+        MetricId::ContaminantPolicy => Some("contaminant_policy"),
+        MetricId::RawBackendReportFormat => Some("raw_backend_report_format"),
+        MetricId::DedupMode => Some("dedup_mode"),
+        MetricId::KeepOrder => Some("keep_order"),
+        MetricId::DuplicateClassCount => Some("duplicate_class_count"),
+        MetricId::DuplicateProvenanceJson => Some("duplicate_provenance_json"),
+        MetricId::AdapterPreset => Some("adapter_preset"),
+        MetricId::AdapterBankId => Some("adapter_bank_id"),
+        MetricId::AdapterBankHash => Some("adapter_bank_hash"),
+        MetricId::AdapterOverrides => Some("adapter_overrides"),
+        MetricId::ValidatedInputs => Some("validated_inputs"),
+        MetricId::ValidatedPairs => Some("validated_pairs"),
+        MetricId::PairSyncChecked => Some("pair_sync_checked"),
+        MetricId::PairSyncPass => Some("pair_sync_pass"),
+        MetricId::PairCountMatch => Some("pair_count_match"),
+        MetricId::StrictPass => Some("strict_pass"),
+        MetricId::FailureClass => Some("failure_class"),
+        MetricId::Tool => Some("tool"),
+        _ => None,
+    }
+}
+
+const fn metric_id_damage_taxonomy_str(metric_id: MetricId) -> Option<&'static str> {
+    match metric_id {
+        MetricId::TrimPolyg => Some("trim_polyg"),
+        MetricId::MinPolygRun => Some("min_polyg_run"),
+        MetricId::BasesTrimmedPolyg => Some("bases_trimmed_polyg"),
+        MetricId::PolyxBankId => Some("polyx_bank_id"),
+        MetricId::PolyxBankHash => Some("polyx_bank_hash"),
+        MetricId::PolyxPreset => Some("polyx_preset"),
+        MetricId::DamageMode => Some("damage_mode"),
+        MetricId::ExecutionPolicy => Some("execution_policy"),
+        MetricId::RequestedTrim5pBases => Some("requested_trim_5p_bases"),
+        MetricId::RequestedTrim3pBases => Some("requested_trim_3p_bases"),
+        MetricId::UdgClassification => Some("udg_classification"),
+        MetricId::CtGaAsymmetryPre => Some("ct_ga_asymmetry_pre"),
+        MetricId::CtGaAsymmetryPost => Some("ct_ga_asymmetry_post"),
+        MetricId::ClassifiedFraction => Some("classified_fraction"),
+        MetricId::UnclassifiedFraction => Some("unclassified_fraction"),
+        MetricId::Classifier => Some("classifier"),
+        MetricId::ReportFormat => Some("report_format"),
+        MetricId::DatabaseCatalogId => Some("database_catalog_id"),
+        MetricId::DatabaseArtifactId => Some("database_artifact_id"),
+        MetricId::MinimumConfidence => Some("minimum_confidence"),
+        MetricId::EmitUnclassified => Some("emit_unclassified"),
+        MetricId::TopTaxa => Some("top_taxa"),
+        _ => None,
+    }
+}
+
+const fn metric_id_reporting_str(metric_id: MetricId) -> Option<&'static str> {
+    match metric_id {
+        MetricId::QcRawDir => Some("qc_raw_dir"),
+        MetricId::QcTrimmedDir => Some("qc_trimmed_dir"),
+        MetricId::AggregationEngine => Some("aggregation_engine"),
+        MetricId::AggregationScope => Some("aggregation_scope"),
+        MetricId::GovernedQcInputCount => Some("governed_qc_input_count"),
+        MetricId::GovernedQcContributorStageIds => Some("governed_qc_contributor_stage_ids"),
+        MetricId::GovernedQcContributorToolIds => Some("governed_qc_contributor_tool_ids"),
+        MetricId::GovernedQcLineageHash => Some("governed_qc_lineage_hash"),
+        MetricId::MultiqcSampleCount => Some("multiqc_sample_count"),
+        MetricId::MultiqcModuleCount => Some("multiqc_module_count"),
+        MetricId::MultiqcReport => Some("multiqc_report"),
+        MetricId::MultiqcData => Some("multiqc_data"),
+        _ => None,
+    }
+}
+
 impl MetricId {
     #[must_use]
+    /// # Panics
+    /// Panics only if a newly added `MetricId` variant is not assigned a stable string mapping.
     pub const fn as_str(self) -> &'static str {
-        match self {
-            MetricId::RuntimeS => "runtime_s",
-            MetricId::MemoryMb => "memory_mb",
-            MetricId::ExitCode => "exit_code",
-            MetricId::ReadsIn => "reads_in",
-            MetricId::ReadsOut => "reads_out",
-            MetricId::ReadsDropped => "reads_dropped",
-            MetricId::ReadsRemovedByN => "reads_removed_by_n",
-            MetricId::ReadsRemovedByEntropy => "reads_removed_by_entropy",
-            MetricId::ReadsRemovedLowComplexity => "reads_removed_low_complexity",
-            MetricId::ReadsRemovedByKmer => "reads_removed_by_kmer",
-            MetricId::ReadsRemovedContaminantKmer => "reads_removed_contaminant_kmer",
-            MetricId::ReadsRemovedByLength => "reads_removed_by_length",
-            MetricId::ReadsTotal => "reads_total",
-            MetricId::ReadsValid => "reads_valid",
-            MetricId::ReadsInvalid => "reads_invalid",
-            MetricId::BasesIn => "bases_in",
-            MetricId::BasesOut => "bases_out",
-            MetricId::BasesTotal => "bases_total",
-            MetricId::PairsIn => "pairs_in",
-            MetricId::PairsOut => "pairs_out",
-            MetricId::Threads => "threads",
-            MetricId::ReadsR1 => "reads_r1",
-            MetricId::ReadsR2 => "reads_r2",
-            MetricId::ReadsMerged => "reads_merged",
-            MetricId::ReadsUnmerged => "reads_unmerged",
-            MetricId::DuplicateReads => "duplicate_reads",
-            MetricId::MeanQBefore => "mean_q_before",
-            MetricId::MeanQAfter => "mean_q_after",
-            MetricId::MeanQ => "mean_q",
-            MetricId::MergeRate => "merge_rate",
-            MetricId::ReadsWithUmi => "reads_with_umi",
-            MetricId::DedupRate => "dedup_rate",
-            MetricId::KmerFixRate => "kmer_fix_rate",
-            MetricId::CandidateAdapterCount => "candidate_adapter_count",
-            MetricId::AdapterTrimmedFraction => "adapter_trimmed_fraction",
-            MetricId::PrimerTrimmedFraction => "primer_trimmed_fraction",
-            MetricId::OrientationForwardFraction => "orientation_forward_fraction",
-            MetricId::HostFractionRemoved => "host_fraction_removed",
-            MetricId::ContaminantFractionRemoved => "contaminant_fraction_removed",
-            MetricId::RrnaFractionRemoved => "rrna_fraction_removed",
-            MetricId::DepletionSummary => "depletion_summary",
-            MetricId::ContaminationRate => "contamination_rate",
-            MetricId::ContaminationSummary => "contamination_summary",
-            MetricId::GcPercent => "gc_percent",
-            MetricId::LengthHistogram => "length_histogram",
-            MetricId::ReadCount => "read_count",
-            MetricId::MeanReadLength => "mean_read_length",
-            MetricId::MaxReadLength => "max_read_length",
-            MetricId::DistinctLengths => "distinct_lengths",
-            MetricId::ReferenceBytes => "reference_bytes",
-            MetricId::IndexBytes => "index_bytes",
-            MetricId::IndexFileCount => "index_file_count",
-            MetricId::SequenceCount => "sequence_count",
-            MetricId::FlaggedSequences => "flagged_sequences",
-            MetricId::TopFraction => "top_fraction",
-            MetricId::DeltaMetrics => "delta_metrics",
-            MetricId::PairedMode => "paired_mode",
-            MetricId::AdapterPolicy => "adapter_policy",
-            MetricId::PolyxPolicy => "polyx_policy",
-            MetricId::NPolicy => "n_policy",
-            MetricId::ContaminantPolicy => "contaminant_policy",
-            MetricId::RawBackendReportFormat => "raw_backend_report_format",
-            MetricId::DedupMode => "dedup_mode",
-            MetricId::KeepOrder => "keep_order",
-            MetricId::DuplicateClassCount => "duplicate_class_count",
-            MetricId::DuplicateProvenanceJson => "duplicate_provenance_json",
-            MetricId::AdapterPreset => "adapter_preset",
-            MetricId::AdapterBankId => "adapter_bank_id",
-            MetricId::AdapterBankHash => "adapter_bank_hash",
-            MetricId::AdapterOverrides => "adapter_overrides",
-            MetricId::ValidatedInputs => "validated_inputs",
-            MetricId::ValidatedPairs => "validated_pairs",
-            MetricId::PairSyncChecked => "pair_sync_checked",
-            MetricId::PairSyncPass => "pair_sync_pass",
-            MetricId::PairCountMatch => "pair_count_match",
-            MetricId::StrictPass => "strict_pass",
-            MetricId::FailureClass => "failure_class",
-            MetricId::Tool => "tool",
-            MetricId::TrimPolyg => "trim_polyg",
-            MetricId::MinPolygRun => "min_polyg_run",
-            MetricId::BasesTrimmedPolyg => "bases_trimmed_polyg",
-            MetricId::PolyxBankId => "polyx_bank_id",
-            MetricId::PolyxBankHash => "polyx_bank_hash",
-            MetricId::PolyxPreset => "polyx_preset",
-            MetricId::DamageMode => "damage_mode",
-            MetricId::ExecutionPolicy => "execution_policy",
-            MetricId::RequestedTrim5pBases => "requested_trim_5p_bases",
-            MetricId::RequestedTrim3pBases => "requested_trim_3p_bases",
-            MetricId::UdgClassification => "udg_classification",
-            MetricId::CtGaAsymmetryPre => "ct_ga_asymmetry_pre",
-            MetricId::CtGaAsymmetryPost => "ct_ga_asymmetry_post",
-            MetricId::ClassifiedFraction => "classified_fraction",
-            MetricId::UnclassifiedFraction => "unclassified_fraction",
-            MetricId::Classifier => "classifier",
-            MetricId::ReportFormat => "report_format",
-            MetricId::DatabaseCatalogId => "database_catalog_id",
-            MetricId::DatabaseArtifactId => "database_artifact_id",
-            MetricId::MinimumConfidence => "minimum_confidence",
-            MetricId::EmitUnclassified => "emit_unclassified",
-            MetricId::TopTaxa => "top_taxa",
-            MetricId::QcRawDir => "qc_raw_dir",
-            MetricId::QcTrimmedDir => "qc_trimmed_dir",
-            MetricId::AggregationEngine => "aggregation_engine",
-            MetricId::AggregationScope => "aggregation_scope",
-            MetricId::GovernedQcInputCount => "governed_qc_input_count",
-            MetricId::GovernedQcContributorStageIds => "governed_qc_contributor_stage_ids",
-            MetricId::GovernedQcContributorToolIds => "governed_qc_contributor_tool_ids",
-            MetricId::GovernedQcLineageHash => "governed_qc_lineage_hash",
-            MetricId::MultiqcSampleCount => "multiqc_sample_count",
-            MetricId::MultiqcModuleCount => "multiqc_module_count",
-            MetricId::MultiqcReport => "multiqc_report",
-            MetricId::MultiqcData => "multiqc_data",
+        if let Some(metric_name) = metric_id_execution_str(self) {
+            metric_name
+        } else if let Some(metric_name) = metric_id_quality_str(self) {
+            metric_name
+        } else if let Some(metric_name) = metric_id_policy_str(self) {
+            metric_name
+        } else if let Some(metric_name) = metric_id_damage_taxonomy_str(self) {
+            metric_name
+        } else if let Some(metric_name) = metric_id_reporting_str(self) {
+            metric_name
+        } else {
+            panic!("unhandled metric id")
         }
     }
 }
@@ -263,8 +306,7 @@ impl DerivedMetricId {
     }
 }
 
-#[must_use]
-pub fn parse_metric_id(value: &str) -> Option<MetricId> {
+fn parse_execution_metric_id(value: &str) -> Option<MetricId> {
     match value {
         "runtime_s" => Some(MetricId::RuntimeS),
         "memory_mb" => Some(MetricId::MemoryMb),
@@ -292,6 +334,12 @@ pub fn parse_metric_id(value: &str) -> Option<MetricId> {
         "reads_merged" => Some(MetricId::ReadsMerged),
         "reads_unmerged" => Some(MetricId::ReadsUnmerged),
         "duplicate_reads" => Some(MetricId::DuplicateReads),
+        _ => None,
+    }
+}
+
+fn parse_quality_metric_id(value: &str) -> Option<MetricId> {
+    match value {
         "mean_q_before" => Some(MetricId::MeanQBefore),
         "mean_q_after" => Some(MetricId::MeanQAfter),
         "mean_q" => Some(MetricId::MeanQ),
@@ -322,6 +370,12 @@ pub fn parse_metric_id(value: &str) -> Option<MetricId> {
         "flagged_sequences" => Some(MetricId::FlaggedSequences),
         "top_fraction" => Some(MetricId::TopFraction),
         "delta_metrics" => Some(MetricId::DeltaMetrics),
+        _ => None,
+    }
+}
+
+fn parse_policy_metric_id(value: &str) -> Option<MetricId> {
+    match value {
         "paired_mode" => Some(MetricId::PairedMode),
         "adapter_policy" => Some(MetricId::AdapterPolicy),
         "polyx_policy" => Some(MetricId::PolyxPolicy),
@@ -344,6 +398,12 @@ pub fn parse_metric_id(value: &str) -> Option<MetricId> {
         "strict_pass" => Some(MetricId::StrictPass),
         "failure_class" => Some(MetricId::FailureClass),
         "tool" => Some(MetricId::Tool),
+        _ => None,
+    }
+}
+
+fn parse_damage_taxonomy_metric_id(value: &str) -> Option<MetricId> {
+    match value {
         "trim_polyg" => Some(MetricId::TrimPolyg),
         "min_polyg_run" => Some(MetricId::MinPolygRun),
         "bases_trimmed_polyg" => Some(MetricId::BasesTrimmedPolyg),
@@ -366,6 +426,12 @@ pub fn parse_metric_id(value: &str) -> Option<MetricId> {
         "minimum_confidence" => Some(MetricId::MinimumConfidence),
         "emit_unclassified" => Some(MetricId::EmitUnclassified),
         "top_taxa" => Some(MetricId::TopTaxa),
+        _ => None,
+    }
+}
+
+fn parse_reporting_metric_id(value: &str) -> Option<MetricId> {
+    match value {
         "qc_raw_dir" => Some(MetricId::QcRawDir),
         "qc_trimmed_dir" => Some(MetricId::QcTrimmedDir),
         "aggregation_engine" => Some(MetricId::AggregationEngine),
@@ -380,6 +446,15 @@ pub fn parse_metric_id(value: &str) -> Option<MetricId> {
         "multiqc_data" => Some(MetricId::MultiqcData),
         _ => None,
     }
+}
+
+#[must_use]
+pub fn parse_metric_id(value: &str) -> Option<MetricId> {
+    parse_execution_metric_id(value)
+        .or_else(|| parse_quality_metric_id(value))
+        .or_else(|| parse_policy_metric_id(value))
+        .or_else(|| parse_damage_taxonomy_metric_id(value))
+        .or_else(|| parse_reporting_metric_id(value))
 }
 
 #[must_use]

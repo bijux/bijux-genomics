@@ -12,6 +12,12 @@ fn canonical_params_hash(value: &serde_json::Value) -> Option<String> {
     Some(format!("{:x}", hasher.finalize()))
 }
 
+fn empty_params_hash() -> String {
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(b"{}");
+    format!("{:x}", hasher.finalize())
+}
+
 fn resolved_params_hash(
     key: &str,
     params_hashes: &BTreeMap<String, String>,
@@ -23,7 +29,7 @@ fn resolved_params_hash(
         .or_else(|| params_hash(&invocation.parameters_json_normalized).ok())
         .or_else(|| canonical_params_hash(&invocation.effective_params_json_normalized))
         .or_else(|| canonical_params_hash(&invocation.parameters_json_normalized))
-        .unwrap_or_else(|| canonical_params_hash(&serde_json::json!({})).expect("hash empty params"))
+        .unwrap_or_else(empty_params_hash)
 }
 
 #[must_use]
