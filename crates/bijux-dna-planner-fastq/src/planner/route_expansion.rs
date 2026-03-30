@@ -228,7 +228,10 @@ pub fn expand_pipeline_stage_tool_routes(
             .ok_or_else(|| anyhow!("expanded route missing target node {}", edge.to))?;
         for from_node in from_nodes {
             for to_node in to_nodes {
-                if !from_node.output_context.is_subset_of(&to_node.input_context) {
+                if !from_node
+                    .output_context
+                    .is_subset_of(&to_node.input_context)
+                {
                     continue;
                 }
                 edges.push(PipelineEdgeSpec {

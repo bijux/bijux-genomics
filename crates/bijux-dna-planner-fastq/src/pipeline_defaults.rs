@@ -3,10 +3,10 @@ use std::collections::BTreeSet;
 use bijux_dna_core::contract::PipelineSpec;
 use bijux_dna_core::prelude::StageId;
 use bijux_dna_domain_fastq::{
-    canonical_amplicon_stage_order, canonical_stage_order,
-    default_amplicon_preprocess_stage_order, default_shotgun_preprocess_stage_order,
-    preprocess_pipeline_graph_for_stage_order, FastqPipelineMode, STAGE_CORRECT_ERRORS,
-    STAGE_MERGE_PAIRS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+    canonical_amplicon_stage_order, canonical_stage_order, default_amplicon_preprocess_stage_order,
+    default_shotgun_preprocess_stage_order, preprocess_pipeline_graph_for_stage_order,
+    FastqPipelineMode, STAGE_CORRECT_ERRORS, STAGE_MERGE_PAIRS, STAGE_REPORT_QC,
+    STAGE_SCREEN_TAXONOMY,
 };
 
 pub(crate) fn required_id_catalog() -> Vec<String> {
