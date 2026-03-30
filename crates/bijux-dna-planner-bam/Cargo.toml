@@ -23,4 +23,7 @@ insta = { version = "1", features = ["json", "filters"] }
 serde_json.workspace = true
 
 [features]
-bam_downstream = ["bijux-dna-stages-bam/bam_downstream"]
+bam_downstream = [
+    "bijux-dna-pipelines/bam_downstream",
+    "bijux-dna-stages-bam/bam_downstream",
+]
