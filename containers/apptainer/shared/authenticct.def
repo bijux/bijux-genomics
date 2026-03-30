@@ -41,7 +41,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 
     git clone https://github.com/StephanePeyregne/AuthentiCT.git /opt/authenticct
     cd /opt/authenticct
-    git checkout --detach f58b25c448c8d9afebcdddd351cbae84fd5f6bab
+    git checkout f58b25c448c8d9afebcdddd351cbae84fd5f6bab
     python3 -m venv /opt/authenticct-venv
     /opt/authenticct-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel
     /opt/authenticct-venv/bin/pip install --no-cache-dir .
