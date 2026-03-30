@@ -47,7 +47,14 @@ See `crates/bijux-dna-domain-fastq/docs/TESTS.md`. Golden tests: `tests/semantic
 Start at `crates/bijux-dna-domain-fastq/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
-`src/stages/ids.rs` → `src/params/*` → `src/metrics/*` → `src/invariants/*`.
+`src/stages/ids.rs` → `src/params/` → `src/metrics/` → `src/invariants/`.
+
+## Module layout
+- `src/artifacts/` owns governed stage report and manifest types.
+- `src/observer/` owns parser behavior and observer specialization contracts.
+- `src/pipeline_contract/` owns pipeline ordering and graph assembly.
+- `src/execution_support/` and `src/stage_tool_governance/` own manifest-backed readiness catalogs.
+- `src/bench/` owns benchmark query metadata and repository interfaces.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
