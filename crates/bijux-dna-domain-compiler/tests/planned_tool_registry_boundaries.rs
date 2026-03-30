@@ -55,8 +55,8 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
         .copied()
         .unwrap_or_default();
     assert!(
-        trim_reads.contains("planned_out_of_scope = []"),
-        "stage catalog must represent fastq.trim_reads planning scope explicitly when all alternatives are governed"
+        trim_reads.contains("planned_out_of_scope = [\"seqpurge\"]"),
+        "stage catalog must keep planned trim alternatives visible when they stay outside the governed runtime surface"
     );
 
     Ok(())
