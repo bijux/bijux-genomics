@@ -3,11 +3,7 @@
 pub mod metrics;
 pub mod observer;
 mod plugin;
+mod surface;
 pub mod stage_specs;
 
-pub use bijux_dna_stage_contract::StagePlanJsonV1 as StagePlanJson;
-
-#[must_use]
-pub fn implemented_stages() -> Vec<bijux_dna_domain_bam::BamStage> {
-    bijux_dna_domain_bam::BamStage::all().to_vec()
-}
+pub use surface::{implemented_stages, StagePlanJson};
