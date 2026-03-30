@@ -229,12 +229,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "fastqc",
-          "--outdir",
-          "fastqc",
-          "--threads",
-          "1",
-          "reads_R1.fastq"
+          "sh",
+          "-lc",
+          "mkdir -p '<TMPDIR>/<TMP>/out/detect_adapters/fastqc/fastqc'\n'fastqc' '--outdir' '<TMPDIR>/<TMP>/out/detect_adapters/fastqc/fastqc' '--threads' '1' '<TMPDIR>/<TMP>/reads_R1.fastq'"
         ]
       },
       "expected_artifact_ids": [
@@ -365,12 +362,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "fastqc",
-          "--outdir",
-          "fastqc_overrepresented",
-          "--threads",
-          "1",
-          "fastp.fastq.gz"
+          "sh",
+          "-lc",
+          "mkdir -p '<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/fastqc_overrepresented'\n'fastqc' '--outdir' '<TMPDIR>/<TMP>/out/profile_overrepresented_sequences/fastqc/fastqc_overrepresented' '--threads' '1' '<TMPDIR>/<TMP>/out/filter_reads/fastp/fastp.fastq.gz'"
         ]
       },
       "expected_artifact_ids": [
