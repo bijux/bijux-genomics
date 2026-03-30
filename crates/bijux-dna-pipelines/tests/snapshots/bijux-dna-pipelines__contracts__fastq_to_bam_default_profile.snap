@@ -171,6 +171,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "genome_size": null,
         "kmer_size": null,
         "max_memory_gb": null,
+        "musket_kmer_budget": null,
         "paired_mode": "paired_end",
         "quality_encoding": "phred33",
         "schema_version": "bijux.fastq.params.correct.v1",
@@ -356,7 +357,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
-  "description": "FASTQ preprocess → align → BAM QC/damage (modern defaults)",
+  "description": "FASTQ preprocess -> align -> BAM QC/damage (modern defaults)",
   "id": "fastq-to-bam__default__v1",
   "input_domains": [
     "Fastq",
