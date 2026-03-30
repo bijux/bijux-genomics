@@ -1,12 +1,9 @@
 use bijux_dna_core::prelude::CommandSpecV1;
 
-#[path = "../../support.rs"]
-mod support;
-
 #[test]
 fn backend_invariants_are_documented() {
     let doc = std::fs::read_to_string(
-        support::crate_root("bijux-dna-runner")
+        crate::support::crate_root("bijux-dna-runner")
             .unwrap_or_else(|err| panic!("resolve runner root: {err}"))
             .join("docs")
             .join("BACKENDS.md"),

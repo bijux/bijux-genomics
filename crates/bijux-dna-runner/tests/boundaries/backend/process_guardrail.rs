@@ -1,12 +1,9 @@
 use std::path::{Path, PathBuf};
 
-#[path = "../../support.rs"]
-mod support;
-
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    support::repo_root().unwrap_or_else(|err| panic!("workspace root missing: {err}"))
+    crate::support::repo_root().unwrap_or_else(|err| panic!("workspace root missing: {err}"))
 }
 
 fn is_allowed_command_path(path: &Path) -> bool {
