@@ -113,9 +113,10 @@ pub(crate) fn write_run_manifest(
         .ok_or_else(|| anyhow::anyhow!("defaults_ledger.json missing pipeline_id"))?;
     let profile_id = defaults_payload
         .get("profile_id")
+        .or_else(|| defaults_payload.get("pipeline_id"))
         .and_then(serde_json::Value::as_str)
         .map(str::to_string)
-        .ok_or_else(|| anyhow::anyhow!("defaults_ledger.json missing profile_id"))?;
+        .ok_or_else(|| anyhow::anyhow!("defaults_ledger.json missing profile_id or pipeline_id"))?;
     let graph_hash = std::env::var("BIJUX_PLAN_HASH").ok().or_else(|| {
         let steps = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
         ExecutionGraph::new(
