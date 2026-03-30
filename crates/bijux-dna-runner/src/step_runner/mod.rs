@@ -506,7 +506,7 @@ mod tests {
     ) -> anyhow::Result<()> {
         let temp = tempdir()?;
         let input = temp.path().join("sample_0004_R1.fastq.gz");
-        std::fs::write(&input, b"@read\nACGT\n+\n!!!!\n")?;
+        bijux_dna_infra::write_bytes(&input, b"@read\nACGT\n+\n!!!!\n")?;
         let out_dir = temp.path().join("out");
         std::fs::create_dir_all(&out_dir)?;
         let template = vec![
@@ -577,7 +577,7 @@ mod tests {
     fn container_input_mapping_preserves_single_file_basename() -> anyhow::Result<()> {
         let temp = tempdir()?;
         let input = temp.path().join("sample_0004_R1.fastq.gz");
-        std::fs::write(&input, b"@read\nACGT\n+\n!!!!\n")?;
+        bijux_dna_infra::write_bytes(&input, b"@read\nACGT\n+\n!!!!\n")?;
 
         let (mount_root, container_root) = container_input_mapping(&input);
 
@@ -614,7 +614,7 @@ mod tests {
         let temp = tempdir()?;
         let root = temp.path().join("fastqc");
         std::fs::create_dir_all(root.join("nested"))?;
-        std::fs::write(root.join("nested").join("summary.txt"), b"adapter-summary")?;
+        bijux_dna_infra::write_bytes(root.join("nested").join("summary.txt"), b"adapter-summary")?;
 
         let digest = hash_path(&root)?;
 
@@ -627,7 +627,7 @@ mod tests {
         let temp = tempdir()?;
         let root = temp.path().join("taxonomy");
         std::fs::create_dir_all(root.join("kraken2"))?;
-        std::fs::write(root.join("kraken2").join("hash.k2d"), b"kraken-hash")?;
+        bijux_dna_infra::write_bytes(root.join("kraken2").join("hash.k2d"), b"kraken-hash")?;
         std::os::unix::fs::symlink(root.join("kraken2"), root.join("krakenuniq"))?;
 
         let digest = hash_path(&root)?;
@@ -641,7 +641,7 @@ mod tests {
         let temp = tempdir()?;
         let root = temp.path().join("fastqc");
         std::fs::create_dir_all(&root)?;
-        std::fs::write(root.join("summary.txt"), b"adapter-summary")?;
+        bijux_dna_infra::write_bytes(root.join("summary.txt"), b"adapter-summary")?;
 
         let hashes = hash_inputs(&[root, temp.path().join("missing.txt")])?;
 

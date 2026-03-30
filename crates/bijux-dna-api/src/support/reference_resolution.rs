@@ -54,7 +54,7 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let reference = temp.path().join("human").join("hg38").join("reference.fa");
         std::fs::create_dir_all(reference.parent().expect("parent")).expect("create parent");
-        std::fs::write(&reference, b">chr1\nACGT\n").expect("write reference");
+        bijux_dna_infra::write_bytes(&reference, b">chr1\nACGT\n").expect("write reference");
 
         let resolved = LocalReferenceResolver {
             root: Some(temp.path().to_path_buf()),

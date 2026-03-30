@@ -1,10 +1,12 @@
+#![allow(clippy::too_many_lines)]
+
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 
 use crate::commands::benchmark_workspace::{
-    benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_corpus_id,
-    benchmark_publication_corpus_key, load_benchmark_config,
+    benchmark_config_path, benchmark_publication_corpus_id, benchmark_publication_corpus_key,
+    load_benchmark_config,
 };
 use crate::commands::cli::BenchConfigValidateArgs;
 
@@ -144,7 +146,7 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
             .publication
             .corpora
             .get(&publication_key)
-            .is_none_or(|row| row.contracts.is_empty())
+            .map_or(true, |row| row.contracts.is_empty())
         {
             errors.push(format!(
                 "publication.{publication_key}.contracts is empty for declared corpus {corpus_id}"
@@ -160,8 +162,12 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
         }
     }
     for corpus_id in corpus_rows {
-        let spec_path = benchmark_corpus_spec_path(cwd, args.config.as_deref(), &corpus_id)?;
-        if args.check_paths && !spec_path.is_file() {
+        let spec_path = config
+            .corpora
+            .get(&corpus_id)
+            .and_then(|row| row.spec_path.as_deref())
+            .map(|row| absolutize(cwd, Path::new(row)));
+        if let Some(spec_path) = spec_path.filter(|row| args.check_paths && !row.is_file()) {
             errors.push(format!(
                 "missing corpus spec for {corpus_id}: {}",
                 spec_path.display()
@@ -225,7 +231,7 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
 }
 
 fn require_value(errors: &mut Vec<String>, key: &str, value: Option<&str>) {
-    if value.is_none_or(|row| row.trim().is_empty()) {
+    if value.map_or(true, |row| row.trim().is_empty()) {
         errors.push(format!("missing required benchmark config key: {key}"));
     }
 }
@@ -253,15 +259,41 @@ fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::validate_benchmark_config;
+
+    fn write_required_stage_input_fixtures(root: &std::path::Path) {
+        let rrna_db = root.join("inputs/rrna");
+        let host_reference_index = root.join("inputs/reference/host");
+        let contaminant_reference_index = root.join("inputs/reference/contaminants");
+        let taxonomy_database = root.join("inputs/taxonomy/database");
+
+        std::fs::create_dir_all(&rrna_db).expect("rrna fixture dir");
+        std::fs::create_dir_all(&host_reference_index).expect("host reference fixture dir");
+        std::fs::create_dir_all(&contaminant_reference_index)
+            .expect("contaminant reference fixture dir");
+        std::fs::create_dir_all(&taxonomy_database).expect("taxonomy fixture dir");
+
+        bijux_dna_infra::write_bytes(rrna_db.join("rrna.db"), b"").expect("write rrna fixture");
+        bijux_dna_infra::write_bytes(host_reference_index.join("index"), b"")
+            .expect("write host reference fixture");
+        bijux_dna_infra::write_bytes(contaminant_reference_index.join("index"), b"")
+            .expect("write contaminant reference fixture");
+        bijux_dna_infra::write_bytes(taxonomy_database.join("nodes.dmp"), b"")
+            .expect("write taxonomy fixture");
+    }
+
+    fn write_text(path: impl AsRef<std::path::Path>, content: &str) {
+        bijux_dna_infra::write_bytes(path.as_ref(), content.as_bytes()).expect("write fixture");
+    }
 
     #[test]
     fn validate_benchmark_config_requires_declared_corpora() {
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
@@ -287,8 +319,7 @@ scenario_id = "validation_fairness"
 sample_scope = "full"
 tools = ["fastqvalidator"]
 "#,
-        )
-        .expect("write config");
+        );
 
         let error = validate_benchmark_config(
             temp.path(),
@@ -309,7 +340,7 @@ tools = ["fastqvalidator"]
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
@@ -332,8 +363,7 @@ local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
 "#,
-        )
-        .expect("write config");
+        );
 
         let error = validate_benchmark_config(
             temp.path(),
@@ -354,7 +384,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
@@ -382,8 +412,7 @@ scenario_id = "validation_fairness"
 sample_scope = "full"
 tools = ["fastqvalidator"]
 "#,
-        )
-        .expect("write config");
+        );
 
         let error = validate_benchmark_config(
             temp.path(),
@@ -404,7 +433,7 @@ tools = ["fastqvalidator"]
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
@@ -424,8 +453,7 @@ scenario_id = "validation_fairness"
 sample_scope = "full"
 tools = ["fastqvalidator"]
 "#,
-        )
-        .expect("write config");
+        );
 
         let error = validate_benchmark_config(
             temp.path(),
@@ -437,10 +465,15 @@ tools = ["fastqvalidator"]
         .expect_err("validator should reject missing workspace contracts");
 
         let rendered = error.to_string();
-        assert!(rendered.contains("missing required benchmark config key: workspace.local.cache_mirror_root"));
-        assert!(rendered.contains("missing required benchmark config key: workspace.local.extra_data_root"));
-        assert!(rendered.contains("missing required benchmark config key: workspace.remote.cache_root"));
-        assert!(rendered.contains("missing required benchmark config key: workspace.remote.extra_data_root"));
+        assert!(rendered
+            .contains("missing required benchmark config key: workspace.local.cache_mirror_root"));
+        assert!(rendered
+            .contains("missing required benchmark config key: workspace.local.extra_data_root"));
+        assert!(
+            rendered.contains("missing required benchmark config key: workspace.remote.cache_root")
+        );
+        assert!(rendered
+            .contains("missing required benchmark config key: workspace.remote.extra_data_root"));
         assert!(rendered.contains("missing required benchmark config key: workspace.layout.stage_runs.remote_results_template"));
         assert!(rendered.contains("missing required benchmark config key: workspace.layout.stage_runs.local_cache_results_template"));
         assert!(rendered.contains("missing required benchmark config key: workspace.layout.stage_runs.local_archive_results_template"));
@@ -451,7 +484,7 @@ tools = ["fastqvalidator"]
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("config dir");
-        std::fs::write(
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
@@ -480,8 +513,7 @@ scenario_id = "validation_fairness"
 sample_scope = "full"
 tools = ["fastqvalidator"]
 "#,
-        )
-        .expect("write config");
+        );
 
         let error = validate_benchmark_config(
             temp.path(),
@@ -503,12 +535,12 @@ tools = ["fastqvalidator"]
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("config dir");
         std::fs::create_dir_all(temp.path().join("configs/runtime/corpora")).expect("corpus dir");
-        std::fs::write(
+        write_required_stage_input_fixtures(temp.path());
+        write_text(
             temp.path().join("configs/runtime/corpora/corpus-01.toml"),
             "corpus_id = \"corpus-01\"\n",
-        )
-        .expect("write corpus spec");
-        std::fs::write(
+        );
+        write_text(
             config_dir.join("benchmark.toml"),
             r#"[workspace.local]
 results_root = "/bench/local/results"
@@ -528,6 +560,18 @@ remote_results_template = "{corpus_id}/{stage_id}/cluster"
 local_cache_results_template = "results/{corpus_id}/{stage_id}/cluster"
 local_archive_results_template = "{corpus_id}/{stage_id}/cluster"
 
+[stage_inputs.fastq_deplete_rrna]
+rrna_db = "inputs/rrna/rrna.db"
+
+[stage_inputs.fastq_deplete_host]
+reference_index = "inputs/reference/host/index"
+
+[stage_inputs.fastq_deplete_reference_contaminants]
+reference_index = "inputs/reference/contaminants/index"
+
+[stage_inputs.fastq_screen_taxonomy]
+database_root = "inputs/taxonomy/database"
+
 [corpora.corpus-01]
 spec_path = "configs/runtime/corpora/corpus-01.toml"
 
@@ -537,8 +581,7 @@ scenario_id = "validation_fairness"
 sample_scope = "full"
 tools = ["fastqvalidator"]
 "#,
-        )
-        .expect("write config");
+        );
 
         validate_benchmark_config(
             temp.path(),
