@@ -34,7 +34,7 @@ const DEDUP_RATE_EPSILON: f64 = 1e-9;
 struct DuplicateReportCounts {
     reads_in: u64,
     reads_out: u64,
-    duplicate_reads: u64,
+    duplicates_removed: u64,
     dedup_rate: f64,
     tool: Option<String>,
     paired_mode: Option<String>,
@@ -219,7 +219,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         let metrics = FastqDuplicateMetrics {
             reads_in: counts.reads_in,
             reads_out: counts.reads_out,
-            duplicate_reads: counts.duplicate_reads,
+            duplicates_removed: counts.duplicates_removed,
             dedup_rate: counts.dedup_rate,
             tool: counts.tool.clone(),
             paired_mode: counts.paired_mode.clone(),
@@ -283,16 +283,16 @@ fn deduplicate_report_counts(
 ) -> DuplicateReportCounts {
     let reads_in = input_reads_r1 + input_reads_r2.unwrap_or(0);
     let reads_out = output_reads_r1 + output_reads_r2.unwrap_or(0);
-    let duplicate_reads = reads_in.saturating_sub(reads_out);
+    let duplicates_removed = reads_in.saturating_sub(reads_out);
     let dedup_rate = if reads_in == 0 {
         0.0
     } else {
-        u64_to_f64(duplicate_reads) / u64_to_f64(reads_in)
+        u64_to_f64(duplicates_removed) / u64_to_f64(reads_in)
     };
     DuplicateReportCounts {
         reads_in,
         reads_out,
-        duplicate_reads,
+        duplicates_removed,
         dedup_rate,
         tool: None,
         paired_mode: None,
@@ -323,19 +323,20 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
     )?;
     let reads_in = report.reads_in;
     let reads_out = report.reads_out;
-    let duplicate_reads = report.duplicates_removed;
-    let derived_duplicate_reads = reads_in.saturating_sub(reads_out);
-    if duplicate_reads != derived_duplicate_reads {
+    let duplicates_removed = report.duplicates_removed;
+    let derived_duplicates_removed = reads_in.saturating_sub(reads_out);
+    if duplicates_removed != derived_duplicates_removed {
         return Err(anyhow!(
             "governed remove-duplicates report {} is inconsistent: duplicates_removed={} but reads_in-reads_out={derived_duplicate_reads}",
             report_path.display(),
-            duplicate_reads,
+            duplicates_removed,
+            derived_duplicate_reads = derived_duplicates_removed,
         ));
     }
     let dedup_rate = if reads_in == 0 {
         0.0
     } else {
-        u64_to_f64(duplicate_reads) / u64_to_f64(reads_in)
+        u64_to_f64(duplicates_removed) / u64_to_f64(reads_in)
     };
     if !report.dedup_rate.is_finite() || !(0.0..=1.0).contains(&report.dedup_rate) {
         return Err(anyhow!(
@@ -400,11 +401,14 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
         .iter()
         .map(|entry| entry.reads_removed)
         .sum();
-    if !report.duplicate_classes.is_empty() && classified_duplicates_removed != duplicate_reads {
+    if !report.duplicate_classes.is_empty()
+        && classified_duplicates_removed != duplicates_removed
+    {
         return Err(anyhow!(
             "governed remove-duplicates report {} is inconsistent: duplicate_classes sum to {} but duplicates_removed={duplicate_reads}",
             report_path.display(),
             classified_duplicates_removed,
+            duplicate_reads = duplicates_removed,
         ));
     }
     if !report.duplicate_classes.is_empty()
@@ -418,7 +422,7 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
     Ok(DuplicateReportCounts {
         reads_in,
         reads_out,
-        duplicate_reads,
+        duplicates_removed,
         dedup_rate: report.dedup_rate,
         tool: Some(report.tool_id),
         paired_mode: serde_json::to_value(report.paired_mode)?
@@ -521,7 +525,7 @@ mod tests {
             DuplicateReportCounts {
                 reads_in: 200,
                 reads_out: 140,
-                duplicate_reads: 60,
+                duplicates_removed: 60,
                 dedup_rate: 0.3,
                 tool: None,
                 paired_mode: None,
@@ -581,7 +585,7 @@ mod tests {
             load_deduplicate_report_counts(&report_path).expect("load governed dedup report");
         assert_eq!(counts.reads_in, 200);
         assert_eq!(counts.reads_out, 160);
-        assert_eq!(counts.duplicate_reads, 40);
+        assert_eq!(counts.duplicates_removed, 40);
         assert!((counts.dedup_rate - 0.2).abs() < f64::EPSILON);
         assert_eq!(counts.tool.as_deref(), Some("clumpify"));
         assert_eq!(counts.duplicate_class_count, Some(1));
@@ -598,7 +602,7 @@ mod tests {
             load_deduplicate_report_counts(&report_path).expect("load parser-backed dedup report");
         assert_eq!(counts.reads_in, 200);
         assert_eq!(counts.reads_out, 160);
-        assert_eq!(counts.duplicate_reads, 40);
+        assert_eq!(counts.duplicates_removed, 40);
         assert!((counts.dedup_rate - 0.2).abs() < f64::EPSILON);
     }
 
