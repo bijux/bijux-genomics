@@ -34,7 +34,7 @@ fn load_domain_tool_yaml(tool_id: &str) -> Option<DomainToolYaml> {
         .filter(|path| path.is_file())
         .collect::<Vec<_>>();
     matches.sort();
-    for path in matches {
+    if let Some(path) = matches.into_iter().next() {
         let raw = std::fs::read_to_string(path).ok()?;
         let parsed: DomainToolYaml = bijux_dna_infra::formats::parse_yaml(&raw).ok()?;
         return Some(parsed);
