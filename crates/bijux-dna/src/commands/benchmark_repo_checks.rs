@@ -54,17 +54,30 @@ pub(crate) fn audit_repo_checks(repo_root: &Path) -> Result<RepoChecksReport> {
     path_scan_paths.sort();
     path_scan_paths.dedup();
 
+    let local_user_patterns = [Regex::new(r#"/Users/[^/"'\s]+/"#)
+        .map_err(|err| anyhow!("compile local user path regex: {err}"))?];
+    let remote_user_patterns = [Regex::new(r#"/home/[^/"'\s]+/"#)
+        .map_err(|err| anyhow!("compile remote user path regex: {err}"))?];
+    let host_alias_patterns = [
+        Regex::new(r#"["']lunarc:[^"']*["']"#)
+            .map_err(|err| anyhow!("compile host alias regex: {err}"))?,
+        Regex::new(r#"ssh\s+['"]?lunarc(["'\s]|$)"#)
+            .map_err(|err| anyhow!("compile ssh lunarc regex: {err}"))?,
+        Regex::new(r#"hostname[^\n]*["']lunarc["']"#)
+            .map_err(|err| anyhow!("compile hostname lunarc regex: {err}"))?,
+    ];
+
     let mut violations = regex_matches(
         &path_scan_paths,
         repo_root,
         "hardcoded-local-user-path",
-        &[Regex::new(r#"/Users/[^/"'\s]+/"#).expect("local user path regex")],
+        &local_user_patterns,
     )?;
     violations.extend(regex_matches(
         &path_scan_paths,
         repo_root,
         "hardcoded-remote-user-path",
-        &[Regex::new(r#"/home/[^/"'\s]+/"#).expect("remote user path regex")],
+        &remote_user_patterns,
     )?);
     violations.extend(regex_matches(
         &tooling_paths
@@ -74,11 +87,7 @@ pub(crate) fn audit_repo_checks(repo_root: &Path) -> Result<RepoChecksReport> {
             .collect::<Vec<_>>(),
         repo_root,
         "hardcoded-ssh-host-alias",
-        &[
-            Regex::new(r#"["']lunarc:[^"']*["']"#).expect("host alias regex"),
-            Regex::new(r#"ssh\s+['"]?lunarc(["'\s]|$)"#).expect("ssh lunarc regex"),
-            Regex::new(r#"hostname[^\n]*["']lunarc["']"#).expect("hostname lunarc regex"),
-        ],
+        &host_alias_patterns,
     )?);
 
     Ok(RepoChecksReport {
@@ -232,10 +241,11 @@ fn regex_matches(
     let mut matches = Vec::new();
     for path in paths {
         for (line_number, line) in repo_check_lines(path)?.iter().enumerate() {
-            let Some(literal) = patterns
-                .iter()
-                .find_map(|pattern| pattern.find(line).map(|matched| matched.as_str().to_string()))
-            else {
+            let Some(literal) = patterns.iter().find_map(|pattern| {
+                pattern
+                    .find(line)
+                    .map(|matched| matched.as_str().to_string())
+            }) else {
                 continue;
             };
             matches.push(RepoCheckViolation {
@@ -276,8 +286,14 @@ fn strip_rust_test_modules(raw: &str) -> Vec<String> {
             continue;
         }
         if awaiting_test_module {
+            if trimmed.is_empty() || trimmed.starts_with("#[") {
+                continue;
+            }
             if trimmed.starts_with("mod ") && raw_line.contains('{') {
-                skip_depth = raw_line.matches('{').count().saturating_sub(raw_line.matches('}').count());
+                skip_depth = raw_line
+                    .matches('{')
+                    .count()
+                    .saturating_sub(raw_line.matches('}').count());
                 awaiting_test_module = false;
                 continue;
             }
@@ -304,6 +320,7 @@ fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{audit_repo_checks, strip_rust_test_modules};
     use std::fs;
@@ -314,8 +331,11 @@ mod tests {
         let repo_root = temp.path();
         let script_path = repo_root.join("makes/bin/example.py");
         fs::create_dir_all(script_path.parent().expect("script dir")).expect("create script dir");
-        fs::write(&script_path, "RESULTS_ROOT = \"/Users/operator/workspace/results\"\n")
-            .expect("write script");
+        fs::write(
+            &script_path,
+            "RESULTS_ROOT = \"/Users/operator/workspace/results\"\n",
+        )
+        .expect("write script");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
@@ -330,8 +350,11 @@ mod tests {
         let fixture_path = repo_root.join("makes/bin/test_benchmark_fastq_suite.py");
         fs::create_dir_all(fixture_path.parent().expect("fixture dir"))
             .expect("create fixture dir");
-        fs::write(&fixture_path, "LOCAL_RESULTS = \"/Users/operator/workspace/results\"\n")
-            .expect("write fixture");
+        fs::write(
+            &fixture_path,
+            "LOCAL_RESULTS = \"/Users/operator/workspace/results\"\n",
+        )
+        .expect("write fixture");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 0);
@@ -343,8 +366,11 @@ mod tests {
         let repo_root = temp.path();
         let config_path = repo_root.join("configs/bench/workspace.md");
         fs::create_dir_all(config_path.parent().expect("config dir")).expect("create config dir");
-        fs::write(&config_path, "remote_root = \"/home/alice/bijux/results\"\n")
-            .expect("write config");
+        fs::write(
+            &config_path,
+            "remote_root = \"/home/alice/bijux/results\"\n",
+        )
+        .expect("write config");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
@@ -379,6 +405,7 @@ fn governed() {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     #[test]
     fn fixture() {
