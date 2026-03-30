@@ -1,4 +1,6 @@
-use super::*;
+#![allow(clippy::items_after_test_module)]
+
+use super::{anyhow, BufRead, Context, ExecutionStep, NetworkPolicy, Result, StageResultV1};
 
 mod metrics;
 
@@ -60,16 +62,14 @@ mod tests {
 
     use super::{
         fastq_backend_allowlist, parse_deplete_host_metrics,
-        parse_deplete_reference_contaminants_metrics,
-        parse_deplete_rrna_metrics, parse_filter_low_complexity_metrics, parse_filter_reads_metrics,
-        parse_extract_umis_metrics,
-        parse_index_reference_metrics,
-        parse_merge_pairs_metrics, parse_normalize_abundance_metrics,
-        parse_normalize_primers_metrics, parse_profile_overrepresented_metrics,
-        parse_profile_read_lengths_metrics, parse_profile_reads_metrics,
-        parse_remove_duplicates_metrics, parse_report_qc_metrics, parse_screen_taxonomy_metrics,
-        parse_trim_polyg_metrics, parse_trim_reads_metrics, parse_trim_terminal_damage_metrics,
-        parse_validate_reads_metrics, required_metrics_keys,
+        parse_deplete_reference_contaminants_metrics, parse_deplete_rrna_metrics,
+        parse_extract_umis_metrics, parse_filter_low_complexity_metrics,
+        parse_filter_reads_metrics, parse_index_reference_metrics, parse_merge_pairs_metrics,
+        parse_normalize_abundance_metrics, parse_normalize_primers_metrics,
+        parse_profile_overrepresented_metrics, parse_profile_read_lengths_metrics,
+        parse_profile_reads_metrics, parse_remove_duplicates_metrics, parse_report_qc_metrics,
+        parse_screen_taxonomy_metrics, parse_trim_polyg_metrics, parse_trim_reads_metrics,
+        parse_trim_terminal_damage_metrics, parse_validate_reads_metrics, required_metrics_keys,
     };
 
     fn env_lock() -> &'static Mutex<()> {
@@ -109,7 +109,8 @@ mod tests {
         std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
         std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
 
-        let stages_dir = crate::support::repo_root::resolve_repo_root()?.join("domain/fastq/stages");
+        let stages_dir =
+            crate::support::repo_root::resolve_repo_root()?.join("domain/fastq/stages");
         for entry in std::fs::read_dir(&stages_dir)? {
             let path = entry?.path();
             if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
@@ -584,7 +585,10 @@ mod tests {
 
         let metrics = parse_filter_low_complexity_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bbduk"));
-        assert_eq!(metrics["reads_removed_low_complexity"], serde_json::json!(8));
+        assert_eq!(
+            metrics["reads_removed_low_complexity"],
+            serde_json::json!(8)
+        );
         assert_eq!(metrics["polyx_threshold"], serde_json::json!(20));
         assert_eq!(
             metrics["raw_backend_report_format"],
@@ -918,7 +922,10 @@ mod tests {
         assert_eq!(metrics["reads_merged"], serde_json::json!(88));
         assert_eq!(metrics["reads_unmerged"], serde_json::json!(12));
         assert_eq!(metrics["merge_rate"], serde_json::json!(0.88));
-        assert_eq!(metrics["raw_backend_report_format"], serde_json::Value::Null);
+        assert_eq!(
+            metrics["raw_backend_report_format"],
+            serde_json::Value::Null
+        );
     }
 
     #[test]
@@ -1190,7 +1197,10 @@ mod tests {
 
         let metrics = parse_deplete_rrna_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("sortmerna"));
-        assert_eq!(metrics["database_artifact_id"], serde_json::json!("silva_nr99"));
+        assert_eq!(
+            metrics["database_artifact_id"],
+            serde_json::json!("silva_nr99")
+        );
         assert_eq!(metrics["reads_removed"], serde_json::json!(36));
         assert_eq!(metrics["rrna_fraction_removed"], serde_json::json!(0.36));
     }
@@ -1308,7 +1318,10 @@ mod tests {
 
         let metrics = parse_deplete_host_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
-        assert_eq!(metrics["reference_catalog_id"], serde_json::json!("host_reference"));
+        assert_eq!(
+            metrics["reference_catalog_id"],
+            serde_json::json!("host_reference")
+        );
         assert_eq!(metrics["reads_removed"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
     }
@@ -1419,7 +1432,10 @@ mod tests {
         assert_eq!(metrics["dedup_mode"], serde_json::json!("optical_aware"));
         assert_eq!(metrics["duplicates_removed"], serde_json::json!(16));
         assert_eq!(metrics["duplicate_class_count"], serde_json::json!(1));
-        assert_eq!(metrics["raw_backend_report"], serde_json::json!("clumpify.log"));
+        assert_eq!(
+            metrics["raw_backend_report"],
+            serde_json::json!("clumpify.log")
+        );
     }
 
     #[test]
@@ -1445,7 +1461,8 @@ mod tests {
 
 pub(super) fn required_fastq_tools() -> Result<std::collections::BTreeSet<String>> {
     let raw = std::fs::read_to_string(
-        crate::support::repo_root::resolve_repo_root()?.join("configs/ci/tools/required_tools.toml"),
+        crate::support::repo_root::resolve_repo_root()?
+            .join("configs/ci/tools/required_tools.toml"),
     )?;
     let parsed: toml::Value = toml::from_str(&raw)?;
     let mut set = std::collections::BTreeSet::new();
@@ -1486,6 +1503,7 @@ pub(super) fn enforce_screen_db_governance(planned: &ExecutionStep) -> Result<()
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
     match stage_id {
         "fastq.validate_reads" => &[
@@ -1729,8 +1747,7 @@ pub(super) fn write_retention_report(
                 .file_name()
                 .and_then(|n| n.to_str())
                 .filter(|value| !value.trim().is_empty())
-                .map(ToOwned::to_owned)
-                .unwrap_or_else(|| path.display().to_string());
+                .map_or_else(|| path.display().to_string(), ToOwned::to_owned);
             let reads = count_fastq_reads_if_plain(&path)
                 .map_or_else(|| "na".to_string(), |x| x.to_string());
             rows.push(format!("{name}\t{reads}"));

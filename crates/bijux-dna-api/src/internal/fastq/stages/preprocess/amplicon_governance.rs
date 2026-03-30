@@ -344,11 +344,7 @@ pub(super) fn write_batch_effect_summary(
                     .and_then(serde_json::Value::as_f64)
             })
             .sum::<f64>()
-            / samples
-                .len()
-                .to_string()
-                .parse::<f64>()
-                .unwrap_or(1.0)
+            / samples.len().to_string().parse::<f64>().unwrap_or(1.0)
     };
     let payload = serde_json::json!({
         "schema_version": "bijux.fastq.batch_effect_summary.v1",
@@ -386,9 +382,8 @@ pub(super) fn enforce_amplicon_merge_determinism(
     let policy = amplicon_merge_policy()?;
     let merged = format!("{}\n{}", execution.stdout, execution.stderr);
     let overlap = parse_first_u64_after_key(&merged, "overlap").unwrap_or(policy.min_overlap_bp);
-    let mismatch_pct = parse_first_u64_after_key(&merged, "mismatch").map_or(0.0, |v| {
-        v.to_string().parse::<f64>().unwrap_or(0.0) / 100.0
-    });
+    let mismatch_pct = parse_first_u64_after_key(&merged, "mismatch")
+        .map_or(0.0, |v| v.to_string().parse::<f64>().unwrap_or(0.0) / 100.0);
     let pass = overlap >= policy.min_overlap_bp && mismatch_pct <= policy.max_mismatch_rate;
     let payload = serde_json::json!({
         "schema_version": "bijux.fastq.amplicon_merge_determinism.v1",
@@ -446,7 +441,8 @@ pub(super) fn write_edna_report_summary(
         if stage.plan.step_id.as_str() == "fastq.cluster_otus" {
             let report_path = stage.plan.out_dir.join("cluster_otus_report.json");
             if let Ok(raw) = std::fs::read_to_string(report_path) {
-                if let Ok(report) = bijux_dna_domain_fastq::observer::parse_cluster_otus_report(&raw)
+                if let Ok(report) =
+                    bijux_dna_domain_fastq::observer::parse_cluster_otus_report(&raw)
                 {
                     otu_rows = Some(report.otu_count);
                 }
@@ -455,22 +451,21 @@ pub(super) fn write_edna_report_summary(
         if stage.plan.step_id.as_str() == "fastq.normalize_abundance" {
             let path = stage_root.join("normalize_abundance_report.json");
             if let Ok(raw) = std::fs::read_to_string(path) {
-                normalization = bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(
-                    &raw,
-                )
-                .ok()
-                .map(|report| {
-                    serde_json::json!({
-                        "tool": report.tool_id,
-                        "method": report.method,
-                        "table_rows": report.table_rows,
-                        "sample_count": report.sample_count,
-                        "feature_count": report.feature_count,
-                        "zero_fraction": report.zero_fraction,
-                        "normalized_value_column": report.normalized_value_column,
-                        "compositional_rule": report.compositional_rule,
-                    })
-                });
+                normalization =
+                    bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw)
+                        .ok()
+                        .map(|report| {
+                            serde_json::json!({
+                                "tool": report.tool_id,
+                                "method": report.method,
+                                "table_rows": report.table_rows,
+                                "sample_count": report.sample_count,
+                                "feature_count": report.feature_count,
+                                "zero_fraction": report.zero_fraction,
+                                "normalized_value_column": report.normalized_value_column,
+                                "compositional_rule": report.compositional_rule,
+                            })
+                        });
             }
         }
     }
@@ -484,4 +479,7 @@ pub(super) fn write_edna_report_summary(
     bijux_dna_infra::atomic_write_json(&run_root.join("edna_summary.json"), &payload)?;
     Ok(())
 }
-use super::*;
+use super::{
+    anyhow, parse_first_u64_after_key, Context, FastqInvariantsReport, PathBuf, Result,
+    StageExecutionSummary, StageResultV1,
+};

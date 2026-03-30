@@ -1,4 +1,4 @@
-use super::*;
+use super::{open_fastq_lines, Result};
 
 pub(crate) fn infer_udg_classification(input: &std::path::Path) -> String {
     if let Ok(configured) = std::env::var("BIJUX_UDG_CLASSIFICATION") {

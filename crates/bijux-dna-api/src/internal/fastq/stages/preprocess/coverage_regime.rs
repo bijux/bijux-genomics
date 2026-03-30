@@ -1,4 +1,4 @@
-use super::*;
+use super::{anyhow, Context, FastqInvariantsReport, Result};
 
 #[derive(Debug, Clone, Copy)]
 struct FastqCoverageThresholds {

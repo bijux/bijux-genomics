@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for boundaries
+#[path = "support.rs"]
+mod support;
 #[path = "boundaries/guardrails/args_module.rs"]
 mod mod_boundaries_guardrails_args_module_rs;
 #[path = "boundaries/guardrails/policies.rs"]

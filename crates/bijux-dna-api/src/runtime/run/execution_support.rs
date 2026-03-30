@@ -24,6 +24,7 @@ fn declared_string_array(value: Option<&serde_json::Value>, key: &str) -> Result
         .collect()
 }
 
+#[allow(clippy::too_many_lines)]
 pub(super) fn maybe_emit_reference_manifest(
     request: &ExecuteRunRequest,
     run_artifacts_dir: &std::path::Path,
@@ -56,8 +57,10 @@ pub(super) fn maybe_emit_reference_manifest(
         .get("usecase")
         .and_then(serde_json::Value::as_str)
         .map(str::to_string);
-    let observed_contigs =
-        declared_string_array(request.plan.params.get("observed_contigs"), "observed_contigs")?;
+    let observed_contigs = declared_string_array(
+        request.plan.params.get("observed_contigs"),
+        "observed_contigs",
+    )?;
 
     let mut inputs = Vec::new();
     for artifact in reference_inputs {
@@ -390,8 +393,7 @@ fn is_fastq_like_path(path: &Path) -> bool {
         .file_name()
         .and_then(|x| x.to_str())
         .filter(|value| !value.trim().is_empty())
-        .map(ToOwned::to_owned)
-        .unwrap_or_else(|| path.display().to_string());
+        .map_or_else(|| path.display().to_string(), ToOwned::to_owned);
     let lower = file_name.to_ascii_lowercase();
     let ext_fastq = path
         .extension()
@@ -409,8 +411,7 @@ fn classify_vcf_variant_density(request: &ExecuteRunRequest) -> Option<f64> {
             .file_name()
             .and_then(|x| x.to_str())
             .filter(|value| !value.trim().is_empty())
-            .map(ToOwned::to_owned)
-            .unwrap_or_else(|| p.display().to_string());
+            .map_or_else(|| p.display().to_string(), ToOwned::to_owned);
         let ext_is_vcf = std::path::Path::new(&name)
             .extension()
             .and_then(|ext| ext.to_str())

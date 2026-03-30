@@ -1,3 +1,4 @@
+#[allow(clippy::too_many_lines)]
 pub(crate) fn write_run_manifest(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],

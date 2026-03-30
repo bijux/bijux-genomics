@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "support.rs"]
+mod support;
 #[path = "contracts/fastq_amplicon_governance_contract.rs"]
 mod mod_contracts_fastq_amplicon_governance_contract_rs;
 #[path = "contracts/v1_cross_contract_spine.rs"]

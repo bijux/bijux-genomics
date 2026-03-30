@@ -1,11 +1,7 @@
 use anyhow::Result;
 
-#[path = "../support.rs"]
-mod support;
-
 fn v1_surface() -> Result<String> {
-    let base = support::crate_src("bijux-dna-api")?
-        .join("v1");
+    let base = crate::support::crate_src("bijux-dna-api")?.join("v1");
     let mut contents = String::new();
     for module in ["api.rs", "plan.rs", "run.rs", "report.rs", "bench.rs"] {
         contents.push_str(&std::fs::read_to_string(base.join(module))?);
@@ -16,7 +12,7 @@ fn v1_surface() -> Result<String> {
 
 #[test]
 fn public_types_are_documented_and_v1_scoped() -> Result<()> {
-    let root = support::crate_src("bijux-dna-api")?;
+    let root = crate::support::crate_src("bijux-dna-api")?;
     let v1_surface = v1_surface()?;
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)
@@ -36,7 +32,13 @@ fn public_types_are_documented_and_v1_scoped() -> Result<()> {
                 let name = trimmed
                     .split_whitespace()
                     .nth(2)
-                    .unwrap_or_else(|| panic!("unable to parse public type name at {}:{}", entry.path().display(), idx + 1))
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "unable to parse public type name at {}:{}",
+                            entry.path().display(),
+                            idx + 1
+                        )
+                    })
                     .trim_end_matches('{')
                     .trim_end_matches(';');
                 let mut doc_block = Vec::new();

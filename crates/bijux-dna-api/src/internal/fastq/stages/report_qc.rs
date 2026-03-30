@@ -69,6 +69,7 @@ fn parse_qc_aggregation_engine(value: Option<&str>) -> Result<QcAggregationEngin
 
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_qc_post(
     catalog: &impl ToolImageCatalog,
     platform: &PlatformSpec,
@@ -391,6 +392,7 @@ fn prepare_qc_post_bench(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_qc_post_record(
     platform: &PlatformSpec,
     bench_inputs: &QcPostBenchInputs,
@@ -878,11 +880,10 @@ fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQcInputs> {
     };
     for contributor in &mut contributors {
         if contributor.tool_id.trim().is_empty() {
-            contributor.tool_id = contributor
-                .contributor_id
-                .rsplit_once('.')
-                .map(|(_, tool_id)| tool_id.to_string())
-                .unwrap_or_else(|| contributor.contributor_id.clone());
+            contributor.tool_id = contributor.contributor_id.rsplit_once('.').map_or_else(
+                || contributor.contributor_id.clone(),
+                |(_, tool_id)| tool_id.to_string(),
+            );
         }
     }
     contributors.sort_by(|left, right| {
@@ -1269,6 +1270,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn qc_post_record_preserves_planner_written_governed_qc_manifest() {
         let temp = tempfile::tempdir().expect("tempdir");
         bijux_dna_infra::ensure_dir(temp.path().join("multiqc_data")).expect("multiqc data dir");
@@ -1390,6 +1392,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn qc_post_record_preserves_upstream_qc_summary_signals() {
         let temp = tempfile::tempdir().expect("tempdir");
         bijux_dna_infra::ensure_dir(temp.path().join("multiqc_data")).expect("multiqc data dir");

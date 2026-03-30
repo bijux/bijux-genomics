@@ -1,9 +1,6 @@
-#[path = "../support.rs"]
-mod support;
-
 #[test]
 fn v1_api_has_no_stage_id_literals() {
-    let v1_dir = support::crate_src("bijux-dna-api")
+    let v1_dir = crate::support::crate_src("bijux-dna-api")
         .unwrap_or_else(|err| panic!("resolve crate src: {err}"))
         .join("v1");
     let mut offenders = Vec::new();

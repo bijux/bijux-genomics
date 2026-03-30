@@ -64,6 +64,7 @@ fn admitted_stage_tools() -> Vec<String> {
 
 /// # Errors
 /// Returns an error if planning, execution, metric derivation, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_trim_polyg_tails<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,

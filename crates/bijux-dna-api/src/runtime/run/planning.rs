@@ -91,10 +91,7 @@ pub(super) fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
         .components()
         .map(|c| c.as_os_str().to_string_lossy().to_string())
         .collect::<Vec<_>>();
-    let Some(idx) = comps
-        .iter()
-        .position(|v| v == "results")
-    else {
+    let Some(idx) = comps.iter().position(|v| v == "results") else {
         return Err(anyhow!("HPC run out_dir must be under results root"));
     };
     if comps.len() < idx + 7 {
@@ -175,6 +172,7 @@ fn env_value(key: &str) -> Option<String> {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{enforce_hpc_results_layout, resolved_site_name_with};
     use std::path::Path;
@@ -197,8 +195,7 @@ mod tests {
             "HOSTNAME" => Some("node-01.example".to_string()),
             _ => None,
         };
-        let error =
-            resolved_site_name_with(lookup).expect_err("missing BIJUX_HPC_SITE must fail");
+        let error = resolved_site_name_with(lookup).expect_err("missing BIJUX_HPC_SITE must fail");
         assert!(error
             .to_string()
             .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));

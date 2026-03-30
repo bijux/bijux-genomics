@@ -71,8 +71,7 @@ pub(crate) fn render_bam_summary(
     let rendered_summary =
         serde_json::to_string_pretty(&summary).context("serialize BAM summary payload")?;
     let html = format!(
-        "<!doctype html><html><head><meta charset=\"utf-8\"><title>BAM summary</title></head><body><pre>{}</pre></body></html>",
-        rendered_summary
+        "<!doctype html><html><head><meta charset=\"utf-8\"><title>BAM summary</title></head><body><pre>{rendered_summary}</pre></body></html>"
     );
     bijux_dna_infra::atomic_write_bytes(&report_html_path, html.as_bytes())
         .context("write report.html")?;

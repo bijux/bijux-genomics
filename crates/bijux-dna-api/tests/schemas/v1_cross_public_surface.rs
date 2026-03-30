@@ -1,9 +1,6 @@
 use insta::Settings;
 use std::fs;
 
-#[path = "../support.rs"]
-mod support;
-
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-api__{group}__{name}")
 }
@@ -11,7 +8,7 @@ fn snapshot_name(group: &str, name: &str) -> String {
 /// Snapshot locks API public surface for v1 cross endpoints.
 #[test]
 fn public_surface_is_snapshotted() {
-    let lib = support::crate_src("bijux-dna-api")
+    let lib = crate::support::crate_src("bijux-dna-api")
         .unwrap_or_else(|err| panic!("resolve crate src: {err}"))
         .join("lib.rs");
     let content = fs::read_to_string(&lib)
@@ -27,7 +24,7 @@ fn public_surface_is_snapshotted() {
     let mut settings = Settings::new();
     settings.set_prepend_module_to_snapshot(false);
     settings.set_snapshot_path(
-        support::crate_snapshots("bijux-dna-api")
+        crate::support::crate_snapshots("bijux-dna-api")
             .unwrap_or_else(|err| panic!("resolve snapshots root: {err}")),
     );
     settings.bind(|| {

@@ -1,4 +1,4 @@
-use super::*;
+use super::{anyhow, BufRead, Context, PathBuf, Read, Result};
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub(super) struct FastqInvariantsReport {
@@ -83,9 +83,7 @@ fn quality_encoding_confidence(min_ascii: u8, max_ascii: u8) -> String {
     }
 }
 
-pub(super) fn open_fastq_lines(
-    path: &std::path::Path,
-) -> Result<Box<dyn Iterator<Item = String>>> {
+pub(super) fn open_fastq_lines(path: &std::path::Path) -> Result<Box<dyn Iterator<Item = String>>> {
     if path
         .extension()
         .and_then(|x| x.to_str())

@@ -1,4 +1,4 @@
-use super::*;
+use super::{Context, ExecutionStep, Result};
 
 pub(super) fn write_stage_path_contract(
     stage_root: &std::path::Path,
@@ -37,7 +37,10 @@ pub(super) fn write_stage_path_contract(
         .context("write stage.path_contract.json")
 }
 
-pub(super) fn capture_tool_version(stage_root: &std::path::Path, tool_bin: Option<&str>) -> Result<()> {
+pub(super) fn capture_tool_version(
+    stage_root: &std::path::Path,
+    tool_bin: Option<&str>,
+) -> Result<()> {
     let (declared_tool, ok, raw) =
         if let Some(tool_bin) = tool_bin.filter(|value| !value.trim().is_empty()) {
             let args = vec!["--version".to_string()];
@@ -55,7 +58,11 @@ pub(super) fn capture_tool_version(stage_root: &std::path::Path, tool_bin: Optio
             };
             (tool_bin, ok, raw)
         } else {
-            ("", false, "tool command not declared in execution template".to_string())
+            (
+                "",
+                false,
+                "tool command not declared in execution template".to_string(),
+            )
         };
     let line = raw
         .lines()

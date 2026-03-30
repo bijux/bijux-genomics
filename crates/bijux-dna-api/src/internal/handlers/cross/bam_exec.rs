@@ -108,6 +108,7 @@ fn write_stage_failure_hint(
         .with_context(|| format!("write {}", path.display()))
 }
 
+#[allow(clippy::too_many_lines)]
 fn enforce_stage_refusal_rules(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
     bam_path: &Path,

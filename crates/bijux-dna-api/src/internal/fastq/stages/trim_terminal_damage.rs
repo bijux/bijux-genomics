@@ -60,6 +60,7 @@ fn admitted_stage_tools() -> Vec<String> {
 
 /// # Errors
 /// Returns an error if planning, execution, metric derivation, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -456,16 +457,18 @@ fn read_governed_terminal_damage_report(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
-        admitted_stage_tools, parse_requested_execution_policy,
-        prune_trim_terminal_damage_payload, read_governed_terminal_damage_report,
-        required_plan_output_path, resolve_requested_tools,
+        admitted_stage_tools, parse_requested_execution_policy, prune_trim_terminal_damage_payload,
+        read_governed_terminal_damage_report, required_plan_output_path, resolve_requested_tools,
     };
     use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{ArtifactRef, CommandSpecV1, ContainerImageRefV1};
-    use bijux_dna_domain_fastq::params::{trim::parse_terminal_damage_execution_policy, DamageMode};
+    use bijux_dna_domain_fastq::params::{
+        trim::parse_terminal_damage_execution_policy, DamageMode,
+    };
     use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
     use std::collections::BTreeMap;
     use std::fs;

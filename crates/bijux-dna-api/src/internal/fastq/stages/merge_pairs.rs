@@ -87,6 +87,7 @@ fn required_plan_output_path<'a>(
 ///
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -267,7 +268,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let context = build_benchmark_context(
         &report.tool_id,
         tool_spec.tool_version.clone(),
-        benchmark_image_identity(&tool_spec),
+        benchmark_image_identity(tool_spec),
         runner,
         platform,
         input_hash.to_string(),

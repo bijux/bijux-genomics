@@ -26,6 +26,7 @@ pub struct BamBenchOutcome {
 
 /// # Errors
 /// Returns an error if planning or execution fails for the requested stage.
+#[allow(clippy::too_many_lines)]
 pub fn bench_bam_stage(
     args: &BenchBamStageArgs,
     registry: &ToolRegistry,

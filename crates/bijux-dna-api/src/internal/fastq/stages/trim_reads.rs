@@ -60,6 +60,7 @@ fn write_governed_trim_report(
 
 /// # Errors
 /// Returns an error if planning, execution, metric derivation, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -519,6 +520,7 @@ fn benchmark_query_context(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{
         adapter_bank_requested, adapter_policy_uses_bank, apply_thread_override,

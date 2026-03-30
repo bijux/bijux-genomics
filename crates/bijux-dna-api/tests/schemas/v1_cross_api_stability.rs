@@ -2,9 +2,6 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-#[path = "../support.rs"]
-mod support;
-
 use bijux_dna_api::v1::api::{
     dry_run, explain, plan, policy_audit, status, DryRunRequest, ExecuteResponse, PlanRequest,
 };
@@ -61,7 +58,7 @@ fn snapshot_settings() -> Settings {
     let mut settings = Settings::new();
     settings.set_prepend_module_to_snapshot(false);
     settings.set_snapshot_path(
-        support::crate_snapshots("bijux-dna-api")
+        crate::support::crate_snapshots("bijux-dna-api")
             .unwrap_or_else(|err| panic!("resolve snapshots root: {err}")),
     );
     settings

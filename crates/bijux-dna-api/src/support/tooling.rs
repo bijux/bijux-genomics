@@ -93,6 +93,7 @@ pub fn filter_tools_by_role(
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::{filter_tools_by_role, load_workspace_registry, workspace_domain_dir};
     use bijux_dna_core::contract::{

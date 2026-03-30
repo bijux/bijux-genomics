@@ -90,6 +90,7 @@ mod tests {
 
     /// Snapshot intent: scientific provenance JSON remains schema-stable and path-normalized.
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn scientific_provenance_contract_is_written() -> anyhow::Result<()> {
         let temp = bijux_dna_infra::temp_dir("bijux-dna-scientific-provenance")?;
         let out_dir = temp.path();

@@ -92,6 +92,7 @@ fn resolve_remove_duplicates_tools(
 ///
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -304,6 +305,7 @@ fn deduplicate_report_counts(
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<DuplicateReportCounts> {
     let raw = std::fs::read_to_string(report_path).map_err(|error| {
         anyhow!(

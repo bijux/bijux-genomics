@@ -1,4 +1,4 @@
-use super::*;
+use super::{Context, Result, StageResultV1};
 
 pub(super) fn write_stage_resume_contract(
     stage_root: &std::path::Path,
@@ -8,11 +8,10 @@ pub(super) fn write_stage_resume_contract(
 ) -> Result<()> {
     let mut checksums = serde_json::Map::new();
     for path in &execution.outputs {
-        let key = path
-            .file_name()
-            .and_then(|x| x.to_str())
-            .map(std::string::ToString::to_string)
-            .unwrap_or_else(|| path.display().to_string());
+        let key = path.file_name().and_then(|x| x.to_str()).map_or_else(
+            || path.display().to_string(),
+            std::string::ToString::to_string,
+        );
         let value = if path.exists() {
             bijux_dna_infra::hash_file_sha256(path)
                 .ok()

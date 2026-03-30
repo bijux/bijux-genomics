@@ -56,6 +56,7 @@ use bijux_dna_planner_fastq::stage_api::RawFailure;
 ///
 /// # Errors
 /// Returns an error if planning, execution, or metric recording fails.
+#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -186,6 +187,7 @@ struct StatsBenchInputs {
     tools_root: PathBuf,
 }
 
+#[allow(clippy::too_many_lines)]
 fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -311,6 +313,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     })
 }
 
+#[allow(clippy::too_many_lines)]
 fn run_stats_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,

@@ -9,6 +9,7 @@ use super::{
 };
 
 #[cfg_attr(not(feature = "bam_downstream"), allow(unused_variables))]
+#[allow(clippy::too_many_lines)]
 pub(super) fn plan_downstream_stage(
     stage: BamStage,
     spec: &ToolExecutionSpecV1,

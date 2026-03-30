@@ -1,8 +1,5 @@
-#[path = "../support.rs"]
-mod support;
-
 fn repo_root() -> std::path::PathBuf {
-    support::repo_root().unwrap_or_else(|err| panic!("repo root: {err}"))
+    crate::support::repo_root().unwrap_or_else(|err| panic!("repo root: {err}"))
 }
 
 #[test]
