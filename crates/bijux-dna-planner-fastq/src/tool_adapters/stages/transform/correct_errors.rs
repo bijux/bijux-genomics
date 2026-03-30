@@ -934,8 +934,10 @@ mod tests {
     }
 
     #[test]
-    fn bayeshammer_reconstruction_preserves_paired_record_count() {
-        let tempdir = tempdir_for("bayeshammer_reconstruction_preserves_paired_record_count");
+    #[allow(non_snake_case)]
+    fn slow__bayeshammer_reconstruction_preserves_paired_record_count() {
+        let tempdir =
+            tempdir_for("slow__bayeshammer_reconstruction_preserves_paired_record_count");
         let input_r1 = tempdir.path().join("reads_R1.fastq");
         let input_r2 = tempdir.path().join("reads_R2.fastq");
         let out_dir = tempdir.path().join("out");
