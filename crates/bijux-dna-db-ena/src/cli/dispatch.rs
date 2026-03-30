@@ -14,6 +14,8 @@ pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, Downlo
         extra_accessions: args.accessions.clone(),
         result: args.result.into(),
     };
+    query.validate().context("validate ENA query selectors")?;
+
     let client = EnaClient::from_crate_identity().context("create ena client")?;
     let records = client
         .fetch_records(&query)

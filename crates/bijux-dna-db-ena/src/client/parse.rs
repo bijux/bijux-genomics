@@ -1,15 +1,22 @@
 use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord};
 use std::collections::HashMap;
 
-#[must_use]
-pub(super) fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Vec<EnaRecord> {
+use super::{request, EnaClientError};
+
+pub(super) fn parse_filereport_tsv(
+    tsv: &str,
+    query: &EnaQuery,
+) -> Result<Vec<EnaRecord>, EnaClientError> {
     let mut lines = tsv.lines();
     let Some(header_line) = lines.next() else {
-        return Vec::new();
+        return Err(EnaClientError::InvalidResponse(
+            "filereport response is empty".to_string(),
+        ));
     };
     let headers: Vec<&str> = header_line.split('\t').collect();
+    validate_headers(&headers, query)?;
 
-    lines
+    Ok(lines
         .filter_map(|line| {
             if line.trim().is_empty() {
                 return None;
@@ -99,7 +106,7 @@ pub(super) fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Vec<EnaRecord
                     .map_or_else(Vec::new, |v| split_ena_field(v)),
             })
         })
-        .collect()
+        .collect())
 }
 
 fn opt_field(value: &str) -> Option<&str> {
@@ -109,4 +116,21 @@ fn opt_field(value: &str) -> Option<&str> {
     } else {
         Some(trimmed)
     }
+}
+
+fn validate_headers(headers: &[&str], query: &EnaQuery) -> Result<(), EnaClientError> {
+    let missing = request::filereport_fields(query.result)
+        .iter()
+        .copied()
+        .filter(|field| !headers.iter().any(|header| header == field))
+        .collect::<Vec<_>>();
+
+    if missing.is_empty() {
+        return Ok(());
+    }
+
+    Err(EnaClientError::InvalidResponse(format!(
+        "filereport response is missing required columns: {}",
+        missing.join(", ")
+    )))
 }
