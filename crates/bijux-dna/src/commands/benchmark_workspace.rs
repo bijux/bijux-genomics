@@ -8,6 +8,13 @@ use std::time::UNIX_EPOCH;
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
+mod config_paths;
+
+use self::config_paths::absolutize;
+pub(crate) use self::config_paths::{
+    benchmark_config_path, benchmark_publication_config_path, benchmark_workspace_config_path,
+};
+
 pub(crate) const BENCHMARK_CONFIG_ENV: &str = "BIJUX_BENCHMARK_CONFIG";
 pub(crate) const BENCHMARK_CONFIG_JSON_ENV: &str = "BIJUX_BENCHMARK_CONFIG_JSON";
 pub(crate) const DEFAULT_BENCHMARK_CONFIG: &str = "configs/bench/benchmark.toml";
@@ -170,47 +177,6 @@ pub(crate) fn benchmark_publication_corpus_id(publication_key: &str) -> String {
 pub(crate) struct CorpusBenchmarkExclusion {
     pub(crate) stage_id: String,
     pub(crate) reason: String,
-}
-
-fn benchmark_config_path_env_binding() -> Option<PathBuf> {
-    std::env::var_os(BENCHMARK_CONFIG_ENV)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-}
-
-fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        cwd.join(path)
-    }
-}
-
-fn resolve_config_path(cwd: &Path, explicit_path: Option<&Path>, default_rel: &str) -> PathBuf {
-    if let Some(path) = explicit_path {
-        return absolutize(cwd, path);
-    }
-    if default_rel == DEFAULT_BENCHMARK_CONFIG {
-        if let Some(path) = benchmark_config_path_env_binding() {
-            return absolutize(cwd, &path);
-        }
-    }
-    cwd.join(default_rel)
-}
-
-pub(crate) fn benchmark_config_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
-    resolve_config_path(cwd, explicit_path, DEFAULT_BENCHMARK_CONFIG)
-}
-
-pub(crate) fn benchmark_workspace_config_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
-    benchmark_config_path(cwd, explicit_path)
-}
-
-pub(crate) fn benchmark_publication_config_path(
-    cwd: &Path,
-    explicit_path: Option<&Path>,
-) -> PathBuf {
-    benchmark_config_path(cwd, explicit_path)
 }
 
 fn load_toml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
