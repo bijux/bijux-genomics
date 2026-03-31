@@ -52,7 +52,7 @@ See `crates/bijux-dna-stages-fastq/docs/TESTS.md`. Golden tests: `tests/contract
 Start at `crates/bijux-dna-stages-fastq/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
-`src/plugin.rs`, then `src/stage_specs.rs`, then `src/observer/parse.rs`.
+`src/contracts.rs`, then `src/surface.rs`, then `src/plugin/mod.rs`, then `src/metrics/stage_metrics/mod.rs`.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
