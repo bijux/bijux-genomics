@@ -19,9 +19,6 @@ mod envelope_support;
 mod fastqc;
 mod filters;
 mod stage_metrics;
-mod stage_metrics_analysis;
-mod stage_metrics_reporting;
-mod stage_metrics_transform;
 
 pub(crate) use envelope_support::{
     build_metrics_envelope, f64_from_u64, pair_counts_from_paths,
