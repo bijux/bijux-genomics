@@ -1,23 +1,24 @@
 mod artifact_catalog;
 mod manifest_identity;
 mod profile_lock;
+mod reproducibility;
 
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_core::prelude::CacheKey;
 use serde::Serialize;
 
 pub use self::artifact_catalog::{
     run_artifacts_dir_for_out, tool_run_artifacts_dir, write_stage_plan_json,
 };
-use super::io::{hash_file_sha256, write_canonical_json};
+use super::io::write_canonical_json;
 pub use manifest_identity::compute_run_id;
 
 use self::artifact_catalog::{collect_all_run_artifacts, run_artifacts_dir};
-use self::manifest_identity::{detect_run_context, input_hash_from_many};
+use self::manifest_identity::input_hash_from_many;
 use self::profile_lock::write_profile_and_lock_manifests;
+use self::reproducibility::{prepare_reproducibility_context, write_reproducibility_report};
 
 #[derive(Debug)]
 pub struct RunDirs {
@@ -149,88 +150,21 @@ pub fn write_run_manifest(
         run_provenance.tool_version.clone(),
         declared_tool_image_digest.clone(),
     );
-    let tool_invocations = {
-        let path = run_dirs.artifacts_dir.join("tool_invocation.json");
-        if path.exists() {
-            let raw = std::fs::read_to_string(&path)?;
-            let parsed: ToolInvocationV1 = serde_json::from_str(&raw)?;
-            vec![parsed]
-        } else {
-            Vec::new()
-        }
-    };
-    let replay_tool_image_ref = tool_invocations.first().map(|inv| inv.tool_id.to_string());
-    let replay_tool_image_digest = tool_invocations
-        .first()
-        .map(|inv| inv.image_digest.clone())
-        .or_else(|| run_provenance.tool_image_digest.clone());
-    let replay_tool_version_output = tool_invocations
-        .first()
-        .and_then(|inv| inv.resolved_tool_version.clone())
-        .or_else(|| Some(run_provenance.tool_version.clone()));
-    let replay_tool_id = tool_invocations.first().map(|inv| inv.tool_id.to_string());
+    let repro_context = prepare_reproducibility_context(run_dirs, run_provenance)?;
     let image_upstream = std::env::var("BIJUX_IMAGE_UPSTREAM").ok();
     let image_build_timestamp_unix_s = std::env::var("BIJUX_IMAGE_BUILD_TIMESTAMP_UNIX_S")
         .ok()
         .and_then(|v| v.parse::<u64>().ok());
-    let reproducibility_dir = run_artifacts_dir(run_dirs)?.join("reproducibility");
-    bijux_dna_infra::ensure_dir(&reproducibility_dir).context("create reproducibility dir")?;
-    let reproducibility_report_path = reproducibility_dir.join("report.json");
-    let profile_hash = std::env::var("BIJUX_PROFILE_HASH").ok();
-    let reproducibility_tuple = serde_json::json!({
-        "schema_version": "bijux.repro_tuple.v1",
-        "tool_digests": tool_invocations
-            .iter()
-            .map(|inv| serde_json::json!({
-                "stage_id": inv.stage_id,
-                "tool_id": inv.tool_id,
-                "image_digest": inv.image_digest,
-            }))
-            .collect::<Vec<_>>(),
-        "bank_hashes": serde_json::json!({}),
-        "profile_hash": profile_hash,
-    });
-    let run_context = detect_run_context()?;
-    if matches!(run_context, crate::RunContextV1::Hpc { .. }) {
-        let has_tool_digests = reproducibility_tuple
-            .get("tool_digests")
-            .and_then(serde_json::Value::as_array)
-            .is_some_and(|v| !v.is_empty());
-        let has_profile_hash = reproducibility_tuple
-            .get("profile_hash")
-            .and_then(serde_json::Value::as_str)
-            .is_some_and(|v| !v.trim().is_empty());
-        if !has_tool_digests || !has_profile_hash {
-            return Err(anyhow!(
-                "missing reproducibility tuple for HPC run (tool digests + profile hash required)"
-            ));
-        }
-    }
-    let reproducibility_identity = bijux_dna_core::prelude::ReproducibilityIdentityV1 {
-        image_digest: replay_tool_image_digest
-            .clone()
-            .unwrap_or_else(|| declared_tool_image_digest.clone()),
-        tool_version: run_provenance.tool_version.clone(),
-        params_hash: run_provenance.params_hash.clone(),
-        input_hash: input_hash_from_many(&run_provenance.input_hashes),
-        bank_hashes: serde_json::json!({}),
-    };
-    write_canonical_json(
-        &reproducibility_report_path,
-        &serde_json::json!({
-            "schema_version": "bijux.reproducibility_report.v1",
-            "pipeline_id": pipeline_id,
-            "plan_hash": graph_hash,
-            "params_hash": run_provenance.params_hash,
-            "input_hashes": run_provenance.input_hashes,
-            "tool_version": run_provenance.tool_version,
-            "tool_image_digest": run_provenance.tool_image_digest,
-            "tool_invocations": tool_invocations.clone(),
-            "reproducibility_identity": reproducibility_identity,
-            "reproducibility_tuple": reproducibility_tuple.clone(),
-        }),
-    )
-    .context("write reproducibility report")?;
+    write_reproducibility_report(
+        run_dirs,
+        &pipeline_id,
+        graph_hash.as_ref(),
+        run_provenance,
+        &declared_tool_image_digest,
+        &repro_context.tool_invocations,
+        repro_context.replay_tool_image_digest.as_ref(),
+        &repro_context.reproducibility_tuple,
+    )?;
     let payload = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",
         "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
@@ -245,18 +179,18 @@ pub fn write_run_manifest(
             "engine": std::env::var("BIJUX_ENGINE_VERSION").ok(),
         },
         "dataset_fingerprints": run_provenance.input_hashes.clone(),
-        "tool_invocations": tool_invocations,
+        "tool_invocations": repro_context.tool_invocations,
         "output_artifacts": [],
         "stages": [],
         "failures": [],
         "run_provenance": run_provenance,
         "execution_replay_identity": {
-            "tool_image_ref": replay_tool_image_ref,
-            "tool_image_digest": replay_tool_image_digest,
-            "tool_version_output": replay_tool_version_output,
+            "tool_image_ref": repro_context.replay_tool_image_ref,
+            "tool_image_digest": repro_context.replay_tool_image_digest,
+            "tool_version_output": repro_context.replay_tool_version_output,
         },
         "image_identity_provenance": {
-            "tool_id": replay_tool_id,
+            "tool_id": repro_context.replay_tool_id,
             "version": run_provenance.tool_version.clone(),
             "digest": run_provenance.tool_image_digest.clone(),
             "upstream": image_upstream,
@@ -268,8 +202,8 @@ pub fn write_run_manifest(
         "dashboard": {
             "facts_jsonl": run_artifacts_dir(run_dirs)?.join("dashboard").join("facts.jsonl"),
         },
-        "run_context": run_context,
-        "reproducibility_tuple": reproducibility_tuple,
+        "run_context": repro_context.run_context,
+        "reproducibility_tuple": repro_context.reproducibility_tuple,
     });
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&payload)?;
     super::io::write_atomic_bytes(&run_dirs.run_manifest_path, payload.as_slice())
