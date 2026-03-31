@@ -1,11 +1,11 @@
 mod checks;
+mod docker_exec;
 mod layout;
-mod logs;
 mod seqkit;
 mod validation;
 
 pub use checks::*;
+pub use docker_exec::*;
 pub use layout::*;
-pub use logs::*;
 pub use seqkit::*;
 pub use validation::*;
