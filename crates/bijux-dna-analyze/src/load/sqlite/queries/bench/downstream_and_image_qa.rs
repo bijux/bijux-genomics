@@ -1,25 +1,17 @@
-mod quality_and_preprocess;
-mod screening_and_profiling;
-
-pub use quality_and_preprocess::*;
-pub use screening_and_profiling::*;
-
 use anyhow::Result;
 use bijux_dna_core::prelude::params_hash;
 use rusqlite::{params, Connection};
 
-use super::super::rows::benchmark_record_from_row;
-use super::super::{
+use super::super::super::rows::benchmark_record_from_row;
+use super::super::super::{
     ensure_identity_index, ensure_image_qa_identity_index, ensure_inserted_at_column,
     ensure_params_hash_column, ensure_record_id_column,
 };
 use crate::aggregate::metrics::{ImageQaRecord, IMAGE_QA_SCHEMA_VERSION};
 use crate::aggregate::BenchmarkRecord;
 use crate::{
-    FastqChimeraMetrics, FastqClusterOtusMetrics, FastqDepleteHostMetrics,
-    FastqDepleteReferenceContaminantsMetrics, FastqDepleteRrnaMetrics, FastqDuplicateMetrics,
-    FastqInferAsvsMetrics, FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics,
-    FastqReadLengthMetrics,
+    FastqChimeraMetrics, FastqClusterOtusMetrics, FastqDuplicateMetrics, FastqInferAsvsMetrics,
+    FastqNormalizeAbundanceMetrics, FastqNormalizePrimersMetrics, FastqReadLengthMetrics,
 };
 
 macro_rules! bench_record_table {
@@ -113,7 +105,15 @@ macro_rules! bench_record_table {
                 ),
             )?;
             let row = stmt.query_row(
-                params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
+                params![
+                    tool,
+                    tool_version,
+                    image_digest,
+                    runner,
+                    platform,
+                    input_hash,
+                    params_hash
+                ],
                 benchmark_record_from_row::<$metric_ty>,
             );
             match row {
@@ -161,7 +161,6 @@ bench_record_table!(
     "bench_fastq_normalize_abundance_v1",
     FastqNormalizeAbundanceMetrics
 );
-// Image QA storage in `SQLite`.
 
 /// Insert an image QA record.
 ///
