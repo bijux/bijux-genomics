@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn parse_low_complexity_report_parses_key_value_fixture() -> Result<()> {
     let raw = include_str!(
-        "../../../../../bijux-dna-stages-fastq/tests/fixtures/stage_output_bank/default/fastq.filter_low_complexity.bbduk.txt"
+        "../../../../../../bijux-dna-stages-fastq/tests/fixtures/stage_output_bank/default/fastq.filter_low_complexity.bbduk.txt"
     );
     let removed = parse_low_complexity_report(raw)?;
     assert_eq!(removed, 137);
