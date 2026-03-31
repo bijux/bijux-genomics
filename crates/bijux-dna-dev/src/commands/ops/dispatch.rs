@@ -4,11 +4,11 @@ use super::{
 };
 
 pub(super) fn run_native_ops_command(
-    key: &NativeOpsCommandKey,
+    key: NativeOpsCommandKey,
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
-    match key {
+    match &key {
         NativeOpsCommandKey::AssetsRefreshGolden => assets::assets_refresh_golden(workspace, args),
         NativeOpsCommandKey::AssetsRefreshToy => assets::assets_refresh_toy(workspace, args),
         NativeOpsCommandKey::AssetsValidateReference => {

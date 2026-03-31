@@ -17,7 +17,7 @@ use crate::runtime::workspace::Workspace;
 /// # Errors
 /// Returns an error if the native check cannot run.
 pub fn run_native_check(
-    key: &NativeCheckKey,
+    key: NativeCheckKey,
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
@@ -27,7 +27,7 @@ pub fn run_native_check(
 /// # Errors
 /// Returns an error if the native container command cannot run.
 pub fn run_native_container_command(
-    key: &NativeContainerCommandKey,
+    key: NativeContainerCommandKey,
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
@@ -37,7 +37,7 @@ pub fn run_native_container_command(
 /// # Errors
 /// Returns an error if the native domain command cannot run.
 pub fn run_native_domain_command(
-    key: &NativeDomainCommandKey,
+    key: NativeDomainCommandKey,
     workspace: &Workspace,
     args: &[String],
 ) -> Result<DomainCommandOutcome> {
@@ -47,7 +47,7 @@ pub fn run_native_domain_command(
 /// # Errors
 /// Returns an error if the native operational command cannot run.
 pub fn run_native_ops_command(
-    key: &NativeOpsCommandKey,
+    key: NativeOpsCommandKey,
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {

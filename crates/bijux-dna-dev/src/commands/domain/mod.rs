@@ -36,11 +36,11 @@ const DOMAIN_INDEX_REGENERATE_PREFIX: &str =
 const REGISTRY_LOCK_GENERATED_BY: &str = "generated_by=bijux-dna-dev domain run lock-registry";
 
 pub fn run_native_domain_command(
-    key: &NativeDomainCommandKey,
+    key: NativeDomainCommandKey,
     workspace: &Workspace,
     args: &[String],
 ) -> Result<DomainCommandOutcome> {
-    match key {
+    match &key {
         NativeDomainCommandKey::CheckDefaultSettingsDocs => {
             ensure_no_args("check-default-settings-docs", args)?;
             check_default_settings_docs(workspace)

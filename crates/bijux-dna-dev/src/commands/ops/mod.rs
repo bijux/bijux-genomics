@@ -55,7 +55,7 @@ use crate::model::ops::{NativeOpsCommandKey, OpsCommandOutcome};
 use crate::runtime::workspace::Workspace;
 
 pub fn run_native_ops_command(
-    key: &NativeOpsCommandKey,
+    key: NativeOpsCommandKey,
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {

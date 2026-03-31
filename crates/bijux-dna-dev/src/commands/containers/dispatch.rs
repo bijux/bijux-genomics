@@ -1,11 +1,12 @@
+#[allow(clippy::too_many_lines, clippy::wildcard_imports)]
 use super::*;
 
 pub(super) fn run_native_container_command(
-    key: &NativeContainerCommandKey,
+    key: NativeContainerCommandKey,
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
-    match key {
+    match &key {
         NativeContainerCommandKey::Lint => validation::run_container_lint(workspace, args),
         NativeContainerCommandKey::RegistryTools => validation::run_registry_tools(workspace, args),
         NativeContainerCommandKey::EnsureImages => validation::run_ensure_images(workspace, args),

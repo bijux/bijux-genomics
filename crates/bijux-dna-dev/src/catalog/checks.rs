@@ -1,6 +1,7 @@
 use crate::model::check::{CheckDefinition, CommandSpec, ExecutionMode, NativeCheckKey};
 
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn check_registry() -> Vec<CheckDefinition> {
     vec![
         native(
