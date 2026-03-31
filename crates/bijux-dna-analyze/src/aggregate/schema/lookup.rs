@@ -196,8 +196,9 @@ impl StageMetricRegistry {
 pub fn metric_spec(metric_id: defs::MetricId) -> defs::MetricSpec {
     fields::METRIC_REGISTRY_CORE
         .iter()
-        .chain(fields::METRIC_REGISTRY_FASTQ.iter())
         .chain(fields::METRIC_REGISTRY_QUALITY.iter())
+        .chain(fields::METRIC_REGISTRY_SCREENING_AND_REFERENCE.iter())
+        .chain(fields::METRIC_REGISTRY_PROCESSING_AND_VALIDATION.iter())
         .copied()
         .find(|spec| spec.id == metric_id)
         .unwrap_or_else(|| panic!("missing metric spec for {metric_id:?}"))
