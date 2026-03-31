@@ -1,15 +1,23 @@
-use std::path::{Path, PathBuf};
+mod classification;
+
+use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::{
-    ArtifactKind, Cardinality, ExecutionContract, ImageRequirements, PortSpec, RuntimeScale,
-    StageId, StageParameterSpec, StageSemanticKind, StageSpec, ToolConstraints, ToolManifest,
-    ToolRegistry, ToolRole,
+    Cardinality, ExecutionContract, ImageRequirements, PortSpec, RuntimeScale, StageId,
+    StageParameterSpec, StageSpec, ToolConstraints, ToolManifest, ToolRegistry, ToolRole,
 };
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_core::prelude::tooling::{ReadCountChangePolicy, StageBehavior, StageMetricSpec};
 use serde::Deserialize;
+
+use self::classification::{
+    artifact_kind_from_stage, declared_file_name, experimental_manifests_enabled, find_domain_dir,
+    list_strings, output_artifact_kind_from_stage, parse_stage_semver, parse_tool_role,
+    stable_produced_artifacts, stage_scale_from_row, stage_semantic_from_id, to_ports,
+    DomainPortYaml,
+};
 
 #[derive(Debug, Deserialize, Default)]
 struct DomainStageYaml {
@@ -34,13 +42,6 @@ struct DomainStageYaml {
     image_requirements: Option<ImageRequirements>,
     #[serde(default)]
     extends: Option<String>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct DomainPortYaml {
-    name: String,
-    data_type: String,
-    cardinality: String,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -71,41 +72,6 @@ struct DomainToolYaml {
 fn load_yaml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
-}
-
-fn declared_file_name(path: &Path) -> Result<&str> {
-    path.file_name()
-        .and_then(|name| name.to_str())
-        .map(str::trim)
-        .filter(|name| !name.is_empty())
-        .ok_or_else(|| anyhow!("path has no declared file name: {}", path.display()))
-}
-
-fn to_cardinality(raw: &str) -> Cardinality {
-    if raw.eq_ignore_ascii_case("one") {
-        Cardinality::One
-    } else {
-        Cardinality::Many
-    }
-}
-
-fn to_ports(ports: Vec<DomainPortYaml>) -> Vec<PortSpec> {
-    ports
-        .into_iter()
-        .map(|port| PortSpec {
-            name: port.name,
-            data_type: port.data_type,
-            cardinality: to_cardinality(&port.cardinality),
-        })
-        .collect()
-}
-
-fn parse_tool_role(raw: Option<&str>) -> ToolRole {
-    match raw {
-        Some("diagnostic") => ToolRole::Diagnostic,
-        Some("experimental") => ToolRole::Experimental,
-        _ => ToolRole::Authoritative,
-    }
 }
 
 #[allow(clippy::too_many_lines)]
@@ -225,143 +191,6 @@ fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
     }
     registry.sort_tools_for_determinism();
     Ok(registry)
-}
-
-fn list_strings(table: &toml::Value, key: &str) -> Vec<String> {
-    table
-        .get(key)
-        .and_then(toml::Value::as_array)
-        .map(|arr| {
-            arr.iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
-        })
-        .unwrap_or_default()
-}
-
-fn has_index_suffix(stage_id: &str) -> bool {
-    Path::new(stage_id)
-        .extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("index"))
-}
-
-fn stage_semantic_from_id(stage_id: &str) -> StageSemanticKind {
-    if has_index_suffix(stage_id) || stage_id.contains("prepare_reference") {
-        StageSemanticKind::Index
-    } else if stage_id.contains("qc") || stage_id.contains("stats") || stage_id.contains("summary")
-    {
-        StageSemanticKind::Qc
-    } else if stage_id.contains("report") {
-        StageSemanticKind::Report
-    } else if stage_id.contains("filter") || stage_id.contains("trim") {
-        StageSemanticKind::Filter
-    } else if stage_id.contains("annot") || stage_id.contains("haplogroup") {
-        StageSemanticKind::Annotate
-    } else {
-        StageSemanticKind::Transform
-    }
-}
-
-fn artifact_kind_from_stage(stage_id: &str) -> ArtifactKind {
-    if stage_id.starts_with("fastq.") {
-        ArtifactKind::Fastq
-    } else if stage_id.starts_with("bam.") {
-        ArtifactKind::Bam
-    } else if stage_id.starts_with("vcf.") {
-        ArtifactKind::Vcf
-    } else {
-        ArtifactKind::Unknown
-    }
-}
-
-fn output_artifact_kind_from_stage(stage_id: &str) -> ArtifactKind {
-    if stage_id.contains("qc") || stage_id.contains("stats") || stage_id.contains("summary") {
-        ArtifactKind::Metrics
-    } else if has_index_suffix(stage_id) {
-        ArtifactKind::Index
-    } else {
-        artifact_kind_from_stage(stage_id)
-    }
-}
-
-fn stage_scale_from_row(stage: &toml::Value) -> RuntimeScale {
-    let mem = stage
-        .get("resource_memory_gb")
-        .and_then(toml::Value::as_integer)
-        .unwrap_or(4);
-    let mins = stage
-        .get("resource_time_minutes")
-        .and_then(toml::Value::as_integer)
-        .unwrap_or(30);
-    if mem >= 24 || mins >= 180 {
-        RuntimeScale::Large
-    } else if mem >= 12 || mins >= 90 {
-        RuntimeScale::Medium
-    } else if mem >= 4 || mins >= 30 {
-        RuntimeScale::Small
-    } else {
-        RuntimeScale::Tiny
-    }
-}
-
-fn parse_stage_semver(stage: &toml::Value) -> String {
-    stage
-        .get("stage_semver")
-        .and_then(toml::Value::as_str)
-        .unwrap_or("1.0.0")
-        .to_string()
-}
-
-fn stable_produced_artifacts(stage_id: &str, output_kind: ArtifactKind) -> Vec<String> {
-    let base = stage_id.replace('.', "_");
-    match output_kind {
-        ArtifactKind::Fastq => vec![format!("{base}_fastq_out")],
-        ArtifactKind::Bam => vec![format!("{base}_bam_out")],
-        ArtifactKind::Vcf => vec![format!("{base}_vcf_out")],
-        ArtifactKind::Index => vec![format!("{base}_index_out")],
-        ArtifactKind::Metrics => vec![format!("{base}_metrics_out")],
-        ArtifactKind::Report => vec![format!("{base}_report_out")],
-        ArtifactKind::Unknown => vec![format!("{base}_out")],
-    }
-}
-
-fn find_domain_dir(path: &Path) -> Option<PathBuf> {
-    if path.is_dir()
-        && path
-            .file_name()
-            .and_then(|name| name.to_str())
-            .is_some_and(|name| name == "domain")
-    {
-        return Some(path.to_path_buf());
-    }
-    if path.file_name().and_then(|n| n.to_str()) == Some("tool_registry.toml") {
-        let parent = path.parent()?;
-        if parent.file_name().and_then(|n| n.to_str()) == Some("configs") {
-            let candidate = parent.parent()?.join("domain");
-            if candidate.exists() {
-                return Some(candidate);
-            }
-        }
-    }
-    if path.is_dir() {
-        let candidate = path.join("domain");
-        if candidate.exists() {
-            return Some(candidate);
-        }
-    }
-    None
-}
-
-fn experimental_manifests_enabled() -> bool {
-    [
-        "BIJUX_INCLUDE_EXPERIMENTAL_TOOLS",
-        "BIJUX_EXPERIMENTAL_TOOLS",
-    ]
-    .into_iter()
-    .filter_map(|key| std::env::var(key).ok())
-    .any(|value| value == "1" || value.eq_ignore_ascii_case("true"))
 }
 
 /// # Errors
