@@ -160,7 +160,7 @@ pub(in super::super) fn tooling_lint_fast(
     if need_docs {
         stdout.push_str("lint-fast: running docs checks\n");
         let docs_outcome =
-            run_native_ops_command(&NativeOpsCommandKey::DocsCheckDocLinks, workspace, &[])?;
+            run_native_ops_command(NativeOpsCommandKey::DocsCheckDocLinks, workspace, &[])?;
         if !docs_outcome.is_success() {
             return Ok(merge_outcomes(
                 OpsCommandOutcome::success(stdout),

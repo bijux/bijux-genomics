@@ -34,7 +34,7 @@ impl OpsApplication {
             .find(|candidate| candidate.id == id)
             .ok_or_else(|| anyhow!("unknown command `{id}`"))?;
         match &command.command {
-            OpsCommandSpec::Native { key } => run_native_ops_command(key, &self.workspace, args),
+            OpsCommandSpec::Native { key } => run_native_ops_command(*key, &self.workspace, args),
         }
     }
 }

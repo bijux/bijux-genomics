@@ -64,10 +64,15 @@ impl DomainCommandOutcome {
 
     #[must_use]
     pub fn from_output(output: std::process::Output) -> Self {
+        let std::process::Output {
+            status,
+            stdout,
+            stderr,
+        } = output;
         Self {
-            exit_code: output.status.code().unwrap_or(1),
-            stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-            stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+            exit_code: status.code().unwrap_or(1),
+            stdout: String::from_utf8_lossy(&stdout).into_owned(),
+            stderr: String::from_utf8_lossy(&stderr).into_owned(),
         }
     }
 

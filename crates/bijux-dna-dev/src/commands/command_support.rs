@@ -7,6 +7,7 @@ use crate::model::check::{CheckDefinition, CheckOutcome, CheckStatus};
 use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
 
+#[allow(clippy::unnecessary_wraps)]
 pub(crate) fn pass(check: &CheckDefinition, detail: impl Into<String>) -> Result<CheckOutcome> {
     Ok(CheckOutcome::leaf(
         check.id,
@@ -15,6 +16,7 @@ pub(crate) fn pass(check: &CheckDefinition, detail: impl Into<String>) -> Result
     ))
 }
 
+#[allow(clippy::unnecessary_wraps)]
 pub(crate) fn fail(check: &CheckDefinition, detail: impl Into<String>) -> Result<CheckOutcome> {
     Ok(CheckOutcome::leaf(
         check.id,
@@ -23,6 +25,7 @@ pub(crate) fn fail(check: &CheckDefinition, detail: impl Into<String>) -> Result
     ))
 }
 
+#[allow(clippy::unnecessary_wraps)]
 pub(crate) fn make_files(workspace: &Workspace) -> Result<Vec<PathBuf>> {
     let mut files = vec![workspace.path("Makefile")];
     for entry in WalkDir::new(workspace.path("makes"))

@@ -23,14 +23,14 @@ impl CheckApplication {
     }
 
     #[must_use]
-    pub fn registry(&self) -> Vec<CheckDefinition> {
+    pub fn registry() -> Vec<CheckDefinition> {
         check_registry()
     }
 
     /// # Errors
     /// Returns an error if registry resolution or check execution fails.
     pub fn run_selection(&self, selection: CheckSelection) -> Result<Vec<CheckOutcome>> {
-        let registry = self.registry();
+        let registry = Self::registry();
         match selection {
             CheckSelection::All => registry
                 .iter()
@@ -61,7 +61,7 @@ impl CheckApplication {
                 filter,
             } => self.run_cargo_test(check, package, test_bin, filter),
             CommandSpec::Process { program, args } => self.run_process(check, program, args),
-            CommandSpec::Native { key } => run_native_check(key, &self.workspace, check),
+            CommandSpec::Native { key } => run_native_check(*key, &self.workspace, check),
             CommandSpec::Composite { members } => {
                 let mut children = Vec::new();
                 for member in *members {

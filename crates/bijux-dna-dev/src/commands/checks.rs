@@ -5,10 +5,11 @@ use crate::runtime::workspace::Workspace;
 
 use super::{automation_boundary, repo_checks};
 
+#[allow(clippy::too_many_lines)]
 /// # Errors
 /// Returns an error if the native check cannot run.
 pub fn run_native_check(
-    key: &NativeCheckKey,
+    key: NativeCheckKey,
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {

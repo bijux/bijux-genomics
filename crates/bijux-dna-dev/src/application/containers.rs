@@ -37,7 +37,7 @@ impl ContainerApplication {
             .ok_or_else(|| anyhow!("unknown container command `{id}`"))?;
         match &command.command {
             ContainerCommandSpec::Native { key } => {
-                run_native_container_command(key, &self.workspace, args)
+                run_native_container_command(*key, &self.workspace, args)
             }
         }
     }

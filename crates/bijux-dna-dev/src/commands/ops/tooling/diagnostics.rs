@@ -1077,7 +1077,7 @@ pub(in super::super) fn tooling_repo_doctor(
     };
     run_check_ids(&mut aggregate, &check_ids)?;
     let docs_graph =
-        run_native_ops_command(&NativeOpsCommandKey::DocsCheckDocsGraph, workspace, &[])?;
+        run_native_ops_command(NativeOpsCommandKey::DocsCheckDocsGraph, workspace, &[])?;
     if !docs_graph.is_success() {
         return Ok(docs_graph);
     }

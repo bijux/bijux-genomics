@@ -18,6 +18,7 @@ pub fn container_registry(_workspace: &Workspace) -> Result<Vec<ContainerCommand
     Ok(commands)
 }
 
+#[allow(clippy::too_many_lines)]
 fn native_container_commands() -> Vec<ContainerCommandDefinition> {
     vec![
         native(

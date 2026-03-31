@@ -30,7 +30,7 @@ use self::runtime::*;
 use self::version_state::*;
 
 pub fn run_native_container_command(
-    key: &NativeContainerCommandKey,
+    key: NativeContainerCommandKey,
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {

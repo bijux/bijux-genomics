@@ -1,3 +1,6 @@
+use std::fmt::Write as _;
+
+#[allow(clippy::wildcard_imports)]
 use super::*;
 
 pub(super) fn run_container_runtime_check() -> Result<ContainerCommandOutcome> {
@@ -8,6 +11,7 @@ pub(super) fn run_container_runtime_check() -> Result<ContainerCommandOutcome> {
     )))
 }
 
+#[allow(clippy::unnecessary_wraps)]
 pub(super) fn success_line(line: impl Into<String>) -> Result<ContainerCommandOutcome> {
     Ok(ContainerCommandOutcome::success(format!(
         "{}\n",
@@ -15,6 +19,7 @@ pub(super) fn success_line(line: impl Into<String>) -> Result<ContainerCommandOu
     )))
 }
 
+#[allow(clippy::unnecessary_wraps)]
 pub(super) fn failure_lines(title: &str, errors: &[String]) -> Result<ContainerCommandOutcome> {
     let mut stderr = String::new();
     stderr.push_str(title);
@@ -45,7 +50,7 @@ pub(super) fn append_named_outcome(
     name: &str,
     outcome: ContainerCommandOutcome,
 ) {
-    aggregate.stdout.push_str(&format!("== {name}\n"));
+    let _ = writeln!(aggregate.stdout, "== {name}");
     *aggregate = merge_outcomes(aggregate.clone(), outcome);
 }
 

@@ -1,3 +1,4 @@
+use std::io::{self, Write};
 use std::time::Instant;
 
 use anyhow::Result;
@@ -16,7 +17,10 @@ use crate::catalog::ops::{
 use crate::model::check::{CheckOutcome, CheckSelection, CheckStatus};
 use crate::runtime::workspace::Workspace;
 
-use super::schema::*;
+use super::schema::{
+    ChecksCommand, ChecksSubcommand, Cli, Command, ContainersCommand, ContainersSubcommand,
+    DomainCommand, DomainSubcommand, OpsCommand, OpsSubcommand,
+};
 
 pub(super) fn run() -> Result<()> {
     let cli = Cli::parse();
@@ -40,16 +44,21 @@ fn maybe_emit_native_help(group: &str, id: &str, err: &anyhow::Error) -> bool {
     if !message.starts_with("__help__:") {
         return false;
     }
-    println!("Usage: cargo run -p bijux-dna-dev -- {group} run {id} -- [args...]");
-    true
+    write_line_stdout(&format!(
+        "Usage: cargo run -p bijux-dna-dev -- {group} run {id} -- [args...]"
+    ))
+    .is_ok()
 }
 
 fn run_checks(command: ChecksCommand) -> Result<()> {
     let app = CheckApplication::new()?;
     match command.command {
         ChecksSubcommand::List => {
-            for check in app.registry() {
-                println!("{}\tv{}\t{}", check.id, check.version, check.summary);
+            for check in CheckApplication::registry() {
+                write_line_stdout(&format!(
+                    "{}\tv{}\t{}",
+                    check.id, check.version, check.summary
+                ))?;
             }
             Ok(())
         }
@@ -89,17 +98,17 @@ fn run_containers(command: ContainersCommand) -> Result<()> {
     match command.command {
         ContainersSubcommand::List => {
             for command in app.registry()? {
-                println!("{}\t{}", command.id, command.summary);
+                write_line_stdout(&format!("{}\t{}", command.id, command.summary))?;
             }
             Ok(())
         }
         ContainersSubcommand::Run { id, args } => with_timing("containers", &id, || {
             let outcome = app.run(&id, &args)?;
             if !outcome.stdout.is_empty() {
-                print!("{}", outcome.stdout);
+                write_stdout(&outcome.stdout)?;
             }
             if !outcome.stderr.is_empty() {
-                eprint!("{}", outcome.stderr);
+                write_stderr(&outcome.stderr)?;
             }
             if !outcome.is_success() {
                 anyhow::bail!(
@@ -116,18 +125,18 @@ fn run_domain(command: DomainCommand) -> Result<()> {
     let app = DomainApplication::new()?;
     match command.command {
         DomainSubcommand::List => {
-            for command in app.registry() {
-                println!("{}\t{}", command.id, command.summary);
+            for command in DomainApplication::registry() {
+                write_line_stdout(&format!("{}\t{}", command.id, command.summary))?;
             }
             Ok(())
         }
         DomainSubcommand::Run { id, args } => with_timing("domain", &id, || {
             let outcome = app.run(&id, &args)?;
             if !outcome.stdout.is_empty() {
-                print!("{}", outcome.stdout);
+                write_stdout(&outcome.stdout)?;
             }
             if !outcome.stderr.is_empty() {
-                eprint!("{}", outcome.stderr);
+                write_stderr(&outcome.stderr)?;
             }
             if !outcome.is_success() {
                 anyhow::bail!(
@@ -149,7 +158,7 @@ fn run_ops(
     match command.command {
         OpsSubcommand::List => {
             for command in app.registry() {
-                println!("{}\t{}", command.id, command.summary);
+                write_line_stdout(&format!("{}\t{}", command.id, command.summary))?;
             }
             Ok(())
         }
@@ -160,10 +169,10 @@ fn run_ops(
                 Err(err) => return Err(err),
             };
             if !outcome.stdout.is_empty() {
-                print!("{}", outcome.stdout);
+                write_stdout(&outcome.stdout)?;
             }
             if !outcome.stderr.is_empty() {
-                eprint!("{}", outcome.stderr);
+                write_stderr(&outcome.stderr)?;
             }
             if !outcome.is_success() {
                 anyhow::bail!(
@@ -182,9 +191,9 @@ fn print_check_outcome(outcome: &CheckOutcome, depth: usize) {
         CheckStatus::Passed => "passed",
         CheckStatus::Failed => "failed",
     };
-    println!("{indent}{}: {}", outcome.id, status);
+    let _ = write_line_stdout(&format!("{indent}{}: {}", outcome.id, status));
     if outcome.status == CheckStatus::Failed && !outcome.detail.trim().is_empty() {
-        println!("{indent}{}", outcome.detail.trim());
+        let _ = write_line_stdout(&format!("{indent}{}", outcome.detail.trim()));
     }
     for child in &outcome.children {
         print_check_outcome(child, depth + 1);
@@ -228,15 +237,17 @@ fn write_timing(
     let timing_dir = std::env::var("ARTIFACT_DIR")
         .ok()
         .or_else(|| std::env::var("ISO_ROOT").ok())
-        .map(|raw| {
-            let path = std::path::PathBuf::from(raw);
-            if path.is_absolute() {
-                path.join("timing")
-            } else {
-                workspace.root.join(path).join("timing")
-            }
-        })
-        .unwrap_or_else(|| workspace.path("artifacts/timing"));
+        .map_or_else(
+            || workspace.path("artifacts/timing"),
+            |raw| {
+                let path = std::path::PathBuf::from(raw);
+                if path.is_absolute() {
+                    path.join("timing")
+                } else {
+                    workspace.root.join(path).join("timing")
+                }
+            },
+        );
     if bijux_dna_infra::ensure_dir(&timing_dir).is_err() {
         return;
     }
@@ -257,4 +268,22 @@ fn write_timing(
             serde_json::to_string_pretty(&payload).unwrap_or_default()
         ),
     );
+}
+
+fn write_stdout(value: &str) -> Result<()> {
+    let mut stdout = io::stdout().lock();
+    stdout.write_all(value.as_bytes())?;
+    stdout.flush()?;
+    Ok(())
+}
+
+fn write_stderr(value: &str) -> Result<()> {
+    let mut stderr = io::stderr().lock();
+    stderr.write_all(value.as_bytes())?;
+    stderr.flush()?;
+    Ok(())
+}
+
+fn write_line_stdout(value: &str) -> Result<()> {
+    write_stdout(&format!("{value}\n"))
 }

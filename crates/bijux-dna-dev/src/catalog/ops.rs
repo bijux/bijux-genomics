@@ -198,6 +198,7 @@ pub fn test_registry() -> Vec<OpsCommandDefinition> {
 }
 
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
     vec![
         native(

@@ -1,5 +1,6 @@
 use crate::model::domain::{DomainCommandDefinition, DomainCommandSpec, NativeDomainCommandKey};
 
+#[allow(clippy::too_many_lines)]
 pub fn domain_registry() -> Vec<DomainCommandDefinition> {
     vec![
         native(

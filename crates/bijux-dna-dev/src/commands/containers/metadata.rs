@@ -1,3 +1,4 @@
+#[allow(clippy::wildcard_imports)]
 use super::*;
 
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {

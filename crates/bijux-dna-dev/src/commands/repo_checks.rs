@@ -820,7 +820,7 @@ pub(crate) fn check_examples_runner_contract(
                 .with_context(|| format!("remove {}", output_dir.display()))?;
         }
         let output =
-            run_native_ops_command(&NativeOpsCommandKey::ExamplesRun, workspace, &[id.clone()])?;
+            run_native_ops_command(NativeOpsCommandKey::ExamplesRun, workspace, &[id.clone()])?;
         if !output.is_success() {
             return fail(
                 check,
@@ -1535,7 +1535,7 @@ pub(crate) fn check_frontend_mini_domain_validation(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let output = run_native_ops_command(
-        &NativeOpsCommandKey::HpcRunFrontendMiniE2e,
+        NativeOpsCommandKey::HpcRunFrontendMiniE2e,
         workspace,
         &["--confirm".to_string()],
     )?;
