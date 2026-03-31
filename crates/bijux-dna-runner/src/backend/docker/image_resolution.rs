@@ -1,11 +1,14 @@
+mod docker_policy;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_environment::api::{
-    docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
+    resolve_image, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
 };
-use tracing::warn;
+
+use docker_policy::resolve_docker_image_for_run;
 
 /// Resolve a concrete image reference for execution and verify local availability.
 ///
@@ -22,37 +25,6 @@ pub fn resolve_image_for_run(
             resolve_apptainer_image_for_run(spec, platform, image)
         }
     }
-}
-
-fn resolve_docker_image_for_run(
-    spec: &ToolImageSpec,
-    platform: &PlatformSpec,
-    image: ResolvedImage,
-) -> Result<ResolvedImage> {
-    if std::env::var("BIJUX_SKIP_IMAGE_CHECK").is_ok() {
-        return Ok(image);
-    }
-    if docker_image_exists(&image) {
-        return Ok(image);
-    }
-    if spec.digest.is_some() {
-        let fallback = ResolvedImage {
-            full_name: format!(
-                "{}/{}:{}-{}",
-                platform.image_prefix, spec.tool, spec.version, platform.arch
-            ),
-            arch: platform.arch.clone(),
-            runner: platform.runner,
-        };
-        if docker_image_exists(&fallback) {
-            warn!(
-                "digest image missing locally; falling back to tag {}",
-                fallback.full_name
-            );
-            return Ok(fallback);
-        }
-    }
-    Err(anyhow!("docker image not found: {}", image.full_name))
 }
 
 fn resolve_apptainer_image_for_run(
