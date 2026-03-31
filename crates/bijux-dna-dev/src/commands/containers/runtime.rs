@@ -1210,8 +1210,8 @@ pub(super) fn run_bijux_with_env(
     for (key, value) in overrides {
         envs.push(((*key).to_string(), value.clone()));
     }
-    let argv = [bijux_command_prefix(), args.to_vec()].concat();
-    run_argv_with_env(workspace, &argv, &envs)
+    let command_line = [bijux_command_prefix(), args.to_vec()].concat();
+    run_argv_with_env(workspace, &command_line, &envs)
 }
 
 pub(super) fn run_argv(workspace: &Workspace, argv: &[String]) -> Result<ContainerCommandOutcome> {
@@ -1223,10 +1223,10 @@ pub(super) fn run_argv_with_env(
     argv: &[String],
     envs: &[(String, String)],
 ) -> Result<ContainerCommandOutcome> {
-    let (program, args) = argv
+    let (program, program_args) = argv
         .split_first()
         .context("container command requires a program")?;
-    run_program_with_env(workspace, program, args, envs)
+    run_program_with_env(workspace, program, program_args, envs)
 }
 
 pub(super) fn run_program_with_env(

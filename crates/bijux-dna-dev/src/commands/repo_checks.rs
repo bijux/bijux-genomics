@@ -19,8 +19,8 @@ pub(crate) fn check_audit_allowlist(
     if !path.is_file() {
         return fail(check, "missing audit-allowlist.toml");
     }
-    let data: toml::Value = toml::from_str(&read(&path)?)?;
-    let rows = data
+    let document: toml::Value = toml::from_str(&read(&path)?)?;
+    let rows = document
         .get("advisory")
         .and_then(toml::Value::as_array)
         .cloned()
@@ -51,7 +51,7 @@ pub(crate) fn check_audit_allowlist(
             errors.push(format!("{tag}: link must be http(s)"));
         }
         match chrono::NaiveDate::parse_from_str(expiry, "%Y-%m-%d") {
-            Ok(date) if date >= today => {}
+            Ok(expiry_date) if expiry_date >= today => {}
             Ok(_) => errors.push(format!("{tag}: expiry has passed ({expiry})")),
             Err(_) => errors.push(format!("{tag}: expiry must be YYYY-MM-DD")),
         }

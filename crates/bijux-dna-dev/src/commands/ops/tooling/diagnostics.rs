@@ -1114,7 +1114,7 @@ pub(in super::super) fn tooling_run_bijux(
     if matches!(args.first().map(String::as_str), Some("--help" | "-h")) {
         return success_line("Usage: cargo run -p bijux-dna-dev -- tooling run bijux -- <args...>");
     }
-    let mut argv = vec![
+    let mut command_args = vec![
         "run".to_string(),
         "--bin".to_string(),
         "bijux-dna".to_string(),
@@ -1122,12 +1122,12 @@ pub(in super::super) fn tooling_run_bijux(
     ];
     if let Ok(platform) = std::env::var("BIJUX_PLATFORM") {
         if !platform.trim().is_empty() {
-            argv.push("--platform".to_string());
-            argv.push(platform);
+            command_args.push("--platform".to_string());
+            command_args.push(platform);
         }
     }
-    argv.extend(args.iter().cloned());
-    run_program(workspace, "cargo", &argv)
+    command_args.extend(args.iter().cloned());
+    run_program(workspace, "cargo", &command_args)
 }
 
 pub(in super::super) fn tooling_setup_docs_venv(

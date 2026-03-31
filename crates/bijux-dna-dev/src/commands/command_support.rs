@@ -47,10 +47,10 @@ pub(crate) fn run_command(
     args: &[&str],
 ) -> Result<std::process::Output> {
     let runner = ProcessRunner::new(workspace);
-    let argv = std::iter::once(program)
+    let command_line = std::iter::once(program)
         .chain(args.iter().copied())
         .collect::<Vec<_>>();
-    runner.run(&argv)
+    runner.run(&command_line)
 }
 
 pub(crate) fn read(path: &Path) -> Result<String> {
