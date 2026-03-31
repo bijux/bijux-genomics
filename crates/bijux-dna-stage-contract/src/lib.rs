@@ -1,6 +1,5 @@
 pub mod execution_plan;
 pub mod executor_registry;
-mod executor_registry_lookup;
 pub mod plan_run;
 mod planner_contract;
 mod run_artifact_catalog;
@@ -12,8 +11,6 @@ pub mod stage_plugin;
 pub use execution_plan::*;
 #[allow(unused_imports)]
 pub use executor_registry::*;
-#[allow(unused_imports)]
-pub use executor_registry_lookup::*;
 pub use plan_run::*;
 #[allow(unused_imports)]
 pub use planner_contract::*;
