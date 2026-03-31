@@ -19,6 +19,7 @@ pub(crate) const fn contract(
     }
 }
 
+#[must_use]
 pub fn observer_specialization_contracts() -> &'static [ObserverSpecializationContract] {
     specialization_contracts().as_slice()
 }
