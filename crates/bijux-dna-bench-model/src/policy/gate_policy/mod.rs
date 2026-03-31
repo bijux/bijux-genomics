@@ -4,32 +4,15 @@
 //! Must not panic on missing metrics.
 //! Invariants: decisions are deterministic.
 
+mod config;
+
 use std::collections::BTreeMap;
 
 use bijux_dna_analyze::{metric_semantics, MetricDirection};
 
 use crate::error::BenchError;
 use crate::policy::gate_decision::{GateDecision, GateViolation};
-
-#[derive(Debug, Clone)]
-pub struct GatePolicy {
-    pub objective: String,
-    pub required_metrics: Vec<String>,
-    pub thresholds: BTreeMap<String, f64>,
-    pub allowed_regressions: BTreeMap<String, f64>,
-    pub must_not_regress: Vec<String>,
-    pub semantics_overrides: BTreeMap<String, MetricDirection>,
-    pub stage_overrides: BTreeMap<String, GatePolicyOverrides>,
-}
-
-#[derive(Debug, Clone)]
-pub struct GatePolicyOverrides {
-    pub required_metrics: Vec<String>,
-    pub thresholds: BTreeMap<String, f64>,
-    pub allowed_regressions: BTreeMap<String, f64>,
-    pub must_not_regress: Vec<String>,
-    pub semantics_overrides: BTreeMap<String, MetricDirection>,
-}
+pub use config::{GatePolicy, GatePolicyOverrides};
 
 impl GatePolicy {
     /// # Errors
