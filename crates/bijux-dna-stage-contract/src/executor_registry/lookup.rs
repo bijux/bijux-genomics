@@ -1,7 +1,7 @@
 //! Executor registry lookup surface and invariants.
 
-use crate::executor_registry::StageExecutorEntry;
 use crate::executor_registry::catalog::ENTRIES;
+use crate::executor_registry::StageExecutorEntry;
 
 /// Returns all code-backed executor entries.
 #[must_use]
@@ -30,10 +30,10 @@ mod tests {
 
     use bijux_dna_core::id_catalog;
 
-    use crate::executor_registry::ReadinessBadge;
     use crate::executor_registry::catalog::{
         FASTQ_AMPLICON_EXECUTOR, FASTQ_PREPROCESS_EXECUTOR, FASTQ_QC_EXECUTOR,
     };
+    use crate::executor_registry::ReadinessBadge;
 
     use super::{entries, entry, has_executor};
 

@@ -17,9 +17,7 @@ use bijux_dna_core::ids::ArtifactId;
 
 pub use artifact_catalog::artifact_kind_schema;
 pub use planner_contract::*;
-pub use stage_builder::{
-    build_stage_plan, build_tool_execution_spec, validate_stage_outputs,
-};
+pub use stage_builder::{build_stage_plan, build_tool_execution_spec, validate_stage_outputs};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunExecutionPlan {
