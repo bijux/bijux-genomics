@@ -1,14 +1,4 @@
-#![allow(dead_code)]
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-
-pub enum MetricClass {
-    Integrity,
-    Retention,
-    QualityShift,
-    Contamination,
-    Composition,
-}
+use super::MetricClass;
 
 #[derive(Debug, Clone, Copy)]
 pub struct StageMetricSpec {
