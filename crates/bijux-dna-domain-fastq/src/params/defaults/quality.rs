@@ -1,49 +1,26 @@
-use super::correct::{
-    CorrectionEngine, FastqCorrectParams, QualityEncoding, CORRECT_SCHEMA_VERSION,
-};
-use super::detect_adapters::{
+use super::super::detect_adapters::{
     AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode,
     DetectAdaptersEffectiveParams, DETECT_ADAPTERS_SCHEMA_VERSION,
 };
-use super::filter::FilterEffectiveParams;
-use super::merge::{MergeEffectiveParams, MergeEngine, UnmergedReadPolicy, MERGE_SCHEMA_VERSION};
-use super::preprocess::LibraryDamageTreatment;
-use super::preprocess::PreprocessEffectiveParams;
-use super::qc_post::{
+use super::super::filter::FilterEffectiveParams;
+use super::super::qc_post::{
     QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
 };
-use super::remove_duplicates::{
-    DedupMode, RemoveDuplicatesEffectiveParams, REMOVE_DUPLICATES_SCHEMA_VERSION,
-};
-use super::screen::{
+use super::super::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
-use super::stats::{
-    FastqOverrepresentedProfileParams, FastqReadLengthProfileParams, FastqStatsParams,
-    OVERREPRESENTED_PROFILE_SCHEMA_VERSION, READ_LENGTH_PROFILE_SCHEMA_VERSION,
-    STATS_SCHEMA_VERSION,
-};
-use super::trim::{
+use super::super::trim::{
     default_terminal_damage_execution_policy, TrimEffectiveParams, TrimPolygTailsParams,
     TrimTerminalDamageParams, DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES,
     DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES, TRIM_POLYG_TAILS_SCHEMA_VERSION,
     TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
-use super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
-use super::validate::{
+use super::super::validate::{
     PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
 };
-use super::{DamageMode, PairedMode};
-use crate::pipeline_contract::FastqPipelineMode;
-
-fn paired_mode(paired: bool) -> PairedMode {
-    if paired {
-        PairedMode::PairedEnd
-    } else {
-        PairedMode::SingleEnd
-    }
-}
+use super::shared::paired_mode;
+use crate::params::DamageMode;
 
 #[must_use]
 pub fn validate_defaults(paired: bool) -> ValidateEffectiveParams {
@@ -57,62 +34,6 @@ pub fn validate_defaults(paired: bool) -> ValidateEffectiveParams {
         } else {
             PairSyncPolicy::NotApplicable
         },
-    }
-}
-
-#[must_use]
-pub fn stats_defaults(paired: bool) -> FastqStatsParams {
-    FastqStatsParams {
-        schema_version: STATS_SCHEMA_VERSION.to_string(),
-        paired_mode: paired_mode(paired),
-        threads: 2,
-    }
-}
-
-#[must_use]
-pub fn read_length_profile_defaults(paired: bool) -> FastqReadLengthProfileParams {
-    FastqReadLengthProfileParams {
-        schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
-        paired_mode: paired_mode(paired),
-        threads: 2,
-        histogram_bins: 100,
-    }
-}
-
-#[must_use]
-pub fn overrepresented_profile_defaults(paired: bool) -> FastqOverrepresentedProfileParams {
-    FastqOverrepresentedProfileParams {
-        schema_version: OVERREPRESENTED_PROFILE_SCHEMA_VERSION.to_string(),
-        paired_mode: paired_mode(paired),
-        threads: 2,
-        top_k: 50,
-    }
-}
-
-#[must_use]
-pub fn correct_defaults(paired: bool) -> FastqCorrectParams {
-    FastqCorrectParams {
-        schema_version: CORRECT_SCHEMA_VERSION.to_string(),
-        paired_mode: paired_mode(paired),
-        threads: 1,
-        correction_engine: CorrectionEngine::Rcorrector,
-        quality_encoding: QualityEncoding::Phred33,
-        kmer_size: None,
-        musket_kmer_budget: None,
-        genome_size: None,
-        max_memory_gb: None,
-        trusted_kmer_artifact: None,
-        conservative_mode: false,
-    }
-}
-
-#[must_use]
-pub fn umi_defaults(paired: bool) -> FastqUmiParams {
-    FastqUmiParams {
-        schema_version: UMI_SCHEMA_VERSION.to_string(),
-        paired_mode: paired_mode(paired),
-        threads: 1,
-        umi_pattern: None,
     }
 }
 
@@ -201,39 +122,6 @@ pub fn qc_post_defaults(paired: bool) -> QcPostEffectiveParams {
 }
 
 #[must_use]
-pub fn preprocess_defaults(paired: bool) -> PreprocessEffectiveParams {
-    PreprocessEffectiveParams {
-        pipeline_mode: FastqPipelineMode::Shotgun,
-        paired_mode: paired_mode(paired),
-        library_declared_paired: paired,
-        library_damage_treatment: LibraryDamageTreatment::NoUdg,
-        threads: 1,
-        stages: vec![
-            "fastq.validate_reads".to_string(),
-            "fastq.detect_adapters".to_string(),
-            "fastq.trim_reads".to_string(),
-            "fastq.filter_reads".to_string(),
-            "fastq.profile_reads".to_string(),
-            "fastq.report_qc".to_string(),
-        ],
-        enable_contaminant_removal: false,
-    }
-}
-
-#[must_use]
-pub fn merge_defaults(paired: bool) -> MergeEffectiveParams {
-    MergeEffectiveParams {
-        schema_version: MERGE_SCHEMA_VERSION.to_string(),
-        paired_mode: paired_mode(paired),
-        threads: 6,
-        merge_overlap: None,
-        min_len: None,
-        merge_engine: MergeEngine::Pear,
-        unmerged_read_policy: UnmergedReadPolicy::EmitUnmergedPairs,
-    }
-}
-
-#[must_use]
 pub fn screen_defaults(paired: bool) -> ScreenEffectiveParams {
     ScreenEffectiveParams {
         schema_version: SCREEN_TAXONOMY_SCHEMA_VERSION.to_string(),
@@ -251,16 +139,5 @@ pub fn screen_defaults(paired: bool) -> ScreenEffectiveParams {
         assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
         minimum_confidence: None,
         emit_unclassified: true,
-    }
-}
-
-#[must_use]
-pub fn remove_duplicates_defaults(paired: bool) -> RemoveDuplicatesEffectiveParams {
-    RemoveDuplicatesEffectiveParams {
-        schema_version: REMOVE_DUPLICATES_SCHEMA_VERSION.to_string(),
-        paired_mode: paired_mode(paired),
-        threads: 4,
-        dedup_mode: DedupMode::Exact,
-        keep_order: true,
     }
 }
