@@ -3,8 +3,6 @@
 use anyhow::Result;
 use bijux_dna_api::v1::api::bench::fastq_args as engine_args;
 use bijux_dna_api::v1::api::run::{StageId, ToolId};
-#[cfg(test)]
-use std::path::PathBuf;
 
 mod bench_resolution;
 
