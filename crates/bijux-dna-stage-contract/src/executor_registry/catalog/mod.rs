@@ -1,0 +1,357 @@
+//! Code-backed executor registry catalog entries.
+
+mod executors;
+
+use bijux_dna_core::id_catalog;
+
+use crate::executor_registry::{ReadinessBadge, StageDomain, StageExecutorEntry};
+
+pub(crate) use executors::{
+    BAM_EXECUTOR, FASTQ_AMPLICON_EXECUTOR, FASTQ_CLASSIFY_EXECUTOR,
+    FASTQ_PREPROCESS_EXECUTOR, FASTQ_QC_EXECUTOR, FASTQ_REFERENCE_EXECUTOR, VCF_EXECUTOR,
+};
+
+pub(crate) const ENTRIES: &[StageExecutorEntry] = &[
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_NORMALIZE_ABUNDANCE,
+        executor: FASTQ_AMPLICON_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_INFER_ASVS,
+        executor: FASTQ_AMPLICON_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_REMOVE_CHIMERAS,
+        executor: FASTQ_AMPLICON_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_DEPLETE_REFERENCE_CONTAMINANTS,
+        executor: FASTQ_REFERENCE_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_CORRECT,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_TRIM_TERMINAL_DAMAGE,
+        executor: FASTQ_AMPLICON_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_DEDUPLICATE,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_DETECT_ADAPTERS,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_FILTER,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_DEPLETE_HOST,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_PROFILE_READ_LENGTHS,
+        executor: FASTQ_QC_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_LOW_COMPLEXITY,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_MERGE,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_CLUSTER_OTUS,
+        executor: FASTQ_AMPLICON_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_PROFILE_OVERREPRESENTED_SEQUENCES,
+        executor: FASTQ_QC_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_TRIM_POLYG_TAILS,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_INDEX_REFERENCE,
+        executor: FASTQ_AMPLICON_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_NORMALIZE_PRIMERS,
+        executor: FASTQ_QC_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_QC_POST,
+        executor: FASTQ_QC_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_DEPLETE_RRNA,
+        executor: FASTQ_QC_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_SCREEN,
+        executor: FASTQ_CLASSIFY_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_STATS_NEUTRAL,
+        executor: FASTQ_QC_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_TRIM,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_UMI,
+        executor: FASTQ_PREPROCESS_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::FASTQ_VALIDATE_READS,
+        executor: FASTQ_QC_EXECUTOR,
+        domain: StageDomain::Fastq,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_ALIGN,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_BIAS_MITIGATION,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_COMPLEXITY,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_AUTHENTICITY,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_CONTAMINATION,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_COVERAGE,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_DAMAGE,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_DUPLICATION_METRICS,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_ENDOGENOUS_CONTENT,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_FILTER,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_GC_BIAS,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_GENOTYPING,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_HAPLOGROUPS,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_INSERT_SIZE,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_KINSHIP,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_LENGTH_FILTER,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_MARKDUP,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_MAPPING_SUMMARY,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_MAPQ_FILTER,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_OVERLAP_CORRECTION,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_QC_PRE,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_RECALIBRATION,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_SEX,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::BAM_VALIDATE,
+        executor: BAM_EXECUTOR,
+        domain: StageDomain::Bam,
+        readiness: ReadinessBadge::Supported,
+    },
+    StageExecutorEntry {
+        stage_id: "vcf.call",
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
+        stage_id: "vcf.call_diploid",
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
+        stage_id: "vcf.call_gl",
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
+        stage_id: "vcf.call_pseudohaploid",
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
+        stage_id: "vcf.damage_filter",
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
+        stage_id: "vcf.filter",
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
+        stage_id: "vcf.gl_propagation",
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
+        stage_id: "vcf.stats",
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+];

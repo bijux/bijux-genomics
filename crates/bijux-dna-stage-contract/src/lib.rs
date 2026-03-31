@@ -1,6 +1,5 @@
 pub mod execution_plan;
 pub mod executor_registry;
-mod executor_registry_catalog;
 mod executor_registry_lookup;
 pub mod plan_run;
 mod planner_contract;
