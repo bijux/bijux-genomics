@@ -5,6 +5,7 @@ use super::{DamageMode, PairedMode};
 
 pub const TRIM_POLYG_TAILS_SCHEMA_VERSION: &str = "bijux.fastq.params.trim_polyg_tails.v1";
 mod terminal_damage;
+mod tool_profiles;
 
 pub use terminal_damage::{
     default_terminal_damage_execution_policy, parse_terminal_damage_execution_policy,
@@ -12,6 +13,10 @@ pub use terminal_damage::{
     terminal_damage_execution_policy_label, ResolvedTerminalDamagePolicy,
     TerminalDamageExecutionPolicy, TrimTerminalDamageParams, DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES,
     DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
+};
+pub use tool_profiles::{
+    AlienTrimmerParamsV1, FastxClipperParamsV1, LeeHomTrimParamsV1, OverlapCollapseMode,
+    ReadHandlingMode, SkewerTrimParamsV1, TrimAdapterMode, TrimQualityMode, TrimToolParamsV1,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -31,95 +36,6 @@ pub struct TrimEffectiveParams {
     pub n_policy: Option<String>,
     #[serde(default)]
     pub contaminant_policy: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum TrimAdapterMode {
-    Auto,
-    Explicit,
-    Linked,
-    Anchored,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum TrimQualityMode {
-    None,
-    ThreePrime,
-    FivePrime,
-    BothEnds,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum OverlapCollapseMode {
-    Disabled,
-    MergeOnly,
-    CollapseConsensus,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum ReadHandlingMode {
-    SingleEnd,
-    PairedEnd,
-    AutoDetect,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct SkewerTrimParamsV1 {
-    pub adapter_mode: TrimAdapterMode,
-    pub min_length_bp: u32,
-    pub quality_mode: TrimQualityMode,
-    pub quality_cutoff_phred: u8,
-    pub overlap_collapse: OverlapCollapseMode,
-    pub read_handling: ReadHandlingMode,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct LeeHomTrimParamsV1 {
-    pub adapter_mode: TrimAdapterMode,
-    pub min_length_bp: u32,
-    pub quality_mode: TrimQualityMode,
-    pub quality_cutoff_phred: u8,
-    pub overlap_collapse: OverlapCollapseMode,
-    pub read_handling: ReadHandlingMode,
-    pub min_overlap_bp: u32,
-    pub allow_reverse_complement_overlap: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct AlienTrimmerParamsV1 {
-    pub adapter_mode: TrimAdapterMode,
-    pub min_length_bp: u32,
-    pub quality_mode: TrimQualityMode,
-    pub quality_cutoff_phred: u8,
-    pub overlap_collapse: OverlapCollapseMode,
-    pub read_handling: ReadHandlingMode,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct FastxClipperParamsV1 {
-    pub adapter_mode: TrimAdapterMode,
-    pub min_length_bp: u32,
-    pub quality_mode: TrimQualityMode,
-    pub quality_cutoff_phred: u8,
-    pub overlap_collapse: OverlapCollapseMode,
-    pub read_handling: ReadHandlingMode,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(tag = "tool", rename_all = "snake_case")]
-pub enum TrimToolParamsV1 {
-    Skewer(SkewerTrimParamsV1),
-    LeeHom(LeeHomTrimParamsV1),
-    AlienTrimmer(AlienTrimmerParamsV1),
-    FastxClipper(FastxClipperParamsV1),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
