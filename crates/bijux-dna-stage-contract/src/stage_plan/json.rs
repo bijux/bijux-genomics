@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use bijux_dna_core::contract::StageIO;
 
 use super::contract::StagePlanV1;
-use crate::PlanDecisionReason;
+use super::reason::PlanDecisionReason;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StagePlanJsonV1 {

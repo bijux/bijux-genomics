@@ -7,7 +7,7 @@ use bijux_dna_core::contract::{StageIO, ToolConstraints};
 use bijux_dna_core::ids::{StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 
-use crate::PlanDecisionReason;
+use super::reason::PlanDecisionReason;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
