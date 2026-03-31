@@ -15,7 +15,7 @@ use super::super::support::{
     adapter_hit_reads, docker_rm, ensure_gzip_integrity, output_fastq_stats, resolve_image_for_run,
     run_merge_container_with_timeout, run_tool_container_with_timeout,
     run_trim_container_with_timeout, run_validate_container_with_timeout,
-    validate_execution_outputs, ResolvedImage,
+    validate_execution_outputs, ResolvedImage, TrimExecutionOutput,
 };
 use super::runner::{
     find_fastq_in_dir, qa_qc_post_tool, qa_screen_tool, qa_stats_tool, qa_umi_tool, tool_contract,
@@ -92,19 +92,12 @@ fn qa_trim_tool(
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
     validate_execution_outputs(contract, &out_dir)?;
-    let out_fastq = if execution.output_r1.exists() {
-        execution.output_r1
-    } else {
-        let alt = execution.output_r1.with_extension("");
-        if alt.exists() {
-            alt
-        } else {
-            return Err(anyhow!(
-                "output FASTQ not found: {}",
-                execution.output_r1.display()
-            ));
-        }
-    };
+    let TrimExecutionOutput {
+        output_r1,
+        output_r2,
+        ..
+    } = execution;
+    let out_fastq = resolve_output_fastq(output_r1, "output FASTQ")?;
     ensure_gzip_integrity(&out_fastq)?;
     let output_stats = output_fastq_stats(seqkit_image, &out_dir, &out_fastq)?;
     if output_stats.reads == 0 {
@@ -126,17 +119,8 @@ fn qa_trim_tool(
         ));
     }
 
-    if let Some(out_r2) = execution.output_r2 {
-        let out_r2 = if out_r2.exists() {
-            out_r2
-        } else {
-            let alt = out_r2.with_extension("");
-            if alt.exists() {
-                alt
-            } else {
-                return Err(anyhow!("output R2 missing: {}", out_r2.display()));
-            }
-        };
+    if let Some(out_r2) = output_r2 {
+        let out_r2 = resolve_output_fastq(out_r2, "output R2")?;
         ensure_gzip_integrity(&out_r2)?;
         let stats_r2 = output_fastq_stats(seqkit_image, &out_dir, &out_r2)?;
         if stats_r2.reads == 0 {
@@ -164,6 +148,19 @@ fn qa_trim_tool(
         }
     }
     Ok(())
+}
+
+fn resolve_output_fastq(path: std::path::PathBuf, label: &str) -> Result<std::path::PathBuf> {
+    if path.exists() {
+        return Ok(path);
+    }
+
+    let alternate = path.with_extension("");
+    if alternate.exists() {
+        return Ok(alternate);
+    }
+
+    Err(anyhow!("{label} not found: {}", path.display()))
 }
 
 fn qa_validate_tool(
