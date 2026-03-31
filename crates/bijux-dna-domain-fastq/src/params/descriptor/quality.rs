@@ -1,23 +1,16 @@
 use crate::stages::ids::{
-    STAGE_CLUSTER_OTUS, STAGE_CORRECT_ERRORS, STAGE_DEPLETE_HOST,
-    STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA, STAGE_DETECT_ADAPTERS,
-    STAGE_EXTRACT_UMIS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS, STAGE_INDEX_REFERENCE,
-    STAGE_INFER_ASVS, STAGE_MERGE_PAIRS, STAGE_NORMALIZE_ABUNDANCE, STAGE_NORMALIZE_PRIMERS,
+    STAGE_DEPLETE_HOST, STAGE_DEPLETE_REFERENCE_CONTAMINANTS, STAGE_DEPLETE_RRNA,
+    STAGE_DETECT_ADAPTERS, STAGE_FILTER_LOW_COMPLEXITY, STAGE_FILTER_READS,
     STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READS, STAGE_PROFILE_READ_LENGTHS,
-    STAGE_REMOVE_CHIMERAS, STAGE_REMOVE_DUPLICATES, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
-    STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
+    STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS,
+    STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
 };
 use bijux_dna_core::ids::StageId;
 
-use super::{edna, processing, quality};
+use super::StageParamDescriptor;
+use crate::params::quality;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct StageParamDescriptor {
-    pub param_type_id: &'static str,
-    pub schema_version: &'static str,
-}
-
-const STAGE_PARAM_DESCRIPTORS: &[(&StageId, StageParamDescriptor)] = &[
+pub(super) const STAGE_PARAM_DESCRIPTORS: &[(&StageId, StageParamDescriptor)] = &[
     (
         &STAGE_PROFILE_READS,
         StageParamDescriptor {
@@ -30,20 +23,6 @@ const STAGE_PARAM_DESCRIPTORS: &[(&StageId, StageParamDescriptor)] = &[
         StageParamDescriptor {
             param_type_id: "fastq.profile_read_lengths",
             schema_version: quality::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION,
-        },
-    ),
-    (
-        &STAGE_CORRECT_ERRORS,
-        StageParamDescriptor {
-            param_type_id: "fastq.correct_errors",
-            schema_version: processing::correct::CORRECT_SCHEMA_VERSION,
-        },
-    ),
-    (
-        &STAGE_EXTRACT_UMIS,
-        StageParamDescriptor {
-            param_type_id: "fastq.extract_umis",
-            schema_version: processing::umi::UMI_SCHEMA_VERSION,
         },
     ),
     (
@@ -89,20 +68,6 @@ const STAGE_PARAM_DESCRIPTORS: &[(&StageId, StageParamDescriptor)] = &[
         },
     ),
     (
-        &STAGE_MERGE_PAIRS,
-        StageParamDescriptor {
-            param_type_id: "fastq.merge_pairs",
-            schema_version: processing::merge::MERGE_SCHEMA_VERSION,
-        },
-    ),
-    (
-        &STAGE_INDEX_REFERENCE,
-        StageParamDescriptor {
-            param_type_id: "fastq.index_reference",
-            schema_version: processing::reference_index::INDEX_REFERENCE_SCHEMA_VERSION,
-        },
-    ),
-    (
         &STAGE_DEPLETE_HOST,
         StageParamDescriptor {
             param_type_id: "fastq.deplete_host",
@@ -145,65 +110,10 @@ const STAGE_PARAM_DESCRIPTORS: &[(&StageId, StageParamDescriptor)] = &[
         },
     ),
     (
-        &STAGE_REMOVE_DUPLICATES,
-        StageParamDescriptor {
-            param_type_id: "fastq.remove_duplicates",
-            schema_version: processing::remove_duplicates::REMOVE_DUPLICATES_SCHEMA_VERSION,
-        },
-    ),
-    (
         &STAGE_REPORT_QC,
         StageParamDescriptor {
             param_type_id: "fastq.report_qc",
             schema_version: quality::qc_post::REPORT_QC_SCHEMA_VERSION,
         },
     ),
-    (
-        &STAGE_NORMALIZE_PRIMERS,
-        StageParamDescriptor {
-            param_type_id: "fastq.normalize_primers",
-            schema_version: edna::EDNA_SCHEMA_VERSION,
-        },
-    ),
-    (
-        &STAGE_REMOVE_CHIMERAS,
-        StageParamDescriptor {
-            param_type_id: "fastq.remove_chimeras",
-            schema_version: edna::EDNA_SCHEMA_VERSION,
-        },
-    ),
-    (
-        &STAGE_INFER_ASVS,
-        StageParamDescriptor {
-            param_type_id: "fastq.infer_asvs",
-            schema_version: edna::EDNA_SCHEMA_VERSION,
-        },
-    ),
-    (
-        &STAGE_CLUSTER_OTUS,
-        StageParamDescriptor {
-            param_type_id: "fastq.cluster_otus",
-            schema_version: edna::EDNA_SCHEMA_VERSION,
-        },
-    ),
-    (
-        &STAGE_NORMALIZE_ABUNDANCE,
-        StageParamDescriptor {
-            param_type_id: "fastq.normalize_abundance",
-            schema_version: edna::EDNA_SCHEMA_VERSION,
-        },
-    ),
 ];
-
-#[must_use]
-pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor> {
-    STAGE_PARAM_DESCRIPTORS
-        .iter()
-        .find_map(|(candidate_stage_id, descriptor)| {
-            if stage_id == *candidate_stage_id {
-                Some(*descriptor)
-            } else {
-                None
-            }
-        })
-}
