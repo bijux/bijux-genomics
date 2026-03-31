@@ -112,7 +112,11 @@ mod tests {
             "HOSTNAME" => Some("node-01.example".to_string()),
             _ => None,
         };
-        assert_eq!(resolved_site_name_with(lookup).expect("site"), "cluster-a");
+        let resolved = match resolved_site_name_with(lookup) {
+            Ok(value) => value,
+            Err(error) => panic!("site lookup should succeed: {error}"),
+        };
+        assert_eq!(resolved, "cluster-a");
     }
 
     #[test]
@@ -122,7 +126,10 @@ mod tests {
             "HOSTNAME" => Some("node-01.example".to_string()),
             _ => None,
         };
-        let error = resolved_site_name_with(lookup).expect_err("missing BIJUX_HPC_SITE must fail");
+        let error = match resolved_site_name_with(lookup) {
+            Ok(value) => panic!("missing BIJUX_HPC_SITE must fail, got {value}"),
+            Err(error) => error,
+        };
         assert!(error
             .to_string()
             .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
@@ -133,7 +140,10 @@ mod tests {
         let path = Path::new(
             "/hpc/root/bijux-dna-results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123",
         );
-        let error = enforce_hpc_results_layout(path).expect_err("legacy root must fail");
+        let error = match enforce_hpc_results_layout(path) {
+            Ok(()) => panic!("legacy root must fail"),
+            Err(error) => error,
+        };
         assert!(error
             .to_string()
             .contains("HPC run out_dir must be under results root"));

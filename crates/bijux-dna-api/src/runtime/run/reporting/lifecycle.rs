@@ -4,9 +4,7 @@ use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_engine::Engine;
 use chrono::Utc;
 
-/// # Errors
-/// Returns an error if run status inspection fails.
-pub(super) fn status(run_dir: &Path) -> Result<RunStatus> {
+pub(super) fn status(run_dir: &Path) -> RunStatus {
     let manifest_path = run_dir.join("run_manifest.json");
     let run_artifacts = bijux_dna_runtime::recording::run_artifacts_dir_for_out(run_dir);
     let envelope_path = run_artifacts.join("run_artifact_envelope.json");
@@ -35,12 +33,12 @@ pub(super) fn status(run_dir: &Path) -> Result<RunStatus> {
         .and_then(|value| value.get("failures").cloned())
         .and_then(|value| value.as_array().cloned())
         .is_some_and(|failures| !failures.is_empty());
-    Ok(RunStatus {
+    RunStatus {
         run_dir: run_dir.to_path_buf(),
         manifest_path: manifest,
         report_path: report,
         has_failures,
-    })
+    }
 }
 
 /// Replay or verify a run from a run manifest.

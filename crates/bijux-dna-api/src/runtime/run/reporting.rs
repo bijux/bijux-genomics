@@ -28,9 +28,10 @@ pub fn render_report(request: &RenderReportRequest) -> Result<RenderReportResult
 }
 
 /// # Errors
-/// Returns an error if run status inspection fails.
+/// This wrapper preserves the public API shape and does not currently return an error.
+#[allow(clippy::unnecessary_wraps)]
 pub fn status(run_dir: &Path) -> Result<RunStatus> {
-    lifecycle::status(run_dir)
+    Ok(lifecycle::status(run_dir))
 }
 
 /// Replay or verify a run from a run manifest.
