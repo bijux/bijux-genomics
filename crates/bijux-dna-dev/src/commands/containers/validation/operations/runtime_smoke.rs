@@ -9,19 +9,19 @@ pub(in super::super::super) fn run_env_prep(
     let tools = env_or_empty("TOOLS");
     let stage = env_or_empty("STAGE");
     require_tools_or_stage(&tools, &stage)?;
-    let mut argv = bijux_command_prefix();
-    argv.extend([
+    let mut command_args = bijux_command_prefix();
+    command_args.extend([
         "environment".to_string(),
         "prep".to_string(),
         container_type,
     ]);
     if stage.is_empty() {
-        argv.push(tools);
+        command_args.push(tools);
     } else {
-        argv.push("--stage".to_string());
-        argv.push(stage);
+        command_args.push("--stage".to_string());
+        command_args.push(stage);
     }
-    run_argv(workspace, &argv)
+    run_argv(workspace, &command_args)
 }
 
 pub(in super::super::super) fn run_env_smoke(
@@ -33,19 +33,19 @@ pub(in super::super::super) fn run_env_smoke(
     let tools = env_or_empty("TOOLS");
     let stage = env_or_empty("STAGE");
     require_tools_or_stage(&tools, &stage)?;
-    let mut argv = bijux_command_prefix();
-    argv.extend([
+    let mut command_args = bijux_command_prefix();
+    command_args.extend([
         "environment".to_string(),
         "smoke".to_string(),
         container_type,
     ]);
     if stage.is_empty() {
-        argv.push(tools);
+        command_args.push(tools);
     } else {
-        argv.push("--stage".to_string());
-        argv.push(stage);
+        command_args.push("--stage".to_string());
+        command_args.push(stage);
     }
-    run_argv(workspace, &argv)
+    run_argv(workspace, &command_args)
 }
 
 pub(in super::super::super) fn run_container_smoke(

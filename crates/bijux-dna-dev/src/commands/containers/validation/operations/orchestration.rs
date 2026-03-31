@@ -14,9 +14,9 @@ pub(in super::super::super) fn run_registry_tools(
             "registry-tools: missing registry subcommand\n",
         ));
     }
-    let mut argv = vec!["registry".to_string()];
-    argv.extend(args.iter().cloned());
-    run_bijux_with_env(workspace, &argv, &[])
+    let mut command_args = vec!["registry".to_string()];
+    command_args.extend(args.iter().cloned());
+    run_bijux_with_env(workspace, &command_args, &[])
 }
 
 pub(in super::super::super) fn run_container_lint(

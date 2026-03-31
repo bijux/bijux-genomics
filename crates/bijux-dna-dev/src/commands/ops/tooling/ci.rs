@@ -158,7 +158,7 @@ pub(in super::super) fn tooling_ci_test(
         env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
     let test_features = env_or_default("TEST_FEATURES", "--all-features");
     let no_tests = env_or_default("NEXTEST_NO_TESTS", "pass");
-    let mut argv = std::iter::once("nextest".to_string())
+    let mut nextest_args = std::iter::once("nextest".to_string())
         .chain(std::iter::once("run".to_string()))
         .chain(nextest_config.split_whitespace().map(ToOwned::to_owned))
         .chain(std::iter::once("--workspace".to_string()))
@@ -172,13 +172,13 @@ pub(in super::super) fn tooling_ci_test(
         .collect::<Vec<_>>();
     let run_ignored = resolved_run_ignored(false)?;
     if !run_ignored.is_empty() {
-        argv.extend(run_ignored.split_whitespace().map(ToOwned::to_owned));
+        nextest_args.extend(run_ignored.split_whitespace().map(ToOwned::to_owned));
     }
     if let Some(value) = expr {
-        argv.push("-E".to_string());
-        argv.push(value);
+        nextest_args.push("-E".to_string());
+        nextest_args.push(value);
     }
-    let outcome = run_program_with_env(workspace, "cargo", &argv, &envs);
+    let outcome = run_program_with_env(workspace, "cargo", &nextest_args, &envs);
     let restore = set_assets_readonly(workspace, false);
     let mut combined = OpsCommandOutcome::success(stdout);
     let test_outcome = outcome?;
@@ -199,7 +199,7 @@ pub(in super::super) fn tooling_ci_test_slow(
         env_or_default("NEXTEST_CONFIG", "--config-file configs/rust/nextest.toml");
     let test_features = env_or_default("TEST_FEATURES", "--all-features");
     let no_tests = env_or_default("NEXTEST_NO_TESTS", "pass");
-    let mut argv = std::iter::once("nextest".to_string())
+    let mut nextest_args = std::iter::once("nextest".to_string())
         .chain(std::iter::once("run".to_string()))
         .chain(nextest_config.split_whitespace().map(ToOwned::to_owned))
         .chain(std::iter::once("--workspace".to_string()))
@@ -215,15 +215,15 @@ pub(in super::super) fn tooling_ci_test_slow(
         .chain(std::iter::once("--no-tests".to_string()))
         .chain(std::iter::once(no_tests))
         .collect::<Vec<_>>();
-    argv.extend(
+    nextest_args.extend(
         std::env::var("RUN_IGNORED")
             .unwrap_or_else(|_| "--run-ignored all".to_string())
             .split_whitespace()
             .map(ToOwned::to_owned),
     );
-    argv.push("-E".to_string());
-    argv.push("test(/::slow__/)".to_string());
-    let outcome = run_program_with_env(workspace, "cargo", &argv, &envs);
+    nextest_args.push("-E".to_string());
+    nextest_args.push("test(/::slow__/)".to_string());
+    let outcome = run_program_with_env(workspace, "cargo", &nextest_args, &envs);
     let restore = set_assets_readonly(workspace, false);
     let test_outcome = outcome?;
     restore?;
