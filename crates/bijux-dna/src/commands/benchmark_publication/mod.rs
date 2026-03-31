@@ -1,11 +1,5 @@
 #![allow(clippy::too_many_lines)]
 
-use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
-use std::path::Path;
-
-use anyhow::Result;
-
 mod corpus_dossier;
 mod docs_audit;
 mod docs_status;
@@ -16,6 +10,7 @@ mod publication_io;
 mod remediation;
 mod report_audit;
 mod results_status;
+mod runtime_audit;
 
 use crate::commands::benchmark_workspace::{
     benchmark_corpus_spec_path, benchmark_publication_contracts, benchmark_publication_exclusions,
@@ -37,6 +32,7 @@ pub(crate) use self::entrypoint::{
     print_benchmark_publication_targets, run_corpus_fastq_publication_status,
     run_corpus_fastq_published_dossiers, run_corpus_fastq_report,
 };
+#[cfg(test)]
 use self::models::StageAuditIssue;
 #[cfg(test)]
 use self::models::StageRunRootCandidate;
@@ -50,13 +46,12 @@ use self::models::{
 };
 use self::publication_io::{
     absolutize, classify_run_root_source, configured_stage_run_roots, csv_report_value,
-    csv_required_value, csv_value, find_polluting_ds_store_files, json_string_array, load_csv_rows,
-    load_json_value, localize_results_path, observed_tools_from_report,
-    publication_artifact_file_name, publication_method_file_name, publication_stage_docs_root,
-    relative_to_docs_root, relative_to_repo_root, select_stage_run_root, sorted_json_string_array,
-    sorted_strings, summary_corpus_id, unique_existing_run_roots, value_string,
-    workspace_local_cache_mirror_root, workspace_local_results_root, workspace_remote_corpus_root,
-    workspace_remote_results_root,
+    find_polluting_ds_store_files, json_string_array, load_json_value, localize_results_path,
+    observed_tools_from_report, publication_artifact_file_name, publication_method_file_name,
+    publication_stage_docs_root, relative_to_docs_root, relative_to_repo_root,
+    select_stage_run_root, sorted_json_string_array, sorted_strings, summary_corpus_id,
+    unique_existing_run_roots, value_string, workspace_local_cache_mirror_root,
+    workspace_local_results_root, workspace_remote_corpus_root, workspace_remote_results_root,
 };
 use self::remediation::write_corpus_fastq_remediation_queue;
 #[cfg(test)]
@@ -69,112 +64,9 @@ use self::results_status::write_corpus_fastq_results_status;
 use self::results_status::{
     audit_published_results, audit_published_results_stage, render_published_results_markdown,
 };
-
-fn audit_tool_runtime_summary(
-    issues: &mut Vec<StageAuditIssue>,
-    docs_root: &Path,
-    tool_runtime_summary_path: &Path,
-    contract: &CorpusBenchmarkContract,
-    expected_tools: &[String],
-) -> Result<()> {
-    if !tool_runtime_summary_path.is_file() || fs::metadata(tool_runtime_summary_path)?.len() == 0 {
-        return Ok(());
-    }
-    let mut observed_tools = load_csv_rows(tool_runtime_summary_path)?
-        .into_iter()
-        .filter_map(|row| csv_required_value(&row, "tool"))
-        .collect::<Vec<_>>();
-    observed_tools.sort();
-    if observed_tools != expected_tools {
-        append_stage_audit_issue(
-            issues,
-            &contract.stage_id,
-            "tool-runtime-summary-drift",
-            format!(
-                "{} tools={:?} expected {:?}",
-                relative_to_docs_root(tool_runtime_summary_path, docs_root),
-                observed_tools,
-                expected_tools
-            ),
-            "error",
-        );
-    }
-    Ok(())
-}
-
-fn audit_cohort_runtime_summary(
-    issues: &mut Vec<StageAuditIssue>,
-    docs_root: &Path,
-    cohort_runtime_summary_path: &Path,
-    contract: &CorpusBenchmarkContract,
-    expected_cohort_counts: &BTreeMap<String, usize>,
-) -> Result<()> {
-    if !cohort_runtime_summary_path.is_file()
-        || fs::metadata(cohort_runtime_summary_path)?.len() == 0
-    {
-        return Ok(());
-    }
-    let observed_cohorts = load_csv_rows(cohort_runtime_summary_path)?
-        .into_iter()
-        .filter(|row| {
-            let dimension = csv_report_value(row, "dimension");
-            dimension == "missing" || dimension == "era_layout"
-        })
-        .map(|row| csv_report_value(&row, "cohort"))
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    let expected_cohorts = expected_cohort_counts.keys().cloned().collect::<Vec<_>>();
-    if observed_cohorts != expected_cohorts {
-        append_stage_audit_issue(
-            issues,
-            &contract.stage_id,
-            "cohort-runtime-summary-drift",
-            format!(
-                "{} cohorts={:?} expected {:?}",
-                relative_to_docs_root(cohort_runtime_summary_path, docs_root),
-                observed_cohorts,
-                expected_cohorts
-            ),
-            "error",
-        );
-    }
-    Ok(())
-}
-
-fn audit_sample_runtime_outliers(
-    issues: &mut Vec<StageAuditIssue>,
-    docs_root: &Path,
-    sample_runtime_outliers_path: &Path,
-    contract: &CorpusBenchmarkContract,
-    expected_total: usize,
-) -> Result<()> {
-    if !sample_runtime_outliers_path.is_file()
-        || fs::metadata(sample_runtime_outliers_path)?.len() == 0
-    {
-        return Ok(());
-    }
-    let unique_sample_ids = load_csv_rows(sample_runtime_outliers_path)?
-        .into_iter()
-        .map(|row| csv_value(&row, "sample_id"))
-        .filter(|value| !value.is_empty())
-        .collect::<BTreeSet<_>>();
-    if unique_sample_ids.len() != expected_total {
-        append_stage_audit_issue(
-            issues,
-            &contract.stage_id,
-            "sample-runtime-outlier-coverage-drift",
-            format!(
-                "{} unique_samples={:?} expected {}",
-                relative_to_docs_root(sample_runtime_outliers_path, docs_root),
-                unique_sample_ids.len(),
-                expected_total
-            ),
-            "error",
-        );
-    }
-    Ok(())
-}
+use self::runtime_audit::{
+    audit_cohort_runtime_summary, audit_sample_runtime_outliers, audit_tool_runtime_summary,
+};
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
