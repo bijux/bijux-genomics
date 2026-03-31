@@ -11,8 +11,10 @@ pub mod summary;
 pub use decision::BenchmarkDecision;
 #[allow(unused_imports)]
 pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
-pub use observation::BenchmarkObservation;
-#[allow(unused_imports)]
-pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};
+pub use observation::{BenchmarkObservation, MetricsEnvelope};
+pub use suite::{
+    AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec,
+    DatasetSpec, DiversityRequirements, ReplicatePolicy, StratificationRequirement,
+};
 #[allow(unused_imports)]
 pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};
