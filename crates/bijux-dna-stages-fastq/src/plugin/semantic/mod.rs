@@ -2,6 +2,9 @@ use super::*;
 
 mod feature_tables;
 mod processing;
+mod processing_cleanup;
+mod processing_read_preparation;
+mod processing_trimming;
 mod profiling;
 mod quality;
 mod taxonomy;
