@@ -1,3 +1,5 @@
+mod command_line;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -6,6 +8,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_environment::api::ResolvedImage;
 
 pub use crate::backend::docker::image_resolution::resolve_image_for_run;
+use command_line::{build_docker_run_command, command_string};
 
 #[derive(Debug, Clone)]
 pub struct StageExecutionPlan {
@@ -41,28 +44,8 @@ pub fn execute_plan(
     output_mount: &Path,
     container_name: &str,
 ) -> Result<ExecutionOutput> {
-    let input_mount = format!("{}:/data/input:ro", input_mount.display());
-    let output_mount = format!("{}:/data/output", output_mount.display());
-
-    let mut cmd = Command::new("docker");
-    let mut args: Vec<String> = Vec::new();
-    push_arg(&mut cmd, &mut args, "run");
-    push_arg(&mut cmd, &mut args, "-d");
-    push_arg(&mut cmd, &mut args, "--rm=false");
-    push_arg(&mut cmd, &mut args, "--name");
-    push_arg(&mut cmd, &mut args, container_name);
-    push_arg(&mut cmd, &mut args, "-v");
-    push_arg(&mut cmd, &mut args, input_mount);
-    push_arg(&mut cmd, &mut args, "-v");
-    push_arg(&mut cmd, &mut args, output_mount);
-    for (key, value) in &plan.env {
-        push_arg(&mut cmd, &mut args, "-e");
-        push_arg(&mut cmd, &mut args, format!("{key}={value}"));
-    }
-    push_arg(&mut cmd, &mut args, image.full_name.clone());
-    for arg in &plan.container_args {
-        push_arg(&mut cmd, &mut args, arg.clone());
-    }
+    let (mut cmd, args) =
+        build_docker_run_command(plan, image, input_mount, output_mount, container_name);
 
     let output = cmd.output().context("run docker")?;
     if !output.status.success() {
@@ -96,28 +79,8 @@ pub fn execute_plan_with_timeout(
     container_name: &str,
     timeout: std::time::Duration,
 ) -> Result<ExecutionOutput> {
-    let input_mount = format!("{}:/data/input:ro", input_mount.display());
-    let output_mount = format!("{}:/data/output", output_mount.display());
-
-    let mut cmd = Command::new("docker");
-    let mut args: Vec<String> = Vec::new();
-    push_arg(&mut cmd, &mut args, "run");
-    push_arg(&mut cmd, &mut args, "-d");
-    push_arg(&mut cmd, &mut args, "--rm=false");
-    push_arg(&mut cmd, &mut args, "--name");
-    push_arg(&mut cmd, &mut args, container_name);
-    push_arg(&mut cmd, &mut args, "-v");
-    push_arg(&mut cmd, &mut args, input_mount);
-    push_arg(&mut cmd, &mut args, "-v");
-    push_arg(&mut cmd, &mut args, output_mount);
-    for (key, value) in &plan.env {
-        push_arg(&mut cmd, &mut args, "-e");
-        push_arg(&mut cmd, &mut args, format!("{key}={value}"));
-    }
-    push_arg(&mut cmd, &mut args, image.full_name.clone());
-    for arg in &plan.container_args {
-        push_arg(&mut cmd, &mut args, arg.clone());
-    }
+    let (mut cmd, args) =
+        build_docker_run_command(plan, image, input_mount, output_mount, container_name);
 
     let output = cmd.output().context("run docker")?;
     if !output.status.success() {
@@ -165,16 +128,6 @@ pub fn assess_execution(exit_code: i32, expected_outputs: &[PathBuf]) -> Executi
         missing_outputs: Vec::new(),
         reason: None,
     }
-}
-
-pub(crate) fn push_arg(cmd: &mut Command, args: &mut Vec<String>, value: impl Into<String>) {
-    let value = value.into();
-    cmd.arg(&value);
-    args.push(value);
-}
-
-pub(crate) fn command_string(args: &[String]) -> String {
-    format!("docker {}", args.join(" "))
 }
 
 /// Wait for container completion and parse its exit code.
