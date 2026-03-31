@@ -1,7 +1,7 @@
 # bijux-dna-runner
 
 ## What this crate does
-Execution backend (docker) that runs CommandSpec and captures outputs.
+Container execution support for runner-facing commands, step orchestration, and replay.
 
 ## What it must not do (boundaries)
 No planning or parsing; execution only.
@@ -36,7 +36,8 @@ See `crates/bijux-dna-runner/docs/TESTS.md`. Golden tests: `tests/backend/backen
 
 ## Where to start in code
 - `src/command_runner.rs` for command execution primitives.
-- `src/step_runner.rs` for step execution orchestration.
+- `src/backend/docker/` for backend-specific execution, image resolution, and replay.
+- `src/step_runner/mod.rs` for step execution orchestration.
 
 ## Where the docs live
 Start at `crates/bijux-dna-runner/docs/INDEX.md` and follow the crate docs listed above.

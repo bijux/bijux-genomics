@@ -84,7 +84,9 @@ fn runner_tree_matches_architecture_contract() {
     let docker_entries = dir_entries(&root.join("src/backend/docker"));
     let expected_docker: BTreeSet<_> = [
         "execution_spec.rs",
+        "executor/",
         "executor.rs",
+        "image_resolution/",
         "image_resolution.rs",
         "mod.rs",
         "replay.rs",
@@ -99,12 +101,18 @@ fn runner_tree_matches_architecture_contract() {
 
     let step_runner_entries = dir_entries(&root.join("src/step_runner"));
     let expected_step_runner: BTreeSet<_> = [
+        "apptainer_args.rs",
+        "apptainer_execution.rs",
         "artifacts.rs",
         "command_template.rs",
+        "contracts.rs",
+        "docker_execution.rs",
+        "execution_outcome.rs",
         "identity.rs",
         "inputs.rs",
         "mod.rs",
         "observer.rs",
+        "runtime_policy.rs",
     ]
     .into_iter()
     .map(str::to_string)
