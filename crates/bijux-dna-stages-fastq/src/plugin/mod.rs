@@ -23,6 +23,7 @@ use crate::observer::{
     parse_validated_reads_manifest, parse_validation_report,
 };
 
+mod observation_context;
 mod semantic;
 
 #[allow(dead_code)]
@@ -65,34 +66,15 @@ impl StagePlugin for FastqStagePlugin {
             .map(|output| output.path.clone())
             .collect();
         let envelope = metrics::build_metrics_envelope(plan, &input_paths, &output_paths)?;
-        let interpretation_level =
-            crate::runtime_interpretation_for_stage_tool(&plan.stage_id, &plan.tool_id)
-                .unwrap_or(crate::RuntimeInterpretationLevel::GenericEnvelope);
-        let observer_covered =
-            interpretation_level == crate::RuntimeInterpretationLevel::ObserverSpecialized;
-        let benchmark_scenarios =
-            bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&plan.stage_id);
-        let comparison_artifact_ids =
-            bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&plan.stage_id);
-        let semantic_loss = match interpretation_level {
-            crate::RuntimeInterpretationLevel::ObserverSpecialized => Vec::new(),
-            crate::RuntimeInterpretationLevel::GenericEnvelope => {
-                vec!["observer_specialized_parser_missing"]
-            }
-        };
-        let artifacts = if outputs.is_empty() {
-            plan.io.outputs.clone()
-        } else {
-            outputs.to_vec()
-        };
-        let semantic_metrics = semantic::observed_semantic_metrics(plan, &artifacts);
+        let context = observation_context::observation_context(plan, outputs);
         let expected_artifact_names = plan
             .io
             .outputs
             .iter()
             .map(|artifact| artifact.name.as_str().to_string())
             .collect::<std::collections::BTreeSet<_>>();
-        let actual_artifact_names = artifacts
+        let actual_artifact_names = context
+            .artifacts
             .iter()
             .map(|artifact| artifact.name.as_str().to_string())
             .collect::<std::collections::BTreeSet<_>>();
@@ -116,7 +98,7 @@ impl StagePlugin for FastqStagePlugin {
                 ),
             )
         }];
-        invariants.push(if observer_covered {
+        invariants.push(if context.observer_covered {
             invariant(
                 "observer_parser_coverage",
                 InvariantStatusV1::Pass,
@@ -129,9 +111,7 @@ impl StagePlugin for FastqStagePlugin {
                 "stage uses generic runtime interpretation only".to_string(),
             )
         });
-        let declared_metric_invariants =
-            bijux_dna_domain_fastq::stage_metric_invariants(&plan.stage_id).unwrap_or(&[]);
-        invariants.push(if declared_metric_invariants.is_empty() {
+        invariants.push(if context.declared_metric_invariants.is_empty() {
             invariant(
                 "declared_metric_invariants_visible",
                 InvariantStatusV1::Warn,
@@ -143,7 +123,7 @@ impl StagePlugin for FastqStagePlugin {
                 InvariantStatusV1::Pass,
                 format!(
                     "stage declares metric invariants: {}",
-                    declared_metric_invariants.join(", ")
+                    context.declared_metric_invariants.join(", ")
                 ),
             )
         });
@@ -153,17 +133,17 @@ impl StagePlugin for FastqStagePlugin {
                 verdict: InvariantStatusV1::Pass,
                 reasons: Vec::new(),
                 key_metrics: serde_json::json!({
-                    "artifact_count": artifacts.len(),
-                    "observer_coverage": observer_covered,
-                    "runtime_interpretation": format!("{interpretation_level:?}"),
-                    "benchmark_scenarios": benchmark_scenarios
+                    "artifact_count": context.artifacts.len(),
+                    "observer_coverage": context.observer_covered,
+                    "runtime_interpretation": format!("{:?}", context.interpretation_level),
+                    "benchmark_scenarios": context.benchmark_scenarios
                         .iter()
                         .map(|scenario| scenario.scenario_id.clone())
                         .collect::<Vec<_>>(),
-                    "semantic_loss": semantic_loss,
+                    "semantic_loss": context.semantic_loss,
                     "used_observed_outputs": !outputs.is_empty(),
-                    "declared_metric_invariants": declared_metric_invariants,
-                    "semantic_metrics": semantic_metrics.clone(),
+                    "declared_metric_invariants": context.declared_metric_invariants,
+                    "semantic_metrics": context.semantic_metrics.clone(),
                 }),
             },
             |mut verdict, item| {
@@ -177,35 +157,35 @@ impl StagePlugin for FastqStagePlugin {
             file_name: "stage_outputs.json".to_string(),
             payload: serde_json::json!({
                 "stage_id": plan.stage_id,
-                "observer_coverage": observer_covered,
-                "runtime_interpretation": format!("{interpretation_level:?}"),
-                "benchmark_scenarios": benchmark_scenarios
+                "observer_coverage": context.observer_covered,
+                "runtime_interpretation": format!("{:?}", context.interpretation_level),
+                "benchmark_scenarios": context.benchmark_scenarios
                     .iter()
                     .map(|scenario| scenario.scenario_id.clone())
                     .collect::<Vec<_>>(),
-                "comparison_artifact_ids": comparison_artifact_ids,
-                "semantic_loss": semantic_loss,
-                "artifact_count": artifacts.len(),
-                "declared_metric_invariants": declared_metric_invariants,
-                "semantic_metrics": semantic_metrics.clone(),
-                "artifact_ids": artifacts
+                "comparison_artifact_ids": context.comparison_artifact_ids,
+                "semantic_loss": context.semantic_loss,
+                "artifact_count": context.artifacts.len(),
+                "declared_metric_invariants": context.declared_metric_invariants,
+                "semantic_metrics": context.semantic_metrics.clone(),
+                "artifact_ids": context.artifacts
                     .iter()
                     .map(|artifact| artifact.name.as_str().to_string())
                     .collect::<Vec<_>>(),
                 "used_observed_outputs": !outputs.is_empty(),
             }),
         }];
-        if !benchmark_scenarios.is_empty() {
+        if !context.benchmark_scenarios.is_empty() {
             report_parts.push(StageReportPartV1 {
                 name: "stage_tool_comparison".to_string(),
                 file_name: "stage_tool_comparison.json".to_string(),
                 payload: serde_json::json!({
                     "stage_id": plan.stage_id,
                     "tool_id": plan.tool_id,
-                    "runtime_interpretation": format!("{interpretation_level:?}"),
-                    "comparison_artifact_ids": comparison_artifact_ids,
-                    "semantic_loss": semantic_loss,
-                    "benchmark_scenarios": benchmark_scenarios
+                    "runtime_interpretation": format!("{:?}", context.interpretation_level),
+                    "comparison_artifact_ids": context.comparison_artifact_ids,
+                    "semantic_loss": context.semantic_loss,
+                    "benchmark_scenarios": context.benchmark_scenarios
                         .iter()
                         .map(|scenario| serde_json::json!({
                             "scenario_id": scenario.scenario_id,
@@ -213,27 +193,27 @@ impl StagePlugin for FastqStagePlugin {
                             "fairness_rules": scenario.fairness_rules,
                         }))
                         .collect::<Vec<_>>(),
-                    "normalized_artifact_ids": artifacts
+                    "normalized_artifact_ids": context.artifacts
                         .iter()
                         .map(|artifact| artifact.name.as_str().to_string())
                         .collect::<Vec<_>>(),
-                    "observer_specialized_parser": observer_covered,
-                    "semantic_metrics": semantic_metrics.clone(),
+                    "observer_specialized_parser": context.observer_covered,
+                    "semantic_metrics": context.semantic_metrics.clone(),
                 }),
             });
         }
-        if !semantic_metrics.is_null() {
+        if !context.semantic_metrics.is_null() {
             report_parts.push(StageReportPartV1 {
                 name: "observed_semantic_metrics".to_string(),
                 file_name: "observed_semantic_metrics.json".to_string(),
                 payload: serde_json::json!({
                     "stage_id": plan.stage_id,
                     "tool_id": plan.tool_id,
-                    "semantic_metrics": semantic_metrics.clone(),
+                    "semantic_metrics": context.semantic_metrics.clone(),
                 }),
             });
         }
-        let mut warnings = if observer_covered {
+        let mut warnings = if context.observer_covered {
             Vec::new()
         } else {
             vec![format!(
@@ -241,11 +221,11 @@ impl StagePlugin for FastqStagePlugin {
                 plan.stage_id.as_str()
             )]
         };
-        if !benchmark_scenarios.is_empty() && !semantic_loss.is_empty() {
+        if !context.benchmark_scenarios.is_empty() && !context.semantic_loss.is_empty() {
             warnings.push(format!(
                 "{} comparison record carries semantic loss tags: {}",
                 plan.stage_id.as_str(),
-                semantic_loss.join(", ")
+                context.semantic_loss.join(", ")
             ));
         }
         let event_hints = vec![StageEventHintV1 {
@@ -257,20 +237,20 @@ impl StagePlugin for FastqStagePlugin {
             },
             attrs: serde_json::json!({
             "stage_id": plan.stage_id,
-            "observer_coverage": observer_covered,
-            "runtime_interpretation": format!("{interpretation_level:?}"),
-            "benchmark_scenarios": benchmark_scenarios
+            "observer_coverage": context.observer_covered,
+            "runtime_interpretation": format!("{:?}", context.interpretation_level),
+            "benchmark_scenarios": context.benchmark_scenarios
                 .iter()
                 .map(|scenario| scenario.scenario_id.clone())
                 .collect::<Vec<_>>(),
-                "semantic_loss": semantic_loss,
-                "artifact_count": artifacts.len(),
-                "semantic_metrics": semantic_metrics,
+                "semantic_loss": context.semantic_loss,
+                "artifact_count": context.artifacts.len(),
+                "semantic_metrics": context.semantic_metrics,
             }),
         }];
         Ok(StagePluginOutputV1 {
             metrics: envelope,
-            artifacts,
+            artifacts: context.artifacts,
             report_parts,
             warnings,
             invariants,
