@@ -1,6 +1,4 @@
 pub mod execution_plan;
-mod execution_plan_support;
-mod execution_plan_validation;
 pub mod executor_registry;
 mod executor_registry_catalog;
 mod executor_registry_lookup;
