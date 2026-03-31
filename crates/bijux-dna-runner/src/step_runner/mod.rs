@@ -10,6 +10,7 @@ use bijux_dna_core::prelude::hashing::{
 use bijux_dna_environment::api::RuntimeKind;
 
 mod apptainer_args;
+mod apptainer_execution;
 mod artifacts;
 mod command_template;
 mod contracts;
@@ -20,7 +21,9 @@ mod inputs;
 mod observer;
 mod runtime_policy;
 
+#[allow(unused_imports)]
 use apptainer_args::build_apptainer_exec_args;
+use apptainer_execution::execute_apptainer_step;
 use artifacts::write_minimum_run_artifacts;
 #[allow(unused_imports)]
 use command_template::container_command_template;
@@ -33,8 +36,6 @@ use identity::{
 #[allow(unused_imports)]
 use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};
 pub use observer::execute_observer_command;
-use runtime_policy::configured_memory_mb;
-
 #[derive(Debug, Clone, Copy)]
 enum RunnerEffectKind {
     Filesystem,
@@ -81,27 +82,7 @@ pub fn execute_step(
     let outcome = match runner {
         RuntimeKind::Docker => execute_docker_step(step, &inputs, &input_root, out_dir, timeout)?,
         RuntimeKind::Apptainer | RuntimeKind::Singularity => {
-            let args = build_apptainer_exec_args(step, &inputs, &input_root, out_dir, runner)?;
-            let bin = if runner == RuntimeKind::Apptainer {
-                "apptainer"
-            } else {
-                "singularity"
-            };
-            let command_output = crate::command_runner::run_command(bin, &args)
-                .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
-            let exit_code = command_output.exit_code;
-            let stdout = command_output.stdout.clone();
-            let stderr = command_output.stderr.clone();
-            let runtime_s = command_output.runtime_s;
-            let memory_mb = configured_memory_mb(step);
-            execution_outcome::StepExecutionOutcome {
-                command_output,
-                exit_code,
-                stdout,
-                stderr,
-                runtime_s,
-                memory_mb,
-            }
+            execute_apptainer_step(step, runner, &inputs, &input_root, out_dir)?
         }
     };
 
