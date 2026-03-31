@@ -4,12 +4,8 @@ use bijux_dna_core::contract::ExecutionStep;
 
 use bijux_dna_environment::api::RuntimeKind;
 
-pub(super) fn stage_workdir_in_container(out_dir: &Path, runner: RuntimeKind) -> String {
-    let output_root = if matches!(runner, RuntimeKind::Docker) {
-        "/data/output"
-    } else {
-        "/data/output"
-    };
+pub(super) fn stage_workdir_in_container(out_dir: &Path, _runner: RuntimeKind) -> String {
+    let output_root = "/data/output";
     if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
         let out_dir_prefix = format!("{}/", out_dir.display());
         if workdir.starts_with(&out_dir_prefix) {
