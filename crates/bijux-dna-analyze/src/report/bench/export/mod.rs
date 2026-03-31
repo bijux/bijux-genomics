@@ -7,8 +7,8 @@ pub use validation_and_filter::*;
 #[cfg(test)]
 mod tests {
     use super::super::summary::{semantic_trim, MetricValue};
-    use super::*;
     use crate::aggregate::{FastqDeltaMetrics, FastqTrimMetrics, FastqValidateMetrics};
+    use crate::report::bench::semantic_validate;
 
     #[test]
     fn semantic_trim_generates_summary() {
