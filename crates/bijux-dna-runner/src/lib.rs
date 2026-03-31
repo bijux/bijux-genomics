@@ -1,6 +1,11 @@
 //! Owner: bijux-dna-runner
-//! Runner abstraction with docker backend only.
+//! Runner facade and container execution helpers.
 
+pub use crate::backend::{build_tool_execution_spec, parse_mem_to_mb, replay_run, BackendKind};
+pub use crate::command_runner::{
+    invocation_hash, run_command, run_command_with_context, CommandOutputV1,
+};
+pub use crate::step_runner::{execute_observer_command, execute_step, StageResultV1};
 pub use bijux_dna_runtime::{Artifact, Invocation, Runner, RunnerResult};
 use std::time::Duration;
 
