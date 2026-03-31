@@ -1,85 +1,15 @@
-use std::sync::OnceLock;
-
-use bijux_dna_core::ids::{StageId, ToolId};
-
 mod amplicon;
+mod catalog;
 mod core;
+mod queries;
 mod transform;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ObserverSpecializationContract {
-    pub stage_id: &'static str,
-    pub tool_id: &'static str,
-    pub semantic_surface: &'static str,
-}
-
-const fn contract(
-    stage_id: &'static str,
-    tool_id: &'static str,
-    semantic_surface: &'static str,
-) -> ObserverSpecializationContract {
-    ObserverSpecializationContract {
-        stage_id,
-        tool_id,
-        semantic_surface,
-    }
-}
-
-fn specialization_contracts() -> &'static Vec<ObserverSpecializationContract> {
-    static CONTRACTS: OnceLock<Vec<ObserverSpecializationContract>> = OnceLock::new();
-    CONTRACTS.get_or_init(|| {
-        let mut all = Vec::new();
-        for group in [core::CONTRACTS, transform::CONTRACTS, amplicon::CONTRACTS] {
-            all.extend_from_slice(group);
-        }
-        all
-    })
-}
-
-#[must_use]
-pub fn observer_specialization_contracts() -> &'static [ObserverSpecializationContract] {
-    specialization_contracts().as_slice()
-}
-
-#[must_use]
-pub fn observer_specialization_contract_for_stage_tool(
-    stage_id: &StageId,
-    tool_id: &ToolId,
-) -> Option<ObserverSpecializationContract> {
-    observer_specialization_contracts()
-        .iter()
-        .copied()
-        .find(|binding| {
-            binding.stage_id == stage_id.as_str() && binding.tool_id == tool_id.as_str()
-        })
-}
-
-#[must_use]
-pub fn observer_specialized_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
-    observer_specialization_contracts()
-        .iter()
-        .map(|binding| {
-            (
-                StageId::from_static(binding.stage_id),
-                ToolId::from_static(binding.tool_id),
-            )
-        })
-        .collect()
-}
-
-#[must_use]
-pub fn observer_semantic_surface_for_stage_tool(
-    stage_id: &StageId,
-    tool_id: &ToolId,
-) -> Option<&'static str> {
-    observer_specialization_contract_for_stage_tool(stage_id, tool_id)
-        .map(|binding| binding.semantic_surface)
-}
-
-#[must_use]
-pub fn is_observer_specialized_stage_tool(stage_id: &StageId, tool_id: &ToolId) -> bool {
-    observer_specialization_contract_for_stage_tool(stage_id, tool_id).is_some()
-}
+pub(crate) use catalog::contract;
+pub use catalog::{observer_specialization_contracts, ObserverSpecializationContract};
+pub use queries::{
+    is_observer_specialized_stage_tool, observer_semantic_surface_for_stage_tool,
+    observer_specialization_contract_for_stage_tool, observer_specialized_stage_tool_bindings,
+};
 
 #[cfg(test)]
 mod tests {
