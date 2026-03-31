@@ -1,65 +1,22 @@
+mod manifest_identity;
+
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
-use sha2::Digest;
 
 use bijux_dna_infra::bench_tools_dir;
 
 use bijux_dna_core::metrics::ToolInvocationV1;
-use bijux_dna_core::prelude::hashing::input_fingerprint;
 use bijux_dna_core::prelude::CacheKey;
 
 use super::io::{hash_file_sha256, write_canonical_json};
+pub use manifest_identity::compute_run_id;
 
-fn canonical_sha256(value: &serde_json::Value) -> Result<String> {
-    let bytes = bijux_dna_core::contract::canonical::to_canonical_json_bytes(value)?;
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(bytes);
-    Ok(format!("{:x}", hasher.finalize()))
-}
-
-fn declared_json_array<'a>(
-    value: &'a serde_json::Value,
-    key: &str,
-) -> Result<&'a Vec<serde_json::Value>> {
-    value
-        .get(key)
-        .and_then(serde_json::Value::as_array)
-        .ok_or_else(|| anyhow!("run manifest missing declared `{key}` array"))
-}
-
-fn manifest_sort_key(value: &serde_json::Value, key: &str) -> String {
-    value
-        .get(key)
-        .and_then(|entry| entry.as_str())
-        .map(str::trim)
-        .filter(|entry| !entry.is_empty())
-        .unwrap_or("not_declared")
-        .to_string()
-}
-
-fn detect_run_context() -> Result<crate::RunContextV1> {
-    let mode = std::env::var("BIJUX_RUN_CONTEXT").unwrap_or_else(|_| "local".to_string());
-    if mode.eq_ignore_ascii_case("hpc") {
-        let site = std::env::var("BIJUX_HPC_SITE")
-            .ok()
-            .filter(|value| !value.trim().is_empty())
-            .ok_or_else(|| anyhow!("HPC run context requires BIJUX_HPC_SITE"))?;
-        let scratch = std::env::var("TMPDIR")
-            .ok()
-            .filter(|value| !value.trim().is_empty())
-            .ok_or_else(|| anyhow!("HPC run context requires TMPDIR"))?;
-        let slurm = std::env::var("SLURM_JOB_ID").is_ok();
-        Ok(crate::RunContextV1::Hpc {
-            site,
-            scratch,
-            slurm,
-        })
-    } else {
-        Ok(crate::RunContextV1::Local)
-    }
-}
+use self::manifest_identity::{
+    canonical_sha256, declared_json_array, detect_run_context, input_hash_from_many,
+    manifest_sort_key,
+};
 
 #[derive(Debug)]
 pub struct RunDirs {
@@ -118,20 +75,6 @@ pub struct RunsExportRowV1 {
     pub params_hash: String,
     pub input_hash: String,
     pub metrics_path: Option<String>,
-}
-
-#[must_use]
-pub fn compute_run_id(
-    stage: &str,
-    tool: &str,
-    image_digest: &str,
-    input_hash: &str,
-    params_hash: &str,
-) -> String {
-    let seed = format!("{stage}|{tool}|{image_digest}|{input_hash}|{params_hash}");
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(seed.as_bytes());
-    format!("{:x}", hasher.finalize())
 }
 
 /// # Errors
@@ -200,7 +143,7 @@ pub fn write_run_manifest(
         .clone()
         .ok_or_else(|| anyhow!("run manifest requires declared tool image digest"))?;
     let cache_key = CacheKey::new(
-        input_fingerprint(&run_provenance.input_hashes),
+        input_hash_from_many(&run_provenance.input_hashes),
         run_provenance.params_hash.clone(),
         run_provenance.tool_version.clone(),
         declared_tool_image_digest.clone(),
@@ -268,7 +211,7 @@ pub fn write_run_manifest(
             .unwrap_or_else(|| declared_tool_image_digest.clone()),
         tool_version: run_provenance.tool_version.clone(),
         params_hash: run_provenance.params_hash.clone(),
-        input_hash: input_fingerprint(&run_provenance.input_hashes),
+        input_hash: input_hash_from_many(&run_provenance.input_hashes),
         bank_hashes: serde_json::json!({}),
     };
     write_canonical_json(
