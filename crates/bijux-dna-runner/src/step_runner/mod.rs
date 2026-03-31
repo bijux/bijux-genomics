@@ -8,17 +8,13 @@ use bijux_dna_core::prelude::hashing::{
     input_fingerprint, parameters_fingerprint, run_id_from_hashes,
 };
 use bijux_dna_environment::api::RuntimeKind;
-use uuid::Uuid;
-
-use crate::backend::docker::executor::{
-    docker_logs, docker_wait, docker_wait_timeout, parse_mem_to_mb,
-};
-use crate::command_runner::run_command;
 
 mod apptainer_args;
 mod artifacts;
 mod command_template;
 mod contracts;
+mod docker_execution;
+mod execution_outcome;
 mod identity;
 mod inputs;
 mod observer;
@@ -26,17 +22,18 @@ mod runtime_policy;
 
 use apptainer_args::build_apptainer_exec_args;
 use artifacts::write_minimum_run_artifacts;
+#[allow(unused_imports)]
 use command_template::container_command_template;
 pub use contracts::StageResultV1;
+use docker_execution::execute_docker_step;
 use identity::{
     execution_pipeline_identity, execution_sample_identity, hash_inputs,
     infer_tool_version_from_image, runtime_platform_identity,
 };
+#[allow(unused_imports)]
 use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};
 pub use observer::execute_observer_command;
-use runtime_policy::{
-    configured_memory_mb, network_allowed, runtime_env_exports, stage_workdir_in_container,
-};
+use runtime_policy::configured_memory_mb;
 
 #[derive(Debug, Clone, Copy)]
 enum RunnerEffectKind {
@@ -81,76 +78,8 @@ pub fn execute_step(
         .map(|input| input.path.clone())
         .collect();
     let input_root = common_parent(&inputs).unwrap_or_else(|| out_dir.clone());
-    let preserve_absolute_inputs = preserve_absolute_input_paths(&inputs);
-    let bind_roots = input_bind_roots(&inputs, &input_root, preserve_absolute_inputs);
-    let output_mount = format!("{}:/data/output", out_dir.display());
-    let command_template = container_command_template(
-        &step.command.template,
-        &input_root,
-        out_dir,
-        preserve_absolute_inputs,
-    );
-
-    let (output, exit_code, stdout, stderr, runtime_s, memory_mb) = match runner {
-        RuntimeKind::Docker => {
-            let container_name = format!("bijux-dna-stage-{}", Uuid::new_v4());
-            let mut args: Vec<String> = vec![
-                "run".to_string(),
-                "-d".to_string(),
-                "--rm=false".to_string(),
-                "--name".to_string(),
-                container_name.clone(),
-            ];
-            if std::env::var("BIJUX_STAGE_WORKDIR").is_ok() {
-                args.push("-w".to_string());
-                args.push(stage_workdir_in_container(out_dir, RuntimeKind::Docker));
-            }
-            for (key, value) in runtime_env_exports() {
-                args.push("-e".to_string());
-                args.push(format!("{key}={value}"));
-            }
-            if !network_allowed() {
-                args.push("--network".to_string());
-                args.push("none".to_string());
-            }
-            for bind_root in &bind_roots {
-                let input_mount = if preserve_absolute_inputs {
-                    format!("{}:{}:ro", bind_root.display(), bind_root.display())
-                } else {
-                    format!("{}:/data/input:ro", bind_root.display())
-                };
-                args.push("-v".to_string());
-                args.push(input_mount);
-            }
-            args.extend(["-v".to_string(), output_mount, step.image.image.clone()]);
-            args.extend(command_template.clone());
-
-            let output = run_command("docker", &args)
-                .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
-            if output.exit_code != 0 {
-                return Err(runner_failure(
-                    RunnerEffectKind::ContainerLifecycle,
-                    format!("docker run failed for {}", step.step_id.0),
-                ));
-            }
-            let id = output.stdout.trim().to_string();
-            if id.is_empty() {
-                return Err(runner_failure(
-                    RunnerEffectKind::ContainerLifecycle,
-                    format!("missing container id for {}", step.step_id.0),
-                ));
-            }
-            let exit_code = if let Some(timeout) = timeout {
-                docker_wait_timeout(&id, timeout)?
-            } else {
-                docker_wait(&id)?
-            };
-            let stdout = docker_logs(&id)?;
-            let stderr = String::new();
-            let runtime_s = output.runtime_s;
-            let memory_mb = parse_mem_to_mb("0MiB / 0MiB").unwrap_or(0.0);
-            (output, exit_code, stdout, stderr, runtime_s, memory_mb)
-        }
+    let outcome = match runner {
+        RuntimeKind::Docker => execute_docker_step(step, &inputs, &input_root, out_dir, timeout)?,
         RuntimeKind::Apptainer | RuntimeKind::Singularity => {
             let args = build_apptainer_exec_args(step, &inputs, &input_root, out_dir, runner)?;
             let bin = if runner == RuntimeKind::Apptainer {
@@ -158,14 +87,21 @@ pub fn execute_step(
             } else {
                 "singularity"
             };
-            let output = run_command(bin, &args)
+            let command_output = crate::command_runner::run_command(bin, &args)
                 .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
-            let exit_code = output.exit_code;
-            let stdout = output.stdout.clone();
-            let stderr = output.stderr.clone();
-            let runtime_s = output.runtime_s;
+            let exit_code = command_output.exit_code;
+            let stdout = command_output.stdout.clone();
+            let stderr = command_output.stderr.clone();
+            let runtime_s = command_output.runtime_s;
             let memory_mb = configured_memory_mb(step);
-            (output, exit_code, stdout, stderr, runtime_s, memory_mb)
+            execution_outcome::StepExecutionOutcome {
+                command_output,
+                exit_code,
+                stdout,
+                stderr,
+                runtime_s,
+                memory_mb,
+            }
         }
     };
 
@@ -205,21 +141,21 @@ pub fn execute_step(
         &input_hashes,
         &output_hashes,
         runner,
-        &output.command,
+        &outcome.command_output.command,
         &run_id,
         &params_fingerprint,
     )?;
 
     Ok(StageResultV1 {
         run_id,
-        exit_code,
-        runtime_s,
-        memory_mb,
+        exit_code: outcome.exit_code,
+        runtime_s: outcome.runtime_s,
+        memory_mb: outcome.memory_mb,
         outputs,
         metrics_path: None,
-        stdout,
-        stderr,
-        command: output.command,
+        stdout: outcome.stdout,
+        stderr: outcome.stderr,
+        command: outcome.command_output.command,
     })
 }
 

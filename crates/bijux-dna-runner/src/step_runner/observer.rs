@@ -5,7 +5,8 @@ use bijux_dna_environment::api::RuntimeKind;
 
 use crate::command_runner::{run_command, CommandOutputV1};
 
-use super::{network_allowed, runner_failure, RunnerEffectKind};
+use super::runtime_policy::network_allowed;
+use super::{runner_failure, RunnerEffectKind};
 
 /// Execute a lightweight observer command using docker.
 ///
