@@ -7,6 +7,8 @@ mod processing_read_preparation;
 mod processing_trimming;
 mod profiling;
 mod quality;
+mod quality_qc;
+mod quality_read_flow;
 mod taxonomy;
 mod validation_semantics;
 
