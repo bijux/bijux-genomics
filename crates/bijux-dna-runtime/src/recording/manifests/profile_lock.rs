@@ -2,8 +2,8 @@ use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 
+use super::super::io::{hash_file_sha256, write_canonical_json};
 use super::manifest_identity::{canonical_sha256, declared_json_array};
-use super::{hash_file_sha256, write_canonical_json};
 
 /// # Errors
 /// Returns an error if profile or lock manifests cannot be generated.

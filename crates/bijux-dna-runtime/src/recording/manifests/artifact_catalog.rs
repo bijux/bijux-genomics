@@ -5,7 +5,8 @@ use serde::Serialize;
 
 use bijux_dna_infra::bench_tools_dir;
 
-use super::{hash_file_sha256, write_canonical_json, RunArtifactInput, RunDirs};
+use super::super::io::{hash_file_sha256, write_canonical_json};
+use super::{RunArtifactInput, RunDirs};
 use crate::recording::manifests::manifest_identity::manifest_sort_key;
 
 pub(super) fn collect_all_run_artifacts(
