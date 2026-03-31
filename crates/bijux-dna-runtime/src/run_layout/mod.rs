@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 
 mod contracts;
+mod journal;
 
 use std::path::Path;
-use std::time::Duration;
 
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
@@ -13,8 +13,8 @@ use bijux_dna_core::contract::canonical::to_canonical_json_bytes;
 use bijux_dna_core::contract::RunMetadataV1;
 
 use crate::recording::write_canonical_json;
-use crate::telemetry::events::RunEvent;
 pub use contracts::*;
+pub use journal::{append_event, update_run_index};
 
 /// Create the canonical run layout under the base directory.
 ///
@@ -65,52 +65,6 @@ pub fn write_run_metadata(layout: &RunLayout, metadata: &RunMetadataV1) -> Resul
 pub fn write_manifest(layout: &RunLayout, manifest: &RunManifest) -> Result<()> {
     let payload = to_canonical_json_bytes(manifest)?;
     bijux_dna_infra::atomic_write_bytes(&layout.manifest_path, payload.as_slice())?;
-    Ok(())
-}
-
-/// Append a run entry to `bijux-dna-runs/index.jsonl`.
-///
-/// # Errors
-/// Returns an error if the index cannot be written.
-pub fn update_run_index(base_dir: &Path, entry: RunIndexEntry) -> Result<()> {
-    let index_path = base_dir.join("bijux-dna-runs").join("index.jsonl");
-    if let Some(parent) = index_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)?;
-    }
-    let _lock = bijux_dna_infra::FileLock::acquire(
-        &index_path.with_extension("jsonl.lock"),
-        Duration::from_secs(5),
-    )
-    .context("acquire run index lock")?;
-    let line = RunIndexLine {
-        schema_version: 1,
-        run: entry,
-    };
-    let payload = serde_json::to_string(&line)?;
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(index_path)?;
-    std::io::Write::write_all(&mut file, format!("{payload}\n").as_bytes())?;
-    Ok(())
-}
-
-/// Append an execution event to `events.jsonl`.
-///
-/// # Errors
-/// Returns an error if the file cannot be written.
-pub fn append_event(layout: &RunLayout, event: &RunEvent) -> Result<()> {
-    let _lock = bijux_dna_infra::FileLock::acquire(
-        &layout.events_path.with_extension("jsonl.lock"),
-        Duration::from_secs(5),
-    )
-    .context("acquire events jsonl lock")?;
-    let payload = serde_json::to_string(event)?;
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&layout.events_path)?;
-    std::io::Write::write_all(&mut file, format!("{payload}\n").as_bytes())?;
     Ok(())
 }
 
