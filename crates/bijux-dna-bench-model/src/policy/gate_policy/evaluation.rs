@@ -198,7 +198,7 @@ fn completeness_score(required_metrics: &[String], missing_metrics: &[String]) -
     if required_metrics.is_empty() {
         return 1.0;
     }
-    let missing = missing_metrics.len() as f64;
-    let total = required_metrics.len() as f64;
+    let missing = f64::from(u32::try_from(missing_metrics.len()).unwrap_or(u32::MAX));
+    let total = f64::from(u32::try_from(required_metrics.len()).unwrap_or(u32::MAX));
     (1.0 - (missing / total)).clamp(0.0, 1.0)
 }
