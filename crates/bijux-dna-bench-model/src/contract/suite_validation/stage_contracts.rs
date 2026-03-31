@@ -1,39 +1,17 @@
-//! Owner: bijux-dna-bench
-//! Benchmark suite contract validation entrypoint.
-
-use crate::error::BenchError;
-use crate::model::{
-    BenchmarkGraphNode, BenchmarkStageEdge, BenchmarkStageSpec, BenchmarkSuiteSpec,
-};
-
-use super::edge_validation::validate_edge_ports;
-use super::param_binding_validation::validate_stage_param_bindings;
-use super::stage_governance::{
+use crate::contract::param_binding_validation::validate_stage_param_bindings;
+use crate::contract::stage_governance::{
     ensure_supported_stage, planner_owned_graph_stage, validate_stage_tools,
 };
-use super::suite_analysis::validate_suite_analysis_requirements;
-use super::suite_diversity::validate_suite_diversity;
-use super::suite_graph::{declared_graph_nodes, validate_suite_dag};
-use super::SUITE_SCHEMA_V1;
+use crate::error::BenchError;
+use crate::model::{BenchmarkStageSpec, BenchmarkSuiteSpec};
 
-type DeclaredStageNodes = std::collections::BTreeSet<String>;
+use super::DeclaredStageNodes;
 
-/// # Errors
-/// Returns an error if the suite spec violates required fields.
-pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
-    validate_schema_version(suite)?;
-    validate_suite_diversity(suite)?;
-    let declared_stage_nodes = validate_stage_definitions(suite)?;
-    let declared_graph_nodes = declared_graph_nodes(suite);
-    validate_upstream_stage_references(suite, &declared_stage_nodes)?;
-    validate_explicit_edges(suite, &declared_graph_nodes)?;
-    validate_suite_analysis_requirements(suite)?;
-    validate_suite_dag(suite)?;
-    Ok(())
-}
-
-fn validate_schema_version(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
-    if suite.schema_version == SUITE_SCHEMA_V1 {
+pub(super) fn validate_schema_version(
+    suite: &BenchmarkSuiteSpec,
+    schema_version: &str,
+) -> Result<(), BenchError> {
+    if suite.schema_version == schema_version {
         return Ok(());
     }
     Err(BenchError::InvalidPolicy(format!(
@@ -42,7 +20,7 @@ fn validate_schema_version(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError>
     )))
 }
 
-fn validate_stage_definitions(
+pub(super) fn validate_stage_definitions(
     suite: &BenchmarkSuiteSpec,
 ) -> Result<DeclaredStageNodes, BenchError> {
     let mut seen_stage_nodes = std::collections::BTreeSet::new();
@@ -155,93 +133,6 @@ fn validate_stage_upstream_contracts(stage: &BenchmarkStageSpec) -> Result<(), B
         if upstream == node_id {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite stage {node_id} must not reference itself as an upstream stage"
-            )));
-        }
-    }
-    Ok(())
-}
-
-fn validate_upstream_stage_references(
-    suite: &BenchmarkSuiteSpec,
-    declared_stage_nodes: &DeclaredStageNodes,
-) -> Result<(), BenchError> {
-    for stage in &suite.stages {
-        let node_id = stage_node_id(stage);
-        for upstream in &stage.upstream_stage_instance_ids {
-            if !declared_stage_nodes.contains(upstream) {
-                return Err(BenchError::InvalidPolicy(format!(
-                    "suite stage {node_id} references unknown upstream stage node {upstream}"
-                )));
-            }
-        }
-    }
-    Ok(())
-}
-
-fn validate_explicit_edges(
-    suite: &BenchmarkSuiteSpec,
-    declared_graph_nodes: &std::collections::BTreeMap<String, BenchmarkGraphNode>,
-) -> Result<(), BenchError> {
-    let mut seen_edges = std::collections::BTreeSet::new();
-    for edge in &suite.edges {
-        validate_edge_identity(edge, declared_graph_nodes, &mut seen_edges)?;
-        validate_edge_ports(edge, declared_graph_nodes)?;
-    }
-    Ok(())
-}
-
-fn validate_edge_identity(
-    edge: &BenchmarkStageEdge,
-    declared_graph_nodes: &std::collections::BTreeMap<String, BenchmarkGraphNode>,
-    seen_edges: &mut std::collections::BTreeSet<(String, String, Option<String>, Option<String>)>,
-) -> Result<(), BenchError> {
-    if edge.from.trim().is_empty() || edge.to.trim().is_empty() {
-        return Err(BenchError::InvalidPolicy(
-            "suite edges must include non-empty from/to nodes".to_string(),
-        ));
-    }
-    if edge.from == edge.to {
-        return Err(BenchError::InvalidPolicy(format!(
-            "suite edge {} -> {} must not reference itself",
-            edge.from, edge.to
-        )));
-    }
-    if !declared_graph_nodes.contains_key(&edge.from) {
-        return Err(BenchError::InvalidPolicy(format!(
-            "suite edge references unknown source node {}",
-            edge.from
-        )));
-    }
-    if !declared_graph_nodes.contains_key(&edge.to) {
-        return Err(BenchError::InvalidPolicy(format!(
-            "suite edge references unknown target node {}",
-            edge.to
-        )));
-    }
-    if !seen_edges.insert((
-        edge.from.clone(),
-        edge.to.clone(),
-        edge.from_output_id.clone(),
-        edge.to_input_id.clone(),
-    )) {
-        return Err(BenchError::InvalidPolicy(format!(
-            "suite must not repeat edge {} -> {} with identical artifact bindings",
-            edge.from, edge.to
-        )));
-    }
-    if let Some(from_output_id) = edge.from_output_id.as_ref() {
-        if from_output_id.trim().is_empty() {
-            return Err(BenchError::InvalidPolicy(format!(
-                "suite edge {} -> {} must not include blank from_output_id",
-                edge.from, edge.to
-            )));
-        }
-    }
-    if let Some(to_input_id) = edge.to_input_id.as_ref() {
-        if to_input_id.trim().is_empty() {
-            return Err(BenchError::InvalidPolicy(format!(
-                "suite edge {} -> {} must not include blank to_input_id",
-                edge.from, edge.to
             )));
         }
     }
