@@ -11,7 +11,6 @@ mod planner_contract;
 mod run_artifact_catalog;
 mod run_execution_builder;
 pub mod stage_plan;
-mod stage_plan_json;
 pub mod stage_plugin;
 mod stage_reason;
 
@@ -38,8 +37,6 @@ pub use run_artifact_catalog::*;
 pub use run_execution_builder::*;
 #[allow(unused_imports)]
 pub use stage_plan::*;
-#[allow(unused_imports)]
-pub use stage_plan_json::*;
 #[allow(unused_imports)]
 pub use stage_plugin::*;
 #[allow(unused_imports)]
