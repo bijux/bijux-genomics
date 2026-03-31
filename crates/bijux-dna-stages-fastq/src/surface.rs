@@ -38,11 +38,6 @@ pub fn observer_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
     crate::observer::observer_specialized_stage_tool_bindings()
 }
 
-pub mod contracts {
-    pub use bijux_dna_domain_fastq::contract_for_stage;
-    pub use bijux_dna_domain_fastq::FastqStageContract as StageContract;
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
