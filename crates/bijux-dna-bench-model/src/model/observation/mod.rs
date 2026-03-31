@@ -4,19 +4,12 @@
 //! Must not perform IO or depend on compare/gate logic.
 //! Invariants: observations are fully typed and include confounders.
 
-use std::collections::BTreeMap;
+mod metrics_envelope;
 
 use serde::{Deserialize, Serialize};
 
 use crate::error::BenchError;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct MetricsEnvelope {
-    pub stage_id: String,
-    pub schema_version: String,
-    pub values: BTreeMap<String, f64>,
-}
+pub use metrics_envelope::MetricsEnvelope;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
