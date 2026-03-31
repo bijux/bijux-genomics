@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn parse_deduplicate_report_parses_fixture() -> Result<()> {
     let raw =
-            include_str!("../../../../bijux-dna-stages-fastq/tests/fixtures/deduplicate/default/deduplicate_report_v1.json");
+            include_str!("../../../../../bijux-dna-stages-fastq/tests/fixtures/deduplicate/default/deduplicate_report_v1.json");
     let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
     assert_eq!(reads_in, 1000);
     assert_eq!(reads_out, 820);
@@ -113,7 +113,7 @@ fn parse_remove_duplicates_provenance_parses_governed_json() -> Result<()> {
 #[test]
 fn parse_low_complexity_report_parses_fixture() -> Result<()> {
     let raw = include_str!(
-            "../../../../bijux-dna-stages-fastq/tests/fixtures/low_complexity/default/low_complexity_report_v1.json"
+            "../../../../../bijux-dna-stages-fastq/tests/fixtures/low_complexity/default/low_complexity_report_v1.json"
         );
     let removed = parse_low_complexity_report(raw)?;
     assert_eq!(removed, 137);
@@ -123,7 +123,7 @@ fn parse_low_complexity_report_parses_fixture() -> Result<()> {
 #[test]
 fn parse_deduplicate_report_parses_key_value_fixture() -> Result<()> {
     let raw = include_str!(
-            "../../../../bijux-dna-stages-fastq/tests/fixtures/stage_output_bank/default/fastq.remove_duplicates.fastuniq.txt"
+            "../../../../../bijux-dna-stages-fastq/tests/fixtures/stage_output_bank/default/fastq.remove_duplicates.fastuniq.txt"
         );
     let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
     assert_eq!(reads_in, 1000);

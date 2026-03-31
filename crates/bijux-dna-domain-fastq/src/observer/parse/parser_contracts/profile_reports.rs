@@ -3,7 +3,7 @@ use super::*;
 #[test]
 fn parse_seqkit_stats_parses_fixture() -> Result<()> {
     let stdout = include_str!(
-        "../../../../bijux-dna-stages-fastq/tests/fixtures/seqkit/default/seqkit_stats_v1.txt"
+        "../../../../../bijux-dna-stages-fastq/tests/fixtures/seqkit/default/seqkit_stats_v1.txt"
     );
     let metrics = parse_seqkit_stats(stdout)?;
     assert_eq!(metrics.reads, 1000);
