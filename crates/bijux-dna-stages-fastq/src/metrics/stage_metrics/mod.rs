@@ -1,6 +1,8 @@
 mod analysis;
 mod reporting;
 mod transform;
+mod transform_filtering;
+mod transform_pairing;
 
 use super::envelope_support::pair_counts_from_paths;
 use super::*;
