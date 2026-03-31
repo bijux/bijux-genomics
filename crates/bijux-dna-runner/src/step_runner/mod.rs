@@ -17,12 +17,14 @@ use crate::command_runner::run_command;
 
 mod artifacts;
 mod command_template;
+mod contracts;
 mod identity;
 mod inputs;
 mod observer;
 
 use artifacts::write_minimum_run_artifacts;
 use command_template::container_command_template;
+pub use contracts::StageResultV1;
 use identity::{
     execution_pipeline_identity, execution_sample_identity, hash_inputs,
     infer_tool_version_from_image, runtime_platform_identity,
@@ -51,19 +53,6 @@ impl RunnerEffectKind {
 
 fn runner_failure(kind: RunnerEffectKind, message: impl Into<String>) -> anyhow::Error {
     anyhow!("[runner_effect:{}] {}", kind.code(), message.into())
-}
-
-#[derive(Debug, Clone)]
-pub struct StageResultV1 {
-    pub run_id: String,
-    pub exit_code: i32,
-    pub runtime_s: f64,
-    pub memory_mb: f64,
-    pub outputs: Vec<PathBuf>,
-    pub metrics_path: Option<PathBuf>,
-    pub stdout: String,
-    pub stderr: String,
-    pub command: String,
 }
 
 fn build_apptainer_exec_args(
