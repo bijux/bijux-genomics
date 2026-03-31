@@ -12,10 +12,6 @@ pub mod stage_plugin;
 #[allow(unused_imports)]
 pub use execution_plan::*;
 #[allow(unused_imports)]
-pub use execution_plan_support::*;
-#[allow(unused_imports)]
-pub use execution_plan_validation::*;
-#[allow(unused_imports)]
 pub use executor_registry::*;
 #[allow(unused_imports)]
 pub use executor_registry_lookup::*;
