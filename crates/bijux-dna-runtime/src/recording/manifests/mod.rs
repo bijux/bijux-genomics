@@ -161,9 +161,7 @@ pub fn write_run_manifest(
         graph_hash.as_ref(),
         run_provenance,
         &declared_tool_image_digest,
-        &repro_context.tool_invocations,
-        repro_context.replay_tool_image_digest.as_ref(),
-        &repro_context.reproducibility_tuple,
+        &repro_context,
     )?;
     let payload = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",

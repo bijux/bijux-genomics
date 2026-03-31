@@ -62,16 +62,15 @@ pub(super) fn write_reproducibility_report(
     graph_hash: Option<&String>,
     run_provenance: &crate::RunProvenanceV1,
     declared_tool_image_digest: &str,
-    tool_invocations: &[ToolInvocationV1],
-    replay_tool_image_digest: Option<&String>,
-    reproducibility_tuple: &serde_json::Value,
+    repro_context: &ReproducibilityContext,
 ) -> Result<()> {
     let reproducibility_dir = run_artifacts_dir(run_dirs)?.join("reproducibility");
     bijux_dna_infra::ensure_dir(&reproducibility_dir).context("create reproducibility dir")?;
     let reproducibility_report_path = reproducibility_dir.join("report.json");
     let reproducibility_identity = bijux_dna_core::prelude::ReproducibilityIdentityV1 {
-        image_digest: replay_tool_image_digest
-            .cloned()
+        image_digest: repro_context
+            .replay_tool_image_digest
+            .clone()
             .unwrap_or_else(|| declared_tool_image_digest.to_string()),
         tool_version: run_provenance.tool_version.clone(),
         params_hash: run_provenance.params_hash.clone(),
@@ -88,9 +87,9 @@ pub(super) fn write_reproducibility_report(
             "input_hashes": run_provenance.input_hashes,
             "tool_version": run_provenance.tool_version,
             "tool_image_digest": run_provenance.tool_image_digest,
-            "tool_invocations": tool_invocations,
+            "tool_invocations": repro_context.tool_invocations,
             "reproducibility_identity": reproducibility_identity,
-            "reproducibility_tuple": reproducibility_tuple,
+            "reproducibility_tuple": repro_context.reproducibility_tuple,
         }),
     )
     .context("write reproducibility report")?;
