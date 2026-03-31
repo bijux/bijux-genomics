@@ -13,12 +13,14 @@ use crate::model::container::{ContainerCommandOutcome, NativeContainerCommandKey
 use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
 
+mod command_support;
 mod dispatch;
 mod metadata;
 mod runtime;
 mod validation;
 mod versioning;
 
+use self::command_support::*;
 use self::runtime::*;
 
 pub fn run_native_container_command(
@@ -27,55 +29,6 @@ pub fn run_native_container_command(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     dispatch::run_native_container_command(key, workspace, args)
-}
-
-fn run_container_runtime_check() -> Result<ContainerCommandOutcome> {
-    let system_type = std::env::var("SYSTEM_TYPE").unwrap_or_else(|_| "local".to_string());
-    let container_type = checked_container_type()?;
-    Ok(ContainerCommandOutcome::success(format!(
-        "SYSTEM_TYPE={system_type} CONTAINER_TYPE={container_type}\n"
-    )))
-}
-
-fn success_line(line: impl Into<String>) -> Result<ContainerCommandOutcome> {
-    Ok(ContainerCommandOutcome::success(format!(
-        "{}\n",
-        line.into()
-    )))
-}
-
-fn failure_lines(title: &str, errors: &[String]) -> Result<ContainerCommandOutcome> {
-    let mut stderr = String::new();
-    stderr.push_str(title);
-    stderr.push('\n');
-    for error in errors {
-        stderr.push_str(error);
-        if !error.ends_with('\n') {
-            stderr.push('\n');
-        }
-    }
-    Ok(ContainerCommandOutcome::failure(stderr))
-}
-
-fn read_utf8(path: &std::path::Path) -> Result<String> {
-    fs::read_to_string(path).with_context(|| format!("read {}", path.display()))
-}
-
-fn write_utf8(path: &std::path::Path, content: &str) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
-    bijux_dna_infra::write_bytes(path, content).with_context(|| format!("write {}", path.display()))
-}
-
-fn append_named_outcome(
-    aggregate: &mut ContainerCommandOutcome,
-    name: &str,
-    outcome: ContainerCommandOutcome,
-) {
-    aggregate.stdout.push_str(&format!("== {name}\n"));
-    *aggregate = merge_outcomes(aggregate.clone(), outcome);
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -435,21 +388,6 @@ fn append_toml_table(path: &std::path::Path, content: &str, new_file_header: &st
     write_utf8(path, &format!("{body}\n"))
 }
 
-fn iso_root_path(workspace: &Workspace) -> PathBuf {
-    PathBuf::from(
-        std::env::var("ISO_ROOT")
-            .unwrap_or_else(|_| workspace.path("artifacts").display().to_string()),
-    )
-}
-
-fn iso_run_id() -> String {
-    env_or_default("ISO_RUN_ID", "run")
-}
-
-fn policy_path(workspace: &Workspace, env_key: &str, default_rel: &str) -> PathBuf {
-    std::env::var(env_key).map_or_else(|_| workspace.path(default_rel), PathBuf::from)
-}
-
 fn apptainer_def_paths(workspace: &Workspace) -> Vec<PathBuf> {
     let mut paths = walkdir::WalkDir::new(workspace.path("containers/apptainer"))
         .into_iter()
@@ -633,51 +571,6 @@ fn line_has_network_command(line: &str) -> bool {
         || lowered.contains("apt-get update")
         || has_shell_word(&lowered, "curl")
         || has_shell_word(&lowered, "wget")
-}
-
-fn read_json(path: &std::path::Path) -> Result<serde_json::Value> {
-    serde_json::from_str(&read_utf8(path)?)
-        .with_context(|| format!("parse JSON {}", path.display()))
-}
-
-fn json_string_pretty(value: &serde_json::Value) -> Result<String> {
-    Ok(format!("{}\n", serde_json::to_string_pretty(value)?))
-}
-
-fn git_last_modified_timestamp(workspace: &Workspace, rel_path: &str) -> String {
-    std::process::Command::new("git")
-        .arg("-C")
-        .arg(&workspace.root)
-        .args(["log", "-1", "--format=%cI", "--", rel_path])
-        .output()
-        .ok()
-        .filter(|output| output.status.success())
-        .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_string())
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string())
-}
-
-fn out_path_arg(
-    workspace: &Workspace,
-    args: &[String],
-    default_rel: &str,
-    usage: &str,
-) -> Result<PathBuf> {
-    match args {
-        [] => Ok(workspace.path(default_rel)),
-        [single] if single == "--help" || single == "-h" => Err(anyhow!(usage.to_string())),
-        [single] => Ok(path_from_arg(workspace, single)),
-        _ => Err(anyhow!(usage.to_string())),
-    }
-}
-
-fn path_from_arg(workspace: &Workspace, arg: &str) -> PathBuf {
-    let path = PathBuf::from(arg);
-    if path.is_absolute() {
-        path
-    } else {
-        workspace.root.join(path)
-    }
 }
 
 #[derive(Serialize)]
