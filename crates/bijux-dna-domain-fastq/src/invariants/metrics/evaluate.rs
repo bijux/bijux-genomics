@@ -1,12 +1,7 @@
-mod merge;
-mod shared;
-mod stage_sets;
-mod trim_filter;
-mod validation;
-
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::invariants::{InvariantStatusV1, StageVerdictV1};
 
+use super::{merge, shared, stage_sets, trim_filter, validation};
 use crate::invariants::evaluation::{worst_status, InvariantEvaluation, InvariantThresholds};
 use crate::stages::ids::{
     STAGE_FILTER_READS, STAGE_MERGE_PAIRS, STAGE_TRIM_READS, STAGE_VALIDATE_READS,
