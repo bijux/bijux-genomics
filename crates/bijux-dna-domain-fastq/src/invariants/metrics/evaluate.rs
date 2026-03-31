@@ -1,3 +1,19 @@
+use crate::metrics::{
+    FastqFilterMetricsV1, FastqMergeMetricsV1, FastqTrimMetricsV1, FastqValidateMetricsV1,
+};
+use bijux_dna_core::ids::StageId;
+use bijux_dna_core::prelude::invariants::{InvariantStatusV1, StageVerdictV1};
+
+use crate::invariants::evaluation::{
+    result, retention_thresholds_for, worst_status, InvariantEvaluation, InvariantThresholds,
+};
+use crate::parse_effective_params;
+use crate::stages::ids::{
+    STAGE_CORRECT_ERRORS, STAGE_EXTRACT_UMIS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS,
+    STAGE_PROFILE_READS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_READS,
+    STAGE_VALIDATE_READS,
+};
+
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub fn evaluate_invariants(
@@ -223,8 +239,7 @@ pub fn evaluate_invariants(
             ));
         }
     } else if stage_id == &STAGE_VALIDATE_READS {
-        if let Ok(metrics) =
-            serde_json::from_value::<FastqValidateMetricsV1>(metrics_json.clone())
+        if let Ok(metrics) = serde_json::from_value::<FastqValidateMetricsV1>(metrics_json.clone())
         {
             key_metrics.insert(
                 "reads_invalid".to_string(),
@@ -391,7 +406,8 @@ pub const CORE_STAGES: [StageId; 6] = [
 ];
 
 #[allow(dead_code)]
-pub const OPTIONAL_STAGES: [StageId; 3] = [STAGE_REPORT_QC, STAGE_EXTRACT_UMIS, STAGE_SCREEN_TAXONOMY];
+pub const OPTIONAL_STAGES: [StageId; 3] =
+    [STAGE_REPORT_QC, STAGE_EXTRACT_UMIS, STAGE_SCREEN_TAXONOMY];
 
 #[allow(dead_code)]
 pub const META_STAGES: [StageId; 0] = [];
