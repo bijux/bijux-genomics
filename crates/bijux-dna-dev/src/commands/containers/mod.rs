@@ -14,6 +14,7 @@ use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
 
 mod command_support;
+mod content_support;
 mod dispatch;
 mod metadata;
 mod registry_catalog;
@@ -23,6 +24,7 @@ mod version_state;
 mod versioning;
 
 use self::command_support::*;
+use self::content_support::*;
 use self::registry_catalog::*;
 use self::runtime::*;
 use self::version_state::*;
@@ -33,14 +35,6 @@ pub fn run_native_container_command(
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
     dispatch::run_native_container_command(key, workspace, args)
-}
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
-}
-
-fn load_toml(path: &std::path::Path) -> Result<toml::Value> {
-    toml::from_str(&read_utf8(path)?).with_context(|| format!("parse TOML {}", path.display()))
 }
 
 fn command_hostname() -> String {
@@ -58,71 +52,4 @@ fn command_hostname() -> String {
         }
     }
     String::new()
-}
-
-fn table_string(table: &toml::map::Map<String, toml::Value>, key: &str) -> String {
-    table
-        .get(key)
-        .map(toml_value_string)
-        .unwrap_or_default()
-        .trim()
-        .to_string()
-}
-
-fn table_bool(table: &toml::map::Map<String, toml::Value>, key: &str) -> bool {
-    table
-        .get(key)
-        .and_then(toml::Value::as_bool)
-        .unwrap_or(false)
-}
-
-fn table_array_strings(table: &toml::map::Map<String, toml::Value>, key: &str) -> Vec<String> {
-    table
-        .get(key)
-        .and_then(toml::Value::as_array)
-        .map(|values| {
-            values
-                .iter()
-                .map(toml_value_string)
-                .map(|value| value.trim().to_string())
-                .filter(|value| !value.is_empty())
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
-fn toml_value_string(value: &toml::Value) -> String {
-    match value {
-        toml::Value::String(value) => value.clone(),
-        toml::Value::Integer(value) => value.to_string(),
-        toml::Value::Float(value) => value.to_string(),
-        toml::Value::Boolean(value) => value.to_string(),
-        toml::Value::Datetime(value) => value.to_string(),
-        toml::Value::Array(values) => values
-            .iter()
-            .map(toml_value_string)
-            .collect::<Vec<_>>()
-            .join(","),
-        toml::Value::Table(_) => String::new(),
-    }
-}
-
-fn markdown_code_value(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-}
-
-fn has_shell_word(line: &str, word: &str) -> bool {
-    line.split(|ch: char| !(ch.is_ascii_alphanumeric() || ch == '-' || ch == '_'))
-        .any(|token| token == word)
-}
-
-fn line_has_network_command(line: &str) -> bool {
-    let lowered = line.to_ascii_lowercase();
-    lowered.contains("git clone")
-        || lowered.contains("apt-get update")
-        || has_shell_word(&lowered, "curl")
-        || has_shell_word(&lowered, "wget")
 }
