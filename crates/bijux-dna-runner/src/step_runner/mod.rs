@@ -22,6 +22,7 @@ mod contracts;
 mod identity;
 mod inputs;
 mod observer;
+mod runtime_policy;
 
 use apptainer_args::build_apptainer_exec_args;
 use artifacts::write_minimum_run_artifacts;
@@ -33,6 +34,9 @@ use identity::{
 };
 use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};
 pub use observer::execute_observer_command;
+use runtime_policy::{
+    configured_memory_mb, network_allowed, runtime_env_exports, stage_workdir_in_container,
+};
 
 #[derive(Debug, Clone, Copy)]
 enum RunnerEffectKind {
@@ -55,40 +59,6 @@ impl RunnerEffectKind {
 
 fn runner_failure(kind: RunnerEffectKind, message: impl Into<String>) -> anyhow::Error {
     anyhow!("[runner_effect:{}] {}", kind.code(), message.into())
-}
-
-fn runtime_env_exports() -> Vec<(String, String)> {
-    let mut pairs = Vec::new();
-    for key in [
-        "LC_ALL",
-        "LANG",
-        "TZ",
-        "TMPDIR",
-        "HOME",
-        "XDG_CACHE_HOME",
-        "BIJUX_CACHE_ROOT",
-        "BIJUX_STAGE_THREADS",
-        "BIJUX_STAGE_MEMORY_MB",
-        "BIJUX_COMPRESSION_THREADS",
-        "BIJUX_STAGE_SEED",
-        "BIJUX_UMASK",
-    ] {
-        if let Ok(value) = std::env::var(key) {
-            pairs.push((key.to_string(), value));
-        }
-    }
-    pairs
-}
-
-fn configured_memory_mb(step: &ExecutionStep) -> f64 {
-    if let Ok(value) = std::env::var("BIJUX_STAGE_MEMORY_MB") {
-        if let Ok(parsed) = value.parse::<f64>() {
-            if parsed.is_finite() && parsed > 0.0 {
-                return parsed;
-            }
-        }
-    }
-    f64::from(step.resources.mem_gb.max(1)) * 1024.0
 }
 
 /// Execute a single step using docker.
@@ -131,18 +101,9 @@ pub fn execute_step(
                 "--name".to_string(),
                 container_name.clone(),
             ];
-            if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
-                let out_dir_prefix = format!("{}/", out_dir.display());
-                let workdir_in_container = if workdir.starts_with(&out_dir_prefix) {
-                    format!(
-                        "/data/output/{}",
-                        workdir.trim_start_matches(&out_dir_prefix)
-                    )
-                } else {
-                    "/data/output".to_string()
-                };
+            if std::env::var("BIJUX_STAGE_WORKDIR").is_ok() {
                 args.push("-w".to_string());
-                args.push(workdir_in_container);
+                args.push(stage_workdir_in_container(out_dir, RuntimeKind::Docker));
             }
             for (key, value) in runtime_env_exports() {
                 args.push("-e".to_string());
@@ -260,12 +221,6 @@ pub fn execute_step(
         stderr,
         command: output.command,
     })
-}
-
-fn network_allowed() -> bool {
-    std::env::var("BIJUX_ALLOW_NETWORK")
-        .ok()
-        .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
 }
 
 #[cfg(test)]

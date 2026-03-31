@@ -6,6 +6,7 @@ use bijux_dna_environment::api::RuntimeKind;
 
 use super::command_template::container_command_template;
 use super::inputs::{input_bind_roots, preserve_absolute_input_paths};
+use super::runtime_policy::stage_workdir_in_container;
 use super::{runner_failure, RunnerEffectKind};
 
 pub(super) fn build_apptainer_exec_args(
@@ -35,21 +36,8 @@ pub(super) fn build_apptainer_exec_args(
     }
     args.push("--bind".to_string());
     args.push(output_mount);
-    let workdir_in_container = if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
-        let out_dir_prefix = format!("{}/", out_dir.display());
-        if workdir.starts_with(&out_dir_prefix) {
-            format!(
-                "/data/output/{}",
-                workdir.trim_start_matches(&out_dir_prefix)
-            )
-        } else {
-            "/data/output".to_string()
-        }
-    } else {
-        "/data/output".to_string()
-    };
     args.push("--pwd".to_string());
-    args.push(workdir_in_container);
+    args.push(stage_workdir_in_container(out_dir, RuntimeKind::Apptainer));
     args.push(step.image.image.clone());
     args.extend(container_command_template(
         &step.command.template,
