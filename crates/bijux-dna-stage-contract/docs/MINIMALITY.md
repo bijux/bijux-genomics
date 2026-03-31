@@ -11,6 +11,8 @@
 
 ## Allowed files
 - lib.rs
-- execution_plan.rs
-- stage_plan.rs
-- plugin.rs
+- execution_plan/
+- executor_registry/
+- plan_run/
+- stage_plan/
+- stage_plugin.rs
