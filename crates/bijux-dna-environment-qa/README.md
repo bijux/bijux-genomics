@@ -14,6 +14,13 @@ Upstream: QA workflows. Downstream: none in production.
 ## Public API / entrypoints
 See `crates/bijux-dna-environment-qa/docs/INDEX.md`, `crates/bijux-dna-environment-qa/docs/RUNBOOK.md`, `crates/bijux-dna-environment-qa/docs/QA_MATRIX.md`, `crates/bijux-dna-environment-qa/docs/DATASETS.md`, `crates/bijux-dna-environment-qa/docs/APPTAINER_PLAN.md`, `crates/bijux-dna-environment-qa/docs/CHANGE_RULES.md`.
 
+## Internal module layout
+The image QA surface is organized by responsibility:
+- `src/image_qa/contracts.rs` owns the shared QA stage and dataset contracts.
+- `src/image_qa/datasets/`, `src/image_qa/records/`, and `src/image_qa/validation/` own discovery, persistence, and pass requirements.
+- `src/image_qa/support/` owns layout helpers, runtime checks, seqkit metrics, and Docker execution helpers.
+- `src/image_qa/qa_docker_images/` owns Docker image planning, probing, and reporting for the image catalog smoke checks.
+
 ## Key contracts it owns/consumes
 QA manifests/reports and validation records.
 
