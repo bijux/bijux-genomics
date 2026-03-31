@@ -6,3 +6,8 @@ Public modules exported from src/lib.rs:
 - plan_run
 - stage_plan
 - stage_plugin
+
+Public re-exports from `src/lib.rs`:
+- execution-plan constructors, validation helpers, and edge contracts
+- run-plan assembly helpers and planner-contract views
+- stage-plan models, JSON projections, plan reasons, and execution-step projections

@@ -41,7 +41,7 @@ See `crates/bijux-dna-stage-contract/docs/TESTS.md`. Golden tests: `tests/schema
 Start at `crates/bijux-dna-stage-contract/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
-`src/lib.rs` and `src/execution_plan.rs`.
+`src/lib.rs`, then `src/execution_plan/mod.rs`, `src/stage_plan/mod.rs`, `src/plan_run/mod.rs`, and `src/executor_registry/mod.rs`.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.

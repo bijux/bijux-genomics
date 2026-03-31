@@ -1,4 +1,5 @@
 mod artifact_catalog;
+mod planner_contract;
 mod stage_builder;
 
 use std::path::PathBuf;
@@ -15,6 +16,7 @@ use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::ids::ArtifactId;
 
 pub use artifact_catalog::artifact_kind_schema;
+pub use planner_contract::*;
 pub use stage_builder::{
     build_stage_plan, build_tool_execution_spec, validate_stage_outputs,
 };

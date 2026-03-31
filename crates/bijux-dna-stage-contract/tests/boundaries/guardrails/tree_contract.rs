@@ -33,28 +33,22 @@ fn tree_contract_is_minimal() {
 
     let src_dir = root.join("src");
     let allowed_src = [
-        "execution_plan.rs",
-        "execution_plan_support.rs",
-        "execution_plan_validation.rs",
-        "execution_step.rs",
-        "executor_registry.rs",
-        "executor_registry_catalog.rs",
-        "executor_registry_lookup.rs",
+        "execution_plan/",
         "lib.rs",
-        "plan_edge.rs",
-        "plan_run.rs",
-        "planner_contract.rs",
-        "run_artifact_catalog.rs",
-        "run_execution_builder.rs",
-        "stage_plan.rs",
-        "stage_plan_json.rs",
+        "executor_registry/",
+        "plan_run/",
+        "stage_plan/",
         "stage_plugin.rs",
-        "stage_reason.rs",
     ];
     let mut src_entries = Vec::new();
     for entry in std::fs::read_dir(&src_dir).expect("read src dir") {
         let entry = entry.expect("read src entry");
-        let name = entry.file_name().to_string_lossy().to_string();
+        let path = entry.path();
+        let name = if path.is_dir() {
+            format!("{}/", entry.file_name().to_string_lossy())
+        } else {
+            entry.file_name().to_string_lossy().to_string()
+        };
         src_entries.push(name);
     }
     src_entries.sort();
