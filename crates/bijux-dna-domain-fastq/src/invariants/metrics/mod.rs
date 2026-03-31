@@ -1,3 +1,3 @@
 mod evaluate;
 
-pub use evaluate::{CORE_STAGES, META_STAGES, OPTIONAL_STAGES, evaluate_invariants};
+pub use evaluate::{evaluate_invariants, CORE_STAGES, META_STAGES, OPTIONAL_STAGES};
