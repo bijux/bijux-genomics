@@ -5,6 +5,7 @@ use std::time::Duration;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::ExecutionContract;
 use sha2::Digest;
+use tracing::warn;
 
 pub use crate::api::ResolvedImage;
 use crate::api::{docker_image_exists, resolve_image, PlatformSpec, ToolImageSpec};
@@ -37,7 +38,7 @@ pub fn trace_enabled() -> bool {
     std::env::var("BIJUX_TRACE_ENGINE").is_ok()
 }
 
-#[must_use]
+/// # Errors
 /// Returns an error if the file cannot be read.
 pub fn hash_file_sha256(path: &Path) -> Result<String> {
     let bytes = std::fs::read(path).context("read file for hash")?;
