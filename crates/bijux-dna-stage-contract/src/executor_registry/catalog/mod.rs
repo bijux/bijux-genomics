@@ -7,8 +7,8 @@ use bijux_dna_core::id_catalog;
 use crate::executor_registry::{ReadinessBadge, StageDomain, StageExecutorEntry};
 
 pub(crate) use executors::{
-    BAM_EXECUTOR, FASTQ_AMPLICON_EXECUTOR, FASTQ_CLASSIFY_EXECUTOR,
-    FASTQ_PREPROCESS_EXECUTOR, FASTQ_QC_EXECUTOR, FASTQ_REFERENCE_EXECUTOR, VCF_EXECUTOR,
+    BAM_EXECUTOR, FASTQ_AMPLICON_EXECUTOR, FASTQ_CLASSIFY_EXECUTOR, FASTQ_PREPROCESS_EXECUTOR,
+    FASTQ_QC_EXECUTOR, FASTQ_REFERENCE_EXECUTOR, VCF_EXECUTOR,
 };
 
 pub(crate) const ENTRIES: &[StageExecutorEntry] = &[
