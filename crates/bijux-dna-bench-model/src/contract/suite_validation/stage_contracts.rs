@@ -2,7 +2,7 @@ use crate::contract::param_binding_validation::validate_stage_param_bindings;
 use crate::contract::stage_governance::{
     ensure_supported_stage, planner_owned_graph_stage, validate_stage_tools,
 };
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 use crate::model::{BenchmarkStageSpec, BenchmarkSuiteSpec};
 
 use super::DeclaredStageNodes;

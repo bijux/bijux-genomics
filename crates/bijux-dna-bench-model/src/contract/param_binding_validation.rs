@@ -1,7 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Structured parameter binding validation for benchmark suites.
 
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 use crate::model::BenchmarkStageSpec;
 use bijux_dna_domain_fastq::stage_parameter_ids;
 

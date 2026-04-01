@@ -1,7 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Edge and port validation for benchmark suite graphs.
 
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 use crate::model::{BenchmarkGraphNode, BenchmarkStageEdge};
 use bijux_dna_domain_fastq::{stage_input_ids, stage_output_ids};
 

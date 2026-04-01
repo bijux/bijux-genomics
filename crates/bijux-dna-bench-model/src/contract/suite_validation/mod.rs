@@ -4,7 +4,7 @@
 mod edge_contracts;
 mod stage_contracts;
 
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 use crate::model::BenchmarkSuiteSpec;
 
 use super::suite_analysis::validate_suite_analysis_requirements;

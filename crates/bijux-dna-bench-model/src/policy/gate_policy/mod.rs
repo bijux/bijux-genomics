@@ -9,7 +9,7 @@ mod evaluation;
 
 use bijux_dna_analyze::metric_semantics;
 
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 pub use config::{GatePolicy, GatePolicyOverrides};
 
 impl GatePolicy {

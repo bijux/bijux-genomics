@@ -1,7 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Dataset diversity and stratification checks for benchmark suites.
 
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 use crate::model::BenchmarkSuiteSpec;
 
 pub(crate) fn validate_suite_diversity(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {

@@ -1,7 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Validation for non-suite benchmark contract records.
 
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 use crate::model::{BenchmarkObservation, BenchmarkSummary};
 use crate::policy::GateDecision;
 

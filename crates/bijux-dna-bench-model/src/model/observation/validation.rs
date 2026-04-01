@@ -1,4 +1,4 @@
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 
 use super::BenchmarkObservation;
 
