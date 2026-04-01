@@ -1,3 +1,3 @@
 # bijux-dna-policies boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+Owns boundary policies for dependency layering, public surface safety, documentation placement, and workspace layout contracts.

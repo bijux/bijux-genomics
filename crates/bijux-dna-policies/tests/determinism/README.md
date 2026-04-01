@@ -1,3 +1,3 @@
 # bijux-dna-policies determinism
 
-This directory is reserved for determinism tests by intent taxonomy.
+Owns deterministic ordering and fixture stability checks for the policy suite.

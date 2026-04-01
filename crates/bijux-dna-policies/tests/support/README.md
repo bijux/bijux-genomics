@@ -1,2 +1,2 @@
 Shared filesystem helpers for policy tests.
-Avoid adding new helpers unless they are broadly reused.
+Only broadly reused helpers belong here; policy-specific traversal stays with the owning test or source module.
