@@ -1,11 +1,10 @@
+use super::DeclaredStageNodes;
 use crate::contract::suite::{
     ensure_supported_stage, planner_owned_graph_stage, validate_stage_param_bindings,
     validate_stage_tools,
 };
 use crate::diagnostics::BenchError;
 use crate::model::{BenchmarkStageSpec, BenchmarkSuiteSpec};
-
-use super::DeclaredStageNodes;
 
 pub(super) fn validate_schema_version(
     suite: &BenchmarkSuiteSpec,
