@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::image_qa::support::docker_exec::transform::MergeExecutionOutput;
+use super::models::MergeExecutionOutput;
 use crate::image_qa::support::ResolvedImage;
 use crate::image_qa::support::{command_string, docker_logs, docker_wait_timeout, push_arg};
 

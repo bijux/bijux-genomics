@@ -9,18 +9,6 @@ use crate::image_qa::support::{
     TrimExecutionOutput,
 };
 
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct MergeExecutionOutput {
-    pub exit_code: i32,
-    pub stdout: String,
-    pub stderr: String,
-    pub merged_fastq: std::path::PathBuf,
-    pub unmerged_r1: std::path::PathBuf,
-    pub unmerged_r2: std::path::PathBuf,
-    pub command: String,
-}
-
 #[allow(clippy::too_many_lines)]
 pub fn run_tool_container_with_timeout(
     tool: &str,
