@@ -4,8 +4,6 @@ mod backoff;
 mod clock;
 mod policy;
 mod runtime;
+mod stable_surface;
 
-pub use backoff::backoff_delay;
-pub use clock::{Clock, SystemClock};
-pub use policy::RetryPolicy;
-pub use runtime::retry_with;
+pub use stable_surface::*;
