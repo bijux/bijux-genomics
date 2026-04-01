@@ -4,7 +4,7 @@ pub use crate::catalog::{
     CatalogCompatibility, CatalogFileEntry, MapCatalogEntry, MapCompatibility, MapLockEntry,
     PanelCatalogEntry, PanelLockEntry,
 };
-pub use crate::models::{
+pub use crate::model::{
     BuildId, ContigMap, ContigNormalizationPolicy, GeneticMapBankEntry, OrganellarPolicy,
     ParRegion, ReferenceBankEntry, ReferenceBundle, ReferenceProvenance, ReferenceSet,
     ResolvedSpeciesContext, SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures,
