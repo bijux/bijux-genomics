@@ -1,5 +1,6 @@
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
+use crate::tool_selection::filter_tools_by_role;
+use crate::tooling::{ensure_bench_runner, load_workspace_registry};
 use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;

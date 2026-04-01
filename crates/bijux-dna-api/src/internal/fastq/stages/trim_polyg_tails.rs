@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{filter_tools_by_role, load_workspace_registry};
+use crate::tool_selection::filter_tools_by_role;
+use crate::tooling::load_workspace_registry;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::query_shared::{
     fetch_fastq_trim_polyg_v1, insert_fastq_trim_polyg_v1,
