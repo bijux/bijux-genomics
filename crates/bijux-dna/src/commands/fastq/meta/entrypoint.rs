@@ -1,3 +1,4 @@
+use super::analyze::handle_analyze_command;
 use super::debug::handle_debug_command;
 use super::pipelines::handle_pipelines_command;
 use crate::cli::BenchConfigCommand;
@@ -22,12 +23,10 @@ use crate::commands::support::prelude::{
     bench_fastq_profile_overrepresented, bench_fastq_profile_read_lengths, bench_fastq_qc_post,
     bench_fastq_remove_chimeras, bench_fastq_remove_duplicates, bench_fastq_screen,
     bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_trim_polyg_tails,
-    bench_fastq_trim_terminal_damage, bench_fastq_umi, bench_fastq_validate_reads, cli,
-    compare_runs, compare_runs_with_baseline, env_doctor, load_facts_auto, load_image_catalog,
-    load_manifests, load_platform, load_run_summary, objective_spec, print_bench_schema,
-    print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
-    qc_class_label, render, render_report_bundle_html, resolve_report_inputs, run_env_prep,
-    run_env_smoke, run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
+    bench_fastq_trim_terminal_damage, bench_fastq_umi, bench_fastq_validate_reads, cli, env_doctor,
+    load_image_catalog, load_platform, print_bench_schema, print_env_export_json, print_env_images,
+    print_env_info, print_env_registry_list, qc_class_label, render, run_env_prep, run_env_smoke,
+    run_env_smoke_for_stage, run_image_qa, set_tool_tier_policy, workspace_audit,
     write_chimeras_report, write_cluster_otus_report, write_correct_report,
     write_deplete_host_report, write_deplete_reference_contaminants_report,
     write_deplete_rrna_report, write_detect_adapters_report, write_duplicates_report,
@@ -37,8 +36,8 @@ use crate::commands::support::prelude::{
     write_read_lengths_report, write_run_report_from_facts, write_run_summary_from_facts,
     write_screen_report, write_stage_summary_csv, write_stats_report, write_trim_polyg_report,
     write_trim_report, write_trim_terminal_damage_report, write_umi_report, write_validate_report,
-    AnalyzeCommand, BTreeMap, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand,
-    EnvCommand, Objective, Path, PoliciesCommand, RankInput, Result,
+    BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand, EnvCommand, Objective, Path,
+    PoliciesCommand, Result,
 };
 
 #[allow(clippy::too_many_lines)]
@@ -54,185 +53,7 @@ pub(crate) fn handle_meta_commands(
 
     match dna_command {
         DnaCommand::Pipelines(args) => handle_pipelines_command(args, registry_path),
-        DnaCommand::Analyze(args) | DnaCommand::Explain(args) => {
-            match &args.command {
-                AnalyzeCommand::Runs(args) => {
-                    let query = bijux_dna_api::v1::api::run::RunQuery {
-                        stage: args.stage.clone(),
-                        tool: args.tool.clone(),
-                        objective: args.objective.map(|obj| obj.as_str().to_string()),
-                        success: args.success,
-                    };
-                    let runs = bijux_dna_api::v1::api::run::query_runs(&args.index, &query)?;
-                    render::json::print_pretty(&runs)?;
-                }
-                AnalyzeCommand::Summary(args) => {
-                    let run_dir = args.search_root.join(&args.run_id);
-                    let summary_path = run_dir.join("run_summary.json");
-                    if summary_path.exists() {
-                        let summary = load_run_summary(&summary_path)?;
-                        render::json::print_pretty(&summary)?;
-                    } else {
-                        let facts_path = run_dir.join("facts.jsonl");
-                        let facts = load_facts_auto(&facts_path)?;
-                        write_run_summary_from_facts(&summary_path, &facts)?;
-                        let summary = load_run_summary(&summary_path)?;
-                        render::json::print_pretty(&summary)?;
-                    }
-                }
-                AnalyzeCommand::Compare(args) => {
-                    let objective = objective_spec(args.objective.into());
-                    let run_a = args.search_root.join(&args.run_a);
-                    let run_b = args.search_root.join(&args.run_b);
-                    let result = if let Some(baseline) = args.baseline.as_ref() {
-                        let baseline_dir = args.search_root.join(baseline);
-                        compare_runs_with_baseline(&run_a, &run_b, &baseline_dir, &objective)?
-                    } else {
-                        compare_runs(&run_a, &run_b, &objective)?
-                    };
-                    let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
-                    bijux_dna_api::v1::api::run::ensure_dir(output_dir)?;
-                    let path = output_dir.join("compare.json");
-                    atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
-                        .map_err(anyhow::Error::from)?;
-                    render::json::print_pretty(&result)?;
-                }
-                AnalyzeCommand::Rank(args) => {
-                    let run_dir = args.search_root.join(&args.run_id);
-                    let facts_path = run_dir.join("facts.jsonl");
-                    let facts = load_facts_auto(&facts_path)?;
-                    let mut by_tool: BTreeMap<
-                        String,
-                        Vec<&bijux_dna_api::v1::api::run::FactsRowV1>,
-                    > = BTreeMap::new();
-                    for row in facts.iter().filter(|row| row.stage_id == args.stage) {
-                        by_tool.entry(row.tool_id.clone()).or_default().push(row);
-                    }
-                    let mut inputs = Vec::new();
-                    for (tool, rows) in by_tool {
-                        let denom = f64::from(u32::try_from(rows.len().max(1)).unwrap_or(u32::MAX));
-                        let runtime = rows.iter().map(|row| row.runtime_s).sum::<f64>() / denom;
-                        let memory = rows.iter().map(|row| row.memory_mb).sum::<f64>() / denom;
-                        let read_retention =
-                            rows.iter()
-                                .find_map(|row| match (row.reads_in, row.reads_out) {
-                                    (Some(ri), Some(ro)) if ri > 0 => {
-                                        let reads_out_f64 = ro.to_string().parse::<f64>().ok()?;
-                                        let reads_in_f64 = ri.to_string().parse::<f64>().ok()?;
-                                        Some(reads_out_f64 / reads_in_f64)
-                                    }
-                                    _ => None,
-                                });
-                        let base_retention =
-                            rows.iter()
-                                .find_map(|row| match (row.bases_in, row.bases_out) {
-                                    (Some(bi), Some(bo)) if bi > 0 => {
-                                        let bases_out_f64 = bo.to_string().parse::<f64>().ok()?;
-                                        let bases_in_f64 = bi.to_string().parse::<f64>().ok()?;
-                                        Some(bases_out_f64 / bases_in_f64)
-                                    }
-                                    _ => None,
-                                });
-                        let error_reduction_proxy = rows.iter().find_map(|row| {
-                            row.metrics
-                                .get("mean_q_delta")
-                                .and_then(serde_json::Value::as_f64)
-                        });
-                        inputs.push(RankInput {
-                            tool,
-                            runtime_s: runtime,
-                            memory_mb: memory,
-                            read_retention,
-                            base_retention,
-                            error_reduction_proxy,
-                        });
-                    }
-                    let rankings = bijux_dna_api::v1::api::bench::build_rankings(&inputs)?;
-                    render::json::print_pretty(&rankings)?;
-                }
-                AnalyzeCommand::Report(args) => {
-                    let (run_dir, facts_path) = resolve_report_inputs(args)?;
-                    let facts = load_facts_auto(&facts_path)?;
-                    let report_path = write_run_report_from_facts(&run_dir, &facts)?;
-                    let summary_csv = run_dir.join("summary.csv");
-                    write_stage_summary_csv(&summary_csv, &facts)?;
-                    match args.format.as_str() {
-                        "json" => {
-                            let raw = std::fs::read_to_string(&report_path)?;
-                            println!("{raw}");
-                        }
-                        "html" | "bundle" => {
-                            let report_raw = std::fs::read_to_string(&report_path)?;
-                            let report_json: serde_json::Value = serde_json::from_str(&report_raw)
-                                .unwrap_or_else(|_| {
-                                    serde_json::json!({
-                                        "error": "failed to parse report.json"
-                                    })
-                                });
-                            let index_html = render_report_bundle_html(&report_json);
-                            let report_html = run_dir.join("report.html");
-                            atomic_write_bytes(&report_html, index_html.as_bytes())
-                                .map_err(anyhow::Error::from)?;
-                            if args.format == "bundle" {
-                                let bundle_dir = run_dir.join("report_bundle");
-                                bijux_dna_api::v1::api::run::ensure_dir(&bundle_dir)?;
-                                atomic_write_bytes(
-                                    &bundle_dir.join("index.html"),
-                                    index_html.as_bytes(),
-                                )
-                                .map_err(anyhow::Error::from)?;
-                                atomic_write_bytes(
-                                    &bundle_dir.join("report.json"),
-                                    report_raw.as_bytes(),
-                                )
-                                .map_err(anyhow::Error::from)?;
-                                println!("report bundle written to {}", bundle_dir.display());
-                            } else {
-                                println!("report html written to {}", report_html.display());
-                            }
-                        }
-                        _ => {
-                            println!("report written to {}", report_path.display());
-                        }
-                    }
-                }
-                AnalyzeCommand::Metrics(args) => {
-                    let run_dir = args.search_root.join(&args.run_id);
-                    let facts_path = run_dir.join("facts.jsonl");
-                    let facts = load_facts_auto(&facts_path)?;
-                    let mut stage_metrics: BTreeMap<String, serde_json::Value> = BTreeMap::new();
-                    for row in facts {
-                        if row.stage_id.starts_with("fastq.") {
-                            stage_metrics.insert(row.stage_id.clone(), row.metrics.clone());
-                        }
-                    }
-                    let summary = serde_json::json!({
-                        "schema_version": "bijux.metrics.summary.v1",
-                        "run_id": args.run_id,
-                        "stages": stage_metrics,
-                    });
-                    render::json::print_pretty(&summary)?;
-                }
-                AnalyzeCommand::Bench(args) => {
-                    let format = match args.report.as_str() {
-                        "json" => crate::commands::bench_suite::BenchReportFormat::Json,
-                        "html" => crate::commands::bench_suite::BenchReportFormat::Html,
-                        other => {
-                            return Err(anyhow!(
-                                "unsupported --report `{other}` (expected json|html)"
-                            ));
-                        }
-                    };
-                    let report_path = crate::commands::bench_suite::analyze_suite_with_format(
-                        &std::env::current_dir()?,
-                        &args.suite,
-                        format,
-                    )?;
-                    println!("suite_analysis_report={}", report_path.display());
-                }
-            }
-            Ok(true)
-        }
+        DnaCommand::Analyze(args) | DnaCommand::Explain(args) => handle_analyze_command(args),
         DnaCommand::Environment(args) => {
             match &args.command {
                 EnvCommand::List => {
