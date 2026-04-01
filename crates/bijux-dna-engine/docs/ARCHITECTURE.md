@@ -8,12 +8,12 @@ effects directly.
 ```text
 crates/bijux-dna-engine/
 ├── src/
-│   ├── control.rs         # cancellation control
-│   ├── engine_config.rs   # engine execution policy
+│   ├── control/           # cancellation token contracts and state transitions
+│   ├── engine_config/     # engine execution policy and graph application
 │   ├── engine_driver.rs   # Engine entrypoint
 │   ├── errors.rs          # engine-owned error taxonomy
 │   ├── executor/          # execution orchestration internals
-│   ├── observability.rs   # events and hooks
+│   ├── observability/     # events and hook contracts
 │   └── public_api/        # curated stable surface
 └── tests/
     ├── boundaries/        # architecture and effect-boundary guardrails
@@ -26,17 +26,18 @@ crates/bijux-dna-engine/
 ```text
 src/executor/
 ├── contracts/     # output, metrics, and run-artifact verification
-├── graph.rs       # graph normalization and ordering preparation
+├── graph/         # graph normalization and ordering preparation
 ├── mod.rs         # executor facade
 ├── recording/     # execution-record payload and persistence
-├── step_execution.rs
+├── step_execution/ # runner lifecycle and execution-record shaping
 └── topology.rs
 ```
 
 ## Dependency direction
-- `engine_driver.rs` applies `EngineConfig` and delegates execution to `executor/`
-- `executor/graph.rs` prepares ordered steps from the normalized `ExecutionGraph`
-- `executor/step_execution.rs` is the only place that coordinates runner calls, recording, and
+- `engine_driver.rs` delegates graph policy application to `engine_config/` and execution to
+  `executor/`
+- `executor/graph/` prepares ordered steps from the normalized `ExecutionGraph`
+- `executor/step_execution/` is the only place that coordinates runner calls, recording, and
   contract verification
 - `public_api/` curates the surface; `lib.rs` stays intentionally thin
 

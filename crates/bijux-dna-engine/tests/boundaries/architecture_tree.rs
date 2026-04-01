@@ -23,16 +23,28 @@ fn engine_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src")),
         entries([
-            "control.rs",
-            "engine_config.rs",
+            "control/",
+            "engine_config/",
             "engine_driver.rs",
             "errors.rs",
             "executor/",
             "lib.rs",
-            "observability.rs",
+            "observability/",
             "public_api/",
         ]),
         "src tree must match the documented engine layout"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/control")),
+        entries(["cancellation_state.rs", "mod.rs", "token_contract.rs"]),
+        "control tree must separate token contracts from state transitions"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/engine_config")),
+        entries(["graph_policy.rs", "mod.rs"]),
+        "engine config tree must separate config contracts from graph policy application"
     );
 
     assert_eq!(
@@ -40,13 +52,19 @@ fn engine_tree_matches_architecture_contract() {
         entries([
             "OWNER.toml",
             "contracts/",
-            "graph.rs",
+            "graph/",
             "mod.rs",
             "recording/",
-            "step_execution.rs",
+            "step_execution/",
             "topology.rs",
         ]),
         "executor tree must stay partitioned by execution concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/executor/graph")),
+        entries(["mod.rs"]),
+        "executor graph tree must stay focused on prepared graph assembly"
     );
 
     assert_eq!(
@@ -62,8 +80,20 @@ fn engine_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/executor/step_execution")),
+        entries(["mod.rs", "stage_record.rs"]),
+        "step execution tree must separate lifecycle orchestration from record shaping"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/observability")),
+        entries(["events.rs", "hooks.rs", "mod.rs"]),
+        "observability tree must separate event contracts from hook contracts"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src/public_api")),
-        entries(["OWNER.toml", "mod.rs"]),
+        entries(["OWNER.toml", "mod.rs", "stable_surface.rs"]),
         "public api tree must stay curated"
     );
 
