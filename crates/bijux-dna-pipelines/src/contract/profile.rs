@@ -1,17 +1,9 @@
 use std::collections::BTreeMap;
 
-use bijux_dna_core::ids::{LibraryModel, StageId, ToolId};
+use bijux_dna_core::ids::LibraryModel;
 use serde::Serialize;
 
-use super::{Domain, InvariantsPreset, PipelineCapabilities, StabilityTier};
-use crate::DefaultParams;
-
-#[derive(Debug, Clone, Default, Serialize)]
-pub struct EffectiveDefaults {
-    pub tools: BTreeMap<StageId, ToolId>,
-    pub params: BTreeMap<StageId, DefaultParams>,
-    pub rationales: BTreeMap<StageId, String>,
-}
+use super::{Domain, EffectiveDefaults, InvariantsPreset, PipelineCapabilities, StabilityTier};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PipelineProfile {
