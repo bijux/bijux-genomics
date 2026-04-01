@@ -8,7 +8,7 @@ use anyhow::{anyhow, Result};
 
 use bijux_dna_core::contract::{list_runs, query_run, RunIndexEntry};
 
-use crate::repo::run_repo::{load_observations, RunMetadata, RunRepository};
+use crate::repo::{load_observations, RunMetadata, RunRepository};
 
 #[derive(Debug, Clone)]
 pub struct RunIndexRepository {
