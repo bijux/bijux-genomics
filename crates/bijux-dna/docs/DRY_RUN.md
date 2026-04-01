@@ -10,4 +10,4 @@ graph.json
 run_manifest.json
 ```
 
-Enforced by `tests/dry_run_fastq_golden.rs`.
+Enforced by `tests/contracts/dry_run/fastq_golden.rs`.
