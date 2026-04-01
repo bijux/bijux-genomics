@@ -4,7 +4,7 @@ use crate::commands::support::prelude::{
 
 use super::{
     explain_fastq_stage, list_adapter_presets, list_adapters, load_adapter_selection,
-    print_bank_presets, tool_tier_label,
+    print_bank_presets, tool_policy::tool_tier_label,
 };
 
 pub(super) fn handle_fastq_discovery(
