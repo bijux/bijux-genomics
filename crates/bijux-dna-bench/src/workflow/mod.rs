@@ -3,6 +3,7 @@
 #![allow(dead_code)]
 
 mod options;
+mod suite_load;
 
 use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
@@ -11,7 +12,6 @@ use crate::artifacts::{
     read_observations_jsonl, write_decision_json, write_observations_jsonl, write_summary_json,
     WriteMode,
 };
-use crate::repo::RunRepository;
 use bijux_dna_bench_model::compare::{compare_summaries, CompareReport};
 use bijux_dna_bench_model::contract::{
     validate_decision, validate_observation, validate_suite, validate_summary,
@@ -24,6 +24,7 @@ use bijux_dna_bench_model::{
 };
 
 pub use options::BenchRunOptions;
+pub use suite_load::load_suite;
 
 type StageDatasetScope = (String, String, Option<String>, Option<String>);
 type StageDatasetToolScope = (String, String, Option<String>, Option<String>, String);
@@ -36,25 +37,6 @@ type SummaryGroupKey = (
     String,
 );
 type SummaryStratumKey = (String, Option<String>, Option<String>, String);
-
-/// Load observations for a suite from a repository.
-///
-/// # Errors
-/// Returns an error if the repository cannot load observations.
-pub fn load_suite(
-    repo: &dyn RunRepository,
-    run_ids: Option<&[String]>,
-) -> Result<Vec<BenchmarkObservation>> {
-    let ids = match run_ids {
-        Some(ids) => ids.to_vec(),
-        None => repo.list_runs()?,
-    };
-    let mut observations = Vec::new();
-    for run_id in ids {
-        observations.extend(repo.load_observations(&run_id)?);
-    }
-    Ok(observations)
-}
 
 /// Summarize observations into a benchmark summary.
 ///
