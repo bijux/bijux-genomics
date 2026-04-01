@@ -73,13 +73,13 @@ impl ResolvedImage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub(super) struct RegistryImagePinFile {
+pub(in crate::resolve) struct RegistryImagePinFile {
     #[serde(default)]
     pub tools: Vec<RegistryImagePinRow>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub(super) struct RegistryImagePinRow {
+pub(in crate::resolve) struct RegistryImagePinRow {
     #[serde(default)]
     pub id: String,
     #[serde(default)]

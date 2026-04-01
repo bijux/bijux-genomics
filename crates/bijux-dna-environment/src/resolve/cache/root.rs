@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use crate::resolve::RuntimeKind;
 
 #[must_use]
-pub(super) fn cache_dir(runner: RuntimeKind) -> PathBuf {
+pub(in crate::resolve) fn cache_dir(runner: RuntimeKind) -> PathBuf {
     let cache_root = base_cache_root();
     match runner {
         RuntimeKind::Docker => cache_root.join("bijux").join("docker").join("images"),
@@ -13,7 +13,7 @@ pub(super) fn cache_dir(runner: RuntimeKind) -> PathBuf {
     }
 }
 
-pub(super) fn reference_cache_dir() -> PathBuf {
+pub(in crate::resolve) fn reference_cache_dir() -> PathBuf {
     base_cache_root().join("bijux").join("references")
 }
 

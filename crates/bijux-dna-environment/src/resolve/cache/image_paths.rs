@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use super::cache_dir;
 use crate::resolve::{ResolvedImage, RuntimeKind};
 
-pub(super) fn docker_image_exists_with<F>(image: &ResolvedImage, runner: F) -> bool
+pub(in crate::resolve) fn docker_image_exists_with<F>(image: &ResolvedImage, runner: F) -> bool
 where
     F: Fn(&[&str]) -> bool,
 {
@@ -11,7 +11,7 @@ where
 }
 
 #[must_use]
-pub(super) fn apptainer_sif_path(image: &ResolvedImage) -> PathBuf {
+pub(in crate::resolve) fn apptainer_sif_path(image: &ResolvedImage) -> PathBuf {
     let cache = cache_dir(RuntimeKind::Apptainer);
     let tool = extract_tool_name(&image.full_name);
     let version_or_digest = extract_version_or_digest(&image.full_name, &image.arch);
