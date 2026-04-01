@@ -2,10 +2,7 @@ pub mod contracts;
 
 pub mod catalog;
 
-/// Curated access to typed identities and their validators.
-pub mod identity {
-    pub use crate::ids;
-}
+pub mod identity;
 
 /// Curated access to shared metrics types and registries.
 pub mod metrics {
