@@ -9,5 +9,9 @@ Public modules exported from src/lib.rs:
 - prelude
 
 Stable surface mirrors:
-- `public_api` mirrors the durable root modules.
+- `public_api::contracts` mirrors contract access.
+- `public_api::catalog` mirrors canonical identifier access.
+- `public_api::identity` mirrors typed identifier access.
+- `public_api::metrics` mirrors metrics access.
+- `public_api::ergonomics` mirrors stable prelude access.
 - `prelude` remains the import-focused facade grouped by source area.

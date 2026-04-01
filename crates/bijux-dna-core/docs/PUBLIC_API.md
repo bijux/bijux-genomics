@@ -13,7 +13,7 @@ contract: required by planners/engine/runtime.
 id_catalog: canonical identifier constants.  
 ids: shared identifier types.  
 metrics: shared metrics types.  
-public_api: curated mirror of the stable surface.  
+public_api: curated mirror of the stable surface, partitioned into `contracts`, `catalog`, `identity`, `metrics`, and `ergonomics`.  
 prelude: stable import ergonomics.
 
 ## How to extend without widening surface

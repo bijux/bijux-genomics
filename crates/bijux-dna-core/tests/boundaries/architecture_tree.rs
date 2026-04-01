@@ -65,13 +65,7 @@ fn core_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/id_catalog")),
-        entries([
-            "OWNER.toml",
-            "mod.rs",
-            "pipeline_ids.rs",
-            "stage_ids.rs",
-            "tool_ids.rs"
-        ]),
+        entries(["OWNER.toml", "mod.rs", "pipeline/", "stage/", "tool/"]),
         "identifier catalog must stay partitioned by catalog concern"
     );
 
@@ -81,8 +75,8 @@ fn core_tree_matches_architecture_contract() {
             "OWNER.toml",
             "domain_model.rs",
             "mod.rs",
-            "parsing.rs",
-            "typed_ids.rs"
+            "parsing/",
+            "typed/"
         ]),
         "ids tree must keep typed ids, parsing, and semantic models separated"
     );
@@ -91,9 +85,10 @@ fn core_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/prelude")),
         entries([
             "OWNER.toml",
+            "catalog_surface.rs",
             "contract_surface.rs",
             "foundation_surface.rs",
-            "id_surface.rs",
+            "identity_surface.rs",
             "metric_surface.rs",
             "mod.rs",
         ]),
@@ -107,6 +102,74 @@ fn core_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/id_catalog/pipeline")),
+        entries([
+            "OWNER.toml",
+            "bam.rs",
+            "fastq.rs",
+            "fastq_to_bam.rs",
+            "mod.rs",
+            "vcf.rs"
+        ]),
+        "pipeline catalog must stay partitioned by graph concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/id_catalog/stage")),
+        entries([
+            "OWNER.toml",
+            "bam.rs",
+            "core.rs",
+            "fastq.rs",
+            "mod.rs",
+            "prefixes.rs",
+            "report.rs",
+            "vcf.rs",
+        ]),
+        "stage catalog must stay partitioned by domain and shared concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/id_catalog/tool")),
+        entries([
+            "OWNER.toml",
+            "bam.rs",
+            "fastq.rs",
+            "mod.rs",
+            "shared.rs",
+            "vcf.rs"
+        ]),
+        "tool catalog must stay partitioned by workflow concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/ids/parsing")),
+        entries([
+            "OWNER.toml",
+            "mod.rs",
+            "pipeline.rs",
+            "stage.rs",
+            "symbolic.rs",
+            "tool.rs"
+        ]),
+        "parsing tree must stay partitioned by identifier family"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/ids/typed")),
+        entries([
+            "OWNER.toml",
+            "artifact.rs",
+            "mod.rs",
+            "pipeline.rs",
+            "run.rs",
+            "stage.rs",
+            "tool.rs",
+        ]),
+        "typed id tree must stay partitioned by identifier family"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
             "README.md",
@@ -115,6 +178,7 @@ fn core_tree_matches_architecture_contract() {
             "contracts/",
             "contracts.rs",
             "determinism/",
+            "fixtures/",
             "guardrails.rs",
             "schemas/",
             "schemas.rs",

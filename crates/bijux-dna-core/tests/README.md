@@ -11,5 +11,6 @@ Intent directories:
 - `boundaries/` for layering and architecture contracts.
 - `contracts/` for behavior contracts.
 - `determinism/` for reproducibility notes and future coverage.
+- `fixtures/` for stable test inputs shared across entrypoints.
 - `schemas/` for public-surface and docs locks.
-- `semantics/` for semantic behavior checks.
+- `semantics/` for semantic behavior checks, including canonical identifier family coverage.

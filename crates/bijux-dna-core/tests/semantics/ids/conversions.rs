@@ -3,8 +3,8 @@ use std::convert::TryFrom;
 use bijux_dna_core::ids::{
     parse_pipeline_id, parse_stage_id, parse_tool_id, validate_artifact_id_str,
     validate_pipeline_id, validate_pipeline_id_str, validate_profile_id_str, validate_stage_id,
-    validate_stage_id_str, validate_tool_id, validate_tool_id_str, ArtifactId, PipelineId,
-    ProfileId, RunId, StageId, StepId, ToolId,
+    validate_stage_id_str, validate_tool_id, ArtifactId, PipelineId, ProfileId, RunId, StageId,
+    StepId, ToolId,
 };
 
 #[test]
