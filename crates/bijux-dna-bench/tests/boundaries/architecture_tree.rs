@@ -34,7 +34,7 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
-        entries(["mod.rs"]),
+        entries(["mod.rs", "stable_surface.rs"]),
         "public api tree must stay curated"
     );
 
@@ -42,12 +42,37 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/repo")),
         entries([
             "mod.rs",
-            "run_artifacts.rs",
-            "run_repo.rs",
+            "repo_root.rs",
+            "repository.rs",
+            "run_artifacts/",
+            "run_metadata.rs",
             "sqlite/",
             "workspace_paths.rs",
         ]),
         "repo tree must stay split between repository policy and persisted artifacts"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/repo/run_artifacts")),
+        entries([
+            "manifest_loader.rs",
+            "metrics_loader.rs",
+            "mod.rs",
+            "observations_loader.rs",
+        ]),
+        "run artifact loaders must stay separated by persisted artifact kind"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/repo/sqlite/queries")),
+        entries(["mod.rs", "run_index/"]),
+        "sqlite query tree must stay focused on explicit repository query families"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/repo/sqlite/queries/run_index")),
+        entries(["metadata_paths.rs", "mod.rs"]),
+        "run index query tree must separate repository queries from metadata path policy"
     );
 
     assert_eq!(
@@ -57,8 +82,10 @@ fn bench_tree_matches_architecture_contract() {
             "mod.rs",
             "options.rs",
             "run_suite.rs",
+            "summary_fairness.rs",
+            "summary_scope.rs",
+            "summary_statistics.rs",
             "suite_load.rs",
-            "summary_support.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
     );
