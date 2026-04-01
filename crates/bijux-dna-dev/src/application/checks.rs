@@ -60,7 +60,13 @@ impl CheckApplication {
                 package,
                 test_bin,
                 filter,
-            } => execution_adapters::run_cargo_test(&self.workspace, check, package, test_bin, filter),
+            } => execution_adapters::run_cargo_test(
+                &self.workspace,
+                check,
+                package,
+                test_bin,
+                filter,
+            ),
             CommandSpec::Process { program, args } => {
                 execution_adapters::run_process(&self.workspace, check, program, args)
             }

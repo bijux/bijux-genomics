@@ -1,14 +1,12 @@
-use anyhow::Result;
 use crate::catalog::ops::{
     assets_registry, docs_registry, examples_registry, hpc_registry, lab_registry, smoke_registry,
     test_registry, tooling_registry,
 };
+use anyhow::Result;
 use clap::Parser;
 
 use super::command_dispatch::{run_checks, run_containers, run_domain, run_ops};
-use super::schema::{
-    Cli, Command,
-};
+use super::schema::{Cli, Command};
 
 pub(super) fn run() -> Result<()> {
     let cli = Cli::parse();
