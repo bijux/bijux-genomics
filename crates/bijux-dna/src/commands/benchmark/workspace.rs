@@ -9,6 +9,7 @@ mod config_paths;
 mod contracts;
 mod layout_normalization;
 mod layout_status;
+mod publication_contracts;
 
 pub(crate) use self::config_loading::{
     expand_env_placeholders, load_benchmark_config, load_benchmark_publication_config,
@@ -28,6 +29,10 @@ pub(crate) use self::contracts::{
 };
 pub(crate) use self::layout_normalization::normalize_workspace_layout_report;
 pub(crate) use self::layout_status::write_workspace_layout_status;
+pub(crate) use self::publication_contracts::{
+    benchmark_publication_contract, benchmark_publication_contracts,
+    benchmark_publication_exclusions,
+};
 
 pub(crate) const BENCHMARK_CONFIG_ENV: &str = "BIJUX_BENCHMARK_CONFIG";
 pub(crate) const BENCHMARK_CONFIG_JSON_ENV: &str = "BIJUX_BENCHMARK_CONFIG_JSON";
@@ -240,63 +245,6 @@ pub(crate) fn run_normalize_workspace_layout(
     )?;
     println!("{}", serde_json::to_string_pretty(&report)?);
     Ok(())
-}
-
-pub(crate) fn benchmark_publication_contract(
-    cwd: &Path,
-    explicit_path: Option<&Path>,
-    corpus_id: &str,
-    stage_id: &str,
-) -> Result<CorpusBenchmarkContract> {
-    let publication = load_benchmark_publication_config(cwd, explicit_path)?;
-    benchmark_publication_contracts_from_config(&publication, corpus_id)?
-        .into_iter()
-        .find(|row| row.stage_id == stage_id)
-        .ok_or_else(|| anyhow!("missing {corpus_id} publication contract for {stage_id}"))
-}
-
-pub(crate) fn benchmark_publication_contracts(
-    cwd: &Path,
-    explicit_path: Option<&Path>,
-    corpus_id: &str,
-) -> Result<Vec<CorpusBenchmarkContract>> {
-    let publication = load_benchmark_publication_config(cwd, explicit_path)?;
-    benchmark_publication_contracts_from_config(&publication, corpus_id)
-}
-
-pub(crate) fn benchmark_publication_exclusions(
-    cwd: &Path,
-    explicit_path: Option<&Path>,
-    corpus_id: &str,
-) -> Result<Vec<CorpusBenchmarkExclusion>> {
-    let publication = load_benchmark_publication_config(cwd, explicit_path)?;
-    benchmark_publication_exclusions_from_config(&publication, corpus_id)
-}
-
-fn benchmark_publication_contracts_from_config(
-    publication: &BenchmarkPublicationConfig,
-    corpus_id: &str,
-) -> Result<Vec<CorpusBenchmarkContract>> {
-    let key = benchmark_publication_corpus_key(corpus_id);
-    publication
-        .corpora
-        .get(&key)
-        .cloned()
-        .map(|entry| entry.contracts)
-        .ok_or_else(|| anyhow!("benchmark publication config is missing [{key}]"))
-}
-
-fn benchmark_publication_exclusions_from_config(
-    publication: &BenchmarkPublicationConfig,
-    corpus_id: &str,
-) -> Result<Vec<CorpusBenchmarkExclusion>> {
-    let key = benchmark_publication_corpus_key(corpus_id);
-    publication
-        .corpora
-        .get(&key)
-        .cloned()
-        .map(|entry| entry.exclusions)
-        .ok_or_else(|| anyhow!("benchmark publication config is missing [{key}]"))
 }
 
 #[cfg(test)]
