@@ -1,6 +1,6 @@
 pub mod docker;
 mod facade;
 pub mod kinds;
+mod stable_surface;
 
-pub use facade::{build_tool_execution_spec, parse_mem_to_mb, replay_run, resolve_image_for_run};
-pub use kinds::BackendKind;
+pub use stable_surface::*;
