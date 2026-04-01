@@ -6,7 +6,7 @@ use bijux_dna_runtime::Runner;
 
 use crate::{CancellationToken, EngineHooks};
 
-mod contract_enforcer;
+mod contracts;
 mod graph;
 mod recording;
 mod step_execution;
