@@ -1,27 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::EnaSourcePreference;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EnaFileSource {
-    FastqFtp,
-    SubmittedFtp,
-    SraFtp,
-    BamFtp,
-}
-
-impl EnaFileSource {
-    #[must_use]
-    pub fn field_name(self) -> &'static str {
-        match self {
-            Self::FastqFtp => "fastq_ftp",
-            Self::SubmittedFtp => "submitted_ftp",
-            Self::SraFtp => "sra_ftp",
-            Self::BamFtp => "bam_ftp",
-        }
-    }
-}
+use super::{normalize_url, EnaFileSource, EnaSourcePreference};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EnaRecord {
@@ -91,15 +70,4 @@ pub fn split_ena_u64_field(value: &str) -> Vec<u64> {
         .filter(|s| !s.is_empty())
         .filter_map(|s| s.parse::<u64>().ok())
         .collect()
-}
-
-#[must_use]
-pub fn normalize_url(raw: &str, preference: EnaSourcePreference) -> String {
-    if raw.starts_with("http://") || raw.starts_with("https://") || raw.starts_with("ftp://") {
-        return raw.to_string();
-    }
-    match preference {
-        EnaSourcePreference::Ftp => format!("ftp://{raw}"),
-        EnaSourcePreference::Https => format!("https://{raw}"),
-    }
 }

@@ -1,10 +1,12 @@
 mod manifest;
 mod query;
 mod record;
+mod source_selection;
 
 pub use manifest::EnaRunManifest;
-pub use query::{EnaQuery, EnaResultKind, EnaSourcePreference};
-pub use record::{normalize_url, split_ena_field, split_ena_u64_field, EnaFileSource, EnaRecord};
+pub use query::EnaQuery;
+pub use record::{split_ena_field, split_ena_u64_field, EnaRecord};
+pub use source_selection::{normalize_url, EnaFileSource, EnaResultKind, EnaSourcePreference};
 
 #[cfg(test)]
 mod tests {
