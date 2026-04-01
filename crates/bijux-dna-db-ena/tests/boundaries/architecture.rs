@@ -22,44 +22,73 @@ fn db_ena_tree_matches_architecture_contract() {
         dir_entries(&root.join("src")),
         btree_set(&[
             "cli/",
+            "cli_entrypoint.rs",
             "client/",
             "download/",
             "lib.rs",
             "main.rs",
+            "manifest_store.rs",
             "model/",
+            "public_api/",
         ]),
         "src tree must match the documented db-ena layout"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/cli")),
-        btree_set(&["args.rs", "dispatch.rs", "manifest.rs", "mod.rs"]),
-        "cli tree must remain decomposed by parsing, dispatch, and manifest output"
+        btree_set(&["args.rs", "commands/", "mod.rs"]),
+        "cli tree must remain decomposed by parsing and command assembly"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/cli/commands")),
+        btree_set(&["download.rs", "mod.rs", "query.rs"]),
+        "cli commands must remain decomposed by query and download concern"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/client")),
-        btree_set(&["error.rs", "mod.rs", "parse.rs", "request.rs"]),
-        "client tree must remain decomposed by error, request, and parsing concern"
+        btree_set(&["error.rs", "filereport/", "mod.rs"]),
+        "client tree must remain decomposed by error and filereport concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/client/filereport")),
+        btree_set(&["headers.rs", "mod.rs", "request.rs", "rows.rs"]),
+        "filereport tree must remain decomposed by request, headers, and row decoding"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/download")),
         btree_set(&[
             "config.rs",
-            "execute.rs",
-            "item.rs",
             "mod.rs",
+            "output_layout.rs",
             "plan.rs",
             "report.rs",
+            "runtime.rs",
+            "task.rs",
+            "transfer.rs",
         ]),
-        "download tree must remain decomposed by config, execution, item, planning, and report concern"
+        "download tree must remain decomposed by config, planning, runtime, transfer, and report concern"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/model")),
-        btree_set(&["manifest.rs", "mod.rs", "query.rs", "record.rs"]),
-        "model tree must remain decomposed by manifest, query, and record concern"
+        btree_set(&[
+            "manifest.rs",
+            "mod.rs",
+            "query.rs",
+            "record.rs",
+            "source_selection.rs",
+        ]),
+        "model tree must remain decomposed by manifest, query, record, and source-selection concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/public_api")),
+        btree_set(&["mod.rs"]),
+        "public api tree must remain curated"
     );
 }
 

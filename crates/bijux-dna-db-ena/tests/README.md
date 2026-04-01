@@ -1,13 +1,7 @@
 # bijux-dna-db-ena Test Taxonomy
 
 Intent buckets in this crate:
-
-- `boundaries`: layering and ownership guardrails.
-- `contracts`: API, data, and schema behavioral contracts.
-- `determinism`: reproducibility and stable-output checks.
-- `schemas`: schema and public-surface stability snapshots.
-
-Speed model:
-
-- **fast**: unit/contract tests without large fixtures or external tool execution.
-- **slow**: heavy integration/snapshot regeneration tests; run in slow gate only.
+- `boundaries`: source-tree and crate-layout guardrails
+- `contracts`: reserved for user-visible ENA behavior contracts
+- `determinism`: reserved for reproducibility assertions
+- `schemas`: reserved for public-surface or persisted-schema snapshots
