@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use bijux_dna::commands::run_with_args;
+use bijux_dna::public_api::run_with_args;
 
 fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> Vec<u8> {
     let input = base.join("reads.fastq");
