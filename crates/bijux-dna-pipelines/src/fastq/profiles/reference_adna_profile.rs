@@ -1,7 +1,7 @@
 use bijux_dna_core::ids::{AssayKind, LibraryLayout, UdgTreatment};
 use bijux_dna_core::prelude::id_catalog;
 
-use super::contract_templates::{fastq_capabilities, fastq_library_model};
+use super::profile_contracts::{fastq_capabilities, fastq_library_model};
 use crate::fastq::defaults::{
     append_stage_once, default_shotgun_required_stages, reference_adna_fastq_defaults,
 };
