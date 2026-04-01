@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
+use crate::support::benchmark_runtime::ensure_bench_runner;
+use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
-use crate::tooling::{ensure_bench_runner, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_stats_v1, insert_fastq_stats_v1};
 use bijux_dna_analyze::{

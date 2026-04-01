@@ -11,8 +11,8 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_FILTER_READS,
 };
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
-use crate::tooling::load_workspace_registry;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_filter_v2, insert_fastq_filter_v2};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqFilterMetrics};
