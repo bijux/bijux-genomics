@@ -2,10 +2,10 @@
 
 Intent buckets in this crate:
 
-- \: layering and ownership guardrails.
-- \: API/data/schema behavioral contracts.
-- \: reproducibility and stable-output checks.
-- \: schema/public-surface stability snapshots.
+- `boundaries/`: layering and ownership guardrails.
+- `contracts/`: API and filesystem behavior contracts.
+- `determinism/`: stable-output and retry-sequence checks.
+- `snapshots/`: public-surface snapshot locks.
 
 Speed model:
 

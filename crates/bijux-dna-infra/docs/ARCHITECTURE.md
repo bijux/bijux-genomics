@@ -2,8 +2,18 @@
 
 ## Modules
 - formats/
+- io/
+- locking.rs
+- logging/
 - paths/
-- logging
+- retry/
+- run_directories/
+- temp.rs
 
 ## Data flow
-- Pure helpers, no orchestration.
+- `paths/` owns deterministic path construction only.
+- `run_directories/` owns run-layout contracts plus lock/publish operations.
+- `io/` owns filesystem effects and the infra-local IO error taxonomy.
+- `retry/` owns retry policy, clock abstraction, backoff math, and retry execution.
+- `logging/` owns tracing bootstrap and subscriber wiring.
+- No module may introduce domain semantics or become a generic catch-all.
