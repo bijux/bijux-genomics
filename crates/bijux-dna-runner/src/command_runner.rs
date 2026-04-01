@@ -4,20 +4,13 @@ use std::time::Instant;
 
 use anyhow::{Context, Result};
 
+mod command_output;
 mod invocation_identity;
 
+pub use command_output::CommandOutputV1;
 pub use invocation_identity::invocation_hash;
 
 use std::collections::BTreeMap;
-
-#[derive(Debug, Clone)]
-pub struct CommandOutputV1 {
-    pub stdout: String,
-    pub stderr: String,
-    pub exit_code: i32,
-    pub runtime_s: f64,
-    pub command: String,
-}
 
 fn build_command_string(command: &str, args: &[String]) -> String {
     if args.is_empty() {
