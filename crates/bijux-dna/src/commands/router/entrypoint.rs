@@ -9,7 +9,7 @@ use crate::commands::router::root::try_handle_root_command;
 use crate::commands::router::runtime::{
     configure_process_cli_env, configure_run_context_env, enter_cli_cwd,
 };
-use crate::commands::{bam, bench, cli, fastq, run_plan, vcf};
+use crate::commands::{bam, bench, cli, fastq, planning, vcf};
 
 /// # Errors
 /// Returns an error if CLI execution fails.
@@ -133,7 +133,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         .map_err(|err| anyhow!("HPC run blocked by registry policy: {err}"))?;
     }
 
-    run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
+    planning::run_plan(cli, dna_command, &registry, &domain_dir)
 }
 
 fn enforce_offline_runtime_policy() -> Result<()> {
