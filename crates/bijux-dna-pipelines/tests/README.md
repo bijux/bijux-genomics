@@ -4,7 +4,7 @@ Stable test entrypoints:
 - `boundaries.rs` for architecture and guardrail coverage.
 - `contracts.rs` for defaults, profiles, and registry contracts.
 - `guardrails.rs` for crate-local guardrail smoke checks.
-- `invariant_fast.rs` for fast invariant coverage.
+- `invariant_fast.rs` for fast FASTQ invariant coverage.
 
 Intent directories:
 - `boundaries/` for layout and boundary contracts.

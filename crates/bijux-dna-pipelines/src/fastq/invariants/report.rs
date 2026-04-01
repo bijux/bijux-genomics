@@ -1,8 +1,6 @@
 use serde::Serialize;
 
-use crate::{
-    InvariantSeverity, InvariantViolationV1, InvariantsReportV1, PipelineProfile,
-};
+use crate::{InvariantSeverity, InvariantViolationV1, InvariantsReportV1, PipelineProfile};
 
 pub const FASTQ_INVARIANTS: &str = "fastq-invariants.v2";
 

@@ -10,7 +10,7 @@ Pipeline profiles are consumed across the stack, so registry drift and layout dr
 - `tests/boundaries.rs` — boundary and source-tree contract coverage.
 - `tests/contracts.rs` — defaults, profiles, and registry contract coverage.
 - `tests/guardrails.rs` — crate-local guardrail smoke coverage.
-- `tests/invariant_fast.rs` — fast invariant checks.
+- `tests/invariant_fast.rs` — fast FASTQ invariant checks.
 
 ## Intent directories
 - `tests/boundaries/` — architecture and guardrail coverage.
@@ -19,4 +19,4 @@ Pipeline profiles are consumed across the stack, so registry drift and layout dr
 - `tests/schemas/` — reserved docs and public-surface lock coverage.
 
 ## Source-tree contract
-- `tests/boundaries/architecture_tree.rs` locks the documented `pipelines` namespace layout.
+- `tests/boundaries/architecture_tree.rs` locks the documented `pipelines` namespace layout, including `fastq/{defaults,profiles,invariants}` and `registry/{families,catalog}`.
