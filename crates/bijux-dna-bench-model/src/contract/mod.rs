@@ -12,6 +12,3 @@ pub use schema_versions::{
     DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
 pub use suite::validate_suite;
-
-#[cfg(test)]
-mod suite_validation_cases;

@@ -1,6 +1,5 @@
-use super::super::validate_suite;
-use crate::{
-    AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
+use bijux_dna_bench_model::{
+    validate_suite, AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
     DiversityRequirements, ReplicatePolicy, StratificationRequirement,
 };
 use bijux_dna_core::id_catalog;
