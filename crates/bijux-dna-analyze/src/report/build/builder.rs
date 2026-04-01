@@ -26,7 +26,7 @@ pub use crate::report::bench::{
     write_trim_terminal_damage_report, write_umi_report, write_validate_report,
 };
 
-use crate::export::write_run_summary_json;
+use crate::exports::write_run_summary_json;
 use crate::model::stable_sort_records;
 use crate::model::JsonBlob;
 use crate::report::model::ReportModel;

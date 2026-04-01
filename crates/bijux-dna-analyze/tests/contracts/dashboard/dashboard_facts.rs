@@ -2,7 +2,7 @@ use bijux_dna_runtime::*;
 use std::fs;
 use std::path::PathBuf;
 
-use bijux_dna_analyze::export::write_dashboard_facts_jsonl;
+use bijux_dna_analyze::exports::write_dashboard_facts_jsonl;
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-analyze__{group}__{name}")
