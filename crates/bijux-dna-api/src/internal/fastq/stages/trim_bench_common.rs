@@ -14,7 +14,7 @@ use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::execute_observer_command;
 use serde_json::Value;
 
-use crate::tooling::ensure_bench_runner;
+use crate::support::benchmark_runtime::ensure_bench_runner;
 
 pub(crate) struct TrimBenchInputs {
     pub(crate) runner: RuntimeKind,

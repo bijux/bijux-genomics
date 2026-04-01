@@ -3,8 +3,8 @@ use std::fs;
 use std::path::Path;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
-use crate::tooling::load_workspace_registry;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::query_shared::{fetch_fastq_trim_v2, insert_fastq_trim_v2};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimMetrics};

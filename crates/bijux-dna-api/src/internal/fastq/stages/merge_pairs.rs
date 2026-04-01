@@ -4,8 +4,9 @@ use std::fs;
 use std::path::Path;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::support::benchmark_runtime::ensure_bench_runner;
+use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
-use crate::tooling::{ensure_bench_runner, load_workspace_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_merge_v1, insert_fastq_merge_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqMergeMetrics};
