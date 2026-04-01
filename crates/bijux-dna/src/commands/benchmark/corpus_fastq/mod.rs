@@ -17,25 +17,12 @@ use crate::commands::benchmark_workspace::{
 };
 use crate::commands::cli::{BenchCorpusFastqArgs, BenchWorkspaceValueArgs, Cli};
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 mod artifact_bundle;
 mod models;
 mod report_qc_support;
+mod stage_preparation;
 mod sortmerna_support;
-
-#[derive(Debug, Clone, Copy)]
-struct StageCommandSpec {
-    bench_subcommand: &'static str,
-    report_dir: &'static str,
-    strict_resume_report: bool,
-}
-
-#[derive(Debug, Default)]
-struct StageSamplePreparation {
-    extra_stage_args: Vec<String>,
-    run_extra_fields: BTreeMap<String, serde_json::Value>,
-}
 
 const REPORT_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
 use self::artifact_bundle::artifact_bundle_manifest_fields;
@@ -46,6 +33,7 @@ use self::models::{CorpusRunManifest, PendingSampleRun, PostSuccessAction, Sampl
 use self::report_qc_support::{
     prepare_report_qc_sample, report_qc_contributor_tool_ids, report_qc_upstream_stage_ids,
 };
+use self::stage_preparation::{stage_command_spec, StageCommandSpec, StageSamplePreparation};
 use self::sortmerna_support::{
     prepare_sortmerna_sample_workdir, promote_sortmerna_sample_index_cache,
     prune_sortmerna_sample_payload, resolve_deplete_rrna_stage_options, sortmerna_shared_index_dir,
@@ -408,15 +396,6 @@ fn default_stage_out_root(
             stage_id,
         )?),
     )
-}
-
-fn stage_command_spec(stage_id: &str) -> Result<StageCommandSpec> {
-    let entry = corpus_fastq_stage_catalog_entry(stage_id)?;
-    Ok(StageCommandSpec {
-        bench_subcommand: entry.bench_subcommand,
-        report_dir: entry.report_dir,
-        strict_resume_report: entry.strict_resume_report,
-    })
 }
 
 fn build_stage_command_args(
