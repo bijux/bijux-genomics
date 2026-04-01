@@ -5,7 +5,7 @@ use anyhow::Result;
 
 use bijux_dna_infra::atomic_write_bytes;
 
-use crate::report::model::ReportModel;
+use crate::report::render_model::ReportModel;
 
 #[allow(dead_code)]
 #[allow(clippy::unnecessary_wraps)]

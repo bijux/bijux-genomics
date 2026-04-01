@@ -5,8 +5,8 @@
 //! Invariants: renderers accept `ReportModel` only.
 
 pub mod build;
-pub(crate) mod model;
 pub(crate) mod render;
+pub(crate) mod render_model;
 pub(crate) mod sections;
 
 mod bench;

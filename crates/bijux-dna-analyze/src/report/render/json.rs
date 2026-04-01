@@ -5,7 +5,7 @@ use anyhow::Result;
 use bijux_dna_infra::atomic_write_bytes;
 
 use crate::model::JsonBlob;
-use crate::report::model::ReportModel;
+use crate::report::render_model::ReportModel;
 
 pub fn render_report_json(model: &ReportModel) -> Result<JsonBlob> {
     let mut value = serde_json::to_value(&model.report)?;
