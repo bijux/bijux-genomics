@@ -70,7 +70,7 @@ pub(super) fn validate_runtime_execution_config(cfg: &RuntimeExecutionConfig) ->
 
 pub(super) fn effective_runtime_policy(req: &ToolInvocationRequest) -> EffectiveRuntimePolicy {
     let cfg = config::runtime_execution_config();
-    let root = crate::support::repo_root::resolve_repo_root()
+    let root = crate::support::workspace::resolve_repo_root()
         .unwrap_or_else(|_| std::env::current_dir().unwrap_or_else(|err| panic!("{err}")));
     let mut stage_knobs = StageResourceKnobs {
         threads: None,

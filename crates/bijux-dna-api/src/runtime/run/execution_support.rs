@@ -78,7 +78,7 @@ pub(super) fn maybe_emit_reference_manifest(
     }
 
     let reference_provenance = request.plan.params.get("reference_provenance").cloned();
-    let workspace_root = crate::support::repo_root::resolve_repo_root()?;
+    let workspace_root = crate::support::workspace::resolve_repo_root()?;
     let lock_json = workspace_root.join("configs/runtime/references/locks/lock.json");
     let lock_sig = workspace_root.join("configs/runtime/references/locks/lock.json.sha256");
     let lock_json_sha256 = if lock_json.exists() {
@@ -290,7 +290,7 @@ struct CoverageThresholds {
 }
 
 fn load_coverage_thresholds(profile: &str) -> Result<CoverageThresholds> {
-    let root = crate::support::repo_root::resolve_repo_root()?;
+    let root = crate::support::workspace::resolve_repo_root()?;
     let raw = std::fs::read_to_string(root.join("configs/runtime/coverage_regimes.toml"))?;
     let parsed: toml::Value = toml::from_str(&raw)?;
     let decision = parsed

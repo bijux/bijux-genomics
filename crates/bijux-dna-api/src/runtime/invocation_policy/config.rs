@@ -7,7 +7,7 @@ pub(super) fn runtime_execution_config() -> &'static RuntimeExecutionConfig {
 }
 
 fn load_runtime_execution_config() -> RuntimeExecutionConfig {
-    let Ok(root) = crate::support::repo_root::resolve_repo_root() else {
+    let Ok(root) = crate::support::workspace::resolve_repo_root() else {
         return RuntimeExecutionConfig {
             default_threads: None,
             default_memory_mb: None,

@@ -87,7 +87,7 @@ mod tests {
         std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
 
         let stages_dir =
-            crate::support::repo_root::resolve_repo_root()?.join("domain/fastq/stages");
+            crate::support::workspace::resolve_repo_root()?.join("domain/fastq/stages");
         for entry in std::fs::read_dir(&stages_dir)? {
             let path = entry?.path();
             if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {

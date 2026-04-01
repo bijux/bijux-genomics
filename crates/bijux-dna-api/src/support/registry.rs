@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 
 fn workspace_root() -> Result<PathBuf> {
-    crate::support::repo_root::resolve_repo_root()
+    crate::support::workspace::resolve_repo_root()
 }
 
 pub fn workspace_domain_dir() -> Result<PathBuf> {

@@ -667,7 +667,7 @@ mod tests {
 
     #[test]
     fn bam_stage_contract_suite_uses_golden_toy_sam_and_bam_inputs() -> Result<()> {
-        let workspace = crate::support::repo_root::resolve_repo_root()?;
+        let workspace = crate::support::workspace::resolve_repo_root()?;
         let toy_sam = workspace.join("assets/golden/smoke-inputs-v1/bam/toy.sam");
         let sample_bam = workspace
             .join("crates/bijux-dna-planner-bam/tests/fixtures/plan_inputs/default/sample.bam");
