@@ -1,15 +1,21 @@
+mod preprocessing;
+
+pub use self::preprocessing::{
+    BenchFastqDetectAdaptersArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
+    BenchFastqTrimTerminalDamageArgs, BenchFastqValidateArgs,
+};
+
 use clap::Subcommand;
 
 use super::{
     BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDepleteHostArgs,
     BenchFastqDepleteReferenceContaminantsArgs, BenchFastqDepleteRrnaArgs,
-    BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs, BenchFastqFilterLowComplexityArgs,
-    BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs, BenchFastqMergeArgs,
-    BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
+    BenchFastqFilterArgs, BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs,
+    BenchFastqInferAsvsArgs, BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs,
+    BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
     BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs, BenchFastqQcPostArgs,
     BenchFastqRemoveChimerasArgs, BenchFastqRemoveDuplicatesArgs, BenchFastqScreenArgs,
-    BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
-    BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs,
+    BenchFastqStatsArgs, BenchFastqUmiArgs,
 };
 
 #[derive(Debug, Subcommand)]
