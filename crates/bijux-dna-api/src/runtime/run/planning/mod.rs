@@ -1,10 +1,11 @@
 use super::{
-    anyhow, build_run_execution_plan, Domain, Path, PathBuf, PipelineProfile, PipelineRegistry,
-    PlanRunRequest, PlanRunResult, Result, RunRequest, RunResult, ToolRegistry,
+    anyhow, build_run_execution_plan, Domain, Path, PathBuf, PlanRunRequest, PlanRunResult,
+    Result, RunRequest, RunResult, ToolRegistry,
 };
 
 mod profile_selection;
 mod planning_support;
+mod run_bootstrap;
 
 /// Run execution mode for API pipeline execution.
 ///
@@ -14,21 +15,7 @@ pub enum RunMode {
     Execute,
 }
 
-/// # Errors
-/// Returns an error if the profile id is unknown or IO setup fails.
-pub fn run_pipeline(request: RunRequest, _mode: RunMode) -> Result<RunResult> {
-    let profile = bijux_dna_pipelines::registry::profile_by_id(request.domain, &request.profile_id)
-        .map_err(|err| anyhow!("unknown pipeline profile {}: {err}", request.profile_id))?;
-    bijux_dna_infra::ensure_dir(&request.run_dir)?;
-    let ledger_path = request.run_dir.join("defaults_ledger.json");
-    let defaults = profile.defaults_ledger();
-    defaults.validate_strict()?;
-    bijux_dna_infra::atomic_write_json(&ledger_path, &defaults)?;
-    Ok(RunResult {
-        run_dir: request.run_dir,
-        profile_id: profile.id.to_string(),
-    })
-}
+pub use self::run_bootstrap::run_pipeline;
 
 pub use self::profile_selection::{select_pipeline, select_pipelines};
 
