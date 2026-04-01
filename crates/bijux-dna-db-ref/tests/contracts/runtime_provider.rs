@@ -1,4 +1,10 @@
-use super::*;
+use bijux_dna_db_ref::public_api::{
+    enforce_declared_build_and_contigs, normalize_contig_name, resolve_default_reference_set,
+    resolve_genetic_map_bank, resolve_map, resolve_map_lock, resolve_organellar_policy,
+    resolve_panel, resolve_panel_lock, resolve_reference_bank, resolve_reference_bundle,
+    resolve_sex_chromosome_rule, resolve_species_authority, resolve_species_context,
+    validate_imputation_tool_compatibility, CatalogCompatibility, PanelCatalogEntry,
+};
 
 #[test]
 fn species_context_and_bundle_resolve() {
@@ -6,12 +12,15 @@ fn species_context_and_bundle_resolve() {
         .unwrap_or_else(|err| panic!("resolve species context: {err}"));
     assert_eq!(resolved.context.build_id, "GRCh38");
     assert!(resolved.supported_features.imputation);
+
     let bundle = resolve_reference_bundle("Homo sapiens", "GRCh38")
         .unwrap_or_else(|err| panic!("resolve reference bundle: {err}"));
     assert_eq!(bundle.bundle_id, "hsapiens_grch38_primary");
+
     let authority = resolve_species_authority("Homo sapiens")
         .unwrap_or_else(|err| panic!("resolve species authority: {err}"));
     assert_eq!(authority.default_build_id, "GRCh38");
+
     let bank = resolve_reference_bank("Homo sapiens", "GRCh38")
         .unwrap_or_else(|err| panic!("resolve reference bank: {err}"));
     assert!(!bank.required_indexes.is_empty());
@@ -97,12 +106,15 @@ fn map_sex_organellar_and_reference_set_resolve() {
     let map = resolve_genetic_map_bank("Homo sapiens", "GRCh38", None)
         .unwrap_or_else(|err| panic!("resolve genetic map bank: {err}"));
     assert_eq!(map.map_id, "hsapiens_grch38_chr_map");
+
     let sex = resolve_sex_chromosome_rule("Homo sapiens", "GRCh38")
         .unwrap_or_else(|err| panic!("resolve sex chromosome rule: {err}"));
     assert!(!sex.par_regions.is_empty());
+
     let organellar = resolve_organellar_policy("Homo sapiens", "GRCh38")
         .unwrap_or_else(|err| panic!("resolve organellar policy: {err}"));
     assert_eq!(organellar.mitochondrion_id, "MT");
+
     let refs = resolve_default_reference_set("Homo sapiens", "adna")
         .unwrap_or_else(|err| panic!("resolve default reference set: {err}"));
     assert_eq!(refs.primary_reference, "hsapiens_grch38_primary");
