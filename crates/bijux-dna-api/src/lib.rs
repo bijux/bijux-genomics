@@ -17,6 +17,7 @@ pub(crate) use runtime::validation as input_validation;
 pub(crate) use runtime::{cross_runtime, execution_kernel, run};
 pub(crate) use support::qa;
 pub(crate) use support::reference_resolution;
+pub(crate) use support::tool_selection;
 pub(crate) use support::tooling;
 pub(crate) use surface::explain;
 pub(crate) use surface::request_contracts as request_args;

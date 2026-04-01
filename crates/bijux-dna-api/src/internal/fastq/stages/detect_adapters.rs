@@ -10,7 +10,8 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_DETECT_ADAPTERS,
 };
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{filter_tools_by_role, load_workspace_registry};
+use crate::tool_selection::filter_tools_by_role;
+use crate::tooling::load_workspace_registry;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_detect_adapters_v1, insert_fastq_detect_adapters_v1,

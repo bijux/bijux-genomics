@@ -1,5 +1,5 @@
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::filter_tools_by_role;
+use crate::tool_selection::filter_tools_by_role;
 use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::PlanPolicy;

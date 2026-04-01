@@ -7,7 +7,8 @@ use crate::internal::fastq::stages::trim_bench_common::{
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_workspace_registry};
+use crate::tool_selection::filter_tools_by_role;
+use crate::tooling::{ensure_bench_runner, load_workspace_registry};
 use anyhow::{anyhow, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_duplicates_v1, insert_fastq_duplicates_v1,
