@@ -22,7 +22,7 @@ fn policies_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src")),
         entries([
-            "assertions.rs",
+            "assertions/",
             "checks/",
             "guardrails/",
             "lib.rs",
@@ -34,6 +34,17 @@ fn policies_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/assertions")),
+        entries([
+            "comparison_assertions.rs",
+            "condition_assertions.rs",
+            "mod.rs",
+            "panic_assertion.rs",
+        ]),
+        "assertions tree must keep exported macro families partitioned by behavior"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src/checks")),
         entries([
             "OWNER.toml",
@@ -42,6 +53,7 @@ fn policies_tree_matches_architecture_contract() {
             "mod.rs",
             "module_files.rs",
             "public_surface.rs",
+            "stable_surface.rs",
             "stage_id_literals.rs",
         ]),
         "checks tree must stay partitioned by rule family"
@@ -51,29 +63,43 @@ fn policies_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/guardrails")),
         entries([
             "OWNER.toml",
+            "baseline.rs",
             "configuration.rs",
             "mod.rs",
             "presets.rs",
-            "runner.rs"
+            "runner.rs",
+            "source_inventory.rs",
+            "stable_surface.rs",
         ]),
         "guardrails tree must keep configuration, presets, and runner wiring separate"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/policy_diagnostics")),
-        entries(["OWNER.toml", "contracts.rs", "mod.rs", "render.rs"]),
+        entries([
+            "OWNER.toml",
+            "contracts.rs",
+            "mod.rs",
+            "render.rs",
+            "stable_surface.rs",
+        ]),
         "policy diagnostics tree must keep contracts and rendering separated"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
-        entries(["OWNER.toml", "mod.rs"]),
+        entries(["OWNER.toml", "mod.rs", "stable_surface.rs"]),
         "public api tree must stay curated"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/source_scan")),
-        entries(["OWNER.toml", "mod.rs", "rust_sources.rs"]),
+        entries([
+            "OWNER.toml",
+            "mod.rs",
+            "rust_sources.rs",
+            "stable_surface.rs"
+        ]),
         "source scan tree must stay focused on deterministic Rust source discovery"
     );
 
