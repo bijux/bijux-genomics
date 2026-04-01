@@ -2,7 +2,7 @@
 
 pub use bijux_dna_planner_bam::stage_api::{bam_stage_completeness, BamStage};
 
-pub use crate::request_args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
+pub use crate::surface::request_contracts::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
 
 pub mod feature_flags;
 pub(crate) mod plan;

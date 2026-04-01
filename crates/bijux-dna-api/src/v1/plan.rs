@@ -2,13 +2,15 @@
 //!
 //! Stability: v1 (stable).
 
-pub use crate::explain::{explain_bundle, ExplainResponse, PlanExplainStageV1, PlanExplainV1};
-pub use crate::request_args::{
+pub use crate::runtime::run::plan_run;
+pub use crate::runtime::run::{select_pipeline, select_pipelines};
+pub use crate::surface::explain::{
+    explain_bundle, ExplainResponse, PlanExplainStageV1, PlanExplainV1,
+};
+pub use crate::surface::request_contracts::{
     BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs, FastqCrossArgs, PlanRunRequest,
     PlanRunResult,
 };
-pub use crate::run::plan_run;
-pub use crate::run::{select_pipeline, select_pipelines};
 pub use crate::v1::bam::plan::plan_for_bam_stage_with_profile;
 pub use bijux_dna_core::contract::ExecutionGraph;
 pub use bijux_dna_pipelines::bam::{

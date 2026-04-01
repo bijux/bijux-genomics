@@ -5,7 +5,9 @@
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 
-pub use crate::request_args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
+pub use crate::internal::public_bridge::handlers::bam::BamBenchOutcome;
+pub use crate::internal::public_bridge::handlers::bam::{bench_bam_pipeline, bench_bam_stage};
+pub use crate::surface::request_contracts::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
 pub use bijux_dna_core::contract::objective_spec;
 pub use bijux_dna_core::contract::{Objective, ObjectiveSpec, ObjectiveWeights};
 pub use bijux_dna_planner_bam::stage_api::{bam_stage_completeness, BamStage};
@@ -14,9 +16,7 @@ pub use bijux_dna_planner_fastq::stage_api::args as fastq_args;
 pub use bijux_dna_planner_fastq::stage_api::banks as fastq_bank_ops;
 pub use bijux_dna_planner_fastq::stage_api::*;
 
-pub use crate::public_bridge::handlers::bam::BamBenchOutcome;
-pub use crate::public_bridge::handlers::bam::{bench_bam_pipeline, bench_bam_stage};
 /// Stability: v1 (stable).
 /// Alias for `BenchOutcome<M: StageMetricSchema>` from the fastq handlers.
-pub type BenchOutcome<M> = crate::public_bridge::handlers::fastq::BenchOutcome<M>;
-pub use crate::public_bridge::handlers::fastq::*;
+pub type BenchOutcome<M> = crate::internal::public_bridge::handlers::fastq::BenchOutcome<M>;
+pub use crate::internal::public_bridge::handlers::fastq::*;
