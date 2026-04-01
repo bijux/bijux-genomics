@@ -1,7 +1,7 @@
+mod compatibility;
 mod entries;
 mod locks;
 
-pub use entries::{
-    CatalogCompatibility, CatalogFileEntry, MapCatalogEntry, MapCompatibility, PanelCatalogEntry,
-};
+pub use compatibility::{CatalogCompatibility, MapCompatibility};
+pub use entries::{CatalogFileEntry, MapCatalogEntry, PanelCatalogEntry};
 pub use locks::{MapLockEntry, PanelLockEntry};

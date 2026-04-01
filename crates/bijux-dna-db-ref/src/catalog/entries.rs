@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::{CatalogCompatibility, MapCompatibility};
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct PanelCatalogEntry {
     pub id: String,
@@ -45,21 +47,4 @@ pub struct CatalogFileEntry {
     pub checksum_sha256: String,
     #[serde(default)]
     pub required: bool,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct CatalogCompatibility {
-    #[serde(default)]
-    pub tool_tags: Vec<String>,
-    pub requires_phased: bool,
-    pub supports_gl_input: bool,
-    pub supports_minimac_m3vcf: bool,
-    pub glimpse_reference_format: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-pub struct MapCompatibility {
-    #[serde(default)]
-    pub tool_tags: Vec<String>,
-    pub coordinate_system: String,
 }
