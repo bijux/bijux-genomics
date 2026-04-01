@@ -7,8 +7,10 @@ use bijux_dna_core::ids::StageId;
 use crate::{DefaultParams, EffectiveDefaults};
 
 mod adna;
+mod analysis_params;
 mod analysis_tools;
 mod param_defaults;
+mod preprocess_params;
 mod preprocess_tools;
 mod reference_adna;
 mod stage_order;
