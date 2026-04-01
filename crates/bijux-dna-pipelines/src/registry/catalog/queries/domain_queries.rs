@@ -1,6 +1,5 @@
+use crate::registry::PipelineRegistry;
 use crate::{Domain, PipelineProfile};
-
-use super::PipelineRegistry;
 
 impl PipelineRegistry {
     #[must_use]

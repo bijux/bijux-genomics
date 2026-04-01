@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use super::FastqProfileViolation;
-use crate::{InvariantSeverity, InvariantsPreset, PipelineProfile};
+use crate::{InvariantsPreset, PipelineProfile};
 
 mod ancient_dna_rules;
 mod reference_adna_rules;

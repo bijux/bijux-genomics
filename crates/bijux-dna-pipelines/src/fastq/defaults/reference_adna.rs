@@ -6,7 +6,7 @@ use bijux_dna_domain_fastq::params::PairedMode;
 use super::adna_fastq_defaults;
 use crate::{DefaultParams, EffectiveDefaults};
 
-pub(super) fn reference_adna_fastq_defaults() -> EffectiveDefaults {
+pub(crate) fn reference_adna_fastq_defaults() -> EffectiveDefaults {
     let mut defaults = adna_fastq_defaults();
 
     defaults.tools.insert(
