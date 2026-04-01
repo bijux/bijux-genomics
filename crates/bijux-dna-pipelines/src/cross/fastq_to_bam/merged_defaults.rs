@@ -1,12 +1,13 @@
-//! Shared defaults assembly for FASTQ-to-BAM cross-domain profiles.
+use crate::EffectiveDefaults;
 
-use crate::bam::bam_adna_shotgun_profile;
-use crate::fastq::fastq_adna_profile;
-use crate::{EffectiveDefaults, PipelineProfile};
+use super::source_profiles::source_profiles;
 
-pub(super) fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
-    let fastq_profile = fastq_adna_profile();
-    let bam_profile = bam_adna_shotgun_profile();
+pub(super) fn base_defaults() -> (
+    crate::PipelineProfile,
+    crate::PipelineProfile,
+    EffectiveDefaults,
+) {
+    let (fastq_profile, bam_profile) = source_profiles();
 
     let mut defaults = EffectiveDefaults::default();
     defaults.tools.extend(fastq_profile.defaults.tools.clone());

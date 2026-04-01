@@ -13,10 +13,10 @@ mod violation_builder;
 
 use preset_rules::push_preset_rule_violations;
 use stage_requirements::push_required_rule_violations;
-use violation_builder::violation;
 pub use validation_report_contracts::{
     FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
 };
+use violation_builder::violation;
 
 const CORE_FASTQ_STAGES: [&str; 5] = [
     id_catalog::FASTQ_VALIDATE_PRE,

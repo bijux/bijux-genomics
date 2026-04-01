@@ -1,6 +1,6 @@
 use crate::{ArtifactType, Domain, MetricsBundle, PipelineCapabilities, ReportSection};
 
-pub(super) fn fastq_capabilities(required_stages: Vec<String>) -> PipelineCapabilities {
+pub(crate) fn fastq_capabilities(required_stages: Vec<String>) -> PipelineCapabilities {
     PipelineCapabilities {
         input_domains: vec![Domain::Fastq],
         output_domains: vec![Domain::Fastq],
