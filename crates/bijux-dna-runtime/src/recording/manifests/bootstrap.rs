@@ -1,13 +1,9 @@
 use anyhow::{Context, Result};
 
 use super::artifact_catalog::run_artifacts_dir;
+use super::runtime_support_files::RuntimeSupportFiles;
 use super::RunDirs;
 use crate::recording::{write_atomic_bytes, write_canonical_json};
-
-pub(super) struct RuntimeSupportFiles {
-    pub telemetry_events_path: std::path::PathBuf,
-    pub dashboard_facts_path: std::path::PathBuf,
-}
 
 /// # Errors
 /// Returns an error if runtime support directories or files cannot be created.
