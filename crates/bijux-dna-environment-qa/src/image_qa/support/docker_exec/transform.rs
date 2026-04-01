@@ -4,11 +4,10 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::image_qa::support::checks::{
-    command_string, docker_logs, docker_wait_timeout, push_arg, ExecutionOutput,
+use crate::image_qa::support::{
+    command_string, docker_logs, docker_wait_timeout, push_arg, ExecutionOutput, ResolvedImage,
     TrimExecutionOutput,
 };
-use crate::image_qa::support::ResolvedImage;
 
 #[allow(dead_code)]
 #[derive(Debug)]

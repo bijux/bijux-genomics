@@ -4,11 +4,9 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::image_qa::support::checks::{
-    command_string, docker_logs, docker_wait_timeout, push_arg,
-};
 use crate::image_qa::support::docker_exec::transform::MergeExecutionOutput;
 use crate::image_qa::support::ResolvedImage;
+use crate::image_qa::support::{command_string, docker_logs, docker_wait_timeout, push_arg};
 
 #[allow(clippy::too_many_lines, clippy::too_many_arguments)]
 pub fn run_merge_container_with_timeout(
