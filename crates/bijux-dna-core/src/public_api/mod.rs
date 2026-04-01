@@ -6,7 +6,4 @@ pub mod identity;
 
 pub mod metrics;
 
-/// Curated access to stable import ergonomics.
-pub mod ergonomics {
-    pub use crate::prelude;
-}
+pub mod ergonomics;
