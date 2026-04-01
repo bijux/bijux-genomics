@@ -6,7 +6,7 @@ This file is a pointer map. The environment contract is intentionally documented
 - `public_api/` exposes the stable public crate surface.
 - `build/` owns build-time image defaults, models, and version parsing.
 - `resolve/` owns runtime catalog loading, platform selection, cache paths, smoke commands, and reference preparation.
-- `runtime_spec.rs` owns the pure runtime pairing between platform and runner.
+- `runtime_spec/` owns the pure runtime pairing between platform and runner.
 - `lib.rs` stays thin and re-exports the supported surface.
 
 ## Change rules
