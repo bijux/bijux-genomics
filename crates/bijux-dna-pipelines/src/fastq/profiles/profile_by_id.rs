@@ -6,14 +6,6 @@ use super::{
 };
 use crate::PipelineProfile;
 
-/// Stable FASTQ profile identifiers.
-pub const FASTQ_PROFILE_IDS: &[&str] = &[
-    "fastq-to-fastq__default__v1",
-    "fastq-to-fastq__minimal__v1",
-    "fastq-to-fastq__adna__v1",
-    "fastq-to-fastq__reference_adna__v1",
-];
-
 /// # Errors
 /// Returns an error if the requested profile id is unknown.
 pub fn fastq_profiles_by_id(id: &str) -> anyhow::Result<PipelineProfile> {
