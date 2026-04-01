@@ -65,18 +65,25 @@ fn pipelines_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/cross/fastq_to_bam")),
         entries([
             "OWNER.toml",
-            "defaults.rs",
+            "merged_defaults.rs",
             "mod.rs",
             "profiles/",
             "required_stages.rs",
+            "source_profiles.rs",
         ]),
-        "fastq-to-bam cross namespace must keep defaults, profiles, and required stages separated"
+        "fastq-to-bam cross namespace must keep source profiles, merged defaults, profiles, and required stages separated"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/cross/fastq_to_bam/profiles")),
         entries(["ancient_dna_profile.rs", "default_profile.rs", "mod.rs"]),
         "fastq-to-bam profile namespace must separate modern and ancient-dna profile families"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/registry/profile_lookup")),
+        entries(["cross.rs", "mod.rs", "vcf.rs"]),
+        "registry profile lookup namespace must separate domain dispatch from concrete families"
     );
 
     assert_eq!(
@@ -93,7 +100,7 @@ fn pipelines_tree_matches_architecture_contract() {
             "families/",
             "mod.rs",
             "pipeline_id.rs",
-            "profile_lookup.rs",
+            "profile_lookup/",
         ]),
         "registry namespace must keep identity, collections, and lookups separated"
     );
@@ -137,19 +144,36 @@ fn pipelines_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/fastq/defaults")),
         entries([
             "OWNER.toml",
-            "adna.rs",
+            "adna/",
             "analysis_params.rs",
             "analysis_tools.rs",
             "mod.rs",
-            "param_defaults.rs",
+            "parameter_defaults.rs",
             "preprocess_params.rs",
             "preprocess_tools.rs",
             "rationales.rs",
-            "reference_adna.rs",
+            "reference_adna/",
             "stage_order.rs",
-            "tooling.rs",
+            "tool_defaults.rs",
         ]),
         "fastq defaults namespace must keep preprocess vs analysis defaults and rationale assembly separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq/defaults/adna")),
+        entries([
+            "mod.rs",
+            "parameter_overrides.rs",
+            "rationale_overrides.rs",
+            "tool_overrides.rs"
+        ]),
+        "adna fastq defaults namespace must separate tool, parameter, and rationale overrides"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq/defaults/reference_adna")),
+        entries(["mod.rs", "parameter_overrides.rs", "rationale_overrides.rs", "tool_overrides.rs"]),
+        "reference-grade fastq defaults namespace must separate tool, parameter, and rationale overrides"
     );
 
     assert_eq!(
@@ -160,11 +184,18 @@ fn pipelines_tree_matches_architecture_contract() {
             "default_profile.rs",
             "minimal_profile.rs",
             "mod.rs",
-            "profile_contracts.rs",
-            "profile_lookup.rs",
+            "profile_by_id.rs",
+            "profile_contracts/",
+            "profile_ids.rs",
             "reference_adna_profile.rs"
         ]),
         "fastq profiles namespace must keep baseline and ancient-dna families separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq/profiles/profile_contracts")),
+        entries(["library_model.rs", "mod.rs", "pipeline_capabilities.rs"]),
+        "fastq profile contract namespace must separate library models from pipeline capabilities"
     );
 
     assert_eq!(
@@ -174,10 +205,23 @@ fn pipelines_tree_matches_architecture_contract() {
             "mod.rs",
             "preset_rules/",
             "stage_parameter_access.rs",
-            "stage_requirements.rs",
-            "validation_report.rs"
+            "stage_requirements/",
+            "validation_report_contracts.rs",
+            "violation_builder.rs"
         ]),
         "fastq invariants namespace must keep report contracts, stage params, and rule families separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq/invariants/stage_requirements")),
+        entries([
+            "mod.rs",
+            "paired_library_rules.rs",
+            "required_artifacts.rs",
+            "required_params.rs",
+            "required_stages.rs",
+        ]),
+        "fastq invariant requirement namespace must separate stage, param, artifact, and paired-library rules"
     );
 
     assert_eq!(

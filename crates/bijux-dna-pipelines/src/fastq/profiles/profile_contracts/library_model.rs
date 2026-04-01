@@ -1,6 +1,6 @@
 use bijux_dna_core::ids::{AssayKind, LibraryLayout, LibraryModel, PlatformHint, UdgTreatment};
 
-pub(super) fn fastq_library_model(
+pub(crate) fn fastq_library_model(
     layout: LibraryLayout,
     udg_treatment: UdgTreatment,
     assay_kind: AssayKind,
