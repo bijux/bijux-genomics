@@ -1,3 +1,7 @@
 # bijux-dna boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+Boundary tests in this directory enforce:
+
+- the documented crate tree,
+- dependency and policy guardrails,
+- public-surface and process-spawn boundaries.
