@@ -11,12 +11,11 @@ use serde::Serialize;
 use crate::{IoError, IoErrorKind};
 
 pub mod json;
+mod stable_surface;
 #[cfg(feature = "yaml")]
 pub mod yaml;
 
-pub use json::*;
-#[cfg(feature = "yaml")]
-pub use yaml::*;
+pub use stable_surface::*;
 
 /// Parse TOML configuration.
 ///
