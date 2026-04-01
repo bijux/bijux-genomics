@@ -2,6 +2,8 @@
 //! Comparison utilities for bench.
 
 pub mod diff;
+pub mod report;
 pub mod stratify;
 
-pub use diff::{compare_summaries, CompareReport};
+pub use diff::compare_summaries;
+pub use report::{CompareReport, MetricDiff};
