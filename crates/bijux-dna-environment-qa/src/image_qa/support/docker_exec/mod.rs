@@ -1,5 +1,6 @@
 mod inspection;
 mod merge;
+mod models;
 mod transform;
 
 pub use inspection::{run_multiqc_container_with_timeout, run_validate_container_with_timeout};
