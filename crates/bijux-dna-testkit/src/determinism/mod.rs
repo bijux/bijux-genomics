@@ -1,6 +1,12 @@
+mod clock;
+mod rng;
+
 use serde_json::Value;
 
 use crate::snapshots::stable_json;
+
+pub use clock::FixedClock;
+pub use rng::fixed_rng;
 
 #[must_use]
 pub fn strip_timestamp_fields(value: &Value, fields: &[&str]) -> Value {
