@@ -4,22 +4,16 @@ use super::{
     PlanResponse, Profile, Result, RunExecutionPlan, RunId, RunSpec, RunnerContractKind,
     ToolRegistry,
 };
-use crate::request_args::RunStatus;
 use bijux_dna_engine::Engine;
 
 mod lifecycle;
 mod rendering;
+mod status;
 mod workspace_audit;
 
 pub use rendering::{execute_and_report, render_report};
+pub use status::status;
 pub use workspace_audit::{policy_audit, workspace_edges, write_workspace_audit};
-
-/// # Errors
-/// This wrapper preserves the public API shape and does not currently return an error.
-#[allow(clippy::unnecessary_wraps)]
-pub fn status(run_dir: &Path) -> Result<RunStatus> {
-    Ok(lifecycle::status(run_dir))
-}
 
 /// Replay or verify a run from a run manifest.
 ///
