@@ -6,7 +6,7 @@ use crate::PipelineProfile;
 use bijux_dna_core::prelude::id_catalog;
 
 mod preset_rules;
-mod stage_params;
+mod stage_parameter_access;
 mod stage_requirements;
 mod validation_report;
 
@@ -33,7 +33,7 @@ fn stage_set(profile: &PipelineProfile) -> BTreeSet<&str> {
         .map(String::as_str)
         .collect()
 }
-use stage_params::{
+use stage_parameter_access::{
     detect_adapters_params, filter_params, merge_params, screen_params, trim_params,
 };
 
