@@ -1,23 +1,10 @@
 pub mod aggregate;
-pub mod contract;
 pub mod decision;
-pub mod export;
+pub mod exports;
 pub mod failure;
 pub mod load;
 pub mod model;
+pub mod public_api;
 pub mod report;
-pub use aggregate::*;
-pub use api::{
-pub use bijux_dna_core::metrics::MetricSet;
-pub use contract::{analyze_contract_v1, AnalyzeContractV1};
-pub use decision::compare::compare_runs;
-pub use failure::*;
-pub use load::*;
-pub use report::*;
-pub use semantics::metrics::{metric_semantics, MetricDirection};
-pub mod compare {
-pub use crate::decision::compare::*;
-pub mod ranking {
-pub use crate::decision::score::*;
+pub use public_api::*;
 pub fn analyze_run(input: &AnalyzeInput) -> anyhow::Result<AnalyzeOutput> {
-pub use crate::decision::score::{

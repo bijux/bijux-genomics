@@ -14,8 +14,8 @@ Canonical fixtures used by schema/contract tests:
 - `tests/fixtures/report/sections/default/report.json`
 
 ## Schema tests
-- `tests/report/report_contract.rs`
-- `tests/report/report_determinism.rs`
+- `tests/contracts/report/report_contract.rs`
+- `tests/contracts/report/report_determinism.rs`
 - `tests/contracts/contract_handshake.rs`
 
 ## Related

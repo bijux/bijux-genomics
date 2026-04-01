@@ -1,3 +1,6 @@
 # bijux-dna-analyze schemas
 
-This directory is reserved for schemas tests by intent taxonomy.
+This directory contains storage-contract checks for:
+- SQLite migrations
+- latest-schema reads
+- query linting and deterministic database behavior

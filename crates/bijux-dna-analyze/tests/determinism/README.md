@@ -1,3 +1,6 @@
 # bijux-dna-analyze determinism
 
-This directory is reserved for determinism tests by intent taxonomy.
+This directory contains stable-output checks for:
+- canonical JSON ordering
+- fixture serialization repeatability
+- artifact generation that must not depend on incidental ordering
