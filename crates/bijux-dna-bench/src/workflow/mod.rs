@@ -7,7 +7,7 @@ mod options;
 mod run_suite;
 mod suite_load;
 mod summary_scope;
-mod summary_support;
+mod summary_statistics;
 
 use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
@@ -21,7 +21,7 @@ use bijux_dna_bench_model::{
 use summary_scope::{
     stage_scope_label, StageDatasetScope, StageDatasetToolScope, SummaryGroupKey, SummaryStratumKey,
 };
-use summary_support::{bootstrap_if_enabled, indices_to_replicates};
+use summary_statistics::{bootstrap_if_enabled, indices_to_replicates};
 
 pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
