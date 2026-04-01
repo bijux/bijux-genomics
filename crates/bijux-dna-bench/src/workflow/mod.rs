@@ -4,18 +4,15 @@
 
 mod evaluation;
 mod options;
+mod run_suite;
 mod summary_support;
 mod suite_load;
 
 use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::artifacts::{
-    read_observations_jsonl, write_decision_json, write_observations_jsonl, write_summary_json,
-    WriteMode,
-};
 use bijux_dna_bench_model::contract::{
-    validate_decision, validate_observation, validate_suite, validate_summary,
+    validate_observation, validate_suite,
 };
 use bijux_dna_bench_model::policy::GatePolicy;
 use bijux_dna_bench_model::stats::{mad_outliers, robust_stats};
@@ -30,6 +27,7 @@ use summary_support::{
 
 pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
+pub use run_suite::run_suite;
 pub use suite_load::load_suite;
 
 /// Summarize observations into a benchmark summary.
@@ -330,80 +328,6 @@ pub fn summarize(
     summary.scientifically_invalid = scientifically_invalid;
     summary.invalid_reasons = invalid_reasons;
     Ok(summary)
-}
-
-/// Run a suite: summarize, gate, and write artifacts.
-///
-/// # Errors
-/// Returns an error if contracts fail or artifacts cannot be written.
-pub fn run_suite(
-    suite: &BenchmarkSuiteSpec,
-    observations: &[BenchmarkObservation],
-    policy: &GatePolicy,
-    options: &BenchRunOptions,
-) -> Result<(BenchmarkSummary, Vec<GateDecision>)> {
-    let mut merged = observations.to_vec();
-    if options.resume {
-        let out_dir = options
-            .output_dir
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("resume requires output_dir"))?;
-        let path = out_dir.join("observations.jsonl");
-        if path.exists() {
-            let existing = read_observations_jsonl(&path)?;
-            let mut seen = std::collections::BTreeSet::new();
-            for obs in merged.iter() {
-                seen.insert((
-                    obs.dataset_id.clone(),
-                    obs.stage_id.clone(),
-                    obs.stage_instance_id.clone(),
-                    obs.lineage_id.clone(),
-                    obs.tool_id.clone(),
-                    obs.params_hash.clone(),
-                    obs.replicate_id.clone(),
-                ));
-            }
-            for obs in existing {
-                let key = (
-                    obs.dataset_id.clone(),
-                    obs.stage_id.clone(),
-                    obs.stage_instance_id.clone(),
-                    obs.lineage_id.clone(),
-                    obs.tool_id.clone(),
-                    obs.params_hash.clone(),
-                    obs.replicate_id.clone(),
-                );
-                if !seen.contains(&key) {
-                    merged.push(obs);
-                }
-            }
-        }
-    }
-
-    let summary = summarize(suite, &merged, options)?;
-    validate_summary(&summary)?;
-    let decisions = gate(policy, &summary);
-    for decision in &decisions {
-        validate_decision(decision)?;
-    }
-    if let Some(out_dir) = &options.output_dir {
-        let mode = if options.force {
-            WriteMode::Force
-        } else if options.resume {
-            WriteMode::Resume
-        } else {
-            WriteMode::Force
-        };
-        write_observations_jsonl(&out_dir.join("observations.jsonl"), &merged, mode)
-            .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
-        write_summary_json(&out_dir.join("summary.json"), &summary)
-            .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
-        if let Some(decision) = decisions.first() {
-            write_decision_json(&out_dir.join("decision.json"), decision)
-                .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
-        }
-    }
-    Ok((summary, decisions))
 }
 
 #[cfg(test)]
