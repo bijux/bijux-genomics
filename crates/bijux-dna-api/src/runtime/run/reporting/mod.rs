@@ -1,6 +1,5 @@
 use super::{
-    build_run_execution_plan, Path, Profile, Result, RunExecutionPlan, RunId, RunSpec,
-    ToolRegistry,
+    build_run_execution_plan, Path, Profile, Result, RunExecutionPlan, RunId, RunSpec, ToolRegistry,
 };
 
 mod dry_run;

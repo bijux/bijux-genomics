@@ -49,11 +49,11 @@ Most failures surface as schema drift (snapshot diffs) or handler contract misma
 
 ## Where to start in code
 - `src/v1/` for the stable public surface.
-- `src/v1/run/` for execution entrypoints and operator-facing failure contracts.
-- `src/v1/report/` for report entrypoints and HTML bundle rendering.
+- `src/v1/run/` for execution entrypoints, request contracts, runtime support exports, and operator-facing failure contracts.
+- `src/v1/report/` for report entrypoints, request contracts, analysis exports, and HTML bundle rendering.
 - `src/surface/` for request and explainability contracts that feed the public API.
 - `src/runtime/` for execution/reporting adapters, runtime validation, and invocation policy.
-- `src/runtime/run/reporting/` for report rendering, run lifecycle helpers, and workspace audit support.
+- `src/runtime/run/reporting/` for report rendering, dry-run/execute entrypoints, run replay/status helpers, plan response materialization, summary artifacts, and workspace audit support.
 - `src/support/workspace/` for repository root resolution and workspace registry loading.
 - `src/support/tool_selection.rs` for tool eligibility policy.
 - `src/support/benchmark_runtime.rs` for benchmark runtime selection.

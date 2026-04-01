@@ -84,10 +84,9 @@ fn api_tree_matches_architecture_contract() {
     let expected_support: BTreeSet<_> = [
         "benchmark_runtime.rs",
         "mod.rs",
-        "qa.rs",
-        "reference_resolution.rs",
+        "qa/",
+        "reference_resolution/",
         "tool_selection.rs",
-        "tooling.rs",
         "workspace/",
     ]
     .into_iter()
@@ -128,20 +127,31 @@ fn api_tree_matches_architecture_contract() {
     assert_eq!(v1_entries, expected_v1, "api v1 tree must stay curated");
 
     let v1_run_entries = dir_entries(&root.join("src/v1/run"));
-    let expected_v1_run: BTreeSet<_> = ["mod.rs", "operator_failure.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_v1_run: BTreeSet<_> = [
+        "entrypoints.rs",
+        "mod.rs",
+        "operator_failure.rs",
+        "request_contracts.rs",
+        "runtime_support.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         v1_run_entries, expected_v1_run,
         "api v1 run tree must separate failure contracts from runtime entrypoints"
     );
 
     let v1_report_entries = dir_entries(&root.join("src/v1/report"));
-    let expected_v1_report: BTreeSet<_> = ["html_bundle.rs", "mod.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_v1_report: BTreeSet<_> = [
+        "analysis_exports.rs",
+        "html_bundle.rs",
+        "mod.rs",
+        "request_contracts.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         v1_report_entries, expected_v1_report,
         "api v1 report tree must separate html rendering from report entrypoints"
