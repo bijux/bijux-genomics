@@ -45,21 +45,17 @@ fn dna_tree_matches_architecture_contract() {
         "bam/",
         "benchmark/",
         "cli/",
-        "command_prelude.rs",
-        "corpus.rs",
+        "corpus/",
         "ena/",
         "example/",
         "example.rs",
         "fastq/",
         "hpc/",
         "mod.rs",
-        "policies.rs",
-        "profile_runtime.rs",
-        "repo_root.rs",
-        "report_inputs.rs",
+        "planning/",
         "router/",
-        "run_plan.rs",
-        "status.rs",
+        "status/",
+        "support/",
         "vcf/",
     ]
     .into_iter()
@@ -109,6 +105,64 @@ fn dna_tree_matches_architecture_contract() {
     assert_eq!(
         benchmark_entries, expected_benchmark,
         "benchmark tree must keep benchmark-specific workflows together"
+    );
+
+    let support_entries = dir_entries(&root.join("src/commands/support"));
+    let expected_support: BTreeSet<_> = [
+        "mod.rs",
+        "prelude.rs",
+        "report_inputs.rs",
+        "run_profile.rs",
+        "workspace_audit.rs",
+        "workspace_root.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        support_entries, expected_support,
+        "support tree must own shared command helpers only"
+    );
+
+    let fastq_entries = dir_entries(&root.join("src/commands/fastq"));
+    let expected_fastq: BTreeSet<_> = ["api_bridge.rs", "meta/", "mod.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        fastq_entries, expected_fastq,
+        "fastq tree must keep API mediation separate from meta dispatch"
+    );
+
+    let fastq_meta_entries = dir_entries(&root.join("src/commands/fastq/meta"));
+    let expected_fastq_meta: BTreeSet<_> = ["debug.rs", "entrypoint.rs", "mod.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        fastq_meta_entries, expected_fastq_meta,
+        "fastq meta tree must stay focused on meta-command routing"
+    );
+
+    let planning_entries = dir_entries(&root.join("src/commands/planning"));
+    let expected_planning: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        planning_entries, expected_planning,
+        "planning tree must stay focused on run planning"
+    );
+
+    let status_entries = dir_entries(&root.join("src/commands/status"));
+    let expected_status: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        status_entries, expected_status,
+        "status tree must stay focused on runtime status inspection"
+    );
+
+    let corpus_entries = dir_entries(&root.join("src/commands/corpus"));
+    let expected_corpus: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        corpus_entries, expected_corpus,
+        "corpus tree must stay focused on curated corpus workflows"
     );
 
     let public_api_entries = dir_entries(&root.join("src/public_api"));

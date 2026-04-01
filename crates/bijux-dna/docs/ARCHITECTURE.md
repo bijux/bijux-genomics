@@ -1,6 +1,6 @@
 # bijux-dna Architecture
 
-`bijux-dna` is the user-facing CLI package. Its ideal tree is a small public root over a decomposed command surface:
+`bijux-dna` is the user-facing CLI package. Its ideal tree is a small public root over an explicit command control plane:
 
 ```text
 src/
@@ -11,16 +11,22 @@ src/
 ├── bin/
 │   └── bijux-dna.rs
 └── commands/
-    ├── cli/
-    ├── router/
-    ├── benchmark/
     ├── bam/
-    ├── fastq/
-    ├── vcf/
+    ├── benchmark/
+    ├── cli/
+    ├── corpus/
     ├── ena/
-    ├── hpc/
+    ├── example.rs
     ├── example/
-    └── ...
+    ├── fastq/
+    │   ├── api_bridge.rs
+    │   └── meta/
+    ├── hpc/
+    ├── planning/
+    ├── router/
+    ├── status/
+    ├── support/
+    └── vcf/
 ```
 
 Root responsibilities:
@@ -34,8 +40,13 @@ Root responsibilities:
 Command responsibilities:
 
 - `commands/router/` owns argv parsing, cwd/environment setup, root-command routing, and CLI execution entry.
+- `commands/support/` owns cross-command helpers: shared imports, report input resolution, run profile loading, workspace audit policy, and workspace root discovery.
+- `commands/planning/` owns run-plan assembly and dry-run planning entrypoints.
+- `commands/status/` owns status inspection flows.
+- `commands/corpus/` owns curated corpus workflows.
 - `commands/benchmark/` owns all benchmark-specific configuration, corpus, workspace, publication, suite, and execution flows.
+- `commands/fastq/meta/` owns FASTQ meta-command routing and debug dispatch; `commands/fastq/api_bridge.rs` stays focused on API mediation.
 - `commands/bam/`, `commands/fastq/`, and `commands/vcf/` own domain-facing CLI dispatch only.
-- The remaining command modules own focused root-level helpers such as examples, HPC layout, ENA materialization, and reporting.
+- `commands/ena/`, `commands/hpc/`, and `example.rs` own focused operator-facing helpers that do not belong in the routing or support layers.
 
-This boundary keeps CLI startup, process exit policy, routing, and benchmark workflows from collapsing into ambiguous roots.
+This boundary keeps CLI startup, process exit policy, routing, planning, support helpers, and domain dispatch from collapsing into ambiguous root files.

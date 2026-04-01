@@ -1,3 +1,3 @@
 # bijux-dna determinism
 
-This directory is reserved for determinism tests by intent taxonomy.
+This directory is reserved for reproducibility and stable-output checks.
