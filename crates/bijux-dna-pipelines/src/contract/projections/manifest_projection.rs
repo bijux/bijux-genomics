@@ -2,11 +2,9 @@ use std::collections::BTreeMap;
 
 use sha2::Digest;
 
-use super::{PipelineContract, PipelineProfile, ProfileManifestV1};
+use crate::PipelineProfile;
 
-mod contract_projection;
-mod defaults_ledger;
-mod manifest_projection;
+use super::ProfileManifestV1;
 
 impl PipelineProfile {
     #[must_use]
@@ -47,10 +45,7 @@ impl PipelineProfile {
                         });
                 let mut hasher = sha2::Sha256::new();
                 hasher.update(canonical);
-                (
-                    stage.as_str().to_string(),
-                    format!("{:x}", hasher.finalize()),
-                )
+                (stage.as_str().to_string(), format!("{:x}", hasher.finalize()))
             })
             .collect();
         let schema_versions = BTreeMap::from([
