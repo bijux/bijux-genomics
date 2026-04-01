@@ -6,6 +6,7 @@ mod evaluation;
 mod options;
 mod run_suite;
 mod suite_load;
+mod summary_scope;
 mod summary_support;
 
 use anyhow::Result;
@@ -17,10 +18,10 @@ use bijux_dna_bench_model::{
     BenchError, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, MetricSummary,
     SummaryRow, SummaryStratum,
 };
-use summary_support::{
-    bootstrap_if_enabled, indices_to_replicates, stage_scope_label, StageDatasetScope,
-    StageDatasetToolScope, SummaryGroupKey, SummaryStratumKey,
+use summary_scope::{
+    stage_scope_label, StageDatasetScope, StageDatasetToolScope, SummaryGroupKey, SummaryStratumKey,
 };
+use summary_support::{bootstrap_if_enabled, indices_to_replicates};
 
 pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
