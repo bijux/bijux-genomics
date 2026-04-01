@@ -8,7 +8,7 @@ use crate::model::{
     stable_sort_records, JsonBlob, RunSummaryDeltas, RunSummaryStageRow, RunSummaryV1,
 };
 
-use super::support::{stage_outputs_for_row, summarize_facts};
+use super::facts_support::{stage_outputs_for_row, summarize_facts};
 
 /// Write a deterministic run summary JSON from facts rows.
 ///
