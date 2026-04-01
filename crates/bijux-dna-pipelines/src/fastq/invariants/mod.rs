@@ -6,12 +6,12 @@ use crate::PipelineProfile;
 use bijux_dna_core::prelude::id_catalog;
 
 mod preset_rules;
-mod required_rules;
 mod stage_params;
+mod stage_requirements;
 mod validation_report;
 
 use preset_rules::push_preset_rule_violations;
-use required_rules::push_required_rule_violations;
+use stage_requirements::push_required_rule_violations;
 use validation_report::violation;
 pub use validation_report::{
     FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
