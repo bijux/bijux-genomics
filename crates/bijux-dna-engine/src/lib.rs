@@ -15,6 +15,7 @@
 
 mod errors;
 mod executor;
+pub mod public_api;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -131,4 +132,4 @@ impl Default for Engine {
     }
 }
 
-pub use errors::EngineError;
+pub use public_api::*;
