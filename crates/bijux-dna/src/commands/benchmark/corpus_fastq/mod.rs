@@ -20,62 +20,9 @@ use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
 mod artifact_bundle;
+mod models;
 mod report_qc_support;
 mod sortmerna_support;
-
-#[derive(Debug, Clone)]
-struct PendingSampleRun {
-    sample: CorpusNormalizedSample,
-    report_json: PathBuf,
-    command_args: Vec<String>,
-    command: Vec<String>,
-    env_bindings: BTreeMap<String, String>,
-    extra_fields: BTreeMap<String, serde_json::Value>,
-    post_success_action: Option<PostSuccessAction>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct SampleRunRecord {
-    sample_id: String,
-    r1: String,
-    r2: Option<String>,
-    layout: String,
-    status: String,
-    exit_code: i32,
-    command: Vec<String>,
-    report_json: String,
-    #[serde(flatten)]
-    extra_fields: BTreeMap<String, serde_json::Value>,
-}
-
-#[derive(Debug, Serialize)]
-struct CorpusRunManifest {
-    schema_version: String,
-    generated_at_utc: String,
-    corpus_id: String,
-    stage_id: String,
-    scenario_id: String,
-    sample_scope: String,
-    tool_kind: String,
-    platform: String,
-    tools: Vec<String>,
-    threads: u32,
-    jobs: u32,
-    sample_jobs: usize,
-    sample_limit: Option<usize>,
-    dry_run: bool,
-    config_path: String,
-    publication_config_path: String,
-    repo_root: String,
-    corpus_root: String,
-    out_root: String,
-    stage_args: Vec<String>,
-    samples_total: usize,
-    samples_failed: usize,
-    runs: Vec<SampleRunRecord>,
-    #[serde(flatten)]
-    extra_fields: BTreeMap<String, serde_json::Value>,
-}
 
 #[derive(Debug, Clone, Copy)]
 struct StageCommandSpec {
@@ -90,20 +37,12 @@ struct StageSamplePreparation {
     run_extra_fields: BTreeMap<String, serde_json::Value>,
 }
 
-#[derive(Debug, Clone)]
-enum PostSuccessAction {
-    PromoteAndPruneSortmernaCache {
-        out_root: PathBuf,
-        sample_id: String,
-        rrna_bundle_id: String,
-    },
-}
-
 const REPORT_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
 use self::artifact_bundle::artifact_bundle_manifest_fields;
 pub(crate) use self::artifact_bundle::{
     artifact_bundle_size_bytes, sha256_artifact_bundle, sha256_file_hex,
 };
+use self::models::{CorpusRunManifest, PendingSampleRun, PostSuccessAction, SampleRunRecord};
 use self::report_qc_support::{
     prepare_report_qc_sample, report_qc_contributor_tool_ids, report_qc_upstream_stage_ids,
 };
