@@ -4,20 +4,15 @@ use std::time::Instant;
 
 use anyhow::{Context, Result};
 
+mod command_line;
 mod command_output;
 mod invocation_identity;
 
+use command_line::build_command_string;
 pub use command_output::CommandOutputV1;
 pub use invocation_identity::invocation_hash;
 
 use std::collections::BTreeMap;
-
-fn build_command_string(command: &str, args: &[String]) -> String {
-    if args.is_empty() {
-        return command.to_string();
-    }
-    format!("{command} {}", args.join(" "))
-}
 
 /// # Errors
 /// Returns an error if the command cannot be executed.
