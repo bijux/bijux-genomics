@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::Result;
 
 use crate::commands::cli;
-use crate::commands::root_handlers::{
+use crate::commands::router::root_commands::{
     handle_ci_root, handle_config_root, handle_corpus_root, handle_domain_root, handle_ena_root,
     handle_environment_root, handle_lab_root, handle_registry_root, handle_tool_root,
 };

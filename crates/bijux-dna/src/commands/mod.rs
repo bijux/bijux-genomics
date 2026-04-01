@@ -21,7 +21,6 @@ mod policies;
 pub(crate) mod profile_runtime;
 pub(crate) mod repo_root;
 pub(crate) mod report_inputs;
-mod root_handlers;
 mod router;
 pub(crate) mod run_plan;
 mod status;
