@@ -3,14 +3,14 @@
 #![cfg_attr(not(test), deny(clippy::unwrap_used, clippy::expect_used))]
 #![deny(clippy::todo)]
 
-mod app;
 mod application;
 mod catalog;
 mod cli;
 mod commands;
+mod dev_entrypoint;
 mod model;
 mod runtime;
 
 fn main() -> anyhow::Result<()> {
-    app::run()
+    dev_entrypoint::run()
 }
