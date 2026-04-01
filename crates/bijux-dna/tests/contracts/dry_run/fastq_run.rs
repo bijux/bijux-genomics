@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use bijux_dna::commands::run_with_args;
+use bijux_dna::public_api::run_with_args;
 
 #[test]
 fn cli_fastq_run_dry_run_emits_manifest_and_graph() {

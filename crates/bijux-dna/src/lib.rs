@@ -1,7 +1,6 @@
 mod cli_entrypoint;
-pub mod commands;
+mod commands;
 pub mod process_exit;
+pub mod public_api;
 pub use crate::cli_entrypoint::{run_from_args, run_from_env};
-pub mod cli {
-    pub use crate::commands::cli::*;
-}
+pub use crate::public_api::cli;

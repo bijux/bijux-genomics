@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used)]
 
-use bijux_dna::commands::cli::Cli;
+use bijux_dna::public_api::cli::Cli;
 use clap::CommandFactory;
 
 fn help_for(args: &[&str]) -> String {

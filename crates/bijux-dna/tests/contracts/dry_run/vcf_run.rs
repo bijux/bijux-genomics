@@ -1,6 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use bijux_dna::commands::run_with_args;
+use bijux_dna::public_api::run_with_args;
 
 #[test]
 fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
