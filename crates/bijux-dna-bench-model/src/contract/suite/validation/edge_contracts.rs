@@ -3,8 +3,8 @@ use crate::model::{
     BenchmarkGraphNode, BenchmarkStageEdge, BenchmarkStageSpec, BenchmarkSuiteSpec,
 };
 
-use super::DeclaredStageNodes;
 use crate::contract::suite::validate_edge_ports;
+use super::DeclaredStageNodes;
 
 pub(super) fn validate_upstream_stage_references(
     suite: &BenchmarkSuiteSpec,
