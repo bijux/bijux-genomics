@@ -1,5 +1,6 @@
 //! FASTQ pipeline profile definitions.
 
+mod baseline_profiles;
 mod catalog;
 mod contract_templates;
 
@@ -15,48 +16,7 @@ use super::defaults::{
 use crate::{InvariantsPreset, PipelineId, PipelineProfile, StabilityTier};
 
 pub use catalog::{fastq_profiles_by_id, FASTQ_PROFILE_IDS};
-
-#[must_use]
-pub fn fastq_minimal_profile() -> PipelineProfile {
-    let required_stages = default_shotgun_required_stages();
-    PipelineProfile {
-        id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_MINIMAL),
-        description: "Minimal FASTQ pipeline",
-        stability: StabilityTier::Stable,
-        input_domains: vec![crate::Domain::Fastq],
-        output_domains: vec![crate::Domain::Fastq],
-        defaults: fastq_defaults(false),
-        defaults_ledger_ref: "defaults_ledger.json",
-        invariants_preset: None,
-        library_model: fastq_library_model(
-            LibraryLayout::SingleEnd,
-            UdgTreatment::Unknown,
-            AssayKind::Unknown,
-        ),
-        capabilities: fastq_capabilities(required_stages),
-    }
-}
-
-#[must_use]
-pub fn fastq_default_profile() -> PipelineProfile {
-    let required_stages = default_shotgun_required_stages();
-    PipelineProfile {
-        id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_DEFAULT),
-        description: "Default FASTQ pipeline",
-        stability: StabilityTier::Stable,
-        input_domains: vec![crate::Domain::Fastq],
-        output_domains: vec![crate::Domain::Fastq],
-        defaults: fastq_defaults(false),
-        defaults_ledger_ref: "defaults_ledger.json",
-        invariants_preset: None,
-        library_model: fastq_library_model(
-            LibraryLayout::SingleEnd,
-            UdgTreatment::Unknown,
-            AssayKind::Unknown,
-        ),
-        capabilities: fastq_capabilities(required_stages),
-    }
-}
+pub use baseline_profiles::{fastq_default_profile, fastq_minimal_profile};
 
 #[must_use]
 pub fn fastq_adna_profile() -> PipelineProfile {
