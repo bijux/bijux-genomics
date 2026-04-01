@@ -1,3 +1,3 @@
 # bijux-dna-testkit boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+Owns dependency and source-tree boundary checks for the testkit crate.

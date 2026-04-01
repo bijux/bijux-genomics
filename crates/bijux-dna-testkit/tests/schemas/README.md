@@ -1,3 +1,3 @@
 # bijux-dna-testkit schemas
 
-This directory is reserved for schemas tests by intent taxonomy.
+Owns public API and snapshot normalization contracts for the testkit crate.
