@@ -4,7 +4,7 @@ use crate::model::{
 };
 
 use super::DeclaredStageNodes;
-use crate::contract::edge_validation::validate_edge_ports;
+use crate::contract::suite::validate_edge_ports;
 
 pub(super) fn validate_upstream_stage_references(
     suite: &BenchmarkSuiteSpec,
