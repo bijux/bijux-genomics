@@ -6,8 +6,8 @@ use tracing::{info, warn};
 
 use crate::commands::cli;
 use crate::commands::cli::render;
-use crate::commands::profile_runtime::{ensure_profile_run_base_dir, load_profile_for_cli};
 use crate::commands::support::prelude::{anyhow, Cli, Context, DnaCommand, Path, PathBuf, Result};
+use crate::commands::support::run_profile::{ensure_profile_run_base_dir, load_profile_for_cli};
 use std::collections::BTreeMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
