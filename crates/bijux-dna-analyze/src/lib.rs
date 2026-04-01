@@ -8,7 +8,7 @@
 
 pub mod aggregate;
 mod api;
-pub mod contract;
+mod contracts;
 pub mod decision;
 pub mod export;
 pub mod failure;

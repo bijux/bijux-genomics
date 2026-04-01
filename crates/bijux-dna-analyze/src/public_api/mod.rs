@@ -3,7 +3,7 @@ pub use crate::api::{
     AnalyzeInput, AnalyzeMetricId, AnalyzeMode, AnalyzeOptions, AnalyzeOutput, AnalyzeSources,
     RenderOptions,
 };
-pub use crate::contract::{analyze_contract_v1, AnalyzeContractV1};
+pub use crate::contracts::{analyze_contract_v1, AnalyzeContractV1};
 pub use crate::failure::*;
 pub use crate::load::*;
 pub use crate::report::*;
