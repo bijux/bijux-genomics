@@ -1,9 +1,9 @@
 //! FASTQ pipeline profile definitions.
 
 mod adna_profile;
-mod contract_templates;
 mod default_profile;
 mod minimal_profile;
+mod profile_contracts;
 mod profile_lookup;
 mod reference_adna_profile;
 
