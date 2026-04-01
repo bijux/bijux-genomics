@@ -1,10 +1,10 @@
 use super::{
-    anyhow, build_run_execution_plan, Domain, Path, PathBuf, PlanRunRequest, PlanRunResult,
-    Result, RunRequest, RunResult, ToolRegistry,
+    anyhow, build_run_execution_plan, Domain, Path, PathBuf, PlanRunRequest, PlanRunResult, Result,
+    RunRequest, RunResult, ToolRegistry,
 };
 
-mod profile_selection;
 mod planning_support;
+mod profile_selection;
 mod run_bootstrap;
 
 /// Run execution mode for API pipeline execution.

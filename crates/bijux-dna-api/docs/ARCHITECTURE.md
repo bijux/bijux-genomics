@@ -5,6 +5,8 @@
 - `surface/` owns request/response contracts and explainability contracts used by the public API.
 - `runtime/` owns execution/reporting adapters, runtime validation, persistence helpers, and invocation policy support.
 - `runtime/invocation_policy/` isolates policy models, path contracts, and recovery artifacts from the top-level policy rules.
+- `runtime/run/planning/` separates profile selection, run bootstrap, and planning support from the run facade.
+- `runtime/run/execution/` isolates run execution entry from the surrounding run facade.
 - `runtime/run/reporting/` isolates report rendering, dry-run/execute entrypoints, replay/status helpers, plan response materialization, summary artifacts, and workspace audit support from the run facade.
 - `support/workspace/` owns repository root resolution and workspace registry loading.
 - `support/tool_selection.rs` owns tool eligibility filtering.
@@ -14,6 +16,8 @@
 - `internal/` owns non-public handler wiring, cross-domain adapters, and fastq-specific implementation details.
 - `internal/fastq/stage_ids/` separates fastq stage constants by source authority instead of flattening them into a vague root.
 - `v1/` owns the curated public entrypoints and re-export policy for the stable API surface.
+- `v1/api/` is the explicit public front door over the curated versioned namespaces.
+- `v1/bench/`, `v1/env/`, `v1/fastq/`, and `v1/pipelines/` are explicit versioned namespaces instead of flat root files.
 - `v1/run/` separates run entrypoints, request contracts, runtime support exports, and operator failure contracts.
 - `v1/report/` separates report request contracts, analysis exports, and HTML bundle rendering.
 
