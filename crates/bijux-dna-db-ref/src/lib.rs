@@ -1,5 +1,5 @@
 mod catalog;
-mod models;
+mod model;
 mod providers;
 pub mod public_api;
 mod resolution;
