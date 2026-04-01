@@ -1,12 +1,3 @@
-pub const FASTQ_PREFIX: &str = "fastq.";
-pub const BAM_PREFIX: &str = "bam.";
-pub const VCF_PREFIX: &str = "vcf.";
-pub const CORE_PREFIX: &str = "core.";
-
-pub const CORE_PREPARE_REFERENCE: &str = "core.prepare_reference";
-pub const REPORT_AGGREGATE_STAGE: &str = "report.aggregate";
-pub const REPORT_AGGREGATE_STEP: &str = "report.aggregate";
-
 pub const FASTQ_PREPROCESS: &str = "fastq.preprocess";
 pub const FASTQ_NORMALIZE_ABUNDANCE: &str = "fastq.normalize_abundance";
 pub const FASTQ_INFER_ASVS: &str = "fastq.infer_asvs";
