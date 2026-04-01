@@ -1,7 +1,7 @@
 use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord};
 use std::collections::HashMap;
 
-use super::{filereport, EnaClientError};
+use super::{headers, EnaClientError};
 
 pub(super) fn parse_filereport_tsv(
     tsv: &str,
@@ -14,7 +14,7 @@ pub(super) fn parse_filereport_tsv(
         ));
     };
     let headers: Vec<&str> = header_line.split('\t').collect();
-    validate_headers(&headers, query)?;
+    headers::validate_headers(&headers, query)?;
 
     Ok(lines
         .filter_map(|line| {
@@ -116,21 +116,4 @@ fn opt_field(value: &str) -> Option<&str> {
     } else {
         Some(trimmed)
     }
-}
-
-fn validate_headers(headers: &[&str], query: &EnaQuery) -> Result<(), EnaClientError> {
-    let missing = filereport::filereport_fields(query.result)
-        .iter()
-        .copied()
-        .filter(|field| !headers.iter().any(|header| header == field))
-        .collect::<Vec<_>>();
-
-    if missing.is_empty() {
-        return Ok(());
-    }
-
-    Err(EnaClientError::InvalidResponse(format!(
-        "filereport response is missing required columns: {}",
-        missing.join(", ")
-    )))
 }
