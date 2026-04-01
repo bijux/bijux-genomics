@@ -7,7 +7,7 @@ use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{adna_shotgun_params_json, default_params_json};
 use bijux_dna_domain_bam::BamStage;
 
-use super::fastq_to_bam_support::{base_defaults, required_cross_stages};
+use super::defaults::{base_defaults, required_cross_stages};
 use crate::{
     ArtifactType, DefaultParams, Domain, EmptyParams, InvariantsPreset, MetricsBundle,
     PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
