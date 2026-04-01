@@ -1,6 +1,7 @@
 //! Curated stable surface for downstream crates.
 
 pub use crate::bam;
+pub use crate::contract;
 pub use crate::cross;
 pub use crate::defaults;
 pub use crate::fastq;

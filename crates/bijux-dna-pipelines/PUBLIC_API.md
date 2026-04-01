@@ -2,6 +2,7 @@
 
 Public modules exported from src/lib.rs:
 - bam
+- contract
 - cross
 - defaults
 - fastq
