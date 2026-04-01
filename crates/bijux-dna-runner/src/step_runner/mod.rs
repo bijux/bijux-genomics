@@ -14,6 +14,7 @@ mod command_template;
 mod contracts;
 mod docker_execution;
 mod effects;
+mod execution_dispatch;
 mod execution_outcome;
 mod identity;
 mod inputs;
@@ -30,6 +31,7 @@ use apptainer_execution::execute_apptainer_step;
 use command_template::container_command_template;
 pub use contracts::StageResultV1;
 use docker_execution::execute_docker_step;
+use execution_dispatch::execute_step_outcome;
 use effects::{runner_failure, RunnerEffectKind};
 use identity::hash_inputs;
 #[allow(unused_imports)]
@@ -57,12 +59,7 @@ pub fn execute_step(
         .map(|input| input.path.clone())
         .collect();
     let input_root = common_parent(&inputs).unwrap_or_else(|| out_dir.clone());
-    let outcome = match runner {
-        RuntimeKind::Docker => execute_docker_step(step, &inputs, &input_root, out_dir, timeout)?,
-        RuntimeKind::Apptainer | RuntimeKind::Singularity => {
-            execute_apptainer_step(step, runner, &inputs, &input_root, out_dir)?
-        }
-    };
+    let outcome = execute_step_outcome(step, runner, &inputs, &input_root, out_dir, timeout)?;
 
     let outputs: Vec<PathBuf> = step
         .io
