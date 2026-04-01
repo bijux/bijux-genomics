@@ -23,9 +23,9 @@ fn environment_tree_matches_architecture_contract() {
         btree_set(&[
             "build/",
             "lib.rs",
+            "public_api/",
             "resolve/",
             "runtime_spec.rs",
-            "surface.rs"
         ]),
         "src tree must match the documented environment layout"
     );
