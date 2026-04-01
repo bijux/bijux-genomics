@@ -7,8 +7,9 @@ use super::{
 use bijux_dna_engine::Engine;
 
 mod lifecycle;
-mod replay;
 mod rendering;
+mod replay;
+mod summary_artifact;
 mod status;
 mod workspace_audit;
 
@@ -81,7 +82,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
     };
     Engine::default().execute(&request.graph, runner.as_ref(), &layout, None, None)?;
     let summary_path = layout.summary_dir.join("run_summary.json");
-    lifecycle::write_run_summary_artifact(
+    summary_artifact::write_run_summary_artifact(
         &summary_path,
         "execute",
         request.graph.pipeline_id().as_str(),
@@ -121,7 +122,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
     let summary_path = request.run_dir.join("run_summary.json");
-    lifecycle::write_run_summary_artifact(
+    summary_artifact::write_run_summary_artifact(
         &summary_path,
         "dry-run",
         request.graph.pipeline_id().as_str(),
@@ -133,13 +134,13 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         {
             "kind": "graph",
             "schema": "bijux.execution_graph.v1",
-            "path": lifecycle::relative_path_string(&request.run_dir, &graph_path),
+            "path": summary_artifact::relative_path_string(&request.run_dir, &graph_path),
             "sha256": graph_sha
         },
         {
             "kind": "run_summary",
             "schema": "bijux.run_summary.v1",
-            "path": lifecycle::relative_path_string(&request.run_dir, &summary_path),
+            "path": summary_artifact::relative_path_string(&request.run_dir, &summary_path),
             "sha256": summary_sha
         }
     ]);
@@ -150,7 +151,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         artifacts.push(serde_json::json!({
             "kind": "run_manifest",
             "schema": "bijux.run_manifest.v3",
-            "path": lifecycle::relative_path_string(&request.run_dir, &manifest_path),
+            "path": summary_artifact::relative_path_string(&request.run_dir, &manifest_path),
             "sha256": manifest_sha
         }));
     } else {
