@@ -15,24 +15,18 @@
 
 mod errors;
 mod executor;
+mod engine_config;
 mod control;
 mod observability;
 pub mod public_api;
 
 use anyhow::Result;
-use bijux_dna_core::contract::{ExecutionGraph, RetryPolicy, RunRecordV1};
+use bijux_dna_core::contract::{ExecutionGraph, RunRecordV1};
 use bijux_dna_runtime::run_layout::RunLayout;
 use bijux_dna_runtime::Runner;
 pub use control::CancellationToken;
+pub use engine_config::EngineConfig;
 pub use observability::{EngineEvent, EngineHooks};
-
-#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
-pub struct EngineConfig {
-    pub step_timeout_s: Option<u64>,
-    pub deterministic_scheduler: bool,
-    pub retry_policy: Option<RetryPolicy>,
-    pub max_parallelism: Option<usize>,
-}
 
 pub struct Engine {
     config: EngineConfig,
