@@ -87,9 +87,8 @@ fn dna_tree_matches_architecture_contract() {
     let expected_benchmark: BTreeSet<_> = [
         "config.rs",
         "corpus_fastq/",
-        "corpus_fastq.rs",
         "corpus_metadata.rs",
-        "fastq_bench.rs",
+        "fastq_bench/",
         "mod.rs",
         "publication/",
         "repo_checks.rs",
@@ -105,6 +104,42 @@ fn dna_tree_matches_architecture_contract() {
     assert_eq!(
         benchmark_entries, expected_benchmark,
         "benchmark tree must keep benchmark-specific workflows together"
+    );
+
+    let benchmark_fastq_bench_entries =
+        dir_entries(&root.join("src/commands/benchmark/fastq_bench"));
+    let expected_benchmark_fastq_bench: BTreeSet<_> = [
+        "adapter_discovery.rs",
+        "discovery.rs",
+        "explain.rs",
+        "mod.rs",
+        "tool_policy.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        benchmark_fastq_bench_entries, expected_benchmark_fastq_bench,
+        "fastq benchmark tree must separate adapter discovery, stage discovery, explanation, and tool policy"
+    );
+
+    let benchmark_corpus_fastq_entries =
+        dir_entries(&root.join("src/commands/benchmark/corpus_fastq"));
+    let expected_benchmark_corpus_fastq: BTreeSet<_> = [
+        "artifact_bundle.rs",
+        "mod.rs",
+        "models.rs",
+        "report_qc_support.rs",
+        "runtime_support.rs",
+        "sortmerna_support.rs",
+        "stage_preparation.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        benchmark_corpus_fastq_entries, expected_benchmark_corpus_fastq,
+        "corpus fastq benchmark tree must separate run models, runtime support, stage preparation, and governed support"
     );
 
     let cli_entries = dir_entries(&root.join("src/commands/cli"));
