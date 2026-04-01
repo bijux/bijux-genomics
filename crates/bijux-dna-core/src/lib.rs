@@ -12,7 +12,7 @@ pub mod id_catalog;
 pub mod ids;
 /// Metrics types and registries.
 pub mod metrics;
-/// Curated mirror of the stable public surface.
-pub mod public_api;
 /// Public prelude for stable imports.
 pub mod prelude;
+/// Curated mirror of the stable public surface.
+pub mod public_api;

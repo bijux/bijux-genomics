@@ -4,7 +4,7 @@
 This is the canonical entry point for bijux-dna-core documentation.
 
 ## Public surface
-Public modules are `contract`, `id_catalog`, `ids`, `metrics`, and `prelude`.
+Public modules are `contract`, `id_catalog`, `ids`, `metrics`, `public_api`, and `prelude`.
 
 ## Start here
 - `CONTRACT_MAP.md` for what contracts exist and where they live.

@@ -1,3 +1,3 @@
 # bijux-dna-core contracts
 
-This directory is reserved for contracts tests by intent taxonomy.
+Owns execution, identity, and public contract behavior checks for bijux-dna-core.
