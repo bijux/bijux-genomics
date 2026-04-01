@@ -1,7 +1,6 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Duration;
 
-use crate::paths::run_layout_paths;
 use crate::{atomic_write_json, ensure_dir, FileLock, IoError};
 
 use super::{RunLayoutPaths, RUN_LAYOUT_CONTRACT};

@@ -1,7 +1,7 @@
 # bijux-dna-infra
 
 ## What this crate does
-Small deterministic utilities (logging, formats, paths) with zero domain semantics.
+Deterministic infrastructure helpers for filesystem IO, path construction, retry behavior, logging bootstrap, file locking, and config-compatible formats.
 
 ## What it must not do (boundaries)
 No domain catalogs, SSOT ownership, or execution dependencies.
@@ -12,6 +12,10 @@ Allowed utilities (and only these):
 - formats (JSON/TOML/YAML for config compatibility)
 - logging (stable field conventions only)
 - paths (deterministic path helpers)
+- io (filesystem writes/reads/removals with explicit error taxonomy)
+- retry (policy, clock abstraction, and backoff orchestration)
+- run layout support (contracts plus run publish/lock helpers)
+- temp and locking helpers
 
 Explicitly forbidden:
 - any domain semantics
@@ -37,8 +41,7 @@ Canonicalization lives in bijux-dna-core only. Infra must not re-implement it.
 See `crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_duplicate_canonicalizers.rs`.
 
 ## How to run its tests
-See `crates/bijux-dna-infra/docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/guardrails.rs`,
-`tests/guardrails/no_generic_helpers.rs`.
+See `crates/bijux-dna-infra/docs/TESTS.md`. Key tests: `tests/contracts/io.rs`, `tests/contracts/run_layout.rs`, `tests/determinism/hash.rs`, `tests/determinism/retry.rs`, `tests/boundaries/guardrails/public_surface.rs`.
 
 ## Where the docs live
 Start at `crates/bijux-dna-infra/docs/INDEX.md` and follow the crate docs listed above.
