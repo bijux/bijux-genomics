@@ -3,6 +3,7 @@ use super::{
     PlanRunRequest, PlanRunResult, Result, RunRequest, RunResult, ToolRegistry,
 };
 
+mod profile_selection;
 mod planning_support;
 
 /// Run execution mode for API pipeline execution.
@@ -29,32 +30,7 @@ pub fn run_pipeline(request: RunRequest, _mode: RunMode) -> Result<RunResult> {
     })
 }
 
-/// # Errors
-/// Returns an error if the profile id is unknown.
-pub fn select_pipeline(domain: Domain, profile_id: &str) -> Result<PipelineProfile> {
-    bijux_dna_pipelines::registry::profile_by_id(domain, profile_id)
-}
-
-#[must_use]
-pub fn select_pipelines(
-    domain: Option<Domain>,
-    include_experimental: bool,
-) -> Vec<PipelineProfile> {
-    let registry = PipelineRegistry::v1();
-    if let Some(domain) = domain {
-        registry
-            .list_for_domain(domain, include_experimental)
-            .into_iter()
-            .cloned()
-            .collect()
-    } else {
-        registry
-            .list(include_experimental)
-            .into_iter()
-            .cloned()
-            .collect()
-    }
-}
+pub use self::profile_selection::{select_pipeline, select_pipelines};
 
 /// # Errors
 /// Returns an error if planning fails for the requested run.
