@@ -5,16 +5,17 @@
 - `surface/` owns request/response contracts and explainability contracts used by the public API.
 - `runtime/` owns execution/reporting adapters, runtime validation, persistence helpers, and invocation policy support.
 - `runtime/invocation_policy/` isolates policy models, path contracts, and recovery artifacts from the top-level policy rules.
-- `runtime/run/reporting/` isolates report rendering, lifecycle status/replay, and workspace audit support from the run facade.
+- `runtime/run/reporting/` isolates report rendering, dry-run/execute entrypoints, replay/status helpers, plan response materialization, summary artifacts, and workspace audit support from the run facade.
 - `support/workspace/` owns repository root resolution and workspace registry loading.
 - `support/tool_selection.rs` owns tool eligibility filtering.
 - `support/benchmark_runtime.rs` owns benchmark runtime selection.
-- `support/tooling.rs` stays a narrow compatibility facade for internal callsites that need benchmark/runtime helpers together.
+- `support/reference_resolution/` separates reference resolution contracts from the local filesystem adapter.
+- `support/qa/` separates QA gate checks from the runner shim.
 - `internal/` owns non-public handler wiring, cross-domain adapters, and fastq-specific implementation details.
 - `internal/fastq/stage_ids/` separates fastq stage constants by source authority instead of flattening them into a vague root.
 - `v1/` owns the curated public entrypoints and re-export policy for the stable API surface.
-- `v1/run/` isolates operator failure contracts from run entrypoint re-exports.
-- `v1/report/` isolates HTML bundle rendering from runtime report entrypoints.
+- `v1/run/` separates run entrypoints, request contracts, runtime support exports, and operator failure contracts.
+- `v1/report/` separates report request contracts, analysis exports, and HTML bundle rendering.
 
 ## Change rules
 - Keep stable schema and explainability contracts under `surface/`, not at the crate root.
