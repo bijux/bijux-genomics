@@ -46,6 +46,7 @@ fn pipelines_tree_matches_architecture_contract() {
             "profile.rs",
             "profile_manifest.rs",
             "projections/",
+            "stable_surface.rs",
             "vocabulary.rs",
         ]),
         "contract namespace must stay partitioned by concern"
@@ -61,6 +62,7 @@ fn pipelines_tree_matches_architecture_contract() {
             "merge/",
             "mod.rs",
             "serde_codec/",
+            "stable_surface.rs",
         ]),
         "defaults namespace must keep ledgers, envelopes, and merge logic separated"
     );
@@ -97,6 +99,7 @@ fn pipelines_tree_matches_architecture_contract() {
             "profiles/",
             "required_stages.rs",
             "source_profiles.rs",
+            "stable_surface.rs",
         ]),
         "fastq-to-bam cross namespace must keep source profiles, merged defaults, profiles, and required stages separated"
     );
@@ -109,7 +112,7 @@ fn pipelines_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/registry/profile_lookup")),
-        entries(["cross.rs", "mod.rs", "vcf.rs"]),
+        entries(["cross.rs", "lookup_entry.rs", "mod.rs", "vcf.rs"]),
         "registry profile lookup namespace must separate domain dispatch from concrete families"
     );
 
@@ -128,13 +131,14 @@ fn pipelines_tree_matches_architecture_contract() {
             "mod.rs",
             "pipeline_id.rs",
             "profile_lookup/",
+            "stable_surface.rs",
         ]),
         "registry namespace must keep identity, collections, and lookups separated"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/registry/catalog")),
-        entries(["OWNER.toml", "mod.rs", "queries/"]),
+        entries(["OWNER.toml", "mod.rs", "pipeline_registry.rs", "queries/"]),
         "registry catalog namespace must keep assembly and query behavior separated"
     );
 
@@ -174,6 +178,7 @@ fn pipelines_tree_matches_architecture_contract() {
             "adna/",
             "analysis_params.rs",
             "analysis_tools.rs",
+            "defaults_assembly.rs",
             "mod.rs",
             "parameter_defaults.rs",
             "preprocess_params.rs",
@@ -214,7 +219,8 @@ fn pipelines_tree_matches_architecture_contract() {
             "profile_by_id.rs",
             "profile_contracts/",
             "profile_ids.rs",
-            "reference_adna_profile.rs"
+            "reference_adna_profile.rs",
+            "stable_surface.rs"
         ]),
         "fastq profiles namespace must keep baseline and ancient-dna families separated"
     );
@@ -232,6 +238,7 @@ fn pipelines_tree_matches_architecture_contract() {
             "mod.rs",
             "preset_rules/",
             "stage_parameter_access.rs",
+            "stage_scope.rs",
             "stage_requirements/",
             "validation_report_contracts.rs",
             "violation_builder.rs"
