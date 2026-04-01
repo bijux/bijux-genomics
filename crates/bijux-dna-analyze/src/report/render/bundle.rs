@@ -6,8 +6,8 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use bijux_dna_infra::atomic_write_bytes;
 
-use crate::report::model::ReportModel;
 use crate::report::render::html::render_report_html;
+use crate::report::render_model::ReportModel;
 
 pub fn write_report_bundle(dir: &Path, model: &ReportModel) -> Result<()> {
     bijux_dna_infra::ensure_dir(dir).context("create report bundle dir")?;
@@ -35,7 +35,7 @@ pub fn write_report_bundle(dir: &Path, model: &ReportModel) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::write_report_bundle;
-    use crate::report::model::ReportModel;
+    use crate::report::render_model::ReportModel;
     use bijux_dna_runtime::ReportSchemaV1;
     use std::fs;
     use std::path::PathBuf;

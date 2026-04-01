@@ -29,8 +29,8 @@ pub use crate::report::bench::{
 use crate::exports::write_run_summary_json;
 use crate::model::stable_sort_records;
 use crate::model::JsonBlob;
-use crate::report::model::ReportModel;
 use crate::report::render::json::write_report_json;
+use crate::report::render_model::ReportModel;
 use crate::report::sections::schema::{
     build_report_sections, report_completeness, report_contract, report_metric_semantics,
 };

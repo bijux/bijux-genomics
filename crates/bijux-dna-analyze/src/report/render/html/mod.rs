@@ -3,7 +3,7 @@
 mod sections;
 mod template;
 
-use crate::report::model::ReportModel;
+use crate::report::render_model::ReportModel;
 use anyhow::Result;
 
 use sections::{build_nav_items, build_section_blocks, build_stage_panels, build_stage_tabs};

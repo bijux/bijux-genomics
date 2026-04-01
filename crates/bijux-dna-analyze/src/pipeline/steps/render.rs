@@ -7,11 +7,11 @@ use anyhow::{Context, Result};
 use bijux_dna_infra::atomic_write_bytes;
 
 use crate::exports::write_run_summary_json;
-use crate::report::model::ReportModel;
 use crate::report::render::bundle::write_report_bundle;
 use crate::report::render::html::write_report_html;
 use crate::report::render::json::write_report_json;
 use crate::report::render::markdown::write_report_markdown;
+use crate::report::render_model::ReportModel;
 use crate::report::write_run_report_from_facts;
 use crate::AnalyzeMode;
 use crate::{AnalyzeOptions, AnalyzeOutput};
