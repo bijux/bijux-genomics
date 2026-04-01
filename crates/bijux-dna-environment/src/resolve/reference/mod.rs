@@ -68,7 +68,14 @@ impl ReferenceRegistry {
         let dict = fasta_target.with_extension("dict");
         let bwa_prefix = fasta_target.clone();
         let bowtie2_prefix = fasta_target.clone();
-        prepare_reference_indices(&fasta_target, request, &fai, &dict, &bwa_prefix, &bowtie2_prefix)?;
+        prepare_reference_indices(
+            &fasta_target,
+            request,
+            &fai,
+            &dict,
+            &bwa_prefix,
+            &bowtie2_prefix,
+        )?;
 
         Ok(ReferenceRecord {
             digest,
