@@ -26,7 +26,6 @@ mod runtime_policy;
 #[allow(unused_imports)]
 use apptainer_args::build_apptainer_exec_args;
 use apptainer_execution::execute_apptainer_step;
-use artifacts::write_minimum_run_artifacts;
 #[allow(unused_imports)]
 use command_template::container_command_template;
 pub use contracts::StageResultV1;
