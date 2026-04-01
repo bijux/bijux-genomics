@@ -8,7 +8,6 @@ pub(crate) mod ena;
 pub(crate) mod fastq;
 pub mod hpc;
 mod policies;
-pub(crate) mod report_inputs;
 mod router;
 pub(crate) mod run_plan;
 mod status;

@@ -27,8 +27,10 @@ pub(crate) use crate::commands::cli::{
     BenchCommand, BenchFastqCommand, Cli, DnaCommand, EnvCommand, FastqCommand, PipelinesCommand,
     PoliciesCommand,
 };
-pub(crate) use crate::commands::report_inputs::resolve_report_inputs;
-pub(crate) use crate::commands::report_inputs::{normalize_fastq_stage_id, qc_class_label};
+pub(crate) use crate::commands::support::report_inputs::resolve_report_inputs;
+pub(crate) use crate::commands::support::report_inputs::{
+    normalize_fastq_stage_id, qc_class_label,
+};
 pub(crate) use crate::commands::workspace_audit;
 pub(crate) use bijux_dna_api::v1::api::bench::fastq_banks::{
     resolve_adapter_selection, resolve_effective_adapters, AdapterSelection,
