@@ -20,7 +20,10 @@ fn required_jsonl_key<'a>(
         .ok_or_else(|| anyhow::anyhow!("observation row {line_number} missing `{field}`"))
 }
 
-pub(super) fn load_existing_keys(path: &Path, tool_id_key: &str) -> Result<BTreeSet<ObservationKey>> {
+pub(super) fn load_existing_keys(
+    path: &Path,
+    tool_id_key: &str,
+) -> Result<BTreeSet<ObservationKey>> {
     let mut keys = BTreeSet::new();
     if !path.exists() {
         return Ok(keys);

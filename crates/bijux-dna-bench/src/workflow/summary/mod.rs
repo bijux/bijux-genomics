@@ -9,15 +9,13 @@ mod strata;
 use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
 
-use bijux_dna_bench_model::contract::validate_suite;
-use bijux_dna_bench_model::{
-    BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
-};
 use self::grouping::collect_summary_groups;
 use self::row_metrics::build_summary_row;
 use self::strata::build_summary_strata;
 use super::options::BenchRunOptions;
 use super::summary_fairness::evaluate_summary_fairness;
+use bijux_dna_bench_model::contract::validate_suite;
+use bijux_dna_bench_model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 
 /// Summarize observations into a benchmark summary.
 ///

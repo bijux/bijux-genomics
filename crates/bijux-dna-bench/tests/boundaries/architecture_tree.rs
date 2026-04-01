@@ -28,8 +28,19 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
-        entries(["mod.rs", "writer.rs"]),
+        entries(["mod.rs", "writer/"]),
         "artifacts tree must stay focused on deterministic serialization"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/writer")),
+        entries([
+            "mod.rs",
+            "observation_reader.rs",
+            "observation_writer.rs",
+            "structured_writer.rs",
+        ]),
+        "artifact writer tree must separate observation loading, observation persistence, and structured report writing"
     );
 
     assert_eq!(
@@ -81,13 +92,26 @@ fn bench_tree_matches_architecture_contract() {
             "evaluation.rs",
             "mod.rs",
             "options.rs",
-            "run_suite.rs",
+            "run_suite/",
+            "summary/",
+            "suite_load.rs",
             "summary_fairness.rs",
             "summary_scope.rs",
             "summary_statistics.rs",
-            "suite_load.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/run_suite")),
+        entries(["mod.rs", "persistence.rs"]),
+        "suite run tree must separate orchestration from artifact persistence"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/summary")),
+        entries(["grouping.rs", "mod.rs", "row_metrics.rs", "strata.rs"]),
+        "summary tree must separate grouping, row metrics, and stratum aggregation"
     );
 
     assert_eq!(
