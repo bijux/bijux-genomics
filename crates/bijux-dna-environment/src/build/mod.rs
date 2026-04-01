@@ -6,7 +6,7 @@
 mod builder;
 mod defaults;
 mod models;
+mod stable_surface;
 mod version_parser;
 
-pub use builder::{default_docker_tools, extract_version_from_dockerfile, EnvironmentBuilder};
-pub use models::DockerToolSpec;
+pub use stable_surface::*;
