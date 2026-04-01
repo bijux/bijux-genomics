@@ -2,10 +2,10 @@ use anyhow::{anyhow, bail, Result};
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 
-use crate::config::{
+use crate::resolution::resolve_bundle_entry;
+use crate::runtime_config::{
     load_toml, workspace_root, AliasesConfig, CoverageRegimesConfig, SpeciesAuthorityConfig,
 };
-use crate::resolution::resolve_bundle_entry;
 use crate::{
     ContigMap, ResolvedSpeciesContext, SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures,
 };

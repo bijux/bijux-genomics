@@ -1,4 +1,4 @@
-use crate::config::BundleEntry;
+use crate::runtime_config::BundleEntry;
 
 pub use crate::catalog::{
     CatalogCompatibility, CatalogFileEntry, MapCatalogEntry, MapCompatibility, MapLockEntry,

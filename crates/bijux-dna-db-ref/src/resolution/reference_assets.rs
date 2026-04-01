@@ -1,6 +1,6 @@
 use anyhow::{anyhow, bail, Result};
 
-use crate::config::{
+use crate::runtime_config::{
     load_toml, workspace_root, BundlesConfig, GeneticMapBankConfig, OrganellarPolicyConfig,
     ReferenceBankConfig, ReferenceSetConfig,
 };

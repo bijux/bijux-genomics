@@ -1,9 +1,12 @@
-use std::collections::BTreeMap;
-use std::fs;
-use std::path::{Path, PathBuf};
+mod load;
+mod paths;
 
-use anyhow::{Context, Result};
+use std::collections::BTreeMap;
+
 use serde::Deserialize;
+
+pub(crate) use load::load_toml;
+pub(crate) use paths::workspace_root;
 
 use crate::{
     ContigMap, GeneticMapBankEntry, MapCatalogEntry, MapLockEntry, OrganellarPolicy,
@@ -128,16 +131,4 @@ pub(crate) struct PanelLocksConfig {
 pub(crate) struct MapLocksConfig {
     #[serde(default)]
     pub(crate) locks: BTreeMap<String, MapLockEntry>,
-}
-
-pub(crate) fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(Path::parent)
-        .map_or_else(|| PathBuf::from("."), Path::to_path_buf)
-}
-
-pub(crate) fn load_toml<T: for<'a> Deserialize<'a>>(path: &Path) -> Result<T> {
-    let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    toml::from_str::<T>(&raw).with_context(|| format!("parse {}", path.display()))
 }

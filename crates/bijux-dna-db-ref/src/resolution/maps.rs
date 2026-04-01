@@ -1,6 +1,6 @@
 use anyhow::{anyhow, bail, Result};
 
-use crate::config::{load_toml, workspace_root, MapLocksConfig, MapsConfig};
+use crate::runtime_config::{load_toml, workspace_root, MapLocksConfig, MapsConfig};
 use crate::{MapCatalogEntry, MapLockEntry};
 
 /// # Errors
