@@ -1,7 +1,4 @@
-/// Curated access to serialized core contracts.
-pub mod contracts {
-    pub use crate::contract;
-}
+pub mod contracts;
 
 /// Curated access to canonical identifier catalogs.
 pub mod catalog {
