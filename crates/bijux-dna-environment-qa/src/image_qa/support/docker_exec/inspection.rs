@@ -4,10 +4,9 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::image_qa::support::checks::{
-    command_string, docker_logs, docker_wait_timeout, push_arg, ExecutionOutput,
+use crate::image_qa::support::{
+    command_string, docker_logs, docker_wait_timeout, push_arg, ExecutionOutput, ResolvedImage,
 };
-use crate::image_qa::support::ResolvedImage;
 
 pub fn run_validate_container_with_timeout(
     tool: &str,
