@@ -5,4 +5,5 @@ Public modules exported from src/lib.rs:
 - id_catalog
 - ids
 - metrics
+- public_api
 - prelude
