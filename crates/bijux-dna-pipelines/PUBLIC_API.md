@@ -5,5 +5,9 @@ Public modules exported from src/lib.rs:
 - cross
 - defaults
 - fastq
+- public_api
 - registry
 - vcf
+
+Stable surface mirrors:
+- `public_api` mirrors the durable root modules and root reexports.
