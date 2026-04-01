@@ -2,6 +2,7 @@
 //! Bench orchestration helpers: summarize, gate, compare, run_suite.
 #![allow(dead_code)]
 
+mod evaluation;
 mod options;
 mod summary_support;
 mod suite_load;
@@ -13,21 +14,21 @@ use crate::artifacts::{
     read_observations_jsonl, write_decision_json, write_observations_jsonl, write_summary_json,
     WriteMode,
 };
-use bijux_dna_bench_model::compare::{compare_summaries, CompareReport};
 use bijux_dna_bench_model::contract::{
     validate_decision, validate_observation, validate_suite, validate_summary,
 };
-use bijux_dna_bench_model::policy::{GateDecision, GatePolicy};
+use bijux_dna_bench_model::policy::GatePolicy;
 use bijux_dna_bench_model::stats::{mad_outliers, robust_stats};
 use bijux_dna_bench_model::{
-    BenchError, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, MetricSummary,
-    SummaryRow, SummaryStratum,
+    BenchError, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, MetricSummary, SummaryRow,
+    SummaryStratum,
 };
 use summary_support::{
     bootstrap_if_enabled, indices_to_replicates, stage_scope_label, StageDatasetScope,
     StageDatasetToolScope, SummaryGroupKey, SummaryStratumKey,
 };
 
+pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
 pub use suite_load::load_suite;
 
@@ -329,36 +330,6 @@ pub fn summarize(
     summary.scientifically_invalid = scientifically_invalid;
     summary.invalid_reasons = invalid_reasons;
     Ok(summary)
-}
-
-/// Gate summary rows using a policy.
-#[must_use]
-pub fn gate(policy: &GatePolicy, summary: &BenchmarkSummary) -> Vec<GateDecision> {
-    let mut decisions = Vec::new();
-    for row in &summary.rows {
-        let mut metrics = BTreeMap::new();
-        metrics.insert("runtime_s".to_string(), row.runtime.stats.median);
-        metrics.insert("memory_mb".to_string(), row.memory.stats.median);
-        for metric in &row.metrics {
-            metrics.insert(metric.metric_id.clone(), metric.stats.median);
-        }
-        decisions.push(policy.decide(
-            &row.dataset_id,
-            &row.stage_id,
-            &row.tool_id,
-            &row.params_hash,
-            &metrics,
-        ));
-    }
-    decisions
-}
-
-/// Compare two summaries.
-pub fn compare(
-    summary_a: &BenchmarkSummary,
-    summary_b: &BenchmarkSummary,
-) -> Result<CompareReport> {
-    compare_summaries(summary_a, summary_b)
 }
 
 /// Run a suite: summarize, gate, and write artifacts.
