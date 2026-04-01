@@ -2,7 +2,7 @@
 
 mod domain_model;
 mod parsing;
-mod typed_ids;
+mod typed;
 
 pub use crate::id_catalog;
 pub use domain_model::{
@@ -13,7 +13,7 @@ pub use parsing::{
     validate_pipeline_id_str, validate_stage_id, validate_stage_id_str, validate_tool_id,
     validate_tool_id_str,
 };
-pub use typed_ids::{
+pub use typed::{
     ArtifactId, ImageDigest, PipelineId, ProfileId, RunId, StageId, StageVersion, StepId, ToolId,
     ToolVersion,
 };
