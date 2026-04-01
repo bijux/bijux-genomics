@@ -15,45 +15,15 @@
 
 mod errors;
 mod executor;
+mod control;
 pub mod public_api;
-
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 
 use anyhow::Result;
 use bijux_dna_core::contract::{ExecutionGraph, RetryPolicy, RunRecordV1};
 use bijux_dna_core::ids::StepId;
 use bijux_dna_runtime::run_layout::RunLayout;
 use bijux_dna_runtime::Runner;
-
-#[derive(Debug, Clone)]
-pub struct CancellationToken {
-    cancelled: Arc<AtomicBool>,
-}
-
-impl CancellationToken {
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            cancelled: Arc::new(AtomicBool::new(false)),
-        }
-    }
-
-    pub fn cancel(&self) {
-        self.cancelled.store(true, Ordering::SeqCst);
-    }
-
-    #[must_use]
-    pub fn is_cancelled(&self) -> bool {
-        self.cancelled.load(Ordering::SeqCst)
-    }
-}
-
-impl Default for CancellationToken {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+pub use control::CancellationToken;
 
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
