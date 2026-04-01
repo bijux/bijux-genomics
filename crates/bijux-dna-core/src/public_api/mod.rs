@@ -1,9 +1,6 @@
 pub mod contracts;
 
-/// Curated access to canonical identifier catalogs.
-pub mod catalog {
-    pub use crate::id_catalog;
-}
+pub mod catalog;
 
 /// Curated access to typed identities and their validators.
 pub mod identity {
