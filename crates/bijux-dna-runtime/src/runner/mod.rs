@@ -2,9 +2,6 @@
 
 mod contracts;
 mod model;
+mod stable_surface;
 
-pub use contracts::{
-    ensure_stage_supported_by_runner, DomainStageRunnerContract, PrefixDomainStageRunnerContract,
-    RunnerContractKind,
-};
-pub use model::{Artifact, Invocation, Runner, RunnerResult};
+pub use stable_surface::*;
