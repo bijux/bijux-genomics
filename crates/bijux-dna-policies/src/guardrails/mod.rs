@@ -1,3 +1,4 @@
+mod baseline;
 mod configuration;
 mod presets;
 mod runner;
