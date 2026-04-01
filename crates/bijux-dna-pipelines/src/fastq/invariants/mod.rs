@@ -8,12 +8,13 @@ use bijux_dna_core::prelude::id_catalog;
 mod preset_rules;
 mod stage_parameter_access;
 mod stage_requirements;
-mod validation_report;
+mod validation_report_contracts;
+mod violation_builder;
 
 use preset_rules::push_preset_rule_violations;
 use stage_requirements::push_required_rule_violations;
-use validation_report::violation;
-pub use validation_report::{
+use violation_builder::violation;
+pub use validation_report_contracts::{
     FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
 };
 
