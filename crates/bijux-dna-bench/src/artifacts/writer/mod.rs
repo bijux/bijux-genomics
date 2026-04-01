@@ -7,13 +7,13 @@
 
 mod observation_reader;
 mod observation_writer;
+mod structured_writer;
 
 use std::path::Path;
 
 use anyhow::{Context, Result};
 
 use bijux_dna_bench_model::{BenchmarkObservation, BenchmarkSummary, GateDecision};
-use bijux_dna_runtime::recording::write_atomic_bytes;
 
 type ObservationKey = observation_reader::ObservationKey;
 
@@ -53,17 +53,11 @@ pub fn write_observations_jsonl(
 /// # Errors
 /// Returns an error if the file cannot be written.
 pub fn write_summary_json(path: &Path, summary: &BenchmarkSummary) -> Result<()> {
-    let json = serde_json::to_value(summary)?;
-    let canonical = bijux_dna_core::contract::canonical::canonicalize_json_value(&json);
-    let bytes = serde_json::to_vec_pretty(&canonical)?;
-    write_atomic_bytes(path, &bytes).with_context(|| format!("write summary {}", path.display()))
+    structured_writer::write_summary_json(path, summary)
 }
 
 pub fn write_decision_json(path: &Path, decision: &GateDecision) -> Result<()> {
-    let json = serde_json::to_value(decision)?;
-    let canonical = bijux_dna_core::contract::canonical::canonicalize_json_value(&json);
-    let bytes = serde_json::to_vec_pretty(&canonical)?;
-    write_atomic_bytes(path, &bytes).with_context(|| format!("write decision {}", path.display()))
+    structured_writer::write_decision_json(path, decision)
 }
 
 #[cfg(test)]
