@@ -1,12 +1,15 @@
 mod compatibility;
+mod locks;
 mod maps;
 mod panels;
 mod reference_assets;
 mod species;
 
 pub use compatibility::validate_imputation_tool_compatibility;
+pub(crate) use locks::{parse_lock_ref, validate_sha256};
 pub use maps::{resolve_map, resolve_map_lock};
 pub use panels::{resolve_panel, resolve_panel_lock};
+pub(crate) use reference_assets::resolve_bundle_entry;
 pub use reference_assets::{
     normalize_contig_name, reference_provenance, resolve_default_reference_set,
     resolve_genetic_map_bank, resolve_organellar_policy, resolve_reference_bank,
@@ -17,6 +20,3 @@ pub use species::{
     resolve_sex_chromosome_rule, resolve_species_alias, resolve_species_authority,
     resolve_species_context,
 };
-
-pub(crate) use panels::parse_lock_ref;
-pub(crate) use reference_assets::{resolve_bundle_entry, validate_sha256};

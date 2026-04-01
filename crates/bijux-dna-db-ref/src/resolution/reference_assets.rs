@@ -150,11 +150,3 @@ pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleE
         .find(|entry| entry.species_id == species && entry.build_id == build)
         .ok_or_else(|| anyhow!("no reference bundle found for {species}:{build}"))
 }
-
-pub(crate) fn validate_sha256(value: &str, name: &str) -> Result<()> {
-    let ascii_hex = value.chars().all(|c| c.is_ascii_hexdigit());
-    if value.len() != 64 || !ascii_hex {
-        bail!("{name} must be 64-char lowercase hex");
-    }
-    Ok(())
-}
