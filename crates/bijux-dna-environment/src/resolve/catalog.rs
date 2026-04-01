@@ -93,7 +93,10 @@ pub(super) fn hydrate_catalog_digests_from_registry(
         let Some(container_ref) = tool.container_ref.as_deref() else {
             continue;
         };
-        let Some((_, digest)) = container_ref.split_once("@sha256:") else {
+        let Some((_, digest)) = container_ref.split_once('@') else {
+            continue;
+        };
+        let Some(digest) = digest.strip_prefix("sha256:") else {
             continue;
         };
         let Some(spec) = catalog.get_mut(&tool.id) else {

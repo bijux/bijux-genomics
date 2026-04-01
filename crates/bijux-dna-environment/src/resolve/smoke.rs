@@ -1,5 +1,3 @@
-use anyhow::Context;
-
 /// Execute container smoke contract script for a runtime/tool pair.
 ///
 /// # Errors

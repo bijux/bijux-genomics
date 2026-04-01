@@ -17,7 +17,7 @@ pub struct PlatformSpec {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct PlatformSpecRaw {
+pub(in crate::resolve) struct PlatformSpecRaw {
     pub runner: RuntimeKind,
     pub container_dir: PathBuf,
     pub image_prefix: String,
@@ -26,7 +26,7 @@ pub(super) struct PlatformSpecRaw {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct PlatformsFile {
+pub(in crate::resolve) struct PlatformsFile {
     pub default: String,
     pub platforms: BTreeMap<String, PlatformSpecRaw>,
 }
