@@ -3,7 +3,7 @@
 Intent buckets in this crate:
 
 - `boundaries`: layering, ownership, dependency, and public-surface guardrails.
-- `contracts`: CLI behavior, dry-run, bank, and HPC layout contracts.
+- `contracts`: CLI behavior, dry-run planning, bank, and HPC layout contracts.
 - `determinism`: reproducibility and stable-output checks.
 - `snapshots`: help output and public-surface stability locks.
 

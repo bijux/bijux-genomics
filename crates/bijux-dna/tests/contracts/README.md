@@ -1,3 +1,3 @@
 # bijux-dna contracts
 
-This directory is reserved for contracts tests by intent taxonomy.
+This directory owns command behavior, dry-run planning, bank schema, and HPC layout contracts.
