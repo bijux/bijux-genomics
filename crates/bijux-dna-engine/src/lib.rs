@@ -16,41 +16,15 @@
 mod errors;
 mod executor;
 mod control;
+mod observability;
 pub mod public_api;
 
 use anyhow::Result;
 use bijux_dna_core::contract::{ExecutionGraph, RetryPolicy, RunRecordV1};
-use bijux_dna_core::ids::StepId;
 use bijux_dna_runtime::run_layout::RunLayout;
 use bijux_dna_runtime::Runner;
 pub use control::CancellationToken;
-
-#[derive(Debug, Clone, serde::Serialize)]
-#[serde(tag = "event", rename_all = "snake_case")]
-pub enum EngineEvent {
-    StepStart {
-        step_id: StepId,
-        attempt: u32,
-    },
-    StepEnd {
-        step_id: StepId,
-        attempt: u32,
-        success: bool,
-    },
-    Retry {
-        step_id: StepId,
-        attempt: u32,
-        exit_code: i32,
-    },
-    ArtifactVerified {
-        step_id: StepId,
-        path: String,
-    },
-}
-
-pub trait EngineHooks: Send + Sync {
-    fn on_event(&self, event: EngineEvent);
-}
+pub use observability::{EngineEvent, EngineHooks};
 
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct EngineConfig {
