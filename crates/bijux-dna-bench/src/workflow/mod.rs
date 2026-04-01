@@ -2,6 +2,8 @@
 //! Bench orchestration helpers: summarize, gate, compare, run_suite.
 #![allow(dead_code)]
 
+mod options;
+
 use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -21,6 +23,8 @@ use bijux_dna_bench_model::{
     SummaryRow, SummaryStratum,
 };
 
+pub use options::BenchRunOptions;
+
 type StageDatasetScope = (String, String, Option<String>, Option<String>);
 type StageDatasetToolScope = (String, String, Option<String>, Option<String>, String);
 type SummaryGroupKey = (
@@ -32,15 +36,6 @@ type SummaryGroupKey = (
     String,
 );
 type SummaryStratumKey = (String, Option<String>, Option<String>, String);
-
-#[derive(Debug, Clone)]
-pub struct BenchRunOptions {
-    pub output_dir: Option<std::path::PathBuf>,
-    pub resume: bool,
-    pub force: bool,
-    pub ci_bootstrap: Option<usize>,
-    pub objective: String,
-}
 
 /// Load observations for a suite from a repository.
 ///
@@ -59,18 +54,6 @@ pub fn load_suite(
         observations.extend(repo.load_observations(&run_id)?);
     }
     Ok(observations)
-}
-
-impl Default for BenchRunOptions {
-    fn default() -> Self {
-        Self {
-            output_dir: None,
-            resume: false,
-            force: false,
-            ci_bootstrap: None,
-            objective: "balanced".to_string(),
-        }
-    }
 }
 
 /// Summarize observations into a benchmark summary.
