@@ -12,7 +12,6 @@ use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
 
 use bijux_dna_bench_model::contract::{validate_observation, validate_suite};
-use bijux_dna_bench_model::policy::GatePolicy;
 use bijux_dna_bench_model::stats::{mad_outliers, robust_stats};
 use bijux_dna_bench_model::{
     BenchError, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, MetricSummary,
@@ -25,8 +24,9 @@ use summary_support::{
 
 pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
-pub use run_suite::run_suite;
 pub use suite_load::load_suite;
+
+use self::run_suite::run_suite;
 
 /// Summarize observations into a benchmark summary.
 ///

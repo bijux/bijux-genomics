@@ -10,8 +10,8 @@ pub mod run_repo;
 pub mod sqlite;
 mod workspace_paths;
 
-pub use run_artifacts::{load_manifest, load_metrics, load_metrics_map, load_observations};
-pub use run_repo::RunRepository;
+pub(crate) use run_artifacts::load_observations;
+pub use run_repo::{RunMetadata, RunRepository};
 pub use workspace_paths::{bench_data_dir, bench_suites_dir};
 
 fn looks_like_repo_root(path: &Path) -> bool {
