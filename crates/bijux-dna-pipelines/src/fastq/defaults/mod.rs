@@ -11,14 +11,14 @@ mod preprocess_tools;
 mod rationales;
 mod reference_adna;
 mod stage_order;
-mod tooling;
+mod tool_defaults;
 
 pub(crate) use adna::adna_fastq_defaults;
 pub(crate) use reference_adna::reference_adna_fastq_defaults;
 
 use param_defaults::fastq_default_params;
 use rationales::fastq_default_rationales;
-use tooling::fastq_default_tools;
+use tool_defaults::fastq_default_tools;
 
 pub(crate) use stage_order::{append_stage_once, default_shotgun_required_stages};
 
