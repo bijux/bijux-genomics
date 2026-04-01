@@ -4,7 +4,7 @@ use crate::{PipelineProfile, StabilityTier};
 impl PipelineRegistry {
     #[must_use]
     pub fn list(&self, include_experimental: bool) -> Vec<&PipelineProfile> {
-        self.profiles
+        self.profiles()
             .iter()
             .filter(|profile| include_experimental || profile.stability == StabilityTier::Stable)
             .collect()

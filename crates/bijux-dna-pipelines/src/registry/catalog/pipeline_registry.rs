@@ -16,4 +16,8 @@ impl PipelineRegistry {
         profiles.sort_by(|a, b| a.id.as_str().cmp(b.id.as_str()));
         Self { profiles }
     }
+
+    pub(crate) fn profiles(&self) -> &[PipelineProfile] {
+        &self.profiles
+    }
 }
