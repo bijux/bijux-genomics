@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
@@ -141,43 +141,6 @@ pub fn stable_produced_artifacts(stage_id: &str, output_kind: ArtifactKind) -> V
         ArtifactKind::Report => vec![format!("{base}_report_out")],
         ArtifactKind::Unknown => vec![format!("{base}_out")],
     }
-}
-
-pub fn find_domain_dir(path: &Path) -> Option<PathBuf> {
-    if path.is_dir()
-        && path
-            .file_name()
-            .and_then(|name| name.to_str())
-            .is_some_and(|name| name == "domain")
-    {
-        return Some(path.to_path_buf());
-    }
-    if path.file_name().and_then(|n| n.to_str()) == Some("tool_registry.toml") {
-        let parent = path.parent()?;
-        if parent.file_name().and_then(|n| n.to_str()) == Some("configs") {
-            let candidate = parent.parent()?.join("domain");
-            if candidate.exists() {
-                return Some(candidate);
-            }
-        }
-    }
-    if path.is_dir() {
-        let candidate = path.join("domain");
-        if candidate.exists() {
-            return Some(candidate);
-        }
-    }
-    None
-}
-
-pub fn experimental_manifests_enabled() -> bool {
-    [
-        "BIJUX_INCLUDE_EXPERIMENTAL_TOOLS",
-        "BIJUX_EXPERIMENTAL_TOOLS",
-    ]
-    .into_iter()
-    .filter_map(|key| std::env::var(key).ok())
-    .any(|value| value == "1" || value.eq_ignore_ascii_case("true"))
 }
 
 #[allow(dead_code)]

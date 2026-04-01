@@ -10,10 +10,10 @@ use bijux_dna_core::ids::ToolId;
 use bijux_dna_core::prelude::tooling::{ReadCountChangePolicy, StageBehavior};
 
 use super::classification::{
-    artifact_kind_from_stage, experimental_manifests_enabled, list_strings,
-    output_artifact_kind_from_stage, parse_stage_semver, stable_produced_artifacts,
-    stage_scale_from_row, stage_semantic_from_id,
+    artifact_kind_from_stage, list_strings, output_artifact_kind_from_stage, parse_stage_semver,
+    stable_produced_artifacts, stage_scale_from_row, stage_semantic_from_id,
 };
+use super::source::experimental_manifests_enabled;
 
 #[allow(clippy::too_many_lines)]
 pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegistry> {
