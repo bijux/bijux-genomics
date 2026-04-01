@@ -9,6 +9,8 @@ pub mod defaults;
 pub mod fastq;
 mod model;
 mod profile_support;
+/// Curated mirror of the stable public surface.
+pub mod public_api;
 pub mod registry;
 pub mod vcf;
 
