@@ -1,2 +1,2 @@
-mod domain_queries;
+mod profiles_by_domain;
 mod stability_filter;
