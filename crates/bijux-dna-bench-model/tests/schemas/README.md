@@ -1,3 +1,3 @@
 # bijux-dna-bench-model schemas
 
-This directory is reserved for schemas tests by intent taxonomy.
+Schema tests cover public-surface and exported contract stability.

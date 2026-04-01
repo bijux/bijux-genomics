@@ -1,3 +1,7 @@
 # bijux-dna-bench-model boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+Boundary tests in this crate enforce:
+
+- the documented source tree,
+- stable public-surface layout,
+- ownership boundaries between compare, contract, diagnostics, model, policy, and stats.
