@@ -7,21 +7,15 @@ use super::{
 use bijux_dna_engine::Engine;
 
 mod lifecycle;
+mod replay;
 mod rendering;
 mod status;
 mod workspace_audit;
 
 pub use rendering::{execute_and_report, render_report};
+pub use replay::replay_manifest;
 pub use status::status;
 pub use workspace_audit::{policy_audit, workspace_edges, write_workspace_audit};
-
-/// Replay or verify a run from a run manifest.
-///
-/// # Errors
-/// Returns an error if manifest parsing, graph loading, execution, or verification fails.
-pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
-    lifecycle::replay_manifest(manifest_path, verify_only)
-}
 
 /// # Errors
 /// Returns an error if planning fails.
