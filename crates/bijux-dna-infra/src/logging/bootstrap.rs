@@ -1,6 +1,9 @@
 use std::path::Path;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
+
+#[cfg(not(feature = "tracing"))]
+use anyhow::anyhow;
 
 /// # Errors
 /// Returns an error if logging setup fails.
