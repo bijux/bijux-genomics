@@ -1,12 +1,10 @@
 use std::path::PathBuf;
 use std::time::Duration;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::prelude::cache::CacheKey;
-use bijux_dna_core::prelude::hashing::{
-    input_fingerprint, parameters_fingerprint, run_id_from_hashes,
-};
+use bijux_dna_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
 use bijux_dna_environment::api::RuntimeKind;
 
 mod apptainer_args;
@@ -20,6 +18,7 @@ mod execution_outcome;
 mod identity;
 mod inputs;
 mod observer;
+mod records;
 mod runtime_policy;
 
 #[allow(unused_imports)]
@@ -31,13 +30,11 @@ use command_template::container_command_template;
 pub use contracts::StageResultV1;
 use docker_execution::execute_docker_step;
 use effects::{runner_failure, RunnerEffectKind};
-use identity::{
-    execution_pipeline_identity, execution_sample_identity, hash_inputs,
-    infer_tool_version_from_image, runtime_platform_identity,
-};
+use identity::hash_inputs;
 #[allow(unused_imports)]
 use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};
 pub use observer::execute_observer_command;
+use records::materialize_execution_records;
 
 /// Execute a single step using docker.
 ///
@@ -88,22 +85,12 @@ pub fn execute_step(
         step.image.image.clone(),
         env_digest,
     );
-    let pipeline_id = execution_pipeline_identity(step);
-    let sample_id = execution_sample_identity(step);
-    let run_id = run_id_from_hashes(
-        &pipeline_id,
-        &sample_id,
-        &params_fingerprint,
-        &input_hashes,
-        None,
-    );
-    write_minimum_run_artifacts(
+    let run_id = materialize_execution_records(
         step,
         &input_hashes,
         &output_hashes,
         runner,
         &outcome.command_output.command,
-        &run_id,
         &params_fingerprint,
     )?;
 
