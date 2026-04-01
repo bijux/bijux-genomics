@@ -1,12 +1,12 @@
 use bijux_dna_core::prelude::id_catalog;
 
-pub(super) fn append_stage_once(stages: &mut Vec<String>, stage_id: &str) {
+pub(crate) fn append_stage_once(stages: &mut Vec<String>, stage_id: &str) {
     if !stages.iter().any(|stage| stage == stage_id) {
         stages.push(stage_id.to_string());
     }
 }
 
-pub(super) fn default_shotgun_required_stages() -> Vec<String> {
+pub(crate) fn default_shotgun_required_stages() -> Vec<String> {
     bijux_dna_domain_fastq::default_shotgun_preprocess_stage_order()
         .into_iter()
         .map(|stage| match stage.as_str() {

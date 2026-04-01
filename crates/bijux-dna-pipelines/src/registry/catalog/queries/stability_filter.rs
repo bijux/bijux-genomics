@@ -1,6 +1,5 @@
+use crate::registry::PipelineRegistry;
 use crate::{PipelineProfile, StabilityTier};
-
-use super::PipelineRegistry;
 
 impl PipelineRegistry {
     #[must_use]
