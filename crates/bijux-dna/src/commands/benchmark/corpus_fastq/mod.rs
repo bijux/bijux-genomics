@@ -22,8 +22,8 @@ mod artifact_bundle;
 mod models;
 mod report_qc_support;
 mod runtime_support;
-mod stage_preparation;
 mod sortmerna_support;
+mod stage_preparation;
 
 const REPORT_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
 use self::artifact_bundle::artifact_bundle_manifest_fields;
@@ -38,12 +38,12 @@ use self::runtime_support::{
     absolutize, benchmark_runtime_env, benchmark_sample_root, current_timestamp_utc, path_display,
     reset_sample_payload, sample_report_is_resume_ready, workspace_cache_root_for_output,
 };
-use self::stage_preparation::{stage_command_spec, StageCommandSpec, StageSamplePreparation};
 use self::sortmerna_support::{
     prepare_sortmerna_sample_workdir, promote_sortmerna_sample_index_cache,
     prune_sortmerna_sample_payload, resolve_deplete_rrna_stage_options, sortmerna_shared_index_dir,
     sortmerna_shared_index_seeded, warm_sortmerna_shared_index_cache,
 };
+use self::stage_preparation::{stage_command_spec, StageCommandSpec, StageSamplePreparation};
 
 pub(crate) fn print_benchmark_workspace_value(
     cwd: &Path,

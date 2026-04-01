@@ -50,7 +50,10 @@ Command responsibilities:
 - `commands/planning/` owns run-plan assembly and dry-run planning entrypoints.
 - `commands/status/` owns status inspection flows.
 - `commands/corpus/` owns curated corpus workflows.
-- `commands/benchmark/` owns all benchmark-specific configuration, corpus, workspace, publication, suite, and execution flows. Within that tree, `commands/benchmark/workspace/` owns benchmark config contracts, config queries, publication contract lookup, stage-run layout policy, and workspace value queries.
+- `commands/benchmark/` owns all benchmark-specific configuration, corpus, workspace, publication, suite, and execution flows.
+- `commands/benchmark/fastq_bench/` owns FASTQ benchmark execution entry, adapter-bank inspection, stage discovery, stage explanation, and tool-tier policy as separate internal concerns.
+- `commands/benchmark/corpus_fastq/` owns governed corpus benchmark execution, with run models, stage preparation, runtime support, report-qc support, sortmerna support, and artifact-bundle hashing separated by responsibility.
+- `commands/benchmark/workspace/` owns benchmark config contracts, config queries, publication contract lookup, stage-run layout policy, and workspace value queries.
 - `commands/cli/` owns operator-facing parse, render, plan, validation, and environment command support. Within that tree, `commands/cli/parse/bench/` owns bench-specific CLI parsing, and `commands/cli/parse/bench/fastq/` keeps preprocessing, quality, and workflow argument families separate.
 - `commands/fastq/meta/` owns FASTQ meta-command routing, with dedicated handlers for pipeline, analysis, and environment command families plus focused debug dispatch; `commands/fastq/api_bridge.rs` stays focused on API mediation.
 - `commands/cli/env/` owns environment registry queries, promotion policy, runtime support, registry commands, and benchmark HPC root support as separate internal concerns instead of one include-driven command blob.
