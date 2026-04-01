@@ -57,12 +57,19 @@ fn analyze_tree_matches_architecture_contract() {
         entries([
             "OWNER.toml",
             "dashboard_facts.rs",
+            "facts_summary.rs",
+            "facts_support/",
             "mod.rs",
             "run_summary.rs",
             "stage_summary.rs",
-            "support.rs",
         ]),
         "exports tree must keep output writers separated by artifact concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/exports/facts_support")),
+        entries(["mod.rs", "params_excerpt.rs", "report_access.rs"]),
+        "facts support must keep report access and parameter excerpt policy separate"
     );
 
     assert_eq!(
@@ -98,10 +105,27 @@ fn analyze_tree_matches_architecture_contract() {
             "build/",
             "mod.rs",
             "render/",
-            "render_model.rs",
+            "render_model/",
             "sections/",
         ]),
         "report tree must stay decomposed by rendering concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/report/build/report_sections")),
+        entries([
+            "data_contract_validation.rs",
+            "key_findings.rs",
+            "mod.rs",
+            "pipeline_overview.rs",
+        ]),
+        "report section builders must stay split by durable output concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/report/render_model")),
+        entries(["construction.rs", "mod.rs"]),
+        "render model tree must separate contracts from construction"
     );
 
     assert_eq!(

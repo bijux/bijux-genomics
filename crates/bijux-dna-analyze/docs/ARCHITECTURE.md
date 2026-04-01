@@ -33,7 +33,10 @@ crates/bijux-dna-analyze/
 - `src/lib.rs`: one small crate root that delegates to the pipeline and re-exports `public_api`
 - `src/pipeline/steps/`: canonical load, validate, compute, report, and render stages
 - `src/exports/`: writes derived artifacts without owning report construction
-- `src/report/render_model.rs`: renderer-owned report model contracts
+  through `facts_summary.rs` and `facts_support/`
+- `src/report/render_model/`: renderer-owned report model contracts and construction policy
+- `src/report/build/report_sections/`: report builder-owned section assembly helpers split by
+  durable output concern
 - `src/diagnostics/`: durable error types shared across internal namespaces
 
 ## Dependency direction
