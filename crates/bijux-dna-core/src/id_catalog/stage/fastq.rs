@@ -35,8 +35,7 @@ pub const FASTQ_PROFILE_READ_LENGTHS: &str = "fastq.profile_read_lengths";
 /// Canonical FASTQ OTU clustering stage.
 pub const FASTQ_CLUSTER_OTUS: &str = "fastq.cluster_otus";
 /// Canonical FASTQ overrepresented-sequence profiling stage.
-pub const FASTQ_PROFILE_OVERREPRESENTED_SEQUENCES: &str =
-    "fastq.profile_overrepresented_sequences";
+pub const FASTQ_PROFILE_OVERREPRESENTED_SEQUENCES: &str = "fastq.profile_overrepresented_sequences";
 /// Canonical FASTQ poly-G trimming stage.
 pub const FASTQ_TRIM_POLYG_TAILS: &str = "fastq.trim_polyg_tails";
 /// Canonical FASTQ reference indexing stage.

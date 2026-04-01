@@ -32,8 +32,9 @@ No planning, execution, or IO side effects beyond pure serialization helpers.
 ## Start here in code
 - `src/public_api/` for the curated stable surface.
 - `src/contract/` for contract families and canonical serialization.
-- `src/id_catalog/` and `src/ids/` for identifier authority and typed IDs.
-- `src/prelude/` for stable import ergonomics grouped by source area.
+- `src/id_catalog/` for canonical identifier families partitioned into `pipeline/`, `stage/`, and `tool/`.
+- `src/ids/` for typed identities and validators partitioned into `typed/` and `parsing/`.
+- `src/prelude/` for stable import ergonomics grouped by contract, catalog, identity, foundation, and metrics source areas.
 
 ## Role in the stack
 Upstream: none. Downstream: runtime, engine, planners, stages, analyze, benchmarks.

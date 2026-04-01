@@ -2,5 +2,5 @@ pub mod contract;
 pub mod id_catalog;
 pub mod ids;
 pub mod metrics;
-pub mod public_api;
 pub mod prelude;
+pub mod public_api;

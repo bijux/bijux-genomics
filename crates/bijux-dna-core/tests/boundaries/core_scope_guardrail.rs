@@ -29,11 +29,19 @@ fn read_allowed_pub_modules() -> Vec<String> {
 }
 
 #[test]
-fn core_scope_only_allows_contracts_and_foundation() -> Result<()> {
+fn core_scope_only_allows_curated_root_namespaces() -> Result<()> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src = root.join("src");
-    let allow_dirs = ["contract", "foundation", "metrics"];
-    let allow_files = ["id_catalog.rs", "ids.rs", "lib.rs", "prelude.rs"];
+    let allow_dirs = [
+        "contract",
+        "foundation",
+        "id_catalog",
+        "ids",
+        "metrics",
+        "prelude",
+        "public_api",
+    ];
+    let allow_files = ["lib.rs"];
 
     for entry in std::fs::read_dir(&src)? {
         let entry = entry?;
@@ -73,6 +81,7 @@ fn core_scope_only_allows_contracts_and_foundation() -> Result<()> {
         "ids",
         "metrics",
         "prelude",
+        "public_api",
     ];
     let allowed_from_readme = read_allowed_pub_modules();
     let allowed_from_readme: Vec<&str> = allowed_from_readme.iter().map(String::as_str).collect();
