@@ -1,11 +1,16 @@
 # bijux-dna-runner Public API
 
-Public modules exported from src/lib.rs:
+Public modules exported from `src/lib.rs`:
 - backend
 - command_runner
+- public_api
 - step_runner
 
-Public entrypoints re-exported from `src/lib.rs`:
+Root re-exports from `src/lib.rs`:
+- `api`
+- `DockerRunner`
+
+Stable facade exports under `src/public_api/mod.rs`:
 - `BackendKind`
 - `build_tool_execution_spec`
 - `parse_mem_to_mb`
