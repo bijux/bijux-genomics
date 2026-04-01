@@ -12,7 +12,6 @@ pub(crate) mod benchmark_stage_catalog;
 pub(crate) mod benchmark_taxonomy_database;
 pub(crate) mod benchmark_workspace;
 pub mod cli;
-mod command_dispatch;
 pub(crate) mod command_prelude;
 pub(crate) mod corpus;
 pub(crate) mod ena;
@@ -28,6 +27,6 @@ pub(crate) mod run_plan;
 mod status;
 pub(crate) mod vcf;
 
-pub use command_dispatch::{run_with_args, run_with_cli};
 pub(crate) use policies::workspace_audit;
 pub use router::argv::{parse_cli_from_argv, parse_process_cli};
+pub use router::entrypoint::{run_with_args, run_with_cli};
