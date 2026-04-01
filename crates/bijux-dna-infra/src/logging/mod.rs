@@ -1,3 +1,4 @@
-mod fmt;
+mod bootstrap;
+mod subscriber;
 
-pub use fmt::init_logging;
+pub use bootstrap::init_logging;
