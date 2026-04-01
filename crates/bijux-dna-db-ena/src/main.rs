@@ -1,5 +1,5 @@
-mod cli;
+mod cli_entrypoint;
 
 fn main() -> anyhow::Result<()> {
-    cli::run()
+    cli_entrypoint::run()
 }
