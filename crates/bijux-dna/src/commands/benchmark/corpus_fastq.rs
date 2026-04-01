@@ -125,7 +125,7 @@ pub(crate) fn print_benchmark_workspace_value(
 }
 
 pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs) -> Result<()> {
-    let repo_root = crate::commands::repo_root::resolve_repo_root()?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
     let benchmark_config = load_benchmark_config(&repo_root, args.config.as_deref())?;
     let workspace_config = load_benchmark_workspace_config(&repo_root, args.config.as_deref())?;
     let workspace_config_path =

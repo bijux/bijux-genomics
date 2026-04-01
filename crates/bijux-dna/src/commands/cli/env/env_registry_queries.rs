@@ -215,7 +215,7 @@ mod env_registry_query_tests {
     use super::registry_tools_for_stage;
 
     fn registry_path() -> std::path::PathBuf {
-        crate::commands::repo_root::resolve_repo_root()
+        crate::commands::support::workspace_root::resolve_repo_root()
             .expect("repo root")
             .join("configs/ci/registry/tool_registry.toml")
     }
