@@ -2,8 +2,8 @@
 //! Environment build, resolve, and runtime utilities.
 
 pub mod build;
+pub mod public_api;
 pub mod resolve;
 pub mod runtime_spec;
-mod surface;
 
-pub use surface::api;
+pub use public_api::api;
