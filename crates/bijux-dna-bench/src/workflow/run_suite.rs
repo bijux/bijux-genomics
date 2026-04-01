@@ -100,7 +100,15 @@ fn write_suite_artifacts(
 
 fn observation_identity(
     obs: &BenchmarkObservation,
-) -> (String, String, Option<String>, Option<String>, String, String, String) {
+) -> (
+    String,
+    String,
+    Option<String>,
+    Option<String>,
+    String,
+    String,
+    String,
+) {
     (
         obs.dataset_id.clone(),
         obs.stage_id.clone(),

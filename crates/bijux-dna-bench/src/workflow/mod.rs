@@ -5,20 +5,18 @@
 mod evaluation;
 mod options;
 mod run_suite;
-mod summary_support;
 mod suite_load;
+mod summary_support;
 
 use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
 
-use bijux_dna_bench_model::contract::{
-    validate_observation, validate_suite,
-};
+use bijux_dna_bench_model::contract::{validate_observation, validate_suite};
 use bijux_dna_bench_model::policy::GatePolicy;
 use bijux_dna_bench_model::stats::{mad_outliers, robust_stats};
 use bijux_dna_bench_model::{
-    BenchError, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, MetricSummary, SummaryRow,
-    SummaryStratum,
+    BenchError, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, MetricSummary,
+    SummaryRow, SummaryStratum,
 };
 use summary_support::{
     bootstrap_if_enabled, indices_to_replicates, stage_scope_label, StageDatasetScope,

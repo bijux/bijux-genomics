@@ -1,3 +1,6 @@
 # bijux-dna-bench determinism
 
-This directory is reserved for determinism tests by intent taxonomy.
+This directory contains stable-output checks for:
+- summary ordering
+- compare stability
+- realistic benchmark snapshots
