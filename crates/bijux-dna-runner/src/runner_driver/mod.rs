@@ -1,6 +1,10 @@
 use std::time::Duration;
 
-use bijux_dna_runtime::{Artifact, Invocation, Runner, RunnerResult};
+use bijux_dna_runtime::{Invocation, Runner, RunnerResult};
+
+mod artifact_collection;
+
+use artifact_collection::collect_existing_artifacts;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DockerRunner {
@@ -34,13 +38,7 @@ impl Runner for DockerRunner {
         if let Some(metrics_path) = metrics_path {
             paths.push(metrics_path);
         }
-        let mut artifacts = Vec::new();
-        for path in paths {
-            if path.exists() {
-                let sha256 = bijux_dna_infra::hash_file_sha256(&path)?;
-                artifacts.push(Artifact { path, sha256 });
-            }
-        }
+        let artifacts = collect_existing_artifacts(paths)?;
         Ok(RunnerResult {
             exit_code,
             stdout,
