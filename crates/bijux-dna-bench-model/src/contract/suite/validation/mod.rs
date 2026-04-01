@@ -7,7 +7,7 @@ mod stage_contracts;
 use crate::diagnostics::BenchError;
 use crate::model::BenchmarkSuiteSpec;
 
-use super::SUITE_SCHEMA_V1;
+use crate::contract::SUITE_SCHEMA_V1;
 use crate::contract::suite::{
     declared_graph_nodes, validate_suite_analysis_requirements, validate_suite_dag,
     validate_suite_diversity,
