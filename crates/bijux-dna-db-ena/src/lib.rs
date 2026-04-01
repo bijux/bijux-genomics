@@ -1,9 +1,6 @@
 pub mod client;
 pub mod download;
 pub mod model;
+pub mod public_api;
 
-pub use client::EnaClient;
-pub use download::{download_tasks, DownloadConfig, DownloadReport, DownloadTask};
-pub use model::{
-    EnaFileSource, EnaQuery, EnaRecord, EnaResultKind, EnaRunManifest, EnaSourcePreference,
-};
+pub use public_api::*;
