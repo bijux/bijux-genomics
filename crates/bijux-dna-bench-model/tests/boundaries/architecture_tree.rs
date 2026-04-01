@@ -36,7 +36,13 @@ fn bench_model_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/compare")),
-        entries(["diff.rs", "mod.rs", "report.rs", "stratify.rs"]),
+        entries([
+            "diff.rs",
+            "mod.rs",
+            "report.rs",
+            "stable_surface.rs",
+            "stratify.rs"
+        ]),
         "compare tree must separate diff execution from report contracts"
     );
 
@@ -62,6 +68,18 @@ fn bench_model_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/contract/suite/validation")),
+        entries([
+            "declared_stage_nodes.rs",
+            "edge_contracts.rs",
+            "mod.rs",
+            "stage_contracts.rs",
+            "suite_validation.rs",
+        ]),
+        "suite validation tree must separate orchestration, shared node contracts, and rule families"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src/policy")),
         entries(["gate_policy/", "mod.rs", "outcomes.rs"]),
         "policy tree must separate evaluation from policy outcomes"
@@ -75,8 +93,27 @@ fn bench_model_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
-        entries(["mod.rs"]),
+        entries(["mod.rs", "stable_surface.rs"]),
         "public api tree must stay curated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/model/suite/support")),
+        entries([
+            "analysis_requirements.rs",
+            "dataset_spec.rs",
+            "diversity_requirements.rs",
+            "mod.rs",
+            "replicate_policy.rs",
+            "stratification_requirement.rs",
+        ]),
+        "suite support tree must separate durable contract families"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/stats/robust_estimators")),
+        entries(["contracts.rs", "mod.rs"]),
+        "robust estimators must separate typed stats contracts from estimator functions"
     );
 }
 
