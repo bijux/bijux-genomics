@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::presets;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuardrailConfig {
     pub max_pub_items_per_file: usize,
@@ -30,17 +32,6 @@ impl Default for GuardrailConfig {
 impl GuardrailConfig {
     #[must_use]
     pub fn for_crate(name: &str) -> Self {
-        let mut config = Self::default();
-        if name == "bijux-dna-domain-bam" {
-            config.allow_stage_id_paths = vec!["/src/stage_specs/mod.rs".to_string()];
-        }
-        if name == "bijux-dna-domain-fastq" {
-            config.max_pub_items_per_file = 80;
-            config.allow_stage_id_paths = vec!["/src/id_catalog.rs".to_string()];
-        }
-        if name == "bijux-dna-pipelines" {
-            config.allow_mod_only_dirs = vec!["/src/vcf".to_string()];
-        }
-        config
+        presets::for_crate(name)
     }
 }
