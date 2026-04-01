@@ -10,7 +10,7 @@ fn reference_example_is_documented() {
         .unwrap_or_else(|err| panic!("read RUNTIME_CONTRACT.md at {}: {err}", doc.display()));
 
     assert!(
-        content.contains("tests/reference/reference_example.rs"),
-        "docs must reference tests/reference/reference_example.rs"
+        content.contains("tests/contracts/reference/reference_example.rs"),
+        "docs must reference tests/contracts/reference/reference_example.rs"
     );
 }

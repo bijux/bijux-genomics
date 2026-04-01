@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::prelude::CacheKey;
 
-use super::artifact_catalog::{collect_all_run_artifacts, run_artifacts_dir};
+use super::artifact_catalog::collect_all_run_artifacts;
 use super::bootstrap::initialize_runtime_support_files;
 use super::manifest_identity::input_hash_from_many;
 use super::reproducibility::{prepare_reproducibility_context, write_reproducibility_report};
