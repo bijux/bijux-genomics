@@ -62,8 +62,8 @@ fn runner_tree_matches_architecture_contract() {
         "command_runner.rs",
         "lib.rs",
         "public_api/",
-        "repo_root.rs",
-        "runner_driver.rs",
+        "repo_root/",
+        "runner_driver/",
         "step_runner/",
     ]
     .into_iter()
@@ -75,7 +75,11 @@ fn runner_tree_matches_architecture_contract() {
     );
 
     let command_runner_entries = dir_entries(&root.join("src/command_runner"));
-    let expected_command_runner: BTreeSet<_> = ["invocation_identity.rs"]
+    let expected_command_runner: BTreeSet<_> = [
+        "command_line.rs",
+        "command_output.rs",
+        "invocation_identity.rs",
+    ]
         .into_iter()
         .map(str::to_string)
         .collect();
@@ -85,14 +89,18 @@ fn runner_tree_matches_architecture_contract() {
     );
 
     let public_api_entries = dir_entries(&root.join("src/public_api"));
-    let expected_public_api: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_public_api: BTreeSet<_> = ["mod.rs", "stable_surface.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
     assert_eq!(
         public_api_entries, expected_public_api,
         "runner public api tree must stay curated"
     );
 
     let backend_entries = dir_entries(&root.join("src/backend"));
-    let expected_backend: BTreeSet<_> = ["docker/", "facade.rs", "kinds.rs", "mod.rs"]
+    let expected_backend: BTreeSet<_> =
+        ["docker/", "facade.rs", "kinds.rs", "mod.rs", "stable_surface.rs"]
         .into_iter()
         .map(str::to_string)
         .collect();
@@ -111,6 +119,7 @@ fn runner_tree_matches_architecture_contract() {
         "image_resolution.rs",
         "mod.rs",
         "replay.rs",
+        "stable_surface.rs",
     ]
     .into_iter()
     .map(str::to_string)
@@ -131,6 +140,26 @@ fn runner_tree_matches_architecture_contract() {
         "runner docker executor support tree must stay focused"
     );
 
+    let repo_root_entries = dir_entries(&root.join("src/repo_root"));
+    let expected_repo_root: BTreeSet<_> = ["env_override.rs", "mod.rs", "root_detection.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        repo_root_entries, expected_repo_root,
+        "runner repo_root tree must keep override lookup separate from root detection"
+    );
+
+    let runner_driver_entries = dir_entries(&root.join("src/runner_driver"));
+    let expected_runner_driver: BTreeSet<_> = ["artifact_collection.rs", "mod.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        runner_driver_entries, expected_runner_driver,
+        "runner driver tree must keep artifact collection separate from driver orchestration"
+    );
+
     let step_runner_entries = dir_entries(&root.join("src/step_runner"));
     let expected_step_runner: BTreeSet<_> = [
         "apptainer_args.rs",
@@ -140,6 +169,7 @@ fn runner_tree_matches_architecture_contract() {
         "contracts.rs",
         "docker_execution.rs",
         "effects.rs",
+        "execution_dispatch.rs",
         "execution_outcome.rs",
         "identity.rs",
         "inputs.rs",
