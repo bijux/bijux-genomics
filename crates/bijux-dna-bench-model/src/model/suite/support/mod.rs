@@ -1,23 +1,8 @@
-use serde::{Deserialize, Serialize};
+mod dataset_spec;
+mod replicate_policy;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct DatasetSpec {
-    pub id: String,
-    pub hash: String,
-    pub size: u64,
-    pub origin: String,
-    pub class_label: String,
-    pub read_layout: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ReplicatePolicy {
-    pub count: u32,
-    pub warmup: u32,
-    pub seeds: Vec<u64>,
-}
+pub use dataset_spec::DatasetSpec;
+pub use replicate_policy::ReplicatePolicy;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
