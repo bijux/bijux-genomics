@@ -7,14 +7,16 @@
 mod edge_validation;
 mod param_binding_validation;
 mod record_validation;
-mod schemas;
+mod schema_versions;
 mod stage_governance;
 mod suite_analysis;
 mod suite_diversity;
 mod suite_graph;
 mod suite_validation;
 pub use record_validation::{validate_decision, validate_observation, validate_summary};
-pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+pub use schema_versions::{
+    DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+};
 pub use suite_validation::validate_suite;
 
 #[cfg(test)]
