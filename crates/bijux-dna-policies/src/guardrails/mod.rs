@@ -1,6 +1,6 @@
 mod configuration;
 mod presets;
 mod runner;
+mod stable_surface;
 
-pub use configuration::GuardrailConfig;
-pub use runner::check;
+pub use stable_surface::*;
