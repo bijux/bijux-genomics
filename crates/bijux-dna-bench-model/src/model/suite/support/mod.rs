@@ -1,23 +1,12 @@
 mod dataset_spec;
+mod diversity_requirements;
 mod replicate_policy;
+mod stratification_requirement;
 
 pub use dataset_spec::DatasetSpec;
+pub use diversity_requirements::DiversityRequirements;
 pub use replicate_policy::ReplicatePolicy;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct DiversityRequirements {
-    pub min_dataset_count: usize,
-    pub min_classes: usize,
-    pub min_read_layouts: usize,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct StratificationRequirement {
-    pub key: String,
-    pub required_values: Vec<String>,
-}
+pub use stratification_requirement::StratificationRequirement;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
