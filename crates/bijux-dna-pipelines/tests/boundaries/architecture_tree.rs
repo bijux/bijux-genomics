@@ -83,13 +83,75 @@ fn pipelines_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/registry")),
         entries([
             "OWNER.toml",
-            "catalog.rs",
+            "catalog/",
+            "families/",
             "mod.rs",
             "pipeline_id.rs",
-            "profile_collections.rs",
             "profile_lookup.rs",
         ]),
         "registry namespace must keep identity, collections, and lookups separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/registry/catalog")),
+        entries(["OWNER.toml", "mod.rs", "queries.rs"]),
+        "registry catalog namespace must keep assembly and query behavior separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/registry/families")),
+        entries([
+            "OWNER.toml",
+            "bam.rs",
+            "cross.rs",
+            "fastq.rs",
+            "mod.rs",
+            "vcf.rs"
+        ]),
+        "registry family namespace must stay partitioned by domain"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq")),
+        entries(["defaults/", "invariants/", "mod.rs", "profiles/"]),
+        "fastq namespace must stay partitioned by defaults, profiles, and invariants"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq/defaults")),
+        entries([
+            "OWNER.toml",
+            "adna.rs",
+            "mod.rs",
+            "param_defaults.rs",
+            "reference_adna.rs",
+            "stage_order.rs",
+            "tooling.rs",
+        ]),
+        "fastq defaults namespace must keep stage order, tools, params, and preset policy separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq/profiles")),
+        entries([
+            "OWNER.toml",
+            "catalog.rs",
+            "contract_templates.rs",
+            "mod.rs"
+        ]),
+        "fastq profiles namespace must keep identity and profile templates separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq/invariants")),
+        entries([
+            "OWNER.toml",
+            "mod.rs",
+            "preset_rules.rs",
+            "report.rs",
+            "required_rules.rs"
+        ]),
+        "fastq invariants namespace must keep report contracts and rule families separated"
     );
 
     assert_eq!(

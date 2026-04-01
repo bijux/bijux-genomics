@@ -16,9 +16,9 @@ mod preset_rules;
 mod report;
 mod required_rules;
 
-pub use report::{FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS};
 use preset_rules::push_preset_rule_violations;
 use report::violation;
+pub use report::{FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS};
 use required_rules::push_required_rule_violations;
 
 const CORE_FASTQ_STAGES: [&str; 5] = [

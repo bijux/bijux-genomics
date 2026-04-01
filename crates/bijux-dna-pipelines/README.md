@@ -25,10 +25,10 @@ The defaults ledger records effective defaults, tool selections, and provenance 
 Changes are guarded by snapshot tests; update only when the contract changes intentionally.
 
 ## Registry authority
-Pipeline IDs are validated through `src/registry/pipeline_id.rs`, and registry collections stay snapshot-locked through contract tests.
+Pipeline IDs are validated through `src/registry/pipeline_id.rs`, profile families are assembled under `src/registry/families/`, and the stable queryable registry lives under `src/registry/catalog/`.
 
 ## What it must not do (boundaries)
-No execution or tool selection.
+No execution or runtime tool discovery; this crate only declares canonical stage-to-tool assignments.
 
 ## Role in the stack
 Upstream: domain contracts. Downstream: planners/analyze.
@@ -60,7 +60,8 @@ Start at `crates/bijux-dna-pipelines/docs/INDEX.md` and follow the crate docs li
 - `src/public_api/` for the curated stable surface.
 - `src/contract/` for pipeline profile and invariant contracts.
 - `src/defaults/` for defaults ledgers, parameter envelopes, and override merging.
-- `src/registry/` for pipeline id validation, collections, and lookups.
+- `src/fastq/defaults/`, `src/fastq/profiles/`, and `src/fastq/invariants/` for the FASTQ profile contract stack.
+- `src/registry/` for pipeline id validation, profile families, registry catalog assembly, and lookups.
 - `src/cross/fastq_to_bam/` for the cross-domain handoff profiles.
 
 ## Failure modes
