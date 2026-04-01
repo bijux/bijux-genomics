@@ -21,6 +21,7 @@ use anyhow::{anyhow, Context, Result};
 mod artifact_bundle;
 mod models;
 mod report_qc_support;
+mod runtime_support;
 mod stage_preparation;
 mod sortmerna_support;
 
@@ -32,6 +33,10 @@ pub(crate) use self::artifact_bundle::{
 use self::models::{CorpusRunManifest, PendingSampleRun, PostSuccessAction, SampleRunRecord};
 use self::report_qc_support::{
     prepare_report_qc_sample, report_qc_contributor_tool_ids, report_qc_upstream_stage_ids,
+};
+use self::runtime_support::{
+    absolutize, benchmark_runtime_env, benchmark_sample_root, current_timestamp_utc, path_display,
+    reset_sample_payload, sample_report_is_resume_ready, workspace_cache_root_for_output,
 };
 use self::stage_preparation::{stage_command_spec, StageCommandSpec, StageSamplePreparation};
 use self::sortmerna_support::{
@@ -948,93 +953,6 @@ fn parse_bool_literal(value: &str) -> Result<bool> {
         "false" | "0" | "no" | "n" => Ok(false),
         _ => Err(anyhow!("invalid boolean literal: {value}")),
     }
-}
-
-fn path_display(path: &Path) -> String {
-    path.to_string_lossy().replace('\\', "/")
-}
-
-fn benchmark_sample_root(out_root: &Path, report_dir: &str, sample_id: &str) -> PathBuf {
-    out_root.join("bench").join(report_dir).join(sample_id)
-}
-
-fn reset_sample_payload(sample_root: &Path) -> Result<()> {
-    if sample_root.is_dir() {
-        fs::remove_dir_all(sample_root)
-            .with_context(|| format!("remove stale sample payload {}", sample_root.display()))?;
-    }
-    Ok(())
-}
-
-fn sample_report_is_resume_ready(sample_report: &Path) -> bool {
-    let Ok(raw) = fs::read_to_string(sample_report) else {
-        return false;
-    };
-    let Ok(payload) = serde_json::from_str::<serde_json::Value>(&raw) else {
-        return false;
-    };
-    if payload
-        .get("failures")
-        .and_then(serde_json::Value::as_array)
-        .is_some_and(|row| !row.is_empty())
-    {
-        return false;
-    }
-    if payload
-        .get("gate")
-        .and_then(|row| row.get("passes"))
-        .and_then(serde_json::Value::as_bool)
-        == Some(false)
-    {
-        return false;
-    }
-    payload
-        .get("records")
-        .and_then(serde_json::Value::as_array)
-        .is_some_and(|row| !row.is_empty())
-}
-
-fn benchmark_runtime_env(out_root: &Path) -> BTreeMap<String, String> {
-    let mut env = BTreeMap::new();
-    let Some(cache_root) = workspace_cache_root_for_output(out_root) else {
-        return env;
-    };
-    env.insert(
-        "BIJUX_CACHE_ROOT".to_string(),
-        cache_root.display().to_string(),
-    );
-    env.insert(
-        "XDG_CACHE_HOME".to_string(),
-        cache_root.display().to_string(),
-    );
-    env
-}
-
-fn workspace_cache_root_for_output(out_root: &Path) -> Option<PathBuf> {
-    let resolved = out_root
-        .canonicalize()
-        .unwrap_or_else(|_| out_root.to_path_buf());
-    for candidate in resolved.ancestors() {
-        if candidate.file_name().and_then(|row| row.to_str()) == Some(".cache") {
-            return Some(candidate.to_path_buf());
-        }
-    }
-    None
-}
-
-fn absolutize(root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        root.join(path)
-    }
-}
-
-fn current_timestamp_utc() -> Result<String> {
-    let elapsed = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .context("resolve benchmark timestamp")?;
-    Ok(format!("unix:{}", elapsed.as_secs()))
 }
 
 #[cfg(test)]
