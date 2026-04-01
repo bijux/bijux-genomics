@@ -1,8 +1,8 @@
-use super::api_bridge::{
+use super::debug::handle_debug_command;
+use crate::cli::BenchConfigCommand;
+use crate::commands::fastq::api_bridge::{
     bench_bam_pipeline_args_to_api, bench_bam_stage_args_to_api, resolve_profile_alias,
 };
-use super::debug_commands::handle_debug_command;
-use crate::cli::BenchConfigCommand;
 #[allow(unused_imports)]
 use crate::commands::support::prelude::{
     anyhow, atomic_write_bytes, bench_args_cluster_otus, bench_args_correct,
