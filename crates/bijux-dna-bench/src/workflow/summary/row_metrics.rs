@@ -3,9 +3,7 @@ use std::collections::BTreeSet;
 use anyhow::Result;
 
 use bijux_dna_bench_model::stats::{mad_outliers, robust_stats};
-use bijux_dna_bench_model::{
-    BenchmarkObservation, BenchmarkSuiteSpec, MetricSummary, SummaryRow,
-};
+use bijux_dna_bench_model::{BenchmarkObservation, BenchmarkSuiteSpec, MetricSummary, SummaryRow};
 
 use super::super::options::BenchRunOptions;
 use super::super::summary_statistics::{bootstrap_if_enabled, indices_to_replicates};

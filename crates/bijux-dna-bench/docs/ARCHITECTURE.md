@@ -23,9 +23,11 @@ crates/bijux-dna-bench/
 ## Source responsibilities
 - `src/lib.rs`: one thin root that re-exports `public_api`
 - `src/public_api/`: stable benchmark surface with an explicit stable-surface owner
-- `src/workflow/mod.rs`: summarization entrypoint
+- `src/artifacts/writer/`: deterministic artifact writing, with observation loading, observation persistence, and structured report writing separated by responsibility
+- `src/workflow/mod.rs`: explicit workflow facade over summary, evaluation, suite loading, and suite persistence
+- `src/workflow/summary/`: summary assembly, with grouping, row metrics, and strata aggregation separated by responsibility
 - `src/workflow/evaluation.rs`: gating and comparison
-- `src/workflow/run_suite.rs`: suite persistence and resume orchestration
+- `src/workflow/run_suite/`: suite orchestration and suite persistence
 - `src/workflow/summary_fairness.rs`: fairness and input-consistency checks for summarization
 - `src/workflow/summary_scope.rs`: grouping and stratum scopes for summarization
 - `src/workflow/summary_statistics.rs`: bootstrap and outlier helper behavior for summaries
@@ -35,7 +37,7 @@ crates/bijux-dna-bench/
 - `src/repo/run_artifacts/`: persisted run-artifact loaders by artifact kind
 - `src/repo/sqlite/queries/run_index/`: run-index repository queries and metadata-path policy
 - `src/repo/workspace_paths.rs`: benchmark workspace path policy
-- `src/artifacts/writer.rs`: canonical artifact serialization
+- `src/artifacts/mod.rs`: artifact-writing facade
 
 ## Guardrails
 The tree is enforced by `tests/boundaries/architecture_tree.rs` and existing contract checks under

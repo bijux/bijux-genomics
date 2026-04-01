@@ -47,7 +47,6 @@ pub fn write_observations_jsonl(
     observation_writer::write_observations_jsonl(path, observations, mode, TOOL_ID_KEY)
 }
 
-
 /// Write summary JSON.
 ///
 /// # Errors
