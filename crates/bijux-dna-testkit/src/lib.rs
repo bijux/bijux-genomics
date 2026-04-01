@@ -5,6 +5,7 @@ pub mod clocks;
 pub mod determinism;
 pub mod fixtures;
 pub mod policy_files;
+pub mod public_api;
 pub mod random;
 pub mod snapshots;
 pub mod temp;
