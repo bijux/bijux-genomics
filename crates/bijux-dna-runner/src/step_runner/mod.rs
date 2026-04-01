@@ -26,13 +26,11 @@ mod runtime_policy;
 
 #[allow(unused_imports)]
 use apptainer_args::build_apptainer_exec_args;
-use apptainer_execution::execute_apptainer_step;
 #[allow(unused_imports)]
 use command_template::container_command_template;
 pub use contracts::StageResultV1;
-use docker_execution::execute_docker_step;
-use execution_dispatch::execute_step_outcome;
 use effects::{runner_failure, RunnerEffectKind};
+use execution_dispatch::execute_step_outcome;
 use identity::hash_inputs;
 #[allow(unused_imports)]
 use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};

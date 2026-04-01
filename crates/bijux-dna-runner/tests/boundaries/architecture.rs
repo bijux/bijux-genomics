@@ -80,9 +80,9 @@ fn runner_tree_matches_architecture_contract() {
         "command_output.rs",
         "invocation_identity.rs",
     ]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         command_runner_entries, expected_command_runner,
         "runner command_runner support tree must stay minimal"
@@ -99,11 +99,16 @@ fn runner_tree_matches_architecture_contract() {
     );
 
     let backend_entries = dir_entries(&root.join("src/backend"));
-    let expected_backend: BTreeSet<_> =
-        ["docker/", "facade.rs", "kinds.rs", "mod.rs", "stable_surface.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_backend: BTreeSet<_> = [
+        "docker/",
+        "facade.rs",
+        "kinds.rs",
+        "mod.rs",
+        "stable_surface.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         backend_entries, expected_backend,
         "runner backend tree must stay focused"
