@@ -44,8 +44,9 @@ Command responsibilities:
 - `commands/planning/` owns run-plan assembly and dry-run planning entrypoints.
 - `commands/status/` owns status inspection flows.
 - `commands/corpus/` owns curated corpus workflows.
-- `commands/benchmark/` owns all benchmark-specific configuration, corpus, workspace, publication, suite, and execution flows.
-- `commands/fastq/meta/` owns FASTQ meta-command routing and debug dispatch; `commands/fastq/api_bridge.rs` stays focused on API mediation.
+- `commands/benchmark/` owns all benchmark-specific configuration, corpus, workspace, publication, suite, and execution flows. Within that tree, `commands/benchmark/workspace/` owns benchmark config contracts, config queries, publication contract lookup, stage-run layout policy, and workspace value queries.
+- `commands/fastq/meta/` owns FASTQ meta-command routing, with dedicated handlers for pipeline, analysis, and environment command families plus focused debug dispatch; `commands/fastq/api_bridge.rs` stays focused on API mediation.
+- `commands/cli/env/` owns environment registry queries, promotion policy, runtime support, registry commands, and benchmark HPC root support as separate internal concerns instead of one include-driven command blob.
 - `commands/bam/`, `commands/fastq/`, and `commands/vcf/` own domain-facing CLI dispatch only.
 - `commands/ena/`, `commands/hpc/`, and `example.rs` own focused operator-facing helpers that do not belong in the routing or support layers.
 
