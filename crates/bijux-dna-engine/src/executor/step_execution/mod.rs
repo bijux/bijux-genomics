@@ -9,6 +9,8 @@ use crate::{CancellationToken, EngineEvent, EngineHooks};
 
 use super::{contracts, recording};
 
+mod stage_record;
+
 pub(super) fn execute_ordered_steps(
     graph: &ExecutionGraph,
     ordered_steps: &[ExecutionStep],
@@ -104,10 +106,9 @@ fn execute_step(
         }
         attempt += 1;
     };
-    Ok(StageExecutionRecordV1 {
-        stage_id: step.step_id.to_string(),
+    Ok(stage_record::stage_execution_record(
+        step,
         attempt,
-        success: last_success,
-        cached: false,
-    })
+        last_success,
+    ))
 }
