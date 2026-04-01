@@ -38,23 +38,49 @@ fn environment_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/build")),
-        btree_set(&["defaults.rs", "mod.rs", "models.rs", "version_parser.rs"]),
+        btree_set(&[
+            "builder.rs",
+            "defaults.rs",
+            "mod.rs",
+            "models.rs",
+            "version_parser.rs",
+        ]),
         "build tree must remain decomposed by concern"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/resolve")),
         btree_set(&[
-            "cache.rs",
+            "cache/",
             "catalog.rs",
             "commands.rs",
+            "facade.rs",
             "mod.rs",
             "platform.rs",
             "reference.rs",
+            "shell.rs",
             "smoke.rs",
-            "types.rs",
+            "types/",
         ]),
         "resolve tree must remain decomposed by environment concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/resolve/cache")),
+        btree_set(&["image_paths.rs", "mod.rs", "root.rs"]),
+        "resolve cache tree must stay split by cache concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/resolve/types")),
+        btree_set(&[
+            "errors.rs",
+            "image.rs",
+            "mod.rs",
+            "platform.rs",
+            "runtime.rs"
+        ]),
+        "resolve types tree must stay split by model concern"
     );
 }
 
