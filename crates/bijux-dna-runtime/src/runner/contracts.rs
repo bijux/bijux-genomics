@@ -1,5 +1,7 @@
 use anyhow::{anyhow, Result};
 
+use super::contract_kinds::RunnerContractKind;
+
 /// Domain-level stage execution contract.
 ///
 /// Implementations declare whether a runner can execute a stage id for a domain.
@@ -23,21 +25,6 @@ impl DomainStageRunnerContract for PrefixDomainStageRunnerContract {
         stage_id
             .split_once('.')
             .is_some_and(|(domain, _)| domain == self.stage_domain)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RunnerContractKind {
-    Docker,
-    Apptainer,
-}
-
-impl std::fmt::Display for RunnerContractKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Docker => f.write_str("docker"),
-            Self::Apptainer => f.write_str("apptainer"),
-        }
     }
 }
 
