@@ -1,6 +1,8 @@
 use std::path::Path;
 
-use super::{commands, EnvError, ReferenceBuildRequest};
+use crate::resolve::commands;
+
+use super::{super::EnvError, ReferenceBuildRequest};
 
 pub(super) fn prepare_reference_indices(
     fasta_target: &Path,

@@ -1,15 +1,24 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use super::super::{EnvError, ToolImageSpec};
-use super::catalog_loader::load_image_catalog_from_file;
-use super::registry_hydration::hydrate_catalog_digests_from_registry;
+use self::catalog_loader::load_image_catalog_from_file;
+use self::registry_hydration::hydrate_catalog_digests_from_registry;
+use super::{EnvError, PlatformSpec, ResolvedImage, ToolImageSpec};
 
 mod catalog_loader;
 mod image_resolution;
 mod registry_hydration;
 
-pub(super) use image_resolution::resolve_image;
+/// Resolve an image reference for a tool and platform.
+///
+/// # Errors
+/// Returns an error if the tool name violates image naming rules.
+pub(super) fn resolve_image(
+    tool: &ToolImageSpec,
+    platform: &PlatformSpec,
+) -> Result<ResolvedImage, EnvError> {
+    image_resolution::resolve_image(tool, platform)
+}
 
 /// Load tool images from configs/ci/tools/images.toml.
 ///
