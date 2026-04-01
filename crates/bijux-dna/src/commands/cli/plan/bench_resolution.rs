@@ -65,7 +65,7 @@ fn resolve_registry_path() -> Result<PathBuf> {
     }
 
     let workspace_registry = bijux_dna_infra::configs_file(
-        crate::commands::repo_root::resolve_repo_root()?.as_path(),
+        crate::commands::support::workspace_root::resolve_repo_root()?.as_path(),
         "ci/registry/tool_registry.toml",
     );
     if workspace_registry.exists() {

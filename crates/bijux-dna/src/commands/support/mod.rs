@@ -1,2 +1,3 @@
 pub(crate) mod prelude;
 pub(crate) mod run_profile;
+pub(crate) mod workspace_root;

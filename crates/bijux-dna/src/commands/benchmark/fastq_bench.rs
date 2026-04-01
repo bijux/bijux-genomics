@@ -473,7 +473,7 @@ fn explain_fastq_stage(
 
 fn lookup_param_schema_id(stage_id: &str) -> Option<String> {
     let cwd = std::env::current_dir().ok()?;
-    let repo_root = crate::commands::repo_root::resolve_repo_root().ok()?;
+    let repo_root = crate::commands::support::workspace_root::resolve_repo_root().ok()?;
     let mut roots = vec![cwd, repo_root];
     roots.sort();
     roots.dedup();

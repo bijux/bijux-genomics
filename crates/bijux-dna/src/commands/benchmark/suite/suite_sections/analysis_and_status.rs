@@ -283,7 +283,8 @@ pub fn bench_status(cwd: &Path) -> serde_json::Value {
 }
 
 fn workspace_root() -> PathBuf {
-    crate::commands::repo_root::resolve_repo_root().unwrap_or_else(|err| panic!("{err}"))
+    crate::commands::support::workspace_root::resolve_repo_root()
+        .unwrap_or_else(|err| panic!("{err}"))
 }
 
 fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
