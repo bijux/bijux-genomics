@@ -5,7 +5,6 @@
 pub mod bam;
 pub mod contract;
 pub mod cross;
-mod default_params;
 pub mod defaults;
 pub mod fastq;
 mod profile_support;
@@ -22,8 +21,7 @@ pub use contract::{
     InvariantsPreset, InvariantsReportV1, MetricsBundle, PipelineCapabilities, PipelineContract,
     PipelineProfile, ProfileManifestV1, ReportSection, StabilityTier,
 };
-pub use default_params::{DefaultParams, EmptyParams};
-pub use defaults::{DefaultProvenanceV1, DefaultsLedgerV1};
+pub use defaults::{DefaultParams, DefaultProvenanceV1, DefaultsLedgerV1, EmptyParams};
 pub use profile_support::merge_effective_defaults;
 pub use registry::id::{validate_pipeline_id, validate_pipeline_id_str, PipelineId};
 
