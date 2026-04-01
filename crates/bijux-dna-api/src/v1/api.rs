@@ -1,13 +1,13 @@
 //! Public front door for the Bijux API.
 
-pub use crate::explain::{ExplainResponse, ExplainToolSelection, PlanExplainV1};
-pub use crate::request_args::{
-    DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, PlanRequest, PlanResponse,
-    RenderReportRequest, RenderReportResult, RunStatus,
-};
-pub use crate::run::{
+pub use crate::runtime::run::{
     dry_run, execute, execute_and_report, plan, policy_audit, render_report, status,
     workspace_edges, write_workspace_audit,
+};
+pub use crate::surface::explain::{ExplainResponse, ExplainToolSelection, PlanExplainV1};
+pub use crate::surface::request_contracts::{
+    DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, PlanRequest, PlanResponse,
+    RenderReportRequest, RenderReportResult, RunStatus,
 };
 pub use crate::v1::report::render_report_bundle_html;
 
@@ -57,5 +57,5 @@ pub fn explain(
     plan: &bijux_dna_core::contract::ExecutionGraph,
     defaults_ledger: Option<&serde_json::Value>,
 ) -> ExplainResponse {
-    crate::explain::explain_bundle(plan, defaults_ledger)
+    crate::surface::explain::explain_bundle(plan, defaults_ledger)
 }
