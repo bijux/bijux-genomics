@@ -107,6 +107,74 @@ fn dna_tree_matches_architecture_contract() {
         "benchmark tree must keep benchmark-specific workflows together"
     );
 
+    let cli_entries = dir_entries(&root.join("src/commands/cli"));
+    let expected_cli: BTreeSet<_> = [
+        "env/",
+        "execute.rs",
+        "mod.rs",
+        "parse/",
+        "parse.rs",
+        "plan/",
+        "plan.rs",
+        "render/",
+        "validate.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        cli_entries, expected_cli,
+        "cli tree must keep parse, render, plan, and environment concerns explicit"
+    );
+
+    let cli_parse_entries = dir_entries(&root.join("src/commands/cli/parse"));
+    let expected_cli_parse: BTreeSet<_> = [
+        "bam.rs",
+        "bench/",
+        "ci.rs",
+        "common_example_args.rs",
+        "common_root_args.rs",
+        "fastq.rs",
+        "parse_env_and_pipeline.rs",
+        "parse_root_and_analyze.rs",
+        "vcf.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        cli_parse_entries, expected_cli_parse,
+        "cli parse tree must keep bench parsing separate from shared root parsing"
+    );
+
+    let bench_parse_entries = dir_entries(&root.join("src/commands/cli/parse/bench"));
+    let expected_bench_parse: BTreeSet<_> = [
+        "config.rs",
+        "corpus_fastq.rs",
+        "fastq/",
+        "mod.rs",
+        "publication.rs",
+        "suite.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        bench_parse_entries, expected_bench_parse,
+        "bench parse tree must keep config, publication, suite, and fastq parsing separate"
+    );
+
+    let bench_fastq_parse_entries = dir_entries(&root.join("src/commands/cli/parse/bench/fastq"));
+    let expected_bench_fastq_parse: BTreeSet<_> =
+        ["mod.rs", "preprocessing.rs", "quality.rs", "workflows.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(
+        bench_fastq_parse_entries, expected_bench_fastq_parse,
+        "bench fastq parse tree must keep preprocessing, quality, and workflow parsing separate"
+    );
+
     let benchmark_workspace_entries = dir_entries(&root.join("src/commands/benchmark/workspace"));
     let expected_benchmark_workspace: BTreeSet<_> = [
         "config_loading.rs",
@@ -164,9 +232,9 @@ fn dna_tree_matches_architecture_contract() {
         "mod.rs",
         "pipelines.rs",
     ]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         fastq_meta_entries, expected_fastq_meta,
         "fastq meta tree must stay focused on meta-command routing"
