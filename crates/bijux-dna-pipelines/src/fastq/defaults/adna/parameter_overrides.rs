@@ -1,22 +1,9 @@
-use bijux_dna_core::ids::{StageId, ToolId};
-use bijux_dna_core::prelude::id_catalog;
+use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 
-use super::fastq_defaults;
 use crate::{DefaultParams, EffectiveDefaults};
 
-pub(crate) fn adna_fastq_defaults() -> EffectiveDefaults {
-    let mut defaults = fastq_defaults(true);
-
-    defaults.tools.insert(
-        StageId::from_static("fastq.trim_reads"),
-        ToolId::from_static(id_catalog::TOOL_ADAPTERREMOVAL),
-    );
-    defaults.tools.insert(
-        StageId::from_static("fastq.merge_pairs"),
-        ToolId::from_static(id_catalog::TOOL_LEEHOM),
-    );
-
+pub(super) fn apply(defaults: &mut EffectiveDefaults) {
     if let Some(DefaultParams::FastqTrim(mut params)) = defaults
         .params
         .get(&StageId::from_static("fastq.trim_reads"))
@@ -88,20 +75,4 @@ pub(crate) fn adna_fastq_defaults() -> EffectiveDefaults {
             DefaultParams::FastqTrim(params),
         );
     }
-
-    defaults.rationales.insert(
-        StageId::from_static("fastq.trim_reads"),
-        "aDNA preset: short-read preserving trim with strict adapter handling".to_string(),
-    );
-    defaults.rationales.insert(
-        StageId::from_static("fastq.merge_pairs"),
-        "aDNA preset: aggressive overlap merge/collapse for fragmented paired-end reads"
-            .to_string(),
-    );
-    defaults.rationales.insert(
-        StageId::from_static("fastq.detect_adapters"),
-        "aDNA preset: stricter adapter detection depth for short fragments".to_string(),
-    );
-
-    defaults
 }
