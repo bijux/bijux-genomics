@@ -1,3 +1,4 @@
+mod args;
 mod models;
 mod planning;
 mod probe;
@@ -5,6 +6,7 @@ mod reporting;
 
 use std::process::{Command, Output};
 
+use args::parse_run_options;
 use models::{ImagePlan, ImageTestOutcome, Summary};
 use planning::{build_image_plans, filter_tools, load_platform_spec};
 use probe::run_image_test;
@@ -68,27 +70,18 @@ fn log_debug(logger: &mut dyn Logger, line: &str) {
 /// Returns an error if loading specs, building plans, or executing image checks fails.
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
-    let platform = parse_arg_value(&args, "--platform");
-    let tools_filter = parse_arg_value(&args, "--tools");
-    let debug = args.iter().any(|arg| arg == "--debug")
-        || std::env::var("DEBUG")
-            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-            .unwrap_or(false);
-    let quiet = args.iter().any(|arg| arg == "--quiet")
-        || std::env::var("QUIET")
-            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-            .unwrap_or(false);
-    let platform_spec = load_platform_spec(platform.as_deref())?;
-    let tools = filter_tools(tools_filter)?;
+    let options = parse_run_options(&args);
+    let platform_spec = load_platform_spec(options.platform.as_deref())?;
+    let tools = filter_tools(options.tools_filter)?;
     let image_plans = build_image_plans(&platform_spec, &tools)?;
 
     let mut logger = StdoutLogger::new(
-        if debug {
+        if options.debug {
             LogLevel::Debug
         } else {
             LogLevel::Info
         },
-        quiet,
+        options.quiet,
     );
     log_header(
         &mut logger,
@@ -137,13 +130,6 @@ fn run_image_tests(
         }
     }
     Ok(summary)
-}
-
-fn parse_arg_value(args: &[String], flag: &str) -> Option<String> {
-    args.iter()
-        .position(|arg| arg == flag)
-        .and_then(|idx| args.get(idx + 1))
-        .cloned()
 }
 
 #[cfg(test)]
