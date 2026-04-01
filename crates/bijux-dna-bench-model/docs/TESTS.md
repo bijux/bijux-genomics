@@ -1,27 +1,18 @@
-# Tests
+# bijux-dna-bench-model Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+## Coverage
+- `tests/boundaries.rs` locks the documented source tree.
+- `tests/contracts.rs` covers suite validation behavior.
+- `tests/determinism.rs` covers repeatability and no-randomness guarantees.
+- `tests/schemas.rs` covers public-surface and docs-linked schema checks.
+- `tests/semantics.rs` covers explainability and metric semantics behavior.
 
-## Why
-Tests should explain the contract they enforce.
+## How to run
+- `cargo test -p bijux-dna-bench-model`
+- `cargo test -p bijux-dna-bench-model --test boundaries`
+- `cargo test -p bijux-dna-bench-model --test contracts`
 
-## Non-goals
-- Full test implementation detail.
-
-## Contracts
-- Each test file should be referenced here.
-
-## Suite map
-- `tests/public_api/*` → public surface and docs linkage.
-- `tests/determinism/*` → seeded randomness and deterministic outputs.
-- `tests/semantics/*` → model semantics, SSOT metrics, and guardrails.
-
-## Examples
-- `tests/semantics/decision_explainability.rs` → explainability snapshots.
-
-## Failure modes
-- Missing test documentation causes drift and confusion.
-
-## Testkit patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+## Notes
+- Prefer `boundaries` when changing module layout or public-surface shape.
+- Prefer `contracts` when changing suite validation behavior.
+- Prefer `schemas` when changing exported types or public API docs.

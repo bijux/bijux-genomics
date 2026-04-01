@@ -1,3 +1,3 @@
 # bijux-dna-bench-model contracts
 
-This directory is reserved for contracts tests by intent taxonomy.
+Contract tests cover suite validation and benchmark model contract behavior.
