@@ -2,6 +2,8 @@
 //! Bench summary assembly from validated benchmark observations.
 #![allow(dead_code)]
 
+mod grouping;
+
 use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -11,6 +13,7 @@ use bijux_dna_bench_model::{
     BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, MetricSummary, SummaryRow,
     SummaryStratum,
 };
+use self::grouping::collect_summary_groups;
 use super::options::BenchRunOptions;
 use super::summary_fairness::evaluate_summary_fairness;
 use super::summary_scope::{SummaryGroupKey, SummaryStratumKey};
@@ -29,20 +32,7 @@ pub fn summarize(
     let fairness = evaluate_summary_fairness(suite, observations)?;
     let mut warnings = fairness.warnings;
 
-    let mut groups: BTreeMap<SummaryGroupKey, Vec<&BenchmarkObservation>> = BTreeMap::new();
-    for obs in observations {
-        groups
-            .entry((
-                obs.dataset_id.clone(),
-                obs.stage_id.clone(),
-                obs.stage_instance_id.clone(),
-                obs.lineage_id.clone(),
-                obs.tool_id.clone(),
-                obs.params_hash.clone(),
-            ))
-            .or_default()
-            .push(obs);
-    }
+    let groups = collect_summary_groups(observations);
 
     let mut rows = Vec::new();
     for ((dataset_id, stage_id, stage_instance_id, lineage_id, tool_id, params_hash), group) in
