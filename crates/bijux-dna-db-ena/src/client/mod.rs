@@ -3,7 +3,6 @@ use reqwest::blocking::Client;
 
 mod error;
 mod filereport;
-mod parse;
 
 pub use error::EnaClientError;
 
@@ -36,7 +35,7 @@ impl EnaClient {
         for accession in accessions {
             let url = filereport::build_filereport_url(&accession, query.result);
             let body = self.http.get(url).send()?.error_for_status()?.text()?;
-            out.extend(parse::parse_filereport_tsv(&body, query)?);
+            out.extend(filereport::parse_filereport_tsv(&body, query)?);
         }
         Ok(out)
     }
@@ -49,7 +48,7 @@ pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
 /// # Errors
 /// Returns an error when the filereport payload is empty or missing required columns.
 pub fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Result<Vec<EnaRecord>, EnaClientError> {
-    parse::parse_filereport_tsv(tsv, query)
+    filereport::parse_filereport_tsv(tsv, query)
 }
 
 #[cfg(test)]
