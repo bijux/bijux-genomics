@@ -1,8 +1,8 @@
 mod suite_validation_harness {
-    include!("harness/suite_validation_harness.rs");
+    include!("suite_validation_harness.rs");
 }
 
-use crate::{
+use bijux_dna_bench_model::{
     AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageEdge, BenchmarkStageSpec,
     BenchmarkSuiteSpec, DatasetSpec, DiversityRequirements, ReplicatePolicy,
     StratificationRequirement,
