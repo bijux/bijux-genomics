@@ -5,11 +5,16 @@ use clap::{Args, Subcommand};
 use super::BenchBamCommand;
 
 mod config;
+mod publication;
 
 pub use self::config::{
     BenchConfigCommand, BenchConfigJsonArgs, BenchConfigValidateArgs,
     BenchNormalizeWorkspaceLayoutArgs, BenchRepoChecksArgs, BenchWorkspaceValueArgs,
     BenchWriteScreenTaxonomyDatabaseLineageArgs,
+};
+pub use self::publication::{
+    BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
+    BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
 };
 
 #[derive(Debug, Subcommand)]
@@ -54,15 +59,6 @@ pub enum BenchCommand {
 }
 
 #[derive(Debug, Args)]
-pub struct BenchPublicationTargetsArgs {
-    pub kind: String,
-    #[arg(long, value_name = "PATH")]
-    pub config: Option<PathBuf>,
-    #[arg(long, value_name = "CORPUS_ID")]
-    pub corpus_id: String,
-}
-
-#[derive(Debug, Args)]
 pub struct BenchCorpusFastqArgs {
     #[arg(long)]
     pub stage: String,
@@ -94,54 +90,6 @@ pub struct BenchCorpusFastqArgs {
     pub stage_args: Vec<String>,
     #[arg(long = "manifest-arg")]
     pub manifest_args: Vec<String>,
-}
-
-#[derive(Debug, Args)]
-pub struct BenchCorpusFastqReportArgs {
-    #[arg(long)]
-    pub stage: String,
-    #[arg(long, value_name = "CORPUS_ID")]
-    pub corpus_id: String,
-    #[arg(long, value_name = "PATH")]
-    pub config: Option<PathBuf>,
-    #[arg(
-        long,
-        value_name = "PATH",
-        default_value = "docs/30-operations/benchmark"
-    )]
-    pub docs_root: PathBuf,
-    #[arg(long, value_name = "PATH")]
-    pub run_root: Option<PathBuf>,
-}
-
-#[derive(Debug, Args)]
-pub struct BenchCorpusFastqPublicationStatusArgs {
-    #[arg(long, value_name = "CORPUS_ID")]
-    pub corpus_id: String,
-    #[arg(long, value_name = "PATH")]
-    pub config: Option<PathBuf>,
-    #[arg(
-        long,
-        value_name = "PATH",
-        default_value = "docs/30-operations/benchmark"
-    )]
-    pub docs_root: PathBuf,
-}
-
-#[derive(Debug, Args)]
-pub struct BenchCorpusFastqPublishedDossiersArgs {
-    #[arg(long, value_name = "CORPUS_ID")]
-    pub corpus_id: String,
-    #[arg(long, value_name = "PATH")]
-    pub config: Option<PathBuf>,
-    #[arg(
-        long,
-        value_name = "PATH",
-        default_value = "docs/30-operations/benchmark"
-    )]
-    pub docs_root: PathBuf,
-    #[arg(long, value_name = "PATH")]
-    pub run_root: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
