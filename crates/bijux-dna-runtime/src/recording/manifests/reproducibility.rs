@@ -3,7 +3,8 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::metrics::ToolInvocationV1;
 
 use super::manifest_identity::{detect_run_context, input_hash_from_many};
-use super::{run_artifacts_dir, write_canonical_json, RunDirs};
+use super::{run_artifacts_dir, RunDirs};
+use crate::recording::write_canonical_json;
 
 pub(super) struct ReproducibilityContext {
     pub tool_invocations: Vec<ToolInvocationV1>,
