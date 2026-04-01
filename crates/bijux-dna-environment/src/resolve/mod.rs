@@ -8,6 +8,7 @@ use std::path::PathBuf;
 mod cache;
 mod catalog;
 mod commands;
+mod entrypoints;
 mod facade;
 mod platform;
 mod reference;
