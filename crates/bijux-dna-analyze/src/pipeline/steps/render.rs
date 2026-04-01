@@ -16,7 +16,7 @@ use crate::report::write_run_report_from_facts;
 use crate::AnalyzeMode;
 use crate::{AnalyzeOptions, AnalyzeOutput};
 
-use super::compute_step::AnalysisCore;
+use super::compute::AnalysisCore;
 
 #[derive(Debug)]
 pub(crate) struct RenderedArtifacts {

@@ -7,7 +7,7 @@ use crate::report::build::build_run_report_model;
 use crate::report::model::ReportModel;
 use crate::{AnalyzeMode, AnalyzeOptions};
 
-use super::compute_step::AnalysisCore;
+use super::compute::AnalysisCore;
 
 pub(crate) fn build_report(
     core: &AnalysisCore,
