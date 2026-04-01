@@ -18,8 +18,9 @@ pub use io::{
 };
 pub use manifests::{
     compute_run_id, prepare_tool_run_dirs, run_artifacts_dir_for_out, tool_run_artifacts_dir,
-    write_run_manifest, write_stage_plan_json, ObservabilityManifestV1, PlanArtifacts,
-    ProgressEventV1, RunArtifactInput, RunDirs, RunsExportRowV1,
+    write_profile_and_lock_manifests, write_run_manifest, write_stage_plan_json,
+    ObservabilityManifestV1, PlanArtifacts, ProgressEventV1, RunArtifactInput, RunDirs,
+    RunsExportRowV1,
 };
 pub use metrics::{
     write_metrics_envelope, write_metrics_json, write_stage_metrics_json,

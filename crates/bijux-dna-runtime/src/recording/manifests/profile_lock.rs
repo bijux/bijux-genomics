@@ -7,7 +7,7 @@ use super::manifest_identity::{canonical_sha256, declared_json_array};
 
 /// # Errors
 /// Returns an error if profile or lock manifests cannot be generated.
-pub(super) fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> {
+pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> {
     let raw = std::fs::read_to_string(run_manifest_path)
         .with_context(|| format!("read {}", run_manifest_path.display()))?;
     let run_manifest: serde_json::Value = serde_json::from_str(&raw)
