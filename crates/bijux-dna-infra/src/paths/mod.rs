@@ -6,6 +6,7 @@
 
 mod bench;
 mod config;
+mod config_aliases;
 mod run_layout;
 
 pub use bench::{bench_base_dir, bench_data_dir, bench_suites_dir, bench_tools_dir};
