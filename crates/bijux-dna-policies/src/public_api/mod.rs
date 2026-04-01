@@ -1,2 +1,3 @@
-pub use crate::guardrails::{check, GuardrailConfig};
-pub use crate::policy_diagnostics;
+mod stable_surface;
+
+pub use stable_surface::*;
