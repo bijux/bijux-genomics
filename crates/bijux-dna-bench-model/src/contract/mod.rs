@@ -9,9 +9,7 @@ mod param_binding_validation;
 mod records;
 mod schema_versions;
 mod stage_governance;
-mod suite_analysis;
-mod suite_diversity;
-mod suite_graph;
+mod suite;
 mod suite_validation;
 pub use records::{validate_decision, validate_observation, validate_summary};
 pub use schema_versions::{

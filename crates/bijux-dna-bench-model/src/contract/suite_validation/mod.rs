@@ -7,10 +7,11 @@ mod stage_contracts;
 use crate::diagnostics::BenchError;
 use crate::model::BenchmarkSuiteSpec;
 
-use super::suite_analysis::validate_suite_analysis_requirements;
-use super::suite_diversity::validate_suite_diversity;
-use super::suite_graph::{declared_graph_nodes, validate_suite_dag};
 use super::SUITE_SCHEMA_V1;
+use crate::contract::suite::{
+    declared_graph_nodes, validate_suite_analysis_requirements, validate_suite_dag,
+    validate_suite_diversity,
+};
 use edge_contracts::{validate_explicit_edges, validate_upstream_stage_references};
 use stage_contracts::{validate_schema_version, validate_stage_definitions};
 
