@@ -81,7 +81,7 @@ fn pipelines_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
-        entries(["OWNER.toml", "mod.rs"]),
+        entries(["OWNER.toml", "mod.rs", "stable_surface.rs"]),
         "public api namespace must stay curated"
     );
 
@@ -106,7 +106,11 @@ fn pipelines_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/registry/catalog/queries")),
-        entries(["domain_queries.rs", "mod.rs", "stability_filter.rs"]),
+        entries([
+            "mod.rs",
+            "profiles_by_domain.rs",
+            "profiles_by_stability.rs"
+        ]),
         "registry catalog query namespace must separate stability and domain filters"
     );
 
@@ -152,11 +156,13 @@ fn pipelines_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/fastq/profiles")),
         entries([
             "OWNER.toml",
-            "ancient_dna_profiles.rs",
-            "baseline_profiles.rs",
-            "catalog.rs",
-            "contract_templates.rs",
-            "mod.rs"
+            "adna_profile.rs",
+            "default_profile.rs",
+            "minimal_profile.rs",
+            "mod.rs",
+            "profile_contracts.rs",
+            "profile_lookup.rs",
+            "reference_adna_profile.rs"
         ]),
         "fastq profiles namespace must keep baseline and ancient-dna families separated"
     );
@@ -167,16 +173,16 @@ fn pipelines_tree_matches_architecture_contract() {
             "OWNER.toml",
             "mod.rs",
             "preset_rules/",
-            "report.rs",
-            "required_rules.rs",
-            "stage_params.rs"
+            "stage_parameter_access.rs",
+            "stage_requirements.rs",
+            "validation_report.rs"
         ]),
         "fastq invariants namespace must keep report contracts, stage params, and rule families separated"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/fastq/invariants/preset_rules")),
-        entries(["ancient_dna_rules.rs", "mod.rs", "reference_adna_rules.rs"]),
+        entries(["adna_rules.rs", "mod.rs", "reference_adna_rules.rs"]),
         "fastq preset invariant namespace must separate ancient-dna and reference-grade rules"
     );
 

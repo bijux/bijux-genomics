@@ -19,4 +19,4 @@ Pipeline profiles are consumed across the stack, so registry drift and layout dr
 - `tests/schemas/` — reserved docs and public-surface lock coverage.
 
 ## Source-tree contract
-- `tests/boundaries/architecture_tree.rs` locks the documented `pipelines` namespace layout, including `fastq/{defaults,profiles,invariants}` and `registry/{families,catalog}`.
+- `tests/boundaries/architecture_tree.rs` locks the documented `pipelines` namespace layout, including the split `fastq/{defaults,profiles,invariants}` trees and `registry/catalog/queries/`.
