@@ -1,7 +1,7 @@
 use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord};
 use std::collections::HashMap;
 
-use super::{request, EnaClientError};
+use super::{filereport, EnaClientError};
 
 pub(super) fn parse_filereport_tsv(
     tsv: &str,
@@ -119,7 +119,7 @@ fn opt_field(value: &str) -> Option<&str> {
 }
 
 fn validate_headers(headers: &[&str], query: &EnaQuery) -> Result<(), EnaClientError> {
-    let missing = request::filereport_fields(query.result)
+    let missing = filereport::filereport_fields(query.result)
         .iter()
         .copied()
         .filter(|field| !headers.iter().any(|header| header == field))

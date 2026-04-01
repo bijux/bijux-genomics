@@ -2,8 +2,8 @@ use crate::model::{EnaQuery, EnaRecord, EnaResultKind};
 use reqwest::blocking::Client;
 
 mod error;
+mod filereport;
 mod parse;
-mod request;
 
 pub use error::EnaClientError;
 
@@ -34,7 +34,7 @@ impl EnaClient {
         let accessions = query.normalized_accessions();
         let mut out = Vec::new();
         for accession in accessions {
-            let url = request::build_filereport_url(&accession, query.result);
+            let url = filereport::build_filereport_url(&accession, query.result);
             let body = self.http.get(url).send()?.error_for_status()?.text()?;
             out.extend(parse::parse_filereport_tsv(&body, query)?);
         }
@@ -43,7 +43,7 @@ impl EnaClient {
 }
 
 pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
-    request::build_filereport_url(accession, result)
+    filereport::build_filereport_url(accession, result)
 }
 
 /// # Errors
