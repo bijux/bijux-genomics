@@ -1,15 +1,15 @@
 //! Owner: bijux-dna-engine
 
-use anyhow::{anyhow, Result};
-use bijux_dna_core::contract::ExecutionGraph;
-use bijux_dna_core::contract::{RunRecordV1, StageExecutionRecordV1};
-use bijux_dna_runtime::{Invocation, Runner};
-use chrono::Utc;
+use anyhow::Result;
+use bijux_dna_core::contract::{ExecutionGraph, RunRecordV1};
+use bijux_dna_runtime::Runner;
 
-use crate::{CancellationToken, EngineEvent, EngineHooks};
+use crate::{CancellationToken, EngineHooks};
 
 mod contract_enforcer;
+mod graph;
 mod recording;
+mod step_execution;
 mod topology;
 
 pub fn execute_plan(
@@ -18,94 +18,6 @@ pub fn execute_plan(
     hooks: Option<&dyn EngineHooks>,
     cancel: Option<&CancellationToken>,
 ) -> Result<RunRecordV1> {
-    let graph = graph.normalize()?;
-    let ordered = topology::topo_order(
-        graph.steps(),
-        graph.edges(),
-        graph.deterministic_scheduler(),
-    )?;
-    let mut results = Vec::with_capacity(ordered.len());
-    for step in ordered {
-        if cancel.is_some_and(CancellationToken::is_cancelled) {
-            return Err(anyhow!("execution cancelled before {}", step.step_id.0));
-        }
-        if let Some(hooks) = hooks {
-            hooks.on_event(EngineEvent::StepStart {
-                step_id: step.step_id.clone(),
-                attempt: 0,
-            });
-        }
-        tracing::info!(
-            target: "exec.step",
-            stage_id = %step.step_id.0,
-            tool = %step.image.image,
-            "execute step"
-        );
-        let mut attempt = 0;
-        let last_success = loop {
-            if cancel.is_some_and(CancellationToken::is_cancelled) {
-                return Err(anyhow!("execution cancelled during {}", step.step_id.0));
-            }
-            let started_at = Utc::now().to_rfc3339();
-            let invocation = Invocation {
-                step: step.clone(),
-                attempt,
-            };
-            let outcome = runner.run(&invocation)?;
-            let duration = outcome.duration;
-            let finished_at = Utc::now().to_rfc3339();
-            recording::record_execution(
-                step,
-                attempt,
-                &started_at,
-                &finished_at,
-                duration.as_secs_f64(),
-                outcome.exit_code,
-            )?;
-            let success = outcome.exit_code == 0;
-            if let Some(timeout_s) = graph.step_timeout_s() {
-                if duration.as_secs() > timeout_s {
-                    return Err(anyhow!(
-                        "step {} exceeded timeout {}s",
-                        step.step_id.0,
-                        timeout_s
-                    ));
-                }
-            }
-            if success {
-                contract_enforcer::enforce_contract(step)?;
-                if let Some(hooks) = hooks {
-                    hooks.on_event(EngineEvent::StepEnd {
-                        step_id: step.step_id.clone(),
-                        attempt,
-                        success: true,
-                    });
-                }
-                break success;
-            }
-            let retry_policy = graph.retry_policy();
-            let allow_retry = retry_policy
-                .retry_on_exit_codes
-                .contains(&outcome.exit_code);
-            if !allow_retry || attempt + 1 >= retry_policy.max_attempts {
-                let step_id = step.step_id.to_string();
-                return Err(anyhow!("step failed after retries: {step_id}"));
-            }
-            if let Some(hooks) = hooks {
-                hooks.on_event(EngineEvent::Retry {
-                    step_id: step.step_id.clone(),
-                    attempt: attempt + 1,
-                    exit_code: outcome.exit_code,
-                });
-            }
-            attempt += 1;
-        };
-        results.push(StageExecutionRecordV1 {
-            stage_id: step.step_id.to_string(),
-            attempt,
-            success: last_success,
-            cached: false,
-        });
-    }
-    Ok(RunRecordV1::new(results))
+    let prepared = graph::normalize_for_execution(graph)?;
+    step_execution::execute_ordered_steps(&prepared.graph, &prepared.ordered_steps, runner, hooks, cancel)
 }
