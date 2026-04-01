@@ -1,3 +1,3 @@
 # bijux-dna-core boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+Owns layering, guardrail, and source-tree boundary checks for bijux-dna-core.

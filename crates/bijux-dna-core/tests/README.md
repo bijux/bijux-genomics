@@ -1,13 +1,15 @@
 # bijux-dna-core Test Taxonomy
 
-Intent buckets in this crate:
+Stable test entrypoints:
+- `boundaries.rs` for layering, guardrails, and source-tree contracts.
+- `contracts.rs` for execution, identity, and public contract behavior.
+- `schemas.rs` for public API and docs locks.
+- `semantics.rs` for identifier, metric, and input-assessment semantics.
+- `guardrails.rs` for crate-local guardrail smoke coverage.
 
-- \: layering and ownership guardrails.
-- \: API/data/schema behavioral contracts.
-- \: reproducibility and stable-output checks.
-- \: schema/public-surface stability snapshots.
-
-Speed model:
-
-- **fast**: unit/contract tests without large fixtures or external tool execution.
-- **slow**: heavy integration/snapshot regeneration tests; run in slow gate only.
+Intent directories:
+- `boundaries/` for layering and architecture contracts.
+- `contracts/` for behavior contracts.
+- `determinism/` for reproducibility notes and future coverage.
+- `schemas/` for public-surface and docs locks.
+- `semantics/` for semantic behavior checks.

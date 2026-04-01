@@ -1,12 +1,15 @@
 # Architecture
 
-## Contract authority
-See `CONTRACT_MAP.md` for the authoritative map of contracts and where they live.
-
-## Modules (by area)
-- `contract/*` (execution, run, tooling, version)
-- `ids.rs`
-- `foundation/*`
+## Tree
+- `src/public_api/` mirrors the curated stable surface.
+- `src/contract/` owns canonical serialization, execution contracts, run contracts, tooling contracts, and versioning.
+- `src/id_catalog/` owns canonical stage, pipeline, and tool identifiers.
+- `src/ids/` owns typed identifiers, parsing rules, and domain/library models.
+- `src/metrics/` owns metrics types, schemas, and registry semantics.
+- `src/prelude/` groups stable imports by contract, foundation, identifier, and metrics source areas.
+- `src/foundation/` remains crate-internal support for hashing, errors, command specs, invariants, and input assessment.
 
 ## Data flow
-- Contracts are defined here and consumed by every other crate.
+1. `contract`, `ids`, `id_catalog`, and `metrics` define canonical workspace contracts.
+2. `prelude` and `public_api` expose stable import surfaces for downstream crates.
+3. `foundation` supports those public contracts without taking on runtime behavior.

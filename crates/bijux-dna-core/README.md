@@ -1,7 +1,7 @@
 # bijux-dna-core
 
 ## What this crate does
-Defines canonical IDs, schemas, and canonicalization rules for the entire workspace.
+Defines the canonical contracts, identifiers, metrics types, and deterministic foundation rules for the entire workspace.
 
 ## Canonical entry
 Start at `crates/bijux-dna-core/docs/INDEX.md`. The three most important docs are:
@@ -30,8 +30,10 @@ No planning, execution, or IO side effects beyond pure serialization helpers.
 - No runtime execution, scheduling, or IO side effects.
 
 ## Start here in code
-- `src/contract/execution/*` for execution graph and run contracts.
-- `src/metrics/*` for metrics registry and schemas.
+- `src/public_api/` for the curated stable surface.
+- `src/contract/` for contract families and canonical serialization.
+- `src/id_catalog/` and `src/ids/` for identifier authority and typed IDs.
+- `src/prelude/` for stable import ergonomics grouped by source area.
 
 ## Role in the stack
 Upstream: none. Downstream: runtime, engine, planners, stages, analyze, benchmarks.
@@ -42,6 +44,7 @@ Upstream: none. Downstream: runtime, engine, planners, stages, analyze, benchmar
 - `id_catalog`
 - `ids`
 - `metrics`
+- `public_api`
 - `prelude`
 
 ## Public API / entrypoints
@@ -58,9 +61,10 @@ See `crates/bijux-dna-core/docs/CONTRACT_MAP.md` and schema snapshots under `tes
 
 ## How to run its tests
 See `crates/bijux-dna-core/docs/TESTS.md` for the canonical test map. Key tests:
-- `tests/contracts/public_api.rs`
-- `tests/contracts/docs_public_api.rs`
-- `tests/contracts/contract_invariants.rs`
+- `tests/boundaries.rs`
+- `tests/contracts.rs`
+- `tests/schemas.rs`
+- `tests/semantics.rs`
 
 ## Failure modes
 Primary failures surface as contract snapshot mismatches or invariant violations.

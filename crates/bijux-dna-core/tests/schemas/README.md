@@ -1,3 +1,3 @@
 # bijux-dna-core schemas
 
-This directory is reserved for schemas tests by intent taxonomy.
+Owns public API, docs, and public-surface lock tests for bijux-dna-core.
