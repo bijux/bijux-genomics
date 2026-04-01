@@ -11,6 +11,9 @@ use crate::commands::support::prelude::{
 };
 
 mod discovery;
+mod tool_policy;
+
+pub(crate) use self::tool_policy::set_tool_tier_policy;
 
 pub(crate) fn handle_fastq_bench(
     cli: &Cli,
@@ -22,8 +25,8 @@ pub(crate) fn handle_fastq_bench(
     };
     let command = &args.command;
 
-    let (allow_silver, allow_experimental) = tool_tier_policy_for_fastq(command);
-    set_tool_tier_policy(allow_silver, allow_experimental);
+    let (allow_silver, allow_experimental) = tool_policy::tool_tier_policy_for_fastq(command);
+    tool_policy::set_tool_tier_policy(allow_silver, allow_experimental);
 
     if let Some(done) = discovery::handle_fastq_discovery(command, registry)? {
         return Ok(done);
@@ -39,7 +42,10 @@ pub(crate) fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::Trim(args) if is_bench_requested_trim(args) => {
-            set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
+            tool_policy::set_tool_tier_policy(
+                args.common.allow_silver,
+                args.common.allow_experimental,
+            );
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -59,7 +65,10 @@ pub(crate) fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::ValidateReads(args) if is_bench_requested_validate(args) => {
-            set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
+            tool_policy::set_tool_tier_policy(
+                args.common.allow_silver,
+                args.common.allow_experimental,
+            );
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -81,8 +90,11 @@ pub(crate) fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::Preprocess(args) => {
-            set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
-            set_scientific_preset(args.scientific_preset);
+            tool_policy::set_tool_tier_policy(
+                args.common.allow_silver,
+                args.common.allow_experimental,
+            );
+            tool_policy::set_scientific_preset(args.scientific_preset);
             if let Some(profile_id) = args.pipeline_profile.as_ref() {
                 if let Ok(profile) = bijux_dna_api::v1::api::plan::select_pipeline(
                     bijux_dna_api::v1::api::plan::Domain::Cross,
@@ -117,11 +129,11 @@ pub(crate) fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::Run(args) => {
-            set_tool_tier_policy(
+            tool_policy::set_tool_tier_policy(
                 args.args.common.allow_silver,
                 args.args.common.allow_experimental,
             );
-            set_scientific_preset(args.args.scientific_preset);
+            tool_policy::set_scientific_preset(args.args.scientific_preset);
             if let Some(profile_id) = args.args.pipeline_profile.as_ref() {
                 if let Ok(profile) = bijux_dna_api::v1::api::plan::select_pipeline(
                     bijux_dna_api::v1::api::plan::Domain::Cross,
@@ -257,59 +269,6 @@ fn list_adapters(effective: &bijux_dna_api::v1::api::bench::EffectiveAdapterSet)
             "{}\t{}\t{}\t{}\t{}",
             adapter.id, tags, adapter.name, read_scope, adapter.enabled_by_default
         );
-    }
-}
-fn tool_tier_label(role: bijux_dna_api::v1::api::run::ToolRole) -> &'static str {
-    match role {
-        bijux_dna_api::v1::api::run::ToolRole::Authoritative => "gold",
-        bijux_dna_api::v1::api::run::ToolRole::Diagnostic => "silver",
-        bijux_dna_api::v1::api::run::ToolRole::Experimental => "experimental",
-    }
-}
-fn set_scientific_preset(preset: Option<cli::parse::ScientificPresetArg>) {
-    if let Some(preset) = preset {
-        std::env::set_var(
-            "BIJUX_SCIENTIFIC_PRESET",
-            format!("{preset:?}").to_lowercase(),
-        );
-    } else {
-        std::env::remove_var("BIJUX_SCIENTIFIC_PRESET");
-    }
-}
-pub(crate) fn set_tool_tier_policy(allow_silver: bool, allow_experimental: bool) {
-    if allow_silver || allow_experimental {
-        std::env::set_var("BIJUX_ALLOW_SILVER", "1");
-    } else {
-        std::env::remove_var("BIJUX_ALLOW_SILVER");
-    }
-    if allow_experimental {
-        std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
-    } else {
-        std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
-    }
-}
-fn tool_tier_policy_for_fastq(command: &FastqCommand) -> (bool, bool) {
-    match command {
-        FastqCommand::Trim(args) => (args.common.allow_silver, args.common.allow_experimental),
-        FastqCommand::ValidateReads(args) => {
-            (args.common.allow_silver, args.common.allow_experimental)
-        }
-        FastqCommand::Filter(args) => (args.common.allow_silver, args.common.allow_experimental),
-        FastqCommand::Preprocess(args) => {
-            (args.common.allow_silver, args.common.allow_experimental)
-        }
-        FastqCommand::Run(args) => (
-            args.args.common.allow_silver,
-            args.args.common.allow_experimental,
-        ),
-        FastqCommand::Merge(args)
-        | FastqCommand::ErrorCorrect(args)
-        | FastqCommand::Qc(args)
-        | FastqCommand::Umi(args)
-        | FastqCommand::Contam(args)
-        | FastqCommand::ProfileReads(args)
-        | FastqCommand::Align(args) => (args.allow_silver, args.allow_experimental),
-        _ => (false, false),
     }
 }
 fn explain_fastq_stage(
