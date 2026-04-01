@@ -1,3 +1,5 @@
+mod command_dispatch;
+mod execution_reporting;
 mod runner;
 mod schema;
 
