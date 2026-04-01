@@ -1,37 +1,13 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use super::types::RegistryImagePinFile;
-use super::{EnvError, PlatformSpec, ResolvedImage, ToolImageSpec};
+use super::super::{EnvError, ToolImageSpec};
+use super::registry_hydration::hydrate_catalog_digests_from_registry;
 
-/// Resolve an image reference for a tool and platform.
-///
-/// # Errors
-/// Returns an error if the tool name violates image naming rules.
-pub(super) fn resolve_image(
-    tool: &ToolImageSpec,
-    platform: &PlatformSpec,
-) -> Result<ResolvedImage, EnvError> {
-    if tool.tool.to_lowercase().contains("base") {
-        return Err(EnvError::Image(format!(
-            "tool image name must not reference base: {}",
-            tool.tool
-        )));
-    }
-    let full_name = if let Some(digest) = tool.digest.as_ref() {
-        format!("{}/{}@{}", platform.image_prefix, tool.tool, digest)
-    } else {
-        format!(
-            "{}/{}:{}-{}",
-            platform.image_prefix, tool.tool, tool.version, platform.arch
-        )
-    };
-    Ok(ResolvedImage {
-        full_name,
-        arch: platform.arch.clone(),
-        runner: platform.runner,
-    })
-}
+mod image_resolution;
+mod registry_hydration;
+
+pub(super) use image_resolution::resolve_image;
 
 /// Load tool images from configs/ci/tools/images.toml.
 ///
@@ -74,39 +50,6 @@ pub(super) fn load_image_catalog_from_file(
         }
     }
     Ok(catalog)
-}
-
-pub(super) fn hydrate_catalog_digests_from_registry(
-    catalog: &mut HashMap<String, ToolImageSpec>,
-    registry_path: &Path,
-) -> Result<(), EnvError> {
-    if !registry_path.is_file() {
-        return Ok(());
-    }
-    let contents = std::fs::read_to_string(registry_path)?;
-    let registry: RegistryImagePinFile = bijux_dna_infra::formats::parse_toml(&contents)
-        .map_err(|err| EnvError::Parse(err.message))?;
-    for tool in registry.tools {
-        if tool.id.trim().is_empty() {
-            continue;
-        }
-        let Some(container_ref) = tool.container_ref.as_deref() else {
-            continue;
-        };
-        let Some((_, digest)) = container_ref.split_once('@') else {
-            continue;
-        };
-        let Some(digest) = digest.strip_prefix("sha256:") else {
-            continue;
-        };
-        let Some(spec) = catalog.get_mut(&tool.id) else {
-            continue;
-        };
-        if spec.digest.is_none() {
-            spec.digest = Some(format!("sha256:{digest}"));
-        }
-    }
-    Ok(())
 }
 
 /// Validate that tools have image entries.
