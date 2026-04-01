@@ -13,6 +13,7 @@ mod catalog;
 mod commands;
 mod platform;
 mod reference;
+mod shell;
 mod smoke;
 mod types;
 
@@ -237,7 +238,7 @@ pub fn run_smoke_script_batch(
 /// # Errors
 /// Returns an error when command execution fails or exits non-zero.
 pub fn run_shell_capture(cmd: &str) -> anyhow::Result<String> {
-    smoke::run_shell_capture(cmd)
+    shell::run_shell_capture(cmd)
 }
 
 #[must_use]
