@@ -2,7 +2,8 @@ use std::collections::BTreeSet;
 
 use crate::InvariantSeverity;
 
-use super::super::{violation, FastqProfileViolation, CORE_FASTQ_STAGES};
+use super::super::stage_scope::CORE_FASTQ_STAGES;
+use super::super::{violation, FastqProfileViolation};
 use crate::PipelineProfile;
 
 pub(super) fn push(
