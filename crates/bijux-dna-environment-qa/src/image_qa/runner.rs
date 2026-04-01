@@ -3,14 +3,9 @@ use std::collections::HashMap;
 use crate::api::{load_image_catalog, load_platform};
 use crate::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_analyze::load::sqlite::bench::{ensure_image_qa_tables, insert_image_qa_v1};
-use bijux_dna_analyze::load::sqlite::reports::insert_image_qa_input_v1;
-use bijux_dna_analyze::{append_image_qa_jsonl, open_sqlite, ImageQaOutcome, ImageQaRecord};
-use bijux_dna_infra::atomic_write_bytes;
+use bijux_dna_analyze::{ImageQaOutcome, ImageQaRecord};
 
-use super::support::{
-    image_qa_jsonl_path, image_qa_sqlite_path, resolve_image_for_run, trace_enabled, StdoutLogger,
-};
+use super::support::{resolve_image_for_run, trace_enabled, StdoutLogger};
 
 use super::apptainer::run_apptainer_image_qa;
 use super::behavioral::run_behavioral_qa;
@@ -20,7 +15,7 @@ use super::datasets::{
 use super::logging::{
     log_dataset, log_header, log_stage_header, log_tool, log_tool_result, log_tool_skip,
 };
-use super::records::{build_qa_record, qa_already_passed};
+use super::records::{build_qa_record, qa_already_passed, QaRecordStore};
 use super::static_qa::run_static_qa;
 use super::QaStage;
 use bijux_dna_runtime::manifests::load_manifests;
@@ -56,25 +51,7 @@ fn run_image_qa_with(
     }
 
     let cwd = std::env::current_dir().context("resolve cwd")?;
-    let qa_jsonl = image_qa_jsonl_path(&cwd, &platform.name);
-    let qa_sqlite = image_qa_sqlite_path(&cwd, &platform.name);
-    let qa_dir = qa_sqlite
-        .parent()
-        .ok_or_else(|| anyhow!("missing image QA directory"))?;
-    bijux_dna_infra::ensure_dir(qa_dir).context("create image qa dir")?;
-
-    let conn = open_sqlite(&qa_sqlite).context("open image qa sqlite")?;
-    ensure_image_qa_tables(&conn).context("ensure image qa tables")?;
-    conn.execute(
-        "DELETE FROM image_qa_inputs_v1 WHERE platform = ?1 AND runner = ?2",
-        (&platform.name, &platform.runner.to_string()),
-    )
-    .context("reset image qa inputs")?;
-    conn.execute(
-        "DELETE FROM image_qa_v1 WHERE platform = ?1 AND runner = ?2",
-        (&platform.name, &platform.runner.to_string()),
-    )
-    .context("reset image qa records")?;
+    let store = QaRecordStore::prepare(&cwd, platform)?;
 
     let seqkit_spec = catalog
         .get("seqkit")
@@ -113,17 +90,10 @@ fn run_image_qa_with(
         for dataset in stage_datasets {
             log_dataset(logger, &dataset);
             let input_hash = dataset_input_hash(stage, &dataset);
-            insert_image_qa_input_v1(
-                &conn,
-                stage_id.as_str(),
-                &platform.name,
-                &platform.runner.to_string(),
-                &input_hash,
-            )
-            .context("write qa inputs sqlite")?;
+            store.insert_input(stage_id.as_str(), &input_hash)?;
             for &tool in stage.tools() {
                 if stage != QaStage::Trim
-                    && qa_already_passed(&conn, stage, tool, platform, catalog, &input_hash)
+                    && qa_already_passed(store.conn(), stage, tool, platform, catalog, &input_hash)
                         .unwrap_or(false)
                 {
                     log_tool_skip(logger, stage, tool, &dataset);
@@ -171,22 +141,13 @@ fn run_image_qa_with(
                 } else {
                     fail += 1;
                 }
-                append_image_qa_jsonl(&qa_jsonl, &record).context("write qa jsonl")?;
-                insert_image_qa_v1(&conn, &record).context("write qa sqlite")?;
+                store.append_record(&record)?;
                 summary_records.push(record);
             }
         }
     }
 
-    let qa_json = qa_dir.join("qa.json");
-    let summary = serde_json::json!({
-        "pass": pass,
-        "fail": fail,
-        "records": summary_records,
-    });
-    atomic_write_bytes(&qa_json, &serde_json::to_vec_pretty(&summary)?)
-        .map_err(anyhow::Error::from)
-        .context("write qa.json")?;
+    store.write_summary(pass, fail, &summary_records)?;
 
     println!("QA PASS: {pass}");
     println!("QA FAIL: {fail}");
