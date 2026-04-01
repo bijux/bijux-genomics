@@ -5,7 +5,7 @@ use chrono::Utc;
 
 use crate::{CancellationToken, EngineEvent, EngineHooks};
 
-use super::{contract_enforcer, recording};
+use super::{contracts, recording};
 
 pub(super) fn execute_ordered_steps(
     graph: &ExecutionGraph,
@@ -75,7 +75,7 @@ fn execute_step(
             }
         }
         if success {
-            contract_enforcer::enforce_contract(step)?;
+            contracts::enforce_contract(step)?;
             if let Some(hooks) = hooks {
                 hooks.on_event(EngineEvent::StepEnd {
                     step_id: step.step_id.clone(),
