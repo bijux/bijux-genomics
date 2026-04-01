@@ -1,13 +1,13 @@
 # bijux-dna-pipelines Test Taxonomy
 
-Intent buckets in this crate:
+Stable test entrypoints:
+- `boundaries.rs` for architecture and guardrail coverage.
+- `contracts.rs` for defaults, profiles, and registry contracts.
+- `guardrails.rs` for crate-local guardrail smoke checks.
+- `invariant_fast.rs` for fast invariant coverage.
 
-- \: layering and ownership guardrails.
-- \: API/data/schema behavioral contracts.
-- \: reproducibility and stable-output checks.
-- \: schema/public-surface stability snapshots.
-
-Speed model:
-
-- **fast**: unit/contract tests without large fixtures or external tool execution.
-- **slow**: heavy integration/snapshot regeneration tests; run in slow gate only.
+Intent directories:
+- `boundaries/` for layout and boundary contracts.
+- `contracts/` for defaults, profile, and registry behavior.
+- `determinism/` for reproducibility notes and future coverage.
+- `schemas/` for docs and public-surface lock coverage.

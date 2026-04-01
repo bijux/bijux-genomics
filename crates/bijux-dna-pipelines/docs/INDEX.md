@@ -1,5 +1,8 @@
 # bijux-dna-pipelines Docs Index
 
+## Public surface
+Public modules are `bam`, `contract`, `cross`, `defaults`, `fastq`, `public_api`, `registry`, and `vcf`.
+
 ## Scope
 See `SCOPE.md` for what belongs here.
 

@@ -1,34 +1,22 @@
 # Tests
 
 ## What
-Maps tests in this crate to their purpose and failure meaning.
+Maps the stable test entrypoints and intent directories for bijux-dna-pipelines.
 
 ## Why
-Tests should explain the contract they enforce.
+Pipeline profiles are consumed across the stack, so registry drift and layout drift need explicit locks.
 
-## Contracts
-- `tests/registry/*` → registry ordering and snapshot coverage.
-- `tests/defaults/*` → defaults ledger ordering and override precedence.
-- `tests/profiles/*` → profile completeness and contract checks.
-- `tests/guardrails/*` → policy guardrails (including declarative pipelines).
+## Entry points
+- `tests/boundaries.rs` — boundary and source-tree contract coverage.
+- `tests/contracts.rs` — defaults, profiles, and registry contract coverage.
+- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
+- `tests/invariant_fast.rs` — fast invariant checks.
 
-## Required mappings
-- `tests/registry/pipeline_registry_snapshot.rs` → registry snapshot stability.
-- `tests/profiles/pipeline_completeness.rs` → profile completeness invariants.
-- `tests/defaults/override_precedence.rs` → override precedence contract.
+## Intent directories
+- `tests/boundaries/` — architecture and guardrail coverage.
+- `tests/contracts/` — defaults, profile, and registry contracts.
+- `tests/determinism/` — reserved determinism notes and future reproducibility coverage.
+- `tests/schemas/` — reserved docs and public-surface lock coverage.
 
-## Mapping
-- `tests/registry/docs_registry_order.rs` → docs ordering matches registry.
-- `tests/defaults/defaults_ledger.rs` → defaults ledger formatting + canonical JSON.
-- `tests/profiles/pipeline_contract.rs` → plan contract handshake fixtures.
-- `tests/profiles/pipeline_ids_unique.rs` → unique profile ids.
-- `tests/profiles/pipeline_id.rs` → pipeline id validation.
-- `tests/profiles/profiles.rs` → profile coverage.
-- `tests/guardrails/guardrails.rs` → policy guardrails.
-- `tests/guardrails/no_stage_contracts.rs` → declarative pipeline enforcement.
-
-## Failure modes
-- Missing test documentation causes drift and confusion.
-
-## Testkit patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+## Source-tree contract
+- `tests/boundaries/architecture_tree.rs` locks the documented `pipelines` namespace layout.

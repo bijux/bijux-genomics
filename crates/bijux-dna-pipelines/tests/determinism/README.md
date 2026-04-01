@@ -1,3 +1,3 @@
 # bijux-dna-pipelines determinism
 
-This directory is reserved for determinism tests by intent taxonomy.
+Reserved for determinism-specific coverage and notes when the pipelines crate adds dedicated reproducibility checks.

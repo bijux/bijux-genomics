@@ -1,7 +1,7 @@
 # bijux-dna-pipelines
 
 ## What this crate does
-Scientific pipeline presets and profiles with defaults ledger.
+Defines canonical pipeline profiles, defaults ledgers, and registry lookups for FASTQ, BAM, VCF, and cross-domain handoffs.
 
 Pipeline IDs:
 - fastq-only: `fastq-to-fastq__default__v1`, `fastq-to-fastq__minimal__v1`, `fastq-to-fastq__adna__v1`
@@ -25,8 +25,7 @@ The defaults ledger records effective defaults, tool selections, and provenance 
 Changes are guarded by snapshot tests; update only when the contract changes intentionally.
 
 ## Registry authority
-Pipeline IDs are defined in `src/registry/*` and must be unique. Uniqueness is enforced by
-`tests/profiles/pipeline_ids_unique.rs` and registry snapshots.
+Pipeline IDs are validated through `src/registry/pipeline_id.rs`, and registry collections stay snapshot-locked through contract tests.
 
 ## What it must not do (boundaries)
 No execution or tool selection.
@@ -48,14 +47,21 @@ See `crates/bijux-dna-pipelines/docs/DEFAULTS_LEDGER.md`, registry snapshots in 
 Pure data only; deterministic ordering. See `crates/bijux-dna-pipelines/docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `crates/bijux-dna-pipelines/docs/TESTS.md`. Golden tests: `tests/registry.rs`, `tests/defaults.rs`,
-`tests/profiles.rs`, `tests/guardrails.rs`.
+See `crates/bijux-dna-pipelines/docs/TESTS.md`. Entry points:
+- `tests/boundaries.rs`
+- `tests/contracts.rs`
+- `tests/guardrails.rs`
+- `tests/invariant_fast.rs`
 
 ## Where the docs live
 Start at `crates/bijux-dna-pipelines/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
-`src/registry/id.rs` → `src/registry/mod.rs` → `src/fastq/profiles.rs`
+- `src/public_api/` for the curated stable surface.
+- `src/contract/` for pipeline profile and invariant contracts.
+- `src/defaults/` for defaults ledgers, parameter envelopes, and override merging.
+- `src/registry/` for pipeline id validation, collections, and lookups.
+- `src/cross/fastq_to_bam/` for the cross-domain handoff profiles.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
