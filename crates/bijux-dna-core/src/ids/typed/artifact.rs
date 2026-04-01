@@ -60,7 +60,7 @@ impl TryFrom<&str> for ArtifactId {
     type Error = BijuxError;
 
     fn try_from(value: &str) -> Result<Self> {
-        super::super::validate_tool_id_str(value)?;
+        super::super::validate_artifact_id_str(value)?;
         Ok(Self::new(value))
     }
 }
@@ -69,7 +69,7 @@ impl TryFrom<&str> for ProfileId {
     type Error = BijuxError;
 
     fn try_from(value: &str) -> Result<Self> {
-        super::super::validate_tool_id_str(value)?;
+        super::super::validate_profile_id_str(value)?;
         Ok(Self::new(value))
     }
 }
