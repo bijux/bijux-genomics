@@ -19,5 +19,11 @@ pub fn execute_plan(
     cancel: Option<&CancellationToken>,
 ) -> Result<RunRecordV1> {
     let prepared = graph::normalize_for_execution(graph)?;
-    step_execution::execute_ordered_steps(&prepared.graph, &prepared.ordered_steps, runner, hooks, cancel)
+    step_execution::execute_ordered_steps(
+        &prepared.graph,
+        &prepared.ordered_steps,
+        runner,
+        hooks,
+        cancel,
+    )
 }

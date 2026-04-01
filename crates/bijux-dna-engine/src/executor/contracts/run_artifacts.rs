@@ -13,7 +13,10 @@ pub(super) fn verify_required_run_artifacts(step: &ExecutionStep) -> Result<()> 
             "effective_config.json",
             run_artifacts_dir.join("effective_config.json"),
         ),
-        ("stage_report.json", run_artifacts_dir.join("stage_report.json")),
+        (
+            "stage_report.json",
+            run_artifacts_dir.join("stage_report.json"),
+        ),
         (
             "tool_invocation.json",
             run_artifacts_dir.join("tool_invocation.json"),

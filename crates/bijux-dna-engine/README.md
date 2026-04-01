@@ -1,58 +1,41 @@
 # bijux-dna-engine
 
 ## What this crate does
-Pure orchestrator: executes `ExecutionGraph` via `Runner`, enforces contracts, and records the per-step truth set.
+Executes a fully formed `ExecutionGraph` through a `Runner`, records per-step execution truth, and
+enforces engine-owned output contracts.
 
-## Engine lifecycle (minimal)
+## Boundaries
+This crate does not plan workflows, spawn tools directly, or own container/backend execution
+adapters. It orchestrates a graph that was already planned elsewhere.
+
+## Execution lifecycle
 ```text
-plan -> validate -> execute (Runner) -> record -> enforce contract
+normalize graph -> order steps -> execute runner invocations -> record execution -> verify artifacts
 ```
 
-## Executor responsibilities
-`src/executor.rs` owns:
-- graph validation + scheduling decisions (including deterministic ordering),
-- invoking the `Runner` for each step,
-- emitting the per-step truth set into `run_artifacts/`.
+## Internal layout
+- `src/public_api/`: curated stable surface for downstream crates
+- `src/control.rs`: cancellation control
+- `src/observability.rs`: engine events and hook contracts
+- `src/engine_config.rs`: engine policy inputs
+- `src/engine_driver.rs`: `Engine` construction and execution entrypoint
+- `src/executor/`: graph preparation, step orchestration, contract enforcement, topology, and
+  execution-record persistence
 
-The truth set per step is:
-- `effective_config.json`
-- `tool_invocation.json`
-- `metrics.json`
-- `stage_report.json`
+## Public entrypoints
+Start with `PUBLIC_API.md` and `docs/ARCHITECTURE.md`. The crate root is intentionally small and
+re-exports the curated API from `src/public_api/mod.rs`.
 
-## What it must not do (boundaries)
-No process spawn or backend logic (docker/local). See `crates/bijux-dna-engine/docs/EFFECT_BOUNDARY.md`.
+## Contracts and operating rules
+- execution contract: `docs/ENGINE_CONTRACT.md`
+- execution model: `docs/ENGINE_MODEL.md`
+- effect boundary: `docs/EFFECT_BOUNDARY.md`
+- recording truth set: `docs/RECORDING_TRUTH_SET.md`
+- change policy: `docs/CHANGE_RULES.md`
 
-## Role in the stack
-Upstream: API. Downstream: runtime recorder + runner trait.
-
-## Public API / entrypoints
-Start at `crates/bijux-dna-engine/docs/INDEX.md`. Key docs:
-- `crates/bijux-dna-engine/docs/ENGINE_CONTRACT.md`
-- `crates/bijux-dna-engine/docs/ERRORS.md`
-- `crates/bijux-dna-engine/docs/EFFECTS.md`
-
-## Key contracts it owns/consumes
-Per-step effective_config.json, tool_invocation.json, execution_record.json, metrics/stage_report when applicable.
-
-## Artifacts / Contracts
-See `crates/bijux-dna-engine/docs/ENGINE_CONTRACT.md` and snapshots under `tests/snapshots/`.
-
-## Effects & determinism guarantees
-Orchestration only; effects happen in runner/runtime. See `crates/bijux-dna-engine/docs/EFFECT_BOUNDARY.md`, `crates/bijux-dna-engine/docs/EFFECTS.md`,
-and `crates/bijux-dna-engine/docs/DETERMINISM.md` plus the golden tests below.
-
-## How to run its tests
-See `crates/bijux-dna-engine/docs/TESTS.md`. Golden tests: `tests/contracts/effect_boundary.rs`, `tests/recording/recording_completeness.rs`, `tests/determinism/replay_determinism.rs`, `tests/recording/run_manifest.rs`.
-
-## Where the docs live
-Start at `crates/bijux-dna-engine/docs/INDEX.md` and follow the crate docs listed above.
-
-## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
-
-## Stability
-Contract and behavior changes follow `crates/bijux-dna-engine/docs/CHANGE_RULES.md`.
-
-## Why engine is not planner
-The engine executes a fully-formed `ExecutionGraph`; planners build that graph from domain inputs and policies. Keeping the engine planner-free prevents domain drift and ensures planners can evolve without changing orchestration semantics (see planners under `crates/bijux-dna-planner-fastq/ and crates/bijux-dna-planner-bam/`).
+## Tests
+See `docs/TESTS.md` for the full map. The test tree is organized by enduring intent:
+- `tests/boundaries.rs`: source-tree and effect-boundary guardrails
+- `tests/contracts.rs`: orchestration, recording, and contract behavior
+- `tests/determinism.rs`: stable replay and manifest layout checks
+- `tests/support/`: reusable engine integration helpers

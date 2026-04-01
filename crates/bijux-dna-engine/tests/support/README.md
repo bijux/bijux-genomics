@@ -1,2 +1,7 @@
-Purpose-specific test helpers for bijux-dna-engine integration tests.
-Add new helpers only when they are reused by multiple tests.
+# bijux-dna-engine support
+
+Purpose-named helpers shared by multiple integration tests:
+- run-layout setup
+- manifest fixtures
+- graph builders
+- runner stubs

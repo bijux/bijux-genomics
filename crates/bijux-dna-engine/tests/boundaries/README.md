@@ -1,3 +1,6 @@
 # bijux-dna-engine boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+This directory contains guardrails for:
+- source-tree shape
+- effect boundaries
+- crate layout drift

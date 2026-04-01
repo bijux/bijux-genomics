@@ -13,17 +13,17 @@
     clippy::new_without_default
 )]
 
-mod errors;
-mod executor;
+mod control;
 mod engine_config;
 mod engine_driver;
-mod control;
+mod errors;
+mod executor;
 mod observability;
 pub mod public_api;
 
 pub use control::CancellationToken;
-pub use engine_driver::Engine;
 pub use engine_config::EngineConfig;
+pub use engine_driver::Engine;
 pub use observability::{EngineEvent, EngineHooks};
 
 pub use public_api::*;
