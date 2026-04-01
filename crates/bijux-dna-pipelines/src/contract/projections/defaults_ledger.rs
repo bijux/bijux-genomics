@@ -1,8 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::{DefaultProvenanceV1, DefaultsLedgerV1};
-
-use super::PipelineProfile;
+use crate::{DefaultProvenanceV1, DefaultsLedgerV1, PipelineProfile};
 
 impl PipelineProfile {
     #[must_use]
