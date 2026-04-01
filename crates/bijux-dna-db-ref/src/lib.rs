@@ -1,9 +1,9 @@
 mod catalog;
-mod config;
 mod models;
 mod providers;
 pub mod public_api;
 mod resolution;
+mod runtime_config;
 
-pub(crate) use config::BundleEntry;
 pub use public_api::*;
+pub(crate) use runtime_config::BundleEntry;
