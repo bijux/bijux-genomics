@@ -1,10 +1,26 @@
-# Architecture
+# bijux-dna-db-ref Architecture
 
-The crate provides deterministic lookups for species context and reference bundles, and exposes lock-aware metadata for planner/runtime checks.
+`bijux-dna-db-ref` is a deterministic metadata resolver. Its ideal tree is a small root over focused namespaces:
 
-Source layout:
-- `models.rs` defines reference and species domain models.
-- `catalog.rs` defines panel and map catalog plus lock metadata.
-- `config.rs` owns runtime TOML loading and internal config DTOs.
-- `service.rs` exposes runtime resolver traits and the default service implementation.
-- `resolution/` splits species resolution, reference assets, panel lookup, map lookup, and imputation compatibility policy into focused modules.
+```text
+src/
+├── lib.rs
+├── public_api/
+├── catalog/
+├── model/
+├── providers/
+├── resolution/
+└── runtime_config/
+```
+
+Responsibilities:
+
+- `lib.rs` owns only the curated crate surface.
+- `public_api/` is the explicit namespace for stable exports.
+- `catalog/` owns panel and map catalog models, lock records, and compatibility policy.
+- `model/` owns species authority contracts and reference asset contracts.
+- `providers/` owns runtime-facing resolver traits and the default runtime implementation.
+- `resolution/` owns pure lookup behavior, lock validation, and tool compatibility checks.
+- `runtime_config/` owns workspace path discovery, TOML loading, and config DTOs grouped by concern.
+
+This boundary keeps runtime loading, data contracts, and lookup behavior from collapsing back into broad root files.
