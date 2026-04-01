@@ -4,19 +4,20 @@
 
 mod grouping;
 mod row_metrics;
+mod strata;
 
 use anyhow::Result;
 use std::collections::{BTreeMap, BTreeSet};
 
 use bijux_dna_bench_model::contract::validate_suite;
 use bijux_dna_bench_model::{
-    BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, SummaryRow, SummaryStratum,
+    BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
 };
 use self::grouping::collect_summary_groups;
 use self::row_metrics::build_summary_row;
+use self::strata::build_summary_strata;
 use super::options::BenchRunOptions;
 use super::summary_fairness::evaluate_summary_fairness;
-use super::summary_scope::SummaryStratumKey;
 
 /// Summarize observations into a benchmark summary.
 ///
@@ -54,52 +55,7 @@ pub fn summarize(
         warnings.extend(row_warnings);
         rows.push(row);
     }
-    rows.sort_by(|a, b| {
-        (
-            &a.dataset_id,
-            &a.stage_id,
-            &a.stage_instance_id,
-            &a.lineage_id,
-            &a.tool_id,
-            &a.params_hash,
-        )
-            .cmp(&(
-                &b.dataset_id,
-                &b.stage_id,
-                &b.stage_instance_id,
-                &b.lineage_id,
-                &b.tool_id,
-                &b.params_hash,
-            ))
-    });
-    let mut strata_map: BTreeMap<SummaryStratumKey, (usize, usize)> = BTreeMap::new();
-    for row in &rows {
-        let entry = strata_map
-            .entry((
-                row.stage_id.clone(),
-                row.stage_instance_id.clone(),
-                row.lineage_id.clone(),
-                row.dataset_class.clone(),
-            ))
-            .or_insert((0, 0));
-        entry.0 += 1;
-        if row.low_power {
-            entry.1 += 1;
-        }
-    }
-    let mut strata = Vec::new();
-    for ((stage_id, stage_instance_id, lineage_id, dataset_class), (row_count, low_power_count)) in
-        strata_map
-    {
-        strata.push(SummaryStratum {
-            stage_id,
-            stage_instance_id,
-            lineage_id,
-            dataset_class,
-            row_count,
-            low_power_count,
-        });
-    }
+    let strata = build_summary_strata(&mut rows);
     let mut summary = BenchmarkSummary::v1(suite.suite_id.clone(), rows, strata, warnings);
     summary.scientifically_invalid = fairness.scientifically_invalid;
     summary.invalid_reasons = fairness.invalid_reasons;
