@@ -10,7 +10,7 @@ The engine must not perform side effects directly. It must not:
 All effects are executed by `Runner` implementations and runtime helpers.
 
 ## Enforced by
-- `tests/contracts/effect_boundary.rs`
+- `tests/boundaries/effect_boundary.rs`
 - `crates/bijux-dna-policies/tests/surface/path_policies.rs`
 
 ## Why

@@ -18,5 +18,8 @@ pub(super) fn normalize_for_execution(graph: &ExecutionGraph) -> Result<Prepared
     .into_iter()
     .cloned()
     .collect();
-    Ok(PreparedExecutionGraph { graph, ordered_steps })
+    Ok(PreparedExecutionGraph {
+        graph,
+        ordered_steps,
+    })
 }

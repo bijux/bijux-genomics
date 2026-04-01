@@ -1,13 +1,8 @@
 # bijux-dna-engine Test Taxonomy
 
 Intent buckets in this crate:
-
-- \: layering and ownership guardrails.
-- \: API/data/schema behavioral contracts.
-- \: reproducibility and stable-output checks.
-- \: schema/public-surface stability snapshots.
-
-Speed model:
-
-- **fast**: unit/contract tests without large fixtures or external tool execution.
-- **slow**: heavy integration/snapshot regeneration tests; run in slow gate only.
+- `boundaries`: architecture tree and effect-boundary guardrails
+- `contracts`: orchestration behavior, truth-set recording, and stable helper contracts
+- `determinism`: replay and manifest stability
+- `support`: reusable engine integration fixtures
+- `schemas`: reserved for future engine-owned schema assertions

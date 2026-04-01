@@ -1,35 +1,26 @@
 # Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+## Intent
+The test tree is organized by what each suite protects.
 
-## Why
-Tests should explain the contract they enforce.
+## Suite map
+- `tests/boundaries.rs`: effect-boundary enforcement and architecture-tree checks
+- `tests/contracts.rs`: orchestration behavior, params hashing, recording truth-set contracts, and
+  helper naming rules
+- `tests/determinism.rs`: replay determinism and manifest layout stability
 
-## Non-goals
-- Full test implementation detail.
+## Important directories
+- `tests/contracts/recording/`: execution truth-set documentation and recording completeness checks
+- `tests/support/`: shared engine fixtures, graph builders, and runner stubs
+- `tests/schemas/`: reserved for future engine-owned schema assertions; the engine currently does
+  not keep a standalone schema test target
 
-## Contracts
-- Each test file should be referenced here.
+## Regenerating affected coverage
+- boundaries: `cargo test -p bijux-dna-engine --test boundaries -j 1`
+- contracts: `cargo test -p bijux-dna-engine --test contracts -j 1`
+- determinism: `cargo test -p bijux-dna-engine --test determinism -j 1`
 
-## Contracts suite (`tests/contracts/*`)
-- `tests/contracts/architecture.rs` → dependency boundary assertions.
-- `tests/contracts/effect_boundary.rs` → effect boundaries (no process spawn).
-- `tests/contracts/params_hash.rs` → canonical params hashing stability.
-- `tests/contracts/runner_tests.rs` → plan execution behavior.
-- `tests/contracts/support_naming.rs` → support helper naming rules.
-
-## Recording suite (`tests/recording/*`)
-- `tests/recording/recording_completeness.rs` → truth-set emission completeness.
-- `tests/recording/docs_recording_truth_set.rs` → docs reference for truth set.
-- `tests/recording/run_manifest.rs` → run manifest includes telemetry/facts.
-
-## Determinism suite (`tests/determinism/*`)
-- `tests/determinism/replay_determinism.rs` → replay produces identical records + tree.
-- `tests/determinism/manifest_layout_snapshot.rs` → same manifest hash + layout tree snapshot.
-
-## Failure modes
-- Missing test documentation causes drift and confusion.
-
-## Testkit patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+## Failure interpretation
+- boundary failures mean the source tree or effect boundary drifted
+- contract failures mean execution behavior or recorded artifacts changed
+- determinism failures mean stable ordering or repeatable output changed

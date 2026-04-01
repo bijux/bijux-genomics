@@ -1,5 +1,7 @@
 use anyhow::{anyhow, Result};
-use bijux_dna_core::contract::{ExecutionGraph, ExecutionStep, RunRecordV1, StageExecutionRecordV1};
+use bijux_dna_core::contract::{
+    ExecutionGraph, ExecutionStep, RunRecordV1, StageExecutionRecordV1,
+};
 use bijux_dna_runtime::{Invocation, Runner};
 use chrono::Utc;
 
