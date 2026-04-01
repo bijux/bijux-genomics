@@ -1,3 +1,3 @@
 # Determinism
 
-Determinism test fixtures for `bijux-dna-db-ref`.
+Reserved for repeatability coverage when lookup outputs or fixture snapshots need to be locked.

@@ -1,3 +1,3 @@
 # Schemas
 
-Schema fixtures for `bijux-dna-db-ref`.
+Reserved for schema fixtures and config-shape contract coverage.

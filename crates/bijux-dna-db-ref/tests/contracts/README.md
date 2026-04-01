@@ -1,3 +1,3 @@
 # Contracts
 
-Contract test fixtures for `bijux-dna-db-ref`.
+Contract tests cover deterministic species, bundle, panel, and map resolution behavior.
