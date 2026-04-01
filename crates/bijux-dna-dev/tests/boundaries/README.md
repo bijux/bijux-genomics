@@ -1,3 +1,6 @@
 # bijux-dna-dev boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+Boundary tests in this directory enforce:
+
+- the documented crate tree and file layout,
+- guardrail ownership for the development control plane.

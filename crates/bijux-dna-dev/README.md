@@ -10,7 +10,7 @@ It must not own production FASTQ, BAM, or VCF planning, runtime stage execution,
 This crate is allowed to perform explicit repository filesystem writes and process execution for developer automation. Commands must keep outputs deterministic, route writes through governed locations, and document any external side effects in crate docs.
 
 ## Public API / entrypoints
-Start with [docs/INDEX.md](docs/INDEX.md), [docs/TESTS.md](docs/TESTS.md), [BOUNDARY.md](BOUNDARY.md), and [PUBLIC_API.md](PUBLIC_API.md). The main entrypoint is `src/main.rs`, with command routing in `src/cli.rs` and command implementations under `src/commands/`.
+Start with [docs/INDEX.md](docs/INDEX.md), [docs/TESTS.md](docs/TESTS.md), [BOUNDARY.md](BOUNDARY.md), and [PUBLIC_API.md](PUBLIC_API.md). The binary entrypoint is `src/main.rs`, the stable crate-local launcher lives in `src/dev_entrypoint.rs`, CLI routing lives under `src/cli/`, and command implementations live under `src/commands/`.
 
 ## Key contracts it owns/consumes
 It owns the development automation surface, generated-document workflows, container-control commands, and repository checks that are intentionally outside production pipeline execution. It consumes workspace policy, domain registry, and generated-config contracts.
@@ -22,7 +22,7 @@ Owned outputs include governed automation reports, generated docs, config snapsh
 Failures surface as explicit command errors, repository drift reports, contract-check failures, and guardrail violations when automation would mutate or read outside approved surfaces.
 
 ## How to run its tests
-See [docs/TESTS.md](docs/TESTS.md). Key coverage starts in `tests/guardrails.rs`, `src/commands/repo_checks.rs`, `src/commands/automation_boundary.rs`, and `src/commands/containers.rs`.
+See [docs/TESTS.md](docs/TESTS.md). Key coverage starts in `tests/boundaries.rs`, `tests/boundaries/architecture.rs`, `tests/boundaries/guardrails.rs`, `src/commands/repo_checks.rs`, and `src/commands/containers/runtime/frontend_proofs.rs`.
 
 ## Where the docs live
 Start at [docs/INDEX.md](docs/INDEX.md), then read [docs/SCOPE.md](docs/SCOPE.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and [docs/TESTS.md](docs/TESTS.md).
