@@ -1,6 +1,6 @@
-pub mod api {
-    pub use bijux_dna_environment::api::*;
-}
+pub mod public_api;
+
+pub use public_api::api;
 
 #[path = "image_qa/mod.rs"]
 pub mod image_qa;
