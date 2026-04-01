@@ -82,13 +82,13 @@ fn api_tree_matches_architecture_contract() {
 
     let support_entries = dir_entries(&root.join("src/support"));
     let expected_support: BTreeSet<_> = [
+        "benchmark_runtime.rs",
         "mod.rs",
         "qa.rs",
         "reference_resolution.rs",
-        "registry.rs",
-        "repo_root.rs",
-        "runner_policy.rs",
+        "tool_selection.rs",
         "tooling.rs",
+        "workspace/",
     ]
     .into_iter()
     .map(str::to_string)
@@ -96,6 +96,16 @@ fn api_tree_matches_architecture_contract() {
     assert_eq!(
         support_entries, expected_support,
         "api support tree must stay partitioned by concern"
+    );
+
+    let workspace_support_entries = dir_entries(&root.join("src/support/workspace"));
+    let expected_workspace_support: BTreeSet<_> = ["mod.rs", "registry.rs", "repo_root.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        workspace_support_entries, expected_workspace_support,
+        "api workspace support tree must isolate repository-scoped asset resolution"
     );
 
     let v1_entries = dir_entries(&root.join("src/v1"));
@@ -108,14 +118,34 @@ fn api_tree_matches_architecture_contract() {
         "mod.rs",
         "pipelines.rs",
         "plan.rs",
-        "report.rs",
-        "run.rs",
+        "report/",
+        "run/",
         "shared.rs",
     ]
     .into_iter()
     .map(str::to_string)
     .collect();
     assert_eq!(v1_entries, expected_v1, "api v1 tree must stay curated");
+
+    let v1_run_entries = dir_entries(&root.join("src/v1/run"));
+    let expected_v1_run: BTreeSet<_> = ["mod.rs", "operator_failure.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        v1_run_entries, expected_v1_run,
+        "api v1 run tree must separate failure contracts from runtime entrypoints"
+    );
+
+    let v1_report_entries = dir_entries(&root.join("src/v1/report"));
+    let expected_v1_report: BTreeSet<_> = ["html_bundle.rs", "mod.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        v1_report_entries, expected_v1_report,
+        "api v1 report tree must separate html rendering from report entrypoints"
+    );
 }
 
 fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
