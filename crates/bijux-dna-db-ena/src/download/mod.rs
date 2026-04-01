@@ -3,13 +3,14 @@ use anyhow::Result;
 
 mod config;
 mod execute;
-mod item;
+mod output_layout;
 mod plan;
 mod report;
+mod task;
 
 pub use config::{DownloadConfig, DEFAULT_DOWNLOAD_JOBS, DEFAULT_DOWNLOAD_RETRIES};
-pub use item::DownloadTask;
 pub use report::DownloadReport;
+pub use task::DownloadTask;
 
 #[must_use]
 pub fn build_download_tasks(records: &[EnaRecord], config: &DownloadConfig) -> Vec<DownloadTask> {
