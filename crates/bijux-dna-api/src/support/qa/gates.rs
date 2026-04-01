@@ -29,11 +29,3 @@ pub fn ensure_tool_qa_passed(
     }
     Ok(())
 }
-
-/// Stubbed image QA runner for API surface parity.
-///
-/// # Errors
-/// Returns `Ok(())` in production builds; QA enforcement lives in the QA crate.
-pub fn run_image_qa(_platform_name: Option<&str>) -> Result<()> {
-    Ok(())
-}
