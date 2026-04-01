@@ -5,6 +5,8 @@
 //! Invariants: writes are atomic and stable.
 #![allow(dead_code)]
 
+mod observation_reader;
+
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -14,7 +16,7 @@ use std::collections::BTreeSet;
 use bijux_dna_bench_model::{BenchmarkObservation, BenchmarkSummary, GateDecision};
 use bijux_dna_runtime::recording::write_atomic_bytes;
 
-type ObservationKey = (String, String, String, String, String);
+type ObservationKey = observation_reader::ObservationKey;
 
 // write_atomic_bytes lives in bijux-dna-runtime::recording.
 
@@ -46,60 +48,12 @@ fn canonical_json_line<T: serde::Serialize>(value: &T) -> Result<String> {
     Ok(serde_json::to_string(&canonical)?)
 }
 
-fn required_jsonl_key<'a>(
-    value: &'a serde_json::Value,
-    field: &str,
-    line_number: usize,
-) -> Result<&'a str> {
-    value
-        .get(field)
-        .and_then(|entry| entry.as_str())
-        .map(str::trim)
-        .filter(|entry| !entry.is_empty())
-        .ok_or_else(|| anyhow::anyhow!("observation row {line_number} missing `{field}`"))
-}
-
-fn load_existing_keys(path: &Path) -> Result<BTreeSet<ObservationKey>> {
-    let mut keys = BTreeSet::new();
-    if !path.exists() {
-        return Ok(keys);
-    }
-    let raw = std::fs::read_to_string(path)?;
-    for (line_number, line) in raw.lines().enumerate() {
-        if line.trim().is_empty() {
-            continue;
-        }
-        let value: serde_json::Value = serde_json::from_str(line)?;
-        let key = (
-            required_jsonl_key(&value, "dataset_id", line_number + 1)?.to_string(),
-            required_jsonl_key(&value, "stage_id", line_number + 1)?.to_string(),
-            required_jsonl_key(&value, TOOL_ID_KEY, line_number + 1)?.to_string(),
-            required_jsonl_key(&value, "params_hash", line_number + 1)?.to_string(),
-            required_jsonl_key(&value, "replicate_id", line_number + 1)?.to_string(),
-        );
-        keys.insert(key);
-    }
-    Ok(keys)
-}
-
 /// Read observations from JSONL.
 ///
 /// # Errors
 /// Returns an error if the file cannot be read or parsed.
 pub fn read_observations_jsonl(path: &Path) -> Result<Vec<BenchmarkObservation>> {
-    if !path.exists() {
-        return Ok(Vec::new());
-    }
-    let raw = std::fs::read_to_string(path)?;
-    let mut observations = Vec::new();
-    for line in raw.lines() {
-        if line.trim().is_empty() {
-            continue;
-        }
-        let obs: BenchmarkObservation = serde_json::from_str(line)?;
-        observations.push(obs);
-    }
-    Ok(observations)
+    observation_reader::read_observations_jsonl(path)
 }
 
 pub fn write_observations_jsonl(
@@ -127,7 +81,7 @@ pub fn write_observations_jsonl(
             ))
     });
     let existing = if matches!(mode, WriteMode::Resume) {
-        load_existing_keys(path)?
+        observation_reader::load_existing_keys(path, TOOL_ID_KEY)?
     } else {
         BTreeSet::new()
     };
@@ -142,6 +96,7 @@ pub fn write_observations_jsonl(
     write_atomic_bytes(path, payload.as_bytes())
         .with_context(|| format!("write observations {}", path.display()))
 }
+
 
 /// Write summary JSON.
 ///
