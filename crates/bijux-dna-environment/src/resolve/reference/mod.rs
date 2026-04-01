@@ -2,10 +2,13 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use super::{cache, commands, EnvError};
+use super::{cache, EnvError};
 use digest::hash_file_sha256;
 
 mod digest;
+mod index_preparation;
+
+use index_preparation::prepare_reference_indices;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -65,34 +68,7 @@ impl ReferenceRegistry {
         let dict = fasta_target.with_extension("dict");
         let bwa_prefix = fasta_target.clone();
         let bowtie2_prefix = fasta_target.clone();
-
-        if request.build_fai && !fai.exists() {
-            commands::run_command("samtools", &["faidx", fasta_target.to_str().unwrap_or("")])?;
-        }
-        if request.build_dict && !dict.exists() {
-            commands::run_command(
-                "gatk",
-                &[
-                    "CreateSequenceDictionary",
-                    "-R",
-                    fasta_target.to_str().unwrap_or(""),
-                    "-O",
-                    dict.to_str().unwrap_or(""),
-                ],
-            )?;
-        }
-        if request.build_bwa_index && !bwa_prefix.with_extension("bwt").exists() {
-            commands::run_command("bwa", &["index", fasta_target.to_str().unwrap_or("")])?;
-        }
-        if request.build_bowtie2_index && !bowtie2_prefix.with_extension("1.bt2").exists() {
-            commands::run_command(
-                "bowtie2-build",
-                &[
-                    fasta_target.to_str().unwrap_or(""),
-                    bowtie2_prefix.to_str().unwrap_or(""),
-                ],
-            )?;
-        }
+        prepare_reference_indices(&fasta_target, request, &fai, &dict, &bwa_prefix, &bowtie2_prefix)?;
 
         Ok(ReferenceRecord {
             digest,

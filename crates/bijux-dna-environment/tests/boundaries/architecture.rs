@@ -41,8 +41,10 @@ fn environment_tree_matches_architecture_contract() {
         btree_set(&[
             "builder.rs",
             "defaults.rs",
+            "entrypoints.rs",
             "mod.rs",
             "models.rs",
+            "stable_surface.rs",
             "version_parser.rs",
         ]),
         "build tree must remain decomposed by concern"
@@ -52,14 +54,16 @@ fn environment_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/resolve")),
         btree_set(&[
             "cache/",
-            "catalog.rs",
+            "catalog/",
             "commands.rs",
+            "entrypoints.rs",
             "facade.rs",
             "mod.rs",
             "platform.rs",
-            "reference.rs",
+            "reference/",
             "shell.rs",
             "smoke.rs",
+            "stable_surface.rs",
             "types/",
         ]),
         "resolve tree must remain decomposed by environment concern"
@@ -72,6 +76,23 @@ fn environment_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/resolve/catalog")),
+        btree_set(&[
+            "catalog_loader.rs",
+            "image_resolution.rs",
+            "mod.rs",
+            "registry_hydration.rs",
+        ]),
+        "resolve catalog tree must stay split by catalog concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/resolve/reference")),
+        btree_set(&["digest.rs", "index_preparation.rs", "mod.rs"]),
+        "resolve reference tree must stay split by reference concern"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src/resolve/types")),
         btree_set(&[
             "errors.rs",
@@ -81,6 +102,12 @@ fn environment_tree_matches_architecture_contract() {
             "runtime.rs"
         ]),
         "resolve types tree must stay split by model concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/public_api")),
+        btree_set(&["mod.rs", "stable_surface.rs"]),
+        "public api tree must keep the stable surface explicit"
     );
 }
 
