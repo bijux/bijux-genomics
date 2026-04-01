@@ -6,6 +6,7 @@ use anyhow::{anyhow, Result};
 
 mod config_loading;
 mod config_paths;
+mod config_queries;
 mod contracts;
 mod layout_normalization;
 mod layout_status;
@@ -17,10 +18,10 @@ pub(crate) use self::config_loading::{
     expand_env_placeholders, load_benchmark_config, load_benchmark_publication_config,
     load_benchmark_workspace_config, load_optional_benchmark_workspace_config,
 };
-use self::config_paths::absolutize;
 pub(crate) use self::config_paths::{
     benchmark_config_path, benchmark_publication_config_path, benchmark_workspace_config_path,
 };
+pub(crate) use self::config_queries::{benchmark_corpus_spec_path, print_benchmark_config_json};
 pub(crate) use self::contracts::{
     BenchmarkConfig, BenchmarkCorpusConfig, BenchmarkCorpusPublicationConfig,
     BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig, BenchmarkReferenceInputConfig,
@@ -51,44 +52,6 @@ pub(crate) fn benchmark_publication_corpus_key(corpus_id: &str) -> String {
 
 pub(crate) fn benchmark_publication_corpus_id(publication_key: &str) -> String {
     publication_key.replace('_', "-")
-}
-
-pub(crate) fn benchmark_corpus_spec_path(
-    cwd: &Path,
-    explicit_path: Option<&Path>,
-    corpus_id: &str,
-) -> Result<PathBuf> {
-    let config = load_benchmark_config(cwd, explicit_path)?;
-    if let Some(path) = config
-        .corpora
-        .get(corpus_id)
-        .and_then(|row| row.spec_path.as_deref())
-    {
-        return Ok(absolutize(cwd, Path::new(path)));
-    }
-    Err(anyhow!(
-        "benchmark config is missing corpora.{corpus_id}.spec_path"
-    ))
-}
-
-pub(crate) fn print_benchmark_config_json(
-    cwd: &Path,
-    args: &crate::commands::cli::BenchConfigJsonArgs,
-) -> Result<()> {
-    let config = load_benchmark_config(cwd, args.config.as_deref())?;
-    match args.section.as_str() {
-        "full" => println!("{}", serde_json::to_string_pretty(&config)?),
-        "workspace" => println!("{}", serde_json::to_string_pretty(&config.workspace)?),
-        "publication" => println!("{}", serde_json::to_string_pretty(&config.publication)?),
-        "corpora" => println!("{}", serde_json::to_string_pretty(&config.corpora)?),
-        "stage_inputs" => println!("{}", serde_json::to_string_pretty(&config.stage_inputs)?),
-        other => {
-            return Err(anyhow!(
-                "unsupported benchmark config section `{other}`; expected one of: full, workspace, publication, corpora, stage_inputs"
-            ))
-        }
-    }
-    Ok(())
 }
 
 #[cfg(test)]
