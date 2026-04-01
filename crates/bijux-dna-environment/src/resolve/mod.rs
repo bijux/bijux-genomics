@@ -13,18 +13,10 @@ mod platform;
 mod reference;
 mod shell;
 mod smoke;
+mod stable_surface;
 mod types;
 
-pub use commands::{available_runners, docker_image_exists};
-pub use facade::{
-    apptainer_sif_path, cache_dir, load_image_catalog, load_platform, resolve_image,
-    run_shell_capture, run_smoke_script, run_smoke_script_batch, select_best_runner,
-    validate_images_for_stage, EnvironmentResolver,
-};
-pub use reference::{ReferenceBuildRequest, ReferenceRecord, ReferenceRegistry};
-pub use types::{
-    EnvError, ImageRef, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageCatalog, ToolImageSpec,
-};
+pub use stable_surface::*;
 
 pub(crate) fn available_runners_with<F>(probe: F) -> Vec<RuntimeKind>
 where
