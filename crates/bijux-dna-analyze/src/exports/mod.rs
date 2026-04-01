@@ -1,158 +1,21 @@
 //! Owner: bijux-dna-analyze
 //! Facts export and summary helpers.
+
+mod run_summary;
+mod support;
+
 use std::fmt::Write;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_core::prelude::InvariantStatusV1;
 use bijux_dna_infra::atomic_write_bytes;
-use bijux_dna_runtime::{FactsRowV1, StageReportV1};
+use bijux_dna_runtime::FactsRowV1;
 
-use crate::model::{
-    stable_sort_records, DashboardFactRow, FactsSummary, JsonBlob, RunSummaryDeltas,
-    RunSummaryStageRow, RunSummaryV1,
-};
+use crate::model::{stable_sort_records, DashboardFactRow, JsonBlob};
 
-fn stage_report_path(reports: &JsonBlob) -> Option<String> {
-    reports
-        .as_value()
-        .get("stage_report")
-        .and_then(|value| value.as_str())
-        .map(str::to_string)
-}
-
-fn stage_report_for_row(row: &FactsRowV1) -> Option<StageReportV1> {
-    let path = stage_report_path(&JsonBlob::from(row.reports.clone()))?;
-    let report_raw = std::fs::read_to_string(path).ok()?;
-    serde_json::from_str(&report_raw).ok()
-}
-
-fn tool_invocation_for_stage(report: &StageReportV1) -> Option<ToolInvocationV1> {
-    let raw = std::fs::read_to_string(&report.tool_invocation_path).ok()?;
-    serde_json::from_str(&raw).ok()
-}
-
-fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_json::Value {
-    let Some(obj) = value.as_object() else {
-        return value.clone();
-    };
-    let mut keys: Vec<_> = obj.keys().cloned().collect();
-    keys.sort();
-    let mut out = serde_json::Map::new();
-    for key in keys.into_iter().take(limit) {
-        if let Some(v) = obj.get(&key) {
-            out.insert(key, v.clone());
-        }
-    }
-    serde_json::Value::Object(out)
-}
-
-fn stage_outputs_for_row(row: &FactsRowV1) -> Vec<String> {
-    let Some(path) = stage_report_path(&JsonBlob::from(row.reports.clone())) else {
-        return Vec::new();
-    };
-    let Ok(report_raw) = std::fs::read_to_string(&path) else {
-        return Vec::new();
-    };
-    let Ok(report) = serde_json::from_str::<StageReportV1>(&report_raw) else {
-        return Vec::new();
-    };
-    report.outputs
-}
-
-#[must_use]
-pub fn summarize_facts(rows: &[FactsRowV1]) -> FactsSummary {
-    let stages = rows.len();
-    let mut run_ids = std::collections::BTreeSet::new();
-    let mut total_runtime_s = 0.0;
-    for row in rows {
-        run_ids.insert(row.run_id.clone());
-        total_runtime_s += row.runtime_s;
-    }
-    let runs = run_ids.len();
-    let avg_runtime_s = if stages == 0 {
-        0.0
-    } else {
-        let denom = f64::from(u32::try_from(stages).unwrap_or(u32::MAX));
-        total_runtime_s / denom
-    };
-    FactsSummary {
-        runs,
-        stages,
-        total_runtime_s,
-        avg_runtime_s,
-    }
-}
-
-/// Write a deterministic run summary JSON from facts rows.
-///
-/// # Errors
-/// Returns an error if the file cannot be written.
-pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
-    let summary = summarize_facts(rows);
-    let facts_path = Some("facts.jsonl".to_string());
-    let report_path = Some("report.json".to_string());
-    let telemetry_path = Some("telemetry/events.jsonl".to_string());
-    let mut stage_rows: Vec<RunSummaryStageRow> = rows
-        .iter()
-        .map(|row| RunSummaryStageRow {
-            run_id: row.run_id.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            tool_version: row.tool_version.clone(),
-            image_digest: row.image_digest.clone(),
-            params_hash: row.params_hash.clone(),
-            input_hash: row.input_hash.clone(),
-            bank_hashes: JsonBlob::from(row.bank_hashes.clone()),
-            runtime_s: row.runtime_s,
-            memory_mb: row.memory_mb,
-            exit_code: row.exit_code,
-            reports: JsonBlob::from(row.reports.clone()),
-            deltas: RunSummaryDeltas {
-                reads_in: row.reads_in,
-                reads_out: row.reads_out,
-                bases_in: row.bases_in,
-                bases_out: row.bases_out,
-                pairs_in: row.pairs_in,
-                pairs_out: row.pairs_out,
-            },
-        })
-        .collect();
-    let mut final_outputs = Vec::new();
-    for row in rows {
-        if row.stage_id == "fastq.report_qc" {
-            final_outputs.extend(stage_outputs_for_row(row));
-        }
-    }
-    final_outputs.sort();
-    final_outputs.dedup();
-    stable_sort_records(&mut stage_rows, |row| {
-        (
-            row.run_id.as_str(),
-            row.stage_id.as_str(),
-            row.tool_id.as_str(),
-            row.params_hash.as_str(),
-            row.input_hash.as_str(),
-        )
-    });
-    let payload = RunSummaryV1 {
-        schema_version: "bijux.run_summary.v1".to_string(),
-        facts_path,
-        report_path,
-        telemetry_path,
-        final_outputs,
-        runs: summary.runs,
-        stages: summary.stages,
-        total_runtime_s: summary.total_runtime_s,
-        avg_runtime_s: summary.avg_runtime_s,
-        stage_rows,
-    };
-    atomic_write_bytes(path, &serde_json::to_vec_pretty(&payload)?)
-        .map_err(anyhow::Error::from)
-        .with_context(|| format!("write run summary {}", path.display()))?;
-    Ok(())
-}
+pub use run_summary::write_run_summary_json;
+pub use support::summarize_facts;
 
 /// Write a deterministic stage summary CSV from facts rows.
 ///
@@ -177,7 +40,7 @@ pub fn write_stage_summary_csv(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
             (Some(ri), Some(ro)) if ri > 0 => Some(ro as f64 / ri as f64),
             _ => None,
         };
-        let stage_report = stage_report_for_row(&row);
+        let stage_report = support::stage_report_for_row(&row);
         let verdict = stage_report
             .as_ref()
             .and_then(|report| report.verdict.as_ref())
@@ -196,7 +59,7 @@ pub fn write_stage_summary_csv(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
         }
         let key_params = stage_report
             .as_ref()
-            .and_then(tool_invocation_for_stage)
+            .and_then(support::tool_invocation_for_stage)
             .map_or_else(
                 || serde_json::json!({}),
                 |invocation| {
@@ -205,7 +68,7 @@ pub fn write_stage_summary_csv(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
                     } else {
                         invocation.effective_params_json_normalized
                     };
-                    params_excerpt(&params, 8)
+                    support::params_excerpt(&params, 8)
                 },
             );
         let key_params = serde_json::to_string(&key_params).unwrap_or_else(|_| "{}".to_string());
