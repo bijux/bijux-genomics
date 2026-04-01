@@ -1,4 +1,4 @@
-use bijux_dna_analyze::export::write_dashboard_facts_jsonl;
+use bijux_dna_analyze::exports::write_dashboard_facts_jsonl;
 use bijux_dna_runtime::*;
 
 #[test]

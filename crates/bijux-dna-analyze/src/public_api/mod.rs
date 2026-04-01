@@ -4,6 +4,7 @@ pub use crate::api::{
     RenderOptions,
 };
 pub use crate::contracts::{analyze_contract_v1, AnalyzeContractV1};
+pub use crate::exports::*;
 pub use crate::failure::*;
 pub use crate::load::*;
 pub use crate::report::*;
