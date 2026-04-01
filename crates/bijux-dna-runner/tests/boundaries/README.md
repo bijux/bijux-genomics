@@ -1,3 +1,3 @@
 # bijux-dna-runner boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+This directory owns architecture, dependency, and backend guardrail coverage.

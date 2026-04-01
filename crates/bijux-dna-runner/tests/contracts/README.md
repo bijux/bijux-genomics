@@ -1,3 +1,3 @@
 # bijux-dna-runner contracts
 
-This directory is reserved for contracts tests by intent taxonomy.
+This directory owns runner-facing behavioral contracts.

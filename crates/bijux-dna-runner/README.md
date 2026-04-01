@@ -24,20 +24,22 @@ See `crates/bijux-dna-runner/docs/EXECUTION_SPEC.md`, `crates/bijux-dna-runner/d
 - `mounts`: input mounts are read-only; output mounts are writable.
 - `stdout/stderr`: captured verbatim and returned in `RunnerResult`.
 - `exit_code`: nonzero exit codes are surfaced as failures in records.
-See `tests/backend/backend_invariants.rs` for enforced invariants.
+See `tests/boundaries/backend/backend_invariants.rs` for enforced invariants.
 
 ## Effects & determinism guarantees
 Runner is the only allowed spawn boundary (plus allowlisted QA/CLI). See
-`crates/bijux-dna-runner/docs/EFFECTS.md`, `tests/backend/process_guardrail.rs`, and
+`crates/bijux-dna-runner/docs/EFFECTS.md`, `tests/boundaries/backend/process_guardrail.rs`, and
 `crates/bijux-dna-policies/tests/boundaries/surface/structure_layout/path_policies.rs`.
 
 ## How to run its tests
-See `crates/bijux-dna-runner/docs/TESTS.md`. Golden tests: `tests/backend/backend_invariants.rs`, `tests/replay/replay_contract.rs`, `tests/determinism/run_id_determinism.rs`, `tests/replay/replay_determinism.rs`.
+See `crates/bijux-dna-runner/docs/TESTS.md`. Golden tests: `tests/boundaries/backend/backend_invariants.rs`, `tests/determinism/replay/replay_contract.rs`, `tests/determinism/run_id_determinism.rs`, `tests/determinism/replay/replay_determinism.rs`.
 
 ## Where to start in code
-- `src/command_runner.rs` for command execution primitives.
+- `src/public_api/mod.rs` for the stable consumer-facing runner surface.
+- `src/runner_driver.rs` for the `Runner` implementation used by higher layers.
+- `src/command_runner.rs` for command execution primitives and invocation identity wiring.
 - `src/backend/docker/` for backend-specific execution, image resolution, and replay.
-- `src/step_runner/mod.rs` for step execution orchestration.
+- `src/step_runner/` for step execution orchestration, effects, records, and support modules.
 
 ## Where the docs live
 Start at `crates/bijux-dna-runner/docs/INDEX.md` and follow the crate docs listed above.

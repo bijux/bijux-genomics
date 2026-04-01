@@ -58,9 +58,12 @@ fn runner_tree_matches_architecture_contract() {
     let src_entries = dir_entries(&root.join("src"));
     let expected_src: BTreeSet<_> = [
         "backend/",
+        "command_runner/",
         "command_runner.rs",
         "lib.rs",
+        "public_api/",
         "repo_root.rs",
+        "runner_driver.rs",
         "step_runner/",
     ]
     .into_iter()
@@ -71,8 +74,25 @@ fn runner_tree_matches_architecture_contract() {
         "runner src tree must match the documented architecture"
     );
 
+    let command_runner_entries = dir_entries(&root.join("src/command_runner"));
+    let expected_command_runner: BTreeSet<_> = ["invocation_identity.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        command_runner_entries, expected_command_runner,
+        "runner command_runner support tree must stay minimal"
+    );
+
+    let public_api_entries = dir_entries(&root.join("src/public_api"));
+    let expected_public_api: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        public_api_entries, expected_public_api,
+        "runner public api tree must stay curated"
+    );
+
     let backend_entries = dir_entries(&root.join("src/backend"));
-    let expected_backend: BTreeSet<_> = ["docker/", "kinds.rs", "mod.rs"]
+    let expected_backend: BTreeSet<_> = ["docker/", "facade.rs", "kinds.rs", "mod.rs"]
         .into_iter()
         .map(str::to_string)
         .collect();
@@ -86,6 +106,7 @@ fn runner_tree_matches_architecture_contract() {
         "execution_spec.rs",
         "executor/",
         "executor.rs",
+        "facade.rs",
         "image_resolution/",
         "image_resolution.rs",
         "mod.rs",
@@ -99,6 +120,17 @@ fn runner_tree_matches_architecture_contract() {
         "runner docker backend tree must match its execution responsibilities"
     );
 
+    let docker_executor_entries = dir_entries(&root.join("src/backend/docker/executor"));
+    let expected_docker_executor: BTreeSet<_> =
+        ["command_line.rs", "internal_contracts.rs", "lifecycle.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(
+        docker_executor_entries, expected_docker_executor,
+        "runner docker executor support tree must stay focused"
+    );
+
     let step_runner_entries = dir_entries(&root.join("src/step_runner"));
     let expected_step_runner: BTreeSet<_> = [
         "apptainer_args.rs",
@@ -107,11 +139,14 @@ fn runner_tree_matches_architecture_contract() {
         "command_template.rs",
         "contracts.rs",
         "docker_execution.rs",
+        "effects.rs",
         "execution_outcome.rs",
         "identity.rs",
         "inputs.rs",
+        "internal_contracts.rs",
         "mod.rs",
         "observer.rs",
+        "records.rs",
         "runtime_policy.rs",
     ]
     .into_iter()

@@ -13,8 +13,8 @@ records deterministically.
 - Execute tool commands
 
 ## Enforced by
-- `tests/replay/replay_contract.rs`
-- `tests/replay/replay_determinism.rs`
+- `tests/determinism/replay/replay_contract.rs`
+- `tests/determinism/replay/replay_determinism.rs`
 
 ## Integrity failure
 Missing or mismatched artifacts cause failure.
