@@ -1,31 +1,16 @@
 use super::{
     anyhow, build_run_execution_plan, ensure_stage_supported_by_runner, execute_run, BTreeMap,
     BTreeSet, Context, DockerRunner, DryRunRequest, DryRunResponse, ExecuteRequest,
-    ExecuteResponse, ExecuteRunRequest, HashSet, MetadataCommand, Path, PathBuf, PlanRequest,
-    PlanResponse, Profile, RenderReportRequest, RenderReportResult, Result, RunExecutionPlan,
-    RunId, RunSpec, RunnerContractKind, ToolRegistry,
+    ExecuteResponse, HashSet, MetadataCommand, Path, PathBuf, PlanRequest, PlanResponse, Profile,
+    Result, RunExecutionPlan, RunId, RunSpec, RunnerContractKind, ToolRegistry,
 };
 use crate::request_args::RunStatus;
 use bijux_dna_engine::Engine;
 
 mod lifecycle;
+mod rendering;
 
-/// # Errors
-/// Returns an error if execution or report rendering fails.
-pub fn execute_and_report(
-    exec: &ExecuteRunRequest,
-    report: &RenderReportRequest,
-) -> Result<RenderReportResult> {
-    execute_run(exec)?;
-    render_report(report)
-}
-
-/// # Errors
-/// Returns an error if report rendering fails.
-pub fn render_report(request: &RenderReportRequest) -> Result<RenderReportResult> {
-    let report_path = render_report_from_facts(&request.base_dir, &request.facts_path)?;
-    Ok(RenderReportResult { report_path })
-}
+pub use rendering::{execute_and_report, render_report};
 
 /// # Errors
 /// This wrapper preserves the public API shape and does not currently return an error.
@@ -264,12 +249,6 @@ pub fn write_workspace_audit(out_dir: &Path, dot: &str) -> Result<PathBuf> {
     let dot_path = out_dir.join("graph.dot");
     bijux_dna_infra::write_bytes(&dot_path, dot.as_bytes())?;
     Ok(dot_path)
-}
-
-fn render_report_from_facts(base_dir: &Path, facts_path: &Path) -> Result<PathBuf> {
-    let facts = bijux_dna_analyze::load::load_facts(facts_path)?;
-    let report_path = bijux_dna_analyze::report::write_run_report_from_facts(base_dir, &facts)?;
-    Ok(report_path)
 }
 
 /// # Errors
