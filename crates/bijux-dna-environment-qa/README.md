@@ -17,9 +17,11 @@ See `crates/bijux-dna-environment-qa/docs/INDEX.md`, `crates/bijux-dna-environme
 ## Internal module layout
 The image QA surface is organized by responsibility:
 - `src/image_qa/contracts.rs` owns the shared QA stage and dataset contracts.
+- `src/public_api/` exposes the stable environment facade consumed by QA workflows.
 - `src/image_qa/datasets/`, `src/image_qa/records/`, and `src/image_qa/validation/` own discovery, persistence, and pass requirements.
-- `src/image_qa/support/` owns layout helpers, runtime checks, seqkit metrics, and Docker execution helpers.
-- `src/image_qa/qa_docker_images/` owns Docker image planning, probing, and reporting for the image catalog smoke checks.
+- `src/image_qa/behavioral/` splits preprocessing stage checks from postprocessing/reporting checks.
+- `src/image_qa/support/` owns diagnostics, output contracts, image resolution, Docker runtime helpers, and seqkit metrics.
+- `src/image_qa/qa_docker_images/` owns Docker image planning, probing, runtime adapters, and reporting for catalog smoke checks.
 
 ## Key contracts it owns/consumes
 QA manifests/reports and validation records.
@@ -39,7 +41,7 @@ Minutes to hours depending on the scenario set and image catalog size.
 - Logs and validation records under the QA output directory.
 
 ## How to run its tests
-See `crates/bijux-dna-environment-qa/docs/TESTS.md`. Golden tests: `tests/artifacts/qa_artifact_contract.rs`, `tests/support/image_qa_support.rs`, `tests/guardrails/guardrails.rs`.
+See `crates/bijux-dna-environment-qa/docs/TESTS.md`. High-signal targets: `tests/contracts/artifacts/qa_artifact_contract.rs`, `tests/contracts/qa_contracts.rs`, `tests/boundaries/architecture.rs`, `tests/boundaries/guardrails/guardrails.rs`, `tests/determinism/fixture_stability.rs`.
 
 ## Where the docs live
 Start at `crates/bijux-dna-environment-qa/docs/INDEX.md` and follow the crate docs listed above.
