@@ -1,3 +1,4 @@
 mod rust_sources;
+mod stable_surface;
 
-pub(crate) use rust_sources::collect_rs_files;
+pub(crate) use stable_surface::*;

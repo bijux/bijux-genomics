@@ -1,5 +1,5 @@
 mod contracts;
 mod render;
+mod stable_surface;
 
-pub use contracts::{HOW, MORE, WHY};
-pub use render::message;
+pub use stable_surface::*;
