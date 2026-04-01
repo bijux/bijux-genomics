@@ -1,7 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Stage and tool governance checks for benchmark suites.
 
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 use bijux_dna_core::{id_catalog, ids};
 use bijux_dna_domain_fastq::{
     admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,

@@ -1,6 +1,6 @@
 pub use crate::compare;
 pub use crate::contract;
-pub use crate::error::BenchError;
+pub use crate::diagnostics::BenchError;
 pub use crate::model::decision::DecisionRationale;
 pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use crate::model::observation::MetricsEnvelope;

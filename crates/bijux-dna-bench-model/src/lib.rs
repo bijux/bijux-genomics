@@ -3,7 +3,7 @@
 
 pub mod compare;
 pub mod contract;
-mod error;
+mod diagnostics;
 mod model;
 pub mod policy;
 pub mod public_api;

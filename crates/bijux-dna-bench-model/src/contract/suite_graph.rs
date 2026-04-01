@@ -1,7 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Graph support for benchmark suite contract validation.
 
-use crate::error::BenchError;
+use crate::diagnostics::BenchError;
 use crate::model::{BenchmarkGraphNode, BenchmarkSuiteSpec};
 
 pub(crate) fn declared_graph_nodes(
