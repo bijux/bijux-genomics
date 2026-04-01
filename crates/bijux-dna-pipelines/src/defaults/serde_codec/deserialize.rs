@@ -55,8 +55,7 @@ pub(super) fn from_json(value: serde_json::Value) -> anyhow::Result<DefaultParam
     if let Ok(parsed) = serde_json::from_value::<FilterEffectiveParams>(value.clone()) {
         return Ok(DefaultParams::FastqFilter(parsed));
     }
-    if let Ok(parsed) = serde_json::from_value::<FastqOverrepresentedProfileParams>(value.clone())
-    {
+    if let Ok(parsed) = serde_json::from_value::<FastqOverrepresentedProfileParams>(value.clone()) {
         return Ok(DefaultParams::FastqOverrepresentedProfile(parsed));
     }
     if let Ok(parsed) = serde_json::from_value::<QcPostEffectiveParams>(value.clone()) {

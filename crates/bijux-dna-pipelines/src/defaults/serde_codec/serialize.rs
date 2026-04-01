@@ -13,9 +13,7 @@ pub(super) fn to_json(params: &DefaultParams) -> serde_json::Value {
     match params {
         DefaultParams::FastqValidate(value) => encode(value, "fastq.validate"),
         DefaultParams::FastqStats(value) => encode(value, "fastq.profile_reads"),
-        DefaultParams::FastqReadLengthProfile(value) => {
-            encode(value, "fastq.profile_read_lengths")
-        }
+        DefaultParams::FastqReadLengthProfile(value) => encode(value, "fastq.profile_read_lengths"),
         DefaultParams::FastqCorrect(value) => encode(value, "fastq.correct_errors"),
         DefaultParams::FastqUmi(value) => encode(value, "fastq.extract_umis"),
         DefaultParams::FastqDetectAdapters(value) => encode(value, "fastq.detect_adapters"),
@@ -49,9 +47,7 @@ pub(super) fn to_json(params: &DefaultParams) -> serde_json::Value {
             BamEffectiveParams::InsertSize(inner) => encode(inner, "bam.insert_size"),
             BamEffectiveParams::GcBias(inner) => encode(inner, "bam.gc_bias"),
             BamEffectiveParams::EndogenousContent(inner) => encode(inner, "bam.endogenous_content"),
-            BamEffectiveParams::OverlapCorrection(inner) => {
-                encode(inner, "bam.overlap_correction")
-            }
+            BamEffectiveParams::OverlapCorrection(inner) => encode(inner, "bam.overlap_correction"),
             BamEffectiveParams::Damage(inner) => encode(inner, "bam.damage"),
             BamEffectiveParams::Authenticity(inner) => encode(inner, "bam.authenticity"),
             BamEffectiveParams::Contamination(inner) => encode(inner, "bam.contamination"),

@@ -45,7 +45,10 @@ impl PipelineProfile {
                         });
                 let mut hasher = sha2::Sha256::new();
                 hasher.update(canonical);
-                (stage.as_str().to_string(), format!("{:x}", hasher.finalize()))
+                (
+                    stage.as_str().to_string(),
+                    format!("{:x}", hasher.finalize()),
+                )
             })
             .collect();
         let schema_versions = BTreeMap::from([
