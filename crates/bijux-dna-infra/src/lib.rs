@@ -5,8 +5,6 @@ mod logging;
 mod paths;
 mod retry;
 mod run_directories;
-#[cfg(test)]
-mod self_checks;
 mod temp;
 
 pub mod formats;
