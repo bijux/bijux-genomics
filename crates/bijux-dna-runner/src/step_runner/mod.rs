@@ -15,6 +15,7 @@ mod artifacts;
 mod command_template;
 mod contracts;
 mod docker_execution;
+mod effects;
 mod execution_outcome;
 mod identity;
 mod inputs;
@@ -29,6 +30,7 @@ use artifacts::write_minimum_run_artifacts;
 use command_template::container_command_template;
 pub use contracts::StageResultV1;
 use docker_execution::execute_docker_step;
+use effects::{runner_failure, RunnerEffectKind};
 use identity::{
     execution_pipeline_identity, execution_sample_identity, hash_inputs,
     infer_tool_version_from_image, runtime_platform_identity,
@@ -36,28 +38,6 @@ use identity::{
 #[allow(unused_imports)]
 use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};
 pub use observer::execute_observer_command;
-#[derive(Debug, Clone, Copy)]
-enum RunnerEffectKind {
-    Filesystem,
-    CommandSpawn,
-    ContainerLifecycle,
-    TelemetryWrite,
-}
-
-impl RunnerEffectKind {
-    const fn code(self) -> &'static str {
-        match self {
-            Self::Filesystem => "filesystem",
-            Self::CommandSpawn => "command_spawn",
-            Self::ContainerLifecycle => "container_lifecycle",
-            Self::TelemetryWrite => "telemetry_write",
-        }
-    }
-}
-
-fn runner_failure(kind: RunnerEffectKind, message: impl Into<String>) -> anyhow::Error {
-    anyhow!("[runner_effect:{}] {}", kind.code(), message.into())
-}
 
 /// Execute a single step using docker.
 ///
