@@ -1,67 +1,23 @@
 use super::{
     anyhow, build_run_execution_plan, ensure_stage_supported_by_runner, DockerRunner,
-    DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, Path, PlanRequest,
-    PlanResponse, Profile, Result, RunExecutionPlan, RunId, RunSpec, RunnerContractKind,
-    ToolRegistry,
+    DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, Path, Profile, Result,
+    RunExecutionPlan, RunId, RunSpec, RunnerContractKind, ToolRegistry,
 };
 use bijux_dna_engine::Engine;
 
 mod lifecycle;
+mod plan_response;
 mod rendering;
 mod replay;
-mod summary_artifact;
 mod status;
+mod summary_artifact;
 mod workspace_audit;
 
+pub use plan_response::plan;
 pub use rendering::{execute_and_report, render_report};
 pub use replay::replay_manifest;
 pub use status::status;
 pub use workspace_audit::{policy_audit, workspace_edges, write_workspace_audit};
-
-/// # Errors
-/// Returns an error if planning fails.
-pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
-    let graph_hash = request.graph.hash()?;
-    let manifest = serde_json::json!({
-        "schema_version": "bijux.run_manifest.v3",
-        "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
-        "run_id": "plan-only",
-        "pipeline_id": request.graph.pipeline_id().to_string(),
-        "profile_id": request.profile_id,
-        "graph_hash": graph_hash,
-        "cache_key": serde_json::Value::Null,
-        "toolchain_versions": [],
-        "dataset_fingerprints": [],
-        "tool_invocations": [],
-        "output_artifacts": [
-            {
-                "kind": "graph",
-                "schema": "bijux.execution_graph.v1",
-                "path": "graph.json",
-                "sha256": serde_json::Value::Null
-            },
-            {
-                "kind": "run_manifest",
-                "schema": "bijux.run_manifest.v3",
-                "path": "run_manifest.json",
-                "sha256": serde_json::Value::Null
-            },
-            {
-                "kind": "run_summary",
-                "schema": "bijux.run_summary.v1",
-                "path": "run_summary.json",
-                "sha256": serde_json::Value::Null
-            }
-        ],
-        "stages": [],
-        "failures": [],
-    });
-    Ok(PlanResponse {
-        graph: request.graph,
-        graph_hash,
-        manifest,
-    })
-}
 
 /// # Errors
 /// Returns an error if execution fails.
