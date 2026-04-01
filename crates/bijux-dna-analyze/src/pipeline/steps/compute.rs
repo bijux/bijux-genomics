@@ -10,7 +10,7 @@ use crate::decision::score::{build_rankings, RankInput, RankingEntry};
 use crate::model::FactRow;
 use crate::{AnalyzeMode, AnalyzeOptions};
 
-use super::validate_step::ValidatedFacts;
+use super::validate::ValidatedFacts;
 
 #[derive(Debug)]
 pub(crate) struct AnalysisCore {

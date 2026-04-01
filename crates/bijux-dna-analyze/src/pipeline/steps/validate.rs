@@ -6,7 +6,7 @@ use bijux_dna_runtime::FactsRowV1;
 
 use crate::model::FactTable;
 
-use super::load_step::LoadedInputs;
+use super::load::LoadedInputs;
 
 #[derive(Debug)]
 pub(crate) struct ValidatedFacts {
