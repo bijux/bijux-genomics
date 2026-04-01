@@ -14,17 +14,17 @@ See `crates/bijux-dna-runtime/docs/INDEX.md`, `crates/bijux-dna-runtime/docs/RUN
 
 ## Truth artifacts (canonical runtime outputs)
 Schema-stable artifacts owned by runtime:
-- Run layout: `run_layout.json` (schema: `tests/fixtures/runtime_schema/default/run_layout_v1.json`)
-- Run manifest: `run_manifest.json` (schema: `tests/fixtures/runtime_schema/default/run_manifest_v1.json`)
-- Run record: `run_record.json` (schema: `tests/fixtures/runtime_schema/default/run_record_v1.json`)
-- Run provenance: `run_provenance.json` (schema: `tests/fixtures/runtime_schema/default/run_provenance_v1.json`)
+- Run layout contract: `tests/fixtures/runtime_schema/default/run_layout_v1.json`
+- Run manifest contract: `tests/fixtures/runtime_schema/default/run_manifest_v1.json`
+- Run record contract: `tests/fixtures/runtime_schema/default/run_record_v1.json`
+- Run provenance contract: `tests/fixtures/runtime_schema/default/run_provenance_v1.json`
 
 ## Exact JSON artifacts owned (stability expectations)
 Stable schemas (strict compatibility, versioned on change):
-- `run_layout.json`
-- `run_manifest.json`
-- `run_record.json`
-- `run_provenance.json`
+- `RunLayoutV1`
+- `RunManifest`
+- `RunRecordV1`
+- `RunProvenanceV1`
 
 Stable per-step artifacts (strict compatibility, emitted under run layout):
 - `effective_config.json`
@@ -49,11 +49,11 @@ See `crates/bijux-dna-runtime/docs/RUNTIME_CONTRACT.md`, `crates/bijux-dna-runti
 Filesystem writes under run layout only. See `crates/bijux-dna-runtime/docs/EFFECTS.md` and the golden tests below.
 
 ## How to understand the crate in 10 minutes
-- Read `tests/reference/reference_example.rs` for a concrete run story.
+- Read `tests/contracts/reference/reference_example.rs` for a concrete run story.
 - Open `tests/fixtures/runtime_schema/default/run_manifest_v1.json` to see the canonical schema shape.
 
 ## How to run its tests
-See `crates/bijux-dna-runtime/docs/TESTS.md`. Golden tests: `tests/reference/reference_example.rs`, `tests/schema/runtime_schema_snapshots.rs`, `tests/contracts/manifest_integrity.rs`, `tests/contracts/run_layout_contract.rs`.
+See `crates/bijux-dna-runtime/docs/TESTS.md`. Golden tests: `tests/contracts/reference/reference_example.rs`, `tests/schemas/schema/runtime_schema_snapshots.rs`, `tests/contracts/manifest_integrity.rs`, `tests/contracts/run_layout_contract.rs`.
 
 ## Where the docs live
 Start at `crates/bijux-dna-runtime/docs/INDEX.md` and follow the crate docs listed above.
