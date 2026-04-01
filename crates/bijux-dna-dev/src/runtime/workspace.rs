@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 #[derive(Debug, Clone)]
 pub struct Workspace {
@@ -11,12 +11,7 @@ impl Workspace {
     /// # Errors
     /// Returns an error if the current workspace root cannot be determined.
     pub fn resolve() -> Result<Self> {
-        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .context("bijux-dna-dev manifest has no parent")?
-            .parent()
-            .context("workspace root is not two levels above crate manifest")?
-            .to_path_buf();
+        let root = super::workspace_root::resolve_workspace_root()?;
         Ok(Self { root })
     }
 
