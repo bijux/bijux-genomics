@@ -3,8 +3,8 @@
 //! Contract: inputs are typed, outputs are deterministic, and raw JSON is confined to repo/artifacts.
 
 mod artifacts;
+mod public_api;
 mod repo;
-mod summary;
-pub mod public_api;
+mod workflow;
 
 pub use public_api::*;

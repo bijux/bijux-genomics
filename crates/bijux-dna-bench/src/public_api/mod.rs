@@ -4,5 +4,5 @@ pub use bijux_dna_bench_model::{
     GatePolicy, GatePolicyOverrides, GateViolation, MetricSummary, MetricsEnvelope,
     ReplicatePolicy, StratificationRequirement, SummaryRow,
 };
-pub use crate::summary::{compare, gate, load_suite, summarize, BenchRunOptions};
 pub use crate::repo::{bench_data_dir, bench_suites_dir};
+pub use crate::workflow::{compare, gate, load_suite, summarize, BenchRunOptions};
