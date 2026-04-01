@@ -1,3 +1,4 @@
+mod analyze;
 mod debug;
 mod entrypoint;
 mod pipelines;
