@@ -1,3 +1,3 @@
 # bijux-dna-pipelines boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+Owns architecture and guardrail boundary checks for bijux-dna-pipelines.

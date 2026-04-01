@@ -1,3 +1,3 @@
 # bijux-dna-pipelines contracts
 
-This directory is reserved for contracts tests by intent taxonomy.
+Owns defaults, profile, and registry contract coverage for bijux-dna-pipelines.

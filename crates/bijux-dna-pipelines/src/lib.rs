@@ -22,6 +22,6 @@ pub use contract::{
 };
 pub use defaults::merge_effective_defaults;
 pub use defaults::{DefaultParams, DefaultProvenanceV1, DefaultsLedgerV1, EmptyParams};
-pub use registry::id::{validate_pipeline_id, validate_pipeline_id_str, PipelineId};
+pub use registry::{validate_pipeline_id, validate_pipeline_id_str, PipelineId};
 
 pub type PipelineProfileV1 = PipelineProfile;
