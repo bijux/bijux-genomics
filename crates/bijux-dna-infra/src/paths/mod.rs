@@ -8,7 +8,6 @@ mod bench;
 mod config;
 mod config_aliases;
 mod run_layout;
+mod stable_surface;
 
-pub use bench::{bench_base_dir, bench_data_dir, bench_suites_dir, bench_tools_dir};
-pub use config::{configs_dir, configs_file};
-pub use run_layout::{normalize_run_base_dir, pipeline_run_dir, run_layout_paths, run_stage_dir};
+pub use stable_surface::*;
