@@ -91,14 +91,65 @@ fn core_tree_matches_architecture_contract() {
             "identity_surface.rs",
             "metric_surface.rs",
             "mod.rs",
+            "stable_surface.rs",
         ]),
         "prelude tree must stay grouped by source area"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
-        entries(["OWNER.toml", "mod.rs"]),
+        entries([
+            "OWNER.toml",
+            "catalog/",
+            "contracts/",
+            "ergonomics/",
+            "identity/",
+            "metrics/",
+            "mod.rs",
+        ]),
         "public api tree must stay curated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/contracts")),
+        entries(["mod.rs"]),
+        "public api contracts tree must stay focused"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/catalog")),
+        entries(["mod.rs"]),
+        "public api catalog tree must stay focused"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/identity")),
+        entries(["mod.rs"]),
+        "public api identity tree must stay focused"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/metrics")),
+        entries(["mod.rs"]),
+        "public api metrics tree must stay focused"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/ergonomics")),
+        entries(["mod.rs"]),
+        "public api ergonomics tree must stay focused"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/foundation/command")),
+        entries(["command_spec.rs", "container_image_ref.rs", "mod.rs"]),
+        "foundation command tree must separate command templates from container image contracts"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/contract/tooling/selection")),
+        entries(["mod.rs"]),
+        "tooling selection tree must stay focused on selection policy"
     );
 
     assert_eq!(
