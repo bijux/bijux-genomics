@@ -25,9 +25,15 @@ fn environment_tree_matches_architecture_contract() {
             "lib.rs",
             "public_api/",
             "resolve/",
-            "runtime_spec.rs",
+            "runtime_spec/",
         ]),
         "src tree must match the documented environment layout"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/runtime_spec")),
+        btree_set(&["compatibility.rs", "mod.rs", "model.rs"]),
+        "runtime_spec tree must stay decomposed by runtime concern"
     );
 
     assert_eq!(
