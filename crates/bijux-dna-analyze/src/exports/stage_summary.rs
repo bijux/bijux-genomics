@@ -8,7 +8,7 @@ use bijux_dna_runtime::FactsRowV1;
 
 use crate::model::stable_sort_records;
 
-use super::support::{params_excerpt, stage_report_for_row, tool_invocation_for_stage};
+use super::facts_support::{params_excerpt, stage_report_for_row, tool_invocation_for_stage};
 
 /// Write a deterministic stage summary CSV from facts rows.
 ///
