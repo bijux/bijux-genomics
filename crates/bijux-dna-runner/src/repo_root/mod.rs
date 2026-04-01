@@ -1,18 +1,15 @@
-use std::path::{Path, PathBuf};
+mod env_override;
+mod root_detection;
+
+use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 
-fn looks_like_repo_root(path: &Path) -> bool {
-    path.join("Cargo.lock").is_file()
-        && path.join("crates").is_dir()
-        && bijux_dna_infra::configs_dir(path).is_dir()
-}
+use env_override::declared_repo_root;
+use root_detection::looks_like_repo_root;
 
 pub(crate) fn resolve_repo_root() -> Result<PathBuf> {
-    if let Some(path) = std::env::var_os("BIJUX_REPO_ROOT")
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
-    {
+    if let Some(path) = declared_repo_root() {
         return Ok(path);
     }
 
