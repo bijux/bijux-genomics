@@ -2,9 +2,7 @@ use std::collections::BTreeMap;
 
 use sha2::Digest;
 
-use crate::PipelineProfile;
-
-use super::ProfileManifestV1;
+use crate::{PipelineProfile, ProfileManifestV1};
 
 impl PipelineProfile {
     #[must_use]
