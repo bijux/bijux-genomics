@@ -1,21 +1,24 @@
 mod preprocessing;
+mod quality;
 
 pub use self::preprocessing::{
     BenchFastqDetectAdaptersArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
     BenchFastqTrimTerminalDamageArgs, BenchFastqValidateArgs,
 };
+pub use self::quality::{
+    BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqFilterLowComplexityArgs,
+    BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs,
+    BenchFastqQcPostArgs, BenchFastqRemoveDuplicatesArgs, BenchFastqStatsArgs,
+};
 
 use clap::Subcommand;
 
 use super::{
-    BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDepleteHostArgs,
+    BenchFastqClusterOtusArgs, BenchFastqDepleteHostArgs,
     BenchFastqDepleteReferenceContaminantsArgs, BenchFastqDepleteRrnaArgs,
-    BenchFastqFilterArgs, BenchFastqFilterLowComplexityArgs, BenchFastqIndexReferenceArgs,
-    BenchFastqInferAsvsArgs, BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs,
-    BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
-    BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs, BenchFastqQcPostArgs,
-    BenchFastqRemoveChimerasArgs, BenchFastqRemoveDuplicatesArgs, BenchFastqScreenArgs,
-    BenchFastqStatsArgs, BenchFastqUmiArgs,
+    BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs, BenchFastqMergeArgs,
+    BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
+    BenchFastqRemoveChimerasArgs, BenchFastqScreenArgs, BenchFastqUmiArgs,
 };
 
 #[derive(Debug, Subcommand)]
