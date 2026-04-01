@@ -107,6 +107,26 @@ fn dna_tree_matches_architecture_contract() {
         "benchmark tree must keep benchmark-specific workflows together"
     );
 
+    let benchmark_workspace_entries = dir_entries(&root.join("src/commands/benchmark/workspace"));
+    let expected_benchmark_workspace: BTreeSet<_> = [
+        "config_loading.rs",
+        "config_paths.rs",
+        "config_queries.rs",
+        "contracts.rs",
+        "layout_normalization.rs",
+        "layout_status.rs",
+        "publication_contracts.rs",
+        "stage_run_layout.rs",
+        "value_queries.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        benchmark_workspace_entries, expected_benchmark_workspace,
+        "benchmark workspace tree must keep config, publication, layout, and value concerns separate"
+    );
+
     let support_entries = dir_entries(&root.join("src/commands/support"));
     let expected_support: BTreeSet<_> = [
         "mod.rs",
@@ -135,13 +155,39 @@ fn dna_tree_matches_architecture_contract() {
     );
 
     let fastq_meta_entries = dir_entries(&root.join("src/commands/fastq/meta"));
-    let expected_fastq_meta: BTreeSet<_> = ["debug.rs", "entrypoint.rs", "mod.rs"]
+    let expected_fastq_meta: BTreeSet<_> = [
+        "OWNER.toml",
+        "analyze.rs",
+        "debug.rs",
+        "entrypoint.rs",
+        "environment.rs",
+        "mod.rs",
+        "pipelines.rs",
+    ]
         .into_iter()
         .map(str::to_string)
         .collect();
     assert_eq!(
         fastq_meta_entries, expected_fastq_meta,
         "fastq meta tree must stay focused on meta-command routing"
+    );
+
+    let env_entries = dir_entries(&root.join("src/commands/cli/env"));
+    let expected_env: BTreeSet<_> = [
+        "env_benchmark_roots.rs",
+        "env_policy_linting.rs",
+        "env_promotion_and_versions.rs",
+        "env_registry_commands.rs",
+        "env_registry_queries.rs",
+        "env_runtime_support.rs",
+        "mod.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        env_entries, expected_env,
+        "environment command tree must keep registry, runtime, and benchmark root concerns separate"
     );
 
     let planning_entries = dir_entries(&root.join("src/commands/planning"));

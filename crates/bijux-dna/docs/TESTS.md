@@ -2,7 +2,7 @@
 
 ## Coverage
 - `tests/boundaries.rs` is the integration-test entrypoint for boundary coverage.
-- `tests/boundaries/architecture_tree.rs` enforces the documented CLI control-plane tree, including `commands/support/`, `commands/planning/`, `commands/status/`, `commands/corpus/`, and `commands/fastq/meta/`.
+- `tests/boundaries/architecture_tree.rs` enforces the documented CLI control-plane tree, including `commands/support/`, `commands/planning/`, `commands/status/`, `commands/corpus/`, `commands/benchmark/workspace/`, `commands/fastq/meta/`, and `commands/cli/env/`.
 - `tests/boundaries/guardrails/` checks dependency, policy, process-spawn, and public-surface boundaries.
 - `tests/contracts/` checks CLI behavior, dry-run contracts, bank contracts, and HPC layout behavior.
 - `tests/determinism/` is reserved for reproducibility and stable-output checks.
