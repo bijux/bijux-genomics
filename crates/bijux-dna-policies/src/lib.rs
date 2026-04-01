@@ -4,6 +4,7 @@ mod checks;
 mod guardrails;
 mod macros;
 pub mod policy_diagnostics;
+pub mod public_api;
 mod source_scan;
 
-pub use guardrails::{check, GuardrailConfig};
+pub use public_api::{check, GuardrailConfig};
