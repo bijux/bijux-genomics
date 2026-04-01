@@ -1,39 +1,21 @@
 //! FASTQ pipeline profile invariants and validation.
 
-use std::collections::BTreeSet;
-
 use crate::PipelineProfile;
-use bijux_dna_core::prelude::id_catalog;
 
 mod preset_rules;
 mod stage_parameter_access;
+mod stage_scope;
 mod stage_requirements;
 mod validation_report_contracts;
 mod violation_builder;
 
 use preset_rules::push_preset_rule_violations;
+use stage_scope::stage_set;
 use stage_requirements::push_required_rule_violations;
 pub use validation_report_contracts::{
     FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
 };
 use violation_builder::violation;
-
-const CORE_FASTQ_STAGES: [&str; 5] = [
-    id_catalog::FASTQ_VALIDATE_PRE,
-    id_catalog::FASTQ_DETECT_ADAPTERS,
-    id_catalog::FASTQ_TRIM,
-    id_catalog::FASTQ_FILTER,
-    id_catalog::FASTQ_QC_POST,
-];
-
-fn stage_set(profile: &PipelineProfile) -> BTreeSet<&str> {
-    profile
-        .capabilities
-        .required_stages
-        .iter()
-        .map(String::as_str)
-        .collect()
-}
 use stage_parameter_access::{
     detect_adapters_params, filter_params, merge_params, screen_params, trim_params,
 };
