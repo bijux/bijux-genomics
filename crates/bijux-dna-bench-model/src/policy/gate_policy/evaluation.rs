@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use bijux_dna_analyze::{metric_semantics, MetricDirection};
 
-use crate::policy::gate_decision::{GateDecision, GateViolation};
+use crate::policy::outcomes::{GateDecision, GateViolation};
 
 use super::GatePolicy;
 

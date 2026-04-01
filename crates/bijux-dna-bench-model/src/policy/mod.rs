@@ -1,8 +1,8 @@
 //! Owner: bijux-dna-bench
 //! Policy engine for bench gating.
 
-pub mod gate_decision;
 pub mod gate_policy;
+pub mod outcomes;
 
-pub use gate_decision::{GateDecision, GateViolation};
 pub use gate_policy::{GatePolicy, GatePolicyOverrides};
+pub use outcomes::{GateDecision, GateViolation};
