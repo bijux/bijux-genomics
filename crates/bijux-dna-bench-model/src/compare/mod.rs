@@ -3,7 +3,7 @@
 
 pub mod diff;
 pub mod report;
+mod stable_surface;
 pub mod stratify;
 
-pub use diff::compare_summaries;
-pub use report::{CompareReport, MetricDiff};
+pub use stable_surface::*;
