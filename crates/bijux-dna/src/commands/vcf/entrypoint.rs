@@ -1,5 +1,5 @@
 use crate::commands::cli::parse::{DnaCommand, VcfCommand, VcfRunArgs};
-use crate::commands::command_prelude::{anyhow, render, Cli, Path, Result};
+use crate::commands::support::prelude::{anyhow, render, Cli, Path, Result};
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use bijux_dna_domain_vcf::{VcfDomainStage, VcfStage};
 use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};

@@ -3,7 +3,6 @@
 pub(crate) mod bam;
 pub(crate) mod benchmark;
 pub mod cli;
-pub(crate) mod command_prelude;
 pub(crate) mod corpus;
 pub(crate) mod ena;
 pub(crate) mod fastq;
@@ -15,6 +14,7 @@ pub(crate) mod report_inputs;
 mod router;
 pub(crate) mod run_plan;
 mod status;
+pub(crate) mod support;
 pub(crate) mod vcf;
 
 pub(crate) use benchmark::config as benchmark_config;

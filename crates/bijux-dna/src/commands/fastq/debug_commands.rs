@@ -1,11 +1,11 @@
 #[cfg(debug_assertions)]
-use crate::commands::command_prelude::{
+use crate::commands::support::prelude::{
     anyhow, atomic_write_bytes, compare_runs, compare_runs_with_baseline, load_manifests,
     load_platform, objective_spec, render, run_image_qa, workspace_audit, Cli, DnaCommand,
     Objective, Path, PoliciesCommand, Result,
 };
 #[cfg(not(debug_assertions))]
-use crate::commands::command_prelude::{Cli, DnaCommand, Path, Result};
+use crate::commands::support::prelude::{Cli, DnaCommand, Path, Result};
 
 #[cfg(debug_assertions)]
 pub(super) fn handle_debug_command(

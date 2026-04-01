@@ -4,7 +4,7 @@ use super::api_bridge::{
 use super::debug_commands::handle_debug_command;
 use crate::cli::BenchConfigCommand;
 #[allow(unused_imports)]
-use crate::commands::command_prelude::{
+use crate::commands::support::prelude::{
     anyhow, atomic_write_bytes, bench_args_cluster_otus, bench_args_correct,
     bench_args_deplete_host, bench_args_deplete_reference_contaminants, bench_args_deplete_rrna,
     bench_args_detect_adapters, bench_args_filter, bench_args_filter_low_complexity,
