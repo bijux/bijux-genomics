@@ -588,7 +588,7 @@ pub(super) fn check_promotion_lock_integrity(
 pub(super) fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
     let version_map: serde_json::Value =
         serde_json::from_str(&extract_version_map_content(workspace)?)?;
-    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers.rs");
+    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers/mod.rs");
     let versions_path = workspace.path("containers/versions/versions.toml");
 
     let manifest_candidates = [
@@ -833,7 +833,7 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
         &workspace.path("containers/versions/lock.json"),
     )?)?;
     let versions_path = workspace.path("containers/versions/versions.toml");
-    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers.rs");
+    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers/mod.rs");
     let mut errors = Vec::new();
     if lock
         .get("schema_version")
