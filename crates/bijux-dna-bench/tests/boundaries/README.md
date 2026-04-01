@@ -1,3 +1,6 @@
 # bijux-dna-bench boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+This directory contains source-tree guardrails for:
+- crate root shape
+- benchmark source layout
+- documentation drift

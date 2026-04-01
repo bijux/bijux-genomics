@@ -31,6 +31,9 @@ pub fn gate(policy: &GatePolicy, summary: &BenchmarkSummary) -> Vec<GateDecision
 }
 
 /// Compare two summaries.
-pub fn compare(summary_a: &BenchmarkSummary, summary_b: &BenchmarkSummary) -> Result<CompareReport> {
+pub fn compare(
+    summary_a: &BenchmarkSummary,
+    summary_b: &BenchmarkSummary,
+) -> Result<CompareReport> {
     compare_summaries(summary_a, summary_b)
 }

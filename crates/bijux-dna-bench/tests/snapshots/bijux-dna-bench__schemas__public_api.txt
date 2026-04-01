@@ -1,4 +1,2 @@
-pub use bijux_dna_bench_model::{
-pub use summary::{compare, gate, load_suite, summarize, BenchRunOptions};
-pub fn bench_data_dir() -> PathBuf {
-pub fn bench_suites_dir() -> PathBuf {
+pub mod public_api;
+pub use public_api::*;
