@@ -1,6 +1,6 @@
 #![allow(clippy::too_many_lines)]
 
-use crate::commands::command_prelude::{
+use crate::commands::support::prelude::{
     anyhow, bench_args_from_trim, bench_args_from_validate, bench_fastq_preprocess,
     bench_fastq_trim, bench_fastq_validate_reads, cli, compare_runs, compare_runs_with_baseline,
     env_doctor, fastq_cross_args_from_cli, is_bench_requested_trim, is_bench_requested_validate,
