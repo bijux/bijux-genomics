@@ -1,69 +1,46 @@
 # bijux-dna-analyze
 
 ## What this crate does
-Loads runtime artifacts, scores decisions, and renders report bundles.
+Loads recorded runtime artifacts, evaluates benchmark decisions, and renders durable analysis
+artifacts.
 
-## What it must not do (boundaries)
-No planning or execution.
+## Boundaries
+This crate analyzes completed runs. It does not plan workflows, execute tools, or own runtime
+layout policy.
 
-## Role in the stack
-Upstream: runtime artifacts. Downstream: benchmark and users.
+## Public entrypoints
+Start with `PUBLIC_API.md` for the curated surface and `docs/ARCHITECTURE.md` for the internal
+tree. The crate root keeps a single execution entrypoint in `src/lib.rs`, while stable exports are
+curated in `src/public_api/mod.rs`.
 
-## Public API / entrypoints
-See `crates/bijux-dna-analyze/docs/INDEX.md`, `crates/bijux-dna-analyze/docs/REPORT_CONTRACT.md`, `crates/bijux-dna-analyze/docs/DECISIONS.md`, `crates/bijux-dna-analyze/docs/PERFORMANCE_BUDGET.md`,
-`crates/bijux-dna-analyze/docs/CHANGE_RULES.md`, `crates/bijux-dna-analyze/docs/DETERMINISM.md`.
-
-## What you get (inputs → outputs)
+## Inputs and outputs
 Inputs:
-- Runtime artifacts (manifest, provenance, record, layout).
-- Stage metrics and tool outputs referenced by the run manifest.
+- typed `AnalyzeInput` requests from `src/api/`
+- runtime facts, summaries, manifests, and SQLite-backed records loaded through `src/load/`
 
 Outputs:
-- `report.json` (canonical JSON report).
-- `report_bundle/` (HTML bundle + bundled assets).
+- `AnalyzeOutput` responses returned by `analyze_run`
+- durable report artifacts rendered through `src/report/`
+- dashboard facts and run summaries emitted from `src/exports/`
 
-## Report structure walkthrough (one page)
-1. Load runtime artifacts and validate schema compatibility.
-2. Resolve pipeline defaults + effective configs.
-3. Aggregate stage reports and metrics into report sections.
-4. Compute verdicts, deltas, and failure hints.
-5. Emit `report.json` and an HTML bundle that mirrors the JSON structure.
+## Internal layout
+- `src/contracts/`: versioned analysis contract handshake
+- `src/diagnostics/`: durable error taxonomies for load and aggregate flows
+- `src/exports/`: run summary, stage summary, and dashboard facts writers
+- `src/pipeline/steps/`: canonical load, validate, compute, report, and render pipeline steps
+- `src/report/`: report construction, rendering, and section assembly
 
-## Key contracts it owns/consumes
-Report JSON (`report.json`) and HTML bundle (`report_bundle/index.html`) outputs.
+## Contracts and operating rules
+- report structure: `docs/REPORT_CONTRACT.md`
+- decision semantics: `docs/DECISIONS.md`
+- schema compatibility: `docs/SCHEMA.md`
+- determinism: `docs/DETERMINISM.md`
+- change policy: `docs/CHANGE_RULES.md`
 
-## Effects & determinism guarantees
-Pure computation + report rendering; deterministic outputs. See `crates/bijux-dna-analyze/docs/EFFECTS.md` and `crates/bijux-dna-analyze/docs/DETERMINISM.md`.
-
-## Report artifacts
-- `report.json`
-- `report_bundle/index.html`
-
-## Artifacts / Contracts
-- `report.json` contract: `crates/bijux-dna-analyze/docs/REPORT_CONTRACT.md` + `tests/contracts/report_contract.rs`.
-- Report bundle structure: `crates/bijux-dna-analyze/docs/REPORT_CONTRACT.md` + `tests/report/report_contract.rs`.
-- Failure hints contract: `crates/bijux-dna-analyze/docs/FAILURE_TAXONOMY.md` + `tests/contracts/failure_hints.rs`.
-
-## Performance budgets are enforced
-See `crates/bijux-dna-analyze/docs/PERFORMANCE_BUDGET.md` and `tests/report/performance_budget.rs`.
-Budget expectations are: size caps and runtime ceilings; violations fail tests.
-
-## Interpretation guide
-Start with `crates/bijux-dna-analyze/docs/INTERPRETATION.md`.
-
-## Failure taxonomy
-See `crates/bijux-dna-analyze/docs/FAILURE_TAXONOMY.md` and `tests/contracts/failure_hints.rs`.
-
-## How to run its tests
-See `crates/bijux-dna-analyze/docs/TESTS.md`. Golden tests: `tests/report/report_contract.rs`,
-`tests/report/report_determinism.rs`, `tests/report/performance_budget.rs`,
-`tests/contracts/contract_handshake.rs`.
-
-## Where the docs live
-Start at `crates/bijux-dna-analyze/docs/INDEX.md` and follow the crate docs listed above.
-
-## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
-
-## Stability
-Contract and behavior changes follow `crates/bijux-dna-analyze/docs/CHANGE_RULES.md`.
+## Tests
+See `docs/TESTS.md` for the full map. The test tree is split by enduring intent:
+- `tests/boundaries.rs`: architecture and public-surface guardrails
+- `tests/contracts.rs`: report, facts, pipeline, and public contract behavior
+- `tests/determinism.rs`: fixture stability guarantees
+- `tests/schemas.rs`: SQLite schema and migration coverage
+- `tests/semantics.rs`: ranking and decision semantics

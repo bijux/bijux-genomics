@@ -1,13 +1,12 @@
 # bijux-dna-analyze Test Taxonomy
 
 Intent buckets in this crate:
+- `boundaries`: architecture tree, ownership, and public-surface guardrails
+- `contracts`: user-visible artifact, pipeline, facts, and API behavior contracts
+- `determinism`: stable fixture and serialization behavior
+- `schemas`: SQLite compatibility and schema evolution checks
+- `semantics`: ranking, comparison, and decision-trace meaning
 
-- \: layering and ownership guardrails.
-- \: API/data/schema behavioral contracts.
-- \: reproducibility and stable-output checks.
-- \: schema/public-surface stability snapshots.
-
-Speed model:
-
-- **fast**: unit/contract tests without large fixtures or external tool execution.
-- **slow**: heavy integration/snapshot regeneration tests; run in slow gate only.
+Supporting directories:
+- `fixtures/`: durable test inputs
+- `snapshots/`: blessed contract outputs
