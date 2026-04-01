@@ -1,5 +1,5 @@
 mod args;
-mod dispatch;
+mod commands;
 mod manifest;
 
 use clap::Parser;
@@ -11,7 +11,7 @@ pub(crate) fn run() -> anyhow::Result<()> {
 
     match cli.command {
         Command::Query(args) => {
-            let (manifest, _) = dispatch::execute_query(&args)?;
+            let (manifest, _) = commands::execute_query(&args)?;
             manifest::write_manifest(&args.manifest_out, &manifest)?;
             println!(
                 "query complete: {} records -> {}",
@@ -20,7 +20,7 @@ pub(crate) fn run() -> anyhow::Result<()> {
             );
         }
         Command::Download(args) => {
-            let (manifest, dl_cfg) = dispatch::execute_download(&args)?;
+            let (manifest, dl_cfg) = commands::execute_download(&args)?;
             manifest::write_manifest(&args.shared.manifest_out, &manifest)?;
             let report = bijux_dna_db_ena::download_tasks(
                 &bijux_dna_db_ena::download::build_download_tasks(&manifest.records, &dl_cfg),

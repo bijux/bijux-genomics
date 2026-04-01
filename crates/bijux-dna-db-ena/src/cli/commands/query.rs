@@ -5,7 +5,7 @@ use bijux_dna_db_ena::{
     EnaSourcePreference,
 };
 
-use super::args::{DownloadArgs, SharedArgs};
+use crate::cli::args::SharedArgs;
 
 pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, DownloadConfig)> {
     let query = EnaQuery {
@@ -36,14 +36,5 @@ pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, Downlo
     config.preference = preference;
     config.dry_run = true;
 
-    Ok((manifest, config))
-}
-
-pub(crate) fn execute_download(args: &DownloadArgs) -> Result<(EnaRunManifest, DownloadConfig)> {
-    let (manifest, mut config) = execute_query(&args.shared)?;
-    config.output_dir.clone_from(&args.shared.output_dir);
-    config.jobs = args.jobs;
-    config.retries = args.retries;
-    config.dry_run = args.dry_run;
     Ok((manifest, config))
 }
