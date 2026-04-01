@@ -3,8 +3,11 @@ use crate::commands::support::prelude::{
 };
 
 use super::{
-    explain::explain_fastq_stage, list_adapter_presets, list_adapters, load_adapter_selection,
-    print_bank_presets, tool_policy::tool_tier_label,
+    adapter_discovery::{
+        list_adapter_presets, list_adapters, load_adapter_selection, print_bank_presets,
+    },
+    explain::explain_fastq_stage,
+    tool_policy::tool_tier_label,
 };
 
 pub(super) fn handle_fastq_discovery(
