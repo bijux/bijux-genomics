@@ -67,10 +67,16 @@ fn pipelines_tree_matches_architecture_contract() {
             "OWNER.toml",
             "defaults.rs",
             "mod.rs",
-            "profiles.rs",
+            "profiles/",
             "required_stages.rs",
         ]),
         "fastq-to-bam cross namespace must keep defaults, profiles, and required stages separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/cross/fastq_to_bam/profiles")),
+        entries(["ancient_dna_profile.rs", "default_profile.rs", "mod.rs"]),
+        "fastq-to-bam profile namespace must separate modern and ancient-dna profile families"
     );
 
     assert_eq!(
@@ -94,8 +100,14 @@ fn pipelines_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/registry/catalog")),
-        entries(["OWNER.toml", "mod.rs", "queries.rs"]),
+        entries(["OWNER.toml", "mod.rs", "queries/"]),
         "registry catalog namespace must keep assembly and query behavior separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/registry/catalog/queries")),
+        entries(["domain_queries.rs", "mod.rs", "stability_filter.rs"]),
+        "registry catalog query namespace must separate stability and domain filters"
     );
 
     assert_eq!(
@@ -122,24 +134,31 @@ fn pipelines_tree_matches_architecture_contract() {
         entries([
             "OWNER.toml",
             "adna.rs",
+            "analysis_params.rs",
+            "analysis_tools.rs",
             "mod.rs",
             "param_defaults.rs",
+            "preprocess_params.rs",
+            "preprocess_tools.rs",
+            "rationales.rs",
             "reference_adna.rs",
             "stage_order.rs",
             "tooling.rs",
         ]),
-        "fastq defaults namespace must keep stage order, tools, params, and preset policy separated"
+        "fastq defaults namespace must keep preprocess vs analysis defaults and rationale assembly separated"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/fastq/profiles")),
         entries([
             "OWNER.toml",
+            "ancient_dna_profiles.rs",
+            "baseline_profiles.rs",
             "catalog.rs",
             "contract_templates.rs",
             "mod.rs"
         ]),
-        "fastq profiles namespace must keep identity and profile templates separated"
+        "fastq profiles namespace must keep baseline and ancient-dna families separated"
     );
 
     assert_eq!(
@@ -147,11 +166,18 @@ fn pipelines_tree_matches_architecture_contract() {
         entries([
             "OWNER.toml",
             "mod.rs",
-            "preset_rules.rs",
+            "preset_rules/",
             "report.rs",
-            "required_rules.rs"
+            "required_rules.rs",
+            "stage_params.rs"
         ]),
-        "fastq invariants namespace must keep report contracts and rule families separated"
+        "fastq invariants namespace must keep report contracts, stage params, and rule families separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/fastq/invariants/preset_rules")),
+        entries(["ancient_dna_rules.rs", "mod.rs", "reference_adna_rules.rs"]),
+        "fastq preset invariant namespace must separate ancient-dna and reference-grade rules"
     );
 
     assert_eq!(
