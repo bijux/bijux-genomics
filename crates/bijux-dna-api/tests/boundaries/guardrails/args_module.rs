@@ -1,7 +1,7 @@
 use walkdir::WalkDir;
 
 #[test]
-fn args_module_is_named_request_args() {
+fn args_module_uses_explicit_contract_names() {
     let root = crate::support::crate_src("bijux-dna-api")
         .unwrap_or_else(|err| panic!("resolve crate src: {err}"));
     let mut offenders = Vec::new();
@@ -18,7 +18,7 @@ fn args_module_is_named_request_args() {
 
     assert!(
         offenders.is_empty(),
-        "args.rs is forbidden; use request_args.rs only.\nOffenders:\n{}",
+        "args.rs is forbidden; use explicit names such as request_contracts.rs.\nOffenders:\n{}",
         offenders.join("\n")
     );
 }

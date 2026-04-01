@@ -1,10 +1,10 @@
 # bijux-dna-api
 
 ## What this crate does
-Public API surface for orchestration endpoints and schemas.
+Public API surface for versioned orchestration endpoints, schema contracts, and runtime-facing API adapters.
 
 ## What it must not do (boundaries)
-No direct engine or runner calls. The API orchestrates planners and reads runtime artifacts only.
+It must not own stage-specific execution behavior, domain registry loading rules, or environment/runtime implementation details outside its adapter layer.
 
 ## Effects & determinism guarantees
 Deterministic request handling for the same inputs; no side effects beyond HTTP I/O.
@@ -47,6 +47,13 @@ Most failures surface as schema drift (snapshot diffs) or handler contract misma
 ## Internal handlers (non-public)
 `src/internal/*` is not public API and may change at any time. It is for wiring and adapters only.
 
+## Where to start in code
+- `src/v1/` for the stable public surface.
+- `src/surface/` for request and explainability contracts that feed the public API.
+- `src/runtime/` for execution/reporting adapters, runtime validation, and invocation policy.
+- `src/support/` for workspace resolution, registry loading, QA hooks, and tool eligibility policy.
+- `src/internal/` for non-public handler wiring and domain-specific adapters.
+
 ## Request flow
 See `crates/bijux-dna-api/docs/REQUEST_FLOW.md` for how requests map to planners, engine, and runtime artifacts.
 
@@ -54,8 +61,7 @@ See `crates/bijux-dna-api/docs/REQUEST_FLOW.md` for how requests map to planners
 See `crates/bijux-dna-api/docs/INDEX.md`, `crates/bijux-dna-api/docs/API.md`, `crates/bijux-dna-api/docs/API_STABILITY.md`, `crates/bijux-dna-api/docs/REQUEST_FLOW.md`, `crates/bijux-dna-api/docs/BOUNDARIES.md`, `crates/bijux-dna-api/docs/CHANGE_RULES.md`.
 
 ## How to run its tests
-See `crates/bijux-dna-api/docs/TESTS.md`. Key tests: `tests/schemas/api_stability.rs`, `tests/schemas/schema_snapshots.rs`,
-`tests/contracts/v1_fastq_contract.rs`, `tests/contracts/v1_bam_contract.rs`, `tests/contracts/v1_cross_contract.rs`.
+See `crates/bijux-dna-api/docs/TESTS.md`. Key tests: `tests/schemas/v1_cross_api_stability.rs`, `tests/schemas/v1_cross_docs_schema_snapshots.rs`, `tests/contracts/v1_cross_public_contract.rs`, `tests/contracts/v1_cross_contract_spine.rs`, `tests/boundaries/architecture.rs`.
 
 ## Where the docs live
 Start at `crates/bijux-dna-api/docs/INDEX.md`, then follow the API and stability docs above.

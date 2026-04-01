@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, bail, Context};
 use bijux_dna_core::contract::ExecutionStep;
 
-use super::{ToolInvocationRequest, Result};
+use super::{Result, ToolInvocationRequest};
 
 pub(super) fn canonicalize_existing(path: &Path) -> Result<PathBuf> {
     if path.exists() {

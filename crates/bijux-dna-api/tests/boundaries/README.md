@@ -1,3 +1,3 @@
 # bijux-dna-api boundaries
 
-This directory is reserved for boundaries tests by intent taxonomy.
+This directory owns architecture and guardrail coverage for the crate surface.
