@@ -1,3 +1,3 @@
 # bijux-dna-testkit determinism
 
-This directory is reserved for determinism tests by intent taxonomy.
+Reserved for future determinism-specific testkit coverage.

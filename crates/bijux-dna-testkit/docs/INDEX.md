@@ -1,6 +1,7 @@
 # bijux-dna-testkit Docs Index
 
 This crate exists for shared fixtures and lightweight test helpers.
+Its source tree is partitioned into deterministic support, fixtures, snapshots, temp paths, and workspace support.
 
 ## Scope
 See `SCOPE.md` for what belongs here.

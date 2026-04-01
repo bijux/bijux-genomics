@@ -1,46 +1,41 @@
 # bijux-dna-testkit
 
 ## What this crate does
-Deterministic test helpers for fixtures and snapshots.
-Standardizes:
-- fixture layout conventions
-- canonical JSON ordering
-- deterministic filesystem helpers
+Provides deterministic test support for fixtures, snapshots, temporary paths, and workspace-aware test helpers.
+The tree is partitioned by support concern rather than by generic helper buckets.
 
 ## What it must not do (boundaries)
 No domain logic or production dependencies.
-This crate must remain a tiny, test-only helper.
-Hard rule: testkit must not depend on engine or runner crates.
+This crate must remain a test-only support crate with explicit namespaces and no product runtime behavior.
 
 ## Role in the stack
 Upstream: none. Downstream: tests across workspace.
 
 ## Public API / entrypoints
-See `crates/bijux-dna-testkit/docs/INDEX.md`, `crates/bijux-dna-testkit/docs/PUBLIC_API.md`, `crates/bijux-dna-testkit/docs/FIXTURE_STANDARDS.md`,
-`crates/bijux-dna-testkit/docs/ADD_FIXTURE.md`, `crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md`, `crates/bijux-dna-testkit/docs/USAGE.md`,
-`crates/bijux-dna-testkit/docs/ARCHITECTURE.md`, `crates/bijux-dna-testkit/docs/CHANGE_RULES.md`.
+- Stable root re-exports cover `FixedClock`, `fixed_rng`, fixture readers, snapshot normalization, temporary path helpers, and workspace support.
+- Public modules are `determinism`, `fixtures`, `public_api`, `snapshots`, `temp`, and `workspace_support`.
+- `public_api/` mirrors the curated root surface so internal layout can evolve behind one stable namespace.
 
 ## Key contracts it owns/consumes
-Test-only helpers.
+Owns the deterministic snapshot normalization contract, fixture-reading helpers, and temporary-path support used across the workspace test suites.
 
 ## Artifacts / Contracts
-See `crates/bijux-dna-testkit/docs/FIXTURE_STANDARDS.md`, `crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md`, and `crates/bijux-dna-testkit/docs/PUBLIC_API.md`.
+See `crates/bijux-dna-testkit/docs/FIXTURE_STANDARDS.md`, `crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md`, `crates/bijux-dna-testkit/docs/PUBLIC_API.md`, and `crates/bijux-dna-testkit/docs/ARCHITECTURE.md`.
 
 ## Effects & determinism guarantees
-Test-only utilities; deterministic output. See `crates/bijux-dna-testkit/docs/EFFECTS.md` and the golden tests below.
+Test-only filesystem helpers and deterministic normalization. Snapshot text, snapshot JSON, fixture reading, and temp-path helpers are owned in separate source namespaces.
 
 ## How to run its tests
-See `crates/bijux-dna-testkit/docs/TESTS.md`. Tests: `tests/docs_lightweight.rs`, `tests/public_api_surface.rs`,
-`tests/public_api_snapshot.rs`, `tests/dev_dep_boundary.rs`.
+See `crates/bijux-dna-testkit/docs/TESTS.md`. Stable entrypoints are `tests/boundaries.rs`, `tests/contracts.rs`, `tests/determinism.rs`, `tests/guardrails.rs`, and `tests/schemas.rs`.
 
 ## Where the docs live
 Start at `crates/bijux-dna-testkit/docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
-`src/lib.rs` → `src/snapshots` (canonical JSON ordering)
+`src/lib.rs` → `src/public_api/` for surface contracts, then `src/snapshots/`, `src/determinism/`, `src/fixtures/`, `src/temp/`, and `src/workspace_support/`.
 
 ## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
+Primary failures surface as public-surface drift, snapshot normalization regressions, or test-support layout violations.
 
 ## Stability
 Contract and behavior changes follow `crates/bijux-dna-testkit/docs/CHANGE_RULES.md`.

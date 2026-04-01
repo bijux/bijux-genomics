@@ -1,25 +1,24 @@
 # Tests
 
 ## What
-Maps tests in this crate to their purpose and failure meaning.
+Maps the stable test entrypoints and intent directories for the testkit crate.
 
 ## Why
-Tests should explain the contract they enforce.
+The crate is small, so the test tree should be explicit and durable.
 
-## Non-goals
-- Full test implementation detail.
+## Entry points
+- `tests/boundaries.rs` — boundary and source-tree guardrails.
+- `tests/contracts.rs` — reserved contract-suite entrypoint for future test-support contracts.
+- `tests/determinism.rs` — reserved determinism-suite entrypoint for future reproducibility checks.
+- `tests/guardrails.rs` — crate-local guardrail smoke test.
+- `tests/schemas.rs` — public API, docs, and snapshot normalization checks.
 
-## Contracts
-- Each test file should be referenced here.
+## Intent directories
+- `tests/boundaries/` — dependency and layout boundaries.
+- `tests/contracts/` — contract-oriented tests and fixtures.
+- `tests/determinism/` — determinism-focused tests and notes.
+- `tests/schemas/` — public API and normalization contracts.
+- `tests/snapshots/` — locked snapshots for public surface checks.
 
-## Suite map
-- `tests/guardrails.rs` → boundary checks and dependency rules.
-- `tests/public_api_surface.rs` → public API stays tiny.
-- `tests/public_api_snapshot.rs` → public API snapshot lock.
-- `tests/dev_dep_boundary.rs` → testkit is dev-only and isolated.
-
-## Fixture guidance
-See `docs/ADD_FIXTURE.md` and `docs/FIXTURE_STANDARDS.md`.
-
-## Failure modes
-- Missing test documentation causes drift and confusion.
+## Source-tree contract
+- `tests/boundaries/architecture_tree.rs` locks the crate tree to the documented namespace layout.
