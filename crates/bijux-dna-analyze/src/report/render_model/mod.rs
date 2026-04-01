@@ -1,6 +1,8 @@
 //! Owner: bijux-dna-analyze
 //! Typed report model for renderers.
 
+mod construction;
+
 use bijux_dna_runtime::{ReportProvenanceV1, ReportSchemaV1};
 use std::collections::BTreeMap;
 
@@ -13,17 +15,4 @@ pub struct ReportModel {
     pub tables: BTreeMap<String, JsonBlob>,
     pub warnings: Vec<String>,
     pub provenance: Option<ReportProvenanceV1>,
-}
-
-impl ReportModel {
-    #[must_use]
-    pub fn empty(report: ReportSchemaV1) -> Self {
-        Self {
-            report,
-            sections: BTreeMap::new(),
-            tables: BTreeMap::new(),
-            warnings: Vec::new(),
-            provenance: None,
-        }
-    }
 }
