@@ -10,6 +10,7 @@ pub mod aggregate;
 mod api;
 mod contracts;
 pub mod decision;
+mod diagnostics;
 pub mod exports;
 pub mod failure;
 pub mod load;
