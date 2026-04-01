@@ -15,29 +15,11 @@ pub mod failure;
 pub mod load;
 pub mod model;
 mod pipeline;
+pub mod public_api;
 pub mod report;
 mod semantics;
 
-pub use aggregate::*;
-pub use api::{
-    AnalyzeInput, AnalyzeMetricId, AnalyzeMode, AnalyzeOptions, AnalyzeOutput, AnalyzeSources,
-    RenderOptions,
-};
-pub use bijux_dna_core::metrics::MetricSet;
-pub use contract::{analyze_contract_v1, AnalyzeContractV1};
-pub use decision::compare::compare_runs;
-pub use failure::*;
-pub use load::*;
-pub use report::*;
-pub use semantics::metrics::{metric_semantics, MetricDirection};
-
-pub mod compare {
-    pub use crate::decision::compare::*;
-}
-
-pub mod ranking {
-    pub use crate::decision::score::*;
-}
+pub use public_api::*;
 
 /// Analyze a run through the canonical pipeline.
 ///
@@ -49,8 +31,3 @@ pub mod ranking {
 pub fn analyze_run(input: &AnalyzeInput) -> anyhow::Result<AnalyzeOutput> {
     pipeline::analyze_run_pipeline(input)
 }
-
-pub use crate::decision::score::{
-    build_rankings, decision_trace_for_input, print_rank_explain, RankInput, RankingEntry,
-    RankingMode, ScoreBreakdown,
-};
