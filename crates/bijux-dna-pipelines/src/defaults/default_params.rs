@@ -17,10 +17,8 @@ use bijux_dna_domain_fastq::params::trim::{
 use bijux_dna_domain_fastq::params::umi::FastqUmiParams;
 use bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams;
 use bijux_dna_domain_vcf::params::VcfEffectiveParams;
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct EmptyParams {}
+use super::EmptyParams;
 
 #[derive(Debug, Clone)]
 pub enum DefaultParams {
