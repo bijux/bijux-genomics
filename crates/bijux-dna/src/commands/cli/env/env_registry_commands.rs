@@ -1,15 +1,12 @@
-use crate::commands::benchmark_workspace::load_optional_benchmark_workspace_config;
+mod env_benchmark_roots;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct BenchmarkEnvRoots {
-    cache_root: PathBuf,
-    containers_root: PathBuf,
-    corpus_root: PathBuf,
-    results_root: PathBuf,
-}
+use self::env_benchmark_roots::{benchmark_env_roots, shared_cache_root, BenchmarkEnvRoots};
 
 fn declared_registry_text<'a>(value: Option<&'a str>, fallback: &'static str) -> &'a str {
-    value.map(str::trim).filter(|entry| !entry.is_empty()).unwrap_or(fallback)
+    value
+        .map(str::trim)
+        .filter(|entry| !entry.is_empty())
+        .unwrap_or(fallback)
 }
 
 fn apptainer_section_body<'a>(raw: &'a str, section: &str) -> Option<&'a str> {
@@ -18,63 +15,6 @@ fn apptainer_section_body<'a>(raw: &'a str, section: &str) -> Option<&'a str> {
         .and_then(|chunk| chunk.split("\n%").next())
         .map(str::trim)
         .filter(|chunk| !chunk.is_empty())
-}
-
-fn shared_cache_root(root: &Path) -> PathBuf {
-    if root
-        .file_name()
-        .and_then(|name| name.to_str())
-        .is_some_and(|name| name == ".cache")
-    {
-        return root.to_path_buf();
-    }
-    root.join(".cache")
-}
-
-fn benchmark_env_roots(cwd: &Path, hpc_root: &Path) -> Result<BenchmarkEnvRoots> {
-    if let Some(contract) = load_optional_benchmark_workspace_config(cwd, None)? {
-        if let Some(remote) = contract.remote {
-            if let (
-                Some(cache_root),
-                Some(containers_root),
-                Some(corpus_root),
-                Some(results_root),
-            ) = (
-                remote.cache_root,
-                remote.containers_root,
-                remote.corpus_root,
-                remote.results_root,
-            ) {
-                return Ok(BenchmarkEnvRoots {
-                    cache_root: PathBuf::from(cache_root),
-                    containers_root: PathBuf::from(containers_root),
-                    corpus_root: PathBuf::from(corpus_root),
-                    results_root: PathBuf::from(results_root),
-                });
-            }
-        }
-    }
-    let cache_root = shared_cache_root(hpc_root);
-    let corpus_dir_name = benchmark_fallback_corpus_dir_name();
-    Ok(BenchmarkEnvRoots {
-        containers_root: cache_root.join("bijux-dna-container"),
-        corpus_root: cache_root.join(corpus_dir_name),
-        results_root: cache_root.join("results"),
-        cache_root,
-    })
-}
-
-fn benchmark_fallback_corpus_dir_name() -> String {
-    std::env::var("BIJUX_BENCHMARK_CORPUS_DIR")
-        .ok()
-        .filter(|value| !value.trim().is_empty())
-        .or_else(|| {
-            std::env::var("BIJUX_BENCHMARK_CORPUS_ID")
-                .ok()
-                .map(|value| value.replace('-', "_"))
-                .filter(|value| !value.trim().is_empty())
-        })
-        .unwrap_or_else(|| "corpus".to_string())
 }
 
 /// # Errors
@@ -483,7 +423,12 @@ pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
                 .and_then(|v| v.to_str())
                 .map(str::trim)
                 .filter(|value| !value.is_empty())
-                .ok_or_else(|| anyhow!("SIF path missing governed tool directory: {}", path.display()))?
+                .ok_or_else(|| {
+                    anyhow!(
+                        "SIF path missing governed tool directory: {}",
+                        path.display()
+                    )
+                })?
                 .to_string();
             let digest = hash_file_sha256_hex(&path)?;
             let stem = path
@@ -554,7 +499,9 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod env_registry_command_tests {
-    use super::{benchmark_env_roots, requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots};
+    use super::{
+        benchmark_env_roots, requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots,
+    };
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
 
