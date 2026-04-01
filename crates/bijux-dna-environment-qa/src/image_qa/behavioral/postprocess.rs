@@ -1,3 +1,23 @@
+use std::collections::HashMap;
+use std::time::Duration;
+
+use anyhow::{anyhow, Context, Result};
+use uuid::Uuid;
+
+use bijux_dna_core::contract::ToolRegistry;
+use bijux_dna_domain_fastq::{STAGE_EXTRACT_UMIS, STAGE_PROFILE_READS, STAGE_REPORT_QC};
+
+use crate::api::{PlatformSpec, ToolImageSpec};
+use crate::image_qa::fs::temp_out_dir;
+use crate::image_qa::support::{
+    docker_rm, output_fastq_stats, resolve_image_for_run, run_multiqc_container_with_timeout,
+    run_tool_container_with_timeout, run_validate_container_with_timeout,
+    validate_execution_outputs, ResolvedImage,
+};
+use crate::image_qa::QaDataset;
+
+const QA_TIMEOUT_SECS: u64 = 300;
+
 pub(crate) fn qa_qc_post_tool(
     tool: &str,
     platform: &PlatformSpec,
@@ -208,13 +228,6 @@ pub(crate) fn tool_contract<'a>(
     Ok(&tool.execution_contract)
 }
 
-fn dir_has_files(path: &std::path::Path) -> bool {
-    match std::fs::read_dir(path) {
-        Ok(mut iter) => iter.next().is_some(),
-        Err(_) => false,
-    }
-}
-
 pub(crate) fn find_fastq_in_dir(dir: &std::path::Path) -> Result<std::path::PathBuf> {
     let entries = std::fs::read_dir(dir).context("read output dir")?;
     for entry in entries {
@@ -228,6 +241,13 @@ pub(crate) fn find_fastq_in_dir(dir: &std::path::Path) -> Result<std::path::Path
         }
     }
     Err(anyhow!("output FASTQ not found in {}", dir.display()))
+}
+
+fn dir_has_files(path: &std::path::Path) -> bool {
+    match std::fs::read_dir(path) {
+        Ok(mut iter) => iter.next().is_some(),
+        Err(_) => false,
+    }
 }
 
 fn is_fastq_path(path: &std::path::Path) -> bool {
@@ -248,22 +268,3 @@ fn is_fastq_path(path: &std::path::Path) -> bool {
     }
     false
 }
-use std::collections::HashMap;
-use std::time::Duration;
-
-use anyhow::{anyhow, Context, Result};
-use uuid::Uuid;
-
-use bijux_dna_core::contract::ToolRegistry;
-use bijux_dna_domain_fastq::{STAGE_EXTRACT_UMIS, STAGE_PROFILE_READS, STAGE_REPORT_QC};
-
-use crate::api::{PlatformSpec, ToolImageSpec};
-use crate::image_qa::fs::temp_out_dir;
-use crate::image_qa::support::{
-    docker_rm, output_fastq_stats, resolve_image_for_run, run_multiqc_container_with_timeout,
-    run_tool_container_with_timeout, run_validate_container_with_timeout,
-    validate_execution_outputs, ResolvedImage,
-};
-use crate::image_qa::QaDataset;
-
-const QA_TIMEOUT_SECS: u64 = 300;
