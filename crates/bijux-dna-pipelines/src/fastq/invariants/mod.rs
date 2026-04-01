@@ -2,8 +2,8 @@
 
 use std::collections::BTreeSet;
 
-use bijux_dna_core::prelude::id_catalog;
 use crate::PipelineProfile;
+use bijux_dna_core::prelude::id_catalog;
 
 mod preset_rules;
 mod report;
@@ -11,9 +11,9 @@ mod required_rules;
 mod stage_params;
 
 use preset_rules::push_preset_rule_violations;
+use report::violation;
 pub use report::{FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS};
 use required_rules::push_required_rule_violations;
-use report::violation;
 
 const CORE_FASTQ_STAGES: [&str; 5] = [
     id_catalog::FASTQ_VALIDATE_PRE,

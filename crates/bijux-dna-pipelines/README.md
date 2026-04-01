@@ -25,7 +25,7 @@ The defaults ledger records effective defaults, tool selections, and provenance 
 Changes are guarded by snapshot tests; update only when the contract changes intentionally.
 
 ## Registry authority
-Pipeline IDs are validated through `src/registry/pipeline_id.rs`, profile families are assembled under `src/registry/families/`, and the stable queryable registry lives under `src/registry/catalog/`.
+Pipeline IDs are validated through `src/registry/pipeline_id.rs`, profile families are assembled under `src/registry/families/`, and the stable queryable registry lives under `src/registry/catalog/queries/`.
 
 ## What it must not do (boundaries)
 No execution or runtime tool discovery; this crate only declares canonical stage-to-tool assignments.
@@ -60,9 +60,11 @@ Start at `crates/bijux-dna-pipelines/docs/INDEX.md` and follow the crate docs li
 - `src/public_api/` for the curated stable surface.
 - `src/contract/` for pipeline profile and invariant contracts.
 - `src/defaults/` for defaults ledgers, parameter envelopes, and override merging.
-- `src/fastq/defaults/`, `src/fastq/profiles/`, and `src/fastq/invariants/` for the FASTQ profile contract stack.
-- `src/registry/` for pipeline id validation, profile families, registry catalog assembly, and lookups.
-- `src/cross/fastq_to_bam/` for the cross-domain handoff profiles.
+- `src/fastq/defaults/` for preprocess vs analysis defaults, rationale assembly, and preset overrides.
+- `src/fastq/profiles/` for baseline and ancient-DNA FASTQ profile families.
+- `src/fastq/invariants/` for required rules, typed stage-param access, and preset-specific FASTQ invariants.
+- `src/registry/` for pipeline id validation, profile families, registry catalog assembly, and query behavior.
+- `src/cross/fastq_to_bam/profiles/` for the cross-domain handoff profile families.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
