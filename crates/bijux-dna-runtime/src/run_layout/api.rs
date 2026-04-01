@@ -1,13 +1,11 @@
-use std::path::Path;
-
-use anyhow::{Context, Result};
-use chrono::{DateTime, Utc};
+use anyhow::Result;
 use bijux_dna_core::contract::canonical::to_canonical_json_bytes;
 use bijux_dna_core::contract::RunMetadataV1;
+use chrono::{DateTime, Utc};
 
 use crate::recording::write_canonical_json;
 
-use super::{RunEnvironment, RunManifest};
+use super::{RunEnvironment, RunLayout, RunManifest};
 
 /// Write the environment fingerprint.
 ///
