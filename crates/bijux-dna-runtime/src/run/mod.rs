@@ -3,7 +3,6 @@
 mod identity;
 mod paths;
 mod profile;
+mod stable_surface;
 
-pub use identity::new_run_id;
-pub use paths::resolve_run_base_dir;
-pub use profile::load_profile;
+pub use stable_surface::*;
