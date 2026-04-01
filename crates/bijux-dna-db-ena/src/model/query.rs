@@ -1,5 +1,5 @@
-use thiserror::Error;
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use super::EnaResultKind;
 

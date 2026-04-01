@@ -1,13 +1,22 @@
 # PUBLIC_API
 
-## Stable surface
-- client
-  - ENA filereport query construction and parsing.
-- download
-  - Deterministic download planning and execution.
-- model
-  - Typed ENA row/model normalization.
+The crate root preserves the durable module surface:
+- `client`
+- `download`
+- `model`
 
-## Compatibility notes
-- CLI flags and JSON output are versioned by the binary crate.
-- Internal structs may evolve; serialized artifacts must remain backward-compatible when persisted.
+`src/public_api/mod.rs` curates the stable re-exports:
+- `EnaClient`
+- `download_tasks`
+- `DownloadConfig`
+- `DownloadReport`
+- `DownloadTask`
+- `EnaFileSource`
+- `EnaQuery`
+- `EnaRecord`
+- `EnaResultKind`
+- `EnaRunManifest`
+- `EnaSourcePreference`
+
+New stable exports should be added to `src/public_api/mod.rs`, not spread directly through
+`src/lib.rs`.

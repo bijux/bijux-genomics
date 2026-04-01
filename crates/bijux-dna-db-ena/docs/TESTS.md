@@ -1,11 +1,16 @@
 # TESTS
 
-## Unit tests
-- `client` URL/query and TSV parsing tests.
-- `download` plan materialization tests.
-- `model` normalization tests.
+## Unit coverage
+- `client` tests cover filereport URL construction and TSV decoding
+- `download` tests cover deterministic task planning
+- `model` tests cover normalization and source-selection helpers
 
-## Guardrails
-- `tests/guardrails.rs` validates workspace guardrail conventions for this crate.
-- `tests/boundaries.rs` aggregates boundary policies for the crate test surface.
-- `tests/boundaries/architecture.rs` locks the expected crate tree and top-level ownership.
+## Integration coverage
+- `tests/guardrails.rs` validates workspace guardrail conventions for this crate
+- `tests/boundaries.rs` aggregates source-tree architecture checks
+- `tests/boundaries/architecture.rs` locks the expected crate tree
+
+## Reserved suites
+- `tests/contracts/`: future user-visible ENA contract tests
+- `tests/determinism/`: future reproducibility and stable-output assertions
+- `tests/schemas/`: future persisted-schema or public-surface snapshots

@@ -41,13 +41,15 @@ pub(super) fn download_tasks(
     let failed_outputs = pool.install(|| {
         tasks
             .par_iter()
-            .filter_map(|task| match transfer::download_one(task, config.retries, &http) {
-                Ok(()) => {
-                    downloaded.fetch_add(1, Ordering::Relaxed);
-                    None
-                }
-                Err(_) => Some(task.output.clone()),
-            })
+            .filter_map(
+                |task| match transfer::download_one(task, config.retries, &http) {
+                    Ok(()) => {
+                        downloaded.fetch_add(1, Ordering::Relaxed);
+                        None
+                    }
+                    Err(_) => Some(task.output.clone()),
+                },
+            )
             .collect::<Vec<_>>()
     });
 

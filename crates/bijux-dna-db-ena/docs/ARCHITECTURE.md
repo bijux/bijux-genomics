@@ -1,9 +1,11 @@
 # Architecture
 
 ## Goals
-- Keep the library root thin and stable.
-- Separate ENA domain models, request parsing, and download execution by concern.
-- Keep the binary entrypoint thin by delegating CLI command dispatch into dedicated modules.
+- keep the library root thin and explicit
+- separate binary launch, CLI assembly, client protocol handling, download execution, and model
+  contracts by enduring concern
+- preserve stable `client`, `download`, and `model` module paths while curating a higher-level
+  public API facade
 
 ## Source tree
 
@@ -11,49 +13,54 @@
 src/
 ├── cli/
 │   ├── args.rs
-│   ├── dispatch.rs
-│   ├── manifest.rs
+│   ├── commands/
+│   │   ├── download.rs
+│   │   ├── mod.rs
+│   │   └── query.rs
 │   └── mod.rs
+├── cli_entrypoint.rs
 ├── client/
 │   ├── error.rs
-│   ├── mod.rs
-│   ├── parse.rs
-│   └── request.rs
+│   ├── filereport/
+│   │   ├── headers.rs
+│   │   ├── mod.rs
+│   │   ├── request.rs
+│   │   └── rows.rs
+│   └── mod.rs
 ├── download/
 │   ├── config.rs
-│   ├── execute.rs
-│   ├── item.rs
 │   ├── mod.rs
+│   ├── output_layout.rs
 │   ├── plan.rs
-│   └── report.rs
+│   ├── report.rs
+│   ├── runtime.rs
+│   ├── task.rs
+│   └── transfer.rs
 ├── lib.rs
 ├── main.rs
+├── manifest_store.rs
 ├── model/
 │   ├── manifest.rs
 │   ├── mod.rs
 │   ├── query.rs
-│   └── record.rs
+│   ├── record.rs
+│   └── source_selection.rs
+└── public_api/
+    └── mod.rs
 ```
 
 ## Responsibilities
-- `lib.rs`: public library exports and enduring library entrypoint.
-- `model/`: ENA query, manifest, source, and record domain types.
-- `client/error.rs`: ENA client failure contract.
-- `client/request.rs`: filereport URL and field selection.
-- `client/parse.rs`: TSV decoding into normalized records.
-- `download/config.rs`: transfer configuration defaults and serialization.
-- `download/item.rs`: one planned file download.
-- `download/plan.rs`: deterministic download planning.
-- `download/execute.rs`: parallel download execution.
-- `download/report.rs`: transfer outcome summary.
-- `cli/`: binary-only argument parsing, command dispatch, and manifest writing.
+- `lib.rs`: stable module exports plus the curated API facade
+- `public_api/`: durable high-level re-exports
+- `cli_entrypoint.rs`: binary handoff only
+- `cli/commands/`: command-specific manifest and download assembly
+- `client/filereport/`: request-field contracts, header validation, and row decoding
+- `download/runtime.rs`: pool and HTTP runtime setup
+- `download/transfer.rs`: retried file transfer loop
+- `download/output_layout.rs`: output path naming policy
+- `model/source_selection.rs`: ENA result/source selection contracts
 
 ## Change rules
-- Add new root files only for enduring crate-level concerns.
-- Prefer focused submodules over growing `main.rs`, `client/mod.rs`, or `download/mod.rs`.
-- Update this map and the boundary tree contract together when the layout changes intentionally.
-
-## Pointers
-- `INDEX.md` for the documentation map.
-- `SCOPE.md` for crate boundaries.
-- `TESTS.md` for verification coverage.
+- add new root files only for enduring crate-level concerns
+- prefer focused submodules over growing `client/mod.rs`, `download/mod.rs`, or `cli/mod.rs`
+- update this map and the architecture boundary test together when the layout changes intentionally
