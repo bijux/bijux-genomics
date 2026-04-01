@@ -7,6 +7,7 @@ use super::BenchBamCommand;
 mod config;
 mod corpus_fastq;
 mod publication;
+mod suite;
 
 pub use self::config::{
     BenchConfigCommand, BenchConfigJsonArgs, BenchConfigValidateArgs,
@@ -18,6 +19,7 @@ pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,
     BenchCorpusFastqReportArgs, BenchPublicationTargetsArgs,
 };
+pub use self::suite::BenchRunArgs;
 
 #[derive(Debug, Subcommand)]
 pub enum BenchCommand {
@@ -58,14 +60,6 @@ pub enum BenchCommand {
     Schema {
         stage: String,
     },
-}
-
-#[derive(Debug, Args)]
-pub struct BenchRunArgs {
-    #[arg(long)]
-    pub suite: String,
-    #[arg(long, default_value_t = false)]
-    pub hpc: bool,
 }
 
 #[derive(Debug, Subcommand)]
