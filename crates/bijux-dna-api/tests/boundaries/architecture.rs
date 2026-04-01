@@ -109,13 +109,13 @@ fn api_tree_matches_architecture_contract() {
 
     let v1_entries = dir_entries(&root.join("src/v1"));
     let expected_v1: BTreeSet<_> = [
-        "api.rs",
+        "api/",
         "bam/",
-        "bench.rs",
-        "env.rs",
-        "fastq.rs",
+        "bench/",
+        "env/",
+        "fastq/",
         "mod.rs",
-        "pipelines.rs",
+        "pipelines/",
         "plan.rs",
         "report/",
         "run/",
@@ -125,6 +125,80 @@ fn api_tree_matches_architecture_contract() {
     .map(str::to_string)
     .collect();
     assert_eq!(v1_entries, expected_v1, "api v1 tree must stay curated");
+
+    let runtime_run_entries = dir_entries(&root.join("src/runtime/run"));
+    let expected_runtime_run: BTreeSet<_> = [
+        "execution/",
+        "execution_support.rs",
+        "mod.rs",
+        "planning/",
+        "reporting/",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        runtime_run_entries, expected_runtime_run,
+        "api runtime run tree must separate execution, planning, and reporting"
+    );
+
+    let runtime_run_planning_entries = dir_entries(&root.join("src/runtime/run/planning"));
+    let expected_runtime_run_planning: BTreeSet<_> = [
+        "mod.rs",
+        "planning_support.rs",
+        "profile_selection.rs",
+        "run_bootstrap.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        runtime_run_planning_entries, expected_runtime_run_planning,
+        "api runtime planning tree must separate selection, bootstrap, and planning support"
+    );
+
+    let runtime_run_execution_entries = dir_entries(&root.join("src/runtime/run/execution"));
+    let expected_runtime_run_execution: BTreeSet<_> =
+        ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        runtime_run_execution_entries, expected_runtime_run_execution,
+        "api runtime execution tree must keep the execution entry explicit"
+    );
+
+    let v1_api_entries = dir_entries(&root.join("src/v1/api"));
+    let expected_v1_api: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        v1_api_entries, expected_v1_api,
+        "api v1 front door must stay isolated in its own namespace"
+    );
+
+    let v1_bench_entries = dir_entries(&root.join("src/v1/bench"));
+    let expected_v1_bench: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        v1_bench_entries, expected_v1_bench,
+        "api v1 benchmark tree must stay isolated in its own namespace"
+    );
+
+    let v1_env_entries = dir_entries(&root.join("src/v1/env"));
+    let expected_v1_env: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        v1_env_entries, expected_v1_env,
+        "api v1 environment tree must stay isolated in its own namespace"
+    );
+
+    let v1_fastq_entries = dir_entries(&root.join("src/v1/fastq"));
+    let expected_v1_fastq: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        v1_fastq_entries, expected_v1_fastq,
+        "api v1 fastq tree must stay isolated in its own namespace"
+    );
+
+    let v1_pipelines_entries = dir_entries(&root.join("src/v1/pipelines"));
+    let expected_v1_pipelines: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        v1_pipelines_entries, expected_v1_pipelines,
+        "api v1 pipelines tree must stay isolated in its own namespace"
+    );
 
     let v1_run_entries = dir_entries(&root.join("src/v1/run"));
     let expected_v1_run: BTreeSet<_> = [
