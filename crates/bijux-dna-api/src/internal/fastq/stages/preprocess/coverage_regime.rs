@@ -80,7 +80,7 @@ pub(super) fn maybe_write_fastq_coverage_classifier(
 }
 
 fn load_coverage_thresholds_for_fastq(profile: &str) -> Result<FastqCoverageThresholds> {
-    let root = crate::support::repo_root::resolve_repo_root()?;
+    let root = crate::support::workspace::resolve_repo_root()?;
     let raw = std::fs::read_to_string(root.join("configs/runtime/coverage_regimes.toml"))?;
     let parsed: toml::Value = toml::from_str(&raw)?;
     let decision = parsed

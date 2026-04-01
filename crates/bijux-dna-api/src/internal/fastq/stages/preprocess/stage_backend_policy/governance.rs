@@ -47,7 +47,7 @@ pub(super) fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> 
 
 pub(super) fn required_fastq_tools() -> Result<std::collections::BTreeSet<String>> {
     let raw = std::fs::read_to_string(
-        crate::support::repo_root::resolve_repo_root()?
+        crate::support::workspace::resolve_repo_root()?
             .join("configs/ci/tools/required_tools.toml"),
     )?;
     let parsed: toml::Value = toml::from_str(&raw)?;

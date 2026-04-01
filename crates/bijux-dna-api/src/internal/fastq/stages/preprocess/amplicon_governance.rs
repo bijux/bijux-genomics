@@ -29,7 +29,7 @@ fn reference_assets_root() -> Result<PathBuf> {
     {
         return Ok(root);
     }
-    Ok(crate::support::repo_root::resolve_repo_root()?.join("assets/reference"))
+    Ok(crate::support::workspace::resolve_repo_root()?.join("assets/reference"))
 }
 
 fn governance_config_path() -> Result<PathBuf> {

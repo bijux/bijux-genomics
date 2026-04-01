@@ -244,7 +244,7 @@ mod tests {
         let mut settings = Settings::new();
         settings.set_prepend_module_to_snapshot(false);
         settings.set_snapshot_path(
-            crate::support::repo_root::resolve_repo_root()?
+            crate::support::workspace::resolve_repo_root()?
                 .join("crates/bijux-dna-api/tests/snapshots"),
         );
         settings.bind(|| {
