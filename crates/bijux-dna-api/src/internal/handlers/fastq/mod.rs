@@ -6,7 +6,7 @@ pub(crate) mod jobs;
 use crate::internal::fastq::stages;
 pub(crate) mod summary;
 
-pub(crate) use crate::internal::fastq::stage_catalog::{
+pub(crate) use crate::internal::fastq::stage_ids::{
     STAGE_CORRECT_ERRORS, STAGE_EXTRACT_UMIS, STAGE_FILTER_READS, STAGE_MERGE_PAIRS,
     STAGE_PREPROCESS_SUMMARY, STAGE_PROFILE_READS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
     STAGE_TRIM_POLYG_TAILS, STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
