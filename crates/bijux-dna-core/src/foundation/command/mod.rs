@@ -1,14 +1,5 @@
-use serde::{Deserialize, Serialize};
+mod command_spec;
+mod container_image_ref;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(deny_unknown_fields)]
-pub struct CommandSpecV1 {
-    pub template: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ContainerImageRefV1 {
-    pub image: String,
-    pub digest: Option<String>,
-}
+pub use command_spec::CommandSpecV1;
+pub use container_image_ref::ContainerImageRefV1;
