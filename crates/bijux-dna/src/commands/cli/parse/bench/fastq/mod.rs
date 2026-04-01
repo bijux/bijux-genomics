@@ -1,5 +1,6 @@
 mod preprocessing;
 mod quality;
+mod workflows;
 
 pub use self::preprocessing::{
     BenchFastqDetectAdaptersArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
@@ -7,19 +8,18 @@ pub use self::preprocessing::{
 };
 pub use self::quality::{
     BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqFilterLowComplexityArgs,
-    BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs,
-    BenchFastqQcPostArgs, BenchFastqRemoveDuplicatesArgs, BenchFastqStatsArgs,
+    BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs, BenchFastqQcPostArgs,
+    BenchFastqRemoveDuplicatesArgs, BenchFastqStatsArgs,
 };
-
-use clap::Subcommand;
-
-use super::{
+pub use self::workflows::{
     BenchFastqClusterOtusArgs, BenchFastqDepleteHostArgs,
     BenchFastqDepleteReferenceContaminantsArgs, BenchFastqDepleteRrnaArgs,
     BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs, BenchFastqMergeArgs,
     BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
     BenchFastqRemoveChimerasArgs, BenchFastqScreenArgs, BenchFastqUmiArgs,
 };
+
+use clap::Subcommand;
 
 #[derive(Debug, Subcommand)]
 pub enum BenchFastqCommand {
