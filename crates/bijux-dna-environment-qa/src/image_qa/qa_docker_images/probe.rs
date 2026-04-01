@@ -1,5 +1,5 @@
 use super::models::{ImageFailureReason, ImagePlan, ImageProbeKind, ImageTestOutcome, ProbeResult};
-use super::{log_debug, CommandRunner, Logger};
+use super::runtime::{log_debug, CommandRunner, Logger};
 
 pub(super) fn run_image_test(
     runner: &dyn CommandRunner,

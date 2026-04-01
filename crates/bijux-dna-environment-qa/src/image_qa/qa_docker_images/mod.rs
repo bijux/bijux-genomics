@@ -3,68 +3,14 @@ mod models;
 mod planning;
 mod probe;
 mod reporting;
-
-use std::process::{Command, Output};
+mod runtime;
 
 use args::parse_run_options;
 use models::{ImagePlan, ImageTestOutcome, Summary};
 use planning::{build_image_plans, filter_tools, load_platform_spec};
 use probe::run_image_test;
 use reporting::{log_discovered_images, log_header, log_summary};
-
-#[derive(Copy, Clone, Eq, PartialEq)]
-enum LogLevel {
-    Info,
-    Debug,
-}
-
-trait Logger {
-    fn log(&mut self, level: LogLevel, line: &str);
-    fn is_quiet(&self) -> bool;
-}
-
-struct StdoutLogger {
-    level: LogLevel,
-    quiet: bool,
-}
-
-impl StdoutLogger {
-    fn new(level: LogLevel, quiet: bool) -> Self {
-        Self { level, quiet }
-    }
-}
-
-impl Logger for StdoutLogger {
-    fn log(&mut self, level: LogLevel, line: &str) {
-        if level == LogLevel::Info || self.level == LogLevel::Debug {
-            println!("{line}");
-        }
-    }
-
-    fn is_quiet(&self) -> bool {
-        self.quiet
-    }
-}
-
-trait CommandRunner {
-    fn run(&self, args: &[&str]) -> Result<Output, std::io::Error>;
-}
-
-struct RealRunner;
-
-impl CommandRunner for RealRunner {
-    fn run(&self, args: &[&str]) -> Result<Output, std::io::Error> {
-        let mut cmd = Command::new(args[0]);
-        if args.len() > 1 {
-            cmd.args(&args[1..]);
-        }
-        cmd.output()
-    }
-}
-
-fn log_debug(logger: &mut dyn Logger, line: &str) {
-    logger.log(LogLevel::Debug, line);
-}
+use runtime::{CommandRunner, LogLevel, Logger, RealRunner, StdoutLogger};
 
 /// # Errors
 /// Returns an error if loading specs, building plans, or executing image checks fails.

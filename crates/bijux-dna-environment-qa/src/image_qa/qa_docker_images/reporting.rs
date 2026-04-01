@@ -1,7 +1,7 @@
 use bijux_dna_environment::resolve::RuntimeKind;
 
 use super::models::{ImagePlan, Summary};
-use super::{LogLevel, Logger};
+use super::runtime::{LogLevel, Logger};
 
 pub(super) fn log_header(
     logger: &mut dyn Logger,
