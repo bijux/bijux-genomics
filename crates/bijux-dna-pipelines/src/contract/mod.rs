@@ -3,6 +3,7 @@
 mod capabilities;
 mod invariants;
 mod profile;
+mod projections;
 
 pub use capabilities::{
     ArtifactType, Domain, MetricsBundle, PipelineCapabilities, PipelineContract, ReportSection,
