@@ -2,8 +2,11 @@
 
 ## Tree
 - `src/public_api/` mirrors the curated stable surface and root reexports, with a dedicated stable-surface owner instead of a single-file wrapper.
-- `src/contract/` owns pipeline profile, capability, invariant, and projection contracts.
-- `src/defaults/` owns defaults ledgers, parameter envelopes, serde codecs, and override merging.
+- `src/contract/` owns pipeline profile, manifest, capability, effective-default, invariant, and vocabulary contracts.
+- `src/contract/projections/` separates defaults-ledger, pipeline-contract, and manifest/hash projections.
+- `src/defaults/` owns defaults ledgers, typed default-parameter envelopes, empty-param markers, serde codecs, and override merging.
+- `src/defaults/merge/` separates merge orchestration from override application and override validation.
+- `src/defaults/serde_codec/` separates defaults serialization from defaults deserialization.
 - `src/registry/families/` owns domain-partitioned profile family assembly.
 - `src/registry/catalog/` owns registry assembly plus separated profile-by-domain and profile-by-stability query behavior.
 - `src/registry/` owns pipeline id validation and lookup entrypoints, with domain dispatch separated from concrete cross/vcf lookup families.
@@ -17,6 +20,6 @@
 
 ## Data flow
 1. Domain profile modules define canonical profiles, defaults, and invariants.
-2. FASTQ defaults assemble preprocess and analysis contracts separately before profile families compose them.
+2. FASTQ defaults assemble preprocess and analysis contracts separately before merge orchestration validates preset overrides and profile families compose them.
 3. `registry/families/` assembles those profiles by domain and `registry/catalog/` turns them into stable queryable collections.
-4. `contract` and `defaults` project the profiles into manifests, ledgers, and override behavior for downstream crates.
+4. `contract` and `defaults` project the profiles into manifests, ledgers, effective defaults, and override behavior for downstream crates.

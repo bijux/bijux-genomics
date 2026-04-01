@@ -39,11 +39,14 @@ fn pipelines_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/contract")),
         entries([
             "OWNER.toml",
-            "capabilities.rs",
+            "effective_defaults.rs",
             "invariants.rs",
             "mod.rs",
+            "pipeline_capabilities.rs",
             "profile.rs",
-            "projections.rs",
+            "profile_manifest.rs",
+            "projections/",
+            "vocabulary.rs",
         ]),
         "contract namespace must stay partitioned by concern"
     );
@@ -52,13 +55,37 @@ fn pipelines_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/defaults")),
         entries([
             "OWNER.toml",
+            "default_params.rs",
+            "empty_params.rs",
             "ledger.rs",
-            "merge.rs",
+            "merge/",
             "mod.rs",
-            "params.rs",
-            "serde_codec.rs",
+            "serde_codec/",
         ]),
         "defaults namespace must keep ledgers, envelopes, and merge logic separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/contract/projections")),
+        entries([
+            "contract_projection.rs",
+            "defaults_ledger.rs",
+            "manifest_projection.rs",
+            "mod.rs",
+        ]),
+        "contract projection namespace must separate manifests, defaults ledgers, and pipeline contract projections"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/defaults/merge")),
+        entries(["mod.rs", "override_application.rs", "validation.rs"]),
+        "defaults merge namespace must separate orchestration, override application, and validation"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/defaults/serde_codec")),
+        entries(["deserialize.rs", "mod.rs", "serialize.rs"]),
+        "defaults serde namespace must separate serialization from deserialization"
     );
 
     assert_eq!(
