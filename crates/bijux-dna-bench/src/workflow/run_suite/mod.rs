@@ -1,14 +1,13 @@
 //! Owner: bijux-dna-bench
 //! Suite-level orchestration that validates and persists benchmark outputs.
 
+mod persistence;
+
 use std::collections::BTreeSet;
 
 use anyhow::Result;
 
-use crate::artifacts::{
-    read_observations_jsonl, write_decision_json, write_observations_jsonl, write_summary_json,
-    WriteMode,
-};
+use crate::artifacts::read_observations_jsonl;
 use bijux_dna_bench_model::contract::{validate_decision, validate_summary};
 use bijux_dna_bench_model::policy::{GateDecision, GatePolicy};
 use bijux_dna_bench_model::{
@@ -34,7 +33,7 @@ pub fn run_suite(
     for decision in &decisions {
         validate_decision(decision)?;
     }
-    write_suite_artifacts(&merged, &summary, &decisions, options)?;
+    persistence::write_suite_artifacts(&merged, &summary, &decisions, options)?;
     Ok((summary, decisions))
 }
 
@@ -68,34 +67,6 @@ fn merge_observations(
         }
     }
     Ok(merged)
-}
-
-fn write_suite_artifacts(
-    observations: &[BenchmarkObservation],
-    summary: &BenchmarkSummary,
-    decisions: &[GateDecision],
-    options: &BenchRunOptions,
-) -> Result<()> {
-    let Some(out_dir) = &options.output_dir else {
-        return Ok(());
-    };
-
-    let mode = if options.force {
-        WriteMode::Force
-    } else if options.resume {
-        WriteMode::Resume
-    } else {
-        WriteMode::Force
-    };
-    write_observations_jsonl(&out_dir.join("observations.jsonl"), observations, mode)
-        .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
-    write_summary_json(&out_dir.join("summary.json"), summary)
-        .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
-    if let Some(decision) = decisions.first() {
-        write_decision_json(&out_dir.join("decision.json"), decision)
-            .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
-    }
-    Ok(())
 }
 
 fn observation_identity(
