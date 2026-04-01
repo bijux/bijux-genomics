@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 
 use anyhow::Result;
 
+use crate::compare::report::{CompareReport, MetricDiff};
 use crate::compare::stratify::CompareStratum;
 use crate::model::{BenchmarkSummary, MetricSummary, SummaryRow};
 
@@ -17,22 +18,6 @@ type SummaryRowKey = (
     String,
     String,
 );
-
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct MetricDiff {
-    pub metric_id: String,
-    pub absolute: f64,
-    pub relative: Option<f64>,
-    pub practical: bool,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct CompareReport {
-    pub suite_a: String,
-    pub suite_b: String,
-    pub diffs: Vec<MetricDiff>,
-    pub strata: Vec<CompareStratum>,
-}
 
 /// # Errors
 /// Returns an error if inputs cannot be compared or required metrics are missing.
