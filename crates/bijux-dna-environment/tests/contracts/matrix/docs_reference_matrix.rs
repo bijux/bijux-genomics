@@ -9,7 +9,7 @@ fn reference_matrix_is_documented() {
     let content =
         fs::read_to_string(&doc).unwrap_or_else(|err| panic!("read ENV_REFERENCE.md: {err}"));
     assert!(
-        content.contains("tests/matrix/reference_matrix.rs"),
-        "ENV_REFERENCE.md must reference tests/matrix/reference_matrix.rs"
+        content.contains("tests/contracts/matrix/reference_matrix.rs"),
+        "ENV_REFERENCE.md must reference tests/contracts/matrix/reference_matrix.rs"
     );
 }

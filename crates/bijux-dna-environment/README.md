@@ -40,14 +40,14 @@ Pure resolution; no network execution. Stable digest for the same inputs; see `c
 - HPC scheduler integration.
 
 ## No execution
-This crate must not depend on `bijux-dna-runner` or execute tools. See `crates/bijux-dna-environment/docs/BOUNDARY.md` and `tests/guardrails/no_runner_usage.rs`.
+This crate must not depend on `bijux-dna-runner` or execute tools. See `crates/bijux-dna-environment/docs/BOUNDARY.md` and `tests/boundaries/guardrails/no_runner_usage.rs`.
 
 ## Common failures
-- Bad platform spec (schema mismatch): see `tests/schema/schema_snapshots.rs`.
-- Missing tool image spec: see `tests/matrix/reference_matrix.rs`.
+- Bad platform spec (schema mismatch): see `tests/schemas/schema/schema_snapshots.rs`.
+- Missing tool image spec: see `tests/contracts/matrix/reference_matrix.rs`.
 
 ## How to run its tests
-See `crates/bijux-dna-environment/docs/TESTS.md`. Golden tests: `tests/matrix/reference_matrix.rs`, `tests/schema/schema_snapshots.rs`, `tests/guardrails/guardrails_runtime.rs`, `tests/matrix/docs_reference_matrix.rs`.
+See `crates/bijux-dna-environment/docs/TESTS.md`. High-signal targets: `tests/contracts/matrix/reference_matrix.rs`, `tests/contracts/resolve_runtime.rs`, `tests/schemas/schema/schema_snapshots.rs`, `tests/boundaries/guardrails/guardrails_runtime.rs`, `tests/contracts/matrix/docs_reference_matrix.rs`.
 
 ## Where the docs live
 Start at `crates/bijux-dna-environment/docs/INDEX.md` and follow the crate docs listed above.
@@ -59,6 +59,6 @@ Primary failures surface as snapshot or contract violations; inspect the golden 
 Contract and behavior changes follow `crates/bijux-dna-environment/docs/CHANGE_RULES.md`.
 
 ## Where to start
-- `src/runtime_spec.rs`
-- `src/resolve.rs`
-- `src/build.rs`
+- `src/runtime_spec/mod.rs`
+- `src/resolve/mod.rs`
+- `src/build/mod.rs`
