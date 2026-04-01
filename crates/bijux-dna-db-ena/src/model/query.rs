@@ -1,29 +1,7 @@
-use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EnaResultKind {
-    ReadRun,
-    Analysis,
-}
-
-impl EnaResultKind {
-    #[must_use]
-    pub fn as_api_value(self) -> &'static str {
-        match self {
-            Self::ReadRun => "read_run",
-            Self::Analysis => "analysis",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum EnaSourcePreference {
-    Ftp,
-    Https,
-}
+use super::EnaResultKind;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EnaQuery {
