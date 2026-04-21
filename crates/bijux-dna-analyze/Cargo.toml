@@ -19,7 +19,7 @@ bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
 sha2.workspace = true
-parquet = { version = "50", optional = true, features = ["json"] }
+parquet = { version = "58", optional = true, features = ["json"] }
 
 [features]
 parquet = ["dep:parquet"]
