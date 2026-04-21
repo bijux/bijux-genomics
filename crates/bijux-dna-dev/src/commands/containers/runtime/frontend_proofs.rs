@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn check_apptainer_frontend_reproducibility(
+pub(crate) fn check_apptainer_frontend_reproducibility(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
@@ -80,7 +80,7 @@ pub(super) fn check_apptainer_frontend_reproducibility(
     failure_lines("frontend reproducibility check: FAILED", &errors)
 }
 
-pub(super) fn check_apptainer_frontend_security(
+pub(crate) fn check_apptainer_frontend_security(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
@@ -155,7 +155,7 @@ pub(super) fn check_apptainer_frontend_security(
     failure_lines("frontend security check: FAILED", &errors)
 }
 
-pub(super) fn check_apptainer_frontend_smoke_proof(
+pub(crate) fn check_apptainer_frontend_smoke_proof(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
@@ -284,7 +284,7 @@ pub(super) fn check_apptainer_frontend_smoke_proof(
     failure_lines("frontend smoke proof: failed", &errors)
 }
 
-pub(super) fn check_apptainer_frontend_version_output_lock(
+pub(crate) fn check_apptainer_frontend_version_output_lock(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let summary_path = workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");
@@ -367,7 +367,7 @@ pub(super) fn check_apptainer_frontend_version_output_lock(
     failure_lines("frontend version-output lock check: failed", &errors)
 }
 
-pub(super) fn compare_frontend_local_sif_hash(
+pub(crate) fn compare_frontend_local_sif_hash(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
@@ -496,7 +496,7 @@ pub(super) fn compare_frontend_local_sif_hash(
     })
 }
 
-pub(super) fn write_frontend_repro_summary(
+pub(crate) fn write_frontend_repro_summary(
     workspace: &Workspace,
     policy: &toml::Value,
     seed: &str,
@@ -608,7 +608,7 @@ pub(super) fn write_frontend_repro_summary(
     write_utf8(doc_path, &format!("{}\n", lines.join("\n")))
 }
 
-pub(super) fn write_frontend_security_summary(
+pub(crate) fn write_frontend_security_summary(
     workspace: &Workspace,
     out_dir: &Path,
     summary_path: &Path,

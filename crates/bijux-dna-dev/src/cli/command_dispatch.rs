@@ -4,7 +4,7 @@ use crate::application::checks::CheckApplication;
 use crate::application::containers::ContainerApplication;
 use crate::application::domain::DomainApplication;
 use crate::application::ops::OpsApplication;
-use crate::model::check::{CheckOutcome, CheckSelection, CheckStatus};
+use crate::model::check::{CheckSelection, CheckStatus};
 
 use super::execution_reporting::{
     maybe_emit_native_help, print_check_outcome, with_timing, write_line_stdout, write_stderr,
