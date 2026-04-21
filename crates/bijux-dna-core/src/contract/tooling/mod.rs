@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
+use std::fmt::Write as _;
 use sha2::Digest;
 
 use crate::contract::canonical::to_canonical_json_bytes;
@@ -203,7 +204,12 @@ impl StageSpec {
         let bytes = to_canonical_json_bytes(self)?;
         let mut hasher = sha2::Sha256::new();
         hasher.update(bytes);
-        Ok(format!("{:x}", hasher.finalize()))
+        let digest = hasher.finalize();
+        let mut hex = String::with_capacity(digest.len() * 2);
+        for byte in digest {
+            let _ = write!(&mut hex, "{byte:02x}");
+        }
+        Ok(hex)
     }
 }
 
