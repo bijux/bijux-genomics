@@ -1,6 +1,10 @@
-# bijux-dna
+# Badge Catalog
 
-Reproducible DNA pipeline workspace with explicit contracts, deterministic outputs, and policy-gated CI.
+`docs/badges.md` defines the shared badge contract for `bijux-genomics`
+repository entry surfaces.
+
+This repository is private and does not publish public release channels yet, so
+release badges intentionally show readiness state rather than package versions.
 
 <!-- bijux-genomics-badges:generated:start -->
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0F766E)](https://github.com/bijux/bijux-genomics/blob/main/LICENSE)
@@ -14,8 +18,3 @@ Reproducible DNA pipeline workspace with explicit contracts, deterministic outpu
 
 [![Repository docs](https://img.shields.io/badge/docs-repository-2563EB?logo=materialformkdocs&logoColor=white)](https://github.com/bijux/bijux-genomics/tree/main/docs)
 <!-- bijux-genomics-badges:generated:end -->
-
-## Key docs
-- Intro: `docs/00-intro/WHAT_IS_BIJUX.md`
-- Licensing: `docs/50-reference/LICENSING.md`
-- CI/operations: `docs/30-operations/CI.md`
