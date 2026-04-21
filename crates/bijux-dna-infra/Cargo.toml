@@ -11,7 +11,7 @@ serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
 tempfile.workspace = true
-fs4 = "0.8"
+fs4 = "0.13.1"
 thiserror.workspace = true
 sha2.workspace = true
 serde_yaml = { version = "0.9", optional = true }
