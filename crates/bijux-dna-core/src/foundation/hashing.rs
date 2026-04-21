@@ -1,4 +1,5 @@
 use sha2::Digest;
+use std::fmt::Write as _;
 
 use crate::foundation::{canonical::parameters_json_canonicalization, Result};
 
@@ -10,7 +11,7 @@ pub fn params_hash(params: &serde_json::Value) -> Result<String> {
     let bytes = serde_json::to_vec(&parameters_json_canonicalization(params))?;
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(to_hex(hasher.finalize()))
 }
 
 /// Deterministic parameters fingerprint for cache keys.
@@ -48,7 +49,7 @@ pub fn run_id_from_hashes(
     if let Some(reference) = reference_genome {
         hasher.update(reference.as_bytes());
     }
-    format!("{:x}", hasher.finalize())
+    to_hex(hasher.finalize())
 }
 
 #[must_use]
@@ -61,5 +62,14 @@ pub fn input_fingerprint(input_hashes: &[String]) -> String {
         hasher.update(hash.as_bytes());
         hasher.update(b",");
     }
-    format!("{:x}", hasher.finalize())
+    to_hex(hasher.finalize())
+}
+
+fn to_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }
