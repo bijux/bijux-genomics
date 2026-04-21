@@ -1,6 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::time::{Duration, Instant};
+use fs4::fs_std::FileExt;
 
 use crate::{IoError, IoErrorKind};
 
@@ -24,8 +25,17 @@ impl FileLock {
             .map_err(IoError::from_io)?;
         let start = Instant::now();
         loop {
-            match fs4::FileExt::try_lock_exclusive(&file) {
-                Ok(()) => return Ok(Self { file }),
+            match file.try_lock_exclusive() {
+                Ok(true) => return Ok(Self { file }),
+                Ok(false) => {
+                    if start.elapsed() >= timeout {
+                        return Err(IoError::new(
+                            IoErrorKind::LockTimeout,
+                            "file lock timeout".to_string(),
+                        ));
+                    }
+                    std::thread::sleep(Duration::from_millis(25));
+                }
                 Err(err) => {
                     if start.elapsed() >= timeout {
                         return Err(IoError::new(IoErrorKind::LockTimeout, err.to_string()));
@@ -39,6 +49,6 @@ impl FileLock {
 
 impl Drop for FileLock {
     fn drop(&mut self) {
-        let _ = fs4::FileExt::unlock(&self.file);
+        let _ = self.file.unlock();
     }
 }

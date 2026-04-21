@@ -229,8 +229,23 @@ pub fn write_input_assessment(path: &Path, assessment: &InputAssessmentV1) -> Re
 
 fn hash_file_sha256(path: &Path) -> Result<String> {
     use sha2::Digest;
+    use std::fmt::Write as _;
+    use std::io::Read as _;
+
     let mut file = std::fs::File::open(path)?;
     let mut hasher = sha2::Sha256::new();
-    std::io::copy(&mut file, &mut hasher)?;
-    Ok(format!("{:x}", hasher.finalize()))
+    let mut buffer = [0u8; 8192];
+    loop {
+        let count = file.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        hasher.update(&buffer[..count]);
+    }
+    let digest = hasher.finalize();
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    Ok(hex)
 }
