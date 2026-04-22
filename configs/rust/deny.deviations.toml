@@ -1,0 +1,13 @@
+[[deviation]]
+id = "advisories.unmaintained"
+owner = "bijux-dna-infra"
+reason = "Pipeline dependencies include maintained forks and tooling wrappers that cargo-deny classifies as unmaintained."
+expiry = "2026-12-31"
+review = "https://github.com/bijux/bijux-std/pull/1001"
+
+[[deviation]]
+id = "bans.skip.transitive-runtime-platform"
+owner = "bijux-dna-infra"
+reason = "Temporary skip list for unavoidable transitive platform crates while registry consolidation is tracked."
+expiry = "2026-12-31"
+review = "https://github.com/bijux/bijux-std/pull/1001"

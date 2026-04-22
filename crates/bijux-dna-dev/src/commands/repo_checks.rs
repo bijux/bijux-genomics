@@ -19,7 +19,7 @@ pub(crate) use artifacts::{
 pub(crate) use governance::{
     check_audit_allowlist, check_bench_knob_discipline_downstream, check_bench_knobs,
     check_benchmark_integrity_policy, check_certification_schema_docs,
-    check_clippy_allowlist_expiry, check_clippy_allowlist_growth,
+    check_clippy_allowlist_expiry, check_clippy_allowlist_growth, check_deny_policy_deviations,
 };
 pub(crate) use workspace_contracts::{
     check_cargo_config_policy, check_config_schema, check_docs_build_contract,

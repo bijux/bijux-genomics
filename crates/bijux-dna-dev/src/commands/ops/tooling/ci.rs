@@ -91,7 +91,10 @@ pub(in super::super) fn tooling_ci_audit(
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-audit", args)?;
     let mut stdout = String::new();
-    run_check_ids(&mut stdout, &["check-audit-allowlist"])?;
+    run_check_ids(
+        &mut stdout,
+        &["check-audit-allowlist", "check-deny-policy-deviations"],
+    )?;
     let outcome = run_program_with_env(
         workspace,
         "cargo",
