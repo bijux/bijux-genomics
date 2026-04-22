@@ -93,7 +93,7 @@ fn analyze_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
-        entries(["OWNER.toml", "mod.rs"]),
+        entries(["OWNER.toml", "decision.rs", "exports.rs", "load.rs", "mod.rs", "report.rs"]),
         "public api tree must stay curated"
     );
 
