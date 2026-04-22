@@ -3,7 +3,22 @@ use anyhow::Result;
 fn v1_surface() -> Result<String> {
     let base = crate::support::crate_src("bijux-dna-api")?.join("v1");
     let mut contents = String::new();
-    for module in ["api.rs", "plan.rs", "run.rs", "report.rs", "bench.rs"] {
+    for module in [
+        "api/mod.rs",
+        "api/front_door.rs",
+        "plan.rs",
+        "run/mod.rs",
+        "run/entrypoints.rs",
+        "run/operator_failure.rs",
+        "run/request_contracts.rs",
+        "run/runtime_support.rs",
+        "report/mod.rs",
+        "report/analysis_exports.rs",
+        "report/html_bundle.rs",
+        "report/request_contracts.rs",
+        "bench/mod.rs",
+        "bench/exports.rs",
+    ] {
         contents.push_str(&std::fs::read_to_string(base.join(module))?);
         contents.push('\n');
     }
