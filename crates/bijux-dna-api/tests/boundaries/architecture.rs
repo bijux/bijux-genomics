@@ -159,42 +159,47 @@ fn api_tree_matches_architecture_contract() {
 
     let runtime_run_execution_entries = dir_entries(&root.join("src/runtime/run/execution"));
     let expected_runtime_run_execution: BTreeSet<_> =
-        ["mod.rs"].into_iter().map(str::to_string).collect();
+        ["mod.rs", "stage_execution.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         runtime_run_execution_entries, expected_runtime_run_execution,
         "api runtime execution tree must keep the execution entry explicit"
     );
 
     let v1_api_entries = dir_entries(&root.join("src/v1/api"));
-    let expected_v1_api: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_v1_api: BTreeSet<_> =
+        ["front_door.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         v1_api_entries, expected_v1_api,
         "api v1 front door must stay isolated in its own namespace"
     );
 
     let v1_bench_entries = dir_entries(&root.join("src/v1/bench"));
-    let expected_v1_bench: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_v1_bench: BTreeSet<_> =
+        ["exports.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         v1_bench_entries, expected_v1_bench,
         "api v1 benchmark tree must stay isolated in its own namespace"
     );
 
     let v1_env_entries = dir_entries(&root.join("src/v1/env"));
-    let expected_v1_env: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_v1_env: BTreeSet<_> =
+        ["mod.rs", "runtime.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         v1_env_entries, expected_v1_env,
         "api v1 environment tree must stay isolated in its own namespace"
     );
 
     let v1_fastq_entries = dir_entries(&root.join("src/v1/fastq"));
-    let expected_v1_fastq: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_v1_fastq: BTreeSet<_> =
+        ["domain.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         v1_fastq_entries, expected_v1_fastq,
         "api v1 fastq tree must stay isolated in its own namespace"
     );
 
     let v1_pipelines_entries = dir_entries(&root.join("src/v1/pipelines"));
-    let expected_v1_pipelines: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_v1_pipelines: BTreeSet<_> =
+        ["mod.rs", "registry.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         v1_pipelines_entries, expected_v1_pipelines,
         "api v1 pipelines tree must stay isolated in its own namespace"
