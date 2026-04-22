@@ -21,6 +21,10 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         ),
         native("check-audit-allowlist", NativeCheckKey::AuditAllowlist),
         native(
+            "check-deny-policy-deviations",
+            NativeCheckKey::DenyPolicyDeviations,
+        ),
+        native(
             "check-bench-knob-discipline-downstream",
             NativeCheckKey::BenchKnobDisciplineDownstream,
         ),

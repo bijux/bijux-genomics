@@ -15,6 +15,9 @@ pub fn run_native_check(
 ) -> Result<CheckOutcome> {
     match key {
         NativeCheckKey::AuditAllowlist => repo_checks::check_audit_allowlist(workspace, check),
+        NativeCheckKey::DenyPolicyDeviations => {
+            repo_checks::check_deny_policy_deviations(workspace, check)
+        }
         NativeCheckKey::ArtifactEnvContract => {
             repo_checks::check_artifact_env_contract(workspace, check)
         }

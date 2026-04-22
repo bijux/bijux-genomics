@@ -3,7 +3,10 @@
 # purpose = Cargo deny policy for repository-wide dependency auditing
 # authority = bijux-dna-infra
 # stability = stable
-# last_updated = 2026-03-24
+# last_updated = 2026-04-22
+
+[graph]
+all-features = true
 
 [advisories]
 unmaintained = "workspace"
@@ -32,6 +35,8 @@ name = "windows-sys"
 [licenses]
 allow = [
   "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
   "BSD-3-Clause",
   "CDLA-Permissive-2.0",
   "ISC",
@@ -43,3 +48,4 @@ allow = [
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

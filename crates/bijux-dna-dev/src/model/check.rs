@@ -36,6 +36,7 @@ pub enum CommandSpec {
 #[derive(Debug, Clone, Copy)]
 pub enum NativeCheckKey {
     AuditAllowlist,
+    DenyPolicyDeviations,
     ArtifactEnvContract,
     ArtifactsLayout,
     ArtifactsTracked,
