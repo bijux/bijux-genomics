@@ -232,6 +232,7 @@ fn dna_tree_matches_architecture_contract() {
 
     let support_entries = dir_entries(&root.join("src/commands/support"));
     let expected_support: BTreeSet<_> = [
+        "OWNER.toml",
         "mod.rs",
         "prelude.rs",
         "report_inputs.rs",
@@ -294,21 +295,24 @@ fn dna_tree_matches_architecture_contract() {
     );
 
     let planning_entries = dir_entries(&root.join("src/commands/planning"));
-    let expected_planning: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_planning: BTreeSet<_> =
+        ["OWNER.toml", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         planning_entries, expected_planning,
         "planning tree must stay focused on run planning"
     );
 
     let status_entries = dir_entries(&root.join("src/commands/status"));
-    let expected_status: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_status: BTreeSet<_> =
+        ["OWNER.toml", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         status_entries, expected_status,
         "status tree must stay focused on runtime status inspection"
     );
 
     let corpus_entries = dir_entries(&root.join("src/commands/corpus"));
-    let expected_corpus: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_corpus: BTreeSet<_> =
+        ["OWNER.toml", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         corpus_entries, expected_corpus,
         "corpus tree must stay focused on curated corpus workflows"
