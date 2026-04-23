@@ -8,6 +8,9 @@
 [profile.default]
 retries = { count = 1, backoff = "fixed", delay = "1s" }
 
+[store]
+dir = "artifacts/rust/test/nextest-store"
+
 [profile.ci]
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = false
