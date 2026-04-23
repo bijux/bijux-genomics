@@ -82,7 +82,18 @@ mod tests {
             extra_accessions: Vec::new(),
             result: EnaResultKind::ReadRun,
         };
-        let tsv = "study_accession\tsample_accession\trun_accession\tfastq_ftp\nPRJEBX\tSAMEA1\tERR1\tftp.sra.ebi.ac.uk/a.fastq.gz\nPRJEBX\tSAMEA2\tERR2\tftp.sra.ebi.ac.uk/b.fastq.gz\n";
+        let tsv = concat!(
+            "study_accession\tsample_accession\texperiment_accession\trun_accession\t",
+            "tax_id\tscientific_name\tlibrary_layout\tlibrary_source\tlibrary_strategy\t",
+            "instrument_model\tbase_count\tread_count\tfastq_bytes\tfastq_ftp\t",
+            "submitted_ftp\tsra_ftp\n",
+            "PRJEBX\tSAMEA1\tERX1\tERR1\t9606\tHomo sapiens\tPAIRED\tGENOMIC\tWGS\t",
+            "Illumina NovaSeq 6000\t100\t10\t42\tftp.sra.ebi.ac.uk/a.fastq.gz\t",
+            "ftp.sra.ebi.ac.uk/a.submitted.fastq.gz\tftp.sra.ebi.ac.uk/a.sra\n",
+            "PRJEBX\tSAMEA2\tERX2\tERR2\t9606\tHomo sapiens\tPAIRED\tGENOMIC\tWGS\t",
+            "Illumina NovaSeq 6000\t200\t20\t84\tftp.sra.ebi.ac.uk/b.fastq.gz\t",
+            "ftp.sra.ebi.ac.uk/b.submitted.fastq.gz\tftp.sra.ebi.ac.uk/b.sra\n",
+        );
         let rows = parse_filereport_tsv(tsv, &query).expect("parse filtered rows");
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].run_accession.as_deref(), Some("ERR1"));
