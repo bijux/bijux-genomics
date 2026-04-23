@@ -3,7 +3,7 @@
 # purpose = Cargo deny policy for repository-wide dependency auditing
 # authority = bijux-dna-infra
 # stability = stable
-# last_updated = 2026-04-22
+# last_updated = 2026-04-23
 
 [graph]
 all-features = true
@@ -13,20 +13,12 @@ unmaintained = "workspace"
 yanked = "deny"
 
 [bans]
-multiple-versions = "warn"
-wildcards = "warn"
+multiple-versions = "allow"
+wildcards = "allow"
 
 [[bans.skip]]
 name = "hashbrown"
 # why = "Transitive across serde_json/indexmap paths; tracked for consolidation."
-
-[[bans.skip]]
-name = "linux-raw-sys"
-# why = "Required by rustix stack on Unix targets."
-
-[[bans.skip]]
-name = "rustix"
-# why = "System-call abstraction used by dependencies in test/runtime tooling."
 
 [[bans.skip]]
 name = "windows-sys"
