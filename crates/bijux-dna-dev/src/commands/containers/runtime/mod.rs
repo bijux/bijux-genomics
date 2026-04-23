@@ -1143,10 +1143,10 @@ pub(super) fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<(
         .to_string();
     let combined_sha = {
         use sha2::{Digest, Sha256};
-        format!(
-            "{:x}",
-            Sha256::digest(format!("{images_sha}\n{lock_sha}\n").as_bytes())
-        )
+        Sha256::digest(format!("{images_sha}\n{lock_sha}\n").as_bytes())
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
     };
     let images: toml::Value = toml::from_str(&std::fs::read_to_string(&images_toml)?)?;
     let naming: toml::Value = toml::from_str(&std::fs::read_to_string(&hpc_naming_toml)?)?;

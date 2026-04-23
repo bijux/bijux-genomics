@@ -9,7 +9,7 @@ use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 
 fn sha256_hex(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
+    Sha256::digest(bytes).iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 pub(super) fn check_reference_bundle_lock(workspace: &Workspace) -> Result<DomainCommandOutcome> {
