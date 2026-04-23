@@ -5,6 +5,13 @@ owner = "platform/infra"
 [advisories]
 ignore = []
 
+[[advisory]]
+id = "RUSTSEC-2026-0009"
+why = "The fixed time crate release requires Rust 1.88+, while this workspace is pinned to Rust 1.86.0."
+expiry = "2026-12-31"
+owner = "bijux-dna-infra"
+link = "https://rustsec.org/advisories/RUSTSEC-2026-0009"
+
 # For each ignored advisory use:
 # [[advisory]]
 # id = "RUSTSEC-YYYY-NNNN"
