@@ -9,7 +9,7 @@ use super::{
     resolved_smoke_tools, run_environment_prep_for_with_env, run_environment_smoke_for_with_env,
     sampled_apptainer_defs, success_line, summary, validation, versioning,
     write_frontend_repro_summary, write_frontend_security_summary, write_vuln_hook_report,
-    ContainerCommandOutcome, Context, Digest, PathBuf, Result, Workspace,
+    ContainerCommandOutcome, Context, PathBuf, Result, Workspace,
 };
 
 pub(in super::super::super) fn run_build_apptainer_all(

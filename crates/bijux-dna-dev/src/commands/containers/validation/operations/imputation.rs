@@ -1,7 +1,7 @@
 use super::{
     env_or_default, env_or_empty, failure_lines, load_toml, read_json, read_utf8, registry_tool_id,
     success_line, table_array_strings, table_bool, table_string, BTreeMap, BTreeSet,
-    ContainerCommandOutcome, Digest, PathBuf, Regex, Result, Workspace,
+    ContainerCommandOutcome, PathBuf, Regex, Result, Workspace,
 };
 
 pub(in super::super::super) fn vcf_imputation_core_tools() -> [&'static str; 8] {

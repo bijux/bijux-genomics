@@ -1,7 +1,7 @@
 use super::{
     env_or_default, env_or_empty, failure_lines, load_runtime_manifest_rows,
     normalized_version_output, registry_tool_id, registry_tool_rows, success_line, table_string,
-    BTreeMap, ContainerCommandOutcome, Digest, PathBuf, Regex, Result, Workspace,
+    BTreeMap, ContainerCommandOutcome, PathBuf, Regex, Result, Workspace,
 };
 
 pub(in super::super::super) fn check_cross_runtime_representative(

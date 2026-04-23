@@ -1,6 +1,6 @@
 use super::{
     apptainer_def_paths, fs, load_toml, primary_tools_csv, run_program_with_env, sha256_hex,
-    success_line, write_utf8, BTreeSet, ContainerCommandOutcome, Context, Digest, Path, Regex,
+    success_line, write_utf8, BTreeSet, ContainerCommandOutcome, Context, Path, Regex,
     Result, WalkDir, Workspace,
 };
 

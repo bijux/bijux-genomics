@@ -1,7 +1,7 @@
 use super::{
     apptainer_def_paths, dockerfile_paths, env_or_empty, failure_lines, git_show_file, load_toml,
     read_json, read_utf8, registry_tool_id, success_line, table_bool, table_string, walk_paths,
-    BTreeMap, BTreeSet, ContainerCommandOutcome, Digest, PathBuf, Regex, Result, Workspace,
+    BTreeMap, BTreeSet, ContainerCommandOutcome, PathBuf, Regex, Result, Workspace,
 };
 
 pub(in super::super::super) fn check_image_size_regression(

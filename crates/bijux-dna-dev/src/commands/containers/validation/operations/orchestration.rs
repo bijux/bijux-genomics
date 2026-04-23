@@ -11,7 +11,7 @@ use super::{
     metadata, path_from_arg, primary_tools_csv, read_json, read_utf8, registry_tool_rows,
     resolved_smoke_tools, run_bijux_with_env, run_runtime_smoke_contract, success_line, summary,
     versioning, write_ensure_images_plan_report, write_utf8, write_vuln_hook_report,
-    ContainerCommandOutcome, Digest, Result, Workspace,
+    ContainerCommandOutcome, Result, Workspace,
 };
 
 pub(in super::super::super) fn run_registry_tools(
