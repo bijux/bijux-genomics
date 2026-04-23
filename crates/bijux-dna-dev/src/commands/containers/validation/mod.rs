@@ -19,8 +19,8 @@ use super::{
     load_toml, lock_items_by_tool, metadata, missing_container_label_markers, path_from_arg,
     read_json, read_utf8, registry_tool_rows, sha256_hex, success_line, table_array_strings,
     table_bool, table_string, tool_status_manifest, tool_versions, toolkit_bundles, validation,
-    versioning, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Path,
-    PathBuf, ProcessRunner, Regex, Result, Utc, WalkDir, Workspace,
+    versioning, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Path, PathBuf,
+    ProcessRunner, Regex, Result, Utc, WalkDir, Workspace,
 };
 
 mod compliance;

@@ -4,8 +4,8 @@ use super::{
     images_metadata, iso_root_path, load_toml, lock_items_by_tool, read_json, read_utf8,
     registry_tool_rows, success_line, table_array_strings, table_bool, table_string,
     tool_status_manifest, tool_versions, toolkit_bundles, write_ensure_images_plan_report,
-    write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf,
-    Regex, Result, Utc, Workspace,
+    write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex,
+    Result, Utc, Workspace,
 };
 
 pub(in super::super) fn check_tool_name_collision(
