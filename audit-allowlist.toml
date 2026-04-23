@@ -12,6 +12,20 @@ expiry = "2026-12-31"
 owner = "bijux-dna-infra"
 link = "https://rustsec.org/advisories/RUSTSEC-2026-0009"
 
+[[advisory]]
+id = "RUSTSEC-2024-0436"
+why = "The warning is transitively introduced by parquet and there is no compatible maintained replacement in the current Arrow stack used by workspace analytics."
+expiry = "2026-12-31"
+owner = "bijux-dna-infra"
+link = "https://rustsec.org/advisories/RUSTSEC-2024-0436"
+
+[[advisory]]
+id = "RUSTSEC-2026-0097"
+why = "Current dependency graph includes rand through transitive libraries; code paths in this workspace do not use a custom logger with rand::rng while upstream fixes are evaluated."
+expiry = "2026-12-31"
+owner = "bijux-dna-infra"
+link = "https://rustsec.org/advisories/RUSTSEC-2026-0097"
+
 # For each ignored advisory use:
 # [[advisory]]
 # id = "RUSTSEC-YYYY-NNNN"
