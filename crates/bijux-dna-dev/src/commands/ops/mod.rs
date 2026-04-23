@@ -1426,8 +1426,7 @@ fn benchmark_corpus_dir_name(benchmark_workspace: &BenchmarkWorkspacePaths) -> S
         .and_then(|path| Path::new(path).file_name())
         .and_then(|value| value.to_str())
         .filter(|value| !value.trim().is_empty())
-        .map(ToOwned::to_owned)
-        .unwrap_or_else(|| "corpus".to_string())
+        .map_or_else(|| "corpus".to_string(), ToOwned::to_owned)
 }
 
 fn benchmark_workspace_lookup<'a>(

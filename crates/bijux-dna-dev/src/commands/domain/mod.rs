@@ -15,7 +15,10 @@ mod schema_policy;
 mod tool_governance;
 mod validation;
 
-use self::domain_workflow::*;
+use self::domain_workflow::{
+    domain_directories, ensure_no_args, failure_block, markdown_files, read_utf8, regex,
+    success_line, yaml_files,
+};
 use self::index::{check_domain_index, generate_index};
 use self::inventory::{check_inventory, check_orphan_files, generate_inventory, inventory_drift};
 use self::locking::{check_reference_bundle_lock, lock_registry};
