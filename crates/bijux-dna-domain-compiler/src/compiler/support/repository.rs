@@ -72,6 +72,10 @@ pub(crate) fn domain_content_hash(domain_dir: &Path) -> Result<String> {
         hasher.update(file_hash.as_bytes());
         hasher.update([0]);
     }
-    let hex = format!("{:x}", hasher.finalize());
+    let hex: String = hasher
+        .finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
     Ok(hex.chars().take(40).collect())
 }
