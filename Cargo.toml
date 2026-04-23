@@ -34,7 +34,7 @@ members = ["crates/bijux-dna",
 [workspace.package]
 edition = "2021"
 license = "MIT OR Apache-2.0"
-rust-version = "1.76"
+rust-version = "1.86"
 
 [workspace.dependencies]
 anyhow = "1"
@@ -50,7 +50,7 @@ tracing-appender = "0.2"
 walkdir = "2"
 regex = "1"
 sha2 = "0.11"
-sysinfo = "0.38"
+sysinfo = "0.36"
 tempfile = "3"
 rand = "0.8"
 schemars = { version = "0.8", features = ["derive"] }
