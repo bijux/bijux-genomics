@@ -1,5 +1,5 @@
 use super::{
-    anyhow, load_toml, read_utf8, write_utf8, BTreeMap, Context, Digest, NaiveDate, PathBuf,
+    anyhow, load_toml, read_utf8, write_utf8, BTreeMap, Context, NaiveDate, PathBuf,
     Result, Serialize, Workspace,
 };
 

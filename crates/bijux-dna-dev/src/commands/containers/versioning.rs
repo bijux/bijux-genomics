@@ -4,7 +4,7 @@ use super::{
     load_toml, lock_items_by_tool, out_path_arg, parse_date, production_registry_paths,
     read_lock_json, read_utf8, registry_deprecations_path, run_argv, run_argv_with_env,
     set_registry_status, set_versions_status, sha256_hex, success_line, table_string,
-    tool_versions, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Digest, Local,
+    tool_versions, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Local,
     PathBuf, Result, Utc, VersionMapItem, Workspace,
 };
 
