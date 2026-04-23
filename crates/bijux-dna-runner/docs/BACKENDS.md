@@ -17,3 +17,5 @@
 | exit semantics | Same success/failure mapping. | `tests/boundaries/backend/backend_invariants.rs` |
 | timeouts | Same timeout application and error mapping. | `tests/boundaries/backend/backend_invariants.rs` |
 | file permissions | Same output permission behavior. | `tests/boundaries/backend/backend_invariants.rs` |
+
+Compatibility note: legacy references may mention `tests/backend_invariants.rs`; the current canonical location is `tests/boundaries/backend/backend_invariants.rs`.
