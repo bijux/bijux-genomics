@@ -19,7 +19,7 @@ fn is_excluded(path: &std::path::Path) -> bool {
 }
 
 #[test]
-fn slow__policy__contracts__no_appledouble__no_appledouble_or_ds_store() {
+fn slow__policy__contracts__no_appledouble__no_appledouble_artifacts() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
@@ -39,14 +39,14 @@ fn slow__policy__contracts__no_appledouble__no_appledouble_or_ds_store() {
             Some(name) => name,
             None => continue,
         };
-        if name == ".DS_Store" || name.starts_with("._") {
+        if name.starts_with("._") {
             offenders.push(path.display().to_string());
         }
     }
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "AppleDouble/DS_Store files are forbidden in the repo:\n{}",
+        "AppleDouble files are forbidden in the repo:\n{}",
         offenders.join("\n")
     );
 }

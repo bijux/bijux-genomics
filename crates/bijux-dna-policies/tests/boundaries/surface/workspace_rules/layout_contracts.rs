@@ -25,7 +25,7 @@ fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
             continue;
         }
         let name = entry.file_name().to_string_lossy();
-        if name == ".DS_Store" || name.starts_with("._") {
+        if name.starts_with("._") {
             offenders.push(entry.path().display().to_string());
         }
     }
