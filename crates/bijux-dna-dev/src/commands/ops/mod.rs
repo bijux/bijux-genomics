@@ -1667,7 +1667,7 @@ fn env_or_contract(key: &str, contract_value: Option<&str>, contract_key: &str) 
 fn sha256_hex(path: &Path) -> Result<String> {
     use sha2::{Digest, Sha256};
     let bytes = fs::read(path).with_context(|| format!("read {}", path.display()))?;
-    Ok(format!("{:x}", Sha256::digest(bytes)))
+    Ok(Sha256::digest(bytes).iter().map(|byte| format!("{byte:02x}")).collect())
 }
 
 #[cfg(test)]
