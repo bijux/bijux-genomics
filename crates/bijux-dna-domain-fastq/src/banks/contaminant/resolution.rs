@@ -90,5 +90,11 @@ fn hash_preset_contents(
         hasher.update(&contents);
         hasher.update(b"|");
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(
+        hasher
+            .finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect(),
+    )
 }
