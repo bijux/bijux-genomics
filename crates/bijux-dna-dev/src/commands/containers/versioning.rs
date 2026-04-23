@@ -1,4 +1,12 @@
-use super::*;
+use super::{
+    all_registry_paths, anyhow, append_toml_table, container_version_deprecations_path,
+    env_or_empty, failure_lines, fs, git_last_modified_timestamp, governed_container_file_ids,
+    load_toml, lock_items_by_tool, out_path_arg, parse_date, production_registry_paths,
+    read_lock_json, read_utf8, registry_deprecations_path, run_argv, run_argv_with_env,
+    set_registry_status, set_versions_status, sha256_hex, success_line, table_string,
+    tool_versions, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Local,
+    PathBuf, Result, Utc, VersionMapItem, Workspace,
+};
 
 pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<String> {
     let versions = tool_versions(workspace)?;
