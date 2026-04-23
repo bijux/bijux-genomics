@@ -61,6 +61,74 @@ pub(crate) fn check_audit_allowlist(
     fail(check, errors.join("\n"))
 }
 
+pub(crate) fn check_deny_policy_deviations(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let path = workspace.path("configs/rust/deny.deviations.toml");
+    if !path.is_file() {
+        return fail(check, "missing configs/rust/deny.deviations.toml");
+    }
+    let document: toml::Value = toml::from_str(&read(&path)?)?;
+    let rows = document
+        .get("deviation")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    if rows.is_empty() {
+        return pass(check, "deny policy deviations governance contract is satisfied");
+    }
+    let today = chrono::Utc::now().date_naive();
+    let mut errors = Vec::new();
+    for (index, row) in rows.iter().enumerate() {
+        let tag = format!("entry[{index}]");
+        let id = row.get("id").and_then(toml::Value::as_str).unwrap_or("").trim();
+        let owner = row
+            .get("owner")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("")
+            .trim();
+        let reason = row
+            .get("reason")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("")
+            .trim();
+        let expiry = row
+            .get("expiry")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("")
+            .trim();
+        let review = row
+            .get("review")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("")
+            .trim();
+        if id.is_empty() {
+            errors.push(format!("{tag}: missing id"));
+        }
+        if owner.is_empty() {
+            errors.push(format!("{tag}: missing owner"));
+        }
+        if reason.is_empty() {
+            errors.push(format!("{tag}: missing reason"));
+        }
+        match chrono::NaiveDate::parse_from_str(expiry, "%Y-%m-%d") {
+            Ok(expiry_date) if expiry_date >= today => {}
+            Ok(_) => errors.push(format!("{tag}: expiry has passed ({expiry})")),
+            Err(_) => errors.push(format!("{tag}: expiry must be YYYY-MM-DD")),
+        }
+        if !(review.starts_with("http://") || review.starts_with("https://")) {
+            errors.push(format!("{tag}: review must be an http(s) link"));
+        } else if !review.contains("bijux-std") {
+            errors.push(format!("{tag}: review must reference bijux-std"));
+        }
+    }
+    if errors.is_empty() {
+        return pass(check, "deny policy deviations governance contract is satisfied");
+    }
+    fail(check, errors.join("\n"))
+}
+
 pub(crate) fn check_bench_knob_discipline_downstream(
     workspace: &Workspace,
     check: &CheckDefinition,

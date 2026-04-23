@@ -5,6 +5,13 @@ owner = "platform/infra"
 [advisories]
 ignore = []
 
+[[advisory]]
+id = "RUSTSEC-2024-0436"
+why = "The warning is transitively introduced by parquet in the Arrow stack; removal needs an upstream parquet migration plan before replacement."
+expiry = "2026-12-31"
+owner = "bijux-dna-infra"
+link = "https://rustsec.org/advisories/RUSTSEC-2024-0436"
+
 # For each ignored advisory use:
 # [[advisory]]
 # id = "RUSTSEC-YYYY-NNNN"

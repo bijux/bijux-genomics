@@ -183,6 +183,14 @@ run_cargo_test() {
     "$@"
 }
 
+audit_ignore_args=()
+if [ -f "audit-allowlist.toml" ]; then
+  while IFS= read -r advisory_id; do
+    [ -n "${advisory_id}" ] || continue
+    audit_ignore_args+=(--ignore "${advisory_id}")
+  done < <(rg -o --no-line-number 'RUSTSEC-[0-9]{4}-[0-9]{4}' audit-allowlist.toml | sort -u)
+fi
+
 prepare_common_env
 
 case "${command_name}" in
@@ -218,15 +226,23 @@ case "${command_name}" in
     require_tool cargo-audit
     mkdir -p "$(dirname "${rs_audit_report}")"
     set -o pipefail
+    governance_status=0
     deny_status=0
     audit_status=0
     {
+      echo "run: cargo run -q -p bijux-dna-dev -- checks run check-audit-allowlist"
+      CARGO_TARGET_DIR="${rs_target_dir}" cargo run -q -p bijux-dna-dev -- checks run check-audit-allowlist || governance_status=$?
+      echo
+      echo "run: cargo run -q -p bijux-dna-dev -- checks run check-deny-policy-deviations"
+      CARGO_TARGET_DIR="${rs_target_dir}" cargo run -q -p bijux-dna-dev -- checks run check-deny-policy-deviations || governance_status=$?
+      echo
       echo "run: cargo deny check bans licenses sources --config configs/rust/deny.toml"
       CARGO_TARGET_DIR="${rs_target_dir}" cargo deny check bans licenses sources --config configs/rust/deny.toml || deny_status=$?
       echo
-      echo "run: cargo audit"
-      CARGO_TARGET_DIR="${rs_target_dir}" cargo audit || audit_status=$?
+      echo "run: cargo audit ${audit_ignore_args[*]:-}"
+      CARGO_TARGET_DIR="${rs_target_dir}" cargo audit "${audit_ignore_args[@]}" || audit_status=$?
     } 2>&1 | tee "${rs_audit_report}"
+    test "${governance_status}" -eq 0
     test "${deny_status}" -eq 0
     test "${audit_status}" -eq 0
     ;;
