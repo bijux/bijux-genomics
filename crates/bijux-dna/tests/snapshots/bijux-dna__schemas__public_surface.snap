@@ -1,7 +1,7 @@
 ---
 source: crates/bijux-dna/tests/boundaries/guardrails/public_surface.rs
-assertion_line: 26
+assertion_line: 27
 expression: snapshot
 ---
-pub mod commands;
-pub mod cli {
+pub mod process_exit;
+pub mod public_api;
