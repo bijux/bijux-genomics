@@ -1,7 +1,16 @@
 use super::frontend_support::{
     ensure_not_compute_host, selected_apptainer_tools, write_frontend_sif_digests,
 };
-use super::*;
+use super::{
+    anyhow, append_named_outcome, artifact_env, check_apptainer_frontend_reproducibility,
+    check_apptainer_frontend_security, check_apptainer_frontend_smoke_proof,
+    check_apptainer_hardening, compare_frontend_local_sif_hash, current_host_name, ensure_no_args,
+    env_or_default, generate_local_apptainer_digests, load_toml, metadata, path_from_arg,
+    resolved_smoke_tools, run_environment_prep_for_with_env, run_environment_smoke_for_with_env,
+    sampled_apptainer_defs, success_line, summary, validation, versioning,
+    write_frontend_repro_summary, write_frontend_security_summary, write_vuln_hook_report,
+    ContainerCommandOutcome, Context, Digest, PathBuf, Result, Workspace,
+};
 
 pub(in super::super::super) fn run_build_apptainer_all(
     workspace: &Workspace,
