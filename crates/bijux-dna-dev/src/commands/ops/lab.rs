@@ -1,4 +1,7 @@
-use super::*;
+use super::{
+    ensure_artifact_root_inside_artifacts, ensure_help_only, lab_config, merge_outcomes,
+    required_config_string, run_program, OpsCommandOutcome, Result, Workspace,
+};
 
 pub(super) fn lab_run_bench(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     ensure_help_only("run-bench", args)?;

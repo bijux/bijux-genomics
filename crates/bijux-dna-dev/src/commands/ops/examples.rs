@@ -1,4 +1,9 @@
-use super::*;
+use super::{
+    anyhow, artifact_root_path, ensure_artifact_root_inside_artifacts, ensure_help_only,
+    find_example_dir, fs, glob_paths, json, path_from_arg, read_utf8, run_program, success_line,
+    temp_subdir, write_json_pretty, write_utf8, Context, OpsCommandOutcome, Result, TomlValue, Utc,
+    Workspace,
+};
 
 pub(super) fn examples_generate_index(
     workspace: &Workspace,

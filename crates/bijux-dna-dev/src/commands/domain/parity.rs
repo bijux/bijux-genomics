@@ -3,7 +3,9 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use super::domain_workflow::*;
+use super::domain_workflow::{
+    domain_directories, failure_block, list_block, read_utf8, regex, scalar_from_text, success_line,
+};
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 

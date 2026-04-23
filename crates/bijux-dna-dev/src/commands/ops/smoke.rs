@@ -1,4 +1,7 @@
-use super::*;
+use super::{
+    anyhow, artifact_env, artifact_root_path, ensure_help_only, run_program, run_program_with_env,
+    success_line, OpsCommandOutcome, Result, Workspace,
+};
 
 pub(super) fn smoke_run(workspace: &Workspace, args: &[String]) -> Result<OpsCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
