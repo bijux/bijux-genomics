@@ -79,5 +79,5 @@ fn hash_preset_sequences(sequences: &[String]) -> String {
         hasher.update(seq.as_bytes());
         hasher.update(b"|");
     }
-    format!("{:x}", hasher.finalize())
+    hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect()
 }
