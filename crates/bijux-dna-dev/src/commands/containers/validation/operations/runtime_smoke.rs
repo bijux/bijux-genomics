@@ -2,7 +2,7 @@ use super::{
     artifact_env, bijux_command_prefix, checked_container_type, ensure_no_args, env_or_default,
     env_or_empty, list_tools_for_stage, merge_outcomes, primary_tools_csv, require_tools_or_stage,
     run_argv, run_bijux_with_env, run_environment_prep_for, run_environment_smoke_for,
-    run_program_with_env, BTreeSet, ContainerCommandOutcome, Digest, Result, Workspace,
+    run_program_with_env, BTreeSet, ContainerCommandOutcome, Result, Workspace,
 };
 
 pub(in super::super::super) fn run_env_prep(
