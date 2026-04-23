@@ -2,7 +2,7 @@
 use super::*;
 
 pub(super) fn sha256_hex(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
+    Sha256::digest(bytes).iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 pub(super) fn load_toml(path: &std::path::Path) -> Result<toml::Value> {
