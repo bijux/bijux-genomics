@@ -5,6 +5,10 @@
 # stability = stable
 # last_updated = 2026-03-24
 
+msrv = "1.86.0"
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true
+
 too-many-lines-threshold = 900
 too-many-arguments-threshold = 14
 max-struct-bools = 20
