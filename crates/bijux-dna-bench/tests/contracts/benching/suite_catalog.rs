@@ -100,8 +100,7 @@ fn checked_in_fastq_suite_catalog_covers_governed_benchmark_stages() -> Result<(
     for stage_id in expected {
         assert!(
             covered.contains(&stage_id),
-            "checked-in bench suites must cover governed FASTQ benchmark stage {}",
-            stage_id
+            "checked-in bench suites must cover governed FASTQ benchmark stage {stage_id}"
         );
     }
     Ok(())

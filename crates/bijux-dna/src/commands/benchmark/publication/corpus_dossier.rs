@@ -670,7 +670,7 @@ fn median(values: &[f64]) -> Option<f64> {
     ordered.sort_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal));
     let middle = ordered.len() / 2;
     Some(if ordered.len() % 2 == 0 {
-        (ordered[middle - 1] + ordered[middle]) / 2.0
+        f64::midpoint(ordered[middle - 1], ordered[middle])
     } else {
         ordered[middle]
     })
