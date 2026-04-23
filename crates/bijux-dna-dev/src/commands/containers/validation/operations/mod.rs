@@ -19,8 +19,8 @@ use super::{
     sampled_apptainer_defs, sha256_hex, success_line, table_array_strings, table_bool,
     table_string, validation, versioning, write_ensure_images_plan_report,
     write_frontend_repro_summary, write_frontend_security_summary, write_utf8,
-    write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Path,
-    PathBuf, ProcessRunner, Regex, Result, WalkDir, Workspace,
+    write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Path, PathBuf,
+    ProcessRunner, Regex, Result, WalkDir, Workspace,
 };
 
 mod cross_runtime;
