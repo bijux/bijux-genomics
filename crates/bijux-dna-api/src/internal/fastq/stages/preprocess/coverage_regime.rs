@@ -22,7 +22,7 @@ pub(super) fn maybe_write_fastq_coverage_classifier(
     }
     let reads = invariants.r1.read_count + invariants.r2.as_ref().map_or(0, |r2| r2.read_count);
     let mean_len = if let Some(r2) = invariants.r2.as_ref() {
-        (invariants.r1.read_length_mean + r2.read_length_mean) / 2.0
+        f64::midpoint(invariants.r1.read_length_mean, r2.read_length_mean)
     } else {
         invariants.r1.read_length_mean
     };
