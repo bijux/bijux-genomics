@@ -76,7 +76,7 @@ fn download_bytes(url: &str) -> Result<Vec<u8>> {
 
 pub(super) fn sha256_hex_bytes(bytes: &[u8]) -> String {
     use sha2::{Digest, Sha256};
-    format!("{:x}", Sha256::digest(bytes))
+    Sha256::digest(bytes).iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 pub(super) fn path_from_arg(workspace: &Workspace, raw: &str) -> PathBuf {
