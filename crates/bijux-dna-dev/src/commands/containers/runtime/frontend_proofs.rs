@@ -3,7 +3,7 @@ use super::{
     iso_root_path, iso_run_id, load_toml, lock_items_by_tool, lock_json_path, path_from_arg,
     policy_path, read_json, run_program_with_env, sha256_hex, success_line, table_string,
     tool_versions, validation, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context,
-    Digest, Path, PathBuf, Result, WalkDir, Workspace,
+    Path, PathBuf, Result, WalkDir, Workspace,
 };
 
 pub(crate) fn check_apptainer_frontend_reproducibility(
