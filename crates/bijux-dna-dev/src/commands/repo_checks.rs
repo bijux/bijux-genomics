@@ -164,13 +164,19 @@ pub(crate) fn check_tool_registry_lock(
     for rel in inputs {
         let bytes = std::fs::read(workspace.path(rel))
             .with_context(|| format!("read {}", workspace.path(rel).display()))?;
-        let file_sha = format!("{:x}", Sha256::digest(&bytes));
+        let file_sha = Sha256::digest(&bytes)
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
         payload.push_str(rel);
         payload.push(' ');
         payload.push_str(&file_sha);
         payload.push('\n');
     }
-    let expected = format!("{:x}", Sha256::digest(payload.as_bytes()));
+    let expected = Sha256::digest(payload.as_bytes())
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
     let actual = read(&workspace.path("configs/ci/registry/tool_registry_lock.sha256"))?
         .trim()
         .to_string();
