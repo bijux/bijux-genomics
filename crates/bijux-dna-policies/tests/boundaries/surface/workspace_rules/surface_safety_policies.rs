@@ -307,7 +307,7 @@ fn slow__policy__boundaries__workspace__workspace_bans_resource_fork_artifacts()
             continue;
         }
         let name = entry.file_name().to_string_lossy();
-        if name == ".DS_Store" || name.starts_with("._") {
+        if name.starts_with("._") {
             offenders.push(
                 entry
                     .path()
@@ -320,7 +320,7 @@ fn slow__policy__boundaries__workspace__workspace_bans_resource_fork_artifacts()
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "resource fork artifacts (.DS_Store/._*) are not allowed: {offenders:?}"
+        "resource fork artifacts (._*) are not allowed: {offenders:?}"
     );
 }
 

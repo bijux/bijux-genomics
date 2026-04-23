@@ -65,5 +65,5 @@ Authoritative registry of policy tests owned by `bijux-dna-policies`.
 | `tests/tooling/command_spawn_policy.rs` | tooling | Command spawning confined to runner/env. | `docs/TESTS.md` |
 | `tests/tooling/docs_links.rs` | tooling | Docs links are resolvable. | `docs/TESTS.md` |
 | `tests/tooling/makefile_policies.rs` | tooling | Root makefile is single source. | `docs/TESTS.md` |
-| `tests/tooling/no_appledouble.rs` | tooling | Ban AppleDouble/.DS_Store artifacts. | `docs/TESTS.md` |
+| `tests/tooling/no_appledouble.rs` | tooling | Ban AppleDouble artifacts (`._*`). | `docs/TESTS.md` |
 | `tests/tooling/policies.rs` | tooling | Cross-cutting policy checks. | `docs/TESTS.md` |
