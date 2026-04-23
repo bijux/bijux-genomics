@@ -106,7 +106,7 @@ pub(super) fn hash_preset_sequences(sequences: &[String]) -> String {
     ordered.sort();
     let joined = ordered.join("|");
     let digest = sha2::Sha256::digest(joined.as_bytes());
-    format!("{digest:x}")
+    digest.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 #[must_use]
