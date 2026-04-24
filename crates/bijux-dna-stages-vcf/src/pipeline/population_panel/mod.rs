@@ -23,25 +23,16 @@ fn parse_sample_population_labels(
     let mut labels = std::collections::BTreeMap::<String, String>::new();
     if let Some(entries) = json.get("samples").and_then(serde_json::Value::as_array) {
         for entry in entries {
-            let sample = entry
-                .get("sample")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("")
-                .trim();
-            let population = entry
-                .get("population")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("")
-                .trim();
+            let sample =
+                entry.get("sample").and_then(serde_json::Value::as_str).unwrap_or("").trim();
+            let population =
+                entry.get("population").and_then(serde_json::Value::as_str).unwrap_or("").trim();
             if !sample.is_empty() && !population.is_empty() {
                 labels.insert(sample.to_string(), population.to_string());
             }
         }
     }
-    if let Some(map) = json
-        .get("population_labels")
-        .and_then(serde_json::Value::as_object)
-    {
+    if let Some(map) = json.get("population_labels").and_then(serde_json::Value::as_object) {
         for (sample, population) in map {
             if let Some(population) = population.as_str() {
                 let sample = sample.trim();
@@ -52,16 +43,10 @@ fn parse_sample_population_labels(
             }
         }
     }
-    let missing = expected_samples
-        .iter()
-        .filter(|s| !labels.contains_key(*s))
-        .cloned()
-        .collect::<Vec<_>>();
+    let missing =
+        expected_samples.iter().filter(|s| !labels.contains_key(*s)).cloned().collect::<Vec<_>>();
     if !missing.is_empty() {
-        bail!(
-            "population metadata manifest missing labels for samples: {}",
-            missing.join(",")
-        );
+        bail!("population metadata manifest missing labels for samples: {}", missing.join(","));
     }
     Ok(labels)
 }
@@ -276,12 +261,7 @@ pub fn run_pca_stage(
         )
         .as_bytes(),
     )?;
-    Ok(PcaStageOutputs {
-        eigenvec_tsv,
-        eigenval_tsv,
-        pca_manifest_json,
-        logs_txt,
-    })
+    Ok(PcaStageOutputs { eigenvec_tsv, eigenval_tsv, pca_manifest_json, logs_txt })
 }
 
 /// # Errors
@@ -357,13 +337,10 @@ pub fn run_population_structure_stage(
         Some(run_admixture_stage(
             input_vcf,
             out_dir,
-            &params
-                .admixture_params
-                .clone()
-                .unwrap_or_else(|| AdmixtureStageParams {
-                    sample_metadata_manifest: Some(metadata_manifest.clone()),
-                    ..AdmixtureStageParams::default()
-                }),
+            &params.admixture_params.clone().unwrap_or_else(|| AdmixtureStageParams {
+                sample_metadata_manifest: Some(metadata_manifest.clone()),
+                ..AdmixtureStageParams::default()
+            }),
         )?)
     } else {
         None
@@ -437,11 +414,7 @@ pub fn run_population_structure_stage(
         )
         .as_bytes(),
     )?;
-    Ok(PopulationStructureStageOutputs {
-        pruned_variants_tsv,
-        population_structure_json,
-        logs_txt,
-    })
+    Ok(PopulationStructureStageOutputs { pruned_variants_tsv, population_structure_json, logs_txt })
 }
 
 /// # Errors
@@ -457,12 +430,7 @@ pub fn run_admixture_stage(
         .lines()
         .find_map(|line| {
             if line.starts_with("#CHROM\t") {
-                Some(
-                    line.split('\t')
-                        .skip(9)
-                        .map(str::to_string)
-                        .collect::<Vec<_>>(),
-                )
+                Some(line.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>())
             } else {
                 None
             }
@@ -508,11 +476,7 @@ pub fn run_admixture_stage(
             false
         } else {
             let bed = format!("{prefix_s}.bed");
-            run_tool(
-                "admixture",
-                &[bed.as_str(), &selected_k.to_string()],
-                Some(out_dir),
-            )
+            run_tool("admixture", &[bed.as_str(), &selected_k.to_string()], Some(out_dir))
         }
     } else {
         run_tool(
@@ -539,11 +503,7 @@ pub fn run_admixture_stage(
         .collect::<std::collections::BTreeSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
-    let clusters = population_order
-        .iter()
-        .take(selected_k.max(1))
-        .cloned()
-        .collect::<Vec<_>>();
+    let clusters = population_order.iter().take(selected_k.max(1)).cloned().collect::<Vec<_>>();
     let mut execution_mode = "fallback_proxy";
     let mut q_tsv = String::new();
     if tool == "admixture" && tool_ok {
@@ -552,10 +512,7 @@ pub fn run_admixture_stage(
             execution_mode = "real_tool";
             q_tsv = format!(
                 "sample\t{}\n",
-                (1..=selected_k)
-                    .map(|k| format!("Q{k}"))
-                    .collect::<Vec<_>>()
-                    .join("\t")
+                (1..=selected_k).map(|k| format!("Q{k}")).collect::<Vec<_>>().join("\t")
             );
             for (sample, row) in samples.iter().zip(q_raw.lines()) {
                 q_tsv.push_str(sample);
@@ -598,9 +555,5 @@ pub fn run_admixture_stage(
         &logs_txt,
         format!("toolchain={tool}\nexecution_mode={execution_mode}\ntool_success={tool_ok}\nselected_k={selected_k}\n").as_bytes(),
     )?;
-    Ok(AdmixtureStageOutputs {
-        q_matrix_tsv,
-        k_selection_json,
-        logs_txt,
-    })
+    Ok(AdmixtureStageOutputs { q_matrix_tsv, k_selection_json, logs_txt })
 }

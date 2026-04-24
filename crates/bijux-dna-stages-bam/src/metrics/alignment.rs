@@ -7,12 +7,7 @@ use super::discovery;
 pub(super) fn parse_alignment_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
     let flagstat_path = discovery::first_existing(
         out_dir,
-        &[
-            "flagstat.after.txt",
-            "filter.flagstat.txt",
-            "markdup.flagstat.txt",
-            "flagstat.txt",
-        ],
+        &["flagstat.after.txt", "filter.flagstat.txt", "markdup.flagstat.txt", "flagstat.txt"],
     );
     if let Some(path) = flagstat_path {
         if let Ok(counts) = bijux_dna_domain_bam::metrics::parse_samtools_flagstat(&path) {

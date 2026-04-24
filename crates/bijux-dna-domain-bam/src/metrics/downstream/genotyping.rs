@@ -12,10 +12,6 @@ pub struct GenotypingMetricsV1 {
 impl GenotypingMetricsV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            call_rate: 0.0,
-            mean_posterior: 0.0,
-            posterior_histogram: Vec::new(),
-        }
+        Self { call_rate: 0.0, mean_posterior: 0.0, posterior_histogram: Vec::new() }
     }
 }

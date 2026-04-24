@@ -26,12 +26,7 @@ pub struct IdxstatsSummaryV1 {
 impl IdxstatsSummaryV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            contigs: Vec::new(),
-            total_mapped: 0,
-            total_unmapped: 0,
-            reference_mismatch: false,
-        }
+        Self { contigs: Vec::new(), total_mapped: 0, total_unmapped: 0, reference_mismatch: false }
     }
 }
 
@@ -62,12 +57,7 @@ pub fn parse_samtools_idxstats(path: &Path) -> Result<IdxstatsSummaryV1> {
         }
         summary.total_mapped = summary.total_mapped.saturating_add(mapped);
         summary.total_unmapped = summary.total_unmapped.saturating_add(unmapped);
-        summary.contigs.push(IdxstatsContigV1 {
-            contig,
-            length,
-            mapped,
-            unmapped,
-        });
+        summary.contigs.push(IdxstatsContigV1 { contig, length, mapped, unmapped });
     }
     Ok(summary)
 }

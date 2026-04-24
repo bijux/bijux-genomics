@@ -9,9 +9,8 @@ fn looks_like_repo_root(path: &Path) -> bool {
 }
 
 pub(crate) fn resolve_repo_root() -> Result<PathBuf> {
-    if let Some(path) = std::env::var_os("BIJUX_REPO_ROOT")
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
+    if let Some(path) =
+        std::env::var_os("BIJUX_REPO_ROOT").filter(|value| !value.is_empty()).map(PathBuf::from)
     {
         return Ok(path);
     }
@@ -23,7 +22,5 @@ pub(crate) fn resolve_repo_root() -> Result<PathBuf> {
         }
     }
 
-    Err(anyhow!(
-        "BIJUX_REPO_ROOT must be declared when VCF stages need repository contracts"
-    ))
+    Err(anyhow!("BIJUX_REPO_ROOT must be declared when VCF stages need repository contracts"))
 }

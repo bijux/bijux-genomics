@@ -18,10 +18,7 @@ pub fn from_stage_plans(
         pipeline_id,
         PLANNER_VERSION,
         policy,
-        stages
-            .iter()
-            .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
-            .collect(),
+        stages.iter().map(bijux_dna_stage_contract::execution_step_from_stage_plan).collect(),
         edges
             .into_iter()
             .map(|edge| {

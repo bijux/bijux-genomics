@@ -7,11 +7,7 @@ pub fn assert_bgzip_tabix_artifacts(vcf_path: &Path, tbi_path: &Path) -> Result<
     if !tbi_path.exists() {
         return Err(anyhow!("tabix index missing: {}", tbi_path.display()));
     }
-    if !vcf_path
-        .extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext == "gz")
-    {
+    if vcf_path.extension().and_then(|ext| ext.to_str()).is_none_or(|ext| ext != "gz") {
         return Err(anyhow!(
             "VCF artifact must be bgzip-compressed (.vcf.gz): {}",
             vcf_path.display()
@@ -400,10 +396,7 @@ pub struct DemographyStageParams {
 
 impl Default for DemographyStageParams {
     fn default() -> Self {
-        Self {
-            min_segments: 1,
-            expected_build: None,
-        }
+        Self { min_segments: 1, expected_build: None }
     }
 }
 

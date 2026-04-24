@@ -4,6 +4,7 @@ use bijux_dna_core::ids::StepId;
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use bijux_dna_stage_contract::{execution_step_from_stage_plan, StagePlanV1};
 use sha2::Digest;
+use std::fmt::Write as _;
 
 use crate::api::VcfPipelineInputs;
 
@@ -15,7 +16,7 @@ fn short_species_context_digest(
     let seed = format!("{species_id}|{build_id}|{contig_set_digest}");
     let mut hasher = sha2::Sha256::new();
     hasher.update(seed.as_bytes());
-    let full = format!("{:x}", hasher.finalize());
+    let full = sha256_hex(hasher.finalize());
     full.chars().take(12).collect()
 }
 
@@ -26,10 +27,7 @@ pub fn build_vcf_pipeline_graph(
     resolved_coverage: CoverageRegime,
     plans: &[StagePlanV1],
 ) -> Result<ExecutionGraph> {
-    let steps = plans
-        .iter()
-        .map(execution_step_from_stage_plan)
-        .collect::<Vec<_>>();
+    let steps = plans.iter().map(execution_step_from_stage_plan).collect::<Vec<_>>();
     let edges = plans
         .windows(2)
         .map(|pair| {
@@ -57,4 +55,13 @@ pub fn build_vcf_pipeline_graph(
         steps,
         edges,
     )?)
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

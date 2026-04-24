@@ -7,9 +7,7 @@ use bijux_dna_domain_bam::metrics::{
 };
 
 fn fixture(name: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/tool_metrics/default")
-        .join(name)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/tool_metrics/default").join(name)
 }
 
 fn load<T: serde::de::DeserializeOwned>(name: &str) -> anyhow::Result<T> {

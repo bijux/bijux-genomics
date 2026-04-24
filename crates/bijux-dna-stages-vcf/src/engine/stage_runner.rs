@@ -22,10 +22,7 @@ fn sample_population_manifest_for_run(run_root: &Path) -> Option<PathBuf> {
     let candidates = [
         run_root.join("population_labels.json"),
         run_root.join("config").join("population_labels.json"),
-        run_root
-            .join("artifacts")
-            .join("metadata")
-            .join("population_labels.json"),
+        run_root.join("artifacts").join("metadata").join("population_labels.json"),
     ];
     candidates.into_iter().find(|path| path.exists())
 }
@@ -83,25 +80,15 @@ fn demography_params_for_species(species_id: &str, build_id: &str) -> Demography
 
 fn infer_damage_filter_params_from_bam(run_root: &Path) -> Option<DamageFilterStageParams> {
     let candidates = [
-        run_root
-            .join("artifacts")
-            .join("bam")
-            .join("bam_metrics.json"),
+        run_root.join("artifacts").join("bam").join("bam_metrics.json"),
         run_root.join("artifacts").join("bam").join("metrics.json"),
         run_root.join("artifacts").join("bam").join("summary.json"),
     ];
-    let raw = candidates
-        .iter()
-        .find_map(|p| std::fs::read_to_string(p).ok())?;
+    let raw = candidates.iter().find_map(|p| std::fs::read_to_string(p).ok())?;
     let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
-    let damage_rate = json
-        .get("damage_ct_ga_rate")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
-    let udg = json
-        .get("udg_treated")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false);
+    let damage_rate =
+        json.get("damage_ct_ga_rate").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    let udg = json.get("udg_treated").and_then(serde_json::Value::as_bool).unwrap_or(false);
     let params = DamageFilterStageParams {
         udg_regime: if udg {
             crate::pipeline::DamageUdgRegime::Udg
@@ -137,11 +124,7 @@ impl VcfStageRunner for DispatchRunner {
         if let Some(resumed) = try_resume_stage(stage, &stage_dir)? {
             return Ok(resumed);
         }
-        let stage_tmp_dir = ctx
-            .request
-            .run_root
-            .join("tmp")
-            .join(stage.as_str().replace('.', "_"));
+        let stage_tmp_dir = ctx.request.run_root.join("tmp").join(stage.as_str().replace('.', "_"));
         bijux_dna_infra::ensure_dir(&stage_tmp_dir)?;
         let started = Instant::now();
         let mut artifacts = Vec::<PathBuf>::new();
@@ -162,11 +145,8 @@ impl VcfStageRunner for DispatchRunner {
                     reference_fasta: ctx.request.reference_fasta.clone(),
                     ..VcfCallParams::default()
                 };
-                let effective = if stage == VcfDomainStage::Call {
-                    resolve_call_alias(ctx)?
-                } else {
-                    stage
-                };
+                let effective =
+                    if stage == VcfDomainStage::Call { resolve_call_alias(ctx)? } else { stage };
                 let out = match effective {
                     VcfDomainStage::CallGl => run_call_gl_stage(input_vcf, &stage_dir, &params),
                     VcfDomainStage::CallDiploid => {
@@ -572,10 +552,7 @@ impl VcfStageRunner for DispatchRunner {
             .build()
             .map_err(|err| refusal(VcfRefusalCode::PlanningFailed, err.to_string()))?;
         atomic_write_json(&stage_dir.join("tool_invocation.json"), &invocation)?;
-        atomic_write_bytes(
-            &stage_dir.join("tool_version.txt"),
-            format!("{version}\n").as_bytes(),
-        )?;
+        atomic_write_bytes(&stage_dir.join("tool_version.txt"), format!("{version}\n").as_bytes())?;
         write_sidecars(&stage_dir, stage, &argv, &stage_tmp_dir)?;
         let runtime = StageRuntimeStats {
             wall_time_ms: started.elapsed().as_millis(),
@@ -584,14 +561,8 @@ impl VcfStageRunner for DispatchRunner {
         };
         let checksums_path = write_artifact_checksums(&stage_dir, &artifacts)?;
         artifacts.push(checksums_path);
-        let stage_manifest = write_stage_manifest(
-            &stage_dir,
-            stage,
-            input_vcf,
-            &artifacts,
-            &runtime,
-            &invocation,
-        )?;
+        let stage_manifest =
+            write_stage_manifest(&stage_dir, stage, input_vcf, &artifacts, &runtime, &invocation)?;
 
         Ok(VcfStageOutputs {
             stage_id: stage.as_str().to_string(),

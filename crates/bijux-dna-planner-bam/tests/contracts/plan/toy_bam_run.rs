@@ -16,9 +16,7 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
             image: format!("bijux/{tool}:fixture"),
             digest: Some(format!("sha256:{tool}")),
         },
-        command: CommandSpecV1 {
-            template: vec![tool.to_string()],
-        },
+        command: CommandSpecV1 { template: vec![tool.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -63,19 +61,13 @@ fn toy_bam_run_plans_adna_pipeline_with_damage_stage() -> Result<()> {
     };
 
     let graph = plan_bam_to_bam__adna_shotgun__v1(&inputs)?;
-    let stage_ids = graph
-        .steps()
-        .iter()
-        .map(|step| step.stage_id.as_str().to_string())
-        .collect::<Vec<_>>();
+    let stage_ids =
+        graph.steps().iter().map(|step| step.stage_id.as_str().to_string()).collect::<Vec<_>>();
 
     assert!(stage_ids.iter().any(|id| id == "bam.validate"));
     assert!(stage_ids.iter().any(|id| id == "bam.coverage"));
     assert!(stage_ids.iter().any(|id| id == "bam.damage"));
-    assert!(
-        stage_ids.len() >= 5,
-        "expected non-trivial BAM plan with core stages"
-    );
+    assert!(stage_ids.len() >= 5, "expected non-trivial BAM plan with core stages");
 
     Ok(())
 }

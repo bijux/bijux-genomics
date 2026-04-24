@@ -42,14 +42,8 @@ impl SexInferenceV1 {
 pub fn parse_sex_json(path: &std::path::Path) -> anyhow::Result<SexInferenceV1> {
     let raw = std::fs::read_to_string(path).context("read sex json")?;
     let value: serde_json::Value = serde_json::from_str(&raw)?;
-    let x_to_y = value
-        .get("x_to_y_ratio")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
-    let confidence = value
-        .get("confidence")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
+    let x_to_y = value.get("x_to_y_ratio").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    let confidence = value.get("confidence").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
     let sufficient = confidence >= 0.6 && x_to_y > 0.0;
     let classification = if !sufficient {
         SexConfidenceClass::Insufficient

@@ -35,10 +35,7 @@ fn reference_modern_contaminated_flags_issue() -> Result<()> {
     let metrics = load_metrics("modern_contaminated.json")?;
     let thresholds = BamInvariantThresholds::default();
     let eval = evaluate_bam_invariants("bam.contamination", &metrics, &thresholds);
-    assert!(eval
-        .results
-        .iter()
-        .any(|r| matches!(r.status, InvariantStatusV1::Fail)));
+    assert!(eval.results.iter().any(|r| matches!(r.status, InvariantStatusV1::Fail)));
     Ok(())
 }
 
@@ -47,10 +44,7 @@ fn reference_low_complexity_warns() -> Result<()> {
     let metrics = load_metrics("low_complexity.json")?;
     let thresholds = BamInvariantThresholds::default();
     let eval = evaluate_bam_invariants("bam.complexity", &metrics, &thresholds);
-    assert!(eval
-        .results
-        .iter()
-        .any(|r| r.id == "complexity_vs_duplicates"));
+    assert!(eval.results.iter().any(|r| r.id == "complexity_vs_duplicates"));
     Ok(())
 }
 

@@ -11,13 +11,8 @@ fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(format!("tool.{stage}")),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), stage.to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), stage.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,

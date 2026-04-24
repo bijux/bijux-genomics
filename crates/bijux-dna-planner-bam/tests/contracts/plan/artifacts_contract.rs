@@ -21,13 +21,8 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool),
         tool_version: "1.0.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: Vec::new(),
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: Vec::new() },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -119,10 +114,8 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     )?;
     assert_audit_outputs(BamStage::Complexity, &complexity);
 
-    let coverage_params = CoverageEffectiveParams {
-        regions: None,
-        depth_thresholds: vec![1, 3, 5],
-    };
+    let coverage_params =
+        CoverageEffectiveParams { regions: None, depth_thresholds: vec![1, 3, 5] };
     let coverage = bijux_dna_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),
         bam,
@@ -146,9 +139,8 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     )?;
     assert_audit_outputs(BamStage::Damage, &damage);
 
-    let authenticity_params = bijux_dna_domain_bam::params::AuthenticityEffectiveParams {
-        mode: "aggregate".to_string(),
-    };
+    let authenticity_params =
+        bijux_dna_domain_bam::params::AuthenticityEffectiveParams { mode: "aggregate".to_string() };
     let authenticity = bijux_dna_planner_bam::tool_adapters::bam::authenticity::plan(
         &dummy_tool("auth"),
         bam,
@@ -172,10 +164,7 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     )?;
     assert_audit_outputs(BamStage::Contamination, &contamination);
 
-    let sex_params = SexEffectiveParams {
-        expected_sex: None,
-        method: "rxy".to_string(),
-    };
+    let sex_params = SexEffectiveParams { expected_sex: None, method: "rxy".to_string() };
     let sex = bijux_dna_planner_bam::tool_adapters::bam::sex::plan(
         &dummy_tool("rxy"),
         bam,
@@ -186,10 +175,8 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
 
     #[cfg(feature = "bam_downstream")]
     {
-        let bias_params = BiasMitigationEffectiveParams {
-            gc_bias_correction: true,
-            map_bias_correction: false,
-        };
+        let bias_params =
+            BiasMitigationEffectiveParams { gc_bias_correction: true, map_bias_correction: false };
         let bias = bijux_dna_planner_bam::tool_adapters::bam::bias_mitigation::plan(
             &dummy_tool("angsd"),
             bam,

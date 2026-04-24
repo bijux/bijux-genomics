@@ -34,9 +34,7 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
             image: "bijux/bwa".to_string(),
             digest: Some("sha256:bwa".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["bwa".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["bwa".to_string()] },
         resources: ToolConstraints {
             runtime: "short".to_string(),
             mem_gb: 2,

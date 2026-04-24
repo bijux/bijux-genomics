@@ -29,16 +29,9 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
         let Some(tool_id) = tool.get("id").and_then(toml::Value::as_str) else {
             continue;
         };
-        let stage_ids = tool
-            .get("stage_ids")
-            .and_then(toml::Value::as_array)
-            .cloned()
-            .unwrap_or_default();
-        if stage_ids
-            .iter()
-            .filter_map(toml::Value::as_str)
-            .any(|id| id == stage.as_str())
-        {
+        let stage_ids =
+            tool.get("stage_ids").and_then(toml::Value::as_array).cloned().unwrap_or_default();
+        if stage_ids.iter().filter_map(toml::Value::as_str).any(|id| id == stage.as_str()) {
             tools.insert(ToolId::new(tool_id.to_string()));
         }
     }
@@ -63,9 +56,8 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
                         .and_then(toml::Value::as_array)
                         .cloned()
                         .unwrap_or_default();
-                    for tool in mapped
-                        .into_iter()
-                        .filter_map(|value| value.as_str().map(str::to_string))
+                    for tool in
+                        mapped.into_iter().filter_map(|value| value.as_str().map(str::to_string))
                     {
                         tools.insert(ToolId::new(tool));
                     }

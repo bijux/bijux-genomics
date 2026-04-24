@@ -8,9 +8,7 @@ use bijux_dna_stages_bam::observer::{
 };
 
 fn fixture(path: &str) -> std::path::PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/observer/default")
-        .join(path)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/observer/default").join(path)
 }
 
 fn snapshot_path(name: &str) -> std::path::PathBuf {
@@ -51,10 +49,7 @@ fn snapshot_idxstats() -> anyhow::Result<()> {
 #[test]
 fn snapshot_stats() -> anyhow::Result<()> {
     let (fragment, mapq) = parse_samtools_stats(&fixture("stats.txt"))?;
-    write_snapshot(
-        "samtools_stats",
-        &serde_json::json!({"fragment": fragment, "mapq": mapq}),
-    );
+    write_snapshot("samtools_stats", &serde_json::json!({"fragment": fragment, "mapq": mapq}));
     Ok(())
 }
 

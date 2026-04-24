@@ -14,12 +14,8 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
     match stage {
         BamStage::Align => {
             let r1 = request.r1.ok_or_else(|| anyhow!("align requires r1"))?;
-            let reference = request
-                .reference
-                .ok_or_else(|| anyhow!("align requires reference"))?;
-            let sample_id = request
-                .sample_id
-                .ok_or_else(|| anyhow!("align requires sample_id"))?;
+            let reference = request.reference.ok_or_else(|| anyhow!("align requires reference"))?;
+            let sample_id = request.sample_id.ok_or_else(|| anyhow!("align requires sample_id"))?;
             let params = params::effective_params_for_stage(stage, request.params)?;
             let BamEffectiveParams::Align(params) = params else {
                 return Err(anyhow!("align params mismatch"));
@@ -35,9 +31,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             )
         }
         BamStage::Validate => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("validate requires bam"))?;
+            let bam = request.bam.ok_or_else(|| anyhow!("validate requires bam"))?;
             tool_adapters::stages_pre::validate::plan(
                 request.tool,
                 bam,
@@ -51,9 +45,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)
         }
         BamStage::MappingSummary => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("mapping_summary requires bam"))?;
+            let bam = request.bam.ok_or_else(|| anyhow!("mapping_summary requires bam"))?;
             tool_adapters::stages_pre::mapping_summary::plan(request.tool, bam, request.out_dir)
         }
         BamStage::Filter => {
@@ -72,9 +64,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             Ok(plan)
         }
         BamStage::MapqFilter => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("mapq_filter requires bam"))?;
+            let bam = request.bam.ok_or_else(|| anyhow!("mapq_filter requires bam"))?;
             let params = params::effective_params_for_stage(stage, request.params)?;
             let BamEffectiveParams::MapqFilter(params) = params else {
                 return Err(anyhow!("mapq_filter params mismatch"));
@@ -89,9 +79,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             )
         }
         BamStage::LengthFilter => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("length_filter requires bam"))?;
+            let bam = request.bam.ok_or_else(|| anyhow!("length_filter requires bam"))?;
             let params = params::effective_params_for_stage(stage, request.params)?;
             let BamEffectiveParams::LengthFilter(params) = params else {
                 return Err(anyhow!("length_filter params mismatch"));
@@ -104,9 +92,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             )
         }
         BamStage::OverlapCorrection => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("overlap_correction requires bam"))?;
+            let bam = request.bam.ok_or_else(|| anyhow!("overlap_correction requires bam"))?;
             let params = params::effective_params_for_stage(stage, request.params)?;
             let BamEffectiveParams::OverlapCorrection(params) = params else {
                 return Err(anyhow!("overlap_correction params mismatch"));
@@ -120,9 +106,8 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             plan.stage_id = StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
-        _ => Err(anyhow!(
-            "stage {} is not handled by the pre-alignment dispatcher",
-            stage.as_str()
-        )),
+        _ => {
+            Err(anyhow!("stage {} is not handled by the pre-alignment dispatcher", stage.as_str()))
+        }
     }
 }

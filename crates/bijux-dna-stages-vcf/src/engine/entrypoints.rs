@@ -6,11 +6,7 @@ use super::*;
 
 fn deterministic_stage_list(requested: &[VcfDomainStage]) -> Result<Vec<VcfDomainStage>> {
     if requested.is_empty() {
-        return Ok(vec![
-            VcfDomainStage::Call,
-            VcfDomainStage::Filter,
-            VcfDomainStage::Stats,
-        ]);
+        return Ok(vec![VcfDomainStage::Call, VcfDomainStage::Filter, VcfDomainStage::Stats]);
     }
     let req = requested.to_vec();
     let ordered = VCF_STAGE_ORDER_DOWNSTREAM
@@ -28,10 +24,7 @@ fn deterministic_stage_list(requested: &[VcfDomainStage]) -> Result<Vec<VcfDomai
         if !VCF_STAGE_ORDER_DOWNSTREAM.contains(s) {
             return Err(refusal(
                 VcfRefusalCode::UnsupportedStage,
-                format!(
-                    "requested stage {} is not in domain stage order",
-                    s.as_str()
-                ),
+                format!("requested stage {} is not in domain stage order", s.as_str()),
             ));
         }
     }
@@ -46,10 +39,7 @@ fn validate_request(req: &VcfPipelineRequest) -> Result<()> {
         ));
     }
     if req.sample_name.trim().is_empty() {
-        return Err(refusal(
-            VcfRefusalCode::InvariantsFailed,
-            "sample_name is empty",
-        ));
+        return Err(refusal(VcfRefusalCode::InvariantsFailed, "sample_name is empty"));
     }
     Ok(())
 }
@@ -78,11 +68,8 @@ pub fn run_vcf_pipeline(request: &VcfPipelineRequest) -> Result<VcfPipelineResul
         &request.invariants,
     )
     .map_err(|err| refusal(VcfRefusalCode::InvariantsFailed, err.to_string()))?;
-    let ctx = VcfStageRunContext {
-        request,
-        artifact_root: artifact_root.clone(),
-        preflight: &preflight,
-    };
+    let ctx =
+        VcfStageRunContext { request, artifact_root: artifact_root.clone(), preflight: &preflight };
 
     let mut current = preflight.normalized_input.clone();
     let mut stage_outputs = Vec::<VcfStageOutputs>::new();

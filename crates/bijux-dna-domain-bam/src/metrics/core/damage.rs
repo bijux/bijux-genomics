@@ -93,11 +93,7 @@ pub struct AdDeamMetricsV1 {
 impl DamageMetricsV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            c_to_t_5p: 0.0,
-            g_to_a_3p: 0.0,
-            pmd_score_histogram: Vec::new(),
-        }
+        Self { c_to_t_5p: 0.0, g_to_a_3p: 0.0, pmd_score_histogram: Vec::new() }
     }
 }
 
@@ -126,19 +122,9 @@ pub fn compare_damage_metrics(
 pub fn parse_pydamage_json(path: &std::path::Path) -> anyhow::Result<DamageMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read pydamage json")?;
     let value: serde_json::Value = serde_json::from_str(&raw)?;
-    let c_to_t = value
-        .get("ct_5p")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
-    let g_to_a = value
-        .get("ga_3p")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
-    Ok(DamageMetricsV1 {
-        c_to_t_5p: c_to_t,
-        g_to_a_3p: g_to_a,
-        pmd_score_histogram: Vec::new(),
-    })
+    let c_to_t = value.get("ct_5p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    let g_to_a = value.get("ga_3p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    Ok(DamageMetricsV1 { c_to_t_5p: c_to_t, g_to_a_3p: g_to_a, pmd_score_histogram: Vec::new() })
 }
 
 /// # Errors
@@ -146,19 +132,9 @@ pub fn parse_pydamage_json(path: &std::path::Path) -> anyhow::Result<DamageMetri
 pub fn parse_damageprofiler_json(path: &std::path::Path) -> anyhow::Result<DamageMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read damageprofiler json")?;
     let value: serde_json::Value = serde_json::from_str(&raw)?;
-    let c_to_t = value
-        .get("c_to_t_5p")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
-    let g_to_a = value
-        .get("g_to_a_3p")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
-    Ok(DamageMetricsV1 {
-        c_to_t_5p: c_to_t,
-        g_to_a_3p: g_to_a,
-        pmd_score_histogram: Vec::new(),
-    })
+    let c_to_t = value.get("c_to_t_5p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    let g_to_a = value.get("g_to_a_3p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    Ok(DamageMetricsV1 { c_to_t_5p: c_to_t, g_to_a_3p: g_to_a, pmd_score_histogram: Vec::new() })
 }
 
 /// # Errors

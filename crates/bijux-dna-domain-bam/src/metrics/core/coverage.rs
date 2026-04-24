@@ -15,13 +15,7 @@ pub struct CoverageMetricsV1 {
 impl CoverageMetricsV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            mean: 0.0,
-            median: 0.0,
-            breadth_1x: 0.0,
-            breadth_3x: 0.0,
-            breadth_5x: 0.0,
-        }
+        Self { mean: 0.0, median: 0.0, breadth_1x: 0.0, breadth_3x: 0.0, breadth_5x: 0.0 }
     }
 }
 
@@ -35,10 +29,7 @@ pub struct CoverageUniformityV1 {
 impl CoverageUniformityV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            coefficient_of_variation: 0.0,
-            dropout_fraction: 0.0,
-        }
+        Self { coefficient_of_variation: 0.0, dropout_fraction: 0.0 }
     }
 }
 
@@ -59,11 +50,7 @@ pub struct EffectiveCoverageV1 {
 impl EffectiveCoverageV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            raw: 0.0,
-            dedup: 0.0,
-            pmd_filtered: 0.0,
-        }
+        Self { raw: 0.0, dedup: 0.0, pmd_filtered: 0.0 }
     }
 }
 
@@ -99,13 +86,7 @@ pub fn parse_mosdepth_summary(path: &std::path::Path) -> anyhow::Result<Coverage
             break;
         }
     }
-    Ok(CoverageMetricsV1 {
-        mean,
-        median: mean,
-        breadth_1x,
-        breadth_3x: 0.0,
-        breadth_5x: 0.0,
-    })
+    Ok(CoverageMetricsV1 { mean, median: mean, breadth_1x, breadth_3x: 0.0, breadth_5x: 0.0 })
 }
 
 /// # Errors
@@ -184,9 +165,6 @@ pub fn parse_samtools_depth_with_uniformity(
             (u64_to_f64(breadth_5x) / u64_to_f64(total_positions)).clamp(0.0, 1.0)
         },
     };
-    let uniformity = CoverageUniformityV1 {
-        coefficient_of_variation: cv,
-        dropout_fraction,
-    };
+    let uniformity = CoverageUniformityV1 { coefficient_of_variation: cv, dropout_fraction };
     Ok((coverage, uniformity))
 }

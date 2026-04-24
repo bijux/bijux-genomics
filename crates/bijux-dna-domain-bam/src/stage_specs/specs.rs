@@ -18,8 +18,5 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
 
 #[must_use]
 pub fn stage_specs() -> Vec<BamStageSpec> {
-    BamStage::all()
-        .iter()
-        .map(|stage| stage_spec(*stage))
-        .collect()
+    BamStage::all().iter().map(|stage| stage_spec(*stage)).collect()
 }

@@ -35,11 +35,7 @@ pub const DAMAGE_AWARE_GENOTYPE_LOGIC: DamageAwareGenotypeLogicContract =
     DamageAwareGenotypeLogicContract {
         schema_version: "bijux.vcf.damage_aware_genotype_logic.v1",
         masked_variant_classes: &["ct_transition", "ga_transition", "pmd_suspect"],
-        masking_scope: &[
-            "genotype_likelihoods",
-            "called_genotypes",
-            "site_filter_flags",
-        ],
+        masking_scope: &["genotype_likelihoods", "called_genotypes", "site_filter_flags"],
         provenance_fields: &[
             "damage_strategy",
             "ct_ga_mask_threshold",

@@ -43,11 +43,7 @@ pub(crate) fn stage_inputs_for(
     } else {
         ArtifactRole::Reads
     };
-    vec![ArtifactSpec::required(
-        ArtifactId::new("vcf"),
-        input_path,
-        role,
-    )]
+    vec![ArtifactSpec::required(ArtifactId::new("vcf"), input_path, role)]
 }
 
 pub(crate) fn stage_outputs_for(stage: VcfDomainStage, out_dir: &Path) -> Vec<ArtifactSpec> {
@@ -86,11 +82,9 @@ pub(crate) fn stage_command(stage: VcfDomainStage, tool: &str) -> CommandSpecV1 
         VcfDomainStage::Imputation | VcfDomainStage::Impute => {
             template.extend(["impute", "--input", "vcf"].into_iter().map(str::to_string))
         }
-        VcfDomainStage::GlPropagation => template.extend(
-            ["annotate", "--retain", "GL,PL,GP"]
-                .into_iter()
-                .map(str::to_string),
-        ),
+        VcfDomainStage::GlPropagation => {
+            template.extend(["annotate", "--retain", "GL,PL,GP"].into_iter().map(str::to_string))
+        }
         VcfDomainStage::DamageFilter => {
             template.extend(["filter", "--damage-aware"].into_iter().map(str::to_string))
         }
@@ -103,11 +97,9 @@ pub(crate) fn stage_command(stage: VcfDomainStage, tool: &str) -> CommandSpecV1 
         VcfDomainStage::Roh => {
             template.extend(["roh", "--min-kb", "500"].into_iter().map(str::to_string))
         }
-        VcfDomainStage::Demography => template.extend(
-            ["estimate-ne", "--from-ibd"]
-                .into_iter()
-                .map(str::to_string),
-        ),
+        VcfDomainStage::Demography => {
+            template.extend(["estimate-ne", "--from-ibd"].into_iter().map(str::to_string))
+        }
         _ => template.push("--help".to_string()),
     }
     CommandSpecV1 { template }

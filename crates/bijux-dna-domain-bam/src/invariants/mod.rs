@@ -54,10 +54,7 @@ fn evaluate_bam_invariants_inner(
         status = InvariantStatusV1::Fail;
     }
 
-    if matches!(
-        stage_id,
-        "bam.sex" | "bam.contamination" | "bam.haplogroups" | "bam.kinship"
-    ) {
+    if matches!(stage_id, "bam.sex" | "bam.contamination" | "bam.haplogroups" | "bam.kinship") {
         let sufficient = match stage_id {
             "bam.sex" => metrics.sex_sufficiency.sufficient,
             "bam.contamination" => metrics.contamination_sufficiency.sufficient,
@@ -220,10 +217,7 @@ fn evaluate_bam_invariants_inner(
 
     let mut reasons = Vec::new();
     for result in &results {
-        if matches!(
-            result.status,
-            InvariantStatusV1::Warn | InvariantStatusV1::Fail
-        ) {
+        if matches!(result.status, InvariantStatusV1::Warn | InvariantStatusV1::Fail) {
             reasons.push(result.id.clone());
         }
     }

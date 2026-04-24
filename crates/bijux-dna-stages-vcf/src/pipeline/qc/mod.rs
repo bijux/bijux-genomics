@@ -60,10 +60,7 @@ fn parse_gt_counts(format_field: &str, sample_fields: &[&str]) -> Option<(u64, u
 
 fn is_transition(reference: &str, alt: &str) -> bool {
     matches!(
-        (
-            reference.to_ascii_uppercase().as_str(),
-            alt.to_ascii_uppercase().as_str()
-        ),
+        (reference.to_ascii_uppercase().as_str(), alt.to_ascii_uppercase().as_str()),
         ("A", "G") | ("G", "A") | ("C", "T") | ("T", "C")
     )
 }
@@ -114,10 +111,8 @@ pub fn run_qc_stage(
             fields[6].to_string()
         };
         *filter_counts.entry(filter_label).or_insert(0) += 1;
-        post_variant_keys.insert(format!(
-            "{}:{}:{}:{}",
-            fields[0], fields[1], fields[3], fields[4]
-        ));
+        post_variant_keys
+            .insert(format!("{}:{}:{}:{}", fields[0], fields[1], fields[3], fields[4]));
         if let (Some(reference), Some(alt)) = (fields.get(3), fields.get(4)) {
             if is_transition(reference, alt) {
                 ti_count += 1;
@@ -205,11 +200,8 @@ pub fn run_qc_stage(
             }
         }
     }
-    let missingness_post = if called + missing == 0 {
-        0.0
-    } else {
-        missing as f64 / (called + missing) as f64
-    };
+    let missingness_post =
+        if called + missing == 0 { 0.0 } else { missing as f64 / (called + missing) as f64 };
     let missingness_pre = if let Some(pre) = &params.pre_filter_vcf {
         let pre_raw = read_vcf_text(pre)?;
         let mut pre_missing = 0_u64;
@@ -268,23 +260,12 @@ pub fn run_qc_stage(
     } else {
         Some(hwe_p_values.iter().sum::<f64>() / hwe_p_values.len() as f64)
     };
-    let ti_tv = if tv_count == 0 {
-        None
-    } else {
-        Some(ti_count as f64 / tv_count as f64)
-    };
-    let het_hom_ratio = if hom_alt_total == 0 {
-        None
-    } else {
-        Some(het_total as f64 / hom_alt_total as f64)
-    };
+    let ti_tv = if tv_count == 0 { None } else { Some(ti_count as f64 / tv_count as f64) };
+    let het_hom_ratio =
+        if hom_alt_total == 0 { None } else { Some(het_total as f64 / hom_alt_total as f64) };
     let thresholds = load_imputation_qc_thresholds();
     if params.production_profile {
-        if missingness_post
-            > *thresholds
-                .get("vcf_qc_missingness_post_fail")
-                .unwrap_or(&0.15)
-        {
+        if missingness_post > *thresholds.get("vcf_qc_missingness_post_fail").unwrap_or(&0.15) {
             bail!("vcf.qc production gate failed: missingness_post above fail threshold");
         }
         if !info_values.is_empty()
@@ -301,9 +282,7 @@ pub fn run_qc_stage(
     table.push_str(&format!("missingness_pre\t{missingness_pre:.6}\n"));
     table.push_str(&format!("missingness_post\t{missingness_post:.6}\n"));
     table.push_str(&format!("allele_freq_mean\t{af_mean:.6}\n"));
-    table.push_str(&format!(
-        "site_missingness_mean\t{site_missingness_mean:.6}\n"
-    ));
+    table.push_str(&format!("site_missingness_mean\t{site_missingness_mean:.6}\n"));
     table.push_str(&format!("imputation_info_mean\t{info_mean:.6}\n"));
     table.push_str(&format!("rsq_mean\t{rsq_mean:.6}\n"));
     for (bin, count) in &maf_bins {
@@ -340,19 +319,14 @@ pub fn run_qc_stage(
             let Some(fields) = parse_record_fields(line) else {
                 continue;
             };
-            pre_variant_keys.insert(format!(
-                "{}:{}:{}:{}",
-                fields[0], fields[1], fields[3], fields[4]
-            ));
+            pre_variant_keys
+                .insert(format!("{}:{}:{}:{}", fields[0], fields[1], fields[3], fields[4]));
         }
         let shared = pre_variant_keys.intersection(&post_variant_keys).count() as u64;
         let pre_total = pre_variant_keys.len() as u64;
         let post_total = post_variant_keys.len() as u64;
-        let post_overlap_fraction = if post_total == 0 {
-            0.0
-        } else {
-            shared as f64 / post_total as f64
-        };
+        let post_overlap_fraction =
+            if post_total == 0 { 0.0 } else { shared as f64 / post_total as f64 };
         serde_json::json!({
             "pre_total": pre_total,
             "post_total": post_total,
@@ -370,11 +344,7 @@ pub fn run_qc_stage(
     let mut sample_missingness = per_sample
         .iter()
         .map(|(sample, (total, miss))| {
-            let frac = if *total == 0 {
-                0.0
-            } else {
-                *miss as f64 / *total as f64
-            };
+            let frac = if *total == 0 { 0.0 } else { *miss as f64 / *total as f64 };
             (sample.clone(), frac)
         })
         .collect::<Vec<_>>();
@@ -387,10 +357,7 @@ pub fn run_qc_stage(
     let var_sample_missing = if sample_missingness.len() < 2 {
         0.0
     } else {
-        sample_missingness
-            .iter()
-            .map(|(_, v)| (v - mean_sample_missing).powi(2))
-            .sum::<f64>()
+        sample_missingness.iter().map(|(_, v)| (v - mean_sample_missing).powi(2)).sum::<f64>()
             / sample_missingness.len() as f64
     };
     let std_sample_missing = var_sample_missing.sqrt();
@@ -542,11 +509,7 @@ pub fn run_stats_stage_real(
     metrics.sample_name = params.sample_name.clone();
     let stats_json = out_dir.join("stats.json");
     atomic_write_json(&stats_json, &serde_json::to_value(&metrics)?)?;
-    Ok(StatsStageOutputs {
-        bcftools_stats_txt,
-        stats_json,
-        metrics,
-    })
+    Ok(StatsStageOutputs { bcftools_stats_txt, stats_json, metrics })
 }
 
 // Errors are surfaced from helpers and include deserialization/index checks.

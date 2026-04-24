@@ -14,9 +14,8 @@ pub(super) fn parse_contamination_and_sex(out_dir: &Path, metrics: &mut BamMetri
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
                 metrics.contamination_reconciliation.mt_fraction =
                     value.get("mt_estimate").and_then(serde_json::Value::as_f64);
-                metrics.contamination_reconciliation.nuclear_fraction = value
-                    .get("nuclear_estimate")
-                    .and_then(serde_json::Value::as_f64);
+                metrics.contamination_reconciliation.nuclear_fraction =
+                    value.get("nuclear_estimate").and_then(serde_json::Value::as_f64);
             }
         }
     }

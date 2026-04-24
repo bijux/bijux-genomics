@@ -186,9 +186,7 @@ pub mod kinship {
         params: &KinshipEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
         if params.reference_panel.trim().is_empty() {
-            return Err(anyhow::anyhow!(
-                "bam.kinship requires non-empty reference_panel"
-            ));
+            return Err(anyhow::anyhow!("bam.kinship requires non-empty reference_panel"));
         }
         if params.min_overlap_snps == 0 {
             return Err(anyhow::anyhow!("bam.kinship requires min_overlap_snps > 0"));

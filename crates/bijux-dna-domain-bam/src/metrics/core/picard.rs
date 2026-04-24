@@ -127,31 +127,20 @@ fn header_map<'a>(
     header: Vec<&'a str>,
     data: Vec<&'a str>,
 ) -> std::collections::BTreeMap<&'a str, &'a str> {
-    header
-        .into_iter()
-        .zip(data)
-        .collect::<std::collections::BTreeMap<_, _>>()
+    header.into_iter().zip(data).collect::<std::collections::BTreeMap<_, _>>()
 }
 
 fn f64_field(map: &std::collections::BTreeMap<&str, &str>, key: &str) -> f64 {
-    map.get(key)
-        .and_then(|value| value.parse::<f64>().ok())
-        .unwrap_or(0.0)
+    map.get(key).and_then(|value| value.parse::<f64>().ok()).unwrap_or(0.0)
 }
 
 fn u64_field(map: &std::collections::BTreeMap<&str, &str>, key: &str) -> u64 {
-    map.get(key)
-        .and_then(|value| value.parse::<u64>().ok())
-        .unwrap_or(0)
+    map.get(key).and_then(|value| value.parse::<u64>().ok()).unwrap_or(0)
 }
 
 fn pair_orientation_fr_fraction(map: &std::collections::BTreeMap<&str, &str>) -> f64 {
-    let orientation = map
-        .get("PAIR_ORIENTATION")
-        .copied()
-        .unwrap_or_default()
-        .trim()
-        .to_ascii_uppercase();
+    let orientation =
+        map.get("PAIR_ORIENTATION").copied().unwrap_or_default().trim().to_ascii_uppercase();
     if orientation == "FR" {
         1.0
     } else {

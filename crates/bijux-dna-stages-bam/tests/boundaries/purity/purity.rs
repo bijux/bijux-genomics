@@ -2,10 +2,7 @@
 fn no_command_building_or_tool_selection() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(root)
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in walkdir::WalkDir::new(root).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -31,22 +28,11 @@ Offenders:\n{}",
 
 #[test]
 fn stage_specs_are_declarative() {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("stage_specs.rs");
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src").join("stage_specs.rs");
     let contents =
         std::fs::read_to_string(&path).unwrap_or_else(|err| panic!("read stage_specs.rs: {err}"));
-    let banned = [
-        "std::process",
-        "Command::",
-        "tokio::process",
-        "shell",
-        "exec",
-    ];
+    let banned = ["std::process", "Command::", "tokio::process", "shell", "exec"];
     for needle in banned {
-        assert!(
-            !contents.contains(needle),
-            "stage_specs.rs must be declarative; found {needle}"
-        );
+        assert!(!contents.contains(needle), "stage_specs.rs must be declarative; found {needle}");
     }
 }

@@ -14,12 +14,6 @@ pub struct FragmentLengthSummaryV1 {
 impl FragmentLengthSummaryV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            mean: 0.0,
-            median: 0.0,
-            p10: 0.0,
-            p90: 0.0,
-            short_fraction: 0.0,
-        }
+        Self { mean: 0.0, median: 0.0, p10: 0.0, p90: 0.0, short_fraction: 0.0 }
     }
 }

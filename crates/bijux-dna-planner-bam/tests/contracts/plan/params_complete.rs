@@ -10,13 +10,8 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool),
         tool_version: "1.0.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: Vec::new(),
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: Vec::new() },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -27,9 +22,8 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
 }
 
 fn assert_keys(value: &Value, keys: &[&str]) -> Result<()> {
-    let obj = value
-        .as_object()
-        .ok_or_else(|| anyhow::anyhow!("effective_params is not an object"))?;
+    let obj =
+        value.as_object().ok_or_else(|| anyhow::anyhow!("effective_params is not an object"))?;
     for key in keys {
         assert!(obj.contains_key(*key), "missing key: {key}");
     }
@@ -103,10 +97,7 @@ fn markdup_params_complete() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_keys(
-        &plan.effective_params,
-        &["optical_duplicates", "umi_policy", "duplicate_action"],
-    )?;
+    assert_keys(&plan.effective_params, &["optical_duplicates", "umi_policy", "duplicate_action"])?;
     Ok(())
 }
 
@@ -159,22 +150,15 @@ fn damage_params_complete() -> Result<()> {
     )?;
     assert_keys(
         &plan.effective_params,
-        &[
-            "udg_model",
-            "pmd_threshold_5p",
-            "pmd_threshold_3p",
-            "trim_5p",
-            "trim_3p",
-        ],
+        &["udg_model", "pmd_threshold_5p", "pmd_threshold_3p", "trim_5p", "trim_3p"],
     )?;
     Ok(())
 }
 
 #[test]
 fn authenticity_params_complete() -> Result<()> {
-    let params = bijux_dna_domain_bam::params::AuthenticityEffectiveParams {
-        mode: "aggregate".to_string(),
-    };
+    let params =
+        bijux_dna_domain_bam::params::AuthenticityEffectiveParams { mode: "aggregate".to_string() };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::authenticity::plan(
         &dummy_tool("auth"),
         Path::new("reads.bam"),
@@ -202,13 +186,7 @@ fn contamination_params_complete() -> Result<()> {
     )?;
     assert_keys(
         &plan.effective_params,
-        &[
-            "reference_panels",
-            "scope",
-            "prior",
-            "sex_specific",
-            "assumptions",
-        ],
+        &["reference_panels", "scope", "prior", "sex_specific", "assumptions"],
     )?;
     Ok(())
 }
@@ -242,10 +220,7 @@ fn bias_mitigation_params_complete() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_keys(
-        &plan.effective_params,
-        &["gc_bias_correction", "map_bias_correction"],
-    )?;
+    assert_keys(&plan.effective_params, &["gc_bias_correction", "map_bias_correction"])?;
     Ok(())
 }
 
@@ -265,10 +240,7 @@ fn recalibration_params_complete() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_keys(
-        &plan.effective_params,
-        &["known_sites", "mode", "skip_criteria"],
-    )?;
+    assert_keys(&plan.effective_params, &["known_sites", "mode", "skip_criteria"])?;
     Ok(())
 }
 
@@ -303,10 +275,7 @@ fn genotyping_params_complete() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_keys(
-        &plan.effective_params,
-        &["caller", "min_posterior", "min_call_rate"],
-    )?;
+    assert_keys(&plan.effective_params, &["caller", "min_posterior", "min_call_rate"])?;
     Ok(())
 }
 
@@ -323,10 +292,7 @@ fn kinship_params_complete() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_keys(
-        &plan.effective_params,
-        &["reference_panel", "min_overlap_snps"],
-    )?;
+    assert_keys(&plan.effective_params, &["reference_panel", "min_overlap_snps"])?;
     Ok(())
 }
 

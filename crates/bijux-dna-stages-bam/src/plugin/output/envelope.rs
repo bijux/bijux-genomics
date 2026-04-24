@@ -22,11 +22,7 @@ pub(super) fn build_metrics_envelope(
     let input_fingerprint = input_fingerprint(&input_hashes);
     let parameters_fingerprint = parameters_fingerprint(&plan.params)?;
     let parameters_json_normalized = parameters_json_canonicalization(&plan.params);
-    let image_digest = plan
-        .image
-        .digest
-        .clone()
-        .unwrap_or_else(|| plan.image.image.clone());
+    let image_digest = plan.image.digest.clone().unwrap_or_else(|| plan.image.image.clone());
     Ok(MetricsEnvelope {
         schema_version: "bijux.metrics_envelope.v2".to_string(),
         contract_version: ContractVersion::v1(),

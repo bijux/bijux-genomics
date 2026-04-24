@@ -15,13 +15,8 @@ pub fn report_stage_step(
     ExecutionStep {
         step_id: StepId::from_static(id_catalog::REPORT_AGGREGATE_STEP),
         stage_id: StageId::from_static(id_catalog::REPORT_AGGREGATE_STAGE),
-        command: CommandSpecV1 {
-            template: vec!["report-aggregate".to_string()],
-        },
-        image: ContainerImageRefV1 {
-            image: "bijux-dna-report".to_string(),
-            digest: None,
-        },
+        command: CommandSpecV1 { template: vec!["report-aggregate".to_string()] },
+        image: ContainerImageRefV1 { image: "bijux-dna-report".to_string(), digest: None },
         resources: ToolConstraints::default(),
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),

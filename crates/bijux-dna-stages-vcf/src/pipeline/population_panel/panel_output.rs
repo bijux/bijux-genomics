@@ -1,11 +1,7 @@
 use super::*;
 
 pub(crate) fn try_run_tool(bin: &str, args: &[&str]) -> bool {
-    std::process::Command::new(bin)
-        .args(args)
-        .output()
-        .map(|x| x.status.success())
-        .unwrap_or(false)
+    std::process::Command::new(bin).args(args).output().map(|x| x.status.success()).unwrap_or(false)
 }
 
 pub(crate) fn write_bgzip_with_best_effort_index(

@@ -34,10 +34,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
     }
     let requires_diploid_imputation = stages.iter().any(|s| {
-        matches!(
-            s,
-            VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute
-        )
+        matches!(s, VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute)
     });
     if requires_diploid_imputation && !resolved_species.supported_features.imputation {
         bail!(
@@ -79,13 +76,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
                 stage.as_str()
             );
         }
-        validate_selected_tool(
-            stage,
-            &tool,
-            resolved_coverage,
-            &panel_catalog,
-            &map_catalog,
-        )?;
+        validate_selected_tool(stage, &tool, resolved_coverage, &panel_catalog, &map_catalog)?;
         let plan = crate::stage_plan::build_stage_plan(
             stage,
             &current_vcf,
@@ -128,10 +119,7 @@ pub fn plan_vcf_pipeline(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
 pub fn plan_vcf_minimal(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
     let mut compat = inputs.clone();
     compat.coverage_regime = CoverageRegime::Diploid;
-    compat.requested_stages = Some(vec![
-        "vcf.call".to_string(),
-        "vcf.filter".to_string(),
-        "vcf.stats".to_string(),
-    ]);
+    compat.requested_stages =
+        Some(vec!["vcf.call".to_string(), "vcf.filter".to_string(), "vcf.stats".to_string()]);
     plan_vcf_pipeline(&compat)
 }

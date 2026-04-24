@@ -21,11 +21,7 @@ fn bam_stages_meet_completeness_contract() {
     for stage in BamStage::all() {
         let spec = stage_spec(*stage);
         let audit = required_audit_artifacts(*stage);
-        assert!(
-            !audit.is_empty(),
-            "stage {} missing audit artifacts",
-            stage.as_str()
-        );
+        assert!(!audit.is_empty(), "stage {} missing audit artifacts", stage.as_str());
         assert!(
             !spec.artifact_policy.required_outputs.is_empty(),
             "stage {} missing required outputs",

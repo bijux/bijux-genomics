@@ -39,10 +39,8 @@ pub fn markdup_args_with_audit(
     summary: &Path,
     params: &MarkDupEffectiveParams,
 ) -> Vec<String> {
-    let remove = matches!(
-        params.duplicate_action,
-        bijux_dna_domain_bam::params::DuplicateAction::Remove
-    );
+    let remove =
+        matches!(params.duplicate_action, bijux_dna_domain_bam::params::DuplicateAction::Remove);
     let command = format!(
         "samtools flagstat {bam} > {flagstat_before} && \
 samtools idxstats {bam} > {idxstats_before} && \

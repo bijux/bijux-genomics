@@ -50,9 +50,7 @@ pub fn run_imputation_orchestration_stage(
 
     if matches!(params.backend, ImputeBackend::Minimac4) {
         let raw = read_vcf_text_runtime(&current_input)?;
-        let has_phased = raw
-            .lines()
-            .any(|line| line.contains("\t0|") || line.contains("\t1|"));
+        let has_phased = raw.lines().any(|line| line.contains("\t0|") || line.contains("\t1|"));
         if !has_phased {
             let phase_dir = out_dir.join("phasing");
             let phasing = run_phasing_stage(

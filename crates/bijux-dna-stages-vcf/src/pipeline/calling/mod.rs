@@ -29,10 +29,7 @@ fn resolve_reference_path(params: &VcfCallParams) -> Result<String> {
 
 fn ensure_bam_prerequisites(input_bam: &Path, params: &VcfCallParams) -> Result<()> {
     if input_bam.extension().and_then(|x| x.to_str()) != Some("bam") {
-        bail!(
-            "call stage BAM flow requires .bam input: {}",
-            input_bam.display()
-        );
+        bail!("call stage BAM flow requires .bam input: {}", input_bam.display());
     }
     let bai = input_bam.with_extension("bam.bai");
     if !bai.exists() {
@@ -40,10 +37,7 @@ fn ensure_bam_prerequisites(input_bam: &Path, params: &VcfCallParams) -> Result<
     }
     let reference = resolve_reference_path(params)?;
     if !Path::new(&reference).exists() {
-        bail!(
-            "call stage BAM flow reference does not exist: {}",
-            reference
-        );
+        bail!("call stage BAM flow reference does not exist: {}", reference);
     }
     Ok(())
 }
@@ -68,21 +62,14 @@ fn run_bcftools_mpileup_call(
 ) -> Result<()> {
     ensure_bam_prerequisites(input_bam, params)?;
     let reference = resolve_reference_path(params)?;
-    let mpileup_bcf = out_vcf
-        .parent()
-        .ok_or_else(|| anyhow!("output path has no parent"))?
-        .join("mpileup.bcf");
+    let mpileup_bcf =
+        out_vcf.parent().ok_or_else(|| anyhow!("output path has no parent"))?.join("mpileup.bcf");
     let min_map_q = params.min_mapping_quality.to_string();
     let min_base_q = params.min_base_quality.to_string();
-    let mpileup_out = mpileup_bcf
-        .to_str()
-        .ok_or_else(|| anyhow!("non-utf8 mpileup output path"))?;
-    let input_bam_s = input_bam
-        .to_str()
-        .ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
-    let out_vcf_s = out_vcf
-        .to_str()
-        .ok_or_else(|| anyhow!("non-utf8 output vcf path"))?;
+    let mpileup_out =
+        mpileup_bcf.to_str().ok_or_else(|| anyhow!("non-utf8 mpileup output path"))?;
+    let input_bam_s = input_bam.to_str().ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
+    let out_vcf_s = out_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 output vcf path"))?;
     if include_gl_fields {
         let mpileup_args = [
             "mpileup",
@@ -132,19 +119,13 @@ fn run_gatk_haplotype_caller(
 ) -> Result<()> {
     ensure_bam_prerequisites(input_bam, params)?;
     let reference = resolve_reference_path(params)?;
-    let out_dir = out_vcf
-        .parent()
-        .ok_or_else(|| anyhow!("output path has no parent"))?;
+    let out_dir = out_vcf.parent().ok_or_else(|| anyhow!("output path has no parent"))?;
     let raw_vcf = out_dir.join("gatk.raw.vcf");
-    let input_bam_s = input_bam
-        .to_str()
-        .ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
-    let raw_vcf_s = raw_vcf
-        .to_str()
-        .ok_or_else(|| anyhow!("non-utf8 temporary gatk output path"))?;
-    let reference_s = Path::new(&reference)
-        .to_str()
-        .ok_or_else(|| anyhow!("non-utf8 reference path"))?;
+    let input_bam_s = input_bam.to_str().ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
+    let raw_vcf_s =
+        raw_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 temporary gatk output path"))?;
+    let reference_s =
+        Path::new(&reference).to_str().ok_or_else(|| anyhow!("non-utf8 reference path"))?;
     let output = std::process::Command::new("gatk")
         .args([
             "HaplotypeCaller",
@@ -162,10 +143,7 @@ fn run_gatk_haplotype_caller(
         .output()
         .map_err(|err| anyhow!("gatk invocation failed: {err}"))?;
     if !output.status.success() {
-        bail!(
-            "gatk HaplotypeCaller failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
+        bail!("gatk HaplotypeCaller failed: {}", String::from_utf8_lossy(&output.stderr));
     }
     let _ = crate::vcf_io::vcf_index_bgzip_tabix(&raw_vcf, out_vcf)?;
     let _ = std::fs::remove_file(&raw_vcf);
@@ -182,12 +160,9 @@ fn try_run_angsd_gl_from_bam(
     let min_map_q = params.min_mapping_quality.to_string();
     let min_base_q = params.min_base_quality.to_string();
     let out_prefix = out_dir.join("angsd_gl");
-    let out_prefix_s = out_prefix
-        .to_str()
-        .ok_or_else(|| anyhow!("non-utf8 angsd output prefix"))?;
-    let input_bam_s = input_bam
-        .to_str()
-        .ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
+    let out_prefix_s =
+        out_prefix.to_str().ok_or_else(|| anyhow!("non-utf8 angsd output prefix"))?;
+    let input_bam_s = input_bam.to_str().ok_or_else(|| anyhow!("non-utf8 input bam path"))?;
     let args = [
         "-i",
         input_bam_s,
@@ -257,10 +232,7 @@ fn write_vcf_with_best_effort_index(
         .join(format!("{stage_label}.tmp.vcf"));
     atomic_write_bytes(&plain_vcf, payload.as_bytes())?;
     let out_tbi = crate::vcf_io::vcf_index_bgzip_tabix(&plain_vcf, out_vcf).map_err(|err| {
-        anyhow!(
-            "{stage_label}: bgzip+tabix failed for {}: {err}",
-            out_vcf.display()
-        )
+        anyhow!("{stage_label}: bgzip+tabix failed for {}: {err}", out_vcf.display())
     })?;
     let _ = std::fs::remove_file(&plain_vcf);
     Ok(out_tbi)
@@ -309,10 +281,7 @@ fn write_call_outputs(
 
     let called_tbi = PathBuf::from(format!("{}.tbi", output_vcf.display()));
     if !called_tbi.exists() {
-        bail!(
-            "call stage contract violation: missing tabix index for {}",
-            output_vcf.display()
-        );
+        bail!("call stage contract violation: missing tabix index for {}", output_vcf.display());
     }
     let call_metrics_json = out_dir.join("call_metrics.json");
     atomic_write_json(
@@ -330,10 +299,7 @@ fn write_call_outputs(
     )?;
     let call_metrics_tsv = out_dir.join("call_metrics.tsv");
     let mut metric_rows = vec![
-        format!(
-            "stage_kind\t{}",
-            serde_json::to_string(&kind)?.trim_matches('"')
-        ),
+        format!("stage_kind\t{}", serde_json::to_string(&kind)?.trim_matches('"')),
         format!("variants_called\t{}", call.variants_called),
         format!("snps\t{}", call.snps),
         format!("indels\t{}", call.indels),
@@ -341,10 +307,7 @@ fn write_call_outputs(
     for (k, v) in &depth {
         metric_rows.push(format!("depth.{k}\t{v}"));
     }
-    atomic_write_bytes(
-        &call_metrics_tsv,
-        (metric_rows.join("\n") + "\n").as_bytes(),
-    )?;
+    atomic_write_bytes(&call_metrics_tsv, (metric_rows.join("\n") + "\n").as_bytes())?;
     let call_manifest_json = out_dir.join("call_manifest.json");
     atomic_write_json(
         &call_manifest_json,
@@ -563,13 +526,7 @@ pub fn run_call_pseudohaploid_stage(
     let out_vcf = out_dir.join("called_pseudohaploid.vcf.gz");
     let normalized = normalize_header_sample_order(&out);
     let _ = write_vcf_with_best_effort_index(&out_vcf, &normalized, "call_pseudohaploid")?;
-    write_call_outputs(
-        out_dir,
-        CallStageKind::Pseudohaploid,
-        input_vcf,
-        &out_vcf,
-        params,
-    )
+    write_call_outputs(out_dir, CallStageKind::Pseudohaploid, input_vcf, &out_vcf, params)
 }
 
 /// # Errors
@@ -632,14 +589,11 @@ pub fn run_filter_stage_real(
     let mut tag_counts = std::collections::BTreeMap::<String, u64>::new();
     let thresholds = load_imputation_qc_thresholds();
     let maf_min = *thresholds.get("vcf_filter_maf_min").unwrap_or(&0.01);
-    let sample_missingness_max = *thresholds
-        .get("vcf_filter_sample_missingness_max")
-        .unwrap_or(&0.20);
+    let sample_missingness_max =
+        *thresholds.get("vcf_filter_sample_missingness_max").unwrap_or(&0.20);
     let dp_min = *thresholds.get("vcf_filter_dp_min").unwrap_or(&8.0);
     let mq_min = *thresholds.get("vcf_filter_mq_min").unwrap_or(&30.0);
-    let strand_bias_max = *thresholds
-        .get("vcf_filter_strand_bias_max")
-        .unwrap_or(&60.0);
+    let strand_bias_max = *thresholds.get("vcf_filter_strand_bias_max").unwrap_or(&60.0);
     let expression = format!(
         "QUAL>={:.3} && DP>={:.3} && MQ>={:.3} && FS<={:.3} && F_MISSING<={:.3} && (AF>={:.3} || AF missing)",
         params.min_qual, dp_min, mq_min, strand_bias_max, sample_missingness_max, maf_min
@@ -691,16 +645,8 @@ pub fn run_filter_stage_real(
             if params.require_pass && !reasons.is_empty() {
                 continue;
             }
-            let mut row = fields
-                .iter()
-                .copied()
-                .map(str::to_string)
-                .collect::<Vec<_>>();
-            row[6] = if reasons.is_empty() {
-                "PASS".to_string()
-            } else {
-                reasons.join(";")
-            };
+            let mut row = fields.iter().copied().map(str::to_string).collect::<Vec<_>>();
+            row[6] = if reasons.is_empty() { "PASS".to_string() } else { reasons.join(";") };
             if params.normalize {
                 let (r, a) = normalize_alleles(&row[3], &row[4]);
                 row[3] = r;
@@ -715,9 +661,7 @@ pub fn run_filter_stage_real(
         }
     }
     if params.production_profile && kept == 0 {
-        return Err(anyhow!(
-            "vcf.filter removed all variants in production_profile mode"
-        ));
+        return Err(anyhow!("vcf.filter removed all variants in production_profile mode"));
     }
     if params.production_profile && total_records > 0 {
         let retention = kept as f64 / total_records as f64;

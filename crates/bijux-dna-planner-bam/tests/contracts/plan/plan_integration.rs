@@ -9,13 +9,8 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool),
         tool_version: "1.0.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: Vec::new(),
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: Vec::new() },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -26,14 +21,10 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
 }
 
 fn output_path(plan: &bijux_dna_stage_contract::StagePlanV1, name: &str) -> std::path::PathBuf {
-    plan.io
-        .outputs
-        .iter()
-        .find(|output| output.name.as_str() == name)
-        .map_or_else(
-            || panic!("missing output {name} for stage {}", plan.stage_id.0),
-            |output| output.path.clone(),
-        )
+    plan.io.outputs.iter().find(|output| output.name.as_str() == name).map_or_else(
+        || panic!("missing output {name} for stage {}", plan.stage_id.0),
+        |output| output.path.clone(),
+    )
 }
 
 #[test]
@@ -114,11 +105,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     assert_eq!(damage.stage_id.0, "bam.damage");
 
     for plan in [&validate, &qc_pre, &filter, &markdup, &coverage, &damage] {
-        assert!(
-            !plan.io.outputs.is_empty(),
-            "stage {} missing outputs",
-            plan.stage_id.0
-        );
+        assert!(!plan.io.outputs.is_empty(), "stage {} missing outputs", plan.stage_id.0);
     }
 
     Ok(())
@@ -152,11 +139,7 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         out.join("align").as_path(),
     )?;
     assert_eq!(align.stage_id.0, "bam.align");
-    assert!(align
-        .io
-        .outputs
-        .iter()
-        .any(|o| o.name.as_str() == "align_bam"));
+    assert!(align.io.outputs.iter().any(|o| o.name.as_str() == "align_bam"));
 
     let markdup_params = bijux_dna_domain_bam::params::MarkDupEffectiveParams {
         optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
@@ -170,11 +153,7 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         &markdup_params,
     )?;
     assert_eq!(markdup.stage_id.0, "bam.markdup");
-    assert!(markdup
-        .io
-        .outputs
-        .iter()
-        .any(|o| o.name.as_str() == "markdup_bam"));
+    assert!(markdup.io.outputs.iter().any(|o| o.name.as_str() == "markdup_bam"));
 
     let damage_params = bijux_dna_domain_bam::params::DamageEffectiveParams {
         udg_model: bijux_dna_domain_bam::params::UdgModel::NonUdg,
@@ -207,10 +186,6 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         &coverage_params,
     )?;
     assert_eq!(coverage.stage_id.0, "bam.coverage");
-    assert!(coverage
-        .io
-        .outputs
-        .iter()
-        .any(|o| o.name.as_str() == "coverage_summary"));
+    assert!(coverage.io.outputs.iter().any(|o| o.name.as_str() == "coverage_summary"));
     Ok(())
 }
