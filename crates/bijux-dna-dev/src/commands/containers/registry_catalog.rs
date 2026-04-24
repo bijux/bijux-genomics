@@ -16,10 +16,7 @@ pub(super) fn canonical_container_label_keys() -> [&'static str; 7] {
 }
 
 pub(super) fn missing_container_label_markers(text: &str) -> Vec<&'static str> {
-    canonical_container_label_keys()
-        .into_iter()
-        .filter(|label| !text.contains(label))
-        .collect()
+    canonical_container_label_keys().into_iter().filter(|label| !text.contains(label)).collect()
 }
 
 pub(super) fn docker_image_labels(
@@ -39,10 +36,7 @@ pub(super) fn docker_image_labels(
         &[],
     )?;
     if !inspect.is_success() {
-        return Err(anyhow!(
-            "docker image inspect failed for {image}: {}",
-            inspect.stderr.trim()
-        ));
+        return Err(anyhow!("docker image inspect failed for {image}: {}", inspect.stderr.trim()));
     }
     let stdout = inspect.stdout.trim();
     if stdout.is_empty() || stdout == "null" {
@@ -104,28 +98,18 @@ pub(super) fn registry_tool_map(
 pub(super) fn governed_container_file_ids(workspace: &Workspace) -> Result<BTreeSet<String>> {
     let mut ids = BTreeSet::new();
     for entry in fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| {
-            format!(
-                "read {}",
-                workspace.path("containers/docker/arm64").display()
-            )
-        })?
+        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
         .filter_map(std::result::Result::ok)
     {
-        if let Some(tool_id) = entry
-            .file_name()
-            .to_str()
-            .and_then(|name| name.strip_prefix("Dockerfile."))
+        if let Some(tool_id) =
+            entry.file_name().to_str().and_then(|name| name.strip_prefix("Dockerfile."))
         {
             ids.insert(tool_id.to_string());
         }
     }
     for entry in fs::read_dir(workspace.path("containers/apptainer/shared"))
         .with_context(|| {
-            format!(
-                "read {}",
-                workspace.path("containers/apptainer/shared").display()
-            )
+            format!("read {}", workspace.path("containers/apptainer/shared").display())
         })?
         .filter_map(std::result::Result::ok)
     {
@@ -171,9 +155,7 @@ pub(super) fn governed_container_statuses(
 pub(super) fn is_non_bijux_apptainer_source(workspace: &Workspace, tool_id: &str) -> bool {
     let apptainer = workspace.path(&format!("containers/apptainer/shared/{tool_id}.def"));
     apptainer.exists()
-        && (read_utf8(&apptainer)
-            .unwrap_or_default()
-            .contains("NON_BIJUX_SOURCES.md")
+        && (read_utf8(&apptainer).unwrap_or_default().contains("NON_BIJUX_SOURCES.md")
             || matches!(
                 tool_id,
                 "bcftools"
@@ -243,18 +225,11 @@ pub(super) fn toolkit_bundles(
 pub(super) fn docker_tool_ids(workspace: &Workspace) -> Result<BTreeSet<String>> {
     let mut ids = BTreeSet::new();
     for entry in fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| {
-            format!(
-                "read {}",
-                workspace.path("containers/docker/arm64").display()
-            )
-        })?
+        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
         .filter_map(std::result::Result::ok)
     {
-        if let Some(tool) = entry
-            .file_name()
-            .to_str()
-            .and_then(|name| name.strip_prefix("Dockerfile."))
+        if let Some(tool) =
+            entry.file_name().to_str().and_then(|name| name.strip_prefix("Dockerfile."))
         {
             ids.insert(tool.to_string());
         }
@@ -264,12 +239,7 @@ pub(super) fn docker_tool_ids(workspace: &Workspace) -> Result<BTreeSet<String>>
 
 pub(super) fn dockerfile_paths(workspace: &Workspace) -> Result<Vec<PathBuf>> {
     let mut paths = fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| {
-            format!(
-                "read {}",
-                workspace.path("containers/docker/arm64").display()
-            )
-        })?
+        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
         .filter_map(std::result::Result::ok)
         .map(|entry| entry.path())
         .filter(|path| {
@@ -285,10 +255,6 @@ pub(super) fn dockerfile_paths(workspace: &Workspace) -> Result<Vec<PathBuf>> {
 pub(super) fn apptainer_tool_ids(workspace: &Workspace) -> BTreeSet<String> {
     apptainer_def_paths(workspace)
         .into_iter()
-        .filter_map(|path| {
-            path.file_stem()
-                .and_then(|name| name.to_str())
-                .map(ToOwned::to_owned)
-        })
+        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
         .collect()
 }

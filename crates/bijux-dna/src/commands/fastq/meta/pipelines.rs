@@ -3,15 +3,13 @@ use crate::commands::support::prelude::{
     anyhow, cli, load_manifests, render, PipelinesCommand, Result,
 };
 
+#[allow(clippy::too_many_lines)]
 pub(crate) fn handle_pipelines_command(
-    args: &crate::cli::PipelinesArgs,
+    args: &crate::cli::PipelinesRootArgs,
     registry_path: &std::path::Path,
 ) -> Result<bool> {
     match &args.command {
-        PipelinesCommand::List {
-            domain,
-            show_experimental,
-        } => {
+        PipelinesCommand::List { domain, show_experimental } => {
             let profiles = bijux_dna_api::v1::api::plan::select_pipelines(
                 domain.map(cli::parse::PipelineDomainArg::as_domain),
                 *show_experimental,
@@ -77,16 +75,10 @@ pub(crate) fn handle_pipelines_command(
                 .required_stages
                 .iter()
                 .any(|stage| stage.starts_with("fastq."));
-            let has_bam = profile
-                .capabilities
-                .required_stages
-                .iter()
-                .any(|stage| stage.starts_with("bam."));
-            let has_vcf = profile
-                .capabilities
-                .required_stages
-                .iter()
-                .any(|stage| stage.starts_with("vcf."));
+            let has_bam =
+                profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("bam."));
+            let has_vcf =
+                profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("vcf."));
             let invariants = match (has_fastq, has_bam, has_vcf) {
                 (true, false, false) => serde_json::to_value(
                     bijux_dna_api::v1::api::plan::validate_fastq_profile(&profile),
@@ -127,16 +119,10 @@ pub(crate) fn handle_pipelines_command(
                 .required_stages
                 .iter()
                 .any(|stage| stage.starts_with("fastq."));
-            let has_bam = profile
-                .capabilities
-                .required_stages
-                .iter()
-                .any(|stage| stage.starts_with("bam."));
-            let has_vcf = profile
-                .capabilities
-                .required_stages
-                .iter()
-                .any(|stage| stage.starts_with("vcf."));
+            let has_bam =
+                profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("bam."));
+            let has_vcf =
+                profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("vcf."));
             let payload = match (has_fastq, has_bam, has_vcf) {
                 (true, false, false) => serde_json::to_value(
                     bijux_dna_api::v1::api::plan::validate_fastq_profile(&profile),
@@ -216,10 +202,7 @@ pub(crate) fn handle_pipelines_command(
             render::json::print_pretty(&payload)?;
             Ok(true)
         }
-        PipelinesCommand::Audit {
-            domain,
-            show_experimental,
-        } => {
+        PipelinesCommand::Audit { domain, show_experimental } => {
             let profiles = bijux_dna_api::v1::api::plan::select_pipelines(
                 domain.map(cli::parse::PipelineDomainArg::as_domain),
                 *show_experimental,

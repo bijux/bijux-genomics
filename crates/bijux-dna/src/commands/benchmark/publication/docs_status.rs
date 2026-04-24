@@ -11,11 +11,8 @@ use super::{
     render_publication_docs_markdown,
 };
 
-type SupplementalFindingsPayload = (
-    BTreeMap<String, Vec<StageAuditIssue>>,
-    Vec<String>,
-    Option<String>,
-);
+type SupplementalFindingsPayload =
+    (BTreeMap<String, Vec<StageAuditIssue>>, Vec<String>, Option<String>);
 
 pub(super) fn write_corpus_fastq_docs_status(
     cwd: &Path,
@@ -30,13 +27,12 @@ pub(super) fn write_corpus_fastq_docs_status(
     let exclusions = benchmark_publication_exclusions(cwd, explicit_config, corpus_id)?;
     let corpus_spec = load_publication_corpus_spec(cwd, explicit_config, corpus_id)?;
     let (supplemental_findings, mut audit_warnings, findings_generated_at_utc) =
-        load_supplemental_findings(&docs_root.join(publication_artifact_file_name(
-            corpus_id,
-            "publication-findings.json",
-        )))?;
-    let (results_by_stage, results_warnings) = load_results_status(&docs_root.join(
-        publication_artifact_file_name(corpus_id, "results-status.json"),
-    ))?;
+        load_supplemental_findings(
+            &docs_root.join(publication_artifact_file_name(corpus_id, "publication-findings.json")),
+        )?;
+    let (results_by_stage, results_warnings) = load_results_status(
+        &docs_root.join(publication_artifact_file_name(corpus_id, "results-status.json")),
+    )?;
     audit_warnings.extend(results_warnings);
     let report = audit_publication_docs(
         cwd,
@@ -82,9 +78,7 @@ pub(super) fn expected_counts_for_scope(
             ]);
             Ok((paired_counts.values().sum(), paired_counts))
         }
-        other => Err(anyhow!(
-            "unsupported corpus publication sample_scope: {other}"
-        )),
+        other => Err(anyhow!("unsupported corpus publication sample_scope: {other}")),
     }
 }
 
@@ -92,10 +86,7 @@ pub(super) fn load_supplemental_findings(path: &Path) -> Result<SupplementalFind
     if !path.is_file() {
         return Ok((
             BTreeMap::new(),
-            vec![format!(
-                "missing supplemental findings file: {}",
-                path.display()
-            )],
+            vec![format!("missing supplemental findings file: {}", path.display())],
             None,
         ));
     }
@@ -113,15 +104,9 @@ pub(super) fn load_supplemental_findings(path: &Path) -> Result<SupplementalFind
             path.display()
         ));
     }
-    let findings = payload
-        .get("findings")
-        .and_then(|value| value.as_array())
-        .ok_or_else(|| {
-            anyhow!(
-                "supplemental findings in {} must declare a findings array",
-                path.display()
-            )
-        })?;
+    let findings = payload.get("findings").and_then(|value| value.as_array()).ok_or_else(|| {
+        anyhow!("supplemental findings in {} must declare a findings array", path.display())
+    })?;
 
     let mut findings_by_stage = BTreeMap::<String, Vec<StageAuditIssue>>::new();
     for finding in findings {
@@ -149,21 +134,18 @@ pub(super) fn load_supplemental_findings(path: &Path) -> Result<SupplementalFind
             .map(str::trim)
             .filter(|value| !value.is_empty())
             .ok_or_else(invalid_message)?;
-        findings_by_stage
-            .entry(stage_id.to_string())
-            .or_default()
-            .push(StageAuditIssue {
-                stage_id: stage_id.to_string(),
-                issue_id: issue_id.to_string(),
-                severity: finding
-                    .get("severity")
-                    .and_then(|value| value.as_str())
-                    .map(str::trim)
-                    .filter(|value| !value.is_empty())
-                    .unwrap_or("error")
-                    .to_string(),
-                detail: detail.to_string(),
-            });
+        findings_by_stage.entry(stage_id.to_string()).or_default().push(StageAuditIssue {
+            stage_id: stage_id.to_string(),
+            issue_id: issue_id.to_string(),
+            severity: finding
+                .get("severity")
+                .and_then(|value| value.as_str())
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .unwrap_or("error")
+                .to_string(),
+            detail: detail.to_string(),
+        });
     }
     Ok((findings_by_stage, warnings, generated_at_utc))
 }
@@ -176,15 +158,9 @@ fn load_results_status(path: &Path) -> Result<(BTreeMap<String, serde_json::Valu
         ));
     }
     let payload = load_json_value(path)?;
-    let stages = payload
-        .get("stages")
-        .and_then(|value| value.as_array())
-        .ok_or_else(|| {
-            anyhow!(
-                "invalid results status payload in {}: missing stages list",
-                path.display()
-            )
-        })?;
+    let stages = payload.get("stages").and_then(|value| value.as_array()).ok_or_else(|| {
+        anyhow!("invalid results status payload in {}: missing stages list", path.display())
+    })?;
     Ok((
         stages
             .iter()
@@ -205,11 +181,8 @@ fn write_publication_docs_status(
     report: &BenchmarkPublicationStatusReport,
 ) -> Result<()> {
     let json_path = docs_root.join(publication_artifact_file_name(corpus_id, "status.json"));
-    fs::write(
-        &json_path,
-        format!("{}\n", serde_json::to_string_pretty(report)?),
-    )
-    .with_context(|| format!("write {}", json_path.display()))?;
+    fs::write(&json_path, format!("{}\n", serde_json::to_string_pretty(report)?))
+        .with_context(|| format!("write {}", json_path.display()))?;
     let markdown_path = docs_root.join(publication_artifact_file_name(corpus_id, "status.md"));
     fs::write(&markdown_path, render_publication_docs_markdown(report))
         .with_context(|| format!("write {}", markdown_path.display()))?;

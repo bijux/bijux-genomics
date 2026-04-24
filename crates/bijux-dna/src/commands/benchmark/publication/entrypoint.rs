@@ -63,9 +63,7 @@ pub(super) fn corpus_fastq_publication_command(
             command.push(corpus_id.to_string());
         }
         other => {
-            return Err(anyhow!(
-                "unsupported benchmark publication target kind: {other}"
-            ));
+            return Err(anyhow!("unsupported benchmark publication target kind: {other}"));
         }
     }
     if let Some(path) = config {
@@ -117,9 +115,7 @@ pub(crate) fn run_corpus_fastq_published_dossiers(
 }
 
 pub(crate) fn run_corpus_fastq_report(cwd: &Path, args: &BenchCorpusFastqReportArgs) -> Result<()> {
-    let stage_docs_root = absolutize(cwd, &args.docs_root)
-        .join(&args.stage)
-        .join(&args.corpus_id);
+    let stage_docs_root = absolutize(cwd, &args.docs_root).join(&args.stage).join(&args.corpus_id);
     let benchmark_config = load_benchmark_config(cwd, args.config.as_deref())?;
     render_corpus_fastq_dossier(
         cwd,

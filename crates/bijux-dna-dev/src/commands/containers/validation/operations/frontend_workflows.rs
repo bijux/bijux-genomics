@@ -31,8 +31,7 @@ pub(in super::super::super) fn run_build_apptainer_all(
             "--defs-dir" => {
                 defs_dir = Some(path_from_arg(
                     workspace,
-                    args.get(index + 1)
-                        .ok_or_else(|| anyhow!("--defs-dir requires <path>"))?,
+                    args.get(index + 1).ok_or_else(|| anyhow!("--defs-dir requires <path>"))?,
                 ));
                 index += 2;
             }
@@ -41,17 +40,14 @@ pub(in super::super::super) fn run_build_apptainer_all(
             }
             "--jobs" => {
                 jobs = Some(
-                    args.get(index + 1)
-                        .ok_or_else(|| anyhow!("--jobs requires <n>"))?
-                        .clone(),
+                    args.get(index + 1).ok_or_else(|| anyhow!("--jobs requires <n>"))?.clone(),
                 );
                 index += 2;
             }
             "--summary-file" => {
                 summary_file = Some(path_from_arg(
                     workspace,
-                    args.get(index + 1)
-                        .ok_or_else(|| anyhow!("--summary-file requires <path>"))?,
+                    args.get(index + 1).ok_or_else(|| anyhow!("--summary-file requires <path>"))?,
                 ));
                 index += 2;
             }
@@ -84,10 +80,7 @@ pub(in super::super::super) fn run_build_apptainer_all(
         append_named_outcome(
             &mut aggregate,
             "summary",
-            summary(
-                workspace,
-                &[String::from("--json"), summary_path.display().to_string()],
-            )?,
+            summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
         );
     }
     Ok(aggregate)
@@ -178,10 +171,7 @@ pub(in super::super::super) fn run_apptainer_frontend_smoke(
         None,
         &[
             ("ARTIFACT_DIR".to_string(), proof_root.display().to_string()),
-            (
-                "CONTAINER_ARTIFACT_DIR".to_string(),
-                proof_root.display().to_string(),
-            ),
+            ("CONTAINER_ARTIFACT_DIR".to_string(), proof_root.display().to_string()),
             ("FRONTEND_PROOF_MODE".to_string(), "1".to_string()),
             ("SMOKE_LEVEL".to_string(), "contract".to_string()),
             ("SMOKE_DISABLE_NETWORK".to_string(), "1".to_string()),
@@ -196,10 +186,7 @@ pub(in super::super::super) fn run_apptainer_frontend_smoke(
     append_named_outcome(
         &mut aggregate,
         "summary",
-        summary(
-            workspace,
-            &[String::from("--json"), summary_path.display().to_string()],
-        )?,
+        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
     );
     append_named_outcome(
         &mut aggregate,
@@ -232,19 +219,10 @@ pub(in super::super::super) fn run_apptainer_frontend_security(
         .with_context(|| format!("create {}", out_dir.display()))?;
     let mut aggregate = ContainerCommandOutcome::success(String::new());
     for (name, outcome) in [
-        (
-            "check-version-hash-pin",
-            versioning::check_version_hash_pin(workspace)?,
-        ),
-        (
-            "check-apptainer-hardening",
-            check_apptainer_hardening(workspace)?,
-        ),
+        ("check-version-hash-pin", versioning::check_version_hash_pin(workspace)?),
+        ("check-apptainer-hardening", check_apptainer_hardening(workspace)?),
         ("check-no-secrets", validation::check_no_secrets(workspace)?),
-        (
-            "check-network-disclosure",
-            metadata::check_network_disclosure(workspace, &[])?,
-        ),
+        ("check-network-disclosure", metadata::check_network_disclosure(workspace, &[])?),
     ] {
         append_named_outcome(&mut aggregate, name, outcome.clone());
         if !outcome.is_success() {
@@ -258,10 +236,7 @@ pub(in super::super::super) fn run_apptainer_frontend_security(
         None,
         &[
             ("ARTIFACT_DIR".to_string(), out_dir.display().to_string()),
-            (
-                "CONTAINER_ARTIFACT_DIR".to_string(),
-                out_dir.display().to_string(),
-            ),
+            ("CONTAINER_ARTIFACT_DIR".to_string(), out_dir.display().to_string()),
             ("FRONTEND_PROOF_MODE".to_string(), "1".to_string()),
             ("SMOKE_LEVEL".to_string(), "contract".to_string()),
         ],
@@ -298,15 +273,10 @@ pub(in super::super::super) fn run_apptainer_frontend_reproducibility(
     }
     let policy =
         load_toml(&workspace.path("configs/ci/tools/apptainer_reproducibility_policy.toml"))?;
-    let sample_count = policy
-        .get("tool_sample_count")
-        .and_then(toml::Value::as_integer)
-        .unwrap_or(10)
-        .max(0) as usize;
-    let seed = env_or_default(
-        "REPRO_SEED",
-        &env_or_default("ISO_RUN_ID", "frontend-repro"),
-    );
+    let sample_count =
+        policy.get("tool_sample_count").and_then(toml::Value::as_integer).unwrap_or(10).max(0)
+            as usize;
+    let seed = env_or_default("REPRO_SEED", &env_or_default("ISO_RUN_ID", "frontend-repro"));
     let out_dir = workspace.path("artifacts/containers/hpc/frontend-reproducibility/run");
     bijux_dna_infra::ensure_dir(&out_dir)
         .with_context(|| format!("create {}", out_dir.display()))?;
@@ -314,11 +284,8 @@ pub(in super::super::super) fn run_apptainer_frontend_reproducibility(
     let mut items = Vec::new();
     let mut aggregate = ContainerCommandOutcome::success(String::new());
     for path in sample {
-        let tool = path
-            .file_stem()
-            .and_then(|value| value.to_str())
-            .unwrap_or_default()
-            .to_string();
+        let tool =
+            path.file_stem().and_then(|value| value.to_str()).unwrap_or_default().to_string();
         let outcome = validation::check_apptainer_rebuild_repro(workspace, &[tool.clone()])?;
         let deterministic = outcome.is_success();
         items.push(serde_json::json!({
@@ -336,14 +303,7 @@ pub(in super::super::super) fn run_apptainer_frontend_reproducibility(
     }
     let summary_path = out_dir.join("summary.json");
     let doc_report = workspace.path("containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md");
-    write_frontend_repro_summary(
-        workspace,
-        &policy,
-        &seed,
-        &items,
-        &summary_path,
-        &doc_report,
-    )?;
+    write_frontend_repro_summary(workspace, &policy, &seed, &items, &summary_path, &doc_report)?;
     append_named_outcome(
         &mut aggregate,
         "check-apptainer-frontend-reproducibility",

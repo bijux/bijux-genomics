@@ -150,29 +150,24 @@ pub(super) fn check_inventory(workspace: &Workspace) -> Result<DomainCommandOutc
     let out_md = workspace.path("artifacts/domain/inventory.md");
     write_utf8(&out_json, &json_first)?;
     write_utf8(&out_md, &md_first)?;
-    success_line(format!(
-        "domain inventory: OK ({}, {})",
-        out_json.display(),
-        out_md.display()
-    ))
+    success_line(format!("domain inventory: OK ({}, {})", out_json.display(), out_md.display()))
 }
 
 pub(super) fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let external_tools = external_tools(workspace)?;
     let mut registry_tools_by_domain = BTreeMap::<String, BTreeSet<String>>::new();
     let registry_dir = workspace.path("configs/ci/registry");
-    let mut registry_files = fs::read_dir(&registry_dir)
-        .with_context(|| format!("read {}", registry_dir.display()))?
-        .filter_map(std::result::Result::ok)
-        .filter(|entry| {
-            entry
-                .path()
-                .file_name()
-                .and_then(|name| name.to_str())
-                .is_some_and(|name| name.starts_with("tool_registry") && name.ends_with(".toml"))
-        })
-        .map(|entry| entry.path())
-        .collect::<Vec<_>>();
+    let mut registry_files =
+        fs::read_dir(&registry_dir)
+            .with_context(|| format!("read {}", registry_dir.display()))?
+            .filter_map(std::result::Result::ok)
+            .filter(|entry| {
+                entry.path().file_name().and_then(|name| name.to_str()).is_some_and(|name| {
+                    name.starts_with("tool_registry") && name.ends_with(".toml")
+                })
+            })
+            .map(|entry| entry.path())
+            .collect::<Vec<_>>();
     registry_files.sort();
     for registry in registry_files {
         for row in toml_tools(&registry)? {
@@ -198,11 +193,7 @@ pub(super) fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandO
             {
                 continue;
             }
-            for binding in table
-                .get("bindings")
-                .and_then(TomlValue::as_array)
-                .into_iter()
-                .flatten()
+            for binding in table.get("bindings").and_then(TomlValue::as_array).into_iter().flatten()
             {
                 let Some(stage_id) = binding.as_str() else {
                     continue;
@@ -230,12 +221,8 @@ pub(super) fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandO
             continue;
         }
         let text = read_utf8(&index)?;
-        let indexed_stages = list_block(&text, "stage_ids")?
-            .into_iter()
-            .collect::<BTreeSet<_>>();
-        let indexed_tools = list_block(&text, "tool_ids")?
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let indexed_stages = list_block(&text, "stage_ids")?.into_iter().collect::<BTreeSet<_>>();
+        let indexed_tools = list_block(&text, "tool_ids")?.into_iter().collect::<BTreeSet<_>>();
         let mut fixture_tools = BTreeSet::new();
         for fixture in WalkDir::new(dom_dir.join("fixtures"))
             .into_iter()
@@ -275,18 +262,12 @@ pub(super) fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandO
                 continue;
             }
             let tool_id = declared_tool_key(&tool_file)?.unwrap_or_else(|| {
-                tool_file
-                    .file_stem()
-                    .and_then(|name| name.to_str())
-                    .unwrap_or_default()
-                    .to_string()
+                tool_file.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string()
             });
             domain_tool_ids.insert(tool_id.clone());
             if !indexed_tools.contains(&tool_id)
                 && !fixture_tools.contains(&tool_id)
-                && !registry_tools_by_domain
-                    .get(&dom)
-                    .is_some_and(|tools| tools.contains(&tool_id))
+                && !registry_tools_by_domain.get(&dom).is_some_and(|tools| tools.contains(&tool_id))
             {
                 errors.push(format!(
                     "{}: orphan tool file not referenced by index.yaml, fixtures, or registry bindings",
@@ -295,11 +276,7 @@ pub(super) fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandO
             }
         }
 
-        for registry_tool in registry_tools_by_domain
-            .get(&dom)
-            .cloned()
-            .unwrap_or_default()
-        {
+        for registry_tool in registry_tools_by_domain.get(&dom).cloned().unwrap_or_default() {
             if !domain_tool_ids.contains(&registry_tool) && !external_tools.contains(&registry_tool)
             {
                 errors.push(format!(
@@ -325,14 +302,11 @@ pub(super) fn generate_inventory(
             stderr: "Usage: cargo run -p bijux-dna-dev -- domain run generate-inventory -- [<json-path> [<markdown-path>]]\n".to_string(),
         });
     }
-    let out_json = args.first().map_or_else(
-        || workspace.path("artifacts/domain/inventory.json"),
-        PathBuf::from,
-    );
-    let out_md = args.get(1).map_or_else(
-        || workspace.path("artifacts/domain/inventory.md"),
-        PathBuf::from,
-    );
+    let out_json = args
+        .first()
+        .map_or_else(|| workspace.path("artifacts/domain/inventory.json"), PathBuf::from);
+    let out_md =
+        args.get(1).map_or_else(|| workspace.path("artifacts/domain/inventory.md"), PathBuf::from);
     let rows = build_inventory_rows(workspace)?;
     write_utf8(&out_json, &render_inventory_json(&rows)?)?;
     write_utf8(&out_md, &render_inventory_markdown(&rows))?;
@@ -441,12 +415,7 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
     }
 
     let mut diffs = Vec::new();
-    push_diff(
-        &mut diffs,
-        &domain_tools,
-        &registry_tools,
-        "domain tools missing from registry",
-    );
+    push_diff(&mut diffs, &domain_tools, &registry_tools, "domain tools missing from registry");
     push_diff(
         &mut diffs,
         &code_tools,
@@ -459,12 +428,7 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
         &registry_tools,
         "make-referenced tools missing from registry",
     );
-    push_diff(
-        &mut diffs,
-        &registry_tools,
-        &domain_tools,
-        "registry tools missing from domain",
-    );
+    push_diff(&mut diffs, &registry_tools, &domain_tools, "registry tools missing from domain");
     push_diff(
         &mut diffs,
         &domain_stages,

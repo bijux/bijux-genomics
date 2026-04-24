@@ -13,10 +13,7 @@ pub(super) fn run_programs_with_env(
         let outcome = run_program_with_env(
             workspace,
             program,
-            &args
-                .iter()
-                .map(|value| (*value).to_string())
-                .collect::<Vec<_>>(),
+            &args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>(),
             envs,
         )?;
         aggregate = merge_outcomes(aggregate, outcome);
@@ -86,8 +83,5 @@ pub(super) fn read_json_value(path: &Path) -> Result<Value> {
 }
 
 pub(super) fn env_flag(name: &str) -> bool {
-    matches!(
-        std::env::var(name).ok().as_deref(),
-        Some("1" | "true" | "TRUE")
-    )
+    matches!(std::env::var(name).ok().as_deref(), Some("1" | "true" | "TRUE"))
 }

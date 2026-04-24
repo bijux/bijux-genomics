@@ -38,15 +38,12 @@ pub(super) fn audit_publication_docs(
                 contract,
                 corpus_id,
                 corpus_spec,
-                supplemental_findings
-                    .get(&contract.stage_id)
-                    .cloned()
-                    .ok_or_else(|| {
-                        anyhow!(
-                            "publication audit missing supplemental findings for stage `{}`",
-                            contract.stage_id
-                        )
-                    })?,
+                supplemental_findings.get(&contract.stage_id).cloned().ok_or_else(|| {
+                    anyhow!(
+                        "publication audit missing supplemental findings for stage `{}`",
+                        contract.stage_id
+                    )
+                })?,
                 results_by_stage.get(&contract.stage_id),
             )
         })
@@ -56,14 +53,8 @@ pub(super) fn audit_publication_docs(
         docs_root: relative_to_repo_root(docs_root, repo_root),
         benchmarkable_stage_count: contracts.len() + exclusions.len(),
         applicable_stage_count: stages.len(),
-        completed_stage_count: stages
-            .iter()
-            .filter(|stage| stage.status == "complete")
-            .count(),
-        incomplete_stage_count: stages
-            .iter()
-            .filter(|stage| stage.status != "complete")
-            .count(),
+        completed_stage_count: stages.iter().filter(|stage| stage.status == "complete").count(),
+        incomplete_stage_count: stages.iter().filter(|stage| stage.status != "complete").count(),
         excluded_stage_count: exclusions.len(),
         issue_count: stages.iter().map(|stage| stage.issue_count).sum(),
         audit_warning_count: audit_warnings.len(),
@@ -121,18 +112,12 @@ pub(super) fn audit_publication_stage(
                     &mut issues,
                     &contract.stage_id,
                     &format!("missing-{}", file_name.replace('.', "-")),
-                    format!(
-                        "missing {}",
-                        relative_to_docs_root(&artifact_path, docs_root)
-                    ),
+                    format!("missing {}", relative_to_docs_root(&artifact_path, docs_root)),
                     "error",
                 );
                 continue;
             }
-            if fs::metadata(&artifact_path)
-                .map(|metadata| metadata.len() == 0)
-                .unwrap_or(false)
-            {
+            if fs::metadata(&artifact_path).map(|metadata| metadata.len() == 0).unwrap_or(false) {
                 append_stage_audit_issue(
                     &mut issues,
                     &contract.stage_id,
@@ -193,9 +178,7 @@ pub(super) fn audit_publication_stage(
     }
 
     issues.extend(supplemental_issues);
-    let results_stage = results_stage
-        .cloned()
-        .unwrap_or_else(|| serde_json::json!({}));
+    let results_stage = results_stage.cloned().unwrap_or_else(|| serde_json::json!({}));
     Ok(PublicationStageReport {
         stage_id: contract.stage_id.clone(),
         scenario_id: contract.scenario_id.clone(),
@@ -204,15 +187,9 @@ pub(super) fn audit_publication_stage(
         expected_tool_roster: expected_tools,
         method_path: relative_to_docs_root(&method_path, docs_root),
         corpus_path: relative_to_docs_root(&corpus_root, docs_root),
-        status: if issues.is_empty() {
-            "complete".to_string()
-        } else {
-            "incomplete".to_string()
-        },
+        status: if issues.is_empty() { "complete".to_string() } else { "incomplete".to_string() },
         issue_count: issues.len(),
-        results_status: value_string(&results_stage, "status")
-            .unwrap_or("missing")
-            .to_string(),
+        results_status: value_string(&results_stage, "status").unwrap_or("missing").to_string(),
         results_issue_count: results_stage
             .get("issue_count")
             .and_then(serde_json::Value::as_u64)
@@ -239,27 +216,12 @@ pub(super) fn render_publication_docs_markdown(
     report: &BenchmarkPublicationStatusReport,
 ) -> String {
     let mut lines = vec![
-        format!(
-            "# `{}` FASTQ benchmark publication status",
-            report.corpus_id
-        ),
+        format!("# `{}` FASTQ benchmark publication status", report.corpus_id),
         String::new(),
-        format!(
-            "- Benchmarkable governed stages: `{}`",
-            report.benchmarkable_stage_count
-        ),
-        format!(
-            "- Corpus-applicable publication stages: `{}`",
-            report.applicable_stage_count
-        ),
-        format!(
-            "- Completed stage dossiers: `{}`",
-            report.completed_stage_count
-        ),
-        format!(
-            "- Incomplete stage dossiers: `{}`",
-            report.incomplete_stage_count
-        ),
+        format!("- Benchmarkable governed stages: `{}`", report.benchmarkable_stage_count),
+        format!("- Corpus-applicable publication stages: `{}`", report.applicable_stage_count),
+        format!("- Completed stage dossiers: `{}`", report.completed_stage_count),
+        format!("- Incomplete stage dossiers: `{}`", report.incomplete_stage_count),
         format!("- Excluded stages: `{}`", report.excluded_stage_count),
         format!("- Publication issues: `{}`", report.issue_count),
         format!("- Audit warnings: `{}`", report.audit_warning_count),
@@ -289,10 +251,7 @@ pub(super) fn render_publication_docs_markdown(
             ));
         }
         if stage.results_issue_count > 0 {
-            lines.push(format!(
-                "  - mirrored result issues: `{}`",
-                stage.results_issue_count
-            ));
+            lines.push(format!("  - mirrored result issues: `{}`", stage.results_issue_count));
         }
         for issue in &stage.issues {
             lines.push(format!("  - `{}`: {}", issue.issue_id, issue.detail));

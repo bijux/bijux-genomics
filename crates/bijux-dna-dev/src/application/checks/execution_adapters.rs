@@ -12,23 +12,15 @@ pub(super) fn run_cargo_test(
     filter: &str,
 ) -> Result<CheckOutcome> {
     let runner = ProcessRunner::new(workspace);
-    let output = runner.run(&[
-        "cargo", "test", "-p", package, "--test", test_bin, filter, "--quiet",
-    ])?;
+    let output =
+        runner.run(&["cargo", "test", "-p", package, "--test", test_bin, filter, "--quiet"])?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     let combined = format!("{stdout}{stderr}");
     if combined.contains("running 0 tests") {
-        return Err(anyhow!(
-            "check `{}` matched no tests for filter `{filter}`",
-            check.id
-        ));
+        return Err(anyhow!("check `{}` matched no tests for filter `{filter}`", check.id));
     }
-    let status = if output.status.success() {
-        CheckStatus::Passed
-    } else {
-        CheckStatus::Failed
-    };
+    let status = if output.status.success() { CheckStatus::Passed } else { CheckStatus::Failed };
     Ok(CheckOutcome::leaf(check.id, status, combined))
 }
 
@@ -39,20 +31,11 @@ pub(super) fn run_process(
     args: &[&str],
 ) -> Result<CheckOutcome> {
     let runner = ProcessRunner::new(workspace);
-    let output = runner.run_owned(
-        program,
-        &args
-            .iter()
-            .map(|arg| (*arg).to_string())
-            .collect::<Vec<_>>(),
-    )?;
+    let output = runner
+        .run_owned(program, &args.iter().map(|arg| (*arg).to_string()).collect::<Vec<_>>())?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     let combined = format!("{stdout}{stderr}");
-    let status = if output.status.success() {
-        CheckStatus::Passed
-    } else {
-        CheckStatus::Failed
-    };
+    let status = if output.status.success() { CheckStatus::Passed } else { CheckStatus::Failed };
     Ok(CheckOutcome::leaf(check.id, status, combined))
 }

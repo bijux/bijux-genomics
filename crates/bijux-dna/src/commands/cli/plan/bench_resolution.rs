@@ -20,13 +20,8 @@ pub(super) fn resolve_bench_tools(stage: &str, raw_tools: &[String]) -> Result<V
     } else if normalized.len() == 1 && normalized[0] == "auto" {
         "auto"
     } else {
-        if normalized
-            .iter()
-            .any(|value| value == "auto" || value == "all")
-        {
-            return Err(anyhow!(
-                "--tools accepts either `auto`, `all`, or an explicit CSV list"
-            ));
+        if normalized.iter().any(|value| value == "auto" || value == "all") {
+            return Err(anyhow!("--tools accepts either `auto`, `all`, or an explicit CSV list"));
         }
         "csv"
     };
@@ -49,9 +44,7 @@ pub(super) fn resolve_bench_tools(stage: &str, raw_tools: &[String]) -> Result<V
     }
     for tool in &selected {
         if !all_tools.contains(tool) {
-            return Err(anyhow!(
-                "tool `{tool}` is not compatible with stage `{stage}`"
-            ));
+            return Err(anyhow!("tool `{tool}` is not compatible with stage `{stage}`"));
         }
     }
     Ok(selected)

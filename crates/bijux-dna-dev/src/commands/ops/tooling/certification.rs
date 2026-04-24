@@ -80,10 +80,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
             execution,
             examples_run(
                 workspace,
-                &[
-                    "--allow-non-isolate".to_string(),
-                    "fastq_edna_mini".to_string(),
-                ],
+                &["--allow-non-isolate".to_string(), "fastq_edna_mini".to_string()],
             )?,
         );
         if !execution.is_success() {
@@ -273,10 +270,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
                 "vcf_downstream_demography_mini",
                 workspace.path("examples/vcf/downstream-demography-mini"),
             ),
-            (
-                "vcf_imputation_mini",
-                workspace.path("examples/vcf/imputation-mini"),
-            ),
+            ("vcf_imputation_mini", workspace.path("examples/vcf/imputation-mini")),
         ] {
             let artifact_root = workspace.path("artifacts/examples").join(example_id);
             let report_path = artifact_root.join("report.json");
@@ -286,11 +280,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
             ensure_exists(&report_path, &format!("{example_id} report"), &mut errors);
             ensure_exists(&explain_path, &format!("{example_id} explain"), &mut errors);
             ensure_exists(&metrics_path, &format!("{example_id} metrics"), &mut errors);
-            ensure_exists(
-                &manifest_path,
-                &format!("{example_id} manifest"),
-                &mut errors,
-            );
+            ensure_exists(&manifest_path, &format!("{example_id} manifest"), &mut errors);
             compare_json_key_drift(
                 &report_path,
                 &example_root.join("golden/report.json"),

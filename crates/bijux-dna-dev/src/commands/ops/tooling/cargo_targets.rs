@@ -133,65 +133,21 @@ pub(in super::super) fn tooling_cargo_targets(
         "unit-contract-fast" => run_programs_with_env(
             workspace,
             &[
+                ("cargo", vec!["test", "-p", "bijux-dna-runner", "--lib", "--", "--nocapture"]),
                 (
                     "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-runner",
-                        "--lib",
-                        "--",
-                        "--nocapture",
-                    ],
+                    vec!["test", "-p", "bijux-dna-planner-fastq", "--lib", "--", "--nocapture"],
                 ),
                 (
                     "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-planner-fastq",
-                        "--lib",
-                        "--",
-                        "--nocapture",
-                    ],
+                    vec!["test", "-p", "bijux-dna-planner-bam", "--lib", "--", "--nocapture"],
                 ),
                 (
                     "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-planner-bam",
-                        "--lib",
-                        "--",
-                        "--nocapture",
-                    ],
+                    vec!["test", "-p", "bijux-dna-stages-fastq", "--lib", "--", "--nocapture"],
                 ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-stages-fastq",
-                        "--lib",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-stages-bam",
-                        "--lib",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec!["test", "-p", "bijux-dna-api", "--lib", "--", "--nocapture"],
-                ),
+                ("cargo", vec!["test", "-p", "bijux-dna-stages-bam", "--lib", "--", "--nocapture"]),
+                ("cargo", vec!["test", "-p", "bijux-dna-api", "--lib", "--", "--nocapture"]),
             ],
             &common_envs,
         ),
@@ -230,11 +186,7 @@ pub(in super::super) fn tooling_cargo_targets(
         "policy-full" => run_program_with_env(
             workspace,
             "cargo",
-            &[
-                "test".to_string(),
-                "-p".to_string(),
-                "bijux-dna-policies".to_string(),
-            ],
+            &["test".to_string(), "-p".to_string(), "bijux-dna-policies".to_string()],
             &envs,
         ),
         "domain-coverage" => run_program_with_env(
@@ -257,21 +209,13 @@ pub(in super::super) fn tooling_cargo_targets(
         "snapshots" => run_program_with_env(
             workspace,
             "cargo",
-            &[
-                "insta".to_string(),
-                "test".to_string(),
-                "--workspace".to_string(),
-            ],
+            &["insta".to_string(), "test".to_string(), "--workspace".to_string()],
             &envs,
         ),
         "snapshots-accept" => run_program_with_env(
             workspace,
             "cargo",
-            &[
-                "insta".to_string(),
-                "accept".to_string(),
-                "--workspace".to_string(),
-            ],
+            &["insta".to_string(), "accept".to_string(), "--workspace".to_string()],
             &envs,
         ),
         "snapshots-review" => run_program_with_env(

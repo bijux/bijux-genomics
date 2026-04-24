@@ -44,16 +44,10 @@ pub(super) fn check_tool_id_manifest(workspace: &Workspace) -> Result<ContainerC
     let expected_ids = actual
         .lines()
         .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
-        .filter_map(|line| {
-            line.split_once('\t')
-                .map(|(tool_id, _)| tool_id.to_string())
-        })
+        .filter_map(|line| line.split_once('\t').map(|(tool_id, _)| tool_id.to_string()))
         .collect::<BTreeSet<_>>();
     let file_ids = governed_container_file_ids(workspace)?;
-    let unknown = file_ids
-        .difference(&expected_ids)
-        .cloned()
-        .collect::<Vec<_>>();
+    let unknown = file_ids.difference(&expected_ids).cloned().collect::<Vec<_>>();
     if !unknown.is_empty() {
         let mut stderr =
             String::from("container filename tool IDs missing from containers/TOOL_IDS.txt:\n");
@@ -80,14 +74,9 @@ fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
     ];
     for (tool_id, status) in statuses {
         let row = rows.get(&tool_id).cloned().unwrap_or_default();
-        let expected_bin = row
-            .get("expected_bin")
-            .and_then(toml::Value::as_str)
-            .unwrap_or(&tool_id);
-        lines.push(format!(
-            "| `{tool_id}` | `{}` | `{status}` |",
-            expected_bin.trim()
-        ));
+        let expected_bin =
+            row.get("expected_bin").and_then(toml::Value::as_str).unwrap_or(&tool_id);
+        lines.push(format!("| `{tool_id}` | `{}` | `{status}` |", expected_bin.trim()));
     }
     Ok(format!("{}\n", lines.join("\n")))
 }
@@ -136,9 +125,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         let docker_arm64 = workspace.path(&format!("containers/docker/arm64/Dockerfile.{tool_id}"));
         let docker_amd64 = workspace.path(&format!("containers/docker/amd64/Dockerfile.{tool_id}"));
         let apptainer_source = if apptainer.exists() {
-            if read_utf8(&apptainer)
-                .unwrap_or_default()
-                .contains("NON_BIJUX_SOURCES.md")
+            if read_utf8(&apptainer).unwrap_or_default().contains("NON_BIJUX_SOURCES.md")
                 || tool_id == "bcftools"
                 || tool_id == "beagle"
                 || tool_id == "eagle"
@@ -210,9 +197,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "|---|---|---|---|".to_string(),
     ];
     for (tool_id, status, ap_src, docker_src) in rows {
-        lines.push(format!(
-            "| `{tool_id}` | `{status}` | `{ap_src}` | `{docker_src}` |"
-        ));
+        lines.push(format!("| `{tool_id}` | `{status}` | `{ap_src}` | `{docker_src}` |"));
     }
     Ok(format!("{}\n", lines.join("\n")))
 }
@@ -282,16 +267,12 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
                 (!registry_version.is_empty()).then_some(registry_version)
             })
             .unwrap_or_else(|| "unknown".to_string());
-        let source_sha = version_row
-            .map(|value| table_string(value, "source_sha256"))
-            .unwrap_or_default();
+        let source_sha =
+            version_row.map(|value| table_string(value, "source_sha256")).unwrap_or_default();
         let checksum = if source_sha.len() == 64 {
             format!("sha256:{source_sha}")
         } else {
-            format!(
-                "sha256:{}",
-                sha256_hex(format!("{tool}:{source}:{version}").as_bytes())
-            )
+            format!("sha256:{}", sha256_hex(format!("{tool}:{source}:{version}").as_bytes()))
         };
         let spdx = version_row
             .map(|value| table_string(value, "upstream_license"))
@@ -385,19 +366,14 @@ pub(super) fn generate_license_metadata(
             path_from_arg(workspace, dir),
             workspace.path("docs/30-operations/CONTAINER_LICENSE_INDEX.md"),
         ),
-        [dir, index] => (
-            path_from_arg(workspace, dir),
-            path_from_arg(workspace, index),
-        ),
+        [dir, index] => (path_from_arg(workspace, dir), path_from_arg(workspace, index)),
         _ => return Err(anyhow!(usage.to_string())),
     };
     let entries = license_metadata_entries(workspace)?;
     bijux_dna_infra::ensure_dir(&out_dir)
         .with_context(|| format!("create {}", out_dir.display()))?;
-    let expected_files = entries
-        .iter()
-        .map(|entry| format!("{}.license.toml", entry.tool))
-        .collect::<BTreeSet<_>>();
+    let expected_files =
+        entries.iter().map(|entry| format!("{}.license.toml", entry.tool)).collect::<BTreeSet<_>>();
     for path in fs::read_dir(&out_dir)
         .with_context(|| format!("read {}", out_dir.display()))?
         .filter_map(std::result::Result::ok)
@@ -413,10 +389,7 @@ pub(super) fn generate_license_metadata(
         }
     }
     for entry in &entries {
-        write_utf8(
-            &out_dir.join(format!("{}.license.toml", entry.tool)),
-            &entry.file_content,
-        )?;
+        write_utf8(&out_dir.join(format!("{}.license.toml", entry.tool)), &entry.file_content)?;
     }
     write_utf8(&doc_out, &generate_license_index_content(&entries))?;
     Ok(ContainerCommandOutcome::success(format!(
@@ -461,10 +434,7 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
         }
         let value = load_toml(&meta)?;
         let Some(data) = value.as_table() else {
-            errors.push(format!(
-                "{} is not a TOML table",
-                workspace.rel(&meta).display()
-            ));
+            errors.push(format!("{} is not a TOML table", workspace.rel(&meta).display()));
             continue;
         };
         for key in [
@@ -480,24 +450,15 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
             "version",
         ] {
             if table_string(data, key).is_empty() {
-                errors.push(format!(
-                    "{} missing key: {key}",
-                    workspace.rel(&meta).display()
-                ));
+                errors.push(format!("{} missing key: {key}", workspace.rel(&meta).display()));
             }
         }
         if table_string(data, "tool_id") != *tool {
-            errors.push(format!(
-                "{} tool_id mismatch",
-                workspace.rel(&meta).display()
-            ));
+            errors.push(format!("{} tool_id mismatch", workspace.rel(&meta).display()));
         }
         let upstream_url = table_string(data, "upstream_url");
         if !(upstream_url.starts_with("http://") || upstream_url.starts_with("https://")) {
-            errors.push(format!(
-                "{} upstream_url must be URL",
-                workspace.rel(&meta).display()
-            ));
+            errors.push(format!("{} upstream_url must be URL", workspace.rel(&meta).display()));
         }
         let checksum = table_string(data, "upstream_checksum");
         let checksum_ok = checksum.starts_with("sha256:")
@@ -595,17 +556,10 @@ fn generate_network_usage_content(workspace: &Workspace) -> Result<String> {
         item.insert(
             "commands".to_string(),
             serde_json::Value::Array(
-                commands
-                    .iter()
-                    .cloned()
-                    .map(serde_json::Value::String)
-                    .collect(),
+                commands.iter().cloned().map(serde_json::Value::String).collect(),
             ),
         );
-        item.insert(
-            "network_required".to_string(),
-            serde_json::Value::Bool(!commands.is_empty()),
-        );
+        item.insert("network_required".to_string(), serde_json::Value::Bool(!commands.is_empty()));
         item.insert(
             "path".to_string(),
             serde_json::Value::String(workspace.rel(&path).display().to_string()),
@@ -630,12 +584,7 @@ pub(super) fn generate_network_usage(
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
-    let out = out_path_arg(
-        workspace,
-        args,
-        "artifacts/containers/network_usage.json",
-        usage,
-    )?;
+    let out = out_path_arg(workspace, args, "artifacts/containers/network_usage.json", usage)?;
     write_utf8(&out, &generate_network_usage_content(workspace)?)?;
     success_line(format!("generated {}", out.display()))
 }
@@ -663,18 +612,13 @@ pub(super) fn check_network_disclosure(
 
     let network_doc = workspace.path("containers/docs/NETWORK_USAGE.md");
     if !network_doc.is_file() {
-        return Ok(ContainerCommandOutcome::failure(
-            "missing containers/docs/NETWORK_USAGE.md\n",
-        ));
+        return Ok(ContainerCommandOutcome::failure("missing containers/docs/NETWORK_USAGE.md\n"));
     }
     let doc = read_utf8(&network_doc)?;
     let tool_ids = read_utf8(&workspace.path("containers/TOOL_IDS.txt"))?
         .lines()
         .filter(|line| !line.starts_with('#') && !line.trim().is_empty())
-        .filter_map(|line| {
-            line.split_once('\t')
-                .map(|(tool_id, _)| tool_id.to_string())
-        })
+        .filter_map(|line| line.split_once('\t').map(|(tool_id, _)| tool_id.to_string()))
         .collect::<Vec<_>>();
     let mut errors = Vec::new();
     let mut runtime_network_true = Vec::new();
@@ -689,25 +633,16 @@ pub(super) fn check_network_disclosure(
         }
         let value = load_toml(&meta)?;
         let Some(data) = value.as_table() else {
-            errors.push(format!(
-                "{} must contain a TOML table",
-                workspace.rel(&meta).display()
-            ));
+            errors.push(format!("{} must contain a TOML table", workspace.rel(&meta).display()));
             continue;
         };
         for key in ["tool_id", "runtime_network", "build_network", "notes"] {
             if !data.contains_key(key) {
-                errors.push(format!(
-                    "{} missing key '{key}'",
-                    workspace.rel(&meta).display()
-                ));
+                errors.push(format!("{} missing key '{key}'", workspace.rel(&meta).display()));
             }
         }
         if table_string(data, "tool_id") != tool_id {
-            errors.push(format!(
-                "{} tool_id mismatch",
-                workspace.rel(&meta).display()
-            ));
+            errors.push(format!("{} tool_id mismatch", workspace.rel(&meta).display()));
         }
         if table_bool(data, "runtime_network") {
             runtime_network_true.push(tool_id);
@@ -732,9 +667,7 @@ pub(super) fn check_network_disclosure(
             .into_iter()
             .flatten()
             .filter(|row| {
-                row.get("network_required")
-                    .and_then(serde_json::Value::as_bool)
-                    .unwrap_or(false)
+                row.get("network_required").and_then(serde_json::Value::as_bool).unwrap_or(false)
             })
             .filter_map(|row| row.get("path").and_then(serde_json::Value::as_str))
             .map(ToString::to_string)
@@ -825,12 +758,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
     }
 
     let docker_ids = fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| {
-            format!(
-                "read {}",
-                workspace.path("containers/docker/arm64").display()
-            )
-        })?
+        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             entry
@@ -842,18 +770,11 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         .collect::<BTreeSet<_>>();
     let apptainer_ids = fs::read_dir(workspace.path("containers/apptainer/shared"))
         .with_context(|| {
-            format!(
-                "read {}",
-                workspace.path("containers/apptainer/shared").display()
-            )
+            format!("read {}", workspace.path("containers/apptainer/shared").display())
         })?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
-            entry
-                .path()
-                .file_stem()
-                .and_then(|name| name.to_str())
-                .map(ToString::to_string)
+            entry.path().file_stem().and_then(|name| name.to_str()).map(ToString::to_string)
         })
         .collect::<BTreeSet<_>>();
 
@@ -909,18 +830,11 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             }),
             format!(
                 "- Runtime support: `{}`",
-                if runtimes.is_empty() {
-                    "none".to_string()
-                } else {
-                    runtimes.join(", ")
-                }
+                if runtimes.is_empty() { "none".to_string() } else { runtimes.join(", ") }
             ),
             format!(
                 "- Smoke status: `{}`",
-                status
-                    .get(tool)
-                    .cloned()
-                    .unwrap_or_else(|| "unknown".to_string())
+                status.get(tool).cloned().unwrap_or_else(|| "unknown".to_string())
             ),
             String::new(),
             "## Known Limitations".to_string(),
@@ -931,10 +845,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         outputs.insert(format!("{tool}.md"), format!("{}\n", lines.join("\n")));
         index_lines.push(format!("- `{tool}`: `containers/docs/tools/{tool}.md`"));
     }
-    outputs.insert(
-        "index.md".to_string(),
-        format!("{}\n", index_lines.join("\n")),
-    );
+    outputs.insert("index.md".to_string(), format!("{}\n", index_lines.join("\n")));
     Ok(outputs)
 }
 
@@ -1000,11 +911,7 @@ pub(super) fn check_tool_docs_generated(workspace: &Workspace) -> Result<Contain
 
 fn load_summary_status(
     workspace: &Workspace,
-) -> Result<(
-    BTreeMap<String, String>,
-    BTreeMap<String, String>,
-    BTreeMap<String, String>,
-)> {
+) -> Result<(BTreeMap<String, String>, BTreeMap<String, String>, BTreeMap<String, String>)> {
     let summary_json = workspace.path("artifacts/containers/summary.json");
     let lock_json = workspace.path("containers/versions/lock.json");
     let mut status_from_summary = BTreeMap::new();
@@ -1098,11 +1005,7 @@ fn load_summary_status(
     for (tool, digest) in lock_apptainer_digest {
         apptainer_digest_from_summary.entry(tool).or_insert(digest);
     }
-    Ok((
-        status_from_summary,
-        docker_digest_from_summary,
-        apptainer_digest_from_summary,
-    ))
+    Ok((status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary))
 }
 
 fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
@@ -1111,10 +1014,7 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         load_summary_status(workspace)?;
     let mut rows = Vec::new();
     for (tool, row) in registry {
-        if !table_array_strings(&row, "runtimes")
-            .iter()
-            .any(|runtime| runtime == "apptainer")
-        {
+        if !table_array_strings(&row, "runtimes").iter().any(|runtime| runtime == "apptainer") {
             continue;
         }
         rows.push((
@@ -1147,14 +1047,8 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
                     status
                 }
             }),
-            docker_digest_from_summary
-                .get(&tool)
-                .cloned()
-                .unwrap_or_else(|| "-".to_string()),
-            apptainer_digest_from_summary
-                .get(&tool)
-                .cloned()
-                .unwrap_or_else(|| "-".to_string()),
+            docker_digest_from_summary.get(&tool).cloned().unwrap_or_else(|| "-".to_string()),
+            apptainer_digest_from_summary.get(&tool).cloned().unwrap_or_else(|| "-".to_string()),
         ));
     }
 

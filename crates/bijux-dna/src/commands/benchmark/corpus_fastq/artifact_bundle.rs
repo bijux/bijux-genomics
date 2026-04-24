@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -12,10 +13,7 @@ pub(super) fn artifact_bundle_manifest_fields(
     path: &Path,
 ) -> Result<std::collections::BTreeMap<String, serde_json::Value>> {
     let mut fields = std::collections::BTreeMap::new();
-    fields.insert(
-        path_key.to_string(),
-        serde_json::Value::String(path.display().to_string()),
-    );
+    fields.insert(path_key.to_string(), serde_json::Value::String(path.display().to_string()));
     fields.insert(
         format!("{digest_prefix}_digest"),
         serde_json::Value::String(sha256_artifact_bundle(path)?),
@@ -66,10 +64,7 @@ pub(crate) fn artifact_bundle_size_bytes(path: &Path) -> Result<u64> {
     let mut total = 0_u64;
     for member in artifact_bundle_members(path)? {
         if member.is_file() {
-            total += member
-                .metadata()
-                .with_context(|| format!("stat {}", member.display()))?
-                .len();
+            total += member.metadata().with_context(|| format!("stat {}", member.display()))?.len();
             continue;
         }
         let mut nested = member
@@ -133,7 +128,7 @@ pub(crate) fn sha256_artifact_bundle(path: &Path) -> Result<String> {
             digest.update(sha256_file_hex(&path)?.as_bytes());
         }
     }
-    Ok(format!("{:x}", digest.finalize()))
+    Ok(sha256_hex(&digest.finalize()))
 }
 
 fn collect_sorted_paths(root: &Path) -> Result<Vec<PathBuf>> {
@@ -174,13 +169,19 @@ pub(crate) fn sha256_file_hex(path: &Path) -> Result<String> {
     let mut buffer = vec![0_u8; 1024 * 1024];
     loop {
         use std::io::Read as _;
-        let read = handle
-            .read(&mut buffer)
-            .with_context(|| format!("read {}", path.display()))?;
+        let read = handle.read(&mut buffer).with_context(|| format!("read {}", path.display()))?;
         if read == 0 {
             break;
         }
         digest.update(&buffer[..read]);
     }
-    Ok(format!("{:x}", digest.finalize()))
+    Ok(sha256_hex(&digest.finalize()))
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
 }

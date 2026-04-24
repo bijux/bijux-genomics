@@ -18,11 +18,8 @@ pub(in super::super::super) fn check_image_size_regression(
         .and_then(toml::Value::as_float)
         .unwrap_or(20.0);
     let mut acknowledgements = BTreeMap::new();
-    for row in policy
-        .get("acknowledgement")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
+    for row in
+        policy.get("acknowledgement").and_then(toml::Value::as_array).cloned().unwrap_or_default()
     {
         let Some(row) = row.as_table() else {
             continue;
@@ -30,10 +27,8 @@ pub(in super::super::super) fn check_image_size_regression(
         let tool = table_string(row, "tool_id");
         let from_version = table_string(row, "from_version");
         let to_version = table_string(row, "to_version");
-        let limit = row
-            .get("max_growth_percent")
-            .and_then(toml::Value::as_float)
-            .unwrap_or(default_limit);
+        let limit =
+            row.get("max_growth_percent").and_then(toml::Value::as_float).unwrap_or(default_limit);
         if !tool.is_empty() && !from_version.is_empty() && !to_version.is_empty() {
             acknowledgements.insert((tool, from_version, to_version), limit);
         }
@@ -46,10 +41,7 @@ pub(in super::super::super) fn check_image_size_regression(
         .unwrap_or_default()
         .into_iter()
         .filter_map(|row| {
-            let tool = row
-                .get("tool")
-                .and_then(serde_json::Value::as_str)?
-                .to_string();
+            let tool = row.get("tool").and_then(serde_json::Value::as_str)?.to_string();
             Some((tool, row))
         })
         .collect::<BTreeMap<_, _>>();
@@ -65,34 +57,23 @@ pub(in super::super::super) fn check_image_size_regression(
         .unwrap_or_default()
         .into_iter()
         .filter_map(|row| {
-            let tool = row
-                .get("tool")
-                .and_then(serde_json::Value::as_str)?
-                .to_string();
+            let tool = row.get("tool").and_then(serde_json::Value::as_str)?.to_string();
             Some((tool, row))
         })
         .collect::<BTreeMap<_, _>>();
     let mut checked = 0usize;
     let mut errors = Vec::new();
     for (tool, current_row) in current_items {
-        if current_row
-            .get("status")
-            .and_then(serde_json::Value::as_str)
-            != Some("production")
-        {
+        if current_row.get("status").and_then(serde_json::Value::as_str) != Some("production") {
             continue;
         }
         let Some(previous_row) = previous_items.get(&tool) else {
             continue;
         };
-        let old_size = previous_row
-            .get("image_size_bytes")
-            .and_then(serde_json::Value::as_i64)
-            .unwrap_or(0);
-        let new_size = current_row
-            .get("image_size_bytes")
-            .and_then(serde_json::Value::as_i64)
-            .unwrap_or(0);
+        let old_size =
+            previous_row.get("image_size_bytes").and_then(serde_json::Value::as_i64).unwrap_or(0);
+        let new_size =
+            current_row.get("image_size_bytes").and_then(serde_json::Value::as_i64).unwrap_or(0);
         if old_size <= 0 || new_size <= 0 {
             continue;
         }
@@ -148,11 +129,8 @@ pub(in super::super::super) fn check_lock_matches_built_output(
     }
 
     let lock_data = read_json(&lock_path)?;
-    let lock_items = lock_data
-        .get("items")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let lock_items =
+        lock_data.get("items").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
     let lock_tools = lock_items
         .iter()
         .filter_map(|item| item.get("tool").and_then(serde_json::Value::as_str))
@@ -161,10 +139,7 @@ pub(in super::super::super) fn check_lock_matches_built_output(
     let lock_rows = lock_items
         .into_iter()
         .filter_map(|item| {
-            let tool = item
-                .get("tool")
-                .and_then(serde_json::Value::as_str)?
-                .to_string();
+            let tool = item.get("tool").and_then(serde_json::Value::as_str)?.to_string();
             Some((tool, item))
         })
         .collect::<BTreeMap<_, _>>();
@@ -177,12 +152,7 @@ pub(in super::super::super) fn check_lock_matches_built_output(
         "configs/ci/registry/tool_registry_vcf_downstream.toml",
     ] {
         let data = load_toml(&workspace.path(rel))?;
-        for row in data
-            .get("tools")
-            .and_then(toml::Value::as_array)
-            .cloned()
-            .unwrap_or_default()
-        {
+        for row in data.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default() {
             let Some(row) = row.as_table() else {
                 continue;
             };
@@ -199,11 +169,8 @@ pub(in super::super::super) fn check_lock_matches_built_output(
     let summary = read_json(&summary_path)?;
     let mut docker_manifest_by_tool = BTreeMap::new();
     let mut apptainer_manifest_by_tool = BTreeMap::new();
-    for item in summary
-        .get("items")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
+    for item in
+        summary.get("items").and_then(serde_json::Value::as_array).cloned().unwrap_or_default()
     {
         let tool = item
             .get("tool")
@@ -217,10 +184,7 @@ pub(in super::super::super) fn check_lock_matches_built_output(
             .unwrap_or_default()
             .trim()
             .to_string();
-        let manifest = item
-            .get("manifest")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default();
+        let manifest = item.get("manifest").and_then(serde_json::Value::as_str).unwrap_or_default();
         if tool.is_empty() || manifest.is_empty() {
             continue;
         }
@@ -246,9 +210,7 @@ pub(in super::super::super) fn check_lock_matches_built_output(
     let mut errors = Vec::new();
     for (tool, expected_version) in production {
         if !lock_tools.contains(&tool) {
-            errors.push(format!(
-                "{tool}: missing from containers/versions/lock.json"
-            ));
+            errors.push(format!("{tool}: missing from containers/versions/lock.json"));
         }
         let Some(docker_manifest) = docker_manifest_by_tool.get(&tool) else {
             if strict_missing {
@@ -258,11 +220,7 @@ pub(in super::super::super) fn check_lock_matches_built_output(
             }
             continue;
         };
-        if docker_manifest
-            .get("status")
-            .and_then(serde_json::Value::as_str)
-            != Some("ok")
-        {
+        if docker_manifest.get("status").and_then(serde_json::Value::as_str) != Some("ok") {
             errors.push(format!("{tool}: docker manifest status is not ok"));
         }
         let declared_version = docker_manifest
@@ -304,9 +262,7 @@ pub(in super::super::super) fn check_lock_matches_built_output(
             && !matches!(lock_version.as_str(), "0.0.0" | "planned" | "unknown")
         {
             if version_output.is_empty() {
-                errors.push(format!(
-                    "{tool}: missing version_output for lock/version comparison"
-                ));
+                errors.push(format!("{tool}: missing version_output for lock/version comparison"));
             } else if !version_output
                 .to_ascii_lowercase()
                 .contains(&lock_version.to_ascii_lowercase())
@@ -323,9 +279,7 @@ pub(in super::super::super) fn check_lock_matches_built_output(
             .trim()
             .to_string();
         if digest.is_empty() {
-            errors.push(format!(
-                "{tool}: missing resolved_image_digest in docker manifest"
-            ));
+            errors.push(format!("{tool}: missing resolved_image_digest in docker manifest"));
         }
         let lock_digest = lock_rows
             .get(&tool)
@@ -389,10 +343,7 @@ pub(in super::super::super) fn check_release_checklist(
     if missing.is_empty() {
         return success_line("release checklist mapping: OK");
     }
-    failure_lines(
-        "release checklist check: missing native checklist commands:",
-        &missing,
-    )
+    failure_lines("release checklist check: missing native checklist commands:", &missing)
 }
 
 pub(in super::super::super) fn check_toolkit_bundle_buildable(
@@ -400,30 +351,19 @@ pub(in super::super::super) fn check_toolkit_bundle_buildable(
 ) -> Result<ContainerCommandOutcome> {
     let bundles = load_toml(&workspace.path("configs/ci/tools/toolkit_bundles.toml"))?;
     let images = load_toml(&workspace.path("configs/ci/tools/images.toml"))?;
-    let bundle_table = bundles
-        .get("bundles")
-        .and_then(toml::Value::as_table)
-        .cloned()
-        .unwrap_or_default();
+    let bundle_table =
+        bundles.get("bundles").and_then(toml::Value::as_table).cloned().unwrap_or_default();
     let image_table = images.as_table().cloned().unwrap_or_default();
     let apptainer = apptainer_def_paths(workspace)
         .into_iter()
-        .filter_map(|path| {
-            path.file_stem()
-                .and_then(|value| value.to_str())
-                .map(ToOwned::to_owned)
-        })
+        .filter_map(|path| path.file_stem().and_then(|value| value.to_str()).map(ToOwned::to_owned))
         .collect::<BTreeSet<_>>();
     let docker = dockerfile_paths(workspace)?
         .into_iter()
         .filter_map(|path| {
             path.file_name()
                 .and_then(|value| value.to_str())
-                .and_then(|value| {
-                    value
-                        .split_once("Dockerfile.")
-                        .map(|(_, tool)| tool.to_string())
-                })
+                .and_then(|value| value.split_once("Dockerfile.").map(|(_, tool)| tool.to_string()))
         })
         .collect::<BTreeSet<_>>();
     let mut errors = Vec::new();
@@ -488,11 +428,7 @@ pub(in super::super::super) fn check_vcf_downstream_bundle_coverage(
         .into_iter()
         .filter_map(|path| {
             (path.extension().and_then(|ext| ext.to_str()) == Some("yaml"))
-                .then(|| {
-                    path.file_stem()
-                        .and_then(|value| value.to_str())
-                        .map(ToOwned::to_owned)
-                })
+                .then(|| path.file_stem().and_then(|value| value.to_str()).map(ToOwned::to_owned))
                 .flatten()
         })
         .collect::<BTreeSet<_>>();
@@ -503,11 +439,8 @@ pub(in super::super::super) fn check_vcf_downstream_bundle_coverage(
             "vcf downstream bundle coverage: SKIP (no downstream phasing/imputation stages)",
         );
     }
-    let phasing_required = BTreeSet::from([
-        "beagle".to_string(),
-        "eagle".to_string(),
-        "shapeit5".to_string(),
-    ]);
+    let phasing_required =
+        BTreeSet::from(["beagle".to_string(), "eagle".to_string(), "shapeit5".to_string()]);
     let imputation_required = BTreeSet::from([
         "beagle".to_string(),
         "impute5".to_string(),

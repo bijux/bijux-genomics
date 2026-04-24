@@ -1,9 +1,5 @@
 #![allow(clippy::too_many_lines)]
 
-use std::path::{Path, PathBuf};
-
-use anyhow::{anyhow, Result};
-
 mod config_loading;
 mod config_paths;
 mod config_queries;
@@ -22,6 +18,7 @@ pub(crate) use self::config_paths::{
     benchmark_config_path, benchmark_publication_config_path, benchmark_workspace_config_path,
 };
 pub(crate) use self::config_queries::{benchmark_corpus_spec_path, print_benchmark_config_json};
+#[allow(unused_imports)]
 pub(crate) use self::contracts::{
     BenchmarkConfig, BenchmarkCorpusConfig, BenchmarkCorpusPublicationConfig,
     BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig, BenchmarkReferenceInputConfig,
@@ -276,14 +273,8 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             .into_iter()
             .map(|action| (action.entry_name, action.action))
             .collect::<std::collections::BTreeMap<_, _>>();
-        assert_eq!(
-            actions.get("fastq.trim_reads"),
-            Some(&"remove-legacy-duplicate".to_string())
-        );
-        assert_eq!(
-            actions.get("fastq.filter_reads"),
-            Some(&"move-legacy-entry".to_string())
-        );
+        assert_eq!(actions.get("fastq.trim_reads"), Some(&"remove-legacy-duplicate".to_string()));
+        assert_eq!(actions.get("fastq.filter_reads"), Some(&"move-legacy-entry".to_string()));
     }
 
     #[test]
@@ -291,25 +282,17 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let temp = tempfile::tempdir().expect("tempdir");
         let results_root = temp.path().join("archive");
         let cache_mirror_root = temp.path().join("mirror");
-        let legacy_stage_root = results_root
-            .join("benchmark_corpus")
-            .join("fastq.trim_reads");
-        let canonical_stage_root = cache_mirror_root
-            .join("results")
-            .join("benchmark_corpus")
-            .join("fastq.trim_reads");
-        let archive_only_stage_root = results_root
-            .join("benchmark_corpus")
-            .join("fastq.validate_reads");
+        let legacy_stage_root = results_root.join("benchmark_corpus").join("fastq.trim_reads");
+        let canonical_stage_root =
+            cache_mirror_root.join("results").join("benchmark_corpus").join("fastq.trim_reads");
+        let archive_only_stage_root =
+            results_root.join("benchmark_corpus").join("fastq.validate_reads");
         std::fs::create_dir_all(legacy_stage_root.join("cluster-apptainer")).expect("legacy stage");
         std::fs::create_dir_all(canonical_stage_root.join("cluster-apptainer"))
             .expect("canonical stage");
         std::fs::create_dir_all(archive_only_stage_root.join("cluster-apptainer"))
             .expect("archive stage");
-        write_text(
-            legacy_stage_root.join("cluster-apptainer/run_manifest.json"),
-            "{}",
-        );
+        write_text(legacy_stage_root.join("cluster-apptainer/run_manifest.json"), "{}");
         write_text(
             canonical_stage_root.join("cluster-apptainer/run_manifest.json"),
             "{\"completed_at_utc\": \"2026-03-28T00:00:00Z\"}",
@@ -386,10 +369,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         write_unified_config(temp.path());
         let path = benchmark_corpus_spec_path(temp.path(), None, "corpus-01")
             .expect("configured corpus spec path");
-        assert_eq!(
-            path,
-            temp.path().join("configs/runtime/corpora/corpus-01.toml")
-        );
+        assert_eq!(path, temp.path().join("configs/runtime/corpora/corpus-01.toml"));
     }
 
     #[test]

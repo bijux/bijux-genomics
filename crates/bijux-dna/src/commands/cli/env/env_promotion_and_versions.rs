@@ -187,23 +187,23 @@ fn upsert_container_version_entry(
     let table = parsed
         .as_table_mut()
         .ok_or_else(|| anyhow!("{} must contain a top-level table", versions_path.display()))?;
-    let mut row = toml::map::Map::new();
-    row.insert(
+    let mut version_entry = toml::map::Map::new();
+    version_entry.insert(
         "version".to_string(),
         toml::Value::String(normalize_semver_like(version)?),
     );
     let source = declared_text(source)
         .map(str::to_string)
         .ok_or_else(|| anyhow!("versions.toml entry requires a declared upstream/source"))?;
-    row.insert(
+    version_entry.insert(
         "source".to_string(),
         toml::Value::String(source),
     );
-    row.insert(
+    version_entry.insert(
         "date_pinned".to_string(),
         toml::Value::String(bijux_dna_api::v1::api::shared::current_utc_date()),
     );
-    table.insert(tool_id.to_string(), toml::Value::Table(row));
+    table.insert(tool_id.to_string(), toml::Value::Table(version_entry));
     let rendered = toml::to_string_pretty(&parsed)
         .with_context(|| format!("render {}", versions_path.display()))?;
     write_text_file(versions_path, &format!("{rendered}\n"))?;

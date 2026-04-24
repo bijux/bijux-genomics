@@ -69,43 +69,19 @@ fn normalize_benchmark_config(mut config: BenchmarkConfig) -> BenchmarkConfig {
     normalize_optional_string(&mut config.stage_inputs.fastq_deplete_rrna.min_identity);
     normalize_optional_string(&mut config.stage_inputs.fastq_deplete_host.reference_index);
     normalize_optional_string(&mut config.stage_inputs.fastq_deplete_host.reference_catalog_id);
+    normalize_optional_string(&mut config.stage_inputs.fastq_deplete_host.reference_index_backend);
     normalize_optional_string(
-        &mut config
-            .stage_inputs
-            .fastq_deplete_host
-            .reference_index_backend,
+        &mut config.stage_inputs.fastq_deplete_reference_contaminants.reference_index,
     );
     normalize_optional_string(
-        &mut config
-            .stage_inputs
-            .fastq_deplete_reference_contaminants
-            .reference_index,
+        &mut config.stage_inputs.fastq_deplete_reference_contaminants.reference_catalog_id,
     );
     normalize_optional_string(
-        &mut config
-            .stage_inputs
-            .fastq_deplete_reference_contaminants
-            .reference_catalog_id,
-    );
-    normalize_optional_string(
-        &mut config
-            .stage_inputs
-            .fastq_deplete_reference_contaminants
-            .reference_index_backend,
+        &mut config.stage_inputs.fastq_deplete_reference_contaminants.reference_index_backend,
     );
     normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_root);
-    normalize_optional_string(
-        &mut config
-            .stage_inputs
-            .fastq_screen_taxonomy
-            .database_catalog_id,
-    );
-    normalize_optional_string(
-        &mut config
-            .stage_inputs
-            .fastq_screen_taxonomy
-            .database_artifact_id,
-    );
+    normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_catalog_id);
+    normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_artifact_id);
     normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_namespace);
     normalize_optional_string(&mut config.stage_inputs.fastq_screen_taxonomy.database_scope);
     config
@@ -142,9 +118,7 @@ pub(crate) fn load_benchmark_config(
     if !path.is_file() {
         return Err(anyhow!("missing benchmark config: {}", path.display()));
     }
-    Ok(normalize_benchmark_config(load_toml::<BenchmarkConfig>(
-        &path,
-    )?))
+    Ok(normalize_benchmark_config(load_toml::<BenchmarkConfig>(&path)?))
 }
 
 pub(crate) fn load_optional_benchmark_workspace_config(
@@ -178,10 +152,7 @@ pub(crate) fn load_benchmark_publication_config(
     let path = benchmark_publication_config_path(cwd, explicit_path);
     let config = load_benchmark_config(cwd, explicit_path)?;
     if config.publication == BenchmarkPublicationConfig::default() {
-        return Err(anyhow!(
-            "missing benchmark publication config: {}",
-            path.display()
-        ));
+        return Err(anyhow!("missing benchmark publication config: {}", path.display()));
     }
     Ok(config.publication)
 }

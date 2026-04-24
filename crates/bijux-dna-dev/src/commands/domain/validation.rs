@@ -54,19 +54,12 @@ pub(super) fn validate(workspace: &Workspace, args: &[String]) -> Result<DomainC
         stdout.push_str(&outcome.stdout);
         stderr.push_str(&outcome.stderr);
         if !outcome.is_success() {
-            return Ok(DomainCommandOutcome {
-                exit_code: outcome.exit_code,
-                stdout,
-                stderr,
-            });
+            return Ok(DomainCommandOutcome { exit_code: outcome.exit_code, stdout, stderr });
         }
     }
 
     let env = if allow_non_artifacts {
-        vec![
-            ("TZ".to_string(), "UTC".to_string()),
-            ("LC_ALL".to_string(), "C".to_string()),
-        ]
+        vec![("TZ".to_string(), "UTC".to_string()), ("LC_ALL".to_string(), "C".to_string())]
     } else {
         artifact_env(workspace)?
     };
@@ -87,9 +80,5 @@ pub(super) fn validate(workspace: &Workspace, args: &[String]) -> Result<DomainC
     let compiler_outcome = DomainCommandOutcome::from_output(compiler);
     stdout.push_str(&compiler_outcome.stdout);
     stderr.push_str(&compiler_outcome.stderr);
-    Ok(DomainCommandOutcome {
-        exit_code: compiler_outcome.exit_code,
-        stdout,
-        stderr,
-    })
+    Ok(DomainCommandOutcome { exit_code: compiler_outcome.exit_code, stdout, stderr })
 }

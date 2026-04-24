@@ -40,23 +40,16 @@ pub(crate) fn check_apptainer_frontend_reproducibility(
         "POLICY_TOML",
         "configs/ci/tools/apptainer_reproducibility_policy.toml",
     ))?;
-    let threshold = policy
-        .get("confidence_min")
-        .and_then(toml::Value::as_float)
-        .unwrap_or(1.0);
+    let threshold = policy.get("confidence_min").and_then(toml::Value::as_float).unwrap_or(1.0);
     let require_all = policy
         .get("require_all_tools_deterministic")
         .and_then(toml::Value::as_bool)
         .unwrap_or(true);
     let mut errors = Vec::new();
-    let confidence = summary
-        .get("confidence")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(-1.0);
+    let confidence = summary.get("confidence").and_then(serde_json::Value::as_f64).unwrap_or(-1.0);
     if confidence < threshold {
-        errors.push(format!(
-            "confidence below threshold: got {confidence:.4}, need {threshold:.4}"
-        ));
+        errors
+            .push(format!("confidence below threshold: got {confidence:.4}, need {threshold:.4}"));
     }
     if require_all {
         let bad = summary
@@ -66,14 +59,10 @@ pub(crate) fn check_apptainer_frontend_reproducibility(
             .unwrap_or_default()
             .into_iter()
             .filter(|row| {
-                !row.get("deterministic")
-                    .and_then(serde_json::Value::as_bool)
-                    .unwrap_or(false)
+                !row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false)
             })
             .filter_map(|row| {
-                row.get("tool")
-                    .and_then(serde_json::Value::as_str)
-                    .map(ToOwned::to_owned)
+                row.get("tool").and_then(serde_json::Value::as_str).map(ToOwned::to_owned)
             })
             .collect::<Vec<_>>();
         if !bad.is_empty() {
@@ -121,10 +110,8 @@ pub(crate) fn check_apptainer_frontend_security(
         "POLICY_TOML",
         "configs/ci/tools/apptainer_security_policy.toml",
     ))?;
-    let fail_on_critical = policy
-        .get("fail_on_unallowlisted_critical")
-        .and_then(toml::Value::as_bool)
-        .unwrap_or(true);
+    let fail_on_critical =
+        policy.get("fail_on_unallowlisted_critical").and_then(toml::Value::as_bool).unwrap_or(true);
     let mut errors = Vec::new();
     if summary
         .get("items")
@@ -148,11 +135,7 @@ pub(crate) fn check_apptainer_frontend_security(
     {
         errors.push("unallowlisted critical CVEs present".to_string());
     }
-    if !summary
-        .get("ok")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false)
-    {
+    if !summary.get("ok").and_then(serde_json::Value::as_bool).unwrap_or(false) {
         errors.push("summary status is fail".to_string());
     }
     if errors.is_empty() {
@@ -189,11 +172,7 @@ pub(crate) fn check_apptainer_frontend_smoke_proof(
     let versions = tool_versions(workspace)?;
     let apptainer_tools = apptainer_def_paths(workspace)
         .into_iter()
-        .filter_map(|path| {
-            path.file_stem()
-                .and_then(|name| name.to_str())
-                .map(ToOwned::to_owned)
-        })
+        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
         .collect::<BTreeSet<_>>();
     let items = summary
         .get("items")
@@ -223,10 +202,7 @@ pub(crate) fn check_apptainer_frontend_smoke_proof(
             .get("normalized_version_output")
             .and_then(serde_json::Value::as_str)
             .filter(|value| !value.trim().is_empty())
-            .or_else(|| {
-                row.get("version_output")
-                    .and_then(serde_json::Value::as_str)
-            })
+            .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
             .unwrap_or_default()
             .trim()
             .to_ascii_lowercase();
@@ -239,27 +215,17 @@ pub(crate) fn check_apptainer_frontend_smoke_proof(
                 "{tool}: version output does not include expected version {expected}"
             ));
         }
-        for key in [
-            "help_actual_exit_code",
-            "minimal_actual_exit_code",
-            "negative_actual_exit_code",
-        ] {
+        for key in
+            ["help_actual_exit_code", "minimal_actual_exit_code", "negative_actual_exit_code"]
+        {
             if row.get(key).is_none() {
                 errors.push(format!("{tool}: missing {key}"));
             }
         }
-        if row
-            .get("network_runtime_detected")
-            .and_then(serde_json::Value::as_bool)
-            == Some(true)
-        {
+        if row.get("network_runtime_detected").and_then(serde_json::Value::as_bool) == Some(true) {
             errors.push(format!("{tool}: runtime network access detected"));
         }
-        if row
-            .get("home_write_detected")
-            .and_then(serde_json::Value::as_bool)
-            == Some(true)
-        {
+        if row.get("home_write_detected").and_then(serde_json::Value::as_bool) == Some(true) {
             errors.push(format!("{tool}: write to HOME detected"));
         }
         for key in ["home_policy_ok", "filesystem_policy_ok", "write_policy_ok"] {
@@ -313,11 +279,8 @@ pub(crate) fn check_apptainer_frontend_version_output_lock(
     let summary = read_json(&summary_path)?;
     let lock_rows = lock_items_by_tool(workspace)?;
     let mut errors = Vec::new();
-    for row in summary
-        .get("items")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
+    for row in
+        summary.get("items").and_then(serde_json::Value::as_array).cloned().unwrap_or_default()
     {
         let tool = row
             .get("tool")
@@ -336,17 +299,12 @@ pub(crate) fn check_apptainer_frontend_version_output_lock(
             .get("normalized_version_output")
             .and_then(serde_json::Value::as_str)
             .filter(|value| !value.trim().is_empty())
-            .or_else(|| {
-                row.get("version_output")
-                    .and_then(serde_json::Value::as_str)
-            })
+            .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
             .unwrap_or_default()
             .trim()
             .to_ascii_lowercase();
         if output.is_empty() {
-            errors.push(format!(
-                "{tool}: empty version output in frontend smoke summary"
-            ));
+            errors.push(format!("{tool}: empty version output in frontend smoke summary"));
             continue;
         }
         let current = sha256_hex(output.as_bytes());
@@ -358,13 +316,9 @@ pub(crate) fn check_apptainer_frontend_version_output_lock(
             .trim()
             .to_string();
         if locked.is_empty() {
-            errors.push(format!(
-                "{tool}: missing frontend_smoke_version_output_sha256 in lock"
-            ));
+            errors.push(format!("{tool}: missing frontend_smoke_version_output_sha256 in lock"));
         } else if current != locked {
-            errors.push(format!(
-                "{tool}: frontend version output drift detected; regenerate lock"
-            ));
+            errors.push(format!("{tool}: frontend version output drift detected; regenerate lock"));
         }
     }
     if errors.is_empty() {
@@ -460,19 +414,11 @@ pub(crate) fn compare_frontend_local_sif_hash(
         .cloned()
         .collect::<Vec<_>>();
     if !missing_frontend.is_empty() {
-        lines.extend([
-            String::new(),
-            "## Missing On Frontend".to_string(),
-            String::new(),
-        ]);
+        lines.extend([String::new(), "## Missing On Frontend".to_string(), String::new()]);
         lines.extend(missing_frontend.iter().map(|tool| format!("- `{tool}`")));
     }
     if !missing_local.is_empty() {
-        lines.extend([
-            String::new(),
-            "## Missing Locally".to_string(),
-            String::new(),
-        ]);
+        lines.extend([String::new(), "## Missing Locally".to_string(), String::new()]);
         lines.extend(missing_local.iter().map(|tool| format!("- `{tool}`")));
     }
     let mismatch = shared
@@ -510,10 +456,7 @@ pub(crate) fn write_frontend_repro_summary(
     summary_path: &Path,
     doc_path: &Path,
 ) -> Result<()> {
-    let threshold = policy
-        .get("confidence_min")
-        .and_then(toml::Value::as_float)
-        .unwrap_or(1.0);
+    let threshold = policy.get("confidence_min").and_then(toml::Value::as_float).unwrap_or(1.0);
     let require_all = policy
         .get("require_all_tools_deterministic")
         .and_then(toml::Value::as_bool)
@@ -522,31 +465,21 @@ pub(crate) fn write_frontend_repro_summary(
     let passed_checks = items
         .iter()
         .map(|row| {
-            row.get("checks")
-                .and_then(serde_json::Value::as_object)
-                .map_or(0, |checks| {
-                    ["same_cache_twice", "clean_cache_match", "purge_cache_match"]
-                        .into_iter()
-                        .filter(|key| {
-                            checks
-                                .get(*key)
-                                .and_then(serde_json::Value::as_bool)
-                                .unwrap_or(false)
-                        })
-                        .count()
-                })
+            row.get("checks").and_then(serde_json::Value::as_object).map_or(0, |checks| {
+                ["same_cache_twice", "clean_cache_match", "purge_cache_match"]
+                    .into_iter()
+                    .filter(|key| {
+                        checks.get(*key).and_then(serde_json::Value::as_bool).unwrap_or(false)
+                    })
+                    .count()
+            })
         })
         .sum::<usize>();
-    let confidence = if total_checks == 0 {
-        1.0
-    } else {
-        passed_checks as f64 / total_checks as f64
-    };
-    let all_ok = items.iter().all(|row| {
-        row.get("deterministic")
-            .and_then(serde_json::Value::as_bool)
-            .unwrap_or(false)
-    });
+    let confidence =
+        if total_checks == 0 { 1.0 } else { passed_checks as f64 / total_checks as f64 };
+    let all_ok = items
+        .iter()
+        .all(|row| row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false));
     let ok = confidence >= threshold && (!require_all || all_ok);
     write_utf8(
         summary_path,
@@ -582,10 +515,7 @@ pub(crate) fn write_frontend_repro_summary(
         "|---|---:|---:|---:|---:|---|".to_string(),
     ];
     for row in items {
-        let tool = row
-            .get("tool")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default();
+        let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
         let checks = row.get("checks").and_then(serde_json::Value::as_object);
         let same = checks
             .and_then(|value| value.get("same_cache_twice"))
@@ -599,10 +529,8 @@ pub(crate) fn write_frontend_repro_summary(
             .and_then(|value| value.get("purge_cache_match"))
             .and_then(serde_json::Value::as_bool)
             .unwrap_or(false);
-        let deterministic = row
-            .get("deterministic")
-            .and_then(serde_json::Value::as_bool)
-            .unwrap_or(false);
+        let deterministic =
+            row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false);
         let cause = row
             .get("nondeterministic_cause")
             .and_then(serde_json::Value::as_str)
@@ -634,26 +562,18 @@ pub(crate) fn write_frontend_security_summary(
             .unwrap_or_default()
             .into_iter()
             .filter_map(|row| {
-                row.get("cve")
-                    .and_then(toml::Value::as_str)
-                    .map(str::to_ascii_uppercase)
+                row.get("cve").and_then(toml::Value::as_str).map(str::to_ascii_uppercase)
             })
             .collect::<BTreeSet<_>>()
     } else {
         BTreeSet::new()
     };
-    let fail_on_critical = policy
-        .get("fail_on_unallowlisted_critical")
-        .and_then(toml::Value::as_bool)
-        .unwrap_or(true);
-    let require_scanner_ci = policy
-        .get("require_scanner_in_ci")
-        .and_then(toml::Value::as_bool)
-        .unwrap_or(true);
-    let require_scanner_local = policy
-        .get("require_scanner_local")
-        .and_then(toml::Value::as_bool)
-        .unwrap_or(false);
+    let fail_on_critical =
+        policy.get("fail_on_unallowlisted_critical").and_then(toml::Value::as_bool).unwrap_or(true);
+    let require_scanner_ci =
+        policy.get("require_scanner_in_ci").and_then(toml::Value::as_bool).unwrap_or(true);
+    let require_scanner_local =
+        policy.get("require_scanner_local").and_then(toml::Value::as_bool).unwrap_or(false);
     let is_ci = !env_or_empty("CI").is_empty();
     let scanner = if command_exists("grype") {
         Some("grype")
@@ -663,9 +583,7 @@ pub(crate) fn write_frontend_security_summary(
         None
     };
     if scanner.is_none() && ((is_ci && require_scanner_ci) || (!is_ci && require_scanner_local)) {
-        return Err(anyhow!(
-            "frontend security summary requires grype or trivy per policy"
-        ));
+        return Err(anyhow!("frontend security summary requires grype or trivy per policy"));
     }
     let manifests = WalkDir::new(out_dir)
         .max_depth(1)
@@ -675,11 +593,7 @@ pub(crate) fn write_frontend_security_summary(
         .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("json"))
         .filter(|entry| {
             !matches!(
-                entry
-                    .path()
-                    .file_name()
-                    .and_then(|name| name.to_str())
-                    .unwrap_or_default(),
+                entry.path().file_name().and_then(|name| name.to_str()).unwrap_or_default(),
                 "summary.json"
                     | "security_summary.json"
                     | "vuln_scan_report.json"
@@ -698,24 +612,16 @@ pub(crate) fn write_frontend_security_summary(
 
     for entry in manifests {
         let row = read_json(entry.path())?;
-        let tool = row
-            .get("tool")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .to_string();
+        let tool =
+            row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
         if tool.is_empty() {
             continue;
         }
         let sbom_path = PathBuf::from(
-            row.get("sbom_path")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
+            row.get("sbom_path").and_then(serde_json::Value::as_str).unwrap_or_default(),
         );
-        let sif_path = PathBuf::from(
-            row.get("image")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
-        );
+        let sif_path =
+            PathBuf::from(row.get("image").and_then(serde_json::Value::as_str).unwrap_or_default());
         if !sbom_path.is_file() {
             continue;
         }
@@ -739,14 +645,8 @@ pub(crate) fn write_frontend_security_summary(
     }
 
     for row in &sbom_rows {
-        let tool = row
-            .get("tool")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default();
-        let sbom = row
-            .get("sbom_path")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default();
+        let tool = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
+        let sbom = row.get("sbom_path").and_then(serde_json::Value::as_str).unwrap_or_default();
         let mut counts = BTreeMap::from([
             ("critical".to_string(), 0usize),
             ("high".to_string(), 0usize),
@@ -780,11 +680,7 @@ pub(crate) fn write_frontend_security_summary(
             } else {
                 output.stdout.clone()
             };
-            let suffix = if scanner_name == "grype" {
-                "grype"
-            } else {
-                "trivy"
-            };
+            let suffix = if scanner_name == "grype" { "grype" } else { "trivy" };
             write_utf8(&vuln_dir.join(format!("{tool}.{suffix}.json")), &raw)?;
             let payload = serde_json::from_str::<serde_json::Value>(&raw)
                 .unwrap_or_else(|_| serde_json::json!({}));
@@ -813,9 +709,8 @@ pub(crate) fn write_frontend_security_summary(
                 payload.get("Results").and_then(serde_json::Value::as_array)
             {
                 for result in results {
-                    if let Some(vulns) = result
-                        .get("Vulnerabilities")
-                        .and_then(serde_json::Value::as_array)
+                    if let Some(vulns) =
+                        result.get("Vulnerabilities").and_then(serde_json::Value::as_array)
                     {
                         for vuln in vulns {
                             let cve = vuln
@@ -874,10 +769,8 @@ pub(crate) fn write_frontend_security_summary(
                 ));
             }
         } else {
-            license_mismatches.push(format!(
-                "{tool}: missing {}",
-                workspace.rel(&license_file).display()
-            ));
+            license_mismatches
+                .push(format!("{tool}: missing {}", workspace.rel(&license_file).display()));
         }
     }
 
@@ -922,25 +815,14 @@ pub(crate) fn write_frontend_security_summary(
         "| tool | sif_sha256 | sbom_sha256 | sbom_path |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
-    if let Some(items) = summary_json
-        .get("items")
-        .and_then(serde_json::Value::as_array)
-    {
+    if let Some(items) = summary_json.get("items").and_then(serde_json::Value::as_array) {
         for row in items {
             lines.push(format!(
                 "| `{}` | `{}` | `{}` | `{}` |",
-                row.get("tool")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
-                row.get("sif_sha256")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
-                row.get("sbom_sha256")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
-                row.get("sbom_path")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
+                row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("sif_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("sbom_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("sbom_path").and_then(serde_json::Value::as_str).unwrap_or_default(),
             ));
         }
     }
@@ -951,31 +833,16 @@ pub(crate) fn write_frontend_security_summary(
         "| tool | critical | high | medium | low | unknown |".to_string(),
         "|---|---:|---:|---:|---:|---:|".to_string(),
     ]);
-    if let Some(items) = summary_json
-        .get("vulnerabilities")
-        .and_then(serde_json::Value::as_array)
-    {
+    if let Some(items) = summary_json.get("vulnerabilities").and_then(serde_json::Value::as_array) {
         for row in items {
             lines.push(format!(
                 "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
-                row.get("tool")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
-                row.get("critical")
-                    .and_then(serde_json::Value::as_u64)
-                    .unwrap_or(0),
-                row.get("high")
-                    .and_then(serde_json::Value::as_u64)
-                    .unwrap_or(0),
-                row.get("medium")
-                    .and_then(serde_json::Value::as_u64)
-                    .unwrap_or(0),
-                row.get("low")
-                    .and_then(serde_json::Value::as_u64)
-                    .unwrap_or(0),
-                row.get("unknown")
-                    .and_then(serde_json::Value::as_u64)
-                    .unwrap_or(0),
+                row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                row.get("critical").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("high").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("medium").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("low").and_then(serde_json::Value::as_u64).unwrap_or(0),
+                row.get("unknown").and_then(serde_json::Value::as_u64).unwrap_or(0),
             ));
         }
     }

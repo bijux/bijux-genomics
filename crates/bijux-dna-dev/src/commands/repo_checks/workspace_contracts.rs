@@ -16,31 +16,19 @@ pub(crate) fn check_cargo_config_policy(
 ) -> Result<CheckOutcome> {
     let config = read(&workspace.path(".cargo/config.toml"))?;
     let mut violations = Vec::new();
-    if Regex::new(r"(?m)^\[target\.")
-        .expect("regex")
-        .is_match(&config)
-    {
+    if Regex::new(r"(?m)^\[target\.").expect("regex").is_match(&config) {
         violations.push(".cargo/config.toml must not contain [target.*] blocks".to_string());
     }
-    if Regex::new(r"(?m)^jobs\s*=")
-        .expect("regex")
-        .is_match(&config)
-    {
+    if Regex::new(r"(?m)^jobs\s*=").expect("regex").is_match(&config) {
         violations.push(".cargo/config.toml must not set machine-specific build.jobs".to_string());
     }
-    if Regex::new(r"(?m)^rustflags\s*=")
-        .expect("regex")
-        .is_match(&config)
-    {
+    if Regex::new(r"(?m)^rustflags\s*=").expect("regex").is_match(&config) {
         violations.push(
             ".cargo/config.toml must not set rustflags; use configs/runtime/cargo_build.toml"
                 .to_string(),
         );
     }
-    if !Regex::new(r"(?m)^\[alias\]")
-        .expect("regex")
-        .is_match(&config)
-    {
+    if !Regex::new(r"(?m)^\[alias\]").expect("regex").is_match(&config) {
         violations.push(".cargo/config.toml must keep alias definitions".to_string());
     }
     if violations.is_empty() {
@@ -55,17 +43,10 @@ pub(crate) fn check_docs_build_contract(
 ) -> Result<CheckOutcome> {
     let cfg_path = workspace.path("configs/docs/mkdocs.toml");
     if !cfg_path.is_file() {
-        return fail(
-            check,
-            format!("docs-build-contract: missing {}", cfg_path.display()),
-        );
+        return fail(check, format!("docs-build-contract: missing {}", cfg_path.display()));
     }
     let cfg: toml::Value = toml::from_str(&read(&cfg_path)?)?;
-    let site_dir = cfg
-        .get("site_dir")
-        .and_then(toml::Value::as_str)
-        .unwrap_or("")
-        .trim();
+    let site_dir = cfg.get("site_dir").and_then(toml::Value::as_str).unwrap_or("").trim();
 
     let mut violations = Vec::new();
     if site_dir != "artifacts/docs/site" {
@@ -99,10 +80,7 @@ pub(crate) fn check_docs_build_contract(
     }
 
     if violations.is_empty() {
-        return pass(
-            check,
-            "docs build contract stays aligned with docs cache policy",
-        );
+        return pass(check, "docs build contract stays aligned with docs cache policy");
     }
     fail(check, violations.join("\n"))
 }
@@ -111,11 +89,7 @@ pub(crate) fn check_config_schema(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let output = run_command(
-        workspace,
-        "python3",
-        &["configs/schema/validate.py", "--root", "."],
-    )?;
+    let output = run_command(workspace, "python3", &["configs/schema/validate.py", "--root", "."])?;
     if output.status.success() {
         return pass(check, "config schema validation succeeded");
     }
@@ -162,11 +136,7 @@ pub(crate) fn check_docs_requirements_lock(
             "docs-req-lock: requirements.lock.txt must match requirements.txt exactly (manual pip-compile style lock)".to_string(),
         );
     }
-    if req_lines
-        .iter()
-        .chain(lock_lines.iter())
-        .any(|line| floating_pin.is_match(line))
-    {
+    if req_lines.iter().chain(lock_lines.iter()).any(|line| floating_pin.is_match(line)) {
         violations.push(
             "docs-req-lock: floating/range versions are forbidden; use exact pins package==x.y.z"
                 .to_string(),
@@ -193,9 +163,7 @@ pub(crate) fn check_examples_runner_contract(
         .lines()
         .find_map(|line| {
             let trimmed = line.trim();
-            trimmed
-                .strip_prefix("id = ")
-                .map(|value| value.trim_matches('"').to_string())
+            trimmed.strip_prefix("id = ").map(|value| value.trim_matches('"').to_string())
         })
         .context("resolve baseline example id")?;
 
@@ -210,10 +178,7 @@ pub(crate) fn check_examples_runner_contract(
         if !output.is_success() {
             return fail(
                 check,
-                format!(
-                    "examples runner failed:\n{}{}",
-                    output.stdout, output.stderr
-                ),
+                format!("examples runner failed:\n{}{}", output.stdout, output.stderr),
             );
         }
         let snapshot = workspace.path(&format!("artifacts/examples/{id}.{label}"));
@@ -238,13 +203,7 @@ pub(crate) fn check_examples_runner_contract(
     if drift.is_empty() {
         return pass(check, format!("example runner is deterministic for `{id}`"));
     }
-    fail(
-        check,
-        format!(
-            "non-deterministic example outputs for `{id}`: {}",
-            drift.join(", ")
-        ),
-    )
+    fail(check, format!("non-deterministic example outputs for `{id}`: {}", drift.join(", ")))
 }
 
 pub(crate) fn check_generated_configs(
@@ -309,13 +268,7 @@ pub(crate) fn check_gitignore_contract(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let raw = read(&workspace.path(".gitignore"))?;
-    let required = [
-        "/target/",
-        "**/target/",
-        "/artifacts/",
-        "/artifacts/**",
-        "*.tmp",
-    ];
+    let required = ["/target/", "**/target/", "/artifacts/", "/artifacts/**", "*.tmp"];
     let mut violations = required
         .iter()
         .filter(|pattern| !raw.lines().any(|line| line.trim() == **pattern))
@@ -331,10 +284,7 @@ pub(crate) fn check_gitignore_contract(
         }
     }
     if violations.is_empty() {
-        return pass(
-            check,
-            ".gitignore keeps target and artifacts boundaries intact",
-        );
+        return pass(check, ".gitignore keeps target and artifacts boundaries intact");
     }
     fail(check, violations.join("\n"))
 }
@@ -344,16 +294,11 @@ pub(crate) fn check_hidden_tmp_usage(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let forbidden = ["/tmp/", "${TMPDIR:-/tmp}", "std::env::temp_dir()"];
-    let roots = [
-        workspace.path("crates/bijux-dna-api/src"),
-        workspace.path("crates/bijux-dna-runner/src"),
-    ];
+    let roots =
+        [workspace.path("crates/bijux-dna-api/src"), workspace.path("crates/bijux-dna-runner/src")];
     let mut violations = Vec::new();
     for root in roots {
-        for entry in WalkDir::new(&root)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
+        for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -386,10 +331,7 @@ pub(crate) fn check_hpc_safety(
         return pass(check, "legacy hpc automation surface is absent");
     }
     let mut violations = Vec::new();
-    for entry in WalkDir::new(&root)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -411,9 +353,7 @@ pub(crate) fn check_hpc_safety(
             violations.push(format!("{rel}: must default to confirm=0"));
         }
         if !raw.contains("pass --confirm to execute") {
-            violations.push(format!(
-                "{rel}: must document confirm requirement in dry-run output"
-            ));
+            violations.push(format!("{rel}: must document confirm requirement in dry-run output"));
         }
     }
     if violations.is_empty() {
@@ -449,9 +389,7 @@ pub(crate) fn check_hpc_rsync_docs_parity(
                 .and_then(|name| name.to_str())
                 .context("rsync pattern filename is not valid utf-8")?;
             if !index.contains(name) {
-                violations.push(format!(
-                    "configs/hpc/rsync/index.md missing reference to {name}"
-                ));
+                violations.push(format!("configs/hpc/rsync/index.md missing reference to {name}"));
             }
         }
     } else {
@@ -539,10 +477,7 @@ pub(crate) fn check_no_target_paths_in_tests(
     let excluded: [&str; 0] = [];
     let mut offenders = Vec::new();
     for root in [workspace.path("crates"), workspace.path("makes")] {
-        for entry in WalkDir::new(&root)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
+        for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -580,10 +515,7 @@ pub(crate) fn check_no_user_path_literals(
     let user_path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
     let mut offenders = Vec::new();
     for root in [workspace.path("crates"), workspace.path("makes")] {
-        for entry in WalkDir::new(&root)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
+        for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -673,9 +605,8 @@ pub(crate) fn check_runtime_execution_kernel_config(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let cfg: toml::Value = toml::from_str(&read(
-        &workspace.path("configs/runtime/execution_kernel.toml"),
-    )?)?;
+    let cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/runtime/execution_kernel.toml"))?)?;
     let mut errors = Vec::new();
     for key in [
         "default_threads",
@@ -716,15 +647,11 @@ pub(crate) fn check_runtime_execution_kernel_config(
             errors.push(format!("{key} cannot point to system tmp ({value})"));
         }
     }
-    if let Some(patterns) = cfg
-        .get("heavy_stage_patterns")
-        .and_then(toml::Value::as_array)
-    {
-        if patterns.iter().any(|value| {
-            value
-                .as_str()
-                .map_or(true, |pattern| pattern.trim().is_empty())
-        }) {
+    if let Some(patterns) = cfg.get("heavy_stage_patterns").and_then(toml::Value::as_array) {
+        if patterns
+            .iter()
+            .any(|value| value.as_str().map_or(true, |pattern| pattern.trim().is_empty()))
+        {
             errors.push("heavy_stage_patterns must contain non-empty strings".to_string());
         }
     }
@@ -745,9 +672,8 @@ pub(crate) fn check_runtime_execution_kernel_config(
             }
             if let Some(temp_root) = table.get("temp_root").and_then(toml::Value::as_str) {
                 if temp_root.trim().is_empty() {
-                    errors.push(format!(
-                        "per_stage.{pattern}.temp_root must be a non-empty string"
-                    ));
+                    errors
+                        .push(format!("per_stage.{pattern}.temp_root must be a non-empty string"));
                 } else if temp_root == "/tmp"
                     || temp_root == "/var/tmp"
                     || temp_root.starts_with("/tmp/")
@@ -758,9 +684,7 @@ pub(crate) fn check_runtime_execution_kernel_config(
                     ));
                 }
             } else if table.contains_key("temp_root") {
-                errors.push(format!(
-                    "per_stage.{pattern}.temp_root must be a non-empty string"
-                ));
+                errors.push(format!("per_stage.{pattern}.temp_root must be a non-empty string"));
             }
         }
     }
@@ -775,9 +699,8 @@ pub(crate) fn check_rustflags_consistency(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let mut violations = Vec::new();
-    for entry in WalkDir::new(workspace.path("crates"))
-        .into_iter()
-        .filter_map(std::result::Result::ok)
+    for entry in
+        WalkDir::new(workspace.path("crates")).into_iter().filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -799,10 +722,7 @@ pub(crate) fn check_rustflags_consistency(
             }
             continue;
         }
-        for entry in WalkDir::new(&path)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
+        for entry in WalkDir::new(&path).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -817,10 +737,7 @@ pub(crate) fn check_rustflags_consistency(
         }
     }
     if violations.is_empty() {
-        return pass(
-            check,
-            "RUSTFLAGS usage stays in the documented coverage path",
-        );
+        return pass(check, "RUSTFLAGS usage stays in the documented coverage path");
     }
     fail(check, violations.join("\n"))
 }
@@ -864,10 +781,7 @@ fn public_make_targets(readme: &str) -> BTreeSet<String> {
 
 fn repo_readme_paths(workspace: &Workspace) -> Result<Vec<String>> {
     let mut paths = Vec::new();
-    for entry in WalkDir::new(&workspace.root)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(&workspace.root).into_iter().filter_map(std::result::Result::ok) {
         let rel = workspace.rel(entry.path()).display().to_string();
         if rel.starts_with("artifacts/") || rel.starts_with("target/") {
             continue;

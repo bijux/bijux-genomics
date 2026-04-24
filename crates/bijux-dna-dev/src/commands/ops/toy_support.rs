@@ -123,13 +123,9 @@ fn stable_toy_digest(path: &Path) -> Result<String> {
     match path.extension().and_then(|ext| ext.to_str()) {
         Some("json") => {
             let payload = normalize_toy_json(&read_json_value(path)?);
-            Ok(sha256_hex_bytes(
-                serde_json::to_string(&payload)?.as_bytes(),
-            ))
+            Ok(sha256_hex_bytes(serde_json::to_string(&payload)?.as_bytes()))
         }
-        Some("html") => Ok(sha256_hex_bytes(
-            normalize_toy_html(&read_utf8(path)?).as_bytes(),
-        )),
+        Some("html") => Ok(sha256_hex_bytes(normalize_toy_html(&read_utf8(path)?).as_bytes())),
         _ => sha256_hex(path),
     }
 }
@@ -156,9 +152,7 @@ fn normalize_toy_html(raw: &str) -> String {
     let generated_re = Regex::new(r"generated_at=[^<]+").expect("regex");
     let json_re = Regex::new(r#""generated_at"\s*:\s*"[^"]+""#).expect("regex");
     let text = generated_re.replace_all(raw, "generated_at=<normalized>");
-    json_re
-        .replace_all(&text, r#""generated_at":"<normalized>""#)
-        .into_owned()
+    json_re.replace_all(&text, r#""generated_at":"<normalized>""#).into_owned()
 }
 
 pub(super) fn compare_toy_goldens(
@@ -172,12 +166,7 @@ pub(super) fn compare_toy_goldens(
         let profile_id = toy_profile_id(profile);
         let produced = run_root.join(profile_id);
         let golden = golden_root.join(profile_id);
-        for name in [
-            "manifest.json",
-            "metrics.json",
-            "report.html",
-            "artifact_checksums.json",
-        ] {
+        for name in ["manifest.json", "metrics.json", "report.html", "artifact_checksums.json"] {
             let produced_path = produced.join(name);
             let golden_path = golden.join(name);
             if !produced_path.exists() || !golden_path.exists() {
@@ -218,10 +207,7 @@ pub(super) fn build_combined_toy_report(run_root: &Path, selected: &[&str]) -> R
 
 pub(super) fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
     bijux_dna_infra::ensure_dir(dst).with_context(|| format!("create {}", dst.display()))?;
-    for entry in WalkDir::new(src)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(src).into_iter().filter_map(std::result::Result::ok) {
         let rel = match entry.path().strip_prefix(src) {
             Ok(rel) => rel,
             Err(_) => continue,

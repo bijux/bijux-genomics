@@ -188,12 +188,7 @@ impl HpcLayout {
     /// # Errors
     /// Returns an error if any required HPC directory cannot be created.
     pub fn ensure_dirs(&self) -> Result<()> {
-        for dir in [
-            &self.code_dir,
-            &self.containers_dir,
-            &self.data_dir,
-            &self.results_dir,
-        ] {
+        for dir in [&self.code_dir, &self.containers_dir, &self.data_dir, &self.results_dir] {
             bijux_dna_infra::ensure_dir(dir)
                 .with_context(|| format!("create {}", dir.display()))?;
         }
@@ -404,14 +399,12 @@ pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
         .ok()
         .map(|raw| raw.trim().to_string())
         .filter(|v| !v.is_empty());
-    let cpu_model = std::fs::read_to_string("/proc/cpuinfo")
-        .ok()
-        .and_then(|raw| {
-            raw.lines()
-                .find(|line| line.starts_with("model name"))
-                .and_then(|line| line.split(':').nth(1))
-                .map(|v| v.trim().to_string())
-        });
+    let cpu_model = std::fs::read_to_string("/proc/cpuinfo").ok().and_then(|raw| {
+        raw.lines()
+            .find(|line| line.starts_with("model name"))
+            .and_then(|line| line.split(':').nth(1))
+            .map(|v| v.trim().to_string())
+    });
     let payload = serde_json::json!({
         "schema_version": "bijux.site_lock.v1",
         "site": resolved_site_name()?,
@@ -436,18 +429,14 @@ fn declared_site_name(site: Option<String>) -> Result<String> {
 }
 
 fn env_value(key: &str) -> Option<String> {
-    std::env::var(key)
-        .ok()
-        .filter(|value| !value.trim().is_empty())
+    std::env::var(key).ok().filter(|value| !value.trim().is_empty())
 }
 
 /// # Errors
 /// Returns an error when `path` does not follow the required HPC results layout spec.
 pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
-    let comps = path
-        .components()
-        .map(|c| c.as_os_str().to_string_lossy().to_string())
-        .collect::<Vec<_>>();
+    let comps =
+        path.components().map(|c| c.as_os_str().to_string_lossy().to_string()).collect::<Vec<_>>();
     let Some(results_idx) = comps.iter().position(|v| v == "results") else {
         return Err(anyhow!("HPC out_dir must be rooted under results"));
     };
@@ -457,13 +446,10 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
         ));
     }
     let timestamp = &comps[results_idx + 5];
-    let ts_ok = regex::Regex::new(r"^\d{8}T\d{6}Z$")
-        .map(|re| re.is_match(timestamp))
-        .unwrap_or(false);
+    let ts_ok =
+        regex::Regex::new(r"^\d{8}T\d{6}Z$").map(|re| re.is_match(timestamp)).unwrap_or(false);
     if !ts_ok {
-        return Err(anyhow!(
-            "HPC results path timestamp must match YYYYMMDDTHHMMSSZ"
-        ));
+        return Err(anyhow!("HPC results path timestamp must match YYYYMMDDTHHMMSSZ"));
     }
     Ok(())
 }
@@ -500,9 +486,7 @@ mod tests {
     #[test]
     fn hpc_site_lock_requires_explicit_site_identity() {
         let error = declared_site_name(None).expect_err("missing site id must fail");
-        assert!(error
-            .to_string()
-            .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
+        assert!(error.to_string().contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
     }
 
     #[test]

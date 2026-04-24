@@ -16,10 +16,8 @@ pub fn handle_vcf_commands(_cli: &Cli, dna_command: &DnaCommand) -> Result<bool>
     let command = &args.command;
     match command {
         VcfCommand::Plan { profile } => {
-            let stages: Vec<String> = VcfStage::all()
-                .iter()
-                .map(|stage| stage.as_str().to_string())
-                .collect();
+            let stages: Vec<String> =
+                VcfStage::all().iter().map(|stage| stage.as_str().to_string()).collect();
             render::json::print_pretty(&serde_json::json!({
                 "command": "vcf.plan",
                 "requested_profile": profile,
@@ -77,10 +75,7 @@ fn run_vcf(args: &VcfRunArgs) -> Result<()> {
                 VcfDomainStage::Stats,
             ],
             production_profile: args.production_profile,
-            reference_fasta: args
-                .reference_fasta
-                .as_ref()
-                .map(|p| p.display().to_string()),
+            reference_fasta: args.reference_fasta.as_ref().map(|p| p.display().to_string()),
             prepare_panel: None,
             panel_vcf: None,
             damage_filter: None,
@@ -135,10 +130,7 @@ fn default_species_context() -> SpeciesContext {
         species_id: "Homo sapiens".to_string(),
         build_id: "GRCh38".to_string(),
         contig_set_digest: "grch38-minimal-cli".to_string(),
-        contigs: vec![ContigSpec {
-            name: "1".to_string(),
-            length_bp: 248_956_422,
-        }],
+        contigs: vec![ContigSpec { name: "1".to_string(), length_bp: 248_956_422 }],
         sex_system: "xy".to_string(),
         par_policy: "unsupported".to_string(),
         default_coverage_regime: None,

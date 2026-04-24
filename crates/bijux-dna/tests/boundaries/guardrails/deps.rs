@@ -9,10 +9,8 @@ fn cli_forbids_internal_deps() -> Result<()> {
     for line in content.lines() {
         let line = line.trim();
         if line.starts_with('[') {
-            in_deps = matches!(
-                line,
-                "[dependencies]" | "[dev-dependencies]" | "[build-dependencies]"
-            );
+            in_deps =
+                matches!(line, "[dependencies]" | "[dev-dependencies]" | "[build-dependencies]");
             continue;
         }
         if !in_deps || line.is_empty() || line.starts_with('#') {
@@ -31,10 +29,7 @@ fn cli_forbids_internal_deps() -> Result<()> {
         "bijux-dna-pipelines",
     ];
     for dep in forbidden {
-        assert!(
-            !deps.contains(&dep.to_string()),
-            "cli must not depend on {dep}"
-        );
+        assert!(!deps.contains(&dep.to_string()), "cli must not depend on {dep}");
     }
     Ok(())
 }

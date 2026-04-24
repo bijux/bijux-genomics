@@ -16,21 +16,10 @@ pub struct CheckDefinition {
 
 #[derive(Debug, Clone)]
 pub enum CommandSpec {
-    CargoTest {
-        package: &'static str,
-        test_bin: &'static str,
-        filter: &'static str,
-    },
-    Process {
-        program: &'static str,
-        args: &'static [&'static str],
-    },
-    Native {
-        key: NativeCheckKey,
-    },
-    Composite {
-        members: &'static [&'static str],
-    },
+    CargoTest { package: &'static str, test_bin: &'static str, filter: &'static str },
+    Process { program: &'static str, args: &'static [&'static str] },
+    Native { key: NativeCheckKey },
+    Composite { members: &'static [&'static str] },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -115,21 +104,11 @@ pub struct CheckOutcome {
 impl CheckOutcome {
     #[must_use]
     pub fn leaf(id: &str, status: CheckStatus, detail: String) -> Self {
-        Self {
-            id: id.to_string(),
-            status,
-            detail,
-            children: Vec::new(),
-        }
+        Self { id: id.to_string(), status, detail, children: Vec::new() }
     }
 
     #[must_use]
     pub fn composite(id: &str, status: CheckStatus, children: Vec<CheckOutcome>) -> Self {
-        Self {
-            id: id.to_string(),
-            status,
-            detail: String::new(),
-            children,
-        }
+        Self { id: id.to_string(), status, detail: String::new(), children }
     }
 }

@@ -9,7 +9,6 @@ use crate::commands::benchmark_corpus_metadata::{
     corpus_expected_sample_total, discover_normalized_samples, load_corpus_spec,
     select_paired_samples, validate_corpus_contract, CorpusNormalizedSample,
 };
-use crate::commands::benchmark_stage_catalog::corpus_fastq_stage_catalog_entry;
 use crate::commands::benchmark_workspace::{
     benchmark_publication_contract, benchmark_runtime_corpus_dir_name,
     benchmark_stage_run_relative_root, benchmark_workspace_value, load_benchmark_config,
@@ -34,9 +33,11 @@ use self::models::{CorpusRunManifest, PendingSampleRun, PostSuccessAction, Sampl
 use self::report_qc_support::{
     prepare_report_qc_sample, report_qc_contributor_tool_ids, report_qc_upstream_stage_ids,
 };
+#[cfg(test)]
+use self::runtime_support::workspace_cache_root_for_output;
 use self::runtime_support::{
     absolutize, benchmark_runtime_env, benchmark_sample_root, current_timestamp_utc, path_display,
-    reset_sample_payload, sample_report_is_resume_ready, workspace_cache_root_for_output,
+    reset_sample_payload, sample_report_is_resume_ready,
 };
 use self::sortmerna_support::{
     prepare_sortmerna_sample_workdir, promote_sortmerna_sample_index_cache,
@@ -49,10 +50,7 @@ pub(crate) fn print_benchmark_workspace_value(
     cwd: &Path,
     args: &BenchWorkspaceValueArgs,
 ) -> Result<()> {
-    println!(
-        "{}",
-        benchmark_workspace_value(cwd, args.config.as_deref(), &args.key)?
-    );
+    println!("{}", benchmark_workspace_value(cwd, args.config.as_deref(), &args.key)?);
     Ok(())
 }
 
@@ -307,12 +305,7 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
                 );
             }
         }
-        runs.extend(execute_pending_samples(
-            &program,
-            &repo_root,
-            pending,
-            args.sample_jobs,
-        )?);
+        runs.extend(execute_pending_samples(&program, &repo_root, pending, args.sample_jobs)?);
     }
 
     runs.sort_by(|left, right| left.sample_id.cmp(&right.sample_id));
@@ -344,11 +337,8 @@ pub(crate) fn run_benchmark_corpus_fastq(cli: &Cli, args: &BenchCorpusFastqArgs)
         extra_fields: extra_manifest_fields,
     };
     let manifest_path = out_root.join("run_manifest.json");
-    fs::write(
-        &manifest_path,
-        format!("{}\n", serde_json::to_string_pretty(&manifest)?),
-    )
-    .with_context(|| format!("write {}", manifest_path.display()))?;
+    fs::write(&manifest_path, format!("{}\n", serde_json::to_string_pretty(&manifest)?))
+        .with_context(|| format!("write {}", manifest_path.display()))?;
 
     println!("stage_id={}", contract.stage_id);
     println!("corpus_root={}", corpus_root.display());
@@ -393,14 +383,12 @@ fn default_stage_out_root(
         .and_then(|row| row.results_root.as_deref())
         .ok_or_else(|| anyhow!("workspace config is missing remote.results_root"))?;
     let corpus_dir_name = benchmark_runtime_corpus_dir_name(workspace_config, corpus_id)?;
-    Ok(
-        PathBuf::from(results_root).join(benchmark_stage_run_relative_root(
-            workspace_config,
-            "remote",
-            &corpus_dir_name,
-            stage_id,
-        )?),
-    )
+    Ok(PathBuf::from(results_root).join(benchmark_stage_run_relative_root(
+        workspace_config,
+        "remote",
+        &corpus_dir_name,
+        stage_id,
+    )?))
 }
 
 fn build_stage_command_args(
@@ -451,10 +439,7 @@ fn execute_pending_samples(
     sample_jobs: usize,
 ) -> Result<Vec<SampleRunRecord>> {
     if sample_jobs <= 1 || pending.len() <= 1 {
-        return pending
-            .into_iter()
-            .map(|row| execute_sample(program, repo_root, row))
-            .collect();
+        return pending.into_iter().map(|row| execute_sample(program, repo_root, row)).collect();
     }
 
     let queue = Arc::new(Mutex::new(VecDeque::from(pending)));
@@ -471,34 +456,28 @@ fn execute_pending_samples(
             handles.push(scope.spawn(move || -> Result<()> {
                 loop {
                     let next = {
-                        let mut locked = queue
-                            .lock()
-                            .map_err(|_| anyhow!("benchmark work queue poisoned"))?;
+                        let mut locked =
+                            queue.lock().map_err(|_| anyhow!("benchmark work queue poisoned"))?;
                         locked.pop_front()
                     };
                     let Some(row) = next else {
                         break;
                     };
                     let run = execute_sample(&program, &repo_root, row)?;
-                    let mut locked = results
-                        .lock()
-                        .map_err(|_| anyhow!("benchmark result queue poisoned"))?;
+                    let mut locked =
+                        results.lock().map_err(|_| anyhow!("benchmark result queue poisoned"))?;
                     locked.push(run);
                 }
                 Ok(())
             }));
         }
         for handle in handles {
-            handle
-                .join()
-                .map_err(|_| anyhow!("corpus benchmark worker panicked"))??;
+            handle.join().map_err(|_| anyhow!("corpus benchmark worker panicked"))??;
         }
         Ok(())
     })?;
 
-    let mut locked = results
-        .lock()
-        .map_err(|_| anyhow!("benchmark result queue poisoned"))?;
+    let mut locked = results.lock().map_err(|_| anyhow!("benchmark result queue poisoned"))?;
     Ok(std::mem::take(&mut *locked))
 }
 
@@ -507,9 +486,8 @@ fn execute_sample(
     repo_root: &Path,
     row: PendingSampleRun,
 ) -> Result<SampleRunRecord> {
-    let command_name = program
-        .to_str()
-        .ok_or_else(|| anyhow!("benchmark executable path is not valid UTF-8"))?;
+    let command_name =
+        program.to_str().ok_or_else(|| anyhow!("benchmark executable path is not valid UTF-8"))?;
     let output = bijux_dna_api::v1::api::run::run_command_with_context(
         command_name,
         &row.command_args,
@@ -537,11 +515,7 @@ fn execute_sample(
         r1: row.sample.r1.display().to_string(),
         r2: row.sample.r2.map(|path| path.display().to_string()),
         layout: row.sample.layout,
-        status: if exit_code == 0 {
-            "completed".to_string()
-        } else {
-            "failed".to_string()
-        },
+        status: if exit_code == 0 { "completed".to_string() } else { "failed".to_string() },
         exit_code,
         command: row.command,
         report_json: row.report_json.display().to_string(),
@@ -604,9 +578,7 @@ fn merge_stage_args_from_config(
             );
         }
         "fastq.deplete_reference_contaminants" => {
-            let config = &benchmark_config
-                .stage_inputs
-                .fastq_deplete_reference_contaminants;
+            let config = &benchmark_config.stage_inputs.fastq_deplete_reference_contaminants;
             append_missing_arg(
                 &mut merged_stage_args,
                 &stage_values,
@@ -828,10 +800,7 @@ fn collect_stage_manifest_fields(
                     &options.rrna_db,
                 )?)),
             );
-            fields.insert(
-                "min_identity".to_string(),
-                serde_json::json!(options.min_identity),
-            );
+            fields.insert("min_identity".to_string(), serde_json::json!(options.min_identity));
         }
         "fastq.report_qc" => {
             fields.insert(
@@ -844,10 +813,7 @@ fn collect_stage_manifest_fields(
             );
             fields.insert("report_only".to_string(), serde_json::Value::Bool(true));
             fields.insert("mutates_fastq".to_string(), serde_json::Value::Bool(false));
-            fields.insert(
-                "may_change_read_count".to_string(),
-                serde_json::Value::Bool(false),
-            );
+            fields.insert("may_change_read_count".to_string(), serde_json::Value::Bool(false));
             fields.insert(
                 "governed_contributor_stage_ids".to_string(),
                 serde_json::Value::Array(
@@ -875,9 +841,7 @@ fn collect_stage_manifest_fields(
 
 fn parse_cli_arg_pairs(label: &str, args: &[String]) -> Result<BTreeMap<String, String>> {
     if args.len() % 2 != 0 {
-        return Err(anyhow!(
-            "{label} expects flag/value pairs, found odd-length input: {args:?}"
-        ));
+        return Err(anyhow!("{label} expects flag/value pairs, found odd-length input: {args:?}"));
     }
     let mut values = BTreeMap::new();
     for chunk in args.chunks(2) {
@@ -907,10 +871,7 @@ fn insert_bool_field_from(
     let Some(value) = values.get(key) else {
         return Ok(());
     };
-    fields.insert(
-        key.to_string(),
-        serde_json::Value::Bool(parse_bool_literal(value)?),
-    );
+    fields.insert(key.to_string(), serde_json::Value::Bool(parse_bool_literal(value)?));
     Ok(())
 }
 
@@ -922,9 +883,7 @@ fn insert_f64_field_from(
     let Some(value) = values.get(key) else {
         return Ok(());
     };
-    let parsed = value
-        .parse::<f64>()
-        .with_context(|| format!("parse {key} from {value:?}"))?;
+    let parsed = value.parse::<f64>().with_context(|| format!("parse {key} from {value:?}"))?;
     fields.insert(key.to_string(), serde_json::json!(parsed));
     Ok(())
 }
@@ -937,13 +896,8 @@ fn insert_u64_field_from(
     let Some(value) = values.get(key) else {
         return Ok(());
     };
-    let parsed = value
-        .parse::<u64>()
-        .with_context(|| format!("parse {key} from {value:?}"))?;
-    fields.insert(
-        key.to_string(),
-        serde_json::Value::Number(serde_json::Number::from(parsed)),
-    );
+    let parsed = value.parse::<u64>().with_context(|| format!("parse {key} from {value:?}"))?;
+    fields.insert(key.to_string(), serde_json::Value::Number(serde_json::Number::from(parsed)));
     Ok(())
 }
 
@@ -982,11 +936,9 @@ mod tests {
 
     #[test]
     fn tool_resolution_rejects_contract_drift() {
-        let error = resolve_tools(
-            &["fastqc".to_string(), "seqtk".to_string()],
-            &["fastqc".to_string()],
-        )
-        .expect_err("tool drift should fail");
+        let error =
+            resolve_tools(&["fastqc".to_string(), "seqtk".to_string()], &["fastqc".to_string()])
+                .expect_err("tool drift should fail");
         assert!(error.to_string().contains("tool roster drift"));
     }
 
@@ -1052,14 +1004,8 @@ mod tests {
             "/bench/workspace/.cache/results/benchmark_corpus/fastq.trim_reads/cluster-apptainer",
         );
         let env = benchmark_runtime_env(&out_root);
-        assert_eq!(
-            env.get("BIJUX_CACHE_ROOT"),
-            Some(&"/bench/workspace/.cache".to_string())
-        );
-        assert_eq!(
-            env.get("XDG_CACHE_HOME"),
-            Some(&"/bench/workspace/.cache".to_string())
-        );
+        assert_eq!(env.get("BIJUX_CACHE_ROOT"), Some(&"/bench/workspace/.cache".to_string()));
+        assert_eq!(env.get("XDG_CACHE_HOME"), Some(&"/bench/workspace/.cache".to_string()));
         assert!(!env.contains_key("BIJUX_HPC_ROOT"));
         assert_eq!(
             workspace_cache_root_for_output(&out_root),
@@ -1071,21 +1017,13 @@ mod tests {
     fn report_qc_preparation_writes_governed_manifest_during_dry_run() {
         let temp = tempfile::tempdir().expect("tempdir");
         let repo_root = temp.path().join("repo");
-        let out_root = temp
-            .path()
-            .join("results")
-            .join("corpus-01")
-            .join("fastq.report_qc");
+        let out_root = temp.path().join("results").join("corpus-01").join("fastq.report_qc");
         fs::create_dir_all(&repo_root).expect("repo root");
         fs::create_dir_all(&out_root).expect("out root");
         let workspace = BenchmarkWorkspaceConfig {
             remote: Some(BenchmarkWorkspaceRemote {
                 corpus_root: Some(
-                    temp.path()
-                        .join("remote-corpora")
-                        .join("corpus-01")
-                        .display()
-                        .to_string(),
+                    temp.path().join("remote-corpora").join("corpus-01").display().to_string(),
                 ),
                 results_root: Some(temp.path().join("remote-results").display().to_string()),
                 ..BenchmarkWorkspaceRemote::default()
@@ -1165,22 +1103,15 @@ mod tests {
         )
         .expect("parse governed manifest");
         assert_eq!(
-            payload
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            payload.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.fastq.report_qc.inputs.v1")
         );
         assert_eq!(
-            payload
-                .get("qc_inputs")
-                .and_then(serde_json::Value::as_array)
-                .map(std::vec::Vec::len),
+            payload.get("qc_inputs").and_then(serde_json::Value::as_array).map(std::vec::Vec::len),
             Some(6)
         );
         assert_eq!(
-            payload
-                .get("raw_fastqc_dir")
-                .and_then(serde_json::Value::as_str),
+            payload.get("raw_fastqc_dir").and_then(serde_json::Value::as_str),
             Some(expected_raw_fastqc_dir.as_str())
         );
     }
@@ -1196,9 +1127,7 @@ mod tests {
     fn resolve_benchmark_platform_rejects_empty_identifier() {
         let error =
             resolve_benchmark_platform(Some("   ")).expect_err("empty platform contract must fail");
-        assert!(error
-            .to_string()
-            .contains("benchmark platform must be a non-empty identifier"));
+        assert!(error.to_string().contains("benchmark platform must be a non-empty identifier"));
     }
 
     #[test]

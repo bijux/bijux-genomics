@@ -79,33 +79,18 @@ pub(crate) fn normalize_workspace_layout_report(
     let local_results_root = workspace_local_results_root(workspace)?;
     let local_cache_mirror_root = workspace_local_cache_mirror_root(workspace)?;
     let legacy_corpus_root = local_results_root.join(corpus_dir_name);
-    let canonical_corpus_root = local_cache_mirror_root
-        .join("results")
-        .join(corpus_dir_name);
+    let canonical_corpus_root = local_cache_mirror_root.join("results").join(corpus_dir_name);
 
     let archive_stage_ids = stage_directory_names(&legacy_corpus_root);
     let cache_stage_ids = stage_directory_names(&canonical_corpus_root);
     let archive_set = archive_stage_ids.iter().cloned().collect::<BTreeSet<_>>();
     let cache_set = cache_stage_ids.iter().cloned().collect::<BTreeSet<_>>();
-    let shared_stage_ids = archive_set
-        .intersection(&cache_set)
-        .cloned()
-        .collect::<Vec<_>>();
-    let archive_only_stage_ids = archive_set
-        .difference(&cache_set)
-        .cloned()
-        .collect::<Vec<_>>();
-    let cache_only_stage_ids = cache_set
-        .difference(&archive_set)
-        .cloned()
-        .collect::<Vec<_>>();
+    let shared_stage_ids = archive_set.intersection(&cache_set).cloned().collect::<Vec<_>>();
+    let archive_only_stage_ids = archive_set.difference(&cache_set).cloned().collect::<Vec<_>>();
+    let cache_only_stage_ids = cache_set.difference(&archive_set).cloned().collect::<Vec<_>>();
 
     let plan = plan_root_convergence(&canonical_corpus_root, &legacy_corpus_root)?;
-    let convergence_report = if confirm {
-        apply_root_convergence(&plan)?
-    } else {
-        plan
-    };
+    let convergence_report = if confirm { apply_root_convergence(&plan)? } else { plan };
 
     if confirm && legacy_corpus_root.exists() {
         remove_empty_parents(&legacy_corpus_root, &local_results_root)?;
@@ -151,12 +136,8 @@ pub(crate) fn normalize_workspace_layout_report(
         archive_only_stage_ids,
         cache_only_stage_ids,
         mode: if confirm { "confirm" } else { "dry-run" }.to_string(),
-        status: if manual_review_stage_ids.is_empty() {
-            "clear"
-        } else {
-            "needs-review"
-        }
-        .to_string(),
+        status: if manual_review_stage_ids.is_empty() { "clear" } else { "needs-review" }
+            .to_string(),
         stage_reports,
         moved_stage_ids,
         removed_duplicate_stage_ids,
@@ -386,9 +367,8 @@ fn apply_root_convergence(plan: &WorkspaceConvergencePlan) -> Result<WorkspaceCo
 
     let legacy_root = PathBuf::from(&plan.legacy_root);
     let legacy_root_removed = if plan.removable_legacy_root && legacy_root.is_dir() {
-        let mut entries = legacy_root
-            .read_dir()
-            .with_context(|| format!("read {}", legacy_root.display()))?;
+        let mut entries =
+            legacy_root.read_dir().with_context(|| format!("read {}", legacy_root.display()))?;
         if entries.next().is_none() {
             fs::remove_dir(&legacy_root)
                 .with_context(|| format!("remove dir {}", legacy_root.display()))?;

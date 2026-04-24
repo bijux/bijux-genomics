@@ -61,10 +61,7 @@ pub(super) fn sortmerna_shared_index_dir(out_root: &Path, rrna_bundle_id: &str) 
 
 pub(super) fn sortmerna_shared_index_seeded(shared_idx_dir: &Path) -> bool {
     shared_idx_dir.is_dir()
-        && shared_idx_dir
-            .read_dir()
-            .ok()
-            .is_some_and(|mut row| row.next().is_some())
+        && shared_idx_dir.read_dir().ok().is_some_and(|mut row| row.next().is_some())
 }
 
 fn clone_index_cache(source_idx_dir: &Path, dest_idx_dir: &Path) -> Result<()> {
@@ -167,10 +164,7 @@ pub(super) fn promote_sortmerna_sample_index_cache(
     let shared_idx_dir = sortmerna_shared_index_dir(out_root, rrna_bundle_id);
     let sample_idx_dir = sortmerna_sample_workdir(out_root, sample_id).join("idx");
     if !sample_idx_dir.is_dir() {
-        return Err(anyhow!(
-            "missing SortMeRNA sample idx dir: {}",
-            sample_idx_dir.display()
-        ));
+        return Err(anyhow!("missing SortMeRNA sample idx dir: {}", sample_idx_dir.display()));
     }
     if !sortmerna_shared_index_seeded(&shared_idx_dir) {
         clone_index_cache(&sample_idx_dir, &shared_idx_dir)?;
@@ -197,9 +191,7 @@ fn deplete_rrna_bind_root(workspace_config: &BenchmarkWorkspaceConfig) -> Option
 }
 
 fn apptainer_container_input_path(bind_root: &Path, host_path: &Path) -> Result<String> {
-    let resolved = host_path
-        .canonicalize()
-        .unwrap_or_else(|_| host_path.to_path_buf());
+    let resolved = host_path.canonicalize().unwrap_or_else(|_| host_path.to_path_buf());
     let relative = resolved.strip_prefix(bind_root).with_context(|| {
         format!(
             "{} must live under {} for Apptainer warmup",
@@ -238,16 +230,10 @@ pub(super) fn warm_sortmerna_shared_index_cache(
     let bind_root = deplete_rrna_bind_root(workspace_config).ok_or_else(|| {
         anyhow!("workspace config is missing remote.repo_root for SortMeRNA warmup")
     })?;
-    let sif_path = bind_root
-        .join("bijux-dna-container")
-        .join("apptainer")
-        .join("sif")
-        .join("sortmerna.sif");
+    let sif_path =
+        bind_root.join("bijux-dna-container").join("apptainer").join("sif").join("sortmerna.sif");
     if !sif_path.is_file() {
-        return Err(anyhow!(
-            "missing SortMeRNA Apptainer image: {}",
-            sif_path.display()
-        ));
+        return Err(anyhow!("missing SortMeRNA Apptainer image: {}", sif_path.display()));
     }
     let rrna_input = apptainer_container_input_path(&bind_root, rrna_db)?;
     let seed_input = apptainer_container_input_path(&bind_root, seed_r1)?;

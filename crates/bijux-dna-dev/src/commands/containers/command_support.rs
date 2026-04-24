@@ -13,10 +13,7 @@ pub(super) fn run_container_runtime_check() -> Result<ContainerCommandOutcome> {
 
 #[allow(clippy::unnecessary_wraps)]
 pub(super) fn success_line(line: impl Into<String>) -> Result<ContainerCommandOutcome> {
-    Ok(ContainerCommandOutcome::success(format!(
-        "{}\n",
-        line.into()
-    )))
+    Ok(ContainerCommandOutcome::success(format!("{}\n", line.into())))
 }
 
 #[allow(clippy::unnecessary_wraps)]

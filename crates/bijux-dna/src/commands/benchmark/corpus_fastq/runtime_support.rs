@@ -34,18 +34,12 @@ pub(super) fn sample_report_is_resume_ready(sample_report: &Path) -> bool {
     {
         return false;
     }
-    if payload
-        .get("gate")
-        .and_then(|row| row.get("passes"))
-        .and_then(serde_json::Value::as_bool)
+    if payload.get("gate").and_then(|row| row.get("passes")).and_then(serde_json::Value::as_bool)
         == Some(false)
     {
         return false;
     }
-    payload
-        .get("records")
-        .and_then(serde_json::Value::as_array)
-        .is_some_and(|row| !row.is_empty())
+    payload.get("records").and_then(serde_json::Value::as_array).is_some_and(|row| !row.is_empty())
 }
 
 pub(super) fn benchmark_runtime_env(out_root: &Path) -> BTreeMap<String, String> {
@@ -53,21 +47,13 @@ pub(super) fn benchmark_runtime_env(out_root: &Path) -> BTreeMap<String, String>
     let Some(cache_root) = workspace_cache_root_for_output(out_root) else {
         return env;
     };
-    env.insert(
-        "BIJUX_CACHE_ROOT".to_string(),
-        cache_root.display().to_string(),
-    );
-    env.insert(
-        "XDG_CACHE_HOME".to_string(),
-        cache_root.display().to_string(),
-    );
+    env.insert("BIJUX_CACHE_ROOT".to_string(), cache_root.display().to_string());
+    env.insert("XDG_CACHE_HOME".to_string(), cache_root.display().to_string());
     env
 }
 
 pub(super) fn workspace_cache_root_for_output(out_root: &Path) -> Option<PathBuf> {
-    let resolved = out_root
-        .canonicalize()
-        .unwrap_or_else(|_| out_root.to_path_buf());
+    let resolved = out_root.canonicalize().unwrap_or_else(|_| out_root.to_path_buf());
     for candidate in resolved.ancestors() {
         if candidate.file_name().and_then(|row| row.to_str()) == Some(".cache") {
             return Some(candidate.to_path_buf());

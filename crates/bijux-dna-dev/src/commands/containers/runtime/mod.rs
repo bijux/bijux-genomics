@@ -40,14 +40,8 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
     let allowed_from_re = Regex::new(r"^(ubuntu|debian|python|quay\.io/)").expect("regex");
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
-        let tool_id = path
-            .file_stem()
-            .and_then(|name| name.to_str())
-            .unwrap_or_default();
-        let status = tool_status
-            .get(tool_id)
-            .cloned()
-            .unwrap_or_else(|| "unknown".to_string());
+        let tool_id = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
+        let status = tool_status.get(tool_id).cloned().unwrap_or_else(|| "unknown".to_string());
         let text = read_utf8(&path)?;
         let head = text.lines().take(24).collect::<Vec<_>>().join("\n");
         for marker in [
@@ -67,23 +61,11 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         }
         for (alias, keys) in [
             ("tool", vec!["org.opencontainers.image.tool", "tool"]),
-            (
-                "version",
-                vec!["org.opencontainers.image.version", "version"],
-            ),
+            ("version", vec!["org.opencontainers.image.version", "version"]),
             ("source", vec!["org.opencontainers.image.source", "source"]),
-            (
-                "license_ref",
-                vec!["org.opencontainers.image.licenses", "license_ref"],
-            ),
-            (
-                "build_date",
-                vec!["org.opencontainers.image.created", "build_date"],
-            ),
-            (
-                "git_sha",
-                vec!["org.opencontainers.image.revision", "git_sha"],
-            ),
+            ("license_ref", vec!["org.opencontainers.image.licenses", "license_ref"]),
+            ("build_date", vec!["org.opencontainers.image.created", "build_date"]),
+            ("git_sha", vec!["org.opencontainers.image.revision", "git_sha"]),
         ] {
             if !keys.iter().any(|key| text.contains(key)) {
                 errors.push(format!("{rel}: missing label contract key '{alias}'"));
@@ -112,11 +94,8 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
                 .nth(1)
                 .and_then(|body| body.split("\n%").next())
                 .unwrap_or_default();
-            let first_non_empty = post
-                .lines()
-                .map(str::trim)
-                .find(|line| !line.is_empty())
-                .unwrap_or_default();
+            let first_non_empty =
+                post.lines().map(str::trim).find(|line| !line.is_empty()).unwrap_or_default();
             if !first_non_empty.contains("set -eux") {
                 errors.push(format!("{rel}: %post must start with set -eux"));
             }
@@ -124,22 +103,16 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
                 errors.push(format!("{rel}: %post must set deterministic umask 022"));
             }
             if interactive_re.is_match(post) {
-                errors.push(format!(
-                    "{rel}: %post contains interactive prompt constructs"
-                ));
+                errors.push(format!("{rel}: %post contains interactive prompt constructs"));
             }
             if (post.contains("wget ") || post.contains("curl "))
                 && !text.contains("NETWORK_SOURCE_VERIFIED_BY_LOCK")
                 && !post.contains("sha256sum")
             {
-                errors.push(format!(
-                    "{rel}: network download without checksum policy marker"
-                ));
+                errors.push(format!("{rel}: network download without checksum policy marker"));
             }
             if post.contains("apt-get") && !post.contains("rm -rf /var/lib/apt/lists/*") {
-                errors.push(format!(
-                    "{rel}: apt usage requires cleanup of /var/lib/apt/lists/*"
-                ));
+                errors.push(format!("{rel}: apt usage requires cleanup of /var/lib/apt/lists/*"));
             }
             if post.contains("latest")
                 || post.contains("main")
@@ -169,10 +142,7 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
             }
         }
         if let Some(captures) = from_re.captures(&text) {
-            let from_line = captures
-                .get(1)
-                .map(|value| value.as_str().trim())
-                .unwrap_or_default();
+            let from_line = captures.get(1).map(|value| value.as_str().trim()).unwrap_or_default();
             if !from_line.contains("@sha256:") {
                 errors.push(format!("{rel}: base image must be digest pinned"));
             }
@@ -190,10 +160,7 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         if text.contains("chmod 777") {
             errors.push(format!("{rel}: chmod 777 forbidden for runtime UID safety"));
         }
-        let has_help_doc = text
-            .split("%help")
-            .nth(1)
-            .is_some_and(|help| !help.trim().is_empty());
+        let has_help_doc = text.split("%help").nth(1).is_some_and(|help| !help.trim().is_empty());
         if text.contains("%runscript") {
             let run = text
                 .split("%runscript")
@@ -223,10 +190,7 @@ pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<Contain
     let policy = load_toml(&workspace.path("configs/ci/tools/hpc_frontend_build_policy.toml"))?;
     let host = command_hostname();
     let mut errors = Vec::new();
-    if let Some(pattern) = policy
-        .get("compute_hostname_regex")
-        .and_then(toml::Value::as_str)
-    {
+    if let Some(pattern) = policy.get("compute_hostname_regex").and_then(toml::Value::as_str) {
         let pattern = pattern.trim();
         if !pattern.is_empty()
             && !host.is_empty()
@@ -241,11 +205,7 @@ pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<Contain
     let download_re = Regex::new(r"\b(curl|wget)\b").expect("regex");
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
-        let tool = path
-            .file_stem()
-            .and_then(|name| name.to_str())
-            .unwrap_or_default()
-            .to_string();
+        let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
         let text = read_utf8(&path)?;
         let post = text
             .split("%post")
@@ -258,23 +218,16 @@ pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<Contain
             continue;
         }
         if floating_re.is_match(&post) {
-            errors.push(format!(
-                "{rel}: %post contains floating ref (latest/main/master/HEAD)"
-            ));
+            errors.push(format!("{rel}: %post contains floating ref (latest/main/master/HEAD)"));
         }
         if download_re.is_match(&post) {
             let has_sha = post.contains("sha256sum") || post.contains("shasum -a 256");
             let row = versions.get(&tool);
-            let source_sha = row
-                .map(|row| table_string(row, "source_sha256"))
-                .unwrap_or_default();
-            let pin = row
-                .map(|row| table_string(row, "pinned_commit"))
-                .unwrap_or_default();
+            let source_sha = row.map(|row| table_string(row, "source_sha256")).unwrap_or_default();
+            let pin = row.map(|row| table_string(row, "pinned_commit")).unwrap_or_default();
             if !has_sha {
-                errors.push(format!(
-                    "{rel}: %post downloads without checksum verification command"
-                ));
+                errors
+                    .push(format!("{rel}: %post downloads without checksum verification command"));
             }
             if source_sha.is_empty() && pin.is_empty() {
                 errors.push(format!(
@@ -301,11 +254,7 @@ pub(super) fn check_apptainer_version_label_sync(
         Regex::new(r"org\.opencontainers\.image\.version\s+([^\n\r]+)").expect("regex");
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
-        let tool = path
-            .file_stem()
-            .and_then(|name| name.to_str())
-            .unwrap_or_default()
-            .to_string();
+        let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
         let text = read_utf8(&path)?;
         let Some(row) = versions.get(&tool) else {
             errors.push(format!("{rel}: missing versions.toml entry"));
@@ -313,21 +262,12 @@ pub(super) fn check_apptainer_version_label_sync(
         };
         let expected = table_string(row, "version");
         let Some(captures) = version_re.captures(&text) else {
-            errors.push(format!(
-                "{rel}: missing org.opencontainers.image.version label"
-            ));
+            errors.push(format!("{rel}: missing org.opencontainers.image.version label"));
             continue;
         };
         let label_value = captures
             .get(1)
-            .map(|value| {
-                value
-                    .as_str()
-                    .trim()
-                    .trim_matches('"')
-                    .trim_matches('\'')
-                    .to_string()
-            })
+            .map(|value| value.as_str().trim().trim_matches('"').trim_matches('\'').to_string())
             .unwrap_or_default();
         let placeholder = matches!(
             label_value.as_str(),
@@ -376,11 +316,7 @@ pub(super) fn check_bijux_apptainer_built(
     let bijux_defs = apptainer_def_paths(workspace)
         .into_iter()
         .filter(|path| path.starts_with(workspace.path("containers/apptainer/shared")))
-        .filter_map(|path| {
-            path.file_stem()
-                .and_then(|name| name.to_str())
-                .map(ToOwned::to_owned)
-        })
+        .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
         .collect::<Vec<_>>();
     let mut errors = Vec::new();
     for tool in bijux_defs {
@@ -393,15 +329,10 @@ pub(super) fn check_bijux_apptainer_built(
             continue;
         }
         let manifest_path = PathBuf::from(
-            row.get("manifest")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
+            row.get("manifest").and_then(serde_json::Value::as_str).unwrap_or_default(),
         );
         if !manifest_path.exists() {
-            errors.push(format!(
-                "{tool}: missing manifest at {}",
-                manifest_path.display()
-            ));
+            errors.push(format!("{tool}: missing manifest at {}", manifest_path.display()));
             continue;
         }
         let manifest = read_json(&manifest_path)?;
@@ -412,9 +343,7 @@ pub(super) fn check_bijux_apptainer_built(
             .trim()
             .to_string();
         if sif_sha.is_empty() {
-            errors.push(format!(
-                "{tool}: missing resolved_image_digest (sif sha256) in manifest"
-            ));
+            errors.push(format!("{tool}: missing resolved_image_digest (sif sha256) in manifest"));
         }
     }
     if errors.is_empty() {
@@ -432,16 +361,10 @@ pub(super) fn generate_local_apptainer_digests(
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
-    let out = out_path_arg(
-        workspace,
-        args,
-        "artifacts/containers/hpc/local-sif-digests.json",
-        usage,
-    )?;
-    let sif_dir = std::env::var("SIF_DIR").map_or_else(
-        |_| workspace.path("artifacts/containers/apptainer/sif"),
-        PathBuf::from,
-    );
+    let out =
+        out_path_arg(workspace, args, "artifacts/containers/hpc/local-sif-digests.json", usage)?;
+    let sif_dir = std::env::var("SIF_DIR")
+        .map_or_else(|_| workspace.path("artifacts/containers/apptainer/sif"), PathBuf::from);
     let mut rows = Vec::new();
     if sif_dir.exists() {
         let mut paths = fs::read_dir(&sif_dir)
@@ -452,10 +375,7 @@ pub(super) fn generate_local_apptainer_digests(
             .collect::<Vec<_>>();
         paths.sort();
         for path in paths {
-            let tool = path
-                .file_stem()
-                .and_then(|name| name.to_str())
-                .unwrap_or_default();
+            let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
             rows.push(serde_json::json!({
                 "tool": tool,
                 "sif_path": path.display().to_string(),
@@ -505,35 +425,14 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
             continue;
         };
         rows.insert(
-            captures
-                .get(1)
-                .map(|value| value.as_str().to_string())
-                .unwrap_or_default(),
+            captures.get(1).map(|value| value.as_str().to_string()).unwrap_or_default(),
             (
-                captures
-                    .get(2)
-                    .map(|value| value.as_str().to_string())
-                    .unwrap_or_default(),
-                captures
-                    .get(3)
-                    .map(|value| value.as_str().to_string())
-                    .unwrap_or_default(),
-                captures
-                    .get(4)
-                    .map(|value| value.as_str().to_string())
-                    .unwrap_or_default(),
-                captures
-                    .get(5)
-                    .map(|value| value.as_str().to_string())
-                    .unwrap_or_default(),
-                captures
-                    .get(6)
-                    .map(|value| value.as_str().to_string())
-                    .unwrap_or_default(),
-                captures
-                    .get(7)
-                    .map(|value| value.as_str().to_string())
-                    .unwrap_or_default(),
+                captures.get(2).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(3).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(4).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(5).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(6).map(|value| value.as_str().to_string()).unwrap_or_default(),
+                captures.get(7).map(|value| value.as_str().to_string()).unwrap_or_default(),
             ),
         );
     }
@@ -572,16 +471,12 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
                 ));
             }
         } else {
-            errors.push(format!(
-                "{tool_id}: upstream_checksum must start with sha256:"
-            ));
+            errors.push(format!("{tool_id}: upstream_checksum must start with sha256:"));
         }
     }
     for tool_id in rows.keys() {
         if !defs.contains(tool_id) {
-            errors.push(format!(
-                "{tool_id}: listed in NON_BIJUX_SOURCES.md but no .def exists"
-            ));
+            errors.push(format!("{tool_id}: listed in NON_BIJUX_SOURCES.md but no .def exists"));
         }
     }
     if errors.is_empty() {
@@ -593,16 +488,11 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
 pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let owners_path = workspace.path("containers/OWNERS.toml");
     if !owners_path.exists() {
-        return Ok(ContainerCommandOutcome::failure(
-            "missing containers/OWNERS.toml\n",
-        ));
+        return Ok(ContainerCommandOutcome::failure("missing containers/OWNERS.toml\n"));
     }
     let owners_data = load_toml(&owners_path)?;
-    let owner_rows = owners_data
-        .get("owner")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let owner_rows =
+        owners_data.get("owner").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     if owner_rows.is_empty() {
         return Ok(ContainerCommandOutcome::failure(
             "containers/OWNERS.toml has no [[owner]] rows\n",
@@ -628,19 +518,12 @@ pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutc
         }
         rows.push((tool_id, team));
     }
-    let tool_ids = tool_status_manifest(workspace)?
-        .into_keys()
-        .collect::<Vec<_>>();
+    let tool_ids = tool_status_manifest(workspace)?.into_keys().collect::<Vec<_>>();
     let mut errors = Vec::new();
     for tool_id in tool_ids {
-        let matches = rows
-            .iter()
-            .filter(|(pattern, _)| pattern == &tool_id)
-            .count();
+        let matches = rows.iter().filter(|(pattern, _)| pattern == &tool_id).count();
         if matches != 1 {
-            errors.push(format!(
-                "{tool_id}: expected exactly one owner match, got {matches}"
-            ));
+            errors.push(format!("{tool_id}: expected exactly one owner match, got {matches}"));
         }
     }
     if errors.is_empty() {
@@ -654,11 +537,7 @@ pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerC
     let mut registry_container_ids = BTreeSet::new();
     for row in registry_tool_rows(workspace)? {
         let tool_id = table_string(&row, "id");
-        let tool_id = if tool_id.is_empty() {
-            table_string(&row, "tool_id")
-        } else {
-            tool_id
-        };
+        let tool_id = if tool_id.is_empty() { table_string(&row, "tool_id") } else { tool_id };
         if tool_id.is_empty() {
             continue;
         }
@@ -675,11 +554,7 @@ pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerC
         for line in read_utf8(&retired_doc)?.lines() {
             let trimmed = line.trim();
             if trimmed.starts_with("| `") {
-                let cols = trimmed
-                    .trim_matches('|')
-                    .split('|')
-                    .map(str::trim)
-                    .collect::<Vec<_>>();
+                let cols = trimmed.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
                 if let Some(tool) = cols.first() {
                     let tool = tool.trim_matches('`').trim().to_string();
                     if !tool.is_empty() {
@@ -698,10 +573,7 @@ pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerC
         .filter(|tool| !retired.contains(*tool))
         .cloned()
         .collect::<Vec<_>>();
-    let missing = registry_container_ids
-        .difference(&def_ids)
-        .cloned()
-        .collect::<Vec<_>>();
+    let missing = registry_container_ids.difference(&def_ids).cloned().collect::<Vec<_>>();
     let mut errors = Vec::new();
     if !orphans.is_empty() {
         errors.push("registry-vs-defs: defs without registry entry (and not retired):".to_string());
@@ -743,9 +615,8 @@ pub(super) fn run_argv_with_env(
     argv: &[String],
     envs: &[(String, String)],
 ) -> Result<ContainerCommandOutcome> {
-    let (program, program_args) = argv
-        .split_first()
-        .context("container command requires a program")?;
+    let (program, program_args) =
+        argv.split_first().context("container command requires a program")?;
     run_program_with_env(workspace, program, program_args, envs)
 }
 
@@ -769,15 +640,9 @@ pub(super) fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)
         bijux_dna_infra::ensure_dir(dir).with_context(|| format!("create {}", dir.display()))?;
     }
     Ok(vec![
-        (
-            "ARTIFACT_ROOT".to_string(),
-            artifact_root.display().to_string(),
-        ),
+        ("ARTIFACT_ROOT".to_string(), artifact_root.display().to_string()),
         ("ISO_ROOT".to_string(), artifact_root.display().to_string()),
-        (
-            "CARGO_TARGET_DIR".to_string(),
-            cargo_target_dir.display().to_string(),
-        ),
+        ("CARGO_TARGET_DIR".to_string(), cargo_target_dir.display().to_string()),
         ("CARGO_HOME".to_string(), cargo_home.display().to_string()),
         ("TMPDIR".to_string(), tmpdir.display().to_string()),
         ("TMP".to_string(), tmpdir.display().to_string()),
@@ -794,9 +659,7 @@ pub(super) fn artifact_root_path(workspace: &Workspace) -> Result<PathBuf> {
     };
     let display = path.display().to_string();
     if !display.contains("/artifacts") && !display.ends_with("artifacts") {
-        return Err(anyhow!(
-            "artifact root must stay under artifacts/: {display}"
-        ));
+        return Err(anyhow!("artifact root must stay under artifacts/: {display}"));
     }
     Ok(path)
 }
@@ -956,11 +819,7 @@ pub(super) fn run_environment_prep_for_with_env(
     envs: &[(String, String)],
 ) -> Result<ContainerCommandOutcome> {
     let mut argv = bijux_command_prefix();
-    argv.extend([
-        "environment".to_string(),
-        "prep".to_string(),
-        runtime.to_string(),
-    ]);
+    argv.extend(["environment".to_string(), "prep".to_string(), runtime.to_string()]);
     if let Some(stage) = stage.filter(|value| !value.is_empty()) {
         argv.push("--stage".to_string());
         argv.push(stage);
@@ -989,11 +848,7 @@ pub(super) fn run_environment_smoke_for_with_env(
     envs: &[(String, String)],
 ) -> Result<ContainerCommandOutcome> {
     let mut argv = bijux_command_prefix();
-    argv.extend([
-        "environment".to_string(),
-        "smoke".to_string(),
-        runtime.to_string(),
-    ]);
+    argv.extend(["environment".to_string(), "smoke".to_string(), runtime.to_string()]);
     if let Some(stage) = stage.filter(|value| !value.is_empty()) {
         argv.push("--stage".to_string());
         argv.push(stage);
@@ -1032,14 +887,9 @@ pub(super) fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerComm
                     .with_context(|| format!("read {}", path.display()))?,
             )
             .with_context(|| format!("parse {}", path.display()))?;
-            let tool = payload
-                .get("tool")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default();
-            let status = payload
-                .get("status")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default();
+            let tool = payload.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default();
+            let status =
+                payload.get("status").and_then(serde_json::Value::as_str).unwrap_or_default();
             if !tool.is_empty() {
                 statuses.insert(tool.to_string(), status.to_string());
             }
@@ -1056,16 +906,10 @@ pub(super) fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerComm
     }
     let left = load_statuses(&left_dir)?;
     let right = load_statuses(&right_dir)?;
-    let missing_left = right
-        .keys()
-        .filter(|tool| !left.contains_key(*tool))
-        .cloned()
-        .collect::<Vec<_>>();
-    let missing_right = left
-        .keys()
-        .filter(|tool| !right.contains_key(*tool))
-        .cloned()
-        .collect::<Vec<_>>();
+    let missing_left =
+        right.keys().filter(|tool| !left.contains_key(*tool)).cloned().collect::<Vec<_>>();
+    let missing_right =
+        left.keys().filter(|tool| !right.contains_key(*tool)).cloned().collect::<Vec<_>>();
     let mismatch = left
         .keys()
         .filter(|tool| right.get(*tool).is_some() && right.get(*tool) != left.get(*tool))
@@ -1085,16 +929,10 @@ pub(super) fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerComm
     }
     let mut stdout = String::from("smoke mode mismatch detected\n");
     if !missing_left.is_empty() {
-        stdout.push_str(&format!(
-            "missing in bijux-run: {}\n",
-            missing_left.join(",")
-        ));
+        stdout.push_str(&format!("missing in bijux-run: {}\n", missing_left.join(",")));
     }
     if !missing_right.is_empty() {
-        stdout.push_str(&format!(
-            "missing in apptainer-run: {}\n",
-            missing_right.join(",")
-        ));
+        stdout.push_str(&format!("missing in apptainer-run: {}\n", missing_right.join(",")));
     }
     if !mismatch.is_empty() {
         stdout.push_str(&format!("status mismatch: {}\n", mismatch.join(",")));
@@ -1116,11 +954,7 @@ pub(super) fn sampled_apptainer_defs(
         .collect::<Vec<_>>();
     scored.sort_by(|left, right| left.0.cmp(&right.0).then_with(|| left.1.cmp(&right.1)));
     let take = count.min(scored.len());
-    scored
-        .into_iter()
-        .take(take)
-        .map(|(_, path)| path)
-        .collect()
+    scored.into_iter().take(take).map(|(_, path)| path).collect()
 }
 
 pub(super) fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<()> {
@@ -1156,23 +990,12 @@ pub(super) fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<(
         .unwrap_or_default()
         .trim_end_matches('/')
         .to_string();
-    let tag_format = naming
-        .get("tag_format")
-        .and_then(toml::Value::as_str)
-        .unwrap_or_default()
-        .to_string();
-    let tool_re = Regex::new(
-        naming
-            .get("tool_regex")
-            .and_then(toml::Value::as_str)
-            .unwrap_or_default(),
-    )?;
-    let version_re = Regex::new(
-        naming
-            .get("version_regex")
-            .and_then(toml::Value::as_str)
-            .unwrap_or_default(),
-    )?;
+    let tag_format =
+        naming.get("tag_format").and_then(toml::Value::as_str).unwrap_or_default().to_string();
+    let tool_re =
+        Regex::new(naming.get("tool_regex").and_then(toml::Value::as_str).unwrap_or_default())?;
+    let version_re =
+        Regex::new(naming.get("version_regex").and_then(toml::Value::as_str).unwrap_or_default())?;
     let hpc_refs = images
         .as_table()
         .cloned()
@@ -1187,9 +1010,7 @@ pub(super) fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<(
                 .to_string();
             (!version.is_empty() && tool_re.is_match(&tool) && version_re.is_match(&version)).then(
                 || {
-                    let tag = tag_format
-                        .replace("{tool}", &tool)
-                        .replace("{version}", &version);
+                    let tag = tag_format.replace("{tool}", &tool).replace("{version}", &version);
                     serde_json::json!({
                         "tool": tool,
                         "version": version,
@@ -1253,20 +1074,15 @@ pub(super) fn write_vuln_hook_report(
         if allowed_tools.is_empty() {
             allowed_tools = bundle_tools;
         } else {
-            allowed_tools = allowed_tools
-                .intersection(&bundle_tools)
-                .cloned()
-                .collect::<BTreeSet<_>>();
+            allowed_tools =
+                allowed_tools.intersection(&bundle_tools).cloned().collect::<BTreeSet<_>>();
         }
     }
     let per_tool_dir = workspace.path("artifacts/containers/vuln");
     bijux_dna_infra::ensure_dir(&per_tool_dir)
         .with_context(|| format!("create {}", per_tool_dir.display()))?;
     let mut rows = Vec::new();
-    for entry in WalkDir::new(sbom_root)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(sbom_root).into_iter().filter_map(std::result::Result::ok) {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("txt")
             || !entry
@@ -1317,15 +1133,9 @@ pub(super) fn write_vuln_hook_report(
             }
             .with_context(|| format!("run {scanner} for {}", entry.path().display()))?;
             let summary = if output.stdout.is_empty() {
-                String::from_utf8_lossy(&output.stderr)
-                    .chars()
-                    .take(500)
-                    .collect::<String>()
+                String::from_utf8_lossy(&output.stderr).chars().take(500).collect::<String>()
             } else {
-                String::from_utf8_lossy(&output.stdout)
-                    .chars()
-                    .take(2000)
-                    .collect::<String>()
+                String::from_utf8_lossy(&output.stdout).chars().take(2000).collect::<String>()
             };
             row["status"] = serde_json::Value::String(if output.status.success() {
                 "ok".to_string()
@@ -1334,10 +1144,7 @@ pub(super) fn write_vuln_hook_report(
             });
             row["summary"] = serde_json::Value::String(summary);
         }
-        let tool_name = row
-            .get("tool")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("unknown");
+        let tool_name = row.get("tool").and_then(serde_json::Value::as_str).unwrap_or("unknown");
         write_utf8(
             &per_tool_dir.join(format!("{tool_name}.json")),
             &format!("{}\n", serde_json::to_string_pretty(&row)?),
@@ -1369,20 +1176,14 @@ pub(super) fn command_exists(program: &str) -> bool {
 }
 
 pub(super) fn sha256_file_hex(path: &Path) -> Result<String> {
-    Ok(sha256_hex(
-        &std::fs::read(path).with_context(|| format!("read {}", path.display()))?,
-    ))
+    Ok(sha256_hex(&std::fs::read(path).with_context(|| format!("read {}", path.display()))?))
 }
 
 pub(super) fn merge_outcomes(
     mut left: ContainerCommandOutcome,
     right: ContainerCommandOutcome,
 ) -> ContainerCommandOutcome {
-    left.exit_code = if left.exit_code != 0 {
-        left.exit_code
-    } else {
-        right.exit_code
-    };
+    left.exit_code = if left.exit_code != 0 { left.exit_code } else { right.exit_code };
     left.stdout.push_str(&right.stdout);
     left.stderr.push_str(&right.stderr);
     left

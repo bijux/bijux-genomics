@@ -78,9 +78,7 @@ pub(crate) fn expected_counts_for_scope(
             ("ancient_pe".to_string(), spec.target_ancient_pe),
             ("modern_pe".to_string(), spec.target_modern_pe),
         ])),
-        other => Err(anyhow!(
-            "unsupported corpus benchmark sample scope `{other}`"
-        )),
+        other => Err(anyhow!("unsupported corpus benchmark sample scope `{other}`")),
     }
 }
 
@@ -91,10 +89,7 @@ pub(crate) fn discover_normalized_samples(
 ) -> Result<Vec<CorpusNormalizedSample>> {
     let normalized = corpus_root.join("normalized");
     if !normalized.is_dir() {
-        return Err(anyhow!(
-            "missing normalized corpus directory: {}",
-            normalized.display()
-        ));
+        return Err(anyhow!("missing normalized corpus directory: {}", normalized.display()));
     }
 
     let mut sample_ids = BTreeSet::new();
@@ -118,21 +113,14 @@ pub(crate) fn discover_normalized_samples(
         let r1 = normalized.join(format!("{sample_id}_R1.fastq.gz"));
         let r2 = normalized.join(format!("{sample_id}_R2.fastq.gz"));
         if !r1.is_file() {
-            return Err(anyhow!(
-                "missing R1 for sample {sample_id}: {}",
-                r1.display()
-            ));
+            return Err(anyhow!("missing R1 for sample {sample_id}: {}", r1.display()));
         }
         let r2_value = r2.is_file().then_some(r2);
         samples.push(CorpusNormalizedSample {
             sample_id,
             r1,
             r2: r2_value.clone(),
-            layout: if r2_value.is_some() {
-                "pe".to_string()
-            } else {
-                "se".to_string()
-            },
+            layout: if r2_value.is_some() { "pe".to_string() } else { "se".to_string() },
         });
     }
 
@@ -162,10 +150,7 @@ pub(crate) fn validate_corpus_contract(
         let parts = path.iter().collect::<Vec<_>>();
         if parts.len() >= 2 && parts[0].to_str() == Some("raw") {
             let accession = parts[1].to_string_lossy().to_string();
-            hash_to_accessions
-                .entry(digest.clone())
-                .or_default()
-                .push(accession);
+            hash_to_accessions.entry(digest.clone()).or_default().push(accession);
         }
     }
     let spec_by_accession = spec
@@ -215,9 +200,7 @@ pub(crate) fn validate_corpus_contract(
         let metadata = metadata_by_sample
             .get(&sample.sample_id)
             .ok_or_else(|| anyhow!("missing accession metadata for {}", sample.sample_id))?;
-        *actual_counts
-            .entry(format!("{}_{}", metadata.era, metadata.layout))
-            .or_default() += 1;
+        *actual_counts.entry(format!("{}_{}", metadata.era, metadata.layout)).or_default() += 1;
     }
 
     let expected_counts = expected_counts_for_scope(spec, "full")?;
@@ -240,9 +223,7 @@ pub(crate) fn select_paired_samples(
     let paired = samples
         .iter()
         .filter(|row| {
-            metadata_by_sample
-                .get(&row.sample_id)
-                .is_some_and(|meta| meta.layout == "pe")
+            metadata_by_sample.get(&row.sample_id).is_some_and(|meta| meta.layout == "pe")
         })
         .cloned()
         .collect::<Vec<_>>();
@@ -251,9 +232,7 @@ pub(crate) fn select_paired_samples(
         let metadata = metadata_by_sample
             .get(&sample.sample_id)
             .ok_or_else(|| anyhow!("missing paired metadata for {}", sample.sample_id))?;
-        *actual_counts
-            .entry(format!("{}_{}", metadata.era, metadata.layout))
-            .or_default() += 1;
+        *actual_counts.entry(format!("{}_{}", metadata.era, metadata.layout)).or_default() += 1;
     }
     let expected_counts = expected_counts_for_scope(spec, "paired")?;
     if actual_counts != expected_counts {

@@ -67,10 +67,7 @@ pub enum BenchFastqCommand {
     DepleteRrna(BenchFastqDepleteRrnaArgs),
     #[command(name = "profile-reads", visible_alias = "stats")]
     Stats(BenchFastqStatsArgs),
-    #[command(
-        name = "profile-overrepresented-sequences",
-        visible_alias = "overrepresented"
-    )]
+    #[command(name = "profile-overrepresented-sequences", visible_alias = "overrepresented")]
     ProfileOverrepresentedSequences(BenchFastqProfileOverrepresentedArgs),
     Preprocess(BenchFastqPreprocessArgs),
 }

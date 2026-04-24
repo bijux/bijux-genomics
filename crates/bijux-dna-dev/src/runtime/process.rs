@@ -18,9 +18,8 @@ impl<'a> ProcessRunner<'a> {
     /// # Errors
     /// Returns an error if the command cannot be launched.
     pub fn run(&self, argv: &[&str]) -> Result<Output> {
-        let (program, program_args) = argv
-            .split_first()
-            .context("process runner requires at least one argument")?;
+        let (program, program_args) =
+            argv.split_first().context("process runner requires at least one argument")?;
         std::process::Command::new(program)
             .args(program_args)
             .current_dir(&self.workspace.root)
@@ -44,10 +43,7 @@ impl<'a> ProcessRunner<'a> {
     ) -> Result<Output> {
         std::process::Command::new(program)
             .args(args)
-            .envs(
-                envs.iter()
-                    .map(|(key, value)| (key.as_str(), value.as_str())),
-            )
+            .envs(envs.iter().map(|(key, value)| (key.as_str(), value.as_str())))
             .current_dir(&self.workspace.root)
             .output()
             .with_context(|| {

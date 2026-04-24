@@ -61,9 +61,8 @@ pub(super) fn lock_items_by_tool(
     workspace: &Workspace,
 ) -> Result<BTreeMap<String, serde_json::Value>> {
     let mut rows = BTreeMap::new();
-    if let Some(items) = read_lock_json(workspace)?
-        .get("items")
-        .and_then(serde_json::Value::as_array)
+    if let Some(items) =
+        read_lock_json(workspace)?.get("items").and_then(serde_json::Value::as_array)
     {
         for row in items {
             let tool = row
@@ -103,9 +102,8 @@ pub(super) fn update_status_in_table_file(
             || block.contains(&format!("tool_id = \"{tool}\""))
         {
             let mut lines = block.lines().map(ToOwned::to_owned).collect::<Vec<_>>();
-            if let Some(index) = lines
-                .iter()
-                .position(|line| line.trim_start().starts_with("status = "))
+            if let Some(index) =
+                lines.iter().position(|line| line.trim_start().starts_with("status = "))
             {
                 lines[index] = format!("status = \"{to_status}\"");
                 updated = true;
@@ -154,9 +152,8 @@ pub(super) fn set_versions_status(
             continue;
         }
         let mut lines = block.lines().map(ToOwned::to_owned).collect::<Vec<_>>();
-        if let Some(index) = lines
-            .iter()
-            .position(|line| line.trim_start().starts_with("status = "))
+        if let Some(index) =
+            lines.iter().position(|line| line.trim_start().starts_with("status = "))
         {
             lines[index] = format!("status = \"{to_status}\"");
         } else {

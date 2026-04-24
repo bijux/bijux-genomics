@@ -35,23 +35,13 @@ pub(crate) fn check_ssot_guardrails(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let output = run_command(
-        workspace,
-        "git",
-        &["show", "--name-only", "--pretty=", "HEAD"],
-    )?;
+    let output = run_command(workspace, "git", &["show", "--name-only", "--pretty=", "HEAD"])?;
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let changed = stdout
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .collect::<Vec<_>>();
+    let changed = stdout.lines().filter(|line| !line.trim().is_empty()).collect::<Vec<_>>();
     let registry_changed = changed.contains(&"configs/ci/registry/tool_registry.toml");
     let lock_changed = changed.contains(&"configs/ci/registry/tool_registry_lock.sha256");
     if registry_changed && !lock_changed {
-        return fail(
-            check,
-            "partial registry edit detected without tool_registry_lock.sha256",
-        );
+        return fail(check, "partial registry edit detected without tool_registry_lock.sha256");
     }
     let stages_changed = changed
         .iter()
@@ -60,10 +50,7 @@ pub(crate) fn check_ssot_guardrails(
         path.starts_with("configs/ci/params/param_registry") && path.ends_with(".toml")
     });
     if stages_changed && !params_changed {
-        return fail(
-            check,
-            "partial stage edit detected without param registry update",
-        );
+        return fail(check, "partial stage edit detected without param registry update");
     }
     pass(check, "last commit preserves SSOT guardrails")
 }
@@ -72,39 +59,26 @@ pub(crate) fn check_species_aliases(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let aliases_cfg: toml::Value = toml::from_str(&read(
-        &workspace.path("configs/runtime/species_aliases.toml"),
-    )?)?;
+    let aliases_cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/runtime/species_aliases.toml"))?)?;
     let species_cfg: toml::Value =
         toml::from_str(&read(&workspace.path("configs/runtime/species.toml"))?)?;
-    let aliases = aliases_cfg
-        .get("aliases")
-        .and_then(toml::Value::as_table)
-        .cloned()
-        .unwrap_or_default();
+    let aliases =
+        aliases_cfg.get("aliases").and_then(toml::Value::as_table).cloned().unwrap_or_default();
     let default_builds = aliases_cfg
         .get("default_builds")
         .and_then(toml::Value::as_table)
         .cloned()
         .unwrap_or_default();
-    let species_rows = species_cfg
-        .get("species")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let species_rows =
+        species_cfg.get("species").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let canonical = Regex::new(r"^[A-Z][a-z]+ [a-z]+$").expect("regex");
     let mut authority_default_build = std::collections::BTreeMap::new();
     let mut authority_species = BTreeSet::new();
     let mut errors = Vec::new();
     for row in species_rows {
-        let species_id = row
-            .get("species_id")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
-        let build_id = row
-            .get("default_build_id")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
+        let species_id = row.get("species_id").and_then(toml::Value::as_str).unwrap_or("");
+        let build_id = row.get("default_build_id").and_then(toml::Value::as_str).unwrap_or("");
         if species_id.is_empty() || build_id.is_empty() {
             errors.push("species.toml row missing species_id/default_build_id".to_string());
             continue;
@@ -119,14 +93,10 @@ pub(crate) fn check_species_aliases(
             errors.push(format!("alias `{alias}` must be lowercase"));
         }
         if !canonical.is_match(&species) {
-            errors.push(format!(
-                "alias `{alias}` has non-canonical species id `{species}`"
-            ));
+            errors.push(format!("alias `{alias}` has non-canonical species id `{species}`"));
         }
         if !authority_species.contains(&species) {
-            errors.push(format!(
-                "alias `{alias}` points to undeclared species `{species}`"
-            ));
+            errors.push(format!("alias `{alias}` points to undeclared species `{species}`"));
         }
     }
     for (species, build) in default_builds {
@@ -164,10 +134,8 @@ pub(crate) fn check_tool_registry_lock(
     for rel in inputs {
         let bytes = std::fs::read(workspace.path(rel))
             .with_context(|| format!("read {}", workspace.path(rel).display()))?;
-        let file_sha = Sha256::digest(&bytes)
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect::<String>();
+        let file_sha =
+            Sha256::digest(&bytes).iter().map(|byte| format!("{byte:02x}")).collect::<String>();
         payload.push_str(rel);
         payload.push(' ');
         payload.push_str(&file_sha);
@@ -177,21 +145,14 @@ pub(crate) fn check_tool_registry_lock(
         .iter()
         .map(|byte| format!("{byte:02x}"))
         .collect::<String>();
-    let actual = read(&workspace.path("configs/ci/registry/tool_registry_lock.sha256"))?
-        .trim()
-        .to_string();
+    let actual =
+        read(&workspace.path("configs/ci/registry/tool_registry_lock.sha256"))?.trim().to_string();
     if expected != actual {
-        return fail(
-            check,
-            "tool registry lock hash does not match registry inputs",
-        );
+        return fail(check, "tool registry lock hash does not match registry inputs");
     }
     let marker = workspace.path("artifacts/configs/tool_registry_lock.marker");
     if !marker.is_file() {
-        return fail(
-            check,
-            format!("missing {}", workspace.rel(&marker).display()),
-        );
+        return fail(check, format!("missing {}", workspace.rel(&marker).display()));
     }
     let marker_text = read(&marker)?;
     if !marker_text.contains("generated_by=bijux-dna-dev domain run lock-registry")
@@ -211,27 +172,15 @@ pub(crate) fn check_vcf_compatibility_matrix(
     let registry: toml::Value = toml::from_str(&read(
         &workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"),
     )?)?;
-    let panel_rows = panels
-        .get("panel")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let tool_rows = registry
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let panel_rows =
+        panels.get("panel").and_then(toml::Value::as_array).cloned().unwrap_or_default();
+    let tool_rows =
+        registry.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let mut rows = Vec::new();
     for panel in panel_rows {
-        let species = panel
-            .get("species_id")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
-        let build = panel
-            .get("build_id")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
+        let species = panel.get("species_id").and_then(toml::Value::as_str).unwrap_or("");
+        let build = panel.get("build_id").and_then(toml::Value::as_str).unwrap_or("");
         let panel_id = panel.get("id").and_then(toml::Value::as_str).unwrap_or("");
         let tags = panel
             .get("compatibility")
@@ -257,9 +206,7 @@ pub(crate) fn check_vcf_compatibility_matrix(
                 .filter_map(|value| value.as_str().map(ToOwned::to_owned))
                 .collect::<Vec<_>>()
                 .join(", ");
-            rows.push(format!(
-                "| {species} | {build} | {panel_id} | {tool_id} | {stages} |"
-            ));
+            rows.push(format!("| {species} | {build} | {panel_id} | {tool_id} | {stages} |"));
         }
     }
     rows.sort();
@@ -272,10 +219,7 @@ pub(crate) fn check_vcf_compatibility_matrix(
         .map(ToOwned::to_owned)
         .collect::<Vec<_>>();
     if present_rows == rows {
-        return pass(
-            check,
-            "VCF downstream compatibility matrix matches SSOT inputs",
-        );
+        return pass(check, "VCF downstream compatibility matrix matches SSOT inputs");
     }
     fail(check, "VCF downstream compatibility matrix is stale")
 }

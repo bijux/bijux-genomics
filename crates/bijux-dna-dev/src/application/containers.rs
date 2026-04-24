@@ -16,9 +16,7 @@ impl ContainerApplication {
     /// # Errors
     /// Returns an error if the current workspace cannot be resolved.
     pub fn new() -> Result<Self> {
-        Ok(Self {
-            workspace: Workspace::resolve()?,
-        })
+        Ok(Self { workspace: Workspace::resolve()? })
     }
 
     /// # Errors

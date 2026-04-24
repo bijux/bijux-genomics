@@ -15,11 +15,8 @@ use crate::runtime::workspace::Workspace;
 
 pub(super) fn check_shared_tools(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let config = load_toml(&workspace.path("configs/domain/shared_tools.toml"))?;
-    let shared = config
-        .get("shared_tools")
-        .and_then(TomlValue::as_table)
-        .cloned()
-        .unwrap_or_default();
+    let shared =
+        config.get("shared_tools").and_then(TomlValue::as_table).cloned().unwrap_or_default();
     let mut tools = BTreeMap::<String, Vec<BTreeMap<String, String>>>::new();
     for dom_dir in domain_directories(workspace)? {
         let domain = dom_dir
@@ -49,10 +46,7 @@ pub(super) fn check_shared_tools(workspace: &Workspace) -> Result<DomainCommandO
                 "upstream".to_string(),
                 scalar_from_text(&text, "upstream")?.unwrap_or_default(),
             );
-            row.insert(
-                "path".to_string(),
-                workspace.rel(&tool_file).display().to_string(),
-            );
+            row.insert("path".to_string(), workspace.rel(&tool_file).display().to_string());
             tools.entry(tool_id).or_default().push(row);
         }
     }
@@ -79,10 +73,8 @@ pub(super) fn check_shared_tools(workspace: &Workspace) -> Result<DomainCommandO
                     .collect::<Vec<_>>()
             })
             .unwrap_or_default();
-        let mut domains_actual = rows
-            .iter()
-            .filter_map(|row| row.get("domain").cloned())
-            .collect::<Vec<_>>();
+        let mut domains_actual =
+            rows.iter().filter_map(|row| row.get("domain").cloned()).collect::<Vec<_>>();
         let mut declared_sorted = domains_declared;
         declared_sorted.sort();
         domains_actual.sort();
@@ -122,12 +114,7 @@ pub(super) fn check_shared_tools(workspace: &Workspace) -> Result<DomainCommandO
 pub(super) fn check_tool_container_parity(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     let external = external_tools(workspace)?;
     let docker_tools = fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| {
-            format!(
-                "read {}",
-                workspace.path("containers/docker/arm64").display()
-            )
-        })?
+        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             let name = entry.file_name();
@@ -137,28 +124,19 @@ pub(super) fn check_tool_container_parity(workspace: &Workspace) -> Result<Domai
         .collect::<BTreeSet<_>>();
     let apptainer_tools = fs::read_dir(workspace.path("containers/apptainer/shared"))
         .with_context(|| {
-            format!(
-                "read {}",
-                workspace.path("containers/apptainer/shared").display()
-            )
+            format!("read {}", workspace.path("containers/apptainer/shared").display())
         })?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             if entry.path().extension().and_then(|ext| ext.to_str()) == Some("def") {
-                entry
-                    .path()
-                    .file_stem()
-                    .and_then(|name| name.to_str())
-                    .map(ToString::to_string)
+                entry.path().file_stem().and_then(|name| name.to_str()).map(ToString::to_string)
             } else {
                 None
             }
         })
         .collect::<BTreeSet<_>>();
-    let all_container_tools = docker_tools
-        .into_iter()
-        .chain(apptainer_tools)
-        .collect::<BTreeSet<_>>();
+    let all_container_tools =
+        docker_tools.into_iter().chain(apptainer_tools).collect::<BTreeSet<_>>();
 
     let mut errors = Vec::new();
     let mut declared_tools = BTreeSet::new();
@@ -174,10 +152,7 @@ pub(super) fn check_tool_container_parity(workspace: &Workspace) -> Result<Domai
                 declared_tools.insert(tool_id_value.clone());
                 if status != "out_of_scope" && !external.contains(&tool_id_value) {
                     let candidates = [tool_id_value.clone(), tool_id_value.replace('-', "_")];
-                    if candidates
-                        .iter()
-                        .all(|candidate| !all_container_tools.contains(candidate))
-                    {
+                    if candidates.iter().all(|candidate| !all_container_tools.contains(candidate)) {
                         errors.push(format!(
                             "{}: tool_id '{}' has no matching container def (add container or mark in configs/domain/external_tools.toml)",
                             workspace.rel(&tool_file).display(),
@@ -205,10 +180,7 @@ pub(super) fn check_tool_container_parity(workspace: &Workspace) -> Result<Domai
                     continue;
                 }
                 let candidates = [tool_id.clone(), tool_id.replace('-', "_")];
-                if candidates
-                    .iter()
-                    .all(|candidate| !all_container_tools.contains(candidate))
-                {
+                if candidates.iter().all(|candidate| !all_container_tools.contains(candidate)) {
                     errors.push(format!(
                         "{}: compatible_tools tool '{}' has no matching container def",
                         workspace.rel(&stage_file).display(),

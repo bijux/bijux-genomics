@@ -34,11 +34,8 @@ pub(crate) fn run_benchmark_repo_checks_command(
         if let Some(parent) = json_path.parent() {
             fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
         }
-        fs::write(
-            &json_path,
-            format!("{}\n", serde_json::to_string_pretty(&report)?),
-        )
-        .with_context(|| format!("write {}", json_path.display()))?;
+        fs::write(&json_path, format!("{}\n", serde_json::to_string_pretty(&report)?))
+            .with_context(|| format!("write {}", json_path.display()))?;
     }
     println!("{}", serde_json::to_string_pretty(&report)?);
     fail_on_repo_check_violations(&report)
@@ -80,21 +77,13 @@ pub(crate) fn audit_repo_checks(repo_root: &Path) -> Result<RepoChecksReport> {
         &remote_user_patterns,
     )?);
     violations.extend(regex_matches(
-        &tooling_paths
-            .iter()
-            .chain(crate_paths.iter())
-            .cloned()
-            .collect::<Vec<_>>(),
+        &tooling_paths.iter().chain(crate_paths.iter()).cloned().collect::<Vec<_>>(),
         repo_root,
         "hardcoded-ssh-host-alias",
         &host_alias_patterns,
     )?);
 
-    Ok(RepoChecksReport {
-        check_count: 3,
-        violation_count: violations.len(),
-        violations,
-    })
+    Ok(RepoChecksReport { check_count: 3, violation_count: violations.len(), violations })
 }
 
 pub(crate) fn fail_on_repo_check_violations(report: &RepoChecksReport) -> Result<()> {
@@ -123,9 +112,8 @@ fn benchmark_tooling_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
     let makes_bin = repo_root.join("makes/bin");
     if makes_bin.is_dir() {
-        for entry in makes_bin
-            .read_dir()
-            .with_context(|| format!("read {}", makes_bin.display()))?
+        for entry in
+            makes_bin.read_dir().with_context(|| format!("read {}", makes_bin.display()))?
         {
             let entry = entry.with_context(|| format!("read {}", makes_bin.display()))?;
             let path = entry.path();
@@ -140,9 +128,8 @@ fn benchmark_tooling_paths(repo_root: &Path) -> Result<Vec<PathBuf>> {
 
     let makes_root = repo_root.join("makes");
     if makes_root.is_dir() {
-        for entry in makes_root
-            .read_dir()
-            .with_context(|| format!("read {}", makes_root.display()))?
+        for entry in
+            makes_root.read_dir().with_context(|| format!("read {}", makes_root.display()))?
         {
             let entry = entry.with_context(|| format!("read {}", makes_root.display()))?;
             let path = entry.path();
@@ -168,10 +155,7 @@ fn collect_matching_files_recursive(
     let mut paths = Vec::new();
     let mut stack = vec![root.to_path_buf()];
     while let Some(dir) = stack.pop() {
-        for entry in dir
-            .read_dir()
-            .with_context(|| format!("read {}", dir.display()))?
-        {
+        for entry in dir.read_dir().with_context(|| format!("read {}", dir.display()))? {
             let entry = entry.with_context(|| format!("read {}", dir.display()))?;
             let path = entry.path();
             if path.is_dir() {
@@ -252,11 +236,10 @@ fn regex_matches(
     let mut matches = Vec::new();
     for path in paths {
         for (line_number, line) in repo_check_lines(path)?.iter().enumerate() {
-            let Some(literal) = patterns.iter().find_map(|pattern| {
-                pattern
-                    .find(line)
-                    .map(|matched| matched.as_str().to_string())
-            }) else {
+            let Some(literal) = patterns
+                .iter()
+                .find_map(|pattern| pattern.find(line).map(|matched| matched.as_str().to_string()))
+            else {
                 continue;
             };
             matches.push(RepoCheckViolation {
@@ -301,10 +284,8 @@ fn strip_rust_test_modules(raw: &str) -> Vec<String> {
                 continue;
             }
             if trimmed.starts_with("mod ") && raw_line.contains('{') {
-                skip_depth = raw_line
-                    .matches('{')
-                    .count()
-                    .saturating_sub(raw_line.matches('}').count());
+                skip_depth =
+                    raw_line.matches('{').count().saturating_sub(raw_line.matches('}').count());
                 awaiting_test_module = false;
                 continue;
             }
@@ -342,11 +323,8 @@ mod tests {
         let repo_root = temp.path();
         let script_path = repo_root.join("makes/bin/example.py");
         fs::create_dir_all(script_path.parent().expect("script dir")).expect("create script dir");
-        fs::write(
-            &script_path,
-            "RESULTS_ROOT = \"/Users/operator/workspace/results\"\n",
-        )
-        .expect("write script");
+        fs::write(&script_path, "RESULTS_ROOT = \"/Users/operator/workspace/results\"\n")
+            .expect("write script");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
@@ -361,11 +339,8 @@ mod tests {
         let fixture_path = repo_root.join("makes/bin/test_benchmark_fastq_suite.py");
         fs::create_dir_all(fixture_path.parent().expect("fixture dir"))
             .expect("create fixture dir");
-        fs::write(
-            &fixture_path,
-            "LOCAL_RESULTS = \"/Users/operator/workspace/results\"\n",
-        )
-        .expect("write fixture");
+        fs::write(&fixture_path, "LOCAL_RESULTS = \"/Users/operator/workspace/results\"\n")
+            .expect("write fixture");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 0);
@@ -377,11 +352,8 @@ mod tests {
         let repo_root = temp.path();
         let config_path = repo_root.join("configs/bench/workspace.md");
         fs::create_dir_all(config_path.parent().expect("config dir")).expect("create config dir");
-        fs::write(
-            &config_path,
-            "remote_root = \"/home/alice/bijux/results\"\n",
-        )
-        .expect("write config");
+        fs::write(&config_path, "remote_root = \"/home/alice/bijux/results\"\n")
+            .expect("write config");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);
@@ -395,11 +367,8 @@ mod tests {
         let repo_root = temp.path();
         let makefile_path = repo_root.join("makes/sync.mk");
         fs::create_dir_all(makefile_path.parent().expect("make dir")).expect("create make dir");
-        fs::write(
-            &makefile_path,
-            "SYNC_TARGET := \"lunarc:results-mirror/\"\n",
-        )
-        .expect("write makefile");
+        fs::write(&makefile_path, "SYNC_TARGET := \"lunarc:results-mirror/\"\n")
+            .expect("write makefile");
 
         let report = audit_repo_checks(repo_root).expect("repo checks");
         assert_eq!(report.violation_count, 1);

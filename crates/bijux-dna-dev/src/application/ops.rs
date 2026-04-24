@@ -14,10 +14,7 @@ impl OpsApplication {
     /// # Errors
     /// Returns an error if the current workspace cannot be resolved.
     pub fn new(registry: fn() -> Vec<OpsCommandDefinition>) -> Result<Self> {
-        Ok(Self {
-            workspace: Workspace::resolve()?,
-            registry,
-        })
+        Ok(Self { workspace: Workspace::resolve()?, registry })
     }
 
     #[must_use]

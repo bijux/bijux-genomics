@@ -51,11 +51,7 @@ pub(crate) fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -
     };
     let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
     match command {
-        cli::RegistryCommand::Tools {
-            stage,
-            scenario,
-            kind,
-        } => {
+        cli::RegistryCommand::Tools { stage, scenario, kind } => {
             print_registry_tools(&registry_path, stage.as_deref(), scenario.as_deref(), kind)?;
         }
         cli::RegistryCommand::Stages => print_registry_list_stages(&registry_path)?,
@@ -67,18 +63,12 @@ pub(crate) fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -
             if *json {
                 print_registry_export_containers_json(&registry_path)?;
             } else {
-                return Err(anyhow::anyhow!(
-                    "registry export-containers requires --json"
-                ));
+                return Err(anyhow::anyhow!("registry export-containers requires --json"));
             }
         }
         cli::RegistryCommand::CoverageMatrix => print_registry_coverage_matrix(&registry_path)?,
         cli::RegistryCommand::ValidateTool { id } => verify_registry_tool(&registry_path, id)?,
-        cli::RegistryCommand::Audit {
-            show_binding_violations,
-            fix_suggestions,
-            fix_hints,
-        } => {
+        cli::RegistryCommand::Audit { show_binding_violations, fix_suggestions, fix_hints } => {
             if *show_binding_violations {
                 print_registry_binding_violations(&registry_path, None)?;
             } else if *fix_suggestions || *fix_hints {
@@ -93,11 +83,7 @@ pub(crate) fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -
         cli::RegistryCommand::Promote { tool } => {
             promote_registry_tool(&registry_path, cwd, tool)?;
         }
-        cli::RegistryCommand::Lint {
-            hpc,
-            domain,
-            stages,
-        } => {
+        cli::RegistryCommand::Lint { hpc, domain, stages } => {
             if *hpc {
                 lint_registry_hpc(cwd, &registry_path, domain.as_deref(), stages.as_deref())?;
             } else {
@@ -148,10 +134,9 @@ pub(crate) fn handle_environment_root(
             crate::commands::cli::env::print_registry_export_containers_json(&registry_path)?;
         }
         cli::EnvCommand::ExportHpc { json, hpc_root } => {
-            let root = hpc_root.clone().map_or_else(
-                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
-                Ok,
-            )?;
+            let root = hpc_root
+                .clone()
+                .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
             let layout = hpc::HpcLayout::from_root(&root);
             let export = hpc::export_hpc_env_json(&layout)?;
             if *json {
@@ -162,10 +147,9 @@ pub(crate) fn handle_environment_root(
             }
         }
         cli::EnvCommand::SifInventory { hpc_root, json } => {
-            let root = hpc_root.clone().map_or_else(
-                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
-                Ok,
-            )?;
+            let root = hpc_root
+                .clone()
+                .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
             let report = sif_inventory(&root)?;
             if *json {
                 cli::render::json::print_pretty(&report)?;
@@ -176,10 +160,10 @@ pub(crate) fn handle_environment_root(
         }
         cli::EnvCommand::Ensure(args) => {
             let domain = parse_stage_domain(&args.stage)?;
-            let hpc_root = args.hpc_root.clone().map_or_else(
-                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
-                Ok,
-            )?;
+            let hpc_root = args
+                .hpc_root
+                .clone()
+                .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
             let report = ensure_apptainer_images(
                 &bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml"),
                 &hpc_root,
@@ -200,10 +184,9 @@ pub(crate) fn handle_environment_root(
             }
         }
         cli::EnvCommand::ApptainerQaMatrix { hpc_root, out } => {
-            let root = hpc_root.clone().map_or_else(
-                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
-                Ok,
-            )?;
+            let root = hpc_root
+                .clone()
+                .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
             let markdown = generate_apptainer_qa_matrix_markdown(&root)?;
             if let Some(parent) = out.parent() {
                 bijux_dna_infra::ensure_dir(parent)?;
@@ -214,10 +197,10 @@ pub(crate) fn handle_environment_root(
         cli::EnvCommand::EnsureImages(args) => {
             let registry_path =
                 bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");
-            let hpc_root = args.hpc_root.clone().map_or_else(
-                || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
-                Ok,
-            )?;
+            let hpc_root = args
+                .hpc_root
+                .clone()
+                .map_or_else(|| hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root), Ok)?;
             let stages = match (&args.stage, &args.stages) {
                 (Some(stage), None) => stage.clone(),
                 (None, Some(stages)) => stages.clone(),
@@ -257,9 +240,7 @@ pub(crate) fn handle_environment_root(
             } else if let Some(tool) = args.tool.as_deref() {
                 run_env_smoke(&args.runtime, tool)?;
             } else {
-                return Err(anyhow::anyhow!(
-                    "environment smoke requires either <tool> or --stage"
-                ));
+                return Err(anyhow::anyhow!("environment smoke requires either <tool> or --stage"));
             }
         }
         cli::EnvCommand::Prep(args) => {
@@ -339,19 +320,13 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
 pub(crate) fn handle_domain_root(command: &cli::DomainCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::DomainCommand::Validate { domain_dir } => {
-            let path = if domain_dir.is_absolute() {
-                domain_dir.clone()
-            } else {
-                cwd.join(domain_dir)
-            };
+            let path =
+                if domain_dir.is_absolute() { domain_dir.clone() } else { cwd.join(domain_dir) };
             validate_domain(&ValidateOptions { domain_dir: path })?;
         }
         cli::DomainCommand::Coverage { domain_dir } => {
-            let path = if domain_dir.is_absolute() {
-                domain_dir.clone()
-            } else {
-                cwd.join(domain_dir)
-            };
+            let path =
+                if domain_dir.is_absolute() { domain_dir.clone() } else { cwd.join(domain_dir) };
             let payload = domain_coverage_report(&path)?;
             cli::render::json::print_pretty(&payload)?;
         }
@@ -401,11 +376,7 @@ pub(crate) fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()>
     });
 
     let ok = checks.iter().all(|check| check.ok);
-    let summary = Summary {
-        schema_version: "bijux.ci.verify.v1",
-        ok,
-        checks,
-    };
+    let summary = Summary { schema_version: "bijux.ci.verify.v1", ok, checks };
     match command {
         cli::CiCommand::Validate { out } => {
             if let Some(parent) = out.parent() {
@@ -426,16 +397,9 @@ pub(crate) fn handle_lab_root(command: &cli::LabCommand, cwd: &Path) -> Result<(
         cli::LabCommand::Corpus { command } => match command {
             cli::LabCorpusCommand::ListFastq { corpus, paired } => {
                 let root = cwd.join("scripts").join("lab").join("corpus").join("fastq");
-                let corpus_root = if corpus == "canonical" {
-                    root.join("canonical")
-                } else {
-                    root.join(corpus)
-                };
-                let scan_root = if corpus_root.exists() {
-                    corpus_root
-                } else {
-                    root
-                };
+                let corpus_root =
+                    if corpus == "canonical" { root.join("canonical") } else { root.join(corpus) };
+                let scan_root = if corpus_root.exists() { corpus_root } else { root };
                 let mut stack = vec![scan_root];
                 let mut files = Vec::new();
                 while let Some(dir) = stack.pop() {

@@ -7,10 +7,7 @@ pub fn run_and_exit(run: impl FnOnce() -> Result<()>) {
     if let Err(err) = run() {
         print_refusal_if_present(&err);
         let failure = bijux_dna_api::v1::api::run::classify_operator_failure(&err);
-        eprintln!(
-            "operator_failure category={:?} message={}",
-            failure.category, failure.message
-        );
+        eprintln!("operator_failure category={:?} message={}", failure.category, failure.message);
         for hint in &failure.hints {
             eprintln!(
                 "hint id={} severity={:?} action={}",

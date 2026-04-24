@@ -29,32 +29,18 @@ pub(super) fn write_corpus_fastq_dossier_index(
     let index = DossierIndex {
         corpus_id: corpus_id.to_string(),
         stage_count: stages.len(),
-        published_stage_count: stages
-            .iter()
-            .filter(|stage| stage.status == "published")
-            .count(),
-        missing_stage_count: stages
-            .iter()
-            .filter(|stage| stage.status != "published")
-            .count(),
+        published_stage_count: stages.iter().filter(|stage| stage.status == "published").count(),
+        missing_stage_count: stages.iter().filter(|stage| stage.status != "published").count(),
         stages,
     };
 
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
-    let json_path = docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "dossier-index.json",
-    ));
-    fs::write(
-        &json_path,
-        format!("{}\n", serde_json::to_string_pretty(&index)?),
-    )
-    .with_context(|| format!("write {}", json_path.display()))?;
+    let json_path = docs_root.join(publication_artifact_file_name(corpus_id, "dossier-index.json"));
+    fs::write(&json_path, format!("{}\n", serde_json::to_string_pretty(&index)?))
+        .with_context(|| format!("write {}", json_path.display()))?;
 
-    let markdown_path = docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "dossier-index.md",
-    ));
+    let markdown_path =
+        docs_root.join(publication_artifact_file_name(corpus_id, "dossier-index.md"));
     fs::write(&markdown_path, render_dossier_index_markdown(&index))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
@@ -128,18 +114,12 @@ pub(super) fn build_dossier_stage_entry(
         .map(PathBuf::from);
 
     entry.status = "published".to_string();
-    entry.generated_at_utc = summary
-        .get("generated_at_utc")
-        .and_then(|value| value.as_str())
-        .map(ToOwned::to_owned);
-    entry.platform = summary
-        .get("platform")
-        .and_then(|value| value.as_str())
-        .map(ToOwned::to_owned);
-    entry.corpus_root = summary
-        .get("corpus_root")
-        .and_then(|value| value.as_str())
-        .map(ToOwned::to_owned);
+    entry.generated_at_utc =
+        summary.get("generated_at_utc").and_then(|value| value.as_str()).map(ToOwned::to_owned);
+    entry.platform =
+        summary.get("platform").and_then(|value| value.as_str()).map(ToOwned::to_owned);
+    entry.corpus_root =
+        summary.get("corpus_root").and_then(|value| value.as_str()).map(ToOwned::to_owned);
     entry.run_root = run_root.as_ref().map(|value| value.display().to_string());
     entry.run_root_source = run_root.as_ref().map(|path| {
         classify_run_root_source(

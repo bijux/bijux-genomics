@@ -18,9 +18,7 @@ impl CheckApplication {
     /// # Errors
     /// Returns an error if the current workspace cannot be resolved.
     pub fn new() -> Result<Self> {
-        Ok(Self {
-            workspace: Workspace::resolve()?,
-        })
+        Ok(Self { workspace: Workspace::resolve()? })
     }
 
     #[must_use]
@@ -56,17 +54,15 @@ impl CheckApplication {
         check: &CheckDefinition,
     ) -> Result<CheckOutcome> {
         let outcome = match &check.command {
-            CommandSpec::CargoTest {
-                package,
-                test_bin,
-                filter,
-            } => execution_adapters::run_cargo_test(
-                &self.workspace,
-                check,
-                package,
-                test_bin,
-                filter,
-            ),
+            CommandSpec::CargoTest { package, test_bin, filter } => {
+                execution_adapters::run_cargo_test(
+                    &self.workspace,
+                    check,
+                    package,
+                    test_bin,
+                    filter,
+                )
+            }
             CommandSpec::Process { program, args } => {
                 execution_adapters::run_process(&self.workspace, check, program, args)
             }
@@ -80,10 +76,7 @@ impl CheckApplication {
                         .ok_or_else(|| anyhow!("missing composite member `{member}`"))?;
                     children.push(self.run_check(registry, nested)?);
                 }
-                let status = if children
-                    .iter()
-                    .all(|child| child.status == CheckStatus::Passed)
-                {
+                let status = if children.iter().all(|child| child.status == CheckStatus::Passed) {
                     CheckStatus::Passed
                 } else {
                     CheckStatus::Failed
@@ -93,11 +86,7 @@ impl CheckApplication {
         };
         match outcome {
             Ok(result) => Ok(result),
-            Err(error) => Ok(CheckOutcome::leaf(
-                check.id,
-                CheckStatus::Failed,
-                error.to_string(),
-            )),
+            Err(error) => Ok(CheckOutcome::leaf(check.id, CheckStatus::Failed, error.to_string())),
         }
     }
 }

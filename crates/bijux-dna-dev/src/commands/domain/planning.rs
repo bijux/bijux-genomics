@@ -19,10 +19,8 @@ fn planner_stage_ids(workspace: &Workspace) -> Result<BTreeSet<String>> {
         "configs/ci/stages/stages_vcf_downstream.toml",
     ] {
         for row in toml_stages(&workspace.path(rel))? {
-            if let Some(stage_id) = row
-                .as_table()
-                .and_then(|table| table.get("id"))
-                .and_then(TomlValue::as_str)
+            if let Some(stage_id) =
+                row.as_table().and_then(|table| table.get("id")).and_then(TomlValue::as_str)
             {
                 stage_ids.insert(stage_id.trim().to_string());
             }

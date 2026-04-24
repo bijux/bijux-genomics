@@ -27,21 +27,12 @@ fn production_bindings(workspace: &Workspace) -> Result<BTreeSet<(String, String
             .unwrap_or_default()
             .trim()
             .to_string();
-        let status = table
-            .get("status")
-            .and_then(TomlValue::as_str)
-            .unwrap_or_default()
-            .trim()
-            .to_string();
+        let status =
+            table.get("status").and_then(TomlValue::as_str).unwrap_or_default().trim().to_string();
         if tool_id.is_empty() || !matches!(status.as_str(), "production" | "supported") {
             continue;
         }
-        for binding in table
-            .get("bindings")
-            .and_then(TomlValue::as_array)
-            .into_iter()
-            .flatten()
-        {
+        for binding in table.get("bindings").and_then(TomlValue::as_array).into_iter().flatten() {
             if let Some(stage_id) = binding.as_str() {
                 bindings.insert((stage_id.trim().to_string(), tool_id.clone()));
             }
@@ -66,12 +57,8 @@ pub(super) fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommand
             let Some(table) = row.as_table() else {
                 continue;
             };
-            let stage_id = table
-                .get("id")
-                .and_then(TomlValue::as_str)
-                .unwrap_or_default()
-                .trim()
-                .to_string();
+            let stage_id =
+                table.get("id").and_then(TomlValue::as_str).unwrap_or_default().trim().to_string();
             let status = table
                 .get("status")
                 .and_then(TomlValue::as_str)
@@ -84,10 +71,7 @@ pub(super) fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommand
                     downstream.display()
                 ));
             }
-            if !matches!(
-                status.as_str(),
-                "planned" | "experimental" | "production" | "supported"
-            ) {
+            if !matches!(status.as_str(), "planned" | "experimental" | "production" | "supported") {
                 errors.push(format!(
                     "{}: invalid stage status '{status}' for {stage_id}",
                     downstream.display()
@@ -169,10 +153,7 @@ pub(super) fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommand
                             stage_file.display()
                         ));
                     }
-                    let parts = slug
-                        .split('_')
-                        .filter(|part| !part.is_empty())
-                        .collect::<Vec<_>>();
+                    let parts = slug.split('_').filter(|part| !part.is_empty()).collect::<Vec<_>>();
                     for pair in parts.windows(2) {
                         if pair[0] == pair[1] {
                             errors.push(format!(
@@ -193,9 +174,7 @@ pub(super) fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommand
             }
 
             let scope = scalar_from_text(&text, "scope")?;
-            if required_scope
-                .as_deref()
-                .is_some_and(|required| scope.as_deref() != Some(required))
+            if required_scope.as_deref().is_some_and(|required| scope.as_deref() != Some(required))
             {
                 errors.push(format!(
                     "{}: scope must be {} (got {})",
@@ -323,10 +302,7 @@ pub(super) fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommand
                 }
             }
             let schema_version = scalar_from_text(&text, "schema_version")?;
-            if !schema_version
-                .as_deref()
-                .is_some_and(|value| value.starts_with("bijux."))
-            {
+            if !schema_version.as_deref().is_some_and(|value| value.starts_with("bijux.")) {
                 errors.push(format!(
                     "{}: schema_version must exist and start with 'bijux.'",
                     metrics_file.display()
@@ -399,10 +375,7 @@ pub(super) fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommand
                 }
             }
             let schema_version = scalar_from_text(&text, "schema_version")?;
-            if !schema_version
-                .as_deref()
-                .is_some_and(|value| value.starts_with("bijux."))
-            {
+            if !schema_version.as_deref().is_some_and(|value| value.starts_with("bijux.")) {
                 errors.push(format!(
                     "{}: schema_version must exist and start with 'bijux.'",
                     artifacts_file.display()
@@ -500,10 +473,7 @@ pub(super) fn check_domain_tool_metadata(workspace: &Workspace) -> Result<Domain
                 .or_else(|| scalar_from_text(&text, "license").ok().flatten());
 
             if tool_id.is_none() {
-                errors.push(format!(
-                    "{} missing tool_id",
-                    workspace.rel(&tool_path).display()
-                ));
+                errors.push(format!("{} missing tool_id", workspace.rel(&tool_path).display()));
             }
             if homepage.is_none() {
                 errors.push(format!(
@@ -512,10 +482,7 @@ pub(super) fn check_domain_tool_metadata(workspace: &Workspace) -> Result<Domain
                 ));
             }
             if citation.is_none() {
-                errors.push(format!(
-                    "{} missing citation",
-                    workspace.rel(&tool_path).display()
-                ));
+                errors.push(format!("{} missing citation", workspace.rel(&tool_path).display()));
             }
             if license_id.is_none() {
                 errors.push(format!(
@@ -551,10 +518,8 @@ pub(super) fn check_external_tool_policy(workspace: &Workspace) -> Result<Domain
             let Some(table) = row.as_table() else {
                 continue;
             };
-            if let Some(tool_id) = table
-                .get("id")
-                .or_else(|| table.get("tool_id"))
-                .and_then(TomlValue::as_str)
+            if let Some(tool_id) =
+                table.get("id").or_else(|| table.get("tool_id")).and_then(TomlValue::as_str)
             {
                 registry_tools.insert(tool_id.trim().to_string());
             }
@@ -696,9 +661,7 @@ pub(super) fn check_fixture_contracts(workspace: &Workspace) -> Result<DomainCom
                         ));
                     }
                     let has_intent = readme_stage_re.captures_iter(&readme_text).any(|captures| {
-                        captures
-                            .get(1)
-                            .is_some_and(|value| value.as_str().trim() == stage_name)
+                        captures.get(1).is_some_and(|value| value.as_str().trim() == stage_name)
                     });
                     if !has_intent {
                         errors.push(format!(
@@ -780,10 +743,8 @@ pub(super) fn check_fixture_contracts(workspace: &Workspace) -> Result<DomainCom
                                 tool
                             ));
                         }
-                        let stem = path
-                            .file_stem()
-                            .and_then(|name| name.to_str())
-                            .unwrap_or_default();
+                        let stem =
+                            path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
                         if tool != stem {
                             errors.push(format!(
                                 "{}: tool field '{}' must match fixture filename stem '{}'",

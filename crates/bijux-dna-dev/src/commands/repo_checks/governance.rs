@@ -16,11 +16,8 @@ pub(crate) fn check_audit_allowlist(
         return fail(check, "missing audit-allowlist.toml");
     }
     let document: toml::Value = toml::from_str(&read(&path)?)?;
-    let rows = document
-        .get("advisory")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let rows =
+        document.get("advisory").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let today = chrono::Utc::now().date_naive();
     let id_re = Regex::new(r"^RUSTSEC-\d{4}-\d{4}$").expect("regex");
     let mut errors = Vec::new();
@@ -28,10 +25,7 @@ pub(crate) fn check_audit_allowlist(
         let tag = format!("entry[{index}]");
         let advisory = row.get("id").and_then(toml::Value::as_str).unwrap_or("");
         let why = row.get("why").and_then(toml::Value::as_str).unwrap_or("");
-        let expiry = row
-            .get("expiry")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
+        let expiry = row.get("expiry").and_then(toml::Value::as_str).unwrap_or("");
         let owner = row.get("owner").and_then(toml::Value::as_str).unwrap_or("");
         let link = row.get("link").and_then(toml::Value::as_str).unwrap_or("");
         if !id_re.is_match(advisory) {
@@ -53,10 +47,7 @@ pub(crate) fn check_audit_allowlist(
         }
     }
     if errors.is_empty() {
-        return pass(
-            check,
-            "audit allowlist entries are well-formed and non-expired",
-        );
+        return pass(check, "audit allowlist entries are well-formed and non-expired");
     }
     fail(check, errors.join("\n"))
 }
@@ -70,11 +61,8 @@ pub(crate) fn check_deny_policy_deviations(
         return fail(check, "missing configs/rust/deny.deviations.toml");
     }
     let document: toml::Value = toml::from_str(&read(&path)?)?;
-    let rows = document
-        .get("deviation")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let rows =
+        document.get("deviation").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     if rows.is_empty() {
         return pass(check, "deny policy deviations governance contract is satisfied");
     }
@@ -83,26 +71,10 @@ pub(crate) fn check_deny_policy_deviations(
     for (index, row) in rows.iter().enumerate() {
         let tag = format!("entry[{index}]");
         let id = row.get("id").and_then(toml::Value::as_str).unwrap_or("").trim();
-        let owner = row
-            .get("owner")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .trim();
-        let reason = row
-            .get("reason")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .trim();
-        let expiry = row
-            .get("expiry")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .trim();
-        let review = row
-            .get("review")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .trim();
+        let owner = row.get("owner").and_then(toml::Value::as_str).unwrap_or("").trim();
+        let reason = row.get("reason").and_then(toml::Value::as_str).unwrap_or("").trim();
+        let expiry = row.get("expiry").and_then(toml::Value::as_str).unwrap_or("").trim();
+        let review = row.get("review").and_then(toml::Value::as_str).unwrap_or("").trim();
         if id.is_empty() {
             errors.push(format!("{tag}: missing id"));
         }
@@ -150,13 +122,7 @@ pub(crate) fn check_bench_knob_discipline_downstream(
             continue;
         }
         let data: toml::Value = toml::from_str(&read(&path)?)?;
-        if data
-            .get("suite_id")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .trim()
-            .is_empty()
-        {
+        if data.get("suite_id").and_then(toml::Value::as_str).unwrap_or("").trim().is_empty() {
             errors.push(format!("{rel}: missing suite_id"));
         }
         let Some(stages) = data.get("stages").and_then(toml::Value::as_array) else {
@@ -164,35 +130,21 @@ pub(crate) fn check_bench_knob_discipline_downstream(
             continue;
         };
         if stages.is_empty()
-            || !stages
-                .iter()
-                .all(|value| value.as_str().unwrap_or("").starts_with("vcf."))
+            || !stages.iter().all(|value| value.as_str().unwrap_or("").starts_with("vcf."))
         {
             errors.push(format!("{rel}: all stages must be vcf.*"));
         }
     }
     let knobs: toml::Value = toml::from_str(&read(&knobs_path)?)?;
-    let defaults = knobs
-        .get("defaults")
-        .and_then(toml::Value::as_table)
-        .cloned()
-        .unwrap_or_default();
-    for key in [
-        "warmup_policy",
-        "repetitions",
-        "capture_cpu",
-        "capture_memory",
-        "capture_io",
-    ] {
+    let defaults =
+        knobs.get("defaults").and_then(toml::Value::as_table).cloned().unwrap_or_default();
+    for key in ["warmup_policy", "repetitions", "capture_cpu", "capture_memory", "capture_io"] {
         if !defaults.contains_key(key) {
             errors.push(format!("configs/bench/knobs.toml defaults missing {key}"));
         }
     }
     if errors.is_empty() {
-        return pass(
-            check,
-            "downstream benchmark suites stay bound to governed knobs",
-        );
+        return pass(check, "downstream benchmark suites stay bound to governed knobs");
     }
     fail(check, errors.join("\n"))
 }
@@ -206,20 +158,12 @@ pub(crate) fn check_bench_knobs(
         .get("defaults")
         .and_then(toml::Value::as_table)
         .context("configs/bench/knobs.toml missing [defaults]")?;
-    let warmup = defaults
-        .get("warmup_policy")
-        .and_then(toml::Value::as_str)
-        .unwrap_or("");
+    let warmup = defaults.get("warmup_policy").and_then(toml::Value::as_str).unwrap_or("");
     if !["none", "once", "per-benchmark"].contains(&warmup) {
-        return fail(
-            check,
-            "warmup_policy must be one of none|once|per-benchmark",
-        );
+        return fail(check, "warmup_policy must be one of none|once|per-benchmark");
     }
-    let repetitions = defaults
-        .get("repetitions")
-        .and_then(toml::Value::as_integer)
-        .unwrap_or_default();
+    let repetitions =
+        defaults.get("repetitions").and_then(toml::Value::as_integer).unwrap_or_default();
     if !(1..=100).contains(&repetitions) {
         return fail(check, "repetitions must be within [1, 100]");
     }
@@ -259,28 +203,15 @@ pub(crate) fn check_benchmark_integrity_policy(
         );
     }
     let knobs: toml::Value = toml::from_str(&read(&workspace.path("configs/bench/knobs.toml"))?)?;
-    let variance = knobs
-        .get("variance")
-        .and_then(toml::Value::as_table)
-        .cloned()
-        .unwrap_or_default();
-    for key in [
-        "runtime_relative_max",
-        "memory_relative_max",
-        "report_structure_match",
-    ] {
+    let variance =
+        knobs.get("variance").and_then(toml::Value::as_table).cloned().unwrap_or_default();
+    for key in ["runtime_relative_max", "memory_relative_max", "report_structure_match"] {
         if !variance.contains_key(key) {
-            errors.push(format!(
-                "configs/bench/knobs.toml [variance] missing `{key}`"
-            ));
+            errors.push(format!("configs/bench/knobs.toml [variance] missing `{key}`"));
         }
     }
     let doc = read(&workspace.path("docs/30-operations/BENCHMARK_VARIANCE.md"))?;
-    for phrase in [
-        "runtime relative variance",
-        "memory relative variance",
-        "report.html",
-    ] {
+    for phrase in ["runtime relative variance", "memory relative variance", "report.html"] {
         if !doc.to_lowercase().contains(&phrase.to_lowercase()) {
             errors.push(format!(
                 "docs/30-operations/BENCHMARK_VARIANCE.md missing phrase `{phrase}`"
@@ -288,10 +219,7 @@ pub(crate) fn check_benchmark_integrity_policy(
         }
     }
     if errors.is_empty() {
-        return pass(
-            check,
-            "benchmark integrity rules stay documented and enforced",
-        );
+        return pass(check, "benchmark integrity rules stay documented and enforced");
     }
     fail(check, errors.join("\n"))
 }
@@ -306,69 +234,33 @@ pub(crate) fn check_certification_schema_docs(
         "bijux.certification_run_stamp.v1",
         "bijux.frontend.mini_domain_validation.v1",
     ];
-    let missing = required
-        .into_iter()
-        .filter(|needle| !doc.contains(needle))
-        .collect::<Vec<_>>();
+    let missing = required.into_iter().filter(|needle| !doc.contains(needle)).collect::<Vec<_>>();
     if missing.is_empty() {
         return pass(check, "certification schema versions stay documented");
     }
-    fail(
-        check,
-        format!(
-            "missing schema versions in MANIFEST_MIGRATION.md: {}",
-            missing.join(", ")
-        ),
-    )
+    fail(check, format!("missing schema versions in MANIFEST_MIGRATION.md: {}", missing.join(", ")))
 }
 
 pub(crate) fn check_clippy_allowlist_expiry(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let cfg: toml::Value = toml::from_str(&read(
-        &workspace.path("configs/ci/lints/clippy_allowlist.toml"),
-    )?)?;
-    let entries = cfg
-        .get("allow")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/ci/lints/clippy_allowlist.toml"))?)?;
+    let entries = cfg.get("allow").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let today = chrono::Utc::now().date_naive();
     let mut errors = Vec::new();
     for (index, entry) in entries.iter().enumerate() {
-        let path = entry
-            .get("path")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
-        let lint = entry
-            .get("lint")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
-        let expiry = entry
-            .get("expires_on")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
-        let reason = entry
-            .get("reason")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("");
-        if [path, lint, expiry, reason]
-            .iter()
-            .any(|value| value.trim().is_empty())
-        {
-            errors.push(format!(
-                "entry #{}: path/lint/expires_on/reason are required",
-                index + 1
-            ));
+        let path = entry.get("path").and_then(toml::Value::as_str).unwrap_or("");
+        let lint = entry.get("lint").and_then(toml::Value::as_str).unwrap_or("");
+        let expiry = entry.get("expires_on").and_then(toml::Value::as_str).unwrap_or("");
+        let reason = entry.get("reason").and_then(toml::Value::as_str).unwrap_or("");
+        if [path, lint, expiry, reason].iter().any(|value| value.trim().is_empty()) {
+            errors.push(format!("entry #{}: path/lint/expires_on/reason are required", index + 1));
             continue;
         }
         let Ok(expiry_date) = chrono::NaiveDate::parse_from_str(expiry, "%Y-%m-%d") else {
-            errors.push(format!(
-                "entry #{}: invalid expires_on {}",
-                index + 1,
-                expiry
-            ));
+            errors.push(format!("entry #{}: invalid expires_on {}", index + 1, expiry));
             continue;
         };
         if expiry_date < today {
@@ -404,22 +296,13 @@ pub(crate) fn check_clippy_allowlist_growth(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let cfg: toml::Value = toml::from_str(&read(
-        &workspace.path("configs/ci/lints/clippy_allowlist.toml"),
-    )?)?;
-    let baseline: toml::Value = toml::from_str(&read(
-        &workspace.path("configs/ci/lints/clippy_allowlist_baseline.toml"),
-    )?)?;
-    let allow = cfg
-        .get("allow")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let base_entries = baseline
-        .get("entry")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let cfg: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/ci/lints/clippy_allowlist.toml"))?)?;
+    let baseline: toml::Value =
+        toml::from_str(&read(&workspace.path("configs/ci/lints/clippy_allowlist_baseline.toml"))?)?;
+    let allow = cfg.get("allow").and_then(toml::Value::as_array).cloned().unwrap_or_default();
+    let base_entries =
+        baseline.get("entry").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let max_entries = baseline
         .get("max_entries")
         .and_then(toml::Value::as_integer)
@@ -444,15 +327,10 @@ pub(crate) fn check_clippy_allowlist_growth(
         .collect::<BTreeSet<_>>();
     let mut errors = Vec::new();
     if allow.len() as i64 > max_entries {
-        errors.push(format!(
-            "allowlist grew: {} > max_entries={max_entries}",
-            allow.len()
-        ));
+        errors.push(format!("allowlist grew: {} > max_entries={max_entries}", allow.len()));
     }
     for (path, lint) in allow_keys.difference(&base_keys) {
-        errors.push(format!(
-            "new allowlist entries are forbidden: {path} :: {lint}"
-        ));
+        errors.push(format!("new allowlist entries are forbidden: {path} :: {lint}"));
     }
     if errors.is_empty() {
         return pass(check, "clippy allowlist did not grow");

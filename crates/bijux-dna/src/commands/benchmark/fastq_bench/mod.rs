@@ -4,10 +4,9 @@ use crate::commands::support::prelude::{
     anyhow, bench_args_from_trim, bench_args_from_validate, bench_fastq_preprocess,
     bench_fastq_trim, bench_fastq_validate_reads, cli, compare_runs, compare_runs_with_baseline,
     env_doctor, fastq_cross_args_from_cli, is_bench_requested_trim, is_bench_requested_validate,
-    load_image_catalog, load_platform, normalize_fastq_stage_id, objective_spec,
-    preprocess_args_from_cli, qc_class_label, render, resolve_adapter_selection,
-    resolve_effective_adapters, write_trim_report, write_validate_report, AdapterPresetsV1,
-    AdapterSelection, Cli, DnaCommand, FastqCommand, Objective, Path, Result, StageId,
+    load_image_catalog, load_platform, objective_spec, preprocess_args_from_cli, qc_class_label,
+    render, write_trim_report, write_validate_report, Cli, DnaCommand, FastqCommand, Objective,
+    Result,
 };
 
 mod adapter_discovery;

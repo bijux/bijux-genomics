@@ -126,10 +126,7 @@ pub(super) fn lock_registry(
     let lock_file = workspace.path("configs/ci/registry/tool_registry_lock.sha256");
     let marker_file = workspace.path("artifacts/configs/tool_registry_lock.marker");
     write_utf8(&lock_file, &format!("{lock_sha}\n"))?;
-    write_utf8(
-        &marker_file,
-        &format!("{REGISTRY_LOCK_GENERATED_BY}\nlock_sha256={lock_sha}\n"),
-    )?;
+    write_utf8(&marker_file, &format!("{REGISTRY_LOCK_GENERATED_BY}\nlock_sha256={lock_sha}\n"))?;
     success_line(format!(
         "updated {} (rules: configs/ci/registry/LOCK_RULES.md)",
         lock_file.display()

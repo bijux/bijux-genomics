@@ -11,54 +11,30 @@ pub(crate) fn benchmark_workspace_value(
 ) -> Result<String> {
     let workspace = load_benchmark_workspace_config(cwd, explicit_path)?;
     match key {
-        "local.results_root" => workspace
-            .local
-            .as_ref()
-            .and_then(|row| row.results_root.clone()),
-        "local.cache_mirror_root" => workspace
-            .local
-            .as_ref()
-            .and_then(|row| row.cache_mirror_root.clone()),
-        "local.extra_data_root" => workspace
-            .local
-            .as_ref()
-            .and_then(|row| row.extra_data_root.clone()),
-        "local.reference_root" => workspace
-            .local
-            .as_ref()
-            .and_then(|row| row.reference_root.clone()),
-        "remote.ssh_host" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.ssh_host.clone()),
-        "remote.repo_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.repo_root.clone()),
-        "remote.cache_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.cache_root.clone()),
-        "remote.corpus_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.corpus_root.clone()),
-        "remote.results_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.results_root.clone()),
-        "remote.extra_data_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.extra_data_root.clone()),
-        "remote.containers_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.containers_root.clone()),
-        "remote.reference_root" => workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.reference_root.clone()),
+        "local.results_root" => workspace.local.as_ref().and_then(|row| row.results_root.clone()),
+        "local.cache_mirror_root" => {
+            workspace.local.as_ref().and_then(|row| row.cache_mirror_root.clone())
+        }
+        "local.extra_data_root" => {
+            workspace.local.as_ref().and_then(|row| row.extra_data_root.clone())
+        }
+        "local.reference_root" => {
+            workspace.local.as_ref().and_then(|row| row.reference_root.clone())
+        }
+        "remote.ssh_host" => workspace.remote.as_ref().and_then(|row| row.ssh_host.clone()),
+        "remote.repo_root" => workspace.remote.as_ref().and_then(|row| row.repo_root.clone()),
+        "remote.cache_root" => workspace.remote.as_ref().and_then(|row| row.cache_root.clone()),
+        "remote.corpus_root" => workspace.remote.as_ref().and_then(|row| row.corpus_root.clone()),
+        "remote.results_root" => workspace.remote.as_ref().and_then(|row| row.results_root.clone()),
+        "remote.extra_data_root" => {
+            workspace.remote.as_ref().and_then(|row| row.extra_data_root.clone())
+        }
+        "remote.containers_root" => {
+            workspace.remote.as_ref().and_then(|row| row.containers_root.clone())
+        }
+        "remote.reference_root" => {
+            workspace.remote.as_ref().and_then(|row| row.reference_root.clone())
+        }
         "sync.defaults.pull_base" => workspace
             .sync
             .as_ref()
@@ -93,10 +69,7 @@ pub(crate) fn benchmark_workspace_value(
             .sync
             .as_ref()
             .and_then(|row| row.defaults.as_ref())
-            .and_then(|row| {
-                row.include_containers_manifest
-                    .map(|value| value.to_string())
-            }),
+            .and_then(|row| row.include_containers_manifest.map(|value| value.to_string())),
         "sync.defaults.data_manifest_glob" => workspace
             .sync
             .as_ref()

@@ -44,11 +44,7 @@ pub(super) fn check_rust_stage_catalog_parity(
             workspace.path("crates/bijux-dna-domain-bam/src/types/mod.rs"),
             "BAM_STAGE_ID_CATALOG",
         ),
-        (
-            "vcf",
-            workspace.path("crates/bijux-dna-domain-vcf/src/lib.rs"),
-            "VCF_STAGE_ID_CATALOG",
-        ),
+        ("vcf", workspace.path("crates/bijux-dna-domain-vcf/src/lib.rs"), "VCF_STAGE_ID_CATALOG"),
     ];
 
     let mut errors = Vec::new();

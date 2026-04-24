@@ -97,20 +97,11 @@ pub struct BenchFastqNormalizePrimersArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(
-        long,
-        help = "Primer governance set id (for example: 16S_universal_v1)"
-    )]
+    #[arg(long, help = "Primer governance set id (for example: 16S_universal_v1)")]
     pub primer_set_id: Option<String>,
-    #[arg(
-        long,
-        help = "Primer orientation policy (for example: normalize_to_forward_primer)"
-    )]
+    #[arg(long, help = "Primer orientation policy (for example: normalize_to_forward_primer)")]
     pub orientation_policy: Option<String>,
-    #[arg(
-        long,
-        help = "Maximum primer mismatch rate admitted by the governed runtime"
-    )]
+    #[arg(long, help = "Maximum primer mismatch rate admitted by the governed runtime")]
     pub max_mismatch_rate: Option<f64>,
     #[arg(long, help = "Minimum primer overlap in base pairs")]
     pub min_overlap_bp: Option<u32>,
@@ -182,10 +173,7 @@ pub struct BenchFastqNormalizeAbundanceArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(
-        long,
-        help = "Normalization method: relative_abundance | counts_per_million"
-    )]
+    #[arg(long, help = "Normalization method: relative_abundance | counts_per_million")]
     pub method: Option<String>,
 }
 
@@ -438,11 +426,7 @@ pub struct BenchFastqPreprocessArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub r2: Option<PathBuf>,
-    #[arg(
-        long,
-        value_name = "PATH",
-        help = "Reference FASTA for reference-guided FASTQ stages"
-    )]
+    #[arg(long, value_name = "PATH", help = "Reference FASTA for reference-guided FASTQ stages")]
     pub reference_fasta: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
@@ -473,10 +457,7 @@ pub struct BenchFastqPreprocessArgs {
     pub polyx_preset: Option<String>,
     #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
     pub contaminant_preset: Option<String>,
-    #[arg(
-        long,
-        help = "Enable contaminant k-mer removal when contaminant preset is set."
-    )]
+    #[arg(long, help = "Enable contaminant k-mer removal when contaminant preset is set.")]
     pub enable_contaminant_removal: bool,
     #[arg(long)]
     pub no_qc_post: bool,
@@ -484,10 +465,7 @@ pub struct BenchFastqPreprocessArgs {
     pub force_merge: bool,
     #[arg(long, help = "Enable error correction stage")]
     pub enable_correct: bool,
-    #[arg(
-        long,
-        help = "Expand each preprocess stage into all governed runtime tools"
-    )]
+    #[arg(long, help = "Expand each preprocess stage into all governed runtime tools")]
     pub run_all_governed_tools: bool,
     #[arg(long, help = "Allow planned/out-of-scope stages in planning")]
     pub allow_planned: bool,

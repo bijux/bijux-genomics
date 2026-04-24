@@ -49,10 +49,7 @@ pub(super) fn lab_run_bench(workspace: &Workspace, args: &[String]) -> Result<Op
             output_dir,
         ],
     )?;
-    Ok(merge_outcomes(
-        OpsCommandOutcome::success(fastq.stdout),
-        bam,
-    ))
+    Ok(merge_outcomes(OpsCommandOutcome::success(fastq.stdout), bam))
 }
 
 pub(super) fn lab_run_pipelines(
@@ -67,11 +64,7 @@ pub(super) fn lab_run_pipelines(
     let output_dir = required_config_string(&config, "output_dir", "lab config")?;
     let pipeline_ids = required_config_string(&config, "pipeline_ids", "lab config")?;
     let mut aggregate = OpsCommandOutcome::success(String::new());
-    for pipeline in pipeline_ids
-        .split(',')
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-    {
+    for pipeline in pipeline_ids.split(',').map(str::trim).filter(|value| !value.is_empty()) {
         let outcome = run_program(
             workspace,
             "cargo",

@@ -754,7 +754,7 @@ fn write_provenance_stamp(cwd: &Path, root: &Path) -> Result<()> {
         .unwrap_or_else(|_| String::new());
     let mut hasher = sha2::Sha256::new();
     hasher.update(registry_raw.as_bytes());
-    let registry_hash = format!("sha256:{:x}", hasher.finalize());
+    let registry_hash = format!("sha256:{}", sha256_hex(&hasher.finalize()));
 
     let stamp = serde_json::json!({
         "schema_version": "bijux.example.provenance_stamp.v1",
@@ -763,6 +763,15 @@ fn write_provenance_stamp(cwd: &Path, root: &Path) -> Result<()> {
     });
     bijux_dna_infra::atomic_write_json(&root.join("golden").join("provenance_stamp.json"), &stamp)?;
     Ok(())
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        use std::fmt::Write as _;
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
 }
 
 fn shell_escape_path(path: &Path) -> String {

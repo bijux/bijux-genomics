@@ -1,6 +1,4 @@
-use std::path::PathBuf;
-
-use clap::{Args, Subcommand};
+use clap::Subcommand;
 
 use super::BenchBamCommand;
 
@@ -18,13 +16,15 @@ pub use self::config::{
 pub use self::corpus_fastq::BenchCorpusFastqArgs;
 pub use self::fastq::BenchFastqCommand;
 pub use self::fastq::{
-    BenchFastqClusterOtusArgs, BenchFastqDepleteHostArgs,
+    BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDepleteHostArgs,
     BenchFastqDepleteReferenceContaminantsArgs, BenchFastqDepleteRrnaArgs,
-    BenchFastqDetectAdaptersArgs, BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs,
-    BenchFastqMergeArgs, BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs,
-    BenchFastqPreprocessArgs, BenchFastqRemoveChimerasArgs, BenchFastqScreenArgs,
-    BenchFastqTrimArgs, BenchFastqTrimPolygArgs, BenchFastqTrimTerminalDamageArgs,
-    BenchFastqUmiArgs, BenchFastqValidateArgs,
+    BenchFastqDetectAdaptersArgs, BenchFastqFilterArgs, BenchFastqFilterLowComplexityArgs,
+    BenchFastqIndexReferenceArgs, BenchFastqInferAsvsArgs, BenchFastqMergeArgs,
+    BenchFastqNormalizeAbundanceArgs, BenchFastqNormalizePrimersArgs, BenchFastqPreprocessArgs,
+    BenchFastqProfileOverrepresentedArgs, BenchFastqProfileReadLengthsArgs, BenchFastqQcPostArgs,
+    BenchFastqRemoveChimerasArgs, BenchFastqRemoveDuplicatesArgs, BenchFastqScreenArgs,
+    BenchFastqStatsArgs, BenchFastqTrimArgs, BenchFastqTrimPolygArgs,
+    BenchFastqTrimTerminalDamageArgs, BenchFastqUmiArgs, BenchFastqValidateArgs,
 };
 pub use self::publication::{
     BenchCorpusFastqPublicationStatusArgs, BenchCorpusFastqPublishedDossiersArgs,

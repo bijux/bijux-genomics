@@ -20,19 +20,12 @@ pub(super) fn run_checks(command: ChecksCommand) -> Result<()> {
     match command.command {
         ChecksSubcommand::List => {
             for check in CheckApplication::registry() {
-                write_line_stdout(&format!(
-                    "{}\tv{}\t{}",
-                    check.id, check.version, check.summary
-                ))?;
+                write_line_stdout(&format!("{}\tv{}\t{}", check.id, check.version, check.summary))?;
             }
             Ok(())
         }
         ChecksSubcommand::Run { all, id } => {
-            let command_id = if all {
-                "all".to_string()
-            } else {
-                id.clone().unwrap_or_default()
-            };
+            let command_id = if all { "all".to_string() } else { id.clone().unwrap_or_default() };
             with_timing("checks", &command_id, || {
                 let selection = if all {
                     CheckSelection::All
@@ -104,10 +97,7 @@ pub(super) fn run_domain(command: DomainCommand) -> Result<()> {
                 write_stderr(&outcome.stderr)?;
             }
             if !outcome.is_success() {
-                anyhow::bail!(
-                    "domain command `{id}` failed with exit code {}",
-                    outcome.exit_code
-                );
+                anyhow::bail!("domain command `{id}` failed with exit code {}", outcome.exit_code);
             }
             Ok(())
         }),
@@ -140,10 +130,7 @@ pub(super) fn run_ops(
                 write_stderr(&outcome.stderr)?;
             }
             if !outcome.is_success() {
-                anyhow::bail!(
-                    "{group} command `{id}` failed with exit code {}",
-                    outcome.exit_code
-                );
+                anyhow::bail!("{group} command `{id}` failed with exit code {}", outcome.exit_code);
             }
             Ok(())
         }),

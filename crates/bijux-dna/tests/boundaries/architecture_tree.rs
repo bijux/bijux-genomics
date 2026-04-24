@@ -1,44 +1,26 @@
 use std::collections::BTreeSet;
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn dna_tree_matches_architecture_contract() {
     let root = crate::support::crate_root("bijux-dna")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
 
     let root_entries = dir_entries(&root);
-    let expected_root: BTreeSet<_> = [
-        "BOUNDARY.md",
-        "Cargo.toml",
-        "PUBLIC_API.md",
-        "README.md",
-        "docs/",
-        "src/",
-        "tests/",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        root_entries, expected_root,
-        "dna crate root must stay minimal and intentional"
-    );
+    let expected_root: BTreeSet<_> =
+        ["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(root_entries, expected_root, "dna crate root must stay minimal and intentional");
 
     let src_entries = dir_entries(&root.join("src"));
-    let expected_src: BTreeSet<_> = [
-        "bin/",
-        "cli_entrypoint.rs",
-        "commands/",
-        "lib.rs",
-        "process_exit.rs",
-        "public_api/",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        src_entries, expected_src,
-        "dna src tree must match the documented CLI layout"
-    );
+    let expected_src: BTreeSet<_> =
+        ["bin/", "cli_entrypoint.rs", "commands/", "lib.rs", "process_exit.rs", "public_api/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(src_entries, expected_src, "dna src tree must match the documented CLI layout");
 
     let command_entries = dir_entries(&root.join("src/commands"));
     let expected_commands: BTreeSet<_> = [
@@ -67,17 +49,11 @@ fn dna_tree_matches_architecture_contract() {
     );
 
     let router_entries = dir_entries(&root.join("src/commands/router"));
-    let expected_router: BTreeSet<_> = [
-        "argv.rs",
-        "entrypoint.rs",
-        "mod.rs",
-        "root.rs",
-        "root_commands.rs",
-        "runtime.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_router: BTreeSet<_> =
+        ["argv.rs", "entrypoint.rs", "mod.rs", "root.rs", "root_commands.rs", "runtime.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         router_entries, expected_router,
         "router tree must stay focused on CLI entry and routing"
@@ -108,16 +84,11 @@ fn dna_tree_matches_architecture_contract() {
 
     let benchmark_fastq_bench_entries =
         dir_entries(&root.join("src/commands/benchmark/fastq_bench"));
-    let expected_benchmark_fastq_bench: BTreeSet<_> = [
-        "adapter_discovery.rs",
-        "discovery.rs",
-        "explain.rs",
-        "mod.rs",
-        "tool_policy.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_benchmark_fastq_bench: BTreeSet<_> =
+        ["adapter_discovery.rs", "discovery.rs", "explain.rs", "mod.rs", "tool_policy.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         benchmark_fastq_bench_entries, expected_benchmark_fastq_bench,
         "fastq benchmark tree must separate adapter discovery, stage discovery, explanation, and tool policy"
@@ -183,17 +154,11 @@ fn dna_tree_matches_architecture_contract() {
     );
 
     let bench_parse_entries = dir_entries(&root.join("src/commands/cli/parse/bench"));
-    let expected_bench_parse: BTreeSet<_> = [
-        "config.rs",
-        "corpus_fastq.rs",
-        "fastq/",
-        "mod.rs",
-        "publication.rs",
-        "suite.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_bench_parse: BTreeSet<_> =
+        ["config.rs", "corpus_fastq.rs", "fastq/", "mod.rs", "publication.rs", "suite.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         bench_parse_entries, expected_bench_parse,
         "bench parse tree must keep config, publication, suite, and fastq parsing separate"
@@ -249,10 +214,8 @@ fn dna_tree_matches_architecture_contract() {
     );
 
     let fastq_entries = dir_entries(&root.join("src/commands/fastq"));
-    let expected_fastq: BTreeSet<_> = ["api_bridge.rs", "meta/", "mod.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_fastq: BTreeSet<_> =
+        ["api_bridge.rs", "meta/", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         fastq_entries, expected_fastq,
         "fastq tree must keep API mediation separate from meta dispatch"
@@ -320,10 +283,7 @@ fn dna_tree_matches_architecture_contract() {
 
     let public_api_entries = dir_entries(&root.join("src/public_api"));
     let expected_public_api: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
-    assert_eq!(
-        public_api_entries, expected_public_api,
-        "public api tree must stay curated"
-    );
+    assert_eq!(public_api_entries, expected_public_api, "public api tree must stay curated");
 }
 
 fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {

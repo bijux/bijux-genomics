@@ -1,5 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use anyhow::Result;
+
 use crate::commands::benchmark_workspace::load_optional_benchmark_workspace_config;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

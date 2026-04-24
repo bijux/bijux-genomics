@@ -3,13 +3,13 @@ use std::path::Path;
 use anyhow::Result;
 
 use crate::commands::cli;
-use crate::commands::router::root_commands::{
-    handle_corpus_root, handle_environment_root, handle_registry_root,
-};
 #[cfg(debug_assertions)]
 use crate::commands::router::root_commands::{
     handle_ci_root, handle_config_root, handle_domain_root, handle_ena_root, handle_lab_root,
     handle_tool_root,
+};
+use crate::commands::router::root_commands::{
+    handle_corpus_root, handle_environment_root, handle_registry_root,
 };
 use crate::commands::status::handle_status_root;
 

@@ -84,12 +84,7 @@ pub(super) fn audit_publication_summary(
             "error",
         );
     }
-    if summary
-        .get("samples_failed")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0)
-        != 0
-    {
+    if summary.get("samples_failed").and_then(serde_json::Value::as_u64).unwrap_or(0) != 0 {
         append_stage_audit_issue(
             issues,
             &contract.stage_id,
@@ -161,10 +156,7 @@ pub(super) fn audit_sample_results(
             issues,
             &contract.stage_id,
             "empty-sample-results-rows",
-            format!(
-                "no CSV rows in {}",
-                relative_to_docs_root(sample_results_path, docs_root)
-            ),
+            format!("no CSV rows in {}", relative_to_docs_root(sample_results_path, docs_root)),
             "error",
         );
         return Ok(());
@@ -176,27 +168,20 @@ pub(super) fn audit_sample_results(
     let mut observed_tools = BTreeSet::new();
 
     for row in &sample_rows {
-        let (Some(sample_id), Some(tool)) = (
-            csv_required_value(row, "sample_id"),
-            csv_required_value(row, "tool"),
-        ) else {
+        let (Some(sample_id), Some(tool)) =
+            (csv_required_value(row, "sample_id"), csv_required_value(row, "tool"))
+        else {
             append_stage_audit_issue(
                 issues,
                 &contract.stage_id,
                 "sample-results-missing-sample-or-tool",
-                format!(
-                    "invalid row in {}",
-                    relative_to_docs_root(sample_results_path, docs_root)
-                ),
+                format!("invalid row in {}", relative_to_docs_root(sample_results_path, docs_root)),
                 "error",
             );
             continue;
         };
         observed_tools.insert(tool.clone());
-        per_sample_tools
-            .entry(sample_id.clone())
-            .or_default()
-            .push(tool);
+        per_sample_tools.entry(sample_id.clone()).or_default().push(tool);
         let metadata_tuple = (
             csv_report_value(row, "accession"),
             csv_report_value(row, "era"),

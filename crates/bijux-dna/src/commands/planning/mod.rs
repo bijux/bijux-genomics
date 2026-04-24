@@ -23,22 +23,14 @@ pub(crate) fn run_plan(
     let run_spec = RunSpec {
         stage: stage.clone(),
         tool: tool.clone(),
-        paths: PathSpec {
-            input: Vec::new(),
-            output: Vec::new(),
-            work: PathBuf::new(),
-        },
+        paths: PathSpec { input: Vec::new(), output: Vec::new(), work: PathBuf::new() },
         params: BTreeMap::new(),
     };
 
     let mut profile = load_profile_for_cli(cli)?;
     ensure_profile_run_base_dir(&stage, &tool, &mut profile);
     let plan = bijux_dna_api::v1::api::plan::plan_run(
-        bijux_dna_api::v1::api::plan::PlanRunRequest {
-            run_spec,
-            profile,
-            run_id: run_id.clone(),
-        },
+        bijux_dna_api::v1::api::plan::PlanRunRequest { run_spec, profile, run_id: run_id.clone() },
         registry,
     )
     .map_err(|err| anyhow!("failed to build plan: {err}"))?
@@ -155,10 +147,8 @@ fn write_plan_artifacts(
         tool_id,
         artifacts: planned_artifacts,
     };
-    let provenance_notes = vec![
-        format!("planner_stage={stage_id}"),
-        format!("selected_tool={tool_id}"),
-    ];
+    let provenance_notes =
+        vec![format!("planner_stage={stage_id}"), format!("selected_tool={tool_id}")];
     let comparability_notes =
         vec!["compare against runs with same stage id and artifact schema set".to_string()];
     let decision_trace = DecisionTrace {

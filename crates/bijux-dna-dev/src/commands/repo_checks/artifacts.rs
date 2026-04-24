@@ -19,10 +19,7 @@ pub(crate) fn check_artifact_env_contract(
     let snapshots = workspace.path("crates");
     let path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
     let mut leaks = Vec::new();
-    for entry in WalkDir::new(&snapshots)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(&snapshots).into_iter().filter_map(std::result::Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -47,13 +44,7 @@ pub(crate) fn check_artifact_env_contract(
             ),
         );
     }
-    fail(
-        check,
-        format!(
-            "absolute host paths leaked into snapshots: {}",
-            leaks.join(", ")
-        ),
-    )
+    fail(check, format!("absolute host paths leaked into snapshots: {}", leaks.join(", ")))
 }
 
 pub(crate) fn check_artifacts_layout(
@@ -79,10 +70,7 @@ pub(crate) fn check_artifacts_tracked(
     if tracked.is_empty() {
         return pass(check, "artifacts/ remains untracked");
     }
-    fail(
-        check,
-        format!("tracked files under artifacts/: {}", tracked.join(", ")),
-    )
+    fail(check, format!("tracked files under artifacts/: {}", tracked.join(", ")))
 }
 
 pub(crate) fn check_assets_reference_schema(
@@ -109,10 +97,7 @@ pub(crate) fn check_assets_reference_schema(
         .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| {
-            matches!(
-                entry.path().extension().and_then(|ext| ext.to_str()),
-                Some("yaml" | "yml")
-            )
+            matches!(entry.path().extension().and_then(|ext| ext.to_str()), Some("yaml" | "yml"))
         });
     for entry in yaml_iter {
         let raw = read(entry.path())?;
@@ -128,9 +113,7 @@ pub(crate) fn check_assets_reference_schema(
             })
             .count();
         if non_comment_keys < 2 {
-            errors.push(format!(
-                "{rel}: expected schema_version plus at least one additional key"
-            ));
+            errors.push(format!("{rel}: expected schema_version plus at least one additional key"));
         }
         let ids = id_re
             .captures_iter(&raw)
@@ -166,17 +149,11 @@ pub(crate) fn check_assets_reference_schema(
             if !path.is_file() {
                 continue;
             }
-            if !matches!(
-                path.extension().and_then(|ext| ext.to_str()),
-                Some("yaml" | "yml")
-            ) {
+            if !matches!(path.extension().and_then(|ext| ext.to_str()), Some("yaml" | "yml")) {
                 continue;
             }
-            let name = path
-                .file_name()
-                .and_then(|value| value.to_str())
-                .unwrap_or_default()
-                .to_string();
+            let name =
+                path.file_name().and_then(|value| value.to_str()).unwrap_or_default().to_string();
             if name.contains("presets") {
                 preset_files.push(path);
             } else {
@@ -230,10 +207,7 @@ pub(crate) fn check_assets_reference_schema(
     if errors.is_empty() {
         return pass(check, "asset reference validation completed");
     }
-    fail(
-        check,
-        format!("assets-reference-schema: FAILED\n{}", errors.join("\n")),
-    )
+    fail(check, format!("assets-reference-schema: FAILED\n{}", errors.join("\n")))
 }
 
 pub(crate) fn check_no_fake_artifacts(
@@ -250,10 +224,7 @@ pub(crate) fn check_no_fake_artifacts(
         Regex::new(r"placeholder|fake_artifact|dummy_artifact|stub_artifact").expect("regex");
     let mut hits = Vec::new();
     for root in source_roots {
-        for entry in WalkDir::new(&root)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
+        for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -271,10 +242,7 @@ pub(crate) fn check_no_fake_artifacts(
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(&root)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
+        for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -285,15 +253,9 @@ pub(crate) fn check_no_fake_artifacts(
         }
     }
     if hits.is_empty() {
-        return pass(
-            check,
-            "stage code and produced artifacts avoid placeholder markers",
-        );
+        return pass(check, "stage code and produced artifacts avoid placeholder markers");
     }
-    fail(
-        check,
-        format!("placeholder artifact markers found: {}", hits.join(", ")),
-    )
+    fail(check, format!("placeholder artifact markers found: {}", hits.join(", ")))
 }
 
 pub(crate) fn check_output_roots(

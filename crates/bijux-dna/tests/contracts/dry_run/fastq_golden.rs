@@ -42,27 +42,13 @@ arch = "x86_64"
     )
     .expect("write platforms");
     let repo_root = crate::support::repo_root().expect("repo root");
-    let workspace_images = repo_root
-        .join("configs")
-        .join("ci")
-        .join("tools")
-        .join("images.toml");
+    let workspace_images = repo_root.join("configs").join("ci").join("tools").join("images.toml");
     std::fs::copy(workspace_images, ci_tools_dir.join("images.toml")).expect("write images");
-    let workspace_tool_registry = repo_root
-        .join("configs")
-        .join("ci")
-        .join("registry")
-        .join("tool_registry.toml");
-    std::fs::copy(
-        workspace_tool_registry,
-        ci_registry_dir.join("tool_registry.toml"),
-    )
-    .expect("write tool registry");
-    let workspace_stages = repo_root
-        .join("configs")
-        .join("ci")
-        .join("stages")
-        .join("stages.toml");
+    let workspace_tool_registry =
+        repo_root.join("configs").join("ci").join("registry").join("tool_registry.toml");
+    std::fs::copy(workspace_tool_registry, ci_registry_dir.join("tool_registry.toml"))
+        .expect("write tool registry");
+    let workspace_stages = repo_root.join("configs").join("ci").join("stages").join("stages.toml");
     std::fs::copy(workspace_stages, ci_stages_dir.join("stages.toml")).expect("write stages");
 
     #[cfg(unix)]
@@ -73,11 +59,7 @@ arch = "x86_64"
             .expect("symlink assets");
     }
 
-    let defaults_dir = out_dir
-        .join("bench")
-        .join("preprocess")
-        .join("sample")
-        .join("tools");
+    let defaults_dir = out_dir.join("bench").join("preprocess").join("sample").join("tools");
     std::fs::create_dir_all(&defaults_dir).expect("create defaults dir");
     let defaults = serde_json::json!({
         "pipeline_id": "fastq-to-fastq__default__v1",
@@ -120,10 +102,10 @@ arch = "x86_64"
     ];
     let err = run_with_args(&args, base).expect_err("fastq command family should be removed");
     assert!(err.to_string().contains("unrecognized subcommand"));
-    bijux_dna_api::v1::api::run::canonical::to_canonical_json_bytes(&serde_json::json!({
+    serde_json::to_vec(&serde_json::json!({
         "removed": "fastq",
     }))
-    .expect("canonical")
+    .expect("serialize canonical marker")
 }
 
 #[test]

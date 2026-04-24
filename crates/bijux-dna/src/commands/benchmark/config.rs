@@ -18,83 +18,47 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
     require_value(
         &mut errors,
         "workspace.local.results_root",
-        config
-            .workspace
-            .local
-            .as_ref()
-            .and_then(|row| row.results_root.as_deref()),
+        config.workspace.local.as_ref().and_then(|row| row.results_root.as_deref()),
     );
     require_value(
         &mut errors,
         "workspace.local.cache_mirror_root",
-        config
-            .workspace
-            .local
-            .as_ref()
-            .and_then(|row| row.cache_mirror_root.as_deref()),
+        config.workspace.local.as_ref().and_then(|row| row.cache_mirror_root.as_deref()),
     );
     require_value(
         &mut errors,
         "workspace.local.extra_data_root",
-        config
-            .workspace
-            .local
-            .as_ref()
-            .and_then(|row| row.extra_data_root.as_deref()),
+        config.workspace.local.as_ref().and_then(|row| row.extra_data_root.as_deref()),
     );
     require_value(
         &mut errors,
         "workspace.remote.ssh_host",
-        config
-            .workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.ssh_host.as_deref()),
+        config.workspace.remote.as_ref().and_then(|row| row.ssh_host.as_deref()),
     );
     require_value(
         &mut errors,
         "workspace.remote.repo_root",
-        config
-            .workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.repo_root.as_deref()),
+        config.workspace.remote.as_ref().and_then(|row| row.repo_root.as_deref()),
     );
     require_value(
         &mut errors,
         "workspace.remote.cache_root",
-        config
-            .workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.cache_root.as_deref()),
+        config.workspace.remote.as_ref().and_then(|row| row.cache_root.as_deref()),
     );
     require_value(
         &mut errors,
         "workspace.remote.corpus_root",
-        config
-            .workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.corpus_root.as_deref()),
+        config.workspace.remote.as_ref().and_then(|row| row.corpus_root.as_deref()),
     );
     require_value(
         &mut errors,
         "workspace.remote.results_root",
-        config
-            .workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.results_root.as_deref()),
+        config.workspace.remote.as_ref().and_then(|row| row.results_root.as_deref()),
     );
     require_value(
         &mut errors,
         "workspace.remote.extra_data_root",
-        config
-            .workspace
-            .remote
-            .as_ref()
-            .and_then(|row| row.extra_data_root.as_deref()),
+        config.workspace.remote.as_ref().and_then(|row| row.extra_data_root.as_deref()),
     );
     require_value(
         &mut errors,
@@ -136,17 +100,14 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
         require_value(
             &mut errors,
             &format!("corpora.{corpus_id}.spec_path"),
-            config
-                .corpora
-                .get(corpus_id)
-                .and_then(|row| row.spec_path.as_deref()),
+            config.corpora.get(corpus_id).and_then(|row| row.spec_path.as_deref()),
         );
         let publication_key = benchmark_publication_corpus_key(corpus_id);
         if config
             .publication
             .corpora
             .get(&publication_key)
-            .map_or(true, |row| row.contracts.is_empty())
+            .is_none_or(|row| row.contracts.is_empty())
         {
             errors.push(format!(
                 "publication.{publication_key}.contracts is empty for declared corpus {corpus_id}"
@@ -168,10 +129,7 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
             .and_then(|row| row.spec_path.as_deref())
             .map(|row| absolutize(cwd, Path::new(row)));
         if let Some(spec_path) = spec_path.filter(|row| args.check_paths && !row.is_file()) {
-            errors.push(format!(
-                "missing corpus spec for {corpus_id}: {}",
-                spec_path.display()
-            ));
+            errors.push(format!("missing corpus spec for {corpus_id}: {}", spec_path.display()));
         }
     }
 
@@ -185,31 +143,19 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
         require_existing_path(
             &mut errors,
             "stage_inputs.fastq_deplete_host.reference_index",
-            config
-                .stage_inputs
-                .fastq_deplete_host
-                .reference_index
-                .as_deref(),
+            config.stage_inputs.fastq_deplete_host.reference_index.as_deref(),
             cwd,
         );
         require_existing_path(
             &mut errors,
             "stage_inputs.fastq_deplete_reference_contaminants.reference_index",
-            config
-                .stage_inputs
-                .fastq_deplete_reference_contaminants
-                .reference_index
-                .as_deref(),
+            config.stage_inputs.fastq_deplete_reference_contaminants.reference_index.as_deref(),
             cwd,
         );
         require_existing_path(
             &mut errors,
             "stage_inputs.fastq_screen_taxonomy.database_root",
-            config
-                .stage_inputs
-                .fastq_screen_taxonomy
-                .database_root
-                .as_deref(),
+            config.stage_inputs.fastq_screen_taxonomy.database_root.as_deref(),
             cwd,
         );
     }
@@ -231,7 +177,7 @@ pub(crate) fn validate_benchmark_config(cwd: &Path, args: &BenchConfigValidateAr
 }
 
 fn require_value(errors: &mut Vec<String>, key: &str, value: Option<&str>) {
-    if value.map_or(true, |row| row.trim().is_empty()) {
+    if value.is_none_or(|row| row.trim().is_empty()) {
         errors.push(format!("missing required benchmark config key: {key}"));
     }
 }
@@ -243,10 +189,7 @@ fn require_existing_path(errors: &mut Vec<String>, key: &str, value: Option<&str
     };
     let path = absolutize(cwd, Path::new(raw));
     if !path.exists() {
-        errors.push(format!(
-            "missing configured path for {key}: {}",
-            path.display()
-        ));
+        errors.push(format!("missing configured path for {key}: {}", path.display()));
     }
 }
 
@@ -323,10 +266,7 @@ tools = ["fastqvalidator"]
 
         let error = validate_benchmark_config(
             temp.path(),
-            &crate::commands::cli::BenchConfigValidateArgs {
-                config: None,
-                check_paths: false,
-            },
+            &crate::commands::cli::BenchConfigValidateArgs { config: None, check_paths: false },
         )
         .expect_err("validator should reject missing corpora");
 
@@ -367,10 +307,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
 
         let error = validate_benchmark_config(
             temp.path(),
-            &crate::commands::cli::BenchConfigValidateArgs {
-                config: None,
-                check_paths: false,
-            },
+            &crate::commands::cli::BenchConfigValidateArgs { config: None, check_paths: false },
         )
         .expect_err("validator should reject missing publication contracts");
 
@@ -416,10 +353,7 @@ tools = ["fastqvalidator"]
 
         let error = validate_benchmark_config(
             temp.path(),
-            &crate::commands::cli::BenchConfigValidateArgs {
-                config: None,
-                check_paths: false,
-            },
+            &crate::commands::cli::BenchConfigValidateArgs { config: None, check_paths: false },
         )
         .expect_err("validator should reject missing corpus spec path");
 
@@ -457,10 +391,7 @@ tools = ["fastqvalidator"]
 
         let error = validate_benchmark_config(
             temp.path(),
-            &crate::commands::cli::BenchConfigValidateArgs {
-                config: None,
-                check_paths: false,
-            },
+            &crate::commands::cli::BenchConfigValidateArgs { config: None, check_paths: false },
         )
         .expect_err("validator should reject missing workspace contracts");
 
@@ -517,10 +448,7 @@ tools = ["fastqvalidator"]
 
         let error = validate_benchmark_config(
             temp.path(),
-            &crate::commands::cli::BenchConfigValidateArgs {
-                config: None,
-                check_paths: false,
-            },
+            &crate::commands::cli::BenchConfigValidateArgs { config: None, check_paths: false },
         )
         .expect_err("validator should reject undeclared publication corpus");
 
@@ -585,10 +513,7 @@ tools = ["fastqvalidator"]
 
         validate_benchmark_config(
             temp.path(),
-            &crate::commands::cli::BenchConfigValidateArgs {
-                config: None,
-                check_paths: true,
-            },
+            &crate::commands::cli::BenchConfigValidateArgs { config: None, check_paths: true },
         )
         .expect("validator should accept declared corpus config");
     }

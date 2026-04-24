@@ -19,10 +19,7 @@ pub struct EnvGuard {
 
 impl EnvGuard {
     pub fn new() -> Result<Self> {
-        Ok(Self {
-            cwd: std::env::current_dir()?,
-            env: std::env::vars_os().collect(),
-        })
+        Ok(Self { cwd: std::env::current_dir()?, env: std::env::vars_os().collect() })
     }
 }
 

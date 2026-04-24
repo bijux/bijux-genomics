@@ -15,12 +15,7 @@ pub(in super::super) fn tooling_ci_fmt(
     run_program_with_env(
         workspace,
         "cargo",
-        &[
-            "fmt".to_string(),
-            "--all".to_string(),
-            "--".to_string(),
-            "--check".to_string(),
-        ],
+        &["fmt".to_string(), "--all".to_string(), "--".to_string(), "--check".to_string()],
         &envs,
     )
 }
@@ -97,10 +92,7 @@ pub(in super::super) fn tooling_ci_audit(
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-audit", args)?;
     let mut stdout = String::new();
-    run_check_ids(
-        &mut stdout,
-        &["check-audit-allowlist", "check-deny-policy-deviations"],
-    )?;
+    run_check_ids(&mut stdout, &["check-audit-allowlist", "check-deny-policy-deviations"])?;
     let outcome = run_program_with_env(
         workspace,
         "cargo",
@@ -156,10 +148,7 @@ pub(in super::super) fn tooling_ci_test(
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("ci-test", args)?;
     let mut stdout = String::new();
-    run_check_ids(
-        &mut stdout,
-        &["check-artifact-env-contract", "check-ssot-guardrails"],
-    )?;
+    run_check_ids(&mut stdout, &["check-artifact-env-contract", "check-ssot-guardrails"])?;
     set_assets_readonly(workspace, true)?;
     let envs = ci_test_env(workspace, false)?;
     let expr = resolved_nextest_expression(false);
@@ -315,8 +304,5 @@ pub(in super::super) fn tooling_ci_coverage(
         ],
         &envs,
     )?;
-    Ok(merge_outcomes(
-        merge_outcomes(clean, json_report),
-        html_report,
-    ))
+    Ok(merge_outcomes(merge_outcomes(clean, json_report), html_report))
 }

@@ -26,17 +26,14 @@ fn parse_scalar(raw: &str, key: &str) -> Option<String> {
 
 fn parse_toml_path(path: &Path) -> Result<toml::Value> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    raw.parse::<toml::Value>()
-        .map_err(|err| anyhow!("parse {}: {err}", path.display()))
+    raw.parse::<toml::Value>().map_err(|err| anyhow!("parse {}: {err}", path.display()))
 }
 
 fn toml_array<'a>(value: &'a toml::Value, key: &str) -> Result<Vec<&'a toml::Value>> {
     let Some(raw) = value.get(key) else {
         return Ok(Vec::new());
     };
-    let rows = raw
-        .as_array()
-        .ok_or_else(|| anyhow!("registry field `{key}` must be an array"))?;
+    let rows = raw.as_array().ok_or_else(|| anyhow!("registry field `{key}` must be an array"))?;
     Ok(rows.iter().collect::<Vec<_>>())
 }
 
@@ -53,9 +50,7 @@ fn toml_list(value: &toml::Value, key: &str) -> Result<Vec<String>> {
     let Some(raw) = value.get(key) else {
         return Ok(Vec::new());
     };
-    let rows = raw
-        .as_array()
-        .ok_or_else(|| anyhow!("registry field `{key}` must be an array"))?;
+    let rows = raw.as_array().ok_or_else(|| anyhow!("registry field `{key}` must be an array"))?;
     rows.iter()
         .map(|entry| {
             entry
@@ -69,25 +64,15 @@ fn toml_list(value: &toml::Value, key: &str) -> Result<Vec<String>> {
 }
 
 fn declared_toml_str<'a>(value: &'a toml::Value, key: &str) -> Option<&'a str> {
-    value
-        .get(key)
-        .and_then(toml::Value::as_str)
-        .map(str::trim)
-        .filter(|entry| !entry.is_empty())
+    value.get(key).and_then(toml::Value::as_str).map(str::trim).filter(|entry| !entry.is_empty())
 }
 
 fn declared_toml_array<'a>(value: &'a toml::Value, key: &str) -> Option<Vec<&'a toml::Value>> {
-    value
-        .get(key)
-        .and_then(toml::Value::as_array)
-        .map(|rows| rows.iter().collect::<Vec<_>>())
+    value.get(key).and_then(toml::Value::as_array).map(|rows| rows.iter().collect::<Vec<_>>())
 }
 
 fn print_contract_status(cwd: &Path) -> Result<()> {
-    let domains = parse_toml_path(&bijux_dna_infra::configs_file(
-        cwd,
-        "ci/registry/domains.toml",
-    ))?;
+    let domains = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/registry/domains.toml"))?;
     let domain_rows = declared_toml_array(&domains, "domains")
         .ok_or_else(|| anyhow!("ci/registry/domains.toml must declare a domains array"))?;
     let images = parse_toml_path(&bijux_dna_infra::configs_file(cwd, "ci/tools/images.toml"))?;
@@ -110,10 +95,8 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
             .and_then(toml::Value::as_str)
             .filter(|value| !value.trim().is_empty())
             .unwrap_or("invalid_domain");
-        let experimental = domain
-            .get("experimental")
-            .and_then(toml::Value::as_bool)
-            .unwrap_or(false);
+        let experimental =
+            domain.get("experimental").and_then(toml::Value::as_bool).unwrap_or(false);
         let stages_rel = declared_toml_str(domain, "stages_ssot");
         let params_rel = declared_toml_str(domain, "param_registry_ssot");
         let tools_rel = declared_toml_str(domain, "tool_registry_ssot");
@@ -155,10 +138,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
                 tool_metrics.insert(tool_id.clone(), metrics_schema.to_string());
             }
             for stage_id in toml_list(row, "stage_ids")? {
-                tools_by_stage
-                    .entry(stage_id)
-                    .or_default()
-                    .insert(tool_id.clone());
+                tools_by_stage.entry(stage_id).or_default().insert(tool_id.clone());
             }
         }
 
@@ -180,10 +160,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
             if !stage_id.starts_with(&format!("{id}.")) {
                 continue;
             }
-            let status = stage
-                .get("status")
-                .and_then(toml::Value::as_str)
-                .unwrap_or("supported");
+            let status = stage.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
             if status != "supported" {
                 continue;
             }
@@ -221,11 +198,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
         println!(
             "{:<8} {:<12} {:<7} {:<7} {:<7} {:<7} {:<9} {:<8}",
             id,
-            if experimental {
-                "experimental"
-            } else {
-                "production"
-            },
+            if experimental { "experimental" } else { "production" },
             stage_count,
             missing_params,
             missing_tools,
@@ -308,10 +281,8 @@ pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<(
                 let raw = std::fs::read_to_string(&path)
                     .with_context(|| format!("read {}", path.display()))?;
                 let Some(stage_id) = parse_scalar(&raw, "stage_id") else {
-                    missing_stage_fields.push(format!(
-                        "{} missing required key `stage_id`",
-                        path.display()
-                    ));
+                    missing_stage_fields
+                        .push(format!("{} missing required key `stage_id`", path.display()));
                     continue;
                 };
                 let Some(status) = parse_scalar(&raw, "status") else {
@@ -341,10 +312,7 @@ pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<(
                 }
                 for key in required_stage_fields {
                     let needle = format!("{key}:");
-                    if !raw
-                        .lines()
-                        .any(|line| line.trim_start().starts_with(&needle))
-                    {
+                    if !raw.lines().any(|line| line.trim_start().starts_with(&needle)) {
                         missing_stage_fields.push(format!(
                             "{} missing required key `{}`",
                             path.display(),
@@ -400,10 +368,7 @@ pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<(
                 }
                 for key in required_tool_fields {
                     let needle = format!("{key}:");
-                    if !raw
-                        .lines()
-                        .any(|line| line.trim_start().starts_with(&needle))
-                    {
+                    if !raw.lines().any(|line| line.trim_start().starts_with(&needle)) {
                         missing_tool_fields.push(format!(
                             "{} missing required key `{}`",
                             path.display(),
@@ -442,11 +407,7 @@ pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<(
                     continue;
                 };
                 let tools_csv = rhs.trim().trim_start_matches('[').trim_end_matches(']');
-                for tool in tools_csv
-                    .split(',')
-                    .map(str::trim)
-                    .filter(|v| !v.is_empty())
-                {
+                for tool in tools_csv.split(',').map(str::trim).filter(|v| !v.is_empty()) {
                     let fixture = domain_dir
                         .join(dom)
                         .join("fixtures")
@@ -491,10 +452,7 @@ pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<(
     for item in &missing_fixtures {
         println!("  {item}");
     }
-    println!(
-        "missing_stage_required_fields={}",
-        missing_stage_fields.len()
-    );
+    println!("missing_stage_required_fields={}", missing_stage_fields.len());
     for item in &missing_stage_fields {
         println!("  {item}");
     }
@@ -510,16 +468,8 @@ pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<(
         let _ = writeln!(md, "- planned_or_out_of_scope: `{}`", planned.len());
         let _ = writeln!(md, "- placeholder_files: `{}`", placeholders.len());
         let _ = writeln!(md, "- missing_truth_fixtures: `{}`", missing_fixtures.len());
-        let _ = writeln!(
-            md,
-            "- missing_stage_required_fields: `{}`",
-            missing_stage_fields.len()
-        );
-        let _ = writeln!(
-            md,
-            "- missing_tool_required_fields: `{}`\n",
-            missing_tool_fields.len()
-        );
+        let _ = writeln!(md, "- missing_stage_required_fields: `{}`", missing_stage_fields.len());
+        let _ = writeln!(md, "- missing_tool_required_fields: `{}`\n", missing_tool_fields.len());
 
         md.push_str("## Planned / Out Of Scope\n");
         if planned.is_empty() {

@@ -117,10 +117,9 @@ pub fn select_snapshot(cwd: &Path, args: &EnaSelectArgs) -> Result<()> {
                     ..row_base
                 });
             }
-            Err(reason) => rejected.push(SelectionRow {
-                reason: format!("rejected: {reason}"),
-                ..row_base
-            }),
+            Err(reason) => {
+                rejected.push(SelectionRow { reason: format!("rejected: {reason}"), ..row_base });
+            }
         }
         if se_count >= args.target_se && pe_count >= args.target_pe {
             break;
@@ -176,24 +175,15 @@ pub fn fetch_from_snapshot(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
     }
     let out_dir = args.out.clone().map_or_else(
         || {
-            default_corpus_root(
-                cwd,
-                &snapshot.species_id,
-                &snapshot.project,
-                &snapshot.corpus_id,
-            )
-            .join("raw")
+            default_corpus_root(cwd, &snapshot.species_id, &snapshot.project, &snapshot.corpus_id)
+                .join("raw")
         },
         |p| resolve_path(cwd, &p),
     );
     if snapshot.selected.is_empty() {
         return Err(anyhow!("snapshot has zero selected runs"));
     }
-    let records = snapshot
-        .selected
-        .iter()
-        .map(record_from_snapshot_row)
-        .collect::<Vec<_>>();
+    let records = snapshot.selected.iter().map(record_from_snapshot_row).collect::<Vec<_>>();
 
     bijux_dna_infra::ensure_dir(&out_dir)
         .with_context(|| format!("create {}", out_dir.display()))?;
@@ -219,10 +209,7 @@ pub fn fetch_from_snapshot(cwd: &Path, args: &EnaFetchArgs) -> Result<()> {
     let tasks = build_download_tasks(&manifest.records, &dl_cfg);
     let report = download_tasks(&tasks, &dl_cfg).context("download selected ENA FASTQ files")?;
     if report.failed > 0 {
-        return Err(anyhow!(
-            "ENA download failures: {} files failed",
-            report.failed
-        ));
+        return Err(anyhow!("ENA download failures: {} files failed", report.failed));
     }
 
     let corpus_root = out_dir
@@ -304,21 +291,11 @@ fn validate_record(record: &EnaRecord) -> Result<LayoutKind, String> {
     if record.base_count.unwrap_or(0) == 0 || record.read_count.unwrap_or(0) == 0 {
         return Err("missing base_count/read_count".to_string());
     }
-    if record
-        .instrument_model
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .is_none()
+    if record.instrument_model.as_deref().map(str::trim).filter(|value| !value.is_empty()).is_none()
     {
         return Err("missing instrument_model".to_string());
     }
-    if record
-        .library_strategy
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .is_none()
+    if record.library_strategy.as_deref().map(str::trim).filter(|value| !value.is_empty()).is_none()
     {
         return Err("missing library_strategy".to_string());
     }
@@ -376,10 +353,9 @@ fn write_manifest(corpus_root: &Path, snapshot: &MetadataSnapshot) -> Result<()>
             if !is_fastq {
                 continue;
             }
-            let rel = path.strip_prefix(corpus_root).map_or_else(
-                |_| path.display().to_string(),
-                |v| v.to_string_lossy().to_string(),
-            );
+            let rel = path
+                .strip_prefix(corpus_root)
+                .map_or_else(|_| path.display().to_string(), |v| v.to_string_lossy().to_string());
             let digest = bijux_dna_infra::hash_file_sha256(&path)
                 .with_context(|| format!("hash {}", path.display()))?;
             files.insert(rel, digest);
@@ -427,11 +403,7 @@ fn resolve_path(cwd: &Path, path: &Path) -> PathBuf {
 }
 
 fn default_corpus_root(cwd: &Path, species_id: &str, project: &str, corpus_id: &str) -> PathBuf {
-    cwd.join("examples")
-        .join("bijux-dna-data")
-        .join(species_id)
-        .join(project)
-        .join(corpus_id)
+    cwd.join("examples").join("bijux-dna-data").join(species_id).join(project).join(corpus_id)
 }
 
 fn normalize_species(cwd: &Path, raw: &str) -> Result<SpeciesIdentity> {
@@ -441,20 +413,10 @@ fn normalize_species(cwd: &Path, raw: &str) -> Result<SpeciesIdentity> {
         return Err(anyhow!("species must not be empty"));
     }
     let lowered = input.to_ascii_lowercase();
-    let resolved = aliases
-        .get(&lowered)
-        .cloned()
-        .unwrap_or_else(|| input.to_string());
-    let tokens = resolved
-        .split_whitespace()
-        .map(str::trim)
-        .filter(|v| !v.is_empty())
-        .collect::<Vec<_>>();
-    if tokens.len() != 2
-        || tokens
-            .iter()
-            .any(|t| !t.chars().all(|c| c.is_ascii_alphabetic()))
-    {
+    let resolved = aliases.get(&lowered).cloned().unwrap_or_else(|| input.to_string());
+    let tokens =
+        resolved.split_whitespace().map(str::trim).filter(|v| !v.is_empty()).collect::<Vec<_>>();
+    if tokens.len() != 2 || tokens.iter().any(|t| !t.chars().all(|c| c.is_ascii_alphabetic())) {
         return Err(anyhow!(
             "ambiguous species `{raw}`: provide mapped alias or latin binomial `Genus species`"
         ));

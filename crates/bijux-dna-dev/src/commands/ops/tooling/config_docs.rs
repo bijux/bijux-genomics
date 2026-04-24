@@ -92,11 +92,7 @@ pub(in super::super) fn tooling_lint_fast(
             let head_prev = run_program(
                 workspace,
                 "git",
-                &[
-                    "rev-parse".to_string(),
-                    "--verify".to_string(),
-                    "HEAD~1".to_string(),
-                ],
+                &["rev-parse".to_string(), "--verify".to_string(), "HEAD~1".to_string()],
             );
             match head_prev {
                 Ok(outcome) if outcome.is_success() => "HEAD~1".to_string(),
@@ -106,23 +102,12 @@ pub(in super::super) fn tooling_lint_fast(
     let diff = run_program(
         workspace,
         "git",
-        &[
-            "diff".to_string(),
-            "--name-only".to_string(),
-            format!("{base_ref}..HEAD"),
-        ],
+        &["diff".to_string(), "--name-only".to_string(), format!("{base_ref}..HEAD")],
     )?;
-    let changed = diff
-        .stdout
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .collect::<Vec<_>>();
+    let changed = diff.stdout.lines().filter(|line| !line.trim().is_empty()).collect::<Vec<_>>();
     let mut stdout = String::new();
     if changed.is_empty() {
-        run_check_ids(
-            &mut stdout,
-            &["check-config-schema", "check-automation-interface"],
-        )?;
+        run_check_ids(&mut stdout, &["check-config-schema", "check-automation-interface"])?;
         stdout.push_str("lint-fast: no changed files; running config+automation lint baseline\n");
         return Ok(OpsCommandOutcome::success(stdout));
     }
@@ -169,10 +154,7 @@ pub(in super::super) fn tooling_lint_fast(
         let docs_outcome =
             run_native_ops_command(NativeOpsCommandKey::DocsCheckDocLinks, workspace, &[])?;
         if !docs_outcome.is_success() {
-            return Ok(merge_outcomes(
-                OpsCommandOutcome::success(stdout),
-                docs_outcome,
-            ));
+            return Ok(merge_outcomes(OpsCommandOutcome::success(stdout), docs_outcome));
         }
         stdout.push_str(&docs_outcome.stdout);
         run_check_ids(&mut stdout, &["check-docs-build-contract"])?;
@@ -334,10 +316,7 @@ pub(in super::super) fn tooling_check_config_paths(
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(&root)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
+        for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
