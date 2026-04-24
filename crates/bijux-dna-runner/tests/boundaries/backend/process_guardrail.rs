@@ -29,10 +29,7 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
         concat!("tokio::process::", "Command"),
     ];
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

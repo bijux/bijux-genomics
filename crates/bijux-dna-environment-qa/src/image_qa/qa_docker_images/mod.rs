@@ -24,11 +24,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let image_plans = build_image_plans(&platform_spec, &tools)?;
 
     let mut logger = StdoutLogger::new(
-        if options.debug {
-            LogLevel::Debug
-        } else {
-            LogLevel::Info
-        },
+        if options.debug { LogLevel::Debug } else { LogLevel::Info },
         options.quiet,
     );
     log_header(
@@ -62,18 +58,12 @@ fn run_image_tests(
             ImageTestOutcome::Pass(kind) => {
                 summary.pass += 1;
                 if !logger.is_quiet() {
-                    logger.log(
-                        LogLevel::Info,
-                        &format!("PASS [{}] {}", kind, plan.image_name),
-                    );
+                    logger.log(LogLevel::Info, &format!("PASS [{}] {}", kind, plan.image_name));
                 }
             }
             ImageTestOutcome::Fail(reason) => {
                 summary.fail += 1;
-                logger.log(
-                    LogLevel::Info,
-                    &format!("FAIL [{}] {}", reason, plan.image_name),
-                );
+                logger.log(LogLevel::Info, &format!("FAIL [{}] {}", reason, plan.image_name));
             }
         }
     }

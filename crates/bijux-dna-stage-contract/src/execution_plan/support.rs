@@ -1,5 +1,6 @@
 use anyhow::Result;
 use sha2::Digest;
+use std::fmt::Write as _;
 
 use crate::{stage_node_id, ExecutionPlan, PlanEdge, StagePlanV1};
 
@@ -18,7 +19,7 @@ impl ExecutionPlan {
         let bytes = serde_json::to_vec(&canonical)?;
         let mut hasher = sha2::Sha256::new();
         hasher.update(bytes);
-        Ok(format!("{:x}", hasher.finalize()))
+        Ok(sha256_hex(hasher.finalize()))
     }
 }
 
@@ -47,10 +48,7 @@ pub fn default_edges_for_stages(stages: &[StagePlanV1]) -> Vec<PlanEdge> {
         }
         if artifact_edges.is_empty() {
             if let Some(from_stage) = to_idx.checked_sub(1).and_then(|idx| stages.get(idx)) {
-                edges.push(PlanEdge::new(
-                    stage_node_id(from_stage),
-                    stage_node_id(to_stage),
-                ));
+                edges.push(PlanEdge::new(stage_node_id(from_stage), stage_node_id(to_stage)));
             }
         } else {
             edges.extend(artifact_edges);
@@ -70,4 +68,13 @@ pub fn default_edges_for_stages(stages: &[StagePlanV1]) -> Vec<PlanEdge> {
             && left.to_input_id == right.to_input_id
     });
     edges
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

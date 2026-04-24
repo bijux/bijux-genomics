@@ -15,9 +15,7 @@ fn mk_step(step_id: &str, stage_id: &str) -> ExecutionStep {
     ExecutionStep {
         step_id: StepId::new(step_id),
         stage_id: StageId::new(stage_id),
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), "ok".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), "ok".to_string()] },
         image: ContainerImageRefV1 {
             image: "local/tool:latest".to_string(),
             digest: Some("sha256:abc".to_string()),
@@ -179,24 +177,16 @@ fn execution_graph_getters_and_edge_accessors_are_stable() {
     assert_eq!(edge.from().as_str(), "a");
     assert_eq!(edge.to().as_str(), "b");
     assert_eq!(
-        edge.from_output_id()
-            .map(bijux_dna_core::contract::ArtifactId::as_str),
+        edge.from_output_id().map(bijux_dna_core::contract::ArtifactId::as_str),
         Some("out")
     );
-    assert_eq!(
-        edge.to_input_id()
-            .map(bijux_dna_core::contract::ArtifactId::as_str),
-        Some("in")
-    );
+    assert_eq!(edge.to_input_id().map(bijux_dna_core::contract::ArtifactId::as_str), Some("in"));
 
     let graph = ExecutionGraph::new(
         "fastq-to-fastq__default__v1",
         "planner-v2",
         policy,
-        vec![
-            mk_step("b", "fastq.trim_reads"),
-            mk_step("a", "fastq.report_qc"),
-        ],
+        vec![mk_step("b", "fastq.trim_reads"), mk_step("a", "fastq.report_qc")],
         vec![edge],
     );
     assert!(graph.is_ok());
@@ -214,15 +204,11 @@ fn execution_graph_getters_and_edge_accessors_are_stable() {
     assert_eq!(graph.edges()[0].from().as_str(), "a");
     assert_eq!(graph.edges()[0].to().as_str(), "b");
     assert_eq!(
-        graph.edges()[0]
-            .from_output_id()
-            .map(bijux_dna_core::contract::ArtifactId::as_str),
+        graph.edges()[0].from_output_id().map(bijux_dna_core::contract::ArtifactId::as_str),
         Some("out")
     );
     assert_eq!(
-        graph.edges()[0]
-            .to_input_id()
-            .map(bijux_dna_core::contract::ArtifactId::as_str),
+        graph.edges()[0].to_input_id().map(bijux_dna_core::contract::ArtifactId::as_str),
         Some("in")
     );
     assert!(graph.retry_policy().max_attempts >= 1);

@@ -64,12 +64,7 @@ pub fn execute_plan(
     let stdout = docker_logs(&id)?;
     let stderr = String::new();
     let command = command_string(&args);
-    Ok(ExecutionOutput {
-        exit_code,
-        stdout,
-        stderr,
-        command,
-    })
+    Ok(ExecutionOutput { exit_code, stdout, stderr, command })
 }
 
 /// Execute a container plan with timeout enforcement.
@@ -99,12 +94,7 @@ pub fn execute_plan_with_timeout(
     let stdout = docker_logs(&id)?;
     let stderr = String::new();
     let command = command_string(&args);
-    Ok(ExecutionOutput {
-        exit_code,
-        stdout,
-        stderr,
-        command,
-    })
+    Ok(ExecutionOutput { exit_code, stdout, stderr, command })
 }
 
 #[must_use]
@@ -116,11 +106,8 @@ pub fn assess_execution(exit_code: i32, expected_outputs: &[PathBuf]) -> Executi
             reason: Some(format!("exit_code={exit_code}")),
         };
     }
-    let missing: Vec<PathBuf> = expected_outputs
-        .iter()
-        .filter(|path| !path.exists())
-        .cloned()
-        .collect();
+    let missing: Vec<PathBuf> =
+        expected_outputs.iter().filter(|path| !path.exists()).cloned().collect();
     if !missing.is_empty() {
         return ExecutionAssessment {
             success: false,
@@ -128,9 +115,5 @@ pub fn assess_execution(exit_code: i32, expected_outputs: &[PathBuf]) -> Executi
             reason: Some("missing_outputs".to_string()),
         };
     }
-    ExecutionAssessment {
-        success: true,
-        missing_outputs: Vec::new(),
-        reason: None,
-    }
+    ExecutionAssessment { success: true, missing_outputs: Vec::new(), reason: None }
 }

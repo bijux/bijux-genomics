@@ -12,9 +12,7 @@ fn invocation_hash_is_stable_for_docker_backend() -> anyhow::Result<()> {
             image: "tool:1.0".to_string(),
             digest: Some("sha256:synthetic-image".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["tool".to_string(), "--flag".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["tool".to_string(), "--flag".to_string()] },
         resources: bijux_dna_core::contract::ToolConstraints::default(),
     };
     let mut env = BTreeMap::new();

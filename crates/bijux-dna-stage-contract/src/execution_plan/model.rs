@@ -94,10 +94,7 @@ impl ExecutionPlan {
                 ));
             }
             if stage.params.is_null() {
-                return Err(anyhow!(
-                    "stage {} missing parameters_json",
-                    stage.stage_id.0
-                ));
+                return Err(anyhow!("stage {} missing parameters_json", stage.stage_id.0));
             }
             if stage.effective_params.is_null() {
                 return Err(anyhow!(
@@ -106,20 +103,14 @@ impl ExecutionPlan {
                 ));
             }
             if stage.io.inputs.is_empty() || stage.io.outputs.is_empty() {
-                return Err(anyhow!(
-                    "stage {} missing declared inputs/outputs",
-                    stage.stage_id.0
-                ));
+                return Err(anyhow!("stage {} missing declared inputs/outputs", stage.stage_id.0));
             }
             if stage.resources.runtime.trim().is_empty()
                 || stage.resources.mem_gb == 0
                 || stage.resources.tmp_gb == 0
                 || stage.resources.threads == 0
             {
-                return Err(anyhow!(
-                    "stage {} missing complete resources",
-                    stage.stage_id.0
-                ));
+                return Err(anyhow!("stage {} missing complete resources", stage.stage_id.0));
             }
             if stage.reason.summary.trim().is_empty() {
                 return Err(anyhow!("stage {} missing reason", stage.stage_id.0));

@@ -17,14 +17,7 @@ pub(super) fn resolve_image(
     let full_name = if let Some(digest) = tool.digest.as_ref() {
         format!("{}/{}@{}", platform.image_prefix, tool.tool, digest)
     } else {
-        format!(
-            "{}/{}:{}-{}",
-            platform.image_prefix, tool.tool, tool.version, platform.arch
-        )
+        format!("{}/{}:{}-{}", platform.image_prefix, tool.tool, tool.version, platform.arch)
     };
-    Ok(ResolvedImage {
-        full_name,
-        arch: platform.arch.clone(),
-        runner: platform.runner,
-    })
+    Ok(ResolvedImage { full_name, arch: platform.arch.clone(), runner: platform.runner })
 }

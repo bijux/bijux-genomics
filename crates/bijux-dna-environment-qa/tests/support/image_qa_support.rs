@@ -26,10 +26,7 @@ fn hash_file_sha256_matches_content() -> Result<(), Box<dyn std::error::Error>> 
     let path = dir.path().join("sample.txt");
     bijux_dna_infra::write_bytes(&path, "hello")?;
     let hash = hash_file_sha256(&path)?;
-    assert_eq!(
-        hash,
-        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-    );
+    assert_eq!(hash, "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824");
     Ok(())
 }
 

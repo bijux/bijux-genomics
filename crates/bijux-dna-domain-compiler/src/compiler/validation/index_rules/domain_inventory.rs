@@ -12,12 +12,7 @@ pub(super) fn validate_domain_index_inventory(
 ) -> Result<BTreeMap<String, String>> {
     let index_path = options.domain_dir.join(dom).join("index.yaml");
     if index.domain != dom {
-        bail!(
-            "{} has domain {} but expected {}",
-            index_path.display(),
-            index.domain,
-            dom
-        );
+        bail!("{} has domain {} but expected {}", index_path.display(), index.domain, dom);
     }
     if index.stage_ids.is_empty() || index.tool_ids.is_empty() {
         bail!("{} missing stage_ids/tool_ids", index_path.display());
@@ -31,20 +26,12 @@ pub(super) fn validate_domain_index_inventory(
             );
         }
         if !stage_ids.contains_key(stage_id) {
-            bail!(
-                "{} references unknown stage {}",
-                index_path.display(),
-                stage_id
-            );
+            bail!("{} references unknown stage {}", index_path.display(), stage_id);
         }
     }
     for tool_id in &index.tool_ids {
         if !tool_ids.contains_key(tool_id) {
-            bail!(
-                "{} references unknown tool {}",
-                index_path.display(),
-                tool_id
-            );
+            bail!("{} references unknown tool {}", index_path.display(), tool_id);
         }
     }
 
@@ -92,9 +79,7 @@ pub(super) fn validate_domain_index_inventory(
 
     let mut stage_status_by_id = BTreeMap::new();
     for stage_id in &index.stage_ids {
-        let stage_suffix = stage_id
-            .split_once('.')
-            .map_or(stage_id.as_str(), |(_, rhs)| rhs);
+        let stage_suffix = stage_id.split_once('.').map_or(stage_id.as_str(), |(_, rhs)| rhs);
         let stage_path = options
             .domain_dir
             .join(dom)

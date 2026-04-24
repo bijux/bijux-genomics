@@ -1,9 +1,7 @@
 use std::collections::BTreeSet;
 
 fn read_public_modules() -> BTreeSet<String> {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("docs")
-        .join("PUBLIC_API.md");
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("docs").join("PUBLIC_API.md");
     let content = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| panic!("read PUBLIC_API.md at {}: {err}", path.display()));
     let mut modules = BTreeSet::new();

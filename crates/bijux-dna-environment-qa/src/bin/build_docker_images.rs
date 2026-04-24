@@ -16,11 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let platform_spec = load_platform(platform.as_deref())?;
     if platform_spec.runner != RuntimeKind::Docker {
-        return Err(format!(
-            "platform runner must be docker, got {}",
-            platform_spec.runner
-        )
-        .into());
+        return Err(format!("platform runner must be docker, got {}", platform_spec.runner).into());
     }
 
     let container_dir = PathBuf::from(&platform_spec.container_dir);
@@ -49,11 +45,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             return Err(err.into());
         }
         let version = extract_version_from_dockerfile(&dockerfile, &tool.name)?;
-        let image = ImageRef {
-            tool: tool.name.clone(),
-            version,
-            arch: platform_spec.arch.clone(),
-        };
+        let image = ImageRef { tool: tool.name.clone(), version, arch: platform_spec.arch.clone() };
         let image_name = image.to_full_name(&platform_spec.image_prefix);
 
         if skip_existing && image_exists(&image_name)? {
@@ -95,10 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .arg(&tool.version_cmd)
             .status()?;
         if !smoke_status.success() {
-            let err = format!(
-                "version smoke failed for {image_name}: {}",
-                tool.version_cmd
-            );
+            let err = format!("version smoke failed for {image_name}: {}", tool.version_cmd);
             if continue_on_error {
                 eprintln!("{err}");
                 failures.push(err);
@@ -116,10 +105,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn parse_arg_value(args: &[String], name: &str) -> Option<String> {
-    args.iter()
-        .position(|arg| arg == name)
-        .and_then(|idx| args.get(idx + 1))
-        .cloned()
+    args.iter().position(|arg| arg == name).and_then(|idx| args.get(idx + 1)).cloned()
 }
 
 fn has_flag(args: &[String], name: &str) -> bool {
@@ -137,14 +123,7 @@ fn parse_list_arg(args: &[String], name: &str) -> Option<HashSet<String>> {
 }
 
 fn reorder_tools(mut tools: Vec<DockerToolSpec>) -> Vec<DockerToolSpec> {
-    let priority = [
-        "fastp",
-        "cutadapt",
-        "bbduk",
-        "adapterremoval",
-        "trimmomatic",
-        "trim_galore",
-    ];
+    let priority = ["fastp", "cutadapt", "bbduk", "adapterremoval", "trimmomatic", "trim_galore"];
     let mut ordered = Vec::with_capacity(tools.len());
     for name in priority {
         if let Some(pos) = tools.iter().position(|tool| tool.name == name) {
@@ -156,20 +135,12 @@ fn reorder_tools(mut tools: Vec<DockerToolSpec>) -> Vec<DockerToolSpec> {
 }
 
 fn image_exists(image_name: &str) -> Result<bool, Box<dyn std::error::Error>> {
-    let output = Command::new("docker")
-        .arg("images")
-        .arg("-q")
-        .arg(image_name)
-        .output()?;
+    let output = Command::new("docker").arg("images").arg("-q").arg(image_name).output()?;
     Ok(!String::from_utf8_lossy(&output.stdout).trim().is_empty())
 }
 
 fn git_head_revision() -> Option<String> {
-    let output = Command::new("git")
-        .arg("rev-parse")
-        .arg("HEAD")
-        .output()
-        .ok()?;
+    let output = Command::new("git").arg("rev-parse").arg("HEAD").output().ok()?;
     if !output.status.success() {
         return None;
     }
@@ -182,11 +153,7 @@ fn git_head_revision() -> Option<String> {
 }
 
 fn utc_created_timestamp() -> Option<String> {
-    let output = Command::new("date")
-        .arg("-u")
-        .arg("+%Y-%m-%dT%H:%M:%SZ")
-        .output()
-        .ok()?;
+    let output = Command::new("date").arg("-u").arg("+%Y-%m-%dT%H:%M:%SZ").output().ok()?;
     if !output.status.success() {
         return None;
     }

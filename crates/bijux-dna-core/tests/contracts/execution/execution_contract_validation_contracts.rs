@@ -18,9 +18,7 @@ fn mk_step(step_id: &str, stage_id: &str) -> ExecutionStep {
     ExecutionStep {
         step_id: StepId::new(step_id),
         stage_id: StageId::new(stage_id),
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), "ok".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), "ok".to_string()] },
         image: ContainerImageRefV1 {
             image: "local/tool:latest".to_string(),
             digest: Some("sha256:abc".to_string()),
@@ -104,10 +102,7 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
         "fastq-to-fastq__default__v1",
         "planner-v1",
         PlanPolicy::default(),
-        vec![
-            mk_step("dup", "fastq.trim_reads"),
-            mk_step("dup", "fastq.report_qc"),
-        ],
+        vec![mk_step("dup", "fastq.trim_reads"), mk_step("dup", "fastq.report_qc")],
         Vec::new(),
     );
     assert!(duplicate_steps.is_err());
@@ -126,9 +121,7 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
         "planner-v1",
         PlanPolicy::default(),
         vec![ExecutionStep {
-            command: CommandSpecV1 {
-                template: Vec::new(),
-            },
+            command: CommandSpecV1 { template: Vec::new() },
             ..mk_step("a", "fastq.trim_reads")
         }],
         Vec::new(),
@@ -140,10 +133,7 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
         "planner-v1",
         PlanPolicy::default(),
         vec![ExecutionStep {
-            image: ContainerImageRefV1 {
-                image: String::new(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: String::new(), digest: None },
             ..mk_step("a", "fastq.trim_reads")
         }],
         Vec::new(),

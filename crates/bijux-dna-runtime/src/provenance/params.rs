@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 
 use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_core::prelude::hashing::params_hash;
@@ -8,13 +9,13 @@ fn canonical_params_hash(value: &serde_json::Value) -> Option<String> {
     let bytes = bijux_dna_core::contract::canonical::to_canonical_json_bytes(value).ok()?;
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
-    Some(format!("{:x}", hasher.finalize()))
+    Some(sha256_hex(hasher.finalize()))
 }
 
 fn empty_params_hash() -> String {
     let mut hasher = sha2::Sha256::new();
     hasher.update(b"{}");
-    format!("{:x}", hasher.finalize())
+    sha256_hex(hasher.finalize())
 }
 
 pub(super) fn resolved_params_hash(
@@ -29,4 +30,13 @@ pub(super) fn resolved_params_hash(
         .or_else(|| canonical_params_hash(&invocation.effective_params_json_normalized))
         .or_else(|| canonical_params_hash(&invocation.parameters_json_normalized))
         .unwrap_or_else(empty_params_hash)
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

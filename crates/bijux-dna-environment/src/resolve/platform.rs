@@ -39,10 +39,7 @@ pub(super) fn load_platform_from_file(
 }
 
 fn resolved_container_dir(raw: &PlatformSpecRaw) -> PathBuf {
-    if !matches!(
-        raw.runner,
-        RuntimeKind::Apptainer | RuntimeKind::Singularity
-    ) {
+    if !matches!(raw.runner, RuntimeKind::Apptainer | RuntimeKind::Singularity) {
         return raw.container_dir.clone();
     }
     if let Ok(path) = std::env::var("BIJUX_APPTAINER_CONTAINER_DIR") {
@@ -52,10 +49,7 @@ fn resolved_container_dir(raw: &PlatformSpecRaw) -> PathBuf {
     }
     if let Ok(path) = std::env::var("BIJUX_CACHE_ROOT") {
         if !path.trim().is_empty() {
-            return PathBuf::from(path)
-                .join("bijux-dna-container")
-                .join("apptainer")
-                .join("sif");
+            return PathBuf::from(path).join("bijux-dna-container").join("apptainer").join("sif");
         }
     }
     if let Ok(path) = std::env::var("BIJUX_HPC_ROOT") {

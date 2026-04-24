@@ -34,9 +34,6 @@ fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
     let raw = fs::read_to_string(&run_dirs.run_manifest_path)?;
     let manifest: serde_json::Value = serde_json::from_str(&raw)?;
     assert!(manifest.get("telemetry").is_some());
-    assert!(manifest
-        .get("dashboard")
-        .and_then(|v| v.get("facts_jsonl"))
-        .is_some());
+    assert!(manifest.get("dashboard").and_then(|v| v.get("facts_jsonl")).is_some());
     Ok(())
 }

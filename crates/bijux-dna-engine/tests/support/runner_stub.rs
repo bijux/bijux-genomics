@@ -29,19 +29,14 @@ impl Runner for FakeRunner {
     fn run(&self, invocation: &Invocation) -> Result<RunnerResult> {
         let plan = &invocation.step;
         let attempt = invocation.attempt;
-        self.calls
-            .borrow_mut()
-            .push(format!("{}:{}", plan.step_id.0, attempt));
+        self.calls.borrow_mut().push(format!("{}:{}", plan.step_id.0, attempt));
         let should_fail =
             self.fail_first.borrow_mut().remove(plan.step_id.as_str()) && attempt == 0;
         let run_artifacts = plan.out_dir.join("run_artifacts");
         bijux_dna_infra::ensure_dir(&run_artifacts)?;
-        for name in [
-            "metrics.json",
-            "effective_config.json",
-            "stage_report.json",
-            "tool_invocation.json",
-        ] {
+        for name in
+            ["metrics.json", "effective_config.json", "stage_report.json", "tool_invocation.json"]
+        {
             let path = run_artifacts.join(name);
             bijux_dna_infra::write_bytes(&path, "{}")?;
         }
@@ -62,21 +57,15 @@ impl Runner for DeterministicRunner {
         let step = &invocation.step;
         let run_artifacts = step.out_dir.join("run_artifacts");
         bijux_dna_infra::ensure_dir(&run_artifacts)?;
-        for name in [
-            "metrics.json",
-            "effective_config.json",
-            "stage_report.json",
-            "tool_invocation.json",
-        ] {
+        for name in
+            ["metrics.json", "effective_config.json", "stage_report.json", "tool_invocation.json"]
+        {
             let path = run_artifacts.join(name);
             bijux_dna_infra::write_bytes(&path, "{}")?;
         }
         for output in &step.io.outputs {
             bijux_dna_infra::ensure_dir(
-                output
-                    .path
-                    .parent()
-                    .ok_or_else(|| anyhow::anyhow!("output missing parent"))?,
+                output.path.parent().ok_or_else(|| anyhow::anyhow!("output missing parent"))?,
             )?;
             bijux_dna_infra::write_bytes(&output.path, "deterministic")?;
         }
@@ -109,10 +98,7 @@ impl Runner for RecordingRunner {
         }
         for output in &step.io.outputs {
             bijux_dna_infra::ensure_dir(
-                output
-                    .path
-                    .parent()
-                    .ok_or_else(|| anyhow::anyhow!("output missing parent"))?,
+                output.path.parent().ok_or_else(|| anyhow::anyhow!("output missing parent"))?,
             )?;
             bijux_dna_infra::write_bytes(&output.path, "data")?;
         }

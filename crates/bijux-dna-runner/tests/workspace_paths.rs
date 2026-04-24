@@ -20,10 +20,7 @@ pub fn repo_root() -> Result<PathBuf> {
             return Ok(candidate.to_path_buf());
         }
     }
-    Err(anyhow!(
-        "unable to resolve repository root from {}",
-        cwd.display()
-    ))
+    Err(anyhow!("unable to resolve repository root from {}", cwd.display()))
 }
 
 /// Resolve the root directory for a workspace crate.

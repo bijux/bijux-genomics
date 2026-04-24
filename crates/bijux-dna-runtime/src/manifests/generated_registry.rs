@@ -20,9 +20,8 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
     let mut registry = ToolRegistry::default();
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
-    let mut parsed: toml::Value = raw
-        .parse()
-        .with_context(|| format!("parse {}", registry_path.display()))?;
+    let mut parsed: toml::Value =
+        raw.parse().with_context(|| format!("parse {}", registry_path.display()))?;
     if experimental_manifests_enabled() {
         let experimental_path = registry_path
             .parent()
@@ -46,12 +45,7 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
         }
     }
 
-    for stage in parsed
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
-    {
+    for stage in parsed.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default() {
         let Some(stage_id_raw) = stage
             .get("id")
             .and_then(toml::Value::as_str)
@@ -86,10 +80,7 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
             metrics: Vec::new(),
             description: Some("generated from configs/ci/registry/tool_registry.toml".to_string()),
             behavior: StageBehavior {
-                idempotent: stage
-                    .get("idempotent")
-                    .and_then(toml::Value::as_bool)
-                    .unwrap_or(true),
+                idempotent: stage.get("idempotent").and_then(toml::Value::as_bool).unwrap_or(true),
                 mutates_fastq: false,
                 report_only: false,
                 read_count_change: ReadCountChangePolicy::Stable,
@@ -100,12 +91,7 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
         registry.insert_stage(spec);
     }
 
-    for tool in parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
-    {
+    for tool in parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default() {
         let Some(tool_id_raw) = tool
             .get("id")
             .and_then(toml::Value::as_str)

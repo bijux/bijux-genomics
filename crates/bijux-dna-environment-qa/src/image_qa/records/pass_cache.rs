@@ -16,14 +16,10 @@ pub(crate) fn qa_already_passed(
     input_hash: &str,
 ) -> Result<bool> {
     let stage_id = stage.stage_id();
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
-    let image_digest = spec
-        .digest
-        .as_ref()
-        .map_or_else(|| image.full_name.clone(), ToString::to_string);
+    let image_digest =
+        spec.digest.as_ref().map_or_else(|| image.full_name.clone(), ToString::to_string);
     image_qa_passed(
         conn,
         tool,

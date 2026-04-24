@@ -22,10 +22,8 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
             })
         })
         .collect::<Vec<_>>();
-    let run_provenance = run_manifest
-        .get("run_provenance")
-        .cloned()
-        .unwrap_or_else(|| serde_json::json!({}));
+    let run_provenance =
+        run_manifest.get("run_provenance").cloned().unwrap_or_else(|| serde_json::json!({}));
     let profile_manifest = serde_json::json!({
         "schema_version": "bijux.profile_manifest.v1",
         "pipeline_id": run_manifest.get("pipeline_id").cloned().unwrap_or(serde_json::Value::Null),
@@ -67,9 +65,8 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
         },
         "resolved_tool_digests": resolved_tools,
     });
-    let run_dir = run_manifest_path
-        .parent()
-        .ok_or_else(|| anyhow!("run_manifest missing parent dir"))?;
+    let run_dir =
+        run_manifest_path.parent().ok_or_else(|| anyhow!("run_manifest missing parent dir"))?;
     write_canonical_json(&run_dir.join("profile_manifest.json"), &profile_manifest)
         .context("write profile_manifest.json")?;
     write_canonical_json(&run_dir.join("run_manifest.lock.json"), &lock_manifest)

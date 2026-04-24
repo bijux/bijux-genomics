@@ -12,15 +12,10 @@ pub(crate) fn run_static_qa(
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
 ) -> Result<()> {
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     if !docker_image_exists(&image) {
-        return Err(anyhow!(
-            "docker image missing for {tool}: {}",
-            image.full_name
-        ));
+        return Err(anyhow!("docker image missing for {tool}: {}", image.full_name));
     }
     Ok(())
 }

@@ -6,10 +6,5 @@ pub(super) fn stage_execution_record(
     attempt: u32,
     success: bool,
 ) -> StageExecutionRecordV1 {
-    StageExecutionRecordV1 {
-        stage_id: step.step_id.to_string(),
-        attempt,
-        success,
-        cached: false,
-    }
+    StageExecutionRecordV1 { stage_id: step.step_id.to_string(), attempt, success, cached: false }
 }

@@ -10,9 +10,7 @@ fn mk_step(step_id: &'static str, stage_id: &'static str, digest: &'static str) 
             image: "bijux/fastp".to_string(),
             digest: Some(digest.to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["fastp".to_string(), "--in1".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["fastp".to_string(), "--in1".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 4,
@@ -44,11 +42,7 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         "fastq-to-bam__default__v1",
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
-        vec![mk_step(
-            "fastq.trim_reads",
-            "fastq.trim_reads",
-            "sha256:abc",
-        )],
+        vec![mk_step("fastq.trim_reads", "fastq.trim_reads", "sha256:abc")],
         vec![ExecutionEdge::new(
             StepId::from_static("fastq.trim_reads"),
             StepId::from_static("fastq.trim_reads"),
@@ -73,10 +67,7 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
     let encoded = serde_json::to_string_pretty(&plan)?;
     let decoded: ExecutionGraph = serde_json::from_str(&encoded)?;
     let reencoded = serde_json::to_string_pretty(&decoded)?;
-    assert_eq!(
-        encoded, reencoded,
-        "execution plan roundtrip must be canonical"
-    );
+    assert_eq!(encoded, reencoded, "execution plan roundtrip must be canonical");
     let hash_before = plan.hash()?;
     let hash_after = decoded.hash()?;
     assert_eq!(hash_before, hash_after, "plan_hash must be stable");

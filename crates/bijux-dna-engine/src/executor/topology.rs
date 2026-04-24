@@ -12,10 +12,8 @@ pub(crate) fn topo_order<'a>(
     for step in steps {
         by_id.insert(step.step_id.as_str(), step);
     }
-    let mut indegree: HashMap<&str, usize> = steps
-        .iter()
-        .map(|step| (step.step_id.as_str(), 0))
-        .collect();
+    let mut indegree: HashMap<&str, usize> =
+        steps.iter().map(|step| (step.step_id.as_str(), 0)).collect();
     let mut adjacency: HashMap<&str, Vec<&str>> = HashMap::new();
     for edge in edges {
         let from = edge.from().as_str();

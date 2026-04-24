@@ -9,10 +9,7 @@ fn backend_invariants_are_documented() {
     let content = fs::read_to_string(&doc).unwrap_or_else(|err| panic!("read BACKENDS.md: {err}"));
 
     for invariant in ["cwd", "env", "mounts", "stdout/stderr", "exit semantics"] {
-        assert!(
-            content.contains(invariant),
-            "BACKENDS.md missing invariant {invariant}"
-        );
+        assert!(content.contains(invariant), "BACKENDS.md missing invariant {invariant}");
     }
 
     assert!(

@@ -36,8 +36,6 @@ pub(crate) fn run_command(cmd: &str, args: &[&str]) -> Result<(), EnvError> {
     if status.success() {
         Ok(())
     } else {
-        Err(EnvError::Platform(format!(
-            "command failed: {cmd} {args:?}"
-        )))
+        Err(EnvError::Platform(format!("command failed: {cmd} {args:?}")))
     }
 }

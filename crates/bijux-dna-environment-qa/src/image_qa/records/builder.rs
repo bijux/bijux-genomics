@@ -16,15 +16,11 @@ pub(crate) fn build_qa_record(
     outcome: ImageQaOutcome,
 ) -> Result<ImageQaRecord> {
     let stage_id = stage.stage_id();
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let tool_version = spec.version.clone();
-    let image_digest = spec
-        .digest
-        .as_ref()
-        .map_or_else(|| image.full_name.clone(), ToString::to_string);
+    let image_digest =
+        spec.digest.as_ref().map_or_else(|| image.full_name.clone(), ToString::to_string);
     Ok(ImageQaRecord {
         tool: tool.to_string(),
         stage: stage_id.as_str().to_string(),

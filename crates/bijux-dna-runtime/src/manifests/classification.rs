@@ -48,10 +48,7 @@ pub fn list_strings(table: &toml::Value, key: &str) -> Vec<String> {
         .get(key)
         .and_then(toml::Value::as_array)
         .map(|arr| {
-            arr.iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            arr.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }
@@ -103,14 +100,8 @@ pub fn output_artifact_kind_from_stage(stage_id: &str) -> ArtifactKind {
 }
 
 pub fn stage_scale_from_row(stage: &toml::Value) -> RuntimeScale {
-    let mem = stage
-        .get("resource_memory_gb")
-        .and_then(toml::Value::as_integer)
-        .unwrap_or(4);
-    let mins = stage
-        .get("resource_time_minutes")
-        .and_then(toml::Value::as_integer)
-        .unwrap_or(30);
+    let mem = stage.get("resource_memory_gb").and_then(toml::Value::as_integer).unwrap_or(4);
+    let mins = stage.get("resource_time_minutes").and_then(toml::Value::as_integer).unwrap_or(30);
     if mem >= 24 || mins >= 180 {
         RuntimeScale::Large
     } else if mem >= 12 || mins >= 90 {
@@ -123,11 +114,7 @@ pub fn stage_scale_from_row(stage: &toml::Value) -> RuntimeScale {
 }
 
 pub fn parse_stage_semver(stage: &toml::Value) -> String {
-    stage
-        .get("stage_semver")
-        .and_then(toml::Value::as_str)
-        .unwrap_or("1.0.0")
-        .to_string()
+    stage.get("stage_semver").and_then(toml::Value::as_str).unwrap_or("1.0.0").to_string()
 }
 
 pub fn stable_produced_artifacts(stage_id: &str, output_kind: ArtifactKind) -> Vec<String> {

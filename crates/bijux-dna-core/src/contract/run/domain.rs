@@ -43,10 +43,7 @@ impl<'de> serde::Deserialize<'de> for PipelineSpec {
         if repr.nodes.is_empty() {
             return Err(serde::de::Error::custom("PipelineSpec requires nodes"));
         }
-        Ok(Self {
-            nodes: repr.nodes,
-            edges: repr.edges,
-        })
+        Ok(Self { nodes: repr.nodes, edges: repr.edges })
     }
 }
 
@@ -68,10 +65,7 @@ impl PipelineSpec {
 
     #[must_use]
     pub fn ordered_stage_ids(&self) -> Vec<String> {
-        self.nodes
-            .iter()
-            .map(|node| node.stage_id.clone())
-            .collect()
+        self.nodes.iter().map(|node| node.stage_id.clone()).collect()
     }
 
     #[must_use]
@@ -297,9 +291,6 @@ mod tests {
         );
         assert_eq!(spec.nodes.len(), 2);
         assert_eq!(spec.edges.len(), 1);
-        assert_eq!(
-            spec.edges[0].from,
-            stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp")
-        );
+        assert_eq!(spec.edges[0].from, stage_instance(crate::id_catalog::FASTQ_TRIM, "fastp"));
     }
 }

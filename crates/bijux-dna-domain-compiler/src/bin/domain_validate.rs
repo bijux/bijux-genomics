@@ -13,7 +13,5 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    validate_domain(&ValidateOptions {
-        domain_dir: args.domain_dir,
-    })
+    validate_domain(&ValidateOptions { domain_dir: args.domain_dir })
 }

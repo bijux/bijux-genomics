@@ -6,10 +6,7 @@ use bijux_dna_core::prelude::input_assessment::{
 };
 
 fn temp_dir() -> Result<PathBuf> {
-    let base = tempfile::Builder::new()
-        .prefix("bijux-dna-core-test-")
-        .tempdir()?
-        .keep();
+    let base = tempfile::Builder::new().prefix("bijux-dna-core-test-").tempdir()?.keep();
     bijux_dna_infra::ensure_dir(&base)?;
     Ok(base)
 }
@@ -119,9 +116,6 @@ fn assess_input_dir_keeps_first_duplicate_read_candidate() -> Result<()> {
         .ok_or_else(|| anyhow!("sample entry"))?;
 
     assert_eq!(sample.id.r1_path, preferred_r1);
-    assert_eq!(
-        sample.naming_warnings,
-        vec!["multiple R1 candidates for sample"]
-    );
+    assert_eq!(sample.naming_warnings, vec!["multiple R1 candidates for sample"]);
     Ok(())
 }

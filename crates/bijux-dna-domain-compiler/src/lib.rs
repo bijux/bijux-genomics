@@ -1,8 +1,4 @@
-#![allow(
-    clippy::map_unwrap_or,
-    clippy::too_many_lines,
-    clippy::uninlined_format_args
-)]
+#![allow(clippy::map_unwrap_or, clippy::too_many_lines, clippy::uninlined_format_args)]
 
 mod compiler;
 

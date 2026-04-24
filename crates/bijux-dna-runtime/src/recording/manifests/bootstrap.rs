@@ -14,11 +14,8 @@ pub(super) fn initialize_runtime_support_files(run_dirs: &RunDirs) -> Result<Run
     bijux_dna_infra::ensure_dir(&telemetry_dir).context("create telemetry dir")?;
     write_canonical_json(&telemetry_dir.join("timings.json"), &serde_json::json!([]))
         .context("write timings.json")?;
-    write_canonical_json(
-        &telemetry_dir.join("resources.json"),
-        &serde_json::json!([]),
-    )
-    .context("write resources.json")?;
+    write_canonical_json(&telemetry_dir.join("resources.json"), &serde_json::json!([]))
+        .context("write resources.json")?;
     write_canonical_json(&telemetry_dir.join("errors.json"), &serde_json::json!([]))
         .context("write errors.json")?;
     let telemetry_events_path = telemetry_dir.join("events.jsonl");
@@ -29,8 +26,5 @@ pub(super) fn initialize_runtime_support_files(run_dirs: &RunDirs) -> Result<Run
     let dashboard_facts_path = dashboard_dir.join("facts.jsonl");
     write_atomic_bytes(&dashboard_facts_path, b"").context("write facts.jsonl")?;
 
-    Ok(RuntimeSupportFiles {
-        telemetry_events_path,
-        dashboard_facts_path,
-    })
+    Ok(RuntimeSupportFiles { telemetry_events_path, dashboard_facts_path })
 }

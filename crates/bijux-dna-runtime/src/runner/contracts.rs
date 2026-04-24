@@ -22,37 +22,17 @@ impl DomainStageRunnerContract for PrefixDomainStageRunnerContract {
     }
 
     fn supports_stage(&self, stage_id: &str) -> bool {
-        stage_id
-            .split_once('.')
-            .is_some_and(|(domain, _)| domain == self.stage_domain)
+        stage_id.split_once('.').is_some_and(|(domain, _)| domain == self.stage_domain)
     }
 }
 
 const CONTAINER_RUNNER_DOMAIN_CONTRACTS: &[PrefixDomainStageRunnerContract] = &[
-    PrefixDomainStageRunnerContract {
-        domain_name: "fastq",
-        stage_domain: "fastq",
-    },
-    PrefixDomainStageRunnerContract {
-        domain_name: "bam",
-        stage_domain: "bam",
-    },
-    PrefixDomainStageRunnerContract {
-        domain_name: "vcf",
-        stage_domain: "vcf",
-    },
-    PrefixDomainStageRunnerContract {
-        domain_name: "core",
-        stage_domain: "core",
-    },
-    PrefixDomainStageRunnerContract {
-        domain_name: "cross",
-        stage_domain: "cross",
-    },
-    PrefixDomainStageRunnerContract {
-        domain_name: "report",
-        stage_domain: "report",
-    },
+    PrefixDomainStageRunnerContract { domain_name: "fastq", stage_domain: "fastq" },
+    PrefixDomainStageRunnerContract { domain_name: "bam", stage_domain: "bam" },
+    PrefixDomainStageRunnerContract { domain_name: "vcf", stage_domain: "vcf" },
+    PrefixDomainStageRunnerContract { domain_name: "core", stage_domain: "core" },
+    PrefixDomainStageRunnerContract { domain_name: "cross", stage_domain: "cross" },
+    PrefixDomainStageRunnerContract { domain_name: "report", stage_domain: "report" },
 ];
 
 /// # Errors
@@ -63,13 +43,8 @@ pub fn ensure_stage_supported_by_runner(runner: RunnerContractKind, stage_id: &s
             CONTAINER_RUNNER_DOMAIN_CONTRACTS
         }
     };
-    if contracts
-        .iter()
-        .any(|contract| contract.supports_stage(stage_id))
-    {
+    if contracts.iter().any(|contract| contract.supports_stage(stage_id)) {
         return Ok(());
     }
-    Err(anyhow!(
-        "runner {runner} has no stage-runner contract for stage {stage_id}",
-    ))
+    Err(anyhow!("runner {runner} has no stage-runner contract for stage {stage_id}",))
 }

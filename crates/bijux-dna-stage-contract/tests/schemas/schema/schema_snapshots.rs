@@ -14,9 +14,7 @@ fn stage_contract_schema_snapshot() {
             image: "fastp".to_string(),
             digest: None,
         },
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: vec!["fastp".to_string()],
-        },
+        command: bijux_dna_core::prelude::CommandSpecV1 { template: vec!["fastp".to_string()] },
         resources: bijux_dna_core::contract::ToolConstraints::default(),
         io: bijux_dna_core::contract::StageIO {
             inputs: vec![bijux_dna_core::contract::ArtifactRef::required(

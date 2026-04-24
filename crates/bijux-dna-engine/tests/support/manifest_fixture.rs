@@ -7,10 +7,7 @@ use bijux_dna_runtime::run_layout::{write_manifest, RunArtifactEntry, RunLayout,
 
 pub fn layout_tree_text(root: &Path) -> Result<String> {
     let mut entries = Vec::new();
-    for entry in walkdir::WalkDir::new(root)
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in walkdir::WalkDir::new(root).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

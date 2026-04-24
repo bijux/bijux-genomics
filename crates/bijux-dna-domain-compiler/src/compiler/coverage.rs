@@ -20,10 +20,7 @@ pub fn domain_coverage_report(domain_dir: &Path) -> Result<serde_json::Value> {
                 .split_once('.')
                 .map_or(stage_id.as_str(), |(_, rhs)| rhs)
                 .replace('.', "_");
-            let stage_path = domain_dir
-                .join(dom)
-                .join("stages")
-                .join(format!("{suffix}.yaml"));
+            let stage_path = domain_dir.join(dom).join("stages").join(format!("{suffix}.yaml"));
             let stage: DomainStage = read_yaml(&stage_path)?;
             if stage.status != "supported" {
                 continue;
@@ -143,10 +140,7 @@ outputs:
         else {
             panic!("must reject unknown output");
         };
-        assert!(
-            err.to_string().contains("rogue_output"),
-            "unexpected error: {err}"
-        );
+        assert!(err.to_string().contains("rogue_output"), "unexpected error: {err}");
     }
 
     #[test]

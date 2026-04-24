@@ -6,9 +6,7 @@ use super::CancellationToken;
 impl CancellationToken {
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            cancelled: Arc::new(std::sync::atomic::AtomicBool::new(false)),
-        }
+        Self { cancelled: Arc::new(std::sync::atomic::AtomicBool::new(false)) }
     }
 
     pub fn cancel(&self) {

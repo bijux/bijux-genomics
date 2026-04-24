@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use std::fmt::Write as _;
 use sha2::Digest;
+use std::fmt::Write as _;
 
 use crate::contract::canonical::to_canonical_json_bytes;
 use crate::foundation::Result;
@@ -24,12 +24,7 @@ pub struct ToolConstraints {
 
 impl Default for ToolConstraints {
     fn default() -> Self {
-        Self {
-            runtime: "local".to_string(),
-            mem_gb: 1,
-            tmp_gb: 1,
-            threads: 1,
-        }
+        Self { runtime: "local".to_string(), mem_gb: 1, tmp_gb: 1, threads: 1 }
     }
 }
 
@@ -284,9 +279,7 @@ impl ToolRegistry {
 
     #[must_use]
     pub fn tool_by_id(&self, stage_id: &StageId, tool_id: &ToolId) -> Option<&ToolManifest> {
-        self.tools_for_stage(stage_id)
-            .iter()
-            .find(|tool| &tool.tool_id == tool_id)
+        self.tools_for_stage(stage_id).iter().find(|tool| &tool.tool_id == tool_id)
     }
 
     pub fn insert_stage(&mut self, stage: StageSpec) {
@@ -294,10 +287,7 @@ impl ToolRegistry {
     }
 
     pub fn insert_tool(&mut self, tool: ToolManifest) {
-        self.tools
-            .entry(tool.stage_id.clone())
-            .or_default()
-            .push(tool);
+        self.tools.entry(tool.stage_id.clone()).or_default().push(tool);
     }
 
     pub fn sort_tools_for_determinism(&mut self) {

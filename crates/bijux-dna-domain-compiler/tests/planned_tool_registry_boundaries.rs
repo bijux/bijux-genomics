@@ -4,10 +4,7 @@ use anyhow::Result;
 use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions};
 
 fn repo_root() -> std::path::PathBuf {
-    let Some(root) = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-    else {
+    let Some(root) = Path::new(env!("CARGO_MANIFEST_DIR")).parent().and_then(|p| p.parent()) else {
         panic!("repo root");
     };
     root.to_path_buf()
@@ -36,10 +33,7 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
         "fastq_scan must enter the governed registry once its containerized runtime closes"
     );
 
-    let stage_blocks = governed_registry
-        .split("[[stages]]")
-        .map(str::trim)
-        .collect::<Vec<_>>();
+    let stage_blocks = governed_registry.split("[[stages]]").map(str::trim).collect::<Vec<_>>();
     let screen_taxonomy = stage_blocks
         .iter()
         .find(|block| block.contains("id = \"fastq.screen_taxonomy\""))

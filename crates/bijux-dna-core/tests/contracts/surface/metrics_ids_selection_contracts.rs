@@ -16,9 +16,7 @@ fn mk_step(step_id: &str, stage_id: &str) -> ExecutionStep {
     ExecutionStep {
         step_id: StepId::new(step_id),
         stage_id: StageId::new(stage_id),
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), "ok".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), "ok".to_string()] },
         image: ContainerImageRefV1 {
             image: "local/tool:latest".to_string(),
             digest: Some("sha256:abc".to_string()),
@@ -91,38 +89,24 @@ fn metric_id_parsers_cover_known_and_unknown_values() {
         "multiqc_data",
     ];
     for id in ids {
-        assert!(
-            parse_metric_id(id).is_some(),
-            "expected known metric id: {id}"
-        );
+        assert!(parse_metric_id(id).is_some(), "expected known metric id: {id}");
         assert!(validate_metric_id_str(id).is_ok());
     }
     assert!(parse_metric_id("unknown_metric").is_none());
     assert!(validate_metric_id_str("unknown_metric").is_err());
 
-    let derived = [
-        "read_retention",
-        "base_retention",
-        "merge_efficiency",
-        "error_reduction_proxy",
-    ];
+    let derived = ["read_retention", "base_retention", "merge_efficiency", "error_reduction_proxy"];
     for id in derived {
-        assert!(
-            parse_derived_metric_id(id).is_some(),
-            "expected known derived metric id: {id}"
-        );
+        assert!(parse_derived_metric_id(id).is_some(), "expected known derived metric id: {id}");
     }
     assert!(parse_derived_metric_id("unknown_derived").is_none());
 }
 
 #[test]
 fn selection_objectives_and_partial_behavior_are_deterministic() {
-    for objective in [
-        Objective::Speed,
-        Objective::Memory,
-        Objective::Retention,
-        Objective::Balanced,
-    ] {
+    for objective in
+        [Objective::Speed, Objective::Memory, Objective::Retention, Objective::Balanced]
+    {
         let spec = objective_spec(objective);
         assert_eq!(spec.name, objective.as_str());
     }
@@ -155,11 +139,8 @@ fn selection_objectives_and_partial_behavior_are_deterministic() {
         metrics: None,
         status: BenchResultStatus::Failure,
     }];
-    let records = vec![
-        ("fast".to_string(), fast),
-        ("slow".to_string(), slow),
-        ("bad".to_string(), failing),
-    ];
+    let records =
+        vec![("fast".to_string(), fast), ("slow".to_string(), slow), ("bad".to_string(), failing)];
 
     let selected_speed = select_stage(&stage, &records, &objective_spec(Objective::Speed), false);
     assert_eq!(selected_speed.selected.as_deref(), Some("fast"));
@@ -209,10 +190,7 @@ fn execution_graph_option_helpers_and_validation_paths() {
     assert!(graph.validate_strict().is_ok());
 
     let bad_step = ExecutionStep {
-        io: StageIO {
-            inputs: Vec::new(),
-            outputs: Vec::new(),
-        },
+        io: StageIO { inputs: Vec::new(), outputs: Vec::new() },
         ..mk_step("x", "fastq.trim_reads")
     };
     let bad_graph = ExecutionGraph::new(

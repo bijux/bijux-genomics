@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
@@ -10,7 +11,7 @@ pub fn hash_file_sha256(path: &Path) -> Result<String> {
     let bytes = std::fs::read(path).context("read file for hash")?;
     let mut hasher = sha2::Sha256::new();
     hasher.update(&bytes);
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(sha256_hex(hasher.finalize()))
 }
 
 /// # Errors
@@ -32,11 +33,7 @@ pub fn validate_execution_outputs(contract: &ExecutionContract, out_dir: &Path) 
 
     if contract.forbid_unexpected_outputs {
         for output in &outputs {
-            if !contract
-                .expected_outputs
-                .iter()
-                .any(|pattern| matches_pattern(output, pattern))
-            {
+            if !contract.expected_outputs.iter().any(|pattern| matches_pattern(output, pattern)) {
                 return Err(anyhow!("unexpected output produced: {output}"));
             }
         }
@@ -55,11 +52,7 @@ fn walk_outputs(root: &Path, dir: &Path, out: &mut Vec<String>) -> Result<()> {
     for entry in std::fs::read_dir(dir).with_context(|| format!("read dir {}", dir.display()))? {
         let entry = entry?;
         let path = entry.path();
-        let rel = path
-            .strip_prefix(root)
-            .unwrap_or(&path)
-            .to_string_lossy()
-            .replace('\\', "/");
+        let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace('\\', "/");
         if path.is_dir() {
             walk_outputs(root, &path, out)?;
         } else if path.is_file() {
@@ -103,4 +96,13 @@ fn matches_pattern(value: &str, pattern: &str) -> bool {
         }
     }
     true
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

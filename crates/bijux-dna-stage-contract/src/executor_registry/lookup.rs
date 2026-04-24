@@ -18,10 +18,7 @@ pub fn has_executor(stage_id: &str) -> bool {
 /// Returns the executor entry for a stage id.
 #[must_use]
 pub fn entry(stage_id: &str) -> Option<StageExecutorEntry> {
-    ENTRIES
-        .iter()
-        .copied()
-        .find(|candidate| candidate.stage_id == stage_id)
+    ENTRIES.iter().copied().find(|candidate| candidate.stage_id == stage_id)
 }
 
 #[cfg(test)]
@@ -39,10 +36,7 @@ mod tests {
 
     #[test]
     fn stage_executor_registry_has_unique_stage_ids() {
-        let ids = entries()
-            .iter()
-            .map(|entry| entry.stage_id)
-            .collect::<Vec<_>>();
+        let ids = entries().iter().map(|entry| entry.stage_id).collect::<Vec<_>>();
         let uniq = ids.iter().copied().collect::<BTreeSet<_>>();
         assert_eq!(ids.len(), uniq.len(), "duplicate stage ids in registry");
     }

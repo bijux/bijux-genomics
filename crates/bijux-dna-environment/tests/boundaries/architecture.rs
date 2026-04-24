@@ -20,13 +20,7 @@ fn environment_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src")),
-        btree_set(&[
-            "build/",
-            "lib.rs",
-            "public_api/",
-            "resolve/",
-            "runtime_spec/",
-        ]),
+        btree_set(&["build/", "lib.rs", "public_api/", "resolve/", "runtime_spec/",]),
         "src tree must match the documented environment layout"
     );
 
@@ -77,12 +71,9 @@ fn environment_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/resolve/catalog")),
-        btree_set(&[
-            "catalog_loader.rs",
-            "image_resolution.rs",
-            "mod.rs",
-            "registry_hydration.rs",
-        ]),
+        btree_set(
+            &["catalog_loader.rs", "image_resolution.rs", "mod.rs", "registry_hydration.rs",]
+        ),
         "resolve catalog tree must stay split by catalog concern"
     );
 
@@ -94,13 +85,7 @@ fn environment_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/resolve/types")),
-        btree_set(&[
-            "errors.rs",
-            "image.rs",
-            "mod.rs",
-            "platform.rs",
-            "runtime.rs"
-        ]),
+        btree_set(&["errors.rs", "image.rs", "mod.rs", "platform.rs", "runtime.rs"]),
         "resolve types tree must stay split by model concern"
     );
 
@@ -113,10 +98,7 @@ fn environment_tree_matches_architecture_contract() {
 
 fn crate_root(crate_name: &str) -> std::path::PathBuf {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let actual = root
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or_default();
+    let actual = root.file_name().and_then(|name| name.to_str()).unwrap_or_default();
     assert_eq!(actual, crate_name, "unexpected integration-test crate root");
     root
 }

@@ -20,9 +20,7 @@ pub fn lock_run(layout: &RunLayoutPaths, timeout: Duration) -> Result<FileLock, 
 /// Returns an IO error if the marker cannot be written.
 pub fn publish_run(layout: &RunLayoutPaths, run_id: &str) -> Result<PathBuf, IoError> {
     ensure_dir(&layout.artifacts_dir)?;
-    let marker = layout
-        .artifacts_dir
-        .join(RUN_LAYOUT_CONTRACT.publish_marker);
+    let marker = layout.artifacts_dir.join(RUN_LAYOUT_CONTRACT.publish_marker);
     let payload = serde_json::json!({
         "schema_version": "bijux.run_publish.v1",
         "run_id": run_id,

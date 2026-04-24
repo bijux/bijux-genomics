@@ -63,10 +63,7 @@ impl ResolvedImage {
         match runner {
             RuntimeKind::Docker => self.runner == RuntimeKind::Docker,
             RuntimeKind::Apptainer | RuntimeKind::Singularity => {
-                matches!(
-                    self.runner,
-                    RuntimeKind::Apptainer | RuntimeKind::Singularity
-                )
+                matches!(self.runner, RuntimeKind::Apptainer | RuntimeKind::Singularity)
             }
         }
     }

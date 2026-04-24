@@ -40,10 +40,7 @@ pub fn build_stage_plan(
     outputs: Vec<ArtifactRef>,
 ) -> Result<StagePlanV1> {
     let params = serde_json::to_value(&run_spec.params).map_err(|err| {
-        anyhow!(
-            "failed to serialize run parameters for {}: {err}",
-            run_spec.stage.0
-        )
+        anyhow!("failed to serialize run parameters for {}: {err}", run_spec.stage.0)
     })?;
     Ok(StagePlanV1 {
         stage_id: run_spec.stage.clone(),
@@ -51,13 +48,8 @@ pub fn build_stage_plan(
         stage_version: StageVersion(1),
         tool_id: run_spec.tool.clone(),
         tool_version: String::new(),
-        image: ContainerImageRefV1 {
-            image: tool_manifest.tool_id.to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: tool_manifest.command_template.clone(),
-        },
+        image: ContainerImageRefV1 { image: tool_manifest.tool_id.to_string(), digest: None },
+        command: CommandSpecV1 { template: tool_manifest.command_template.clone() },
         resources: tool_manifest.constraints.clone(),
         io: StageIO { inputs, outputs },
         out_dir: run_dir.join("stage"),
@@ -83,13 +75,8 @@ pub fn build_tool_execution_spec(
     ToolExecutionSpecV1 {
         tool_id: run_spec.tool.clone(),
         tool_version: String::new(),
-        image: ContainerImageRefV1 {
-            image: tool_manifest.tool_id.to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: tool_manifest.command_template.clone(),
-        },
+        image: ContainerImageRefV1 { image: tool_manifest.tool_id.to_string(), digest: None },
+        command: CommandSpecV1 { template: tool_manifest.command_template.clone() },
         resources: tool_manifest.constraints.clone(),
     }
 }

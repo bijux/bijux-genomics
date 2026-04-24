@@ -3,10 +3,7 @@ fn no_execution_details() {
     let root = crate::support::crate_src("bijux-dna-stage-contract")
         .unwrap_or_else(|err| panic!("resolve crate src: {err}"));
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(root)
-        .into_iter()
-        .filter_map(|e| e.ok())
-    {
+    for entry in walkdir::WalkDir::new(root).into_iter().filter_map(|e| e.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }

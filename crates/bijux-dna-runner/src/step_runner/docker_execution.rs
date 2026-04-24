@@ -92,12 +92,5 @@ pub(super) fn execute_docker_step(
     let runtime_s = command_output.runtime_s;
     let memory_mb = parse_mem_to_mb("0MiB / 0MiB").unwrap_or(0.0);
 
-    Ok(StepExecutionOutcome {
-        command_output,
-        exit_code,
-        stdout,
-        stderr,
-        runtime_s,
-        memory_mb,
-    })
+    Ok(StepExecutionOutcome { command_output, exit_code, stdout, stderr, runtime_s, memory_mb })
 }

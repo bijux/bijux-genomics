@@ -9,10 +9,7 @@ pub(super) fn verify_metrics_envelope(step: &ExecutionStep) -> Result<()> {
     if step.metrics_schema_ids.is_empty() {
         return Ok(());
     }
-    let metrics_path = step
-        .out_dir
-        .join("run_artifacts")
-        .join("metrics_envelope.json");
+    let metrics_path = step.out_dir.join("run_artifacts").join("metrics_envelope.json");
     if !metrics_path.exists() {
         return Err(contract_error(
             step,

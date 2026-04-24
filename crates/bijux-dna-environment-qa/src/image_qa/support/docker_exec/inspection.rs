@@ -33,11 +33,8 @@ pub fn run_validate_container_with_timeout(
     push_arg(&mut cmd, &mut args, output_mount);
     push_arg(&mut cmd, &mut args, image.full_name.clone());
 
-    let r1_name = r1
-        .file_name()
-        .ok_or_else(|| anyhow!("r1 filename missing"))?
-        .to_string_lossy()
-        .to_string();
+    let r1_name =
+        r1.file_name().ok_or_else(|| anyhow!("r1 filename missing"))?.to_string_lossy().to_string();
     let input_path = format!("/data/input/{r1_name}");
 
     match tool {
@@ -93,13 +90,7 @@ pub fn run_validate_container_with_timeout(
     let stdout = docker_logs(&id)?;
     let stderr = String::new();
     let command = command_string(&args);
-    Ok(ExecutionOutput {
-        exit_code,
-        stdout,
-        stderr,
-        output_fastq: None,
-        command,
-    })
+    Ok(ExecutionOutput { exit_code, stdout, stderr, output_fastq: None, command })
 }
 
 pub fn run_multiqc_container_with_timeout(
@@ -140,11 +131,5 @@ pub fn run_multiqc_container_with_timeout(
     let stdout = docker_logs(&id)?;
     let stderr = String::new();
     let command = command_string(&args);
-    Ok(ExecutionOutput {
-        exit_code,
-        stdout,
-        stderr,
-        output_fastq: None,
-        command,
-    })
+    Ok(ExecutionOutput { exit_code, stdout, stderr, output_fastq: None, command })
 }

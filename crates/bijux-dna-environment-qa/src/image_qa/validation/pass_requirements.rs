@@ -18,14 +18,11 @@ pub(crate) fn ensure_image_qa_inputs_passed<S: ::std::hash::BuildHasher>(
     let runner = platform.runner.to_string();
 
     for tool in tools {
-        let spec = catalog
-            .get(tool)
-            .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+        let spec =
+            catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
         let image = resolve_image_for_run(spec, platform)?;
-        let image_digest = spec
-            .digest
-            .as_ref()
-            .map_or_else(|| image.full_name.clone(), ToString::to_string);
+        let image_digest =
+            spec.digest.as_ref().map_or_else(|| image.full_name.clone(), ToString::to_string);
         for input_hash in expected_inputs {
             let passed = bijux_dna_analyze::load::sqlite::reports::image_qa_passed(
                 &conn,

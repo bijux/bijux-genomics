@@ -16,9 +16,7 @@ pub(super) fn load_image_catalog_from_file(
     let mut catalog = HashMap::new();
     for (key, mut spec) in raw {
         if key.trim().is_empty() {
-            return Err(EnvError::Image(
-                "empty tool name in images.toml".to_string(),
-            ));
+            return Err(EnvError::Image("empty tool name in images.toml".to_string()));
         }
         if spec.version.trim().is_empty() {
             return Err(EnvError::Image(format!("empty version for tool {key}")));

@@ -9,16 +9,10 @@ pub(super) struct DomainVocabularies {
 }
 
 pub(super) fn validate_reference_catalogs(workspace_root: &Path) -> Result<()> {
-    let adapter_bank_path = workspace_root
-        .join("assets")
-        .join("reference")
-        .join("adapters")
-        .join("bank.v1.yaml");
-    let reference_bank_path = workspace_root
-        .join("assets")
-        .join("reference")
-        .join("references")
-        .join("bank.v1.yaml");
+    let adapter_bank_path =
+        workspace_root.join("assets").join("reference").join("adapters").join("bank.v1.yaml");
+    let reference_bank_path =
+        workspace_root.join("assets").join("reference").join("references").join("bank.v1.yaml");
     let contamination_db_bank_path = workspace_root
         .join("assets")
         .join("reference")
@@ -35,10 +29,7 @@ pub(super) fn validate_reference_catalogs(workspace_root: &Path) -> Result<()> {
         || adapter_bank.provenance_status.trim().is_empty()
         || adapter_bank.adapters.is_empty()
     {
-        bail!(
-            "{} missing required adapter bank fields",
-            adapter_bank_path.display()
-        );
+        bail!("{} missing required adapter bank fields", adapter_bank_path.display());
     }
     if adapter_bank.provenance_status != "complete" {
         bail!(
@@ -47,20 +38,14 @@ pub(super) fn validate_reference_catalogs(workspace_root: &Path) -> Result<()> {
         );
     }
     if adapter_bank.version.trim().is_empty() {
-        bail!(
-            "{} missing adapter bank version",
-            adapter_bank_path.display()
-        );
+        bail!("{} missing adapter bank version", adapter_bank_path.display());
     }
     for entry in &adapter_bank.adapters {
         if entry.id.trim().is_empty()
             || is_unspecified(&entry.rationale)
             || is_unspecified(&entry.source)
         {
-            bail!(
-                "{} adapter entries require id/source/rationale",
-                adapter_bank_path.display()
-            );
+            bail!("{} adapter entries require id/source/rationale", adapter_bank_path.display());
         }
     }
 
@@ -71,10 +56,7 @@ pub(super) fn validate_reference_catalogs(workspace_root: &Path) -> Result<()> {
         || reference_bank.provenance_status.trim().is_empty()
         || reference_bank.references.is_empty()
     {
-        bail!(
-            "{} missing required reference bank fields",
-            reference_bank_path.display()
-        );
+        bail!("{} missing required reference bank fields", reference_bank_path.display());
     }
     if reference_bank.provenance_status != "complete" {
         bail!(
@@ -161,15 +143,9 @@ pub(super) fn validate_domain_vocabularies(domain_dir: &Path) -> Result<DomainVo
         if metrics.metric_ids.is_empty() {
             bail!("{} missing metric_ids", metrics_path.display());
         }
-        artifact_vocab.insert(
-            dom.to_string(),
-            artifacts.artifact_ids.into_iter().collect(),
-        );
+        artifact_vocab.insert(dom.to_string(), artifacts.artifact_ids.into_iter().collect());
         metric_vocab.insert(dom.to_string(), metrics.metric_ids.into_iter().collect());
     }
 
-    Ok(DomainVocabularies {
-        artifact_vocab,
-        metric_vocab,
-    })
+    Ok(DomainVocabularies { artifact_vocab, metric_vocab })
 }

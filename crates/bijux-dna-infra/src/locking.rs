@@ -1,7 +1,7 @@
+use fs4::fs_std::FileExt;
 use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::time::{Duration, Instant};
-use fs4::fs_std::FileExt;
 
 use crate::{IoError, IoErrorKind};
 
@@ -49,6 +49,6 @@ impl FileLock {
 
 impl Drop for FileLock {
     fn drop(&mut self) {
-        let _ = self.file.unlock();
+        let _ = fs4::fs_std::FileExt::unlock(&self.file);
     }
 }

@@ -112,9 +112,7 @@ pub fn query_latest_runs(index_path: &Path, limit: usize) -> Result<Vec<RunIndex
 /// Returns an error if the index cannot be read.
 pub fn query_run(index_path: &Path, run_id: &str) -> Result<Option<RunIndexEntry>> {
     let entries = list_runs(index_path)?;
-    Ok(entries
-        .into_iter()
-        .find(|entry| entry.run_id.as_str() == run_id))
+    Ok(entries.into_iter().find(|entry| entry.run_id.as_str() == run_id))
 }
 
 /// Query stage rows from `index.jsonl`.

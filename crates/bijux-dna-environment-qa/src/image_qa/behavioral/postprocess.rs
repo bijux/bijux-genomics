@@ -26,17 +26,14 @@ pub(crate) fn qa_qc_post_tool(
     dataset: &QaDataset,
 ) -> Result<()> {
     let contract = tool_contract(registry, STAGE_REPORT_QC.as_str(), tool)?;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("qc_post", tool)?;
     let container_name = format!("bijux-dna-qa-qc_post-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     if tool == "multiqc" {
-        let fastqc_spec = catalog
-            .get("fastqc")
-            .ok_or_else(|| anyhow!("fastqc missing from images.toml"))?;
+        let fastqc_spec =
+            catalog.get("fastqc").ok_or_else(|| anyhow!("fastqc missing from images.toml"))?;
         let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
         let fastqc_dir = out_dir.join("fastqc");
         bijux_dna_infra::ensure_dir(&fastqc_dir).context("create fastqc output dir")?;
@@ -119,9 +116,7 @@ pub(crate) fn qa_umi_tool(
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, STAGE_EXTRACT_UMIS.as_str(), tool)?;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("umi", tool)?;
     let container_name = format!("bijux-dna-qa-umi-{}-{}", tool, Uuid::new_v4());
@@ -146,9 +141,7 @@ pub(crate) fn qa_umi_tool(
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
     validate_execution_outputs(contract, &out_dir)?;
-    let out_fastq = execution
-        .output_fastq
-        .ok_or_else(|| anyhow!("output FASTQ missing"))?;
+    let out_fastq = execution.output_fastq.ok_or_else(|| anyhow!("output FASTQ missing"))?;
     if !out_fastq.exists() {
         return Err(anyhow!("output FASTQ not found: {}", out_fastq.display()));
     }
@@ -171,9 +164,7 @@ pub(crate) fn qa_stats_tool(
     dataset: &QaDataset,
 ) -> Result<()> {
     let contract = tool_contract(registry, STAGE_PROFILE_READS.as_str(), tool)?;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("stats", tool)?;
     let container_name = format!("bijux-dna-qa-stats-{}-{}", tool, Uuid::new_v4());
@@ -208,9 +199,7 @@ pub(crate) fn qa_screen_tool(
     _registry: &ToolRegistry,
     _dataset: &QaDataset,
 ) -> Result<()> {
-    Err(anyhow!(
-        "screen QA requires BIJUX_SCREEN_DB and is not enabled"
-    ))
+    Err(anyhow!("screen QA requires BIJUX_SCREEN_DB and is not enabled"))
 }
 
 pub(crate) fn tool_contract<'a>(

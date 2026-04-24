@@ -497,11 +497,7 @@ pub struct MetricSet<T> {
 impl<T> MetricSet<T> {
     #[must_use]
     pub fn new(metrics_schema: String, version: i32, metrics: T) -> Self {
-        Self {
-            metrics_schema,
-            version,
-            metrics,
-        }
+        Self { metrics_schema, version, metrics }
     }
 }
 

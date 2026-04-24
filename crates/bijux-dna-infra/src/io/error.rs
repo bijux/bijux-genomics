@@ -23,20 +23,12 @@ impl IoError {
     #[must_use]
     pub fn from_io(err: std::io::Error) -> Self {
         let kind = classify_io_error(&err);
-        Self {
-            kind,
-            message: err.to_string(),
-            source: Some(err),
-        }
+        Self { kind, message: err.to_string(), source: Some(err) }
     }
 
     #[must_use]
     pub fn new(kind: IoErrorKind, message: impl Into<String>) -> Self {
-        Self {
-            kind,
-            message: message.into(),
-            source: None,
-        }
+        Self { kind, message: message.into(), source: None }
     }
 }
 

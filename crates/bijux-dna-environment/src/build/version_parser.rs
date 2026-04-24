@@ -42,10 +42,7 @@ fn version_arg_pattern(tool: &str) -> String {
 
 fn version_arg_names(tool: &str) -> Vec<String> {
     let canonical = tool.to_uppercase().replace('-', "_");
-    let mut names = vec![
-        format!("VERSION_{canonical}"),
-        format!("{canonical}_VERSION"),
-    ];
+    let mut names = vec![format!("VERSION_{canonical}"), format!("{canonical}_VERSION")];
     if canonical == "TRIM_GALORE" {
         names.push("TRIM_GALORE".to_string());
     }

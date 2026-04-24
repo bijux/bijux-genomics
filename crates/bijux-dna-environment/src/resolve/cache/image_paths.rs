@@ -19,13 +19,8 @@ pub(in crate::resolve) fn apptainer_sif_path(image: &ResolvedImage) -> PathBuf {
 }
 
 fn extract_tool_name(full_name: &str) -> String {
-    let without_prefix = full_name
-        .rsplit_once('/')
-        .map_or(full_name, |(_, tool)| tool);
-    let tool = without_prefix
-        .split(['@', ':'])
-        .next()
-        .unwrap_or(without_prefix);
+    let without_prefix = full_name.rsplit_once('/').map_or(full_name, |(_, tool)| tool);
+    let tool = without_prefix.split(['@', ':']).next().unwrap_or(without_prefix);
     tool.to_string()
 }
 
@@ -33,9 +28,7 @@ fn extract_version_or_digest(full_name: &str, arch: &str) -> String {
     if let Some((_, digest)) = full_name.rsplit_once('@') {
         digest.to_string()
     } else if let Some((_, tag)) = full_name.rsplit_once(':') {
-        tag.strip_suffix(&format!("-{arch}"))
-            .unwrap_or(tag)
-            .to_string()
+        tag.strip_suffix(&format!("-{arch}")).unwrap_or(tag).to_string()
     } else {
         "unknown".to_string()
     }

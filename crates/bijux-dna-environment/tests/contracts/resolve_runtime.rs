@@ -34,10 +34,7 @@ struct EnvVarGuard {
 
 impl EnvVarGuard {
     fn capture(key: &'static str) -> Self {
-        Self {
-            key,
-            value: std::env::var_os(key),
-        }
+        Self { key, value: std::env::var_os(key) }
     }
 }
 
@@ -69,10 +66,7 @@ fn write_image_catalog_fixture(root: &Path, images: &[u8], registry: &[u8]) -> a
 #[test]
 fn runtime_kind_from_str_parses_known_runners() -> Result<(), EnvError> {
     assert_eq!(RuntimeKind::from_str("docker")?, RuntimeKind::Docker);
-    assert_eq!(
-        RuntimeKind::from_str("singularity")?,
-        RuntimeKind::Singularity
-    );
+    assert_eq!(RuntimeKind::from_str("singularity")?, RuntimeKind::Singularity);
     assert_eq!(RuntimeKind::from_str("apptainer")?, RuntimeKind::Apptainer);
     Ok(())
 }
@@ -104,29 +98,20 @@ fn image_ref_formats_deterministically() {
         version: "0.23.4".to_string(),
         arch: "arm64".to_string(),
     };
-    assert_eq!(
-        image.to_full_name("bijuxdna"),
-        "bijuxdna/fastp:0.23.4-arm64"
-    );
+    assert_eq!(image.to_full_name("bijuxdna"), "bijuxdna/fastp:0.23.4-arm64");
 }
 
 #[test]
 fn select_best_runner_prefers_requested_runner_when_available() -> Result<(), EnvError> {
     let available = vec![RuntimeKind::Apptainer, RuntimeKind::Docker];
-    assert_eq!(
-        select_best_runner(RuntimeKind::Docker, &available)?,
-        RuntimeKind::Docker
-    );
+    assert_eq!(select_best_runner(RuntimeKind::Docker, &available)?, RuntimeKind::Docker);
     Ok(())
 }
 
 #[test]
 fn select_best_runner_falls_back_to_oci_runners() -> Result<(), EnvError> {
     let available = vec![RuntimeKind::Singularity];
-    assert_eq!(
-        select_best_runner(RuntimeKind::Docker, &available)?,
-        RuntimeKind::Singularity
-    );
+    assert_eq!(select_best_runner(RuntimeKind::Docker, &available)?, RuntimeKind::Singularity);
     Ok(())
 }
 
@@ -151,18 +136,9 @@ fn resolve_image_builds_tagged_and_digest_pinned_names() -> Result<(), EnvError>
         enabled: None,
         shipping_policy: None,
     };
-    let pinned = ToolImageSpec {
-        digest: Some("sha256:abc123".to_string()),
-        ..tagged.clone()
-    };
-    assert_eq!(
-        resolve_image(&tagged, &platform)?.full_name,
-        "bijuxdna/fastp:0.23.4-arm64"
-    );
-    assert_eq!(
-        resolve_image(&pinned, &platform)?.full_name,
-        "bijuxdna/fastp@sha256:abc123"
-    );
+    let pinned = ToolImageSpec { digest: Some("sha256:abc123".to_string()), ..tagged.clone() };
+    assert_eq!(resolve_image(&tagged, &platform)?.full_name, "bijuxdna/fastp:0.23.4-arm64");
+    assert_eq!(resolve_image(&pinned, &platform)?.full_name, "bijuxdna/fastp@sha256:abc123");
     Ok(())
 }
 
@@ -195,14 +171,8 @@ fn resolved_image_and_runtime_spec_report_compatibility_consistently() {
     assert!(docker_image.is_compatible(RuntimeKind::Docker));
     assert!(!docker_image.is_compatible(RuntimeKind::Apptainer));
     assert!(oci_image.is_compatible(RuntimeKind::Singularity));
-    assert!(is_platform_runner_compatible(
-        &oci_platform,
-        RuntimeKind::Singularity
-    ));
-    assert!(!is_platform_runner_compatible(
-        &docker_platform,
-        RuntimeKind::Apptainer
-    ));
+    assert!(is_platform_runner_compatible(&oci_platform, RuntimeKind::Singularity));
+    assert!(!is_platform_runner_compatible(&docker_platform, RuntimeKind::Apptainer));
     assert!(RuntimeSpec::new(RuntimeKind::Docker, docker_platform).is_compatible());
     assert!(RuntimeSpec::new(RuntimeKind::Singularity, oci_platform).is_compatible());
 }
@@ -279,10 +249,7 @@ arch = "amd64"
     std::env::remove_var("BIJUX_HPC_ROOT");
     std::env::remove_var("BIJUX_APPTAINER_CONTAINER_DIR");
     let platform = load_platform(Some("apptainer-amd64"))?;
-    assert_eq!(
-        platform.container_dir,
-        Path::new("containers").join("apptainer").join("sif")
-    );
+    assert_eq!(platform.container_dir, Path::new("containers").join("apptainer").join("sif"));
     Ok(())
 }
 
@@ -300,9 +267,7 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
     )?;
     let catalog = load_image_catalog()?;
     assert_eq!(
-        catalog
-            .get("fastqc")
-            .and_then(|spec| spec.digest.as_deref()),
+        catalog.get("fastqc").and_then(|spec| spec.digest.as_deref()),
         Some("sha256:abc123")
     );
     Ok(())
@@ -317,12 +282,8 @@ fn cache_paths_and_docker_image_checks_are_deterministic() {
     };
     let _cache_root = EnvVarGuard::capture("BIJUX_CACHE_ROOT");
     std::env::set_var("BIJUX_CACHE_ROOT", std::env::temp_dir().join("bijux_cache"));
-    assert!(cache_dir(RuntimeKind::Docker)
-        .to_string_lossy()
-        .contains("bijux/docker/images"));
-    assert!(apptainer_sif_path(&image)
-        .to_string_lossy()
-        .contains("fastp-sha256:abc123-arm64.sif"));
+    assert!(cache_dir(RuntimeKind::Docker).to_string_lossy().contains("bijux/docker/images"));
+    assert!(apptainer_sif_path(&image).to_string_lossy().contains("fastp-sha256:abc123-arm64.sif"));
 
     let docker = ResolvedImage {
         full_name: "bijuxdna/fastp:0.23.4-arm64".to_string(),

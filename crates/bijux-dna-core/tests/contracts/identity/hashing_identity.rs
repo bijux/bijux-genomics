@@ -12,11 +12,7 @@ fn run_id_is_order_independent_for_input_hashes() {
 
 #[test]
 fn input_fingerprint_is_order_independent_and_deduped() {
-    let a = vec![
-        "sha256:b".to_string(),
-        "sha256:a".to_string(),
-        "sha256:a".to_string(),
-    ];
+    let a = vec!["sha256:b".to_string(), "sha256:a".to_string(), "sha256:a".to_string()];
     let b = vec!["sha256:a".to_string(), "sha256:b".to_string()];
     assert_eq!(input_fingerprint(&a), input_fingerprint(&b));
 }

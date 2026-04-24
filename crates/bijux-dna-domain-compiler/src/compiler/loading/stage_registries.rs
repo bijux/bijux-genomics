@@ -73,9 +73,8 @@ pub(super) fn build_stages_toml(
     }
     let mut stages_toml = generated_header("domain/**", source_commit);
     for (stage_id, tools_set) in stage_to_tools {
-        let status = stage_statuses
-            .get(stage_id.as_str())
-            .map_or("planned", std::string::String::as_str);
+        let status =
+            stage_statuses.get(stage_id.as_str()).map_or("planned", std::string::String::as_str);
         if status != "supported" {
             continue;
         }
@@ -86,15 +85,10 @@ pub(super) fn build_stages_toml(
         let mut v = tools_set.iter().cloned().collect::<Vec<_>>();
         v.retain(|tool_id| {
             production_tool_ids.contains(tool_id)
-                && tools
-                    .get(tool_id)
-                    .is_some_and(|tool| tool.domain == stage_domain)
+                && tools.get(tool_id).is_some_and(|tool| tool.domain == stage_domain)
         });
         v.sort();
-        let output_kinds = stage_output_kinds
-            .get(stage_id)
-            .cloned()
-            .unwrap_or_default();
+        let output_kinds = stage_output_kinds.get(stage_id).cloned().unwrap_or_default();
         let _ = writeln!(stages_toml, "output_kinds = {}", toml_array(&output_kinds));
         let _ = writeln!(
             stages_toml,
@@ -108,11 +102,7 @@ pub(super) fn build_stages_toml(
         );
         if let Some(resources) = resource_map.get(stage_id) {
             let _ = writeln!(stages_toml, "resource_memory_gb = {}", resources.memory_gb);
-            let _ = writeln!(
-                stages_toml,
-                "resource_time_minutes = {}",
-                resources.time_minutes
-            );
+            let _ = writeln!(stages_toml, "resource_time_minutes = {}", resources.time_minutes);
             let _ = writeln!(stages_toml, "resource_threads = {}", resources.threads);
         }
         if let Some(sanity) = sanity_map.get(stage_id) {
@@ -136,25 +126,14 @@ pub(super) fn build_stages_toml(
             );
         }
         if let Some(auth) = authenticity_thresholds_map.get(stage_id) {
-            let _ = writeln!(
-                stages_toml,
-                "authenticity_thresholds = {}",
-                encode_threshold_map(auth)
-            );
+            let _ =
+                writeln!(stages_toml, "authenticity_thresholds = {}", encode_threshold_map(auth));
         }
         if let Some(dup) = duplication_thresholds_map.get(stage_id) {
-            let _ = writeln!(
-                stages_toml,
-                "duplication_thresholds = {}",
-                encode_threshold_map(dup)
-            );
+            let _ = writeln!(stages_toml, "duplication_thresholds = {}", encode_threshold_map(dup));
         }
         if let Some(coverage_logic) = coverage_sufficiency_map.get(stage_id) {
-            let _ = writeln!(
-                stages_toml,
-                "coverage_sufficiency = {}",
-                toml_array(coverage_logic)
-            );
+            let _ = writeln!(stages_toml, "coverage_sufficiency = {}", toml_array(coverage_logic));
         }
         if let Some(sex_kinship_logic) = sex_kinship_sufficiency_map.get(stage_id) {
             let _ = writeln!(
@@ -177,16 +156,9 @@ pub(super) fn build_stages_toml(
         let _ = writeln!(stages_toml, "[[benchmark_scenarios]]");
         let _ = writeln!(stages_toml, "id = \"{scenario_id}\"");
         let _ = writeln!(stages_toml, "stage_id = \"{}\"", scenario.stage_id);
-        let _ = writeln!(
-            stages_toml,
-            "description = \"{}\"",
-            scenario.description.replace('"', "'")
-        );
-        let _ = writeln!(
-            stages_toml,
-            "fairness_rules = {}",
-            toml_array(&scenario.fairness_rules)
-        );
+        let _ =
+            writeln!(stages_toml, "description = \"{}\"", scenario.description.replace('"', "'"));
+        let _ = writeln!(stages_toml, "fairness_rules = {}", toml_array(&scenario.fairness_rules));
         stages_toml.push('\n');
     }
     stages_toml

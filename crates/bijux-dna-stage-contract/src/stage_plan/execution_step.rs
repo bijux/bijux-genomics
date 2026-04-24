@@ -7,9 +7,7 @@ use super::contract::StagePlanV1;
 pub fn execution_step_from_stage_plan(plan: &StagePlanV1) -> ExecutionStep {
     execution_step_from_stage_plan_with_step_id(
         plan,
-        plan.stage_instance_id
-            .clone()
-            .unwrap_or_else(|| StepId::new(plan.stage_id.to_string())),
+        plan.stage_instance_id.clone().unwrap_or_else(|| StepId::new(plan.stage_id.to_string())),
     )
 }
 
@@ -18,12 +16,8 @@ pub fn execution_step_from_stage_plan_with_step_id(
     plan: &StagePlanV1,
     step_id: StepId,
 ) -> ExecutionStep {
-    let expected_artifact_ids = plan
-        .io
-        .outputs
-        .iter()
-        .map(|artifact| artifact.name.clone())
-        .collect();
+    let expected_artifact_ids =
+        plan.io.outputs.iter().map(|artifact| artifact.name.clone()).collect();
     let metrics_schema_ids =
         bijux_dna_core::metrics::metrics_schema_for_stage(plan.stage_id.as_str())
             .map(|schema| vec![schema.schema.to_string()])

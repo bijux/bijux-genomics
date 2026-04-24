@@ -10,16 +10,10 @@ pub(super) struct PreparedExecutionGraph {
 
 pub(super) fn normalize_for_execution(graph: &ExecutionGraph) -> Result<PreparedExecutionGraph> {
     let graph = graph.normalize()?;
-    let ordered_steps = topology::topo_order(
-        graph.steps(),
-        graph.edges(),
-        graph.deterministic_scheduler(),
-    )?
-    .into_iter()
-    .cloned()
-    .collect();
-    Ok(PreparedExecutionGraph {
-        graph,
-        ordered_steps,
-    })
+    let ordered_steps =
+        topology::topo_order(graph.steps(), graph.edges(), graph.deterministic_scheduler())?
+            .into_iter()
+            .cloned()
+            .collect();
+    Ok(PreparedExecutionGraph { graph, ordered_steps })
 }

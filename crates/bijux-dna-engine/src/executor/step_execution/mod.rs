@@ -36,10 +36,7 @@ fn execute_step(
         return Err(anyhow!("execution cancelled before {}", step.step_id.0));
     }
     if let Some(hooks) = hooks {
-        hooks.on_event(EngineEvent::StepStart {
-            step_id: step.step_id.clone(),
-            attempt: 0,
-        });
+        hooks.on_event(EngineEvent::StepStart { step_id: step.step_id.clone(), attempt: 0 });
     }
     tracing::info!(
         target: "exec.step",
@@ -53,10 +50,7 @@ fn execute_step(
             return Err(anyhow!("execution cancelled during {}", step.step_id.0));
         }
         let started_at = Utc::now().to_rfc3339();
-        let invocation = Invocation {
-            step: step.clone(),
-            attempt,
-        };
+        let invocation = Invocation { step: step.clone(), attempt };
         let outcome = runner.run(&invocation)?;
         let duration = outcome.duration;
         let finished_at = Utc::now().to_rfc3339();
@@ -71,11 +65,7 @@ fn execute_step(
         let success = outcome.exit_code == 0;
         if let Some(timeout_s) = graph.step_timeout_s() {
             if duration.as_secs() > timeout_s {
-                return Err(anyhow!(
-                    "step {} exceeded timeout {}s",
-                    step.step_id.0,
-                    timeout_s
-                ));
+                return Err(anyhow!("step {} exceeded timeout {}s", step.step_id.0, timeout_s));
             }
         }
         if success {
@@ -90,9 +80,7 @@ fn execute_step(
             break success;
         }
         let retry_policy = graph.retry_policy();
-        let allow_retry = retry_policy
-            .retry_on_exit_codes
-            .contains(&outcome.exit_code);
+        let allow_retry = retry_policy.retry_on_exit_codes.contains(&outcome.exit_code);
         if !allow_retry || attempt + 1 >= retry_policy.max_attempts {
             let step_id = step.step_id.to_string();
             return Err(anyhow!("step failed after retries: {step_id}"));
@@ -106,9 +94,5 @@ fn execute_step(
         }
         attempt += 1;
     };
-    Ok(stage_record::stage_execution_record(
-        step,
-        attempt,
-        last_success,
-    ))
+    Ok(stage_record::stage_execution_record(step, attempt, last_success))
 }

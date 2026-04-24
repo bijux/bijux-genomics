@@ -3,9 +3,7 @@ use std::path::Path;
 
 #[test]
 fn support_helpers_are_named_by_purpose() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("support");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests").join("support");
     let allowed: BTreeSet<&str> = BTreeSet::from([
         "mod.rs",
         "README.md",

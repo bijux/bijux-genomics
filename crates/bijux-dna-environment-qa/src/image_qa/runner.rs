@@ -53,9 +53,8 @@ fn run_image_qa_with(
     let cwd = std::env::current_dir().context("resolve cwd")?;
     let store = QaRecordStore::prepare(&cwd, platform)?;
 
-    let seqkit_spec = catalog
-        .get("seqkit")
-        .ok_or_else(|| anyhow!("seqkit missing from images.toml"))?;
+    let seqkit_spec =
+        catalog.get("seqkit").ok_or_else(|| anyhow!("seqkit missing from images.toml"))?;
     let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
 
     let registry = load_manifests(&std::env::current_dir()?.join("domain"))

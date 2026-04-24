@@ -11,10 +11,8 @@ pub(super) fn rolling_writer(
     path: &Path,
 ) -> Result<tracing_appender::rolling::RollingFileAppender> {
     Ok(tracing_appender::rolling::never(
-        path.parent()
-            .ok_or_else(|| anyhow!("log path missing parent"))?,
-        path.file_name()
-            .ok_or_else(|| anyhow!("log path missing filename"))?,
+        path.parent().ok_or_else(|| anyhow!("log path missing parent"))?,
+        path.file_name().ok_or_else(|| anyhow!("log path missing filename"))?,
     ))
 }
 

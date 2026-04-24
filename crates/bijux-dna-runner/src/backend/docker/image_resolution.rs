@@ -150,9 +150,6 @@ mod tests {
     #[test]
     fn apptainer_registry_root_uses_parent_of_flat_sif_layout() {
         let flat_dir = Path::new("/shared/containers/apptainer/sif");
-        assert_eq!(
-            apptainer_registry_root(flat_dir),
-            PathBuf::from("/shared/containers")
-        );
+        assert_eq!(apptainer_registry_root(flat_dir), PathBuf::from("/shared/containers"));
     }
 }

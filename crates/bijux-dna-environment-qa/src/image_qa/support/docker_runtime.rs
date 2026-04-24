@@ -27,11 +27,8 @@ pub(crate) fn command_string(args: &[String]) -> String {
 }
 
 fn docker_wait(container_id: &str) -> Result<i32> {
-    let output = Command::new("docker")
-        .arg("wait")
-        .arg(container_id)
-        .output()
-        .context("docker wait")?;
+    let output =
+        Command::new("docker").arg("wait").arg(container_id).output().context("docker wait")?;
     if !output.status.success() {
         return Err(anyhow!("docker wait failed for {container_id}"));
     }
@@ -66,11 +63,8 @@ pub(crate) fn docker_wait_timeout(container_id: &str, timeout: Duration) -> Resu
 }
 
 pub(crate) fn docker_logs(container_id: &str) -> Result<String> {
-    let output = Command::new("docker")
-        .arg("logs")
-        .arg(container_id)
-        .output()
-        .context("docker logs")?;
+    let output =
+        Command::new("docker").arg("logs").arg(container_id).output().context("docker logs")?;
     if !output.status.success() {
         return Err(anyhow!("docker logs failed for {container_id}"));
     }

@@ -34,9 +34,7 @@ pub(crate) fn qa_trim_tool(
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, STAGE_TRIM_READS.as_str(), tool)?;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("trim", tool)?;
     let container_name = format!("bijux-dna-qa-trim-{}-{}", tool, Uuid::new_v4());
@@ -62,11 +60,7 @@ pub(crate) fn qa_trim_tool(
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
     validate_execution_outputs(contract, &out_dir)?;
-    let TrimExecutionOutput {
-        output_r1,
-        output_r2,
-        ..
-    } = execution;
+    let TrimExecutionOutput { output_r1, output_r2, .. } = execution;
     let out_fastq = resolve_output_fastq(output_r1, "output FASTQ")?;
     ensure_gzip_integrity(&out_fastq)?;
     let output_stats = output_fastq_stats(seqkit_image, &out_dir, &out_fastq)?;
@@ -84,9 +78,7 @@ pub(crate) fn qa_trim_tool(
     let input_hits = adapter_hit_reads(seqkit_image, &dataset.r1_dir, &dataset.r1, adapter)?;
     let output_hits = adapter_hit_reads(seqkit_image, &out_dir, &out_fastq, adapter)?;
     if input_hits >= 10 && output_hits >= input_hits {
-        return Err(anyhow!(
-            "adapter hits not reduced: in={input_hits} out={output_hits}"
-        ));
+        return Err(anyhow!("adapter hits not reduced: in={input_hits} out={output_hits}"));
     }
 
     if let Some(out_r2) = output_r2 {
@@ -105,10 +97,7 @@ pub(crate) fn qa_trim_tool(
                 ));
             }
         }
-        let input_r2 = dataset
-            .r2
-            .as_deref()
-            .ok_or_else(|| anyhow!("r2 missing for paired QA"))?;
+        let input_r2 = dataset.r2.as_deref().ok_or_else(|| anyhow!("r2 missing for paired QA"))?;
         let input_hits_r2 = adapter_hit_reads(seqkit_image, &dataset.r1_dir, input_r2, adapter)?;
         let output_hits_r2 = adapter_hit_reads(seqkit_image, &out_dir, &out_r2, adapter)?;
         if input_hits_r2 >= 10 && output_hits_r2 >= input_hits_r2 {
@@ -128,9 +117,7 @@ pub(crate) fn qa_validate_tool(
     dataset: &QaDataset,
 ) -> Result<()> {
     let contract = tool_contract(registry, STAGE_VALIDATE_READS.as_str(), tool)?;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("validate", tool)?;
     let container_name = format!("bijux-dna-qa-validate-{}-{}", tool, Uuid::new_v4());
@@ -167,9 +154,7 @@ pub(crate) fn qa_filter_tool(
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, STAGE_FILTER_READS.as_str(), tool)?;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("filter", tool)?;
     let container_name = format!("bijux-dna-qa-filter-{}-{}", tool, Uuid::new_v4());
@@ -194,9 +179,7 @@ pub(crate) fn qa_filter_tool(
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
     validate_execution_outputs(contract, &out_dir)?;
-    let out_fastq = execution
-        .output_fastq
-        .ok_or_else(|| anyhow!("output FASTQ missing"))?;
+    let out_fastq = execution.output_fastq.ok_or_else(|| anyhow!("output FASTQ missing"))?;
     let out_fastq = if out_fastq.exists() {
         out_fastq
     } else {
@@ -227,18 +210,11 @@ pub(crate) fn qa_merge_tool(
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, STAGE_MERGE_PAIRS.as_str(), tool)?;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
-    let r2 = dataset
-        .r2
-        .as_ref()
-        .ok_or_else(|| anyhow!("missing paired input"))?;
-    let input_stats_r2 = dataset
-        .input_stats_r2
-        .as_ref()
-        .ok_or_else(|| anyhow!("missing paired stats"))?;
+    let r2 = dataset.r2.as_ref().ok_or_else(|| anyhow!("missing paired input"))?;
+    let input_stats_r2 =
+        dataset.input_stats_r2.as_ref().ok_or_else(|| anyhow!("missing paired stats"))?;
     let out_dir = temp_out_dir("merge", tool)?;
     let container_name = format!("bijux-dna-qa-merge-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_MERGE_TIMEOUT_SECS);
@@ -294,9 +270,7 @@ pub(crate) fn qa_correct_tool(
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, STAGE_CORRECT_ERRORS.as_str(), tool)?;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
+    let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("correct", tool)?;
     let container_name = format!("bijux-dna-qa-correct-{}-{}", tool, Uuid::new_v4());
@@ -321,11 +295,8 @@ pub(crate) fn qa_correct_tool(
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
     validate_execution_outputs(contract, &out_dir)?;
-    let out_fastq = if let Some(path) = execution.output_fastq {
-        path
-    } else {
-        find_fastq_in_dir(&out_dir)?
-    };
+    let out_fastq =
+        if let Some(path) = execution.output_fastq { path } else { find_fastq_in_dir(&out_dir)? };
     let output_stats = output_fastq_stats(seqkit_image, &out_dir, &out_fastq)?;
     if output_stats.reads != dataset.input_stats_r1.reads {
         return Err(anyhow!(

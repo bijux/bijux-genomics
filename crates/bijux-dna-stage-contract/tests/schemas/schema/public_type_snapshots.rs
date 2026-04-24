@@ -15,9 +15,7 @@ fn stage_plan() -> StagePlanV1 {
             image: "fastp".to_string(),
             digest: None,
         },
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: vec!["fastp".to_string()],
-        },
+        command: bijux_dna_core::prelude::CommandSpecV1 { template: vec!["fastp".to_string()] },
         resources: bijux_dna_core::contract::ToolConstraints::default(),
         io: bijux_dna_core::contract::StageIO {
             inputs: vec![bijux_dna_core::contract::ArtifactRef::required(
@@ -76,10 +74,7 @@ fn write_snapshot(path: &str, value: &serde_json::Value) {
 #[test]
 fn stage_plan_snapshot() {
     let plan = stage_plan();
-    write_snapshot(
-        "stage_plan.json",
-        &serde_json::to_value(plan).expect("stage plan"),
-    );
+    write_snapshot("stage_plan.json", &serde_json::to_value(plan).expect("stage plan"));
 }
 
 #[test]
@@ -106,10 +101,7 @@ fn stage_invocation_snapshot() {
         env: BTreeMap::new(),
         expected_outputs: Vec::new(),
     };
-    write_snapshot(
-        "stage_invocation.json",
-        &serde_json::to_value(invocation).expect("invocation"),
-    );
+    write_snapshot("stage_invocation.json", &serde_json::to_value(invocation).expect("invocation"));
 }
 
 #[test]
@@ -137,10 +129,7 @@ fn stage_plugin_output_snapshot() {
         verdict: None,
         event_hints: Vec::new(),
     };
-    write_snapshot(
-        "stage_plugin_output.json",
-        &serde_json::to_value(output).expect("output"),
-    );
+    write_snapshot("stage_plugin_output.json", &serde_json::to_value(output).expect("output"));
 }
 
 #[test]
@@ -166,14 +155,9 @@ fn run_execution_plan_snapshot() {
                 image: "fastp".to_string(),
                 digest: None,
             },
-            command: bijux_dna_core::prelude::CommandSpecV1 {
-                template: vec!["fastp".to_string()],
-            },
+            command: bijux_dna_core::prelude::CommandSpecV1 { template: vec!["fastp".to_string()] },
             resources: bijux_dna_core::contract::ToolConstraints::default(),
         },
     };
-    write_snapshot(
-        "run_execution_plan.json",
-        &serde_json::to_value(run_plan).expect("run plan"),
-    );
+    write_snapshot("run_execution_plan.json", &serde_json::to_value(run_plan).expect("run plan"));
 }

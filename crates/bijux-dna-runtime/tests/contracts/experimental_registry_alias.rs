@@ -26,10 +26,7 @@ struct EnvGuard {
 
 impl EnvGuard {
     fn capture(key: &'static str) -> Self {
-        Self {
-            key,
-            value: std::env::var(key).ok(),
-        }
+        Self { key, value: std::env::var(key).ok() }
     }
 }
 
@@ -45,9 +42,7 @@ impl Drop for EnvGuard {
 
 #[test]
 fn experimental_registry_is_loaded_from_runtime_and_api_aliases() {
-    let _lock = env_lock()
-        .lock()
-        .unwrap_or_else(|err| panic!("lock env mutation tests: {err}"));
+    let _lock = env_lock().lock().unwrap_or_else(|err| panic!("lock env mutation tests: {err}"));
     let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
     let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
     std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
@@ -82,9 +77,7 @@ fn experimental_registry_is_loaded_from_runtime_and_api_aliases() {
 
 #[test]
 fn addeam_damage_binding_is_present_when_experimental_registry_is_enabled() {
-    let _lock = env_lock()
-        .lock()
-        .unwrap_or_else(|err| panic!("lock env mutation tests: {err}"));
+    let _lock = env_lock().lock().unwrap_or_else(|err| panic!("lock env mutation tests: {err}"));
     let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
     let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
     std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
@@ -102,9 +95,7 @@ fn addeam_damage_binding_is_present_when_experimental_registry_is_enabled() {
 
 #[test]
 fn seqkit_normalize_abundance_binding_is_present_in_the_governed_registry() {
-    let _lock = env_lock()
-        .lock()
-        .unwrap_or_else(|err| panic!("lock env mutation tests: {err}"));
+    let _lock = env_lock().lock().unwrap_or_else(|err| panic!("lock env mutation tests: {err}"));
     let _include_guard = EnvGuard::capture("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");
     let _api_guard = EnvGuard::capture("BIJUX_EXPERIMENTAL_TOOLS");
     std::env::remove_var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS");

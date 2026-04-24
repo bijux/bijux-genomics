@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -21,9 +22,7 @@ pub fn append_jsonl_line(path: &Path, line: &str) -> std::io::Result<()> {
 /// # Errors
 /// Returns an error if the target cannot be written.
 pub fn write_atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
-    let dir = path
-        .parent()
-        .ok_or_else(|| anyhow!("missing parent for {}", path.display()))?;
+    let dir = path.parent().ok_or_else(|| anyhow!("missing parent for {}", path.display()))?;
     bijux_dna_infra::ensure_dir(dir)?;
     let mut temp = PathBuf::from(path);
     temp.set_extension("tmp");
@@ -89,7 +88,7 @@ pub fn hash_file_sha256(path: &Path) -> Result<String> {
         }
         hasher.update(&buf[..read]);
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(sha256_hex(hasher.finalize()))
 }
 
 /// Compute and persist stage artifact checksums as canonical JSON.
@@ -116,11 +115,7 @@ pub fn write_artifact_checksums_json(
         .map(|(name, checksum)| format!("{checksum}  {name}"))
         .collect::<Vec<_>>()
         .join("\n");
-    let payload = if lines.is_empty() {
-        String::new()
-    } else {
-        format!("{lines}\n")
-    };
+    let payload = if lines.is_empty() { String::new() } else { format!("{lines}\n") };
     write_atomic_bytes(&sha_path, payload.as_bytes())
         .with_context(|| format!("write {}", sha_path.display()))?;
     Ok(checksums)
@@ -141,4 +136,13 @@ fn truncate_tail(text: &str, tail_kb: usize) -> String {
     let bytes = text.as_bytes();
     let start = bytes.len().saturating_sub(max_bytes);
     String::from_utf8_lossy(&bytes[start..]).to_string()
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

@@ -27,10 +27,8 @@ fn execute_plan_retries_failures() {
     let plan = build_graph(stages, Vec::new());
     let runner = FakeRunner::new();
     runner.fail_first("A");
-    let plan = plan.with_retry_policy(RetryPolicy {
-        max_attempts: 2,
-        retry_on_exit_codes: vec![1],
-    });
+    let plan =
+        plan.with_retry_policy(RetryPolicy { max_attempts: 2, retry_on_exit_codes: vec![1] });
     let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let result = Engine::default()
         .execute(&plan, &runner, &layout, None, None)
@@ -42,16 +40,11 @@ fn execute_plan_retries_failures() {
 #[test]
 fn execute_plan_stops_on_failure() {
     let stages = vec![plan_for("A"), plan_for("B")];
-    let plan = build_graph(
-        stages,
-        vec![ExecutionEdge::new(StepId::new("A"), StepId::new("B"))],
-    );
+    let plan = build_graph(stages, vec![ExecutionEdge::new(StepId::new("A"), StepId::new("B"))]);
     let runner = FakeRunner::new();
     runner.fail_first("A");
-    let plan = plan.with_retry_policy(RetryPolicy {
-        max_attempts: 1,
-        retry_on_exit_codes: vec![1],
-    });
+    let plan =
+        plan.with_retry_policy(RetryPolicy { max_attempts: 1, retry_on_exit_codes: vec![1] });
     let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let err = Engine::default()
         .execute(&plan, &runner, &layout, None, None)
@@ -66,10 +59,7 @@ fn execute_plan_stops_on_failure() {
 #[test]
 fn execute_plan_respects_resume_cache() {
     let stages = vec![plan_for("A"), plan_for("B")];
-    let plan = build_graph(
-        stages,
-        vec![ExecutionEdge::new(StepId::new("A"), StepId::new("B"))],
-    );
+    let plan = build_graph(stages, vec![ExecutionEdge::new(StepId::new("A"), StepId::new("B"))]);
     let runner = FakeRunner::new();
     let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let result = Engine::default()

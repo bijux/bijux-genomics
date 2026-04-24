@@ -37,9 +37,7 @@ pub fn adapter_hit_reads(
     fastq: &Path,
     adapter: &str,
 ) -> Result<u64> {
-    let mount_dir = mount_dir
-        .canonicalize()
-        .context("resolve mount directory")?;
+    let mount_dir = mount_dir.canonicalize().context("resolve mount directory")?;
     let fastq = fastq.canonicalize().context("resolve fastq path")?;
     let fastq_name = fastq
         .file_name()
@@ -54,9 +52,7 @@ pub fn adapter_hit_reads(
         .arg(&image.full_name)
         .arg("sh")
         .arg("-lc")
-        .arg(format!(
-            "seqkit grep -s -p {adapter} /data/{fastq_name} | seqkit stats -a -T -"
-        ));
+        .arg(format!("seqkit grep -s -p {adapter} /data/{fastq_name} | seqkit stats -a -T -"));
     let output = cmd.output().context("run seqkit grep stats")?;
     if !output.status.success() {
         return Err(anyhow!("seqkit adapter scan failed"));
@@ -72,11 +68,7 @@ pub fn ensure_gzip_integrity(path: &Path) -> Result<()> {
         .and_then(|ext| ext.to_str())
         .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
     {
-        let status = Command::new("gzip")
-            .arg("-t")
-            .arg(path)
-            .status()
-            .context("run gzip -t")?;
+        let status = Command::new("gzip").arg("-t").arg(path).status().context("run gzip -t")?;
         if !status.success() {
             return Err(anyhow!("gzip integrity check failed: {}", path.display()));
         }
@@ -85,9 +77,7 @@ pub fn ensure_gzip_integrity(path: &Path) -> Result<()> {
 }
 
 fn seqkit_stats(image: &ResolvedImage, mount_dir: &Path, fastq: &Path) -> Result<SeqkitMetrics> {
-    let mount_dir = mount_dir
-        .canonicalize()
-        .context("resolve mount directory")?;
+    let mount_dir = mount_dir.canonicalize().context("resolve mount directory")?;
     let fastq = fastq.canonicalize().context("resolve fastq path")?;
     let fastq_name = fastq
         .file_name()
@@ -129,10 +119,7 @@ fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
             .iter()
             .position(|field| field == &name)
             .ok_or_else(|| anyhow!("seqkit column missing: {name}"))?;
-        data_fields
-            .get(idx)
-            .copied()
-            .ok_or_else(|| anyhow!("seqkit data missing for {name}"))
+        data_fields.get(idx).copied().ok_or_else(|| anyhow!("seqkit data missing for {name}"))
     };
     let reads: u64 = col("num_seqs")?.parse().context("parse reads")?;
     let bases: u64 = col("sum_len")?.parse().context("parse bases")?;
@@ -144,10 +131,8 @@ fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
         warn!("seqkit avg_qual/mean_qual missing; defaulting mean_q to 0.0");
         0.0
     };
-    let gc_percent = if let Some((idx, _)) = header_fields
-        .iter()
-        .enumerate()
-        .find(|(_, field)| field.to_lowercase().starts_with("gc"))
+    let gc_percent = if let Some((idx, _)) =
+        header_fields.iter().enumerate().find(|(_, field)| field.to_lowercase().starts_with("gc"))
     {
         data_fields
             .get(idx)
@@ -158,10 +143,5 @@ fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
         warn!("seqkit gc column missing; defaulting gc_percent to 0.0");
         0.0
     };
-    Ok(SeqkitMetrics {
-        reads,
-        bases,
-        mean_q,
-        gc_percent,
-    })
+    Ok(SeqkitMetrics { reads, bases, mean_q, gc_percent })
 }

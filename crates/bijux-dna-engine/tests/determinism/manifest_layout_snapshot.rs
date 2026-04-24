@@ -25,9 +25,7 @@ fn determinism_manifest_hash_and_layout_tree_snapshot() -> Result<()> {
             image: "tool".to_string(),
             digest: Some("sha256:img".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["tool".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["tool".to_string()] },
         resources: ToolConstraints {
             runtime: "short".to_string(),
             mem_gb: 1,

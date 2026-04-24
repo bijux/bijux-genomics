@@ -22,10 +22,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
         if status != "supported" {
             continue;
         }
-        let compatible = index
-            .stage_tool_compatibility
-            .get(stage_id)
-            .is_some_and(|tools| !tools.is_empty());
+        let compatible =
+            index.stage_tool_compatibility.get(stage_id).is_some_and(|tools| !tools.is_empty());
         if !compatible {
             bail!(
                 "{} supported stage {} missing non-empty stage_tool_compatibility",
@@ -40,10 +38,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let rationale = index
-            .active_default_rationale
-            .get(stage_id)
-            .map_or("", std::string::String::as_str);
+        let rationale =
+            index.active_default_rationale.get(stage_id).map_or("", std::string::String::as_str);
         if is_unspecified(rationale) {
             bail!(
                 "{} supported stage {} missing non-empty active_default_rationale",
@@ -59,11 +55,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
         .flat_map(|tools| tools.iter().cloned())
         .collect::<BTreeSet<_>>();
     for tool_id in &index.tool_ids {
-        if tool_catalogs
-            .statuses
-            .get(tool_id)
-            .is_some_and(|status| status != "supported")
-        {
+        if tool_catalogs.statuses.get(tool_id).is_some_and(|status| status != "supported") {
             continue;
         }
         if !reachable_tools.contains(tool_id) {
@@ -78,29 +70,18 @@ pub(super) fn validate_index_matrix_and_pipelines(
     let mut supported_tool_fixture_seen = BTreeSet::new();
     for (stage_id, tools) in &index.stage_tool_compatibility {
         if !index.stage_ids.contains(stage_id) {
-            bail!(
-                "{} matrix references unknown stage {}",
-                index_path.display(),
-                stage_id
-            );
+            bail!("{} matrix references unknown stage {}", index_path.display(), stage_id);
         }
         if tools.is_empty() {
-            bail!(
-                "{} stage {} has empty compatibility list",
+            bail!("{} stage {} has empty compatibility list", index_path.display(), stage_id);
+        }
+        let checklist = index.stage_completeness_checklist.get(stage_id).ok_or_else(|| {
+            anyhow!(
+                "{} stage {} missing stage_completeness_checklist entry",
                 index_path.display(),
                 stage_id
-            );
-        }
-        let checklist = index
-            .stage_completeness_checklist
-            .get(stage_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "{} stage {} missing stage_completeness_checklist entry",
-                    index_path.display(),
-                    stage_id
-                )
-            })?;
+            )
+        })?;
         if checklist.is_empty() {
             bail!(
                 "{} stage {} has empty stage_completeness_checklist",
@@ -108,16 +89,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let comparability = index
-            .stage_comparability_mapping
-            .get(stage_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "{} stage {} missing stage_comparability_mapping entry",
-                    index_path.display(),
-                    stage_id
-                )
-            })?;
+        let comparability = index.stage_comparability_mapping.get(stage_id).ok_or_else(|| {
+            anyhow!(
+                "{} stage {} missing stage_comparability_mapping entry",
+                index_path.display(),
+                stage_id
+            )
+        })?;
         if comparability.is_empty() {
             bail!(
                 "{} stage {} has empty stage_comparability_mapping",
@@ -133,16 +111,10 @@ pub(super) fn validate_index_matrix_and_pipelines(
             )
         })?;
         if quality_gates.is_empty() {
-            bail!(
-                "{} stage {} has empty stage_min_quality_gates",
-                index_path.display(),
-                stage_id
-            );
+            bail!("{} stage {} has empty stage_min_quality_gates", index_path.display(), stage_id);
         }
-        let diagnosis_hints = index
-            .stage_failure_diagnosis_hints
-            .get(stage_id)
-            .ok_or_else(|| {
+        let diagnosis_hints =
+            index.stage_failure_diagnosis_hints.get(stage_id).ok_or_else(|| {
                 anyhow!(
                     "{} stage {} missing stage_failure_diagnosis_hints entry",
                     index_path.display(),
@@ -156,16 +128,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let ordering = index
-            .stage_ordering_constraints
-            .get(stage_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "{} stage {} missing stage_ordering_constraints entry",
-                    index_path.display(),
-                    stage_id
-                )
-            })?;
+        let ordering = index.stage_ordering_constraints.get(stage_id).ok_or_else(|| {
+            anyhow!(
+                "{} stage {} missing stage_ordering_constraints entry",
+                index_path.display(),
+                stage_id
+            )
+        })?;
         if ordering.iter().any(|stage| stage.trim().is_empty()) {
             bail!(
                 "{} stage {} has empty referenced stage in stage_ordering_constraints",
@@ -174,11 +143,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
             );
         }
         let prereqs = index.stage_prerequisites.get(stage_id).ok_or_else(|| {
-            anyhow!(
-                "{} stage {} missing stage_prerequisites entry",
-                index_path.display(),
-                stage_id
-            )
+            anyhow!("{} stage {} missing stage_prerequisites entry", index_path.display(), stage_id)
         })?;
         if prereqs.iter().any(|stage| stage.trim().is_empty()) {
             bail!(
@@ -204,16 +169,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let output_sizes = index
-            .stage_output_size_estimates_mb
-            .get(stage_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "{} stage {} missing stage_output_size_estimates_mb entry",
-                    index_path.display(),
-                    stage_id
-                )
-            })?;
+        let output_sizes = index.stage_output_size_estimates_mb.get(stage_id).ok_or_else(|| {
+            anyhow!(
+                "{} stage {} missing stage_output_size_estimates_mb entry",
+                index_path.display(),
+                stage_id
+            )
+        })?;
         if output_sizes.is_empty() || output_sizes.values().any(|value| *value < 0.0) {
             bail!(
                 "{} stage {} has invalid stage_output_size_estimates_mb",
@@ -229,23 +191,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
             )
         })?;
         if sanity.is_empty() {
-            bail!(
-                "{} stage {} has empty stage_sanity_metrics",
-                index_path.display(),
-                stage_id
-            );
+            bail!("{} stage {} has empty stage_sanity_metrics", index_path.display(), stage_id);
         }
         let qc = index.stage_qc_thresholds.get(stage_id).ok_or_else(|| {
-            anyhow!(
-                "{} stage {} missing stage_qc_thresholds entry",
-                index_path.display(),
-                stage_id
-            )
+            anyhow!("{} stage {} missing stage_qc_thresholds entry", index_path.display(), stage_id)
         })?;
         if qc.is_empty()
-            || qc
-                .values()
-                .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            || qc.values().any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
         {
             bail!(
                 "{} stage {} has invalid stage_qc_thresholds bands",
@@ -253,16 +205,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let contam = index
-            .stage_contamination_thresholds
-            .get(stage_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "{} stage {} missing stage_contamination_thresholds entry",
-                    index_path.display(),
-                    stage_id
-                )
-            })?;
+        let contam = index.stage_contamination_thresholds.get(stage_id).ok_or_else(|| {
+            anyhow!(
+                "{} stage {} missing stage_contamination_thresholds entry",
+                index_path.display(),
+                stage_id
+            )
+        })?;
         if contam.is_empty()
             || contam
                 .values()
@@ -274,16 +223,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let authenticity = index
-            .stage_authenticity_thresholds
-            .get(stage_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "{} stage {} missing stage_authenticity_thresholds entry",
-                    index_path.display(),
-                    stage_id
-                )
-            })?;
+        let authenticity = index.stage_authenticity_thresholds.get(stage_id).ok_or_else(|| {
+            anyhow!(
+                "{} stage {} missing stage_authenticity_thresholds entry",
+                index_path.display(),
+                stage_id
+            )
+        })?;
         if authenticity.is_empty()
             || authenticity
                 .values()
@@ -295,16 +241,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let duplication = index
-            .stage_duplication_thresholds
-            .get(stage_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "{} stage {} missing stage_duplication_thresholds entry",
-                    index_path.display(),
-                    stage_id
-                )
-            })?;
+        let duplication = index.stage_duplication_thresholds.get(stage_id).ok_or_else(|| {
+            anyhow!(
+                "{} stage {} missing stage_duplication_thresholds entry",
+                index_path.display(),
+                stage_id
+            )
+        })?;
         if duplication.is_empty()
             || duplication
                 .values()
@@ -316,16 +259,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let coverage_logic = index
-            .stage_coverage_sufficiency
-            .get(stage_id)
-            .ok_or_else(|| {
-                anyhow!(
-                    "{} stage {} missing stage_coverage_sufficiency entry",
-                    index_path.display(),
-                    stage_id
-                )
-            })?;
+        let coverage_logic = index.stage_coverage_sufficiency.get(stage_id).ok_or_else(|| {
+            anyhow!(
+                "{} stage {} missing stage_coverage_sufficiency entry",
+                index_path.display(),
+                stage_id
+            )
+        })?;
         if coverage_logic.is_empty() {
             bail!(
                 "{} stage {} has empty stage_coverage_sufficiency",
@@ -333,10 +273,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let sex_kinship_logic = index
-            .stage_sex_kinship_sufficiency
-            .get(stage_id)
-            .ok_or_else(|| {
+        let sex_kinship_logic =
+            index.stage_sex_kinship_sufficiency.get(stage_id).ok_or_else(|| {
                 anyhow!(
                     "{} stage {} missing stage_sex_kinship_sufficiency entry",
                     index_path.display(),
@@ -357,9 +295,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             )
         })?;
-        let stage_suffix = stage_id
-            .split_once('.')
-            .map_or(stage_id.as_str(), |(_, rhs)| rhs);
+        let stage_suffix = stage_id.split_once('.').map_or(stage_id.as_str(), |(_, rhs)| rhs);
         let stage_path = options
             .domain_dir
             .join(dom)
@@ -392,10 +328,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
                         tool
                     )
                 })?;
-                let _all_requirements_declared = stage
-                    .tool_capability_requirements
-                    .iter()
-                    .all(|req| caps.contains(req));
+                let _all_requirements_declared =
+                    stage.tool_capability_requirements.iter().all(|req| caps.contains(req));
             }
             let fixture = options
                 .domain_dir
@@ -413,18 +347,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 );
             }
             if stage.status == "supported"
-                && tool_catalogs
-                    .statuses
-                    .get(tool)
-                    .is_some_and(|status| status == "supported")
+                && tool_catalogs.statuses.get(tool).is_some_and(|status| status == "supported")
             {
                 supported_tools_for_stage += 1;
                 supported_tool_fixture_seen.insert(tool.clone());
             }
         }
-        if stage_status_by_id
-            .get(stage_id)
-            .is_some_and(|status| status == "supported")
+        if stage_status_by_id.get(stage_id).is_some_and(|status| status == "supported")
             && supported_tools_for_stage == 0
         {
             bail!(
@@ -439,10 +368,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
         if !index.tool_ids.contains(tool_id) || status != "supported" {
             continue;
         }
-        let has_stage = index
-            .stage_tool_compatibility
-            .values()
-            .any(|tools| tools.contains(tool_id));
+        let has_stage =
+            index.stage_tool_compatibility.values().any(|tools| tools.contains(tool_id));
         if !has_stage {
             bail!(
                 "{} supported tool {} is not mapped to any stage in compatibility matrix",
@@ -457,16 +384,9 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 tool_id
             );
         }
-        if tool_catalogs
-            .metrics_schemas
-            .get(tool_id)
-            .map_or(true, |schema| schema.trim().is_empty())
+        if tool_catalogs.metrics_schemas.get(tool_id).is_none_or(|schema| schema.trim().is_empty())
         {
-            bail!(
-                "{} supported tool {} missing metrics_schema_id",
-                index_path.display(),
-                tool_id
-            );
+            bail!("{} supported tool {} missing metrics_schema_id", index_path.display(), tool_id);
         }
     }
 
@@ -478,10 +398,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
         .get("pre_hpc_best")
         .ok_or_else(|| anyhow!("{} missing pre_hpc_best pipeline", index_path.display()))?;
     if pre_hpc.is_empty() {
-        bail!(
-            "{} pre_hpc_best pipeline cannot be empty",
-            index_path.display()
-        );
+        bail!("{} pre_hpc_best pipeline cannot be empty", index_path.display());
     }
     let pre_hpc_pos = pre_hpc
         .iter()
@@ -533,10 +450,9 @@ pub(super) fn validate_index_matrix_and_pipelines(
                     after
                 );
             }
-            if let (Some(curr), Some(prev)) = (
-                pre_hpc_pos.get(stage_id.as_str()),
-                pre_hpc_pos.get(after.as_str()),
-            ) {
+            if let (Some(curr), Some(prev)) =
+                (pre_hpc_pos.get(stage_id.as_str()), pre_hpc_pos.get(after.as_str()))
+            {
                 if prev >= curr {
                     bail!(
                         "{} pre_hpc_best ordering violates {} after {}",
@@ -558,10 +474,9 @@ pub(super) fn validate_index_matrix_and_pipelines(
                     prereq
                 );
             }
-            if let (Some(curr), Some(prev)) = (
-                pre_hpc_pos.get(stage_id.as_str()),
-                pre_hpc_pos.get(prereq.as_str()),
-            ) {
+            if let (Some(curr), Some(prev)) =
+                (pre_hpc_pos.get(stage_id.as_str()), pre_hpc_pos.get(prereq.as_str()))
+            {
                 if prev >= curr {
                     bail!(
                         "{} pre_hpc_best prerequisite ordering violates {} requires {}",
@@ -586,10 +501,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let rationale = index
-            .active_default_rationale
-            .get(stage_id)
-            .map_or("", std::string::String::as_str);
+        let rationale =
+            index.active_default_rationale.get(stage_id).map_or("", std::string::String::as_str);
         if is_unspecified(rationale) {
             bail!(
                 "{} missing non-empty active_default_rationale for {}",
@@ -597,9 +510,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
-        let stage_suffix = stage_id
-            .split_once('.')
-            .map_or(stage_id.as_str(), |(_, rhs)| rhs);
+        let stage_suffix = stage_id.split_once('.').map_or(stage_id.as_str(), |(_, rhs)| rhs);
         let stage_path = options
             .domain_dir
             .join(dom)
@@ -621,9 +532,7 @@ pub(super) fn validate_index_matrix_and_pipelines(
         BTreeSet::from(["bam".to_string(), "reference_fasta".to_string()])
     };
     for stage_id in &index.stage_ids {
-        let suffix = stage_id
-            .split_once('.')
-            .map_or(stage_id.as_str(), |(_, rhs)| rhs);
+        let suffix = stage_id.split_once('.').map_or(stage_id.as_str(), |(_, rhs)| rhs);
         let stage_path = options
             .domain_dir
             .join(dom)
@@ -636,10 +545,8 @@ pub(super) fn validate_index_matrix_and_pipelines(
         if stage.status != "supported" {
             continue;
         }
-        let _all_required_inputs_available = stage
-            .required_inputs
-            .iter()
-            .all(|required| available_inputs.contains(required));
+        let _all_required_inputs_available =
+            stage.required_inputs.iter().all(|required| available_inputs.contains(required));
         for output in &stage.outputs {
             available_inputs.insert(output.name.clone());
         }

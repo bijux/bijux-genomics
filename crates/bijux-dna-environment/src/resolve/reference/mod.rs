@@ -40,9 +40,7 @@ pub struct ReferenceRegistry {
 impl ReferenceRegistry {
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            root: cache::reference_cache_dir(),
-        }
+        Self { root: cache::reference_cache_dir() }
     }
 
     /// # Errors

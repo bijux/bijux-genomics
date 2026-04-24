@@ -54,10 +54,8 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     let mut tool_capabilities = BTreeMap::<String, BTreeSet<String>>::new();
     let mut tool_statuses = BTreeMap::<String, String>::new();
     let mut tool_metrics_schemas = BTreeMap::<String, String>::new();
-    let DomainVocabularies {
-        artifact_vocab,
-        metric_vocab,
-    } = validate_domain_vocabularies(&options.domain_dir)?;
+    let DomainVocabularies { artifact_vocab, metric_vocab } =
+        validate_domain_vocabularies(&options.domain_dir)?;
 
     for dom in ["fastq", "bam", "vcf"] {
         validate_stage_files(options, dom, &artifact_vocab, &metric_vocab, &mut stage_ids)?;

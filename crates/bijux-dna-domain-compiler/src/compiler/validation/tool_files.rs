@@ -74,10 +74,8 @@ pub(super) fn validate_tool_files(
             bail!("{} missing required tool fields", path.display());
         }
         if !tool.capabilities.is_empty() {
-            tool_capabilities.insert(
-                tool.tool_id.clone(),
-                tool.capabilities.iter().cloned().collect(),
-            );
+            tool_capabilities
+                .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
         }
         if dom != "vcf" && tool.status == "supported" {
             if tool.stage_ids.is_empty() {
@@ -101,27 +99,19 @@ pub(super) fn validate_tool_files(
                 }
             }
             if tool.capabilities.is_empty() {
-                bail!(
-                    "{} supported tool {} missing capabilities",
-                    path.display(),
-                    tool.tool_id
-                );
+                bail!("{} supported tool {} missing capabilities", path.display(), tool.tool_id);
             }
             let mut stage_specs = Vec::new();
             for stage_id in &tool.stage_ids {
                 let stage_domain = stage_id.split('.').next().unwrap_or(dom);
                 let stage_path =
-                    options
-                        .domain_dir
-                        .join(stage_domain)
-                        .join("stages")
-                        .join(format!(
-                            "{}.yaml",
-                            stage_id
-                                .split_once('.')
-                                .map_or(stage_id.as_str(), |(_, suffix)| suffix)
-                                .replace('.', "_")
-                        ));
+                    options.domain_dir.join(stage_domain).join("stages").join(format!(
+                        "{}.yaml",
+                        stage_id
+                            .split_once('.')
+                            .map_or(stage_id.as_str(), |(_, suffix)| suffix)
+                            .replace('.', "_")
+                    ));
                 if stage_path.exists() {
                     let stage_yaml_raw =
                         std::fs::read_to_string(&stage_path).with_context(|| {
@@ -156,9 +146,7 @@ pub(super) fn validate_tool_files(
                 );
             }
         }
-        tool_ids
-            .entry(tool.tool_id.clone())
-            .or_insert_with(|| path.display().to_string());
+        tool_ids.entry(tool.tool_id.clone()).or_insert_with(|| path.display().to_string());
         tool_statuses.insert(tool.tool_id.clone(), tool.status.clone());
         tool_metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
     }

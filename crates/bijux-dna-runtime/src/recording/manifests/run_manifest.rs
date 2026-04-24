@@ -33,10 +33,8 @@ pub fn write_run_manifest(
         .ok()
         .unwrap_or_else(|| run_provenance.pipeline_id.clone());
     let profile_id = std::env::var("BIJUX_PROFILE_ID").ok();
-    let graph_hash = run_provenance
-        .plan_hash
-        .clone()
-        .or_else(|| std::env::var("BIJUX_PLAN_HASH").ok());
+    let graph_hash =
+        run_provenance.plan_hash.clone().or_else(|| std::env::var("BIJUX_PLAN_HASH").ok());
     let declared_tool_image_digest = run_provenance
         .tool_image_digest
         .clone()

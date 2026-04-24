@@ -15,15 +15,8 @@ pub(crate) fn scope_active(entry_scope: &str, active_scope: &str) -> bool {
 }
 
 pub(crate) fn is_tool_meaningful_in_domain(domain: &str, tool_id: &str) -> bool {
-    const FASTQ_FORBIDDEN: &[&str] = &[
-        "bcftools",
-        "picard",
-        "gatk",
-        "preseq",
-        "schmutzi",
-        "verifybamid2",
-        "contammix",
-    ];
+    const FASTQ_FORBIDDEN: &[&str] =
+        &["bcftools", "picard", "gatk", "preseq", "schmutzi", "verifybamid2", "contammix"];
     const BAM_FORBIDDEN: &[&str] = &[
         "cutadapt",
         "fastp",

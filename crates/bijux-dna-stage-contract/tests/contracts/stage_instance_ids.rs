@@ -16,13 +16,8 @@ fn trim_plan(instance_id: &str, tool_id: &str, output_id: &str) -> StagePlanV1 {
         stage_version: StageVersion(1),
         tool_id: ToolId::new(tool_id.to_string()),
         tool_version: "test".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec![tool_id.to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec![tool_id.to_string()] },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
@@ -46,46 +41,24 @@ fn trim_plan(instance_id: &str, tool_id: &str, output_id: &str) -> StagePlanV1 {
 
 #[test]
 fn execution_plan_allows_duplicate_stage_ids_with_unique_instance_ids() {
-    let left = trim_plan(
-        "fastq.trim_reads.tool.fastp",
-        "fastp",
-        "trimmed_reads_fastp",
-    );
-    let right = trim_plan(
-        "fastq.trim_reads.tool.cutadapt",
-        "cutadapt",
-        "trimmed_reads_cutadapt",
-    );
+    let left = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    let right = trim_plan("fastq.trim_reads.tool.cutadapt", "cutadapt", "trimmed_reads_cutadapt");
     let plan = ExecutionPlan::new(
         "fastq-to-fastq__trim_reads_benchmark__v1",
         "planner-v1",
         PlanPolicy::default(),
         vec![left.clone(), right.clone()],
-        vec![PlanEdge::new(
-            "fastq.trim_reads.tool.fastp",
-            "fastq.trim_reads.tool.cutadapt",
-        )],
+        vec![PlanEdge::new("fastq.trim_reads.tool.fastp", "fastq.trim_reads.tool.cutadapt")],
     )
     .expect("execution plan should allow repeated stage ids when node ids are unique");
     assert_eq!(plan.stages().len(), 2);
-    assert!(plan
-        .stages()
-        .iter()
-        .all(|stage| stage.stage_id.as_str() == "fastq.trim_reads"));
+    assert!(plan.stages().iter().all(|stage| stage.stage_id.as_str() == "fastq.trim_reads"));
 }
 
 #[test]
 fn default_edges_use_stage_instance_ids_when_present() {
-    let left = trim_plan(
-        "fastq.trim_reads.tool.fastp",
-        "fastp",
-        "trimmed_reads_fastp",
-    );
-    let right = trim_plan(
-        "fastq.trim_reads.tool.cutadapt",
-        "cutadapt",
-        "trimmed_reads_cutadapt",
-    );
+    let left = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    let right = trim_plan("fastq.trim_reads.tool.cutadapt", "cutadapt", "trimmed_reads_cutadapt");
     let edges = default_edges_for_stages(&[left, right]);
     assert_eq!(edges.len(), 1);
     assert_eq!(edges[0].from(), "fastq.trim_reads.tool.fastp");
@@ -100,13 +73,8 @@ fn default_edges_prefer_artifact_bound_handoffs_when_stage_contracts_match() {
         stage_version: StageVersion(1),
         tool_id: ToolId::new("fastqvalidator".to_string()),
         tool_version: "test".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["fastqvalidator".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["fastqvalidator".to_string()] },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
@@ -133,13 +101,8 @@ fn default_edges_prefer_artifact_bound_handoffs_when_stage_contracts_match() {
         stage_version: StageVersion(1),
         tool_id: ToolId::new("multiqc".to_string()),
         tool_version: "test".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["multiqc".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["multiqc".to_string()] },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![
@@ -185,11 +148,7 @@ fn default_edges_prefer_artifact_bound_handoffs_when_stage_contracts_match() {
 
 #[test]
 fn execution_plan_accepts_artifact_bound_edges() {
-    let left = trim_plan(
-        "fastq.trim_reads.tool.fastp",
-        "fastp",
-        "trimmed_reads_fastp",
-    );
+    let left = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
     let right = StagePlanV1 {
         io: StageIO {
             inputs: vec![ArtifactRef::required(
@@ -208,13 +167,8 @@ fn execution_plan_accepts_artifact_bound_edges() {
         stage_version: StageVersion(1),
         tool_id: ToolId::new("multiqc".to_string()),
         tool_version: "test".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["multiqc".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["multiqc".to_string()] },
         resources: ToolConstraints::default(),
         out_dir: PathBuf::from("out"),
         params: serde_json::json!({}),
@@ -235,20 +189,13 @@ fn execution_plan_accepts_artifact_bound_edges() {
         )],
     )
     .expect("artifact-bound plan edge should validate");
-    assert_eq!(
-        plan.edges()[0].from_output_id(),
-        Some("trimmed_reads_fastp")
-    );
+    assert_eq!(plan.edges()[0].from_output_id(), Some("trimmed_reads_fastp"));
     assert_eq!(plan.edges()[0].to_input_id(), Some("trimmed_reads_fastp"));
 }
 
 #[test]
 fn execution_steps_inherit_stage_instance_identity() {
-    let plan = trim_plan(
-        "fastq.trim_reads.tool.fastp",
-        "fastp",
-        "trimmed_reads_fastp",
-    );
+    let plan = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
     let step = execution_step_from_stage_plan(&plan);
     assert_eq!(step.step_id.as_str(), "fastq.trim_reads.tool.fastp");
 }
@@ -259,11 +206,7 @@ fn execution_plan_validation_reports_unresolved_edge_nodes_without_panicking() {
         "fastq-to-fastq__trim_reads_qc__v1",
         "planner-v1",
         PlanPolicy::default(),
-        vec![trim_plan(
-            "fastq.trim_reads.tool.fastp",
-            "fastp",
-            "trimmed_reads_fastp",
-        )],
+        vec![trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp")],
         Vec::new(),
     )
     .expect("fixture plan should be valid");
@@ -282,7 +225,5 @@ fn execution_plan_validation_reports_unresolved_edge_nodes_without_panicking() {
         })
         .expect_err("unknown edge targets must fail validation");
 
-    assert!(error
-        .to_string()
-        .contains("plan edge references unknown stage"));
+    assert!(error.to_string().contains("plan edge references unknown stage"));
 }

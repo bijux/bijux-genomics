@@ -9,22 +9,10 @@ pub(super) fn verify_required_run_artifacts(step: &ExecutionStep) -> Result<()> 
     let run_artifacts_dir = step.out_dir.join("run_artifacts");
     let required = [
         ("metrics.json", run_artifacts_dir.join("metrics.json")),
-        (
-            "effective_config.json",
-            run_artifacts_dir.join("effective_config.json"),
-        ),
-        (
-            "stage_report.json",
-            run_artifacts_dir.join("stage_report.json"),
-        ),
-        (
-            "tool_invocation.json",
-            run_artifacts_dir.join("tool_invocation.json"),
-        ),
-        (
-            "execution_record.json",
-            run_artifacts_dir.join("execution_record.json"),
-        ),
+        ("effective_config.json", run_artifacts_dir.join("effective_config.json")),
+        ("stage_report.json", run_artifacts_dir.join("stage_report.json")),
+        ("tool_invocation.json", run_artifacts_dir.join("tool_invocation.json")),
+        ("execution_record.json", run_artifacts_dir.join("execution_record.json")),
     ];
     for (label, path) in required {
         if !path.exists() {
@@ -44,12 +32,7 @@ pub(super) fn verify_required_run_artifacts(step: &ExecutionStep) -> Result<()> 
             )
         })?;
         if metadata.len() == 0 {
-            return Err(contract_error(
-                step,
-                label,
-                &path.display().to_string(),
-                "artifact empty",
-            ));
+            return Err(contract_error(step, label, &path.display().to_string(), "artifact empty"));
         }
     }
     Ok(())

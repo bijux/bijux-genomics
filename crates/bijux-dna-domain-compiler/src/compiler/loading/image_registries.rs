@@ -33,14 +33,10 @@ pub(super) fn build_images_toml(
         image_versions.insert(tool.id.clone(), tool.default_version.clone());
     }
     for (tool_id, version) in vcf_image_versions {
-        image_versions
-            .entry(tool_id.clone())
-            .or_insert_with(|| version.clone());
+        image_versions.entry(tool_id.clone()).or_insert_with(|| version.clone());
     }
     for planned_only in ["ibdseq", "shapeit"] {
-        image_versions
-            .entry(planned_only.to_string())
-            .or_insert_with(|| "planned".to_string());
+        image_versions.entry(planned_only.to_string()).or_insert_with(|| "planned".to_string());
     }
     for (tool_id, version) in image_versions {
         let _ = writeln!(images_toml, "[{tool_id}]");

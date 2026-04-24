@@ -1,10 +1,9 @@
-use super::identity::hash_path;
+use super::identity::{
+    execution_pipeline_identity, execution_sample_identity, hash_path, runtime_platform_identity,
+};
 use super::inputs::container_input_mapping;
 use super::observer::build_observer_command_args;
-use super::{
-    build_apptainer_exec_args, container_command_template, execution_pipeline_identity,
-    execution_sample_identity, hash_inputs, runtime_platform_identity,
-};
+use super::{build_apptainer_exec_args, container_command_template, hash_inputs};
 use anyhow::anyhow;
 use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};
 use bijux_dna_core::prelude::{
@@ -33,18 +32,10 @@ fn execution_identity_defaults_to_stage_and_step_ids() {
     let step = ExecutionStep {
         step_id: StepId::from_static("sample-0001.reads.trim.fastp"),
         stage_id: StageId::from_static("stage.trim"),
-        command: CommandSpecV1 {
-            template: vec!["fastp".to_string()],
-        },
-        image: ContainerImageRefV1 {
-            image: "fastp:0.23.4".to_string(),
-            digest: None,
-        },
+        command: CommandSpecV1 { template: vec!["fastp".to_string()] },
+        image: ContainerImageRefV1 { image: "fastp:0.23.4".to_string(), digest: None },
         resources: ToolConstraints::default(),
-        io: StageIO {
-            inputs: Vec::new(),
-            outputs: Vec::new(),
-        },
+        io: StageIO { inputs: Vec::new(), outputs: Vec::new() },
         out_dir: PathBuf::from("/tmp/out"),
         aux_images: std::collections::BTreeMap::default(),
         expected_artifact_ids: Vec::new(),
@@ -52,23 +43,14 @@ fn execution_identity_defaults_to_stage_and_step_ids() {
     };
 
     assert_eq!(execution_pipeline_identity(&step), "stage.trim");
-    assert_eq!(
-        execution_sample_identity(&step),
-        "sample-0001.reads.trim.fastp"
-    );
+    assert_eq!(execution_sample_identity(&step), "sample-0001.reads.trim.fastp");
 }
 
 #[test]
 fn runtime_platform_identity_defaults_to_runner_name() {
     assert_eq!(runtime_platform_identity(RuntimeKind::Docker), "docker");
-    assert_eq!(
-        runtime_platform_identity(RuntimeKind::Apptainer),
-        "apptainer"
-    );
-    assert_eq!(
-        runtime_platform_identity(RuntimeKind::Singularity),
-        "singularity"
-    );
+    assert_eq!(runtime_platform_identity(RuntimeKind::Apptainer), "apptainer");
+    assert_eq!(runtime_platform_identity(RuntimeKind::Singularity), "singularity");
 }
 
 #[test]
@@ -97,13 +79,8 @@ fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
     let step = ExecutionStep {
         step_id: StepId::from_static("step.trim_reads.tool.seqkit"),
         stage_id: StageId::from_static("stage.trim"),
-        command: CommandSpecV1 {
-            template: vec!["seqkit".to_string(), "stats".to_string()],
-        },
-        image: ContainerImageRefV1 {
-            image: "/containers/seqkit.sif".to_string(),
-            digest: None,
-        },
+        command: CommandSpecV1 { template: vec!["seqkit".to_string(), "stats".to_string()] },
+        image: ContainerImageRefV1 { image: "/containers/seqkit.sif".to_string(), digest: None },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(

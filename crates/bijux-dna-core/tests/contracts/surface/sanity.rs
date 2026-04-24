@@ -1,9 +1,4 @@
-#![allow(
-    clippy::expect_used,
-    clippy::manual_let_else,
-    clippy::redundant_closure_for_method_calls,
-    clippy::unnecessary_debug_formatting
-)]
+#![allow(clippy::expect_used, clippy::manual_let_else, clippy::redundant_closure_for_method_calls)]
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -58,10 +53,7 @@ fn parse_core_fixture(schema: &str, value: serde_json::Value, path: &Path) {
 #[test]
 fn contract_fixtures_from_other_crates_parse() {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let repo_root = manifest_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("resolve repo root");
+    let repo_root = manifest_dir.parent().and_then(|p| p.parent()).expect("resolve repo root");
 
     let fixture_roots = [
         repo_root.join("crates/bijux-dna-planner-fastq/tests/fixtures"),
@@ -83,10 +75,8 @@ fn contract_fixtures_from_other_crates_parse() {
             let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) else {
                 continue;
             };
-            let schema = value
-                .get("schema_version")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string());
+            let schema =
+                value.get("schema_version").and_then(|v| v.as_str()).map(|s| s.to_string());
             if let Some(schema) = schema {
                 let before = parsed;
                 parse_core_fixture(&schema, value, &path);
@@ -100,8 +90,5 @@ fn contract_fixtures_from_other_crates_parse() {
         }
     }
 
-    assert!(
-        parsed > 0,
-        "expected to parse at least one core fixture from other crates"
-    );
+    assert!(parsed > 0, "expected to parse at least one core fixture from other crates");
 }

@@ -35,16 +35,10 @@ pub fn run_merge_container_with_timeout(
     push_arg(&mut cmd, &mut args, output_mount);
     push_arg(&mut cmd, &mut args, image.full_name.clone());
 
-    let r1_name = r1
-        .file_name()
-        .ok_or_else(|| anyhow!("r1 filename missing"))?
-        .to_string_lossy()
-        .to_string();
-    let r2_name = r2
-        .file_name()
-        .ok_or_else(|| anyhow!("r2 filename missing"))?
-        .to_string_lossy()
-        .to_string();
+    let r1_name =
+        r1.file_name().ok_or_else(|| anyhow!("r1 filename missing"))?.to_string_lossy().to_string();
+    let r2_name =
+        r2.file_name().ok_or_else(|| anyhow!("r2 filename missing"))?.to_string_lossy().to_string();
     let input_r1 = format!("/data/input/{r1_name}");
     let input_r2 = format!("/data/input/{r2_name}");
 
@@ -72,23 +66,11 @@ pub fn run_merge_container_with_timeout(
             push_arg(&mut cmd, &mut args, "--reverse");
             push_arg(&mut cmd, &mut args, input_r2.clone());
             push_arg(&mut cmd, &mut args, "--fastqout");
-            push_arg(
-                &mut cmd,
-                &mut args,
-                format!("/data/output/{prefix}.merged.fastq"),
-            );
+            push_arg(&mut cmd, &mut args, format!("/data/output/{prefix}.merged.fastq"));
             push_arg(&mut cmd, &mut args, "--fastqout_notmerged_fwd");
-            push_arg(
-                &mut cmd,
-                &mut args,
-                format!("/data/output/{prefix}.unmerged_r1.fastq"),
-            );
+            push_arg(&mut cmd, &mut args, format!("/data/output/{prefix}.unmerged_r1.fastq"));
             push_arg(&mut cmd, &mut args, "--fastqout_notmerged_rev");
-            push_arg(
-                &mut cmd,
-                &mut args,
-                format!("/data/output/{prefix}.unmerged_r2.fastq"),
-            );
+            push_arg(&mut cmd, &mut args, format!("/data/output/{prefix}.unmerged_r2.fastq"));
             (
                 out_dir.join(format!("{prefix}.merged.fastq")),
                 out_dir.join(format!("{prefix}.unmerged_r1.fastq")),
@@ -99,21 +81,9 @@ pub fn run_merge_container_with_timeout(
             let prefix = "bbmerge";
             push_arg(&mut cmd, &mut args, format!("in1={input_r1}"));
             push_arg(&mut cmd, &mut args, format!("in2={input_r2}"));
-            push_arg(
-                &mut cmd,
-                &mut args,
-                format!("out=/data/output/{prefix}.merged.fastq"),
-            );
-            push_arg(
-                &mut cmd,
-                &mut args,
-                format!("outu1=/data/output/{prefix}.unmerged_r1.fastq"),
-            );
-            push_arg(
-                &mut cmd,
-                &mut args,
-                format!("outu2=/data/output/{prefix}.unmerged_r2.fastq"),
-            );
+            push_arg(&mut cmd, &mut args, format!("out=/data/output/{prefix}.merged.fastq"));
+            push_arg(&mut cmd, &mut args, format!("outu1=/data/output/{prefix}.unmerged_r1.fastq"));
+            push_arg(&mut cmd, &mut args, format!("outu2=/data/output/{prefix}.unmerged_r2.fastq"));
             (
                 out_dir.join(format!("{prefix}.merged.fastq")),
                 out_dir.join(format!("{prefix}.unmerged_r1.fastq")),

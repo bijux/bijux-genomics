@@ -14,12 +14,7 @@ pub struct PlanEdge {
 impl PlanEdge {
     #[must_use]
     pub fn new(from: impl Into<String>, to: impl Into<String>) -> Self {
-        Self {
-            from: from.into(),
-            to: to.into(),
-            from_output_id: None,
-            to_input_id: None,
-        }
+        Self { from: from.into(), to: to.into(), from_output_id: None, to_input_id: None }
     }
 
     #[must_use]

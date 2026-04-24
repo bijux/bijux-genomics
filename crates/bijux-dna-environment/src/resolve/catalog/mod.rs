@@ -44,9 +44,7 @@ pub(super) fn validate_images_for_stage(
 ) -> Result<(), EnvError> {
     for tool in tools {
         if !catalog.contains_key(*tool) {
-            return Err(EnvError::Image(format!(
-                "missing image entry for tool {tool}"
-            )));
+            return Err(EnvError::Image(format!("missing image entry for tool {tool}")));
         }
     }
     Ok(())
