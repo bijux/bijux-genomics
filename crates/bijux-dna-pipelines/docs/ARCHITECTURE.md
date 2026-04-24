@@ -2,6 +2,7 @@
 
 ## Tree
 - `src/public_api/` mirrors the curated stable surface and root reexports, with a dedicated stable-surface owner instead of a single-file wrapper.
+- `src/cross.rs` and `src/fastq.rs` provide explicit root module entrypoints that re-export their owned directory modules.
 - `src/contract/` owns pipeline profile, manifest, capability, effective-default, invariant, and vocabulary contracts, with `stable_surface.rs` owning the aggregated contract exports.
 - `src/contract/projections/` separates defaults-ledger, pipeline-contract, and manifest/hash projections.
 - `src/defaults/` owns defaults ledgers, typed default-parameter envelopes, empty-param markers, serde codecs, and override merging, with `stable_surface.rs` owning the aggregated defaults exports.
