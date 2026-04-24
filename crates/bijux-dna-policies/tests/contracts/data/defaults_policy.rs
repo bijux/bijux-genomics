@@ -5,12 +5,7 @@ use bijux_dna_pipelines::registry::PipelineRegistry;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {
@@ -71,10 +66,7 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
                         && !provenance.assumptions.is_empty()
                         && !provenance.comparability_implications.is_empty()
                         && !contains_unspecified(&provenance.rationale)
-                        && !provenance
-                            .assumptions
-                            .iter()
-                            .any(|v| contains_unspecified(v))
+                        && !provenance.assumptions.iter().any(|v| contains_unspecified(v))
                         && !provenance
                             .comparability_implications
                             .iter()
@@ -93,10 +85,7 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
                         && !provenance.assumptions.is_empty()
                         && !provenance.comparability_implications.is_empty()
                         && !contains_unspecified(&provenance.rationale)
-                        && !provenance
-                            .assumptions
-                            .iter()
-                            .any(|v| contains_unspecified(v))
+                        && !provenance.assumptions.iter().any(|v| contains_unspecified(v))
                         && !provenance
                             .comparability_implications
                             .iter()

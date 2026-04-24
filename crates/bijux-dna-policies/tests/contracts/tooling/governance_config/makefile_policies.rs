@@ -4,12 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 #[test]
@@ -20,10 +15,7 @@ fn policy__contracts__makefile_policies__only_root_makefile_exists() {
     if root_makefile.exists() {
         offenders.push(root_makefile.display().to_string());
     }
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if entry.file_type().is_file() && entry.file_name() == "Makefile.toml" {
             offenders.push(entry.path().display().to_string());
         }
@@ -45,19 +37,9 @@ fn policy__contracts__makefile_policies__root_makefile_is_single_source() {
         normalized == "include makes/root.mk",
         "Makefile must delegate only to makes/root.mk"
     );
-    let forbidden_targets = [
-        "lint:",
-        "test:",
-        "test-slow:",
-        "test-e2e:",
-        "audit:",
-        "bench:",
-    ];
-    let offenders: Vec<&str> = forbidden_targets
-        .iter()
-        .copied()
-        .filter(|target| content.contains(target))
-        .collect();
+    let forbidden_targets = ["lint:", "test:", "test-slow:", "test-e2e:", "audit:", "bench:"];
+    let offenders: Vec<&str> =
+        forbidden_targets.iter().copied().filter(|target| content.contains(target)).collect();
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
         "root Makefile must not define command targets directly: {:?}",

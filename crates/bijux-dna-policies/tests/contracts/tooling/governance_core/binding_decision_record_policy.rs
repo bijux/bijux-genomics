@@ -9,11 +9,7 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
         .get(key)
         .and_then(toml::Value::as_array)
         .map(|values| {
-            values
-                .iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }
@@ -25,19 +21,14 @@ fn policy__contracts__binding_decision_record_policy__complex_binding_changes_re
     let root = support::workspace_root();
     let registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
-    let registry: toml::Value = registry_raw
-        .parse()
-        .expect("parse configs/ci/registry/tool_registry.toml");
+    let registry: toml::Value =
+        registry_raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
 
     let decision_path = root.join("docs/decisions/TOOL_BINDING_DECISIONS.md");
     let decision_raw = std::fs::read_to_string(&decision_path)
         .unwrap_or_else(|_| panic!("read {}", decision_path.display()));
 
-    let tools = registry
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let tools = registry.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let mut required_mentions = BTreeSet::new();
     for tool in tools {
@@ -52,10 +43,8 @@ fn policy__contracts__binding_decision_record_policy__complex_binding_changes_re
         if bindings.is_empty() {
             continue;
         }
-        let domains = bindings
-            .iter()
-            .filter_map(|stage| stage.split('.').next())
-            .collect::<BTreeSet<_>>();
+        let domains =
+            bindings.iter().filter_map(|stage| stage.split('.').next()).collect::<BTreeSet<_>>();
         let changed_shape = domains.len() > 1 || bindings != stage_ids;
         if changed_shape {
             required_mentions.insert(id.to_string());

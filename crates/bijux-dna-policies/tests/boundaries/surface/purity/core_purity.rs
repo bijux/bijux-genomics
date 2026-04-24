@@ -4,30 +4,14 @@ use std::path::PathBuf;
 
 #[test]
 fn policy__boundaries__core_purity__core_has_no_runtime_or_system_deps() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf();
-    let cargo_toml = root
-        .join("crates")
-        .join("bijux-dna-core")
-        .join("Cargo.toml");
+    let root =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf();
+    let cargo_toml = root.join("crates").join("bijux-dna-core").join("Cargo.toml");
     let content = fs::read_to_string(&cargo_toml).expect("read bijux-dna-core/Cargo.toml");
-    let forbidden = [
-        "tracing-subscriber",
-        "rusqlite",
-        "bollard",
-        "docker",
-        "opendal",
-        "tokio-postgres",
-    ];
-    let offenders: Vec<&str> = forbidden
-        .iter()
-        .copied()
-        .filter(|needle| content.contains(needle))
-        .collect();
+    let forbidden =
+        ["tracing-subscriber", "rusqlite", "bollard", "docker", "opendal", "tokio-postgres"];
+    let offenders: Vec<&str> =
+        forbidden.iter().copied().filter(|needle| content.contains(needle)).collect();
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-dna-core must remain pure; forbidden deps found: {:?}",
@@ -37,18 +21,11 @@ fn policy__boundaries__core_purity__core_has_no_runtime_or_system_deps() {
 
 #[test]
 fn policy__boundaries__core_purity__core_has_no_stage_modules() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf();
+    let root =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf();
     let src_root = root.join("crates").join("bijux-dna-core").join("src");
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(&src_root)
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in walkdir::WalkDir::new(&src_root).into_iter().filter_map(Result::ok) {
         let name = entry.file_name().to_string_lossy();
         if name.starts_with("stage_") {
             offenders.push(entry.path().display().to_string());

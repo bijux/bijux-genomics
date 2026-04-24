@@ -13,11 +13,8 @@ fn repo_root() -> PathBuf {
 #[test]
 fn policy__contracts__root_pollution_policy__tracked_root_outputs_are_forbidden() {
     let root = repo_root();
-    let output = Command::new("git")
-        .arg("ls-files")
-        .current_dir(&root)
-        .output()
-        .expect("run git ls-files");
+    let output =
+        Command::new("git").arg("ls-files").current_dir(&root).output().expect("run git ls-files");
     let files = String::from_utf8_lossy(&output.stdout);
     let mut offenders = Vec::new();
     for line in files.lines() {

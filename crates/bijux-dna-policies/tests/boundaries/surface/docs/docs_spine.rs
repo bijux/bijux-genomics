@@ -243,10 +243,7 @@ fn policy__boundaries__docs_spine__crate_docs_contract() {
             if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
                 continue;
             }
-            let file_name = path
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or_default();
+            let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
             if file_name != "README.md"
                 && file_name != "BOUNDARY.md"
                 && file_name != "PUBLIC_API.md"
@@ -348,13 +345,8 @@ fn policy__boundaries__docs_spine__root_docs_metadata_headers() {
         root.join("10-architecture/BOUNDARY_MAP.md"),
         root.join("10-architecture/CONTRACT_SPINE.md"),
     ];
-    let required = [
-        "Owner:",
-        "Scope:",
-        "Last reviewed:",
-        "Contract version:",
-        "Applies to crates:",
-    ];
+    let required =
+        ["Owner:", "Scope:", "Last reviewed:", "Contract version:", "Applies to crates:"];
     for doc in key_docs {
         let content = read_to_string(&doc);
         for header in required {
@@ -375,14 +367,8 @@ fn policy__boundaries__docs_spine__stage_catalog_schema() {
         root.join("20-science/fastq/STAGE_CATALOG.md"),
         root.join("20-science/bam/STAGE_CATALOG.md"),
     ];
-    let required = [
-        "Purpose:",
-        "Inputs/Outputs:",
-        "Metrics:",
-        "Tools:",
-        "Defaults:",
-        "References:",
-    ];
+    let required =
+        ["Purpose:", "Inputs/Outputs:", "Metrics:", "Tools:", "Defaults:", "References:"];
     for catalog in catalogs {
         let content = read_to_string(&catalog);
         for section in content.split("\n### ").skip(1) {
@@ -409,10 +395,7 @@ fn policy__boundaries__docs_spine__authority_docs_unique_h1() {
     let mut seen = HashMap::new();
     for doc in key_docs {
         let content = read_to_string(&doc);
-        let title = content
-            .lines()
-            .find(|line| line.starts_with("# "))
-            .unwrap_or("");
+        let title = content.lines().find(|line| line.starts_with("# ")).unwrap_or("");
         if let Some(prev) = seen.insert(title.to_string(), doc.clone()) {
             bijux_dna_policies::policy_panic!(
                 "duplicate H1 heading {title} in {} and {}",

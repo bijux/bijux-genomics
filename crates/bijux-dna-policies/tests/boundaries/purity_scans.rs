@@ -24,9 +24,7 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
 
 fn contains_tool_id_token(content: &str, tool_id: &str) -> bool {
     let pattern = format!(r"(^|[^a-z0-9_]){}([^a-z0-9_]|$)", regex::escape(tool_id));
-    Regex::new(&pattern)
-        .expect("compile tool-id token matcher")
-        .is_match(content)
+    Regex::new(&pattern).expect("compile tool-id token matcher").is_match(content)
 }
 
 fn strip_rust_test_modules(raw: &str) -> String {
@@ -51,10 +49,8 @@ fn strip_rust_test_modules(raw: &str) -> String {
                 continue;
             }
             if trimmed.starts_with("mod ") && raw_line.contains('{') {
-                skip_depth = raw_line
-                    .matches('{')
-                    .count()
-                    .saturating_sub(raw_line.matches('}').count());
+                skip_depth =
+                    raw_line.matches('{').count().saturating_sub(raw_line.matches('}').count());
                 awaiting_test_module = false;
                 continue;
             }
@@ -189,10 +185,7 @@ fn policy__boundaries__purity_scans__stage_specs_have_no_command_building() {
         if !path.to_string_lossy().contains("stage_specs") {
             continue;
         }
-        if path
-            .to_string_lossy()
-            .contains("/crates/bijux-dna-policies/tests/")
-        {
+        if path.to_string_lossy().contains("/crates/bijux-dna-policies/tests/") {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read stage_specs source");
@@ -219,10 +212,7 @@ fn policy__boundaries__purity_scans__stage_crates_define_invocations_only_no_exe
         "run_apptainer_command(",
         "bijux_dna_runner",
     ];
-    for crate_dir in [
-        "crates/bijux-dna-stages-fastq/src",
-        "crates/bijux-dna-stages-bam/src",
-    ] {
+    for crate_dir in ["crates/bijux-dna-stages-fastq/src", "crates/bijux-dna-stages-bam/src"] {
         for file in collect_rs_files(&root.join(crate_dir)) {
             let content = std::fs::read_to_string(&file).expect("read source");
             if deny_tokens.iter().any(|token| content.contains(token)) {
@@ -264,10 +254,7 @@ fn policy__boundaries__purity_scans__planners_only_build_execution_steps() {
         if rel_str.ends_with("_tests.rs") {
             continue;
         }
-        if allowlist
-            .iter()
-            .any(|crate_name| rel_str.contains(crate_name))
-        {
+        if allowlist.iter().any(|crate_name| rel_str.contains(crate_name)) {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
@@ -342,22 +329,13 @@ fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
         "crates/bijux-dna-pipelines/src/vcf/mod.rs",
     ];
     for file in collect_rs_files(&root.join("crates/bijux-dna-pipelines/src")) {
-        let rel = file
-            .strip_prefix(&root)
-            .unwrap_or(file.as_path())
-            .to_string_lossy()
-            .replace('\\', "/");
-        if allowlisted_files
-            .iter()
-            .any(|allowed| rel.ends_with(allowed))
-        {
+        let rel =
+            file.strip_prefix(&root).unwrap_or(file.as_path()).to_string_lossy().replace('\\', "/");
+        if allowlisted_files.iter().any(|allowed| rel.ends_with(allowed)) {
             continue;
         }
         let content = std::fs::read_to_string(&file).expect("read source");
-        if tool_ids
-            .iter()
-            .any(|tool| contains_tool_id_token(&content, tool))
-        {
+        if tool_ids.iter().any(|tool| contains_tool_id_token(&content, tool)) {
             offenders.push(file.display().to_string());
         }
     }
@@ -415,10 +393,7 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
-        let roster_hits = roster_tokens
-            .iter()
-            .filter(|token| content.contains(*token))
-            .count();
+        let roster_hits = roster_tokens.iter().filter(|token| content.contains(*token)).count();
         if roster_hits >= 3 {
             offenders.push(rel.to_string());
         }

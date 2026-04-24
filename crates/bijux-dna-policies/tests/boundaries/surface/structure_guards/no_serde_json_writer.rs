@@ -8,14 +8,9 @@ use walkdir::WalkDir;
 fn policy__boundaries__no_serde_json_writer__serde_json_to_writer_is_banned() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
-    let patterns = [
-        concat!("serde_json::", "to_writer"),
-        concat!("serde_json::", "to_writer_pretty"),
-    ];
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    let patterns =
+        [concat!("serde_json::", "to_writer"), concat!("serde_json::", "to_writer_pretty")];
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }

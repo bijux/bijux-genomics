@@ -51,12 +51,7 @@ fn policy__contracts__boundary_docs_policy__public_modules_must_be_listed_in_pub
         for line in lib_raw.lines() {
             let trimmed = line.trim();
             if let Some(rest) = trimmed.strip_prefix("pub mod ") {
-                let module = rest
-                    .split([';', ' '])
-                    .next()
-                    .unwrap_or_default()
-                    .trim()
-                    .to_string();
+                let module = rest.split([';', ' ']).next().unwrap_or_default().trim().to_string();
                 if module.is_empty() {
                     continue;
                 }

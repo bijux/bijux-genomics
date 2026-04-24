@@ -15,9 +15,7 @@ fn repo_root() -> PathBuf {
 fn policy__contracts__cli_sql_policy__cli_has_no_direct_sql_or_db_driver_usage() {
     let root = repo_root();
     let cli_src = root.join("crates").join("bijux-dna").join("src");
-    let deny = [
-        "rusqlite", "sqlx", "SELECT ", "INSERT ", "UPDATE ", "DELETE ",
-    ];
+    let deny = ["rusqlite", "sqlx", "SELECT ", "INSERT ", "UPDATE ", "DELETE "];
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&cli_src)

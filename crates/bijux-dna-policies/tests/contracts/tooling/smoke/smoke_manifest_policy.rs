@@ -35,18 +35,11 @@ fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_i
     );
 
     let mut offenders = Vec::new();
-    let raw = sources
-        .iter()
-        .map(|path| support::read_to_string(path))
-        .collect::<Vec<_>>()
-        .join("\n");
+    let raw =
+        sources.iter().map(|path| support::read_to_string(path)).collect::<Vec<_>>().join("\n");
     for token in required_tokens {
         if !raw.contains(token) {
-            offenders.push(format!(
-                "{} missing manifest token {}",
-                source_dir.display(),
-                token
-            ));
+            offenders.push(format!("{} missing manifest token {}", source_dir.display(), token));
         }
     }
 

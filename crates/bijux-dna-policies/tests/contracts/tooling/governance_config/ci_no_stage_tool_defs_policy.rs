@@ -10,9 +10,8 @@ fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_st
     let root = support::workspace_root();
     let registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
-    let parsed: toml::Value = registry_raw
-        .parse()
-        .expect("parse configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value =
+        registry_raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
 
     let mut ids = BTreeSet::new();
     if let Some(tools) = parsed.get("tools").and_then(toml::Value::as_array) {
@@ -46,10 +45,7 @@ fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_st
         let content = std::fs::read_to_string(path).expect("read workflow");
         for id in &ids {
             if content.contains(id) {
-                offenders.push(format!(
-                    "{} contains SSOT id literal `{id}`",
-                    path.display()
-                ));
+                offenders.push(format!("{} contains SSOT id literal `{id}`", path.display()));
             }
         }
     }

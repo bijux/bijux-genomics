@@ -12,37 +12,20 @@ fn policy__contracts__tool_registry_stage_domain_policy__tool_bindings_are_expli
     let registry_path = workspace_root().join("configs/ci/registry/tool_registry.toml");
     let raw = std::fs::read_to_string(&registry_path)
         .expect("read configs/ci/registry/tool_registry.toml");
-    let parsed: toml::Value = raw
-        .parse()
-        .expect("parse configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value = raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
 
-    let tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let stages = parsed
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let tools = parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
+    let stages = parsed.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let mut tool_stage_refs: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for stage in &stages {
         let Some(stage_id) = stage.get("id").and_then(toml::Value::as_str) else {
             continue;
         };
-        for key in [
-            "primary_tools",
-            "optional_alternatives",
-            "validation_tools",
-            "reporting_tools",
-        ] {
+        for key in ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
+        {
             for tool in list(stage, key) {
-                tool_stage_refs
-                    .entry(tool)
-                    .or_default()
-                    .insert(stage_id.to_string());
+                tool_stage_refs.entry(tool).or_default().insert(stage_id.to_string());
             }
         }
     }
@@ -52,29 +35,16 @@ fn policy__contracts__tool_registry_stage_domain_policy__tool_bindings_are_expli
         if tool.get("tool_id").and_then(toml::Value::as_str).is_none() {
             continue;
         }
-        let id = tool
-            .get("id")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("<missing-id>");
-        let declared_domain_raw = tool
-            .get("domain")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .to_string();
+        let id = tool.get("id").and_then(toml::Value::as_str).unwrap_or("<missing-id>");
+        let declared_domain_raw =
+            tool.get("domain").and_then(toml::Value::as_str).unwrap_or("").to_string();
         let declared_domain = DomainKind::try_from(declared_domain_raw.as_str()).ok();
         let declared_domains = list(tool, "domains").into_iter().collect::<BTreeSet<_>>();
         let declared_stage_ids = list(tool, "stage_ids");
         let declared_bindings = list(tool, "bindings");
-        let status = tool
-            .get("status")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("supported");
-        let discovered_stage_ids = tool_stage_refs
-            .get(id)
-            .cloned()
-            .unwrap_or_default()
-            .into_iter()
-            .collect::<Vec<_>>();
+        let status = tool.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
+        let discovered_stage_ids =
+            tool_stage_refs.get(id).cloned().unwrap_or_default().into_iter().collect::<Vec<_>>();
         let effective_stage_ids = discovered_stage_ids
             .iter()
             .cloned()
@@ -91,9 +61,7 @@ fn policy__contracts__tool_registry_stage_domain_policy__tool_bindings_are_expli
         if declared_domain_raw.is_empty() {
             offenders.push(format!("tool={id}: missing `domain`"));
         } else if declared_domain.is_none() {
-            offenders.push(format!(
-                "tool={id}: invalid `domain` value `{declared_domain_raw}`"
-            ));
+            offenders.push(format!("tool={id}: invalid `domain` value `{declared_domain_raw}`"));
         }
         if declared_stage_ids.is_empty() {
             offenders.push(format!("tool={id}: missing non-empty `stage_ids`"));
@@ -114,10 +82,7 @@ fn policy__contracts__tool_registry_stage_domain_policy__tool_bindings_are_expli
         let stage_domain_set = binding_stage_ids
             .iter()
             .filter_map(|stage_id| {
-                stage_id
-                    .split('.')
-                    .next()
-                    .and_then(|domain| DomainKind::try_from(domain).ok())
+                stage_id.split('.').next().and_then(|domain| DomainKind::try_from(domain).ok())
             })
             .collect::<BTreeSet<_>>();
         let stage_domain_strs = stage_domain_set
@@ -153,11 +118,7 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
         .get(key)
         .and_then(toml::Value::as_array)
         .map(|values| {
-            values
-                .iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }

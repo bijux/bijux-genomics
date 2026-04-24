@@ -26,11 +26,7 @@ fn policy__contracts__image_catalog_completeness_policy__supported_tools_have_im
                 .and_then(toml::Value::as_str)
                 .is_some_and(|status| status == "supported")
         })
-        .filter_map(|tool| {
-            tool.get("id")
-                .and_then(toml::Value::as_str)
-                .map(str::to_string)
-        })
+        .filter_map(|tool| tool.get("id").and_then(toml::Value::as_str).map(str::to_string))
         .collect::<BTreeSet<_>>();
 
     let image_tools = images
@@ -45,9 +41,5 @@ fn policy__contracts__image_catalog_completeness_policy__supported_tools_have_im
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "supported tools missing from image catalog: {:?}",
-        offenders
-    );
+    assert!(offenders.is_empty(), "supported tools missing from image catalog: {:?}", offenders);
 }

@@ -32,17 +32,15 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
     let versions_path = root.join("containers/versions/versions.toml");
     let raw = std::fs::read_to_string(&versions_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", versions_path.display()));
-    let parsed: toml::Value = raw
-        .parse()
-        .unwrap_or_else(|err| panic!("parse {}: {err}", versions_path.display()));
+    let parsed: toml::Value =
+        raw.parse().unwrap_or_else(|err| panic!("parse {}: {err}", versions_path.display()));
     let table = parsed
         .as_table()
         .unwrap_or_else(|| panic!("{} must be TOML table", versions_path.display()));
 
     let mut expected = BTreeSet::new();
-    for entry in WalkDir::new(root.join("containers/docker/arm64"))
-        .into_iter()
-        .filter_map(Result::ok)
+    for entry in
+        WalkDir::new(root.join("containers/docker/arm64")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -52,9 +50,8 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
             expected.insert(id.to_string());
         }
     }
-    for entry in WalkDir::new(root.join("containers/apptainer/shared"))
-        .into_iter()
-        .filter_map(Result::ok)
+    for entry in
+        WalkDir::new(root.join("containers/apptainer/shared")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -63,34 +60,19 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
         if path.extension().and_then(|v| v.to_str()) != Some("def") {
             continue;
         }
-        let stem = path
-            .file_stem()
-            .and_then(|v| v.to_str())
-            .unwrap_or_default()
-            .to_string();
+        let stem = path.file_stem().and_then(|v| v.to_str()).unwrap_or_default().to_string();
         expected.insert(stem);
     }
 
     let mut offenders = Vec::new();
     for tool_id in expected {
         let Some(row) = table.get(&tool_id).and_then(toml::Value::as_table) else {
-            offenders.push(format!(
-                "missing [{tool_id}] in containers/versions/versions.toml"
-            ));
+            offenders.push(format!("missing [{tool_id}] in containers/versions/versions.toml"));
             continue;
         };
-        let version = row
-            .get("version")
-            .and_then(toml::Value::as_str)
-            .unwrap_or_default();
-        let source = row
-            .get("source")
-            .and_then(toml::Value::as_str)
-            .unwrap_or_default();
-        let date = row
-            .get("date_pinned")
-            .and_then(toml::Value::as_str)
-            .unwrap_or_default();
+        let version = row.get("version").and_then(toml::Value::as_str).unwrap_or_default();
+        let source = row.get("source").and_then(toml::Value::as_str).unwrap_or_default();
+        let date = row.get("date_pinned").and_then(toml::Value::as_str).unwrap_or_default();
         if !is_semver_like(version) {
             offenders.push(format!("{tool_id}: version must be x.y.z, got `{version}`"));
         }
@@ -102,9 +84,7 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
                 matches!(idx, 4 | 7) && ch == '-' || (!matches!(idx, 4 | 7) && ch.is_ascii_digit())
             });
         if !date_ok {
-            offenders.push(format!(
-                "{tool_id}: date_pinned must be YYYY-MM-DD, got `{date}`"
-            ));
+            offenders.push(format!("{tool_id}: date_pinned must be YYYY-MM-DD, got `{date}`"));
         }
     }
 
@@ -120,9 +100,8 @@ fn policy__contracts__container_versions_policy__no_latest_floating_or_unpinned_
     let root = support::workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("containers/docker/arm64"))
-        .into_iter()
-        .filter_map(Result::ok)
+    for entry in
+        WalkDir::new(root.join("containers/docker/arm64")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -151,9 +130,8 @@ fn policy__contracts__container_versions_policy__no_latest_floating_or_unpinned_
         }
     }
 
-    for entry in WalkDir::new(root.join("containers/apptainer/shared"))
-        .into_iter()
-        .filter_map(Result::ok)
+    for entry in
+        WalkDir::new(root.join("containers/apptainer/shared")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;

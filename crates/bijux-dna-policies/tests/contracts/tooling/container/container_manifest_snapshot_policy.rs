@@ -45,10 +45,7 @@ fn slow__policy__contracts__container_manifest_snapshot_policy__generated_manife
         .current_dir(&root)
         .output()
         .unwrap_or_else(|err| {
-            panic!(
-                "run registry export-containers --json with {}: {err}",
-                bijux_bin.display()
-            )
+            panic!("run registry export-containers --json with {}: {err}", bijux_bin.display())
         });
     assert!(
         output.status.success(),

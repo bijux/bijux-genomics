@@ -24,9 +24,8 @@ fn policy__boundaries__docs_spine_contract__docs_spine_snapshot() {
     }
     let name = bijux_dna_testkit::snapshot_name("snapshots", "crate_docs_spine_contract");
     let mut settings = insta::Settings::new();
-    let snapshot_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("snapshots");
+    let snapshot_root =
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("snapshots");
     settings.set_snapshot_path(snapshot_root);
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {

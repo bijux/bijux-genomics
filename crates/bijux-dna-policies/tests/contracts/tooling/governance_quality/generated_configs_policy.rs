@@ -42,17 +42,12 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
         }
         if !(second.starts_with("# source_commit: ")
             && second.len() == "# source_commit: ".len() + 40
-            && second["# source_commit: ".len()..]
-                .chars()
-                .all(|c| c.is_ascii_hexdigit()))
+            && second["# source_commit: ".len()..].chars().all(|c| c.is_ascii_hexdigit()))
         {
             eprintln!("generated source_commit drift: {}", checked_in.display());
         }
         if third != "# domain_schema_version: bijux.domain.v1" {
-            eprintln!(
-                "generated domain schema header drift: {}",
-                checked_in.display()
-            );
+            eprintln!("generated domain schema header drift: {}", checked_in.display());
         }
     }
 }
@@ -70,10 +65,7 @@ fn policy__contracts__generated_configs_policy__single_generator_command_is_cano
             .contains("compile_domain_configs")
     });
 
-    assert!(
-        native_contains_generator,
-        "bijux-dna-dev native ops must call compile_domain_configs"
-    );
+    assert!(native_contains_generator, "bijux-dna-dev native ops must call compile_domain_configs");
     assert!(
         make_raw.contains("generate-configs:")
             && make_raw.contains("cargo run -q -p bijux-dna-dev -- tooling run generate-configs"),

@@ -4,12 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 #[test]
@@ -28,10 +23,7 @@ fn policy__boundaries__empty_tests_dirs__no_empty_tests_dirs() {
                     child
                         .ok()
                         .map(|c| {
-                            c.file_type()
-                                .ok()
-                                .map(|t| t.is_dir() || t.is_file())
-                                .unwrap_or(false)
+                            c.file_type().ok().map(|t| t.is_dir() || t.is_file()).unwrap_or(false)
                         })
                         .unwrap_or(false)
                 });

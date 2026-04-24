@@ -4,25 +4,14 @@ mod support;
 
 use walkdir::WalkDir;
 
-const SNAPSHOT_BUCKETS: &[&str] = &[
-    "contracts",
-    "schemas",
-    "semantics",
-    "determinism",
-    "boundaries",
-    "fixtures",
-    "snapshots",
-];
+const SNAPSHOT_BUCKETS: &[&str] =
+    &["contracts", "schemas", "semantics", "determinism", "boundaries", "fixtures", "snapshots"];
 const SNAPSHOT_EXTENSIONS: &[&str] = &["snap", "json", "txt", "jsonl", "html"];
 
 fn crate_name_for(root: &std::path::Path) -> String {
     let manifest = root.join("Cargo.toml");
     let Ok(content) = std::fs::read_to_string(&manifest) else {
-        return root
-            .file_name()
-            .and_then(|name| name.to_str())
-            .unwrap_or("")
-            .to_string();
+        return root.file_name().and_then(|name| name.to_str()).unwrap_or("").to_string();
     };
     let mut in_package = false;
     for line in content.lines() {
@@ -43,10 +32,7 @@ fn crate_name_for(root: &std::path::Path) -> String {
             }
         }
     }
-    root.file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or("")
-        .to_string()
+    root.file_name().and_then(|name| name.to_str()).unwrap_or("").to_string()
 }
 
 #[test]
@@ -60,10 +46,7 @@ fn policy__boundaries__snapshot_policy__snapshot_files_live_in_snapshots_dir() {
         {
             let path = entry.path();
             let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-            if !SNAPSHOT_EXTENSIONS
-                .iter()
-                .any(|ext| name.ends_with(&format!(".{ext}")))
-            {
+            if !SNAPSHOT_EXTENSIONS.iter().any(|ext| name.ends_with(&format!(".{ext}"))) {
                 continue;
             }
             if path.to_string_lossy().contains("tests/snapshots/") {

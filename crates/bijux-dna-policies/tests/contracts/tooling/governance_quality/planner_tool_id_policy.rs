@@ -40,11 +40,7 @@ fn policy__contracts__planner_tool_id_policy__selection_registries_use_toolid_no
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "planner tool-id policy violations:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "planner tool-id policy violations:\n{}", offenders.join("\n"));
 }
 
 #[test]

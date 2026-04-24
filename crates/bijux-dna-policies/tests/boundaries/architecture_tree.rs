@@ -76,13 +76,7 @@ fn policies_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/policy_diagnostics")),
-        entries([
-            "OWNER.toml",
-            "contracts.rs",
-            "mod.rs",
-            "render.rs",
-            "stable_surface.rs",
-        ]),
+        entries(["OWNER.toml", "contracts.rs", "mod.rs", "render.rs", "stable_surface.rs",]),
         "policy diagnostics tree must keep contracts and rendering separated"
     );
 
@@ -94,12 +88,7 @@ fn policies_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/source_scan")),
-        entries([
-            "OWNER.toml",
-            "mod.rs",
-            "rust_sources.rs",
-            "stable_surface.rs"
-        ]),
+        entries(["OWNER.toml", "mod.rs", "rust_sources.rs", "stable_surface.rs"]),
         "source scan tree must stay focused on deterministic Rust source discovery"
     );
 

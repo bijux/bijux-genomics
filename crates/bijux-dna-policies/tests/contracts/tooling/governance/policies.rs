@@ -6,12 +6,7 @@ use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 fn rs_files_under(path: &Path) -> Vec<PathBuf> {
@@ -28,9 +23,8 @@ fn crate_dependencies(root: &Path, crate_name: &str) -> BTreeSet<String> {
     let manifest = root.join("crates").join(crate_name).join("Cargo.toml");
     let content = std::fs::read_to_string(&manifest)
         .unwrap_or_else(|_| panic!("read manifest {}", manifest.display()));
-    let parsed: TomlValue = content
-        .parse()
-        .unwrap_or_else(|_| panic!("parse manifest {}", manifest.display()));
+    let parsed: TomlValue =
+        content.parse().unwrap_or_else(|_| panic!("parse manifest {}", manifest.display()));
     let mut deps = BTreeSet::new();
 
     let mut collect_from = |table: Option<&TomlValue>| {
@@ -72,24 +66,16 @@ fn policy_test_prefix(path: &Path, root: &Path) -> String {
         return "policy__boundaries__workspace__".to_string();
     }
     let suite = if parts.len() > 1 { parts[0] } else { "root" };
-    let stem = path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("unknown");
+    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown");
     format!("policy__{suite}__{stem}__")
 }
 
 fn configured_domains(root: &Path) -> Vec<String> {
-    let path = root
-        .join("configs")
-        .join("ci")
-        .join("registry")
-        .join("domains.toml");
+    let path = root.join("configs").join("ci").join("registry").join("domains.toml");
     let raw = std::fs::read_to_string(&path)
         .unwrap_or_else(|_| panic!("read domains config {}", path.display()));
-    let parsed: TomlValue = raw
-        .parse()
-        .unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
+    let parsed: TomlValue =
+        raw.parse().unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
     parsed
         .get("domains")
         .and_then(TomlValue::as_array)
@@ -106,11 +92,7 @@ fn configured_domains(root: &Path) -> Vec<String> {
 #[test]
 fn policy__contracts__policies__prelude_exports_only() {
     let root = workspace_root();
-    let prelude_dir = root
-        .join("crates")
-        .join("bijux-dna-core")
-        .join("src")
-        .join("prelude");
+    let prelude_dir = root.join("crates").join("bijux-dna-core").join("src").join("prelude");
     for file in rs_files_under(&prelude_dir) {
         let content = std::fs::read_to_string(&file).expect("read prelude file");
         let has_fn = content.lines().any(|line| line.contains("fn "));
@@ -127,10 +109,7 @@ fn policy__contracts__policies__prelude_exports_only() {
 fn policy__contracts__policies__error_category_is_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -140,10 +119,7 @@ fn policy__contracts__policies__error_category_is_core_only() {
         if entry.path().ends_with("../../../tests/policies.rs") {
             continue;
         }
-        if entry
-            .path()
-            .ends_with("bijux-dna-core/src/foundation/errors.rs")
-        {
+        if entry.path().ends_with("bijux-dna-core/src/foundation/errors.rs") {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).expect("read source");
@@ -189,10 +165,7 @@ fn policy__contracts__policies__domains_do_not_depend_on_stages_or_runner() {
     for domain_id in domains {
         let domain = format!("bijux-dna-domain-{domain_id}");
         let deps = crate_dependencies(&root, &domain);
-        let forbidden = [
-            format!("bijux-dna-stages-{domain_id}"),
-            "bijux-dna-runner".to_string(),
-        ];
+        let forbidden = [format!("bijux-dna-stages-{domain_id}"), "bijux-dna-runner".to_string()];
         for banned in forbidden {
             bijux_dna_policies::policy_assert!(
                 !deps.contains(&banned),
@@ -216,10 +189,7 @@ fn policy__contracts__policies__public_modules_live_in_lib_rs() {
                 continue;
             }
             let content = std::fs::read_to_string(&file).expect("read source");
-            if content
-                .lines()
-                .any(|line| line.trim_start().starts_with("pub mod "))
-            {
+            if content.lines().any(|line| line.trim_start().starts_with("pub mod ")) {
                 bijux_dna_policies::policy_panic!(
                     "public modules must be declared in lib.rs for {}: {}",
                     krate,

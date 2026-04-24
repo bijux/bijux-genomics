@@ -4,12 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 #[test]
@@ -27,11 +22,7 @@ fn policy__contracts__configs_layout_policy__configs_root_contains_only_index_an
         if path.is_dir() {
             continue;
         }
-        let rel = path
-            .strip_prefix(&root)
-            .unwrap_or(&path)
-            .display()
-            .to_string();
+        let rel = path.strip_prefix(&root).unwrap_or(&path).display().to_string();
         if rel != "configs/index.md" && rel != "configs/OWNERS.toml" {
             offenders.push(rel);
         }
@@ -49,10 +40,7 @@ fn policy__contracts__configs_layout_policy__rust_src_uses_configs_path_helper()
     let root = workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -60,11 +48,7 @@ fn policy__contracts__configs_layout_policy__rust_src_uses_configs_path_helper()
         if path.extension().and_then(|s| s.to_str()) != Some("rs") {
             continue;
         }
-        let rel = path
-            .strip_prefix(&root)
-            .unwrap_or(path)
-            .display()
-            .to_string();
+        let rel = path.strip_prefix(&root).unwrap_or(path).display().to_string();
         if rel == "crates/bijux-dna-infra/src/paths/config.rs" {
             continue;
         }

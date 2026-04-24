@@ -10,11 +10,7 @@ const EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_mod
 
 fn is_excluded(path: &std::path::Path) -> bool {
     path.components().any(|component| {
-        component
-            .as_os_str()
-            .to_str()
-            .map(|name| EXCLUDE_DIRS.contains(&name))
-            .unwrap_or(false)
+        component.as_os_str().to_str().map(|name| EXCLUDE_DIRS.contains(&name)).unwrap_or(false)
     })
 }
 

@@ -10,10 +10,7 @@ fn policy__contracts__container_version_variable_policy__container_definitions_d
     let root = support::workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("containers/docker"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("containers/docker")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -33,9 +30,7 @@ fn policy__contracts__container_version_variable_policy__container_definitions_d
         }
     }
 
-    for entry in WalkDir::new(root.join("containers/apptainer"))
-        .into_iter()
-        .filter_map(Result::ok)
+    for entry in WalkDir::new(root.join("containers/apptainer")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;

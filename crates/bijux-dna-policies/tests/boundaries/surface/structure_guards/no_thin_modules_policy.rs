@@ -10,9 +10,7 @@ const ALLOWLIST_DIRS: &[(&str, &str)] = &[("prelude", "explicit reexport surface
 const MIN_PUB_ITEMS: usize = 5;
 
 fn is_allowlisted_dir(path: &Path) -> bool {
-    ALLOWLIST_DIRS
-        .iter()
-        .any(|(name, _reason)| path.ends_with(name))
+    ALLOWLIST_DIRS.iter().any(|(name, _reason)| path.ends_with(name))
 }
 
 fn pub_item_count(content: &str) -> usize {

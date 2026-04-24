@@ -7,25 +7,13 @@ fn policy__contracts__smoke_probe_policy__supported_tools_define_valid_probe_con
     let root = support::workspace_root();
     let raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
-    let parsed: toml::Value = raw
-        .parse()
-        .expect("parse configs/ci/registry/tool_registry.toml");
-    let tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let parsed: toml::Value = raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
+    let tools = parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let mut offenders = Vec::new();
     for tool in tools {
-        let id = tool
-            .get("id")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("<missing-id>");
-        let status = tool
-            .get("status")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("supported");
+        let id = tool.get("id").and_then(toml::Value::as_str).unwrap_or("<missing-id>");
+        let status = tool.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
         if status != "supported" {
             continue;
         }
@@ -41,10 +29,8 @@ fn policy__contracts__smoke_probe_policy__supported_tools_define_valid_probe_con
             .or_else(|| tool.get("help_cmd").and_then(toml::Value::as_str))
             .unwrap_or("")
             .trim();
-        let require_help = tool
-            .get("smoke_require_help")
-            .and_then(toml::Value::as_bool)
-            .unwrap_or(true);
+        let require_help =
+            tool.get("smoke_require_help").and_then(toml::Value::as_bool).unwrap_or(true);
 
         if version_cmd.is_empty() {
             offenders.push(format!("tool={} missing smoke version probe", id));
@@ -57,9 +43,5 @@ fn policy__contracts__smoke_probe_policy__supported_tools_define_valid_probe_con
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "smoke probe policy violations:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "smoke probe policy violations:\n{}", offenders.join("\n"));
 }

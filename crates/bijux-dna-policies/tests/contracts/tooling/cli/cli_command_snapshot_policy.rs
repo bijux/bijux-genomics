@@ -54,11 +54,8 @@ fn slow__policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapsh
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
-    let output = run_workspace_bijux_dna(
-        &root,
-        &["--help"],
-        "run 'bijux-dna --help' via workspace binary",
-    );
+    let output =
+        run_workspace_bijux_dna(&root, &["--help"], "run 'bijux-dna --help' via workspace binary");
 
     assert!(
         output.status.success(),

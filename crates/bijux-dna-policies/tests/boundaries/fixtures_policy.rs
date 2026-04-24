@@ -10,9 +10,7 @@ const MAX_FIXTURE_BYTES: u64 = 200 * 1024;
 
 fn is_allowlisted(path: &Path) -> bool {
     let allowlist = ["tests/fixtures/golden_spine"]; // large reference fixtures
-    allowlist
-        .iter()
-        .any(|prefix| path.to_string_lossy().contains(prefix))
+    allowlist.iter().any(|prefix| path.to_string_lossy().contains(prefix))
 }
 
 #[test]
@@ -25,10 +23,7 @@ fn policy__boundaries__fixtures_policy__fixture_lint() {
             continue;
         }
 
-        for entry in WalkDir::new(&fixtures_root)
-            .into_iter()
-            .filter_map(|entry| entry.ok())
-        {
+        for entry in WalkDir::new(&fixtures_root).into_iter().filter_map(|entry| entry.ok()) {
             let path = entry.path();
             if entry.file_type().is_file() {
                 if path.parent() == Some(fixtures_root.as_path()) {
@@ -61,10 +56,8 @@ fn policy__boundaries__fixtures_policy__fixture_lint() {
                 .unwrap_or(false);
             let has_case = dir.join("CASE.toml").exists() || dir.join("CASE.json").exists();
             if !has_subdir && !has_case {
-                offenders.push(format!(
-                    "missing CASE.(toml|json) in fixture dir: {}",
-                    dir.display()
-                ));
+                offenders
+                    .push(format!("missing CASE.(toml|json) in fixture dir: {}", dir.display()));
             }
             if dir.join("CASE.md").exists() {
                 offenders.push(format!(

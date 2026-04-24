@@ -7,10 +7,7 @@ fn slow__policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_d
     let root = support::workspace_root();
     let checksum = root.join("assets/toy/core-v1/CHECKSUMS.sha256");
     if !checksum.exists() {
-        eprintln!(
-            "skip toy golden deterministic check; missing {}",
-            checksum.display()
-        );
+        eprintln!("skip toy golden deterministic check; missing {}", checksum.display());
         return;
     }
     let status = std::process::Command::new("cargo")
@@ -55,10 +52,7 @@ fn slow__policy__contracts__toy_golden_runs_policy__golden_refresh_requires_acce
         .unwrap_or_else(|err| {
             panic!("run bijux-dna-dev test run toy-runs refresh without accept: {err}")
         });
-    assert!(
-        !status.success(),
-        "toy golden refresh must fail without --accept"
-    );
+    assert!(!status.success(), "toy golden refresh must fail without --accept");
 }
 
 #[test]

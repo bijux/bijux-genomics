@@ -4,22 +4,15 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 fn is_core_ids_path(path: &Path) -> bool {
-    path.to_string_lossy()
-        .ends_with("/crates/bijux-dna-core/src/ids.rs")
+    path.to_string_lossy().ends_with("/crates/bijux-dna-core/src/ids.rs")
 }
 
 fn is_core_metrics_path(path: &Path) -> bool {
-    path.to_string_lossy()
-        .contains("/crates/bijux-dna-core/src/metrics/")
+    path.to_string_lossy().contains("/crates/bijux-dna-core/src/metrics/")
 }
 
 fn is_pipelines_defaults_path(path: &Path) -> bool {
@@ -43,11 +36,8 @@ fn is_policies_ownership_test(path: &Path) -> bool {
 #[test]
 fn policy__boundaries__ownership_contract__ownership_contract_is_complete() {
     let root = workspace_root();
-    let contract_path = root
-        .join("crates")
-        .join("bijux-dna-core")
-        .join("docs")
-        .join("BOUNDARIES.md");
+    let contract_path =
+        root.join("crates").join("bijux-dna-core").join("docs").join("BOUNDARIES.md");
     let content = std::fs::read_to_string(&contract_path).expect("read boundaries.md");
     let required = [
         "## OWNERSHIP",
@@ -58,11 +48,8 @@ fn policy__boundaries__ownership_contract__ownership_contract_is_complete() {
         "Artifact layout:",
         "Report schema/rendering:",
     ];
-    let missing: Vec<&str> = required
-        .iter()
-        .copied()
-        .filter(|needle| !content.contains(needle))
-        .collect();
+    let missing: Vec<&str> =
+        required.iter().copied().filter(|needle| !content.contains(needle)).collect();
     bijux_dna_policies::policy_assert!(
         missing.is_empty(),
         "ownership contract missing entries: {:?}",
@@ -85,10 +72,7 @@ fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
         "enum MetricId",
     ];
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -122,10 +106,7 @@ fn policy__boundaries__ownership_contract__id_parsing_and_validation_live_in_cor
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"fn\s+(parse|validate)_[a-z0-9_]*(?:_id|_id_str)\b").unwrap();
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -160,10 +141,7 @@ fn policy__boundaries__ownership_contract__defaults_ledger_is_owned_by_pipelines
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"struct\s+DefaultsLedger\w*").unwrap();
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -199,10 +177,7 @@ fn policy__boundaries__ownership_contract__no_hidden_param_defaults_outside_doma
         "crates/bijux-dna-stages-vcf/src/pipeline_sections/execution/call_filter_and_gl.rs",
     ];
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -236,10 +211,7 @@ fn policy__boundaries__ownership_contract__registry_of_truth_markers_are_unique(
     let mut matches = Vec::new();
     let patterns = ["registry-of-truth", "registry_of_truth", "RegistryOfTruth"];
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -269,10 +241,7 @@ fn policy__boundaries__ownership_contract__id_module_files_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }

@@ -4,12 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 fn is_allowed_command_path(path: &Path) -> bool {
@@ -31,10 +26,7 @@ fn policy__contracts__command_spawn_policy__command_spawning_is_confined_to_runn
     let mut offenders = Vec::new();
     let needles = ["std::process::Command", "Command::new"];
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -77,10 +69,7 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
         "apptainer",
     ];
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

@@ -32,24 +32,14 @@ fn policy__boundaries__stage_specs_purity__stage_specs_are_declarative_only() {
         stage_specs_surface(&root, "bijux-dna-stages-bam"),
         stage_specs_surface(&root, "bijux-dna-stages-vcf"),
     ];
-    let forbidden = [
-        "CommandSpec",
-        "ContainerImageRef",
-        "command_template",
-        "argv",
-        "docker",
-        "container",
-    ];
+    let forbidden =
+        ["CommandSpec", "ContainerImageRef", "command_template", "argv", "docker", "container"];
     let mut offenders = Vec::new();
     for spec in specs {
         let content = std::fs::read_to_string(&spec).expect("read stage_specs");
         for token in &forbidden {
             if content.contains(token) {
-                offenders.push(format!(
-                    "{} contains forbidden token `{}`",
-                    spec.display(),
-                    token
-                ));
+                offenders.push(format!("{} contains forbidden token `{}`", spec.display(), token));
             }
         }
     }

@@ -14,10 +14,7 @@ fn crate_dependencies(root: &std::path::Path, name: &str) -> std::collections::B
         .iter()
         .find(|p| p.name == name)
         .unwrap_or_else(|| panic!("missing package {name}"));
-    pkg.dependencies
-        .iter()
-        .map(|dep| dep.name.clone())
-        .collect::<std::collections::BTreeSet<_>>()
+    pkg.dependencies.iter().map(|dep| dep.name.clone()).collect::<std::collections::BTreeSet<_>>()
 }
 
 fn scan_forbidden_patterns(base: &std::path::Path, forbidden: &[&str]) -> Vec<String> {
@@ -71,10 +68,7 @@ fn policy__contracts__purity_effects_responsibility_policy__domain_crates_have_n
         "Command::new(",
     ];
     let mut offenders = Vec::new();
-    for rel in [
-        "crates/bijux-dna-domain-fastq/src",
-        "crates/bijux-dna-domain-bam/src",
-    ] {
+    for rel in ["crates/bijux-dna-domain-fastq/src", "crates/bijux-dna-domain-bam/src"] {
         offenders.extend(scan_forbidden_patterns(&root.join(rel), &forbidden));
     }
     bijux_dna_policies::policy_assert!(
@@ -114,10 +108,7 @@ fn policy__contracts__purity_effects_responsibility_policy__stages_crates_define
         "apptainer ",
     ];
     let mut offenders = Vec::new();
-    for rel in [
-        "crates/bijux-dna-stages-fastq/src",
-        "crates/bijux-dna-stages-bam/src",
-    ] {
+    for rel in ["crates/bijux-dna-stages-fastq/src", "crates/bijux-dna-stages-bam/src"] {
         offenders.extend(scan_forbidden_patterns(&root.join(rel), &forbidden));
     }
     bijux_dna_policies::policy_assert!(

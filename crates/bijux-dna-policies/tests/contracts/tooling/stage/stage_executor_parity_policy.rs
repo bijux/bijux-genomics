@@ -15,11 +15,7 @@ fn read_toml(path: &Path) -> toml::Value {
 }
 
 fn stage_rows(path: &Path) -> Vec<toml::Value> {
-    read_toml(path)
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
+    read_toml(path).get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default()
 }
 
 fn stage_ids_from_configs(root: &Path) -> BTreeSet<String> {
@@ -65,11 +61,7 @@ fn domain_stage_docs(root: &Path) -> BTreeMap<String, serde_yaml::Value> {
             if path.extension().and_then(|s| s.to_str()) != Some("yaml") {
                 continue;
             }
-            if path
-                .file_name()
-                .and_then(|s| s.to_str())
-                .is_some_and(|n| n.starts_with('_'))
-            {
+            if path.file_name().and_then(|s| s.to_str()).is_some_and(|n| n.starts_with('_')) {
                 continue;
             }
             let raw = std::fs::read_to_string(&path)
@@ -95,10 +87,7 @@ fn yaml_list(v: &serde_yaml::Value, key: &str) -> Vec<String> {
     v.get(key)
         .and_then(serde_yaml::Value::as_sequence)
         .map(|xs| {
-            xs.iter()
-                .filter_map(serde_yaml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            xs.iter().filter_map(serde_yaml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }
@@ -147,27 +136,19 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
     ] {
         let parsed = read_toml(&root.join(rel));
         tool_rows.extend(
-            parsed
-                .get("tools")
-                .and_then(toml::Value::as_array)
-                .cloned()
-                .unwrap_or_default(),
+            parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default(),
         );
     }
     let tools_by_id = tool_rows
         .iter()
         .filter_map(|row| {
-            row.get("id")
-                .and_then(toml::Value::as_str)
-                .map(|id| (id.to_string(), row))
+            row.get("id").and_then(toml::Value::as_str).map(|id| (id.to_string(), row))
         })
         .collect::<BTreeMap<_, _>>();
     let config_rows = config_stage_rows_by_id(&root);
 
-    let executors = entries()
-        .iter()
-        .map(|e| (e.stage_id.to_string(), e))
-        .collect::<BTreeMap<_, _>>();
+    let executors =
+        entries().iter().map(|e| (e.stage_id.to_string(), e)).collect::<BTreeMap<_, _>>();
     let mut offenders = Vec::new();
 
     for (stage_id, doc) in &domain_docs {
@@ -186,10 +167,7 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
             .and_then(|row| row.get("tools"))
             .and_then(toml::Value::as_array)
             .map(|xs| {
-                xs.iter()
-                    .filter_map(toml::Value::as_str)
-                    .map(str::to_string)
-                    .collect::<Vec<_>>()
+                xs.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
             })
             .unwrap_or_default();
         if status == "supported" && stage_tools.is_empty() {
@@ -213,9 +191,7 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
         }
         let metrics = yaml_metric_keys(doc);
         if status == "supported" && metrics.is_empty() {
-            offenders.push(format!(
-                "supported stage {stage_id} must declare metrics keys"
-            ));
+            offenders.push(format!("supported stage {stage_id} must declare metrics keys"));
         }
         if status == "out_of_scope" {
             if yaml_list(doc, "planned_out_of_scope").is_empty() {
@@ -242,16 +218,10 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
             let runtimes = tool
                 .get("runtimes")
                 .and_then(toml::Value::as_array)
-                .map(|xs| {
-                    xs.iter()
-                        .filter_map(toml::Value::as_str)
-                        .collect::<BTreeSet<_>>()
-                })
+                .map(|xs| xs.iter().filter_map(toml::Value::as_str).collect::<BTreeSet<_>>())
                 .unwrap_or_default();
-            let host_only = doc
-                .get("host_only")
-                .and_then(serde_yaml::Value::as_bool)
-                .unwrap_or(false);
+            let host_only =
+                doc.get("host_only").and_then(serde_yaml::Value::as_bool).unwrap_or(false);
             let host_only_justification = yaml_str(doc, "host_only_justification").unwrap_or("");
             if !(host_only || runtimes.contains("docker") && runtimes.contains("apptainer")) {
                 offenders.push(format!(
@@ -284,45 +254,30 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
         .filter(|(_, row)| row.get("status").and_then(toml::Value::as_str) == Some("supported"))
         .map(|(id, _)| id.clone())
         .collect::<BTreeSet<_>>();
-    let missing_in_configs = domain_stage_ids
-        .difference(&config_supported_ids)
-        .cloned()
-        .collect::<Vec<_>>();
-    let extra_in_configs = config_supported_ids
-        .difference(&domain_stage_ids)
-        .cloned()
-        .collect::<Vec<_>>();
+    let missing_in_configs =
+        domain_stage_ids.difference(&config_supported_ids).cloned().collect::<Vec<_>>();
+    let extra_in_configs =
+        config_supported_ids.difference(&domain_stage_ids).cloned().collect::<Vec<_>>();
     if !missing_in_configs.is_empty() {
-        offenders.push(format!(
-            "configs/ci/stages*.toml missing domain stages: {missing_in_configs:?}"
-        ));
+        offenders
+            .push(format!("configs/ci/stages*.toml missing domain stages: {missing_in_configs:?}"));
     }
     if !extra_in_configs.is_empty() {
-        offenders.push(format!(
-            "configs/ci/stages*.toml has non-domain stages: {extra_in_configs:?}"
-        ));
+        offenders
+            .push(format!("configs/ci/stages*.toml has non-domain stages: {extra_in_configs:?}"));
     }
 
     let stable_stage_ids = stage_rows(&root.join("configs/ci/stages/stages.toml"))
         .into_iter()
         .filter(|row| row.get("status").and_then(toml::Value::as_str) == Some("supported"))
-        .filter_map(|row| {
-            row.get("id")
-                .and_then(toml::Value::as_str)
-                .map(str::to_string)
-        })
+        .filter_map(|row| row.get("id").and_then(toml::Value::as_str).map(str::to_string))
         .collect::<Vec<_>>();
     for stage_id in stable_stage_ids {
         let Some(executor) = executors.get(&stage_id) else {
-            offenders.push(format!(
-                "stable profile stage {stage_id} missing code-backed executor"
-            ));
+            offenders.push(format!("stable profile stage {stage_id} missing code-backed executor"));
             continue;
         };
-        if !matches!(
-            executor.readiness,
-            ReadinessBadge::Supported | ReadinessBadge::Certified
-        ) {
+        if !matches!(executor.readiness, ReadinessBadge::Supported | ReadinessBadge::Certified) {
             offenders.push(format!(
                 "stable profile stage {stage_id} has non-stable readiness badge {:?}",
                 executor.readiness

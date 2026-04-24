@@ -13,13 +13,7 @@ fn repo_root() -> PathBuf {
 fn policy__boundaries__runner_tree_policy__runner_src_layout_contract() {
     let root = repo_root();
     let src_dir = root.join("crates/bijux-dna-runner/src");
-    let allowed = [
-        "lib.rs",
-        "command_runner.rs",
-        "repo_root.rs",
-        "backend",
-        "step_runner",
-    ];
+    let allowed = ["lib.rs", "command_runner.rs", "repo_root.rs", "backend", "step_runner"];
     let mut offenders = Vec::new();
     let entries = std::fs::read_dir(&src_dir).expect("read bijux-dna-runner/src");
     for entry in entries {

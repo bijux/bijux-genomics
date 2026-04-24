@@ -10,11 +10,7 @@ pub(crate) fn check_panic_expect(files: &[PathBuf], config: &GuardrailConfig) ->
     let expect_re = Regex::new(r"\.expect\(")?;
     for path in files {
         let path_str = path.to_string_lossy();
-        if config
-            .allow_panic_expect_paths
-            .iter()
-            .any(|allowed| path_str.contains(allowed))
-        {
+        if config.allow_panic_expect_paths.iter().any(|allowed| path_str.contains(allowed)) {
             continue;
         }
         let content = fs::read_to_string(path)?;

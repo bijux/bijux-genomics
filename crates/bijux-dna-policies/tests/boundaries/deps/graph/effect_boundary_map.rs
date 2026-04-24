@@ -8,15 +8,9 @@ const ALLOWLIST: &[(&str, &str)] = &[
     ("/crates/bijux-dna-runner/", "execution backends"),
     ("/crates/bijux-dna-environment-qa/", "qa harness"),
     ("/crates/bijux-dna/", "cli entrypoints"),
-    (
-        "/crates/bijux-dna-environment/",
-        "runtime resolution probes",
-    ),
+    ("/crates/bijux-dna-environment/", "runtime resolution probes"),
     ("/crates/bijux-dna-infra/", "filesystem helpers"),
-    (
-        "/crates/bijux-dna-api/src/run.rs",
-        "root CLI orchestration bridge",
-    ),
+    ("/crates/bijux-dna-api/src/run.rs", "root CLI orchestration bridge"),
     (
         "/crates/bijux-dna-stages-vcf/",
         "transitional realization path while runtime effects are being extracted",
@@ -40,10 +34,7 @@ const EFFECT_PATTERNS: &[&str] = &[
 fn policy__boundaries__effect_boundary_map__effect_boundary_map() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -54,17 +45,11 @@ fn policy__boundaries__effect_boundary_map__effect_boundary_map() {
         if path_str.contains("/tests/") {
             continue;
         }
-        if ALLOWLIST
-            .iter()
-            .any(|(allowed, _reason)| path_str.contains(allowed))
-        {
+        if ALLOWLIST.iter().any(|(allowed, _reason)| path_str.contains(allowed)) {
             continue;
         }
         let content = support::read_to_string(entry.path());
-        if EFFECT_PATTERNS
-            .iter()
-            .any(|pattern| content.contains(pattern))
-        {
+        if EFFECT_PATTERNS.iter().any(|pattern| content.contains(pattern)) {
             offenders.push(entry.path().display().to_string());
         }
     }

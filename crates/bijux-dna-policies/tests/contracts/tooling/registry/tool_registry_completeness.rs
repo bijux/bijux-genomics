@@ -27,18 +27,15 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         let path = root.join(rel);
         let raw = std::fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
-        let parsed: toml::Value = raw
-            .parse()
-            .unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
+        let parsed: toml::Value =
+            raw.parse().unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
 
         for entry in as_table_array(&parsed, "tools") {
             let id = as_str_field(entry, "id").unwrap_or("<missing>");
             for required in ["id", "version", "upstream"] {
                 let value = as_str_field(entry, required).unwrap_or("").trim();
                 if value.is_empty() {
-                    offenders.push(format!(
-                        "{rel}: tool={id} missing required field `{required}`"
-                    ));
+                    offenders.push(format!("{rel}: tool={id} missing required field `{required}`"));
                 }
             }
         }
