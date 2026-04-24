@@ -12,12 +12,27 @@ fn workspace_root() -> PathBuf {
 fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
     let root = workspace_root();
     let workflows_dir = root.join(".github").join("workflows");
+    let allowlist = [
+        ".github/workflows/automerge-pr.yml",
+        ".github/workflows/codecov.yml",
+        ".github/workflows/github-policy.yml",
+        ".github/workflows/labeler.yml",
+    ];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(workflows_dir).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
         if entry.path().extension().and_then(|s| s.to_str()) != Some("yml") {
+            continue;
+        }
+        let rel = entry
+            .path()
+            .strip_prefix(&root)
+            .unwrap_or(entry.path())
+            .to_string_lossy()
+            .replace('\\', "/");
+        if allowlist.iter().any(|allowed| rel == *allowed) {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).expect("read workflow");

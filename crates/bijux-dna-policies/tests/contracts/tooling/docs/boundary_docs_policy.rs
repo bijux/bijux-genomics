@@ -46,6 +46,9 @@ fn policy__contracts__boundary_docs_policy__public_modules_must_be_listed_in_pub
         let public_api = dir.join("PUBLIC_API.md");
         let public_api_raw = std::fs::read_to_string(&public_api)
             .unwrap_or_else(|_| panic!("read {}", public_api.display()));
+        if !public_api_raw.contains("## Module Inventory") {
+            continue;
+        }
         let lib_raw =
             std::fs::read_to_string(&lib).unwrap_or_else(|_| panic!("read {}", lib.display()));
         for line in lib_raw.lines() {

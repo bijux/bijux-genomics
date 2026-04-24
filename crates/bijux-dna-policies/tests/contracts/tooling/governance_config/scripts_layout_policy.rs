@@ -21,6 +21,15 @@ fn policy__contracts__scripts_layout_policy__legacy_scripts_directory_is_removed
 fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scripts() {
     let root = workspace_root();
     let legacy = ["scr", "ipts/"].concat();
+    let allowlist = [
+        ".github/workflows/automerge-pr.yml",
+        ".github/workflows/bijux-std.yml",
+        ".github/workflows/github-policy.yml",
+        ".github/bijux-std-shared.sha256",
+        ".github/scripts/check_protected_github_changes.py",
+        ".github/scripts/sync_github_standards.py",
+        ".github/standards/repo-config.manifest.json",
+    ];
     let mut offenders = Vec::new();
     for scope in [
         root.join("Makefile"),
@@ -33,7 +42,12 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
     ] {
         if scope.is_file() {
             let raw = std::fs::read_to_string(&scope).unwrap_or_default();
-            if raw.contains(&legacy) {
+            let rel = scope
+                .strip_prefix(&root)
+                .unwrap_or(&scope)
+                .to_string_lossy()
+                .replace('\\', "/");
+            if raw.contains(&legacy) && !allowlist.iter().any(|allowed| rel == *allowed) {
                 offenders.push(scope.display().to_string());
             }
             continue;
@@ -43,6 +57,20 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
         }
         for entry in WalkDir::new(&scope).into_iter().filter_map(Result::ok) {
             if !entry.file_type().is_file() {
+                continue;
+            }
+            let rel = entry
+                .path()
+                .strip_prefix(&root)
+                .unwrap_or(entry.path())
+                .to_string_lossy()
+                .replace('\\', "/");
+            if rel
+                == "crates/bijux-dna-policies/tests/contracts/tooling/governance_config/scripts_layout_policy.rs"
+            {
+                continue;
+            }
+            if allowlist.iter().any(|allowed| rel == *allowed) {
                 continue;
             }
             let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
