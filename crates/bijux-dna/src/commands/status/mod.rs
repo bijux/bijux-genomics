@@ -8,6 +8,8 @@ use anyhow::{anyhow, Context, Result};
 
 use crate::commands::{bench_suite, cli, hpc};
 
+mod scope;
+
 fn parse_scalar(raw: &str, key: &str) -> Option<String> {
     raw.lines().find_map(|line| {
         let trimmed = line.trim();
@@ -211,7 +213,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
 }
 
 pub(crate) fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
-    if args.scope.eq_ignore_ascii_case("production-readiness") {
+    if scope::is_production_readiness(&args.scope) {
         let report = bench_suite::production_readiness_status(cwd, "fastq_hpc_01")?;
         cli::render::json::print_pretty(&report)?;
         if report.get("ok").and_then(serde_json::Value::as_bool) != Some(true) {

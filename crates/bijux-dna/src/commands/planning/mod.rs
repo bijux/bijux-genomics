@@ -11,6 +11,8 @@ use crate::commands::support::run_profile::{ensure_profile_run_base_dir, load_pr
 use std::collections::BTreeMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+mod artifact_files;
+
 pub(crate) fn run_plan(
     cli: &Cli,
     dna_command: &DnaCommand,
@@ -172,12 +174,12 @@ fn write_plan_artifacts(
         },
     };
     bijux_dna_api::v1::api::run::write_bytes(
-        artifacts_dir.join("plan_artifact_manifest.json"),
+        artifacts_dir.join(artifact_files::PLAN_ARTIFACT_MANIFEST),
         serde_json::to_vec_pretty(&manifest)?,
     )
     .context("write plan_artifact_manifest.json")?;
     bijux_dna_api::v1::api::run::write_bytes(
-        artifacts_dir.join("decision_trace.json"),
+        artifacts_dir.join(artifact_files::DECISION_TRACE),
         serde_json::to_vec_pretty(&decision_trace)?,
     )
     .context("write decision_trace.json")?;
@@ -202,7 +204,7 @@ fn write_policy_snapshot(artifacts_dir: &Path) -> Result<()> {
         "checks": checks,
     });
     bijux_dna_api::v1::api::run::write_bytes(
-        artifacts_dir.join("policy_snapshot.json"),
+        artifacts_dir.join(artifact_files::POLICY_SNAPSHOT),
         serde_json::to_vec_pretty(&payload)?,
     )
     .context("write policy_snapshot.json")?;
