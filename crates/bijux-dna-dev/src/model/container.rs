@@ -162,29 +162,17 @@ pub struct ContainerCommandOutcome {
 impl ContainerCommandOutcome {
     #[must_use]
     pub fn success(stdout: impl Into<String>) -> Self {
-        Self {
-            exit_code: 0,
-            stdout: stdout.into(),
-            stderr: String::new(),
-        }
+        Self { exit_code: 0, stdout: stdout.into(), stderr: String::new() }
     }
 
     #[must_use]
     pub fn failure(stderr: impl Into<String>) -> Self {
-        Self {
-            exit_code: 1,
-            stdout: String::new(),
-            stderr: stderr.into(),
-        }
+        Self { exit_code: 1, stdout: String::new(), stderr: stderr.into() }
     }
 
     #[must_use]
     pub fn from_output(output: std::process::Output) -> Self {
-        let std::process::Output {
-            status,
-            stdout,
-            stderr,
-        } = output;
+        let std::process::Output { status, stdout, stderr } = output;
         Self {
             exit_code: status.code().unwrap_or(1),
             stdout: String::from_utf8_lossy(&stdout).into_owned(),

@@ -5,16 +5,48 @@ use crate::commands::support::prelude::{
     AnalyzeCommand, BTreeMap, RankInput, Result,
 };
 
-pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeArgs) -> Result<bool> {
+#[allow(clippy::too_many_lines)]
+pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeRootArgs) -> Result<bool> {
     match &args.command {
         AnalyzeCommand::Runs(args) => {
-            let query = bijux_dna_api::v1::api::run::RunQuery {
-                stage: args.stage.clone(),
-                tool: args.tool.clone(),
-                objective: args.objective.map(|obj| obj.as_str().to_string()),
-                success: args.success,
-            };
-            let runs = bijux_dna_api::v1::api::run::query_runs(&args.index, &query)?;
+            let raw = std::fs::read_to_string(&args.index)?;
+            let mut runs = Vec::<serde_json::Value>::new();
+            for line in raw.lines().filter(|line| !line.trim().is_empty()) {
+                let Ok(entry) = serde_json::from_str::<serde_json::Value>(line) else {
+                    continue;
+                };
+                let stage = entry
+                    .get("stage_id")
+                    .or_else(|| entry.get("stage"))
+                    .and_then(serde_json::Value::as_str);
+                if args.stage.as_deref().is_some_and(|expected| stage != Some(expected)) {
+                    continue;
+                }
+                let tool = entry
+                    .get("tool_id")
+                    .or_else(|| entry.get("tool"))
+                    .and_then(serde_json::Value::as_str);
+                if args.tool.as_deref().is_some_and(|expected| tool != Some(expected)) {
+                    continue;
+                }
+                let objective = entry.get("objective").and_then(serde_json::Value::as_str);
+                if args
+                    .objective
+                    .as_ref()
+                    .map(|objective| (*objective).as_str())
+                    .is_some_and(|expected| objective != Some(expected))
+                {
+                    continue;
+                }
+                let success = entry
+                    .get("success")
+                    .or_else(|| entry.get("ok"))
+                    .and_then(serde_json::Value::as_bool);
+                if args.success.is_some_and(|expected| success != Some(expected)) {
+                    continue;
+                }
+                runs.push(entry);
+            }
             render::json::print_pretty(&runs)?;
         }
         AnalyzeCommand::Summary(args) => {
@@ -63,29 +95,25 @@ pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeArgs) -> Result<b
                 let runtime = rows.iter().map(|row| row.runtime_s).sum::<f64>() / denom;
                 let memory = rows.iter().map(|row| row.memory_mb).sum::<f64>() / denom;
                 let read_retention =
-                    rows.iter()
-                        .find_map(|row| match (row.reads_in, row.reads_out) {
-                            (Some(ri), Some(ro)) if ri > 0 => {
-                                let reads_out_f64 = ro.to_string().parse::<f64>().ok()?;
-                                let reads_in_f64 = ri.to_string().parse::<f64>().ok()?;
-                                Some(reads_out_f64 / reads_in_f64)
-                            }
-                            _ => None,
-                        });
+                    rows.iter().find_map(|row| match (row.reads_in, row.reads_out) {
+                        (Some(ri), Some(ro)) if ri > 0 => {
+                            let reads_out_f64 = ro.to_string().parse::<f64>().ok()?;
+                            let reads_in_f64 = ri.to_string().parse::<f64>().ok()?;
+                            Some(reads_out_f64 / reads_in_f64)
+                        }
+                        _ => None,
+                    });
                 let base_retention =
-                    rows.iter()
-                        .find_map(|row| match (row.bases_in, row.bases_out) {
-                            (Some(bi), Some(bo)) if bi > 0 => {
-                                let bases_out_f64 = bo.to_string().parse::<f64>().ok()?;
-                                let bases_in_f64 = bi.to_string().parse::<f64>().ok()?;
-                                Some(bases_out_f64 / bases_in_f64)
-                            }
-                            _ => None,
-                        });
+                    rows.iter().find_map(|row| match (row.bases_in, row.bases_out) {
+                        (Some(bi), Some(bo)) if bi > 0 => {
+                            let bases_out_f64 = bo.to_string().parse::<f64>().ok()?;
+                            let bases_in_f64 = bi.to_string().parse::<f64>().ok()?;
+                            Some(bases_out_f64 / bases_in_f64)
+                        }
+                        _ => None,
+                    });
                 let error_reduction_proxy = rows.iter().find_map(|row| {
-                    row.metrics
-                        .get("mean_q_delta")
-                        .and_then(serde_json::Value::as_f64)
+                    row.metrics.get("mean_q_delta").and_then(serde_json::Value::as_f64)
                 });
                 inputs.push(RankInput {
                     tool,
@@ -161,9 +189,7 @@ pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeArgs) -> Result<b
                 "json" => crate::commands::bench_suite::BenchReportFormat::Json,
                 "html" => crate::commands::bench_suite::BenchReportFormat::Html,
                 other => {
-                    return Err(anyhow!(
-                        "unsupported --report `{other}` (expected json|html)"
-                    ));
+                    return Err(anyhow!("unsupported --report `{other}` (expected json|html)"));
                 }
             };
             let report_path = crate::commands::bench_suite::analyze_suite_with_format(

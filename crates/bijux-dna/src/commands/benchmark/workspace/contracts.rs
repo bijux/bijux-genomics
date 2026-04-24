@@ -26,6 +26,7 @@ pub(crate) struct BenchmarkWorkspaceConfig {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
+#[allow(clippy::struct_field_names)]
 pub(crate) struct BenchmarkWorkspaceLocal {
     pub(crate) results_root: Option<String>,
     pub(crate) cache_mirror_root: Option<String>,
@@ -51,6 +52,7 @@ pub(crate) struct BenchmarkWorkspaceLayout {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
+#[allow(clippy::struct_field_names)]
 pub(crate) struct BenchmarkWorkspaceStageRuns {
     pub(crate) remote_results_template: Option<String>,
     pub(crate) local_cache_results_template: Option<String>,
@@ -92,6 +94,7 @@ pub(crate) struct BenchmarkCorpusConfig {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
+#[allow(clippy::struct_field_names)]
 pub(crate) struct BenchmarkStageInputConfig {
     #[serde(default)]
     pub(crate) fastq_deplete_rrna: BenchmarkDepleteRrnaInputConfig,
@@ -111,6 +114,7 @@ pub(crate) struct BenchmarkDepleteRrnaInputConfig {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
+#[allow(clippy::struct_field_names)]
 pub(crate) struct BenchmarkReferenceInputConfig {
     pub(crate) reference_index: Option<String>,
     pub(crate) reference_catalog_id: Option<String>,
@@ -118,6 +122,7 @@ pub(crate) struct BenchmarkReferenceInputConfig {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
+#[allow(clippy::struct_field_names)]
 pub(crate) struct BenchmarkScreenTaxonomyInputConfig {
     pub(crate) database_root: Option<String>,
     pub(crate) database_catalog_id: Option<String>,

@@ -220,11 +220,7 @@ pub struct BenchFastqQcPostArgs {
     pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(
-        long,
-        default_value = "auto",
-        help = "Aggregation backend: auto | multiqc"
-    )]
+    #[arg(long, default_value = "auto", help = "Aggregation backend: auto | multiqc")]
     pub aggregation_engine: Option<String>,
     #[arg(long)]
     pub aggregation_scope: Option<String>,
@@ -279,10 +275,7 @@ pub struct BenchFastqProfileOverrepresentedArgs {
     pub out: PathBuf,
     #[arg(long, help = "Set governed stage threads before per-job scaling")]
     pub threads: Option<u32>,
-    #[arg(
-        long,
-        help = "Maximum number of ranked sequences to retain in governed outputs"
-    )]
+    #[arg(long, help = "Maximum number of ranked sequences to retain in governed outputs")]
     pub top_k: Option<u32>,
     #[arg(
         long,

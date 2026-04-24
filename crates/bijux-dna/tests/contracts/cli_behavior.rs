@@ -110,12 +110,7 @@ fn cli_env_info_is_deterministic() {
         .unwrap_or_else(|err| panic!("cli images failed: {err}"));
     let image_count = images_stdout.lines().count();
     assert!(stdout.contains(&format!("image count: {image_count}")));
-    let expected_cache = workspace
-        .home
-        .join(".cache")
-        .join("bijux")
-        .join("docker")
-        .join("images");
+    let expected_cache = workspace.home.join(".cache").join("bijux").join("docker").join("images");
     assert!(stdout.contains(&format!("cache: {}", expected_cache.display())));
 }
 
@@ -193,11 +188,7 @@ fn cli_pipelines_explain_returns_profile_payload() {
 #[test]
 fn cli_pipelines_explain_unknown_pipeline_fails() {
     let workspace = CliWorkspace::new();
-    assert_removed_subcommand(
-        &workspace,
-        &["dna", "pipelines", "explain", "nope"],
-        "pipelines",
-    );
+    assert_removed_subcommand(&workspace, &["dna", "pipelines", "explain", "nope"], "pipelines");
 }
 
 #[test]
@@ -245,14 +236,7 @@ fn cli_fastq_preprocess_dry_run_writes_artifacts() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-        ],
+        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
         "fastq",
     );
 }
@@ -262,14 +246,7 @@ fn cli_fastq_preprocess_dry_run_reports_manifests() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-        ],
+        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
         "fastq",
     );
 }
@@ -279,14 +256,7 @@ fn cli_fastq_preprocess_plan_falls_back_to_dry_run() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-        ],
+        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
         "fastq",
     );
 }
@@ -296,14 +266,7 @@ fn cli_dry_run_manifest_is_deterministic_after_path_scrub() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
-        &[
-            "--platform",
-            "test",
-            "dna",
-            "fastq",
-            "preprocess",
-            "--dry-run",
-        ],
+        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
         "fastq",
     );
 }

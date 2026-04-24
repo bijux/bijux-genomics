@@ -140,15 +140,9 @@ fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
         .with_context(|| format!("create {}", cargo_home.display()))?;
     bijux_dna_infra::ensure_dir(&tmpdir).with_context(|| format!("create {}", tmpdir.display()))?;
     Ok(vec![
-        (
-            "ARTIFACT_ROOT".to_string(),
-            artifact_root.display().to_string(),
-        ),
+        ("ARTIFACT_ROOT".to_string(), artifact_root.display().to_string()),
         ("ISO_ROOT".to_string(), artifact_root.display().to_string()),
-        (
-            "CARGO_TARGET_DIR".to_string(),
-            cargo_target_dir.display().to_string(),
-        ),
+        ("CARGO_TARGET_DIR".to_string(), cargo_target_dir.display().to_string()),
         ("CARGO_HOME".to_string(), cargo_home.display().to_string()),
         ("TMPDIR".to_string(), tmpdir.display().to_string()),
         ("TMP".to_string(), tmpdir.display().to_string()),
@@ -163,19 +157,11 @@ fn load_toml(path: &Path) -> Result<TomlValue> {
 }
 
 fn toml_tools(path: &Path) -> Result<Vec<TomlValue>> {
-    Ok(load_toml(path)?
-        .get("tools")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default())
+    Ok(load_toml(path)?.get("tools").and_then(TomlValue::as_array).cloned().unwrap_or_default())
 }
 
 fn toml_stages(path: &Path) -> Result<Vec<TomlValue>> {
-    Ok(load_toml(path)?
-        .get("stages")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default())
+    Ok(load_toml(path)?.get("stages").and_then(TomlValue::as_array).cloned().unwrap_or_default())
 }
 
 fn tool_registry_files(workspace: &Workspace) -> Vec<PathBuf> {
@@ -309,14 +295,9 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
         }
 
         let idx = dom_dir.join("index.yaml");
-        let idx_text = if idx.is_file() {
-            read_utf8(&idx)?
-        } else {
-            String::new()
-        };
-        let active_default_start = idx_text
-            .lines()
-            .position(|line| line.starts_with("active_default_rationale:"));
+        let idx_text = if idx.is_file() { read_utf8(&idx)? } else { String::new() };
+        let active_default_start =
+            idx_text.lines().position(|line| line.starts_with("active_default_rationale:"));
 
         for stage in stage_ids {
             let stage_lower = stage.to_lowercase();
@@ -407,10 +388,7 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
                 }
                 if let Some(captures) = nested_item_re.captures(line) {
                     if let (Some(stage), Some(tool)) = (current_stage.clone(), captures.get(1)) {
-                        mapping
-                            .entry(stage)
-                            .or_default()
-                            .push(tool.as_str().to_string());
+                        mapping.entry(stage).or_default().push(tool.as_str().to_string());
                     }
                 }
             }
@@ -502,23 +480,16 @@ fn check_domain_layout(workspace: &Workspace) -> Result<DomainCommandOutcome> {
     {
         let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
         if rel.ends_with(".tmp") {
-            errors.push(format!(
-                "domain layout: forbidden *.tmp files under domain/\n{rel}"
-            ));
+            errors.push(format!("domain layout: forbidden *.tmp files under domain/\n{rel}"));
             continue;
         }
         if allowed.iter().all(|pattern| !pattern.is_match(&rel)) {
-            errors.push(format!(
-                "domain layout: unknown file not in allowlist: {rel}"
-            ));
+            errors.push(format!("domain layout: unknown file not in allowlist: {rel}"));
         }
     }
 
     if errors.is_empty() {
         return success_line("domain layout: OK");
     }
-    Ok(DomainCommandOutcome::failure(format!(
-        "{}\n",
-        errors.join("\n")
-    )))
+    Ok(DomainCommandOutcome::failure(format!("{}\n", errors.join("\n"))))
 }

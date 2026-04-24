@@ -15,11 +15,7 @@ pub(in super::super::super) fn run_env_prep(
     let stage = env_or_empty("STAGE");
     require_tools_or_stage(&tools, &stage)?;
     let mut command_args = bijux_command_prefix();
-    command_args.extend([
-        "environment".to_string(),
-        "prep".to_string(),
-        container_type,
-    ]);
+    command_args.extend(["environment".to_string(), "prep".to_string(), container_type]);
     if stage.is_empty() {
         command_args.push(tools);
     } else {
@@ -39,11 +35,7 @@ pub(in super::super::super) fn run_env_smoke(
     let stage = env_or_empty("STAGE");
     require_tools_or_stage(&tools, &stage)?;
     let mut command_args = bijux_command_prefix();
-    command_args.extend([
-        "environment".to_string(),
-        "smoke".to_string(),
-        container_type,
-    ]);
+    command_args.extend(["environment".to_string(), "smoke".to_string(), container_type]);
     if stage.is_empty() {
         command_args.push(tools);
     } else {
@@ -77,22 +69,13 @@ pub(in super::super::super) fn run_containers_smoke(
     checked_container_type()?;
     let list = run_argv(
         workspace,
-        &[
-            bijux_command_prefix(),
-            vec!["registry".to_string(), "list-stages".to_string()],
-        ]
-        .concat(),
+        &[bijux_command_prefix(), vec!["registry".to_string(), "list-stages".to_string()]].concat(),
     )?;
     if !list.is_success() {
         return Ok(list);
     }
     let mut aggregate = ContainerCommandOutcome::success(String::new());
-    for stage in list
-        .stdout
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty())
-    {
+    for stage in list.stdout.lines().map(str::trim).filter(|line| !line.is_empty()) {
         let header = format!("== stage {stage}\n");
         aggregate.stdout.push_str(&header);
         let prep = run_argv(
@@ -140,12 +123,7 @@ pub(in super::super::super) fn run_build_contract(
     tools_csv: &str,
 ) -> Result<ContainerCommandOutcome> {
     let container_type = checked_container_type()?;
-    run_environment_prep_for(
-        workspace,
-        &container_type,
-        Some(tools_csv.to_string()),
-        None,
-    )
+    run_environment_prep_for(workspace, &container_type, Some(tools_csv.to_string()), None)
 }
 
 pub(in super::super::super) fn run_test_images(
@@ -213,22 +191,13 @@ pub(in super::super::super) fn run_image_smoke_vcf(
     ensure_no_args("image-smoke-vcf", args)?;
     let stages = run_argv(
         workspace,
-        &[
-            bijux_command_prefix(),
-            vec!["registry".to_string(), "list-stages".to_string()],
-        ]
-        .concat(),
+        &[bijux_command_prefix(), vec!["registry".to_string(), "list-stages".to_string()]].concat(),
     )?;
     if !stages.is_success() {
         return Ok(stages);
     }
     let mut tools = BTreeSet::new();
-    for stage in stages
-        .stdout
-        .lines()
-        .map(str::trim)
-        .filter(|stage| stage.starts_with("vcf."))
-    {
+    for stage in stages.stdout.lines().map(str::trim).filter(|stage| stage.starts_with("vcf.")) {
         for tool in list_tools_for_stage(workspace, stage)?
             .split(',')
             .map(str::trim)
@@ -302,10 +271,7 @@ pub(in super::super::super) fn run_apptainer_ensure(
             "--stages".to_string(),
             stages,
         ],
-        &[(
-            "BIJUX_HPC_ROOT",
-            env_or_default("BIJUX_HPC_ROOT", "$HOME/bijux"),
-        )],
+        &[("BIJUX_HPC_ROOT", env_or_default("BIJUX_HPC_ROOT", "$HOME/bijux"))],
     )
 }
 
@@ -333,9 +299,6 @@ pub(in super::super::super) fn run_apptainer_ensure_stage(
             "--stages".to_string(),
             stages,
         ],
-        &[(
-            "BIJUX_HPC_ROOT",
-            env_or_default("BIJUX_HPC_ROOT", "$HOME/bijux"),
-        )],
+        &[("BIJUX_HPC_ROOT", env_or_default("BIJUX_HPC_ROOT", "$HOME/bijux"))],
     )
 }

@@ -157,20 +157,8 @@ pub(in super::super) fn check_rebuild_repro(
     }
     let labels2 = docker_image_labels(workspace, &image2)?;
 
-    let line1 = version1
-        .stdout
-        .lines()
-        .next()
-        .unwrap_or_default()
-        .trim()
-        .to_string();
-    let line2 = version2
-        .stdout
-        .lines()
-        .next()
-        .unwrap_or_default()
-        .trim()
-        .to_string();
+    let line1 = version1.stdout.lines().next().unwrap_or_default().trim().to_string();
+    let line2 = version2.stdout.lines().next().unwrap_or_default().trim().to_string();
     if line1 != line2 {
         return Ok(ContainerCommandOutcome::failure(format!(
             "rebuild-repro: version mismatch: '{line1}' vs '{line2}'\n"
@@ -270,11 +258,7 @@ pub(in super::super) fn check_apptainer_bijux_header(
     ];
     let mut errors = Vec::new();
     for path in apptainer_def_paths(workspace) {
-        let head = read_utf8(&path)?
-            .lines()
-            .take(4)
-            .map(ToOwned::to_owned)
-            .collect::<Vec<_>>();
+        let head = read_utf8(&path)?.lines().take(4).map(ToOwned::to_owned).collect::<Vec<_>>();
         if head != expected {
             errors.push(workspace.rel(&path).display().to_string());
         }
@@ -282,10 +266,7 @@ pub(in super::super) fn check_apptainer_bijux_header(
     if errors.is_empty() {
         return success_line("apptainer bijux headers: OK");
     }
-    failure_lines(
-        "apptainer bijux header check failed (first 4 lines must match policy):",
-        &errors,
-    )
+    failure_lines("apptainer bijux header check failed (first 4 lines must match policy):", &errors)
 }
 
 pub(in super::super) fn check_hpc_frontend_policy_enforcement(
@@ -300,15 +281,12 @@ pub(in super::super) fn check_hpc_frontend_policy_enforcement(
     }
     let mut errors = Vec::new();
     let registry = crate::catalog::containers::container_registry(workspace)?;
-    for command in [
-        "build-apptainer-all",
-        "build-apptainer-hpc-frontend",
-        "run-apptainer-frontend-smoke",
-    ] {
+    for command in
+        ["build-apptainer-all", "build-apptainer-hpc-frontend", "run-apptainer-frontend-smoke"]
+    {
         if !registry.iter().any(|row| row.id == command) {
-            errors.push(format!(
-                "hpc frontend policy: missing native container command `{command}`"
-            ));
+            errors
+                .push(format!("hpc frontend policy: missing native container command `{command}`"));
         }
     }
     if errors.is_empty() {
@@ -373,21 +351,12 @@ pub(in super::super) fn summary(
         else {
             continue;
         };
-        let tool = data
-            .get("tool")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .to_string();
-        let runtime = data
-            .get("runtime")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .to_string();
-        let status = data
-            .get("status")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .to_string();
+        let tool =
+            data.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
+        let runtime =
+            data.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
+        let status =
+            data.get("status").and_then(serde_json::Value::as_str).unwrap_or_default().to_string();
         if tool.is_empty() || runtime.is_empty() {
             continue;
         }
@@ -413,50 +382,24 @@ pub(in super::super) fn summary(
     }
     rows.sort_by(|left, right| {
         let left_key = (
-            left.get("tool")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
-            left.get("runtime")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
+            left.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
+            left.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default(),
         );
         let right_key = (
-            right
-                .get("tool")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
-            right
-                .get("runtime")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
+            right.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default(),
+            right.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default(),
         );
         left_key.cmp(&right_key)
     });
     let mut stdout = String::from("tool\truntime\tresult\tlog\n");
     for row in &rows {
-        stdout.push_str(
-            row.get("tool")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
-        );
+        stdout.push_str(row.get("tool").and_then(serde_json::Value::as_str).unwrap_or_default());
         stdout.push('\t');
-        stdout.push_str(
-            row.get("runtime")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
-        );
+        stdout.push_str(row.get("runtime").and_then(serde_json::Value::as_str).unwrap_or_default());
         stdout.push('\t');
-        stdout.push_str(
-            row.get("status")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
-        );
+        stdout.push_str(row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default());
         stdout.push('\t');
-        stdout.push_str(
-            row.get("log")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default(),
-        );
+        stdout.push_str(row.get("log").and_then(serde_json::Value::as_str).unwrap_or_default());
         stdout.push('\n');
     }
     if let Some(json_out_path) = json_out {
@@ -464,10 +407,7 @@ pub(in super::super) fn summary(
             "schema_version": "bijux.container.summary.v1",
             "items": rows,
         });
-        write_utf8(
-            &json_out_path,
-            &format!("{}\n", serde_json::to_string_pretty(&payload)?),
-        )?;
+        write_utf8(&json_out_path, &format!("{}\n", serde_json::to_string_pretty(&payload)?))?;
     }
     Ok(ContainerCommandOutcome::success(stdout))
 }

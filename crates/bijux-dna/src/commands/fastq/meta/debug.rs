@@ -47,10 +47,7 @@ pub(super) fn handle_debug_command(
                 bijux_dna_api::v1::api::run::replay_manifest(manifest_path, args.validate_only)?;
                 return Ok(Some(true));
             }
-            let manifest_path = args
-                .search_root
-                .join(&args.run_id)
-                .join("run_manifest.json");
+            let manifest_path = args.search_root.join(&args.run_id).join("run_manifest.json");
             bijux_dna_api::v1::api::run::replay_manifest(&manifest_path, args.validate_only)?;
             Ok(Some(true))
         }

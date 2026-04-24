@@ -11,11 +11,8 @@ pub(in super::super::super) fn check_smoke_failure_classification(
     if !manifests.exists() {
         return success_line("smoke failure classification: SKIP (no manifests)");
     }
-    let allowed = BTreeSet::from([
-        "build".to_string(),
-        "runtime".to_string(),
-        "smoke_mismatch".to_string(),
-    ]);
+    let allowed =
+        BTreeSet::from(["build".to_string(), "runtime".to_string(), "smoke_mismatch".to_string()]);
     let mut errors = Vec::new();
     for entry in fs::read_dir(&manifests)
         .with_context(|| format!("read {}", manifests.display()))?
@@ -66,10 +63,7 @@ pub(in super::super::super) fn check_smoke_contract(
     let mut exempt = BTreeSet::new();
     if images_path.exists() {
         let images = load_toml(&images_path)?;
-        if let Some(table) = images
-            .get("smoke_exemptions")
-            .and_then(toml::Value::as_table)
-        {
+        if let Some(table) = images.get("smoke_exemptions").and_then(toml::Value::as_table) {
             for (tool, value) in table {
                 if value.as_bool() == Some(true) {
                     exempt.insert(tool.clone());
@@ -86,12 +80,7 @@ pub(in super::super::super) fn check_smoke_contract(
         "configs/ci/registry/tool_registry_vcf_downstream.toml",
     ] {
         let value = load_toml(&workspace.path(rel))?;
-        for row in value
-            .get("tools")
-            .and_then(toml::Value::as_array)
-            .cloned()
-            .unwrap_or_default()
-        {
+        for row in value.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default() {
             let Some(row) = row.as_table() else {
                 continue;
             };
@@ -132,15 +121,12 @@ pub(in super::super::super) fn check_smoke_contract(
                 }
             };
             let expected_bin = table_string(row, "expected_bin");
-            let help_exit = row
-                .get("smoke_help_exit_code")
-                .map_or(Some(0), toml::Value::as_integer);
-            let minimal_exit = row
-                .get("smoke_minimal_exit_code")
-                .map_or(Some(0), toml::Value::as_integer);
-            let negative_exit = row
-                .get("smoke_negative_exit_code")
-                .map_or(Some(2), toml::Value::as_integer);
+            let help_exit =
+                row.get("smoke_help_exit_code").map_or(Some(0), toml::Value::as_integer);
+            let minimal_exit =
+                row.get("smoke_minimal_exit_code").map_or(Some(0), toml::Value::as_integer);
+            let negative_exit =
+                row.get("smoke_negative_exit_code").map_or(Some(2), toml::Value::as_integer);
 
             if version_cmd.is_empty() {
                 errors.push(format!("{rel}: {tool_id} missing smoke_version_cmd"));
@@ -152,29 +138,19 @@ pub(in super::super::super) fn check_smoke_contract(
                 errors.push(format!("{rel}: {tool_id} smoke_help_exit_code must be 0"));
             }
             if expected_bin.is_empty() {
-                errors.push(format!(
-                    "{rel}: {tool_id} missing expected_bin tool binary contract"
-                ));
+                errors.push(format!("{rel}: {tool_id} missing expected_bin tool binary contract"));
             }
             if minimal_cmd.is_empty() {
-                errors.push(format!(
-                    "{rel}: {tool_id} resolved smoke_minimal_cmd is empty"
-                ));
+                errors.push(format!("{rel}: {tool_id} resolved smoke_minimal_cmd is empty"));
             }
             if minimal_exit.is_none() {
-                errors.push(format!(
-                    "{rel}: {tool_id} smoke_minimal_exit_code must be integer"
-                ));
+                errors.push(format!("{rel}: {tool_id} smoke_minimal_exit_code must be integer"));
             }
             if negative_cmd.is_empty() {
-                errors.push(format!(
-                    "{rel}: {tool_id} resolved smoke_negative_cmd is empty"
-                ));
+                errors.push(format!("{rel}: {tool_id} resolved smoke_negative_cmd is empty"));
             }
             if negative_exit.is_none() {
-                errors.push(format!(
-                    "{rel}: {tool_id} smoke_negative_exit_code must be integer"
-                ));
+                errors.push(format!("{rel}: {tool_id} smoke_negative_exit_code must be integer"));
             }
             if negative_pattern.is_empty() {
                 errors.push(format!(
@@ -193,10 +169,8 @@ pub(in super::super::super) fn check_smoke_contract(
 pub(in super::super::super) fn check_smoke_contract_lock(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
-    let lock_path = std::env::var("LOCK_PATH").map_or_else(
-        |_| workspace.path("containers/versions/lock.json"),
-        PathBuf::from,
-    );
+    let lock_path = std::env::var("LOCK_PATH")
+        .map_or_else(|_| workspace.path("containers/versions/lock.json"), PathBuf::from);
     let summary_path = std::env::var("SUMMARY_PATH").map_or_else(
         |_| workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json"),
         PathBuf::from,
@@ -239,11 +213,7 @@ pub(in super::super::super) fn check_smoke_contract_lock(
         .collect::<BTreeMap<_, _>>();
     let mut errors = Vec::new();
     let mut total = 0usize;
-    for item in lock
-        .get("items")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
+    for item in lock.get("items").and_then(serde_json::Value::as_array).cloned().unwrap_or_default()
     {
         let tool = item
             .get("tool")
@@ -282,9 +252,7 @@ pub(in super::super::super) fn check_smoke_contract_lock(
             .replace('\\', "/")
             .contains(&format!("/smoke/{tool}/"))
         {
-            errors.push(format!(
-                "{tool}: smoke_log_dir not in required layout: {log_dir}"
-            ));
+            errors.push(format!("{tool}: smoke_log_dir not in required layout: {log_dir}"));
         }
     }
 

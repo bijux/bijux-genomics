@@ -5,9 +5,7 @@ use super::{
 };
 
 pub(in super::super::super) fn vcf_imputation_core_tools() -> [&'static str; 8] {
-    [
-        "glimpse", "impute5", "minimac4", "shapeit5", "beagle", "eagle", "bcftools", "plink2",
-    ]
+    ["glimpse", "impute5", "minimac4", "shapeit5", "beagle", "eagle", "bcftools", "plink2"]
 }
 
 pub(in super::super::super) fn load_summary_rows(
@@ -33,13 +31,15 @@ pub(in super::super::super) fn load_summary_rows(
 pub(in super::super::super) fn normalized_parity_output(value: &str) -> String {
     value
         .chars()
-        .map(|ch| {
-            if ch.is_ascii_alphanumeric() || ch == '.' {
-                ch.to_ascii_lowercase()
-            } else {
-                ' '
-            }
-        })
+        .map(
+            |ch| {
+                if ch.is_ascii_alphanumeric() || ch == '.' {
+                    ch.to_ascii_lowercase()
+                } else {
+                    ' '
+                }
+            },
+        )
         .collect::<String>()
         .split_whitespace()
         .collect::<Vec<_>>()
@@ -96,14 +96,8 @@ pub(in super::super::super) fn check_vcf_imputation_toolchain(
         .collect::<BTreeMap<_, _>>();
 
     let mut errors = Vec::new();
-    let missing_in_required = registry_ids
-        .difference(&required_set)
-        .cloned()
-        .collect::<Vec<_>>();
-    let missing_in_registry = required_set
-        .difference(&registry_ids)
-        .cloned()
-        .collect::<Vec<_>>();
+    let missing_in_required = registry_ids.difference(&required_set).cloned().collect::<Vec<_>>();
+    let missing_in_registry = required_set.difference(&registry_ids).cloned().collect::<Vec<_>>();
     if !missing_in_required.is_empty() {
         errors.push(format!(
             "required_tools_vcf_downstream missing registry ids: {missing_in_required:?}"
@@ -122,25 +116,16 @@ pub(in super::super::super) fn check_vcf_imputation_toolchain(
             continue;
         };
         if !table_bool(row, "container") {
-            errors.push(format!(
-                "{tool}: container=false in vcf downstream registry"
-            ));
+            errors.push(format!("{tool}: container=false in vcf downstream registry"));
         }
-        let runtimes = table_array_strings(row, "runtimes")
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let runtimes = table_array_strings(row, "runtimes").into_iter().collect::<BTreeSet<_>>();
         if !runtimes.contains("docker") || !runtimes.contains("apptainer") {
-            errors.push(format!(
-                "{tool}: runtimes must include docker+apptainer, got {runtimes:?}"
-            ));
+            errors
+                .push(format!("{tool}: runtimes must include docker+apptainer, got {runtimes:?}"));
         }
-        for key in [
-            "smoke_version_cmd",
-            "smoke_help_cmd",
-            "version_cmd",
-            "help_cmd",
-            "expected_bin",
-        ] {
+        for key in
+            ["smoke_version_cmd", "smoke_help_cmd", "version_cmd", "help_cmd", "expected_bin"]
+        {
             if table_string(row, key).is_empty() {
                 errors.push(format!("{tool}: missing {key}"));
             }
@@ -150,21 +135,13 @@ pub(in super::super::super) fn check_vcf_imputation_toolchain(
         if dockerfile.is_empty() || !workspace.path(&dockerfile).exists() {
             errors.push(format!(
                 "{tool}: dockerfile missing: {}",
-                if dockerfile.is_empty() {
-                    "<empty>"
-                } else {
-                    &dockerfile
-                }
+                if dockerfile.is_empty() { "<empty>" } else { &dockerfile }
             ));
         }
         if apptainer_def.is_empty() || !workspace.path(&apptainer_def).exists() {
             errors.push(format!(
                 "{tool}: apptainer_def missing: {}",
-                if apptainer_def.is_empty() {
-                    "<empty>"
-                } else {
-                    &apptainer_def
-                }
+                if apptainer_def.is_empty() { "<empty>" } else { &apptainer_def }
             ));
         }
         let license_file = workspace.path(&format!("containers/licenses/{tool}.license.toml"));
@@ -176,10 +153,7 @@ pub(in super::super::super) fn check_vcf_imputation_toolchain(
         }
         let tool_doc = workspace.path(&format!("containers/docs/tools/{tool}.md"));
         if !tool_doc.exists() {
-            errors.push(format!(
-                "{tool}: missing tool doc {}",
-                workspace.rel(&tool_doc).display()
-            ));
+            errors.push(format!("{tool}: missing tool doc {}", workspace.rel(&tool_doc).display()));
         }
     }
 
@@ -197,10 +171,7 @@ pub(in super::super::super) fn check_imputation_runtime_constraints(
 ) -> Result<ContainerCommandOutcome> {
     let doc_path = workspace.path("containers/docs/IMPUTATION_RUNTIME_CONSTRAINTS.md");
     if !doc_path.is_file() {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "missing {}\n",
-            doc_path.display()
-        )));
+        return Ok(ContainerCommandOutcome::failure(format!("missing {}\n", doc_path.display())));
     }
     let doc = read_utf8(&doc_path)?;
     let mut errors = Vec::new();
@@ -225,27 +196,17 @@ pub(in super::super::super) fn check_imputation_network_policy(
 ) -> Result<ContainerCommandOutcome> {
     let doc_path = workspace.path("containers/docs/IMPUTATION_NETWORK_POLICY.md");
     if !doc_path.is_file() {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "missing {}\n",
-            doc_path.display()
-        )));
+        return Ok(ContainerCommandOutcome::failure(format!("missing {}\n", doc_path.display())));
     }
     let mut errors = Vec::new();
     for tool in vcf_imputation_core_tools() {
         let path = workspace.path(&format!("containers/network/{tool}.network.toml"));
         if !path.exists() {
-            errors.push(format!(
-                "missing network metadata: {}",
-                workspace.rel(&path).display()
-            ));
+            errors.push(format!("missing network metadata: {}", workspace.rel(&path).display()));
             continue;
         }
         let data = load_toml(&path)?;
-        if data
-            .get("runtime_network")
-            .and_then(toml::Value::as_bool)
-            .unwrap_or(true)
-        {
+        if data.get("runtime_network").and_then(toml::Value::as_bool).unwrap_or(true) {
             errors.push(format!("{tool}: runtime_network must be false"));
         }
     }
@@ -277,9 +238,7 @@ pub(in super::super::super) fn check_imputation_hardening(
             && !wildcard_nonroot
             && !nonroot_ex.contains(&format!("`{tool}`"))
         {
-            errors.push(format!(
-                "{tool}: runs as root and is not listed in NONROOT_EXCEPTIONS.md"
-            ));
+            errors.push(format!("{tool}: runs as root and is not listed in NONROOT_EXCEPTIONS.md"));
         }
         if (!entrypoint_regex.is_match(&text) || !cmd_regex.is_match(&text))
             && !wildcard_entrypoint
@@ -301,17 +260,11 @@ pub(in super::super::super) fn check_imputation_release_smoke(
 ) -> Result<ContainerCommandOutcome> {
     let docker_summary = PathBuf::from(env_or_default(
         "DOCKER_SUMMARY",
-        &workspace
-            .path("artifacts/containers/docker-arm64/summary.json")
-            .display()
-            .to_string(),
+        &workspace.path("artifacts/containers/docker-arm64/summary.json").display().to_string(),
     ));
     let apptainer_summary = PathBuf::from(env_or_default(
         "APPTAINER_SUMMARY",
-        &workspace
-            .path("artifacts/containers/apptainer/summary.json")
-            .display()
-            .to_string(),
+        &workspace.path("artifacts/containers/apptainer/summary.json").display().to_string(),
     ));
     if !docker_summary.is_file() || !apptainer_summary.is_file() {
         if !env_or_empty("CI").is_empty() {
@@ -349,13 +302,9 @@ pub(in super::super::super) fn check_imputation_release_smoke(
                     .trim()
                     .to_string();
                 if output_path.is_empty() {
-                    errors.push(format!(
-                        "{runtime}:{tool}: missing smoke_output_paths.{key}"
-                    ));
+                    errors.push(format!("{runtime}:{tool}: missing smoke_output_paths.{key}"));
                 } else if !PathBuf::from(&output_path).exists() {
-                    errors.push(format!(
-                        "{runtime}:{tool}: missing output file {output_path}"
-                    ));
+                    errors.push(format!("{runtime}:{tool}: missing output file {output_path}"));
                 }
             }
             if row
@@ -389,17 +338,11 @@ pub(in super::super::super) fn check_imputation_cross_runtime_parity(
 ) -> Result<ContainerCommandOutcome> {
     let docker_summary = PathBuf::from(env_or_default(
         "DOCKER_SUMMARY",
-        &workspace
-            .path("artifacts/containers/docker-arm64/summary.json")
-            .display()
-            .to_string(),
+        &workspace.path("artifacts/containers/docker-arm64/summary.json").display().to_string(),
     ));
     let apptainer_summary = PathBuf::from(env_or_default(
         "APPTAINER_SUMMARY",
-        &workspace
-            .path("artifacts/containers/apptainer/summary.json")
-            .display()
-            .to_string(),
+        &workspace.path("artifacts/containers/apptainer/summary.json").display().to_string(),
     ));
     if !docker_summary.is_file() || !apptainer_summary.is_file() {
         if !env_or_empty("CI").is_empty() {
@@ -441,9 +384,7 @@ pub(in super::super::super) fn check_imputation_cross_runtime_parity(
             continue;
         }
         if !docker_version.contains(tool) || !apptainer_version.contains(tool) {
-            errors.push(format!(
-                "{tool}: version outputs do not contain expected tool token"
-            ));
+            errors.push(format!("{tool}: version outputs do not contain expected tool token"));
             continue;
         }
         let declared = docker_row

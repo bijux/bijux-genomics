@@ -10,10 +10,7 @@ pub(super) fn tool_tier_label(role: bijux_dna_api::v1::api::run::ToolRole) -> &'
 
 pub(super) fn set_scientific_preset(preset: Option<cli::parse::ScientificPresetArg>) {
     if let Some(preset) = preset {
-        std::env::set_var(
-            "BIJUX_SCIENTIFIC_PRESET",
-            format!("{preset:?}").to_lowercase(),
-        );
+        std::env::set_var("BIJUX_SCIENTIFIC_PRESET", format!("{preset:?}").to_lowercase());
     } else {
         std::env::remove_var("BIJUX_SCIENTIFIC_PRESET");
     }
@@ -42,10 +39,9 @@ pub(super) fn tool_tier_policy_for_fastq(command: &FastqCommand) -> (bool, bool)
         FastqCommand::Preprocess(args) => {
             (args.common.allow_silver, args.common.allow_experimental)
         }
-        FastqCommand::Run(args) => (
-            args.args.common.allow_silver,
-            args.args.common.allow_experimental,
-        ),
+        FastqCommand::Run(args) => {
+            (args.args.common.allow_silver, args.args.common.allow_experimental)
+        }
         FastqCommand::Merge(args)
         | FastqCommand::ErrorCorrect(args)
         | FastqCommand::Qc(args)

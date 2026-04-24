@@ -234,10 +234,7 @@ pub fn materialize_corpus(
     ensure_only_expected_raw_files(&raw_dir, &tasks)?;
     let report = download_tasks(&tasks, &dl_cfg).context("download curated corpus FASTQ files")?;
     if report.failed > 0 {
-        return Err(anyhow!(
-            "curated corpus download failures: {} files failed",
-            report.failed
-        ));
+        return Err(anyhow!("curated corpus download failures: {} files failed", report.failed));
     }
 
     let spec_copy = root.join("CORPUS_SPEC.toml");
@@ -253,10 +250,7 @@ pub fn materialize_corpus(
     println!("corpus_id={}", spec.corpus_id);
     println!("root={}", root.display());
     println!("downloaded={}", report.downloaded);
-    println!(
-        "snapshot={}",
-        root.join("ENA_METADATA.snapshot.json").display()
-    );
+    println!("snapshot={}", root.join("ENA_METADATA.snapshot.json").display());
     println!("manifest={}", root.join("MANIFEST.json").display());
     Ok(())
 }
@@ -334,11 +328,7 @@ pub fn validate_corpus(cwd: &Path, corpus: &str) -> Result<()> {
         if !path.exists() {
             return Err(anyhow!("manifest entry missing file: {}", path.display()));
         }
-        if !path
-            .file_name()
-            .and_then(|v| v.to_str())
-            .is_some_and(|v| v.ends_with(".fastq.gz"))
-        {
+        if !path.file_name().and_then(|v| v.to_str()).is_some_and(|v| v.ends_with(".fastq.gz")) {
             continue;
         }
         let actual = bijux_dna_infra::hash_file_sha256(&path)
@@ -372,9 +362,7 @@ pub fn validate_corpus(cwd: &Path, corpus: &str) -> Result<()> {
             let n1 = normalize_read_header(&h1);
             let n2 = normalize_read_header(&h2);
             if n1 != n2 {
-                return Err(anyhow!(
-                    "{sample_name} paired read-name mismatch: `{n1}` vs `{n2}`"
-                ));
+                return Err(anyhow!("{sample_name} paired read-name mismatch: `{n1}` vs `{n2}`"));
             }
         }
     }
@@ -449,10 +437,7 @@ fn load_curated_spec(path: &Path) -> Result<CuratedCorpusSpec> {
 
 fn validate_curated_spec(spec: &CuratedCorpusSpec) -> Result<()> {
     if spec.schema_version != "bijux.corpus_spec.v1" {
-        return Err(anyhow!(
-            "unsupported curated corpus schema `{}`",
-            spec.schema_version
-        ));
+        return Err(anyhow!("unsupported curated corpus schema `{}`", spec.schema_version));
     }
     if spec.corpus_id.trim().is_empty() {
         return Err(anyhow!("curated corpus spec missing corpus_id"));
@@ -481,16 +466,10 @@ fn validate_curated_spec(spec: &CuratedCorpusSpec) -> Result<()> {
     let mut modern_paired_end_count = 0usize;
     for sample in &spec.samples {
         if !accessions.insert(sample.accession.clone()) {
-            return Err(anyhow!(
-                "curated corpus spec repeats accession `{}`",
-                sample.accession
-            ));
+            return Err(anyhow!("curated corpus spec repeats accession `{}`", sample.accession));
         }
         if sample.study_accession.trim().is_empty() {
-            return Err(anyhow!(
-                "sample `{}` missing study_accession",
-                sample.accession
-            ));
+            return Err(anyhow!("sample `{}` missing study_accession", sample.accession));
         }
         if sample.reason.trim().is_empty() {
             return Err(anyhow!("sample `{}` missing reason", sample.accession));
@@ -510,16 +489,8 @@ fn validate_curated_spec(spec: &CuratedCorpusSpec) -> Result<()> {
             ));
         }
     }
-    ensure_expected_count(
-        "ancient_se",
-        spec.target_ancient_se,
-        ancient_single_end_count,
-    )?;
-    ensure_expected_count(
-        "ancient_pe",
-        spec.target_ancient_pe,
-        ancient_paired_end_count,
-    )?;
+    ensure_expected_count("ancient_se", spec.target_ancient_se, ancient_single_end_count)?;
+    ensure_expected_count("ancient_pe", spec.target_ancient_pe, ancient_paired_end_count)?;
     ensure_expected_count("modern_se", spec.target_modern_se, modern_single_end_count)?;
     ensure_expected_count("modern_pe", spec.target_modern_pe, modern_paired_end_count)?;
     Ok(())
@@ -543,27 +514,15 @@ fn normalize_species_id(value: &str) -> Result<String> {
         .filter(|token| !token.is_empty())
         .collect::<Vec<_>>();
     if tokens.len() != 2
-        || tokens
-            .iter()
-            .any(|token| !token.chars().all(|ch| ch.is_ascii_alphabetic()))
+        || tokens.iter().any(|token| !token.chars().all(|ch| ch.is_ascii_alphabetic()))
     {
-        return Err(anyhow!(
-            "species must be a latin binomial like `Homo sapiens`, got `{value}`"
-        ));
+        return Err(anyhow!("species must be a latin binomial like `Homo sapiens`, got `{value}`"));
     }
-    Ok(format!(
-        "{}_{}",
-        tokens[0].to_ascii_lowercase(),
-        tokens[1].to_ascii_lowercase()
-    ))
+    Ok(format!("{}_{}", tokens[0].to_ascii_lowercase(), tokens[1].to_ascii_lowercase()))
 }
 
 fn fetch_curated_records(spec: &CuratedCorpusSpec) -> Result<Vec<EnaRecord>> {
-    let accessions = spec
-        .samples
-        .iter()
-        .map(|sample| sample.accession.clone())
-        .collect::<Vec<_>>();
+    let accessions = spec.samples.iter().map(|sample| sample.accession.clone()).collect::<Vec<_>>();
     let query = EnaQuery {
         projects: Vec::new(),
         samples: Vec::new(),
@@ -571,26 +530,19 @@ fn fetch_curated_records(spec: &CuratedCorpusSpec) -> Result<Vec<EnaRecord>> {
         result: EnaResultKind::ReadRun,
     };
     let client = EnaClient::new("bijux-dna/corpus-materialize").context("create ENA client")?;
-    client
-        .fetch_records(&query)
-        .context("fetch curated ENA records")
+    client.fetch_records(&query).context("fetch curated ENA records")
 }
 
 fn build_curated_rows(
     spec: &CuratedCorpusSpec,
     records: &[EnaRecord],
 ) -> Result<Vec<CuratedSelectionRow>> {
-    let record_map = records
-        .iter()
-        .map(|record| (record.accession_label(), record))
-        .collect::<HashMap<_, _>>();
+    let record_map =
+        records.iter().map(|record| (record.accession_label(), record)).collect::<HashMap<_, _>>();
     let mut rows = Vec::with_capacity(spec.samples.len());
     for sample in &spec.samples {
         let record = record_map.get(&sample.accession).copied().ok_or_else(|| {
-            anyhow!(
-                "curated corpus accession `{}` missing from ENA response",
-                sample.accession
-            )
+            anyhow!("curated corpus accession `{}` missing from ENA response", sample.accession)
         })?;
         validate_curated_record(spec, sample, record)?;
         rows.push(CuratedSelectionRow {
@@ -643,41 +595,22 @@ fn validate_curated_record(
         ));
     }
     if record.fastq_ftp.is_empty() {
-        return Err(anyhow!(
-            "accession `{}` missing fastq_ftp",
-            sample.accession
-        ));
+        return Err(anyhow!("accession `{}` missing fastq_ftp", sample.accession));
     }
     if record.base_count.unwrap_or(0) == 0 || record.read_count.unwrap_or(0) == 0 {
-        return Err(anyhow!(
-            "accession `{}` missing base_count/read_count",
-            sample.accession
-        ));
+        return Err(anyhow!("accession `{}` missing base_count/read_count", sample.accession));
     }
     if !has_declared_text(record.library_source.as_deref()) {
-        return Err(anyhow!(
-            "accession `{}` missing library_source",
-            sample.accession
-        ));
+        return Err(anyhow!("accession `{}` missing library_source", sample.accession));
     }
     if !has_declared_text(record.library_strategy.as_deref()) {
-        return Err(anyhow!(
-            "accession `{}` missing library_strategy",
-            sample.accession
-        ));
+        return Err(anyhow!("accession `{}` missing library_strategy", sample.accession));
     }
     if !has_declared_text(record.instrument_model.as_deref()) {
-        return Err(anyhow!(
-            "accession `{}` missing instrument_model",
-            sample.accession
-        ));
+        return Err(anyhow!("accession `{}` missing instrument_model", sample.accession));
     }
-    let actual_layout = infer_layout(record).ok_or_else(|| {
-        anyhow!(
-            "accession `{}` has unrecognized read layout",
-            sample.accession
-        )
-    })?;
+    let actual_layout = infer_layout(record)
+        .ok_or_else(|| anyhow!("accession `{}` has unrecognized read layout", sample.accession))?;
     if actual_layout != sample.layout {
         return Err(anyhow!(
             "accession `{}` expected layout `{}`, got `{}`",
@@ -749,27 +682,17 @@ fn ensure_only_expected_raw_files(
     if !raw_dir.exists() {
         return Ok(());
     }
-    let expected = tasks
-        .iter()
-        .map(|task| task.output.clone())
-        .collect::<BTreeSet<_>>();
+    let expected = tasks.iter().map(|task| task.output.clone()).collect::<BTreeSet<_>>();
     let mut existing = Vec::new();
     collect_fastqs_recursive(raw_dir, &mut existing)?;
-    let unexpected = existing
-        .into_iter()
-        .filter(|path| !expected.contains(path))
-        .collect::<Vec<_>>();
+    let unexpected =
+        existing.into_iter().filter(|path| !expected.contains(path)).collect::<Vec<_>>();
     if unexpected.is_empty() {
         return Ok(());
     }
-    let rendered = unexpected
-        .iter()
-        .map(|path| path.display().to_string())
-        .collect::<Vec<_>>()
-        .join(", ");
-    Err(anyhow!(
-        "raw corpus directory contains unexpected FASTQ files: {rendered}"
-    ))
+    let rendered =
+        unexpected.iter().map(|path| path.display().to_string()).collect::<Vec<_>>().join(", ");
+    Err(anyhow!("raw corpus directory contains unexpected FASTQ files: {rendered}"))
 }
 
 fn write_curated_snapshot(
@@ -834,9 +757,7 @@ fn corpus_inputs_for_root(cwd: &Path, root: &Path) -> Result<CorpusInputs> {
                     .is_some_and(|name| name.ends_with(".fastq.gz"))
             })
             .filter_map(|path| {
-                path.strip_prefix(cwd)
-                    .ok()
-                    .map(|rel| rel.to_string_lossy().to_string())
+                path.strip_prefix(cwd).ok().map(|rel| rel.to_string_lossy().to_string())
             })
             .collect::<Vec<_>>()
     } else {
@@ -844,10 +765,7 @@ fn corpus_inputs_for_root(cwd: &Path, root: &Path) -> Result<CorpusInputs> {
     };
     files.sort();
     files.dedup();
-    Ok(CorpusInputs {
-        corpus: name,
-        files,
-    })
+    Ok(CorpusInputs { corpus: name, files })
 }
 
 fn has_declared_text(value: Option<&str>) -> bool {
@@ -863,19 +781,9 @@ fn diff_manifests(cwd: &Path, left: &str, right: &str) -> Result<ManifestDiff> {
     let right_name = right_root.display().to_string();
 
     let left_keys = left_manifest.files.keys().cloned().collect::<BTreeSet<_>>();
-    let right_keys = right_manifest
-        .files
-        .keys()
-        .cloned()
-        .collect::<BTreeSet<_>>();
-    let added = right_keys
-        .difference(&left_keys)
-        .cloned()
-        .collect::<Vec<_>>();
-    let removed = left_keys
-        .difference(&right_keys)
-        .cloned()
-        .collect::<Vec<_>>();
+    let right_keys = right_manifest.files.keys().cloned().collect::<BTreeSet<_>>();
+    let added = right_keys.difference(&left_keys).cloned().collect::<Vec<_>>();
+    let removed = left_keys.difference(&right_keys).cloned().collect::<Vec<_>>();
     let changed = left_keys
         .intersection(&right_keys)
         .filter(|key| left_manifest.files.get(*key) != right_manifest.files.get(*key))
@@ -914,9 +822,8 @@ fn set_fastq_readonly(root: &Path) -> Result<()> {
     let mut files = Vec::new();
     collect_fastqs_recursive(root, &mut files)?;
     for path in files {
-        let mut perms = fs::metadata(&path)
-            .with_context(|| format!("stat {}", path.display()))?
-            .permissions();
+        let mut perms =
+            fs::metadata(&path).with_context(|| format!("stat {}", path.display()))?.permissions();
         perms.set_readonly(true);
         fs::set_permissions(&path, perms)
             .with_context(|| format!("chmod readonly {}", path.display()))?;
@@ -937,9 +844,7 @@ fn collect_sample_keys(root: &Path) -> Result<Vec<SampleFiles>> {
         }
         let stem = name.trim_end_matches(".fastq.gz");
         let (key, read) = infer_key_and_read(stem);
-        let group = groups
-            .entry(key)
-            .or_insert(SampleFiles { r1: None, r2: None });
+        let group = groups.entry(key).or_insert(SampleFiles { r1: None, r2: None });
         match read {
             ReadKind::R2 => group.r2 = Some(path),
             ReadKind::R1 | ReadKind::Single => group.r1 = Some(path),
@@ -957,11 +862,7 @@ fn collect_fastqs_recursive(root: &Path, out: &mut Vec<PathBuf>) -> Result<()> {
                 stack.push(path);
                 continue;
             }
-            if path
-                .file_name()
-                .and_then(|v| v.to_str())
-                .is_some_and(|v| v.ends_with(".fastq.gz"))
-            {
+            if path.file_name().and_then(|v| v.to_str()).is_some_and(|v| v.ends_with(".fastq.gz")) {
                 out.push(path);
             }
         }
@@ -995,18 +896,14 @@ fn write_manifest(corpus_root: &Path) -> Result<()> {
     let mut paths = Vec::new();
     collect_fastqs_recursive(corpus_root, &mut paths)?;
     for path in paths {
-        let rel = path.strip_prefix(corpus_root).map_or_else(
-            |_| path.display().to_string(),
-            |v| v.to_string_lossy().to_string(),
-        );
+        let rel = path
+            .strip_prefix(corpus_root)
+            .map_or_else(|_| path.display().to_string(), |v| v.to_string_lossy().to_string());
         let digest = bijux_dna_infra::hash_file_sha256(&path)
             .with_context(|| format!("hash {}", path.display()))?;
         files.insert(rel, digest);
     }
-    let manifest = CorpusManifest {
-        schema_version: default_manifest_schema(),
-        files,
-    };
+    let manifest = CorpusManifest { schema_version: default_manifest_schema(), files };
     let path = corpus_root.join("MANIFEST.json");
     bijux_dna_infra::atomic_write_json(&path, &manifest)
         .with_context(|| format!("write {}", path.display()))
@@ -1035,9 +932,7 @@ fn first_fastq_header(path: &Path) -> Result<String> {
     let file = fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
     let mut reader = BufReader::new(MultiGzDecoder::new(file));
     let mut line = String::new();
-    let _ = reader
-        .read_line(&mut line)
-        .with_context(|| format!("read {}", path.display()))?;
+    let _ = reader.read_line(&mut line).with_context(|| format!("read {}", path.display()))?;
     Ok(line.trim().to_string())
 }
 
@@ -1046,9 +941,8 @@ fn ensure_gzip_integrity(path: &Path) -> Result<()> {
     let mut decoder = MultiGzDecoder::new(file);
     let mut sink = [0_u8; 16 * 1024];
     loop {
-        let bytes = decoder
-            .read(&mut sink)
-            .with_context(|| format!("read gzip {}", path.display()))?;
+        let bytes =
+            decoder.read(&mut sink).with_context(|| format!("read gzip {}", path.display()))?;
         if bytes == 0 {
             break;
         }
@@ -1125,12 +1019,7 @@ mod tests {
             target_ancient_pe: Some(0),
             target_modern_se: Some(0),
             target_modern_pe: Some(0),
-            samples: vec![sample_spec(
-                "ERR1",
-                "PRJEB1",
-                CorpusEra::Ancient,
-                CorpusLayout::Se,
-            )],
+            samples: vec![sample_spec("ERR1", "PRJEB1", CorpusEra::Ancient, CorpusLayout::Se)],
         };
         let err = validate_curated_spec(&spec).expect_err("species id should be rejected");
         assert!(err.to_string().contains("species/species_id mismatch"));

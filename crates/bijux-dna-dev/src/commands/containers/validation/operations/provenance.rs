@@ -51,11 +51,7 @@ pub(in super::super::super) fn check_build_provenance(
         return success_line("build-provenance: OK (no downstream registry)");
     }
     let data = load_toml(&registry_path)?;
-    let rows = data
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let rows = data.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let mut promoted = BTreeSet::new();
     for row in &rows {
         let Some(row) = row.as_table() else {
@@ -112,19 +108,14 @@ pub(in super::super::super) fn check_build_provenance(
         for tool in promoted {
             let manifest_path = artifacts.join(format!("{tool}.json"));
             if !manifest_path.exists() {
-                errors.push(format!(
-                    "{tool}: missing manifest artifact {}",
-                    manifest_path.display()
-                ));
+                errors
+                    .push(format!("{tool}: missing manifest artifact {}", manifest_path.display()));
                 continue;
             }
             let payload = if let Ok(payload) = read_json(&manifest_path) {
                 payload
             } else {
-                errors.push(format!(
-                    "{tool}: invalid json in {}",
-                    manifest_path.display()
-                ));
+                errors.push(format!("{tool}: invalid json in {}", manifest_path.display()));
                 continue;
             };
             if payload.get("status").and_then(serde_json::Value::as_str) != Some("ok") {
@@ -208,11 +199,7 @@ pub(in super::super::super) fn check_digest_changes_on_version_change(
         .unwrap_or_default()
         .into_iter()
         .filter_map(|row| {
-            let tool = row
-                .get("tool")
-                .and_then(serde_json::Value::as_str)?
-                .trim()
-                .to_string();
+            let tool = row.get("tool").and_then(serde_json::Value::as_str)?.trim().to_string();
             let digest = row
                 .get("resolved_image_digest")
                 .and_then(serde_json::Value::as_str)
@@ -236,9 +223,7 @@ pub(in super::super::super) fn check_digest_changes_on_version_change(
     if !prev_rev_output.status.success() {
         return success_line("digest/version coupling: SKIP (no previous commit)");
     }
-    let prev_rev = String::from_utf8_lossy(&prev_rev_output.stdout)
-        .trim()
-        .to_string();
+    let prev_rev = String::from_utf8_lossy(&prev_rev_output.stdout).trim().to_string();
     let prev_versions_text =
         git_show_file(workspace, &prev_rev, "containers/versions/versions.toml")?;
     let prev_lock_text = git_show_file(workspace, &prev_rev, "containers/versions/lock.json")?;
@@ -254,11 +239,7 @@ pub(in super::super::super) fn check_digest_changes_on_version_change(
         .unwrap_or_default()
         .into_iter()
         .filter_map(|row| {
-            let tool = row
-                .get("tool")
-                .and_then(serde_json::Value::as_str)?
-                .trim()
-                .to_string();
+            let tool = row.get("tool").and_then(serde_json::Value::as_str)?.trim().to_string();
             let digest = row
                 .get("resolved_image_digest")
                 .and_then(serde_json::Value::as_str)
@@ -317,10 +298,7 @@ pub(in super::super::super) fn check_digest_output_policy(
     let mut errors = Vec::new();
     for path in walk_paths(&containers_root)? {
         let rel = workspace.rel(&path).display().to_string();
-        let name = path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .unwrap_or_default();
+        let name = path.file_name().and_then(|value| value.to_str()).unwrap_or_default();
         let forbidden_name = path.extension().and_then(|ext| ext.to_str()) == Some("digest")
             || path.extension().and_then(|ext| ext.to_str()) == Some("sha256")
             || name.contains("digests") && name.ends_with(".json");
@@ -356,11 +334,8 @@ pub(in super::super::super) fn check_digest_output_policy(
     let lock_path = workspace.path("containers/versions/lock.json");
     if lock_path.exists() {
         let lock = read_json(&lock_path)?;
-        for row in lock
-            .get("items")
-            .and_then(serde_json::Value::as_array)
-            .cloned()
-            .unwrap_or_default()
+        for row in
+            lock.get("items").and_then(serde_json::Value::as_array).cloned().unwrap_or_default()
         {
             let tool = row
                 .get("tool")
@@ -403,10 +378,7 @@ pub(in super::super::super) fn check_runtime_tool_digest_recording(
         workspace.path("crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs");
     let runtime_text = read_utf8(&runtime_contract)?;
     let mut errors = Vec::new();
-    for marker in [
-        "\"tool_digest\": resolve_tool_digest",
-        "\"tool_digest\": tool_digest",
-    ] {
+    for marker in ["\"tool_digest\": resolve_tool_digest", "\"tool_digest\": tool_digest"] {
         if !stage_text.contains(marker) {
             errors.push(format!(
                 "{} missing marker `{marker}`",

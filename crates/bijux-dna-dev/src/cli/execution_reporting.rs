@@ -68,10 +68,8 @@ fn write_timing(
     let Ok(workspace) = Workspace::resolve() else {
         return;
     };
-    let timing_dir = std::env::var("ARTIFACT_DIR")
-        .ok()
-        .or_else(|| std::env::var("ISO_ROOT").ok())
-        .map_or_else(
+    let timing_dir =
+        std::env::var("ARTIFACT_DIR").ok().or_else(|| std::env::var("ISO_ROOT").ok()).map_or_else(
             || workspace.path("artifacts/timing"),
             |raw| {
                 let path = std::path::PathBuf::from(raw);
@@ -97,10 +95,7 @@ fn write_timing(
     });
     let _ = bijux_dna_infra::write_bytes(
         timing_dir.join(file_name),
-        format!(
-            "{}\n",
-            serde_json::to_string_pretty(&payload).unwrap_or_default()
-        ),
+        format!("{}\n", serde_json::to_string_pretty(&payload).unwrap_or_default()),
     );
 }
 

@@ -34,16 +34,10 @@ fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
         contaminant_policy: None,
     };
     let bench = bench_args_from_trim(&args)?;
-    assert_eq!(
-        bench.adapter_bank_preset.as_deref(),
-        Some("illumina-default")
-    );
+    assert_eq!(bench.adapter_bank_preset.as_deref(), Some("illumina-default"));
     assert_eq!(bench.adapter_bank.as_deref(), Some("preset:legacy"));
     assert_eq!(bench.polyx_preset.as_deref(), Some("illumina_twocolor"));
-    assert_eq!(
-        bench.contaminant_preset.as_deref(),
-        Some("illumina_default")
-    );
+    assert_eq!(bench.contaminant_preset.as_deref(), Some("illumina_default"));
     Ok(())
 }
 
@@ -86,9 +80,6 @@ fn cli_preprocess_args_require_required_fields() -> Result<()> {
     };
     let bench = preprocess_args_from_cli(&args)?;
     assert_eq!(bench.sample_id, "s1");
-    assert_eq!(
-        bench.adapter_bank_preset.as_deref(),
-        Some("illumina-default")
-    );
+    assert_eq!(bench.adapter_bank_preset.as_deref(), Some("illumina-default"));
     Ok(())
 }

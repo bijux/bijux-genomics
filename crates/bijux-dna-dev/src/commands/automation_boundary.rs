@@ -59,17 +59,10 @@ pub(crate) fn check_automation_entrypoints(
 ) -> Result<CheckOutcome> {
     let offenders = repo_legacy_automation_references(
         workspace,
-        &[
-            workspace.path("Makefile"),
-            workspace.path("makes"),
-            workspace.path(".github"),
-        ],
+        &[workspace.path("Makefile"), workspace.path("makes"), workspace.path(".github")],
     )?;
     if offenders.is_empty() {
-        return pass(
-            check,
-            "make and workflow entrypoints do not reference legacy automation",
-        );
+        return pass(check, "make and workflow entrypoints do not reference legacy automation");
     }
     fail(check, offenders.join("\n"))
 }
@@ -199,10 +192,7 @@ fn repo_legacy_automation_references(
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(root)
-            .into_iter()
-            .filter_map(std::result::Result::ok)
-        {
+        for entry in WalkDir::new(root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }

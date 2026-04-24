@@ -20,18 +20,15 @@ pub(super) fn write_corpus_fastq_remediation_queue(
 ) -> Result<()> {
     let publication_status =
         load_json_value(&docs_root.join(publication_artifact_file_name(corpus_id, "status.json")))?;
-    let results_status = load_json_value(&docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "results-status.json",
-    )))?;
-    let findings_payload = load_json_value(&docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "publication-findings.json",
-    )))?;
-    let dossier_index = load_json_value(&docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "dossier-index.json",
-    )))?;
+    let results_status = load_json_value(
+        &docs_root.join(publication_artifact_file_name(corpus_id, "results-status.json")),
+    )?;
+    let findings_payload = load_json_value(
+        &docs_root.join(publication_artifact_file_name(corpus_id, "publication-findings.json")),
+    )?;
+    let dossier_index = load_json_value(
+        &docs_root.join(publication_artifact_file_name(corpus_id, "dossier-index.json")),
+    )?;
     let contracts = benchmark_publication_contracts(cwd, explicit_config, corpus_id)?;
     let queue = build_remediation_queue(
         corpus_id,
@@ -41,19 +38,12 @@ pub(super) fn write_corpus_fastq_remediation_queue(
         &findings_payload,
         &dossier_index,
     )?;
-    let json_path = docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "remediation-queue.json",
-    ));
-    fs::write(
-        &json_path,
-        format!("{}\n", serde_json::to_string_pretty(&queue)?),
-    )
-    .with_context(|| format!("write {}", json_path.display()))?;
-    let markdown_path = docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "remediation-queue.md",
-    ));
+    let json_path =
+        docs_root.join(publication_artifact_file_name(corpus_id, "remediation-queue.json"));
+    fs::write(&json_path, format!("{}\n", serde_json::to_string_pretty(&queue)?))
+        .with_context(|| format!("write {}", json_path.display()))?;
+    let markdown_path =
+        docs_root.join(publication_artifact_file_name(corpus_id, "remediation-queue.md"));
     fs::write(&markdown_path, render_remediation_queue_markdown(&queue))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
@@ -81,31 +71,16 @@ pub(super) fn build_remediation_queue(
 
             let mut issues = collect_stage_issues(publication_stage, "publication");
             issues.extend(collect_stage_issues(results_stage, "results"));
-            issues.extend(
-                findings_by_stage
-                    .get(&contract.stage_id)
-                    .cloned()
-                    .ok_or_else(|| {
-                        anyhow!(
-                            "remediation queue missing findings for stage `{}`",
-                            contract.stage_id
-                        )
-                    })?,
-            );
+            issues.extend(findings_by_stage.get(&contract.stage_id).cloned().ok_or_else(|| {
+                anyhow!("remediation queue missing findings for stage `{}`", contract.stage_id)
+            })?);
             let issue_groups = summarize_issue_groups(&issues);
-            let issue_ids = issues
-                .iter()
-                .map(|issue| issue.issue_id.clone())
-                .collect::<Vec<_>>();
+            let issue_ids = issues.iter().map(|issue| issue.issue_id.clone()).collect::<Vec<_>>();
 
             Ok(RemediationStageEntry {
                 stage_id: contract.stage_id.clone(),
                 owner: "benchmark-governance".to_string(),
-                status: if issues.is_empty() {
-                    "clear".to_string()
-                } else {
-                    "open".to_string()
-                },
+                status: if issues.is_empty() { "clear".to_string() } else { "open".to_string() },
                 issue_count: issues.len(),
                 issue_group_count: issue_groups.len(),
                 recommended_action: if issues.is_empty() {
@@ -131,10 +106,7 @@ pub(super) fn build_remediation_queue(
         corpus_id: corpus_id.to_string(),
         stage_count: stages.len(),
         open_stage_count: stages.iter().filter(|stage| stage.status == "open").count(),
-        clear_stage_count: stages
-            .iter()
-            .filter(|stage| stage.status == "clear")
-            .count(),
+        clear_stage_count: stages.iter().filter(|stage| stage.status == "clear").count(),
         stages,
     })
 }
@@ -164,11 +136,7 @@ fn declared_issue_field<'a>(value: &'a serde_json::Value, field: &str) -> Option
 
 fn findings_lookup(payload: &serde_json::Value) -> BTreeMap<String, Vec<RemediationIssue>> {
     let mut findings_by_stage = BTreeMap::new();
-    for finding in payload
-        .get("findings")
-        .and_then(|value| value.as_array())
-        .into_iter()
-        .flatten()
+    for finding in payload.get("findings").and_then(|value| value.as_array()).into_iter().flatten()
     {
         let Some(stage_id) = declared_issue_field(finding, "stage_id") else {
             continue;
@@ -182,15 +150,14 @@ fn findings_lookup(payload: &serde_json::Value) -> BTreeMap<String, Vec<Remediat
         let Some(severity) = declared_issue_field(finding, "severity") else {
             continue;
         };
-        findings_by_stage
-            .entry(stage_id.to_string())
-            .or_insert_with(Vec::new)
-            .push(RemediationIssue {
+        findings_by_stage.entry(stage_id.to_string()).or_insert_with(Vec::new).push(
+            RemediationIssue {
                 issue_id: issue_id.to_string(),
                 detail: detail.to_string(),
                 severity: severity.to_string(),
                 source: "findings".to_string(),
-            });
+            },
+        );
     }
     findings_by_stage
 }
@@ -232,16 +199,14 @@ fn summarize_issue_groups(issues: &[RemediationIssue]) -> Vec<RemediationIssueGr
     }
     grouped
         .into_iter()
-        .map(
-            |(issue_id, (count, sources, details, severity))| RemediationIssueGroup {
-                issue_id,
-                count,
-                sources,
-                severity,
-                example_details: details.iter().take(3).cloned().collect(),
-                additional_detail_count: details.len().saturating_sub(3),
-            },
-        )
+        .map(|(issue_id, (count, sources, details, severity))| RemediationIssueGroup {
+            issue_id,
+            count,
+            sources,
+            severity,
+            example_details: details.iter().take(3).cloned().collect(),
+            additional_detail_count: details.len().saturating_sub(3),
+        })
         .collect()
 }
 
@@ -263,23 +228,16 @@ fn classify_recommended_action(issue_ids: &[String]) -> String {
         "missing-sample-runtime-outliers-csv",
     ];
     let rerun_issue_fragments = ["sample-failures", "dry-run", "sample-limit"];
-    if issue_ids
-        .iter()
-        .any(|issue_id| sync_issue_ids.contains(&issue_id.as_str()))
-    {
+    if issue_ids.iter().any(|issue_id| sync_issue_ids.contains(&issue_id.as_str())) {
         return "sync-or-normalize-results".to_string();
     }
-    if issue_ids
-        .iter()
-        .any(|issue_id| publish_issue_ids.contains(&issue_id.as_str()))
-    {
+    if issue_ids.iter().any(|issue_id| publish_issue_ids.contains(&issue_id.as_str())) {
         return "render-or-publish-dossier".to_string();
     }
-    if issue_ids.iter().any(|issue_id| {
-        rerun_issue_fragments
-            .iter()
-            .any(|fragment| issue_id.contains(fragment))
-    }) {
+    if issue_ids
+        .iter()
+        .any(|issue_id| rerun_issue_fragments.iter().any(|fragment| issue_id.contains(fragment)))
+    {
         return "rerun-benchmark-stage".to_string();
     }
     "repair-benchmark-contract".to_string()
@@ -323,10 +281,7 @@ pub(super) fn render_remediation_queue_markdown(queue: &RemediationQueue) -> Str
                 lines.push(format!("    - {detail}"));
             }
             if group.additional_detail_count > 0 {
-                lines.push(format!(
-                    "    - (+{} more detail rows)",
-                    group.additional_detail_count
-                ));
+                lines.push(format!("    - (+{} more detail rows)", group.additional_detail_count));
             }
         }
     }
@@ -342,8 +297,5 @@ fn stage_value_string(stage: Option<&&serde_json::Value>, key: &str, default: &s
 }
 
 fn stage_value_optional_string(stage: Option<&&serde_json::Value>, key: &str) -> Option<String> {
-    stage
-        .and_then(|value| value.get(key))
-        .and_then(|value| value.as_str())
-        .map(ToOwned::to_owned)
+    stage.and_then(|value| value.get(key)).and_then(|value| value.as_str()).map(ToOwned::to_owned)
 }

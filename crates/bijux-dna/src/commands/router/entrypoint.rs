@@ -1,8 +1,8 @@
 use std::path::Path;
 
-use anyhow::{anyhow, Result};
 #[cfg(debug_assertions)]
 use anyhow::Context;
+use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 
@@ -16,10 +16,7 @@ use crate::commands::{bam, bench, cli, fastq, planning, vcf};
 /// # Errors
 /// Returns an error if CLI execution fails.
 pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
-    let argv_parts = args
-        .iter()
-        .map(|value| (*value).to_string())
-        .collect::<Vec<_>>();
+    let argv_parts = args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>();
     let cli = parse_cli_from_argv(&argv_parts)?;
     run_with_cli(&cli, cwd)
 }
@@ -84,10 +81,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if matches!(dna_command, cli::DnaCommand::Fastq(..)) || {
         #[cfg(debug_assertions)]
         {
-            matches!(
-                dna_command,
-                cli::DnaCommand::Bam(..) | cli::DnaCommand::Vcf(..)
-            )
+            matches!(dna_command, cli::DnaCommand::Bam(..) | cli::DnaCommand::Vcf(..))
         }
         #[cfg(not(debug_assertions))]
         {
@@ -97,12 +91,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         let (stage, _, _) = cli::resolve_stage_tool(dna_command);
         enforce_offline_runtime_policy()?;
         ensure_stage_bank_requirements(cwd, stage.as_str())?;
-        let run_domain = stage
-            .as_str()
-            .split('.')
-            .next()
-            .unwrap_or("fastq")
-            .to_string();
+        let run_domain = stage.as_str().split('.').next().unwrap_or("fastq").to_string();
         let registry_policy_report =
             crate::commands::cli::env::policy_clean_report(&registry_path, &run_domain)?;
         if !registry_policy_report.ok {
@@ -200,10 +189,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
         #[cfg(debug_assertions)]
         cli::DnaCommand::Debug(args) => {
             if args.view != "tail" {
-                return Err(anyhow!(
-                    "unsupported --view `{}` (expected `tail`)",
-                    args.view
-                ));
+                return Err(anyhow!("unsupported --view `{}` (expected `tail`)", args.view));
             }
             let run_dir = cwd.join(&args.search_root).join(&args.run_id);
             let telemetry_path = run_dir.join("run_artifacts").join("telemetry.jsonl");
@@ -215,10 +201,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
                 else {
                     continue;
                 };
-                if matches!(
-                    event.event_name,
-                    bijux_dna_runtime::TelemetryEventName::RunFailed
-                ) {
+                if matches!(event.event_name, bijux_dna_runtime::TelemetryEventName::RunFailed) {
                     failure = Some(event);
                 }
             }

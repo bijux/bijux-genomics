@@ -441,7 +441,7 @@ fn suite_signature(cwd: &Path, suite_id: &str, hpc: bool) -> Result<String> {
     } else {
         hasher.update(b"local");
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(sha256_hex(&hasher.finalize()))
 }
 
 fn append_telemetry_event(path: &Path, event_name: &str, attrs: &serde_json::Value) -> Result<()> {
@@ -469,7 +469,16 @@ fn append_telemetry_event(path: &Path, event_name: &str, attrs: &serde_json::Val
 fn pseudo_digest(seed: &str) -> String {
     let mut hasher = sha2::Sha256::new();
     hasher.update(seed.as_bytes());
-    format!("sha256:{:x}", hasher.finalize())
+    format!("sha256:{}", sha256_hex(&hasher.finalize()))
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        use std::fmt::Write as _;
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
 }
 
 fn deterministic_metric(

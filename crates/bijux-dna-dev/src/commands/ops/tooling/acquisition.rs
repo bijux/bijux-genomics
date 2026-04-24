@@ -62,11 +62,8 @@ pub(in super::super) fn tooling_acquire_reference(
     let cfg = toml::from_str::<TomlValue>(&read_utf8(
         &workspace.path("configs/runtime/reference_bank.toml"),
     )?)?;
-    let references = cfg
-        .get("reference")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let references =
+        cfg.get("reference").and_then(TomlValue::as_array).cloned().unwrap_or_default();
     let acquire_log_root = workspace.path("artifacts/containers/smoke/reference-acquire");
     bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
@@ -190,11 +187,9 @@ pub(in super::super) fn tooling_acquire_reference(
         }));
     }
     rows.sort_by(|left, right| {
-        value_string(left.get("species_id"))
-            .cmp(&value_string(right.get("species_id")))
-            .then_with(|| {
-                value_string(left.get("build_id")).cmp(&value_string(right.get("build_id")))
-            })
+        value_string(left.get("species_id")).cmp(&value_string(right.get("species_id"))).then_with(
+            || value_string(left.get("build_id")).cmp(&value_string(right.get("build_id"))),
+        )
     });
     let payload = json!({
         "schema_version": 1,
@@ -211,10 +206,8 @@ pub(in super::super) fn tooling_acquire_reference(
             sha256_hex_bytes(raw.as_bytes())
         ),
     )?;
-    let run_log = acquire_log_root.join(format!(
-        "reference-acquire-{}.json",
-        stable_now_utc_compact()
-    ));
+    let run_log =
+        acquire_log_root.join(format!("reference-acquire-{}.json", stable_now_utc_compact()));
     write_json_pretty(
         &run_log,
         &json!({
@@ -277,11 +270,7 @@ pub(in super::super) fn tooling_acquire_panels(
     let cfg = toml::from_str::<TomlValue>(&read_utf8(
         &workspace.path("configs/vcf/panels/panels.toml"),
     )?)?;
-    let panels = cfg
-        .get("panel")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let panels = cfg.get("panel").and_then(TomlValue::as_array).cloned().unwrap_or_default();
     let acquire_log_root = workspace.path("artifacts/containers/smoke/panel-acquire");
     bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
@@ -301,11 +290,7 @@ pub(in super::super) fn tooling_acquire_panels(
         let version = toml_string(panel.get("version"))?;
         let license = toml_string(panel.get("license"))?;
         let citation = toml_string(panel.get("citation"))?;
-        let files = panel
-            .get("files")
-            .and_then(TomlValue::as_array)
-            .cloned()
-            .unwrap_or_default();
+        let files = panel.get("files").and_then(TomlValue::as_array).cloned().unwrap_or_default();
         let panel_root = cache_root.join(&species).join(&build).join(&panel_id);
         let raw_dir = panel_root.join("raw");
         let normalized_dir = panel_root.join("normalized");
@@ -388,10 +373,7 @@ pub(in super::super) fn tooling_acquire_panels(
     write_utf8(&lock_json, &raw)?;
     write_utf8(
         &lock_sha,
-        &format!(
-            "{}  configs/vcf/panels/locks/lock.json\n",
-            sha256_hex_bytes(raw.as_bytes())
-        ),
+        &format!("{}  configs/vcf/panels/locks/lock.json\n", sha256_hex_bytes(raw.as_bytes())),
     )?;
     let run_log = acquire_log_root.join(format!("panel-acquire-{}.json", stable_now_utc_compact()));
     write_json_pretty(
@@ -455,11 +437,7 @@ pub(in super::super) fn tooling_acquire_maps(
 
     let cfg =
         toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/maps/maps.toml"))?)?;
-    let maps = cfg
-        .get("map")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let maps = cfg.get("map").and_then(TomlValue::as_array).cloned().unwrap_or_default();
     let acquire_log_root = workspace.path("artifacts/containers/smoke/map-acquire");
     bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
@@ -473,11 +451,7 @@ pub(in super::super) fn tooling_acquire_maps(
         }
         let species = toml_string(map.get("species_id"))?;
         let build = toml_string(map.get("build_id"))?;
-        let files = map
-            .get("files")
-            .and_then(TomlValue::as_array)
-            .cloned()
-            .unwrap_or_default();
+        let files = map.get("files").and_then(TomlValue::as_array).cloned().unwrap_or_default();
         let base = cache_root.join(&species).join(&build).join(&map_id);
         let raw_dir = base.join("raw");
         let normalized_dir = base.join("normalized");
@@ -514,10 +488,7 @@ pub(in super::super) fn tooling_acquire_maps(
                 "action": materialized.action,
             }));
         }
-        write_utf8(
-            &derived_dir.join("chunk_index.tsv"),
-            "chunk\tregion\n0\tall\n",
-        )?;
+        write_utf8(&derived_dir.join("chunk_index.tsv"), "chunk\tregion\n0\tall\n")?;
         rows.push(json!({
             "map_id": map_id,
             "species_id": species,
@@ -583,10 +554,7 @@ pub(in super::super) fn tooling_benchmark_integrity_mini(
         return Ok(OpsCommandOutcome::failure("empty --sample-id\n"));
     }
     if !r1.is_file() {
-        return Ok(OpsCommandOutcome::failure(format!(
-            "missing r1 fastq: {}\n",
-            r1.display()
-        )));
+        return Ok(OpsCommandOutcome::failure(format!("missing r1 fastq: {}\n", r1.display())));
     }
     bijux_dna_infra::ensure_dir(&base_out)
         .with_context(|| format!("create {}", base_out.display()))?;
@@ -645,26 +613,15 @@ pub(in super::super) fn tooling_benchmark_integrity_mini(
 
     let knobs =
         toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/bench/knobs.toml"))?)?;
-    let variance = knobs
-        .get("variance")
-        .and_then(TomlValue::as_table)
-        .cloned()
-        .unwrap_or_default();
-    let runtime_rel_max = variance
-        .get("runtime_relative_max")
-        .and_then(TomlValue::as_float)
-        .unwrap_or(0.20);
-    let memory_rel_max = variance
-        .get("memory_relative_max")
-        .and_then(TomlValue::as_float)
-        .unwrap_or(0.25);
+    let variance = knobs.get("variance").and_then(TomlValue::as_table).cloned().unwrap_or_default();
+    let runtime_rel_max =
+        variance.get("runtime_relative_max").and_then(TomlValue::as_float).unwrap_or(0.20);
+    let memory_rel_max =
+        variance.get("memory_relative_max").and_then(TomlValue::as_float).unwrap_or(0.25);
     let mut errors = Vec::new();
     for path in [&run_a, &run_b] {
         if path.display().to_string().contains("containers/smoke") {
-            errors.push(format!(
-                "{}: benchmark output path overlaps smoke",
-                path.display()
-            ));
+            errors.push(format!("{}: benchmark output path overlaps smoke", path.display()));
         }
     }
     let m_a = find_first_named_file(&run_a, "metrics.json");
@@ -722,10 +679,7 @@ pub(in super::super) fn tooling_benchmark_integrity_mini(
                 let stage = value_string(row.get("stage_id"));
                 let trace = value_string(row.get("trace_id"));
                 if stage.is_empty() || trace.is_empty() {
-                    errors.push(format!(
-                        "{tag}:{}: missing stage_id/trace_id",
-                        line_number + 1
-                    ));
+                    errors.push(format!("{tag}:{}: missing stage_id/trace_id", line_number + 1));
                     continue;
                 }
                 if let Some(previous) = by_stage.insert(stage.clone(), trace.clone()) {
@@ -737,10 +691,7 @@ pub(in super::super) fn tooling_benchmark_integrity_mini(
                     }
                 }
                 if Regex::new(r"/Users/|/home/|\btmp/")?.is_match(line) {
-                    errors.push(format!(
-                        "{tag}:{}: telemetry leaks host path",
-                        line_number + 1
-                    ));
+                    errors.push(format!("{tag}:{}: telemetry leaks host path", line_number + 1));
                 }
             }
         }
@@ -757,17 +708,14 @@ pub(in super::super) fn tooling_benchmark_integrity_mini(
     if runtime_values.len() == 2 {
         let diff = relative_diff(runtime_values[0], runtime_values[1]);
         if diff > runtime_rel_max {
-            errors.push(format!(
-                "runtime variance {diff:.4} exceeds threshold {runtime_rel_max:.4}"
-            ));
+            errors
+                .push(format!("runtime variance {diff:.4} exceeds threshold {runtime_rel_max:.4}"));
         }
     }
     if memory_values.len() == 2 {
         let diff = relative_diff(memory_values[0], memory_values[1]);
         if diff > memory_rel_max {
-            errors.push(format!(
-                "memory variance {diff:.4} exceeds threshold {memory_rel_max:.4}"
-            ));
+            errors.push(format!("memory variance {diff:.4} exceeds threshold {memory_rel_max:.4}"));
         }
     }
     let summary_path = base_out.join("integrity_summary.json");
@@ -794,11 +742,7 @@ pub(in super::super) fn tooling_benchmark_integrity_mini(
     for error in &errors {
         stderr.push_str(&format!("- {error}\n"));
     }
-    Ok(OpsCommandOutcome {
-        exit_code: 1,
-        stdout,
-        stderr,
-    })
+    Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr })
 }
 
 pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
@@ -806,44 +750,30 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("validate-frontend-mini-domain-stacks", args)?;
-    let out_dir = std::env::var("OUT_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            artifact_root_path(workspace)
-                .unwrap_or_else(|_| workspace.path("artifacts"))
-                .join("domain/frontend-mini-validation")
-        });
+    let out_dir = std::env::var("OUT_DIR").map(PathBuf::from).unwrap_or_else(|_| {
+        artifact_root_path(workspace)
+            .unwrap_or_else(|_| workspace.path("artifacts"))
+            .join("domain/frontend-mini-validation")
+    });
     bijux_dna_infra::ensure_dir(&out_dir)
         .with_context(|| format!("create {}", out_dir.display()))?;
     let examples = [
-        (
-            "fastq_edna_mini",
-            workspace.path("examples/fastq/edna-mini"),
-        ),
+        ("fastq_edna_mini", workspace.path("examples/fastq/edna-mini")),
         (
             "vcf_damage_aware_genotype_mini",
             workspace.path("examples/vcf/damage-aware-genotype-mini"),
         ),
-        (
-            "vcf_downstream_vcf_full_mini",
-            workspace.path("examples/vcf/downstream-vcf-full-mini"),
-        ),
+        ("vcf_downstream_vcf_full_mini", workspace.path("examples/vcf/downstream-vcf-full-mini")),
         (
             "vcf_downstream_demography_mini",
             workspace.path("examples/vcf/downstream-demography-mini"),
         ),
-        (
-            "vcf_imputation_mini",
-            workspace.path("examples/vcf/imputation-mini"),
-        ),
+        ("vcf_imputation_mini", workspace.path("examples/vcf/imputation-mini")),
     ];
     for (example_id, _) in &examples {
         let outcome = examples_run(
             workspace,
-            &[
-                "--allow-non-artifacts".to_string(),
-                (*example_id).to_string(),
-            ],
+            &["--allow-non-artifacts".to_string(), (*example_id).to_string()],
         )?;
         if !outcome.is_success() {
             return Ok(outcome);
@@ -897,21 +827,13 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
             .collect::<Vec<_>>();
         for stage in stages {
             if !got_stages.contains(&stage) {
-                errors.push(format!(
-                    "{example_id}: stage {stage} missing in plan.json stages"
-                ));
+                errors.push(format!("{example_id}: stage {stage} missing in plan.json stages"));
             }
         }
         let logs = read_utf8(&artifact_dir.join("logs.txt")).unwrap_or_default();
-        for key in [
-            "example_id=",
-            "corpus_id=",
-            "mini_supported=",
-            "step1=",
-            "step2=",
-            "step3=",
-            "step4=",
-        ] {
+        for key in
+            ["example_id=", "corpus_id=", "mini_supported=", "step1=", "step2=", "step3=", "step4="]
+        {
             if !logs.contains(key) {
                 errors.push(format!("{example_id}: logs.txt missing {key}"));
             }
@@ -924,24 +846,14 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
         }
         if example_id.starts_with("vcf_") {
             for (doc_name, payload) in [
-                (
-                    "explain.json",
-                    read_json_value(&artifact_dir.join("explain.json"))?,
-                ),
-                (
-                    "report.json",
-                    read_json_value(&artifact_dir.join("report.json"))?,
-                ),
+                ("explain.json", read_json_value(&artifact_dir.join("explain.json"))?),
+                ("report.json", read_json_value(&artifact_dir.join("report.json"))?),
             ] {
-                let coverage = payload
-                    .get("coverage_regime")
-                    .cloned()
-                    .unwrap_or(Value::Null);
+                let coverage = payload.get("coverage_regime").cloned().unwrap_or(Value::Null);
                 let selected = value_string(coverage.get("selected"));
                 if !matches!(selected.as_str(), "gl" | "pseudohaploid" | "diploid") {
-                    errors.push(format!(
-                        "{example_id}: {doc_name} coverage_regime.selected invalid"
-                    ));
+                    errors
+                        .push(format!("{example_id}: {doc_name} coverage_regime.selected invalid"));
                 }
                 for key in ["thresholds_used", "observed_coverage_stats"] {
                     if coverage.get(key).is_none() {
@@ -967,16 +879,11 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
     ] {
         let outcome = tooling_simulate_coverage_regime(
             workspace,
-            &[
-                depth.to_string(),
-                "--profile".to_string(),
-                profile.to_string(),
-            ],
+            &[depth.to_string(), "--profile".to_string(), profile.to_string()],
         )?;
         if !outcome.is_success() {
-            errors.push(format!(
-                "coverage_regime simulate failed: profile={profile} depth={depth}"
-            ));
+            errors
+                .push(format!("coverage_regime simulate failed: profile={profile} depth={depth}"));
             continue;
         }
         let payload: Value = serde_json::from_str(&outcome.stdout)
@@ -1014,15 +921,9 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
     tools.sort();
     let authenticity_stage = id_catalog::BAM_AUTHENTICITY;
     if tools
-        != vec![
-            "authenticct".to_string(),
-            "damageprofiler".to_string(),
-            "pmdtools".to_string(),
-        ]
+        != vec!["authenticct".to_string(), "damageprofiler".to_string(), "pmdtools".to_string()]
     {
-        errors.push(format!(
-            "{authenticity_stage} compatible_tools mismatch: {tools:?}"
-        ));
+        errors.push(format!("{authenticity_stage} compatible_tools mismatch: {tools:?}"));
     }
     for entry in WalkDir::new(workspace.path("domain/bam/fixtures/bam.authenticity"))
         .into_iter()
@@ -1040,10 +941,7 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
             }
         }
         if kv.get("stage").map(String::as_str) != Some(authenticity_stage) {
-            errors.push(format!(
-                "{}: stage must be {authenticity_stage}",
-                entry.path().display()
-            ));
+            errors.push(format!("{}: stage must be {authenticity_stage}", entry.path().display()));
         }
         if kv.get("domain").map(String::as_str) != Some("bam") {
             errors.push(format!("{}: domain must be bam", entry.path().display()));
@@ -1080,9 +978,5 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
     for error in &errors {
         stderr.push_str(&format!("- {error}\n"));
     }
-    Ok(OpsCommandOutcome {
-        exit_code: 1,
-        stdout,
-        stderr,
-    })
+    Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr })
 }

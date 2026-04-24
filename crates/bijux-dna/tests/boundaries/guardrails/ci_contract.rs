@@ -28,14 +28,8 @@ fn cli_ci_profile_membership_is_bounded() -> anyhow::Result<()> {
     let slow_max = 10usize;
     let science_max = 10usize;
     let e2e_min = 0usize;
-    assert!(
-        slow <= slow_max,
-        "slow tests exceed cap: {slow} > {slow_max}"
-    );
-    assert!(
-        science <= science_max,
-        "science tests exceed cap: {science} > {science_max}"
-    );
+    assert!(slow <= slow_max, "slow tests exceed cap: {slow} > {slow_max}");
+    assert!(science <= science_max, "science tests exceed cap: {science} > {science_max}");
     assert!(e2e >= e2e_min, "e2e tests below minimum: {e2e} < {e2e_min}");
     Ok(())
 }

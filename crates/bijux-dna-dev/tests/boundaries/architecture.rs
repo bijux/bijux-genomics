@@ -6,22 +6,12 @@ fn dev_tree_matches_architecture_contract() {
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
 
     let root_entries = dir_entries(&root);
-    let expected_root: BTreeSet<_> = [
-        "BOUNDARY.md",
-        "Cargo.toml",
-        "PUBLIC_API.md",
-        "README.md",
-        "docs/",
-        "src/",
-        "tests/",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        root_entries, expected_root,
-        "dev crate root must stay minimal and intentional"
-    );
+    let expected_root: BTreeSet<_> =
+        ["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(root_entries, expected_root, "dev crate root must stay minimal and intentional");
 
     let src_entries = dir_entries(&root.join("src"));
     let expected_src: BTreeSet<_> = [
@@ -43,33 +33,22 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let application_entries = dir_entries(&root.join("src/application"));
-    let expected_application: BTreeSet<_> = [
-        "checks/",
-        "checks.rs",
-        "containers.rs",
-        "domain.rs",
-        "mod.rs",
-        "ops.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_application: BTreeSet<_> =
+        ["checks/", "checks.rs", "containers.rs", "domain.rs", "mod.rs", "ops.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         application_entries, expected_application,
         "dev application tree must stay decomposed by workflow concern"
     );
 
     let cli_entries = dir_entries(&root.join("src/cli"));
-    let expected_cli: BTreeSet<_> = [
-        "command_dispatch.rs",
-        "execution_reporting.rs",
-        "mod.rs",
-        "runner.rs",
-        "schema.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_cli: BTreeSet<_> =
+        ["command_dispatch.rs", "execution_reporting.rs", "mod.rs", "runner.rs", "schema.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         cli_entries, expected_cli,
         "dev cli tree must stay explicit about routing and reporting"
@@ -129,10 +108,8 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let container_runtime_entries = dir_entries(&root.join("src/commands/containers/runtime"));
-    let expected_container_runtime: BTreeSet<_> = ["frontend_proofs.rs", "mod.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_container_runtime: BTreeSet<_> =
+        ["frontend_proofs.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         container_runtime_entries, expected_container_runtime,
         "container runtime support must keep frontend proofing separate"
@@ -162,16 +139,11 @@ fn dev_tree_matches_architecture_contract() {
     .into_iter()
     .map(str::to_string)
     .collect();
-    assert_eq!(
-        test_entries, expected_tests,
-        "dev test tree must match the documented taxonomy"
-    );
+    assert_eq!(test_entries, expected_tests, "dev test tree must match the documented taxonomy");
 
     let boundary_entries = dir_entries(&root.join("tests/boundaries"));
-    let expected_boundaries: BTreeSet<_> = ["README.md", "architecture.rs", "guardrails.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_boundaries: BTreeSet<_> =
+        ["README.md", "architecture.rs", "guardrails.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         boundary_entries, expected_boundaries,
         "boundary tests must stay focused on architecture and ownership"

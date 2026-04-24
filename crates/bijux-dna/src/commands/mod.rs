@@ -23,6 +23,6 @@ pub(crate) use benchmark::stage_catalog as benchmark_stage_catalog;
 pub(crate) use benchmark::suite as bench_suite;
 pub(crate) use benchmark::taxonomy_database as benchmark_taxonomy_database;
 pub(crate) use benchmark::workspace as benchmark_workspace;
-pub use router::argv::{parse_cli_from_argv, parse_process_cli};
+pub use router::argv::parse_process_cli;
 pub use router::entrypoint::{run_with_args, run_with_cli};
 pub(crate) use support::workspace_audit::workspace_audit;

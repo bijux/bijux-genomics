@@ -21,11 +21,7 @@ pub(super) fn materialize_controlled_file(
             .with_context(|| format!("create {}", parent.display()))?;
     }
     let mut action = "reuse".to_string();
-    let mut observed = if path.exists() {
-        sha256_hex(path)?
-    } else {
-        String::new()
-    };
+    let mut observed = if path.exists() { sha256_hex(path)? } else { String::new() };
     if path.exists() {
         if observed != expected_sha256 && download {
             action = "redownload".to_string();
@@ -60,10 +56,7 @@ pub(super) fn materialize_controlled_file(
             "checksum mismatch for {label}: expected {expected_sha256}, got {observed}"
         ));
     }
-    Ok(MaterializedFile {
-        action,
-        observed_sha256: observed,
-    })
+    Ok(MaterializedFile { action, observed_sha256: observed })
 }
 
 fn download_bytes(url: &str) -> Result<Vec<u8>> {
@@ -102,9 +95,7 @@ pub(super) fn artifact_root_path(workspace: &Workspace) -> Result<PathBuf> {
 pub(super) fn ensure_artifact_root_inside_artifacts(workspace: &Workspace) -> Result<()> {
     let display = artifact_root_path(workspace)?.display().to_string();
     if !display.contains("/artifacts") && !display.ends_with("artifacts") {
-        return Err(anyhow!(
-            "artifact root must stay under artifacts/: {display}"
-        ));
+        return Err(anyhow!("artifact root must stay under artifacts/: {display}"));
     }
     Ok(())
 }
@@ -116,15 +107,9 @@ pub(super) fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)
         bijux_dna_infra::ensure_dir(dir)?;
     }
     Ok(vec![
-        (
-            "ARTIFACT_ROOT".to_string(),
-            artifact_root.display().to_string(),
-        ),
+        ("ARTIFACT_ROOT".to_string(), artifact_root.display().to_string()),
         ("ISO_ROOT".to_string(), artifact_root.display().to_string()),
-        (
-            "CARGO_TARGET_DIR".to_string(),
-            cargo_target_dir.display().to_string(),
-        ),
+        ("CARGO_TARGET_DIR".to_string(), cargo_target_dir.display().to_string()),
     ])
 }
 
@@ -153,12 +138,7 @@ pub(super) fn artifact_env_with_common_test_env(
 }
 
 pub(super) fn run_make_target(workspace: &Workspace, target: &str) -> Result<OpsCommandOutcome> {
-    super::run_program_with_env(
-        workspace,
-        "make",
-        &[target.to_string()],
-        &artifact_env(workspace)?,
-    )
+    super::run_program_with_env(workspace, "make", &[target.to_string()], &artifact_env(workspace)?)
 }
 
 pub(super) fn resolve_workspace_path(workspace: &Workspace, raw: &str) -> PathBuf {

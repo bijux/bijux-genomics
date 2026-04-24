@@ -72,10 +72,7 @@ pub(super) fn smoke_fastq(workspace: &Workspace, args: &[String]) -> Result<OpsC
             "--r1".to_string(),
             "assets/golden/smoke-inputs-v1/fastq/se/reads.fastq".to_string(),
             "--out".to_string(),
-            artifact_root_path(workspace)?
-                .join("smoke_fastq")
-                .display()
-                .to_string(),
+            artifact_root_path(workspace)?.join("smoke_fastq").display().to_string(),
             "--sample-id".to_string(),
             "smoke_fastq".to_string(),
             "--dry-run".to_string(),

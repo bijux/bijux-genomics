@@ -52,10 +52,7 @@ pub(crate) fn run_write_screen_taxonomy_database_lineage(
     let database_root = resolve_database_root(cwd, &config, args)?;
     let source_manifest =
         resolve_source_manifest(cwd, &database_root, args.source_manifest.as_deref());
-    let bootstrap_report = args
-        .bootstrap_report
-        .as_deref()
-        .map(|path| absolutize(cwd, path));
+    let bootstrap_report = args.bootstrap_report.as_deref().map(|path| absolutize(cwd, path));
     let lineage_json = resolve_lineage_json(cwd, &database_root, args.lineage_json.as_deref());
     let payload = build_lineage_payload(
         &database_root,
@@ -69,11 +66,8 @@ pub(crate) fn run_write_screen_taxonomy_database_lineage(
     if let Some(parent) = lineage_json.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
-    fs::write(
-        &lineage_json,
-        format!("{}\n", serde_json::to_string_pretty(&payload)?),
-    )
-    .with_context(|| format!("write {}", lineage_json.display()))?;
+    fs::write(&lineage_json, format!("{}\n", serde_json::to_string_pretty(&payload)?))
+        .with_context(|| format!("write {}", lineage_json.display()))?;
     println!("{}", serde_json::to_string_pretty(&payload)?);
     Ok(())
 }
@@ -172,49 +166,30 @@ fn default_screen_taxonomy_database_root(
 }
 
 fn default_extra_data_root(config: &BenchmarkConfig, out_root: &Path) -> Result<PathBuf> {
-    let resolved = out_root
-        .canonicalize()
-        .unwrap_or_else(|_| out_root.to_path_buf());
+    let resolved = out_root.canonicalize().unwrap_or_else(|_| out_root.to_path_buf());
     let local = config.workspace.local.as_ref();
     let remote = config.workspace.remote.as_ref();
 
-    let local_results_root = local
-        .and_then(|row| row.results_root.as_deref())
-        .map(PathBuf::from);
-    let local_cache_mirror_root = local
-        .and_then(|row| row.cache_mirror_root.as_deref())
-        .map(PathBuf::from);
-    let local_extra_data_root = local
-        .and_then(|row| row.extra_data_root.as_deref())
-        .map(PathBuf::from);
-    let remote_cache_root = remote
-        .and_then(|row| row.cache_root.as_deref())
-        .map(PathBuf::from);
-    let remote_results_root = remote
-        .and_then(|row| row.results_root.as_deref())
-        .map(PathBuf::from);
-    let remote_extra_data_root = remote
-        .and_then(|row| row.extra_data_root.as_deref())
-        .map(PathBuf::from);
+    let local_results_root = local.and_then(|row| row.results_root.as_deref()).map(PathBuf::from);
+    let local_cache_mirror_root =
+        local.and_then(|row| row.cache_mirror_root.as_deref()).map(PathBuf::from);
+    let local_extra_data_root =
+        local.and_then(|row| row.extra_data_root.as_deref()).map(PathBuf::from);
+    let remote_cache_root = remote.and_then(|row| row.cache_root.as_deref()).map(PathBuf::from);
+    let remote_results_root = remote.and_then(|row| row.results_root.as_deref()).map(PathBuf::from);
+    let remote_extra_data_root =
+        remote.and_then(|row| row.extra_data_root.as_deref()).map(PathBuf::from);
 
-    if remote_cache_root
-        .as_ref()
-        .is_some_and(|root| path_is_under(&resolved, root))
-        || remote_results_root
-            .as_ref()
-            .is_some_and(|root| path_is_under(&resolved, root))
+    if remote_cache_root.as_ref().is_some_and(|root| path_is_under(&resolved, root))
+        || remote_results_root.as_ref().is_some_and(|root| path_is_under(&resolved, root))
     {
         return remote_extra_data_root.ok_or_else(|| {
             anyhow!("benchmark config is missing workspace.remote.extra_data_root")
         });
     }
 
-    if local_results_root
-        .as_ref()
-        .is_some_and(|root| path_is_under(&resolved, root))
-        || local_cache_mirror_root
-            .as_ref()
-            .is_some_and(|root| path_is_under(&resolved, root))
+    if local_results_root.as_ref().is_some_and(|root| path_is_under(&resolved, root))
+        || local_cache_mirror_root.as_ref().is_some_and(|root| path_is_under(&resolved, root))
     {
         return local_extra_data_root
             .ok_or_else(|| anyhow!("benchmark config is missing workspace.local.extra_data_root"));
@@ -237,10 +212,7 @@ fn resolve_source_manifest(cwd: &Path, database_root: &Path, path: Option<&Path>
 }
 
 fn resolve_lineage_json(cwd: &Path, database_root: &Path, path: Option<&Path>) -> PathBuf {
-    path.map_or_else(
-        || database_root.join("lineage.json"),
-        |item| absolutize(cwd, item),
-    )
+    path.map_or_else(|| database_root.join("lineage.json"), |item| absolutize(cwd, item))
 }
 
 fn build_lineage_payload(
@@ -489,11 +461,7 @@ mod tests {
         .expect("payload");
         assert_eq!(payload.source_record_count, 1);
         assert_eq!(
-            payload
-                .backend_roots
-                .iter()
-                .map(|row| row.backend.as_str())
-                .collect::<Vec<_>>(),
+            payload.backend_roots.iter().map(|row| row.backend.as_str()).collect::<Vec<_>>(),
             vec!["kraken2", "krakenuniq", "centrifuge", "kaiju", "taxonomy"]
         );
         assert!(!payload.database_digest.is_empty());
@@ -547,12 +515,7 @@ mod tests {
     #[test]
     fn screen_taxonomy_database_root_requires_declared_local_extra_data_root() {
         let mut config = sample_config();
-        config
-            .workspace
-            .local
-            .as_mut()
-            .expect("local workspace")
-            .extra_data_root = None;
+        config.workspace.local.as_mut().expect("local workspace").extra_data_root = None;
         let error = resolve_database_root(
             Path::new("/repo"),
             &config,

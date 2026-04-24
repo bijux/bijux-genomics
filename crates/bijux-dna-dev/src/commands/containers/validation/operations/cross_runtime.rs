@@ -9,17 +9,11 @@ pub(in super::super::super) fn check_cross_runtime_representative(
 ) -> Result<ContainerCommandOutcome> {
     let docker_dir = PathBuf::from(env_or_default(
         "DOCKER_DIR",
-        &workspace
-            .path("artifacts/containers/docker-arm64")
-            .display()
-            .to_string(),
+        &workspace.path("artifacts/containers/docker-arm64").display().to_string(),
     ));
     let apptainer_dir = PathBuf::from(env_or_default(
         "APPTAINER_DIR",
-        &workspace
-            .path("artifacts/containers/apptainer")
-            .display()
-            .to_string(),
+        &workspace.path("artifacts/containers/apptainer").display().to_string(),
     ));
     check_cross_runtime_representative_at_paths(workspace, docker_dir, apptainer_dir)
 }
@@ -68,21 +62,12 @@ pub(in super::super::super) fn check_cross_runtime_representative_at_paths(
         let docker_row = &docker_rows[tool];
         let apptainer_row = &apptainer_rows[tool];
         if docker_row.get("status").and_then(serde_json::Value::as_str) != Some("ok")
-            || apptainer_row
-                .get("status")
-                .and_then(serde_json::Value::as_str)
-                != Some("ok")
+            || apptainer_row.get("status").and_then(serde_json::Value::as_str) != Some("ok")
         {
             errors.push(format!(
                 "{tool}: non-ok status docker={} apptainer={}",
-                docker_row
-                    .get("status")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
-                apptainer_row
-                    .get("status")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default()
+                docker_row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                apptainer_row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default()
             ));
             continue;
         }
@@ -112,17 +97,11 @@ pub(in super::super::super) fn check_cross_runtime_smoke(
 ) -> Result<ContainerCommandOutcome> {
     let docker_dir = PathBuf::from(env_or_default(
         "DOCKER_DIR",
-        &workspace
-            .path("artifacts/containers/docker-arm64")
-            .display()
-            .to_string(),
+        &workspace.path("artifacts/containers/docker-arm64").display().to_string(),
     ));
     let apptainer_dir = PathBuf::from(env_or_default(
         "APPTAINER_DIR",
-        &workspace
-            .path("artifacts/containers/apptainer")
-            .display()
-            .to_string(),
+        &workspace.path("artifacts/containers/apptainer").display().to_string(),
     ));
     check_cross_runtime_smoke_at_paths(workspace, docker_dir, apptainer_dir)
 }
@@ -170,21 +149,12 @@ pub(in super::super::super) fn check_cross_runtime_smoke_at_paths(
         let docker_row = &docker_rows[&tool];
         let apptainer_row = &apptainer_rows[&tool];
         if docker_row.get("status").and_then(serde_json::Value::as_str) != Some("ok")
-            || apptainer_row
-                .get("status")
-                .and_then(serde_json::Value::as_str)
-                != Some("ok")
+            || apptainer_row.get("status").and_then(serde_json::Value::as_str) != Some("ok")
         {
             errors.push(format!(
                 "{tool}: non-ok status docker={} apptainer={}",
-                docker_row
-                    .get("status")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
-                apptainer_row
-                    .get("status")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default()
+                docker_row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default(),
+                apptainer_row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default()
             ));
             continue;
         }
@@ -215,24 +185,17 @@ pub(in super::super::super) fn check_cross_runtime_smoke_at_paths(
                     ));
                 }
             }
-            Err(error) => errors.push(format!(
-                "{tool}: invalid expected_version_regex '{regex_text}': {error}"
-            )),
+            Err(error) => errors
+                .push(format!("{tool}: invalid expected_version_regex '{regex_text}': {error}")),
         }
 
-        for key in [
-            "help_actual_exit_code",
-            "minimal_actual_exit_code",
-            "negative_actual_exit_code",
-        ] {
-            let docker_value = docker_row
-                .get(key)
-                .map(serde_json::Value::to_string)
-                .unwrap_or_default();
-            let apptainer_value = apptainer_row
-                .get(key)
-                .map(serde_json::Value::to_string)
-                .unwrap_or_default();
+        for key in
+            ["help_actual_exit_code", "minimal_actual_exit_code", "negative_actual_exit_code"]
+        {
+            let docker_value =
+                docker_row.get(key).map(serde_json::Value::to_string).unwrap_or_default();
+            let apptainer_value =
+                apptainer_row.get(key).map(serde_json::Value::to_string).unwrap_or_default();
             if docker_value != apptainer_value {
                 errors.push(format!(
                     "{tool}: {key} mismatch docker={} apptainer={}",
@@ -246,10 +209,7 @@ pub(in super::super::super) fn check_cross_runtime_smoke_at_paths(
     if errors.is_empty() {
         return success_line(format!(
             "container runtime parity: OK ({}) shared tools",
-            docker_rows
-                .keys()
-                .filter(|tool| apptainer_rows.contains_key(*tool))
-                .count()
+            docker_rows.keys().filter(|tool| apptainer_rows.contains_key(*tool)).count()
         ));
     }
     failure_lines("container runtime parity: FAILED", &errors)

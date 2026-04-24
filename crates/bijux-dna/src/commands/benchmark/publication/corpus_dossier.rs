@@ -51,11 +51,7 @@ pub(super) fn render_corpus_fastq_dossier(
     let applicable_samples = match contract.sample_scope.as_str() {
         "full" => all_samples,
         "paired" => select_paired_samples(&corpus_spec, &all_samples, &metadata_by_sample)?,
-        other => {
-            return Err(anyhow!(
-                "unsupported corpus benchmark sample scope `{other}`"
-            ))
-        }
+        other => return Err(anyhow!("unsupported corpus benchmark sample scope `{other}`")),
     };
     let configured_corpus_id =
         benchmark_runtime_corpus_dir_name(&benchmark_config.workspace, corpus_id)?;
@@ -121,8 +117,7 @@ pub(super) fn render_corpus_fastq_dossier(
                     row.size_band.clone(),
                     row.tool.clone(),
                     optional_f64(row.runtime_s),
-                    row.exit_code
-                        .map_or_else(|| "missing".to_string(), |value| value.to_string()),
+                    row.exit_code.map_or_else(|| "missing".to_string(), |value| value.to_string()),
                     if row.report_json.trim().is_empty() {
                         "missing".to_string()
                     } else {
@@ -140,15 +135,9 @@ pub(super) fn render_corpus_fastq_dossier(
         &stage_docs_root.join("cohort_runtime_summary.csv"),
         &artifacts.cohort_runtime_rows,
     )?;
-    write_csv_maps(
-        &stage_docs_root.join("sample_runtime_outliers.csv"),
-        &artifacts.outlier_rows,
-    )?;
-    fs::write(
-        stage_docs_root.join("benchmark.md"),
-        artifacts.benchmark_markdown,
-    )
-    .with_context(|| format!("write {}", stage_docs_root.join("benchmark.md").display()))?;
+    write_csv_maps(&stage_docs_root.join("sample_runtime_outliers.csv"), &artifacts.outlier_rows)?;
+    fs::write(stage_docs_root.join("benchmark.md"), artifacts.benchmark_markdown)
+        .with_context(|| format!("write {}", stage_docs_root.join("benchmark.md").display()))?;
     Ok(())
 }
 
@@ -185,10 +174,8 @@ fn build_corpus_artifact_set(
         ));
     }
 
-    let local_results_root = run_root
-        .ancestors()
-        .nth(2)
-        .map_or_else(|| run_root.to_path_buf(), Path::to_path_buf);
+    let local_results_root =
+        run_root.ancestors().nth(2).map_or_else(|| run_root.to_path_buf(), Path::to_path_buf);
 
     let mut sample_rows = Vec::new();
     let mut sample_tool_runtimes = BTreeMap::<String, Vec<(String, f64)>>::new();
@@ -201,10 +188,8 @@ fn build_corpus_artifact_set(
         .get("runs")
         .and_then(|value| value.as_array())
         .ok_or_else(|| anyhow!("run manifest missing runs[]"))?;
-    let expected_sample_ids = applicable_samples
-        .iter()
-        .map(|sample| sample.sample_id.clone())
-        .collect::<BTreeSet<_>>();
+    let expected_sample_ids =
+        applicable_samples.iter().map(|sample| sample.sample_id.clone()).collect::<BTreeSet<_>>();
     let mut observed_sample_ids = BTreeSet::new();
 
     for run in runs {
@@ -230,10 +215,7 @@ fn build_corpus_artifact_set(
         let mut sample_tools = BTreeSet::new();
         for record in record_rows {
             let tool = report_record_tool(record).ok_or_else(|| {
-                anyhow!(
-                    "report record missing tool literal: {}",
-                    localized_report.display()
-                )
+                anyhow!("report record missing tool literal: {}", localized_report.display())
             })?;
             sample_tools.insert(tool.clone());
             let runtime_s = record
@@ -249,15 +231,9 @@ fn build_corpus_artifact_set(
                     .entry(sample_id.clone())
                     .or_default()
                     .push((tool.clone(), runtime));
-                tool_runtime_values
-                    .entry(tool.clone())
-                    .or_default()
-                    .push(runtime);
+                tool_runtime_values.entry(tool.clone()).or_default().push(runtime);
                 cohort_runtime_values
-                    .entry((
-                        tool.clone(),
-                        format!("{}_{}", metadata.era, metadata.layout),
-                    ))
+                    .entry((tool.clone(), format!("{}_{}", metadata.era, metadata.layout)))
                     .or_default()
                     .push(runtime);
                 if !metadata.size_band.trim().is_empty() {
@@ -267,10 +243,7 @@ fn build_corpus_artifact_set(
                         .push(runtime);
                 }
             }
-            tool_passes
-                .entry(tool.clone())
-                .or_default()
-                .push(exit_code.unwrap_or(0) == 0);
+            tool_passes.entry(tool.clone()).or_default().push(exit_code.unwrap_or(0) == 0);
             sample_rows.push(CorpusSampleResultRow {
                 sample_id: sample_id.clone(),
                 accession: metadata.accession.clone(),
@@ -300,9 +273,7 @@ fn build_corpus_artifact_set(
     }
 
     sample_rows.sort_by(|left, right| {
-        left.sample_id
-            .cmp(&right.sample_id)
-            .then_with(|| left.tool.cmp(&right.tool))
+        left.sample_id.cmp(&right.sample_id).then_with(|| left.tool.cmp(&right.tool))
     });
 
     let mut tool_summary = Vec::new();
@@ -335,10 +306,7 @@ fn build_corpus_artifact_set(
         row.insert("records".to_string(), pass_flags.len().to_string());
         row.insert("pass_rate".to_string(), optional_f64(pass_rate));
         row.insert("mean_runtime_s".to_string(), optional_f64(mean_runtime_s));
-        row.insert(
-            "median_runtime_s".to_string(),
-            optional_f64(median_runtime_s),
-        );
+        row.insert("median_runtime_s".to_string(), optional_f64(median_runtime_s));
         row.insert("max_runtime_s".to_string(), optional_f64(max_runtime_s));
         tool_runtime_rows.push(row);
     }
@@ -389,9 +357,7 @@ fn build_corpus_artifact_set(
             let metadata = metadata_by_sample.get(sample_id)?;
             let total_runtime = runtimes.iter().map(|(_, value)| value).sum::<f64>();
             let slowest = runtimes.iter().max_by(|left, right| {
-                left.1
-                    .partial_cmp(&right.1)
-                    .unwrap_or(std::cmp::Ordering::Equal)
+                left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal)
             })?;
             let mut row = BTreeMap::new();
             row.insert("sample_id".to_string(), sample_id.clone());
@@ -413,31 +379,18 @@ fn build_corpus_artifact_set(
     });
 
     let cohort_counts = count_by_cohort(applicable_samples, metadata_by_sample)?;
-    let era_counts = count_by_key(applicable_samples, metadata_by_sample, |metadata| {
-        metadata.era.clone()
-    })?;
-    let layout_counts = count_by_key(applicable_samples, metadata_by_sample, |metadata| {
-        metadata.layout.clone()
-    })?;
+    let era_counts =
+        count_by_key(applicable_samples, metadata_by_sample, |metadata| metadata.era.clone())?;
+    let layout_counts =
+        count_by_key(applicable_samples, metadata_by_sample, |metadata| metadata.layout.clone())?;
     let fastest = tool_summary
         .iter()
-        .filter_map(|row| {
-            row.median_runtime_s
-                .map(|runtime| (row.tool.clone(), runtime))
-        })
-        .min_by(|left, right| {
-            left.1
-                .partial_cmp(&right.1)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        .filter_map(|row| row.median_runtime_s.map(|runtime| (row.tool.clone(), runtime)))
+        .min_by(|left, right| left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal));
     let highest_pass_rate = tool_summary
         .iter()
         .filter_map(|row| row.pass_rate.map(|rate| (row.tool.clone(), rate)))
-        .max_by(|left, right| {
-            left.1
-                .partial_cmp(&right.1)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        .max_by(|left, right| left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal));
     let samples_failed = run_manifest
         .get("samples_failed")
         .and_then(serde_json::Value::as_u64)
@@ -448,9 +401,7 @@ fn build_corpus_artifact_set(
         stage_id: contract.stage_id.clone(),
         scenario_id: contract.scenario_id.clone(),
         generated_at_utc: bijux_dna_api::v1::api::shared::current_utc_timestamp(),
-        platform: value_string(run_manifest, "platform")
-            .unwrap_or("missing")
-            .to_string(),
+        platform: value_string(run_manifest, "platform").unwrap_or("missing").to_string(),
         corpus_root: corpus_root.display().to_string(),
         run_root: run_root.display().to_string(),
         sample_scope: contract.sample_scope.clone(),
@@ -486,8 +437,7 @@ fn render_corpus_benchmark_markdown(
     tool_runtime_rows: &[BTreeMap<String, String>],
     outlier_rows: &[BTreeMap<String, String>],
 ) -> String {
-    let mut lines =
-        vec![
+    let mut lines = vec![
         format!("# `{}` benchmark on `{}`", summary.stage_id, summary.corpus_id),
         String::new(),
         "## Run Contract".to_string(),
@@ -550,15 +500,12 @@ fn report_record_tool(record: &serde_json::Value) -> Option<String> {
     record
         .get("context")
         .and_then(|value| {
-            value
-                .get("tool")
-                .and_then(|entry| entry.as_str())
-                .or_else(|| {
-                    value
-                        .get("parameters")
-                        .and_then(|entry| entry.get("tool"))
-                        .and_then(|entry| entry.as_str())
-                })
+            value.get("tool").and_then(|entry| entry.as_str()).or_else(|| {
+                value
+                    .get("parameters")
+                    .and_then(|entry| entry.get("tool"))
+                    .and_then(|entry| entry.as_str())
+            })
         })
         .map(ToOwned::to_owned)
 }
@@ -597,34 +544,19 @@ fn write_json_pretty(path: &Path, value: &serde_json::Value) -> Result<()> {
 
 fn write_csv_maps(path: &Path, rows: &[BTreeMap<String, String>]) -> Result<()> {
     if rows.is_empty() {
-        return Err(anyhow!(
-            "cannot write empty csv artifact: {}",
-            path.display()
-        ));
+        return Err(anyhow!("cannot write empty csv artifact: {}", path.display()));
     }
     let headers = rows[0].keys().cloned().collect::<Vec<_>>();
     let records = rows
         .iter()
-        .map(|row| {
-            headers
-                .iter()
-                .map(|header| csv_report_value(row, header))
-                .collect::<Vec<_>>()
-        })
+        .map(|row| headers.iter().map(|header| csv_report_value(row, header)).collect::<Vec<_>>())
         .collect::<Vec<_>>();
-    write_csv_rows(
-        path,
-        &headers.iter().map(String::as_str).collect::<Vec<_>>(),
-        records,
-    )
+    write_csv_rows(path, &headers.iter().map(String::as_str).collect::<Vec<_>>(), records)
 }
 
 fn write_csv_rows(path: &Path, headers: &[&str], rows: Vec<Vec<String>>) -> Result<()> {
     if rows.is_empty() {
-        return Err(anyhow!(
-            "cannot write empty csv artifact: {}",
-            path.display()
-        ));
+        return Err(anyhow!("cannot write empty csv artifact: {}", path.display()));
     }
     let mut rendered = String::new();
     rendered.push_str(&headers.join(","));

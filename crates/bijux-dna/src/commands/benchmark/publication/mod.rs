@@ -99,38 +99,32 @@ mod tests {
         remote_corpus_root: &Path,
     ) -> crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
         crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
-            local: Some(
-                crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
-                    results_root: Some(archive_root.display().to_string()),
-                    cache_mirror_root: Some(cache_root.display().to_string()),
-                    extra_data_root: Some(cache_root.join("extra-data").display().to_string()),
-                    reference_root: Some(cache_root.join("reference").display().to_string()),
-                },
-            ),
-            remote: Some(
-                crate::commands::benchmark_workspace::BenchmarkWorkspaceRemote {
-                    corpus_root: Some(remote_corpus_root.display().to_string()),
-                    results_root: Some(remote_root.join("results").display().to_string()),
-                    ..Default::default()
-                },
-            ),
-            layout: Some(
-                crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
-                    stage_runs: Some(
-                        crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
-                            remote_results_template: Some(
-                                "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
-                            ),
-                            local_cache_results_template: Some(
-                                "results/{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
-                            ),
-                            local_archive_results_template: Some(
-                                "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
-                            ),
-                        },
-                    ),
-                },
-            ),
+            local: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
+                results_root: Some(archive_root.display().to_string()),
+                cache_mirror_root: Some(cache_root.display().to_string()),
+                extra_data_root: Some(cache_root.join("extra-data").display().to_string()),
+                reference_root: Some(cache_root.join("reference").display().to_string()),
+            }),
+            remote: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceRemote {
+                corpus_root: Some(remote_corpus_root.display().to_string()),
+                results_root: Some(remote_root.join("results").display().to_string()),
+                ..Default::default()
+            }),
+            layout: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
+                stage_runs: Some(
+                    crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
+                        remote_results_template: Some(
+                            "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                        ),
+                        local_cache_results_template: Some(
+                            "results/{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                        ),
+                        local_archive_results_template: Some(
+                            "{corpus_id}/{stage_id}/cluster-apptainer".to_string(),
+                        ),
+                    },
+                ),
+            }),
             artifacts: BTreeMap::new(),
             sync: None,
         }
@@ -152,11 +146,8 @@ mod tests {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).expect("create parent");
         }
-        fs::write(
-            path,
-            format!("{}\n", serde_json::to_string_pretty(&value).expect("json")),
-        )
-        .expect("write json");
+        fs::write(path, format!("{}\n", serde_json::to_string_pretty(&value).expect("json")))
+            .expect("write json");
     }
 
     #[test]
@@ -198,12 +189,10 @@ mod tests {
 
     #[test]
     fn corpus_fastq_report_docs_root_tracks_stage_contract() {
-        let docs_root = super::absolutize(
-            Path::new("/repo"),
-            Path::new("docs/30-operations/benchmark"),
-        )
-        .join("fastq.validate_reads")
-        .join("corpus-01");
+        let docs_root =
+            super::absolutize(Path::new("/repo"), Path::new("docs/30-operations/benchmark"))
+                .join("fastq.validate_reads")
+                .join("corpus-01");
         assert_eq!(
             docs_root,
             Path::new("/repo/docs/30-operations/benchmark/fastq.validate_reads/corpus-01")
@@ -213,9 +202,8 @@ mod tests {
     #[test]
     fn resolve_existing_dossier_path_uses_benchmark_markdown_contract() {
         let temp = tempdir().expect("tempdir");
-        let stage_docs_root = temp
-            .path()
-            .join("docs/30-operations/benchmark/fastq.validate_reads/corpus-01");
+        let stage_docs_root =
+            temp.path().join("docs/30-operations/benchmark/fastq.validate_reads/corpus-01");
         fs::create_dir_all(&stage_docs_root).expect("stage docs root");
         fs::write(stage_docs_root.join("legacy-site.md"), "# legacy\n").expect("legacy dossier");
 
@@ -314,11 +302,8 @@ reason = "Compact validation fixture."
             .join("benchmark_corpus")
             .join("fastq.validate_reads")
             .join("cluster-apptainer");
-        let sample_report = run_root
-            .join("bench")
-            .join("validate_reads")
-            .join("sample_0001")
-            .join("report.json");
+        let sample_report =
+            run_root.join("bench").join("validate_reads").join("sample_0001").join("report.json");
         write_json(
             &sample_report,
             serde_json::json!({
@@ -370,9 +355,7 @@ reason = "Compact validation fixture."
         assert!(benchmark_md.contains("generated directly by `bijux-dna`"));
         assert!(stage_docs_root.join("tool_runtime_summary.csv").is_file());
         assert!(stage_docs_root.join("cohort_runtime_summary.csv").is_file());
-        assert!(stage_docs_root
-            .join("sample_runtime_outliers.csv")
-            .is_file());
+        assert!(stage_docs_root.join("sample_runtime_outliers.csv").is_file());
     }
 
     #[test]
@@ -400,14 +383,12 @@ reason = "Compact validation fixture."
     #[test]
     fn localize_results_path_does_not_translate_legacy_results_aliases() {
         let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
-            local: Some(
-                crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
-                    results_root: Some("/bench/local/results".to_string()),
-                    cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
-                    extra_data_root: None,
-                    reference_root: None,
-                },
-            ),
+            local: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
+                results_root: Some("/bench/local/results".to_string()),
+                cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
+                extra_data_root: None,
+                reference_root: None,
+            }),
             ..Default::default()
         };
 
@@ -428,18 +409,16 @@ reason = "Compact validation fixture."
     #[test]
     fn stage_run_relative_root_uses_workspace_local_cache_template() {
         let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
-            layout: Some(
-                crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
-                    stage_runs: Some(
-                        crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
-                            local_cache_results_template: Some(
-                                "results/{corpus_id}/{stage_id}/cluster".to_string(),
-                            ),
-                            ..Default::default()
-                        },
-                    ),
-                },
-            ),
+            layout: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
+                stage_runs: Some(
+                    crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
+                        local_cache_results_template: Some(
+                            "results/{corpus_id}/{stage_id}/cluster".to_string(),
+                        ),
+                        ..Default::default()
+                    },
+                ),
+            }),
             ..Default::default()
         };
         assert_eq!(
@@ -457,37 +436,31 @@ reason = "Compact validation fixture."
     #[test]
     fn configured_stage_run_roots_only_publish_local_mirrors() {
         let workspace = crate::commands::benchmark_workspace::BenchmarkWorkspaceConfig {
-            local: Some(
-                crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
-                    results_root: Some("/bench/local/archive".to_string()),
-                    cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
-                    extra_data_root: Some("/bench/local/extra-data".to_string()),
-                    reference_root: None,
-                },
-            ),
-            remote: Some(
-                crate::commands::benchmark_workspace::BenchmarkWorkspaceRemote {
-                    results_root: Some("/bench/remote/results".to_string()),
-                    ..Default::default()
-                },
-            ),
-            layout: Some(
-                crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
-                    stage_runs: Some(
-                        crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
-                            local_cache_results_template: Some(
-                                "results/{corpus_id}/{stage_id}/cluster".to_string(),
-                            ),
-                            local_archive_results_template: Some(
-                                "{corpus_id}/{stage_id}/cluster".to_string(),
-                            ),
-                            remote_results_template: Some(
-                                "{corpus_id}/{stage_id}/remote-cluster".to_string(),
-                            ),
-                        },
-                    ),
-                },
-            ),
+            local: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLocal {
+                results_root: Some("/bench/local/archive".to_string()),
+                cache_mirror_root: Some("/bench/local/cache-mirror".to_string()),
+                extra_data_root: Some("/bench/local/extra-data".to_string()),
+                reference_root: None,
+            }),
+            remote: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceRemote {
+                results_root: Some("/bench/remote/results".to_string()),
+                ..Default::default()
+            }),
+            layout: Some(crate::commands::benchmark_workspace::BenchmarkWorkspaceLayout {
+                stage_runs: Some(
+                    crate::commands::benchmark_workspace::BenchmarkWorkspaceStageRuns {
+                        local_cache_results_template: Some(
+                            "results/{corpus_id}/{stage_id}/cluster".to_string(),
+                        ),
+                        local_archive_results_template: Some(
+                            "{corpus_id}/{stage_id}/cluster".to_string(),
+                        ),
+                        remote_results_template: Some(
+                            "{corpus_id}/{stage_id}/remote-cluster".to_string(),
+                        ),
+                    },
+                ),
+            }),
             ..Default::default()
         };
 
@@ -535,12 +508,8 @@ reason = "Compact validation fixture."
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
         let remote_corpus_root = remote_root.join("corpus_01");
-        let workspace = sample_workspace(
-            &cache_root,
-            &archive_root,
-            &remote_root,
-            &remote_corpus_root,
-        );
+        let workspace =
+            sample_workspace(&cache_root, &archive_root, &remote_root, &remote_corpus_root);
 
         let entry = super::build_dossier_stage_entry(
             temp.path(),
@@ -589,12 +558,8 @@ reason = "Compact validation fixture."
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
         let remote_corpus_root = cache_root.join("benchmark_corpus");
-        let workspace = sample_workspace(
-            &cache_root,
-            &archive_root,
-            &remote_root,
-            &remote_corpus_root,
-        );
+        let workspace =
+            sample_workspace(&cache_root, &archive_root, &remote_root, &remote_corpus_root);
         let report = super::audit_published_results(
             temp.path(),
             &workspace,
@@ -619,17 +584,10 @@ reason = "Compact validation fixture."
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
         let remote_corpus_root = cache_root.join("benchmark_corpus");
-        let workspace = sample_workspace(
-            &cache_root,
-            &archive_root,
-            &remote_root,
-            &remote_corpus_root,
-        );
+        let workspace =
+            sample_workspace(&cache_root, &archive_root, &remote_root, &remote_corpus_root);
         write_json(
-            &docs_root
-                .join("fastq.validate_reads")
-                .join("corpus-01")
-                .join("summary.json"),
+            &docs_root.join("fastq.validate_reads").join("corpus-01").join("summary.json"),
             serde_json::json!({
                 "run_root": cache_root.join("results"),
             }),
@@ -643,10 +601,7 @@ reason = "Compact validation fixture."
             &validate_reads_contract(),
         )
         .expect("stage report");
-        assert!(report
-            .issues
-            .iter()
-            .any(|issue| issue.issue_id == "missing-summary-corpus-root"));
+        assert!(report.issues.iter().any(|issue| issue.issue_id == "missing-summary-corpus-root"));
     }
 
     #[test]
@@ -657,22 +612,15 @@ reason = "Compact validation fixture."
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
         let remote_corpus_root = cache_root.join("benchmark_corpus");
-        let workspace = sample_workspace(
-            &cache_root,
-            &archive_root,
-            &remote_root,
-            &remote_corpus_root,
-        );
+        let workspace =
+            sample_workspace(&cache_root, &archive_root, &remote_root, &remote_corpus_root);
         let reported_run_root = cache_root
             .join("results")
             .join("benchmark_corpus")
             .join("fastq.validate_reads")
             .join("cluster-apptainer");
         write_json(
-            &docs_root
-                .join("fastq.validate_reads")
-                .join("corpus-01")
-                .join("summary.json"),
+            &docs_root.join("fastq.validate_reads").join("corpus-01").join("summary.json"),
             serde_json::json!({
                 "corpus_root": remote_corpus_root,
                 "run_root": reported_run_root,
@@ -691,14 +639,9 @@ reason = "Compact validation fixture."
             .iter()
             .find(|issue| issue.issue_id == "missing-local-run-root")
             .expect("missing issue");
-        assert!(missing_issue
-            .detail
-            .contains(&reported_run_root.display().to_string()));
+        assert!(missing_issue.detail.contains(&reported_run_root.display().to_string()));
         assert!(missing_issue.detail.contains("expected_local_mirror="));
-        assert_eq!(
-            report.reported_run_root,
-            reported_run_root.display().to_string()
-        );
+        assert_eq!(report.reported_run_root, reported_run_root.display().to_string());
         assert!(report.available_run_roots.is_empty());
     }
 
@@ -710,12 +653,8 @@ reason = "Compact validation fixture."
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
         let remote_corpus_root = cache_root.join("benchmark_corpus");
-        let workspace = sample_workspace(
-            &cache_root,
-            &archive_root,
-            &remote_root,
-            &remote_corpus_root,
-        );
+        let workspace =
+            sample_workspace(&cache_root, &archive_root, &remote_root, &remote_corpus_root);
         let canonical_run_root = cache_root
             .join("results")
             .join("benchmark_corpus")
@@ -731,10 +670,7 @@ reason = "Compact validation fixture."
             .join("sample_0001")
             .join("report.json");
         write_json(
-            &docs_root
-                .join("fastq.validate_reads")
-                .join("corpus-01")
-                .join("summary.json"),
+            &docs_root.join("fastq.validate_reads").join("corpus-01").join("summary.json"),
             serde_json::json!({
                 "corpus_root": remote_corpus_root,
                 "run_root": canonical_run_root,
@@ -788,12 +724,8 @@ reason = "Compact validation fixture."
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
         let remote_corpus_root = cache_root.join("benchmark_corpus");
-        let workspace = sample_workspace(
-            &cache_root,
-            &archive_root,
-            &remote_root,
-            &remote_corpus_root,
-        );
+        let workspace =
+            sample_workspace(&cache_root, &archive_root, &remote_root, &remote_corpus_root);
         let canonical_run_root = cache_root
             .join("results")
             .join("benchmark_corpus")
@@ -809,10 +741,7 @@ reason = "Compact validation fixture."
             .join("sample_0001")
             .join("report.json");
         write_json(
-            &docs_root
-                .join("fastq.validate_reads")
-                .join("corpus-01")
-                .join("summary.json"),
+            &docs_root.join("fastq.validate_reads").join("corpus-01").join("summary.json"),
             serde_json::json!({
                 "corpus_root": remote_corpus_root,
                 "run_root": canonical_run_root,
@@ -856,19 +785,10 @@ reason = "Compact validation fixture."
             &validate_reads_contract(),
         )
         .expect("stage report");
-        assert_eq!(
-            report.selected_run_root,
-            canonical_run_root.display().to_string()
-        );
-        assert_eq!(
-            report.newest_available_run_root,
-            legacy_run_root.display().to_string()
-        );
+        assert_eq!(report.selected_run_root, canonical_run_root.display().to_string());
+        assert_eq!(report.newest_available_run_root, legacy_run_root.display().to_string());
         assert!(!report.selected_run_root_is_newest);
-        assert!(report
-            .issues
-            .iter()
-            .any(|issue| issue.issue_id == "newer-run-root-available"));
+        assert!(report.issues.iter().any(|issue| issue.issue_id == "newer-run-root-available"));
     }
 
     #[test]
@@ -942,30 +862,20 @@ reason = "Compact validation fixture."
         let archive_root = temp.path().join("archive");
         let remote_root = temp.path().join("remote");
         let remote_corpus_root = cache_root.join("benchmark_corpus");
-        let workspace = sample_workspace(
-            &cache_root,
-            &archive_root,
-            &remote_root,
-            &remote_corpus_root,
-        );
+        let workspace =
+            sample_workspace(&cache_root, &archive_root, &remote_root, &remote_corpus_root);
         let run_root = temp
             .path()
             .join("mirror")
             .join("benchmark_corpus")
             .join("fastq.validate_reads")
             .join("cluster-apptainer");
-        let sample_report = run_root
-            .join("bench")
-            .join("validate_reads")
-            .join("sample_0001")
-            .join("report.json");
+        let sample_report =
+            run_root.join("bench").join("validate_reads").join("sample_0001").join("report.json");
         fs::create_dir_all(run_root.join("bench")).expect("create bench");
         fs::write(run_root.join("bench").join(".DS_Store"), "").expect("write ds store");
         write_json(
-            &docs_root
-                .join("fastq.validate_reads")
-                .join("corpus-01")
-                .join("summary.json"),
+            &docs_root.join("fastq.validate_reads").join("corpus-01").join("summary.json"),
             serde_json::json!({
                 "corpus_root": remote_corpus_root,
                 "run_root": run_root,
@@ -1003,10 +913,7 @@ reason = "Compact validation fixture."
             &validate_reads_contract(),
         )
         .expect("stage report");
-        assert!(report
-            .issues
-            .iter()
-            .any(|issue| issue.issue_id == "polluting-mirror-artifact"));
+        assert!(report.issues.iter().any(|issue| issue.issue_id == "polluting-mirror-artifact"));
     }
 
     #[test]
@@ -1183,12 +1090,10 @@ reason = "Compact validation fixture."
             repo_root,
             &docs_root,
             "corpus-01",
-            &[
-                crate::commands::benchmark_workspace::CorpusBenchmarkContract {
-                    sample_scope: "paired".to_string(),
-                    ..validate_reads_contract()
-                },
-            ],
+            &[crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                sample_scope: "paired".to_string(),
+                ..validate_reads_contract()
+            }],
             &[],
             &super::load_publication_corpus_spec(repo_root, None, "corpus-01")
                 .expect("corpus spec"),
@@ -1223,9 +1128,7 @@ reason = "Compact validation fixture."
             super::load_supplemental_findings(&findings_path).expect("findings");
         assert!(findings.contains_key("fastq.validate_reads"));
         assert_eq!(generated_at_utc, None);
-        assert!(warnings
-            .iter()
-            .any(|warning| warning.contains("generated_at_utc")));
+        assert!(warnings.iter().any(|warning| warning.contains("generated_at_utc")));
     }
 
     #[test]
@@ -1281,11 +1184,8 @@ reason = "Compact validation fixture."
             ),
         )
         .expect("sample csv");
-        fs::write(
-            corpus_root.join("tool_runtime_summary.csv"),
-            "tool\nfastqvalidator\nseqtk\n",
-        )
-        .expect("tool summary");
+        fs::write(corpus_root.join("tool_runtime_summary.csv"), "tool\nfastqvalidator\nseqtk\n")
+            .expect("tool summary");
         fs::write(
             corpus_root.join("cohort_runtime_summary.csv"),
             "cohort\nancient_pe\nancient_se\nmodern_pe\nmodern_se\n",
@@ -1302,14 +1202,12 @@ reason = "Compact validation fixture."
             repo_root,
             &docs_root,
             "corpus-01",
-            &[
-                crate::commands::benchmark_workspace::CorpusBenchmarkContract {
-                    stage_id: "fastq.validate_reads".to_string(),
-                    scenario_id: "validation_fairness".to_string(),
-                    sample_scope: "full".to_string(),
-                    tools: vec!["fastqvalidator".to_string(), "seqtk".to_string()],
-                },
-            ],
+            &[crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                stage_id: "fastq.validate_reads".to_string(),
+                scenario_id: "validation_fairness".to_string(),
+                sample_scope: "full".to_string(),
+                tools: vec!["fastqvalidator".to_string(), "seqtk".to_string()],
+            }],
             &[],
             &super::load_publication_corpus_spec(repo_root, None, "corpus-01")
                 .expect("corpus spec"),
@@ -1330,14 +1228,12 @@ reason = "Compact validation fixture."
     fn remediation_queue_merges_publication_results_and_findings() {
         let queue = super::build_remediation_queue(
             "corpus-01",
-            &[
-                crate::commands::benchmark_workspace::CorpusBenchmarkContract {
-                    stage_id: "fastq.validate_reads".to_string(),
-                    scenario_id: "governed-fixture".to_string(),
-                    sample_scope: "paired-subset".to_string(),
-                    tools: Vec::new(),
-                },
-            ],
+            &[crate::commands::benchmark_workspace::CorpusBenchmarkContract {
+                stage_id: "fastq.validate_reads".to_string(),
+                scenario_id: "governed-fixture".to_string(),
+                sample_scope: "paired-subset".to_string(),
+                tools: Vec::new(),
+            }],
             &serde_json::json!({
                 "stages": [{
                     "stage_id": "fastq.validate_reads",
@@ -1383,10 +1279,7 @@ reason = "Compact validation fixture."
         assert_eq!(stage.status, "open");
         assert_eq!(stage.issue_count, 3);
         assert_eq!(stage.recommended_action, "sync-or-normalize-results");
-        assert_eq!(
-            stage.published_generated_at_utc.as_deref(),
-            Some("2026-03-28T00:00:00Z")
-        );
+        assert_eq!(stage.published_generated_at_utc.as_deref(), Some("2026-03-28T00:00:00Z"));
         assert_eq!(stage.run_root_source.as_deref(), Some("local-results-root"));
     }
 

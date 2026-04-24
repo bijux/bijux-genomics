@@ -3,9 +3,7 @@ use std::path::{Path, PathBuf};
 use super::{BENCHMARK_CONFIG_ENV, DEFAULT_BENCHMARK_CONFIG};
 
 fn benchmark_config_path_env_binding() -> Option<PathBuf> {
-    std::env::var_os(BENCHMARK_CONFIG_ENV)
-        .filter(|value| !value.is_empty())
-        .map(PathBuf::from)
+    std::env::var_os(BENCHMARK_CONFIG_ENV).filter(|value| !value.is_empty()).map(PathBuf::from)
 }
 
 pub(crate) fn absolutize(cwd: &Path, path: &Path) -> PathBuf {

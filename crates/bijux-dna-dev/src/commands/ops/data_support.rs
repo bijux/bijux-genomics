@@ -12,11 +12,7 @@ pub(super) fn ensure_exists(path: &Path, label: &str, errors: &mut Vec<String>) 
 }
 
 pub(super) fn value_string(value: Option<&Value>) -> String {
-    value
-        .and_then(Value::as_str)
-        .unwrap_or_default()
-        .trim()
-        .to_string()
+    value.and_then(Value::as_str).unwrap_or_default().trim().to_string()
 }
 
 pub(super) fn check_schema_doc(
@@ -40,11 +36,7 @@ fn flatten_json_keys(value: &Value, prefix: &str, out: &mut BTreeSet<String>) {
     match value {
         Value::Object(map) => {
             for (key, nested) in map {
-                let next = if prefix.is_empty() {
-                    key.clone()
-                } else {
-                    format!("{prefix}.{key}")
-                };
+                let next = if prefix.is_empty() { key.clone() } else { format!("{prefix}.{key}") };
                 out.insert(next.clone());
                 flatten_json_keys(nested, &next, out);
             }
@@ -76,15 +68,9 @@ pub(super) fn compare_json_key_drift(
     let mut golden_keys = BTreeSet::new();
     flatten_json_keys(&current, "", &mut current_keys);
     flatten_json_keys(&golden, "", &mut golden_keys);
-    let missing = golden_keys
-        .difference(&current_keys)
-        .take(12)
-        .cloned()
-        .collect::<Vec<_>>();
+    let missing = golden_keys.difference(&current_keys).take(12).cloned().collect::<Vec<_>>();
     if !missing.is_empty() {
-        errors.push(format!(
-            "{label}: missing golden keys (key-drift): {missing:?}"
-        ));
+        errors.push(format!("{label}: missing golden keys (key-drift): {missing:?}"));
     }
     Ok(())
 }
@@ -120,11 +106,7 @@ pub(super) fn collect_warning_strings_json(value: &Value, out: &mut Vec<String>)
 }
 
 pub(super) fn sorted_unique(values: Vec<String>) -> Vec<String> {
-    values
-        .into_iter()
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect()
+    values.into_iter().collect::<BTreeSet<_>>().into_iter().collect()
 }
 
 pub(super) fn find_first_named_file(base: &Path, name: &str) -> Option<PathBuf> {
@@ -154,15 +136,9 @@ pub(super) fn assert_no_excess_float_precision(value: &Value, tag: &str, errors:
         Value::Number(number) => {
             if let Some(value) = number.as_f64() {
                 let rendered = format!("{value:.12}");
-                let decimals = rendered
-                    .trim_end_matches('0')
-                    .split('.')
-                    .nth(1)
-                    .map_or(0, str::len);
+                let decimals = rendered.trim_end_matches('0').split('.').nth(1).map_or(0, str::len);
                 if decimals > 6 {
-                    errors.push(format!(
-                        "{tag}: excessive float precision in metrics ({value})"
-                    ));
+                    errors.push(format!("{tag}: excessive float precision in metrics ({value})"));
                 }
             }
         }
@@ -203,10 +179,7 @@ pub(super) fn toml_to_json_value(value: TomlValue) -> Value {
             Value::Array(values.into_iter().map(toml_to_json_value).collect())
         }
         TomlValue::Table(values) => Value::Object(
-            values
-                .into_iter()
-                .map(|(key, value)| (key, toml_to_json_value(value)))
-                .collect(),
+            values.into_iter().map(|(key, value)| (key, toml_to_json_value(value))).collect(),
         ),
     }
 }

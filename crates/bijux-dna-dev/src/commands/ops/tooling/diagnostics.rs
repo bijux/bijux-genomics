@@ -23,10 +23,8 @@ pub(in super::super) fn tooling_config_inventory(
         .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
         .collect::<Vec<_>>();
     config_files.sort();
-    let mut text_lines = vec![
-        "# schema_version = 1".to_string(),
-        "# owner = bijux-dna-infra".to_string(),
-    ];
+    let mut text_lines =
+        vec!["# schema_version = 1".to_string(), "# owner = bijux-dna-infra".to_string()];
     text_lines.extend(config_files.iter().cloned());
     write_utf8(&out_txt, &format!("{}\n", text_lines.join("\n")))?;
 
@@ -52,11 +50,7 @@ pub(in super::super) fn tooling_config_inventory(
         md_lines.push(format!("| `{rel}` | `{schema}` | `{owner}` |"));
     }
     write_utf8(&out_md, &format!("{}\n", md_lines.join("\n")))?;
-    success_line(format!(
-        "wrote {}\nwrote {}",
-        out_txt.display(),
-        out_md.display()
-    ))
+    success_line(format!("wrote {}\nwrote {}", out_txt.display(), out_md.display()))
 }
 
 pub(in super::super) fn tooling_coverage_summary(
@@ -249,18 +243,13 @@ pub(in super::super) fn tooling_coverage_summary(
             .map(|(path, misses)| {
                 format!(
                     "{}({misses})",
-                    Path::new(path)
-                        .file_name()
-                        .and_then(|value| value.to_str())
-                        .unwrap_or(path)
+                    Path::new(path).file_name().and_then(|value| value.to_str()).unwrap_or(path)
                 )
             })
             .collect::<Vec<_>>()
             .join(", ");
-        let delta = baseline_data
-            .as_ref()
-            .and_then(|baseline| baseline.get(crate_name))
-            .map(|baseline| {
+        let delta =
+            baseline_data.as_ref().and_then(|baseline| baseline.get(crate_name)).map(|baseline| {
                 percent(entry.lines_hit, entry.lines_total)
                     - percent(baseline.lines_hit, baseline.lines_total)
             });
@@ -301,9 +290,7 @@ pub(in super::super) fn tooling_coverage_summary(
     if show_worst {
         let mut worst = rows.clone();
         worst.sort_by(|left, right| {
-            left.1
-                .partial_cmp(&right.1)
-                .unwrap_or(std::cmp::Ordering::Equal)
+            left.1.partial_cmp(&right.1).unwrap_or(std::cmp::Ordering::Equal)
         });
         stdout.push_str("\nworst coverage (lines %):\n");
         for (crate_name, lines_pct, ..) in worst.into_iter().take(worst_count) {
@@ -321,10 +308,7 @@ pub(in super::super) fn tooling_coverage_summary(
         };
         let default_threshold = value["default"].as_f64().unwrap_or(0.0);
         let class_thresholds = value["classes"].as_object().cloned().unwrap_or_default();
-        let class_map = value["crate_class"]
-            .as_object()
-            .cloned()
-            .unwrap_or_default();
+        let class_map = value["crate_class"].as_object().cloned().unwrap_or_default();
         let overrides = value["overrides"].as_object().cloned().unwrap_or_default();
         let mut failures = Vec::new();
         for (crate_name, entry) in &data {
@@ -348,11 +332,7 @@ pub(in super::super) fn tooling_coverage_summary(
             for (crate_name, actual, minimum) in failures {
                 stdout.push_str(&format!("{crate_name}: {actual:.2}% < {minimum:.2}%\n"));
             }
-            return Ok(OpsCommandOutcome {
-                exit_code: 1,
-                stdout,
-                stderr: String::new(),
-            });
+            return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr: String::new() });
         }
     }
 
@@ -379,12 +359,7 @@ pub(in super::super) fn tooling_crash_triage(
     let stderr = payload["stderr_last_lines"]
         .as_array()
         .map(|items| {
-            items
-                .iter()
-                .filter_map(Value::as_str)
-                .collect::<Vec<_>>()
-                .join("\n")
-                .to_lowercase()
+            items.iter().filter_map(Value::as_str).collect::<Vec<_>>().join("\n").to_lowercase()
         })
         .unwrap_or_default();
     let command = value_string(payload.get("command")).to_lowercase();
@@ -403,19 +378,11 @@ pub(in super::super) fn tooling_crash_triage(
         causes.push((90, "resource_exhausted", "Process likely hit memory limit."));
     }
     if stderr.contains("header") || stderr.contains("contig") || stderr.contains("chromosome") {
-        causes.push((
-            85,
-            "reference_mismatch",
-            "Header/contig/reference mismatch.",
-        ));
+        causes.push((85, "reference_mismatch", "Header/contig/reference mismatch."));
     }
     if stderr.contains("not compressed") && (command.contains("tabix") || command.contains("bgzip"))
     {
-        causes.push((
-            80,
-            "compression_contract",
-            "Expected bgzip-compressed input for indexing.",
-        ));
+        causes.push((80, "compression_contract", "Expected bgzip-compressed input for indexing."));
     }
     if matches!(exit_code, Some(126 | 127)) {
         causes.push((
@@ -425,11 +392,7 @@ pub(in super::super) fn tooling_crash_triage(
         ));
     }
     if causes.is_empty() {
-        causes.push((
-            10,
-            "unknown",
-            "No high-confidence pattern found; inspect full logs.",
-        ));
+        causes.push((10, "unknown", "No high-confidence pattern found; inspect full logs."));
     }
     causes.sort_by(|left, right| right.0.cmp(&left.0));
     let mut stdout = String::from("crash-triage: top causes\n");
@@ -454,49 +417,29 @@ pub(in super::super) fn tooling_deprecate_vcf_knob(
         match args[index].as_str() {
             "--help" | "-h" => return success_line(usage),
             "--stage" => {
-                stage = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --stage")?,
-                );
+                stage = Some(args.get(index + 1).cloned().context("missing value for --stage")?);
                 index += 2;
             }
             "--knob" => {
-                knob = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --knob")?,
-                );
+                knob = Some(args.get(index + 1).cloned().context("missing value for --knob")?);
                 index += 2;
             }
             "--phase" => {
-                phase = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --phase")?,
-                );
+                phase = Some(args.get(index + 1).cloned().context("missing value for --phase")?);
                 index += 2;
             }
             "--replacement" => {
-                replacement = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --replacement")?,
-                );
+                replacement =
+                    Some(args.get(index + 1).cloned().context("missing value for --replacement")?);
                 index += 2;
             }
             "--rationale" => {
-                rationale = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --rationale")?,
-                );
+                rationale =
+                    Some(args.get(index + 1).cloned().context("missing value for --rationale")?);
                 index += 2;
             }
             other => {
-                return Ok(OpsCommandOutcome::failure(format!(
-                    "unknown arg: {other}\n{usage}\n"
-                )))
+                return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n{usage}\n")))
             }
         }
     }
@@ -506,9 +449,7 @@ pub(in super::super) fn tooling_deprecate_vcf_knob(
     let replacement = replacement.context(usage)?;
     let rationale = rationale.context(usage)?;
     if !matches!(phase.as_str(), "warn" | "fail" | "remove") {
-        return Ok(OpsCommandOutcome::failure(
-            "phase must be warn|fail|remove\n".to_string(),
-        ));
+        return Ok(OpsCommandOutcome::failure("phase must be warn|fail|remove\n".to_string()));
     }
     let path = workspace.path("configs/vcf/deprecations/knobs.toml");
     let mut text = read_utf8(&path)?;
@@ -541,41 +482,25 @@ pub(in super::super) fn tooling_deprecate_vcf_panel(
         match args[index].as_str() {
             "--help" | "-h" => return success_line(usage),
             "--panel" => {
-                panel = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --panel")?,
-                );
+                panel = Some(args.get(index + 1).cloned().context("missing value for --panel")?);
                 index += 2;
             }
             "--phase" => {
-                phase = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --phase")?,
-                );
+                phase = Some(args.get(index + 1).cloned().context("missing value for --phase")?);
                 index += 2;
             }
             "--replacement" => {
-                replacement = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --replacement")?,
-                );
+                replacement =
+                    Some(args.get(index + 1).cloned().context("missing value for --replacement")?);
                 index += 2;
             }
             "--rationale" => {
-                rationale = Some(
-                    args.get(index + 1)
-                        .cloned()
-                        .context("missing value for --rationale")?,
-                );
+                rationale =
+                    Some(args.get(index + 1).cloned().context("missing value for --rationale")?);
                 index += 2;
             }
             other => {
-                return Ok(OpsCommandOutcome::failure(format!(
-                    "unknown arg: {other}\n{usage}\n"
-                )))
+                return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n{usage}\n")))
             }
         }
     }
@@ -584,9 +509,7 @@ pub(in super::super) fn tooling_deprecate_vcf_panel(
     let replacement = replacement.context(usage)?;
     let rationale = rationale.context(usage)?;
     if !matches!(phase.as_str(), "warn" | "fail" | "remove") {
-        return Ok(OpsCommandOutcome::failure(
-            "phase must be warn|fail|remove\n".to_string(),
-        ));
+        return Ok(OpsCommandOutcome::failure("phase must be warn|fail|remove\n".to_string()));
     }
     let path = workspace.path("configs/vcf/deprecations/panels.toml");
     let mut text = read_utf8(&path)?;
@@ -634,22 +557,11 @@ pub(in super::super) fn tooling_docs_build(
         ));
     }
     let cfg: TomlValue = toml::from_str(&read_utf8(&cfg_path)?)?;
-    let mkdocs_config = cfg
-        .get("mkdocs_config")
-        .and_then(TomlValue::as_str)
-        .unwrap_or("mkdocs.yml");
-    let site_dir = cfg
-        .get("site_dir")
-        .and_then(TomlValue::as_str)
-        .unwrap_or("artifacts/docs/site");
-    let strict = cfg
-        .get("strict")
-        .and_then(TomlValue::as_bool)
-        .unwrap_or(true);
-    let dev_addr = cfg
-        .get("dev_addr")
-        .and_then(TomlValue::as_str)
-        .unwrap_or("127.0.0.1:8000");
+    let mkdocs_config =
+        cfg.get("mkdocs_config").and_then(TomlValue::as_str).unwrap_or("mkdocs.yml");
+    let site_dir = cfg.get("site_dir").and_then(TomlValue::as_str).unwrap_or("artifacts/docs/site");
+    let strict = cfg.get("strict").and_then(TomlValue::as_bool).unwrap_or(true);
+    let dev_addr = cfg.get("dev_addr").and_then(TomlValue::as_str).unwrap_or("127.0.0.1:8000");
     if site_dir != "artifacts/docs/site" {
         return Ok(OpsCommandOutcome::failure(format!(
             "docs-build: site_dir must be artifacts/docs/site (got: {site_dir})\n"
@@ -697,10 +609,7 @@ pub(in super::super) fn tooling_docs_build(
         workspace,
         &program,
         &cmd_args,
-        &[(
-            "XDG_CACHE_HOME".to_string(),
-            cache_dir.display().to_string(),
-        )],
+        &[("XDG_CACHE_HOME".to_string(), cache_dir.display().to_string())],
     )
 }
 
@@ -742,45 +651,22 @@ pub(in super::super) fn tooling_generate_panel_compatibility_matrix(
     )?)?;
     let maps =
         toml::from_str::<TomlValue>(&read_utf8(&workspace.path("configs/vcf/maps/maps.toml"))?)?;
-    let panel_rows = panels
-        .get("panel")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let map_rows = maps
-        .get("map")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let panel_rows = panels.get("panel").and_then(TomlValue::as_array).cloned().unwrap_or_default();
+    let map_rows = maps.get("map").and_then(TomlValue::as_array).cloned().unwrap_or_default();
     let mut maps_by_sb = BTreeMap::<(String, String), Vec<TomlValue>>::new();
     for row in map_rows {
         let key = (
-            row.get("species_id")
-                .and_then(TomlValue::as_str)
-                .unwrap_or_default()
-                .to_string(),
-            row.get("build_id")
-                .and_then(TomlValue::as_str)
-                .unwrap_or_default()
-                .to_string(),
+            row.get("species_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+            row.get("build_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
         );
         maps_by_sb.entry(key).or_default().push(row);
     }
     let mut panels_sorted = panel_rows;
     panels_sorted.sort_by_key(|row| {
         (
-            row.get("species_id")
-                .and_then(TomlValue::as_str)
-                .unwrap_or_default()
-                .to_string(),
-            row.get("build_id")
-                .and_then(TomlValue::as_str)
-                .unwrap_or_default()
-                .to_string(),
-            row.get("id")
-                .and_then(TomlValue::as_str)
-                .unwrap_or_default()
-                .to_string(),
+            row.get("species_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+            row.get("build_id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
+            row.get("id").and_then(TomlValue::as_str).unwrap_or_default().to_string(),
         )
     });
     let mut lines = vec![
@@ -806,18 +692,9 @@ pub(in super::super) fn tooling_generate_panel_compatibility_matrix(
         "|---|---|---|---|---|---|---|".to_string(),
     ];
     for panel in panels_sorted {
-        let species = panel
-            .get("species_id")
-            .and_then(TomlValue::as_str)
-            .unwrap_or_default();
-        let build = panel
-            .get("build_id")
-            .and_then(TomlValue::as_str)
-            .unwrap_or_default();
-        let panel_id = panel
-            .get("id")
-            .and_then(TomlValue::as_str)
-            .unwrap_or_default();
+        let species = panel.get("species_id").and_then(TomlValue::as_str).unwrap_or_default();
+        let build = panel.get("build_id").and_then(TomlValue::as_str).unwrap_or_default();
+        let panel_id = panel.get("id").and_then(TomlValue::as_str).unwrap_or_default();
         let compat = panel.get("compatibility").and_then(TomlValue::as_table);
         let tool_tags = compat
             .and_then(|table| table.get("tool_tags"))
@@ -835,10 +712,7 @@ pub(in super::super) fn tooling_generate_panel_compatibility_matrix(
             continue;
         }
         for map in maps_for.unwrap_or(&Vec::new()) {
-            let map_id = map
-                .get("id")
-                .and_then(TomlValue::as_str)
-                .unwrap_or_default();
+            let map_id = map.get("id").and_then(TomlValue::as_str).unwrap_or_default();
             let map_tool_tags = map
                 .get("compatibility")
                 .and_then(TomlValue::as_table)
@@ -849,10 +723,7 @@ pub(in super::super) fn tooling_generate_panel_compatibility_matrix(
                 .into_iter()
                 .filter_map(|value| value.as_str().map(ToOwned::to_owned))
                 .collect::<BTreeSet<_>>();
-            let union = tool_tags
-                .union(&map_tool_tags)
-                .cloned()
-                .collect::<BTreeSet<_>>();
+            let union = tool_tags.union(&map_tool_tags).cloned().collect::<BTreeSet<_>>();
             for tool in union {
                 let ok = tool_tags.contains(&tool) && map_tool_tags.contains(&tool);
                 let mut notes = Vec::new();
@@ -866,11 +737,7 @@ pub(in super::super) fn tooling_generate_panel_compatibility_matrix(
                         .unwrap_or_default();
                     notes.push(format!("GLIMPSE format={format}"));
                 }
-                let note = if notes.is_empty() {
-                    "-".to_string()
-                } else {
-                    notes.join("; ")
-                };
+                let note = if notes.is_empty() { "-".to_string() } else { notes.join("; ") };
                 lines.push(format!(
                     "| `{species}` | `{build}` | `{panel_id}` | `{map_id}` | `{tool}` | `{}` | {note} |",
                     if ok { "yes" } else { "no" }
@@ -924,15 +791,10 @@ pub(in super::super) fn tooling_image_qa(
     run_program(
         workspace,
         "cargo",
-        &[
-            "run".to_string(),
-            "--bin".to_string(),
-            "image_qa".to_string(),
-            "--".to_string(),
-        ]
-        .into_iter()
-        .chain(args.iter().cloned())
-        .collect::<Vec<_>>(),
+        &["run".to_string(), "--bin".to_string(), "image_qa".to_string(), "--".to_string()]
+            .into_iter()
+            .chain(args.iter().cloned())
+            .collect::<Vec<_>>(),
     )
 }
 
@@ -968,11 +830,7 @@ pub(in super::super) fn tooling_inventory(
     dirs.sort();
     for dir in dirs {
         let rel = workspace.rel(&dir).to_string_lossy().to_string();
-        let present = if dir.join("index.md").is_file() {
-            "present"
-        } else {
-            "missing"
-        };
+        let present = if dir.join("index.md").is_file() { "present" } else { "missing" };
         lines.push(format!("{rel}/index.md:{present}"));
     }
     write_utf8(&docs_out, &format!("{}\n", lines.join("\n")))?;
@@ -1032,14 +890,8 @@ pub(in super::super) fn tooling_make_help(
             let Some(capture) = re.captures(line) else {
                 continue;
             };
-            let name = capture
-                .get(1)
-                .map(|value| value.as_str())
-                .unwrap_or_default();
-            let desc = capture
-                .get(2)
-                .map(|value| value.as_str())
-                .unwrap_or_default();
+            let name = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
+            let desc = capture.get(2).map(|value| value.as_str()).unwrap_or_default();
             if name.starts_with('_') || matches!(name, "domain-validate" | "examples-validate") {
                 internal.push((name.to_string(), desc.to_string()));
             }
@@ -1123,12 +975,8 @@ pub(in super::super) fn tooling_run_bijux(
     if matches!(args.first().map(String::as_str), Some("--help" | "-h")) {
         return success_line("Usage: cargo run -p bijux-dna-dev -- tooling run bijux -- <args...>");
     }
-    let mut command_args = vec![
-        "run".to_string(),
-        "--bin".to_string(),
-        "bijux-dna".to_string(),
-        "--".to_string(),
-    ];
+    let mut command_args =
+        vec!["run".to_string(), "--bin".to_string(), "bijux-dna".to_string(), "--".to_string()];
     if let Ok(platform) = std::env::var("BIJUX_PLATFORM") {
         if !platform.trim().is_empty() {
             command_args.push("--platform".to_string());
@@ -1145,10 +993,8 @@ pub(in super::super) fn tooling_setup_docs_venv(
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("setup-docs-venv", args)?;
     let docs_py = env_or_default("DOCS_PY", "python3");
-    let docs_venv = resolve_workspace_path(
-        workspace,
-        &env_or_default("DOCS_VENV", "artifacts/docs/.venv"),
-    );
+    let docs_venv =
+        resolve_workspace_path(workspace, &env_or_default("DOCS_VENV", "artifacts/docs/.venv"));
     let docs_req = resolve_workspace_path(
         workspace,
         &env_or_default("DOCS_REQ", "configs/docs/requirements.txt"),
@@ -1159,11 +1005,7 @@ pub(in super::super) fn tooling_setup_docs_venv(
     let venv = run_program(
         workspace,
         &docs_py,
-        &[
-            "-m".to_string(),
-            "venv".to_string(),
-            docs_venv.display().to_string(),
-        ],
+        &["-m".to_string(), "venv".to_string(), docs_venv.display().to_string()],
     )?;
     if !venv.is_success() {
         return Ok(venv);
@@ -1172,15 +1014,8 @@ pub(in super::super) fn tooling_setup_docs_venv(
     let upgrade = run_program_with_env(
         workspace,
         &pip,
-        &[
-            "install".to_string(),
-            "--upgrade".to_string(),
-            "pip".to_string(),
-        ],
-        &[(
-            "PIP_CACHE_DIR".to_string(),
-            docs_cache.display().to_string(),
-        )],
+        &["install".to_string(), "--upgrade".to_string(), "pip".to_string()],
+        &[("PIP_CACHE_DIR".to_string(), docs_cache.display().to_string())],
     )?;
     if !upgrade.is_success() {
         return Ok(upgrade);
@@ -1188,15 +1023,8 @@ pub(in super::super) fn tooling_setup_docs_venv(
     run_program_with_env(
         workspace,
         &pip,
-        &[
-            "install".to_string(),
-            "-r".to_string(),
-            docs_req.display().to_string(),
-        ],
-        &[(
-            "PIP_CACHE_DIR".to_string(),
-            docs_cache.display().to_string(),
-        )],
+        &["install".to_string(), "-r".to_string(), docs_req.display().to_string()],
+        &[("PIP_CACHE_DIR".to_string(), docs_cache.display().to_string())],
     )
 }
 
@@ -1209,41 +1037,30 @@ pub(in super::super) fn tooling_simulate_coverage_regime(
             "Usage: cargo run -p bijux-dna-dev -- tooling run simulate-coverage-regime -- <mean_depth_x> [--profile <name>]",
         );
     }
-    let mean_depth = args[0]
-        .parse::<f64>()
-        .context("parse mean_depth_x as float")?;
+    let mean_depth = args[0].parse::<f64>().context("parse mean_depth_x as float")?;
     let mut profile = "default".to_string();
     let mut index = 1;
     while index < args.len() {
         match args[index].as_str() {
             "--profile" => {
-                profile = args
-                    .get(index + 1)
-                    .context("missing value for --profile")?
-                    .clone();
+                profile = args.get(index + 1).context("missing value for --profile")?.clone();
                 index += 2;
             }
             other => return Err(anyhow!("unknown arg: {other}")),
         }
     }
-    let cfg: TomlValue = toml::from_str(&read_utf8(
-        &workspace.path("configs/runtime/coverage_regimes.toml"),
-    )?)?;
+    let cfg: TomlValue =
+        toml::from_str(&read_utf8(&workspace.path("configs/runtime/coverage_regimes.toml"))?)?;
     let decision = cfg
         .get("decision")
         .and_then(TomlValue::as_table)
         .and_then(|table| table.get("coverage_regime"))
         .and_then(TomlValue::as_table)
         .context("missing decision.coverage_regime")?;
-    let base = decision
-        .get("thresholds")
-        .and_then(TomlValue::as_table)
-        .context("missing thresholds")?;
-    let profiles = decision
-        .get("profiles")
-        .and_then(TomlValue::as_table)
-        .cloned()
-        .unwrap_or_default();
+    let base =
+        decision.get("thresholds").and_then(TomlValue::as_table).context("missing thresholds")?;
+    let profiles =
+        decision.get("profiles").and_then(TomlValue::as_table).cloned().unwrap_or_default();
     let selected_profile = if profile == "default" {
         base.clone()
     } else {
@@ -1257,10 +1074,7 @@ pub(in super::super) fn tooling_simulate_coverage_regime(
         .get("gl_max_depth")
         .and_then(TomlValue::as_float)
         .or_else(|| {
-            selected_profile
-                .get("gl_max_depth")
-                .and_then(TomlValue::as_integer)
-                .map(|v| v as f64)
+            selected_profile.get("gl_max_depth").and_then(TomlValue::as_integer).map(|v| v as f64)
         })
         .context("missing gl_max_depth")?;
     let pseudo_max = selected_profile
@@ -1297,32 +1111,14 @@ pub(in super::super) fn tooling_simulate_coverage_regime(
     } else if mean_depth <= pseudo_max {
         (
             "pseudohaploid",
-            vec![
-                "vcf.call_pseudohaploid",
-                "vcf.damage_filter",
-                "vcf.impute",
-                "vcf.postprocess",
-            ],
+            vec!["vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"],
         )
     } else if mean_depth >= dip_min {
-        (
-            "diploid",
-            vec![
-                "vcf.call_diploid",
-                "vcf.damage_filter",
-                "vcf.impute",
-                "vcf.postprocess",
-            ],
-        )
+        ("diploid", vec!["vcf.call_diploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"])
     } else {
         (
             "pseudohaploid",
-            vec![
-                "vcf.call_pseudohaploid",
-                "vcf.damage_filter",
-                "vcf.impute",
-                "vcf.postprocess",
-            ],
+            vec!["vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.impute", "vcf.postprocess"],
         )
     };
     write_json_pretty(
@@ -1340,9 +1136,9 @@ pub(in super::super) fn tooling_simulate_coverage_regime(
             "pipeline_path": pipeline_path,
         }),
     )?;
-    Ok(OpsCommandOutcome::success(read_utf8(&workspace.path(
-        "artifacts/tmp/simulate_coverage_regime.last.json",
-    ))?))
+    Ok(OpsCommandOutcome::success(read_utf8(
+        &workspace.path("artifacts/tmp/simulate_coverage_regime.last.json"),
+    )?))
 }
 
 pub(in super::super) fn tooling_generate_domain_coverage_doc(
@@ -1442,10 +1238,7 @@ pub(in super::super) fn tooling_generate_docs(
     )?;
     let container_outcome = ContainerApplication::new()?.run(
         "generate-qa-matrix",
-        &[out_root
-            .join("30-operations/APPTAINER_QA_MATRIX.md")
-            .display()
-            .to_string()],
+        &[out_root.join("30-operations/APPTAINER_QA_MATRIX.md").display().to_string()],
     )?;
     if !container_outcome.is_success() {
         return Ok(OpsCommandOutcome {
@@ -1454,10 +1247,7 @@ pub(in super::super) fn tooling_generate_docs(
             stderr: container_outcome.stderr,
         });
     }
-    generate_repo_root_map(
-        workspace,
-        &out_root.join("00-intro/REPO_ROOT_MAP.generated.md"),
-    )?;
+    generate_repo_root_map(workspace, &out_root.join("00-intro/REPO_ROOT_MAP.generated.md"))?;
     generate_compatibility_matrix(
         workspace,
         &out_root.join("50-reference/COMPATIBILITY_MATRIX.md"),

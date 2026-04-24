@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -13,6 +14,14 @@ impl Drop for CwdGuard {
     }
 }
 
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
+}
+
 /// # Errors
 /// Returns an error if the process current directory cannot be set.
 pub(crate) fn enter_cli_cwd(cwd: &Path) -> Result<CwdGuard> {
@@ -23,11 +32,7 @@ pub(crate) fn enter_cli_cwd(cwd: &Path) -> Result<CwdGuard> {
 
 pub(crate) fn configure_process_cli_env(cli: &cli::Cli, cwd: &Path) {
     if let Some(path) = &cli.telemetry_jsonl {
-        let telemetry_path = if path.is_absolute() {
-            path.clone()
-        } else {
-            cwd.join(path)
-        };
+        let telemetry_path = if path.is_absolute() { path.clone() } else { cwd.join(path) };
         std::env::set_var("BIJUX_TELEMETRY_JSONL", telemetry_path);
     }
     if cli.json {
@@ -53,16 +58,12 @@ where
     let bytes = serde_json::to_vec(profile)?;
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
-    std::env::set_var("BIJUX_PROFILE_HASH", format!("{:x}", hasher.finalize()));
+    std::env::set_var("BIJUX_PROFILE_HASH", sha256_hex(&hasher.finalize()));
     if cli.profile.eq_ignore_ascii_case("hpc") {
         std::env::set_var("BIJUX_RUN_CONTEXT", "hpc");
-        if std::env::var("BIJUX_HPC_SITE")
-            .ok()
-            .map_or(true, |value| value.trim().is_empty())
-        {
-            if let Some(platform) = std::env::var("BIJUX_PLATFORM")
-                .ok()
-                .filter(|value| !value.trim().is_empty())
+        if std::env::var("BIJUX_HPC_SITE").ok().is_none_or(|value| value.trim().is_empty()) {
+            if let Some(platform) =
+                std::env::var("BIJUX_PLATFORM").ok().filter(|value| !value.trim().is_empty())
             {
                 std::env::set_var("BIJUX_HPC_SITE", platform);
             }

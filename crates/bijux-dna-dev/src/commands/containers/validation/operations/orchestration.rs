@@ -116,21 +116,13 @@ pub(in super::super::super) fn run_container_lint(
         "check-tool-id-contract",
         check_tool_id_contract(workspace)?,
     );
-    append_named_outcome(
-        &mut aggregate,
-        "check-docker-context",
-        check_docker_context(workspace)?,
-    );
+    append_named_outcome(&mut aggregate, "check-docker-context", check_docker_context(workspace)?);
     append_named_outcome(
         &mut aggregate,
         "check-docker-hardening",
         check_docker_hardening(workspace)?,
     );
-    append_named_outcome(
-        &mut aggregate,
-        "check-docker-labels",
-        check_docker_labels(workspace)?,
-    );
+    append_named_outcome(&mut aggregate, "check-docker-labels", check_docker_labels(workspace)?);
     append_named_outcome(
         &mut aggregate,
         "check-docker-unpinned-apt",
@@ -156,11 +148,7 @@ pub(in super::super::super) fn run_container_lint(
         "check-apptainer-version-label-sync",
         check_apptainer_version_label_sync(workspace)?,
     );
-    append_named_outcome(
-        &mut aggregate,
-        "check-no-secrets",
-        check_no_secrets(workspace)?,
-    );
+    append_named_outcome(&mut aggregate, "check-no-secrets", check_no_secrets(workspace)?);
     append_named_outcome(
         &mut aggregate,
         "check-runtime-downloads",
@@ -214,9 +202,8 @@ pub(in super::super::super) fn run_ensure_images(
                 index += 1;
             }
             "--only" => {
-                let value = args
-                    .get(index + 1)
-                    .ok_or_else(|| anyhow!("--only requires <tool-id>"))?;
+                let value =
+                    args.get(index + 1).ok_or_else(|| anyhow!("--only requires <tool-id>"))?;
                 only_tool = Some(value.clone());
                 index += 2;
             }
@@ -235,11 +222,7 @@ pub(in super::super::super) fn run_ensure_images(
         return success_line(format!("ensure-images: wrote {}", report.display()));
     }
 
-    let tools = if let Some(tool) = only_tool {
-        tool
-    } else {
-        primary_tools_csv(workspace)?
-    };
+    let tools = if let Some(tool) = only_tool { tool } else { primary_tools_csv(workspace)? };
     let smoke = run_runtime_smoke_contract(workspace, "apptainer", tools)?;
     let mut aggregate = ContainerCommandOutcome::success(String::new());
     append_named_outcome(&mut aggregate, "smoke-containers-apptainer", smoke);
@@ -287,17 +270,12 @@ pub(in super::super::super) fn run_container_doctor(
                 index += 1;
             }
             "--tool" => {
-                let value = args
-                    .get(index + 1)
-                    .ok_or_else(|| anyhow!("--tool requires <tool-id>"))?;
+                let value =
+                    args.get(index + 1).ok_or_else(|| anyhow!("--tool requires <tool-id>"))?;
                 tool = Some(value.clone());
                 index += 2;
             }
-            other => {
-                return Err(anyhow!(
-                    "unknown arg for container-doctor: {other}\n{usage}"
-                ))
-            }
+            other => return Err(anyhow!("unknown arg for container-doctor: {other}\n{usage}")),
         }
     }
 
@@ -305,10 +283,7 @@ pub(in super::super::super) fn run_container_doctor(
         let registry_entry = registry_tool_rows(workspace)?
             .into_iter()
             .find(|row| row.get("id").and_then(toml::Value::as_str) == Some(tool_id.as_str()))
-            .map_or_else(
-                || toml::Value::Table(Default::default()),
-                toml::Value::Table,
-            );
+            .map_or_else(|| toml::Value::Table(Default::default()), toml::Value::Table);
         let version_lock = lock_items_by_tool(workspace)?
             .remove(&tool_id)
             .unwrap_or_else(|| serde_json::json!({}));
@@ -345,15 +320,9 @@ pub(in super::super::super) fn run_container_doctor(
     let mut items = Vec::new();
     for (name, outcome) in [
         ("missing_images", check_missing_images(workspace)?),
-        (
-            "lock_file_drift",
-            versioning::check_version_lock(workspace)?,
-        ),
+        ("lock_file_drift", versioning::check_version_lock(workspace)?),
         ("lock_vs_built", check_lock_matches_built_output(workspace)?),
-        (
-            "outdated_versions",
-            versioning::check_version_deprecations(workspace)?,
-        ),
+        ("outdated_versions", versioning::check_version_deprecations(workspace)?),
         ("domain_parity", check_tool_container_coverage(workspace)?),
         ("registry_orphans", check_registry_vs_defs(workspace)?),
     ] {
@@ -383,9 +352,7 @@ pub(in super::super::super) fn run_container_doctor(
     if strict && !aggregate.is_success() {
         return Ok(aggregate);
     }
-    aggregate
-        .stdout
-        .push_str(&format!("container-doctor: wrote {}\n", report.display()));
+    aggregate.stdout.push_str(&format!("container-doctor: wrote {}\n", report.display()));
     Ok(aggregate)
 }
 
@@ -423,22 +390,17 @@ pub(in super::super::super) fn run_vuln_scan_hook(
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
-    let sbom_root = args
-        .first()
-        .map(|value| path_from_arg(workspace, value))
-        .unwrap_or_else(|| {
+    let sbom_root =
+        args.first().map(|value| path_from_arg(workspace, value)).unwrap_or_else(|| {
             artifact_root_path(workspace)
                 .unwrap_or_else(|_| workspace.path("artifacts"))
                 .join("containers/sbom")
         });
-    let out = args
-        .get(1)
-        .map(|value| path_from_arg(workspace, value))
-        .unwrap_or_else(|| {
-            artifact_root_path(workspace)
-                .unwrap_or_else(|_| workspace.path("artifacts"))
-                .join("containers/vuln_scan_report.json")
-        });
+    let out = args.get(1).map(|value| path_from_arg(workspace, value)).unwrap_or_else(|| {
+        artifact_root_path(workspace)
+            .unwrap_or_else(|_| workspace.path("artifacts"))
+            .join("containers/vuln_scan_report.json")
+    });
     let toolkit = env_or_empty("TOOLKIT");
     let promoted_only = env_or_default("PROMOTED_ONLY", "1") != "0";
     write_vuln_hook_report(workspace, &sbom_root, &out, &toolkit, promoted_only)?;
@@ -456,18 +418,12 @@ pub(in super::super::super) fn run_apptainer_build_all(
         "smoke-apptainer",
         run_runtime_smoke_contract(workspace, "apptainer", resolved_smoke_tools(workspace)?)?,
     );
-    let summary_rel = format!(
-        "{}/hpc/frontend-smoke/summary.json",
-        container_artifact_dir()
-    );
+    let summary_rel = format!("{}/hpc/frontend-smoke/summary.json", container_artifact_dir());
     let summary_path = workspace.path(&summary_rel);
     append_named_outcome(
         &mut aggregate,
         "summary",
-        summary(
-            workspace,
-            &[String::from("--json"), summary_path.display().to_string()],
-        )?,
+        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
     );
     append_named_outcome(
         &mut aggregate,
@@ -498,20 +454,14 @@ pub(in super::super::super) fn run_docker_build_all(
     append_named_outcome(
         &mut aggregate,
         "summary",
-        summary(
-            workspace,
-            &[String::from("--json"), summary_path.display().to_string()],
-        )?,
+        summary(workspace, &[String::from("--json"), summary_path.display().to_string()])?,
     );
     append_named_outcome(
         &mut aggregate,
         "generate-version-lock",
         versioning::generate_version_lock(
             workspace,
-            &[workspace
-                .path("containers/versions/lock.json")
-                .display()
-                .to_string()],
+            &[workspace.path("containers/versions/lock.json").display().to_string()],
         )?,
     );
     append_named_outcome(

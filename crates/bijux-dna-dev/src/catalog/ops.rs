@@ -90,11 +90,7 @@ pub fn examples_registry() -> Vec<OpsCommandDefinition> {
             "Validate generated examples index output.",
             NativeOpsCommandKey::ExamplesCheckIndex,
         ),
-        native(
-            "run",
-            "Run a deterministic example bundle flow.",
-            NativeOpsCommandKey::ExamplesRun,
-        ),
+        native("run", "Run a deterministic example bundle flow.", NativeOpsCommandKey::ExamplesRun),
         native(
             "check-drift",
             "Validate that an example matches its golden outputs.",
@@ -148,21 +144,9 @@ pub fn lab_registry() -> Vec<OpsCommandDefinition> {
 #[must_use]
 pub fn smoke_registry() -> Vec<OpsCommandDefinition> {
     vec![
-        native(
-            "run",
-            "Dispatch a local smoke target.",
-            NativeOpsCommandKey::SmokeRun,
-        ),
-        native(
-            "smoke-bam",
-            "Run the BAM smoke contract.",
-            NativeOpsCommandKey::SmokeBam,
-        ),
-        native(
-            "smoke-fastq",
-            "Run the FASTQ smoke contract.",
-            NativeOpsCommandKey::SmokeFastq,
-        ),
+        native("run", "Dispatch a local smoke target.", NativeOpsCommandKey::SmokeRun),
+        native("smoke-bam", "Run the BAM smoke contract.", NativeOpsCommandKey::SmokeBam),
+        native("smoke-fastq", "Run the FASTQ smoke contract.", NativeOpsCommandKey::SmokeFastq),
     ]
 }
 

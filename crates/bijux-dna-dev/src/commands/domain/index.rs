@@ -50,19 +50,10 @@ pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<St
     }
 
     let existing = read_utf8(&index_path)?;
-    let mut lines = existing
-        .lines()
-        .map(ToString::to_string)
-        .collect::<Vec<_>>();
-    if lines
-        .first()
-        .is_some_and(|line| line == "# GENERATED FILE - DO NOT EDIT")
-    {
+    let mut lines = existing.lines().map(ToString::to_string).collect::<Vec<_>>();
+    if lines.first().is_some_and(|line| line == "# GENERATED FILE - DO NOT EDIT") {
         lines.remove(0);
-        if lines
-            .first()
-            .is_some_and(|line| line.starts_with("# Regenerate with:"))
-        {
+        if lines.first().is_some_and(|line| line.starts_with("# Regenerate with:")) {
             lines.remove(0);
         }
         while lines.first().is_some_and(|line| line.trim().is_empty()) {
@@ -74,37 +65,25 @@ pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<St
     replace_or_insert_block(
         &mut body_lines,
         "stage_ids",
-        stage_ids
-            .iter()
-            .map(|stage_id| format!("  - {stage_id}"))
-            .collect(),
+        stage_ids.iter().map(|stage_id| format!("  - {stage_id}")).collect(),
         Some("domain_version"),
     )?;
     replace_or_insert_block(
         &mut body_lines,
         "tool_ids",
-        tool_ids
-            .iter()
-            .map(|tool_id| format!("  - {tool_id}"))
-            .collect(),
+        tool_ids.iter().map(|tool_id| format!("  - {tool_id}")).collect(),
         Some("stage_ids"),
     )?;
     replace_or_insert_block(
         &mut body_lines,
         "governed_stage_ids",
-        governed_stage_ids
-            .iter()
-            .map(|stage_id| format!("  - {stage_id}"))
-            .collect(),
+        governed_stage_ids.iter().map(|stage_id| format!("  - {stage_id}")).collect(),
         Some("tool_ids"),
     )?;
     replace_or_insert_block(
         &mut body_lines,
         "governed_tool_ids",
-        governed_tool_ids
-            .iter()
-            .map(|tool_id| format!("  - {tool_id}"))
-            .collect(),
+        governed_tool_ids.iter().map(|tool_id| format!("  - {tool_id}")).collect(),
         Some("governed_stage_ids"),
     )?;
     replace_block(
@@ -125,13 +104,9 @@ pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<St
         Some("stage_tool_integration"),
     )?;
 
-    if !body_lines
-        .iter()
-        .any(|line| line.starts_with("domain_version:"))
-    {
-        let Some(domain_line_index) = body_lines
-            .iter()
-            .position(|line| line.starts_with("domain:"))
+    if !body_lines.iter().any(|line| line.starts_with("domain_version:")) {
+        let Some(domain_line_index) =
+            body_lines.iter().position(|line| line.starts_with("domain:"))
         else {
             bail!("{}: missing domain: field", index_path.display());
         };
@@ -144,14 +119,7 @@ pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<St
         format!("{DOMAIN_INDEX_REGENERATE_PREFIX}{dom}"),
         String::new(),
     ];
-    Ok(format!(
-        "{}\n",
-        header
-            .into_iter()
-            .chain(body_lines)
-            .collect::<Vec<_>>()
-            .join("\n")
-    ))
+    Ok(format!("{}\n", header.into_iter().chain(body_lines).collect::<Vec<_>>().join("\n")))
 }
 
 fn render_stage_tool_compatibility_block(dom_dir: &Path) -> Result<Vec<String>> {
@@ -325,9 +293,8 @@ pub(super) fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandO
         let actual = read_utf8(&index_path)?;
         let mut actual_lines = actual.lines();
         if actual_lines.next() != Some("# GENERATED FILE - DO NOT EDIT") {
-            errors.push(format!(
-                "domain index: missing generated header in domain/{dom}/index.yaml"
-            ));
+            errors
+                .push(format!("domain index: missing generated header in domain/{dom}/index.yaml"));
         }
         if actual_lines
             .next()
@@ -346,9 +313,7 @@ pub(super) fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandO
         }
 
         let stage_ids = list_block(&actual, "stage_ids")?;
-        let tool_ids = list_block(&actual, "tool_ids")?
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let tool_ids = list_block(&actual, "tool_ids")?.into_iter().collect::<BTreeSet<_>>();
 
         let mut stage_file_map = BTreeMap::<String, PathBuf>::new();
         for stage_file in yaml_files(&dom_dir.join("stages"))? {
@@ -479,9 +444,7 @@ pub(super) fn generate_index(
         domain_directories(workspace)?
             .into_iter()
             .filter_map(|path| {
-                path.file_name()
-                    .and_then(|name| name.to_str())
-                    .map(ToString::to_string)
+                path.file_name().and_then(|name| name.to_str()).map(ToString::to_string)
             })
             .collect::<Vec<_>>()
     } else {

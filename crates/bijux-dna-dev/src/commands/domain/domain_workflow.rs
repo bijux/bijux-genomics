@@ -51,20 +51,17 @@ pub(super) fn write_utf8(path: &Path, content: &str) -> Result<()> {
 pub(super) fn scalar_from_text(text: &str, key: &str) -> Result<Option<String>> {
     let pattern = format!(r"(?m)^{}:\s*(.+?)\s*$", regex::escape(key));
     let re = regex(&pattern)?;
-    Ok(re
-        .captures(text)
-        .and_then(|captures| captures.get(1))
-        .map(|value| {
-            let mut raw = value.as_str().trim().to_string();
-            if (raw.starts_with('"') && raw.ends_with('"'))
-                || (raw.starts_with('\'') && raw.ends_with('\''))
-            {
-                raw = raw[1..raw.len() - 1].trim().to_string();
-            } else if let Some((before_comment, _)) = raw.split_once(" #") {
-                raw = before_comment.trim().to_string();
-            }
-            raw
-        }))
+    Ok(re.captures(text).and_then(|captures| captures.get(1)).map(|value| {
+        let mut raw = value.as_str().trim().to_string();
+        if (raw.starts_with('"') && raw.ends_with('"'))
+            || (raw.starts_with('\'') && raw.ends_with('\''))
+        {
+            raw = raw[1..raw.len() - 1].trim().to_string();
+        } else if let Some((before_comment, _)) = raw.split_once(" #") {
+            raw = before_comment.trim().to_string();
+        }
+        raw
+    }))
 }
 
 pub(super) fn list_block(text: &str, key: &str) -> Result<Vec<String>> {

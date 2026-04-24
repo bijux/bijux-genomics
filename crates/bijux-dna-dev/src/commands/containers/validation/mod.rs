@@ -67,10 +67,7 @@ pub(super) fn load_runtime_manifest_rows(
         if manifest_path.extension().and_then(|ext| ext.to_str()) != Some("json") {
             continue;
         }
-        let name = manifest_path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .unwrap_or_default();
+        let name = manifest_path.file_name().and_then(|value| value.to_str()).unwrap_or_default();
         if matches!(
             name,
             "summary.json"
@@ -100,10 +97,7 @@ pub(super) fn load_runtime_manifest_rows(
 pub(super) fn normalized_version_output(row: &serde_json::Value) -> String {
     row.get("normalized_version_output")
         .and_then(serde_json::Value::as_str)
-        .or_else(|| {
-            row.get("version_output")
-                .and_then(serde_json::Value::as_str)
-        })
+        .or_else(|| row.get("version_output").and_then(serde_json::Value::as_str))
         .unwrap_or_default()
         .split_whitespace()
         .collect::<Vec<_>>()

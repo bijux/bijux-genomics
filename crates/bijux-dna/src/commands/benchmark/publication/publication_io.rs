@@ -39,47 +39,37 @@ pub(super) fn relative_to_docs_root(path: &Path, docs_root: &Path) -> String {
         .parent()
         .and_then(Path::parent)
         .unwrap_or(docs_root.parent().unwrap_or(docs_root));
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
 pub(super) fn relative_to_repo_root(path: &Path, repo_root: &Path) -> String {
-    path.strip_prefix(repo_root)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }
 
 pub(super) fn load_csv_rows(path: &Path) -> Result<Vec<BTreeMap<String, String>>> {
-    let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let mut lines = raw.lines();
+    let csv_text = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let mut lines = csv_text.lines();
     let Some(header_line) = lines.next() else {
         return Ok(Vec::new());
     };
-    let headers = header_line
-        .split(',')
-        .map(|value| value.trim().to_string())
-        .collect::<Vec<_>>();
+    let headers = header_line.split(',').map(|value| value.trim().to_string()).collect::<Vec<_>>();
     let mut rows = Vec::new();
     for line in lines {
         if line.trim().is_empty() {
             continue;
         }
         let values = line.split(',').map(str::trim).collect::<Vec<_>>();
-        let mut row = BTreeMap::new();
+        let mut csv_row = BTreeMap::new();
         for (header, value) in headers.iter().zip(values.iter()) {
-            row.insert(header.clone(), (*value).to_string());
+            csv_row.insert(header.clone(), (*value).to_string());
         }
-        rows.push(row);
+        rows.push(csv_row);
     }
     Ok(rows)
 }
 
 pub(super) fn csv_value(row: &BTreeMap<String, String>, key: &str) -> String {
-    row.get(key)
-        .map_or_else(|| "missing".to_string(), |value| value.trim().to_string())
+    row.get(key).map_or_else(|| "missing".to_string(), |value| value.trim().to_string())
 }
 
 pub(super) fn csv_required_value(row: &BTreeMap<String, String>, key: &str) -> Option<String> {
@@ -95,9 +85,7 @@ pub(super) fn sort_count_map(value: Option<&serde_json::Value>) -> Result<BTreeM
     let Some(value) = value else {
         return Ok(BTreeMap::new());
     };
-    let object = value
-        .as_object()
-        .ok_or_else(|| anyhow!("count map must be a JSON object"))?;
+    let object = value.as_object().ok_or_else(|| anyhow!("count map must be a JSON object"))?;
     object
         .iter()
         .map(|(key, value)| {
@@ -146,11 +134,9 @@ pub(super) fn unique_existing_run_roots(
     configured_roots: &[StageRunRootCandidate],
 ) -> Vec<PathBuf> {
     let mut roots = Vec::new();
-    for root in std::iter::once(reported_run_root).chain(
-        configured_roots
-            .iter()
-            .map(|candidate| candidate.path.as_path()),
-    ) {
+    for root in std::iter::once(reported_run_root)
+        .chain(configured_roots.iter().map(|candidate| candidate.path.as_path()))
+    {
         if !root.is_dir() || roots.iter().any(|existing| existing == root) {
             continue;
         }
@@ -160,11 +146,8 @@ pub(super) fn unique_existing_run_roots(
 }
 
 pub(super) fn select_stage_run_root(candidates: &[StageRunRootCandidate]) -> StageRunRootSelection {
-    let existing_candidates = candidates
-        .iter()
-        .filter(|candidate| candidate.path.is_dir())
-        .cloned()
-        .collect::<Vec<_>>();
+    let existing_candidates =
+        candidates.iter().filter(|candidate| candidate.path.is_dir()).cloned().collect::<Vec<_>>();
     if existing_candidates.is_empty() {
         return StageRunRootSelection {
             selected_path: PathBuf::new(),
@@ -192,12 +175,7 @@ pub(super) fn run_root_freshness_timestamp(run_root: &Path) -> Option<i64> {
     let manifest_path = run_root.join("run_manifest.json");
     if manifest_path.is_file() {
         let manifest = load_json_value(&manifest_path).ok()?;
-        for key in [
-            "completed_at_utc",
-            "generated_at_utc",
-            "finished_at_utc",
-            "started_at_utc",
-        ] {
+        for key in ["completed_at_utc", "generated_at_utc", "finished_at_utc", "started_at_utc"] {
             if let Some(parsed) = manifest
                 .get(key)
                 .and_then(|value| value.as_str())
@@ -259,19 +237,13 @@ pub(super) fn localize_results_path(
     }
 
     let mut root_mappings = vec![("/results/", vec![local_results_root.to_path_buf()])];
-    if let Some(extra_data_root) = workspace
-        .local
-        .as_ref()
-        .and_then(|row| row.extra_data_root.as_deref())
-        .map(PathBuf::from)
+    if let Some(extra_data_root) =
+        workspace.local.as_ref().and_then(|row| row.extra_data_root.as_deref()).map(PathBuf::from)
     {
         root_mappings.push(("/extra-data/", vec![extra_data_root]));
     }
-    if let Some(reference_root) = workspace
-        .local
-        .as_ref()
-        .and_then(|row| row.reference_root.as_deref())
-        .map(PathBuf::from)
+    if let Some(reference_root) =
+        workspace.local.as_ref().and_then(|row| row.reference_root.as_deref()).map(PathBuf::from)
     {
         root_mappings.push(("/reference/", vec![reference_root]));
     }
@@ -281,10 +253,7 @@ pub(super) fn localize_results_path(
         if !path_str.contains(marker) {
             continue;
         }
-        let suffix = path_str
-            .split_once(marker)
-            .map(|(_, tail)| tail)
-            .unwrap_or_default();
+        let suffix = path_str.split_once(marker).map(|(_, tail)| tail).unwrap_or_default();
         for mapped_root in mapped_roots {
             let localized = mapped_root.join(suffix);
             if localized.exists() {
@@ -339,10 +308,7 @@ pub(super) fn classify_run_root_source(
     if run_root == expected_remote_run_root {
         return "remote-results-root".to_string();
     }
-    if remote_corpus_root
-        .parent()
-        .is_some_and(|root| run_root.starts_with(root))
-    {
+    if remote_corpus_root.parent().is_some_and(|root| run_root.starts_with(root)) {
         return "remote-custom".to_string();
     }
     "custom".to_string()

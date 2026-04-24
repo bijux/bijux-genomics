@@ -1,6 +1,8 @@
 mod env_benchmark_roots;
 
-use self::env_benchmark_roots::{benchmark_env_roots, shared_cache_root, BenchmarkEnvRoots};
+use self::env_benchmark_roots::benchmark_env_roots;
+#[cfg(test)]
+use self::env_benchmark_roots::{shared_cache_root, BenchmarkEnvRoots};
 
 fn declared_registry_text<'a>(value: Option<&'a str>, fallback: &'static str) -> &'a str {
     value

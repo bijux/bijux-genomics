@@ -181,11 +181,8 @@ pub(super) fn prepare_report_qc_sample(
             .collect::<Vec<_>>(),
         "raw_fastqc_dir": raw_fastqc_dir.display().to_string(),
     });
-    fs::write(
-        &governed_manifest,
-        format!("{}\n", serde_json::to_string_pretty(&payload)?),
-    )
-    .with_context(|| format!("write {}", governed_manifest.display()))?;
+    fs::write(&governed_manifest, format!("{}\n", serde_json::to_string_pretty(&payload)?))
+        .with_context(|| format!("write {}", governed_manifest.display()))?;
 
     let extra_stage_args = vec![
         "--aggregation-engine".to_string(),
@@ -206,10 +203,7 @@ pub(super) fn prepare_report_qc_sample(
         serde_json::Value::Number(serde_json::Number::from(artifacts.len() as u64)),
     );
 
-    Ok(StageSamplePreparation {
-        extra_stage_args,
-        run_extra_fields,
-    })
+    Ok(StageSamplePreparation { extra_stage_args, run_extra_fields })
 }
 
 fn report_qc_manifest_path(out_root: &Path, sample_id: &str) -> PathBuf {
@@ -254,12 +248,10 @@ fn report_qc_contributor_artifact_path(
 ) -> Result<PathBuf> {
     let stage_root = default_stage_out_root(workspace_config, corpus_id, stage_id)?;
     let stage_spec = stage_command_spec(stage_id)?;
-    Ok(
-        benchmark_sample_root(&stage_root, stage_spec.report_dir, sample_id)
-            .join("tools")
-            .join(tool_id)
-            .join(relative_path),
-    )
+    Ok(benchmark_sample_root(&stage_root, stage_spec.report_dir, sample_id)
+        .join("tools")
+        .join(tool_id)
+        .join(relative_path))
 }
 
 fn ensure_report_qc_upstream_stage_outputs(
@@ -302,9 +294,8 @@ fn ensure_report_qc_upstream_stage_outputs(
         return Ok(());
     }
 
-    let command_name = program
-        .to_str()
-        .ok_or_else(|| anyhow!("benchmark executable path is not valid UTF-8"))?;
+    let command_name =
+        program.to_str().ok_or_else(|| anyhow!("benchmark executable path is not valid UTF-8"))?;
     let output = bijux_dna_api::v1::api::run::run_command_with_context(
         command_name,
         &command_args,
@@ -336,10 +327,7 @@ fn report_qc_contributor_id(contract: ReportQcContributorContract) -> String {
 }
 
 fn report_qc_artifact_name(contract: ReportQcContributorContract) -> String {
-    format!(
-        "{}.tool.{}.{}",
-        contract.stage_id, contract.tool_id, contract.artifact_id
-    )
+    format!("{}.tool.{}.{}", contract.stage_id, contract.tool_id, contract.artifact_id)
 }
 
 pub(super) fn report_qc_contributor_tool_ids() -> Vec<String> {
@@ -352,8 +340,5 @@ pub(super) fn report_qc_contributor_tool_ids() -> Vec<String> {
 }
 
 pub(super) fn report_qc_upstream_stage_ids() -> Vec<String> {
-    REPORT_QC_UPSTREAM_STAGES
-        .iter()
-        .map(|row| row.stage_id.to_string())
-        .collect()
+    REPORT_QC_UPSTREAM_STAGES.iter().map(|row| row.stage_id.to_string()).collect()
 }

@@ -50,7 +50,7 @@ fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
         &apptainer_def,
     ]
     .join("\n");
-    Some(format!("{:x}", Sha256::digest(stable_material.as_bytes())))
+    Some(sha256_hex(&Sha256::digest(stable_material.as_bytes())))
 }
 
 fn build_apptainer_image(def_path: &Path, sif_path: &Path) -> Result<()> {
@@ -233,7 +233,16 @@ fn hash_file_sha256_hex(path: &Path) -> Result<String> {
         }
         hasher.update(&buf[..n]);
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(sha256_hex(&hasher.finalize()))
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        use std::fmt::Write as _;
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
 }
 
 fn should_run_weekly_quick_smoke(manifest_path: &Path) -> bool {
@@ -270,21 +279,21 @@ fn parse_stage_registry_rows(raw: &str) -> Result<Vec<StageRegistryRow>> {
             current = Some(StageRegistryRow::default());
             continue;
         }
-        let Some(row) = current.as_mut() else {
+        let Some(stage_entry) = current.as_mut() else {
             continue;
         };
         if let Some(value) = parse_toml_string(trimmed, "id") {
-            row.id = value;
+            stage_entry.id = value;
         } else if let Some(values) = parse_toml_array(trimmed, "required_tool_roles") {
-            row.required_tool_roles = values;
+            stage_entry.required_tool_roles = values;
         } else if let Some(values) = parse_toml_array(trimmed, "primary_tools") {
-            row.primary_tools = values;
+            stage_entry.primary_tools = values;
         } else if let Some(values) = parse_toml_array(trimmed, "optional_alternatives") {
-            row.optional_alternatives = values;
+            stage_entry.optional_alternatives = values;
         } else if let Some(values) = parse_toml_array(trimmed, "validation_tools") {
-            row.validation_tools = values;
+            stage_entry.validation_tools = values;
         } else if let Some(values) = parse_toml_array(trimmed, "reporting_tools") {
-            row.reporting_tools = values;
+            stage_entry.reporting_tools = values;
         }
     }
     if let Some(row) = current {

@@ -13,10 +13,7 @@ pub(super) fn docs_check_doc_assets(
     ensure_help_only("check-doc-assets", args)?;
     let docs_root = workspace.path("docs");
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(&docs_root)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(std::result::Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -32,10 +29,7 @@ pub(super) fn docs_check_doc_assets(
     if offenders.is_empty() {
         return success_line("doc-assets: OK");
     }
-    failure_lines(
-        "doc-assets: images must live under docs/assets/",
-        &offenders,
-    )
+    failure_lines("doc-assets: images must live under docs/assets/", &offenders)
 }
 
 pub(super) fn docs_check_doc_depth(
@@ -49,10 +43,7 @@ pub(super) fn docs_check_doc_depth(
     let non_goals = Regex::new(r"(?mi)^##\s+Non-goals\s*$")?;
     let contracts = Regex::new(r"(?mi)^##\s+Contracts\s*$")?;
     let mut violations = Vec::new();
-    for entry in WalkDir::new(&docs_root)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(std::result::Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -105,10 +96,7 @@ pub(super) fn docs_check_doc_links(
     let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
     let mut missing = Vec::new();
     let mut publication = Vec::new();
-    for entry in WalkDir::new(&docs_root)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(std::result::Result::ok) {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
         {
@@ -144,11 +132,7 @@ pub(super) fn docs_check_doc_links(
                 missing.push(format!("{rel} -> {target}"));
             }
             if target.contains("assets/publications/")
-                && !target
-                    .split('#')
-                    .next()
-                    .unwrap_or_default()
-                    .ends_with("/index.md")
+                && !target.split('#').next().unwrap_or_default().ends_with("/index.md")
             {
                 publication.push(format!(
                     "{rel} -> {target} (must link to assets/publications/<pub-id>/index.md)"
@@ -156,13 +140,9 @@ pub(super) fn docs_check_doc_links(
             }
         }
     }
-    for target in [
-        "make _ci-fast",
-        "make _ci-slow",
-        "make _quick",
-        "make policy-fast",
-        "make policy-full",
-    ] {
+    for target in
+        ["make _ci-fast", "make _ci-slow", "make _quick", "make policy-fast", "make policy-full"]
+    {
         let matches = rg_lines(workspace, "docs", target)?;
         missing.extend(
             matches
@@ -213,11 +193,8 @@ pub(super) fn docs_check_doc_root_layout(
     {
         let entry = entry?;
         let path = entry.path();
-        let base = path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .unwrap_or_default()
-            .to_string();
+        let base =
+            path.file_name().and_then(|value| value.to_str()).unwrap_or_default().to_string();
         if path.is_dir() {
             if !allowed_dirs.contains(base.as_str()) {
                 violations.push(format!("unsupported docs root directory: docs/{base}"));
@@ -228,9 +205,7 @@ pub(super) fn docs_check_doc_root_layout(
     }
     for required in required_dirs {
         if !docs_root.join(required).is_dir() {
-            violations.push(format!(
-                "missing required docs root directory: docs/{required}"
-            ));
+            violations.push(format!("missing required docs root directory: docs/{required}"));
         }
     }
     if violations.is_empty() {
@@ -247,9 +222,7 @@ pub(super) fn docs_check_docs_graph(
     let docs_root = workspace.path("docs");
     let graph_path = docs_root.join("DOCS_GRAPH.toml");
     if !graph_path.is_file() {
-        return Ok(OpsCommandOutcome::failure(
-            "docs-graph: missing docs/DOCS_GRAPH.toml\n",
-        ));
+        return Ok(OpsCommandOutcome::failure("docs-graph: missing docs/DOCS_GRAPH.toml\n"));
     }
     let graph = read_utf8(&graph_path)?;
     let mut edges = BTreeMap::<String, Vec<String>>::new();
@@ -298,10 +271,7 @@ pub(super) fn docs_check_docs_graph(
         }
     }
     let link_re = Regex::new(r"\[[^\]]*\]\(([^)]+)\)")?;
-    for entry in WalkDir::new(&docs_root)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(&docs_root).into_iter().filter_map(std::result::Result::ok) {
         if !entry.file_type().is_file()
             || entry.path().extension().and_then(|ext| ext.to_str()) != Some("md")
         {
@@ -352,10 +322,8 @@ pub(super) fn docs_check_docs_graph(
             .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("md"))
             .count();
         if markdowns > 0 && !dir.join("index.md").exists() {
-            errors.push(format!(
-                "section folder lacks index.md: {}",
-                workspace.rel(&dir).display()
-            ));
+            errors
+                .push(format!("section folder lacks index.md: {}", workspace.rel(&dir).display()));
         }
     }
     let all_docs = WalkDir::new(&docs_root)
@@ -379,9 +347,8 @@ pub(super) fn docs_check_docs_graph(
         }
     }
     for rel in all_docs.difference(&reachable) {
-        errors.push(format!(
-            "docs not reachable from docs/index.md via docs/DOCS_GRAPH.toml: {rel}"
-        ));
+        errors
+            .push(format!("docs not reachable from docs/index.md via docs/DOCS_GRAPH.toml: {rel}"));
     }
     if errors.is_empty() {
         return success_line("docs-graph: OK");
@@ -400,10 +367,7 @@ pub(super) fn docs_check_domain_doc_references(
     let docs_stage_re = Regex::new(r"`((?:fastq|bam)\.[a-z0-9_]+)`")?;
     let docs_tool_re = Regex::new(r"`tool:([a-z0-9][a-z0-9._-]*)`")?;
     let mut stage_ids = BTreeSet::new();
-    for rel in [
-        "configs/ci/stages/stages.toml",
-        "configs/ci/stages/stages_vcf.toml",
-    ] {
+    for rel in ["configs/ci/stages/stages.toml", "configs/ci/stages/stages_vcf.toml"] {
         for line in read_utf8(&workspace.path(rel))?.lines() {
             if let Some(capture) = stage_id_re.captures(line) {
                 if let Some(value) = capture.get(1) {
@@ -443,19 +407,13 @@ pub(super) fn docs_check_domain_doc_references(
     {
         let raw = read_utf8(entry.path())?;
         for capture in docs_stage_re.captures_iter(&raw) {
-            let token = capture
-                .get(1)
-                .map(|value| value.as_str())
-                .unwrap_or_default();
+            let token = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
             if !token.is_empty() && !stage_ids.contains(token) {
                 errors.push(format!("unknown stage: {token}"));
             }
         }
         for capture in docs_tool_re.captures_iter(&raw) {
-            let token = capture
-                .get(1)
-                .map(|value| value.as_str())
-                .unwrap_or_default();
+            let token = capture.get(1).map(|value| value.as_str()).unwrap_or_default();
             if !token.is_empty() && !token.contains('*') && !tool_ids.contains(token) {
                 errors.push(format!("unknown tool: {token}"));
             }
@@ -525,19 +483,13 @@ pub(super) fn docs_check_generated_docs(
             "run".to_string(),
             "generate-qa-matrix".to_string(),
             "--".to_string(),
-            temp_root
-                .join("30-operations/APPTAINER_QA_MATRIX.md")
-                .display()
-                .to_string(),
+            temp_root.join("30-operations/APPTAINER_QA_MATRIX.md").display().to_string(),
         ],
     )?;
     if !qa_matrix.is_success() {
         return Ok(qa_matrix);
     }
-    generate_repo_root_map(
-        workspace,
-        &temp_root.join("00-intro/REPO_ROOT_MAP.generated.md"),
-    )?;
+    generate_repo_root_map(workspace, &temp_root.join("00-intro/REPO_ROOT_MAP.generated.md"))?;
     generate_compatibility_matrix(
         workspace,
         &temp_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
@@ -564,10 +516,7 @@ pub(super) fn docs_check_generated_docs(
             workspace.path("docs/50-reference/COMPATIBILITY_MATRIX.md"),
             temp_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
         ),
-        (
-            workspace.path("docs/DOCS_GRAPH.toml"),
-            temp_root.join("DOCS_GRAPH.toml"),
-        ),
+        (workspace.path("docs/DOCS_GRAPH.toml"), temp_root.join("DOCS_GRAPH.toml")),
     ] {
         if read_utf8(&actual)? != read_utf8(&expected)? {
             errors.push(format!(
@@ -637,10 +586,7 @@ pub(super) fn docs_check_root_pollution(
     if offenders.is_empty() {
         return success_line("root-pollution: OK");
     }
-    failure_lines(
-        "root-pollution: forbidden repo-root outputs detected",
-        &offenders,
-    )
+    failure_lines("root-pollution: forbidden repo-root outputs detected", &offenders)
 }
 
 pub(super) fn docs_check_doc_major_depth(
@@ -653,10 +599,7 @@ pub(super) fn docs_check_doc_major_depth(
         ("scope", Regex::new(r"(?mi)^##\s+Scope:?\s*$")?),
         ("contracts", Regex::new(r"(?mi)^##\s+Contracts:?\s*$")?),
         ("examples", Regex::new(r"(?mi)^##\s+Examples:?\s*$")?),
-        (
-            "failure modes",
-            Regex::new(r"(?mi)^##\s+Failure modes:?\s*$")?,
-        ),
+        ("failure modes", Regex::new(r"(?mi)^##\s+Failure modes:?\s*$")?),
     ]);
     let mut errors = Vec::new();
     for rel in [

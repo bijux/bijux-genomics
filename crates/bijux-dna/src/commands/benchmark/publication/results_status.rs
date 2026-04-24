@@ -24,19 +24,12 @@ pub(super) fn write_corpus_fastq_results_status(
     let contracts = benchmark_publication_contracts(cwd, explicit_config, corpus_id)?;
     let report = audit_published_results(cwd, workspace, docs_root, corpus_id, &contracts)?;
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
-    let json_path = docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "results-status.json",
-    ));
-    fs::write(
-        &json_path,
-        format!("{}\n", serde_json::to_string_pretty(&report)?),
-    )
-    .with_context(|| format!("write {}", json_path.display()))?;
-    let markdown_path = docs_root.join(publication_artifact_file_name(
-        corpus_id,
-        "results-status.md",
-    ));
+    let json_path =
+        docs_root.join(publication_artifact_file_name(corpus_id, "results-status.json"));
+    fs::write(&json_path, format!("{}\n", serde_json::to_string_pretty(&report)?))
+        .with_context(|| format!("write {}", json_path.display()))?;
+    let markdown_path =
+        docs_root.join(publication_artifact_file_name(corpus_id, "results-status.md"));
     fs::write(&markdown_path, render_published_results_markdown(&report))
         .with_context(|| format!("write {}", markdown_path.display()))?;
     Ok(())
@@ -66,14 +59,8 @@ pub(super) fn audit_published_results(
                     .is_file()
             })
             .count(),
-        complete_stage_count: stages
-            .iter()
-            .filter(|stage| stage.status == "complete")
-            .count(),
-        incomplete_stage_count: stages
-            .iter()
-            .filter(|stage| stage.status != "complete")
-            .count(),
+        complete_stage_count: stages.iter().filter(|stage| stage.status == "complete").count(),
+        incomplete_stage_count: stages.iter().filter(|stage| stage.status != "complete").count(),
         issue_count: stages.iter().map(|stage| stage.issue_count).sum(),
         stages,
     })
@@ -94,10 +81,7 @@ pub(super) fn audit_published_results_stage(
             &mut issues,
             &contract.stage_id,
             "missing-published-summary",
-            format!(
-                "missing {}",
-                relative_to_repo_root(&summary_path, repo_root)
-            ),
+            format!("missing {}", relative_to_repo_root(&summary_path, repo_root)),
         );
         return Ok(PublishedResultsStageReport {
             stage_id: contract.stage_id.clone(),
@@ -113,10 +97,8 @@ pub(super) fn audit_published_results_stage(
     }
 
     let summary = load_json_value(&summary_path)?;
-    let Some(summary_corpus_root) = summary
-        .get("corpus_root")
-        .and_then(serde_json::Value::as_str)
-        .map(PathBuf::from)
+    let Some(summary_corpus_root) =
+        summary.get("corpus_root").and_then(serde_json::Value::as_str).map(PathBuf::from)
     else {
         append_stage_result_issue(
             &mut issues,
@@ -235,9 +217,7 @@ pub(super) fn audit_published_results_stage(
                 "run-manifest-stage-id-drift",
                 format!(
                     "run_manifest stage_id={:?}",
-                    run_manifest
-                        .get("stage_id")
-                        .and_then(|value| value.as_str())
+                    run_manifest.get("stage_id").and_then(|value| value.as_str())
                 ),
             );
         }
@@ -248,9 +228,7 @@ pub(super) fn audit_published_results_stage(
                 "run-manifest-scenario-id-drift",
                 format!(
                     "run_manifest scenario_id={:?}",
-                    run_manifest
-                        .get("scenario_id")
-                        .and_then(|value| value.as_str())
+                    run_manifest.get("scenario_id").and_then(|value| value.as_str())
                 ),
             );
         }
@@ -266,11 +244,7 @@ pub(super) fn audit_published_results_stage(
                 ),
             );
         }
-        if run_manifest
-            .get("dry_run")
-            .and_then(serde_json::Value::as_bool)
-            .unwrap_or(false)
-        {
+        if run_manifest.get("dry_run").and_then(serde_json::Value::as_bool).unwrap_or(false) {
             append_stage_result_issue(
                 &mut issues,
                 &contract.stage_id,
@@ -278,34 +252,21 @@ pub(super) fn audit_published_results_stage(
                 "run_manifest recorded dry_run=true".to_string(),
             );
         }
-        if run_manifest
-            .get("sample_limit")
-            .is_some_and(|value| !value.is_null())
-        {
+        if run_manifest.get("sample_limit").is_some_and(|value| !value.is_null()) {
             append_stage_result_issue(
                 &mut issues,
                 &contract.stage_id,
                 "run-manifest-sample-limit",
-                format!(
-                    "run_manifest sample_limit={:?}",
-                    run_manifest.get("sample_limit")
-                ),
+                format!("run_manifest sample_limit={:?}", run_manifest.get("sample_limit")),
             );
         }
-        if run_manifest
-            .get("samples_failed")
-            .and_then(serde_json::Value::as_i64)
-            .unwrap_or(0)
-            != 0
+        if run_manifest.get("samples_failed").and_then(serde_json::Value::as_i64).unwrap_or(0) != 0
         {
             append_stage_result_issue(
                 &mut issues,
                 &contract.stage_id,
                 "run-manifest-sample-failures",
-                format!(
-                    "run_manifest samples_failed={:?}",
-                    run_manifest.get("samples_failed")
-                ),
+                format!("run_manifest samples_failed={:?}", run_manifest.get("samples_failed")),
             );
         }
 
@@ -315,11 +276,7 @@ pub(super) fn audit_published_results_stage(
             .map_or_else(|| selected_run_root.clone(), Path::to_path_buf);
         let mut missing_report_count = 0usize;
         let mut tool_roster_drift_samples = Vec::new();
-        for run in run_manifest
-            .get("runs")
-            .and_then(|value| value.as_array())
-            .into_iter()
-            .flatten()
+        for run in run_manifest.get("runs").and_then(|value| value.as_array()).into_iter().flatten()
         {
             let Some(report_json) = run.get("report_json").and_then(|value| value.as_str()) else {
                 missing_report_count += 1;
@@ -348,12 +305,8 @@ pub(super) fn audit_published_results_stage(
             );
         }
         if !tool_roster_drift_samples.is_empty() {
-            let preview = tool_roster_drift_samples
-                .iter()
-                .take(3)
-                .cloned()
-                .collect::<Vec<_>>()
-                .join("; ");
+            let preview =
+                tool_roster_drift_samples.iter().take(3).cloned().collect::<Vec<_>>().join("; ");
             let detail = if tool_roster_drift_samples.len() > 3 {
                 format!("{preview} (+{} more)", tool_roster_drift_samples.len() - 3)
             } else {
@@ -375,17 +328,12 @@ pub(super) fn audit_published_results_stage(
         );
     }
 
-    let newest_available_run_root = selection
-        .newest_available_path
-        .unwrap_or_else(|| selected_run_root.clone());
+    let newest_available_run_root =
+        selection.newest_available_path.unwrap_or_else(|| selected_run_root.clone());
     let selected_run_root_is_newest = newest_available_run_root == selected_run_root;
     Ok(PublishedResultsStageReport {
         stage_id: contract.stage_id.clone(),
-        status: if issues.is_empty() {
-            "complete".to_string()
-        } else {
-            "incomplete".to_string()
-        },
+        status: if issues.is_empty() { "complete".to_string() } else { "incomplete".to_string() },
         issue_count: issues.len(),
         reported_run_root: reported_run_root.display().to_string(),
         selected_run_root: selected_run_root.display().to_string(),
@@ -403,22 +351,10 @@ pub(super) fn render_published_results_markdown(report: &PublishedResultsStatusR
     let mut lines = vec![
         format!("# `{}` published result mirror status", report.corpus_id),
         String::new(),
-        format!(
-            "- Governed publication stages: `{}`",
-            report.applicable_stage_count
-        ),
-        format!(
-            "- Published stages audited: `{}`",
-            report.published_stage_count
-        ),
-        format!(
-            "- Complete mirrored stages: `{}`",
-            report.complete_stage_count
-        ),
-        format!(
-            "- Incomplete mirrored stages: `{}`",
-            report.incomplete_stage_count
-        ),
+        format!("- Governed publication stages: `{}`", report.applicable_stage_count),
+        format!("- Published stages audited: `{}`", report.published_stage_count),
+        format!("- Complete mirrored stages: `{}`", report.complete_stage_count),
+        format!("- Incomplete mirrored stages: `{}`", report.incomplete_stage_count),
         format!("- Mirror issues: `{}`", report.issue_count),
         String::new(),
         "## Stage status".to_string(),
@@ -430,10 +366,7 @@ pub(super) fn render_published_results_markdown(report: &PublishedResultsStatusR
             stage.stage_id, stage.status, stage.issue_count
         ));
         if !stage.selected_run_root.is_empty() {
-            lines.push(format!(
-                "  - selected run root: `{}`",
-                stage.selected_run_root
-            ));
+            lines.push(format!("  - selected run root: `{}`", stage.selected_run_root));
         }
         if !stage.newest_available_run_root.is_empty() {
             lines.push(format!(

@@ -61,9 +61,5 @@ pub(super) struct CorpusRunManifest {
 
 #[derive(Debug, Clone)]
 pub(super) enum PostSuccessAction {
-    PromoteAndPruneSortmernaCache {
-        out_root: PathBuf,
-        sample_id: String,
-        rrna_bundle_id: String,
-    },
+    PromoteAndPruneSortmernaCache { out_root: PathBuf, sample_id: String, rrna_bundle_id: String },
 }

@@ -28,9 +28,7 @@ pub(super) fn examples_generate_index(
     }
     let mut rows = Vec::new();
     for example_toml in glob_paths(workspace, "examples/**/example.toml")? {
-        let example_dir = example_toml
-            .parent()
-            .context("example.toml without parent")?;
+        let example_dir = example_toml.parent().context("example.toml without parent")?;
         let rel = workspace.rel(example_dir).to_string_lossy().to_string();
         if rel.starts_with("examples/_template") {
             continue;
@@ -40,22 +38,13 @@ pub(super) fn examples_generate_index(
             .get("id")
             .and_then(TomlValue::as_str)
             .unwrap_or_else(|| {
-                example_dir
-                    .file_name()
-                    .and_then(|value| value.to_str())
-                    .unwrap_or("unknown")
+                example_dir.file_name().and_then(|value| value.to_str()).unwrap_or("unknown")
             })
             .to_string();
-        let domain = data
-            .get("domain")
-            .and_then(TomlValue::as_str)
-            .unwrap_or("unknown")
-            .to_string();
-        let corpus = data
-            .get("corpus_required")
-            .and_then(TomlValue::as_str)
-            .unwrap_or("none")
-            .to_string();
+        let domain =
+            data.get("domain").and_then(TomlValue::as_str).unwrap_or("unknown").to_string();
+        let corpus =
+            data.get("corpus_required").and_then(TomlValue::as_str).unwrap_or("none").to_string();
         let outputs = data
             .get("expected_outputs")
             .and_then(TomlValue::as_array)
@@ -80,11 +69,7 @@ pub(super) fn examples_generate_index(
         if outputs.is_empty() {
             lines.push("      - none".to_string());
         } else {
-            lines.extend(
-                outputs
-                    .into_iter()
-                    .map(|output| format!("      - {output}")),
-            );
+            lines.extend(outputs.into_iter().map(|output| format!("      - {output}")));
         }
         lines.push(format!("    path: {rel}"));
     }
@@ -99,9 +84,7 @@ pub(super) fn examples_check_index(
     ensure_help_only("check-index", args)?;
     let index_path = workspace.path("examples/index.yaml");
     if !index_path.is_file() {
-        return Ok(OpsCommandOutcome::failure(
-            "examples index missing: examples/index.yaml\n",
-        ));
+        return Ok(OpsCommandOutcome::failure("examples index missing: examples/index.yaml\n"));
     }
     let raw = read_utf8(&index_path)?;
     if !raw.starts_with("# GENERATED FILE - DO NOT EDIT\n") {
@@ -110,10 +93,8 @@ pub(super) fn examples_check_index(
         ));
     }
     let temp = temp_subdir(workspace, "examples-index")?;
-    let outcome = examples_generate_index(
-        workspace,
-        &["--out".to_string(), temp.display().to_string()],
-    )?;
+    let outcome =
+        examples_generate_index(workspace, &["--out".to_string(), temp.display().to_string()])?;
     if !outcome.is_success() {
         return Ok(outcome);
     }
@@ -149,11 +130,8 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
     let example_dir = find_example_dir(workspace, example_id)?
         .ok_or_else(|| anyhow!("unknown example id: {example_id}"))?;
     let example_toml: TomlValue = toml::from_str(&read_utf8(&example_dir.join("example.toml"))?)?;
-    let corpus_id = example_toml
-        .get("corpus_id")
-        .and_then(TomlValue::as_str)
-        .unwrap_or_default()
-        .to_string();
+    let corpus_id =
+        example_toml.get("corpus_id").and_then(TomlValue::as_str).unwrap_or_default().to_string();
     let mini_supported = example_toml
         .get("mini_supported")
         .and_then(TomlValue::as_bool)
@@ -164,10 +142,7 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
             workspace.rel(&example_dir.join("example.toml")).display()
         ));
     }
-    if !workspace
-        .path(&format!("examples/data/{corpus_id}"))
-        .is_dir()
-    {
+    if !workspace.path(&format!("examples/data/{corpus_id}")).is_dir() {
         return Err(anyhow!("example corpus missing: examples/data/{corpus_id}"));
     }
     let artifact_root = artifact_root_path(workspace)?;
@@ -182,10 +157,7 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
             )
         })?;
     }
-    fs::copy(
-        example_dir.join("golden/report.json"),
-        out_dir.join("golden_report.json"),
-    )?;
+    fs::copy(example_dir.join("golden/report.json"), out_dir.join("golden_report.json"))?;
     let iso_run_id = std::env::var("ISO_RUN_ID").unwrap_or_else(|_| "none".to_string());
     write_json_pretty(
         &out_dir.join("run_report.json"),
@@ -285,9 +257,7 @@ pub(super) fn examples_check_drift(
     }
     let example_dir = find_example_dir(workspace, example_id)?
         .ok_or_else(|| anyhow!("unknown example id: {example_id}"))?;
-    let art_dir = artifact_root_path(workspace)?
-        .join("examples")
-        .join(example_id);
+    let art_dir = artifact_root_path(workspace)?.join("examples").join(example_id);
     for file in ["plan.json", "explain.json"] {
         if read_utf8(&example_dir.join("golden").join(file))? != read_utf8(&art_dir.join(file))? {
             return Ok(OpsCommandOutcome::failure(format!(

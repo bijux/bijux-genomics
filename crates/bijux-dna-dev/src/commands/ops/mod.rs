@@ -86,35 +86,20 @@ fn ci_test_env(workspace: &Workspace, slow: bool) -> Result<Vec<(String, String)
     let artifact_root = artifact_root_path(workspace)?;
     envs.push(("TZ".to_string(), "UTC".to_string()));
     envs.push(("LC_ALL".to_string(), "C".to_string()));
-    envs.push((
-        "TEST_TARGET_DIR".to_string(),
-        artifact_root.join("target").display().to_string(),
-    ));
-    envs.push((
-        "COV_TARGET_DIR".to_string(),
-        artifact_root.join("target").display().to_string(),
-    ));
-    envs.push((
-        "TEST_TMP_DIR".to_string(),
-        artifact_root.join("tmp/test").display().to_string(),
-    ));
+    envs.push(("TEST_TARGET_DIR".to_string(), artifact_root.join("target").display().to_string()));
+    envs.push(("COV_TARGET_DIR".to_string(), artifact_root.join("target").display().to_string()));
+    envs.push(("TEST_TMP_DIR".to_string(), artifact_root.join("tmp/test").display().to_string()));
     envs.push((
         "COV_TMP_DIR".to_string(),
         artifact_root.join("tmp/coverage").display().to_string(),
     ));
     envs.push((
         "TEST_PROFRAW_DIR".to_string(),
-        artifact_root
-            .join("coverage/profraw-test")
-            .display()
-            .to_string(),
+        artifact_root.join("coverage/profraw-test").display().to_string(),
     ));
     envs.push((
         "COV_PROFRAW_DIR".to_string(),
-        artifact_root
-            .join("coverage/profraw-coverage")
-            .display()
-            .to_string(),
+        artifact_root.join("coverage/profraw-coverage").display().to_string(),
     ));
     if slow {
         if let Ok(output) = std::process::Command::new("sh")
@@ -154,17 +139,12 @@ fn resolved_nextest_profile(slow: bool) -> Result<String> {
             return Ok(value);
         }
     }
-    let cfg: TomlValue = toml::from_str(&read_utf8(
-        &Workspace::resolve()?.path("configs/coverage/runner.toml"),
-    )?)?;
+    let cfg: TomlValue =
+        toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
     if slow {
         return Ok("slow-integration".to_string());
     }
-    Ok(cfg
-        .get("nextest_profile")
-        .and_then(TomlValue::as_str)
-        .unwrap_or("ci")
-        .to_string())
+    Ok(cfg.get("nextest_profile").and_then(TomlValue::as_str).unwrap_or("ci").to_string())
 }
 
 fn resolved_nextest_threads(slow: bool) -> Result<String> {
@@ -176,14 +156,9 @@ fn resolved_nextest_threads(slow: bool) -> Result<String> {
     if slow {
         return Ok("8".to_string());
     }
-    let cfg: TomlValue = toml::from_str(&read_utf8(
-        &Workspace::resolve()?.path("configs/coverage/runner.toml"),
-    )?)?;
-    Ok(cfg
-        .get("test_threads")
-        .and_then(TomlValue::as_integer)
-        .unwrap_or(1)
-        .to_string())
+    let cfg: TomlValue =
+        toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
+    Ok(cfg.get("test_threads").and_then(TomlValue::as_integer).unwrap_or(1).to_string())
 }
 
 fn resolved_run_ignored(slow: bool) -> Result<String> {
@@ -195,32 +170,23 @@ fn resolved_run_ignored(slow: bool) -> Result<String> {
     if slow {
         return Ok("--run-ignored all".to_string());
     }
-    let cfg: TomlValue = toml::from_str(&read_utf8(
-        &Workspace::resolve()?.path("configs/coverage/runner.toml"),
-    )?)?;
-    Ok(
-        if cfg
-            .get("run_ignored")
-            .and_then(TomlValue::as_bool)
-            .unwrap_or(true)
-        {
-            "--run-ignored all".to_string()
-        } else {
-            String::new()
-        },
-    )
+    let cfg: TomlValue =
+        toml::from_str(&read_utf8(&Workspace::resolve()?.path("configs/coverage/runner.toml"))?)?;
+    Ok(if cfg.get("run_ignored").and_then(TomlValue::as_bool).unwrap_or(true) {
+        "--run-ignored all".to_string()
+    } else {
+        String::new()
+    })
 }
 
 fn read_coverage_runner_flag(workspace: &Workspace, key: &str, flag: &str) -> Result<String> {
     let cfg: TomlValue =
         toml::from_str(&read_utf8(&workspace.path("configs/coverage/runner.toml"))?)?;
-    Ok(
-        if cfg.get(key).and_then(TomlValue::as_bool).unwrap_or(false) {
-            flag.to_string()
-        } else {
-            String::new()
-        },
-    )
+    Ok(if cfg.get(key).and_then(TomlValue::as_bool).unwrap_or(false) {
+        flag.to_string()
+    } else {
+        String::new()
+    })
 }
 
 fn set_assets_readonly(workspace: &Workspace, readonly: bool) -> Result<()> {
@@ -228,9 +194,8 @@ fn set_assets_readonly(workspace: &Workspace, readonly: bool) -> Result<()> {
     {
         use std::os::unix::fs::PermissionsExt;
 
-        for entry in WalkDir::new(workspace.path("assets"))
-            .into_iter()
-            .filter_map(std::result::Result::ok)
+        for entry in
+            WalkDir::new(workspace.path("assets")).into_iter().filter_map(std::result::Result::ok)
         {
             let metadata = std::fs::metadata(entry.path())
                 .with_context(|| format!("read metadata {}", entry.path().display()))?;
@@ -290,11 +255,7 @@ fn rg_lines(workspace: &Workspace, path: &str, pattern: &str) -> Result<Vec<Stri
     let outcome = run_program(
         workspace,
         "rg",
-        &[
-            "-n".to_string(),
-            pattern.to_string(),
-            workspace.path(path).display().to_string(),
-        ],
+        &["-n".to_string(), pattern.to_string(), workspace.path(path).display().to_string()],
     )?;
     if !outcome.is_success() {
         return Ok(Vec::new());
@@ -325,16 +286,9 @@ fn ensure_generated_header_path(
     path: &Path,
     errors: &mut Vec<String>,
 ) -> Result<()> {
-    let head = read_utf8(path)?
-        .lines()
-        .take(6)
-        .collect::<Vec<_>>()
-        .join("\n");
+    let head = read_utf8(path)?.lines().take(6).collect::<Vec<_>>().join("\n");
     if !head.contains("GENERATED FILE - DO NOT EDIT") {
-        errors.push(format!(
-            "missing generated header in {}",
-            workspace.rel(path).display()
-        ));
+        errors.push(format!("missing generated header in {}", workspace.rel(path).display()));
     }
     Ok(())
 }
@@ -350,11 +304,7 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
         "configs/ci/registry/tool_registry_vcf_downstream.toml",
     ] {
         let value: TomlValue = toml::from_str(&read_utf8(&workspace.path(rel))?)?;
-        let entries = value
-            .get("tools")
-            .and_then(TomlValue::as_array)
-            .cloned()
-            .unwrap_or_default();
+        let entries = value.get("tools").and_then(TomlValue::as_array).cloned().unwrap_or_default();
         for entry in entries {
             let Some(tool_id) = entry.get("id").and_then(TomlValue::as_str) else {
                 continue;
@@ -413,10 +363,8 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                 };
                 let report_path = PathBuf::from(report_path);
                 if report_path.is_file() {
-                    self_reports.insert(
-                        tool.to_string(),
-                        serde_json::from_str(&read_utf8(&report_path)?)?,
-                    );
+                    self_reports
+                        .insert(tool.to_string(), serde_json::from_str(&read_utf8(&report_path)?)?);
                 }
             }
         }
@@ -459,14 +407,8 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             .join(", ");
         lines.push(format!(
             "- `{tool_id}` ({}) : {}",
-            info.get("status")
-                .and_then(Value::as_str)
-                .unwrap_or("unknown"),
-            if stages.is_empty() {
-                "-".to_string()
-            } else {
-                stages
-            }
+            info.get("status").and_then(Value::as_str).unwrap_or("unknown"),
+            if stages.is_empty() { "-".to_string() } else { stages }
         ));
     }
     lines.extend([
@@ -492,18 +434,12 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             .unwrap_or_else(|| row.get("version").and_then(Value::as_str).unwrap_or("-"));
         lines.push(format!(
             "| `{tool_id}` | `{}` | `{}` | `{}` | `{}` | {} | `{}` |",
-            row.get("purpose")
-                .and_then(Value::as_str)
-                .unwrap_or("unknown"),
+            row.get("purpose").and_then(Value::as_str).unwrap_or("unknown"),
             if stages.is_empty() { "-" } else { &stages },
-            row.get("container_ref")
-                .and_then(Value::as_str)
-                .unwrap_or("-"),
+            row.get("container_ref").and_then(Value::as_str).unwrap_or("-"),
             version,
             row.get("citation").and_then(Value::as_str).unwrap_or("TBD"),
-            row.get("status")
-                .and_then(Value::as_str)
-                .unwrap_or("unknown"),
+            row.get("status").and_then(Value::as_str).unwrap_or("unknown"),
         ));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))
@@ -538,10 +474,7 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
         if !path.is_dir() {
             continue;
         }
-        let domain = path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .unwrap_or("unknown");
+        let domain = path.file_name().and_then(|value| value.to_str()).unwrap_or("unknown");
         let stages = count_schema_filtered(path.join("stages"))?;
         let tools = count_schema_filtered(path.join("tools"))?;
         let fixtures = glob_count(path.join("fixtures"), "*.txt")?;
@@ -553,11 +486,7 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
 fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
     let owners_path = workspace.path("configs/OWNERS.toml");
     let owners: TomlValue = toml::from_str(&read_utf8(&owners_path)?)?;
-    let rules = owners
-        .get("rule")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let rules = owners.get("rule").and_then(TomlValue::as_array).cloned().unwrap_or_default();
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-repo-root-map -->".to_string(),
@@ -597,14 +526,7 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
             .transpose()?
             .flatten()
             .unwrap_or_else(|| "-".to_string());
-        let owner = owner_for(
-            &rules,
-            if kind == "dir" {
-                format!("{rel}/")
-            } else {
-                rel.clone()
-            },
-        );
+        let owner = owner_for(&rules, if kind == "dir" { format!("{rel}/") } else { rel.clone() });
         lines.push(format!("| `{rel}` | `{kind}` | `{owner}` | {purpose} |"));
     }
     lines.extend([
@@ -668,11 +590,7 @@ fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()
     let mut rows = profiles
         .into_iter()
         .map(|profile| {
-            let domain = profile
-                .split("-to-")
-                .next()
-                .unwrap_or("unknown")
-                .to_string();
+            let domain = profile.split("-to-").next().unwrap_or("unknown").to_string();
             let stability = if profile.contains("reference") || profile.contains("default") {
                 "stable"
             } else {
@@ -740,9 +658,7 @@ fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
 }
 
 fn write_checksum_manifest(manifest_path: &Path, rel_paths: &[&str]) -> Result<()> {
-    let base = manifest_path
-        .parent()
-        .context("checksum manifest path missing parent directory")?;
+    let base = manifest_path.parent().context("checksum manifest path missing parent directory")?;
     let mut lines = Vec::new();
     for rel in rel_paths {
         let path = base.join(rel);
@@ -832,10 +748,7 @@ fn replace_dir(src: &Path, dst: &Path) -> Result<()> {
 
 fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
     bijux_dna_infra::ensure_dir(dst).with_context(|| format!("create {}", dst.display()))?;
-    for entry in WalkDir::new(src)
-        .into_iter()
-        .filter_map(std::result::Result::ok)
-    {
+    for entry in WalkDir::new(src).into_iter().filter_map(std::result::Result::ok) {
         let path = entry.path();
         let rel = path.strip_prefix(src).context("strip copy source prefix")?;
         if rel.as_os_str().is_empty() {
@@ -904,11 +817,7 @@ fn config_snapshot_inputs_changed(workspace: &Workspace) -> Result<bool> {
         return Ok(true);
     }
 
-    let mut working_args = vec![
-        "diff".to_string(),
-        "--name-only".to_string(),
-        "--".to_string(),
-    ];
+    let mut working_args = vec!["diff".to_string(), "--name-only".to_string(), "--".to_string()];
     working_args.extend(watched.iter().map(|item| (*item).to_string()));
     let working = run_program(workspace, "git", &working_args)?;
     Ok(!working.is_success() || !working.stdout.trim().is_empty())
@@ -950,10 +859,9 @@ fn read_purpose_line(path: &Path) -> Result<Option<String>> {
     if !path.is_file() {
         return Ok(None);
     }
-    Ok(read_utf8(path)?.lines().find_map(|line| {
-        line.strip_prefix("Purpose:")
-            .map(|value| value.trim().to_string())
-    }))
+    Ok(read_utf8(path)?
+        .lines()
+        .find_map(|line| line.strip_prefix("Purpose:").map(|value| value.trim().to_string())))
 }
 
 fn owner_for(rules: &[TomlValue], rel: String) -> String {
@@ -961,12 +869,8 @@ fn owner_for(rules: &[TomlValue], rel: String) -> String {
         .iter()
         .filter_map(|rule| {
             let prefix = rule.get("prefix").and_then(TomlValue::as_str)?;
-            rel.starts_with(prefix).then(|| {
-                rule.get("owner")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or("-")
-                    .to_string()
-            })
+            rel.starts_with(prefix)
+                .then(|| rule.get("owner").and_then(TomlValue::as_str).unwrap_or("-").to_string())
         })
         .collect::<Vec<_>>();
     if hits.len() == 1 {
@@ -978,11 +882,8 @@ fn owner_for(rules: &[TomlValue], rel: String) -> String {
 
 fn lab_config(workspace: &Workspace) -> Result<TomlValue> {
     let path = PathBuf::from(env_or_default("CONFIG_PATH", "configs/lab/config.toml"));
-    let resolved = if path.is_absolute() {
-        path
-    } else {
-        workspace.path(path.to_string_lossy().as_ref())
-    };
+    let resolved =
+        if path.is_absolute() { path } else { workspace.path(path.to_string_lossy().as_ref()) };
     if !resolved.is_file() {
         return Err(anyhow!(
             "config not found: {}\ncopy configs/lab/config_example.toml to configs/lab/config.toml",
@@ -1076,29 +977,21 @@ fn resolve_optional_output_arg(
 ) -> Result<PathBuf> {
     match args {
         [] => Ok(workspace.path(default_rel)),
-        [flag] if flag == "--help" || flag == "-h" => Err(anyhow!(
-            "Usage: cargo run -p bijux-dna-dev -- tooling run {command} -- [out]"
-        )),
+        [flag] if flag == "--help" || flag == "-h" => {
+            Err(anyhow!("Usage: cargo run -p bijux-dna-dev -- tooling run {command} -- [out]"))
+        }
         [out] => Ok(resolve_workspace_path(workspace, out)),
-        _ => Err(anyhow!(
-            "Usage: cargo run -p bijux-dna-dev -- tooling run {command} -- [out]"
-        )),
+        _ => Err(anyhow!("Usage: cargo run -p bijux-dna-dev -- tooling run {command} -- [out]")),
     }
 }
 
 fn free_space_gb(path: &Path) -> Result<u64> {
     let outcome = run_program(
-        &Workspace {
-            root: path.canonicalize().unwrap_or_else(|_| path.to_path_buf()),
-        },
+        &Workspace { root: path.canonicalize().unwrap_or_else(|_| path.to_path_buf()) },
         "df",
         &["-Pk".to_string(), path.display().to_string()],
     )?;
-    let line = outcome
-        .stdout
-        .lines()
-        .nth(1)
-        .context("parse df output row")?;
+    let line = outcome.stdout.lines().nth(1).context("parse df output row")?;
     let available_kb = line
         .split_whitespace()
         .nth(3)
@@ -1136,22 +1029,13 @@ fn trim_newline(raw: &str) -> String {
 fn benchmark_sync_source_payload(workspace: &Workspace) -> Result<Value> {
     let benchmark_workspace = load_benchmark_workspace_paths(workspace)?;
     let source_commit = trim_newline(
-        &run_program(
-            workspace,
-            "git",
-            &["rev-parse".to_string(), "HEAD".to_string()],
-        )?
-        .stdout,
+        &run_program(workspace, "git", &["rev-parse".to_string(), "HEAD".to_string()])?.stdout,
     );
     let source_branch = trim_newline(
         &run_program(
             workspace,
             "git",
-            &[
-                "rev-parse".to_string(),
-                "--abbrev-ref".to_string(),
-                "HEAD".to_string(),
-            ],
+            &["rev-parse".to_string(), "--abbrev-ref".to_string(), "HEAD".to_string()],
         )?
         .stdout,
     );
@@ -1221,18 +1105,10 @@ fn benchmark_sync_revision(workspace: &Workspace, host: &str, repo_dir: &str) ->
 
 fn benchmark_sync_profile_path(path: &Path, profile: &str, field: &str) -> Result<Option<String>> {
     let value: TomlValue = toml::from_str(&read_utf8(path)?)?;
-    let profiles = value
-        .get("profiles")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let profiles = value.get("profiles").and_then(TomlValue::as_array).cloned().unwrap_or_default();
     Ok(profiles.into_iter().find_map(|row| {
         (row.get("name").and_then(TomlValue::as_str) == Some(profile))
-            .then(|| {
-                row.get(field)
-                    .and_then(TomlValue::as_str)
-                    .map(ToOwned::to_owned)
-            })
+            .then(|| row.get(field).and_then(TomlValue::as_str).map(ToOwned::to_owned))
             .flatten()
     }))
 }
@@ -1278,12 +1154,9 @@ fn load_benchmark_workspace_paths(workspace: &Workspace) -> Result<BenchmarkWork
     let value: TomlValue =
         toml::from_str(&read_utf8(&path)?).with_context(|| format!("parse {}", path.display()))?;
     let workspace_table = value.get("workspace").and_then(TomlValue::as_table);
-    let local = workspace_table
-        .and_then(|table| table.get("local"))
-        .and_then(TomlValue::as_table);
-    let remote = workspace_table
-        .and_then(|table| table.get("remote"))
-        .and_then(TomlValue::as_table);
+    let local = workspace_table.and_then(|table| table.get("local")).and_then(TomlValue::as_table);
+    let remote =
+        workspace_table.and_then(|table| table.get("remote")).and_then(TomlValue::as_table);
     let sync_defaults = workspace_table
         .and_then(|table| table.get("sync"))
         .and_then(TomlValue::as_table)
@@ -1367,11 +1240,7 @@ fn load_benchmark_sync_profiles(path: &Path) -> Result<Vec<BenchmarkSyncProfile>
         return Ok(Vec::new());
     }
     let value: TomlValue = toml::from_str(&read_utf8(path)?)?;
-    let profiles = value
-        .get("profiles")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let profiles = value.get("profiles").and_then(TomlValue::as_array).cloned().unwrap_or_default();
     Ok(profiles
         .into_iter()
         .filter_map(|row| {
@@ -1448,22 +1317,11 @@ fn benchmark_workspace_lookup<'a>(
 }
 
 fn validate_benchmark_sync_roots(benchmark_workspace: &BenchmarkWorkspacePaths) -> Result<()> {
-    let remote_repo_root = benchmark_workspace
-        .remote_repo_root
-        .as_deref()
-        .map(PathBuf::from);
-    let remote_cache_root = benchmark_workspace
-        .remote_cache_root
-        .as_deref()
-        .map(PathBuf::from);
-    let local_results_root = benchmark_workspace
-        .local_results_root
-        .as_deref()
-        .map(PathBuf::from);
-    let local_cache_mirror_root = benchmark_workspace
-        .local_cache_mirror_root
-        .as_deref()
-        .map(PathBuf::from);
+    let remote_repo_root = benchmark_workspace.remote_repo_root.as_deref().map(PathBuf::from);
+    let remote_cache_root = benchmark_workspace.remote_cache_root.as_deref().map(PathBuf::from);
+    let local_results_root = benchmark_workspace.local_results_root.as_deref().map(PathBuf::from);
+    let local_cache_mirror_root =
+        benchmark_workspace.local_cache_mirror_root.as_deref().map(PathBuf::from);
 
     if let (Some(repo_root), Some(cache_root)) = (&remote_repo_root, &remote_cache_root) {
         if repo_root == cache_root
@@ -1518,16 +1376,10 @@ fn benchmark_remote_layout_candidates(
 ) -> Vec<(String, String)> {
     let mut candidates = Vec::new();
     if let Some(results_root) = benchmark_workspace.remote_results_root.as_deref() {
-        candidates.push((
-            "canonical-results-root".to_string(),
-            results_root.to_string(),
-        ));
+        candidates.push(("canonical-results-root".to_string(), results_root.to_string()));
     }
     if let Some(reference_root) = benchmark_workspace.remote_reference_root.as_deref() {
-        candidates.push((
-            "canonical-reference-root".to_string(),
-            reference_root.to_string(),
-        ));
+        candidates.push(("canonical-reference-root".to_string(), reference_root.to_string()));
     }
     if let Some(cache_root) = benchmark_workspace.remote_cache_root.as_deref() {
         let cache_path = Path::new(cache_root);
@@ -1581,10 +1433,7 @@ fn remote_path_exists(workspace: &Workspace, host: &str, remote_path: &str) -> R
     let outcome = run_program(
         workspace,
         "ssh",
-        &[
-            host.to_string(),
-            format!("test -e '{}'", shell_single_quote(remote_path)),
-        ],
+        &[host.to_string(), format!("test -e '{}'", shell_single_quote(remote_path))],
     )?;
     Ok(outcome.is_success())
 }
@@ -1604,11 +1453,7 @@ fn pull_benchmark_sync_tree(
     let outcome = run_program(
         workspace,
         "rsync",
-        &[
-            "-az".to_string(),
-            format!("{host}:{remote_dir}/"),
-            format!("{}/", local_dir.display()),
-        ],
+        &["-az".to_string(), format!("{host}:{remote_dir}/"), format!("{}/", local_dir.display())],
     )?;
     if !outcome.is_success() {
         return Err(anyhow!(
@@ -1632,11 +1477,7 @@ fn pull_benchmark_sync_path(
     let outcome = run_program(
         workspace,
         "rsync",
-        &[
-            "-az".to_string(),
-            format!("{host}:{remote_path}"),
-            local_path.display().to_string(),
-        ],
+        &["-az".to_string(), format!("{host}:{remote_path}"), local_path.display().to_string()],
     )?;
     if !outcome.is_success() {
         return Err(anyhow!(
@@ -1703,18 +1544,9 @@ data_manifest_globs = ["benchmark/fastq.screen_taxonomy/read_screening/read_scre
         let profile = benchmark_sync_profile(&profiles, "pull-benchmark-publication")
             .context("missing sync profile")?;
 
-        assert_eq!(
-            profile.workspace_scope.as_deref(),
-            Some("benchmark-fastq-publication")
-        );
-        assert_eq!(
-            profile.pull_destination.as_deref(),
-            Some("local.results_root")
-        );
-        assert_eq!(
-            profile.remote_roots,
-            vec!["remote.results_root", "remote.extra_data_root"]
-        );
+        assert_eq!(profile.workspace_scope.as_deref(), Some("benchmark-fastq-publication"));
+        assert_eq!(profile.pull_destination.as_deref(), Some("local.results_root"));
+        assert_eq!(profile.remote_roots, vec!["remote.results_root", "remote.extra_data_root"]);
         assert_eq!(
             profile.data_manifest_globs,
             vec![
@@ -1757,20 +1589,12 @@ data_manifest_glob = ""
 "#,
         )?;
 
-        let workspace = Workspace {
-            root: temp.path().to_path_buf(),
-        };
+        let workspace = Workspace { root: temp.path().to_path_buf() };
         let paths = load_benchmark_workspace_paths(&workspace)?;
 
         assert_eq!(paths.local_results_root.as_deref(), Some("/tmp/results"));
-        assert_eq!(
-            paths.remote_repo_root.as_deref(),
-            Some("/opt/benchmark/repo")
-        );
-        assert_eq!(
-            paths.remote_results_root.as_deref(),
-            Some("/opt/benchmark/.cache/results")
-        );
+        assert_eq!(paths.remote_repo_root.as_deref(), Some("/opt/benchmark/repo"));
+        assert_eq!(paths.remote_results_root.as_deref(), Some("/opt/benchmark/.cache/results"));
         assert_eq!(paths.sync_default_pull_base.as_deref(), Some("/tmp/pulls"));
         Ok(())
     }
@@ -1779,10 +1603,7 @@ data_manifest_glob = ""
     fn config_string_reads_string_arrays_as_csv() {
         let value: TomlValue =
             toml::from_str("pipeline_ids = [\"one\", \"two\"]").expect("parse config");
-        assert_eq!(
-            config_string(&value, "pipeline_ids"),
-            Some("one,two".to_string())
-        );
+        assert_eq!(config_string(&value, "pipeline_ids"), Some("one,two".to_string()));
     }
 
     #[test]
@@ -1800,14 +1621,8 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
         std::env::remove_var("BIJUX_TEST_CORPUS_ROOT");
         std::env::remove_var("BIJUX_TEST_PIPELINE_A");
 
-        assert_eq!(
-            config_string(&value, "corpus_root"),
-            Some("/tmp/corpus".to_string())
-        );
-        assert_eq!(
-            config_string(&value, "pipeline_ids"),
-            Some("pipe-a,fixed".to_string())
-        );
+        assert_eq!(config_string(&value, "corpus_root"), Some("/tmp/corpus".to_string()));
+        assert_eq!(config_string(&value, "pipeline_ids"), Some("pipe-a,fixed".to_string()));
     }
 
     #[test]
@@ -1903,10 +1718,7 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
 
         let error = super::validate_benchmark_sync_roots(&workspace)
             .expect_err("expected invalid local cache mirror to fail");
-        assert!(
-            error.to_string().contains("local cache mirror"),
-            "unexpected error: {error}"
-        );
+        assert!(error.to_string().contains("local cache mirror"), "unexpected error: {error}");
     }
 
     #[test]
@@ -1947,10 +1759,7 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
 
     #[test]
     fn benchmark_corpus_dir_name_falls_back_to_generic_contract_name() {
-        assert_eq!(
-            benchmark_corpus_dir_name(&BenchmarkWorkspacePaths::default()),
-            "corpus"
-        );
+        assert_eq!(benchmark_corpus_dir_name(&BenchmarkWorkspacePaths::default()), "corpus");
     }
 
     #[test]

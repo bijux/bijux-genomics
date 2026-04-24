@@ -1,4 +1,14 @@
 
+use std::fmt::Write as _;
+
+fn suite_sha256_hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
+}
+
 fn deterministic_u32(
     stage: &str,
     tool: &str,
@@ -226,7 +236,7 @@ fn compute_comparability_hash(
     let bytes = serde_json::to_vec(&payload)?;
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(suite_sha256_hex(&hasher.finalize()))
 }
 
 fn evaluate_scientific_sufficiency(rows: &[RunRecordRow]) -> ScientificSufficiency {

@@ -15,10 +15,7 @@ pub(super) fn hpc_validate_frontend_constraints(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
-    if args
-        .iter()
-        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
-    {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
         return success_line(
             "Usage: cargo run -p bijux-dna-dev -- hpc run validate-frontend-constraints -- [--dry-run|--confirm]",
         );
@@ -35,32 +32,20 @@ pub(super) fn hpc_validate_frontend_constraints(
         return success_line("[dry-run] validate-frontend-constraints (pass --confirm to execute)");
     }
     let policy_path = PathBuf::from(std::env::var("POLICY_TOML").unwrap_or_else(|_| {
-        workspace
-            .path("configs/ci/tools/hpc_frontend_build_policy.toml")
-            .display()
-            .to_string()
+        workspace.path("configs/ci/tools/hpc_frontend_build_policy.toml").display().to_string()
     }));
-    let min_tmp_gb = std::env::var("MIN_TMP_GB")
-        .ok()
-        .and_then(|value| value.parse::<u64>().ok())
-        .unwrap_or(4);
-    let min_work_gb = std::env::var("MIN_WORK_GB")
-        .ok()
-        .and_then(|value| value.parse::<u64>().ok())
-        .unwrap_or(10);
-    let work_dir = std::env::var("WORK_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            std::env::var("ISO_ROOT").map_or_else(|_| workspace.path("artifacts"), PathBuf::from)
-        });
+    let min_tmp_gb =
+        std::env::var("MIN_TMP_GB").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(4);
+    let min_work_gb =
+        std::env::var("MIN_WORK_GB").ok().and_then(|value| value.parse::<u64>().ok()).unwrap_or(10);
+    let work_dir = std::env::var("WORK_DIR").map(PathBuf::from).unwrap_or_else(|_| {
+        std::env::var("ISO_ROOT").map_or_else(|_| workspace.path("artifacts"), PathBuf::from)
+    });
     let policy: TomlValue = toml::from_str(&read_utf8(&policy_path)?)?;
     let host = hostname(workspace)?;
     if host_matches_policy(
         &host,
-        policy
-            .get("compute_hostname_regex")
-            .and_then(TomlValue::as_str)
-            .unwrap_or_default(),
+        policy.get("compute_hostname_regex").and_then(TomlValue::as_str).unwrap_or_default(),
     )? {
         if std::env::var("CI").is_ok()
             || std::env::var("REQUIRE_FRONTEND").ok().as_deref() == Some("1")
@@ -71,10 +56,8 @@ pub(super) fn hpc_validate_frontend_constraints(
         }
         return success_line(format!("frontend constraints: SKIP (compute host {host})"));
     }
-    let frontend_pattern = policy
-        .get("frontend_hostname_regex")
-        .and_then(TomlValue::as_str)
-        .unwrap_or_default();
+    let frontend_pattern =
+        policy.get("frontend_hostname_regex").and_then(TomlValue::as_str).unwrap_or_default();
     if !frontend_pattern.is_empty() && !host_matches_policy(&host, frontend_pattern)? {
         if std::env::var("CI").is_ok()
             || std::env::var("REQUIRE_FRONTEND").ok().as_deref() == Some("1")
@@ -83,9 +66,7 @@ pub(super) fn hpc_validate_frontend_constraints(
                 "frontend constraints: host '{host}' does not match frontend pattern\n"
             )));
         }
-        return success_line(format!(
-            "frontend constraints: SKIP (host {host} not frontend)"
-        ));
+        return success_line(format!("frontend constraints: SKIP (host {host} not frontend)"));
     }
     let tmp_gb = free_space_gb(Path::new("/tmp"))?;
     let work_gb = free_space_gb(&work_dir)?;
@@ -125,10 +106,7 @@ pub(super) fn hpc_run_frontend_mini_e2e(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
-    if args
-        .iter()
-        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
-    {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
         return success_line(
             "Usage: cargo run -p bijux-dna-dev -- hpc run run-frontend-mini-e2e -- [--dry-run|--confirm]",
         );
@@ -150,35 +128,28 @@ pub(super) fn hpc_run_frontend_mini_e2e(
     }
     let run_id = std::env::var("ISO_RUN_ID")
         .unwrap_or_else(|_| Utc::now().format("%Y%m%dT%H%M%SZ").to_string());
-    let out_dir = std::env::var("OUT_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            artifact_root_path(workspace)
-                .unwrap_or_else(|_| workspace.path("artifacts"))
-                .join("hpc/frontend-mini-e2e")
-                .join(&run_id)
-        });
+    let out_dir = std::env::var("OUT_DIR").map(PathBuf::from).unwrap_or_else(|_| {
+        artifact_root_path(workspace)
+            .unwrap_or_else(|_| workspace.path("artifacts"))
+            .join("hpc/frontend-mini-e2e")
+            .join(&run_id)
+    });
     bijux_dna_infra::ensure_dir(&out_dir)?;
     let mut status = 0;
-    for (example_id, label) in [
-        ("vcf_downstream_vcf_full_mini", "vcf"),
-        ("fastq_edna_mini", "fastq"),
-    ] {
+    for (example_id, label) in
+        [("vcf_downstream_vcf_full_mini", "vcf"), ("fastq_edna_mini", "fastq")]
+    {
         let example_out = out_dir.join(label);
         bijux_dna_infra::ensure_dir(&example_out)?;
         let start = Utc::now();
-        let outcome = examples_run(
-            workspace,
-            &["--allow-non-isolate".to_string(), example_id.to_string()],
-        )?;
+        let outcome =
+            examples_run(workspace, &["--allow-non-isolate".to_string(), example_id.to_string()])?;
         write_utf8(&example_out.join("runner.stdout.log"), &outcome.stdout)?;
         write_utf8(&example_out.join("runner.stderr.log"), &outcome.stderr)?;
         if !outcome.is_success() {
             status = 1;
         }
-        let src = artifact_root_path(workspace)?
-            .join("examples")
-            .join(example_id);
+        let src = artifact_root_path(workspace)?.join("examples").join(example_id);
         for name in [
             "plan.json",
             "explain.json",
@@ -239,10 +210,7 @@ pub(super) fn hpc_benchmark_sync_pull(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
-    if args
-        .iter()
-        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
-    {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
         return success_line(
             "Usage: cargo run -p bijux-dna-dev -- hpc run benchmark-sync-pull -- [--dry-run|--confirm] [--include-profile <name>] [--exclude-profile <name>]",
         );
@@ -270,17 +238,13 @@ pub(super) fn hpc_benchmark_sync_pull(
                 index += 1;
             }
             "--include" | "--include-profile" => {
-                include_profile = args
-                    .get(index + 1)
-                    .context("missing value for include profile")?
-                    .clone();
+                include_profile =
+                    args.get(index + 1).context("missing value for include profile")?.clone();
                 index += 2;
             }
             "--exclude" | "--exclude-profile" => {
-                exclude_profile = args
-                    .get(index + 1)
-                    .context("missing value for exclude profile")?
-                    .clone();
+                exclude_profile =
+                    args.get(index + 1).context("missing value for exclude profile")?.clone();
                 index += 2;
             }
             other if other.starts_with("--include=") || other.starts_with("--include-profile=") => {
@@ -319,10 +283,8 @@ pub(super) fn hpc_benchmark_sync_pull(
         "workspace.sync.defaults.pull_base or workspace.local.results_root",
     )?;
     let pull_dest = env_or_default("BENCHMARK_SYNC_PULL_DEST", "");
-    let default_pull_mode = benchmark_workspace
-        .sync_default_pull_mode
-        .as_deref()
-        .unwrap_or("results");
+    let default_pull_mode =
+        benchmark_workspace.sync_default_pull_mode.as_deref().unwrap_or("results");
     let pull_mode = env_or_default("BENCHMARK_SYNC_MODE", default_pull_mode);
     let default_results_root = benchmark_workspace.remote_results_root.clone();
     let benchmark_results_root = env_or_contract(
@@ -342,24 +304,19 @@ pub(super) fn hpc_benchmark_sync_pull(
         default_corpus_root.as_deref(),
         "workspace.remote.corpus_root",
     )?;
-    let include_containers_manifest_default = if benchmark_workspace
-        .sync_default_include_containers_manifest
-        .unwrap_or(false)
-    {
-        "1"
-    } else {
-        "0"
-    };
+    let include_containers_manifest_default =
+        if benchmark_workspace.sync_default_include_containers_manifest.unwrap_or(false) {
+            "1"
+        } else {
+            "0"
+        };
     let include_containers_manifest = env_or_default(
         "BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST",
         include_containers_manifest_default,
     ) == "1";
     let data_manifest_glob = env_or_default(
         "BENCHMARK_SYNC_DATA_MANIFEST_GLOB",
-        benchmark_workspace
-            .sync_default_data_manifest_glob
-            .as_deref()
-            .unwrap_or(""),
+        benchmark_workspace.sync_default_data_manifest_glob.as_deref().unwrap_or(""),
     );
     let profiles_cfg = workspace.path("configs/hpc/benchmark_sync_profiles.toml");
     let mut pull_full_exclude = workspace.path("configs/hpc/rsync/pull-full-excludes.txt");
@@ -500,9 +457,7 @@ pub(super) fn hpc_benchmark_sync_pull(
                 &[
                     "-az".to_string(),
                     format!("{benchmark_host}:{benchmark_containers_root}/manifest/"),
-                    dest.join("bijux-dna-container/manifest")
-                        .display()
-                        .to_string(),
+                    dest.join("bijux-dna-container/manifest").display().to_string(),
                 ],
             )?;
             pulled_paths.push(format!("{benchmark_containers_root}/manifest/"));
@@ -518,9 +473,8 @@ pub(super) fn hpc_benchmark_sync_pull(
                 .filter(|value| !value.is_empty())
             {
                 let clean_rel = rel.trim_start_matches('/');
-                let target = dest
-                    .join(benchmark_corpus_dir_name(&benchmark_workspace))
-                    .join(clean_rel);
+                let target =
+                    dest.join(benchmark_corpus_dir_name(&benchmark_workspace)).join(clean_rel);
                 if let Some(parent) = target.parent() {
                     bijux_dna_infra::ensure_dir(parent)?;
                 }
@@ -546,10 +500,7 @@ pub(super) fn hpc_benchmark_sync_pull(
         &run_program(
             workspace,
             "ssh",
-            &[
-                benchmark_host.clone(),
-                "hostname -f 2>/dev/null || hostname".to_string(),
-            ],
+            &[benchmark_host.clone(), "hostname -f 2>/dev/null || hostname".to_string()],
         )?
         .stdout,
     );
@@ -587,10 +538,7 @@ pub(super) fn hpc_benchmark_sync_push(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
-    if args
-        .iter()
-        .any(|arg| matches!(arg.as_str(), "--help" | "-h"))
-    {
+    if args.iter().any(|arg| matches!(arg.as_str(), "--help" | "-h")) {
         return success_line(
             "Usage: cargo run -p bijux-dna-dev -- hpc run benchmark-sync-push -- [--dry-run|--confirm] [--exclude-profile <name>]",
         );
@@ -609,10 +557,8 @@ pub(super) fn hpc_benchmark_sync_push(
                 index += 1;
             }
             "--exclude" | "--exclude-profile" => {
-                exclude_profile = args
-                    .get(index + 1)
-                    .context("missing value for exclude profile")?
-                    .clone();
+                exclude_profile =
+                    args.get(index + 1).context("missing value for exclude profile")?.clone();
                 index += 2;
             }
             other if other.starts_with("--exclude=") || other.starts_with("--exclude-profile=") => {
@@ -643,31 +589,15 @@ pub(super) fn hpc_benchmark_sync_push(
         benchmark_workspace.remote_repo_root.as_deref(),
         "workspace.remote.repo_root",
     )?;
-    let clean_context_default = if benchmark_workspace
-        .sync_default_clean_context
-        .unwrap_or(true)
-    {
-        "1"
-    } else {
-        "0"
-    };
-    let allow_dirty_default = if benchmark_workspace
-        .sync_default_allow_dirty
-        .unwrap_or(false)
-    {
-        "1"
-    } else {
-        "0"
-    };
+    let clean_context_default =
+        if benchmark_workspace.sync_default_clean_context.unwrap_or(true) { "1" } else { "0" };
+    let allow_dirty_default =
+        if benchmark_workspace.sync_default_allow_dirty.unwrap_or(false) { "1" } else { "0" };
     let clean_context =
         env_or_default("BENCHMARK_SYNC_CLEAN_CONTEXT", clean_context_default) == "1";
     let allow_dirty = env_or_default("BENCHMARK_SYNC_ALLOW_DIRTY", allow_dirty_default) == "1";
     if !allow_dirty {
-        let dirty = run_program(
-            workspace,
-            "git",
-            &["status".to_string(), "--short".to_string()],
-        )?;
+        let dirty = run_program(workspace, "git", &["status".to_string(), "--short".to_string()])?;
         if !dirty.stdout.trim().is_empty() {
             return Ok(OpsCommandOutcome::failure(
                 "refusing push: local git tree is dirty (set BENCHMARK_SYNC_ALLOW_DIRTY=1 to override)\n",
@@ -682,10 +612,7 @@ pub(super) fn hpc_benchmark_sync_push(
     let mkdir = run_program(
         workspace,
         "ssh",
-        &[
-            benchmark_host.clone(),
-            format!("mkdir -p '{benchmark_repo_dir}'"),
-        ],
+        &[benchmark_host.clone(), format!("mkdir -p '{benchmark_repo_dir}'")],
     )?;
     if !mkdir.is_success() {
         return Ok(mkdir);
@@ -758,7 +685,5 @@ pub(super) fn hpc_benchmark_sync_push(
         }
     }
     let remote_commit = benchmark_sync_revision(workspace, &benchmark_host, &benchmark_repo_dir)?;
-    success_line(format!(
-        "remote_repo={benchmark_repo_dir}\nremote_commit={remote_commit}"
-    ))
+    success_line(format!("remote_repo={benchmark_repo_dir}\nremote_commit={remote_commit}"))
 }

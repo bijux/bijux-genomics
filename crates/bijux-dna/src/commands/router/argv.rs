@@ -113,9 +113,6 @@ mod tests {
             "info",
         ]));
 
-        assert_eq!(
-            host_route,
-            argv(&["bijux-dna", "--json", "--platform", "test", "env", "info"])
-        );
+        assert_eq!(host_route, argv(&["bijux-dna", "--json", "--platform", "test", "env", "info"]));
     }
 }

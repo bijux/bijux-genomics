@@ -66,30 +66,18 @@ arch = "x86_64"
 
     let ws_root = crate::support::repo_root().expect("repo root");
     for (src, dest) in [
-        (
-            ws_root.join("configs/ci/tools/images.toml"),
-            ci_tools_dir.join("images.toml"),
-        ),
+        (ws_root.join("configs/ci/tools/images.toml"), ci_tools_dir.join("images.toml")),
         (
             ws_root.join("configs/ci/registry/tool_registry.toml"),
             ci_registry_dir.join("tool_registry.toml"),
         ),
-        (
-            ws_root.join("configs/ci/stages/stages.toml"),
-            ci_stages_dir.join("stages.toml"),
-        ),
-        (
-            ws_root.join("configs/ci/registry/domains.toml"),
-            ci_registry_dir.join("domains.toml"),
-        ),
+        (ws_root.join("configs/ci/stages/stages.toml"), ci_stages_dir.join("stages.toml")),
+        (ws_root.join("configs/ci/registry/domains.toml"), ci_registry_dir.join("domains.toml")),
         (
             ws_root.join("configs/ci/registry/tool_registry_vcf.toml"),
             ci_registry_dir.join("tool_registry_vcf.toml"),
         ),
-        (
-            ws_root.join("configs/ci/stages/stages_vcf.toml"),
-            ci_stages_dir.join("stages_vcf.toml"),
-        ),
+        (ws_root.join("configs/ci/stages/stages_vcf.toml"), ci_stages_dir.join("stages_vcf.toml")),
         (
             ws_root.join("configs/ci/params/param_registry_vcf.toml"),
             ci_params_dir.join("param_registry_vcf.toml"),

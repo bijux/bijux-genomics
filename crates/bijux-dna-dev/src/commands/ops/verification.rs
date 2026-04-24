@@ -27,13 +27,7 @@ pub(super) fn test_control_plane_smoke(
         vec!["lab", "run", "run-bench", "--", "--help"],
         vec!["smoke", "run", "run", "--", "--help"],
         vec!["test", "run", "toy-runs", "--", "--help"],
-        vec![
-            "hpc",
-            "run",
-            "validate-frontend-constraints",
-            "--",
-            "--help",
-        ],
+        vec!["hpc", "run", "validate-frontend-constraints", "--", "--help"],
     ];
     let mut failures = Vec::new();
     for probe in probes {
@@ -142,14 +136,9 @@ pub(super) fn test_triage(workspace: &Workspace, args: &[String]) -> Result<OpsC
         buckets.entry(bucket).or_default().push(name);
     }
     let mut stdout = format!("triage source: {}\n\n", workspace.rel(&path).display());
-    for bucket in [
-        "guardrails",
-        "snapshots",
-        "ssot-registry",
-        "apptainer-policy",
-        "spawn-policy",
-        "other",
-    ] {
+    for bucket in
+        ["guardrails", "snapshots", "ssot-registry", "apptainer-policy", "spawn-policy", "other"]
+    {
         if let Some(items) = buckets.get(bucket) {
             stdout.push_str(&format!("[{bucket}] {}\n", items.len()));
             for item in items {
@@ -175,20 +164,14 @@ pub(super) fn test_reproduce_failure(
         .map(|value| path_from_arg(workspace, value))
         .context("usage: reproduce-failure <nextest-jsonl-log>")?;
     if !path.is_file() {
-        return Ok(OpsCommandOutcome::failure(format!(
-            "missing log file: {}\n",
-            path.display()
-        )));
+        return Ok(OpsCommandOutcome::failure(format!("missing log file: {}\n", path.display())));
     }
     let mut failures = BTreeSet::new();
     for line in read_utf8(&path)?.lines() {
         let Ok(payload) = serde_json::from_str::<Value>(line) else {
             continue;
         };
-        let status = payload
-            .get("status")
-            .and_then(Value::as_str)
-            .unwrap_or_default();
+        let status = payload.get("status").and_then(Value::as_str).unwrap_or_default();
         if !matches!(status, "fail" | "failed") {
             continue;
         }
@@ -335,11 +318,7 @@ pub(super) fn test_toy_runs(workspace: &Workspace, args: &[String]) -> Result<Op
     let selected = match profile.as_str() {
         "all" => vec!["fastq", "bam", "vcf"],
         "fastq" | "bam" | "vcf" => vec![profile.as_str()],
-        _ => {
-            return Ok(OpsCommandOutcome::failure(format!(
-                "unknown profile: {profile}\n"
-            )))
-        }
+        _ => return Ok(OpsCommandOutcome::failure(format!("unknown profile: {profile}\n"))),
     };
     let checksums = verify_toy_inputs(workspace)?;
     bijux_dna_infra::ensure_dir(&out).with_context(|| format!("create {}", out.display()))?;
@@ -382,9 +361,7 @@ pub(super) fn test_toy_runs(workspace: &Workspace, args: &[String]) -> Result<Op
             let report = build_combined_toy_report(&out, &selected)?;
             success_line(report.display().to_string())
         }
-        other => Ok(OpsCommandOutcome::failure(format!(
-            "unknown command: {other}\n"
-        ))),
+        other => Ok(OpsCommandOutcome::failure(format!("unknown command: {other}\n"))),
     }
 }
 
@@ -416,11 +393,7 @@ pub(super) fn merge_outcomes(
     mut left: OpsCommandOutcome,
     right: OpsCommandOutcome,
 ) -> OpsCommandOutcome {
-    left.exit_code = if left.exit_code != 0 {
-        left.exit_code
-    } else {
-        right.exit_code
-    };
+    left.exit_code = if left.exit_code != 0 { left.exit_code } else { right.exit_code };
     left.stdout.push_str(&right.stdout);
     left.stderr.push_str(&right.stderr);
     left
@@ -432,10 +405,7 @@ pub(super) fn run_check_ids(stdout: &mut String, check_ids: &[&str]) -> Result<(
         let outcomes = app.run_selection(CheckSelection::Single((*check_id).to_string()))?;
         for outcome in outcomes {
             if outcome.status == CheckStatus::Failed {
-                return Err(anyhow!(
-                    "check `{check_id}` failed: {}",
-                    outcome.detail.trim()
-                ));
+                return Err(anyhow!("check `{check_id}` failed: {}", outcome.detail.trim()));
             }
             stdout.push_str(&format!("{}: passed\n", outcome.id));
             if !outcome.detail.trim().is_empty() {

@@ -4,6 +4,7 @@ use crate::commands::support::prelude::{
     run_env_smoke_for_stage, Cli, EnvCommand, Result,
 };
 
+#[allow(clippy::too_many_lines)]
 pub(crate) fn handle_environment_command(
     cli: &Cli,
     args: &crate::cli::EnvRootArgs,
@@ -146,9 +147,7 @@ pub(crate) fn handle_environment_command(
             } else if let Some(tool) = args.tool.as_deref() {
                 run_env_smoke(&args.runtime, tool)?;
             } else {
-                return Err(anyhow!(
-                    "environment smoke requires either <tool> or --stage"
-                ));
+                return Err(anyhow!("environment smoke requires either <tool> or --stage"));
             }
         }
         EnvCommand::Prep(args) => {

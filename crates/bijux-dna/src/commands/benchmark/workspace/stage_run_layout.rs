@@ -21,9 +21,7 @@ pub(crate) fn benchmark_runtime_corpus_dir_name(
     {
         return Ok(dir_name.to_string());
     }
-    Err(anyhow!(
-        "benchmark config is missing workspace.remote.corpus_root"
-    ))
+    Err(anyhow!("benchmark config is missing workspace.remote.corpus_root"))
 }
 
 pub(crate) fn benchmark_stage_run_relative_root(
@@ -44,9 +42,7 @@ pub(crate) fn benchmark_stage_run_relative_root(
         })
         .ok_or_else(|| anyhow!("benchmark config is missing workspace.layout.stage_runs template for scope `{scope}`"))?;
     Ok(PathBuf::from(
-        template
-            .replace("{corpus_id}", corpus_dir_name)
-            .replace("{stage_id}", stage_id),
+        template.replace("{corpus_id}", corpus_dir_name).replace("{stage_id}", stage_id),
     ))
 }
 

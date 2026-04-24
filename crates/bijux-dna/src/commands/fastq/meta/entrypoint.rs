@@ -4,7 +4,7 @@ use super::environment::handle_environment_command;
 use super::pipelines::handle_pipelines_command;
 use crate::cli::BenchConfigCommand;
 use crate::commands::fastq::api_bridge::{
-    bench_bam_pipeline_args_to_api, bench_bam_stage_args_to_api, resolve_profile_alias,
+    bench_bam_pipeline_args_to_api, bench_bam_stage_args_to_api,
 };
 #[allow(unused_imports)]
 use crate::commands::support::prelude::{
@@ -25,18 +25,18 @@ use crate::commands::support::prelude::{
     bench_fastq_remove_chimeras, bench_fastq_remove_duplicates, bench_fastq_screen,
     bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_trim_polyg_tails,
     bench_fastq_trim_terminal_damage, bench_fastq_umi, bench_fastq_validate_reads, cli,
-    load_image_catalog, load_platform, print_bench_schema, qc_class_label, render, run_image_qa,
-    set_tool_tier_policy, workspace_audit, write_chimeras_report, write_cluster_otus_report,
-    write_correct_report, write_deplete_host_report, write_deplete_reference_contaminants_report,
-    write_deplete_rrna_report, write_detect_adapters_report, write_duplicates_report,
-    write_filter_low_complexity_report, write_filter_report, write_index_reference_report,
-    write_infer_asvs_report, write_merge_report, write_normalize_abundance_report,
-    write_normalize_primers_report, write_overrepresented_report, write_qc_post_report,
-    write_read_lengths_report, write_run_report_from_facts, write_run_summary_from_facts,
-    write_screen_report, write_stage_summary_csv, write_stats_report, write_trim_polyg_report,
-    write_trim_report, write_trim_terminal_damage_report, write_umi_report, write_validate_report,
-    BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand, Objective, Path,
-    PoliciesCommand, Result,
+    load_image_catalog, load_manifests, load_platform, print_bench_schema, qc_class_label, render,
+    run_image_qa, set_tool_tier_policy, workspace_audit, write_chimeras_report,
+    write_cluster_otus_report, write_correct_report, write_deplete_host_report,
+    write_deplete_reference_contaminants_report, write_deplete_rrna_report,
+    write_detect_adapters_report, write_duplicates_report, write_filter_low_complexity_report,
+    write_filter_report, write_index_reference_report, write_infer_asvs_report, write_merge_report,
+    write_normalize_abundance_report, write_normalize_primers_report, write_overrepresented_report,
+    write_qc_post_report, write_read_lengths_report, write_run_report_from_facts,
+    write_run_summary_from_facts, write_screen_report, write_stage_summary_csv, write_stats_report,
+    write_trim_polyg_report, write_trim_report, write_trim_terminal_damage_report,
+    write_umi_report, write_validate_report, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli,
+    DnaCommand, Objective, Path, PoliciesCommand, Result,
 };
 
 #[allow(clippy::too_many_lines)]

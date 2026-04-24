@@ -107,11 +107,7 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             ),
             BamCommand::Run(args) => (
                 StageId::new(args.stage.stage().as_str()),
-                ToolId::new(
-                    args.tool
-                        .clone()
-                        .unwrap_or_else(|| TOOL_SAMTOOLS.to_string()),
-                ),
+                ToolId::new(args.tool.clone().unwrap_or_else(|| TOOL_SAMTOOLS.to_string())),
                 CommonArgs::default(),
             ),
         },
@@ -783,11 +779,10 @@ mod tests {
 
     #[test]
     fn fastq_qc_command_uses_multiqc_backend() {
-        let (stage, tool, _common) = resolve_stage_tool(&DnaCommand::Fastq(
-            crate::commands::cli::parse::FastqRootArgs {
+        let (stage, tool, _common) =
+            resolve_stage_tool(&DnaCommand::Fastq(crate::commands::cli::parse::FastqRootArgs {
                 command: FastqCommand::Qc(CommonArgs::default()),
-            },
-        ));
+            }));
         assert_eq!(stage.as_str(), "fastq.report_qc");
         assert_eq!(tool.as_str(), "multiqc");
     }
@@ -864,10 +859,7 @@ mod tests {
         assert_eq!(bench.max_n_count, Some(3));
         assert_eq!(bench.entropy_threshold, Some(18.0));
         assert_eq!(bench.polyx_policy.as_deref(), Some("trim"));
-        assert_eq!(
-            bench.kmer_ref.as_deref(),
-            Some(PathBuf::from("contaminants.fa").as_path())
-        );
+        assert_eq!(bench.kmer_ref.as_deref(), Some(PathBuf::from("contaminants.fa").as_path()));
     }
 
     #[test]
@@ -958,10 +950,7 @@ mod tests {
 
         let bench = bench_args_trim_terminal_damage(&args).expect("bench args");
         assert_eq!(bench.threads, Some(5));
-        assert_eq!(
-            bench.execution_policy.as_deref(),
-            Some("explicit_terminal_trim")
-        );
+        assert_eq!(bench.execution_policy.as_deref(), Some("explicit_terminal_trim"));
     }
 
     #[test]
@@ -987,10 +976,7 @@ mod tests {
 
         let bench = bench_args_normalize_primers(&args).expect("bench args");
         assert_eq!(bench.primer_set_id.as_deref(), Some("16S_universal_v1"));
-        assert_eq!(
-            bench.orientation_policy.as_deref(),
-            Some("normalize_to_reverse_complement")
-        );
+        assert_eq!(bench.orientation_policy.as_deref(), Some("normalize_to_reverse_complement"));
         assert_eq!(bench.max_mismatch_rate, Some(0.05));
         assert_eq!(bench.min_overlap_bp, Some(14));
         assert_eq!(bench.strict_5p_anchor, Some(false));
@@ -1085,15 +1071,9 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
             .sample_id
             .clone()
             .ok_or_else(|| anyhow::anyhow!("sample_id required for benchmark"))?,
-        r1: args
-            .r1
-            .clone()
-            .ok_or_else(|| anyhow::anyhow!("r1 required for benchmark"))?,
+        r1: args.r1.clone().ok_or_else(|| anyhow::anyhow!("r1 required for benchmark"))?,
         r2: args.r2.clone(),
-        out: args
-            .out
-            .clone()
-            .ok_or_else(|| anyhow::anyhow!("out required for benchmark"))?,
+        out: args.out.clone().ok_or_else(|| anyhow::anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
         explain: false,
         replicates: 1,
@@ -1128,15 +1108,9 @@ pub fn bench_args_from_validate(
             .sample_id
             .clone()
             .ok_or_else(|| anyhow::anyhow!("sample_id required for benchmark"))?,
-        r1: args
-            .r1
-            .clone()
-            .ok_or_else(|| anyhow::anyhow!("r1 required for benchmark"))?,
+        r1: args.r1.clone().ok_or_else(|| anyhow::anyhow!("r1 required for benchmark"))?,
         r2: args.r2.clone(),
-        out: args
-            .out
-            .clone()
-            .ok_or_else(|| anyhow::anyhow!("out required for benchmark"))?,
+        out: args.out.clone().ok_or_else(|| anyhow::anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
         explain: false,
         strict,
@@ -1154,18 +1128,10 @@ pub fn bench_args_from_validate(
 pub fn preprocess_args_from_cli(
     args: &FastqPreprocessArgs,
 ) -> Result<engine_args::BenchFastqPreprocessArgs> {
-    let sample_id = args
-        .sample_id
-        .clone()
-        .ok_or_else(|| anyhow::anyhow!("--sample-id is required"))?;
-    let r1 = args
-        .r1
-        .clone()
-        .ok_or_else(|| anyhow::anyhow!("--r1 is required"))?;
-    let out = args
-        .out
-        .clone()
-        .ok_or_else(|| anyhow::anyhow!("--out is required"))?;
+    let sample_id =
+        args.sample_id.clone().ok_or_else(|| anyhow::anyhow!("--sample-id is required"))?;
+    let r1 = args.r1.clone().ok_or_else(|| anyhow::anyhow!("--r1 is required"))?;
+    let out = args.out.clone().ok_or_else(|| anyhow::anyhow!("--out is required"))?;
     let mut out_args = engine_args::BenchFastqPreprocessArgs {
         sample_id,
         profile: args.pipeline_profile.clone(),

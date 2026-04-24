@@ -25,14 +25,9 @@ pub(crate) fn ensure_profile_run_base_dir(
         tool,
     );
     if run_dir.starts_with(
-        profile
-            .run_base_dir
-            .join(bijux_dna_api::v1::api::run::RUN_LAYOUT_CONTRACT.runs_dir),
+        profile.run_base_dir.join(bijux_dna_api::v1::api::run::RUN_LAYOUT_CONTRACT.runs_dir),
     ) {
-        let base = profile
-            .run_base_dir
-            .parent()
-            .unwrap_or(&profile.run_base_dir);
+        let base = profile.run_base_dir.parent().unwrap_or(&profile.run_base_dir);
         profile.run_base_dir = base.to_path_buf();
     }
 }

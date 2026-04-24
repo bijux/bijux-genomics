@@ -73,13 +73,8 @@ fn run_bam_stage(
         },
         ToolId::new,
     );
-    let spec = build_tool_execution_spec(
-        stage.as_str(),
-        tool_id.as_str(),
-        registry,
-        &catalog,
-        &platform,
-    )?;
+    let spec =
+        build_tool_execution_spec(stage.as_str(), tool_id.as_str(), registry, &catalog, &platform)?;
 
     let out_dir = args.out.clone();
     bijux_dna_api::v1::api::run::ensure_dir(&out_dir).context("create bam out dir")?;
@@ -99,10 +94,7 @@ fn run_bam_stage(
     if args.dry_run {
         return Ok(());
     }
-    execute_run(&ExecuteRunRequest {
-        plan,
-        runner: RuntimeKind::Docker,
-    })?;
+    execute_run(&ExecuteRunRequest { plan, runner: RuntimeKind::Docker })?;
     Ok(())
 }
 
@@ -166,10 +158,7 @@ fn bam_run_args_to_api(args: &BamRunArgs) -> bijux_dna_api::v1::api::bench::BamR
         rg_lb: args.rg_lb.clone(),
         rg_policy: args.rg_policy.map(read_group_policy_to_string),
         build_reference_indices: args.build_reference_indices,
-        params_json: args
-            .params_json
-            .as_ref()
-            .map(|path| path.display().to_string()),
+        params_json: args.params_json.as_ref().map(|path| path.display().to_string()),
         dry_run: args.dry_run,
         allow_planned: args.allow_planned,
     }

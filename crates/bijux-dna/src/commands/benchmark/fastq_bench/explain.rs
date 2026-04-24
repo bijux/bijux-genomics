@@ -35,10 +35,8 @@ pub(super) fn explain_fastq_stage(
     }
     let stage_id =
         StageId::try_from(stage_id).map_err(|_| anyhow!("invalid stage id: {stage_id}"))?;
-    let stage = registry
-        .stages()
-        .get(&stage_id)
-        .ok_or_else(|| anyhow!("unknown stage {stage_id}"))?;
+    let stage =
+        registry.stages().get(&stage_id).ok_or_else(|| anyhow!("unknown stage {stage_id}"))?;
     println!("stage: {}", stage.stage_id);
     if let Some(description) = stage.description.as_ref() {
         if !description.is_empty() {
@@ -63,10 +61,7 @@ fn lookup_param_schema_id(stage_id: &str) -> Option<String> {
     roots.sort();
     roots.dedup();
     for root in roots {
-        for rel in [
-            "ci/params/param_registry.toml",
-            "ci/params/param_registry_vcf.toml",
-        ] {
+        for rel in ["ci/params/param_registry.toml", "ci/params/param_registry_vcf.toml"] {
             let path = bijux_dna_infra::configs_file(&root, rel);
             if !path.exists() {
                 continue;

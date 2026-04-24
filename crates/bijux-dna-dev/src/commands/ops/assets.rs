@@ -131,12 +131,7 @@ pub(super) fn assets_refresh_toy(
 
     write_checksum_manifest(
         &stage_dir.join("CHECKSUMS.sha256"),
-        &[
-            "bam/toy.sam",
-            "fastq/reads_1.fastq",
-            "fastq/reads_2.fastq",
-            "vcf/toy.vcf",
-        ],
+        &["bam/toy.sam", "fastq/reads_1.fastq", "fastq/reads_2.fastq", "vcf/toy.vcf"],
     )?;
     write_checksum_manifest(&stage_dir.join("bam/CHECKSUMS.sha256"), &["toy.sam"])?;
     write_checksum_manifest(
@@ -206,10 +201,7 @@ pub(super) fn assets_validate_reference(
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| entry.path().to_path_buf())
         .filter(|path| {
-            matches!(
-                path.extension().and_then(|ext| ext.to_str()),
-                Some("yaml" | "yml")
-            )
+            matches!(path.extension().and_then(|ext| ext.to_str()), Some("yaml" | "yml"))
         })
         .collect::<Vec<_>>();
     yaml_files.sort();
@@ -229,9 +221,7 @@ pub(super) fn assets_validate_reference(
             })
             .count();
         if non_comment_keys < 2 {
-            errors.push(format!(
-                "{rel}: expected schema_version plus at least one additional key"
-            ));
+            errors.push(format!("{rel}: expected schema_version plus at least one additional key"));
         }
 
         let mut counts = BTreeMap::new();
@@ -264,14 +254,12 @@ pub(super) fn assets_validate_reference(
             .filter_map(std::result::Result::ok)
             .map(|entry| entry.path())
             .filter(|path| {
-                matches!(
-                    path.extension().and_then(|ext| ext.to_str()),
-                    Some("yaml" | "yml")
-                ) && !path
-                    .file_name()
-                    .and_then(|name| name.to_str())
-                    .unwrap_or_default()
-                    .contains("presets")
+                matches!(path.extension().and_then(|ext| ext.to_str()), Some("yaml" | "yml"))
+                    && !path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .unwrap_or_default()
+                        .contains("presets")
             })
             .collect::<Vec<_>>();
         bank_files.sort();
@@ -280,14 +268,12 @@ pub(super) fn assets_validate_reference(
             .filter_map(std::result::Result::ok)
             .map(|entry| entry.path())
             .filter(|path| {
-                matches!(
-                    path.extension().and_then(|ext| ext.to_str()),
-                    Some("yaml" | "yml")
-                ) && path
-                    .file_name()
-                    .and_then(|name| name.to_str())
-                    .unwrap_or_default()
-                    .contains("presets")
+                matches!(path.extension().and_then(|ext| ext.to_str()), Some("yaml" | "yml"))
+                    && path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .unwrap_or_default()
+                        .contains("presets")
             })
             .collect::<Vec<_>>();
         preset_files.sort();
@@ -324,9 +310,7 @@ pub(super) fn assets_validate_reference(
                     }
                     let candidate = next_trimmed.trim_start_matches('-').trim();
                     if !candidate.is_empty() && !bank_ids.contains(candidate) {
-                        errors.push(format!(
-                            "{rel}: unresolved preset reference id: {candidate}"
-                        ));
+                        errors.push(format!("{rel}: unresolved preset reference id: {candidate}"));
                     }
                     lines.next();
                 }

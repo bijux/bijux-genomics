@@ -22,6 +22,7 @@ pub(crate) struct WorkspaceLayoutReport {
 }
 
 #[derive(Debug, Serialize)]
+#[allow(clippy::struct_field_names)]
 struct WorkspaceAuthoritativeRoots {
     remote_results_root: String,
     remote_reference_root: String,
@@ -70,11 +71,8 @@ pub(crate) fn write_workspace_layout_status(
     let report = workspace_layout_report(&config)?;
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
     let json_path = docs_root.join("workspace-layout-status.json");
-    fs::write(
-        &json_path,
-        format!("{}\n", serde_json::to_string_pretty(&report)?),
-    )
-    .with_context(|| format!("write {}", json_path.display()))?;
+    fs::write(&json_path, format!("{}\n", serde_json::to_string_pretty(&report)?))
+        .with_context(|| format!("write {}", json_path.display()))?;
     let markdown_path = docs_root.join("workspace-layout-status.md");
     fs::write(&markdown_path, render_workspace_layout_markdown(&report))
         .with_context(|| format!("write {}", markdown_path.display()))?;
@@ -119,10 +117,7 @@ fn workspace_layout_report(config: &BenchmarkConfig) -> Result<WorkspaceLayoutRe
         if pair.status == "duplicate" {
             issues.push(WorkspaceLayoutIssue {
                 issue_id: format!("duplicate-{}-root", pair.scope),
-                detail: format!(
-                    "both {} and {} exist",
-                    pair.canonical_root, pair.legacy_root
-                ),
+                detail: format!("both {} and {} exist", pair.canonical_root, pair.legacy_root),
             });
         }
     }
@@ -174,24 +169,14 @@ fn workspace_layout_report(config: &BenchmarkConfig) -> Result<WorkspaceLayoutRe
         local_cache_mirror_root: local_cache_mirror_root.display().to_string(),
         remote_workspace_root: remote_workspace_root.display().to_string(),
         authoritative_roots: WorkspaceAuthoritativeRoots {
-            remote_results_root: local_cache_mirror_root
-                .join("results")
-                .display()
-                .to_string(),
-            remote_reference_root: local_cache_mirror_root
-                .join("reference")
-                .display()
-                .to_string(),
+            remote_results_root: local_cache_mirror_root.join("results").display().to_string(),
+            remote_reference_root: local_cache_mirror_root.join("reference").display().to_string(),
             local_stage_root: local_stage_layout.authoritative_stage_root.clone(),
         },
         root_pairs,
         unexpected_remote_siblings,
         local_stage_layout,
-        status: if issues.is_empty() {
-            "clear".to_string()
-        } else {
-            "incomplete".to_string()
-        },
+        status: if issues.is_empty() { "clear".to_string() } else { "incomplete".to_string() },
         issue_count: issues.len(),
         issues,
     })
@@ -231,9 +216,7 @@ fn summarize_local_stage_layout(
     corpus_dir_name: &str,
 ) -> WorkspaceLocalStageLayout {
     let archive_corpus_root = local_results_root.join(corpus_dir_name);
-    let cache_corpus_root = local_cache_mirror_root
-        .join("results")
-        .join(corpus_dir_name);
+    let cache_corpus_root = local_cache_mirror_root.join("results").join(corpus_dir_name);
     let archive_stage_ids = entry_names(&archive_corpus_root);
     let cache_stage_ids = entry_names(&cache_corpus_root);
     let archive_set = archive_stage_ids.iter().cloned().collect::<BTreeSet<_>>();
@@ -270,14 +253,8 @@ fn render_workspace_layout_markdown(report: &WorkspaceLayoutReport) -> String {
         "# Benchmark Workspace Layout Status".to_string(),
         String::new(),
         format!("- Local results root: `{}`", report.local_results_root),
-        format!(
-            "- Local cache mirror root: `{}`",
-            report.local_cache_mirror_root
-        ),
-        format!(
-            "- Mirrored remote workspace root: `{}`",
-            report.remote_workspace_root
-        ),
+        format!("- Local cache mirror root: `{}`", report.local_cache_mirror_root),
+        format!("- Mirrored remote workspace root: `{}`", report.remote_workspace_root),
         format!(
             "- Authoritative remote results root: `{}`",
             report.authoritative_roots.remote_results_root
@@ -336,14 +313,8 @@ fn render_workspace_layout_markdown(report: &WorkspaceLayoutReport) -> String {
         String::new(),
         "## Local Stage Layout".to_string(),
         String::new(),
-        format!(
-            "- Archive corpus root: `{}`",
-            report.local_stage_layout.archive_corpus_root
-        ),
-        format!(
-            "- Cache corpus root: `{}`",
-            report.local_stage_layout.cache_corpus_root
-        ),
+        format!("- Archive corpus root: `{}`", report.local_stage_layout.archive_corpus_root),
+        format!("- Cache corpus root: `{}`", report.local_stage_layout.cache_corpus_root),
     ]);
     if !report.local_stage_layout.shared_stage_ids.is_empty() {
         lines.push(format!(
