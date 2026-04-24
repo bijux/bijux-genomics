@@ -16,8 +16,7 @@ fn is_core_metrics_path(path: &Path) -> bool {
 }
 
 fn is_core_id_catalog_stage_path(path: &Path) -> bool {
-    path.to_string_lossy()
-        .contains("/crates/bijux-dna-core/src/id_catalog/stage/")
+    path.to_string_lossy().contains("/crates/bijux-dna-core/src/id_catalog/stage/")
 }
 
 fn is_pipelines_defaults_path(path: &Path) -> bool {

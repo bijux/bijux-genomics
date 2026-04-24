@@ -45,9 +45,7 @@ const MIN_PUB_ITEMS: usize = 5;
 
 fn is_allowlisted_dir(path: &Path) -> bool {
     let path_str = path.to_string_lossy().replace('\\', "/");
-    ALLOWLIST_DIRS
-        .iter()
-        .any(|(name, _reason)| path.ends_with(name) || path_str.ends_with(name))
+    ALLOWLIST_DIRS.iter().any(|(name, _reason)| path.ends_with(name) || path_str.ends_with(name))
 }
 
 fn pub_item_count(content: &str) -> usize {

@@ -42,11 +42,8 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
     ] {
         if scope.is_file() {
             let raw = std::fs::read_to_string(&scope).unwrap_or_default();
-            let rel = scope
-                .strip_prefix(&root)
-                .unwrap_or(&scope)
-                .to_string_lossy()
-                .replace('\\', "/");
+            let rel =
+                scope.strip_prefix(&root).unwrap_or(&scope).to_string_lossy().replace('\\', "/");
             if raw.contains(&legacy) && !allowlist.iter().any(|allowed| rel == *allowed) {
                 offenders.push(scope.display().to_string());
             }

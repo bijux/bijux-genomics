@@ -43,14 +43,8 @@ fn resolve_link(base: &Path, link: &str) -> Option<PathBuf> {
 fn policy__boundaries__readme_policy__readme_has_required_sections_and_links() {
     let required_heading_groups: [(&str, &[&str]); 5] = [
         ("crate purpose", &["## What this crate does"]),
-        (
-            "boundaries",
-            &["## What it must not do (boundaries)", "## Boundaries"],
-        ),
-        (
-            "public entrypoints",
-            &["## Public API / entrypoints", "## Public entrypoints"],
-        ),
+        ("boundaries", &["## What it must not do (boundaries)", "## Boundaries"]),
+        ("public entrypoints", &["## Public API / entrypoints", "## Public entrypoints"]),
         (
             "contract ownership",
             &["## Key contracts it owns/consumes", "## Contracts and operating rules"],
@@ -67,8 +61,8 @@ fn policy__boundaries__readme_policy__readme_has_required_sections_and_links() {
             bijux_dna_policies::policy_assert!(
                 alternatives.iter().any(|heading| content.contains(heading)),
                 "README missing required heading group ({group}) in {}. Accepted headings: {:?}",
-                readme.display()
-                , alternatives
+                readme.display(),
+                alternatives
             );
         }
         bijux_dna_policies::policy_assert!(
